@@ -1,6 +1,6 @@
 import { ChartSeries } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
-import { ChartTypeName } from "../core/GrapherConstants"
+import { ChartTypeName } from "@ourworldindata/types"
 import { Bounds } from "@ourworldindata/utils"
 
 export interface FacetChartManager extends ChartManager {

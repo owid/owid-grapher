@@ -1,14 +1,13 @@
 #! /usr/bin/env jest
 
-import { ChartTypeName } from "../core/GrapherConstants"
-import { LegacyGrapherInterface } from "../core/GrapherInterface"
 import {
-    ColumnTypeMap,
-    ErrorValueTypes,
+    ChartTypeName,
     OwidColumnDef,
     OwidTableSlugs,
     StandardOwidColumnDefs,
-} from "@ourworldindata/core-table"
+    LegacyGrapherInterface,
+} from "@ourworldindata/types"
+import { ColumnTypeMap, ErrorValueTypes } from "@ourworldindata/core-table"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import {
     MultipleOwidVariableDataDimensionsMap,

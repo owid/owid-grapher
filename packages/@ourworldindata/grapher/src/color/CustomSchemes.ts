@@ -1,5 +1,5 @@
 import { omit, invert } from "@ourworldindata/utils"
-import { ColorSchemeInterface, ColorSchemeName } from "./ColorConstants.js"
+import { ColorSchemeInterface, ColorSchemeName } from "@ourworldindata/types"
 
 export const CustomColorSchemes: ColorSchemeInterface[] = []
 

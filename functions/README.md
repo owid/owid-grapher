@@ -7,10 +7,158 @@ Pages Functions are very similar to Cloudflare Workers; however they will always
 
 ## File-based routing
 
-Pages Functions uses file-based, which means that the file `grapher/[slug].ts` will serve routes like `/grapher/child-mortality`.
+Pages Functions use file-based routing, which means that the file `grapher/[slug].ts` will serve routes like `/grapher/child-mortality`.
 In addition, there's a [`_routes.json`](../_routes.json) file that specifies which routes are to be served dynamically.
 
+## Development
+
+1. Copy `.dev.vars.example` to `.dev.vars` and fill in the required variables.
+
+2. Start the Cloudflare function development server with either:
+
+-   (preferred) `yarn make up.full`: starts the whole local development stack, including the functions development server
+-   `yarn startLocalCloudflareFunctions`: only starts the functions development server
+
+Note: compatibility dates between local development, production and preview environments should be kept in sync:
+
+-   local: defined in `package.json` -> `startLocalCloudflareFunctions`
+-   production & preview : see https://dash.cloudflare.com/078fcdfed9955087315dd86792e71a7e/pages/view/owid/settings/functions
+
+3. _Refer to each function's "Development" section below for further instructions._
+
+## Testing on Fondation staging sites vs Cloudfare previews
+
+`yarn deployContentPreview` deploys the staging `bakedSite` to a Cloudflare preview at https://[PREVIEW_BRANCH].owid.pages.dev. This is the recommended way to test functions in a production-like environment. See [../ops/buildkite/deploy-content-preview](../ops/buildkite/deploy-content-preview) for more details.
+
+### Rationale
+
+A custom staging site is available at http://staging-site-[BRANCH] upon pushing your branch (see ops > templates > lxc-manager > staging-create). This site is served by `wrangler` (see ops > templates > owid-site-staging > grapher-refresh.sh). `wrangler` is helpful for testing the functions locally (and possibly for some debugging scenarios on staging servers), but is still not the closest match to the production Cloudflare environment.
+
+When it comes to testing functions in a production-like environment, Cloudlfare previews are recommended.
+
+Cloudflare previews are served by Cloudflare (as opposed to `wrangler` on staging sites) and are available at https://[RANDOM_ID].owid.pages.dev. Cloudflare previews do not rely on the `wrangler` CLI and its `.dev.vars` file. Instead, they use the [Cloudflare dashboard to configure environment variables](https://dash.cloudflare.com/078fcdfed9955087315dd86792e71a7e/pages/view/owid/settings/environment-variables), in the same way and place as the production site.
+
+This proximity of configurations in the Cloudflare dashboard makes spotting differences between production and preview environments easier - and is one of the reason of using Cloudflare previews in the same project (owid) over using a new project specific to staging.
+
+Our workflow uses `wrangler pages deploy` to deploy the `bakedSite` to
+Cloudflare. Similarly, `yarn deployContentPreview` uses `wrangler pages deploy
+--branch=[PREVIEW_BRANCH]` to deploy the `bakedSite` to a Cloudflare preview at
+https://[PREVIEW_BRANCH].owid.pages.dev.
+
 # Our dynamic routes
+
+## `/donation/donate`
+
+This route is used to create a Stripe Checkout session for a donation.
+
+When a user clicks the Donate button on our donate page, they send a request to this function, which verifies that they've passed the CAPTCHA challenge and validates their donation parameters (amount, interval, etc.).
+
+If all goes well, this function will respond with the URL of a Stripe Checkout form, where the donor's browser will be redirected to. From there, Stripe deals with the donation – collecting card & address info. Stripe has success and cancel URLs configured to redirect users after completion.
+
+```mermaid
+sequenceDiagram
+    box Purple Donor flow
+    participant Donor
+    participant Donation Form
+    participant Recaptcha
+    participant Cloud Functions
+    participant Stripe Checkout
+    participant "Thank you" page
+    end
+    box Green Udate public donors list
+    participant Lars
+    participant Donors sheet
+    participant Valerie
+    participant Wordpress
+    end
+    Donor ->>+ Donation Form: Visits
+    Donation Form ->> Donation Form: Activates donate button
+    Donor ->> Donation Form: Fills in and submits
+    Donation Form ->> Donation Form: Validates submission
+    break when donation parameters invalid
+    Donation Form -->> Donor: Show error
+    end
+    Donation Form ->>+ Recaptcha: is human?
+    Recaptcha -->>- Donation Form: yes
+    break when bot suspected
+    Recaptcha -->> Donor: show challenge
+    end
+    Donation Form ->>+ Cloud Functions: submits
+    Cloud Functions ->> Recaptcha: is token valid?
+    Recaptcha -->> Cloud Functions: yes
+    break when token invalid or donation parameters invalid
+    Cloud Functions -->> Donor: Show error
+    end
+    Cloud Functions ->> Stripe Checkout: Requests Stripe checkout session
+    Stripe Checkout -->> Cloud Functions: Generates Stripe checkout session
+    break when session creation failed
+    Cloud Functions -->> Donor: Show error
+    end
+    Cloud Functions -->>- Donation Form: Send session URL
+    Donation Form ->>- Stripe Checkout: Redirects
+    Donor ->> Stripe Checkout: Proceeds with payment
+    Stripe Checkout -->> Cloud Functions: Confirms payment
+    Note over Cloud Functions, Stripe Checkout: A private Slack channel is notified via a <br>Slack app integration
+    Cloud Functions ->> Donor: Sends confirmation email via Mailgun
+    Note over Donor, Cloud Functions: A bcc is sent to donate@ourworldindata.org
+    Stripe Checkout ->> "Thank you" page: Redirects
+    Note right of "Thank you" page: A few weeks/months later
+    Lars ->> Donors sheet: ✍️ Exports new donors
+    Valerie ->> Donors sheet: ✍️  Edits/Deletes donors
+    Valerie ->> Wordpress: ✍️  Pastes updated donors list
+```
+
+### Development
+
+0. _Follow steps 1 and 2 in the "Development" section to start the functions development server._
+
+The route is available locally at `http://localhost:8788/donation/donate`.
+
+1. Go to `http://localhost:3030/donate` and fill in the form. You should be redirected to a Stripe Checkout page. You should use the Stripe VISA test card saved in 1Password (or any other test payment method from https://stripe.com/docs/testing) to complete the donation. Do not use a real card.
+
+## `/donation/thank-you`
+
+This route is used to handle incoming Stripe webhook `checkout.session.completed` events.
+
+This webhook event is fired by Stripe when a user completes a donation on the Stripe checkout page.
+
+This webhook is registered for production in the Stripe dashboard, at https://dashboard.stripe.com/webhooks. For local development, the webhook is registered using the Stripe CLI (see below).
+
+### Development
+
+In order to test the webhook function locally, you can use the Stripe CLI to listen to incoming events and forward them to your functions development server.
+
+0. _Follow steps 1 and 2 in the "Development" section to start the functions development server._
+
+1. Install Stripe CLI:
+   https://stripe.com/docs/stripe-cli#install
+
+2. Register a temporary webhook using the Stripe CLI (runs in test mode by default):
+
+```sh
+STRIPE_API_KEY=xxx stripe listen --latest --forward-to localhost:8788/donation/thank-you
+```
+
+-   replace `xxx` with the value of `STRIPE_API_KEY (dev)` in 1password. Alternatively, if you have access to the Stripe dashboard, you can forgo the `STRIPE_API_KEY=xxx` part and let `stripe listen ...` guide you through a one-time login process.
+-   `--latest` is required when development code uses a more recent API version than the one set in the Stripe dashboard (which `stripe listen` will default to).
+
+3. Copy the webhook secret into `STRIPE_WEBHOOK_SECRET` variable in your `.dev.vars` and then restart the development server. This secret is shown when you ran `stripe listen`, and is stable across restarts.
+
+4. Make a test donation through http://localhost:3030/donate. You should see the event logged in the terminal where you ran `stripe listen`.
+
+Alternatively, you can trigger a test event from the CLI.
+
+```sh
+stripe trigger checkout.session.completed
+```
+
+Note: this will send the `checkout.session.completed` event expected in `/donation/thank-you`. However, I didn't manage to add metadata with `--add checkout.session:metadata.name="John Doe" --add checkout.session:metadata.showOnList=true` to perform a full test.
+
+### Testing on Cloudflare previews
+
+The webhook registered in the Stripe dashboard is configured to send test events to https://donate.owid.pages.dev/donation/thank-you.
+
+There is however a [Cloudflare Access rule restricting access to \*.owid.pages.dev](https://one.dash.cloudflare.com/078fcdfed9955087315dd86792e71a7e/access/apps/edit/d8c658c3-fd20-477e-ac20-e7ed7fd656de?tab=overview), so the Stripe webhook invocation will hit the Google Auth page instead of the function. To test the webhook on a Cloudflare preview, you need to temporarily disable the Cloudflare Access rule (the easiest is to change the rule to an unused subdomain, e.g. `temp.owid.pages.dev`).
 
 ## `/grapher/:slug`
 

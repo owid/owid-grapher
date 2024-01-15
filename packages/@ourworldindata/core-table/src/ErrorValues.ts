@@ -7,14 +7,8 @@
  *
  * For a good read on the "Errors are values" pattern: https://blog.golang.org/errors-are-values
  */
-export abstract class ErrorValue {
-    toString(): string {
-        return ""
-    }
-    toErrorString(): string {
-        return this.constructor.name
-    }
-}
+
+import { ErrorValue } from "@ourworldindata/types"
 
 class NaNButShouldBeNumber extends ErrorValue {}
 export class DroppedForTesting extends ErrorValue {}

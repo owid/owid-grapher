@@ -1,11 +1,11 @@
 import { faMinus, faTrash } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { EntityName } from "@ourworldindata/core-table"
 import {
+    EntityName,
     ComparisonLineConfig,
-    Grapher,
     ScatterPointLabelStrategy,
-} from "@ourworldindata/grapher"
+} from "@ourworldindata/types"
+import { Grapher } from "@ourworldindata/grapher"
 import { debounce, excludeUndefined } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"

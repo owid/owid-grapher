@@ -16,15 +16,13 @@ import {
     ScaleType,
     VerticalAlign,
     TickFormattingOptions,
+    Tickmark,
+    ValueRange,
 } from "@ourworldindata/utils"
 import { AxisConfig } from "./AxisConfig"
 import { TextWrap } from "@ourworldindata/components"
-import {
-    ColumnTypeMap,
-    CoreColumn,
-    ValueRange,
-} from "@ourworldindata/core-table"
-import { Tickmark } from "./AxisConfigInterface"
+import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
+import { GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants.js"
 
 interface TickLabelPlacement {
     value: number
@@ -387,7 +385,7 @@ abstract class AbstractAxis {
     }
 
     @computed get tickFontSize(): number {
-        return 0.9 * this.fontSize
+        return GRAPHER_FONT_SCALE_12 * this.fontSize
     }
 
     @computed protected get baseTicks(): Tickmark[] {
@@ -434,7 +432,7 @@ abstract class AbstractAxis {
     }
 
     @computed get labelFontSize(): number {
-        return 0.7 * this.fontSize
+        return GRAPHER_FONT_SCALE_12 * this.fontSize
     }
 
     @computed get labelTextWrap(): TextWrap | undefined {

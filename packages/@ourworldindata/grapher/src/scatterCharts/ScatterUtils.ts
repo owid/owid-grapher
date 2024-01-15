@@ -1,10 +1,11 @@
 import { Bounds, PointVector, last, maxBy } from "@ourworldindata/utils"
 import {
-    SCATTER_LABEL_FONT_SIZE_WHEN_HIDDEN_LINES,
+    SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES,
     ScatterLabel,
     ScatterRenderPoint,
     ScatterRenderSeries,
 } from "./ScatterPlotChartConstants"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 
 export const labelPriority = (label: ScatterLabel): number => {
     let priority = label.fontSize
@@ -20,18 +21,19 @@ export const labelPriority = (label: ScatterLabel): number => {
 export const makeStartLabel = (
     series: ScatterRenderSeries,
     isSubtleForeground: boolean,
-    hideConnectedScatterLines: boolean
+    hideConnectedScatterLines: boolean,
+    baseFontSize: number
 ): ScatterLabel | undefined => {
     // No room to label the year if it's a single point
     if (!series.isForeground || series.points.length <= 1) return undefined
 
     const fontSize = hideConnectedScatterLines
-        ? SCATTER_LABEL_FONT_SIZE_WHEN_HIDDEN_LINES
+        ? SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES * baseFontSize
         : series.isForeground
         ? isSubtleForeground
-            ? 8
-            : 9
-        : 7
+            ? (8 / BASE_FONT_SIZE) * baseFontSize
+            : (9 / BASE_FONT_SIZE) * baseFontSize
+        : (7 / BASE_FONT_SIZE) * baseFontSize
     const firstValue = series.points[0]
     const nextValue = series.points[1]
     const nextSegment = nextValue.position.subtract(firstValue.position)
@@ -73,7 +75,8 @@ export const makeStartLabel = (
 export const makeMidLabels = (
     series: ScatterRenderSeries,
     isSubtleForeground: boolean,
-    hideConnectedScatterLines: boolean
+    hideConnectedScatterLines: boolean,
+    baseFontSize: number
 ): ScatterLabel[] => {
     if (
         !series.isForeground ||
@@ -83,12 +86,12 @@ export const makeMidLabels = (
         return []
 
     const fontSize = hideConnectedScatterLines
-        ? SCATTER_LABEL_FONT_SIZE_WHEN_HIDDEN_LINES
+        ? SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES * baseFontSize
         : series.isForeground
         ? isSubtleForeground
-            ? 8
-            : 9
-        : 7
+            ? (8 / BASE_FONT_SIZE) * baseFontSize
+            : (9 / BASE_FONT_SIZE) * baseFontSize
+        : (7 / BASE_FONT_SIZE) * baseFontSize
     const fontWeight = 400
 
     // label all the way to the end for the tooltip series, otherwise to n-1
@@ -158,12 +161,13 @@ export const makeMidLabels = (
 export const makeEndLabel = (
     series: ScatterRenderSeries,
     isSubtleForeground: boolean,
-    hideConnectedScatterLines: boolean
+    hideConnectedScatterLines: boolean,
+    baseFontSize: number
 ): ScatterLabel => {
     const lastValue = last(series.points) as ScatterRenderPoint
     const lastPos = lastValue.position
     const fontSize = hideConnectedScatterLines
-        ? SCATTER_LABEL_FONT_SIZE_WHEN_HIDDEN_LINES
+        ? SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES * baseFontSize
         : series.fontSize *
           (series.isForeground ? (isSubtleForeground ? 1.2 : 1.3) : 1.1)
     const fontWeight =

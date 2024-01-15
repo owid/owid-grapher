@@ -1,10 +1,10 @@
 #! /usr/bin/env jest
 
-import { Bounds } from "@ourworldindata/utils"
-import { ColumnTypeNames, OwidTable } from "@ourworldindata/core-table"
+import { Bounds, ColumnTypeNames } from "@ourworldindata/utils"
+import { OwidTable } from "@ourworldindata/core-table"
 import { DefaultColorScheme } from "../color/CustomSchemes"
 import { Grapher } from "../core/Grapher"
-import { ChartTypeName } from "../core/GrapherConstants"
+import { ChartTypeName } from "@ourworldindata/types"
 import { MarimekkoChart } from "./MarimekkoChart"
 import { BarShape, PlacedItem } from "./MarimekkoChartConstants"
 it("can filter years correctly", () => {

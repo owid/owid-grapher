@@ -1,7 +1,7 @@
 import React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ChartTypeName, StackMode } from "../../core/GrapherConstants"
+import { ChartTypeName, StackMode } from "@ourworldindata/types"
 import { LabeledSwitch } from "../LabeledSwitch"
 
 const { LineChart, ScatterPlot } = ChartTypeName

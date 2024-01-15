@@ -1,6 +1,6 @@
 import { faMinus, faTrash } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { EntityName } from "@ourworldindata/core-table"
+import { EntityName } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
 import { excludeUndefined } from "@ourworldindata/utils"
 import lodash from "lodash"

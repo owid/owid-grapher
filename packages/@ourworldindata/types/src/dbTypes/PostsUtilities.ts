@@ -1,4 +1,4 @@
-import { FormattingOptions } from "../owidTypes.js"
+import { FormattingOptions } from "../wordpressTypes/WordpressTypes.js"
 import { PostRowEnriched, PostRowRaw } from "./Posts.js"
 
 export function parsePostFormattingOptions(

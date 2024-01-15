@@ -19,12 +19,16 @@ import {
     SortConfig,
     SortOrder,
     getRelativeMouse,
+    ColorSchemeName,
+    EntitySelectionMode,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
-    EntitySelectionMode,
+    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
+    GRAPHER_AXIS_LINE_WIDTH_THICK,
+    GRAPHER_FONT_SCALE_12,
     Patterns,
 } from "../core/GrapherConstants"
 import { DualAxisComponent } from "../axis/AxisViews"
@@ -32,12 +36,12 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
-    OwidTable,
     EntityName,
     OwidVariableRow,
     OwidTableSlugs,
-    CoreColumn,
-} from "@ourworldindata/core-table"
+    colorScaleConfigDefaults,
+} from "@ourworldindata/types"
+import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
@@ -53,7 +57,7 @@ import {
     ColorScaleConfig,
     ColorScaleConfigDefaults,
 } from "../color/ColorScaleConfig"
-import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants"
+import { OwidNoDataGray } from "../color/ColorConstants"
 import { color } from "d3-color"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
@@ -480,8 +484,10 @@ export class MarimekkoChart
 
     @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
         return (
-            ColorScaleConfig.fromDSL(this.colorColumn.def) ??
-            this.manager.colorScale
+            ColorScaleConfig.fromDSL(this.colorColumn.def) ?? {
+                ...colorScaleConfigDefaults,
+                ...this.manager.colorScale,
+            }
         )
     }
 
@@ -540,7 +546,7 @@ export class MarimekkoChart
     }
 
     @computed private get baseFontSize(): number {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed private get x0(): number {
@@ -905,6 +911,7 @@ export class MarimekkoChart
             )
 
         const {
+            manager,
             bounds,
             dualAxis,
             tooltipItem,
@@ -956,7 +963,16 @@ export class MarimekkoChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
+                <DualAxisComponent
+                    dualAxis={dualAxis}
+                    showTickMarks={true}
+                    labelColor={manager.secondaryColorInStaticCharts}
+                    lineWidth={
+                        manager.isStaticAndSmall
+                            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+                            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+                    }
+                />
                 <HorizontalCategoricalColorLegend manager={this} />
                 {this.renderBars()}
                 {target && (
@@ -1007,6 +1023,7 @@ export class MarimekkoChart
             labelLines,
             placedItems,
             tooltipState,
+            fontSize,
         } = this
         const selectionSet = this.selectionArray.selectedSet
         const labelYOffset = 0
@@ -1052,7 +1069,7 @@ export class MarimekkoChart
                     fontWeight={700}
                     fill="#666"
                     opacity={1}
-                    fontSize="0.8em"
+                    fontSize={GRAPHER_FONT_SCALE_12 * fontSize}
                     textAnchor="middle"
                     dominantBaseline="middle"
                     style={{ pointerEvents: "none" }}
@@ -1157,13 +1174,13 @@ export class MarimekkoChart
 
     private static labelCandidateFromItem(
         item: EntityWithSize,
-        baseFontSize: number,
+        fontSize: number,
         isSelected: boolean
     ): LabelCandidate {
         return {
             item: item,
             bounds: Bounds.forText(item.entityName, {
-                fontSize: 0.7 * baseFontSize,
+                fontSize,
             }),
             isPicked: isSelected,
             isSelected,
@@ -1204,7 +1221,6 @@ export class MarimekkoChart
             yColumnsAtLastTimePoint,
             selectedItems,
             xRange,
-            baseFontSize,
             sortConfig,
             paddingInPixels,
         } = this
@@ -1240,7 +1256,7 @@ export class MarimekkoChart
                                 : 1,
                         ySortValue: ySizeMap.get(row.entityName),
                     },
-                    baseFontSize,
+                    this.entityLabelFontSize,
                     selectedItemsSet.has(row.entityName)
                 )
             )
@@ -1576,6 +1592,10 @@ export class MarimekkoChart
         return Math.max(this.fontSize, rotatedLabelWidth)
     }
 
+    @computed private get entityLabelFontSize(): number {
+        return GRAPHER_FONT_SCALE_12 * this.fontSize
+    }
+
     @computed private get labels(): LabelCandidateWithElement[] {
         const { labelAngleInDegrees, series, domainColorForEntityMap } = this
         return this.pickedLabelCandidates.map((candidate) => {
@@ -1598,7 +1618,7 @@ export class MarimekkoChart
                         fill={color}
                         transform={`rotate(${labelAngleInDegrees}, 0, 0)`}
                         opacity={1}
-                        fontSize="0.7em"
+                        fontSize={this.entityLabelFontSize}
                         textAnchor="right"
                         dominantBaseline="middle"
                         onMouseOver={(): void =>

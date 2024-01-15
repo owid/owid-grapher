@@ -6,8 +6,8 @@ import {
     trimObject,
     uniq,
 } from "@ourworldindata/utils"
+import { ColumnTypeNames } from "@ourworldindata/types"
 import {
-    ColumnTypeNames,
     CoreTable,
     detectDelimiter,
     parseDelimited,

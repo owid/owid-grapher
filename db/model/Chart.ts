@@ -19,7 +19,7 @@ import {
     Tag,
     ChartTagJoin,
 } from "@ourworldindata/utils"
-import type { GrapherInterface } from "@ourworldindata/grapher"
+import type { GrapherInterface } from "@ourworldindata/types"
 import { OpenAI } from "openai"
 import { OPENAI_API_KEY } from "../../settings/serverSettings.js"
 

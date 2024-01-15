@@ -8,18 +8,18 @@ import {
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
     OwidTable,
-    ColumnTypeNames,
     ErrorValueTypes,
 } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import {
+    ColumnTypeNames,
     FacetStrategy,
     ScaleType,
     SeriesStrategy,
-} from "../core/GrapherConstants"
+    BinningStrategy,
+} from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
 import { LineChartManager } from "./LineChartConstants"
-import { BinningStrategy } from "../color/BinningStrategy"
 import { OwidNoDataGray } from "../color/ColorConstants"
 
 it("can create a new chart", () => {

@@ -3,11 +3,11 @@ import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import {
-    BASE_FONT_SIZE,
     FacetStrategy,
     MissingDataStrategy,
     SeriesStrategy,
-} from "../core/GrapherConstants"
+} from "@ourworldindata/types"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import {
     Bounds,
     DEFAULT_BOUNDS,
@@ -28,6 +28,7 @@ import {
     OwidTable,
     CoreColumn,
     BlankOwidTable,
+    isNotErrorValueOrEmptyCell,
 } from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
@@ -103,7 +104,7 @@ export class AbstractStackedChart
             }
 
             const groupedByEntity = table
-                .groupBy("entityName")
+                .groupBy(table.entityNameColumn.slug)
                 .map((t: OwidTable) =>
                     t.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
                 )
@@ -144,7 +145,7 @@ export class AbstractStackedChart
     }
 
     @computed get fontSize(): number {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     protected get paddingForLegend(): number {
@@ -385,6 +386,10 @@ export class AbstractStackedChart
                         time: row.time,
                         value: row.value,
                         valueOffset: 0,
+                        interpolated:
+                            this.shouldRunLinearInterpolation &&
+                            isNotErrorValueOrEmptyCell(row.value) &&
+                            !isNotErrorValueOrEmptyCell(row.originalValue),
                     }
                 })
 

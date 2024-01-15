@@ -9,8 +9,7 @@ import {
     OwidTable,
 } from "@ourworldindata/core-table"
 import { DiscreteBarChartManager } from "./DiscreteBarChartConstants"
-import { ColorSchemeName } from "../color/ColorConstants"
-import { SeriesStrategy } from "../core/GrapherConstants"
+import { ColorSchemeName, SeriesStrategy } from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
 import { isNumber, SortBy, SortOrder } from "@ourworldindata/utils"
 import { OwidDistinctColorScheme } from "../color/CustomSchemes"

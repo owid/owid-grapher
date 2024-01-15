@@ -8,28 +8,25 @@ import {
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "@ourworldindata/utils"
-import {
-    MarkdownTextWrap,
-    sumTextWrapHeights,
-    Checkbox,
-} from "@ourworldindata/components"
+import { MarkdownTextWrap, Checkbox } from "@ourworldindata/components"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
+import { OwidColumnDef, GrapherStaticFormat } from "@ourworldindata/types"
 import {
     BlankOwidTable,
     OwidTable,
-    OwidColumnDef,
     CoreColumn,
 } from "@ourworldindata/core-table"
-import { STATIC_EXPORT_DETAIL_SPACING } from "../core/GrapherConstants"
 import { Modal } from "./Modal"
-import { StaticChartRasterizer } from "../captionedChart/StaticChartRasterizer"
+import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
 
 export interface DownloadModalManager {
-    idealBounds?: Bounds
-    staticSVG: string
     displaySlug: string
+    rasterize: (bounds?: Bounds) => Promise<GrapherExport>
+    staticBounds?: Bounds
+    staticBoundsWithDetails?: Bounds
+    staticFormat?: GrapherStaticFormat
     baseUrl?: string
     queryStr?: string
     table?: OwidTable
@@ -40,6 +37,7 @@ export interface DownloadModalManager {
     tabBounds?: Bounds
     isOnChartOrMapTab?: boolean
     framePaddingVertical?: number
+    showAdminControls?: boolean
 }
 
 interface DownloadModalProps {
@@ -48,12 +46,20 @@ interface DownloadModalProps {
 
 @observer
 export class DownloadModal extends React.Component<DownloadModalProps> {
-    @computed private get idealBounds(): Bounds {
-        return this.manager.idealBounds ?? DEFAULT_BOUNDS
+    @computed private get staticBounds(): Bounds {
+        return this.manager.staticBounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get tabBounds(): Bounds {
         return this.manager.tabBounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed private get isExportingSquare(): boolean {
+        return this.manager.staticFormat === GrapherStaticFormat.square
+    }
+
+    @computed private get shouldIncludeDetails(): boolean {
+        return !!this.manager.shouldIncludeDetailsInStaticExport
     }
 
     @computed private get modalBounds(): Bounds {
@@ -62,25 +68,16 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.tabBounds.padHeight(16).padWidth(padWidth)
     }
 
+    @computed private get targetBounds(): Bounds {
+        return this.manager.staticBoundsWithDetails ?? this.staticBounds
+    }
+
     @computed private get targetWidth(): number {
-        return this.idealBounds.width
+        return this.targetBounds.width
     }
 
     @computed private get targetHeight(): number {
-        if (
-            this.manager.shouldIncludeDetailsInStaticExport &&
-            !isEmpty(this.manager.detailRenderers)
-        ) {
-            return (
-                this.idealBounds.height +
-                2 * this.manager.framePaddingVertical! +
-                sumTextWrapHeights(
-                    this.manager.detailRenderers,
-                    STATIC_EXPORT_DETAIL_SPACING
-                )
-            )
-        }
-        return this.idealBounds.height
+        return this.targetBounds.height
     }
 
     @computed private get manager(): DownloadModalManager {
@@ -96,15 +93,9 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     @observable private isReady: boolean = false
 
     @action.bound private export(): void {
-        const {
-            targetWidth: width,
-            targetHeight: height,
-            manager: { staticSVG },
-        } = this
-
         // render the graphic then cache data-urls for display & blobs for downloads
-        new StaticChartRasterizer(staticSVG, width, height)
-            .render()
+        this.manager
+            .rasterize()
             .then(({ url, blob, svgUrl, svgBlob }) => {
                 this.pngPreviewUrl = url
                 this.pngBlob = blob
@@ -127,6 +118,10 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
 
     @action.bound private markAsReady(): void {
         this.isReady = true
+    }
+
+    @action.bound private reset(): void {
+        this.isReady = false
     }
 
     @computed private get fallbackPngUrl(): string {
@@ -198,6 +193,24 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         }
     }
 
+    @action.bound private toggleExportFormat(): void {
+        this.manager.staticFormat = this.isExportingSquare
+            ? GrapherStaticFormat.landscape
+            : GrapherStaticFormat.square
+    }
+
+    @action.bound private toggleIncludeDetails(): void {
+        this.manager.shouldIncludeDetailsInStaticExport =
+            !this.manager.shouldIncludeDetailsInStaticExport
+    }
+
+    @computed private get showExportControls(): boolean {
+        return (
+            !isEmpty(this.manager.detailRenderers) ||
+            !!this.manager.showAdminControls
+        )
+    }
+
     private renderReady(): JSX.Element {
         const { manager, svgPreviewUrl, tabBounds, targetWidth, targetHeight } =
             this
@@ -214,7 +227,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             previewHeight = (targetHeight / targetWidth) * previewWidth
         }
 
-        const imgStyle = {
+        const imageStyle = {
             minWidth: previewWidth,
             minHeight: previewHeight,
             maxWidth: previewWidth,
@@ -228,67 +241,47 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                     <div className="grouped-menu-section">
                         <h2>Visualization</h2>
                         <div className="grouped-menu-list">
-                            <button
-                                className="grouped-menu-item"
+                            <DownloadButton
+                                title="Image (PNG)"
+                                description="Suitable for most uses, widely compatible."
+                                previewImageUrl={pngPreviewUrl}
                                 onClick={this.onPngDownload}
-                                data-track-note="chart_download_png"
-                            >
-                                <div className="grouped-menu-icon">
-                                    <img src={pngPreviewUrl} style={imgStyle} />
-                                </div>
-                                <div className="grouped-menu-content">
-                                    <h3 className="title">Image (PNG)</h3>
-                                    <p className="description">
-                                        Suitable for most uses, widely
-                                        compatible.
-                                    </p>
-                                </div>
-                                <div className="grouped-menu-icon">
-                                    <span className="download-icon">
-                                        <FontAwesomeIcon icon={faDownload} />
-                                    </span>
-                                </div>
-                            </button>
-                            <button
-                                className="grouped-menu-item"
+                                imageStyle={imageStyle}
+                                tracking="chart_download_png"
+                            />
+                            <DownloadButton
+                                title="Vector graphic (SVG)"
+                                description="For high quality prints, or further editing the chart in graphics software."
+                                previewImageUrl={svgPreviewUrl}
                                 onClick={this.onSvgDownload}
-                                data-track-note="chart_download_svg"
-                            >
-                                <div className="grouped-menu-icon">
-                                    <img src={svgPreviewUrl} style={imgStyle} />
-                                </div>
-                                <div className="grouped-menu-content">
-                                    <h3 className="title">
-                                        Vector graphic (SVG)
-                                    </h3>
-                                    <p className="description">
-                                        For high quality prints, or further
-                                        editing the chart in graphics software.
-                                    </p>
-                                </div>
-                                <div className="grouped-menu-icon">
-                                    <span className="download-icon">
-                                        <FontAwesomeIcon icon={faDownload} />
-                                    </span>
-                                </div>
-                            </button>
+                                imageStyle={imageStyle}
+                                tracking="chart_download_svg"
+                            />
                         </div>
-                        {!isEmpty(this.manager.detailRenderers) && (
+                        {this.showExportControls && (
                             <div className="static-exports-options">
-                                <Checkbox
-                                    checked={
-                                        !!this.manager
-                                            .shouldIncludeDetailsInStaticExport
-                                    }
-                                    label="Include terminology definitions at bottom of chart"
-                                    onChange={(): void => {
-                                        this.isReady = false
-                                        this.manager.shouldIncludeDetailsInStaticExport =
-                                            !this.manager
-                                                .shouldIncludeDetailsInStaticExport
-                                        this.export()
-                                    }}
-                                />
+                                {!isEmpty(this.manager.detailRenderers) && (
+                                    <Checkbox
+                                        checked={this.shouldIncludeDetails}
+                                        label="Include terminology definitions at bottom of chart"
+                                        onChange={(): void => {
+                                            this.reset()
+                                            this.toggleIncludeDetails()
+                                            this.export()
+                                        }}
+                                    />
+                                )}
+                                {this.manager.showAdminControls && (
+                                    <Checkbox
+                                        checked={this.isExportingSquare}
+                                        label="Square format"
+                                        onChange={(): void => {
+                                            this.reset()
+                                            this.toggleExportFormat()
+                                            this.export()
+                                        }}
+                                    />
+                                )}
                             </div>
                         )}
                     </div>
@@ -326,23 +319,12 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                         </div>
                     ) : (
                         <div className="grouped-menu-list">
-                            <button
-                                className="grouped-menu-item"
+                            <DownloadButton
+                                title="Full data (CSV)"
+                                description="The full dataset used in this chart."
                                 onClick={this.onCsvDownload}
-                                data-track-note="chart_download_csv"
-                            >
-                                <div className="grouped-menu-content">
-                                    <h3 className="title">Full data (CSV)</h3>
-                                    <p className="description">
-                                        The full dataset used in this chart.
-                                    </p>
-                                </div>
-                                <div className="grouped-menu-icon">
-                                    <span className="download-icon">
-                                        <FontAwesomeIcon icon={faDownload} />
-                                    </span>
-                                </div>
-                            </button>
+                                tracking="chart_download_csv"
+                            />
                         </div>
                     )}
                 </div>
@@ -373,4 +355,38 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             </Modal>
         )
     }
+}
+
+interface DownloadButtonProps {
+    title: string
+    description: string
+    onClick: () => void
+    previewImageUrl?: string
+    imageStyle?: React.CSSProperties
+    tracking?: string
+}
+
+function DownloadButton(props: DownloadButtonProps): JSX.Element {
+    return (
+        <button
+            className="grouped-menu-item"
+            onClick={props.onClick}
+            data-track-note={props.tracking}
+        >
+            {props.previewImageUrl && (
+                <div className="grouped-menu-icon">
+                    <img src={props.previewImageUrl} style={props.imageStyle} />
+                </div>
+            )}
+            <div className="grouped-menu-content">
+                <h3 className="title">{props.title}</h3>
+                <p className="description">{props.description}</p>
+            </div>
+            <div className="grouped-menu-icon">
+                <span className="download-icon">
+                    <FontAwesomeIcon icon={faDownload} />
+                </span>
+            </div>
+        </button>
+    )
 }

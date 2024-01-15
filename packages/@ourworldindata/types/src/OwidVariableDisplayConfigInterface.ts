@@ -1,9 +1,9 @@
+import { OwidVariableId } from "./domainTypes/Various.js"
 import {
     ColumnSlug,
     DimensionProperty,
-    OwidVariableId,
     Time,
-} from "./owidTypes.js"
+} from "./grapherTypes/GrapherTypes.js"
 
 export interface OwidVariableDisplayConfigInterface {
     name?: string
@@ -17,12 +17,12 @@ export interface OwidVariableDisplayConfigInterface {
     zeroDay?: string
     entityAnnotationsMap?: string
     includeInTable?: boolean
-    tableDisplay?: OwidVariableDataTableConfigInteface
+    tableDisplay?: OwidVariableDataTableConfigInterface
     color?: string
 }
 
 // todo: flatten onto the above
-export interface OwidVariableDataTableConfigInteface {
+export interface OwidVariableDataTableConfigInterface {
     hideAbsoluteChange?: boolean
     hideRelativeChange?: boolean
 }

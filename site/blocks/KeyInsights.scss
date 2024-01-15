@@ -94,22 +94,6 @@
     }
 
     .slides {
-        .slide {
-            display: none;
-            &[data-active="true"] {
-                display: block;
-            }
-
-            h4 {
-                @include h2-bold;
-                margin: 0 0 $vertical-spacing;
-            }
-
-            p {
-                @include body-2-regular;
-            }
-        }
-
         figure.chart:not(.grapherPreview) {
             height: var(--slide-content-height, $grapher-height);
         }
@@ -153,6 +137,22 @@
                     }
                 }
             }
+        }
+    }
+
+    .slide {
+        display: none;
+        &[data-active="true"] {
+            display: block;
+        }
+
+        h4 {
+            @include h2-bold;
+            margin: 0 0 $vertical-spacing;
+        }
+
+        p {
+            @include body-2-regular;
         }
     }
 }

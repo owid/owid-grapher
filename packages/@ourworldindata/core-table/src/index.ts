@@ -9,43 +9,6 @@ export {
 } from "./OwidTableSynthesizers.js"
 
 export {
-    type TableSlug,
-    type ColumnSlugs,
-    type Integer,
-    SortOrder,
-    type Year,
-    type Color,
-    type Time,
-    type TimeRange,
-    type ValueRange,
-    type TimeTolerance,
-    type CoreRow,
-    InputType,
-    TransformType,
-    JsTypes,
-    type CsvString,
-    type CoreValueType,
-    type CoreColumnStore,
-    type CoreTableInputOption,
-    type CoreQuery,
-    type CoreMatrix,
-} from "./CoreTableConstants.js"
-
-export {
-    OwidTableSlugs,
-    type EntityName,
-    type EntityCode,
-    type EntityId,
-    type OwidColumnDef,
-    OwidEntityNameColumnDef,
-    OwidEntityIdColumnDef,
-    OwidEntityCodeColumnDef,
-    StandardOwidColumnDefs,
-    type OwidRow,
-    type OwidVariableRow,
-} from "./OwidTableConstants.js"
-
-export {
     type CoreColumn,
     MissingColumn,
     ColumnTypeMap,
@@ -53,16 +16,9 @@ export {
     TimeColumn,
 } from "./CoreTableColumns.js"
 
-export {
-    ColumnTypeNames,
-    type ColumnColorScale,
-    type CoreColumnDef,
-} from "./CoreColumnDef.js"
-
 export { OwidTable, BlankOwidTable } from "./OwidTable.js"
 
 export {
-    ErrorValue,
     DroppedForTesting,
     DivideByZeroError,
     ValueTooLow,

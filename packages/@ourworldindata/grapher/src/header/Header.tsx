@@ -1,11 +1,13 @@
 import React from "react"
-import { DEFAULT_BOUNDS, range } from "@ourworldindata/utils"
+import { DEFAULT_BOUNDS, range, LogoOption } from "@ourworldindata/utils"
 import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Logo, LogoOption } from "../captionedChart/Logos"
+import { Logo } from "../captionedChart/Logos"
+
 import { HeaderManager } from "./HeaderManager"
 import {
+    BASE_FONT_SIZE,
     DEFAULT_GRAPHER_FRAME_PADDING,
     GRAPHER_DARK_TEXT,
 } from "../core/GrapherConstants"
@@ -39,6 +41,22 @@ export class Header<
         )
     }
 
+    @computed protected get useBaseFontSize(): boolean {
+        return !!this.manager.useBaseFontSize
+    }
+
+    @computed protected get baseFontSize(): number {
+        return this.manager.fontSize ?? BASE_FONT_SIZE
+    }
+
+    @computed protected get showTitle(): boolean {
+        return !this.manager.hideTitle && !!this.titleText
+    }
+
+    @computed protected get showSubtitle(): boolean {
+        return !this.manager.hideSubtitle && !!this.subtitleText
+    }
+
     @computed protected get titleText(): string {
         return this.manager.currentTitle?.trim() ?? ""
     }
@@ -54,6 +72,7 @@ export class Header<
         return new Logo({
             logo: manager.logo as any,
             isLink: !!manager.shouldLinkToOwid,
+            // if it's the OWID logo, use the small version; otherwise, decrease the size
             heightScale: manager.isSmall && !isOwidLogo ? 0.775 : 1,
             useSmallVersion: manager.isSmall && isOwidLogo,
         })
@@ -67,18 +86,24 @@ export class Header<
         return this.logo ? this.logo.height : 0
     }
 
+    @computed get titleFontSize(): number {
+        if (this.useBaseFontSize) {
+            return (22 / BASE_FONT_SIZE) * this.baseFontSize
+        }
+        return this.manager.isNarrow ? 18 : this.manager.isMedium ? 20 : 24
+    }
+
+    @computed get titleLineHeight(): number {
+        return this.manager.isSmall ? 1.1 : 1.2
+    }
+
     @computed get title(): TextWrap {
         const { logoWidth } = this
-        const fontSize = this.manager.isNarrow
-            ? 18
-            : this.manager.isMedium
-            ? 20
-            : 24
         return new TextWrap({
             maxWidth: this.maxWidth - logoWidth - 24,
             fontWeight: 600,
-            lineHeight: this.manager.isSmall ? 1.1 : 1.2,
-            fontSize,
+            lineHeight: this.titleLineHeight,
+            fontSize: this.titleFontSize,
             text: this.titleText,
         })
     }
@@ -94,20 +119,23 @@ export class Header<
             : this.maxWidth - this.logoWidth - 12
     }
 
+    @computed get subtitleFontSize(): number {
+        if (this.useBaseFontSize) {
+            return (13 / BASE_FONT_SIZE) * this.baseFontSize
+        }
+        return this.manager.isSmall ? 12 : this.manager.isMedium ? 13 : 14
+    }
+
+    @computed get subtitleLineHeight(): number {
+        return this.manager.isMedium ? 1.2 : 1.28571
+    }
+
     @computed get subtitle(): MarkdownTextWrap {
-        const fontSize = this.manager.isGeneratingThumbnail
-            ? (14 / 16) * (this.manager.fontSize ?? 16) // respect base font size for thumbnails
-            : this.manager.isSmall
-            ? 12
-            : this.manager.isMedium
-            ? 13
-            : 14
-        const lineHeight = this.manager.isMedium ? 1.2 : 1.28571
         return new MarkdownTextWrap({
             maxWidth: this.subtitleWidth,
-            fontSize,
+            fontSize: this.subtitleFontSize,
             text: this.subtitleText,
-            lineHeight,
+            lineHeight: this.subtitleLineHeight,
             detailsOrderedByReference: this.manager
                 .shouldIncludeDetailsInStaticExport
                 ? this.manager.detailsOrderedByReference
@@ -116,11 +144,17 @@ export class Header<
     }
 
     @computed get height(): number {
-        const { title, subtitle, subtitleText, subtitleMarginTop, logoHeight } =
-            this
+        const {
+            title,
+            subtitle,
+            showTitle,
+            showSubtitle,
+            subtitleMarginTop,
+            logoHeight,
+        } = this
         return Math.max(
-            title.height +
-                (subtitleText ? subtitle.height + subtitleMarginTop : 0),
+            (showTitle ? title.height : 0) +
+                (showSubtitle ? subtitle.height + subtitleMarginTop : 0),
             logoHeight
         )
     }
@@ -186,10 +220,12 @@ export class Header<
                 }}
             >
                 {this.logo && this.logo.renderHTML()}
-                <div style={{ minHeight: this.height }}>
-                    {this.renderTitle()}
-                    {this.subtitleText && this.renderSubtitle()}
-                </div>
+                {(this.showTitle || this.showSubtitle) && (
+                    <div style={{ minHeight: this.height }}>
+                        {this.showTitle && this.renderTitle()}
+                        {this.showSubtitle && this.renderSubtitle()}
+                    </div>
+                )}
             </div>
         )
     }
@@ -203,20 +239,20 @@ interface StaticHeaderProps extends HeaderProps {
 @observer
 export class StaticHeader extends Header<StaticHeaderProps> {
     @computed get title(): TextWrap {
-        const { logoWidth, titleText, manager } = this
+        const { logoWidth, titleText } = this
 
         const makeTitle = (fontSize: number): TextWrap =>
             new TextWrap({
                 text: titleText,
                 maxWidth: this.maxWidth - logoWidth - 24,
                 fontSize,
-                fontWeight: 600,
-                lineHeight: 1.2,
+                fontWeight: 500,
+                lineHeight: this.manager.isStaticAndSmall ? 1.1 : 1.2,
             })
 
         // try to fit the title into a single line if possible-- but not if it would make the text too small
-        const initialFontSize = manager.isGeneratingThumbnail
-            ? (24 / 16) * (manager.fontSize ?? 16) // respect base font size for thumbnails
+        const initialFontSize = this.useBaseFontSize
+            ? (22 / BASE_FONT_SIZE) * this.baseFontSize
             : 24
         let title = makeTitle(initialFontSize)
 
@@ -241,6 +277,10 @@ export class StaticHeader extends Header<StaticHeaderProps> {
         return title
     }
 
+    @computed get subtitleLineHeight(): number {
+        return 1.2
+    }
+
     render(): JSX.Element {
         const { targetX: x, targetY: y } = this.props
         const { title, logo, subtitle, manager, maxWidth } = this
@@ -249,26 +289,32 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                 {logo &&
                     logo.height > 0 &&
                     logo.renderSVG(x + maxWidth - logo.width, y)}
-                <a
-                    href={manager.canonicalUrl}
-                    style={{
-                        fontFamily:
-                            "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
-                    }}
-                    target="_blank"
-                    rel="noopener"
-                >
-                    {title.render(x, y, {
-                        fill: GRAPHER_DARK_TEXT,
-                    })}
-                </a>
-                {subtitle.renderSVG(
-                    x,
-                    y + title.height + this.subtitleMarginTop,
-                    {
-                        fill: GRAPHER_DARK_TEXT,
-                    }
+                {this.showTitle && (
+                    <a
+                        href={manager.canonicalUrl}
+                        style={{
+                            fontFamily:
+                                "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
+                        }}
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        {title.render(x, y, {
+                            fill: GRAPHER_DARK_TEXT,
+                        })}
+                    </a>
                 )}
+                {this.showSubtitle &&
+                    subtitle.renderSVG(
+                        x,
+                        y +
+                            (this.showTitle
+                                ? title.height + this.subtitleMarginTop
+                                : 0),
+                        {
+                            fill: manager.secondaryColorInStaticCharts,
+                        }
+                    )}
             </g>
         )
     }

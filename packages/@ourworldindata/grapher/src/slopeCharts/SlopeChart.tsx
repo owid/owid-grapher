@@ -27,10 +27,19 @@ import {
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
+    GRAPHER_DARK_TEXT,
+    GRAPHER_FONT_SCALE_9_6,
+    GRAPHER_FONT_SCALE_10_5,
+    GRAPHER_FONT_SCALE_12,
+    GRAPHER_FONT_SCALE_14,
+} from "../core/GrapherConstants"
+import {
     ScaleType,
     EntitySelectionMode,
+    Color,
     SeriesName,
-} from "../core/GrapherConstants"
+    ColorSchemeName,
+} from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { scaleLinear, scaleLog, ScaleLinear, ScaleLogarithmic } from "d3-scale"
@@ -45,9 +54,8 @@ import {
     SlopeChartValue,
     SlopeProps,
 } from "./SlopeChartConstants"
-import { CoreColumn, OwidTable, Color } from "@ourworldindata/core-table"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
-import { ColorSchemeName } from "../color/ColorConstants"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
 
 @observer
@@ -83,7 +91,7 @@ export class SlopeChart
     }
 
     @computed get fontSize() {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed get legendItems() {
@@ -495,21 +503,21 @@ class SlopeChartAxis extends React.Component<SlopeAxisProps> {
     }
 
     render() {
-        const { bounds, scale, orient, column } = this.props
+        const { bounds, scale, orient, column, fontSize } = this.props
         const { ticks } = this
-        const textColor = "#666"
 
         return (
-            <g className="axis" fontSize="0.8em">
+            <g className="axis">
                 {ticks.map((tick, i) => {
                     return (
                         <text
                             key={i}
                             x={orient === "left" ? bounds.left : bounds.right}
                             y={scale(tick)}
-                            fill={textColor}
+                            fill={GRAPHER_DARK_TEXT}
                             dominantBaseline="middle"
                             textAnchor={orient === "left" ? "start" : "end"}
+                            fontSize={fontSize}
                         >
                             {column.formatValueShort(tick)}
                         </text>
@@ -664,7 +672,7 @@ class LabelledSlopes
     }
 
     @computed get fontSize() {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed private get focusedSeriesNames() {
@@ -691,7 +699,7 @@ class LabelledSlopes
     }
 
     @computed private get isPortrait() {
-        return this.bounds.width < 400
+        return this.manager.isNarrow || this.manager.isStaticAndSmall
     }
 
     @computed private get allValues() {
@@ -734,6 +742,7 @@ class LabelledSlopes
     }
 
     @computed get sizeScale(): ScaleLinear<number, number> {
+        const factor = this.manager.isStaticAndSmall ? 1.2 : 1
         return scaleLinear()
             .domain(
                 extent(this.props.seriesArr.map((series) => series.size)) as [
@@ -741,7 +750,7 @@ class LabelledSlopes
                     number,
                 ]
             )
-            .range([1, 4])
+            .range([factor, 4 * factor])
     }
 
     @computed get yScaleConstructor(): any {
@@ -805,7 +814,10 @@ class LabelledSlopes
             const [v1, v2] = series.values
             const [x1, x2] = [xScale(v1.x), xScale(v2.x)]
             const [y1, y2] = [yScale(v1.y), yScale(v2.y)]
-            const fontSize = (isPortrait ? 0.6 : 0.65) * this.fontSize
+            const fontSize =
+                (isPortrait
+                    ? GRAPHER_FONT_SCALE_9_6
+                    : GRAPHER_FONT_SCALE_10_5) * this.fontSize
             const leftValueStr = yColumn.formatValueShort(v1.y)
             const rightValueStr = yColumn.formatValueShort(v2.y)
             const leftValueWidth = Bounds.forText(leftValueStr, {
@@ -1069,6 +1081,8 @@ class LabelledSlopes
         const { x1, x2 } = slopeData[0]
         const [y1, y2] = yScale.range()
 
+        const tickFontSize = GRAPHER_FONT_SCALE_12 * fontSize
+
         return (
             <g
                 className="LabelledSlopes"
@@ -1111,6 +1125,7 @@ class LabelledSlopes
                         scale={yScale}
                         scaleType={yScaleType}
                         bounds={bounds}
+                        fontSize={tickFontSize}
                     />
                 )}
                 {!isPortrait && (
@@ -1120,6 +1135,7 @@ class LabelledSlopes
                         scale={yScale}
                         scaleType={yScaleType}
                         bounds={bounds}
+                        fontSize={tickFontSize}
                     />
                 )}
                 <line x1={x1} y1={y1} x2={x1} y2={y2} stroke="#333" />
@@ -1128,8 +1144,8 @@ class LabelledSlopes
                     x={x1}
                     y={y1 + 10}
                     textAnchor="middle"
-                    fill="#666"
-                    fontSize={0.875 * fontSize}
+                    fill={GRAPHER_DARK_TEXT}
+                    fontSize={GRAPHER_FONT_SCALE_14 * fontSize}
                 >
                     {xDomain[0].toString()}
                 </Text>
@@ -1137,8 +1153,8 @@ class LabelledSlopes
                     x={x2}
                     y={y1 + 10}
                     textAnchor="middle"
-                    fill="#666"
-                    fontSize={0.875 * fontSize}
+                    fill={GRAPHER_DARK_TEXT}
+                    fontSize={GRAPHER_FONT_SCALE_14 * fontSize}
                 >
                     {xDomain[1].toString()}
                 </Text>

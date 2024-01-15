@@ -1,0 +1,23 @@
+# env vars for local development of /functions/donation/donate.ts Cloudflare pages function
+# rename to .dev.vars and fill in the values from the homonymous "(dev)" keys in 1Password
+
+ENV=development
+
+# https://dashboard.stripe.com/test/apikeys
+# required by /donation/donate
+STRIPE_API_KEY=
+
+# https://www.google.com/recaptcha/admin/site/345413385
+# required by /donation/donate
+RECAPTCHA_SECRET_KEY=
+
+# required by /donation/thank-you
+# see README for getting STRIPE_WEBHOOK_SECRET
+STRIPE_WEBHOOK_SECRET=
+MAILGUN_DOMAIN=
+MAILGUN_SENDING_KEY=
+
+# optional
+SENTRY_DSN=
+SLACK_BOT_OAUTH_TOKEN=
+SLACK_ERROR_CHANNEL_ID=C016H0BNNB1 #bot-testing channel

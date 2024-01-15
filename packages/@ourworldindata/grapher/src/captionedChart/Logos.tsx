@@ -6,12 +6,7 @@ import {
     GV_LOGO_SVG,
     SMALL_OWID_LOGO_SVG,
 } from "./LogosSVG"
-
-export enum LogoOption {
-    owid = "owid",
-    "core+owid" = "core+owid",
-    "gv+owid" = "gv+owid",
-}
+import { LogoOption } from "@ourworldindata/types"
 
 interface LogoAttributes {
     svg: string

@@ -1,10 +1,6 @@
 import { computed, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
-import {
-    ColorScaleConfig,
-    ColorScaleConfigDefaults,
-    ColorScaleConfigInterface,
-} from "./ColorScaleConfig"
+import { ColorScaleConfig, ColorScaleConfigDefaults } from "./ColorScaleConfig"
 import {
     isEmpty,
     reverse,
@@ -13,13 +9,20 @@ import {
     roundSigFig,
     mapNullToUndefined,
 } from "@ourworldindata/utils"
-import { Color, CoreValueType, CoreColumn } from "@ourworldindata/core-table"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
-import { ColorSchemeName, OwidNoDataGray } from "./ColorConstants"
+import { OwidNoDataGray } from "./ColorConstants"
 import { getBinMaximums } from "./BinningStrategies"
-import { BinningStrategy } from "./BinningStrategy"
+import {
+    ColorScaleConfigInterface,
+    ColorSchemeName,
+    BinningStrategy,
+    Color,
+    CoreValueType,
+    colorScaleConfigDefaults,
+} from "@ourworldindata/types"
+import { CoreColumn } from "@ourworldindata/core-table"
 
 export const NO_DATA_LABEL = "No data"
 
@@ -40,7 +43,9 @@ export class ColorScale {
     // Config accessors
 
     @computed get config(): ColorScaleConfigDefaults {
-        return this.manager.colorScaleConfig ?? new ColorScaleConfig()
+        return this.manager.colorScaleConfig
+            ? { ...colorScaleConfigDefaults, ...this.manager.colorScaleConfig }
+            : new ColorScaleConfig()
     }
 
     @computed get customNumericValues(): number[] {

@@ -1,17 +1,7 @@
 {
-    "files": ["index.d.ts"],
+    "extends": "../../../devTools/tsconfigs/tsconfig.base.json",
     "compilerOptions": {
-        "module": "commonjs",
-        "target": "es5",
-        "lib": ["es6"],
-        "noImplicitAny": true,
-        "noImplicitThis": true,
-        "strictNullChecks": true,
-        "strictFunctionTypes": true,
-        "baseUrl": "../",
-        "typeRoots": ["../"],
-        "noEmit": true,
-        "types": [],
-        "forceConsistentCasingInFileNames": true
+        "composite": false,
+        "outDir": "./dist"
     }
 }

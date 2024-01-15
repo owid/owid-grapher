@@ -1,13 +1,13 @@
-import { OwidOrigin } from "./OwidOrigin"
 import {
-    IndicatorTitleWithFragments,
-    OwidProcessingLevel,
+    OwidOrigin,
     OwidVariableWithSource,
-} from "./OwidVariable"
-import { DisplaySource } from "./owidTypes"
+    OwidProcessingLevel,
+    DisplaySource,
+    IndicatorTitleWithFragments,
+    OwidSource,
+} from "@ourworldindata/types"
 import { compact, uniq, last, excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
-import { OwidSource } from "./OwidSource.js"
 
 export function getOriginAttributionFragments(
     origins: OwidOrigin[] | undefined
@@ -158,22 +158,18 @@ const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
 }
 
 export const prepareSourcesForDisplay = (
-    variable: Pick<OwidVariableWithSource, "origins" | "source" | "description">
+    variable: Pick<OwidVariableWithSource, "origins" | "source">
 ): DisplaySource[] => {
-    const { origins, source, description } = variable
+    const { origins, source } = variable
 
     const sourcesForDisplay: DisplaySource[] = []
 
     if (
         source?.name &&
-        (description ||
-            source?.dataPublishedBy ||
-            source?.retrievedDate ||
-            source?.link)
+        (source?.dataPublishedBy || source?.retrievedDate || source?.link)
     ) {
         sourcesForDisplay.push({
             label: source?.name,
-            description,
             dataPublishedBy: source?.dataPublishedBy,
             retrievedOn: source?.retrievedDate,
             retrievedFrom: source?.link,

@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
+import { BinningStrategy } from "@ourworldindata/types"
 import { getBinMaximums } from "./BinningStrategies"
-import { BinningStrategy } from "./BinningStrategy"
 
 describe(getBinMaximums, () => {
     it("returns no bins for empty array", () => {

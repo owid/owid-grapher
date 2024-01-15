@@ -13,6 +13,8 @@ import {
     Time,
     EntityName,
     OwidTableSlugs,
+} from "@ourworldindata/types"
+import {
     BlankOwidTable,
     OwidTable,
     CoreColumn,

@@ -42,12 +42,20 @@ import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { extent } from "d3-array"
 import {
-    BASE_FONT_SIZE,
     SeriesName,
     ScaleType,
+    EntityName,
     SeriesStrategy,
     FacetStrategy,
+    CoreValueType,
     MissingDataStrategy,
+    ColorScaleConfigInterface,
+    ColorSchemeName,
+} from "@ourworldindata/types"
+import {
+    GRAPHER_AXIS_LINE_WIDTH_THICK,
+    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
+    BASE_FONT_SIZE,
 } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
@@ -63,9 +71,7 @@ import {
 import {
     OwidTable,
     CoreColumn,
-    CoreValueType,
     isNotErrorValue,
-    EntityName,
     BlankOwidTable,
 } from "@ourworldindata/core-table"
 import {
@@ -80,11 +86,8 @@ import { ColorScheme } from "../color/ColorScheme"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
-import {
-    ColorScaleConfig,
-    ColorScaleConfigInterface,
-} from "../color/ColorScaleConfig"
-import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants"
+import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { OwidNoDataGray } from "../color/ColorConstants"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 import { darkenColorForLine } from "../color/ColorUtils"
@@ -310,7 +313,7 @@ export class LineChart
             )
 
             const groupedByEntity = table
-                .groupBy("entityName")
+                .groupBy(table.entityNameColumn.slug)
                 .filter((t) => !t.hasAnyColumnNoValidValue(this.yColumnSlugs))
 
             if (groupedByEntity.length === 0) return BlankOwidTable()
@@ -423,12 +426,11 @@ export class LineChart
     }
 
     @computed private get lineStrokeWidth(): number {
-        return (
-            this.manager.lineStrokeWidth ??
-            (this.hasColorScale
-                ? VARIABLE_COLOR_STROKE_WIDTH
-                : DEFAULT_STROKE_WIDTH)
-        )
+        if (this.manager.lineStrokeWidth) return this.manager.lineStrokeWidth
+        const factor = this.manager.isStaticAndSmall ? 2 : 1
+        return this.hasColorScale
+            ? factor * VARIABLE_COLOR_STROKE_WIDTH
+            : factor * DEFAULT_STROKE_WIDTH
     }
 
     @computed private get lineOutlineWidth(): number {
@@ -438,6 +440,8 @@ export class LineChart
     }
 
     @computed private get markerRadius(): number {
+        // hide markers but don't remove them from the DOM
+        if (this.manager.isStaticAndSmall) return 0
         return this.hasColorScale
             ? VARIABLE_COLOR_MARKER_RADIUS
             : DEFAULT_MARKER_RADIUS
@@ -687,7 +691,7 @@ export class LineChart
     }
 
     @computed get fontSize(): number {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed get fontWeight(): number {
@@ -779,7 +783,16 @@ export class LineChart
                 {this.hasColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
-                <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
+                <DualAxisComponent
+                    dualAxis={dualAxis}
+                    showTickMarks={true}
+                    labelColor={manager.secondaryColorInStaticCharts}
+                    lineWidth={
+                        manager.isStaticAndSmall
+                            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+                            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+                    }
+                />
                 <g clipPath={clipPath.id}>
                     {comparisonLines.map((line, index) => (
                         <ComparisonLine

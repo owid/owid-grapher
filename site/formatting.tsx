@@ -4,7 +4,6 @@ import * as lodash from "lodash"
 import ReactDOMServer from "react-dom/server.js"
 import {
     FormattedPost,
-    FormattingOptions,
     TocHeading,
     WP_BlockClass,
     WP_ColumnStyle,
@@ -25,6 +24,7 @@ import {
 import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink.js"
 import { Byline } from "./Byline.js"
 import { SectionHeading } from "./SectionHeading.js"
+import { FormattingOptions } from "@ourworldindata/types"
 
 export const GRAPHER_PREVIEW_CLASS = "grapherPreview"
 export const SUMMARY_CLASSNAME = "wp-block-owid-summary"

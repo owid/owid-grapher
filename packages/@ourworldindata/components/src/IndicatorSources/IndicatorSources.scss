@@ -68,6 +68,9 @@
         }
 
         .source-key-data__content {
+            p {
+                font-size: inherit;
+            }
             > p:first-of-type {
                 margin-top: 0;
             }
@@ -83,7 +86,7 @@
     }
 }
 
-.NonExpandable {
+.indicator-sources div.NonExpandable {
     --title: var(--non-expandable-title, currentColor);
     --border: var(--non-expandable-border, #d0dae3);
 
@@ -99,7 +102,7 @@
         border-bottom: none;
     }
 
-    &__title {
+    h4.NonExpandable__title {
         @include h4-semibold;
         margin: 0;
         margin-bottom: 8px;
@@ -107,7 +110,7 @@
         font-size: var(--title-size);
     }
 
-    &__content {
+    div.NonExpandable__content {
         @include body-3-medium;
         font-size: var(--content-size);
     }

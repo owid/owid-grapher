@@ -1,17 +1,14 @@
 #! /usr/bin/env jest
 
 import { FacetChart } from "./FacetChart"
-import {
-    SynthesizeGDPTable,
-    OwidTable,
-    ColumnTypeNames,
-} from "@ourworldindata/core-table"
+import { SynthesizeGDPTable, OwidTable } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import {
     ChartTypeName,
     FacetAxisDomain,
     FacetStrategy,
-} from "../core/GrapherConstants"
+    ColumnTypeNames,
+} from "@ourworldindata/types"
 import { uniq } from "@ourworldindata/utils"
 import { LineChart } from "../lineCharts/LineChart"
 

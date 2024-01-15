@@ -10,7 +10,7 @@ export interface HeaderManager {
     tabBounds?: Bounds
     detailsOrderedByReference?: Set<string>
     shouldIncludeDetailsInStaticExport?: boolean
-    isExportingtoSvgOrPng?: boolean
+    isExportingToSvgOrPng?: boolean
     isNarrow?: boolean
     isSmall?: boolean
     isMedium?: boolean
@@ -18,6 +18,10 @@ export interface HeaderManager {
     framePaddingVertical?: number
     isOnCanonicalUrl?: boolean
     isInIFrame?: boolean
-    isGeneratingThumbnail?: boolean
+    useBaseFontSize?: boolean
     fontSize?: number
+    hideTitle?: boolean
+    hideSubtitle?: boolean
+    secondaryColorInStaticCharts?: string
+    isStaticAndSmall?: boolean
 }

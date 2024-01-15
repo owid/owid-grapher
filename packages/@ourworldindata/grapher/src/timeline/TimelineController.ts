@@ -1,4 +1,4 @@
-import { Time } from "@ourworldindata/core-table"
+import { Time } from "@ourworldindata/types"
 import {
     TimeBound,
     TimeBoundValue,

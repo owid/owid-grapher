@@ -1,5 +1,5 @@
 import { observable } from "mobx"
-import { MapProjectionName } from "./MapProjections"
+import { MapProjectionName } from "@ourworldindata/types"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
     ColumnSlug,

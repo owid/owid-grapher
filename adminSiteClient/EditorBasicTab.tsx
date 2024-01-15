@@ -10,11 +10,10 @@ import {
 import { observer } from "mobx-react"
 import {
     ChartTypeName,
-    DimensionSlot,
     EntitySelectionMode,
     StackMode,
-    WorldEntityName,
-} from "@ourworldindata/grapher"
+} from "@ourworldindata/types"
+import { DimensionSlot, WorldEntityName } from "@ourworldindata/grapher"
 import {
     DimensionProperty,
     moveArrayItemToIndex,
@@ -326,7 +325,9 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
     render() {
         const { editor } = this.props
         const { grapher } = editor
-        const chartTypes = Object.keys(ChartTypeName)
+        const chartTypes = Object.keys(ChartTypeName).filter(
+            (chartType) => chartType !== ChartTypeName.WorldMap
+        )
 
         return (
             <div className="EditorBasicTab">

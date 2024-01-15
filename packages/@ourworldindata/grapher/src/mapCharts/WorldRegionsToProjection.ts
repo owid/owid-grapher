@@ -1,5 +1,5 @@
 import { regions, continents } from "@ourworldindata/utils"
-import { MapProjectionName } from "./MapProjections"
+import { MapProjectionName } from "@ourworldindata/types"
 
 export const WorldRegionToProjection: Map<string, MapProjectionName> =
     Object.fromEntries(

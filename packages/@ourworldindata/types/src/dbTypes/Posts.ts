@@ -1,9 +1,11 @@
 import {
+    WP_PostType,
     FormattingOptions,
+} from "../wordpressTypes/WordpressTypes.js"
+import {
     OwidArticleBackportingStatistics,
     OwidGdocPostInterface,
-    WP_PostType,
-} from "../owidTypes.js"
+} from "../gdocTypes/Gdoc.js"
 
 export interface PostRowPlainFields {
     id: number
@@ -36,3 +38,6 @@ export interface PostRowParsedFields {
 }
 export type PostRowRaw = PostRowPlainFields & PostRowUnparsedFields
 export type PostRowEnriched = PostRowPlainFields & PostRowParsedFields
+export interface PostRowWithGdocPublishStatus extends PostRowRaw {
+    isGdocPublished: boolean
+}

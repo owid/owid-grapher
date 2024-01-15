@@ -1,14 +1,15 @@
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import { Bounds, PointVector, ColumnSlug } from "@ourworldindata/utils"
-import { MapProjectionName } from "./MapProjections"
-import { ChartManager } from "../chart/ChartManager"
-import { MapConfig } from "./MapConfig"
-import { Color, Time } from "@ourworldindata/core-table"
 import {
+    MapProjectionName,
+    Color,
+    Time,
     ChartTypeName,
     GrapherTabOption,
     SeriesName,
-} from "../core/GrapherConstants"
+} from "@ourworldindata/types"
+import { ChartManager } from "../chart/ChartManager"
+import { MapConfig } from "./MapConfig"
 import { ChartSeries } from "../chart/ChartInterface"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
@@ -42,6 +43,7 @@ export interface ChoroplethMapManager {
     onClick: (d: GeoFeature, ev: React.MouseEvent<SVGElement>) => void
     onMapMouseOver: (d: GeoFeature) => void
     onMapMouseLeave: () => void
+    strokeWidth?: number
 }
 
 export interface RenderFeature {

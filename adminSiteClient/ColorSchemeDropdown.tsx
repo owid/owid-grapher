@@ -1,10 +1,10 @@
 import React from "react"
 import { computed, action } from "mobx"
 import Select from "react-select"
+import { ChartTypeName } from "@ourworldindata/types"
 import {
-    getColorSchemeForChartType,
     ColorScheme,
-    ChartTypeName,
+    getColorSchemeForChartType,
 } from "@ourworldindata/grapher"
 import { observer } from "mobx-react"
 import { bind } from "decko"

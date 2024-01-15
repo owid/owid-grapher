@@ -1,10 +1,13 @@
 import {
-    GrapherInterface,
     GRAPHER_PAGE_BODY_CLASS,
     GRAPHER_SETTINGS_DRAWER_ID,
     LoadingIndicator,
 } from "@ourworldindata/grapher"
-import { serializeJSONForHTML, SiteFooterContext } from "@ourworldindata/utils"
+import {
+    serializeJSONForHTML,
+    SiteFooterContext,
+    GrapherInterface,
+} from "@ourworldindata/utils"
 import React from "react"
 import {
     EMBEDDED_EXPLORER_DELIMITER,

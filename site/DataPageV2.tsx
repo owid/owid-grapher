@@ -2,7 +2,6 @@ import {
     getVariableDataRoute,
     getVariableMetadataRoute,
     GRAPHER_SETTINGS_DRAWER_ID,
-    GrapherInterface,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
 import {
@@ -14,6 +13,7 @@ import {
     compact,
     FaqEntryData,
     pick,
+    GrapherInterface,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import React from "react"

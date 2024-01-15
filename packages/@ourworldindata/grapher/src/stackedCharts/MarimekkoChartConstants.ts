@@ -1,7 +1,14 @@
 import { ChartManager } from "../chart/ChartManager"
 
-import { Color, SortConfig, Time, Bounds } from "@ourworldindata/utils"
-import { EntityId, EntityName, OwidTable } from "@ourworldindata/core-table"
+import {
+    Color,
+    SortConfig,
+    Time,
+    Bounds,
+    EntityId,
+    EntityName,
+} from "@ourworldindata/utils"
+import { OwidTable } from "@ourworldindata/core-table"
 import { StackedPoint } from "./StackedConstants"
 import { DualAxis } from "../axis/Axis"
 export interface MarimekkoChartManager extends ChartManager {

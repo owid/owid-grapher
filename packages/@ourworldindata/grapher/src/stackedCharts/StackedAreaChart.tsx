@@ -14,7 +14,12 @@ import {
     lastOfNonEmptyArray,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
-import { SeriesName } from "../core/GrapherConstants"
+import { SeriesName } from "@ourworldindata/types"
+import {
+    GRAPHER_AREA_OPACITY_DEFAULT,
+    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
+    GRAPHER_AXIS_LINE_WIDTH_THICK,
+} from "../core/GrapherConstants"
 import { observer } from "mobx-react"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis } from "../axis/Axis"
@@ -152,9 +157,9 @@ class Areas extends React.Component<AreasProps> {
             }
             const points = [...placedPoints, ...reverse(clone(prevPoints))]
             const opacity = !hoveredAreaName
-                ? 0.7 // normal opacity
+                ? GRAPHER_AREA_OPACITY_DEFAULT // normal opacity
                 : hoveredAreaName === series.seriesName
-                ? 0.7 // hovered
+                ? GRAPHER_AREA_OPACITY_DEFAULT // hovered
                 : 0.2 // non-hovered
 
             return (
@@ -500,7 +505,7 @@ export class StackedAreaChart
                 />
             )
 
-        const { bounds, dualAxis, renderUid, series } = this
+        const { manager, bounds, dualAxis, renderUid, series } = this
         const { target } = this.tooltipState
 
         const showLegend = !this.manager.hideLegend
@@ -528,7 +533,16 @@ export class StackedAreaChart
                     whole charting area, including the axis, the entity labels, and the whitespace next to them.
                     We need these to be able to show the tooltip for the first/last year even if the mouse is outside the charting area. */}
                 </rect>
-                <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
+                <DualAxisComponent
+                    dualAxis={dualAxis}
+                    showTickMarks={true}
+                    labelColor={manager.secondaryColorInStaticCharts}
+                    lineWidth={
+                        manager.isStaticAndSmall
+                            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+                            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+                    }
+                />
                 <g clipPath={clipPath.id}>
                     {showLegend && <LineLegend manager={this} />}
                     <Areas

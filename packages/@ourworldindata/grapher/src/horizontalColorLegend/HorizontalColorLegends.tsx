@@ -22,7 +22,12 @@ import {
     NumericBin,
     CategoricalBin,
 } from "../color/ColorScaleBin"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    GRAPHER_FONT_SCALE_12,
+    GRAPHER_FONT_SCALE_12_8,
+    GRAPHER_FONT_SCALE_14,
+} from "../core/GrapherConstants"
 import { darkenColorForLine } from "../color/ColorUtils"
 
 export interface PositionedBin {
@@ -179,7 +184,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get tickFontSize(): number {
-        return 0.75 * this.fontSize
+        return GRAPHER_FONT_SCALE_12 * this.fontSize
     }
 
     @computed private get itemMargin(): number {
@@ -357,7 +362,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get legendTitleFontSize(): number {
-        return this.fontSize * 0.85
+        return this.fontSize * GRAPHER_FONT_SCALE_14
     }
 
     @computed private get legendTitle(): TextWrap | undefined {
@@ -686,7 +691,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get markLines(): MarkLine[] {
-        const fontSize = this.fontSize * 0.8
+        const fontSize = this.fontSize * GRAPHER_FONT_SCALE_12_8
         const rectSize = this.fontSize * 0.75
         const rectPadding = 5
         const markPadding = 5

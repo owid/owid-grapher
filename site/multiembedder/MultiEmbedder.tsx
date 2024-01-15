@@ -9,7 +9,6 @@ import {
     hydrateGlobalEntitySelectorIfAny,
     migrateSelectedEntityNamesParam,
     SelectionArray,
-    GrapherTabOption,
 } from "@ourworldindata/grapher"
 import {
     Annotation,
@@ -20,6 +19,7 @@ import {
     isMobile,
     isPresent,
     Url,
+    GrapherTabOption,
     merge,
 } from "@ourworldindata/utils"
 import { action } from "mobx"

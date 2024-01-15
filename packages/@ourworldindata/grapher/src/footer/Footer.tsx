@@ -12,6 +12,7 @@ import { Tooltip } from "../tooltip/Tooltip"
 import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
 import {
+    BASE_FONT_SIZE,
     DEFAULT_GRAPHER_FRAME_PADDING,
     GRAPHER_DARK_TEXT,
 } from "../core/GrapherConstants"
@@ -82,6 +83,14 @@ export class Footer<
         )
     }
 
+    @computed protected get useBaseFontSize(): boolean {
+        return !!this.manager.useBaseFontSize
+    }
+
+    @computed protected get baseFontSize(): number {
+        return this.manager.fontSize ?? BASE_FONT_SIZE
+    }
+
     @computed protected get sourcesLine(): string {
         return this.manager.sourcesLine?.replace(/\r\n|\n|\r/g, "") ?? ""
     }
@@ -149,6 +158,8 @@ export class Footer<
             actionButtons,
         } = this
 
+        if (this.manager.hideOriginUrl) return undefined
+
         if (!correctedUrlText) return undefined
 
         const licenseAndOriginUrlText = Footer.constructLicenseAndOriginUrlText(
@@ -178,20 +189,26 @@ export class Footer<
         )
     }
 
-    @computed private get lineHeight(): number {
+    @computed protected get lineHeight(): number {
         return this.manager.isSmall ? 1.1 : 1.2
     }
 
     @computed protected get fontSize(): number {
+        if (this.useBaseFontSize) {
+            return (11 / BASE_FONT_SIZE) * this.baseFontSize
+        }
         return this.manager.isMedium ? 11 : 12
     }
 
     @computed protected get sourcesFontSize(): number {
+        if (this.useBaseFontSize) {
+            return (12 / BASE_FONT_SIZE) * this.baseFontSize
+        }
         return this.manager.isSmall ? 12 : 13
     }
 
-    @computed private get hasNote(): boolean {
-        return !!this.noteText
+    @computed protected get showNote(): boolean {
+        return !this.manager.hideNote && !!this.noteText
     }
 
     @computed private get actionButtonsWidthWithIconsOnly(): number {
@@ -203,13 +220,13 @@ export class Footer<
 
     @computed private get useFullWidthSources(): boolean {
         const {
-            hasNote,
+            showNote,
             sourcesFontSize,
             maxWidth,
             sourcesText,
             actionButtonsWidthWithIconsOnly,
         } = this
-        if (hasNote) return true
+        if (showNote) return true
         const sourcesWidth = Bounds.forText(sourcesText, {
             fontSize: sourcesFontSize,
         }).width
@@ -303,7 +320,7 @@ export class Footer<
             useFullWidthSources,
             sourcesText,
             noteText,
-            hasNote,
+            showNote,
             useFullWidthNote,
         } = this
 
@@ -315,7 +332,7 @@ export class Footer<
         // text next to the action buttons
         const leftTextWidth = !useFullWidthSources
             ? sourcesWidth
-            : hasNote && !useFullWidthNote
+            : showNote && !useFullWidthNote
             ? noteWidth
             : 0
         // text above the action buttons
@@ -474,7 +491,7 @@ export class Footer<
         const { sources, note } = this
 
         const renderSources = this.useFullWidthSources
-        const renderNote = this.hasNote && this.useFullWidthNote
+        const renderNote = this.showNote && this.useFullWidthNote
 
         if (!renderSources && !renderNote) return 0
 
@@ -490,7 +507,7 @@ export class Footer<
     // make sure to keep this.topContentHeight in sync if you edit this method
     private renderTopContent(): JSX.Element | null {
         const renderSources = this.useFullWidthSources
-        const renderNote = this.hasNote && this.useFullWidthNote
+        const renderNote = this.showNote && this.useFullWidthNote
         const renderLicense = this.showLicenseNextToSources
 
         if (!renderSources && !renderNote) return null
@@ -516,7 +533,7 @@ export class Footer<
         const { actionButtons, sources, note } = this
 
         const renderSources = !this.useFullWidthSources
-        const renderNote = this.hasNote && !this.useFullWidthNote
+        const renderNote = this.showNote && !this.useFullWidthNote
         const renderLicense = !this.showLicenseNextToSources
         const renderPadding = (renderSources || renderNote) && renderLicense
 
@@ -532,7 +549,7 @@ export class Footer<
     // make sure to keep this.bottomContentHeight in sync if you edit this method
     private renderBottomContent(): JSX.Element {
         const renderSources = !this.useFullWidthSources
-        const renderNote = this.hasNote && !this.useFullWidthNote
+        const renderNote = this.showNote && !this.useFullWidthNote
         const renderLicense = !this.showLicenseNextToSources
         const renderPadding = (renderSources || renderNote) && renderLicense
 
@@ -620,6 +637,15 @@ interface StaticFooterProps extends FooterProps {
 export class StaticFooter extends Footer<StaticFooterProps> {
     verticalPadding = 2
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    componentDidMount(): void {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    componentWillUnmount(): void {}
+
+    @computed private get textColor(): string {
+        return this.manager.secondaryColorInStaticCharts ?? GRAPHER_DARK_TEXT
+    }
+
     @computed protected get showLicenseNextToSources(): boolean {
         return (
             this.maxWidth - this.sources.width - HORIZONTAL_PADDING >
@@ -629,6 +655,8 @@ export class StaticFooter extends Footer<StaticFooterProps> {
 
     @computed protected get finalUrlText(): string | undefined {
         const { correctedUrlText, licenseText, fontSize, maxWidth } = this
+
+        if (this.manager.hideOriginUrl) return undefined
 
         if (!correctedUrlText) return undefined
 
@@ -648,8 +676,12 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     }
 
     @computed protected get licenseAndOriginUrlText(): string {
-        const { finalUrl, finalUrlText, licenseText, licenseUrl } = this
-        const linkStyle = `fill: ${GRAPHER_DARK_TEXT}; text-decoration: underline;`
+        const { finalUrl, finalUrlText, licenseText, licenseUrl, textColor } =
+            this
+        const textDecoration = this.manager.isStaticAndSmall
+            ? "none"
+            : "underline"
+        const linkStyle = `fill: ${textColor};  text-decoration: ${textDecoration};`
         const licenseSvg = `<a target="_blank" style="${linkStyle}" href="${licenseUrl}">${licenseText}</a>`
         if (!finalUrlText) return licenseSvg
         const originUrlSvg = `<a target="_blank" style="${linkStyle}" href="${finalUrl}">${finalUrlText}</a>`
@@ -661,10 +693,35 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     }
 
     @computed protected get fontSize(): number {
-        // respect base font size for thumbnails
-        if (this.manager.isGeneratingThumbnail) {
-            return (13 / 16) * (this.manager.fontSize ?? 16)
+        if (this.useBaseFontSize) {
+            let fontSize = (12 / BASE_FONT_SIZE) * this.baseFontSize
+
+            // for small charts, reduce the font size if the footer text is long
+            if (this.manager.isStaticAndSmall) {
+                const sources = new MarkdownTextWrap({
+                    text: this.sourcesText,
+                    maxWidth: this.sourcesMaxWidth,
+                    lineHeight: this.lineHeight,
+                    fontSize,
+                })
+                const note = new MarkdownTextWrap({
+                    text: this.markdownNoteText,
+                    maxWidth: this.noteMaxWidth,
+                    lineHeight: this.lineHeight,
+                    fontSize,
+                })
+
+                const lineCount =
+                    sources.svgLines.length +
+                    (this.showNote ? note.svgLines.length : 0)
+                if (lineCount > 2) {
+                    fontSize = (10 / BASE_FONT_SIZE) * this.baseFontSize
+                }
+            }
+
+            return fontSize
         }
+
         return 13
     }
 
@@ -687,7 +744,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     @computed get height(): number {
         return (
             this.sources.height +
-            (this.note.height ? this.note.height + this.verticalPadding : 0) +
+            (this.showNote ? this.note.height + this.verticalPadding : 0) +
             (this.showLicenseNextToSources
                 ? 0
                 : this.licenseAndOriginUrl.height + this.verticalPadding)
@@ -701,16 +758,23 @@ export class StaticFooter extends Footer<StaticFooterProps> {
             licenseAndOriginUrl,
             showLicenseNextToSources,
             maxWidth,
+            textColor,
         } = this
         const { targetX, targetY } = this.props
 
         return (
-            <g className="SourcesFooter" style={{ fill: GRAPHER_DARK_TEXT }}>
+            <g
+                className="SourcesFooter"
+                style={{
+                    fill: textColor,
+                }}
+            >
                 {sources.renderSVG(targetX, targetY)}
-                {note.renderSVG(
-                    targetX,
-                    targetY + sources.height + this.verticalPadding
-                )}
+                {this.showNote &&
+                    note.renderSVG(
+                        targetX,
+                        targetY + sources.height + this.verticalPadding
+                    )}
                 {showLicenseNextToSources
                     ? licenseAndOriginUrl.render(
                           targetX + maxWidth - licenseAndOriginUrl.width,
@@ -720,7 +784,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
                           targetX,
                           targetY +
                               sources.height +
-                              (note.height
+                              (this.showNote
                                   ? note.height + this.verticalPadding
                                   : 0) +
                               this.verticalPadding

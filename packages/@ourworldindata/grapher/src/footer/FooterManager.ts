@@ -1,5 +1,5 @@
 import { TooltipManager } from "../tooltip/TooltipProps"
-import { GrapherInterface } from "../core/GrapherInterface"
+import { GrapherInterface } from "@ourworldindata/types"
 import { ActionButtonsManager } from "../controls/ActionButtons"
 
 export interface FooterManager extends TooltipManager, ActionButtonsManager {
@@ -14,9 +14,13 @@ export interface FooterManager extends TooltipManager, ActionButtonsManager {
     isSmall?: boolean
     isMedium?: boolean
     framePaddingHorizontal?: number
-    isGeneratingThumbnail?: boolean
+    useBaseFontSize?: boolean
     fontSize?: number
     isInFullScreenMode?: boolean
     isEmbeddedInAnOwidPage?: boolean
     isEmbeddedInADataPage?: boolean
+    hideNote?: boolean
+    hideOriginUrl?: boolean
+    secondaryColorInStaticCharts?: string
+    isStaticAndSmall?: boolean
 }

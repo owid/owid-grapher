@@ -5,8 +5,12 @@
  *
  */
 
-import { Grapher, Topic } from "@ourworldindata/grapher"
-import { type DetailDictionary, type RawPageview } from "@ourworldindata/utils"
+import { Grapher } from "@ourworldindata/grapher"
+import {
+    type DetailDictionary,
+    type RawPageview,
+    Topic,
+} from "@ourworldindata/utils"
 import { computed, observable, runInAction, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { Admin } from "./Admin.js"
@@ -111,6 +115,7 @@ export class ChartEditor {
     @observable.ref tab: EditorTab = "basic"
     @observable.ref errorMessage?: { title: string; content: string }
     @observable.ref previewMode: "mobile" | "desktop"
+    @observable.ref showStaticPreview = false
     @observable.ref savedGrapherJson: string = ""
 
     // This gets set when we save a new chart for the first time
@@ -172,6 +177,7 @@ export class ChartEditor {
         if (this.grapher.isMarimekko) tabs.push("marimekko")
         tabs.push("revisions")
         tabs.push("refs")
+        tabs.push("export")
         return tabs
     }
 

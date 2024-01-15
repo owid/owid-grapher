@@ -6,7 +6,7 @@ import {
     faChartColumn,
     faEarthAmericas,
 } from "@fortawesome/free-solid-svg-icons"
-import { ChartTypeName } from "../core/GrapherConstants"
+import { ChartTypeName } from "@ourworldindata/types"
 
 export const chartIcons: Record<ChartTypeName, JSX.Element> = {
     // line chart
@@ -16,9 +16,6 @@ export const chartIcons: Record<ChartTypeName, JSX.Element> = {
     [ChartTypeName.DiscreteBar]: <FontAwesomeIcon icon={faChartColumn} />,
     [ChartTypeName.StackedBar]: <FontAwesomeIcon icon={faChartColumn} />,
     [ChartTypeName.StackedDiscreteBar]: <FontAwesomeIcon icon={faChartBar} />,
-
-    // world map
-    [ChartTypeName.WorldMap]: <FontAwesomeIcon icon={faEarthAmericas} />,
 
     // scatter
     [ChartTypeName.ScatterPlot]: (
@@ -110,4 +107,7 @@ export const chartIcons: Record<ChartTypeName, JSX.Element> = {
             </g>
         </svg>
     ),
+
+    // world map (will never be invoked but included for completeness)
+    [ChartTypeName.WorldMap]: <FontAwesomeIcon icon={faEarthAmericas} />,
 }

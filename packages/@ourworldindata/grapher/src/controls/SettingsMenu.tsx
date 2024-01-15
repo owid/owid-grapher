@@ -5,15 +5,11 @@ import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faXmark, faGear } from "@fortawesome/free-solid-svg-icons"
-import { EntityName } from "@ourworldindata/core-table"
+import { EntityName, ChartTypeName, FacetStrategy } from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartDimension } from "../chart/ChartDimension"
 import { AxisConfig } from "../axis/AxisConfig"
-import {
-    GRAPHER_SETTINGS_DRAWER_ID,
-    ChartTypeName,
-    FacetStrategy,
-} from "../core/GrapherConstants"
+import { GRAPHER_SETTINGS_DRAWER_ID } from "../core/GrapherConstants"
 
 import { AxisScaleToggle } from "./settings/AxisScaleToggle"
 import { AbsRelToggle, AbsRelToggleManager } from "./settings/AbsRelToggle"

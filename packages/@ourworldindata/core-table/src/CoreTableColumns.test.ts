@@ -1,4 +1,4 @@
-import { ColumnTypeNames } from "./CoreColumnDef.js"
+import { ColumnTypeNames } from "@ourworldindata/types"
 import { ColumnTypeMap } from "./CoreTableColumns.js"
 import { ErrorValueTypes } from "./ErrorValues.js"
 import { OwidTable } from "./OwidTable.js"

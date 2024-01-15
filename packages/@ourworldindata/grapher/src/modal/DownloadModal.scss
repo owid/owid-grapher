@@ -131,6 +131,10 @@
     margin: 1em 0 1.5em;
     padding-bottom: 1.5em;
     border-bottom: 1px solid #f2f2f2;
+
+    > .checkbox + .checkbox {
+        margin-top: 8px;
+    }
 }
 
 &.GrapherComponentNarrow .DownloadModalContent {

@@ -8,6 +8,7 @@ import {
     makeSafeForCSS,
     sum,
     getRelativeMouse,
+    colorScaleConfigDefaults,
 } from "@ourworldindata/utils"
 import {
     VerticalAxisComponent,
@@ -22,7 +23,14 @@ import {
     LegendItem,
 } from "../verticalColorLegend/VerticalColorLegend"
 import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    GRAPHER_AREA_OPACITY_DEFAULT,
+    GRAPHER_DARK_TEXT,
+    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
+    GRAPHER_AXIS_LINE_WIDTH_THICK,
+    GRAPHER_FONT_SCALE_12,
+} from "../core/GrapherConstants"
 import { ColorScaleManager } from "../color/ColorScale"
 import {
     AbstractStackedChart,
@@ -30,7 +38,7 @@ import {
 } from "./AbstractStackedChart"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { VerticalAxis } from "../axis/Axis"
-import { ColorSchemeName } from "../color/ColorConstants"
+import { ColorSchemeName } from "@ourworldindata/types"
 import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
@@ -130,11 +138,11 @@ export class StackedBarChart
     }>()
 
     @computed private get baseFontSize(): number {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed get tickFontSize(): number {
-        return 0.9 * this.baseFontSize
+        return GRAPHER_FONT_SCALE_12 * this.baseFontSize
     }
 
     @computed get barWidth(): number {
@@ -148,10 +156,6 @@ export class StackedBarChart
             this.dualAxis.innerBounds.width / this.xValues.length -
             this.barWidth
         )
-    }
-
-    @computed get barFontSize(): number {
-        return 0.75 * this.baseFontSize
     }
 
     @computed protected get paddingForLegend(): number {
@@ -406,6 +410,7 @@ export class StackedBarChart
             )
 
         const {
+            manager,
             dualAxis,
             renderUid,
             bounds,
@@ -418,9 +423,11 @@ export class StackedBarChart
         const { series } = this
         const { innerBounds, verticalAxis } = dualAxis
 
-        const textColor = "#666"
-
         const clipPath = makeClipPath(renderUid, innerBounds)
+
+        const axisLineWidth = manager.isStaticAndSmall
+            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
 
         return (
             <g
@@ -442,10 +449,12 @@ export class StackedBarChart
                 <VerticalAxisComponent
                     bounds={bounds}
                     verticalAxis={verticalAxis}
+                    labelColor={manager.secondaryColorInStaticCharts}
                 />
                 <VerticalAxisGridLines
                     verticalAxis={verticalAxis}
                     bounds={innerBounds}
+                    strokeWidth={axisLineWidth}
                 />
 
                 <AxisTickMarks
@@ -453,7 +462,8 @@ export class StackedBarChart
                     tickMarkXPositions={ticks.map(
                         (tick) => tick.bounds.centerX
                     )}
-                    color={textColor}
+                    color="#666"
+                    width={axisLineWidth}
                 />
 
                 <g>
@@ -463,7 +473,7 @@ export class StackedBarChart
                                 key={i}
                                 x={tick.bounds.x}
                                 y={tick.bounds.y}
-                                fill={textColor}
+                                fill={GRAPHER_DARK_TEXT}
                                 fontSize={this.tickFontSize}
                                 onMouseOver={(): void => {
                                     this.onLabelMouseOver(tick)
@@ -483,7 +493,7 @@ export class StackedBarChart
                         )
                         const opacity =
                             isLegendHovered || this.hoverKeys.length === 0
-                                ? 0.8
+                                ? GRAPHER_AREA_OPACITY_DEFAULT
                                 : 0.2
 
                         return (
@@ -544,7 +554,10 @@ export class StackedBarChart
     }
 
     @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
-        return this.manager.colorScale
+        return {
+            ...colorScaleConfigDefaults,
+            ...this.manager.colorScale,
+        }
     }
 
     defaultBaseColorScheme = ColorSchemeName.stackedAreaDefault

@@ -1,17 +1,19 @@
 // todo: Remove this file when we've migrated OWID data and OWID charts to next version
 
-import { ChartTypeName } from "../core/GrapherConstants"
 import {
+    ChartTypeName,
     ColumnTypeNames,
     CoreColumnDef,
     StandardOwidColumnDefs,
     OwidTableSlugs,
     OwidColumnDef,
+    LegacyGrapherInterface,
+} from "@ourworldindata/types"
+import {
     OwidTable,
     ErrorValueTypes,
     makeKeyFn,
 } from "@ourworldindata/core-table"
-import { LegacyGrapherInterface } from "../core/GrapherInterface"
 import {
     diffDateISOStringInDays,
     difference,

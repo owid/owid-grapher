@@ -40,3 +40,4 @@ wpmigration
 dist/
 .wrangler/
 .nx/cache
+.dev.vars

@@ -17,14 +17,18 @@ import {
     SortBy,
     SortConfig,
     HorizontalAlign,
+    EntityName,
     getRelativeMouse,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
+import { FacetStrategy, SeriesName } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
-    FacetStrategy,
-    SeriesName,
+    GRAPHER_AREA_OPACITY_DEFAULT,
+    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
+    GRAPHER_AXIS_LINE_WIDTH_THICK,
+    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
@@ -34,7 +38,7 @@ import {
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
-import { OwidTable, EntityName, CoreColumn } from "@ourworldindata/core-table"
+import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import {
     stackSeries,
@@ -57,6 +61,7 @@ import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { bind } from "decko"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
+import { getElementWithHalo } from "../scatterCharts/Halos.js"
 
 const labelToBarPadding = 5
 
@@ -159,7 +164,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get baseFontSize(): number {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed private get showLegend(): boolean {
@@ -178,7 +183,7 @@ export class StackedDiscreteBarChart
         // can't use the computed property `barHeight` here as that would create a circular dependency
         const barHeight =
             (0.8 * this.boundsWithoutLegend.height) / this.items.length
-        return Math.min(0.75 * this.fontSize, 1.1 * barHeight)
+        return Math.min(GRAPHER_FONT_SCALE_12 * this.fontSize, 1.1 * barHeight)
     }
 
     @computed private get labelStyle(): {
@@ -488,7 +493,7 @@ export class StackedDiscreteBarChart
                 />
             )
 
-        const { bounds, yAxis, innerBounds } = this
+        const { manager, bounds, yAxis, innerBounds } = this
 
         const chartContext: StackedBarChartContext = {
             yAxis,
@@ -553,20 +558,26 @@ export class StackedDiscreteBarChart
                             onMouseLeave={this.onEntityMouseLeave}
                         />
                     ))}
-                    {this.showTotalValueLabel && (
-                        <text
-                            transform={`translate(${
-                                yAxis.place(totalValue) + labelToBarPadding
-                            }, 0)`}
-                            dominantBaseline="middle"
-                            {...this.totalValueLabelStyle}
-                        >
-                            {totalLabel}
-                        </text>
-                    )}
+                    {this.showTotalValueLabel &&
+                        getElementWithHalo(
+                            label + "-value-label",
+                            <text
+                                transform={`translate(${
+                                    yAxis.place(totalValue) + labelToBarPadding
+                                }, 0)`}
+                                dominantBaseline="middle"
+                                {...this.totalValueLabelStyle}
+                            >
+                                {totalLabel}
+                            </text>
+                        )}
                 </g>
             )
         }
+
+        const axisLineWidth = manager.isStaticAndSmall
+            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
 
         return (
             <g
@@ -587,11 +598,14 @@ export class StackedDiscreteBarChart
                         bounds={bounds}
                         axis={yAxis}
                         preferredAxisPosition={innerBounds.bottom}
+                        labelColor={manager.secondaryColorInStaticCharts}
+                        tickMarkWidth={axisLineWidth}
                     />
                 )}
                 <HorizontalAxisGridLines
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
+                    strokeWidth={axisLineWidth}
                 />
                 {this.showLegend && (
                     <HorizontalCategoricalColorLegend manager={this} />
@@ -609,6 +623,7 @@ export class StackedDiscreteBarChart
                 <HorizontalAxisZeroLine
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
+                    strokeWidth={axisLineWidth}
                 />
                 {this.Tooltip}
             </g>
@@ -637,7 +652,7 @@ export class StackedDiscreteBarChart
             yAxis.place(bar.point.value) - yAxis.place(chartContext.x0)
 
         const barLabel = formatValueForLabel(bar.point.value)
-        const labelFontSize = 0.7 * chartContext.baseFontSize
+        const labelFontSize = GRAPHER_FONT_SCALE_12 * chartContext.baseFontSize
         const labelBounds = Bounds.forText(barLabel, {
             fontSize: labelFontSize,
         })
@@ -662,7 +677,13 @@ export class StackedDiscreteBarChart
                     width={barWidth}
                     height={barHeight}
                     fill={bar.color}
-                    opacity={isHover ? 1 : isFaint ? 0.1 : 0.8}
+                    opacity={
+                        isHover
+                            ? 1
+                            : isFaint
+                            ? 0.1
+                            : GRAPHER_AREA_OPACITY_DEFAULT
+                    }
                     style={{
                         transition: "height 200ms ease",
                     }}

@@ -1,4 +1,4 @@
-import { ChartTypeName, GrapherTabOption } from "@ourworldindata/grapher"
+import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableMixedData,
@@ -15,7 +15,7 @@ import {
 } from "../../baker/GrapherImageBaker.js"
 import { getVariableData } from "../../db/model/Variable.js"
 
-import { GrapherInterface } from "@ourworldindata/grapher"
+import { GrapherInterface } from "@ourworldindata/types"
 import _ from "lodash"
 import util from "util"
 import {

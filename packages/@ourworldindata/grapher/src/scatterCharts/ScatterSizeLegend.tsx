@@ -3,7 +3,13 @@ import { computed } from "mobx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { TextWrap } from "@ourworldindata/components"
 import { first, last } from "@ourworldindata/utils"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    GRAPHER_DARK_TEXT,
+    GRAPHER_FONT_SCALE_10,
+    GRAPHER_FONT_SCALE_11,
+    GRAPHER_LIGHT_TEXT,
+} from "../core/GrapherConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { getElementWithHalo } from "./Halos"
 import {
@@ -27,8 +33,8 @@ const LEGEND_PADDING = 3
 const LEGEND_CIRCLE_COLOR = "#bbb"
 const LEGEND_VALUE_COLOR = "#444"
 const LABEL_PADDING = 2
-const LABEL_COLOR = "#777"
-const TITLE_COLOR = "#222"
+const LABEL_COLOR = GRAPHER_LIGHT_TEXT
+const TITLE_COLOR = GRAPHER_DARK_TEXT
 
 const MIN_FONT_SIZE = 9
 
@@ -92,7 +98,10 @@ export class ScatterSizeLegend {
     }
 
     @computed private get label(): TextWrap {
-        const fontSize = Math.max(MIN_FONT_SIZE, 0.625 * this.baseFontSize)
+        const fontSize = Math.max(
+            MIN_FONT_SIZE,
+            GRAPHER_FONT_SCALE_10 * this.baseFontSize
+        )
         return new TextWrap({
             text: "Circles sized by",
             // Allow text to _slightly_ go outside boundaries.
@@ -105,7 +114,10 @@ export class ScatterSizeLegend {
     }
 
     @computed private get title(): TextWrap {
-        const fontSize = Math.max(MIN_FONT_SIZE, 0.6875 * this.baseFontSize)
+        const fontSize = Math.max(
+            MIN_FONT_SIZE,
+            GRAPHER_FONT_SCALE_11 * this.baseFontSize
+        )
         return new TextWrap({
             text: this.manager.sizeColumn.displayName,
             // Allow text to _slightly_ go outside boundaries.

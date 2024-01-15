@@ -120,6 +120,8 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_me
 			set remain-on-exit on \; \
 		new-window -n lerna 'yarn startLernaWatcher' \; \
 			set remain-on-exit on \; \
+		new-window -n functions 'yarn startLocalCloudflareFunctions' \; \
+			set remain-on-exit on \; \
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
@@ -139,6 +141,9 @@ refresh:
 
 	@echo '==> Updating grapher database'
 	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-grapher-data.sh
+
+	@echo '!!! If you use ETL, wipe indicators from your R2 staging with `rclone delete r2:owid-api-staging/[yourname]/ ' \
+	'--fast-list --transfers 32 --checkers 32  --verbose`'
 
 refresh.pageviews:
 	@echo '==> Refreshing pageviews'

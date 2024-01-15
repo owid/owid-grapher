@@ -50,9 +50,8 @@ import {
     ChartTagJoin,
     OwidGdoc,
 } from "@ourworldindata/utils"
+import { GrapherInterface, grapherKeysToSerialize } from "@ourworldindata/types"
 import {
-    GrapherInterface,
-    grapherKeysToSerialize,
     getVariableDataRoute,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"

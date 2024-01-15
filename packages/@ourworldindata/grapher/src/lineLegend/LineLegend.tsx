@@ -14,8 +14,8 @@ import { TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"
-import { EntityName } from "@ourworldindata/core-table"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { EntityName } from "@ourworldindata/types"
+import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
 import { darkenColorForText } from "../color/ColorUtils"
 
@@ -167,7 +167,7 @@ export class LineLegend extends React.Component<{
     leftPadding = 35
 
     @computed private get fontSize(): number {
-        return 0.75 * (this.manager.fontSize ?? BASE_FONT_SIZE)
+        return GRAPHER_FONT_SCALE_12 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
 
     @computed private get fontWeight(): number {

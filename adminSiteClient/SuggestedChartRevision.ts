@@ -1,4 +1,4 @@
-import { GrapherInterface } from "@ourworldindata/grapher"
+import { GrapherInterface } from "@ourworldindata/types"
 import { SuggestedChartRevisionStatus } from "@ourworldindata/utils"
 
 export interface SuggestedChartRevisionSerialized {

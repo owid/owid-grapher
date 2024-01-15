@@ -1,4 +1,4 @@
-.ExpandableToggle {
+div.ExpandableToggle {
     --title: var(--expandable-toggle-title, currentColor);
     --border: var(--expandable-toggle-border, #d0dae3);
     --content: var(--expandable-toggle-content, #{$blue-60});
@@ -11,81 +11,82 @@
 
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
-}
 
-.ExpandableToggle--stacked {
-    border-bottom: none;
-}
+    .ExpandableToggle__button {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 16px 0;
+        color: var(--button);
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        text-align: left;
 
-.ExpandableToggle__button {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    padding: 16px 0;
-    color: var(--button);
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    text-align: left;
+        &:hover {
+            color: var(--button-hover);
+        }
 
-    &:hover {
-        color: var(--button-hover);
+        .ExpandableToggle__title {
+            @include h4-semibold;
+            margin: 0;
+            color: var(--title);
+            font-size: var(--title-size);
+
+            &:hover {
+                color: var(--button-hover);
+            }
+        }
+
+        .ExpandableToggle__icon {
+            font-size: 0.75em;
+            margin: 0 12px;
+        }
+    }
+
+    .ExpandableToggle__content {
+        height: 0;
+        overflow: hidden;
+        color: var(--content);
+
+        @include body-3-medium;
+        font-size: var(--content-size);
+
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list,
+        p {
+            @include body-3-medium;
+            font-size: var(--content-size);
+        }
+
+        > *:first-child {
+            margin-top: 0;
+        }
+
+        > *:last-child {
+            margin-bottom: 0;
+        }
     }
 }
 
-.ExpandableToggle--teaser .ExpandableToggle__button,
+div.ExpandableToggle--stacked {
+    border-bottom: none;
+}
+
+div.ExpandableToggle--teaser .ExpandableToggle__button,
 .ExpandableToggle--open .ExpandableToggle__button {
     padding-bottom: 8px;
 }
 
-.ExpandableToggle__title {
-    @include h4-semibold;
-    margin: 0;
-    color: var(--title);
-    font-size: var(--title-size);
-
-    &:hover {
-        color: var(--button-hover);
-    }
-}
-
-.ExpandableToggle__icon {
-    font-size: 0.75em;
-    margin: 0 12px;
-}
-
-.ExpandableToggle__content {
-    height: 0;
-    overflow: hidden;
-    color: var(--content);
-
-    @include body-3-medium;
-    font-size: var(--content-size);
-
-    .article-block__text,
-    .article-block__list,
-    .article-block__html,
-    .article-block__numbered-list {
-        @include body-3-medium;
-        font-size: var(--content-size);
-    }
-
-    > *:first-child {
-        margin-top: 0;
-    }
-
-    > *:last-child {
-        margin-bottom: 0;
-    }
-}
-
-.ExpandableToggle--teaser .ExpandableToggle__content {
+div.ExpandableToggle--teaser .ExpandableToggle__content {
     height: 96px;
     -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent);
 }
 
-.ExpandableToggle--open .ExpandableToggle__content {
+div.ExpandableToggle--open .ExpandableToggle__content {
     padding-bottom: 16px;
     height: auto;
     -webkit-mask-image: none;

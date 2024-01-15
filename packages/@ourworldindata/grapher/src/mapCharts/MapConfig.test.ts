@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
 import { MapConfig } from "./MapConfig"
-import { MapProjectionName } from "./MapProjections"
+import { MapProjectionName } from "@ourworldindata/types"
 
 it("can serialize for saving", () => {
     expect(new MapConfig().toObject()).toEqual({})

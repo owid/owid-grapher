@@ -1,20 +1,23 @@
 import {
     CoreMatrix,
     ColumnTypeNames,
-    CoreTable,
     CoreTableInputOption,
     CoreValueType,
     OwidColumnDef,
-    OwidTable,
     TableSlug,
+    SubNavId,
+    FacetAxisDomain,
+    GrapherInterface,
+} from "@ourworldindata/types"
+import {
+    CoreTable,
+    OwidTable,
     isNotErrorValue,
 } from "@ourworldindata/core-table"
-import { FacetAxisDomain, GrapherInterface } from "@ourworldindata/grapher"
 import {
     GitCommit,
     PromiseCache,
     SerializedGridProgram,
-    SubNavId,
     trimObject,
     omit,
 } from "@ourworldindata/utils"

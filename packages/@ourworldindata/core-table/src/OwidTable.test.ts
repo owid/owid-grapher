@@ -6,9 +6,12 @@ import {
     SynthesizeGDPTable,
 } from "./OwidTableSynthesizers.js"
 import { OwidTable } from "./OwidTable.js"
-import { ColumnTypeNames } from "./CoreColumnDef.js"
+import {
+    ColumnTypeNames,
+    OwidColumnDef,
+    OwidTableSlugs,
+} from "@ourworldindata/types"
 import { ErrorValueTypes } from "./ErrorValues.js"
-import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants.js"
 
 const sampleRows = [
     {

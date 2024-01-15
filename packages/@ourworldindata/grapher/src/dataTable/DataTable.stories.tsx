@@ -2,7 +2,7 @@ import React from "react"
 import { DataTable, DataTableManager } from "./DataTable"
 import { SynthesizeGDPTable } from "@ourworldindata/core-table"
 import { childMortalityGrapher, IncompleteDataTable } from "./DataTable.sample"
-import { ChartTypeName, GrapherTabOption } from "../core/GrapherConstants"
+import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
 
 export default {
     title: "DataTable",

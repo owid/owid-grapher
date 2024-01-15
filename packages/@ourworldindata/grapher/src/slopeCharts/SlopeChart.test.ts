@@ -5,11 +5,10 @@ import {
     SampleColumnSlugs,
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
-    OwidTableSlugs,
 } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import { DEFAULT_SLOPE_CHART_COLOR } from "./SlopeChartConstants"
-import { isNumber } from "@ourworldindata/utils"
+import { isNumber, OwidTableSlugs } from "@ourworldindata/utils"
 
 const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
 const manager: ChartManager = {

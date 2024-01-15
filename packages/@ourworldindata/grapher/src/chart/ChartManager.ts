@@ -1,17 +1,19 @@
 import React from "react"
-import { ColorScaleConfigInterface } from "../color/ColorScaleConfig"
 import {
     EntitySelectionMode,
     FacetStrategy,
     SeriesColorMap,
     SeriesStrategy,
     MissingDataStrategy,
-} from "../core/GrapherConstants"
-import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
+    ColorScaleConfigInterface,
+    ComparisonLineConfig,
+    AxisConfigInterface,
+    ColorSchemeName,
+    EntityName,
+} from "@ourworldindata/types"
 import { TooltipManager } from "../tooltip/TooltipProps"
-import { OwidTable, EntityName, CoreColumn } from "@ourworldindata/core-table"
-import { AxisConfigInterface } from "../axis/AxisConfigInterface"
-import { ColorSchemeName } from "../color/ColorConstants"
+import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
+
 import { SelectionArray } from "../selection/SelectionArray"
 import {
     Annotation,
@@ -26,14 +28,14 @@ import { ColorScale } from "../color/ColorScale"
 
 export interface ChartManager {
     base?: React.RefObject<SVGGElement | HTMLDivElement>
-    baseFontSize?: number
+    fontSize?: number
 
     table: OwidTable
     transformedTable?: OwidTable
 
     isSelectingData?: boolean
     startSelectingWhenLineClicked?: boolean // used by lineLabels
-    isExportingtoSvgOrPng?: boolean
+    isExportingToSvgOrPng?: boolean
     isRelativeMode?: boolean
     comparisonLines?: ComparisonLineConfig[]
     hideLegend?: boolean
@@ -88,4 +90,8 @@ export interface ChartManager {
     disableIntroAnimation?: boolean
 
     missingDataStrategy?: MissingDataStrategy
+
+    isNarrow?: boolean
+    isStaticAndSmall?: boolean
+    secondaryColorInStaticCharts?: string
 }

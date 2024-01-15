@@ -1,6 +1,13 @@
 export const EMBEDDED_FONTS_CSS = "/fonts/embedded.css"
 export const IMPORT_FONTS_REGEX = /@import url\([^\)]*?fonts\.css\)/
 
+export interface GrapherExport {
+    url: string
+    blob: Blob
+    svgUrl: string
+    svgBlob: Blob
+}
+
 export class StaticChartRasterizer {
     svg: string
     width: number
@@ -97,12 +104,7 @@ export class StaticChartRasterizer {
         this.embeddedFonts = ""
     }
 
-    async render(): Promise<{
-        url: string
-        blob: Blob
-        svgUrl: string
-        svgBlob: Blob
-    }> {
+    async render(): Promise<GrapherExport> {
         // await the canvas before doing anything else to make sure .preloadFonts() has completed
         const canvas = await this.canvas,
             ctx = canvas.getContext("2d", { alpha: false })!

@@ -159,10 +159,10 @@ async function fetchAndRenderGrapherToSvg({
         bakedGrapherURL: grapherBaseUrl,
         queryStr: "?" + searchParams.toString(),
         bounds,
+        staticBounds: bounds,
+        baseFontSize: options.fontSize,
     })
-    grapher.isGeneratingThumbnail = true
     grapher.shouldIncludeDetailsInStaticExport = options.details
-    grapher.baseFontSize = options.fontSize
 
     grapherLogger.log("grapherInit")
     const promises = []
@@ -181,7 +181,7 @@ async function fetchAndRenderGrapherToSvg({
     await Promise.all(promises) // Run these (potentially) two fetches in parallel
     grapherLogger.log("fetchDataAndDods")
 
-    const svg = grapher.generateStaticSvg(bounds)
+    const svg = grapher.generateStaticSvg()
     grapherLogger.log("generateStaticSvg")
     return svg
 }

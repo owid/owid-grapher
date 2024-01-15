@@ -1,8 +1,9 @@
+import { AvailableTransforms } from "@ourworldindata/core-table"
 import {
-    AvailableTransforms,
+    BinningStrategy,
+    ColorSchemeName,
     ColumnTypeNames,
-} from "@ourworldindata/core-table"
-import { BinningStrategy, ColorSchemeName } from "@ourworldindata/grapher"
+} from "@ourworldindata/types"
 import { ToleranceStrategy } from "@ourworldindata/utils"
 import {
     BooleanCellDef,

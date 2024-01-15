@@ -1,4 +1,4 @@
-import { EntityName } from "@ourworldindata/core-table"
+import { EntityName } from "@ourworldindata/types"
 import { MapTopology } from "./MapTopology"
 
 let _cache: Set<string>

@@ -1,7 +1,6 @@
 #! /usr/bin/env jest
 
-import { ColumnTypeNames } from "./CoreColumnDef.js"
-import { CoreMatrix } from "./CoreTableConstants.js"
+import { ColumnTypeNames, CoreMatrix } from "@ourworldindata/types"
 import {
     emptyColumnsInFirstRowInDelimited,
     getDropIndexes,

@@ -1,5 +1,11 @@
 import { CoreColumn, EntityName, OwidTable } from "@ourworldindata/core-table"
 import {
+    ColorSchemeName,
+    GrapherTabOption,
+    MapProjectionName,
+    SeriesName
+} from "@ourworldindata/types"
+import {
     Bounds,
     Color,
     DEFAULT_BOUNDS,
@@ -30,7 +36,6 @@ import {
     makeClipPath,
     makeSelectionArray,
 } from "../chart/ChartUtils"
-import { ColorSchemeName } from "../color/ColorConstants"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
     CategoricalBin,
@@ -38,12 +43,7 @@ import {
     NumericBin,
 } from "../color/ColorScaleBin"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import {
-    BASE_FONT_SIZE,
-    GrapherTabOption,
-    Patterns,
-    SeriesName,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE, Patterns } from "../core/GrapherConstants"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
@@ -65,7 +65,7 @@ import {
     RenderFeature,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
-import { MapProjectionGeos, MapProjectionName } from "./MapProjections"
+import { MapProjectionGeos } from "./MapProjections"
 import { MapTooltip } from "./MapTooltip"
 import { MapTopology } from "./MapTopology"
 import {
@@ -431,7 +431,7 @@ export class MapChart
     }
 
     @computed get fontSize(): number {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed get noDataColor(): Color {
@@ -585,6 +585,10 @@ export class MapChart
         return 0
     }
 
+    @computed get strokeWidth(): number | undefined {
+        return this.manager.isStaticAndSmall ? 2 : undefined
+    }
+
     renderMapLegend(): JSX.Element {
         const { numericLegend, categoryLegend } = this
 
@@ -638,7 +642,9 @@ export class MapChart
 declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
 @observer
-class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
+class ChoroplethMap extends React.Component<{
+    manager: ChoroplethMapManager
+}> {
     base: React.RefObject<SVGGElement> = React.createRef()
     globeProjection: any
     dragging: any
@@ -650,6 +656,10 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
 
     @computed private get manager(): ChoroplethMapManager {
         return this.props.manager
+    }
+
+    @computed private get strokeWidth(): number {
+        return this.manager.strokeWidth ?? 1
     }
 
     @computed.struct private get bounds(): Bounds {
@@ -941,8 +951,10 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
             featuresWithData,
         } = this
         const focusStrokeColor = "#111"
-        const focusStrokeWidth = 1.5
-        const selectedStrokeWidth = 1
+        const defaultStrokeWidth = this.strokeWidth * 0.3
+        const focusStrokeWidth = this.strokeWidth * 1.5
+        const selectedStrokeWidth = this.strokeWidth * 1
+        const patternStrokeWidth = this.strokeWidth * 0.7
         const blurFillOpacity = 0.2
         const blurStrokeOpacity = 0.5
 
@@ -1015,7 +1027,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                     <path
                                         key={feature.id}
                                         d={this.getPath(feature)}
-                                        strokeWidth={0.3 / viewportScale}
+                                        strokeWidth={defaultStrokeWidth / viewportScale}
                                         stroke={"#aaa"}
                                         fill={"#fff"}
                                     />
@@ -1044,7 +1056,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                     <path
                                         d="M -1,2 l 6,0"
                                         stroke="#ccc"
-                                        strokeWidth="0.7"
+                                        strokeWidth={patternStrokeWidth}
                                     />
                                 </pattern>
                             </defs>
@@ -1067,7 +1079,9 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                         key={feature.id}
                                         d={this.getPath(feature)}
                                         strokeWidth={
-                                            (isFocus ? focusStrokeWidth : 0.3) /
+                                            (isFocus
+                                                ? focusStrokeWidth
+                                                : defaultStrokeWidth) /
                                             viewportScale
                                         }
                                         stroke={stroke}
@@ -1123,7 +1137,8 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                             ? focusStrokeWidth
                                             : showSelectedStyle
                                             ? selectedStrokeWidth
-                                            : 0.3) / viewportScale
+                                            : defaultStrokeWidth) /
+                                        viewportScale
                                     }
                                     stroke={stroke}
                                     strokeOpacity={strokeOpacity}

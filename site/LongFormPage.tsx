@@ -10,12 +10,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBook, faSync } from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import { TableOfContents } from "../site/TableOfContents.js"
-import {
-    FormattedPost,
-    FormattingOptions,
-    TocHeading,
-    omit,
-} from "@ourworldindata/utils"
+import { FormattedPost, TocHeading, omit } from "@ourworldindata/utils"
+import { FormattingOptions } from "@ourworldindata/types"
 import { BreadcrumbsFromSubnav } from "./Breadcrumb/Breadcrumb.js"
 import { Byline } from "./Byline.js"
 import { PageInfo } from "./PageInfo.js"

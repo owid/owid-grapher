@@ -1,8 +1,5 @@
-import {
-    Grapher,
-    GrapherInterface,
-    GrapherProgrammaticInterface,
-} from "@ourworldindata/grapher"
+import { GrapherInterface } from "@ourworldindata/types"
+import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { MultipleOwidVariableDataDimensionsMap } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import path from "path"
@@ -23,7 +20,7 @@ export async function bakeGraphersToPngs(
     optimizeSvgs = false
 ) {
     const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
-    grapher.isExportingtoSvgOrPng = true
+    grapher.isExportingToSvgOrPng = true
     grapher.shouldIncludeDetailsInStaticExport = false
     grapher.receiveOwidData(vardata)
     const outPath = path.join(outDir, grapher.slug as string)
@@ -120,7 +117,7 @@ export function initGrapherForSvgExport(
         manuallyProvideData: true,
         queryStr,
     })
-    grapher.isExportingtoSvgOrPng = true
+    grapher.isExportingToSvgOrPng = true
     grapher.shouldIncludeDetailsInStaticExport = false
     return grapher
 }
@@ -213,7 +210,7 @@ export async function grapherToSVG(
     vardata: MultipleOwidVariableDataDimensionsMap
 ): Promise<string> {
     const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
-    grapher.isExportingtoSvgOrPng = true
+    grapher.isExportingToSvgOrPng = true
     grapher.shouldIncludeDetailsInStaticExport = false
     grapher.receiveOwidData(vardata)
     return grapher.staticSVG

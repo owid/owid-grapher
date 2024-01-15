@@ -165,6 +165,10 @@ $zindex-controls-drawer: 140;
     }
 }
 
+.GrapherComponent.isStatic {
+    border: none;
+}
+
 .GrapherComponent.isExportingToSvgOrPng {
     padding: 0 !important;
 }
