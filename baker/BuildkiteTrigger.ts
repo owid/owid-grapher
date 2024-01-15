@@ -1,8 +1,10 @@
+import { DeployMetadata } from "@ourworldindata/utils"
 import {
     BUILDKITE_API_ACCESS_TOKEN,
     BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG,
     BUILDKITE_BRANCH,
 } from "../settings/serverSettings.js"
+import { defaultCommitMessage } from "./DeployUtils.js"
 
 type BuildState =
     | "running"
@@ -102,17 +104,36 @@ export class BuildkiteTrigger {
     }
 
     async runLightningBuild(
-        message: string,
-        gdocSlugs: string[]
+        gdocSlugs: string[],
+        { title, changesSlackMentions }: DeployMetadata
     ): Promise<void> {
+        const message = `⚡️ ${title}${
+            gdocSlugs.length > 1
+                ? ` and ${gdocSlugs.length - 1} more updates`
+                : ""
+        }`
         const buildNumber = await this.triggerBuild(message, {
             LIGHTNING_GDOC_SLUGS: gdocSlugs.join(" "),
+            CHANGES_SLACK_MENTIONS: changesSlackMentions.join("\n"),
         })
         await this.waitForBuildToFinish(buildNumber)
     }
 
-    async runFullBuild(message: string): Promise<void> {
-        const buildNumber = await this.triggerBuild(message, {})
+    async runFullBuild({
+        title,
+        changesSlackMentions,
+    }: DeployMetadata): Promise<void> {
+        const message = changesSlackMentions.length
+            ? `🚚 ${title}${
+                  changesSlackMentions.length > 1
+                      ? ` and ${changesSlackMentions.length - 1} more updates`
+                      : ""
+              } `
+            : await defaultCommitMessage()
+
+        const buildNumber = await this.triggerBuild(message, {
+            CHANGES_SLACK_MENTIONS: changesSlackMentions.join("\n"),
+        })
         await this.waitForBuildToFinish(buildNumber)
     }
 }

@@ -183,3 +183,6 @@ export const BUILDKITE_BRANCH: string =
     serverSettings.BUILDKITE_BRANCH || "master"
 
 export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY ?? ""
+
+export const SLACK_BOT_OAUTH_TOKEN: string =
+    serverSettings.SLACK_BOT_OAUTH_TOKEN ?? ""

@@ -16,3 +16,8 @@ export interface Deploy {
     status: DeployStatus
     changes: DeployChange[]
 }
+
+export interface DeployMetadata {
+    title: string
+    changesSlackMentions: string[]
+}

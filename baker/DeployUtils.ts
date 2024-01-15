@@ -6,13 +6,15 @@ import {
     BAKED_SITE_DIR,
     BAKED_BASE_URL,
     BUILDKITE_API_ACCESS_TOKEN,
+    SLACK_BOT_OAUTH_TOKEN,
 } from "../settings/serverSettings.js"
-import { DeployChange } from "@ourworldindata/utils"
 import { SiteBaker } from "../baker/SiteBaker.js"
+import { WebClient } from "@slack/web-api"
+import { DeployChange, DeployMetadata } from "@ourworldindata/utils"
 
 const deployQueueServer = new DeployQueueServer()
 
-const defaultCommitMessage = async (): Promise<string> => {
+export const defaultCommitMessage = async (): Promise<string> => {
     let message = "Automated update"
 
     // In the deploy.sh script, we write the current git rev to 'public/head.txt'
@@ -31,24 +33,22 @@ const defaultCommitMessage = async (): Promise<string> => {
  * Initiate a deploy, without any checks. Throws error on failure.
  */
 const triggerBakeAndDeploy = async (
-    message?: string,
+    deployMetadata: DeployMetadata,
     lightningQueue?: DeployChange[]
 ) => {
-    message = message ?? (await defaultCommitMessage())
-
     // deploy to Buildkite if we're on master and BUILDKITE_API_ACCESS_TOKEN is set
     if (BUILDKITE_API_ACCESS_TOKEN) {
         const buildkite = new BuildkiteTrigger()
         if (lightningQueue?.length) {
             await buildkite
                 .runLightningBuild(
-                    message!,
-                    lightningQueue.map((change) => change.slug!)
+                    lightningQueue.map((change) => change.slug!),
+                    deployMetadata
                 )
                 .catch(logErrorAndMaybeSendToBugsnag)
         } else {
             await buildkite
-                .runFullBuild(message)
+                .runFullBuild(deployMetadata)
                 .catch(logErrorAndMaybeSendToBugsnag)
         }
     } else {
@@ -65,22 +65,78 @@ const triggerBakeAndDeploy = async (
     }
 }
 
-const generateCommitMsg = (queueItems: DeployChange[]) => {
-    const date: string = new Date().toISOString()
+const getChangesAuthorNames = (queueItems: DeployChange[]): string[] => {
+    // Do not remove duplicates here, because we want to show the history of changes within a deploy
+    return queueItems
+        .map((item) => `${item.message} (by ${item.authorName})`)
+        .filter(Boolean)
+}
 
-    const message: string = queueItems
-        .filter((item) => item.message)
-        .map((item) => item.message)
-        .join("\n")
+const getChangesSlackMentions = async (
+    queueItems: DeployChange[]
+): Promise<string[]> => {
+    const emailSlackMentionMap = await getEmailSlackMentionsMap(queueItems)
 
-    const coauthors: string = queueItems
-        .filter((item) => item.authorName)
-        .map((item) => {
-            return `Co-authored-by: ${item.authorName} <${item.authorEmail}>`
+    // Do not remove duplicates here, because we want to show the history of changes within a deploy
+    return queueItems.map(
+        (item) =>
+            `${item.message} (by ${
+                !item.authorEmail
+                    ? item.authorName
+                    : emailSlackMentionMap.get(item.authorEmail) ??
+                      item.authorName
+            })`
+    )
+}
+
+const getEmailSlackMentionsMap = async (
+    queueItems: DeployChange[]
+): Promise<Map<string, string>> => {
+    const slackClient = new WebClient(SLACK_BOT_OAUTH_TOKEN)
+
+    // Get unique author emails
+    const uniqueAuthorEmails = [
+        ...new Set(queueItems.map((item) => item.authorEmail)),
+    ]
+
+    // Get a Map of email -> Slack mention (e.g. "<@U123456>")
+    const emailSlackMentionMap = new Map()
+    await Promise.all(
+        uniqueAuthorEmails.map(async (authorEmail) => {
+            if (authorEmail) {
+                const slackId = await getSlackMentionByEmail(
+                    authorEmail,
+                    slackClient
+                )
+                if (slackId) {
+                    emailSlackMentionMap.set(authorEmail, slackId)
+                }
+            }
         })
-        .join("\n")
+    )
 
-    return `Deploy ${date}\n${message}\n\n\n${coauthors}`
+    return emailSlackMentionMap
+}
+
+/**
+ *
+ * Get a Slack mention for a given email address. Format it according to the
+ * Slack API requirements to mention a user in a message
+ * (https://api.slack.com/reference/surfaces/formatting#mentioning-users).
+ */
+const getSlackMentionByEmail = async (
+    email: string | undefined,
+    slackClient: WebClient
+): Promise<string | undefined> => {
+    if (!email) return
+
+    try {
+        const response = await slackClient.users.lookupByEmail({ email })
+        return response.user?.id ? `<@${response.user.id}>` : undefined
+    } catch (error) {
+        logErrorAndMaybeSendToBugsnag(error)
+    }
+    return
 }
 
 const MAX_SUCCESSIVE_FAILURES = 2
@@ -114,11 +170,20 @@ export const deployIfQueueIsNotEmpty = async () => {
 
         const parsedQueue = deployQueueServer.parseQueueContent(deployContent)
 
-        const message = generateCommitMsg(parsedQueue)
-        console.log(`Deploying site...\n---\n${message}\n---`)
+        // Log the changes that are about to be deployed in a text format.
+        const dateStr: string = new Date().toISOString()
+        const changesAuthorNames = getChangesAuthorNames(parsedQueue)
+        console.log(
+            `Deploying site...\n---\n📆 ${dateStr}\n\n${changesAuthorNames.join(
+                "\n"
+            )}\n---`
+        )
+
         try {
+            const changesSlackMentions =
+                await getChangesSlackMentions(parsedQueue)
             await triggerBakeAndDeploy(
-                message,
+                { title: changesAuthorNames[0], changesSlackMentions },
                 // If every DeployChange is a lightning change, then we can do a
                 // lightning deploy. In the future, we might want to separate
                 // lightning updates from regular deploys so we could prioritize
