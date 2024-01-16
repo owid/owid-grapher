@@ -42,6 +42,7 @@ import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
 import { GdocsIndexPage, GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsStoreProvider } from "./GdocsStore.js"
+import { PostsWithChartCount } from "./PostsWithChartCounts.js"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -112,6 +113,11 @@ export class AdminApp extends React.Component<{
                         <AdminErrorMessage admin={admin} />
                         <AdminLoader admin={admin} />
                         <Switch>
+                            <Route
+                                exact
+                                path="/posts-with-chart-counts"
+                                component={PostsWithChartCount}
+                            />
                             <Route
                                 exact
                                 path="/charts/create/:config"

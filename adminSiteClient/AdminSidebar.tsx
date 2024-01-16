@@ -28,6 +28,12 @@ export const AdminSidebar = (): JSX.Element => (
         <ul className="sidebar-menu">
             <li className="header">SITE</li>
             <li>
+                <Link to="/posts-with-chart-counts">
+                    <FontAwesomeIcon icon={faPen} /> Coding challenge: Posts
+                    with chart counts
+                </Link>
+            </li>
+            <li>
                 <Link to="/charts">
                     <FontAwesomeIcon icon={faChartBar} /> Charts
                 </Link>
