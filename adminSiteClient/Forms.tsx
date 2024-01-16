@@ -772,6 +772,40 @@ export class BindString extends React.Component<{
 }
 
 @observer
+export class BindStringArray extends React.Component<{
+    field: string
+    store: Record<string, any>
+    label?: React.ReactNode
+    secondaryLabel?: string
+    placeholder?: string
+    helpText?: string
+    softCharacterLimit?: number
+    disabled?: boolean
+    rows?: number
+    errorMessage?: string
+    buttonContent?: React.ReactChild
+    onButtonClick?: () => void
+}> {
+    @action.bound onValue(value: string = "") {
+        this.props.store[this.props.field] = parseBulletList(value)
+    }
+
+    render() {
+        const { field, store, label, ...rest } = this.props
+        const values = store[field] as string[] | []
+        return (
+            <TextAreaField
+                label={label === undefined ? capitalize(field) : label}
+                secondaryLabel={this.props.secondaryLabel}
+                value={createBulletList(values || [])}
+                onValue={this.onValue}
+                {...rest}
+            />
+        )
+    }
+}
+
+@observer
 export class BindAutoString<
     T extends { [field: string]: any },
     K extends Extract<keyof T, string>,
@@ -1102,3 +1136,13 @@ export class Button extends React.Component<{
 export const Help = ({ children }: { children: React.ReactNode }) => (
     <small className="form-text text-muted mb-4">{children}</small>
 )
+
+const createBulletList = (items: string[]): string => {
+    return items.map((item) => `• ${item}`).join("\n")
+}
+
+const parseBulletList = (bulletedString: string): string[] => {
+    return bulletedString
+        .split(/\n•\s?/)
+        .map((item) => item.replace(/^•\s?/, ""))
+}
