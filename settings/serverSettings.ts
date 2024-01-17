@@ -181,5 +181,10 @@ export const BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG: string =
     "owid-deploy-content-master"
 export const BUILDKITE_BRANCH: string =
     serverSettings.BUILDKITE_BRANCH || "master"
+export const BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL: string =
+    serverSettings.BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL || "C03N1V9KXB9" // #article-and-data-updates
 
 export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY ?? ""
+
+export const SLACK_BOT_OAUTH_TOKEN: string =
+    serverSettings.SLACK_BOT_OAUTH_TOKEN ?? ""

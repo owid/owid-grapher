@@ -68,6 +68,7 @@
         "@ourworldindata/utils": "workspace:^",
         "@react-awesome-query-builder/antd": "^6.1.1",
         "@sinclair/typebox": "^0.28.5",
+        "@slack/web-api": "^6.11.1",
         "@tippyjs/react": "^4.2.6",
         "@types/bcrypt": "^5.0.0",
         "@types/chunk-text": "^1.0.0",

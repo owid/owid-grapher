@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+#  notify-slack
+#
+#  Notify authors of finished content deployments on Slack.
+#
+
+# see https://buildkite.com/docs/pipelines/writing-build-scripts#configuring-bash
+set -euo pipefail
+
+notify_slack() {
+    echo "$CHANGES_SLACK_MENTIONS" | slacktee -a good -t "$BUILDKITE_MESSAGE" -c "$BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL" -u "Live deploy" --plain-text
+}
+
+notify_slack

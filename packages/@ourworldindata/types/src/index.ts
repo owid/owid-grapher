@@ -47,6 +47,7 @@ export {
     type Deploy,
     type DeployChange,
     DeployStatus,
+    type DeployMetadata,
 } from "./domainTypes/DeployStatus.js"
 export { type Tag } from "./dbTypes/Tags.js"
 
