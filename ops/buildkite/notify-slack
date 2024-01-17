@@ -9,7 +9,7 @@
 set -euo pipefail
 
 notify_slack() {
-    echo "$CHANGES_SLACK_MENTIONS" | slacktee -a good -t "$BUILDKITE_MESSAGE" -c bot-testing -u "Live deploy" --plain-text
+    echo "$CHANGES_SLACK_MENTIONS" | slacktee -a good -t "$BUILDKITE_MESSAGE" -c "$BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL" -u "Live deploy" --plain-text
 }
 
 notify_slack

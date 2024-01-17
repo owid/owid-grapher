@@ -3,6 +3,7 @@ import {
     BUILDKITE_API_ACCESS_TOKEN,
     BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG,
     BUILDKITE_BRANCH,
+    BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL,
 } from "../settings/serverSettings.js"
 import { defaultCommitMessage } from "./DeployUtils.js"
 
@@ -47,7 +48,7 @@ export class BuildkiteTrigger {
             commit: "HEAD",
             branch: this.branch,
             message: message,
-            env: env,
+            env: { ...env, BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL },
         }
 
         const response = await fetch(url, {
