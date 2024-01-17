@@ -106,6 +106,7 @@ export const DataInsightsIndexPageContent = (
                     imageMetadata,
                     linkedCharts,
                     linkedDocuments,
+                    linkedIndicators: {}, // not needed for data insights
                     relatedCharts: [], // not needed for the index page
                     latestDataInsights: [], // not needed for the index page
                 }}

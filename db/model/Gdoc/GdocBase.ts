@@ -12,6 +12,7 @@ import {
 import { getUrlTarget } from "@ourworldindata/components"
 import {
     LinkedChart,
+    LinkedIndicator,
     keyBy,
     excludeNull,
     ImageMetadata,
@@ -33,6 +34,9 @@ import {
     BreadcrumbItem,
     MinimalDataInsightInterface,
     OwidGdocMinimalPostInterface,
+    getFeaturedImageFilename,
+    OwidGdoc,
+    urlToSlug,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { google } from "googleapis"
@@ -55,6 +59,10 @@ import {
 } from "./gdocUtils.js"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
+import {
+    getVariableMetadata,
+    getVariableOfDatapageIfApplicable,
+} from "../Variable.js"
 
 @Entity("tags")
 export class Tag extends BaseEntity implements TagInterface {
@@ -98,6 +106,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
     errors: OwidGdocErrorMessage[] = []
     imageMetadata: Record<string, ImageMetadata> = {}
     linkedCharts: Record<string, LinkedChart> = {}
+    linkedIndicators: Record<number, LinkedIndicator> = {}
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     latestDataInsights: MinimalDataInsightInterface[] = []
 
@@ -268,6 +277,20 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         return [...this.filenames, ...featuredImages]
     }
 
+    get linkedKeyIndicatorSlugs(): string[] {
+        const slugs = new Set<string>()
+        for (const enrichedBlockSource of this.enrichedBlockSources) {
+            for (const block of enrichedBlockSource) {
+                traverseEnrichedBlocks(block, (block) => {
+                    if (block.type === "key-indicator") {
+                        slugs.add(urlToSlug(block.datapageUrl))
+                    }
+                })
+            }
+        }
+        return [...slugs]
+    }
+
     get linkedChartSlugs(): { grapher: string[]; explorer: string[] } {
         const { grapher, explorer } = this.links.reduce(
             (slugsByLinkType, { linkType, target }) => {
@@ -281,6 +304,8 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                 explorer: new Set<string>(),
             }
         )
+
+        this.linkedKeyIndicatorSlugs.forEach((slug) => grapher.add(slug))
 
         return { grapher: [...grapher], explorer: [...explorer] }
     }
@@ -508,7 +533,8 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                         "sticky-left",
                         "sticky-right",
                         "table",
-                        "text"
+                        "text",
+                        "key-indicator"
                     ),
                 },
                 () => []
@@ -549,11 +575,14 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                     if (!chart) return
                     const resolvedSlug = chart.config.slug ?? ""
                     const resolvedTitle = chart.config.title ?? ""
+                    const datapageIndicator =
+                        await getVariableOfDatapageIfApplicable(chart.config)
                     const linkedChart: LinkedChart = {
                         originalSlug,
                         title: resolvedTitle,
                         resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
                         thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
+                        indicatorId: datapageIndicator?.id,
                     }
                     return linkedChart
                 }
@@ -579,6 +608,25 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
             [...linkedGrapherCharts, ...linkedExplorerCharts],
             "originalSlug"
         )
+    }
+
+    async loadLinkedIndicators(): Promise<void> {
+        const linkedIndicators = await Promise.all(
+            this.linkedKeyIndicatorSlugs.map(async (originalSlug) => {
+                const linkedChart = this.linkedCharts[originalSlug]
+                if (!linkedChart || !linkedChart.indicatorId) return
+                const metadata = await getVariableMetadata(
+                    linkedChart.indicatorId
+                )
+                const linkedIndicator: LinkedIndicator = {
+                    id: linkedChart.indicatorId,
+                    titlePublic: metadata.presentation?.titlePublic,
+                }
+                return linkedIndicator
+            })
+        ).then(excludeNullish)
+
+        this.linkedIndicators = keyBy(linkedIndicators, "id")
     }
 
     async loadLinkedDocuments(): Promise<void> {
@@ -707,6 +755,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         await this.loadLinkedDocuments()
         await this.loadImageMetadata()
         await this.loadLinkedCharts(publishedExplorersBySlug)
+        await this.loadLinkedIndicators() // depends on linked charts
         await this._loadSubclassAttachments()
         await this.validate(publishedExplorersBySlug)
     }

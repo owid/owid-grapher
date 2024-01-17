@@ -32,11 +32,12 @@ import {
     RawBlockExpandableParagraph,
     RawBlockAlign,
     RawBlockEntrySummary,
-    isArray,
     RawBlockTable,
     RawBlockTableRow,
     RawBlockBlockquote,
-} from "@ourworldindata/utils"
+    RawBlockKeyIndicator,
+} from "@ourworldindata/types"
+import { isArray } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
 export function appendDotEndIfMultiline(
@@ -620,6 +621,24 @@ function* rawBlockTableToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockKeyIndicatorToArchieMLString(
+    block: RawBlockKeyIndicator
+): Generator<string, void, undefined> {
+    yield "{.key-indicator}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("datapageUrl", block.value)
+        yield* propertyToArchieMLString("title", block.value)
+        if (block.value.blurb) {
+            yield "[.+blurb]"
+            for (const textBlock of block.value.blurb) {
+                yield* OwidRawGdocBlockToArchieMLStringGenerator(textBlock)
+            }
+            yield "[]"
+        }
+    }
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock | RawBlockTableRow
 ): Generator<string, void, undefined> {
@@ -684,6 +703,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "table" }, rawBlockTableToArchieMLString)
         .with({ type: "table-row" }, rawBlockRowToArchieMLString)
         .with({ type: "blockquote" }, rawBlockBlockquoteToArchieMLString)
+        .with({ type: "key-indicator" }, rawBlockKeyIndicatorToArchieMLString)
         .exhaustive()
     yield* content
 }

@@ -12,7 +12,8 @@ import {
     RawBlockText,
     RelatedChart,
     OwidGdocMinimalPostInterface,
-} from "@ourworldindata/utils"
+} from "@ourworldindata/types"
+import { traverseEnrichedBlocks, urlToSlug } from "@ourworldindata/utils"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 import {
     formatCitation,
@@ -142,6 +143,25 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
                     type: OwidGdocErrorMessageType.Error,
                 })
             }
+        }
+
+        // Validate that charts referenced in key-indicator blocks render a datapage
+        for (const enrichedBlockSource of this.enrichedBlockSources) {
+            enrichedBlockSource.forEach((block) =>
+                traverseEnrichedBlocks(block, (block) => {
+                    if (block.type === "key-indicator" && block.datapageUrl) {
+                        const slug = urlToSlug(block.datapageUrl)
+                        const linkedChart = this.linkedCharts?.[slug]
+                        if (!linkedChart?.indicatorId) {
+                            errors.push({
+                                property: "body",
+                                type: OwidGdocErrorMessageType.Error,
+                                message: `Grapher chart with slug ${slug} is not a datapage`,
+                            })
+                        }
+                    }
+                })
+            )
         }
 
         return errors

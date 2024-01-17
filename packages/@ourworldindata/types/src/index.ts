@@ -191,6 +191,7 @@ export {
     type RawBlockText,
     type RawBlockTopicPageIntro,
     type RawBlockUrl,
+    type RawBlockKeyIndicator,
     tableTemplates,
     type TableTemplate,
     tableSizes,
@@ -248,6 +249,7 @@ export {
     type EnrichedBlockTable,
     type EnrichedBlockTableRow,
     type EnrichedBlockTableCell,
+    type EnrichedBlockKeyIndicator,
     type RawBlockResearchAndWritingRow,
 } from "./gdocTypes/ArchieMlComponents.js"
 export {
@@ -277,6 +279,7 @@ export {
     type OwidArticleBackportingStatistics,
     type LinkedChart,
     OwidGdocLinkType,
+    type LinkedIndicator,
     DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
 } from "./gdocTypes/Gdoc.js"
 

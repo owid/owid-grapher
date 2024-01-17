@@ -23,6 +23,12 @@ export interface LinkedChart {
     resolvedUrl: string
     title: string
     thumbnail?: string
+    indicatorId?: number // in case of a datapage
+}
+
+export interface LinkedIndicator {
+    id: number
+    titlePublic?: string
 }
 
 export enum OwidGdocType {
@@ -46,6 +52,7 @@ export interface OwidGdocBaseInterface {
     breadcrumbs?: BreadcrumbItem[] | null
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     linkedCharts?: Record<string, LinkedChart>
+    linkedIndicators?: Record<number, LinkedIndicator>
     imageMetadata?: Record<string, ImageMetadata>
     relatedCharts?: RelatedChart[]
     tags?: Tag[]

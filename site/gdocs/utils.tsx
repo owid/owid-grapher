@@ -6,12 +6,12 @@ import {
     SpanLink,
     ImageMetadata,
     LinkedChart,
-    Url,
     OwidGdocPostContent,
-    formatAuthors,
     OwidGdocMinimalPostInterface,
     OwidGdocType,
-} from "@ourworldindata/utils"
+    LinkedIndicator,
+} from "@ourworldindata/types"
+import { formatAuthors, Url } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { AttachmentsContext } from "./OwidGdoc.js"
 
@@ -104,6 +104,22 @@ export const useLinkedChart = (
             resolvedUrl: `${linkedChart.resolvedUrl}${queryString}`,
         },
     }
+}
+
+export const useLinkedIndicator = (
+    id: number
+): { linkedIndicator?: LinkedIndicator; errorMessage?: string } => {
+    const { linkedIndicators } = useContext(AttachmentsContext)
+
+    const linkedIndicator = linkedIndicators?.[id]
+
+    if (!linkedIndicator) {
+        return {
+            errorMessage: `Indicator with id ${id} not found`,
+        }
+    }
+
+    return { linkedIndicator }
 }
 
 export const useImage = (

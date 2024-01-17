@@ -1,6 +1,14 @@
 import _ from "lodash"
 import { Writable } from "stream"
 import * as db from "../db.js"
+import { retryPromise, isEmpty } from "@ourworldindata/utils"
+import {
+    getVariableDataRoute,
+    getVariableMetadataRoute,
+} from "@ourworldindata/grapher"
+import pl from "nodejs-polars"
+import { DATA_API_URL } from "../../settings/serverSettings.js"
+import { escape } from "mysql"
 import {
     OwidChartDimensionInterface,
     OwidVariableDisplayConfigInterface,
@@ -11,18 +19,12 @@ import {
     DataValueResult,
     OwidVariableWithSourceAndDimension,
     OwidVariableId,
-    retryPromise,
+    ChartTypeName,
+    DimensionProperty,
     OwidLicense,
     GrapherInterface,
     OwidProcessingLevel,
-} from "@ourworldindata/utils"
-import {
-    getVariableDataRoute,
-    getVariableMetadataRoute,
-} from "@ourworldindata/grapher"
-import pl from "nodejs-polars"
-import { DATA_API_URL } from "../../settings/serverSettings.js"
-import { escape } from "mysql"
+} from "@ourworldindata/types"
 
 export interface VariableRow {
     id: number
@@ -488,6 +490,53 @@ export const readSQLasDF = async (
     params: any[]
 ): Promise<pl.DataFrame> => {
     return createDataFrame(await db.queryMysql(sql, params))
+}
+
+export async function getVariableOfDatapageIfApplicable(
+    grapher: GrapherInterface
+): Promise<
+    | {
+          id: number
+          metadata: OwidVariableWithSourceAndDimension
+      }
+    | undefined
+> {
+    // If we have a single Y variable and that one has a schema version >= 2,
+    // meaning it has the metadata to render a datapage, AND if the metadata includes
+    // text for at least one of the description* fields or titlePublic, then we show the datapage
+    // based on this information.
+    const yVariableIds = grapher
+        .dimensions!.filter((d) => d.property === DimensionProperty.y)
+        .map((d) => d.variableId)
+    const xVariableIds = grapher
+        .dimensions!.filter((d) => d.property === DimensionProperty.x)
+        .map((d) => d.variableId)
+    // Make a data page for single indicator indicator charts.
+    // For scatter plots we want to only show a data page if it has no X variable mapped, which
+    // is a special case where time is the X axis. Marimekko charts are the other chart that uses
+    // the X dimension but there we usually map population on X which should not prevent us from
+    // showing a data page.
+    if (
+        yVariableIds.length === 1 &&
+        (grapher.type !== ChartTypeName.ScatterPlot ||
+            xVariableIds.length === 0)
+    ) {
+        const variableId = yVariableIds[0]
+        const variableMetadata = await getVariableMetadata(variableId)
+
+        if (
+            variableMetadata.schemaVersion !== undefined &&
+            variableMetadata.schemaVersion >= 2 &&
+            (!isEmpty(variableMetadata.descriptionShort) ||
+                !isEmpty(variableMetadata.descriptionProcessing) ||
+                !isEmpty(variableMetadata.descriptionKey) ||
+                !isEmpty(variableMetadata.descriptionFromProducer) ||
+                !isEmpty(variableMetadata.presentation?.titlePublic))
+        ) {
+            return { id: variableId, metadata: variableMetadata }
+        }
+    }
+    return undefined
 }
 
 /**

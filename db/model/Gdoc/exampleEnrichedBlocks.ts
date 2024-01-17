@@ -535,4 +535,10 @@ export const enrichedBlockExamples: Record<
         citation: "Max Roser",
         parseErrors: [],
     },
+    "key-indicator": {
+        type: "key-indicator",
+        datapageUrl: "https://ourworldindata.org/grapher/life-expectancy",
+        blurb: [enrichedBlockText],
+        parseErrors: [],
+    },
 }

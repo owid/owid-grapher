@@ -3,7 +3,6 @@ import {
     ChartPositionChoice,
     ChartControlKeyword,
     ChartTabKeyword,
-    compact,
     EnrichedBlockAside,
     EnrichedBlockCallout,
     EnrichedBlockChart,
@@ -33,12 +32,11 @@ import {
     EnrichedRecircLink,
     EnrichedScrollerItem,
     EnrichedSDGGridItem,
-    isArray,
+    EnrichedBlockKeyIndicator,
     OwidEnrichedGdocBlock,
     OwidRawGdocBlock,
     OwidGdocErrorMessage,
     ParseError,
-    partition,
     RawBlockAdditionalCharts,
     RawBlockAside,
     RawBlockCallout,
@@ -61,23 +59,18 @@ import {
     RawBlockStickyLeftContainer,
     RawBlockStickyRightContainer,
     RawBlockText,
+    RawBlockKeyIndicator,
     Span,
     SpanSimpleText,
-    omitUndefinedValues,
     EnrichedBlockSimpleText,
     BlockImageSize,
     checkIsBlockImageSize,
     RawBlockTopicPageIntro,
     EnrichedBlockTopicPageIntro,
-    Url,
     EnrichedTopicPageIntroRelatedTopic,
     DetailDictionary,
     EnrichedDetail,
-    checkIsPlainObjectWithGuard,
     EnrichedBlockKeyInsightsSlide,
-    keyBy,
-    filterValidStringValues,
-    uniq,
     RawBlockResearchAndWriting,
     RawBlockResearchAndWritingLink,
     EnrichedBlockResearchAndWriting,
@@ -89,7 +82,6 @@ import {
     EnrichedBlockAllCharts,
     RefDictionary,
     OwidGdocErrorMessageType,
-    excludeNullish,
     RawBlockResearchAndWritingRow,
     EnrichedBlockAlign,
     HorizontalAlign,
@@ -109,7 +101,19 @@ import {
     tableTemplates,
     RawBlockBlockquote,
     EnrichedBlockBlockquote,
+} from "@ourworldindata/types"
+import {
     traverseEnrichedSpan,
+    keyBy,
+    filterValidStringValues,
+    uniq,
+    excludeNullish,
+    checkIsPlainObjectWithGuard,
+    omitUndefinedValues,
+    Url,
+    isArray,
+    partition,
+    compact,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink } from "@ourworldindata/components"
 import {
@@ -194,6 +198,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "align" }, parseAlign)
         .with({ type: "entry-summary" }, parseEntrySummary)
         .with({ type: "table" }, parseTable)
+        .with({ type: "key-indicator" }, parseKeyIndicator)
         .exhaustive()
 }
 
@@ -1878,4 +1883,56 @@ export function parseRefs({
     )
 
     return { definitions: parsedRefs, errors: refErrors }
+}
+
+const parseKeyIndicator = (
+    raw: RawBlockKeyIndicator
+): EnrichedBlockKeyIndicator => {
+    const createError = (
+        error: ParseError,
+        datapageUrl: string
+    ): EnrichedBlockKeyIndicator => ({
+        type: "key-indicator",
+        datapageUrl,
+        blurb: [],
+        parseErrors: [error],
+    })
+
+    const val = raw.value
+
+    if (typeof val === "string")
+        return createError(
+            {
+                message: "Value is a string, not an object with properties",
+            },
+            ""
+        )
+
+    if (!val.datapageUrl)
+        return createError(
+            { message: "datapageUrl property is missing or empty" },
+            ""
+        )
+
+    const url = extractUrl(val.datapageUrl)
+
+    if (!isArray(val.blurb))
+        return createError(
+            {
+                message:
+                    "Blurb is not a freeform array. Make sure you've written [.+blurb]",
+            },
+            url
+        )
+
+    const parsedBlurb = val.blurb.map(parseText)
+    const parsedBlurbErrors = parsedBlurb.flatMap((block) => block.parseErrors)
+
+    return omitUndefinedValues({
+        type: "key-indicator",
+        datapageUrl: url,
+        blurb: parsedBlurb,
+        title: val.title,
+        parseErrors: parsedBlurbErrors,
+    }) as EnrichedBlockKeyIndicator
 }

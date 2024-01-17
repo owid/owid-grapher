@@ -34,6 +34,7 @@ import { ResearchAndWriting } from "./ResearchAndWriting.js"
 import { AllCharts } from "./AllCharts.js"
 import Video from "./Video.js"
 import { Table } from "./Table.js"
+import KeyIndicator from "./KeyIndicator.js"
 
 export type Container =
     | "default"
@@ -69,6 +70,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["image--narrow"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12",
         ["image--wide"]: "col-start-4 span-cols-8 col-md-start-2 span-md-cols-12",
         ["image-caption"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["key-indicator"]: "col-start-5 span-cols-6",
         ["key-insights"]: "col-start-2 span-cols-12",
         ["list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["numbered-list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -623,6 +625,9 @@ export default function ArticleBlock({
                 </blockquote>
             )
         })
+        .with({ type: "key-indicator" }, (block) => (
+            <KeyIndicator className={getLayout("key-indicator")} d={block} />
+        ))
         .exhaustive()
 
     return (

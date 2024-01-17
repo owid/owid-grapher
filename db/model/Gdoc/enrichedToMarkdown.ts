@@ -271,5 +271,16 @@ ${links}`
             ).join("\n\n> ")
             return `> ${text}` + b.citation ? `\n-- ${b.citation}` : ""
         })
+        .with({ type: "key-indicator" }, (b): string | undefined =>
+            markdownComponent(
+                "KeyIndicator",
+                {
+                    datapageUrl: b.datapageUrl,
+                    title: b.title,
+                    // blurb ignored
+                },
+                exportComponents
+            )
+        )
         .exhaustive()
 }

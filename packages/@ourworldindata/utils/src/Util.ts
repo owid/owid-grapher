@@ -1643,7 +1643,8 @@ export function traverseEnrichedBlocks(
                     "sdg-toc",
                     "topic-page-intro",
                     "all-charts",
-                    "entry-summary"
+                    "entry-summary",
+                    "key-indicator"
                 ),
             },
             callback

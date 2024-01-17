@@ -36,7 +36,8 @@ import {
     RawBlockVideo,
     RawBlockTable,
     RawBlockBlockquote,
-} from "@ourworldindata/utils"
+    RawBlockKeyIndicator,
+} from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
 
@@ -430,6 +431,19 @@ export function enrichedBlockToRawBlock(
                         value: spansToHtmlText(enriched.value),
                     })),
                     citation: b.citation,
+                },
+            }
+        })
+        .with({ type: "key-indicator" }, (b): RawBlockKeyIndicator => {
+            return {
+                type: "key-indicator",
+                value: {
+                    datapageUrl: b.datapageUrl,
+                    blurb: b.blurb.map((enriched) => ({
+                        type: "text",
+                        value: spansToHtmlText(enriched.value),
+                    })),
+                    title: b.title,
                 },
             }
         })

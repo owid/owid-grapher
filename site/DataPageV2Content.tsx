@@ -165,6 +165,7 @@ export const DataPageV2Content = ({
         linkedDocuments = {},
         imageMetadata = {},
         linkedCharts = {},
+        linkedIndicators = {},
         relatedCharts = [],
     } = faqEntries ?? {}
 
@@ -237,6 +238,7 @@ export const DataPageV2Content = ({
                 linkedDocuments,
                 imageMetadata,
                 linkedCharts,
+                linkedIndicators,
                 relatedCharts,
             }}
         >
