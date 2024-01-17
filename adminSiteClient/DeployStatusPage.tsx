@@ -22,6 +22,22 @@ export class DeployStatusPage extends React.Component {
 
     @observable deploys: Deploy[] = []
     @observable canManuallyDeploy = true
+    refreshIntervalId?: number
+
+    componentDidMount() {
+        this.getData()
+        document.addEventListener(
+            "visibilitychange",
+            this.handleVisibilityChange
+        )
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener(
+            "visibilitychange",
+            this.handleVisibilityChange
+        )
+    }
 
     render() {
         return (
@@ -103,6 +119,10 @@ export class DeployStatusPage extends React.Component {
         )
     }
 
+    @action.bound handleVisibilityChange = () => {
+        if (document.visibilityState === "visible") this.getData()
+    }
+
     @action.bound async triggerDeploy() {
         const { admin } = this.context
         await admin.rawRequest("/api/deploy", undefined, "PUT")
@@ -118,9 +138,5 @@ export class DeployStatusPage extends React.Component {
         runInAction(() => {
             this.deploys = json.deploys
         })
-    }
-
-    componentDidMount() {
-        this.getData()
     }
 }
