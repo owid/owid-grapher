@@ -33,7 +33,7 @@ version: "3.7"
 services:
     # Stock mysql database. Used for both grapher and wordpress databases. Root password is hardcoded for now
     db:
-        image: mysql/mysql-server:latest
+        image: mysql:8.0-debian
         command: --default-authentication-plugin=mysql_native_password
         restart: always
         volumes:
