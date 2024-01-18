@@ -47,7 +47,7 @@ help:
 
 up: export DEBUG = 'knex:query'
 
-up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz
+up: require create-if-missing.env ../owid-content tmp-downloads/owid_metadata.sql.gz
 	@make validate.env
 	@make check-port-3306
 	@echo '==> Building grapher'
@@ -98,7 +98,7 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 
 up.full: export DEBUG = 'knex:query'
 
-up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_metadata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
+up.full: require create-if-missing.env.full ../owid-content wordpress/.env tmp-downloads/owid_metadata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
 	@make validate.env.full
 	@make check-port-3306
 
@@ -331,3 +331,7 @@ svgtest: ../owid-grapher-svgs
 
 	@# summarize differences
 	cd ../owid-grapher-svgs && git diff --stat
+
+../owid-content:
+	@echo '==> Cloning owid-content to ../owid-content'
+	cd .. && git clone git@github.com:owid/owid-content
