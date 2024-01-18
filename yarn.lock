@@ -3714,6 +3714,7 @@ __metadata:
     eslint: "npm:^8.53.0"
     eslint-plugin-react-hooks: "npm:^4.6.0"
     jest: "npm:^29.7.0"
+    mobx: "npm:^5.15.7"
     typescript: "npm:~5.2.2"
   languageName: unknown
   linkType: soft

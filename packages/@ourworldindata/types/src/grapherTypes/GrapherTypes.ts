@@ -3,6 +3,7 @@ import { ColumnSlugs, EntityName } from "../domainTypes/CoreTableTypes.js"
 import { AxisAlign, Position } from "../domainTypes/Layout.js"
 import { Integer, QueryParams, TopicId } from "../domainTypes/Various.js"
 import { DetailDictionary } from "../gdocTypes/Gdoc.js"
+import { observable } from "mobx"
 
 export interface Box {
     x: number
@@ -292,22 +293,95 @@ export enum BinningStrategy {
     manual = "manual",
 }
 
-export interface ColorScaleConfigInterface {
-    baseColorScheme?: ColorSchemeName
-    colorSchemeInvert?: boolean
-    binningStrategy?: BinningStrategy
-    binningStrategyBinCount?: number
-    customNumericMinValue?: number
-    customNumericValues: number[]
-    customNumericLabels: (string | undefined | null)[]
-    customNumericColorsActive?: boolean
-    customNumericColors: (Color | undefined | null)[]
-    equalSizeBins?: boolean
-    customCategoryColors: Record<string, string | undefined>
-    customCategoryLabels: Record<string, string | undefined>
-    customHiddenCategories: Record<string, true | undefined>
-    legendDescription?: string
+export class ColorScaleConfigDefaults {
+    // Color scheme
+    // ============
+
+    /** Key for a colorbrewer scheme */
+    @observable baseColorScheme?: ColorSchemeName
+
+    /** Reverse the order of colors in the color scheme (defined by `baseColorScheme`) */
+    @observable colorSchemeInvert?: boolean = undefined
+
+    // Numeric bins
+    // ============
+
+    /** The strategy for generating the bin boundaries */
+    @observable binningStrategy: BinningStrategy = BinningStrategy.ckmeans
+    /** The *suggested* number of bins for the automatic binning algorithm */
+    @observable binningStrategyBinCount?: number
+
+    /** The minimum bracket of the first bin */
+    @observable customNumericMinValue?: number
+    /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
+    @observable customNumericValues: number[] = []
+    /**
+     * Custom labels for each numeric bin. Only applied when strategy is `manual`.
+     * `undefined` or `null` falls back to default label.
+     * We need to handle `null` because JSON serializes `undefined` values
+     * inside arrays into `null`.
+     */
+    @observable customNumericLabels: (string | undefined | null)[] = []
+
+    /** Whether `customNumericColors` are used to override the color scheme. */
+    @observable customNumericColorsActive?: boolean = undefined
+    /**
+     * Override some or all colors for the numerical color legend.
+     * `undefined` or `null` falls back the color scheme color.
+     * We need to handle `null` because JSON serializes `undefined` values
+     * inside arrays into `null`.
+     */
+    @observable customNumericColors: (Color | undefined | null)[] = []
+
+    /** Whether the visual scaling for the color legend is disabled. */
+    @observable equalSizeBins?: boolean = true
+
+    // Categorical bins
+    // ================
+
+    @observable.ref customCategoryColors: {
+        [key: string]: string | undefined
+    } = {}
+
+    @observable.ref customCategoryLabels: {
+        [key: string]: string | undefined
+    } = {}
+
+    // Allow hiding categories from the legend
+    @observable.ref customHiddenCategories: {
+        [key: string]: true | undefined
+    } = {}
+
+    // Other
+    // =====
+
+    /** A custom legend description. Only used in ScatterPlot legend titles for now. */
+    @observable legendDescription?: string = undefined
 }
+
+// TODO: It would be nice to replace the type definition below with
+// the commented out version below and remove mobx as a depdency on the
+// types project - but for some reason the implementation in grapher/src/color/ColorScale.ts
+// of the config getter didn't like that change and the drop downs in the admin
+// for the base color scheme stopped working. To try again some time.
+export type ColorScaleConfigInterface = ColorScaleConfigDefaults
+
+// export interface ColorScaleConfigInterface {
+//     baseColorScheme?: ColorSchemeName
+//     colorSchemeInvert?: boolean
+//     binningStrategy?: BinningStrategy
+//     binningStrategyBinCount?: number
+//     customNumericMinValue?: number
+//     customNumericValues: number[]
+//     customNumericLabels: (string | undefined | null)[]
+//     customNumericColorsActive?: boolean
+//     customNumericColors: (Color | undefined | null)[]
+//     equalSizeBins?: boolean
+//     customCategoryColors: Record<string, string | undefined>
+//     customCategoryLabels: Record<string, string | undefined>
+//     customHiddenCategories: Record<string, true | undefined>
+//     legendDescription?: string
+// }
 
 export const colorScaleConfigDefaults = {
     binningStrategy: BinningStrategy.ckmeans,
