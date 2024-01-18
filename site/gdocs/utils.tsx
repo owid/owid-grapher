@@ -4,12 +4,13 @@ import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import {
     Span,
     SpanLink,
-    OwidGdocPostInterface,
     ImageMetadata,
     LinkedChart,
     Url,
     OwidGdocPostContent,
     formatAuthors,
+    OwidGdocMinimalPostInterface,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { AttachmentsContext } from "./OwidGdoc.js"
@@ -45,10 +46,10 @@ export const breadcrumbColorForCoverColor = (
 
 export const useLinkedDocument = (
     url: string
-): { linkedDocument?: OwidGdocPostInterface; errorMessage?: string } => {
+): { linkedDocument?: OwidGdocMinimalPostInterface; errorMessage?: string } => {
     const { linkedDocuments } = useContext(AttachmentsContext)
     let errorMessage: string | undefined = undefined
-    let linkedDocument: OwidGdocPostInterface | undefined = undefined
+    let linkedDocument: OwidGdocMinimalPostInterface | undefined = undefined
     const linkType = getLinkType(url)
     if (linkType !== "gdoc") {
         return { linkedDocument }
@@ -59,7 +60,7 @@ export const useLinkedDocument = (
     const hash = urlObj.hash
     const urlTarget = getUrlTarget(url)
     linkedDocument = linkedDocuments?.[urlTarget] as
-        | OwidGdocPostInterface
+        | OwidGdocMinimalPostInterface
         | undefined
 
     if (!linkedDocument) {
@@ -68,10 +69,12 @@ export const useLinkedDocument = (
     } else if (!linkedDocument.published) {
         errorMessage = `Article with slug "${linkedDocument.slug}" isn't published.`
     }
+    const subdirectory =
+        linkedDocument.type === OwidGdocType.DataInsight ? "data-insights/" : ""
     return {
         linkedDocument: {
             ...linkedDocument,
-            slug: `${linkedDocument.slug}${queryString}${hash}`,
+            slug: `${subdirectory}${linkedDocument.slug}${queryString}${hash}`,
         },
         errorMessage,
     }

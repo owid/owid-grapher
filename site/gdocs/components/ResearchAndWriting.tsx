@@ -43,10 +43,10 @@ function ResearchAndWritingLinkContainer(
 
     if (linkedDocument) {
         url = `/${linkedDocument.slug}`
-        title = linkedDocument.content.title || title
-        authors = linkedDocument.content.authors || authors
-        subtitle = linkedDocument.content.excerpt || subtitle
-        filename = linkedDocument.content["featured-image"] || filename
+        title = linkedDocument.title || title
+        authors = linkedDocument.authors || authors
+        subtitle = linkedDocument.excerpt || subtitle
+        filename = linkedDocument["featured-image"] || filename
     }
 
     const heading = React.createElement(

@@ -32,8 +32,7 @@ import {
     OwidGdocPublicationContext,
     BreadcrumbItem,
     MinimalDataInsightInterface,
-    getFeaturedImageFilename,
-    OwidGdoc,
+    OwidGdocMinimalPostInterface,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { google } from "googleapis"
@@ -50,6 +49,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
 import { match, P } from "ts-pattern"
 import {
     extractUrl,
+    fullGdocToMinimalGdoc,
     getAllLinksFromResearchAndWritingBlock,
     spansToSimpleString,
 } from "./gdocUtils.js"
@@ -98,7 +98,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
     errors: OwidGdocErrorMessage[] = []
     imageMetadata: Record<string, ImageMetadata> = {}
     linkedCharts: Record<string, LinkedChart> = {}
-    linkedDocuments: Record<string, OwidGdocBaseInterface> = {}
+    linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     latestDataInsights: MinimalDataInsightInterface[] = []
 
     _getSubclassEnrichedBlocks: (gdoc: typeof this) => OwidEnrichedGdocBlock[] =
@@ -262,7 +262,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         // but we try (and then filter nulls) because we need featured images if we're using prominent links
         // even if this method is being called on a GdocFaq (for example)
         const featuredImages = Object.values(this.linkedDocuments)
-            .map((d) => getFeaturedImageFilename(d as OwidGdoc))
+            .map((d) => d["featured-image"])
             .filter((filename?: string): filename is string => !!filename)
 
         return [...this.filenames, ...featuredImages]
@@ -582,14 +582,17 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
     }
 
     async loadLinkedDocuments(): Promise<void> {
-        const linkedDocuments = await Promise.all(
-            this.linkedDocumentIds.map(async (target) => {
-                const linkedDocument = await GdocBase.findOneBy({
-                    id: target,
+        const linkedDocuments: OwidGdocMinimalPostInterface[] =
+            await Promise.all(
+                this.linkedDocumentIds.map(async (target) => {
+                    const linkedDocument = await GdocBase.findOneBy({
+                        id: target,
+                    })
+                    return linkedDocument
                 })
-                return linkedDocument
-            })
-        ).then(excludeNull)
+            )
+                .then(excludeNull)
+                .then((fullGdocs) => fullGdocs.map(fullGdocToMinimalGdoc))
 
         this.linkedDocuments = keyBy(linkedDocuments, "id")
     }

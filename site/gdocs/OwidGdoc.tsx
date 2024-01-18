@@ -2,7 +2,6 @@ import React, { createContext } from "react"
 import ReactDOM from "react-dom"
 import {
     LinkedChart,
-    OwidGdocPostInterface,
     getOwidGdocFromJSON,
     ImageMetadata,
     RelatedChart,
@@ -10,6 +9,7 @@ import {
     OwidGdocType,
     OwidGdoc as OwidGdocInterface,
     MinimalDataInsightInterface,
+    OwidGdocMinimalPostInterface,
 } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
 import { match, P } from "ts-pattern"
@@ -19,7 +19,7 @@ import { Fragment } from "./pages/Fragment.js"
 
 export const AttachmentsContext = createContext<{
     linkedCharts: Record<string, LinkedChart>
-    linkedDocuments: Record<string, OwidGdocPostInterface>
+    linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
     imageMetadata: Record<string, ImageMetadata>
     relatedCharts: RelatedChart[]
     latestDataInsights?: MinimalDataInsightInterface[]

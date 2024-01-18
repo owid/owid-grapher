@@ -4,7 +4,7 @@ import ReactDOM from "react-dom"
 import {
     ImageMetadata,
     LinkedChart,
-    OwidGdocPostInterface,
+    OwidGdocMinimalPostInterface,
     merge,
 } from "@ourworldindata/utils"
 import { DataInsightBody, indexToIdMap } from "./gdocs/pages/DataInsight.js"
@@ -93,7 +93,10 @@ export const DataInsightsIndexPageContent = (
             {
                 imageMetadata: {} as Record<string, ImageMetadata>,
                 linkedCharts: {} as Record<string, LinkedChart>,
-                linkedDocuments: {} as Record<string, OwidGdocPostInterface>,
+                linkedDocuments: {} as Record<
+                    string,
+                    OwidGdocMinimalPostInterface
+                >,
             }
         )
     return (

@@ -51,9 +51,9 @@ import {
     OwidGdocErrorMessageType,
     ImageMetadata,
     OwidGdoc,
-    OwidGdocPostInterface,
     OwidGdocType,
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
+    OwidGdocMinimalPostInterface,
 } from "@ourworldindata/utils"
 
 import { execWrapper } from "../db/execWrapper.js"
@@ -83,9 +83,10 @@ import {
 } from "../settings/clientSettings.js"
 import pMap from "p-map"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
+import { fullGdocToMinimalGdoc } from "../db/model/Gdoc/gdocUtils.js"
 
 type PrefetchedAttachments = {
-    linkedDocuments: Record<string, OwidGdocPostInterface>
+    linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
     imageMetadata: Record<string, ImageMetadata>
     linkedCharts: {
         graphers: Record<string, LinkedChart>
@@ -290,7 +291,9 @@ export class SiteBaker {
         picks?: [string[], string[], string[], string[]]
     ): Promise<PrefetchedAttachments> {
         if (!this._prefetchedAttachmentsCache) {
-            const publishedGdocs = await GdocPost.getPublishedGdocs()
+            const publishedGdocs = await GdocPost.getPublishedGdocs().then(
+                (fullGdocs) => fullGdocs.map(fullGdocToMinimalGdoc)
+            )
             const publishedGdocsDictionary = keyBy(publishedGdocs, "id")
 
             const imageMetadataDictionary: Record<string, Image> =
@@ -350,7 +353,7 @@ export class SiteBaker {
             // Gdoc.linkedImageFilenames normally gets featuredImages, but it relies on linkedDocuments already being populated,
             // which is isn't when we're prefetching attachments. So we have to do it manually here.
             const featuredImages = Object.values(linkedDocuments)
-                .map((gdoc) => gdoc.content["featured-image"])
+                .map((gdoc) => gdoc["featured-image"])
                 .filter((filename): filename is string => !!filename)
 
             return {

@@ -4,10 +4,10 @@ import {
     OwidGdocErrorMessageType,
     OwidGdocDataInsightContent,
     OwidGdocDataInsightInterface,
-    OwidGdocPostInterface,
     MinimalDataInsightInterface,
     OwidGdocType,
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
+    OwidGdocMinimalPostInterface,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import { getConnection } from "../../../db/db.js"
@@ -27,7 +27,7 @@ export class GdocDataInsight
         }
     }
 
-    linkedDocuments: Record<string, OwidGdocPostInterface> = {}
+    linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     latestDataInsights: MinimalDataInsightInterface[] = []
     // TODO: support query parameters in grapher urls so we can track country selections
     _urlProperties: string[] = ["grapher-url"]

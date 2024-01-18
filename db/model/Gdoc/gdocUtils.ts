@@ -3,6 +3,10 @@ import {
     Span,
     excludeNullish,
     EnrichedBlockResearchAndWritingLink,
+    OwidGdocMinimalPostInterface,
+    OwidGdocType,
+    formatDate,
+    OwidGdocBaseInterface,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import cheerio from "cheerio"
@@ -150,4 +154,21 @@ export function parseAuthors(authors?: string): string[] {
     return (authors || "Our World in Data team")
         .split(",")
         .map((author: string) => author.trim())
+}
+
+export function fullGdocToMinimalGdoc(
+    gdoc: OwidGdocBaseInterface
+): OwidGdocMinimalPostInterface {
+    return {
+        id: gdoc.id,
+        title: gdoc.content.title || "",
+        slug: gdoc.slug,
+        authors: gdoc.content.authors,
+        publishedAt: gdoc.publishedAt ? formatDate(gdoc.publishedAt) : "",
+        published: gdoc.published,
+        subtitle: gdoc.content.subtitle || "",
+        excerpt: gdoc.content.excerpt || "",
+        type: gdoc.content.type || OwidGdocType.Article,
+        "featured-image": gdoc.content["featured-image"],
+    }
 }
