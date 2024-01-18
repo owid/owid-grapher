@@ -182,7 +182,7 @@ export const BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG: string =
 export const BUILDKITE_BRANCH: string =
     serverSettings.BUILDKITE_BRANCH || "master"
 export const BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL: string =
-    serverSettings.BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL || "C03N1V9KXB9" // #article-and-data-updates
+    serverSettings.BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL || "C06EWA0DK4H" // #content-updates
 
 export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY ?? ""
 
