@@ -48,6 +48,7 @@ export enum OwidGdocType {
     Fragment = "fragment",
     LinearTopicPage = "linear-topic-page",
     DataInsight = "data-insight",
+    Homepage = "homepage",
 }
 
 export interface OwidGdocBaseInterface {
@@ -115,8 +116,28 @@ export type MinimalDataInsightInterface = Pick<
     index: 0 | 1 | 2 | 3 | 4
 }
 
-export type OwidGdoc = OwidGdocPostInterface | OwidGdocDataInsightInterface
-export type OwidGdocContent = OwidGdocPostContent | OwidGdocDataInsightContent
+export interface OwidGdocHomepageContent {
+    type: OwidGdocType.Homepage
+    title?: string
+    authors: string[]
+    body: OwidEnrichedGdocBlock[]
+}
+
+export interface OwidGdocHomepageInterface extends OwidGdocBaseInterface {
+    content: OwidGdocHomepageContent
+    linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
+    tags?: Tag[] // won't be used, but necessary in various validation steps
+}
+
+export type OwidGdocContent =
+    | OwidGdocPostContent
+    | OwidGdocDataInsightContent
+    | OwidGdocHomepageContent
+
+export type OwidGdoc =
+    | OwidGdocPostInterface
+    | OwidGdocDataInsightInterface
+    | OwidGdocHomepageInterface
 
 export enum OwidGdocErrorMessageType {
     Error = "error",
