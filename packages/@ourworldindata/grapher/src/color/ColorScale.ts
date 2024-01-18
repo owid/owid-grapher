@@ -20,7 +20,6 @@ import {
     BinningStrategy,
     Color,
     CoreValueType,
-    colorScaleConfigDefaults,
 } from "@ourworldindata/types"
 import { CoreColumn } from "@ourworldindata/core-table"
 
