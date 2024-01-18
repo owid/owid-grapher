@@ -535,10 +535,17 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
             triggerETL: true,
         }
 
+        console.log("Why isnt this working???")
+        console.log("This should be working... really")
+
+        const abortController = new AbortController()
+        setTimeout(() => abortController.abort(), 5000)
+
         const request = this.context.admin.rawRequest(
             url,
             JSON.stringify(data),
-            "PUT"
+            "PUT",
+            abortController
         )
         let response: Response
         try {
