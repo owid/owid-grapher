@@ -54,21 +54,20 @@ export interface OwidGdocBaseInterface {
 
 export interface OwidGdocPostInterface extends OwidGdocBaseInterface {
     content: OwidGdocPostContent
-    linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
 }
 
 // Used for linkedDocuments attachments, instead of attaching the entire gdoc model
 export interface OwidGdocMinimalPostInterface {
     id: string
-    title: string
+    title: string // used in prominent links, topic-page-intro related topics, etc
     slug: string
-    authors: string[]
-    publishedAt: string
-    published: boolean
-    subtitle: string
-    excerpt: string
-    type: OwidGdocType
-    "featured-image"?: string
+    authors: string[] // used in research & writing block
+    publishedAt: string // used in research & writing block
+    published: boolean // used in preview to validate whether or not the post will display
+    subtitle: string // used in prominent links & research & writing block
+    excerpt: string // used in prominent links
+    type: OwidGdocType // used in useLinkedDocument to prepend /data-insights/ to the slug
+    "featured-image"?: string // used in prominent links and research & writing block
 }
 
 export interface OwidGdocDataInsightContent {
@@ -84,7 +83,6 @@ export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
 
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     content: OwidGdocDataInsightContent
-    linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     latestDataInsights?: MinimalDataInsightInterface[]
     tags?: Tag[]
 }
