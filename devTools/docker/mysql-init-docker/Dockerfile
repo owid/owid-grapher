@@ -1,7 +1,6 @@
 FROM mysql/mysql-server:latest
 
-RUN microdnf -y update \
- && microdnf install --nogpgcheck -y mysql-shell \
+RUN microdnf -y update --nogpgcheck \
  && microdnf install -y \
     libpwquality \
     curl \
