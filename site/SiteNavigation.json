@@ -11,21 +11,15 @@
                     "entries": [
                         {
                             "slug": "population-growth",
-                            "title": "Population Growth",
-                            "excerpt": "Explore global and country data on population growth, demography, and how this is changing.",
-                            "kpi": ""
+                            "title": "Population Growth"
                         },
                         {
                             "slug": "age-structure",
-                            "title": "Age Structure",
-                            "excerpt": "What is the age profile of populations around the world? How did it change and what will the age structure of populations look like in the future?",
-                            "kpi": "<p>The global median age increased from <strong>22 years</strong> in 1970 to <strong>31 years</strong>.</p>\n<p>25% of the world are younger than 14 years. 9% are older than 65.</p>\n"
+                            "title": "Age Structure"
                         },
                         {
                             "slug": "gender-ratio",
-                            "title": "Gender Ratio",
-                            "excerpt": "How does the number of men and women differ between countries? And why?",
-                            "kpi": "<p>In some countries gender discrimination leads to skewed sex ratios at birth.</p>\n"
+                            "title": "Gender Ratio"
                         }
                     ]
                 },
@@ -35,21 +29,15 @@
                     "entries": [
                         {
                             "slug": "life-expectancy",
-                            "title": "Life Expectancy",
-                            "excerpt": "When and why did the average age at which people die increase and how can we make further progress against early death?",
-                            "kpi": "<p>The global average life expectancy is <strong>73 years</strong>.</p>\n<p>The global inequality is large.</p>\n"
+                            "title": "Life Expectancy"
                         },
                         {
                             "slug": "child-mortality",
-                            "title": "Child and Infant Mortality",
-                            "excerpt": "Why are children dying and what can be done to prevent it?",
-                            "kpi": "<p><strong>5.2 million</strong> children younger than five die every year.</p>\n<p>The global child mortality rate is <strong>3.8%</strong>.</p>\n"
+                            "title": "Child and Infant Mortality"
                         },
                         {
                             "slug": "fertility-rate",
-                            "title": "Fertility Rate",
-                            "excerpt": "How does the number of children vary across the world and over time? What is driving the rapid global change?",
-                            "kpi": "<p>The global average fertility rate is <strong>2.4 children</strong> per woman.</p>\n<p>In the last 50 years this rate has <strong>halved</strong>.</p>\n"
+                            "title": "Fertility Rate"
                         }
                     ]
                 },
@@ -59,15 +47,11 @@
                     "entries": [
                         {
                             "slug": "urbanization",
-                            "title": "Urbanization",
-                            "excerpt": "The world population is moving to cities. Why is urbanization happening and what are the consequences?",
-                            "kpi": "<p><strong>56%</strong> of the world population live in urban areas.</p>\n<p>In 1960 it was 34%.</p>\n"
+                            "title": "Urbanization"
                         },
                         {
                             "slug": "migration",
-                            "title": "Migration",
-                            "excerpt": "Migration has been an important source of economic development and poverty reduction. Explore data on global migration.",
-                            "kpi": ""
+                            "title": "Migration"
                         }
                     ]
                 }
@@ -79,21 +63,15 @@
             "entries": [
                 {
                     "slug": "tuberculosis",
-                    "title": "Tuberculosis",
-                    "excerpt": "",
-                    "kpi": ""
+                    "title": "Tuberculosis"
                 },
                 {
                     "slug": "pandemics",
-                    "title": "Pandemics",
-                    "excerpt": "",
-                    "kpi": ""
+                    "title": "Pandemics"
                 },
                 {
                     "slug": "cardiovascular-diseases",
-                    "title": "Cardiovascular Diseases",
-                    "excerpt": "",
-                    "kpi": ""
+                    "title": "Cardiovascular Diseases"
                 }
             ],
             "subcategories": [
@@ -103,51 +81,35 @@
                     "entries": [
                         {
                             "slug": "lead-pollution",
-                            "title": "Lead Pollution",
-                            "excerpt": "Lead pollution is a widespread problem that receives little attention. What is the scale of the problem and how can we tackle it?",
-                            "kpi": "<p>Around <strong>one-in-three children</strong> globally suffer from lead poisoning.</p>\n"
+                            "title": "Lead Pollution"
                         },
                         {
                             "slug": "air-pollution",
-                            "title": "Air Pollution",
-                            "excerpt": "Our overview on both indoor and outdoor air pollution.",
-                            "kpi": "<p><strong>6.7 million</strong> people die prematurely from air pollution each year.</p>\n"
+                            "title": "Air Pollution"
                         },
                         {
                             "slug": "outdoor-air-pollution",
-                            "title": "Outdoor Air Pollution",
-                            "excerpt": "Outdoor air pollution is one of the world’s largest health and environmental problems.",
-                            "kpi": "<p><strong>4.5 million</strong> people die prematurely from outdoor air pollution every year.</p>\n<p>44% are younger than 70 years old.</p>\n"
+                            "title": "Outdoor Air Pollution"
                         },
                         {
                             "slug": "indoor-air-pollution",
-                            "title": "Indoor Air Pollution",
-                            "excerpt": "Indoor air pollution – caused by the burning of firewood, crop waste, and dung for cooking and heating – is a major health risk of the world’s poorest.",
-                            "kpi": "<p><strong>2.3 million</strong> people die prematurely from indoor air pollution every year.</p>\n<p>58% are younger than 70 years old.</p>\n"
+                            "title": "Indoor Air Pollution"
                         },
                         {
                             "slug": "obesity",
-                            "title": "Obesity",
-                            "excerpt": "When did obesity increase? How do rates vary across the world? What is the health impact?",
-                            "kpi": "<p><strong>13% of adults</strong> are obese, globally.</p>\n<p>Obesity is responsible for <strong>5 million</strong> premature deaths every year.</p>\n"
+                            "title": "Obesity"
                         },
                         {
                             "slug": "smoking",
-                            "title": "Smoking",
-                            "excerpt": "Tobacco smoking is one of the world’s largest health problems today.",
-                            "kpi": "<p><strong>7.7 million</strong> people die prematurely from smoking every year.</p>\n<p>46% are younger than 70 years old.</p>\n"
+                            "title": "Smoking"
                         },
                         {
                             "slug": "alcohol-consumption",
-                            "title": "Alcohol Consumption",
-                            "excerpt": "Who consumes the most alcohol? How has consumption changed over time? And what are the health impacts?",
-                            "kpi": "<p><strong>2.4 million</strong> people die prematurely from alcohol consumption every year.</p>\n<p>71% are younger than 70 years old.</p>\n"
+                            "title": "Alcohol Consumption"
                         },
                         {
                             "slug": "illicit-drug-use",
-                            "title": "Opioids, Cocaine, Cannabis, and Other Illicit Drugs",
-                            "excerpt": "How common is the use and addiction to opioids, cocaine, amphetamines and cannabis? What is the impact?",
-                            "kpi": "<p><strong>620,000</strong> people die prematurely from illicit drug use every year.</p>\n<p>45% are younger than 50 years old.</p>\n"
+                            "title": "Opioids, Cocaine, Cannabis, and Other Illicit Drugs"
                         }
                     ]
                 },
@@ -157,69 +119,47 @@
                     "entries": [
                         {
                             "slug": "influenza",
-                            "title": "Influenza",
-                            "excerpt": "Flu epidemics kill hundreds of thousands of people globally each year, but countries can respond and save lives with better data.",
-                            "kpi": ""
+                            "title": "Influenza"
                         },
                         {
                             "slug": "monkeypox",
-                            "title": "Mpox (monkeypox)",
-                            "excerpt": "Explore the latest data on the Monkeypox outbreak.",
-                            "kpi": ""
+                            "title": "Mpox (monkeypox)"
                         },
                         {
                             "slug": "coronavirus",
-                            "title": "Coronavirus Pandemic (COVID-19)",
-                            "excerpt": "Country-by-country data and research on the pandemic. Updated daily.",
-                            "kpi": "<p>COVID-19 developed into a global pandemic.</p>\n"
+                            "title": "Coronavirus Pandemic (COVID-19)"
                         },
                         {
                             "slug": "hiv-aids",
-                            "title": "HIV / AIDS",
-                            "excerpt": "A global epidemic and the leading cause of death in some countries.",
-                            "kpi": "<p><strong>860,000</strong> people die from HIV/AIDS each year.</p>\n<p>77% are younger than 50 years old.</p>\n"
+                            "title": "HIV / AIDS"
                         },
                         {
                             "slug": "malaria",
-                            "title": "Malaria",
-                            "excerpt": "The deadly disease transmitted by mosquitoes is one of the leading causes of death in children. How did we eliminate the disease in some world regions and how can we continue progress against malaria?",
-                            "kpi": "<p><strong>630,000</strong> people die from malaria every year.</p>\n<p>55% are children younger than 5 years old.</p>\n"
+                            "title": "Malaria"
                         },
                         {
                             "slug": "eradication-of-diseases",
-                            "title": "Eradication of Diseases",
-                            "excerpt": "Which ones could we eradicate in our lifetimes and how?",
-                            "kpi": "<p>Humanity has already eradicated one severe disease.</p>\n"
+                            "title": "Eradication of Diseases"
                         },
                         {
                             "slug": "diarrheal-diseases",
-                            "title": "Diarrheal Diseases",
-                            "excerpt": "Diarrheal diseases are one of the leading cause of child deaths while they are largely preventable.\nHow can we continue to make progress against these diseases?",
-                            "kpi": "<p><strong>1.5 million</strong> people die from diarrheal diseases every year.</p>\n<p>One-third are children under five years old.</p>\n"
+                            "title": "Diarrheal Diseases"
                         },
                         {
                             "slug": "smallpox",
-                            "title": "Smallpox",
-                            "excerpt": "Humanity eradicated this infectious disease globally. How was this possible?",
-                            "kpi": "<p>In the past smallpox killed millions every year.</p>\n"
+                            "title": "Smallpox"
                         },
                         {
                             "slug": "polio",
-                            "title": "Polio",
-                            "excerpt": "Now the world can possibly eradicate it: polio remains endemic in only 2 countries.",
-                            "kpi": "<p>One generation ago polio paralyzed hundreds of thousands of children every year.</p>\n"
+                            "title": "Polio"
                         },
                         {
                             "slug": "pneumonia",
-                            "title": "Pneumonia",
-                            "excerpt": "Pneumonia is the leading cause of death for children younger than 5 years.",
-                            "kpi": "<p><strong>2.5 million</strong> people die from pneumonia every year.</p>\n<p>One-fourth are children younger than five years old.</p>\n"
+                            "title": "Pneumonia"
                         },
                         {
                             "slug": "tetanus",
-                            "title": "Tetanus",
-                            "excerpt": "Tetanus is a bacterial infection that leads to painful muscle contractions and possibly death.",
-                            "kpi": "<p><strong>35,000</strong> people die from Tetanus every year.</p>\n<p>Half are children under the age of five.</p>\n"
+                            "title": "Tetanus"
                         }
                     ]
                 },
@@ -229,15 +169,11 @@
                     "entries": [
                         {
                             "slug": "financing-healthcare",
-                            "title": "Healthcare Spending",
-                            "excerpt": "Healthcare is key to make progress against poor health. How is it financed?",
-                            "kpi": "<p>Healthcare funding is essential for good health.</p>\n"
+                            "title": "Healthcare Spending"
                         },
                         {
                             "slug": "vaccination",
-                            "title": "Vaccination",
-                            "excerpt": "Vaccines are key in making progress against infectious diseases and save millions of lives every year.",
-                            "kpi": "<ul>\n<li><strong>14% of children</strong> in the world do not receive basic vaccines.</li>\n</ul>\n"
+                            "title": "Vaccination"
                         }
                     ]
                 },
@@ -247,57 +183,39 @@
                     "entries": [
                         {
                             "slug": "life-expectancy",
-                            "title": "Life Expectancy",
-                            "excerpt": "When and why did the average age at which people die increase and how can we make further progress against early death?",
-                            "kpi": "<p>The global average life expectancy is <strong>73 years</strong>.</p>\n<p>The global inequality is large.</p>\n"
+                            "title": "Life Expectancy"
                         },
                         {
                             "slug": "child-mortality",
-                            "title": "Child and Infant Mortality",
-                            "excerpt": "Why are children dying and what can be done to prevent it?",
-                            "kpi": "<p><strong>5.2 million</strong> children younger than five die every year.</p>\n<p>The global child mortality rate is <strong>3.8%</strong>.</p>\n"
+                            "title": "Child and Infant Mortality"
                         },
                         {
                             "slug": "maternal-mortality",
-                            "title": "Maternal Mortality",
-                            "excerpt": "What could be more tragic than a mother losing her life in the moment that she is giving birth to her newborn? Why are mothers dying and what can be done to prevent these deaths?",
-                            "kpi": "<p><strong>295,000 women</strong> die from pregnancy-related causes every year.</p>\n"
+                            "title": "Maternal Mortality"
                         },
                         {
                             "slug": "health-meta",
-                            "title": "Global Health",
-                            "excerpt": "An overview of our research on global health.",
-                            "kpi": "<p>The world has seen great improvements in health.</p>\n<p>But there are still large inequalities.</p>\n"
+                            "title": "Global Health"
                         },
                         {
                             "slug": "causes-of-death",
-                            "title": "Causes of Death",
-                            "excerpt": "How did the causes of death change over time?",
-                            "kpi": "<p><strong>57 million</strong> people die every year.</p>\n<p>What do they die from?</p>\n"
+                            "title": "Causes of Death"
                         },
                         {
                             "slug": "burden-of-disease",
-                            "title": "Burden of Disease",
-                            "excerpt": "How is the burden of disease distributed and how did it change over time?",
-                            "kpi": "<p>The global burden of disease is large.</p>\n<p>Per year 2.5 billion healthy life years are lost due to diseases, accidents, and premature deaths</p>\n"
+                            "title": "Burden of Disease"
                         },
                         {
                             "slug": "cancer",
-                            "title": "Cancer",
-                            "excerpt": "Cancers are one of the leading causes of death globally. Are we making progress against cancer?",
-                            "kpi": "<p><strong>10.1 million</strong> people die from cancer every year.</p>\n<p>51% are younger than 70 years old.</p>\n"
+                            "title": "Cancer"
                         },
                         {
                             "slug": "mental-health",
-                            "title": "Mental Health",
-                            "excerpt": "Mental health has a significant impact on people’s lives and wellbeing. To support people with mental illnesses, we need better data to understand them.",
-                            "kpi": ""
+                            "title": "Mental Health"
                         },
                         {
                             "slug": "suicide",
-                            "title": "Suicides",
-                            "excerpt": "Suicide rates can be reduced with greater understanding and support for people at risk.",
-                            "kpi": "<p><strong>760,000 die</strong> from suicide per year.</p>\n<p>59% are younger than 50 years old.</p>\n"
+                            "title": "Suicides"
                         }
                     ]
                 }
@@ -314,33 +232,23 @@
                     "entries": [
                         {
                             "slug": "nuclear-energy",
-                            "title": "Nuclear Energy",
-                            "excerpt": "Explore global data on nuclear energy production, and the safety of nuclear technologies.",
-                            "kpi": "<p>Nuclear is a safe and low-carbon source of energy.</p>\n"
+                            "title": "Nuclear Energy"
                         },
                         {
                             "slug": "energy-access",
-                            "title": "Access to Energy",
-                            "excerpt": "Access to electricity and clean cooking fuels are vital for a good standard of living and good health.",
-                            "kpi": "<p><strong>10%</strong> of the world do not have access to electricity.</p>\n<p><strong>40%</strong> do not have access to clean fuels for cooking.</p>\n"
+                            "title": "Access to Energy"
                         },
                         {
                             "slug": "energy",
-                            "title": "Energy",
-                            "excerpt": "What energy sources does the world rely on? What is this energy used for? And how does it change over time?",
-                            "kpi": "<p>Global energy production has grown <strong>2.5-fold</strong> in the past 50 years.</p>\n"
+                            "title": "Energy"
                         },
                         {
                             "slug": "renewable-energy",
-                            "title": "Renewable Energy",
-                            "excerpt": "Solar, wind, hydropower, and other renewable energy sources currently account for a small share of global energy. But they’re growing quickly and can play a key role in tackling climate change.",
-                            "kpi": "<p><strong>10%</strong> of global primary energy production comes from modern renewable sources.</p>\n"
+                            "title": "Renewable Energy"
                         },
                         {
                             "slug": "fossil-fuels",
-                            "title": "Fossil Fuels",
-                            "excerpt": "Coal, gas and oil were key to industrialization and rising prosperity, but their large impact on health and the climate mean that we should transition away from these sources of energy.",
-                            "kpi": "<p><strong>84%</strong> of global primary energy comes from fossil fuels.</p>\n<p>Deaths per TWh range from <strong>2.8</strong> for gas to <strong>24.6</strong> for coal.</p>\n"
+                            "title": "Fossil Fuels"
                         }
                     ]
                 },
@@ -350,21 +258,15 @@
                     "entries": [
                         {
                             "slug": "lead-pollution",
-                            "title": "Lead Pollution",
-                            "excerpt": "Lead pollution is a widespread problem that receives little attention. What is the scale of the problem and how can we tackle it?",
-                            "kpi": "<p>Around <strong>one-in-three children</strong> globally suffer from lead poisoning.</p>\n"
+                            "title": "Lead Pollution"
                         },
                         {
                             "slug": "plastic-pollution",
-                            "title": "Plastic Pollution",
-                            "excerpt": "The use of plastics has many benefits – it is affordable, versatile, resistant, and can help reduce other forms of waste – especially food waste. However, when poorly managed it can pollute the environment and our oceans.\nWhere does the plastic in our oceans come from and what can we do to reduce plastic pollution?",
-                            "kpi": "<ul>\n<li>It is estimated that <strong>8 million tonnes</strong> enter the world’s oceans each year.</li>\n</ul>\n"
+                            "title": "Plastic Pollution"
                         },
                         {
                             "slug": "oil-spills",
-                            "title": "Oil Spills",
-                            "excerpt": "How often do oil spills happen? How did the frequency of oil spills change over time?",
-                            "kpi": "<p>Oil spills can have a large negative impact on the environment.</p>\n"
+                            "title": "Oil Spills"
                         }
                     ]
                 },
@@ -374,39 +276,27 @@
                     "entries": [
                         {
                             "slug": "co2-and-greenhouse-gas-emissions",
-                            "title": "CO₂ and Greenhouse Gas Emissions",
-                            "excerpt": "Who is emitting greenhouse gases? Which countries and which sectors? And what needs to happen to reduce emissions?",
-                            "kpi": "<p><strong>35 billion</strong> tonnes of CO₂ are emitted every year.</p>\n"
+                            "title": "CO₂ and Greenhouse Gas Emissions"
                         },
                         {
                             "slug": "climate-change",
-                            "title": "Climate Change",
-                            "excerpt": "How are increasing greenhouse gas emissions affecting the climate? What are the implications for sea level rise; sea ice area; and other impacts?",
-                            "kpi": "<p>Average global temperature has increased by 1.2°C since pre-industrial times</p>\n"
+                            "title": "Climate Change"
                         },
                         {
                             "slug": "air-pollution",
-                            "title": "Air Pollution",
-                            "excerpt": "Our overview on both indoor and outdoor air pollution.",
-                            "kpi": "<p><strong>6.7 million</strong> people die prematurely from air pollution each year.</p>\n"
+                            "title": "Air Pollution"
                         },
                         {
                             "slug": "outdoor-air-pollution",
-                            "title": "Outdoor Air Pollution",
-                            "excerpt": "Outdoor air pollution is one of the world’s largest health and environmental problems.",
-                            "kpi": "<p><strong>4.5 million</strong> people die prematurely from outdoor air pollution every year.</p>\n<p>44% are younger than 70 years old.</p>\n"
+                            "title": "Outdoor Air Pollution"
                         },
                         {
                             "slug": "indoor-air-pollution",
-                            "title": "Indoor Air Pollution",
-                            "excerpt": "Indoor air pollution – caused by the burning of firewood, crop waste, and dung for cooking and heating – is a major health risk of the world’s poorest.",
-                            "kpi": "<p><strong>2.3 million</strong> people die prematurely from indoor air pollution every year.</p>\n<p>58% are younger than 70 years old.</p>\n"
+                            "title": "Indoor Air Pollution"
                         },
                         {
                             "slug": "ozone-layer",
-                            "title": "Ozone Layer",
-                            "excerpt": "Humans were emitting large amounts of gases that depleted the ozone layer. But in the 1980s the world came together to tackle the problem. Emissions have fallen by more than 99%.",
-                            "kpi": "<p>Emissions of ozone-depleting gases have fallen by <strong>98%</strong>.</p>\n<p>But it will take decades for the ozone layer to recover.</p>\n"
+                            "title": "Ozone Layer"
                         }
                     ]
                 },
@@ -416,27 +306,19 @@
                     "entries": [
                         {
                             "slug": "clean-water-sanitation",
-                            "title": "Clean Water and Sanitation",
-                            "excerpt": "Explore global access to clean water and sanitation.",
-                            "kpi": "<p><strong>One-quarter</strong> of the world do not have access to safe drinking water</p>\n"
+                            "title": "Clean Water and Sanitation"
                         },
                         {
                             "slug": "water-access",
-                            "title": "Clean Water",
-                            "excerpt": "Clean and safe water is essential for good health.\nHow did access change over time? Where do people lack access?",
-                            "kpi": "<p><strong>2.1 billion</strong> people do not have access to safe drinking water.</p>\n<p>That's <strong>26%</strong> of the world population.</p>\n"
+                            "title": "Clean Water"
                         },
                         {
                             "slug": "sanitation",
-                            "title": "Sanitation",
-                            "excerpt": "Access to safe sanitation is essential for reducing deaths from infectious disease, preventing malnutrition and providing dignity. \nWhat is the global situation today and how can we make progress?",
-                            "kpi": "<p><strong>3.7 billion</strong> people do not have access to safely managed sanitation.</p>\n<p>That's <strong>46%</strong> of the world population.</p>\n"
+                            "title": "Sanitation"
                         },
                         {
                             "slug": "water-use-stress",
-                            "title": "Water Use and Stress",
-                            "excerpt": "Freshwater resources across the world are the focus of this entry. How much water do we use? How did it change over time?",
-                            "kpi": "<ul>\n<li>Globally we use <strong>70%</strong> of freshwater withdrawals for agriculture; <strong>19%</strong> in industry; and <strong>11%</strong> in households.</li>\n</ul>\n"
+                            "title": "Water Use and Stress"
                         }
                     ]
                 },
@@ -446,33 +328,23 @@
                     "entries": [
                         {
                             "slug": "biodiversity",
-                            "title": "Biodiversity",
-                            "excerpt": "Explore the diversity of wildlife across the planet. What are species threatened with? What can we do to prevent biodiversity loss?",
-                            "kpi": "<p>Global trends in biodiversity are mixed, but overall it's in steep decline</p>\n"
+                            "title": "Biodiversity"
                         },
                         {
                             "slug": "environmental-impacts-of-food",
-                            "title": "Environmental Impacts of Food Production",
-                            "excerpt": "What are the environmental impacts of food production? How do we reduce the impacts of agriculture on the environment?",
-                            "kpi": "<p><strong>26%</strong> of global greenhouse gas emissions come from food production.</p>\n<p><strong>50%</strong> of the world's habitable land is used for agriculture.</p>\n"
+                            "title": "Environmental Impacts of Food Production"
                         },
                         {
                             "slug": "forests-and-deforestation",
-                            "title": "Forests and Deforestation",
-                            "excerpt": "How are forests distributed across the world? How much do we lose to deforestation every year?",
-                            "kpi": "<p><strong>31%</strong> of the world’s land area is covered by forest.</p>\n"
+                            "title": "Forests and Deforestation"
                         },
                         {
                             "slug": "land-use",
-                            "title": "Land Use",
-                            "excerpt": "How is humanity using the Earth’s land? And how can we decrease our land use so that more land is left for wildlife?",
-                            "kpi": "<ul>\n<li><strong>50%</strong> of the world’s habitable land is used for agriculture</li>\n</ul>\n"
+                            "title": "Land Use"
                         },
                         {
                             "slug": "natural-disasters",
-                            "title": "Natural Disasters",
-                            "excerpt": "Where and from which disasters do people die? What can we do to prevent deaths from natural disasters?",
-                            "kpi": "<ul>\n<li>Over the last decade the annual number of deaths due to natural disasters was <strong>45,000</strong> globally.</li>\n</ul>\n"
+                            "title": "Natural Disasters"
                         }
                     ]
                 }
@@ -484,9 +356,7 @@
             "entries": [
                 {
                     "slug": "animal-welfare",
-                    "title": "Animal Welfare",
-                    "excerpt": "",
-                    "kpi": ""
+                    "title": "Animal Welfare"
                 }
             ],
             "subcategories": [
@@ -496,57 +366,39 @@
                     "entries": [
                         {
                             "slug": "hunger-and-undernourishment",
-                            "title": "Hunger and Undernourishment",
-                            "excerpt": "What are the consequences of undernourishment and how can we make progress against hunger and undernourishment?",
-                            "kpi": "<p><strong>9%</strong> of the world population – <strong>660 million</strong> people – are undernourished.</p>\n<p><strong>22%</strong> of children younger than five are ‘stunted’.</p>\n"
+                            "title": "Hunger and Undernourishment"
                         },
                         {
                             "slug": "famines",
-                            "title": "Famines",
-                            "excerpt": "In many parts of the world famines have been common in the past. What causes famines? How can famines be averted?",
-                            "kpi": "<p>Around <strong>130 million</strong> people died in famines during the last 150 years.</p>\n<p>This estimate is based on our historical reconstructions.</p>\n"
+                            "title": "Famines"
                         },
                         {
                             "slug": "food-supply",
-                            "title": "Food Supply",
-                            "excerpt": "How had the availability of food changed over time? How does food supply vary across the world today?",
-                            "kpi": "<p><strong>2,861 kcal</strong> per day is the global average food supply per person.</p>\n<p>There are large inequalities in food supply across countries.</p>\n"
+                            "title": "Food Supply"
                         },
                         {
                             "slug": "human-height",
-                            "title": "Human Height",
-                            "excerpt": "The average height of a population can inform us about the nutrition and living conditions of populations in the past for which we have little other data.",
-                            "kpi": "<p>The average young adult is about <strong>5% taller</strong> today than 100 years ago.</p>\n<p>Human height gives us an indicator of changes in health and nutrition in the past.</p>\n"
+                            "title": "Human Height"
                         },
                         {
                             "slug": "micronutrient-deficiency",
-                            "title": "Micronutrient Deficiency",
-                            "excerpt": "Food is not only a source of energy and protein, but also micronutrients – vitamins and minerals – which are essential to good health.\nWho is most affected by the ‘hidden hunger’ of micronutrient deficiency?",
-                            "kpi": "<p>An estimated <strong>2 billion</strong> people are deficient in essential micronutrients.</p>\n"
+                            "title": "Micronutrient Deficiency"
                         },
                         {
                             "slug": "diet-compositions",
-                            "title": "Diet Compositions",
-                            "excerpt": "What do people across the world eat?",
-                            "kpi": "<p>A diverse diet is essential for good nutrition.</p>\n<p>There are large inequalities in dietary diversity between countries.</p>\n"
+                            "title": "Diet Compositions"
                         },
                         {
                             "slug": "food-prices",
-                            "title": "Food Prices",
-                            "excerpt": "Food needs to be affordable for people, and at the same it is a key source of income for one-quarter of the world’s labor force.",
-                            "kpi": "<p><strong>Three billion</strong> people cannot afford a healthy diet.</p>\n<p>Food prices are important for both consumers and farmers.</p>\n"
+                            "title": "Food Prices"
                         },
                         {
                             "slug": "obesity",
-                            "title": "Obesity",
-                            "excerpt": "When did obesity increase? How do rates vary across the world? What is the health impact?",
-                            "kpi": "<p><strong>13% of adults</strong> are obese, globally.</p>\n<p>Obesity is responsible for <strong>5 million</strong> premature deaths every year.</p>\n"
+                            "title": "Obesity"
                         },
                         {
                             "slug": "alcohol-consumption",
-                            "title": "Alcohol Consumption",
-                            "excerpt": "Who consumes the most alcohol? How has consumption changed over time? And what are the health impacts?",
-                            "kpi": "<p><strong>2.4 million</strong> people die prematurely from alcohol consumption every year.</p>\n<p>71% are younger than 70 years old.</p>\n"
+                            "title": "Alcohol Consumption"
                         }
                     ]
                 },
@@ -556,33 +408,23 @@
                     "entries": [
                         {
                             "slug": "farm-size",
-                            "title": "Farm Size and Productivity",
-                            "excerpt": "How does farm size vary across the world? How much of farmland is held by smallholders?",
-                            "kpi": "<p>Most of the world's farmers are smallholders, with less than two hectares of land</p>\n"
+                            "title": "Farm Size and Productivity"
                         },
                         {
                             "slug": "agricultural-production",
-                            "title": "Agricultural Production",
-                            "excerpt": "How much, and what types of food, do countries produce across the world?",
-                            "kpi": "<p>The world produces more than enough food for everyone.</p>\n<p>But it's unequally distributed across the world.</p>\n"
+                            "title": "Agricultural Production"
                         },
                         {
                             "slug": "environmental-impacts-of-food",
-                            "title": "Environmental Impacts of Food Production",
-                            "excerpt": "What are the environmental impacts of food production? How do we reduce the impacts of agriculture on the environment?",
-                            "kpi": "<p><strong>26%</strong> of global greenhouse gas emissions come from food production.</p>\n<p><strong>50%</strong> of the world's habitable land is used for agriculture.</p>\n"
+                            "title": "Environmental Impacts of Food Production"
                         },
                         {
                             "slug": "crop-yields",
-                            "title": "Crop Yields",
-                            "excerpt": "Increasing crop yields is crucial to improve food security, living standards, and reduce human impacts on the environment.",
-                            "kpi": "<p>Global average cereal yield is <strong>4 tonnes</strong> per hectare.</p>\n<p>But in many regions yields are much lower.</p>\n"
+                            "title": "Crop Yields"
                         },
                         {
                             "slug": "meat-production",
-                            "title": "Meat and Dairy Production",
-                            "excerpt": "Meat is an important source of nutrition for people around the world. How quickly is demand growing? And what are the implications for animal welfare and the earth’s environment?",
-                            "kpi": "<p><strong>72 billion</strong> animals are slaughtered every year for meat production.</p>\n"
+                            "title": "Meat and Dairy Production"
                         }
                     ]
                 },
@@ -592,27 +434,19 @@
                     "entries": [
                         {
                             "slug": "employment-in-agriculture",
-                            "title": "Employment in Agriculture",
-                            "excerpt": "Once the majority of human labor was dedicated to food production. When and how did this change? What is the global distribution of agricultural labor today?",
-                            "kpi": "<p><strong>27%</strong> of the world’s labor force is employed in agriculture.</p>\n"
+                            "title": "Employment in Agriculture"
                         },
                         {
                             "slug": "land-use",
-                            "title": "Land Use",
-                            "excerpt": "How is humanity using the Earth’s land? And how can we decrease our land use so that more land is left for wildlife?",
-                            "kpi": "<ul>\n<li><strong>50%</strong> of the world’s habitable land is used for agriculture</li>\n</ul>\n"
+                            "title": "Land Use"
                         },
                         {
                             "slug": "fertilizers",
-                            "title": "Fertilizers",
-                            "excerpt": "Fertilizers supply plants with nutrients that are essential for growth.\nHow important are fertilizers? How does their use vary across the world?",
-                            "kpi": "<p>The world produces more than <strong>200 million</strong> tonnes of fertilizer each year.</p>\n"
+                            "title": "Fertilizers"
                         },
                         {
                             "slug": "pesticides",
-                            "title": "Pesticides",
-                            "excerpt": "Pesticides are used to protect plants from weeds, fungi, or insects. Where are they used? What is their impact?",
-                            "kpi": "<p>Pesticides are often used to protect crop yields.</p>\n<p>There are large differences in its use across the world.</p>\n"
+                            "title": "Pesticides"
                         }
                     ]
                 }
@@ -629,33 +463,23 @@
                     "entries": [
                         {
                             "slug": "government-spending",
-                            "title": "Government Spending",
-                            "excerpt": "What do governments spend their financial resources on?",
-                            "kpi": "<p>Government spending has increased significantly, but with large differences across the world.</p>\n"
+                            "title": "Government Spending"
                         },
                         {
                             "slug": "taxation",
-                            "title": "Taxation",
-                            "excerpt": "Taxes are the most important source of government revenue. Who is paying how much and how do tax systems differ?",
-                            "kpi": "<p>Tax revenues account for more than 80% of total government revenue in about half of the countries in the world.</p>\n<p>And for more than 50% in almost every country.</p>\n"
+                            "title": "Taxation"
                         },
                         {
                             "slug": "military-personnel-spending",
-                            "title": "Military Personnel and Spending",
-                            "excerpt": "How large are countries’ militaries? How much do they spend on their armed forces? Explore global data on military personnel and spending.",
-                            "kpi": "<ul>\n<li>Annual military spending amounts to <strong>2.2%</strong> of global GDP.</li>\n</ul>\n"
+                            "title": "Military Personnel and Spending"
                         },
                         {
                             "slug": "financing-healthcare",
-                            "title": "Healthcare Spending",
-                            "excerpt": "Healthcare is key to make progress against poor health. How is it financed?",
-                            "kpi": "<p>Healthcare funding is essential for good health.</p>\n"
+                            "title": "Healthcare Spending"
                         },
                         {
                             "slug": "financing-education",
-                            "title": "Education Spending",
-                            "excerpt": "How is education financed? How much do we spend on it? What are the returns?",
-                            "kpi": "<p>Funding for education is growing across the world, but large gaps still exist.</p>\n"
+                            "title": "Education Spending"
                         }
                     ]
                 },
@@ -665,21 +489,15 @@
                     "entries": [
                         {
                             "slug": "economic-inequality",
-                            "title": "Economic Inequality",
-                            "excerpt": "",
-                            "kpi": "<p>Many countries have high levels of economic inequality. Inequality across the world as a whole has fallen but remains vast.</p>\n"
+                            "title": "Economic Inequality"
                         },
                         {
                             "slug": "poverty",
-                            "title": "Poverty",
-                            "excerpt": "How has poverty changed over time? And what can the world do to win the fight against poverty?",
-                            "kpi": "<p><strong>8%</strong> of the world population were living on less than $2.15 per day before the pandemic.</p>\n<p><strong>59%</strong> were living on less than $10 per day.</p>\n"
+                            "title": "Poverty"
                         },
                         {
                             "slug": "economic-growth",
-                            "title": "Economic Growth",
-                            "excerpt": "All of today’s rich countries were poor in the past – how do poor countries become rich?",
-                            "kpi": "<p>The world has become much more prosperous, but in some countries incomes remain very low.</p>\n"
+                            "title": "Economic Growth"
                         }
                     ]
                 },
@@ -689,9 +507,7 @@
                     "entries": [
                         {
                             "slug": "economic-inequality-by-gender",
-                            "title": "Economic Inequality by Gender",
-                            "excerpt": "What is determining the inequality in incomes, jobs, and wealth between men and women?",
-                            "kpi": "<p>In most countries the gender pay gap has reduced, but inequalities are still large and common.</p>\n"
+                            "title": "Economic Inequality by Gender"
                         }
                     ]
                 },
@@ -701,21 +517,15 @@
                     "entries": [
                         {
                             "slug": "child-labor",
-                            "title": "Child Labor",
-                            "excerpt": "Why and where do children work? How did child labor change over time?",
-                            "kpi": "<p>An estimated <strong>17%</strong> of children globally work.</p>\n"
+                            "title": "Child Labor"
                         },
                         {
                             "slug": "working-hours",
-                            "title": "Working Hours",
-                            "excerpt": "How much time do people across the world spend working? How have working hours changed over time, and what do these changes matter for people’s lives? Explore data and research on working hours.",
-                            "kpi": "<p>Many people have to work long hours for very low incomes.</p>\n"
+                            "title": "Working Hours"
                         },
                         {
                             "slug": "female-labor-supply",
-                            "title": "Women’s Employment",
-                            "excerpt": "What is determining whether women participate in the labor market? How is it changing?",
-                            "kpi": "<p>Women’s labor force participation is <strong>47%</strong> globally with large differences between countries.</p>\n"
+                            "title": "Women’s Employment"
                         }
                     ]
                 },
@@ -725,9 +535,7 @@
                     "entries": [
                         {
                             "slug": "corruption",
-                            "title": "Corruption",
-                            "excerpt": "How common is corruption? What impact does it have? And what can be done to reduce it?",
-                            "kpi": "<p>Corruption is a common problem in many countries and sectors.</p>\n"
+                            "title": "Corruption"
                         }
                     ]
                 },
@@ -737,21 +545,15 @@
                     "entries": [
                         {
                             "slug": "migration",
-                            "title": "Migration",
-                            "excerpt": "Migration has been an important source of economic development and poverty reduction. Explore data on global migration.",
-                            "kpi": ""
+                            "title": "Migration"
                         },
                         {
                             "slug": "trade-and-globalization",
-                            "title": "Trade and Globalization",
-                            "excerpt": "How did international trade and globalization change over time? What is the structure today? And what is its impact?",
-                            "kpi": ""
+                            "title": "Trade and Globalization"
                         },
                         {
                             "slug": "tourism",
-                            "title": "Tourism",
-                            "excerpt": "How often do people travel for pleasure? What role does tourism play in economies across the world? Explore global data on tourism.",
-                            "kpi": "<p>Many people travel for pleasure, and tourism plays a big role in many economies across the world.</p>\n"
+                            "title": "Tourism"
                         }
                     ]
                 }
@@ -768,21 +570,15 @@
                     "entries": [
                         {
                             "slug": "global-education",
-                            "title": "Global Education",
-                            "excerpt": "The overview of our research on global education.",
-                            "kpi": "<p>Global education has improved over recent decades, but much more progress is possible.</p>\n"
+                            "title": "Global Education"
                         },
                         {
                             "slug": "literacy",
-                            "title": "Literacy",
-                            "excerpt": "Being able to read and write opens up the world of education and knowledge.\nWhen and why did more people become literate? How can progress continue?",
-                            "kpi": "<ul>\n<li><strong>14%</strong> of the world population are illiterate.</li>\n</ul>\n"
+                            "title": "Literacy"
                         },
                         {
                             "slug": "research-and-development",
-                            "title": "Research and Development",
-                            "excerpt": "Research and development underpin nearly all of the transformative changes the world has seen.",
-                            "kpi": ""
+                            "title": "Research and Development"
                         }
                     ]
                 },
@@ -792,9 +588,7 @@
                     "entries": [
                         {
                             "slug": "financing-education",
-                            "title": "Education Spending",
-                            "excerpt": "How is education financed? How much do we spend on it? What are the returns?",
-                            "kpi": "<p>Funding for education is growing across the world, but large gaps still exist.</p>\n"
+                            "title": "Education Spending"
                         }
                     ]
                 },
@@ -804,15 +598,11 @@
                     "entries": [
                         {
                             "slug": "books",
-                            "title": "Books",
-                            "excerpt": "Books have been at the center of science and the arts for centuries. How has the production and sales of books changed over time?",
-                            "kpi": "<p>Book publication has been a key driver of knowledge-sharing and education.</p>\n"
+                            "title": "Books"
                         },
                         {
                             "slug": "internet",
-                            "title": "Internet",
-                            "excerpt": "More than half of the world is online. But the internet is still young.",
-                            "kpi": "<ul>\n<li><strong>50%</strong> of the world population are not online.</li>\n</ul>\n"
+                            "title": "Internet"
                         }
                     ]
                 }
@@ -829,39 +619,27 @@
                     "entries": [
                         {
                             "slug": "artificial-intelligence",
-                            "title": "Artificial Intelligence",
-                            "excerpt": "AI is already having a large impact on our world. Explore research and data to understand the trajectory of this important technology.",
-                            "kpi": ""
+                            "title": "Artificial Intelligence"
                         },
                         {
                             "slug": "space-exploration-satellites",
-                            "title": "Space Exploration and Satellites",
-                            "excerpt": "Explore data and developments in space travel and satellite technologies.",
-                            "kpi": ""
+                            "title": "Space Exploration and Satellites"
                         },
                         {
                             "slug": "transport",
-                            "title": "Transport",
-                            "excerpt": "Explore trends in transport technologies and emissions across the world.",
-                            "kpi": "<p>Transport is an important measure of technological progress</p>\n"
+                            "title": "Transport"
                         },
                         {
                             "slug": "internet",
-                            "title": "Internet",
-                            "excerpt": "More than half of the world is online. But the internet is still young.",
-                            "kpi": "<ul>\n<li><strong>50%</strong> of the world population are not online.</li>\n</ul>\n"
+                            "title": "Internet"
                         },
                         {
                             "slug": "research-and-development",
-                            "title": "Research and Development",
-                            "excerpt": "Research and development underpin nearly all of the transformative changes the world has seen.",
-                            "kpi": ""
+                            "title": "Research and Development"
                         },
                         {
                             "slug": "technological-change",
-                            "title": "Technological Change",
-                            "excerpt": "Technological change underpins so many of the developments we’ve seen in health, agriculture, energy and global development.",
-                            "kpi": "<p>Technological progress has been a key driver of improved living standards.</p>\n"
+                            "title": "Technological Change"
                         }
                     ]
                 }
@@ -878,9 +656,7 @@
                     "entries": [
                         {
                             "slug": "trust",
-                            "title": "Trust",
-                            "excerpt": "Trust is essential for community, wellbeing, and effective cooperation. How does trust vary between different societies and locations and what matters for levels of trust?",
-                            "kpi": "<p>Trust levels can vary a lot between countries and groups of society.</p>\n"
+                            "title": "Trust"
                         }
                     ]
                 },
@@ -890,45 +666,31 @@
                     "entries": [
                         {
                             "slug": "clean-water-sanitation",
-                            "title": "Clean Water and Sanitation",
-                            "excerpt": "Explore global access to clean water and sanitation.",
-                            "kpi": "<p><strong>One-quarter</strong> of the world do not have access to safe drinking water</p>\n"
+                            "title": "Clean Water and Sanitation"
                         },
                         {
                             "slug": "energy-access",
-                            "title": "Access to Energy",
-                            "excerpt": "Access to electricity and clean cooking fuels are vital for a good standard of living and good health.",
-                            "kpi": "<p><strong>10%</strong> of the world do not have access to electricity.</p>\n<p><strong>40%</strong> do not have access to clean fuels for cooking.</p>\n"
+                            "title": "Access to Energy"
                         },
                         {
                             "slug": "water-access",
-                            "title": "Clean Water",
-                            "excerpt": "Clean and safe water is essential for good health.\nHow did access change over time? Where do people lack access?",
-                            "kpi": "<p><strong>2.1 billion</strong> people do not have access to safe drinking water.</p>\n<p>That's <strong>26%</strong> of the world population.</p>\n"
+                            "title": "Clean Water"
                         },
                         {
                             "slug": "homelessness",
-                            "title": "Homelessness",
-                            "excerpt": "How many are homeless? How did homelessness change over time?",
-                            "kpi": "<p>Homelessness is a problem in countries around the world.</p>\n"
+                            "title": "Homelessness"
                         },
                         {
                             "slug": "indoor-air-pollution",
-                            "title": "Indoor Air Pollution",
-                            "excerpt": "Indoor air pollution – caused by the burning of firewood, crop waste, and dung for cooking and heating – is a major health risk of the world’s poorest.",
-                            "kpi": "<p><strong>2.3 million</strong> people die prematurely from indoor air pollution every year.</p>\n<p>58% are younger than 70 years old.</p>\n"
+                            "title": "Indoor Air Pollution"
                         },
                         {
                             "slug": "light-at-night",
-                            "title": "Light at Night",
-                            "excerpt": "Light at night was once expensive everywhere. In some places people are still lacking light at night, while in other places light became extremely cheap.",
-                            "kpi": "<p>Light at night was once expensive everywhere. While prices have plummeted, many people still do not have access to artificial light.</p>\n"
+                            "title": "Light at Night"
                         },
                         {
                             "slug": "sanitation",
-                            "title": "Sanitation",
-                            "excerpt": "Access to safe sanitation is essential for reducing deaths from infectious disease, preventing malnutrition and providing dignity. \nWhat is the global situation today and how can we make progress?",
-                            "kpi": "<p><strong>3.7 billion</strong> people do not have access to safely managed sanitation.</p>\n<p>That's <strong>46%</strong> of the world population.</p>\n"
+                            "title": "Sanitation"
                         }
                     ]
                 },
@@ -938,21 +700,15 @@
                     "entries": [
                         {
                             "slug": "time-use",
-                            "title": "Time Use",
-                            "excerpt": "How do people across the world spend their time? How do daily activities differ across countries, and how do these differences matter for people’s lives? Explore data and research on time use.",
-                            "kpi": "<p>Time is the ultimate limited resource</p>\n"
+                            "title": "Time Use"
                         },
                         {
                             "slug": "working-hours",
-                            "title": "Working Hours",
-                            "excerpt": "How much time do people across the world spend working? How have working hours changed over time, and what do these changes matter for people’s lives? Explore data and research on working hours.",
-                            "kpi": "<p>Many people have to work long hours for very low incomes.</p>\n"
+                            "title": "Working Hours"
                         },
                         {
                             "slug": "tourism",
-                            "title": "Tourism",
-                            "excerpt": "How often do people travel for pleasure? What role does tourism play in economies across the world? Explore global data on tourism.",
-                            "kpi": "<p>Many people travel for pleasure, and tourism plays a big role in many economies across the world.</p>\n"
+                            "title": "Tourism"
                         }
                     ]
                 },
@@ -962,15 +718,11 @@
                     "entries": [
                         {
                             "slug": "marriages-and-divorces",
-                            "title": "Marriages and Divorces",
-                            "excerpt": "How is the institution of marriage changing? What percentage of marriages end in divorce? Explore global data on marriages and divorces.",
-                            "kpi": "<p>The institution of marriage is changing quickly</p>\n"
+                            "title": "Marriages and Divorces"
                         },
                         {
                             "slug": "social-connections-and-loneliness",
-                            "title": "Loneliness and Social Connections",
-                            "excerpt": "Family and friends are important for our well-being.  In this article we explore data on loneliness and social connections, and review available evidence on the link between social connections and well-being.",
-                            "kpi": "<p>Loneliness is common across the world.</p>\n"
+                            "title": "Loneliness and Social Connections"
                         }
                     ]
                 },
@@ -980,15 +732,11 @@
                     "entries": [
                         {
                             "slug": "happiness-and-life-satisfaction",
-                            "title": "Happiness and Life Satisfaction",
-                            "excerpt": "Self-reported life satisfaction differs widely between people and between countries. What explains these differences?",
-                            "kpi": "<p>Life satisfaction and happiness vary widely both within and among countries.</p>\n"
+                            "title": "Happiness and Life Satisfaction"
                         },
                         {
                             "slug": "human-development-index",
-                            "title": "Human Development Index (HDI)",
-                            "excerpt": "The HDI is a measure of human development that captures health, education, and income. How does the index vary around the world, and how did it change over time?",
-                            "kpi": "<p>Health, education and living standards have increased in recent decades, but more progress is needed.</p>\n"
+                            "title": "Human Development Index (HDI)"
                         }
                     ]
                 }
@@ -1005,33 +753,23 @@
                     "entries": [
                         {
                             "slug": "state-capacity",
-                            "title": "State Capacity",
-                            "excerpt": "",
-                            "kpi": ""
+                            "title": "State Capacity"
                         },
                         {
                             "slug": "lgbt-rights",
-                            "title": "LGBT+ Rights",
-                            "excerpt": "How has the protection of LGBT+ rights changed over time? How does it differ across countries? Explore global data on LGBT+ rights.",
-                            "kpi": "<p>LGBT+ rights are much more protected than in the past, but are often a lot less protected than those of straight and cisgender people.</p>\n"
+                            "title": "LGBT+ Rights"
                         },
                         {
                             "slug": "women-rights",
-                            "title": "Women’s Rights",
-                            "excerpt": "How has the protection of women’s rights changed over time? How does it differ across countries? Explore global data and research on women’s rights.",
-                            "kpi": "<p>Women's rights are much more protected than in the past, but are often a lot less protected than those of men.</p>\n"
+                            "title": "Women’s Rights"
                         },
                         {
                             "slug": "child-labor",
-                            "title": "Child Labor",
-                            "excerpt": "Why and where do children work? How did child labor change over time?",
-                            "kpi": "<p>An estimated <strong>17%</strong> of children globally work.</p>\n"
+                            "title": "Child Labor"
                         },
                         {
                             "slug": "human-rights",
-                            "title": "Human Rights",
-                            "excerpt": "How has the protection of human rights changed over time? How does it differ across countries, and between social and demographic groups? Explore global data on human rights.",
-                            "kpi": "<p>Human rights are much more protected than in the past, but there are big differences between countries.</p>\n"
+                            "title": "Human Rights"
                         }
                     ]
                 },
@@ -1041,15 +779,11 @@
                     "entries": [
                         {
                             "slug": "democracy",
-                            "title": "Democracy",
-                            "excerpt": "How has democracy spread across countries? Are we moving towards a more democratic world? Explore global data and research on democracy.",
-                            "kpi": "<ul>\n<li><strong>71%</strong> of the world population do not live in democratic countries.</li>\n</ul>\n"
+                            "title": "Democracy"
                         },
                         {
                             "slug": "corruption",
-                            "title": "Corruption",
-                            "excerpt": "How common is corruption? What impact does it have? And what can be done to reduce it?",
-                            "kpi": "<p>Corruption is a common problem in many countries and sectors.</p>\n"
+                            "title": "Corruption"
                         }
                     ]
                 }
@@ -1066,33 +800,23 @@
                     "entries": [
                         {
                             "slug": "biological-and-chemical-weapons",
-                            "title": "Biological and Chemical Weapons",
-                            "excerpt": "Which countries have pursued, possessed, or used biological and chemical weapons recently and historically? Which countries have joined the international treaties to eliminate them?",
-                            "kpi": "<p>Fewer countries use, possess, and pursue biological and chemical weapons.</p>\n"
+                            "title": "Biological and Chemical Weapons"
                         },
                         {
                             "slug": "war-and-peace",
-                            "title": "War and Peace",
-                            "excerpt": "Humans are capable of atrocious cruelty – the history of war makes this all too clear. How many died in war? And what are the prospects for making the world more peaceful?",
-                            "kpi": "<ul>\n<li>Over the last decade the annual number of deaths from conflicts was <strong>100,000</strong> globally.</li>\n</ul>\n"
+                            "title": "War and Peace"
                         },
                         {
                             "slug": "military-personnel-spending",
-                            "title": "Military Personnel and Spending",
-                            "excerpt": "How large are countries’ militaries? How much do they spend on their armed forces? Explore global data on military personnel and spending.",
-                            "kpi": "<ul>\n<li>Annual military spending amounts to <strong>2.2%</strong> of global GDP.</li>\n</ul>\n"
+                            "title": "Military Personnel and Spending"
                         },
                         {
                             "slug": "terrorism",
-                            "title": "Terrorism",
-                            "excerpt": "The attacks of terrorists receive a lot of attention from the media and often dominate the public discourse. How many people die from these attacks and how did it change over time?",
-                            "kpi": "<ul>\n<li>Over the last decade the annual number of deaths due to terrorism was <strong>26,000</strong> globally.</li>\n</ul>\n"
+                            "title": "Terrorism"
                         },
                         {
                             "slug": "nuclear-weapons",
-                            "title": "Nuclear Weapons",
-                            "excerpt": "The world’s nuclear powers possess around 9,500 nuclear warheads in total. These weapons have the capacity to kill hundreds of millions of people directly, and billions due to subsequent effects on agriculture.",
-                            "kpi": "<p>The world’s nuclear powers have <strong>more than 9,000</strong> nuclear warheads.</p>\n"
+                            "title": "Nuclear Weapons"
                         }
                     ]
                 },
@@ -1102,21 +826,15 @@
                     "entries": [
                         {
                             "slug": "state-capacity",
-                            "title": "State Capacity",
-                            "excerpt": "",
-                            "kpi": ""
+                            "title": "State Capacity"
                         },
                         {
                             "slug": "violence-against-rights-for-children",
-                            "title": "Violence Against Children and Children’s Rights",
-                            "excerpt": "How common is physical and emotional violence against children? How did it change over time?",
-                            "kpi": "<p>Violence against children in various forms has fallen, but still occurs today.</p>\n"
+                            "title": "Violence Against Children and Children’s Rights"
                         },
                         {
                             "slug": "homicides",
-                            "title": "Homicides",
-                            "excerpt": "How common are homicides? How does this differ across countries? And how is this changing over time? Explore global data on homicides.",
-                            "kpi": "<p>Globally around <strong>400,000 people die</strong> from homicide each year.</p>\n"
+                            "title": "Homicides"
                         }
                     ]
                 }

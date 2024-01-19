@@ -310,18 +310,12 @@ export const getDocumentsInfo = async (
 const getEntryNode = ({
     slug,
     title,
-    excerpt,
-    kpi,
 }: EntryNode): {
     slug: string
     title: string
-    excerpt: string
-    kpi: string
 } => ({
     slug,
     title: decodeHTML(title),
-    excerpt: excerpt === null ? "" : decodeHTML(excerpt),
-    kpi,
 })
 
 const isEntryInSubcategories = (entry: EntryNode, subcategories: any): any => {
@@ -374,8 +368,6 @@ export const getEntriesByCategory = async (): Promise<
           nodes {
             slug
             title
-            excerpt
-            kpi
           }
         }
       }
