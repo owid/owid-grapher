@@ -186,9 +186,9 @@ export class Explorer
     // only used for the checkbox at the bottom of the embed dialog
     @observable embedDialogHideControls = true
 
-    selection =
-        this.props.selection ??
-        new SelectionArray(this.explorerProgram.selection)
+    selection = this.props.selection?.hasSelection
+        ? this.props.selection
+        : new SelectionArray(this.explorerProgram.selection)
 
     entityType = this.explorerProgram.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
 
@@ -485,6 +485,11 @@ export class Explorer
             manuallyProvideData: false,
         }
 
+        // if not empty, respect the explorer's selection
+        if (this.selection.hasSelection) {
+            config.selectedEntityNames = this.selection.selectedEntityNames
+        }
+
         grapher.setAuthoredVersion(config)
         grapher.reset()
         this.updateGrapherFromExplorerCommon()
@@ -522,6 +527,11 @@ export class Explorer
             dataApiUrl: DATA_API_URL,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: false,
+        }
+
+        // if not empty, respect the explorer's selection
+        if (this.selection.hasSelection) {
+            config.selectedEntityNames = this.selection.selectedEntityNames
         }
 
         // set given variable IDs as dimensions to make Grapher
@@ -656,6 +666,11 @@ export class Explorer
             dataApiUrl: DATA_API_URL,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: true,
+        }
+
+        // if not empty, respect the explorer's selection
+        if (this.selection.hasSelection) {
+            config.selectedEntityNames = this.selection.selectedEntityNames
         }
 
         grapher.setAuthoredVersion(config)
