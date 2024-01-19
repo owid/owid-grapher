@@ -29,7 +29,7 @@ version: "3.7"
 services:
     # Stock mysql database. Root password is hardcoded for now
     db:
-        image: mysql/mysql-server:latest
+        image: mysql/mysql-server:8.0
         command: --default-authentication-plugin=mysql_native_password
         restart: always
         volumes:
@@ -49,7 +49,7 @@ services:
     db-load-data:
         build:
             context: ./devTools/docker/mysql-init-docker
-        # image: mysql/mysql-server:latest
+        # image: mysql/mysql-server:8.0
         command: "/app/grapher-mysql-init.sh"
         volumes:
             - ./devTools/docker:/app
