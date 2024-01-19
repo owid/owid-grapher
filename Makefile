@@ -280,6 +280,7 @@ test:
 	@echo '==> Linting'
 	yarn
 	yarn run eslint
+	yarn lerna run build
 	yarn lerna run buildTests
 
 	@echo '==> Checking formatting'
