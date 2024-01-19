@@ -1,7 +1,8 @@
-FROM mysql:8.0-debian
+FROM mysql/mysql-server:latest
 
-RUN apt-get -y update \
- && apt-get install -y \
+RUN microdnf -y update \
+ && microdnf install -y \
+    libpwquality \
     curl \
     rsync \
     unzip \
