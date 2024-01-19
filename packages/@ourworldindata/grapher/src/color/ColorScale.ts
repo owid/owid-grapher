@@ -20,7 +20,6 @@ import {
     BinningStrategy,
     Color,
     CoreValueType,
-    colorScaleConfigDefaults,
 } from "@ourworldindata/types"
 import { CoreColumn } from "@ourworldindata/core-table"
 
@@ -44,7 +43,7 @@ export class ColorScale {
 
     @computed get config(): ColorScaleConfigDefaults {
         return this.manager.colorScaleConfig
-            ? { ...colorScaleConfigDefaults, ...this.manager.colorScaleConfig }
+            ? this.manager.colorScaleConfig
             : new ColorScaleConfig()
     }
 
