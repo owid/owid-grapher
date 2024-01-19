@@ -29,7 +29,7 @@ version: "3.7"
 services:
     # Stock mysql database. Root password is hardcoded for now
     db:
-        image: mysql:8.0-debian
+        image: mysql/mysql-server:latest
         command: --default-authentication-plugin=mysql_native_password
         restart: always
         volumes:
