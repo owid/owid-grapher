@@ -11,6 +11,7 @@ This option uses `make` to spin up all the services with a single command, but i
 -   [Docker](https://www.docker.com/get-started)
 -   [Node.js and Yarn](./local-typescript-setup.md)
 -   [tmux](https://github.com/tmux/tmux/wiki/Installing#binary-packages)
+-   [MySQL client tools](https://dev.mysql.com/doc/refman/8.0/en/mysql.html) (install it e.g. via [this brew package](https://formulae.brew.sh/formula/mysql-client) on MacOS)
 
 If you're using Windows, we recommend you use the Windows Subsystem for Linux, where you'll require some additional utilities. Please also make sure to check out the [before you start on windows guide](before-you-start-on-windows.md). To install the additional tools, run the following in a WSL terminal:
 
