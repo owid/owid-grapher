@@ -194,7 +194,6 @@ import {
     StaticChartRasterizer,
     type GrapherExport,
 } from "../captionedChart/StaticChartRasterizer.js"
-import { EntitySelectionToggle } from "../controls/EntitySelectionToggle.js"
 
 declare const window: any
 
