@@ -35,6 +35,7 @@ import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -220,6 +221,13 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 {currentGdoc.content.title}
                             </Typography.Title>
                             [ <GdocsEditLink gdocId={currentGdoc.id} /> ]
+                            {currentGdoc.published && (
+                                <a
+                                    href={`${BAKED_BASE_URL}/${currentGdoc.slug}`}
+                                >
+                                    Live article
+                                </a>
+                            )}
                             <div>
                                 {!currentGdoc.published && (
                                     <Tag color="default">Draft</Tag>
