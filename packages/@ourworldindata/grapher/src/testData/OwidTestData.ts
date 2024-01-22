@@ -1,11 +1,11 @@
+import { Region, regions, uniqBy } from "@ourworldindata/utils"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableWithSource,
-    Region,
-    regions,
-    uniqBy,
-} from "@ourworldindata/utils"
-import { EntityCode, EntityId, EntityName } from "@ourworldindata/core-table"
+    EntityCode,
+    EntityId,
+    EntityName,
+} from "@ourworldindata/types"
 
 type Entity = { id: EntityId; code?: EntityCode; name?: EntityName }
 type TestDatum = { year: number; entity: Entity; value: string | number }
