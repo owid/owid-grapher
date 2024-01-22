@@ -28,6 +28,9 @@ export const SiteMobileCategory = ({
             ref={categoryRef}
         >
             <SiteNavigationToggle
+                ariaLabel={
+                    isActive ? `Collapse ${category}` : `Expand ${category}`
+                }
                 isActive={isActive}
                 onToggle={() => toggleCategory(category)}
                 dropdown={

@@ -51,6 +51,7 @@ export const SiteMobileMenu = ({
                 </li>
                 <li>
                     <SiteNavigationToggle
+                        ariaLabel="Toggle resources menu"
                         isActive={menu === Menu.Resources}
                         onToggle={() =>
                             toggleMenu(

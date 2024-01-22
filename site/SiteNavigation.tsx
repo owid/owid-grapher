@@ -128,6 +128,7 @@ export const SiteNavigation = ({
                         })}
                     >
                         <SiteNavigationToggle
+                            ariaLabel="Toggle menu"
                             isActive={isActiveMobileMenu}
                             onToggle={() => toggleMenu(Menu.Topics)}
                             className="SiteNavigationToggle--mobile-menu hide-sm-up"
@@ -149,6 +150,7 @@ export const SiteNavigation = ({
                             <ul>
                                 <li>
                                     <SiteNavigationToggle
+                                        ariaLabel="Toggle topics menu"
                                         isActive={menu === Menu.Topics}
                                         onToggle={() => toggleMenu(Menu.Topics)}
                                         dropdown={
@@ -172,6 +174,7 @@ export const SiteNavigation = ({
                                 </li>
                                 <li className="with-relative-dropdown">
                                     <SiteNavigationToggle
+                                        ariaLabel="Toggle resources menu"
                                         isActive={menu === Menu.Resources}
                                         onToggle={() =>
                                             toggleMenu(Menu.Resources)
@@ -194,6 +197,7 @@ export const SiteNavigation = ({
                                 onActivate={setSearchAsActiveMenu}
                             />
                             <SiteNavigationToggle
+                                ariaLabel="Toggle subscribe menu"
                                 isActive={menu === Menu.Subscribe}
                                 onToggle={() => toggleMenu(Menu.Subscribe)}
                                 dropdown={
