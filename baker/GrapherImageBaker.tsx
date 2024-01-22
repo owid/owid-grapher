@@ -13,6 +13,14 @@ import {
 } from "./GrapherBakingUtils.js"
 import pMap from "p-map"
 
+interface SvgFilenameFragments {
+    slug: string
+    version: number
+    width: number
+    height: number
+    queryStr?: string
+}
+
 export async function bakeGraphersToPngs(
     outDir: string,
     jsonConfig: GrapherInterface,
@@ -87,13 +95,15 @@ export async function bakeGrapherToSvg(
     const grapher = initGrapherForSvgExport(jsonConfig, queryStr)
     const { width, height } = grapher.idealBounds
     const outPath = buildSvgOutFilepath(
-        slug,
         outDir,
-        jsonConfig.version,
-        width,
-        height,
-        verbose,
-        queryStr
+        {
+            slug,
+            version: jsonConfig.version ?? 0,
+            width,
+            height,
+            queryStr,
+        },
+        verbose
     )
 
     if (fs.existsSync(outPath) && !overwriteExisting) return
@@ -123,33 +133,23 @@ export function initGrapherForSvgExport(
 }
 
 export function buildSvgOutFilename(
-    slug: string,
-    version: number | undefined,
-    width: number,
-    height: number,
-    queryStr: string = ""
-) {
-    const fileKey = grapherSlugToExportFileKey(slug, queryStr)
+    fragments: SvgFilenameFragments,
+    { shouldHashQueryStr = true }: { shouldHashQueryStr?: boolean } = {}
+): string {
+    const { slug, version, width, height, queryStr = "" } = fragments
+    const fileKey = grapherSlugToExportFileKey(slug, queryStr, {
+        shouldHashQueryStr,
+    })
     const outFilename = `${fileKey}_v${version}_${width}x${height}.svg`
     return outFilename
 }
 
 export function buildSvgOutFilepath(
-    slug: string,
     outDir: string,
-    version: number | undefined,
-    width: number,
-    height: number,
-    verbose: boolean,
-    queryStr: string = ""
+    fragments: SvgFilenameFragments,
+    verbose: boolean = false
 ) {
-    const outFilename = buildSvgOutFilename(
-        slug,
-        version,
-        width,
-        height,
-        queryStr
-    )
+    const outFilename = buildSvgOutFilename(fragments)
     const outPath = path.join(outDir, outFilename)
     if (verbose) console.log(outPath)
     return outPath

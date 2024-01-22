@@ -116,6 +116,7 @@ export {
     copyToClipboard,
     checkIsGdocPost,
     checkIsDataInsight,
+    cartesian,
 } from "./Util.js"
 
 export {

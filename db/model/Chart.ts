@@ -19,7 +19,7 @@ import {
     Tag,
     ChartTagJoin,
 } from "@ourworldindata/utils"
-import type { GrapherInterface } from "@ourworldindata/types"
+import { GrapherInterface, ChartTypeName } from "@ourworldindata/types"
 import { OpenAI } from "openai"
 import { OPENAI_API_KEY } from "../../settings/serverSettings.js"
 
@@ -327,4 +327,23 @@ export const getGrapherById = async (grapherId: number): Promise<any> => {
     const config = JSON.parse(grapher.config)
     config.id = grapher.id
     return config
+}
+
+export const getMostViewedGrapherIdsByChartType = async (
+    chartType: ChartTypeName,
+    count = 10
+): Promise<number[]> => {
+    const ids = await db.queryMysql(
+        `SELECT c.id
+        FROM analytics_pageviews a
+        JOIN charts c ON c.slug = SUBSTRING_INDEX(a.url, '/', -1)
+        WHERE a.url LIKE "https://ourworldindata.org/grapher/%"
+            AND c.type = ?
+            AND c.config ->> "$.isPublished" = "true"
+            and (c.config ->> "$.hasChartTab" = "true" or c.config ->> "$.hasChartTab" is null)
+        ORDER BY a.views_365d DESC
+        LIMIT ?`,
+        [chartType, count]
+    )
+    return ids.map((row: any) => row.id)
 }

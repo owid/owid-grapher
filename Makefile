@@ -324,13 +324,11 @@ svgtest: ../owid-grapher-svgs
 	@echo '==> Comparing against reference SVGs'
 
 	@# get ../owid-grapher-svgs reliably to a base state at origin/master
-	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master
+	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master && git clean -fd
 
-	@# generate a full new set of svgs
-	node --enable-source-maps itsJustJavascript/devTools/svgTester/verify-graphs.js -i ../owid-grapher-svgs/configs -o ../owid-grapher-svgs/svg -r ../owid-grapher-svgs/svg
-
-	@# summarize differences
-	cd ../owid-grapher-svgs && git diff --stat
+	@# generate a full new set of svgs and create an HTML report if there are differences
+	node --enable-source-maps itsJustJavascript/devTools/svgTester/verify-graphs.js \
+		|| node --enable-source-maps itsJustJavascript/devTools/svgTester/create-compare-view.js
 
 ../owid-content:
 	@echo '==> Cloning owid-content to ../owid-content'

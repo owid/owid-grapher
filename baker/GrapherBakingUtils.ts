@@ -36,8 +36,14 @@ export const grapherUrlToSlugAndQueryStr = (grapherUrl: string) => {
 // other parts, like chart version and width/height.
 export const grapherSlugToExportFileKey = (
     slug: string,
-    queryStr: string | undefined
-) => `${slug}${queryStr ? `-${md5(queryStr)}` : ""}`
+    queryStr: string | undefined,
+    { shouldHashQueryStr = true }: { shouldHashQueryStr?: boolean } = {}
+) => {
+    const maybeHashedQueryStr = shouldHashQueryStr
+        ? md5(queryStr ?? "")
+        : queryStr
+    return `${slug}${queryStr ? `-${maybeHashedQueryStr}` : ""}`
+}
 
 export interface GrapherExports {
     get: (grapherUrl: string) => ChartExportMeta | undefined

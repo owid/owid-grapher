@@ -23,12 +23,30 @@ import {
     BAKED_BASE_URL,
 } from "../../settings/serverSettings.js"
 import { getHeapStatistics } from "v8"
+import { queryStringsByChartType } from "./chart-configurations.js"
+import * as d3 from "d3"
 
-export const CONFIG_FILENAME: string = "config.json"
+// ignore WorldMaps
+export const CHART_TYPES = Object.values(ChartTypeName).filter(
+    (chartType) => chartType !== ChartTypeName.WorldMap
+)
+
+// the owid-grapher-svgs repo is usually cloned as a sibling to the owid-grapher repo
+export const DEFAULT_CONFIGS_DIR = "../owid-grapher-svgs/configs"
+export const DEFAULT_REFERENCE_DIR = "../owid-grapher-svgs/svg"
+export const DEFAULT_DIFFERENCES_DIR = "../owid-grapher-svgs/differences"
+
+const CONFIG_FILENAME = "config.json"
 const RESULTS_FILENAME = "results.csv"
-export const SVG_CSV_HEADER = `grapherId,slug,chartType,md5,svgFilename,durationReceiveData,durationTotal,heapUsed,totalDataFileSize`
 
 export const finished = util.promisify(stream.finished) // (A)
+
+export interface ChartWithQueryStr {
+    id: number
+    slug: string
+    type: ChartTypeName
+    queryStr?: string
+}
 
 export interface VerifyResultOk {
     kind: "ok"
@@ -76,6 +94,7 @@ export type SvgRecord = {
     chartId: number
     slug: string
     chartType: ChartTypeName | GrapherTabOption | undefined
+    queryStr?: string
     md5: string
     svgFilename: string
     performance?: SvgRenderPerformance
@@ -142,7 +161,7 @@ export async function verifySvg(
     // Sometimes the md5 hash comparision above indicated a difference
     // but the character by character comparision gives -1 (no differences)
     // Weird - maybe an artifact of a change in how the ids are stripped
-    // accross version?
+    // across version?
     if (firstDiffIndex === -1) {
         return resultOk()
     }
@@ -158,41 +177,154 @@ export async function verifySvg(
     })
 }
 
-export async function decideDirectoriesToVerify(
-    grapherIds: number[],
-    inDir: string
-): Promise<JobDirectory[]> {
-    let directories: JobDirectory[] = []
-    if (grapherIds.length === 0) {
-        // If no grapher ids were given scan all directories in the inDir folder
+export async function selectChartIdsToProcess(
+    inDir: string,
+    options: {
+        chartIdsFile?: string
+        grapherIds?: number[]
+        chartTypes?: ChartTypeName[]
+        randomCount?: number
+    }
+): Promise<number[]> {
+    let validChartIds = await findValidChartIds(inDir, options)
+
+    if (options.randomCount !== undefined) {
+        validChartIds = _.sampleSize(validChartIds, options.randomCount)
+    }
+
+    return _.sortBy(validChartIds)
+}
+
+export async function findChartViewsToGenerate(
+    inDir: string,
+    chartIds: number[],
+    options: {
+        queryStr?: string
+        shouldTestAllViews?: boolean
+    }
+): Promise<ChartWithQueryStr[]> {
+    const chartsToProcess: ChartWithQueryStr[] = []
+
+    for (const chartId of chartIds) {
+        const grapherConfig = await parseGrapherConfig(chartId, { inDir })
+
+        const slug = grapherConfig.slug ?? chartId.toString()
+        const chartType = grapherConfig.type ?? ChartTypeName.LineChart
+
+        const queryStrings = options.shouldTestAllViews
+            ? queryStringsByChartType[chartType]
+            : options.queryStr
+            ? [options.queryStr]
+            : [undefined]
+
+        for (const queryStr of queryStrings) {
+            chartsToProcess.push({
+                id: chartId,
+                slug: slug,
+                type: chartType,
+                queryStr,
+            })
+        }
+    }
+
+    return chartsToProcess
+}
+
+export async function findValidChartIds(
+    inDir: string,
+    {
+        chartIdsFile,
+        grapherIds = [],
+        chartTypes = [],
+    }: {
+        chartIdsFile?: string
+        grapherIds?: number[]
+        chartTypes?: ChartTypeName[]
+    }
+): Promise<number[]> {
+    const validChartIds: number[] = []
+
+    // If nothing is specified, scan all directories in the inDir folder
+    if (grapherIds.length === 0 && chartTypes.length === 0 && !chartIdsFile) {
         const dir = await fs.opendir(inDir)
         for await (const entry of dir) {
             if (entry.isDirectory()) {
-                directories.push({
-                    chartId: parseInt(entry.name),
-                    pathToProcess: path.join(inDir, entry.name),
-                })
+                const grapherId = parseInt(entry.name)
+                validChartIds.push(grapherId)
             }
         }
-    } else {
-        // if grapher ids were given check which ones exist in inDir and filter to those
-        // -> if by doing so we drop some, warn the user
-        directories = grapherIds.map((id) => ({
-            chartId: id,
-            pathToProcess: path.join(inDir, id.toString()),
-        }))
-        const allDirsCount = directories.length
-        directories = directories.filter((item) =>
-            fs.existsSync(item.pathToProcess)
+        return validChartIds
+    }
+
+    if (chartIdsFile) {
+        const chartIdsFromFile = readLinesFromFile(chartIdsFile)
+            .map((line) => parseInt(line))
+            .filter((id) => !isNaN(id))
+        grapherIds.push(...chartIdsFromFile)
+    }
+
+    // If grapher ids were given check which ones exist in inDir and filter to those
+    // -> if by doing so we drop some, warn the user
+    if (grapherIds.length > 0) {
+        const validatedChartIds = grapherIds.filter((grapherId) =>
+            fs.existsSync(path.join(inDir, grapherId.toString()))
         )
-        if (directories.length < allDirsCount) {
+        validChartIds.push(...validatedChartIds)
+        if (validChartIds.length < grapherIds.length) {
+            const invalidChartIds = _.difference(grapherIds, validatedChartIds)
             console.warn(
-                `${allDirsCount} grapher ids were given but only ${directories.length} existed as directories`
+                `${grapherIds.length} grapher ids were given but only ${validChartIds.length} existed as directories. Missing ids: ${invalidChartIds}`
             )
         }
     }
 
-    return directories
+    // If chart types are given, scan all directories and add those that match a given chart type
+    if (chartTypes.length > 0) {
+        const dir = await fs.opendir(inDir)
+        for await (const entry of dir) {
+            if (entry.isDirectory()) {
+                const grapherId = parseInt(entry.name)
+                const grapherConfig = await parseGrapherConfig(grapherId, {
+                    inDir,
+                })
+                const chartType = grapherConfig.type ?? ChartTypeName.LineChart
+                if (chartTypes.includes(chartType)) {
+                    validChartIds.push(grapherId)
+                }
+            }
+        }
+    }
+
+    return validChartIds
+}
+
+export function validateChartTypes(chartTypes: string[]): ChartTypeName[] {
+    const validChartTypes = chartTypes.filter(
+        (chartType): chartType is ChartTypeName =>
+            CHART_TYPES.includes(chartType as any)
+    )
+    const invalidChartTypes = chartTypes.filter(
+        (chartType) => !CHART_TYPES.includes(chartType as any)
+    )
+    if (invalidChartTypes.length) {
+        console.warn(
+            `Invalid chart types given: ${invalidChartTypes}. Valid chart types are: ${CHART_TYPES}`
+        )
+    }
+    return _.uniq(validChartTypes)
+}
+
+export async function parseGrapherConfig(
+    chartId: number,
+    { inDir }: { inDir: string }
+): Promise<GrapherInterface> {
+    const grapherConfigPath = path.join(
+        inDir,
+        chartId.toString(),
+        "config.json"
+    )
+    const grapherConfig = await fs.readJson(grapherConfigPath)
+    return grapherConfig
 }
 
 /** Turn a list of comma separated numbers and ranges into an array of numbers */
@@ -252,7 +384,10 @@ export async function saveGrapherSchemaAndData(
     await Promise.allSettled([promise1, ...writeVariablePromises])
 }
 
-export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
+export async function renderSvg(
+    dir: string,
+    queryStr?: string
+): Promise<[string, SvgRecord]> {
     const configAndData = await loadGrapherConfigAndData(dir)
 
     // Graphers sometimes need to generate ids (incrementing numbers). For this
@@ -262,17 +397,24 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
 
     const timeStart = Date.now()
 
-    const grapher = initGrapherForSvgExport({
-        ...configAndData.config,
-        adminBaseUrl: BAKED_BASE_URL,
-        bakedGrapherURL: BAKED_GRAPHER_URL,
-    })
+    const grapher = initGrapherForSvgExport(
+        {
+            ...configAndData.config,
+            adminBaseUrl: BAKED_BASE_URL,
+            bakedGrapherURL: BAKED_GRAPHER_URL,
+        },
+        queryStr
+    )
     const { width, height } = grapher.idealBounds
     const outFilename = buildSvgOutFilename(
-        configAndData.config.slug!,
-        configAndData.config.version,
-        width,
-        height
+        {
+            slug: configAndData.config.slug!,
+            version: configAndData.config.version ?? 0,
+            width,
+            height,
+            queryStr,
+        },
+        { shouldHashQueryStr: false }
     )
 
     grapher.receiveOwidData(configAndData.variableData)
@@ -285,6 +427,7 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
         chartId: configAndData.config.id!,
         slug: configAndData.config.slug!,
         chartType: grapher.tab === "chart" ? grapher.type : grapher.tab,
+        queryStr,
         md5: processSvgAndCalculateHash(svg),
         svgFilename: outFilename,
         performance: {
@@ -318,13 +461,13 @@ export function processSvgAndCalculateHash(svg: string): string {
 export interface RenderSvgAndSaveJobDescription {
     dir: string
     outDir: string
+    queryStr?: string
 }
 export async function renderSvgAndSave(
     jobDescription: RenderSvgAndSaveJobDescription
 ): Promise<SvgRecord> {
-    const dir = jobDescription.dir
-    const outDir = jobDescription.outDir
-    const [svg, svgRecord] = await renderSvg(dir)
+    const { dir, outDir, queryStr } = jobDescription
+    const [svg, svgRecord] = await renderSvg(dir, queryStr)
     const outPath = path.join(outDir, svgRecord.svgFilename)
     const cleanedSvg = prepareSvgForComparision(svg)
     await fs.writeFile(outPath, cleanedSvg)
@@ -396,63 +539,47 @@ Current  : ${validationResult.difference.newSvgFragment}`
     )
 }
 
-export async function getReferenceCsvContentMap(
+export async function parseReferenceCsv(
     referenceDir: string
-): Promise<Map<number, SvgRecord>> {
-    const results = await fs.readFile(
-        path.join(referenceDir, RESULTS_FILENAME),
-        "utf-8"
-    )
-    const csvContentArray = results
-        .split("\n")
-        .splice(1)
-        .map((line): [number, SvgRecord] => {
-            const items = line.split(",")
-            const chartId = parseInt(items[0])
-            return [
-                chartId,
-                {
-                    chartId: chartId,
-                    slug: items[1],
-                    chartType: items[2] as ChartTypeName,
-                    md5: items[3],
-                    svgFilename: items[4],
-                },
-            ]
-        })
-    const csvContentMap = new Map<number, SvgRecord>(csvContentArray)
-    return csvContentMap
+): Promise<SvgRecord[]> {
+    const pathname = path.join(referenceDir, RESULTS_FILENAME)
+    const rawContent = await fs.readFile(pathname, "utf-8")
+    return d3.csvParse(rawContent, (d) => ({
+        chartId: parseInt(d.grapherId ?? ""),
+        slug: d.slug,
+        chartType: d.chartType,
+        queryStr: d.queryStr,
+        md5: d.md5,
+        svgFilename: d.svgFilename,
+        performance: {
+            durationReceiveData: parseInt(d.durationReceiveData ?? ""),
+            durationTotal: parseInt(d.durationTotal ?? ""),
+            heapUsed: parseInt(d.heapUsed ?? ""),
+            totalDataFileSize: parseInt(d.totalDataFileSize ?? ""),
+        },
+    })) as SvgRecord[]
 }
 
-export async function writeResultsCsvFile(
+export async function writeReferenceCsv(
     outDir: string,
     svgRecords: SvgRecord[]
 ): Promise<void> {
     const resultsPath = path.join(outDir, RESULTS_FILENAME)
-    const csvFileStream = fs.createWriteStream(resultsPath)
-    csvFileStream.write(SVG_CSV_HEADER + "\n")
-    for (const row of svgRecords) {
-        const line = [
-            row.chartId,
-            row.slug,
-            row.chartType,
-            row.md5,
-            row.svgFilename,
-
-            // Perf
-            row.performance?.durationReceiveData,
-            row.performance?.durationTotal,
-            row.performance?.heapUsed,
-            row.performance?.totalDataFileSize,
-        ]
-            .map((item) => item ?? "")
-            .join(",")
-
-        csvFileStream.write(line + "\n")
-    }
-    csvFileStream.end()
-    await finished(csvFileStream)
-    csvFileStream.close()
+    const csvAsString = d3.csvFormat(
+        svgRecords.map((record) => ({
+            chartId: record.chartId,
+            slug: record.slug,
+            chartType: record.chartType,
+            queryStr: record.queryStr,
+            md5: record.md5,
+            svgFilename: record.svgFilename,
+            durationReceiveData: record.performance?.durationReceiveData,
+            durationTotal: record.performance?.durationTotal,
+            heapUsed: record.performance?.heapUsed,
+            totalDataFileSize: record.performance?.totalDataFileSize,
+        }))
+    )
+    fs.writeFileSync(resultsPath, csvAsString)
 }
 
 export interface RenderJobDescription {
@@ -460,6 +587,7 @@ export interface RenderJobDescription {
     referenceEntry: SvgRecord
     referenceDir: string
     outDir: string
+    queryStr?: string
     verbose: boolean
     suffix?: string
     rmOnError?: boolean
@@ -470,6 +598,7 @@ export async function renderAndVerifySvg({
     referenceEntry,
     referenceDir,
     outDir,
+    queryStr,
     verbose,
     suffix,
     rmOnError,
@@ -480,7 +609,7 @@ export async function renderAndVerifySvg({
         if (!referenceDir) throw "ReferenceDir was not defined"
         if (!outDir) throw "outdir was not defined"
 
-        const [svg, svgRecord] = await renderSvg(dir.pathToProcess)
+        const [svg, svgRecord] = await renderSvg(dir.pathToProcess, queryStr)
 
         const validationResult = await verifySvg(
             svg,
@@ -493,7 +622,8 @@ export async function renderAndVerifySvg({
         // but if there was an error then we write the svg and a message to stderr
         switch (validationResult.kind) {
             case "difference":
-                logDifferencesToConsole(svgRecord, validationResult)
+                if (verbose)
+                    logDifferencesToConsole(svgRecord, validationResult)
                 const pathFragments = path.parse(svgRecord.svgFilename)
                 const outputPath = path.join(
                     outDir,
@@ -516,17 +646,6 @@ export async function renderAndVerifySvg({
         )
     }
 }
-export async function prepareVerifyRun(
-    rawGrapherIds: string,
-    inDir: string
-): Promise<JobDirectory[]> {
-    const grapherIds: number[] = getGrapherIdListFromString(rawGrapherIds)
-    const directoriesToProcess = await decideDirectoriesToVerify(
-        grapherIds,
-        inDir
-    )
-    return directoriesToProcess
-}
 
 // no-op when not running inside GH Actions
 const setGhActionsOutput = (key: string, value: string | number) => {
@@ -539,8 +658,7 @@ const setGhActionsOutput = (key: string, value: string | number) => {
 
 export function displayVerifyResultsAndGetExitCode(
     validationResults: VerifyResult[],
-    verbose: boolean,
-    directoriesToProcess: JobDirectory[]
+    verbose: boolean
 ): number {
     let returnCode: number
 
@@ -555,7 +673,7 @@ export function displayVerifyResultsAndGetExitCode(
     if (errorResults.length === 0 && differenceResults.length === 0) {
         logIfVerbose(
             verbose,
-            `There were no differences in all ${directoriesToProcess.length} graphs processed`
+            `There were no differences in all graphs processed`
         )
         returnCode = 0
     } else {
@@ -586,4 +704,48 @@ export function displayVerifyResultsAndGetExitCode(
         returnCode = errorResults.length + differenceResults.length
     }
     return returnCode
+}
+
+// minimist turns a single number into a JS number so we do toString to normalize (TS types are misleading)
+export function parseArgAsString(arg: unknown): string {
+    return (arg ?? "").toString()
+}
+
+export function parseArgAsList(arg: unknown): string[] {
+    return parseArgAsString(arg)
+        .split(",")
+        .filter((entry: string) => entry)
+}
+
+// parses a flag with an optional numeric argument:
+//   - if `arg` is not specified, `defaultIfFlagNotSpecified` is returned
+//   - if `arg` is specified without a value (`--arg`), `defaultIfFlagIsSpecified` is returned
+//   - if `arg` is specified with a value (`--arg 50`), the value is parsed as a number and returned
+export function parseArgAsOptionalNumber(
+    arg: unknown,
+    props?: {
+        defaultIfFlagNotSpecified?: number
+        defaultIfFlagIsSpecified?: number
+    }
+): number {
+    const { defaultIfFlagIsSpecified = 1, defaultIfFlagNotSpecified = 0 } =
+        props ?? {}
+    return arg === true
+        ? defaultIfFlagIsSpecified
+        : arg
+        ? parseInt(arg as string)
+        : defaultIfFlagNotSpecified
+}
+
+export function parseRandomCount(arg: unknown) {
+    return (
+        parseArgAsOptionalNumber(arg, {
+            defaultIfFlagIsSpecified: 10,
+        }) || undefined
+    )
+}
+
+export function readLinesFromFile(filename: string): string[] {
+    const content = fs.readFileSync(filename, "utf-8")
+    return content.split("\n")
 }

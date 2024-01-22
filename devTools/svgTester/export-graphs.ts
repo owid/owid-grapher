@@ -1,40 +1,50 @@
 #! /usr/bin/env node
 
-import parseArgs from "minimist"
-import * as utils from "./utils.js"
 import fs from "fs-extra"
-
+import parseArgs from "minimist"
 import path from "path"
 import workerpool from "workerpool"
 
-function parseArgAsList(arg?: unknown): string[] {
-    return (arg ?? "")
-        .toString()
-        .split(",")
-        .filter((entry: string) => entry)
-}
+import * as utils from "./utils.js"
 
-async function main(parsedArgs: parseArgs.ParsedArgs) {
+async function main(args: parseArgs.ParsedArgs) {
     try {
-        const inDir = parsedArgs["i"] ?? "../owid-grapher-svgs/configs"
-        let outDir = parsedArgs["o"] ?? "../owid-grapher-svgs/svg"
-        const targetConfigs: string[] = parseArgAsList(parsedArgs["c"])
-        const targetChartTypes: string[] = parseArgAsList(parsedArgs["t"])
-        const isolate = parsedArgs["isolate"] ?? false
+        // input and output directories
+        const inDir: string = args["i"] ?? utils.DEFAULT_CONFIGS_DIR
+        let outDir: string = args["o"] ?? utils.DEFAULT_REFERENCE_DIR
+
+        // charts to process
+        const targetGrapherIds = utils.getGrapherIdListFromString(
+            utils.parseArgAsString(args["ids"] ?? args["c"])
+        )
+        const targetChartTypes = utils.validateChartTypes(
+            utils.parseArgAsList(args["chart-types"] ?? args["t"])
+        )
+        const randomCount = utils.parseRandomCount(args["random"] ?? args["d"])
+        const chartIdsFile: string = args["ids-from-file"] ?? args["f"]
+
+        // chart configurations to test
+        const grapherQueryString: string = args["query-str"] ?? args["q"]
+        const shouldTestAllChartViews: boolean = args["all-views"] ?? false
+
+        // other options
+        const enableComparisons: boolean = args["compare"] ?? false
+        const isolate: boolean = args["isolate"] ?? false
+        const verbose: boolean = args["verbose"] ?? false
 
         if (isolate) {
-            console.info(
+            utils.logIfVerbose(
+                verbose,
                 "Running in 'isolate' mode. This will be slower, but heap usage readouts will be accurate."
             )
         } else {
-            console.info(
+            utils.logIfVerbose(
+                verbose,
                 "Not running in 'isolate'. Reported heap usage readouts will be inaccurate. Run in --isolate mode (way slower!) for accurate heap usage readouts."
             )
         }
 
         // create a directory that contains the old and new svgs for easy comparing
-        const enableComparisons =
-            targetConfigs.length || targetChartTypes.length
         if (enableComparisons) {
             outDir = path.join(outDir, "comparisons")
         }
@@ -43,40 +53,40 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             throw `Input directory does not exist ${inDir}`
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
-        const dir = await fs.opendir(inDir)
-        const directories = []
-        for await (const entry of dir) {
-            if (entry.isDirectory()) {
-                if (!targetConfigs.length && !targetChartTypes.length) {
-                    directories.push(entry.name)
-                    continue
-                }
+        const chartIdsToProcess = await utils.selectChartIdsToProcess(inDir, {
+            chartIdsFile,
+            grapherIds: targetGrapherIds,
+            chartTypes: targetChartTypes,
+            randomCount,
+        })
 
-                if (targetConfigs.includes(entry.name)) {
-                    directories.push(entry.name)
-                    continue
-                }
-
-                const configPath = path.join(inDir, entry.name, "config.json")
-                const config = await fs.readJson(configPath)
-
-                if (targetChartTypes.includes(config.type ?? "LineChart")) {
-                    directories.push(entry.name)
-                    continue
-                }
+        const chartViewsToGenerate = await utils.findChartViewsToGenerate(
+            inDir,
+            chartIdsToProcess,
+            {
+                queryStr: grapherQueryString,
+                shouldTestAllViews: shouldTestAllChartViews,
             }
-        }
-
-        const n = directories.length
-        if (n === 0) {
-            console.log("No matching configs found")
-            process.exit(0)
-        } else {
-            console.log(`Generating ${n} SVG${n > 1 ? "s" : ""}...`)
-        }
+        )
 
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
-            directories.map((dir) => ({ dir: path.join(inDir, dir), outDir }))
+            chartViewsToGenerate.map((chart: utils.ChartWithQueryStr) => ({
+                dir: path.join(inDir, chart.id.toString()),
+                queryStr: chart.queryStr,
+                outDir,
+            }))
+
+        // if verbose, log how many SVGs we're going to generate
+        const jobCount = jobDescriptions.length
+        if (jobCount === 0) {
+            utils.logIfVerbose(verbose, "No matching configs found")
+            process.exit(0)
+        } else {
+            utils.logIfVerbose(
+                verbose,
+                `Generating ${jobCount} SVG${jobCount > 1 ? "s" : ""}...`
+            )
+        }
 
         let svgRecords: utils.SvgRecord[] = []
         if (!isolate) {
@@ -99,7 +109,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
                 const svgRecord = await pool.exec("renderSvgAndSave", [job])
                 pool.terminate()
                 svgRecords.push(svgRecord)
-                console.log(i++, "/", n)
+                console.log(i++, "/", jobCount)
             }
         }
 
@@ -128,7 +138,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             }
         }
 
-        await utils.writeResultsCsvFile(outDir, svgRecords)
+        await utils.writeReferenceCsv(outDir, svgRecords)
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
         process.exit(0)
@@ -142,17 +152,30 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 
 const parsedArgs = parseArgs(process.argv.slice(2))
 if (parsedArgs["h"] || parsedArgs["help"]) {
-    console.log(`export-graphs.js - utility to export grapher svg renderings and a summary csv file
+    console.log(`Export Grapher SVG renderings and a summary CSV file
 
 Usage:
-    export-graphs.js (-i DIR) (-o DIR) (-c ID) (-t TYPE)
+    export-graphs.js [-i] [-o] [-c | --ids] [-t | --chart-types] [-d | --random] [-f | --ids-from-file] [-q | --query-str] [--all-views] [--compare] [--isolate] [--verbose] [--help | -h]
 
-Options:
-    -i DIR         Input directory containing the data. [default: ../owid-grapher-svgs/configs]
-    -o DIR         Output directory that will contain the csv file and one svg file per grapher [default: ../owid-grapher-svgs/svg]
-    -c ID          A comma-separated list of config IDs that you want to run instead of generating SVGs from all configs [default: undefined]
-    -t TYPE        A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
-    --isolate      Run each export in a separate process. This yields accurate heap usage measurements, but is slower. [default: false]
+Inputs and outputs:
+    -i      Input directory containing Grapher configs and data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
+    -o      Output directory that will contain the CSV file and one SVG file per grapher [default: ${utils.DEFAULT_REFERENCE_DIR}]
+
+Charts to process:
+    --ids, -c               A comma-separated list of config IDs and config ID ranges, e.g. 2,4-8,10
+    --chart-types, -t       A comma-separated list of chart types, e.g. LineChart,ScatterPlot
+    --random, -d            Generate SVGs for a random set of configs, optionally specify a count
+    --ids-from-file, -f     Generate SVGs for a set of configs read from a file with one config ID per line
+
+Chart configurations to test:
+    --query-str, -q     Grapher query string to export charts with a specific configuration, e.g. tab=chart&stackMode=relative
+    --all-views         For each Grapher, generate SVGs for all possible chart configurations
+    
+Other options:
+    --compare       Create a directory containing the old and new SVGs for easy comparison
+    --isolate       Run each export in a separate process. This yields accurate heap usage measurements, but is slower.
+    --verbose       Verbose mode
+    -h, --help      Display this help and exit
     `)
     process.exit(0)
 } else {

@@ -171,11 +171,6 @@ export class TestIndexPage extends React.Component {
                                 Embed Variants
                             </Link>
                         </li>
-                        <li>
-                            <Link native to="/test/compareSvgs">
-                                View changed SVGs
-                            </Link>
-                        </li>
                     </ul>
                 </main>
             </AdminLayout>
