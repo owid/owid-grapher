@@ -5,7 +5,7 @@ import {
     ScaleType,
     FacetStrategy,
     GrapherQueryParams,
-} from "@ourworldindata/grapher"
+} from "@ourworldindata/types"
 import { cartesian } from "@ourworldindata/utils"
 
 export type ViewMatrix = Record<keyof GrapherQueryParams, string[]>
