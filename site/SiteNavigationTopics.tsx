@@ -60,6 +60,7 @@ export const SiteNavigationTopics = ({
                     {topics.map((category) => (
                         <li key={category.slug}>
                             <button
+                                aria-label={`Toggle ${category}`}
                                 onClick={() => {
                                     setActiveCategory(category)
                                 }}

@@ -121,6 +121,7 @@ export const CookiePreferences = ({
                 </div>
             ) : (
                 <button
+                    aria-label="Save cookie preferences"
                     className="owid-button"
                     onClick={() =>
                         dispatch({

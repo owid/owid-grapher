@@ -352,6 +352,7 @@ export class DonateForm extends React.Component {
                 />
                 <div className="donation-payment">
                     <button
+                        aria-label="Submit donation"
                         type="submit"
                         className="donation-submit"
                         disabled={this.isLoading || this.isSubmitting}

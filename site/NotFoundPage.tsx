@@ -32,7 +32,11 @@ export const NotFoundPage = (props: { baseUrl: string }) => {
                             />
                             <FontAwesomeIcon icon={faSearch} />
                         </div>
-                        <button className="btn" type="submit">
+                        <button
+                            aria-label="Submit search"
+                            className="btn"
+                            type="submit"
+                        >
                             Search
                         </button>
                     </form>

@@ -73,6 +73,7 @@ export const ExpandableParagraph = (
             />
 
             <button
+                aria-label="Expand paragraph"
                 className={cx(
                     "expandable-paragraph__expand-button",
                     `expandable-paragraph__expand-button--${buttonVariant}`

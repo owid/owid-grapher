@@ -33,6 +33,7 @@ export default function TableOfContents({
             data-track-note="toc_toggle"
         >
             <button
+                aria-label="Toggle table of contents"
                 id="toc-menu-button"
                 className="toc-toggle span-cols-6 span-md-cols-8 span-sm-cols-10"
                 onClick={toggleIsOpen}

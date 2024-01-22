@@ -22,6 +22,7 @@ export const GalleryArrow = ({
 
     return (
         <button
+            aria-label={`Go to ${direction} slide`}
             disabled={disabled}
             onClick={onClick}
             className={classes.join(" ")}

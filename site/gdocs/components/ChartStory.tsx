@@ -39,6 +39,7 @@ export default function ChartStory({
                 {`Chart ${currentIndex + 1} of ${items.length}`}
             </div>
             <button
+                aria-label="Go to previous slide"
                 disabled={currentIndex === 0}
                 className={
                     "chart-story__nav-arrow chart-story__nav-arrow--left span-cols-1 align-center "
@@ -58,6 +59,7 @@ export default function ChartStory({
                 {renderSpans(currentSlide.narrative.value)}
             </div>
             <button
+                aria-label="Go to next slide"
                 disabled={currentIndex === maxSlide}
                 className={
                     "chart-story__nav-arrow chart-story__nav-arrow--right span-cols-1 col-start-8 align-center"

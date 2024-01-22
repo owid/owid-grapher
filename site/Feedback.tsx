@@ -189,7 +189,7 @@ export class FeedbackForm extends React.Component<{
                             messages we are not able to reply to all.
                         </p>
                     </div>
-                    <div className="actions">
+                    <div aria-label="Close feedback form" className="actions">
                         <button onClick={this.onClose}>Close</button>
                     </div>
                 </div>
@@ -276,7 +276,11 @@ export class FeedbackForm extends React.Component<{
                     ) : undefined}
                 </div>
                 <div className="footer">
-                    <button type="submit" disabled={loading}>
+                    <button
+                        aria-label="Submit feedback"
+                        type="submit"
+                        disabled={loading}
+                    >
                         Send message
                     </button>
                 </div>
@@ -330,11 +334,16 @@ export class FeedbackPrompt extends React.Component {
                     </div>
                 </div>
                 {this.isOpen ? (
-                    <button className="prompt" onClick={this.toggleOpen}>
+                    <button
+                        aria-label="Close feedback form"
+                        className="prompt"
+                        onClick={this.toggleOpen}
+                    >
                         <FontAwesomeIcon icon={faTimes} /> Close
                     </button>
                 ) : (
                     <button
+                        aria-label="Open feedback form"
                         className="prompt"
                         data-track-note="page_open_feedback"
                         onClick={this.toggleOpen}

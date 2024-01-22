@@ -35,7 +35,11 @@ export const NewsletterSubscription = ({
                 </>
             )}
             {isOpen ? (
-                <button className="prompt" onClick={() => setIsOpen(false)}>
+                <button
+                    aria-label="Close subscription form"
+                    className="prompt"
+                    onClick={() => setIsOpen(false)}
+                >
                     <FontAwesomeIcon icon={faTimes} /> Close
                 </button>
             ) : (
@@ -136,6 +140,7 @@ export const NewsletterSubscriptionForm = ({
                     name="EMAIL"
                 />
                 <button
+                    aria-label="Subscribe to newsletter"
                     type="submit"
                     disabled={!isSubmittable}
                     onClick={() =>
