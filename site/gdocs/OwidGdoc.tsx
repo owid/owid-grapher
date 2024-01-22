@@ -2,9 +2,7 @@ import React, { createContext } from "react"
 import ReactDOM from "react-dom"
 import {
     LinkedChart,
-    getOwidGdocFromJSON,
     LinkedIndicator,
-    OwidGdocPostInterface,
     ImageMetadata,
     RelatedChart,
     OwidGdocType,

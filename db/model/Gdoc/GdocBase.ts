@@ -34,8 +34,6 @@ import {
     BreadcrumbItem,
     MinimalDataInsightInterface,
     OwidGdocMinimalPostInterface,
-    getFeaturedImageFilename,
-    OwidGdoc,
     urlToSlug,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
