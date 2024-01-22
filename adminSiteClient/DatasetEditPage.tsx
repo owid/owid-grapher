@@ -309,6 +309,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                         onValue={(v) => {
                                             newDataset.nonRedistributable = v
                                         }}
+                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                             </div>
