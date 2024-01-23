@@ -126,11 +126,11 @@ export default function Image(props: {
 
     if (filename.endsWith(".svg")) {
         const pngFilename = `${getFilenameWithoutExtension(filename)}.png`
-        const imgSrc = `${IMAGES_DIRECTORY}${filename}`
+        const imgSrc = `${IMAGES_DIRECTORY}${encodeURIComponent(filename)}`
         return (
             <div className={className}>
                 <img
-                    src={encodeURIComponent(imgSrc)}
+                    src={imgSrc}
                     alt={alt}
                     className={maybeLightboxClassName}
                 />
@@ -147,7 +147,7 @@ export default function Image(props: {
         )
     }
 
-    const imageSrc = `${IMAGES_DIRECTORY}${filename}`
+    const imageSrc = `${IMAGES_DIRECTORY}${encodeURIComponent(filename)}`
     const sourceProps = generateSourceProps(smallImage, image)
 
     return (
@@ -163,7 +163,7 @@ export default function Image(props: {
                 />
             ))}
             <img
-                src={encodeURIComponent(imageSrc)}
+                src={imageSrc}
                 alt={alt}
                 className={maybeLightboxClassName}
                 loading="lazy"
