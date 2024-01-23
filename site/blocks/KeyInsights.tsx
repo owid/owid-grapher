@@ -223,7 +223,9 @@ const Arrow = ({
     const classes = ["arrow", className]
     return (
         <button
-            aria-label={`Scroll to ${direction} slide`}
+            aria-label={`Scroll to ${
+                direction === ArrowDirection.next ? "next" : "previous"
+            } slide`}
             disabled={disabled}
             onClick={onClick}
             className={classes.join(" ")}

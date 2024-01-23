@@ -22,7 +22,9 @@ export const GalleryArrow = ({
 
     return (
         <button
-            aria-label={`Go to ${direction} slide`}
+            aria-label={`Go to ${
+                direction === GalleryArrowDirection.next ? "next" : "previous"
+            } slide`}
             disabled={disabled}
             onClick={onClick}
             className={classes.join(" ")}
