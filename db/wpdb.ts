@@ -48,7 +48,7 @@ import {
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 import { GdocPost } from "./model/Gdoc/GdocPost.js"
 import { Link } from "./model/Link.js"
-import {SiteNavigationStatic} from "../site/SiteNavigation.js"
+import { SiteNavigationStatic } from "../site/SiteNavigation.js"
 
 let _knexInstance: Knex
 
@@ -312,11 +312,14 @@ export const isPostCitable = async (post: FullPost): Promise<boolean> => {
     return entries.some((category) => {
         return (
             category.entries.some((entry) => entry.slug === post.slug) ||
-            (category.subcategories ?? []).some((subcategory: CategoryWithEntries) => {
-                return subcategory.entries.some(
-                    (subCategoryEntry) => subCategoryEntry.slug === post.slug
-                )
-            })
+            (category.subcategories ?? []).some(
+                (subcategory: CategoryWithEntries) => {
+                    return subcategory.entries.some(
+                        (subCategoryEntry) =>
+                            subCategoryEntry.slug === post.slug
+                    )
+                }
+            )
         )
     })
 }
