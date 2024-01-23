@@ -3,16 +3,15 @@ import { TopicId } from "./Various.js"
 export interface EntryMeta {
     slug: string
     title: string
-    excerpt: string
-    kpi: string
 }
 
 export interface CategoryWithEntries {
     name: string
     slug: string
     entries: EntryMeta[]
-    subcategories: CategoryWithEntries[]
+    subcategories?: CategoryWithEntries[]
 }
+
 export enum GraphDocumentType {
     Topic = "topic",
     Article = "article",

@@ -62,7 +62,6 @@ import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
 import {
     getBlogIndex,
-    getEntriesByCategory,
     getLatestPostRevision,
     getPostBySlug,
     isPostCitable,
@@ -92,6 +91,7 @@ import { postsTable } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
+import { SiteNavigationStatic } from "../site/SiteNavigation.js"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
@@ -204,8 +204,7 @@ export const renderPreview = async (postId: number): Promise<string> => {
 }
 
 export const renderMenuJson = async () => {
-    const categories = await getEntriesByCategory()
-    return JSON.stringify({ categories: categories })
+    return JSON.stringify(SiteNavigationStatic)
 }
 
 export const renderPost = async (
