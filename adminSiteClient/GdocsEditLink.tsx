@@ -16,7 +16,7 @@ export const GdocsEditLink = ({
         className="gdoc-edit-link"
         rel="noopener noreferrer"
     >
-        <FontAwesomeIcon style={{ marginRight: "0.4em" }} icon={faEdit} />
         Edit
+        <FontAwesomeIcon style={{ marginLeft: "0.4em" }} icon={faEdit} />
     </a>
 )
