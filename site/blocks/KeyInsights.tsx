@@ -32,7 +32,7 @@ const Thumb = ({
 }) => {
     return (
         <button
-            aria-label="Go to slide"
+            aria-label={`Go to slide: ${title}`}
             onClick={onClick}
             role="tab"
             aria-selected={selected}
