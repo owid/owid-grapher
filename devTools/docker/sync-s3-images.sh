@@ -8,17 +8,16 @@ if [[ -z "$IMAGE_HOSTING_BUCKET_PATH" ]]; then
   exit 1
 fi
 
-# IMAGE_HOSTING_BUCKET_PATH should be your environment's folder in the owid-image-upload bucket
-# e.g. owid-image-upload/staging
-# for local development, it should be owid-image-upload/local-yourname
+# IMAGE_HOSTING_BUCKET_PATH should be your environment's folder in the owid-image-upload-staging bucket
+# e.g. owid-image-upload-staging/branch-name
+# for local development, it should be owid-image-upload/my-yourname
 # at least until we decide to instead host images locally, if ever
-
-if ! grep -q 'profile owid-spaces' ~/.aws/config; then
-  echo 'Please configure your S3 credentials for profile owid-spaces:'
+if ! grep -q 'profile owid-spaces' ~/.config/rclone/rclone.conf; then
+  echo 'Please configure your rclone config for profile owid-r2:'
   echo
-  echo '  aws configure --profile=owid-spaces'
+  echo '  rclone config'
   echo
   exit 1
 fi
 
-aws --profile=owid-spaces --endpoint=https://nyc3.digitaloceanspaces.com s3 sync s3://owid-image-upload/production/ s3://$IMAGE_HOSTING_BUCKET_PATH/ --acl public-read
+rclone sync owid-r2:owid-image-upload/production/ owid-r2:$IMAGE_HOSTING_BUCKET_PATH/ --verbose --transfers=32 --checkers=32 --fast-list

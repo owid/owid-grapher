@@ -168,10 +168,10 @@ sync-images: sync-images.preflight-check
 	@. ./.env && ./devTools/docker/sync-s3-images.sh
 
 sync-images.preflight-check:
-	@echo '==> Checking for aws cli'
-	@which aws >/dev/null 2>&1 || (echo "ERROR: please install aws cli -- e.g. brew install awscli"; exit 1)
-	@echo '==> Checking if aws cli is configured'
-	@test -f ~/.aws/config || (echo "ERROR: please configure aws cli -- e.g. aws configure"; exit 1)
+	@echo '==> Checking for rclone'
+	@which rclone >/dev/null 2>&1 || (echo "ERROR: please install rclone -- e.g. brew rclone"; exit 1)
+	@echo '==> Checking if rclone is configured'
+	@test -f ~/.config/rclone/rclone.conf || (echo "ERROR: please configure rclone -- e.g. rclone configure"; exit 1)
 
 
 down:
@@ -214,7 +214,7 @@ validate.env:
 create-if-missing.env.full:
 	@if test ! -f .env; then \
 		echo 'Copying .env.example-full --> .env'; \
-		sed "s/IMAGE_HOSTING_BUCKET_PATH=.*/IMAGE_HOSTING_BUCKET_PATH=owid-image-upload\/dev-$(USER)/g" <.env.example-full >.env; \
+		sed "s/IMAGE_HOSTING_BUCKET_PATH=.*/IMAGE_HOSTING_BUCKET_PATH=owid-image-upload-staging\/dev-$(USER)/g" <.env.example-full >.env; \
 	fi
 
 validate.env.full:

@@ -20,5 +20,9 @@
     "javascript.preferences.importModuleSpecifierEnding": "js",
     "[sql]": {
         "editor.defaultFormatter": "inferrinizzard.prettier-sql-vscode"
+    },
+    "[shellscript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": false
     }
 }

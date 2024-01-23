@@ -25,6 +25,7 @@ import {
     IMAGE_HOSTING_SPACE_URL,
     IMAGE_HOSTING_SPACE_ACCESS_KEY_ID,
     IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY,
+    IMAGE_HOSTING_SPACE_REGION,
     IMAGE_HOSTING_BUCKET_PATH,
     GDOCS_CLIENT_EMAIL,
     GDOCS_SHARED_DRIVE_ID,
@@ -128,7 +129,7 @@ export const imageStore = new ImageStore()
 const s3Client = new S3Client({
     endpoint: IMAGE_HOSTING_SPACE_URL,
     forcePathStyle: false,
-    region: "nyc3",
+    region: IMAGE_HOSTING_SPACE_REGION,
     credentials: {
         accessKeyId: IMAGE_HOSTING_SPACE_ACCESS_KEY_ID,
         secretAccessKey: IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY,

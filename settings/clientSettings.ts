@@ -66,7 +66,7 @@ export const IMAGE_HOSTING_SPACE_URL: string =
     process.env.IMAGE_HOSTING_SPACE_URL || ""
 export const IMAGE_HOSTING_CDN_URL: string =
     process.env.IMAGE_HOSTING_CDN_URL || ""
-// e.g. owid-image-hosting/development
+// e.g. owid-image-hosting-staging/development
 export const IMAGE_HOSTING_BUCKET_PATH: string =
     process.env.IMAGE_HOSTING_BUCKET_PATH || ""
 // e.g. development

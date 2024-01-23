@@ -66,19 +66,6 @@ sync_wordpress_uploads() {
         owid@live.owid.io:live-data/wordpress/uploads/ wordpress/web/app/uploads
 }
 
-
-sync_to_s3_aws() {
-    local target=$1
-    echo "--- Syncing ${target}..."
-    aws --endpoint=https://nyc3.digitaloceanspaces.com s3 sync live-data/bakedSite/${target} s3://owid-catalog/bake/cloudflare-pages/${target} --acl public-read
-}
-
-sync_to_s3_rclone() {
-    local target=$1
-    echo "--- Syncing ${target}..."
-    rclone sync live-data/bakedSite/${target} spaces-nyc3:owid-catalog/bake/cloudflare-pages/${target} --checkers=64 --ignore-checksum
-}
-
 sync_to_r2_rclone() {
     local target=$1
     echo "--- Syncing ${target}..."
@@ -90,14 +77,6 @@ sync_to_r2_aws() {
     echo "--- Syncing ${target}..."
     R2_ENDPOINT_URL=$(grep 'R2_ENDPOINT_URL=' owid-grapher/.env | cut -d '=' -f 2-)
     aws --profile r2 --endpoint-url "${R2_ENDPOINT_URL}" s3 sync live-data/bakedSite/${target} s3://owid-assets/${target} --acl public-read
-}
-
-sync_baked_data_to_s3() {
-    echo '--- Sync baked data to S3'
-    # Cloudflare Pages has limit of 20000 files
-    sync_to_s3_aws grapher/exports  # 9203 files
-    sync_to_s3_aws exports  # 3314 files
-    sync_to_s3_aws uploads  # 20609 files
 }
 
 sync_baked_data_to_r2() {

@@ -154,7 +154,7 @@ export const IMAGE_HOSTING_SPACE_URL: string =
     serverSettings.IMAGE_HOSTING_SPACE_URL || ""
 export const IMAGE_HOSTING_CDN_URL: string =
     serverSettings.IMAGE_HOSTING_CDN_URL || ""
-// e.g. owid-image-hosting/development
+// e.g. owid-image-hosting-staging/development
 export const IMAGE_HOSTING_BUCKET_PATH: string =
     serverSettings.IMAGE_HOSTING_BUCKET_PATH || ""
 // e.g. development
@@ -164,6 +164,8 @@ export const IMAGE_HOSTING_SPACE_ACCESS_KEY_ID: string =
     serverSettings.IMAGE_HOSTING_SPACE_ACCESS_KEY_ID || ""
 export const IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY: string =
     serverSettings.IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY || ""
+export const IMAGE_HOSTING_SPACE_REGION: string =
+    serverSettings.IMAGE_HOSTING_SPACE_REGION || "auto"
 
 export const DATA_API_URL: string = clientSettings.DATA_API_URL
 
