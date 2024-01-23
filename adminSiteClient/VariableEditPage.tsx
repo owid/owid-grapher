@@ -522,7 +522,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     async save() {
         const { variable } = this.props
 
-        const url = `${ETL_API_URL}/indicators/${variable.id}`
+        const url = `${ETL_API_URL}/indicators`
 
         const indicatorDiff = getDifference(
             this.newVariable,
@@ -530,6 +530,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         )
 
         const data = {
+            catalogPath: variable.catalogPath,
             indicator: indicatorDiff,
             dataApiUrl: DATA_API_URL,
             triggerETL: true,
