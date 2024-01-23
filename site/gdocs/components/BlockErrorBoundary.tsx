@@ -48,6 +48,7 @@ export const BlockErrorFallback = ({
                     {resetErrorBoundary ? (
                         <div>
                             <button
+                                aria-label="Reload content"
                                 style={{ margin: "10px" }}
                                 onClick={resetErrorBoundary}
                             >

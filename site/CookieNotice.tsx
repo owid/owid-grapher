@@ -42,6 +42,7 @@ export const CookieNotice = ({
                 </div>
                 <div className="actions">
                     <button
+                        aria-label="Reject cookies"
                         className="button"
                         onClick={() =>
                             dispatch({
@@ -55,6 +56,7 @@ export const CookieNotice = ({
                         No thanks
                     </button>
                     <button
+                        aria-label="Accept cookies"
                         className="button accept"
                         onClick={() =>
                             dispatch({

@@ -15,6 +15,11 @@ export const KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME = "content"
 
 type scrollVisibilityApiType = React.ContextType<typeof VisibilityContext>
 
+export enum ArrowDirection {
+    prev = "prev",
+    next = "next",
+}
+
 const Thumb = ({
     title,
     onClick,
@@ -27,6 +32,7 @@ const Thumb = ({
 }) => {
     return (
         <button
+            aria-label={`Go to slide: ${title}`}
             onClick={onClick}
             role="tab"
             aria-selected={selected}
@@ -206,15 +212,20 @@ const Arrow = ({
     disabled,
     onClick,
     className,
+    direction,
 }: {
     children: React.ReactNode
     disabled: boolean
     onClick: VoidFunction
     className?: string
+    direction: ArrowDirection
 }) => {
     const classes = ["arrow", className]
     return (
         <button
+            aria-label={`Scroll to ${
+                direction === ArrowDirection.next ? "next" : "previous"
+            } slide`}
             disabled={disabled}
             onClick={onClick}
             className={classes.join(" ")}
@@ -243,7 +254,12 @@ const LeftArrow = () => {
     }, [isFirstItemVisible, visibleItemsWithoutSeparators])
 
     return !disabled ? (
-        <Arrow disabled={false} onClick={() => scrollPrev()} className="left">
+        <Arrow
+            disabled={false}
+            onClick={() => scrollPrev()}
+            className="left"
+            direction={ArrowDirection.prev}
+        >
             <FontAwesomeIcon icon={faAngleRight} flip="horizontal" />
         </Arrow>
     ) : null
@@ -263,7 +279,12 @@ const RightArrow = () => {
     }, [isLastItemVisible, visibleItemsWithoutSeparators])
 
     return !disabled ? (
-        <Arrow disabled={false} onClick={() => scrollNext()} className="right">
+        <Arrow
+            disabled={false}
+            onClick={() => scrollNext()}
+            className="right"
+            direction={ArrowDirection.next}
+        >
             <FontAwesomeIcon icon={faAngleRight} />
         </Arrow>
     ) : null

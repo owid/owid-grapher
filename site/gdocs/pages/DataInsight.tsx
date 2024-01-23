@@ -124,6 +124,7 @@ const DataInsightMeta = (props: {
                     Share this insight
                 </label>
                 <button
+                    aria-label="Copy link to clipboard"
                     id="copy-link-button"
                     className="data-insight-meta__copy-link-button body-3-medium"
                     onClick={() => {

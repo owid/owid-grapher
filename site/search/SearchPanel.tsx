@@ -146,7 +146,9 @@ function ShowMore({
         <div className="search-results__show-more-container">
             <em>{message}</em>
             {!isShowingAllResults && (
-                <button onClick={handleClick}>Show more</button>
+                <button aria-label="Show more results" onClick={handleClick}>
+                    Show more
+                </button>
             )}
         </div>
     )
@@ -188,6 +190,7 @@ function Filters({
                         className="search-filters__tab"
                     >
                         <button
+                            aria-label={`Toggle filter results by ${label}`}
                             disabled={hitsLengthByIndexName[key] === 0}
                             onClick={() => handleCategoryFilterClick(key)}
                             className={cx("search-filters__tab-button", {
