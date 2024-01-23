@@ -216,8 +216,12 @@ const migrate = async (): Promise<void> => {
                     body: archieMlBodyElements,
                     toc: [],
                     title: post.title,
-                    subtitle: post.excerpt ?? "",
-                    excerpt: post.excerpt ?? "",
+                    // Falling back to undefined instead of an empty string
+                    // because an empty string gets turned into "subtitle: \n" in the gdoc
+                    // which doesn't parse and breaks validation, whereas undefined means the field is omitted entirely.
+                    // It's better to omit it and warn that it's missing.
+                    subtitle: post.excerpt || undefined,
+                    excerpt: post.excerpt || undefined,
                     authors: post.authors ?? [],
                     "featured-image": post.featured_image.split("/").at(-1),
                     dateline: dateline,
