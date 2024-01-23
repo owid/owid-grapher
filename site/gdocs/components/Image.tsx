@@ -92,9 +92,9 @@ export default function Image(props: {
 
     if (isPreviewing) {
         const makePreviewUrl = (f: string) =>
-            encodeURI(
-                `${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${f}`
-            )
+            `${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${encodeURIComponent(
+                f
+            )}`
 
         const PreviewSource = (props: { i?: ImageMetadata; sm?: boolean }) => {
             const { i, sm } = props
@@ -130,7 +130,7 @@ export default function Image(props: {
         return (
             <div className={className}>
                 <img
-                    src={encodeURI(imgSrc)}
+                    src={encodeURIComponent(imgSrc)}
                     alt={alt}
                     className={maybeLightboxClassName}
                 />
@@ -163,7 +163,7 @@ export default function Image(props: {
                 />
             ))}
             <img
-                src={encodeURI(imageSrc)}
+                src={encodeURIComponent(imageSrc)}
                 alt={alt}
                 className={maybeLightboxClassName}
                 loading="lazy"

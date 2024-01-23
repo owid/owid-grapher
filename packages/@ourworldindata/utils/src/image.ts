@@ -36,7 +36,7 @@ export function generateSrcSet(
             const path = `/images/published/${getFilenameWithoutExtension(
                 filename
             )}_${size}.webp`
-            return `${encodeURI(path)} ${size}w`
+            return `${encodeURIComponent(path)} ${size}w`
         })
         .join(", ")
 }
