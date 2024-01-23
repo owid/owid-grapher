@@ -25,7 +25,6 @@ import {
     DocumentNode,
     PostReference,
     JsonError,
-    CategoryNode,
     FilterFnPostRestApi,
     PostRestApi,
     TopicId,
@@ -306,25 +305,6 @@ export const getDocumentsInfo = async (
     } else {
         return documents
     }
-}
-
-const getEntryNode = ({
-    slug,
-    title,
-}: EntryNode): {
-    slug: string
-    title: string
-} => ({
-    slug,
-    title: decodeHTML(title),
-})
-
-const isEntryInSubcategories = (entry: EntryNode, subcategories: any): any => {
-    return subcategories.some((subcategory: any) => {
-        return subcategory.pages.nodes.some(
-            (node: EntryNode) => entry.slug === node.slug
-        )
-    })
 }
 
 export const isPostCitable = async (post: FullPost): Promise<boolean> => {
