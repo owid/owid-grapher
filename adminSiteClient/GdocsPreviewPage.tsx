@@ -222,11 +222,15 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             </Typography.Title>
                             [ <GdocsEditLink gdocId={currentGdoc.id} /> ]
                             {currentGdoc.published && (
-                                <a
-                                    href={`${BAKED_BASE_URL}/${currentGdoc.slug}`}
-                                >
-                                    Live article
-                                </a>
+                                <>
+                                    [
+                                    <a
+                                        href={`${BAKED_BASE_URL}/${currentGdoc.slug}`}
+                                    >
+                                        View live
+                                    </a>
+                                    ]
+                                </>
                             )}
                             <div>
                                 {!currentGdoc.published && (
