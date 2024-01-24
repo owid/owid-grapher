@@ -35,7 +35,7 @@ import { AllCharts } from "./AllCharts.js"
 import Video from "./Video.js"
 import { Table } from "./Table.js"
 import KeyIndicator from "./KeyIndicator.js"
-import ChartBook from "./ChartBook.js"
+import KeyIndicatorCollection from "./KeyIndicatorCollection.js"
 
 export type Container =
     | "default"
@@ -59,7 +59,6 @@ const layouts: { [key in Container]: Layouts} = {
         ["all-charts"]: "col-start-2 span-cols-12",
         ["aside-left"]: "col-start-2 span-cols-3 span-md-cols-10 col-md-start-3",
         ["aside-right"]: "col-start-11 span-cols-3 span-md-cols-10 col-md-start-3",
-        ["chart-book"]: "col-start-2 span-cols-12",
         ["chart-story"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["chart"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -73,6 +72,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["image--wide"]: "col-start-4 span-cols-8 col-md-start-2 span-md-cols-12",
         ["image-caption"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["key-indicator"]: "col-start-2 span-cols-12",
+        ["key-indicator-collection"]: "col-start-2 span-cols-12",
         ["key-insights"]: "col-start-2 span-cols-12",
         ["list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["numbered-list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -630,8 +630,11 @@ export default function ArticleBlock({
         .with({ type: "key-indicator" }, (block) => (
             <KeyIndicator className={getLayout("key-indicator")} d={block} />
         ))
-        .with({ type: "chart-book" }, (block) => (
-            <ChartBook className={getLayout("chart-book")} d={block} />
+        .with({ type: "key-indicator-collection" }, (block) => (
+            <KeyIndicatorCollection
+                className={getLayout("key-indicator-collection")}
+                d={block}
+            />
         ))
         .exhaustive()
 

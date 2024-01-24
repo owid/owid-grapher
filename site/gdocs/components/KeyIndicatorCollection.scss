@@ -1,13 +1,9 @@
-.chart-book {
+.key-indicator-collection {
     $padding: 24px;
     $icon-width: 24px;
     $duration: 0.4s; // TODO
 
     margin: 0 (-$padding);
-
-    .chart-book__header {
-        padding: $padding;
-    }
 
     .accordion-item {
         background-color: whitesmoke;

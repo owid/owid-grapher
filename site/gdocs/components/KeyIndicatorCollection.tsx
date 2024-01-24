@@ -1,18 +1,18 @@
 import React, { useEffect, useRef, useState } from "react"
 import cx from "classnames"
 import {
-    EnrichedBlockChartBook,
+    EnrichedBlockKeyIndicatorCollection,
     EnrichedBlockKeyIndicator,
 } from "@ourworldindata/types"
 import { urlToSlug } from "@ourworldindata/utils"
 import Chart from "./Chart.js"
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 
-export default function ChartBook({
+export default function KeyIndicatorCollection({
     d,
     className,
 }: {
-    d: EnrichedBlockChartBook
+    d: EnrichedBlockKeyIndicatorCollection
     className?: string
 }) {
     const slugs = d.blocks.map((b: EnrichedBlockKeyIndicator) =>
@@ -24,7 +24,7 @@ export default function ChartBook({
     )
 
     return (
-        <div className={cx("chart-book", className)}>
+        <div className={cx("key-indicator-collection", className)}>
             {d.blocks.map(
                 (block: EnrichedBlockKeyIndicator, blockIndex: number) => (
                     <AccordionItem

@@ -106,13 +106,13 @@ export type EnrichedBlockKeyIndicator = {
     source?: string
 } & EnrichedBlockWithParseErrors
 
-export type RawBlockChartBook = {
-    type: "chart-book"
+export type RawBlockKeyIndicatorCollection = {
+    type: "key-indicator-collection"
     value: OwidRawGdocBlock[]
 }
 
-export type EnrichedBlockChartBook = {
-    type: "chart-book"
+export type EnrichedBlockKeyIndicatorCollection = {
+    type: "key-indicator-collection"
     blocks: EnrichedBlockKeyIndicator[]
 } & EnrichedBlockWithParseErrors
 
@@ -754,7 +754,7 @@ export type OwidRawGdocBlock =
     | RawBlockTable
     | RawBlockBlockquote
     | RawBlockKeyIndicator
-    | RawBlockChartBook
+    | RawBlockKeyIndicatorCollection
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -793,4 +793,4 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockTable
     | EnrichedBlockBlockquote
     | EnrichedBlockKeyIndicator
-    | EnrichedBlockChartBook
+    | EnrichedBlockKeyIndicatorCollection

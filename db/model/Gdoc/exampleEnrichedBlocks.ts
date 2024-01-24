@@ -542,8 +542,8 @@ export const enrichedBlockExamples: Record<
         blurb: [enrichedBlockText],
         parseErrors: [],
     },
-    "chart-book": {
-        type: "chart-book",
+    "key-indicator-collection": {
+        type: "key-indicator-collection",
         blocks: [
             {
                 type: "key-indicator",

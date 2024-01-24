@@ -36,7 +36,7 @@ import {
     RawBlockTableRow,
     RawBlockBlockquote,
     RawBlockKeyIndicator,
-    RawBlockChartBook,
+    RawBlockKeyIndicatorCollection,
 } from "@ourworldindata/types"
 import { isArray } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
@@ -641,10 +641,10 @@ function* rawBlockKeyIndicatorToArchieMLString(
     yield "{}"
 }
 
-function* rawBlockChartBookToArchieMLString(
-    block: RawBlockChartBook
+function* rawBlockKeyIndicatorCollectionToArchieMLString(
+    block: RawBlockKeyIndicatorCollection
 ): Generator<string, void, undefined> {
-    yield "[.+chart-book]"
+    yield "[.+key-indicator-collection]"
     if (typeof block.value !== "string") {
         for (const b of block.value)
             yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
@@ -717,7 +717,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "table-row" }, rawBlockRowToArchieMLString)
         .with({ type: "blockquote" }, rawBlockBlockquoteToArchieMLString)
         .with({ type: "key-indicator" }, rawBlockKeyIndicatorToArchieMLString)
-        .with({ type: "chart-book" }, rawBlockChartBookToArchieMLString)
+        .with(
+            { type: "key-indicator-collection" },
+            rawBlockKeyIndicatorCollectionToArchieMLString
+        )
         .exhaustive()
     yield* content
 }

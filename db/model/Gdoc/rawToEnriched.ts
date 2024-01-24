@@ -101,8 +101,8 @@ import {
     tableTemplates,
     RawBlockBlockquote,
     EnrichedBlockBlockquote,
-    RawBlockChartBook,
-    EnrichedBlockChartBook,
+    RawBlockKeyIndicatorCollection,
+    EnrichedBlockKeyIndicatorCollection,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -201,7 +201,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "entry-summary" }, parseEntrySummary)
         .with({ type: "table" }, parseTable)
         .with({ type: "key-indicator" }, parseKeyIndicator)
-        .with({ type: "chart-book" }, parseChartBook)
+        .with({ type: "key-indicator-collection" }, parseKeyIndicatorCollection)
         .exhaustive()
 }
 
@@ -1946,9 +1946,13 @@ const parseKeyIndicator = (
     }) as EnrichedBlockKeyIndicator
 }
 
-function parseChartBook(raw: RawBlockChartBook): EnrichedBlockChartBook {
-    const createError = (error: ParseError): EnrichedBlockChartBook => ({
-        type: "chart-book",
+function parseKeyIndicatorCollection(
+    raw: RawBlockKeyIndicatorCollection
+): EnrichedBlockKeyIndicatorCollection {
+    const createError = (
+        error: ParseError
+    ): EnrichedBlockKeyIndicatorCollection => ({
+        type: "key-indicator-collection",
         blocks: [],
         parseErrors: [error],
     })
@@ -1958,7 +1962,7 @@ function parseChartBook(raw: RawBlockChartBook): EnrichedBlockChartBook {
     if (!Array.isArray(raw.value)) {
         return createError({
             message:
-                "chart-book is not a freeform array. Make sure you've written [.+chart-book]",
+                "key-indicator-collection is not a freeform array. Make sure you've written [.+key-indicator-collection]",
         })
     }
 
@@ -1970,7 +1974,7 @@ function parseChartBook(raw: RawBlockChartBook): EnrichedBlockChartBook {
     if (keyIndicatorBlocks.length < blocks.length) {
         warnings.push({
             message:
-                "chart-book contains blocks that are not key-indicators blocks",
+                "key-indicator-collection contains blocks that are not key-indicators blocks",
             isWarning: true,
         })
     }
@@ -1982,8 +1986,8 @@ function parseChartBook(raw: RawBlockChartBook): EnrichedBlockChartBook {
     if (parsedBlocks.length <= 1) {
         const message =
             parsedBlocks.length === 0
-                ? "chart-book contains no key-indicator blocks"
-                : "chart-book contains only one key-indicator block"
+                ? "key-indicator-collection contains no key-indicator blocks"
+                : "key-indicator-collection contains only one key-indicator block"
         warnings.push({
             message,
             isWarning: true,
@@ -1991,7 +1995,7 @@ function parseChartBook(raw: RawBlockChartBook): EnrichedBlockChartBook {
     }
 
     return {
-        type: "chart-book",
+        type: "key-indicator-collection",
         blocks: parsedBlocks,
         parseErrors: warnings,
     }
