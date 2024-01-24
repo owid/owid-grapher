@@ -1,0 +1,16 @@
+// Folder-specific settings
+// For a full list of overridable settings, and general information on folder-specific settings,
+// see the documentation: https://docs.zed.dev/configuration/configuring-zed#folder-specific-settings
+{
+  "format_on_save": "on",
+    "formatter": {
+        "external": {
+            "command": "./node_modules/@biomejs/biome/bin/biome",
+            "arguments": [
+                "format",
+                "--write",
+                "--stdin-file-path={buffer_path}"
+            ]
+        }
+    }
+}
