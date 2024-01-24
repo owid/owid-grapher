@@ -8,7 +8,7 @@ import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { logInWithCredentials, logOut } from "./authentication.js"
 import { LoginPage } from "./LoginPage.js"
 import * as db from "../db/db.js"
-import { Dataset } from "../db/model/Dataset.js"
+import { writeDatasetCSV } from "../db/model/Dataset.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import {
     renderExplorerPage,
@@ -44,6 +44,7 @@ import {
 } from "../baker/GrapherBaker.js"
 import { Chart } from "../db/model/Chart.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
+import { DbPlainDatasetFile, DbPlainDataset } from "@ourworldindata/types"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
@@ -138,19 +139,26 @@ adminRouter.get("/logout", logOut)
 adminRouter.get("/datasets/:datasetId.csv", async (req, res) => {
     const datasetId = expectInt(req.params.datasetId)
 
-    const datasetName = (
-        await db.mysqlFirst(`SELECT name FROM datasets WHERE id=?`, [datasetId])
-    ).name
-    res.attachment(filenamify(datasetName) + ".csv")
+    await db.knexInstance().transaction(async (t) => {
+        const datasetName = (
+            await db.knexRawFirst<Pick<DbPlainDataset, "name">>(
+                `SELECT name FROM datasets WHERE id=?`,
+                t,
+                [datasetId]
+            )
+        )?.name
 
-    const writeStream = new Writable({
-        write(chunk, encoding, callback) {
-            res.write(chunk.toString())
-            callback(null)
-        },
+        res.attachment(filenamify(datasetName!) + ".csv")
+
+        const writeStream = new Writable({
+            write(chunk, encoding, callback) {
+                res.write(chunk.toString())
+                callback(null)
+            },
+        })
+        await writeDatasetCSV(t, datasetId, writeStream)
+        res.end()
     })
-    await Dataset.writeCSV(datasetId, writeStream)
-    res.end()
 })
 
 adminRouter.get("/datasets/:datasetId/downloadZip", async (req, res) => {
@@ -158,11 +166,14 @@ adminRouter.get("/datasets/:datasetId/downloadZip", async (req, res) => {
 
     res.attachment("additional-material.zip")
 
-    const file = await db.mysqlFirst(
-        `SELECT filename, file FROM dataset_files WHERE datasetId=?`,
-        [datasetId]
-    )
-    res.send(file.file)
+    const knex = db.knexInstance()
+
+    const file = await db.knexRawFirst<
+        Pick<DbPlainDatasetFile, "filename" | "file">
+    >(`SELECT filename, file FROM dataset_files WHERE datasetId=?`, knex, [
+        datasetId,
+    ])
+    res.send(file?.file)
 })
 
 adminRouter.get("/posts/preview/:postId", async (req, res) => {

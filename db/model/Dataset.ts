@@ -10,13 +10,17 @@ import {
 import { Writable } from "stream"
 
 import { User } from "./User.js"
-import { Source } from "./Source.js"
+import { getSourcesForDataset, sourceToDatapackage } from "./Source.js"
 
 import * as db from "../db.js"
-import { slugify } from "@ourworldindata/utils"
-import filenamify from "filenamify"
 import { VariableRow, variableTable, writeVariableCSV } from "./Variable.js"
 import _ from "lodash"
+import {
+    DbPlainDataset,
+    DatasetsTableName,
+    DbPlainTag,
+} from "@ourworldindata/types"
+import { Knex } from "knex"
 
 @Entity("datasets")
 @Unique(["name", "namespace"])
@@ -36,100 +40,126 @@ export class Dataset extends BaseEntity {
 
     @ManyToOne(() => User, (user) => user.createdDatasets)
     createdByUser!: Relation<User>
+}
 
-    // Export dataset variables to CSV (not including metadata)
-    static async writeCSV(datasetId: number, stream: Writable): Promise<void> {
-        // get variables of a dataset
-        const variableIds = (
-            await db.queryMysql(
-                `
-            SELECT
-                id as variableId
+export async function getDatasetById(
+    knex: Knex<any, any[]>,
+    datasetId: number
+): Promise<DbPlainDataset | undefined> {
+    const dataset = await knex<DbPlainDataset>(DatasetsTableName)
+        .where({ id: datasetId })
+        .first()
+    if (!dataset) return undefined
+    return {
+        ...dataset,
+        // for backwards compatibility
+        namespace: dataset.namespace ?? "owid",
+        description: dataset.description ?? "",
+    }
+}
+
+// Export dataset variables to CSV (not including metadata)
+export async function writeDatasetCSV(
+    knex: Knex<any, any[]>,
+    datasetId: number,
+    stream: Writable
+): Promise<void> {
+    // get variables of a dataset
+    const variableIds = (
+        await db.knexRaw<{ variableId: number }>(
+            `SELECT id as variableId
             FROM variables v
             WHERE datasetId=?`,
-                [datasetId]
-            )
-        ).map((row: any) => row.variableId)
-
-        await writeVariableCSV(variableIds, stream)
-    }
-
-    static async setTags(datasetId: number, tagIds: number[]): Promise<void> {
-        await db.transaction(async (t) => {
-            const tagRows = tagIds.map((tagId) => [tagId, datasetId])
-            await t.execute(`DELETE FROM dataset_tags WHERE datasetId=?`, [
-                datasetId,
-            ])
-            if (tagRows.length)
-                await t.execute(
-                    `INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`,
-                    [tagRows]
-                )
-        })
-    }
-
-    async toCSV(): Promise<string> {
-        let csv = ""
-        await Dataset.writeCSV(this.id, {
-            write: (s: string) => (csv += s),
-            end: () => null,
-        } as any)
-        return csv
-    }
-
-    get filename(): string {
-        return filenamify(this.name)
-    }
-
-    get slug(): string {
-        return slugify(this.name)
-    }
-
-    // Return object representing datapackage.json for this dataset
-    async toDatapackage(): Promise<any> {
-        // XXX
-        const sources = await Source.findBy({ datasetId: this.id })
-        const variables = (await db
-            .knexTable(variableTable)
-            .where({ datasetId: this.id })) as VariableRow[]
-        const tags = await db.queryMysql(
-            `SELECT t.id, t.name FROM dataset_tags dt JOIN tags t ON t.id=dt.tagId WHERE dt.datasetId=?`,
-            [this.id]
+            knex,
+            [datasetId]
         )
+    ).map((row) => row.variableId)
 
-        const initialFields = [
-            { name: "Entity", type: "string" },
-            { name: "Year", type: "year" },
-        ]
+    await writeVariableCSV(variableIds, stream)
+}
 
-        const dataPackage = {
-            name: this.name,
-            title: this.name,
-            id: this.id,
-            description:
-                (sources[0] &&
-                    sources[0].description &&
-                    sources[0].description.additionalInfo) ||
-                "",
-            sources: sources.map((s) => s.toDatapackage()),
-            owidTags: tags.map((t: any) => t.name),
-            resources: [
-                {
-                    path: `${this.name}.csv`,
-                    schema: {
-                        fields: initialFields.concat(
-                            variables.map((v) => ({
-                                name: v.name,
-                                type: "any",
-                                description: v.description,
-                                owidDisplaySettings: v.display,
-                            }))
-                        ),
-                    },
+export async function datasetToCSV(
+    knex: Knex<any, any[]>,
+    datasetId: number
+): Promise<string> {
+    let csv = ""
+    await writeDatasetCSV(knex, datasetId, {
+        write: (s: string) => (csv += s),
+        end: () => null,
+    } as any)
+    return csv
+}
+
+export async function setTagsForDataset(
+    knex: Knex<any, any[]>,
+    datasetId: number,
+    tagIds: number[]
+): Promise<void> {
+    await knex.transaction(async (t: Knex<any, any[]>) => {
+        const tagRows = tagIds.map((tagId) => [tagId, datasetId])
+        await t.raw(`DELETE FROM dataset_tags WHERE datasetId=?`, [datasetId])
+        if (tagRows.length)
+            await t.raw(
+                `INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`,
+                [tagRows]
+            )
+    })
+}
+
+// Return object representing datapackage.json for this dataset
+export async function datasetToDatapackage(
+    knex: Knex<any, any[]>,
+    datasetId: number
+): Promise<any> {
+    const datasetName = (await getDatasetById(knex, datasetId))?.name
+    const sources = await getSourcesForDataset(knex, datasetId)
+    const variables = (await db
+        .knexTable(variableTable)
+        .where({ datasetId })) as VariableRow[]
+    const tags = await db.knexRaw<Pick<DbPlainTag, "id" | "name">>(
+        `SELECT t.id, t.name FROM dataset_tags dt JOIN tags t ON t.id=dt.tagId WHERE dt.datasetId=?`,
+        knex,
+        [datasetId]
+    )
+
+    const initialFields = [
+        { name: "Entity", type: "string" },
+        { name: "Year", type: "year" },
+    ]
+
+    const dataPackage = {
+        name: datasetName,
+        title: datasetName,
+        id: datasetId,
+        description:
+            (sources[0] &&
+                sources[0].description &&
+                sources[0].description.additionalInfo) ||
+            "",
+        sources: sources.map((s) => sourceToDatapackage(s)),
+        owidTags: tags.map((t: any) => t.name),
+        resources: [
+            {
+                path: `${datasetName}.csv`,
+                schema: {
+                    fields: initialFields.concat(
+                        variables.map((v) => ({
+                            name: v.name,
+                            type: "any",
+                            description: v.description,
+                            owidDisplaySettings: v.display,
+                        }))
+                    ),
                 },
-            ],
-        }
-
-        return dataPackage
+            },
+        ],
     }
+
+    return dataPackage
+}
+
+export function isDatasetWithName(
+    dataset: DbPlainDataset
+): dataset is DbPlainDataset & { name: NonNullable<DbPlainDataset["name"]> } {
+    return dataset.name !== undefined && dataset.name !== null
 }
