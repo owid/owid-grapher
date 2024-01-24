@@ -101,6 +101,8 @@ import {
     tableTemplates,
     RawBlockBlockquote,
     EnrichedBlockBlockquote,
+    RawBlockChartBook,
+    EnrichedBlockChartBook,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -199,6 +201,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "entry-summary" }, parseEntrySummary)
         .with({ type: "table" }, parseTable)
         .with({ type: "key-indicator" }, parseKeyIndicator)
+        .with({ type: "chart-book" }, parseChartBook)
         .exhaustive()
 }
 
@@ -1941,4 +1944,55 @@ const parseKeyIndicator = (
         source: val.source,
         parseErrors: parsedBlurbErrors,
     }) as EnrichedBlockKeyIndicator
+}
+
+function parseChartBook(raw: RawBlockChartBook): EnrichedBlockChartBook {
+    const createError = (error: ParseError): EnrichedBlockChartBook => ({
+        type: "chart-book",
+        blocks: [],
+        parseErrors: [error],
+    })
+
+    const warnings = []
+
+    if (!Array.isArray(raw.value)) {
+        return createError({
+            message:
+                "chart-book is not a freeform array. Make sure you've written [.+chart-book]",
+        })
+    }
+
+    const blocks = raw.value
+    const keyIndicatorBlocks = blocks.filter(
+        (block) => block.type === "key-indicator"
+    )
+
+    if (keyIndicatorBlocks.length < blocks.length) {
+        warnings.push({
+            message:
+                "chart-book contains blocks that are not key-indicators blocks",
+            isWarning: true,
+        })
+    }
+
+    const parsedBlocks = compact(
+        keyIndicatorBlocks.map(parseRawBlocksToEnrichedBlocks)
+    ) as EnrichedBlockKeyIndicator[]
+
+    if (parsedBlocks.length <= 1) {
+        const message =
+            parsedBlocks.length === 0
+                ? "chart-book contains no key-indicator blocks"
+                : "chart-book contains only one key-indicator block"
+        warnings.push({
+            message,
+            isWarning: true,
+        })
+    }
+
+    return {
+        type: "chart-book",
+        blocks: parsedBlocks,
+        parseErrors: warnings,
+    }
 }

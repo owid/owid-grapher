@@ -37,6 +37,7 @@ import {
     RawBlockTable,
     RawBlockBlockquote,
     RawBlockKeyIndicator,
+    RawBlockChartBook,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -446,6 +447,12 @@ export function enrichedBlockToRawBlock(
                     })),
                     source: b.source,
                 },
+            }
+        })
+        .with({ type: "chart-book" }, (b): RawBlockChartBook => {
+            return {
+                type: "chart-book",
+                value: b.blocks.map(enrichedBlockToRawBlock),
             }
         })
         .exhaustive()

@@ -11,6 +11,7 @@ import {
     RawBlockText,
     RefDictionary,
 } from "./ArchieMlComponents.js"
+import { OwidVariableWithSourceAndDimension } from "../OwidVariable.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",

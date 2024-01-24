@@ -542,4 +542,24 @@ export const enrichedBlockExamples: Record<
         blurb: [enrichedBlockText],
         parseErrors: [],
     },
+    "chart-book": {
+        type: "chart-book",
+        blocks: [
+            {
+                type: "key-indicator",
+                datapageUrl:
+                    "https://ourworldindata.org/grapher/life-expectancy",
+                blurb: [enrichedBlockText],
+                parseErrors: [],
+            },
+            {
+                type: "key-indicator",
+                datapageUrl:
+                    "https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty",
+                blurb: [enrichedBlockText],
+                parseErrors: [],
+            },
+        ],
+        parseErrors: [],
+    },
 }

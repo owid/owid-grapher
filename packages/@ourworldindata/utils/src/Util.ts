@@ -1624,6 +1624,12 @@ export function traverseEnrichedBlocks(
                 traverseEnrichedBlocks(node, callback, spanCallback)
             })
         })
+        .with({ type: "chart-book" }, (chartBook) => {
+            callback(chartBook)
+            chartBook.blocks.forEach((node) =>
+                traverseEnrichedBlocks(node, callback, spanCallback)
+            )
+        })
         .with(
             {
                 type: "key-indicator",

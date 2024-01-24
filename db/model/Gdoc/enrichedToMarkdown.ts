@@ -283,5 +283,11 @@ ${links}`
                 exportComponents
             )
         )
+        .with({ type: "chart-book" }, (b): string | undefined => {
+            const keyIndicators = b.blocks.map((keyIndicatorBlock) =>
+                enrichedBlockToMarkdown(keyIndicatorBlock, exportComponents)
+            )
+            return `<ChartBook>\n${keyIndicators.join("\n")}\n</ChartBook>`
+        })
         .exhaustive()
 }

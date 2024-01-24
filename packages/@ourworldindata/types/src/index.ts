@@ -192,6 +192,7 @@ export {
     type RawBlockTopicPageIntro,
     type RawBlockUrl,
     type RawBlockKeyIndicator,
+    type RawBlockChartBook,
     tableTemplates,
     type TableTemplate,
     tableSizes,
@@ -250,6 +251,7 @@ export {
     type EnrichedBlockTableRow,
     type EnrichedBlockTableCell,
     type EnrichedBlockKeyIndicator,
+    type EnrichedBlockChartBook,
     type RawBlockResearchAndWritingRow,
 } from "./gdocTypes/ArchieMlComponents.js"
 export {
