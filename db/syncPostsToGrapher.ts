@@ -14,10 +14,12 @@ import {
 } from "@ourworldindata/utils"
 import { postsTable, select } from "./model/Post.js"
 import { PostLink } from "./model/PostLink.js"
+import { renderTablePress } from "../site/Tablepress.js"
 
 const zeroDateString = "0000-00-00 00:00:00"
 
 const blockRefRegex = /<!-- wp:block \{"ref":(?<id>\d+)\} \/-->/g
+const tablePressRegex = /\[table id=(?<id>\d+)\s*\/\]/g
 const prominentLinkRegex = /"linkUrl":"(?<url>[^"]+)"/g
 const anyHrefRegex = /href="(?<url>[^"]+)"/g
 const anySrcRegex = /src="(?<url>[^"]+)"/g
@@ -114,6 +116,46 @@ export async function buildReusableBlocksResolver(): Promise<BlockResolveFunctio
         replaceReusableBlocksRecursive(content, replacerFunction)
 }
 
+/**
+ * This function takes all tables from the tablepress plugin and returns a
+ * function that can be used as a replacer when using string.replaceAll(regex,
+ * replacer_function) to replace all tables with their rendered HTML
+ * representation.
+ */
+export function buildTablePressReplacerFunction(
+    tables: Map<string, wpdb.TablepressTable>
+): ReplacerFunction {
+    return (
+        _match: string,
+        _firstPattern: string,
+        _offset: number,
+        _fullString: string,
+        matches: Record<string, string> // capturing groups from the regex
+    ) => {
+        const table = tables.get(matches["id"].toString())
+        if (!table) {
+            console.log(`Table ${matches["id"]} not found`)
+            return ""
+        }
+
+        return renderTablePress(table.data)
+    }
+}
+
+function replaceTablePressShortcodes(
+    content: string,
+    replacerFunction: ReplacerFunction
+): string {
+    return content.replaceAll(tablePressRegex, replacerFunction)
+}
+
+export async function buildTablePressResolver(): Promise<BlockResolveFunction> {
+    const allTables = await wpdb.getTables()
+    const replacerFunction = buildTablePressReplacerFunction(allTables)
+    return (content: string) =>
+        replaceTablePressShortcodes(content, replacerFunction)
+}
+
 export const postLinkCompareStringGenerator = (item: PostLink): string =>
     `${item.linkType} - ${item.target} - ${item.hash} - ${item.queryString}`
 
@@ -188,6 +230,7 @@ export function getLinksToAddAndRemoveForPost(
 
 const syncPostsToGrapher = async (): Promise<void> => {
     const dereferenceReusableBlocksFn = await buildReusableBlocksResolver()
+    const dereferenceTablePressFn = await buildTablePressResolver()
 
     const rows = await wpdb.singleton.query(
         `-- sql
@@ -298,7 +341,9 @@ const syncPostsToGrapher = async (): Promise<void> => {
             slug: post.post_name.replace(/__/g, "/"),
             type: post.post_type,
             status: post.post_status,
-            content: dereferenceReusableBlocksFn(content),
+            content: dereferenceTablePressFn(
+                dereferenceReusableBlocksFn(content)
+            ),
             featured_image: post.featured_image || "",
             published_at:
                 post.post_date_gmt === zeroDateString
