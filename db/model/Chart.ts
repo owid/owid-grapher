@@ -226,7 +226,7 @@ WHERE c.config -> "$.isPublished" = true
         })
         const completion = await openai.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
-            model: "gpt-4",
+            model: "gpt-4-1106-preview",
         })
 
         const json = completion.choices[0]?.message?.content
