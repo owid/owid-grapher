@@ -10,10 +10,6 @@ import {
     GRAPHER_DB_PORT,
 } from "../settings/serverSettings.js"
 import { registerExitHandler } from "./cleanup.js"
-import {
-    PostsGdocsXImagesRow,
-    PostsGdocsXImagesRowTableName,
-} from "./sql-ts/Database.js"
 let typeormDataSource: DataSource
 
 export const getConnection = async (
@@ -108,10 +104,6 @@ export const knexInstance = (): Knex<any, any[]> => {
 
     return _knexInstance
 }
-
-// export const bla = knexInstance()
-//     .from<PostsGdocsXImagesRow>(PostsGdocsXImagesRowTableName)
-//     .select("gdocId")
 
 export const knexTable = (table: string): Knex.QueryBuilder =>
     knexInstance().table(table)
