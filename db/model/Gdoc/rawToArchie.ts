@@ -38,6 +38,7 @@ import {
     RawBlockKeyIndicator,
     RawBlockKeyIndicatorCollection,
     RawBlockExplorerTiles,
+    RawBlockPillRow,
 } from "@ourworldindata/types"
 import { isArray } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
@@ -655,6 +656,22 @@ function* rawBlockKeyIndicatorToArchieMLString(
             yield "[]"
         }
     }
+}
+
+function* rawBlockPillRowToArchieMLString(
+    block: RawBlockPillRow
+): Generator<string, void, undefined> {
+    yield "{.pill-row}"
+    yield* propertyToArchieMLString("title", block.value)
+    const pills = block?.value?.pills
+    if (pills) {
+        yield "[.pills]"
+        for (const pill of pills) {
+            yield* propertyToArchieMLString("text", pill)
+            yield* propertyToArchieMLString("url", pill)
+        }
+        yield "[]"
+    }
     yield "{}"
 }
 
@@ -739,6 +756,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             { type: "key-indicator-collection" },
             rawBlockKeyIndicatorCollectionToArchieMLString
         )
+        .with({ type: "pill-row" }, rawBlockPillRowToArchieMLString)
         .exhaustive()
     yield* content
 }

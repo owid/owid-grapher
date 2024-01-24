@@ -528,6 +528,16 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                     }),
                 ]
             })
+            .with({ type: "pill-row" }, (pillRow) => {
+                return pillRow.pills.map((pill) =>
+                    Link.createFromUrl({
+                        url: pill.url,
+                        source: this,
+                        componentType: pillRow.type,
+                        text: pill.text,
+                    })
+                )
+            })
             .with(
                 {
                     // no urls directly on any of these blocks

@@ -39,6 +39,7 @@ import {
     RawBlockExplorerTiles,
     RawBlockKeyIndicator,
     RawBlockKeyIndicatorCollection,
+    RawBlockPillRow,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -469,5 +470,14 @@ export function enrichedBlockToRawBlock(
                 }
             }
         )
+        .with({ type: "pill-row" }, (b): RawBlockPillRow => {
+            return {
+                type: "pill-row",
+                value: {
+                    title: b.title,
+                    pills: b.pills,
+                },
+            }
+        })
         .exhaustive()
 }

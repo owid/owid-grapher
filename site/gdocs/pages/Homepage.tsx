@@ -12,19 +12,28 @@ import {
     NewsletterSubscriptionForm,
 } from "../../NewsletterSubscription.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { ArticleBlocks } from "../components/ArticleBlocks.js"
+import { OwidGdocHomepageContent } from "@ourworldindata/types"
 
 export interface HomepageProps {
     totalCharts: number
     totalTopics: number
+    content: OwidGdocHomepageContent
 }
 
 export const Homepage = (props: HomepageProps): JSX.Element => {
     const baseUrl = BAKED_BASE_URL
-    const { totalCharts, totalTopics } = props
+    const { totalCharts, totalTopics, content } = props
 
     return (
-        <div>
-            <section className="homepage-masthead">
+        <div className="grid grid-cols-12-full-width">
+            <ArticleBlocks blocks={content.body} />
+        </div>
+    )
+}
+
+/*
+<section className="homepage-masthead">
                 <div className="wrapper">
                     <h1>
                         Research and data to make progress against the world’s
@@ -117,7 +126,6 @@ export const Homepage = (props: HomepageProps): JSX.Element => {
                                 <div className="box">
                                     <h2>Subscribe to our newsletter</h2>
                                     <div className="root">
-                                        {/* Hydrated in runSiteTools() */}
                                         <NewsletterSubscriptionForm
                                             context={
                                                 NewsletterSubscriptionContext.Homepage
@@ -277,6 +285,4 @@ export const Homepage = (props: HomepageProps): JSX.Element => {
                     </div>
                 </div>
             </section>
-        </div>
-    )
-}
+*/
