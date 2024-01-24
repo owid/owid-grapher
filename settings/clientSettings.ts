@@ -79,7 +79,7 @@ export const ETL_WIZARD_URL: string =
 
 // Production ETL API runs on http://etl-prod-2:8083/v1 (you need Tailscale to access it)
 export const ETL_API_URL: string =
-    process.env.ETL_API_URL ?? `${ADMIN_BASE_URL}:8000/v1`
+    process.env.ETL_API_URL ?? `${ADMIN_BASE_URL}:8000/api/v1`
 
 export const GDOCS_DETAILS_ON_DEMAND_ID: string =
     process.env.GDOCS_DETAILS_ON_DEMAND_ID ?? ""
