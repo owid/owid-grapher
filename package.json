@@ -229,6 +229,7 @@
         "workerpool": "^6.2.0"
     },
     "devDependencies": {
+        "@biomejs/biome": "^1.5.3",
         "@cloudflare/workers-types": "^4.20230821.0",
         "@stripe/stripe-js": "^1.54.0",
         "@testing-library/jest-dom": "^6.1.3",
