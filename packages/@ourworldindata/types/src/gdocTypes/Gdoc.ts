@@ -28,7 +28,10 @@ export interface LinkedChart {
 
 export interface LinkedIndicator {
     id: number
-    titlePublic?: string
+    title: string
+    dateRange?: string
+    lastUpdated?: string
+    attributionUnshortened?: string
 }
 
 export enum OwidGdocType {

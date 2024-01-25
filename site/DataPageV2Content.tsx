@@ -34,12 +34,12 @@ import {
     DataPageRelatedResearch,
     isEmpty,
     excludeUndefined,
-    OwidOrigin,
     DataPageDataV2,
     getCitationShort,
     GrapherInterface,
     getCitationLong,
     joinTitleFragments,
+    getAttributionUnshortened,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -126,24 +126,12 @@ export const DataPageV2Content = ({
         datapageData.descriptionKey && datapageData.descriptionKey.length > 0
 
     const sourcesForDisplay = prepareSourcesForDisplay(datapageData)
-    const getYearSuffixFromOrigin = (o: OwidOrigin) => {
-        const year = o.dateAccessed
-            ? dayjs(o.dateAccessed, ["YYYY-MM-DD", "YYYY"]).year()
-            : o.datePublished
-            ? dayjs(o.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
-            : undefined
-        if (year) return ` (${year})`
-        else return ""
-    }
     const producers = uniq(datapageData.origins.map((o) => `${o.producer}`))
-    const producersWithYear = uniq(
-        datapageData.origins.map(
-            (o) => `${o.producer}${getYearSuffixFromOrigin(o)}`
-        )
-    )
 
-    const attributionFragments = datapageData.attributions ?? producersWithYear
-    const attributionUnshortened = attributionFragments.join("; ")
+    const attributionUnshortened = getAttributionUnshortened({
+        attributions: datapageData.attributions,
+        origins: datapageData.origins,
+    })
     const citationShort = getCitationShort(
         datapageData.origins,
         datapageData.attributions,
@@ -751,7 +739,7 @@ const KeyDataTable = (props: {
     const links = makeLinks({ link: datapageData.source?.link })
 
     return (
-        <div className="key-data-block grid grid-cols-4 grid-sm-cols-12 ">
+        <div className="key-data-block grid grid-cols-4 grid-sm-cols-12">
             {datapageData.descriptionShort && (
                 <div className="key-data span-cols-4 span-sm-cols-12">
                     <div className="key-data__title key-data-description-short__title">

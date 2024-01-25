@@ -1,0 +1,68 @@
+.key-indicator {
+    $frame-padding: 24px;
+    $padding: 16px;
+
+    background-color: $blue-10;
+    padding: $frame-padding;
+    margin-bottom: $frame-padding;
+
+    .indicator-title {
+        @include body-2-semibold;
+        color: $blue-60;
+        margin-bottom: 14px;
+    }
+
+    .narrative-title {
+        @include h3-bold;
+        color: $blue-90;
+        margin-top: 0;
+        margin-bottom: 8px;
+    }
+
+    .blurb {
+        @include body-2-regular;
+        color: $blue-90;
+        margin-bottom: $padding;
+    }
+
+    .blurb a {
+        @include owid-link-90;
+    }
+
+    .metadata--border-top {
+        border-top: solid rgba(164, 182, 202, 0.5);
+        padding-top: $padding;
+    }
+
+    .metadata-entry {
+        @include body-3-medium;
+        margin-bottom: $padding;
+    }
+
+    .metadata-entry__title {
+        color: $blue-50;
+    }
+
+    .metadata-entry__value {
+        color: $blue-90;
+    }
+
+    .datapage-link {
+        @include body-3-medium;
+
+        display: block;
+        @include sm-up {
+            display: inline-block;
+        }
+
+        height: 40px;
+        padding: 8px 24px;
+        text-align: center;
+        color: $white;
+        background-color: $blue-60;
+        cursor: pointer;
+        border: none;
+
+        margin-top: $padding;
+    }
+}

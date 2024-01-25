@@ -56,6 +56,7 @@ import {
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
     OwidGdocMinimalPostInterface,
     excludeUndefined,
+    grabMetadataForGdocLinkedIndicator,
 } from "@ourworldindata/utils"
 
 import { execWrapper } from "../db/execWrapper.js"
@@ -345,7 +346,7 @@ export class SiteBaker {
                     const metadata = await getVariableMetadata(indicatorId)
                     return {
                         id: indicatorId,
-                        titlePublic: metadata.presentation?.titlePublic,
+                        ...grabMetadataForGdocLinkedIndicator(metadata),
                     }
                 })
             )

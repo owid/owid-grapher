@@ -35,6 +35,7 @@ import {
     MinimalDataInsightInterface,
     OwidGdocMinimalPostInterface,
     urlToSlug,
+    grabMetadataForGdocLinkedIndicator,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { google } from "googleapis"
@@ -618,7 +619,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                 )
                 const linkedIndicator: LinkedIndicator = {
                     id: linkedChart.indicatorId,
-                    titlePublic: metadata.presentation?.titlePublic,
+                    ...grabMetadataForGdocLinkedIndicator(metadata),
                 }
                 return linkedIndicator
             })

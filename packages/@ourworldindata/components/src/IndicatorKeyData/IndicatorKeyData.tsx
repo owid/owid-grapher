@@ -12,21 +12,23 @@ export const makeSource = ({
     attribution,
     owidProcessingLevel,
     isEmbeddedInADataPage,
+    hideProcessingLevel = false,
 }: {
     attribution?: string
     owidProcessingLevel?: OwidProcessingLevel
     isEmbeddedInADataPage?: boolean
+    hideProcessingLevel?: boolean
 }): React.ReactNode => {
     if (!attribution) return null
     const isEmbedded = isEmbeddedInADataPage ?? true
     const processingLevelPhrase =
         getPhraseForProcessingLevel(owidProcessingLevel)
-    const hideProcessingPhase =
+    const hideProcessingPhrase = hideProcessingLevel ||
         attribution.toLowerCase() === "our world in data"
     return (
         <>
             <SimpleMarkdownText text={attribution} useParagraphs={false} />
-            {!hideProcessingPhase && (
+            {!hideProcessingPhrase && (
                 <>
                     {" – "}
                     {isEmbedded ? (
