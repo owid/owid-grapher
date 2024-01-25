@@ -19,9 +19,15 @@ export class ChartRevision extends BaseEntity {
     @Column() createdAt!: Date
     @Column() updatedAt!: Date
 
-    @ManyToOne(() => User, (user) => user.editedCharts)
+    @ManyToOne(
+        () => User,
+        (user) => user.editedCharts
+    )
     user!: Relation<User>
 
-    @ManyToOne(() => Chart, (chart) => chart.logs)
+    @ManyToOne(
+        () => Chart,
+        (chart) => chart.logs
+    )
     chart!: Relation<Chart>
 }

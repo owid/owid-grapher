@@ -1,7 +1,7 @@
 {
-    "extends": "../../../devTools/tsconfigs/tsconfig.base.json",
-    "compilerOptions": {
-        "composite": false,
-        "outDir": "./dist"
-    }
+	"extends": "../../../devTools/tsconfigs/tsconfig.base.json",
+	"compilerOptions": {
+		"composite": false,
+		"outDir": "./dist"
+	}
 }

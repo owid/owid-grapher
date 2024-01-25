@@ -539,11 +539,8 @@ export class FacetChart
     }
 
     @computed private get isNumericLegend(): boolean {
-        return this.externalLegends.some(
-            (legend) =>
-                legend.numericLegendData?.some(
-                    (bin) => bin instanceof NumericBin
-                )
+        return this.externalLegends.some((legend) =>
+            legend.numericLegendData?.some((bin) => bin instanceof NumericBin)
         )
     }
 

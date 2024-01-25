@@ -1492,12 +1492,11 @@ export function parseFaqs(
             id: faq.id,
             content: enrichedText,
             parseErrors: compact([
-                ...enrichedText.flatMap(
-                    (block) =>
-                        block?.parseErrors.map((parseError) => ({
-                            ...parseError,
-                            message: `Block parse error in faq with id "${faq.id}": ${parseError.message}`,
-                        }))
+                ...enrichedText.flatMap((block) =>
+                    block?.parseErrors.map((parseError) => ({
+                        ...parseError,
+                        message: `Block parse error in faq with id "${faq.id}": ${parseError.message}`,
+                    }))
                 ),
             ]),
         }

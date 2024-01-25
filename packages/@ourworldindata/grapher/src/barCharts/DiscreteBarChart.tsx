@@ -615,10 +615,10 @@ export class DiscreteBarChart
             const color = hasColorScale
                 ? this.colorScale.getColor(colorValue)
                 : isColumnStrategy
-                ? col.def.color
-                : transformedTable.getColorForEntityName(
-                      entityNames[index] as string
-                  )
+                  ? col.def.color
+                  : transformedTable.getColorForEntityName(
+                          entityNames[index] as string
+                      )
             return {
                 yColumn: col,
                 seriesName,

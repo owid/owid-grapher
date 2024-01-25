@@ -50,7 +50,7 @@ export type Container =
 type Layouts = { default: string; [key: string]: string }
 
 // no line-wrapping for easier alphabetisation
-// prettier-ignore
+// biome-ignore format: easier multiline editing w/ quotes for all keys
 const layouts: { [key in Container]: Layouts} = {
     ["default"]: {
         ["align"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",

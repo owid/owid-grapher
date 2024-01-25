@@ -1,16 +1,16 @@
 {
-    "tasksRunnerOptions": {
-        "default": {
-            "runner": "nx/tasks-runners/default",
-            "options": {
-                "cacheableOperations": ["build"]
-            }
-        }
-    },
-    "$schema": "./node_modules/nx/schemas/nx-schema.json",
-    "namedInputs": {
-        "default": ["{projectRoot}/**/*", "sharedGlobals"],
-        "sharedGlobals": [],
-        "production": ["default"]
-    }
+	"tasksRunnerOptions": {
+		"default": {
+			"runner": "nx/tasks-runners/default",
+			"options": {
+				"cacheableOperations": ["build"]
+			}
+		}
+	},
+	"$schema": "./node_modules/nx/schemas/nx-schema.json",
+	"namedInputs": {
+		"default": ["{projectRoot}/**/*", "sharedGlobals"],
+		"sharedGlobals": [],
+		"production": ["default"]
+	}
 }

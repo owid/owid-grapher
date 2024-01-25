@@ -488,7 +488,6 @@ export const formatWordpressPost = async (
         container.append(parent.children())
         parent.append(container)
     }
-
     // Nesting for sticky columns that have been manually created
     ;(["left", "right"] as const).forEach((side) => {
         cheerioEl(`.wp-block-columns.is-style-sticky-${side}`).each(

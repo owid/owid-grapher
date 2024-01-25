@@ -761,8 +761,8 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                 align === HorizontalAlign.center
                     ? (width - line.totalWidth) / 2
                     : align === HorizontalAlign.right
-                    ? width - line.totalWidth
-                    : 0
+                      ? width - line.totalWidth
+                      : 0
             line.marks.forEach((mark) => {
                 mark.x += xShift
                 mark.label.bounds = mark.label.bounds.set({

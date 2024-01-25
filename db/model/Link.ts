@@ -15,7 +15,11 @@ import { formatUrls } from "../../site/formatting.js"
 @Entity("posts_gdocs_links")
 export class Link extends BaseEntity implements OwidGdocLinkJSON {
     @PrimaryGeneratedColumn() id!: number
-    @ManyToOne(() => GdocBase, (gdoc) => gdoc.id) source!: Relation<GdocBase>
+    @ManyToOne(
+        () => GdocBase,
+        (gdoc) => gdoc.id
+    )
+    source!: Relation<GdocBase>
     @Column() linkType!: "gdoc" | "url" | "grapher" | "explorer"
     @Column() target!: string
     @Column() queryString!: string

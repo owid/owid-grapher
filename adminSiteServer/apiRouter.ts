@@ -1515,8 +1515,7 @@ apiRouter.get(
         // careful there to only allow carefully guarded vocabularies from being used, not
         // arbitrary user input
         const whereClause = filterSExpr?.toSql() ?? "true"
-        const resultsWithStringGrapherConfigs =
-            await db.queryMysql(`SELECT charts.id as id,
+        const resultsWithStringGrapherConfigs = await db.queryMysql(`SELECT charts.id as id,
             charts.config as config,
             charts.createdAt as createdAt,
             charts.updatedAt as updatedAt,
@@ -1603,8 +1602,7 @@ apiRouter.get(
         // careful there to only allow carefully guarded vocabularies from being used, not
         // arbitrary user input
         const whereClause = filterSExpr?.toSql() ?? "true"
-        const resultsWithStringGrapherConfigs =
-            await db.queryMysql(`SELECT variables.id as id,
+        const resultsWithStringGrapherConfigs = await db.queryMysql(`SELECT variables.id as id,
             variables.name as name,
             variables.grapherConfigAdmin as config,
             d.name as datasetname,
@@ -2604,8 +2602,8 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
             prevJson.published && nextJson.published
                 ? "Updating"
                 : !prevJson.published && nextJson.published
-                ? "Publishing"
-                : "Unpublishing"
+                  ? "Publishing"
+                  : "Unpublishing"
         await triggerStaticBuild(res.locals.user, `${action} ${nextJson.slug}`)
     }
 

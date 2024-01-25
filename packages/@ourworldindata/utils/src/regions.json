@@ -1,2543 +1,2543 @@
 [
-    {
-        "code": "ABW",
-        "shortCode": "AW",
-        "name": "Aruba",
-        "slug": "aruba",
-        "regionType": "country"
-    },
-    {
-        "code": "AFG",
-        "shortCode": "AF",
-        "name": "Afghanistan",
-        "slug": "afghanistan",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "AGO",
-        "shortCode": "AO",
-        "name": "Angola",
-        "slug": "angola",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "AIA",
-        "shortCode": "AI",
-        "name": "Anguilla",
-        "slug": "anguilla",
-        "regionType": "country"
-    },
-    {
-        "code": "ALA",
-        "shortCode": "AX",
-        "name": "Aland Islands",
-        "slug": "aland-islands",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "ALB",
-        "shortCode": "AL",
-        "name": "Albania",
-        "slug": "albania",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "AND",
-        "shortCode": "AD",
-        "name": "Andorra",
-        "slug": "andorra",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "ANT",
-        "shortCode": "AN",
-        "name": "Netherlands Antilles",
-        "slug": "netherlands-antilles",
-        "regionType": "country",
-        "isHistorical": true,
-        "isUnlisted": true
-    },
-    {
-        "code": "ARE",
-        "shortCode": "AE",
-        "name": "United Arab Emirates",
-        "slug": "united-arab-emirates",
-        "regionType": "country",
-        "isMappable": true,
-        "variantNames": ["UAE"]
-    },
-    {
-        "code": "ARG",
-        "shortCode": "AR",
-        "name": "Argentina",
-        "slug": "argentina",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "ARM",
-        "shortCode": "AM",
-        "name": "Armenia",
-        "slug": "armenia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "ASM",
-        "shortCode": "AS",
-        "name": "American Samoa",
-        "slug": "american-samoa",
-        "regionType": "country"
-    },
-    {
-        "code": "ATA",
-        "shortCode": "AQ",
-        "name": "Antarctica",
-        "slug": "antarctica",
-        "regionType": "other"
-    },
-    {
-        "code": "ATF",
-        "shortCode": "TF",
-        "name": "French Southern Territories",
-        "slug": "french-southern-territories",
-        "regionType": "country",
-        "isMappable": true,
-        "isUnlisted": true
-    },
-    {
-        "code": "ATG",
-        "shortCode": "AG",
-        "name": "Antigua and Barbuda",
-        "slug": "antigua-and-barbuda",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "AUS",
-        "shortCode": "AU",
-        "name": "Australia",
-        "slug": "australia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "AUT",
-        "shortCode": "AT",
-        "name": "Austria",
-        "slug": "austria",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "AZE",
-        "shortCode": "AZ",
-        "name": "Azerbaijan",
-        "slug": "azerbaijan",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BDI",
-        "shortCode": "BI",
-        "name": "Burundi",
-        "slug": "burundi",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BEL",
-        "shortCode": "BE",
-        "name": "Belgium",
-        "slug": "belgium",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BEN",
-        "shortCode": "BJ",
-        "name": "Benin",
-        "slug": "benin",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BES",
-        "shortCode": "BQ",
-        "name": "Bonaire Sint Eustatius and Saba",
-        "slug": "bonaire-sint-eustatius-and-saba",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "BFA",
-        "shortCode": "BF",
-        "name": "Burkina Faso",
-        "slug": "burkina-faso",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BGD",
-        "shortCode": "BD",
-        "name": "Bangladesh",
-        "slug": "bangladesh",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BGR",
-        "shortCode": "BG",
-        "name": "Bulgaria",
-        "slug": "bulgaria",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BHR",
-        "shortCode": "BH",
-        "name": "Bahrain",
-        "slug": "bahrain",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BHS",
-        "shortCode": "BS",
-        "name": "Bahamas",
-        "slug": "bahamas",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BIH",
-        "shortCode": "BA",
-        "name": "Bosnia and Herzegovina",
-        "slug": "bosnia-and-herzegovina",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BLM",
-        "shortCode": "BL",
-        "name": "Saint Barthelemy",
-        "slug": "saint-barthelemy",
-        "regionType": "country"
-    },
-    {
-        "code": "BLR",
-        "shortCode": "BY",
-        "name": "Belarus",
-        "slug": "belarus",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BLZ",
-        "shortCode": "BZ",
-        "name": "Belize",
-        "slug": "belize",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BMU",
-        "shortCode": "BM",
-        "name": "Bermuda",
-        "slug": "bermuda",
-        "regionType": "country"
-    },
-    {
-        "code": "BOL",
-        "shortCode": "BO",
-        "name": "Bolivia",
-        "slug": "bolivia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BRA",
-        "shortCode": "BR",
-        "name": "Brazil",
-        "slug": "brazil",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BRB",
-        "shortCode": "BB",
-        "name": "Barbados",
-        "slug": "barbados",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BRN",
-        "shortCode": "BN",
-        "name": "Brunei",
-        "slug": "brunei",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BTN",
-        "shortCode": "BT",
-        "name": "Bhutan",
-        "slug": "bhutan",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "BVT",
-        "shortCode": "BV",
-        "name": "Bouvet Island",
-        "slug": "bouvet-island",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "BWA",
-        "shortCode": "BW",
-        "name": "Botswana",
-        "slug": "botswana",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "CAF",
-        "shortCode": "CF",
-        "name": "Central African Republic",
-        "slug": "central-african-republic",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "CAN",
-        "shortCode": "CA",
-        "name": "Canada",
-        "slug": "canada",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "CCK",
-        "shortCode": "CC",
-        "name": "Cocos Islands",
-        "slug": "cocos-islands",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "CHE",
-        "shortCode": "CH",
-        "name": "Switzerland",
-        "slug": "switzerland",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "CHL",
-        "shortCode": "CL",
-        "name": "Chile",
-        "slug": "chile",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "CHN",
-        "shortCode": "CN",
-        "name": "China",
-        "slug": "china",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "CIV",
-        "shortCode": "CI",
-        "name": "Cote d'Ivoire",
-        "slug": "cote-divoire",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "CMR",
-        "shortCode": "CM",
-        "name": "Cameroon",
-        "slug": "cameroon",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "COD",
-        "shortCode": "CD",
-        "name": "Democratic Republic of Congo",
-        "shortName": "DR Congo",
-        "slug": "democratic-republic-of-congo",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "COG",
-        "shortCode": "CG",
-        "name": "Congo",
-        "slug": "congo",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "COK",
-        "shortCode": "CK",
-        "name": "Cook Islands",
-        "slug": "cook-islands",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "COL",
-        "shortCode": "CO",
-        "name": "Colombia",
-        "slug": "colombia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "COM",
-        "shortCode": "KM",
-        "name": "Comoros",
-        "slug": "comoros",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "CPV",
-        "shortCode": "CV",
-        "name": "Cape Verde",
-        "slug": "cape-verde",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "CRI",
-        "shortCode": "CR",
-        "name": "Costa Rica",
-        "slug": "costa-rica",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "CUB",
-        "shortCode": "CU",
-        "name": "Cuba",
-        "slug": "cuba",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "CUW",
-        "shortCode": "CW",
-        "name": "Curacao",
-        "slug": "curacao",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "CXR",
-        "shortCode": "CX",
-        "name": "Christmas Island",
-        "slug": "christmas-island",
-        "regionType": "country"
-    },
-    {
-        "code": "CYM",
-        "shortCode": "KY",
-        "name": "Cayman Islands",
-        "slug": "cayman-islands",
-        "regionType": "country"
-    },
-    {
-        "code": "CYP",
-        "shortCode": "CY",
-        "name": "Cyprus",
-        "slug": "cyprus",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "CZE",
-        "shortCode": "CZ",
-        "name": "Czechia",
-        "slug": "czechia",
-        "regionType": "country",
-        "isMappable": true,
-        "variantNames": ["Czech Republic"]
-    },
-    {
-        "code": "DEU",
-        "shortCode": "DE",
-        "name": "Germany",
-        "slug": "germany",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "DJI",
-        "shortCode": "DJ",
-        "name": "Djibouti",
-        "slug": "djibouti",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "DMA",
-        "shortCode": "DM",
-        "name": "Dominica",
-        "slug": "dominica",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "DNK",
-        "shortCode": "DK",
-        "name": "Denmark",
-        "slug": "denmark",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "DOM",
-        "shortCode": "DO",
-        "name": "Dominican Republic",
-        "slug": "dominican-republic",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "DZA",
-        "shortCode": "DZ",
-        "name": "Algeria",
-        "slug": "algeria",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "ECU",
-        "shortCode": "EC",
-        "name": "Ecuador",
-        "slug": "ecuador",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "EGY",
-        "shortCode": "EG",
-        "name": "Egypt",
-        "slug": "egypt",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "ERI",
-        "shortCode": "ER",
-        "name": "Eritrea",
-        "slug": "eritrea",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "ESH",
-        "shortCode": "EH",
-        "name": "Western Sahara",
-        "slug": "western-sahara",
-        "regionType": "country",
-        "isMappable": true,
-        "isUnlisted": true
-    },
-    {
-        "code": "ESP",
-        "shortCode": "ES",
-        "name": "Spain",
-        "slug": "spain",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "EST",
-        "shortCode": "EE",
-        "name": "Estonia",
-        "slug": "estonia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "ETH",
-        "shortCode": "ET",
-        "name": "Ethiopia",
-        "slug": "ethiopia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "FIN",
-        "shortCode": "FI",
-        "name": "Finland",
-        "slug": "finland",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "FJI",
-        "shortCode": "FJ",
-        "name": "Fiji",
-        "slug": "fiji",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "FLK",
-        "shortCode": "FK",
-        "name": "Falkland Islands",
-        "slug": "falkland-islands",
-        "regionType": "country"
-    },
-    {
-        "code": "FRA",
-        "shortCode": "FR",
-        "name": "France",
-        "slug": "france",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "FRO",
-        "shortCode": "FO",
-        "name": "Faroe Islands",
-        "slug": "faroe-islands",
-        "regionType": "country"
-    },
-    {
-        "code": "FSM",
-        "shortCode": "FM",
-        "name": "Micronesia (country)",
-        "slug": "micronesia-country",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "GAB",
-        "shortCode": "GA",
-        "name": "Gabon",
-        "slug": "gabon",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "GBR",
-        "shortCode": "GB",
-        "name": "United Kingdom",
-        "slug": "united-kingdom",
-        "regionType": "country",
-        "isMappable": true,
-        "variantNames": ["UK"]
-    },
-    {
-        "code": "GEO",
-        "shortCode": "GE",
-        "name": "Georgia",
-        "slug": "georgia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "GGY",
-        "shortCode": "GG",
-        "name": "Guernsey",
-        "slug": "guernsey",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "GHA",
-        "shortCode": "GH",
-        "name": "Ghana",
-        "slug": "ghana",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "GIB",
-        "shortCode": "GI",
-        "name": "Gibraltar",
-        "slug": "gibraltar",
-        "regionType": "country"
-    },
-    {
-        "code": "GIN",
-        "shortCode": "GN",
-        "name": "Guinea",
-        "slug": "guinea",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "GLP",
-        "shortCode": "GP",
-        "name": "Guadeloupe",
-        "slug": "guadeloupe",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "GMB",
-        "shortCode": "GM",
-        "name": "Gambia",
-        "slug": "gambia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "GNB",
-        "shortCode": "GW",
-        "name": "Guinea-Bissau",
-        "slug": "guinea-bissau",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "GNQ",
-        "shortCode": "GQ",
-        "name": "Equatorial Guinea",
-        "slug": "equatorial-guinea",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "GRC",
-        "shortCode": "GR",
-        "name": "Greece",
-        "slug": "greece",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "GRD",
-        "shortCode": "GD",
-        "name": "Grenada",
-        "slug": "grenada",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "GRL",
-        "shortCode": "GL",
-        "name": "Greenland",
-        "slug": "greenland",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "GTM",
-        "shortCode": "GT",
-        "name": "Guatemala",
-        "slug": "guatemala",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "GUF",
-        "shortCode": "GF",
-        "name": "French Guiana",
-        "slug": "french-guiana",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "GUM",
-        "shortCode": "GU",
-        "name": "Guam",
-        "slug": "guam",
-        "regionType": "country"
-    },
-    {
-        "code": "GUY",
-        "shortCode": "GY",
-        "name": "Guyana",
-        "slug": "guyana",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "HKG",
-        "shortCode": "HK",
-        "name": "Hong Kong",
-        "slug": "hong-kong",
-        "regionType": "country"
-    },
-    {
-        "code": "HMD",
-        "shortCode": "HM",
-        "name": "Heard Island and McDonald Islands",
-        "slug": "heard-island-and-mcdonald-islands",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "HND",
-        "shortCode": "HN",
-        "name": "Honduras",
-        "slug": "honduras",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "HRV",
-        "shortCode": "HR",
-        "name": "Croatia",
-        "slug": "croatia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "HTI",
-        "shortCode": "HT",
-        "name": "Haiti",
-        "slug": "haiti",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "HUN",
-        "shortCode": "HU",
-        "name": "Hungary",
-        "slug": "hungary",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "IDN",
-        "shortCode": "ID",
-        "name": "Indonesia",
-        "slug": "indonesia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "IMN",
-        "shortCode": "IM",
-        "name": "Isle of Man",
-        "slug": "isle-of-man",
-        "regionType": "country"
-    },
-    {
-        "code": "IND",
-        "shortCode": "IN",
-        "name": "India",
-        "slug": "india",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "IOT",
-        "shortCode": "IO",
-        "name": "British Indian Ocean Territory",
-        "slug": "british-indian-ocean-territory",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "IRL",
-        "shortCode": "IE",
-        "name": "Ireland",
-        "slug": "ireland",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "IRN",
-        "shortCode": "IR",
-        "name": "Iran",
-        "slug": "iran",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "IRQ",
-        "shortCode": "IQ",
-        "name": "Iraq",
-        "slug": "iraq",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "ISL",
-        "shortCode": "IS",
-        "name": "Iceland",
-        "slug": "iceland",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "ISR",
-        "shortCode": "IL",
-        "name": "Israel",
-        "slug": "israel",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "ITA",
-        "shortCode": "IT",
-        "name": "Italy",
-        "slug": "italy",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "JAM",
-        "shortCode": "JM",
-        "name": "Jamaica",
-        "slug": "jamaica",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "JEY",
-        "shortCode": "JE",
-        "name": "Jersey",
-        "slug": "jersey",
-        "regionType": "country"
-    },
-    {
-        "code": "JOR",
-        "shortCode": "JO",
-        "name": "Jordan",
-        "slug": "jordan",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "JPN",
-        "shortCode": "JP",
-        "name": "Japan",
-        "slug": "japan",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "KAZ",
-        "shortCode": "KZ",
-        "name": "Kazakhstan",
-        "slug": "kazakhstan",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "KEN",
-        "shortCode": "KE",
-        "name": "Kenya",
-        "slug": "kenya",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "KGZ",
-        "shortCode": "KG",
-        "name": "Kyrgyzstan",
-        "slug": "kyrgyzstan",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "KHM",
-        "shortCode": "KH",
-        "name": "Cambodia",
-        "slug": "cambodia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "KIR",
-        "shortCode": "KI",
-        "name": "Kiribati",
-        "slug": "kiribati",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "KNA",
-        "shortCode": "KN",
-        "name": "Saint Kitts and Nevis",
-        "slug": "saint-kitts-and-nevis",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "KOR",
-        "shortCode": "KR",
-        "name": "South Korea",
-        "slug": "south-korea",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "KWT",
-        "shortCode": "KW",
-        "name": "Kuwait",
-        "slug": "kuwait",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "LAO",
-        "shortCode": "LA",
-        "name": "Laos",
-        "slug": "laos",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "LBN",
-        "shortCode": "LB",
-        "name": "Lebanon",
-        "slug": "lebanon",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "LBR",
-        "shortCode": "LR",
-        "name": "Liberia",
-        "slug": "liberia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "LBY",
-        "shortCode": "LY",
-        "name": "Libya",
-        "slug": "libya",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "LCA",
-        "shortCode": "LC",
-        "name": "Saint Lucia",
-        "slug": "saint-lucia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "LIE",
-        "shortCode": "LI",
-        "name": "Liechtenstein",
-        "slug": "liechtenstein",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "LKA",
-        "shortCode": "LK",
-        "name": "Sri Lanka",
-        "slug": "sri-lanka",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "LSO",
-        "shortCode": "LS",
-        "name": "Lesotho",
-        "slug": "lesotho",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "LTU",
-        "shortCode": "LT",
-        "name": "Lithuania",
-        "slug": "lithuania",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "LUX",
-        "shortCode": "LU",
-        "name": "Luxembourg",
-        "slug": "luxembourg",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "LVA",
-        "shortCode": "LV",
-        "name": "Latvia",
-        "slug": "latvia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MAC",
-        "shortCode": "MO",
-        "name": "Macao",
-        "slug": "macao",
-        "regionType": "country"
-    },
-    {
-        "code": "MAF",
-        "shortCode": "MF",
-        "name": "Saint Martin (French part)",
-        "slug": "saint-martin-french-part",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "MAR",
-        "shortCode": "MA",
-        "name": "Morocco",
-        "slug": "morocco",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MCO",
-        "shortCode": "MC",
-        "name": "Monaco",
-        "slug": "monaco",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MDA",
-        "shortCode": "MD",
-        "name": "Moldova",
-        "slug": "moldova",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MDG",
-        "shortCode": "MG",
-        "name": "Madagascar",
-        "slug": "madagascar",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MDV",
-        "shortCode": "MV",
-        "name": "Maldives",
-        "slug": "maldives",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MEX",
-        "shortCode": "MX",
-        "name": "Mexico",
-        "slug": "mexico",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MHL",
-        "shortCode": "MH",
-        "name": "Marshall Islands",
-        "slug": "marshall-islands",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MKD",
-        "shortCode": "MK",
-        "name": "North Macedonia",
-        "slug": "north-macedonia",
-        "regionType": "country",
-        "isMappable": true,
-        "variantNames": ["Macedonia"]
-    },
-    {
-        "code": "MLI",
-        "shortCode": "ML",
-        "name": "Mali",
-        "slug": "mali",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MLT",
-        "shortCode": "MT",
-        "name": "Malta",
-        "slug": "malta",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MMR",
-        "shortCode": "MM",
-        "name": "Myanmar",
-        "slug": "myanmar",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MNE",
-        "shortCode": "ME",
-        "name": "Montenegro",
-        "slug": "montenegro",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MNG",
-        "shortCode": "MN",
-        "name": "Mongolia",
-        "slug": "mongolia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MNP",
-        "shortCode": "MP",
-        "name": "Northern Mariana Islands",
-        "slug": "northern-mariana-islands",
-        "regionType": "country"
-    },
-    {
-        "code": "MOZ",
-        "shortCode": "MZ",
-        "name": "Mozambique",
-        "slug": "mozambique",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MRT",
-        "shortCode": "MR",
-        "name": "Mauritania",
-        "slug": "mauritania",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MSR",
-        "shortCode": "MS",
-        "name": "Montserrat",
-        "slug": "montserrat",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "MTQ",
-        "shortCode": "MQ",
-        "name": "Martinique",
-        "slug": "martinique",
-        "regionType": "country"
-    },
-    {
-        "code": "MUS",
-        "shortCode": "MU",
-        "name": "Mauritius",
-        "slug": "mauritius",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MWI",
-        "shortCode": "MW",
-        "name": "Malawi",
-        "slug": "malawi",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MYS",
-        "shortCode": "MY",
-        "name": "Malaysia",
-        "slug": "malaysia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "MYT",
-        "shortCode": "YT",
-        "name": "Mayotte",
-        "slug": "mayotte",
-        "regionType": "country"
-    },
-    {
-        "code": "NAM",
-        "shortCode": "NA",
-        "name": "Namibia",
-        "slug": "namibia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "NCL",
-        "shortCode": "NC",
-        "name": "New Caledonia",
-        "slug": "new-caledonia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "NER",
-        "shortCode": "NE",
-        "name": "Niger",
-        "slug": "niger",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "NFK",
-        "shortCode": "NF",
-        "name": "Norfolk Island",
-        "slug": "norfolk-island",
-        "regionType": "country"
-    },
-    {
-        "code": "NGA",
-        "shortCode": "NG",
-        "name": "Nigeria",
-        "slug": "nigeria",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "NIC",
-        "shortCode": "NI",
-        "name": "Nicaragua",
-        "slug": "nicaragua",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "NIU",
-        "shortCode": "NU",
-        "name": "Niue",
-        "slug": "niue",
-        "regionType": "country"
-    },
-    {
-        "code": "NLD",
-        "shortCode": "NL",
-        "name": "Netherlands",
-        "slug": "netherlands",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "NOR",
-        "shortCode": "NO",
-        "name": "Norway",
-        "slug": "norway",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "NPL",
-        "shortCode": "NP",
-        "name": "Nepal",
-        "slug": "nepal",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "NRU",
-        "shortCode": "NR",
-        "name": "Nauru",
-        "slug": "nauru",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "NZL",
-        "shortCode": "NZ",
-        "name": "New Zealand",
-        "slug": "new-zealand",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "OMN",
-        "shortCode": "OM",
-        "name": "Oman",
-        "slug": "oman",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "OWID_ABK",
-        "name": "Abkhazia",
-        "slug": "abkhazia",
-        "regionType": "other"
-    },
-    {
-        "code": "OWID_AFR",
-        "name": "Africa",
-        "slug": "africa",
-        "regionType": "continent",
-        "members": [
-            "AGO",
-            "BDI",
-            "BEN",
-            "BFA",
-            "BWA",
-            "CAF",
-            "CIV",
-            "CMR",
-            "COD",
-            "COG",
-            "COM",
-            "CPV",
-            "DJI",
-            "DZA",
-            "EGY",
-            "ERI",
-            "ESH",
-            "ETH",
-            "GAB",
-            "GHA",
-            "GIN",
-            "GMB",
-            "GNB",
-            "GNQ",
-            "KEN",
-            "LBR",
-            "LBY",
-            "LSO",
-            "MAR",
-            "MDG",
-            "MLI",
-            "MOZ",
-            "MRT",
-            "MUS",
-            "MWI",
-            "MYT",
-            "NAM",
-            "NER",
-            "NGA",
-            "OWID_ERE",
-            "REU",
-            "RWA",
-            "SDN",
-            "SEN",
-            "SHN",
-            "SLE",
-            "SOM",
-            "SSD",
-            "STP",
-            "SWZ",
-            "SYC",
-            "TCD",
-            "TGO",
-            "TUN",
-            "TZA",
-            "UGA",
-            "ZAF",
-            "ZMB",
-            "ZWE",
-            "OWID_SML",
-            "OWID_ZAN"
-        ]
-    },
-    {
-        "code": "OWID_AKD",
-        "name": "Akrotiri and Dhekelia",
-        "slug": "akrotiri-and-dhekelia",
-        "regionType": "other"
-    },
-    {
-        "code": "OWID_ASI",
-        "name": "Asia",
-        "slug": "asia",
-        "regionType": "continent",
-        "members": [
-            "AFG",
-            "ARE",
-            "ARM",
-            "AZE",
-            "BGD",
-            "BHR",
-            "BRN",
-            "BTN",
-            "CCK",
-            "CHN",
-            "CXR",
-            "GEO",
-            "HKG",
-            "IDN",
-            "IND",
-            "IOT",
-            "IRN",
-            "IRQ",
-            "ISR",
-            "JOR",
-            "JPN",
-            "KAZ",
-            "KGZ",
-            "KHM",
-            "KOR",
-            "KWT",
-            "LAO",
-            "LBN",
-            "LKA",
-            "MAC",
-            "MDV",
-            "MMR",
-            "MNG",
-            "MYS",
-            "NPL",
-            "OMN",
-            "OWID_KRU",
-            "OWID_RVN",
-            "OWID_YAR",
-            "OWID_YPR",
-            "PAK",
-            "PHL",
-            "PRK",
-            "PSE",
-            "QAT",
-            "SAU",
-            "SGP",
-            "SYR",
-            "THA",
-            "TJK",
-            "TKM",
-            "TLS",
-            "TUR",
-            "TWN",
-            "UZB",
-            "VNM",
-            "YEM",
-            "OWID_CYN",
-            "OWID_ABK",
-            "OWID_AKD",
-            "OWID_NAG",
-            "OWID_CYN",
-            "OWID_SOS"
-        ]
-    },
-    {
-        "code": "OWID_AUH",
-        "name": "Austria-Hungary",
-        "slug": "austria-hungary",
-        "regionType": "country",
-        "isHistorical": true
-    },
-    {
-        "code": "OWID_CIS",
-        "name": "Channel Islands",
-        "slug": "channel-islands",
-        "regionType": "aggregate",
-        "members": ["GGY", "JEY"]
-    },
-    {
-        "code": "OWID_CYN",
-        "name": "Northern Cyprus",
-        "slug": "northern-cyprus",
-        "regionType": "other"
-    },
-    {
-        "code": "OWID_CZS",
-        "name": "Czechoslovakia",
-        "slug": "czechoslovakia",
-        "regionType": "country",
-        "isHistorical": true
-    },
-    {
-        "code": "OWID_ERE",
-        "name": "Ethiopia (former)",
-        "slug": "ethiopia-former",
-        "regionType": "country",
-        "isHistorical": true
-    },
-    {
-        "code": "OWID_EU27",
-        "name": "European Union (27)",
-        "slug": "european-union-27",
-        "regionType": "aggregate",
-        "members": [
-            "AUT",
-            "BEL",
-            "BGR",
-            "CYP",
-            "CZE",
-            "DEU",
-            "DNK",
-            "ESP",
-            "EST",
-            "FIN",
-            "FRA",
-            "GRC",
-            "HRV",
-            "HUN",
-            "IRL",
-            "ITA",
-            "LTU",
-            "LUX",
-            "LVA",
-            "MLT",
-            "NLD",
-            "POL",
-            "PRT",
-            "ROU",
-            "SVK",
-            "SVN",
-            "SWE"
-        ]
-    },
-    {
-        "code": "OWID_EUR",
-        "name": "Europe",
-        "slug": "europe",
-        "regionType": "continent",
-        "members": [
-            "ALA",
-            "ALB",
-            "AND",
-            "AUT",
-            "BEL",
-            "BGR",
-            "BIH",
-            "BLR",
-            "CHE",
-            "CYP",
-            "CZE",
-            "DEU",
-            "DNK",
-            "ESP",
-            "EST",
-            "FIN",
-            "FRA",
-            "FRO",
-            "GBR",
-            "GGY",
-            "GIB",
-            "GRC",
-            "HRV",
-            "HUN",
-            "IMN",
-            "IRL",
-            "ISL",
-            "ITA",
-            "JEY",
-            "LIE",
-            "LTU",
-            "LUX",
-            "LVA",
-            "MCO",
-            "MDA",
-            "MKD",
-            "MLT",
-            "MNE",
-            "NLD",
-            "NOR",
-            "OWID_AUH",
-            "OWID_CZS",
-            "OWID_GDR",
-            "OWID_GFR",
-            "OWID_KOS",
-            "OWID_SEK",
-            "OWID_SRM",
-            "OWID_USS",
-            "OWID_YGS",
-            "POL",
-            "PRT",
-            "ROU",
-            "RUS",
-            "SMR",
-            "SRB",
-            "SVK",
-            "SVN",
-            "SWE",
-            "UKR",
-            "VAT",
-            "OWID_CIS",
-            "SJM",
-            "OWID_TRS"
-        ]
-    },
-    {
-        "code": "OWID_GDR",
-        "name": "East Germany",
-        "slug": "east-germany",
-        "regionType": "country",
-        "isHistorical": true
-    },
-    {
-        "code": "OWID_GFR",
-        "name": "West Germany",
-        "slug": "west-germany",
-        "regionType": "country",
-        "isHistorical": true
-    },
-    {
-        "code": "OWID_KOS",
-        "name": "Kosovo",
-        "slug": "kosovo",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "OWID_KRU",
-        "name": "Korea (former)",
-        "slug": "korea-former",
-        "regionType": "country",
-        "isHistorical": true
-    },
-    {
-        "code": "OWID_MNS",
-        "name": "Melanesia",
-        "slug": "melanesia",
-        "regionType": "aggregate",
-        "members": ["FJI", "PNG", "SLB", "VUT"]
-    },
-    {
-        "code": "OWID_NAG",
-        "name": "Nagorno-Karabakh",
-        "slug": "nagorno-karabakh",
-        "regionType": "other"
-    },
-    {
-        "code": "OWID_NAM",
-        "name": "North America",
-        "slug": "north-america",
-        "regionType": "continent",
-        "members": [
-            "ABW",
-            "AIA",
-            "ANT",
-            "ATG",
-            "BES",
-            "BHS",
-            "BLM",
-            "BLZ",
-            "BMU",
-            "BRB",
-            "CAN",
-            "CRI",
-            "CUB",
-            "CUW",
-            "CYM",
-            "DMA",
-            "DOM",
-            "GLP",
-            "GRD",
-            "GRL",
-            "GTM",
-            "HND",
-            "HTI",
-            "JAM",
-            "KNA",
-            "LCA",
-            "MAF",
-            "MEX",
-            "MSR",
-            "MTQ",
-            "NIC",
-            "PAN",
-            "PRI",
-            "SLV",
-            "SPM",
-            "SXM",
-            "TCA",
-            "TTO",
-            "USA",
-            "VCT",
-            "VGB",
-            "VIR"
-        ]
-    },
-    {
-        "code": "OWID_OCE",
-        "name": "Oceania",
-        "slug": "oceania",
-        "regionType": "continent",
-        "members": [
-            "ASM",
-            "AUS",
-            "COK",
-            "FJI",
-            "FSM",
-            "GUM",
-            "KIR",
-            "MHL",
-            "MNP",
-            "NCL",
-            "NFK",
-            "NIU",
-            "NRU",
-            "NZL",
-            "PCN",
-            "PLW",
-            "PNG",
-            "PYF",
-            "SLB",
-            "TKL",
-            "TON",
-            "TUV",
-            "UMI",
-            "VUT",
-            "WLF",
-            "WSM"
-        ]
-    },
-    {
-        "code": "OWID_PYA",
-        "name": "Polynesia",
-        "slug": "polynesia",
-        "regionType": "aggregate",
-        "members": [
-            "ASM",
-            "COK",
-            "NFK",
-            "NIU",
-            "NZL",
-            "PCN",
-            "PYF",
-            "TKL",
-            "TON",
-            "TUV",
-            "WLF",
-            "WSM"
-        ]
-    },
-    {
-        "code": "OWID_RVN",
-        "name": "Republic of Vietnam",
-        "slug": "republic-of-vietnam",
-        "regionType": "country",
-        "isHistorical": true
-    },
-    {
-        "code": "OWID_SAM",
-        "name": "South America",
-        "slug": "south-america",
-        "regionType": "continent",
-        "members": [
-            "ARG",
-            "BOL",
-            "BRA",
-            "CHL",
-            "COL",
-            "ECU",
-            "FLK",
-            "GUF",
-            "GUY",
-            "PER",
-            "PRY",
-            "SGS",
-            "SUR",
-            "URY",
-            "VEN"
-        ]
-    },
-    {
-        "code": "OWID_SDN",
-        "name": "Sudan (former)",
-        "slug": "sudan-former",
-        "regionType": "country",
-        "isHistorical": true
-    },
-    {
-        "code": "OWID_SEK",
-        "name": "Serbia excluding Kosovo",
-        "slug": "serbia-excluding-kosovo",
-        "regionType": "other"
-    },
-    {
-        "code": "OWID_SML",
-        "name": "Somaliland",
-        "slug": "somaliland",
-        "regionType": "other"
-    },
-    {
-        "code": "OWID_SOS",
-        "name": "South Ossetia",
-        "slug": "south-ossetia",
-        "regionType": "other"
-    },
-    {
-        "code": "OWID_SRM",
-        "name": "Serbia and Montenegro",
-        "slug": "serbia-and-montenegro",
-        "regionType": "country",
-        "isHistorical": true
-    },
-    {
-        "code": "OWID_TRS",
-        "name": "Transnistria",
-        "slug": "transnistria",
-        "regionType": "other"
-    },
-    {
-        "code": "OWID_USS",
-        "name": "USSR",
-        "slug": "ussr",
-        "regionType": "country",
-        "isHistorical": true
-    },
-    {
-        "code": "OWID_WRL",
-        "name": "World",
-        "slug": "world",
-        "regionType": "aggregate",
-        "members": [
-            "OWID_AFR",
-            "OWID_ASI",
-            "OWID_EUR",
-            "OWID_NAM",
-            "OWID_OCE",
-            "OWID_SAM"
-        ]
-    },
-    {
-        "code": "OWID_YAR",
-        "name": "Yemen Arab Republic",
-        "slug": "yemen-arab-republic",
-        "regionType": "country",
-        "isHistorical": true
-    },
-    {
-        "code": "OWID_YGS",
-        "name": "Yugoslavia",
-        "slug": "yugoslavia",
-        "regionType": "country",
-        "isHistorical": true
-    },
-    {
-        "code": "OWID_YPR",
-        "name": "Yemen People's Republic",
-        "slug": "yemen-peoples-republic",
-        "regionType": "country",
-        "isHistorical": true
-    },
-    {
-        "code": "OWID_ZAN",
-        "name": "Zanzibar",
-        "slug": "zanzibar",
-        "regionType": "other"
-    },
-    {
-        "code": "PAK",
-        "shortCode": "PK",
-        "name": "Pakistan",
-        "slug": "pakistan",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "PAN",
-        "shortCode": "PA",
-        "name": "Panama",
-        "slug": "panama",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "PCN",
-        "shortCode": "PN",
-        "name": "Pitcairn",
-        "slug": "pitcairn",
-        "regionType": "country"
-    },
-    {
-        "code": "PER",
-        "shortCode": "PE",
-        "name": "Peru",
-        "slug": "peru",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "PHL",
-        "shortCode": "PH",
-        "name": "Philippines",
-        "slug": "philippines",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "PLW",
-        "shortCode": "PW",
-        "name": "Palau",
-        "slug": "palau",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "PNG",
-        "shortCode": "PG",
-        "name": "Papua New Guinea",
-        "slug": "papua-new-guinea",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "POL",
-        "shortCode": "PL",
-        "name": "Poland",
-        "slug": "poland",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "PRI",
-        "shortCode": "PR",
-        "name": "Puerto Rico",
-        "slug": "puerto-rico",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "PRK",
-        "shortCode": "KP",
-        "name": "North Korea",
-        "slug": "north-korea",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "PRT",
-        "shortCode": "PT",
-        "name": "Portugal",
-        "slug": "portugal",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "PRY",
-        "shortCode": "PY",
-        "name": "Paraguay",
-        "slug": "paraguay",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "PSE",
-        "shortCode": "PS",
-        "name": "Palestine",
-        "slug": "palestine",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "PS_GZA",
-        "shortCode": "PS-GZA",
-        "name": "Gaza Strip",
-        "slug": "gaza-strip",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "PYF",
-        "shortCode": "PF",
-        "name": "French Polynesia",
-        "slug": "french-polynesia",
-        "regionType": "country"
-    },
-    {
-        "code": "QAT",
-        "shortCode": "QA",
-        "name": "Qatar",
-        "slug": "qatar",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "REU",
-        "shortCode": "RE",
-        "name": "Reunion",
-        "slug": "reunion",
-        "regionType": "country"
-    },
-    {
-        "code": "ROU",
-        "shortCode": "RO",
-        "name": "Romania",
-        "slug": "romania",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "RUS",
-        "shortCode": "RU",
-        "name": "Russia",
-        "slug": "russia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "RWA",
-        "shortCode": "RW",
-        "name": "Rwanda",
-        "slug": "rwanda",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SAU",
-        "shortCode": "SA",
-        "name": "Saudi Arabia",
-        "slug": "saudi-arabia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SDN",
-        "shortCode": "SD",
-        "name": "Sudan",
-        "slug": "sudan",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SEN",
-        "shortCode": "SN",
-        "name": "Senegal",
-        "slug": "senegal",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SGP",
-        "shortCode": "SG",
-        "name": "Singapore",
-        "slug": "singapore",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SGS",
-        "shortCode": "GS",
-        "name": "South Georgia and the South Sandwich Islands",
-        "slug": "south-georgia-and-the-south-sandwich-islands",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "SHN",
-        "shortCode": "SH",
-        "name": "Saint Helena",
-        "slug": "saint-helena",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "SJM",
-        "shortCode": "SJ",
-        "name": "Svalbard and Jan Mayen",
-        "slug": "svalbard-and-jan-mayen",
-        "regionType": "other",
-        "isUnlisted": true
-    },
-    {
-        "code": "SLB",
-        "shortCode": "SB",
-        "name": "Solomon Islands",
-        "slug": "solomon-islands",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SLE",
-        "shortCode": "SL",
-        "name": "Sierra Leone",
-        "slug": "sierra-leone",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SLV",
-        "shortCode": "SV",
-        "name": "El Salvador",
-        "slug": "el-salvador",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SMR",
-        "shortCode": "SM",
-        "name": "San Marino",
-        "slug": "san-marino",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SOM",
-        "shortCode": "SO",
-        "name": "Somalia",
-        "slug": "somalia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SPM",
-        "shortCode": "PM",
-        "name": "Saint Pierre and Miquelon",
-        "slug": "saint-pierre-and-miquelon",
-        "regionType": "country"
-    },
-    {
-        "code": "SRB",
-        "shortCode": "RS",
-        "name": "Serbia",
-        "slug": "serbia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SSD",
-        "shortCode": "SS",
-        "name": "South Sudan",
-        "slug": "south-sudan",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "STP",
-        "shortCode": "ST",
-        "name": "Sao Tome and Principe",
-        "slug": "sao-tome-and-principe",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SUR",
-        "shortCode": "SR",
-        "name": "Suriname",
-        "slug": "suriname",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SVK",
-        "shortCode": "SK",
-        "name": "Slovakia",
-        "slug": "slovakia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SVN",
-        "shortCode": "SI",
-        "name": "Slovenia",
-        "slug": "slovenia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SWE",
-        "shortCode": "SE",
-        "name": "Sweden",
-        "slug": "sweden",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SWZ",
-        "shortCode": "SZ",
-        "name": "Eswatini",
-        "slug": "eswatini",
-        "regionType": "country",
-        "isMappable": true,
-        "variantNames": ["Swaziland"]
-    },
-    {
-        "code": "SXM",
-        "shortCode": "SX",
-        "name": "Sint Maarten (Dutch part)",
-        "slug": "sint-maarten-dutch-part",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "SYC",
-        "shortCode": "SC",
-        "name": "Seychelles",
-        "slug": "seychelles",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "SYR",
-        "shortCode": "SY",
-        "name": "Syria",
-        "slug": "syria",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "TCA",
-        "shortCode": "TC",
-        "name": "Turks and Caicos Islands",
-        "slug": "turks-and-caicos-islands",
-        "regionType": "country"
-    },
-    {
-        "code": "TCD",
-        "shortCode": "TD",
-        "name": "Chad",
-        "slug": "chad",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "TGO",
-        "shortCode": "TG",
-        "name": "Togo",
-        "slug": "togo",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "THA",
-        "shortCode": "TH",
-        "name": "Thailand",
-        "slug": "thailand",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "TJK",
-        "shortCode": "TJ",
-        "name": "Tajikistan",
-        "slug": "tajikistan",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "TKL",
-        "shortCode": "TK",
-        "name": "Tokelau",
-        "slug": "tokelau",
-        "regionType": "country"
-    },
-    {
-        "code": "TKM",
-        "shortCode": "TM",
-        "name": "Turkmenistan",
-        "slug": "turkmenistan",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "TLS",
-        "shortCode": "TL",
-        "name": "East Timor",
-        "slug": "east-timor",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "TON",
-        "shortCode": "TO",
-        "name": "Tonga",
-        "slug": "tonga",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "TTO",
-        "shortCode": "TT",
-        "name": "Trinidad and Tobago",
-        "slug": "trinidad-and-tobago",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "TUN",
-        "shortCode": "TN",
-        "name": "Tunisia",
-        "slug": "tunisia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "TUR",
-        "shortCode": "TR",
-        "name": "Turkey",
-        "slug": "turkey",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "TUV",
-        "shortCode": "TV",
-        "name": "Tuvalu",
-        "slug": "tuvalu",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "TWN",
-        "shortCode": "TW",
-        "name": "Taiwan",
-        "slug": "taiwan",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "TZA",
-        "shortCode": "TZ",
-        "name": "Tanzania",
-        "slug": "tanzania",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "UGA",
-        "shortCode": "UG",
-        "name": "Uganda",
-        "slug": "uganda",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "UKR",
-        "shortCode": "UA",
-        "name": "Ukraine",
-        "slug": "ukraine",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "UMI",
-        "shortCode": "UM",
-        "name": "United States Minor Outlying Islands",
-        "slug": "united-states-minor-outlying-islands",
-        "regionType": "other",
-        "isUnlisted": true
-    },
-    {
-        "code": "URY",
-        "shortCode": "UY",
-        "name": "Uruguay",
-        "slug": "uruguay",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "USA",
-        "shortCode": "US",
-        "name": "United States",
-        "slug": "united-states",
-        "regionType": "country",
-        "isMappable": true,
-        "variantNames": ["US", "USA"]
-    },
-    {
-        "code": "UZB",
-        "shortCode": "UZ",
-        "name": "Uzbekistan",
-        "slug": "uzbekistan",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "VAT",
-        "shortCode": "VA",
-        "name": "Vatican",
-        "slug": "vatican",
-        "regionType": "country"
-    },
-    {
-        "code": "VCT",
-        "shortCode": "VC",
-        "name": "Saint Vincent and the Grenadines",
-        "slug": "saint-vincent-and-the-grenadines",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "VEN",
-        "shortCode": "VE",
-        "name": "Venezuela",
-        "slug": "venezuela",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "VGB",
-        "shortCode": "VG",
-        "name": "British Virgin Islands",
-        "slug": "british-virgin-islands",
-        "regionType": "country"
-    },
-    {
-        "code": "VIR",
-        "shortCode": "VI",
-        "name": "United States Virgin Islands",
-        "slug": "united-states-virgin-islands",
-        "regionType": "country"
-    },
-    {
-        "code": "VNM",
-        "shortCode": "VN",
-        "name": "Vietnam",
-        "slug": "vietnam",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "VUT",
-        "shortCode": "VU",
-        "name": "Vanuatu",
-        "slug": "vanuatu",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "WLF",
-        "shortCode": "WF",
-        "name": "Wallis and Futuna",
-        "slug": "wallis-and-futuna",
-        "regionType": "country",
-        "isUnlisted": true
-    },
-    {
-        "code": "WSM",
-        "shortCode": "WS",
-        "name": "Samoa",
-        "slug": "samoa",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "YEM",
-        "shortCode": "YE",
-        "name": "Yemen",
-        "slug": "yemen",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "ZAF",
-        "shortCode": "ZA",
-        "name": "South Africa",
-        "slug": "south-africa",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "ZMB",
-        "shortCode": "ZM",
-        "name": "Zambia",
-        "slug": "zambia",
-        "regionType": "country",
-        "isMappable": true
-    },
-    {
-        "code": "ZWE",
-        "shortCode": "ZW",
-        "name": "Zimbabwe",
-        "slug": "zimbabwe",
-        "regionType": "country",
-        "isMappable": true
-    }
+	{
+		"code": "ABW",
+		"shortCode": "AW",
+		"name": "Aruba",
+		"slug": "aruba",
+		"regionType": "country"
+	},
+	{
+		"code": "AFG",
+		"shortCode": "AF",
+		"name": "Afghanistan",
+		"slug": "afghanistan",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "AGO",
+		"shortCode": "AO",
+		"name": "Angola",
+		"slug": "angola",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "AIA",
+		"shortCode": "AI",
+		"name": "Anguilla",
+		"slug": "anguilla",
+		"regionType": "country"
+	},
+	{
+		"code": "ALA",
+		"shortCode": "AX",
+		"name": "Aland Islands",
+		"slug": "aland-islands",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "ALB",
+		"shortCode": "AL",
+		"name": "Albania",
+		"slug": "albania",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "AND",
+		"shortCode": "AD",
+		"name": "Andorra",
+		"slug": "andorra",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "ANT",
+		"shortCode": "AN",
+		"name": "Netherlands Antilles",
+		"slug": "netherlands-antilles",
+		"regionType": "country",
+		"isHistorical": true,
+		"isUnlisted": true
+	},
+	{
+		"code": "ARE",
+		"shortCode": "AE",
+		"name": "United Arab Emirates",
+		"slug": "united-arab-emirates",
+		"regionType": "country",
+		"isMappable": true,
+		"variantNames": ["UAE"]
+	},
+	{
+		"code": "ARG",
+		"shortCode": "AR",
+		"name": "Argentina",
+		"slug": "argentina",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "ARM",
+		"shortCode": "AM",
+		"name": "Armenia",
+		"slug": "armenia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "ASM",
+		"shortCode": "AS",
+		"name": "American Samoa",
+		"slug": "american-samoa",
+		"regionType": "country"
+	},
+	{
+		"code": "ATA",
+		"shortCode": "AQ",
+		"name": "Antarctica",
+		"slug": "antarctica",
+		"regionType": "other"
+	},
+	{
+		"code": "ATF",
+		"shortCode": "TF",
+		"name": "French Southern Territories",
+		"slug": "french-southern-territories",
+		"regionType": "country",
+		"isMappable": true,
+		"isUnlisted": true
+	},
+	{
+		"code": "ATG",
+		"shortCode": "AG",
+		"name": "Antigua and Barbuda",
+		"slug": "antigua-and-barbuda",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "AUS",
+		"shortCode": "AU",
+		"name": "Australia",
+		"slug": "australia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "AUT",
+		"shortCode": "AT",
+		"name": "Austria",
+		"slug": "austria",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "AZE",
+		"shortCode": "AZ",
+		"name": "Azerbaijan",
+		"slug": "azerbaijan",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BDI",
+		"shortCode": "BI",
+		"name": "Burundi",
+		"slug": "burundi",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BEL",
+		"shortCode": "BE",
+		"name": "Belgium",
+		"slug": "belgium",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BEN",
+		"shortCode": "BJ",
+		"name": "Benin",
+		"slug": "benin",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BES",
+		"shortCode": "BQ",
+		"name": "Bonaire Sint Eustatius and Saba",
+		"slug": "bonaire-sint-eustatius-and-saba",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "BFA",
+		"shortCode": "BF",
+		"name": "Burkina Faso",
+		"slug": "burkina-faso",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BGD",
+		"shortCode": "BD",
+		"name": "Bangladesh",
+		"slug": "bangladesh",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BGR",
+		"shortCode": "BG",
+		"name": "Bulgaria",
+		"slug": "bulgaria",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BHR",
+		"shortCode": "BH",
+		"name": "Bahrain",
+		"slug": "bahrain",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BHS",
+		"shortCode": "BS",
+		"name": "Bahamas",
+		"slug": "bahamas",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BIH",
+		"shortCode": "BA",
+		"name": "Bosnia and Herzegovina",
+		"slug": "bosnia-and-herzegovina",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BLM",
+		"shortCode": "BL",
+		"name": "Saint Barthelemy",
+		"slug": "saint-barthelemy",
+		"regionType": "country"
+	},
+	{
+		"code": "BLR",
+		"shortCode": "BY",
+		"name": "Belarus",
+		"slug": "belarus",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BLZ",
+		"shortCode": "BZ",
+		"name": "Belize",
+		"slug": "belize",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BMU",
+		"shortCode": "BM",
+		"name": "Bermuda",
+		"slug": "bermuda",
+		"regionType": "country"
+	},
+	{
+		"code": "BOL",
+		"shortCode": "BO",
+		"name": "Bolivia",
+		"slug": "bolivia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BRA",
+		"shortCode": "BR",
+		"name": "Brazil",
+		"slug": "brazil",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BRB",
+		"shortCode": "BB",
+		"name": "Barbados",
+		"slug": "barbados",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BRN",
+		"shortCode": "BN",
+		"name": "Brunei",
+		"slug": "brunei",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BTN",
+		"shortCode": "BT",
+		"name": "Bhutan",
+		"slug": "bhutan",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "BVT",
+		"shortCode": "BV",
+		"name": "Bouvet Island",
+		"slug": "bouvet-island",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "BWA",
+		"shortCode": "BW",
+		"name": "Botswana",
+		"slug": "botswana",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "CAF",
+		"shortCode": "CF",
+		"name": "Central African Republic",
+		"slug": "central-african-republic",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "CAN",
+		"shortCode": "CA",
+		"name": "Canada",
+		"slug": "canada",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "CCK",
+		"shortCode": "CC",
+		"name": "Cocos Islands",
+		"slug": "cocos-islands",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "CHE",
+		"shortCode": "CH",
+		"name": "Switzerland",
+		"slug": "switzerland",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "CHL",
+		"shortCode": "CL",
+		"name": "Chile",
+		"slug": "chile",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "CHN",
+		"shortCode": "CN",
+		"name": "China",
+		"slug": "china",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "CIV",
+		"shortCode": "CI",
+		"name": "Cote d'Ivoire",
+		"slug": "cote-divoire",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "CMR",
+		"shortCode": "CM",
+		"name": "Cameroon",
+		"slug": "cameroon",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "COD",
+		"shortCode": "CD",
+		"name": "Democratic Republic of Congo",
+		"shortName": "DR Congo",
+		"slug": "democratic-republic-of-congo",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "COG",
+		"shortCode": "CG",
+		"name": "Congo",
+		"slug": "congo",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "COK",
+		"shortCode": "CK",
+		"name": "Cook Islands",
+		"slug": "cook-islands",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "COL",
+		"shortCode": "CO",
+		"name": "Colombia",
+		"slug": "colombia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "COM",
+		"shortCode": "KM",
+		"name": "Comoros",
+		"slug": "comoros",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "CPV",
+		"shortCode": "CV",
+		"name": "Cape Verde",
+		"slug": "cape-verde",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "CRI",
+		"shortCode": "CR",
+		"name": "Costa Rica",
+		"slug": "costa-rica",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "CUB",
+		"shortCode": "CU",
+		"name": "Cuba",
+		"slug": "cuba",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "CUW",
+		"shortCode": "CW",
+		"name": "Curacao",
+		"slug": "curacao",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "CXR",
+		"shortCode": "CX",
+		"name": "Christmas Island",
+		"slug": "christmas-island",
+		"regionType": "country"
+	},
+	{
+		"code": "CYM",
+		"shortCode": "KY",
+		"name": "Cayman Islands",
+		"slug": "cayman-islands",
+		"regionType": "country"
+	},
+	{
+		"code": "CYP",
+		"shortCode": "CY",
+		"name": "Cyprus",
+		"slug": "cyprus",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "CZE",
+		"shortCode": "CZ",
+		"name": "Czechia",
+		"slug": "czechia",
+		"regionType": "country",
+		"isMappable": true,
+		"variantNames": ["Czech Republic"]
+	},
+	{
+		"code": "DEU",
+		"shortCode": "DE",
+		"name": "Germany",
+		"slug": "germany",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "DJI",
+		"shortCode": "DJ",
+		"name": "Djibouti",
+		"slug": "djibouti",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "DMA",
+		"shortCode": "DM",
+		"name": "Dominica",
+		"slug": "dominica",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "DNK",
+		"shortCode": "DK",
+		"name": "Denmark",
+		"slug": "denmark",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "DOM",
+		"shortCode": "DO",
+		"name": "Dominican Republic",
+		"slug": "dominican-republic",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "DZA",
+		"shortCode": "DZ",
+		"name": "Algeria",
+		"slug": "algeria",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "ECU",
+		"shortCode": "EC",
+		"name": "Ecuador",
+		"slug": "ecuador",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "EGY",
+		"shortCode": "EG",
+		"name": "Egypt",
+		"slug": "egypt",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "ERI",
+		"shortCode": "ER",
+		"name": "Eritrea",
+		"slug": "eritrea",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "ESH",
+		"shortCode": "EH",
+		"name": "Western Sahara",
+		"slug": "western-sahara",
+		"regionType": "country",
+		"isMappable": true,
+		"isUnlisted": true
+	},
+	{
+		"code": "ESP",
+		"shortCode": "ES",
+		"name": "Spain",
+		"slug": "spain",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "EST",
+		"shortCode": "EE",
+		"name": "Estonia",
+		"slug": "estonia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "ETH",
+		"shortCode": "ET",
+		"name": "Ethiopia",
+		"slug": "ethiopia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "FIN",
+		"shortCode": "FI",
+		"name": "Finland",
+		"slug": "finland",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "FJI",
+		"shortCode": "FJ",
+		"name": "Fiji",
+		"slug": "fiji",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "FLK",
+		"shortCode": "FK",
+		"name": "Falkland Islands",
+		"slug": "falkland-islands",
+		"regionType": "country"
+	},
+	{
+		"code": "FRA",
+		"shortCode": "FR",
+		"name": "France",
+		"slug": "france",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "FRO",
+		"shortCode": "FO",
+		"name": "Faroe Islands",
+		"slug": "faroe-islands",
+		"regionType": "country"
+	},
+	{
+		"code": "FSM",
+		"shortCode": "FM",
+		"name": "Micronesia (country)",
+		"slug": "micronesia-country",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "GAB",
+		"shortCode": "GA",
+		"name": "Gabon",
+		"slug": "gabon",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "GBR",
+		"shortCode": "GB",
+		"name": "United Kingdom",
+		"slug": "united-kingdom",
+		"regionType": "country",
+		"isMappable": true,
+		"variantNames": ["UK"]
+	},
+	{
+		"code": "GEO",
+		"shortCode": "GE",
+		"name": "Georgia",
+		"slug": "georgia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "GGY",
+		"shortCode": "GG",
+		"name": "Guernsey",
+		"slug": "guernsey",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "GHA",
+		"shortCode": "GH",
+		"name": "Ghana",
+		"slug": "ghana",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "GIB",
+		"shortCode": "GI",
+		"name": "Gibraltar",
+		"slug": "gibraltar",
+		"regionType": "country"
+	},
+	{
+		"code": "GIN",
+		"shortCode": "GN",
+		"name": "Guinea",
+		"slug": "guinea",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "GLP",
+		"shortCode": "GP",
+		"name": "Guadeloupe",
+		"slug": "guadeloupe",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "GMB",
+		"shortCode": "GM",
+		"name": "Gambia",
+		"slug": "gambia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "GNB",
+		"shortCode": "GW",
+		"name": "Guinea-Bissau",
+		"slug": "guinea-bissau",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "GNQ",
+		"shortCode": "GQ",
+		"name": "Equatorial Guinea",
+		"slug": "equatorial-guinea",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "GRC",
+		"shortCode": "GR",
+		"name": "Greece",
+		"slug": "greece",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "GRD",
+		"shortCode": "GD",
+		"name": "Grenada",
+		"slug": "grenada",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "GRL",
+		"shortCode": "GL",
+		"name": "Greenland",
+		"slug": "greenland",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "GTM",
+		"shortCode": "GT",
+		"name": "Guatemala",
+		"slug": "guatemala",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "GUF",
+		"shortCode": "GF",
+		"name": "French Guiana",
+		"slug": "french-guiana",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "GUM",
+		"shortCode": "GU",
+		"name": "Guam",
+		"slug": "guam",
+		"regionType": "country"
+	},
+	{
+		"code": "GUY",
+		"shortCode": "GY",
+		"name": "Guyana",
+		"slug": "guyana",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "HKG",
+		"shortCode": "HK",
+		"name": "Hong Kong",
+		"slug": "hong-kong",
+		"regionType": "country"
+	},
+	{
+		"code": "HMD",
+		"shortCode": "HM",
+		"name": "Heard Island and McDonald Islands",
+		"slug": "heard-island-and-mcdonald-islands",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "HND",
+		"shortCode": "HN",
+		"name": "Honduras",
+		"slug": "honduras",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "HRV",
+		"shortCode": "HR",
+		"name": "Croatia",
+		"slug": "croatia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "HTI",
+		"shortCode": "HT",
+		"name": "Haiti",
+		"slug": "haiti",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "HUN",
+		"shortCode": "HU",
+		"name": "Hungary",
+		"slug": "hungary",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "IDN",
+		"shortCode": "ID",
+		"name": "Indonesia",
+		"slug": "indonesia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "IMN",
+		"shortCode": "IM",
+		"name": "Isle of Man",
+		"slug": "isle-of-man",
+		"regionType": "country"
+	},
+	{
+		"code": "IND",
+		"shortCode": "IN",
+		"name": "India",
+		"slug": "india",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "IOT",
+		"shortCode": "IO",
+		"name": "British Indian Ocean Territory",
+		"slug": "british-indian-ocean-territory",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "IRL",
+		"shortCode": "IE",
+		"name": "Ireland",
+		"slug": "ireland",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "IRN",
+		"shortCode": "IR",
+		"name": "Iran",
+		"slug": "iran",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "IRQ",
+		"shortCode": "IQ",
+		"name": "Iraq",
+		"slug": "iraq",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "ISL",
+		"shortCode": "IS",
+		"name": "Iceland",
+		"slug": "iceland",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "ISR",
+		"shortCode": "IL",
+		"name": "Israel",
+		"slug": "israel",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "ITA",
+		"shortCode": "IT",
+		"name": "Italy",
+		"slug": "italy",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "JAM",
+		"shortCode": "JM",
+		"name": "Jamaica",
+		"slug": "jamaica",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "JEY",
+		"shortCode": "JE",
+		"name": "Jersey",
+		"slug": "jersey",
+		"regionType": "country"
+	},
+	{
+		"code": "JOR",
+		"shortCode": "JO",
+		"name": "Jordan",
+		"slug": "jordan",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "JPN",
+		"shortCode": "JP",
+		"name": "Japan",
+		"slug": "japan",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "KAZ",
+		"shortCode": "KZ",
+		"name": "Kazakhstan",
+		"slug": "kazakhstan",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "KEN",
+		"shortCode": "KE",
+		"name": "Kenya",
+		"slug": "kenya",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "KGZ",
+		"shortCode": "KG",
+		"name": "Kyrgyzstan",
+		"slug": "kyrgyzstan",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "KHM",
+		"shortCode": "KH",
+		"name": "Cambodia",
+		"slug": "cambodia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "KIR",
+		"shortCode": "KI",
+		"name": "Kiribati",
+		"slug": "kiribati",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "KNA",
+		"shortCode": "KN",
+		"name": "Saint Kitts and Nevis",
+		"slug": "saint-kitts-and-nevis",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "KOR",
+		"shortCode": "KR",
+		"name": "South Korea",
+		"slug": "south-korea",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "KWT",
+		"shortCode": "KW",
+		"name": "Kuwait",
+		"slug": "kuwait",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "LAO",
+		"shortCode": "LA",
+		"name": "Laos",
+		"slug": "laos",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "LBN",
+		"shortCode": "LB",
+		"name": "Lebanon",
+		"slug": "lebanon",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "LBR",
+		"shortCode": "LR",
+		"name": "Liberia",
+		"slug": "liberia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "LBY",
+		"shortCode": "LY",
+		"name": "Libya",
+		"slug": "libya",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "LCA",
+		"shortCode": "LC",
+		"name": "Saint Lucia",
+		"slug": "saint-lucia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "LIE",
+		"shortCode": "LI",
+		"name": "Liechtenstein",
+		"slug": "liechtenstein",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "LKA",
+		"shortCode": "LK",
+		"name": "Sri Lanka",
+		"slug": "sri-lanka",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "LSO",
+		"shortCode": "LS",
+		"name": "Lesotho",
+		"slug": "lesotho",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "LTU",
+		"shortCode": "LT",
+		"name": "Lithuania",
+		"slug": "lithuania",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "LUX",
+		"shortCode": "LU",
+		"name": "Luxembourg",
+		"slug": "luxembourg",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "LVA",
+		"shortCode": "LV",
+		"name": "Latvia",
+		"slug": "latvia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MAC",
+		"shortCode": "MO",
+		"name": "Macao",
+		"slug": "macao",
+		"regionType": "country"
+	},
+	{
+		"code": "MAF",
+		"shortCode": "MF",
+		"name": "Saint Martin (French part)",
+		"slug": "saint-martin-french-part",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "MAR",
+		"shortCode": "MA",
+		"name": "Morocco",
+		"slug": "morocco",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MCO",
+		"shortCode": "MC",
+		"name": "Monaco",
+		"slug": "monaco",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MDA",
+		"shortCode": "MD",
+		"name": "Moldova",
+		"slug": "moldova",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MDG",
+		"shortCode": "MG",
+		"name": "Madagascar",
+		"slug": "madagascar",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MDV",
+		"shortCode": "MV",
+		"name": "Maldives",
+		"slug": "maldives",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MEX",
+		"shortCode": "MX",
+		"name": "Mexico",
+		"slug": "mexico",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MHL",
+		"shortCode": "MH",
+		"name": "Marshall Islands",
+		"slug": "marshall-islands",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MKD",
+		"shortCode": "MK",
+		"name": "North Macedonia",
+		"slug": "north-macedonia",
+		"regionType": "country",
+		"isMappable": true,
+		"variantNames": ["Macedonia"]
+	},
+	{
+		"code": "MLI",
+		"shortCode": "ML",
+		"name": "Mali",
+		"slug": "mali",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MLT",
+		"shortCode": "MT",
+		"name": "Malta",
+		"slug": "malta",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MMR",
+		"shortCode": "MM",
+		"name": "Myanmar",
+		"slug": "myanmar",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MNE",
+		"shortCode": "ME",
+		"name": "Montenegro",
+		"slug": "montenegro",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MNG",
+		"shortCode": "MN",
+		"name": "Mongolia",
+		"slug": "mongolia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MNP",
+		"shortCode": "MP",
+		"name": "Northern Mariana Islands",
+		"slug": "northern-mariana-islands",
+		"regionType": "country"
+	},
+	{
+		"code": "MOZ",
+		"shortCode": "MZ",
+		"name": "Mozambique",
+		"slug": "mozambique",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MRT",
+		"shortCode": "MR",
+		"name": "Mauritania",
+		"slug": "mauritania",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MSR",
+		"shortCode": "MS",
+		"name": "Montserrat",
+		"slug": "montserrat",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "MTQ",
+		"shortCode": "MQ",
+		"name": "Martinique",
+		"slug": "martinique",
+		"regionType": "country"
+	},
+	{
+		"code": "MUS",
+		"shortCode": "MU",
+		"name": "Mauritius",
+		"slug": "mauritius",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MWI",
+		"shortCode": "MW",
+		"name": "Malawi",
+		"slug": "malawi",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MYS",
+		"shortCode": "MY",
+		"name": "Malaysia",
+		"slug": "malaysia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "MYT",
+		"shortCode": "YT",
+		"name": "Mayotte",
+		"slug": "mayotte",
+		"regionType": "country"
+	},
+	{
+		"code": "NAM",
+		"shortCode": "NA",
+		"name": "Namibia",
+		"slug": "namibia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "NCL",
+		"shortCode": "NC",
+		"name": "New Caledonia",
+		"slug": "new-caledonia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "NER",
+		"shortCode": "NE",
+		"name": "Niger",
+		"slug": "niger",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "NFK",
+		"shortCode": "NF",
+		"name": "Norfolk Island",
+		"slug": "norfolk-island",
+		"regionType": "country"
+	},
+	{
+		"code": "NGA",
+		"shortCode": "NG",
+		"name": "Nigeria",
+		"slug": "nigeria",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "NIC",
+		"shortCode": "NI",
+		"name": "Nicaragua",
+		"slug": "nicaragua",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "NIU",
+		"shortCode": "NU",
+		"name": "Niue",
+		"slug": "niue",
+		"regionType": "country"
+	},
+	{
+		"code": "NLD",
+		"shortCode": "NL",
+		"name": "Netherlands",
+		"slug": "netherlands",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "NOR",
+		"shortCode": "NO",
+		"name": "Norway",
+		"slug": "norway",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "NPL",
+		"shortCode": "NP",
+		"name": "Nepal",
+		"slug": "nepal",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "NRU",
+		"shortCode": "NR",
+		"name": "Nauru",
+		"slug": "nauru",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "NZL",
+		"shortCode": "NZ",
+		"name": "New Zealand",
+		"slug": "new-zealand",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "OMN",
+		"shortCode": "OM",
+		"name": "Oman",
+		"slug": "oman",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "OWID_ABK",
+		"name": "Abkhazia",
+		"slug": "abkhazia",
+		"regionType": "other"
+	},
+	{
+		"code": "OWID_AFR",
+		"name": "Africa",
+		"slug": "africa",
+		"regionType": "continent",
+		"members": [
+			"AGO",
+			"BDI",
+			"BEN",
+			"BFA",
+			"BWA",
+			"CAF",
+			"CIV",
+			"CMR",
+			"COD",
+			"COG",
+			"COM",
+			"CPV",
+			"DJI",
+			"DZA",
+			"EGY",
+			"ERI",
+			"ESH",
+			"ETH",
+			"GAB",
+			"GHA",
+			"GIN",
+			"GMB",
+			"GNB",
+			"GNQ",
+			"KEN",
+			"LBR",
+			"LBY",
+			"LSO",
+			"MAR",
+			"MDG",
+			"MLI",
+			"MOZ",
+			"MRT",
+			"MUS",
+			"MWI",
+			"MYT",
+			"NAM",
+			"NER",
+			"NGA",
+			"OWID_ERE",
+			"REU",
+			"RWA",
+			"SDN",
+			"SEN",
+			"SHN",
+			"SLE",
+			"SOM",
+			"SSD",
+			"STP",
+			"SWZ",
+			"SYC",
+			"TCD",
+			"TGO",
+			"TUN",
+			"TZA",
+			"UGA",
+			"ZAF",
+			"ZMB",
+			"ZWE",
+			"OWID_SML",
+			"OWID_ZAN"
+		]
+	},
+	{
+		"code": "OWID_AKD",
+		"name": "Akrotiri and Dhekelia",
+		"slug": "akrotiri-and-dhekelia",
+		"regionType": "other"
+	},
+	{
+		"code": "OWID_ASI",
+		"name": "Asia",
+		"slug": "asia",
+		"regionType": "continent",
+		"members": [
+			"AFG",
+			"ARE",
+			"ARM",
+			"AZE",
+			"BGD",
+			"BHR",
+			"BRN",
+			"BTN",
+			"CCK",
+			"CHN",
+			"CXR",
+			"GEO",
+			"HKG",
+			"IDN",
+			"IND",
+			"IOT",
+			"IRN",
+			"IRQ",
+			"ISR",
+			"JOR",
+			"JPN",
+			"KAZ",
+			"KGZ",
+			"KHM",
+			"KOR",
+			"KWT",
+			"LAO",
+			"LBN",
+			"LKA",
+			"MAC",
+			"MDV",
+			"MMR",
+			"MNG",
+			"MYS",
+			"NPL",
+			"OMN",
+			"OWID_KRU",
+			"OWID_RVN",
+			"OWID_YAR",
+			"OWID_YPR",
+			"PAK",
+			"PHL",
+			"PRK",
+			"PSE",
+			"QAT",
+			"SAU",
+			"SGP",
+			"SYR",
+			"THA",
+			"TJK",
+			"TKM",
+			"TLS",
+			"TUR",
+			"TWN",
+			"UZB",
+			"VNM",
+			"YEM",
+			"OWID_CYN",
+			"OWID_ABK",
+			"OWID_AKD",
+			"OWID_NAG",
+			"OWID_CYN",
+			"OWID_SOS"
+		]
+	},
+	{
+		"code": "OWID_AUH",
+		"name": "Austria-Hungary",
+		"slug": "austria-hungary",
+		"regionType": "country",
+		"isHistorical": true
+	},
+	{
+		"code": "OWID_CIS",
+		"name": "Channel Islands",
+		"slug": "channel-islands",
+		"regionType": "aggregate",
+		"members": ["GGY", "JEY"]
+	},
+	{
+		"code": "OWID_CYN",
+		"name": "Northern Cyprus",
+		"slug": "northern-cyprus",
+		"regionType": "other"
+	},
+	{
+		"code": "OWID_CZS",
+		"name": "Czechoslovakia",
+		"slug": "czechoslovakia",
+		"regionType": "country",
+		"isHistorical": true
+	},
+	{
+		"code": "OWID_ERE",
+		"name": "Ethiopia (former)",
+		"slug": "ethiopia-former",
+		"regionType": "country",
+		"isHistorical": true
+	},
+	{
+		"code": "OWID_EU27",
+		"name": "European Union (27)",
+		"slug": "european-union-27",
+		"regionType": "aggregate",
+		"members": [
+			"AUT",
+			"BEL",
+			"BGR",
+			"CYP",
+			"CZE",
+			"DEU",
+			"DNK",
+			"ESP",
+			"EST",
+			"FIN",
+			"FRA",
+			"GRC",
+			"HRV",
+			"HUN",
+			"IRL",
+			"ITA",
+			"LTU",
+			"LUX",
+			"LVA",
+			"MLT",
+			"NLD",
+			"POL",
+			"PRT",
+			"ROU",
+			"SVK",
+			"SVN",
+			"SWE"
+		]
+	},
+	{
+		"code": "OWID_EUR",
+		"name": "Europe",
+		"slug": "europe",
+		"regionType": "continent",
+		"members": [
+			"ALA",
+			"ALB",
+			"AND",
+			"AUT",
+			"BEL",
+			"BGR",
+			"BIH",
+			"BLR",
+			"CHE",
+			"CYP",
+			"CZE",
+			"DEU",
+			"DNK",
+			"ESP",
+			"EST",
+			"FIN",
+			"FRA",
+			"FRO",
+			"GBR",
+			"GGY",
+			"GIB",
+			"GRC",
+			"HRV",
+			"HUN",
+			"IMN",
+			"IRL",
+			"ISL",
+			"ITA",
+			"JEY",
+			"LIE",
+			"LTU",
+			"LUX",
+			"LVA",
+			"MCO",
+			"MDA",
+			"MKD",
+			"MLT",
+			"MNE",
+			"NLD",
+			"NOR",
+			"OWID_AUH",
+			"OWID_CZS",
+			"OWID_GDR",
+			"OWID_GFR",
+			"OWID_KOS",
+			"OWID_SEK",
+			"OWID_SRM",
+			"OWID_USS",
+			"OWID_YGS",
+			"POL",
+			"PRT",
+			"ROU",
+			"RUS",
+			"SMR",
+			"SRB",
+			"SVK",
+			"SVN",
+			"SWE",
+			"UKR",
+			"VAT",
+			"OWID_CIS",
+			"SJM",
+			"OWID_TRS"
+		]
+	},
+	{
+		"code": "OWID_GDR",
+		"name": "East Germany",
+		"slug": "east-germany",
+		"regionType": "country",
+		"isHistorical": true
+	},
+	{
+		"code": "OWID_GFR",
+		"name": "West Germany",
+		"slug": "west-germany",
+		"regionType": "country",
+		"isHistorical": true
+	},
+	{
+		"code": "OWID_KOS",
+		"name": "Kosovo",
+		"slug": "kosovo",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "OWID_KRU",
+		"name": "Korea (former)",
+		"slug": "korea-former",
+		"regionType": "country",
+		"isHistorical": true
+	},
+	{
+		"code": "OWID_MNS",
+		"name": "Melanesia",
+		"slug": "melanesia",
+		"regionType": "aggregate",
+		"members": ["FJI", "PNG", "SLB", "VUT"]
+	},
+	{
+		"code": "OWID_NAG",
+		"name": "Nagorno-Karabakh",
+		"slug": "nagorno-karabakh",
+		"regionType": "other"
+	},
+	{
+		"code": "OWID_NAM",
+		"name": "North America",
+		"slug": "north-america",
+		"regionType": "continent",
+		"members": [
+			"ABW",
+			"AIA",
+			"ANT",
+			"ATG",
+			"BES",
+			"BHS",
+			"BLM",
+			"BLZ",
+			"BMU",
+			"BRB",
+			"CAN",
+			"CRI",
+			"CUB",
+			"CUW",
+			"CYM",
+			"DMA",
+			"DOM",
+			"GLP",
+			"GRD",
+			"GRL",
+			"GTM",
+			"HND",
+			"HTI",
+			"JAM",
+			"KNA",
+			"LCA",
+			"MAF",
+			"MEX",
+			"MSR",
+			"MTQ",
+			"NIC",
+			"PAN",
+			"PRI",
+			"SLV",
+			"SPM",
+			"SXM",
+			"TCA",
+			"TTO",
+			"USA",
+			"VCT",
+			"VGB",
+			"VIR"
+		]
+	},
+	{
+		"code": "OWID_OCE",
+		"name": "Oceania",
+		"slug": "oceania",
+		"regionType": "continent",
+		"members": [
+			"ASM",
+			"AUS",
+			"COK",
+			"FJI",
+			"FSM",
+			"GUM",
+			"KIR",
+			"MHL",
+			"MNP",
+			"NCL",
+			"NFK",
+			"NIU",
+			"NRU",
+			"NZL",
+			"PCN",
+			"PLW",
+			"PNG",
+			"PYF",
+			"SLB",
+			"TKL",
+			"TON",
+			"TUV",
+			"UMI",
+			"VUT",
+			"WLF",
+			"WSM"
+		]
+	},
+	{
+		"code": "OWID_PYA",
+		"name": "Polynesia",
+		"slug": "polynesia",
+		"regionType": "aggregate",
+		"members": [
+			"ASM",
+			"COK",
+			"NFK",
+			"NIU",
+			"NZL",
+			"PCN",
+			"PYF",
+			"TKL",
+			"TON",
+			"TUV",
+			"WLF",
+			"WSM"
+		]
+	},
+	{
+		"code": "OWID_RVN",
+		"name": "Republic of Vietnam",
+		"slug": "republic-of-vietnam",
+		"regionType": "country",
+		"isHistorical": true
+	},
+	{
+		"code": "OWID_SAM",
+		"name": "South America",
+		"slug": "south-america",
+		"regionType": "continent",
+		"members": [
+			"ARG",
+			"BOL",
+			"BRA",
+			"CHL",
+			"COL",
+			"ECU",
+			"FLK",
+			"GUF",
+			"GUY",
+			"PER",
+			"PRY",
+			"SGS",
+			"SUR",
+			"URY",
+			"VEN"
+		]
+	},
+	{
+		"code": "OWID_SDN",
+		"name": "Sudan (former)",
+		"slug": "sudan-former",
+		"regionType": "country",
+		"isHistorical": true
+	},
+	{
+		"code": "OWID_SEK",
+		"name": "Serbia excluding Kosovo",
+		"slug": "serbia-excluding-kosovo",
+		"regionType": "other"
+	},
+	{
+		"code": "OWID_SML",
+		"name": "Somaliland",
+		"slug": "somaliland",
+		"regionType": "other"
+	},
+	{
+		"code": "OWID_SOS",
+		"name": "South Ossetia",
+		"slug": "south-ossetia",
+		"regionType": "other"
+	},
+	{
+		"code": "OWID_SRM",
+		"name": "Serbia and Montenegro",
+		"slug": "serbia-and-montenegro",
+		"regionType": "country",
+		"isHistorical": true
+	},
+	{
+		"code": "OWID_TRS",
+		"name": "Transnistria",
+		"slug": "transnistria",
+		"regionType": "other"
+	},
+	{
+		"code": "OWID_USS",
+		"name": "USSR",
+		"slug": "ussr",
+		"regionType": "country",
+		"isHistorical": true
+	},
+	{
+		"code": "OWID_WRL",
+		"name": "World",
+		"slug": "world",
+		"regionType": "aggregate",
+		"members": [
+			"OWID_AFR",
+			"OWID_ASI",
+			"OWID_EUR",
+			"OWID_NAM",
+			"OWID_OCE",
+			"OWID_SAM"
+		]
+	},
+	{
+		"code": "OWID_YAR",
+		"name": "Yemen Arab Republic",
+		"slug": "yemen-arab-republic",
+		"regionType": "country",
+		"isHistorical": true
+	},
+	{
+		"code": "OWID_YGS",
+		"name": "Yugoslavia",
+		"slug": "yugoslavia",
+		"regionType": "country",
+		"isHistorical": true
+	},
+	{
+		"code": "OWID_YPR",
+		"name": "Yemen People's Republic",
+		"slug": "yemen-peoples-republic",
+		"regionType": "country",
+		"isHistorical": true
+	},
+	{
+		"code": "OWID_ZAN",
+		"name": "Zanzibar",
+		"slug": "zanzibar",
+		"regionType": "other"
+	},
+	{
+		"code": "PAK",
+		"shortCode": "PK",
+		"name": "Pakistan",
+		"slug": "pakistan",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "PAN",
+		"shortCode": "PA",
+		"name": "Panama",
+		"slug": "panama",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "PCN",
+		"shortCode": "PN",
+		"name": "Pitcairn",
+		"slug": "pitcairn",
+		"regionType": "country"
+	},
+	{
+		"code": "PER",
+		"shortCode": "PE",
+		"name": "Peru",
+		"slug": "peru",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "PHL",
+		"shortCode": "PH",
+		"name": "Philippines",
+		"slug": "philippines",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "PLW",
+		"shortCode": "PW",
+		"name": "Palau",
+		"slug": "palau",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "PNG",
+		"shortCode": "PG",
+		"name": "Papua New Guinea",
+		"slug": "papua-new-guinea",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "POL",
+		"shortCode": "PL",
+		"name": "Poland",
+		"slug": "poland",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "PRI",
+		"shortCode": "PR",
+		"name": "Puerto Rico",
+		"slug": "puerto-rico",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "PRK",
+		"shortCode": "KP",
+		"name": "North Korea",
+		"slug": "north-korea",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "PRT",
+		"shortCode": "PT",
+		"name": "Portugal",
+		"slug": "portugal",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "PRY",
+		"shortCode": "PY",
+		"name": "Paraguay",
+		"slug": "paraguay",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "PSE",
+		"shortCode": "PS",
+		"name": "Palestine",
+		"slug": "palestine",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "PS_GZA",
+		"shortCode": "PS-GZA",
+		"name": "Gaza Strip",
+		"slug": "gaza-strip",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "PYF",
+		"shortCode": "PF",
+		"name": "French Polynesia",
+		"slug": "french-polynesia",
+		"regionType": "country"
+	},
+	{
+		"code": "QAT",
+		"shortCode": "QA",
+		"name": "Qatar",
+		"slug": "qatar",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "REU",
+		"shortCode": "RE",
+		"name": "Reunion",
+		"slug": "reunion",
+		"regionType": "country"
+	},
+	{
+		"code": "ROU",
+		"shortCode": "RO",
+		"name": "Romania",
+		"slug": "romania",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "RUS",
+		"shortCode": "RU",
+		"name": "Russia",
+		"slug": "russia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "RWA",
+		"shortCode": "RW",
+		"name": "Rwanda",
+		"slug": "rwanda",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SAU",
+		"shortCode": "SA",
+		"name": "Saudi Arabia",
+		"slug": "saudi-arabia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SDN",
+		"shortCode": "SD",
+		"name": "Sudan",
+		"slug": "sudan",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SEN",
+		"shortCode": "SN",
+		"name": "Senegal",
+		"slug": "senegal",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SGP",
+		"shortCode": "SG",
+		"name": "Singapore",
+		"slug": "singapore",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SGS",
+		"shortCode": "GS",
+		"name": "South Georgia and the South Sandwich Islands",
+		"slug": "south-georgia-and-the-south-sandwich-islands",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "SHN",
+		"shortCode": "SH",
+		"name": "Saint Helena",
+		"slug": "saint-helena",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "SJM",
+		"shortCode": "SJ",
+		"name": "Svalbard and Jan Mayen",
+		"slug": "svalbard-and-jan-mayen",
+		"regionType": "other",
+		"isUnlisted": true
+	},
+	{
+		"code": "SLB",
+		"shortCode": "SB",
+		"name": "Solomon Islands",
+		"slug": "solomon-islands",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SLE",
+		"shortCode": "SL",
+		"name": "Sierra Leone",
+		"slug": "sierra-leone",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SLV",
+		"shortCode": "SV",
+		"name": "El Salvador",
+		"slug": "el-salvador",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SMR",
+		"shortCode": "SM",
+		"name": "San Marino",
+		"slug": "san-marino",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SOM",
+		"shortCode": "SO",
+		"name": "Somalia",
+		"slug": "somalia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SPM",
+		"shortCode": "PM",
+		"name": "Saint Pierre and Miquelon",
+		"slug": "saint-pierre-and-miquelon",
+		"regionType": "country"
+	},
+	{
+		"code": "SRB",
+		"shortCode": "RS",
+		"name": "Serbia",
+		"slug": "serbia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SSD",
+		"shortCode": "SS",
+		"name": "South Sudan",
+		"slug": "south-sudan",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "STP",
+		"shortCode": "ST",
+		"name": "Sao Tome and Principe",
+		"slug": "sao-tome-and-principe",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SUR",
+		"shortCode": "SR",
+		"name": "Suriname",
+		"slug": "suriname",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SVK",
+		"shortCode": "SK",
+		"name": "Slovakia",
+		"slug": "slovakia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SVN",
+		"shortCode": "SI",
+		"name": "Slovenia",
+		"slug": "slovenia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SWE",
+		"shortCode": "SE",
+		"name": "Sweden",
+		"slug": "sweden",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SWZ",
+		"shortCode": "SZ",
+		"name": "Eswatini",
+		"slug": "eswatini",
+		"regionType": "country",
+		"isMappable": true,
+		"variantNames": ["Swaziland"]
+	},
+	{
+		"code": "SXM",
+		"shortCode": "SX",
+		"name": "Sint Maarten (Dutch part)",
+		"slug": "sint-maarten-dutch-part",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "SYC",
+		"shortCode": "SC",
+		"name": "Seychelles",
+		"slug": "seychelles",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "SYR",
+		"shortCode": "SY",
+		"name": "Syria",
+		"slug": "syria",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "TCA",
+		"shortCode": "TC",
+		"name": "Turks and Caicos Islands",
+		"slug": "turks-and-caicos-islands",
+		"regionType": "country"
+	},
+	{
+		"code": "TCD",
+		"shortCode": "TD",
+		"name": "Chad",
+		"slug": "chad",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "TGO",
+		"shortCode": "TG",
+		"name": "Togo",
+		"slug": "togo",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "THA",
+		"shortCode": "TH",
+		"name": "Thailand",
+		"slug": "thailand",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "TJK",
+		"shortCode": "TJ",
+		"name": "Tajikistan",
+		"slug": "tajikistan",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "TKL",
+		"shortCode": "TK",
+		"name": "Tokelau",
+		"slug": "tokelau",
+		"regionType": "country"
+	},
+	{
+		"code": "TKM",
+		"shortCode": "TM",
+		"name": "Turkmenistan",
+		"slug": "turkmenistan",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "TLS",
+		"shortCode": "TL",
+		"name": "East Timor",
+		"slug": "east-timor",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "TON",
+		"shortCode": "TO",
+		"name": "Tonga",
+		"slug": "tonga",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "TTO",
+		"shortCode": "TT",
+		"name": "Trinidad and Tobago",
+		"slug": "trinidad-and-tobago",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "TUN",
+		"shortCode": "TN",
+		"name": "Tunisia",
+		"slug": "tunisia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "TUR",
+		"shortCode": "TR",
+		"name": "Turkey",
+		"slug": "turkey",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "TUV",
+		"shortCode": "TV",
+		"name": "Tuvalu",
+		"slug": "tuvalu",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "TWN",
+		"shortCode": "TW",
+		"name": "Taiwan",
+		"slug": "taiwan",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "TZA",
+		"shortCode": "TZ",
+		"name": "Tanzania",
+		"slug": "tanzania",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "UGA",
+		"shortCode": "UG",
+		"name": "Uganda",
+		"slug": "uganda",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "UKR",
+		"shortCode": "UA",
+		"name": "Ukraine",
+		"slug": "ukraine",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "UMI",
+		"shortCode": "UM",
+		"name": "United States Minor Outlying Islands",
+		"slug": "united-states-minor-outlying-islands",
+		"regionType": "other",
+		"isUnlisted": true
+	},
+	{
+		"code": "URY",
+		"shortCode": "UY",
+		"name": "Uruguay",
+		"slug": "uruguay",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "USA",
+		"shortCode": "US",
+		"name": "United States",
+		"slug": "united-states",
+		"regionType": "country",
+		"isMappable": true,
+		"variantNames": ["US", "USA"]
+	},
+	{
+		"code": "UZB",
+		"shortCode": "UZ",
+		"name": "Uzbekistan",
+		"slug": "uzbekistan",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "VAT",
+		"shortCode": "VA",
+		"name": "Vatican",
+		"slug": "vatican",
+		"regionType": "country"
+	},
+	{
+		"code": "VCT",
+		"shortCode": "VC",
+		"name": "Saint Vincent and the Grenadines",
+		"slug": "saint-vincent-and-the-grenadines",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "VEN",
+		"shortCode": "VE",
+		"name": "Venezuela",
+		"slug": "venezuela",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "VGB",
+		"shortCode": "VG",
+		"name": "British Virgin Islands",
+		"slug": "british-virgin-islands",
+		"regionType": "country"
+	},
+	{
+		"code": "VIR",
+		"shortCode": "VI",
+		"name": "United States Virgin Islands",
+		"slug": "united-states-virgin-islands",
+		"regionType": "country"
+	},
+	{
+		"code": "VNM",
+		"shortCode": "VN",
+		"name": "Vietnam",
+		"slug": "vietnam",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "VUT",
+		"shortCode": "VU",
+		"name": "Vanuatu",
+		"slug": "vanuatu",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "WLF",
+		"shortCode": "WF",
+		"name": "Wallis and Futuna",
+		"slug": "wallis-and-futuna",
+		"regionType": "country",
+		"isUnlisted": true
+	},
+	{
+		"code": "WSM",
+		"shortCode": "WS",
+		"name": "Samoa",
+		"slug": "samoa",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "YEM",
+		"shortCode": "YE",
+		"name": "Yemen",
+		"slug": "yemen",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "ZAF",
+		"shortCode": "ZA",
+		"name": "South Africa",
+		"slug": "south-africa",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "ZMB",
+		"shortCode": "ZM",
+		"name": "Zambia",
+		"slug": "zambia",
+		"regionType": "country",
+		"isMappable": true
+	},
+	{
+		"code": "ZWE",
+		"shortCode": "ZW",
+		"name": "Zimbabwe",
+		"slug": "zimbabwe",
+		"regionType": "country",
+		"isMappable": true
+	}
 ]

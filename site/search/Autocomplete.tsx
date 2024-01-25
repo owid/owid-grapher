@@ -144,8 +144,8 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                 index === SearchIndexName.Charts
                     ? "Chart"
                     : index === SearchIndexName.Explorers
-                    ? "Explorer"
-                    : pageTypeDisplayNames[item.type as PageType]
+                      ? "Explorer"
+                      : pageTypeDisplayNames[item.type as PageType]
 
             return (
                 <div

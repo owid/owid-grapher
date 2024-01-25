@@ -24,19 +24,19 @@ export interface GridBounds {
 
 export enum FontFamily {
     "andale mono" = "andale mono",
-    "arial" = "arial",
+    arial = "arial",
     "avenir next" = "avenir next",
-    "avenir" = "avenir",
+    avenir = "avenir",
     "comic sans ms" = "comic sans ms",
     "courier new" = "courier new",
-    "georgia" = "georgia",
-    "impact" = "impact",
+    georgia = "georgia",
+    impact = "impact",
     "open sans" = "open sans",
-    "tahoma" = "tahoma",
+    tahoma = "tahoma",
     "times new roman" = "times new roman",
     "trebuchet ms" = "trebuchet ms",
-    "verdana" = "verdana",
-    "webdings" = "webdings",
+    verdana = "verdana",
+    webdings = "webdings",
 }
 
 export class Bounds {

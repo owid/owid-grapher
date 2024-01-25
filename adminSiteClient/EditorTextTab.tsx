@@ -83,9 +83,8 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         keys.forEach((key) => {
             const references = invalidDetailReferences[key]
             if (references.length) {
-                errorMessages[
-                    key
-                ] = `Invalid detail(s) specified: ${references.join(", ")}`
+                errorMessages[key] =
+                    `Invalid detail(s) specified: ${references.join(", ")}`
             }
         })
         return errorMessages

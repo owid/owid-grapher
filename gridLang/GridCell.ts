@@ -278,10 +278,10 @@ export class GridCell implements ParsedCell {
         return terminalOptions
             ? terminalOptions.map((def) => def.keyword)
             : grammar
-            ? Object.keys(grammar)
-            : headerCellDef
-            ? Object.keys(headerCellDef.grammar!)
-            : undefined
+              ? Object.keys(grammar)
+              : headerCellDef
+                  ? Object.keys(headerCellDef.grammar!)
+                  : undefined
     }
 }
 

@@ -681,8 +681,8 @@ export class StackedDiscreteBarChart
                         isHover
                             ? 1
                             : isFaint
-                            ? 0.1
-                            : GRAPHER_AREA_OPACITY_DEFAULT
+                              ? 0.1
+                              : GRAPHER_AREA_OPACITY_DEFAULT
                     }
                     style={{
                         transition: "height 200ms ease",

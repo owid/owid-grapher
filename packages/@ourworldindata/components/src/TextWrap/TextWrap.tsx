@@ -133,7 +133,9 @@ export class TextWrap {
             ? []
             : // Prepend spaces so that the string is also split before newline characters
               // See startsWithNewline
-              text.replace(/\n/g, " \n").split(" ")
+              text
+                  .replace(/\n/g, " \n")
+                  .split(" ")
 
         const lines: WrapLine[] = []
 

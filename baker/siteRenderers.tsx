@@ -600,12 +600,12 @@ export const renderProminentLinks = async (
                     (!isCanonicalInternalUrl(resolvedUrl)
                         ? null // attempt fallback for internal urls only
                         : resolvedUrl.isExplorer
-                        ? await getExplorerTitleByUrl(resolvedUrl)
-                        : resolvedUrl.isGrapher && resolvedUrl.slug
-                        ? (await Chart.getBySlug(resolvedUrl.slug))?.config
-                              ?.title // optim?
-                        : resolvedUrl.slug &&
-                          (await getPostBySlug(resolvedUrl.slug)).title)
+                          ? await getExplorerTitleByUrl(resolvedUrl)
+                          : resolvedUrl.isGrapher && resolvedUrl.slug
+                              ? (await Chart.getBySlug(resolvedUrl.slug))
+                                      ?.config?.title // optim?
+                              : resolvedUrl.slug &&
+                                  (await getPostBySlug(resolvedUrl.slug)).title)
             } finally {
                 if (!title) {
                     logErrorAndMaybeSendToBugsnag(
@@ -625,12 +625,12 @@ export const renderProminentLinks = async (
                 (!isCanonicalInternalUrl(resolvedUrl)
                     ? null
                     : resolvedUrl.isExplorer
-                    ? renderExplorerDefaultThumbnail()
-                    : resolvedUrl.isGrapher && resolvedUrl.slug
-                    ? renderGrapherThumbnailByResolvedChartSlug(
-                          resolvedUrl.slug
-                      )
-                    : await renderPostThumbnailBySlug(resolvedUrl.slug))
+                      ? renderExplorerDefaultThumbnail()
+                      : resolvedUrl.isGrapher && resolvedUrl.slug
+                          ? renderGrapherThumbnailByResolvedChartSlug(
+                                  resolvedUrl.slug
+                              )
+                          : await renderPostThumbnailBySlug(resolvedUrl.slug))
 
             const rendered = ReactDOMServer.renderToStaticMarkup(
                 <div className="block-wrapper">

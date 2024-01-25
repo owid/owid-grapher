@@ -217,17 +217,11 @@ adminRouter.get("/posts/compare/:postId", async (req, res) => {
             <div>
                 <div style="width: 50%; float: left;">
                     <h1>WP</h1>
-                    <iframe srcdoc="${wpPage.replaceAll(
-                        '"',
-                        "&quot;"
-                    )}" style="width: 100%; height: 100vh;"></iframe>
+                    <iframe srcdoc="${wpPage.replaceAll('"', "&quot;")}" style="width: 100%; height: 100vh;"></iframe>
                 </div>
                 <div style="width: 50%; float: left;">
                     <h1>ArchieML</h1>
-                    <iframe srcdoc="${archieMlPage.replaceAll(
-                        '"',
-                        "&quot;"
-                    )}" style="width: 100%; height: 100vh;"></iframe>
+                    <iframe srcdoc="${archieMlPage.replaceAll('"', "&quot;")}" style="width: 100%; height: 100vh;"></iframe>
                 </div>
             </div>
         </body>

@@ -217,12 +217,12 @@ ${b.url}`
                 const imageOrChart = insight.filename
                     ? `![](${insight.filename})`
                     : insight.url
-                    ? markdownComponent(
-                          "Chart",
-                          { url: insight.url },
-                          exportComponents
-                      )
-                    : undefined
+                      ? markdownComponent(
+                              "Chart",
+                              { url: insight.url },
+                              exportComponents
+                          )
+                      : undefined
                 const content =
                     enrichedBlocksToMarkdown(
                         insight.content,

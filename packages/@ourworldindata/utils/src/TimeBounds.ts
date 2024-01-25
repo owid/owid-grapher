@@ -102,8 +102,8 @@ const upgradeLegacyTimeString = (time: string): string => {
     return time.endsWith("..")
         ? time + "latest"
         : time.startsWith("..")
-        ? "earliest" + time
-        : time
+          ? "earliest" + time
+          : time
 }
 
 export const getTimeDomainFromQueryString = (
