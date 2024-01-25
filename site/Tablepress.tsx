@@ -16,6 +16,7 @@ function cell(data?: string) {
 }
 
 const ROWSPAN_TOKEN = "#rowspan#"
+const COLSPAN_TOKEN = "#colspan#"
 
 function parseTable(table: string[][]): Cell[][] {
     const resultTable: Cell[][] = []
@@ -29,6 +30,16 @@ function parseTable(table: string[][]): Cell[][] {
                 }
                 if (i >= 0) {
                     resultTable[i][c].rowspan++
+                } else {
+                    resultRow.push(cell())
+                }
+            } else if (data === COLSPAN_TOKEN) {
+                let j = c - 1
+                while (j >= 0 && row[j] === COLSPAN_TOKEN) {
+                    j--
+                }
+                if (j >= 0) {
+                    resultRow[j].colspan++
                 } else {
                     resultRow.push(cell())
                 }
@@ -56,6 +67,7 @@ export default function Tablepress(props: { data: string[][] }) {
                     {headerRow.map((cell, i) => (
                         <th
                             key={i}
+                            colSpan={cell.colspan}
                             dangerouslySetInnerHTML={{ __html: cell.data }}
                         />
                     ))}
@@ -69,7 +81,9 @@ export default function Tablepress(props: { data: string[][] }) {
                                 key={j}
                                 colSpan={cell.colspan}
                                 rowSpan={cell.rowspan}
-                                dangerouslySetInnerHTML={{ __html: cell.data }}
+                                dangerouslySetInnerHTML={{
+                                    __html: cell.data,
+                                }}
                             />
                         ))}
                     </tr>
