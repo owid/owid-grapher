@@ -1894,7 +1894,6 @@ const parseKeyIndicator = (
     ): EnrichedBlockKeyIndicator => ({
         type: "key-indicator",
         datapageUrl,
-        blurb: [],
         parseErrors: [error],
     })
 
@@ -1916,7 +1915,7 @@ const parseKeyIndicator = (
 
     const url = extractUrl(val.datapageUrl)
 
-    if (!isArray(val.blurb))
+    if (val.blurb && !isArray(val.blurb))
         return createError(
             {
                 message:
@@ -1925,13 +1924,14 @@ const parseKeyIndicator = (
             url
         )
 
-    const parsedBlurb = val.blurb.map(parseText)
+    const blurb = val.blurb ?? []
+    const parsedBlurb = blurb.map(parseText)
     const parsedBlurbErrors = parsedBlurb.flatMap((block) => block.parseErrors)
 
     return omitUndefinedValues({
         type: "key-indicator",
         datapageUrl: url,
-        blurb: parsedBlurb,
+        blurb: parsedBlurb.length > 0 ? parsedBlurb : undefined,
         title: val.title,
         parseErrors: parsedBlurbErrors,
     }) as EnrichedBlockKeyIndicator

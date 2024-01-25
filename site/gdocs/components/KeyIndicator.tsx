@@ -27,12 +27,14 @@ export default function KeyIndicator({
             <div>
                 <b>Default title:</b> {linkedChart?.title}
             </div>
-            <div>
-                <b>Blurb:</b>
-                {d.blurb.map((textBlock, i) => (
-                    <Paragraph d={textBlock} key={i} />
-                ))}
-            </div>
+            {d.blurb && (
+                <div>
+                    <b>Blurb:</b>
+                    {d.blurb.map((textBlock, i) => (
+                        <Paragraph d={textBlock} key={i} />
+                    ))}
+                </div>
+            )}
             <Chart
                 className="margin-0"
                 d={{ url: d.datapageUrl, type: "chart", parseErrors: [] }}

@@ -538,7 +538,6 @@ export const enrichedBlockExamples: Record<
     "key-indicator": {
         type: "key-indicator",
         datapageUrl: "https://ourworldindata.org/grapher/life-expectancy",
-        blurb: [enrichedBlockText],
         parseErrors: [],
     },
 }

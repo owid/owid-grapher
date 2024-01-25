@@ -100,8 +100,8 @@ export type RawBlockKeyIndicator = {
 export type EnrichedBlockKeyIndicator = {
     type: "key-indicator"
     datapageUrl: string
-    blurb: EnrichedBlockText[]
     title?: string
+    blurb?: EnrichedBlockText[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockScroller = {
