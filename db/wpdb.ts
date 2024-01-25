@@ -19,7 +19,6 @@ import { registerExitHandler } from "./cleanup.js"
 import {
     RelatedChart,
     CategoryWithEntries,
-    EntryNode,
     FullPost,
     WP_PostType,
     DocumentNode,
