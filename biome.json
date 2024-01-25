@@ -103,6 +103,11 @@
 	},
 	"files": {
 		"include": ["**/*.ts", "**/*.tsx", "*.json"],
-		"ignore": ["node_modules/**/*", "dist/**/*"]
+		"ignore": [
+			"node_modules/**/*",
+			"dist/**/*",
+			"wordpress",
+			"itsJustJavascript"
+		]
 	}
 }
