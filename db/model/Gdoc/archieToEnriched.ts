@@ -43,10 +43,10 @@ export function generateStickyNav(
     // RegEx strings to match heading IDs with their corresponding sticky nav item text
     // e.g. if we find a heading with an ID of "explore-our-data-on-poverty", we want to add a sticky nav item with the text "Data Explorer"
     const headingsByIdRegEx = {
-        ["acknowledgements"]: "Acknowledgements",
-        ["country-profiles"]: "Country Profiles",
+        ["^acknowledgements"]: "Acknowledgements",
+        ["^country-profiles"]: "Country Profiles",
         // Assumes explorer headings are of the form "Explore data on [topic]" or "Explore our data on [topic]"
-        ["explore(-our)?-data"]: "Data Explorer",
+        ["^explore(-our)?-data"]: "Data Explorer",
         [RESEARCH_AND_WRITING_ID]: "Research & Writing",
         [ALL_CHARTS_ID]: "Charts",
         [CITATION_ID]: "Cite This Work",
