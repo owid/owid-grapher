@@ -3,7 +3,7 @@ import { TickFormattingOptions } from "@ourworldindata/types"
 import { formatValue } from "./formatValue"
 
 describe(formatValue, () => {
-    // prettier-ignore
+    // biome-ignore format: keep them on  one line
     const cases: [string, number, string, TickFormattingOptions][] = [
         ["default", 1, "1", {}],
         ["default negative", -1, "-1", {}],
