@@ -4,6 +4,7 @@
 
     background-color: $blue-10;
     padding: $frame-padding;
+    margin: 0 (-$frame-padding);
     margin-bottom: $frame-padding;
 
     .indicator-title {
@@ -55,7 +56,7 @@
             display: inline-block;
         }
 
-        height: 40px;
+        min-height: 40px;
         padding: 8px 24px;
         text-align: center;
         color: $white;
