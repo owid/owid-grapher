@@ -23,8 +23,8 @@ export const makeSource = ({
     const isEmbedded = isEmbeddedInADataPage ?? true
     const processingLevelPhrase =
         getPhraseForProcessingLevel(owidProcessingLevel)
-    const hideProcessingPhrase = hideProcessingLevel ||
-        attribution.toLowerCase() === "our world in data"
+    const hideProcessingPhrase =
+        hideProcessingLevel || attribution.toLowerCase() === "our world in data"
     return (
         <>
             <SimpleMarkdownText text={attribution} useParagraphs={false} />
