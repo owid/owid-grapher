@@ -6,7 +6,7 @@
     margin: 0 (-$padding);
 
     .accordion-item {
-        background-color: whitesmoke;
+        background-color: $blue-10;
     }
 
     .accordion-item + .accordion-item {
@@ -39,11 +39,6 @@
 
     h3 {
         margin-top: 0;
-    }
-
-    .spacer {
-        width: 100%;
-        height: $padding;
     }
 
     .key-indicator-header__title {
@@ -86,5 +81,14 @@
 
     button[disabled] {
         cursor: default;
+    }
+
+    // update <KeyIndicator /> styles
+    .key-indicator {
+        margin-bottom: 0;
+        padding-top: 0;
+        .indicator-title {
+            display: none;
+        }
     }
 }

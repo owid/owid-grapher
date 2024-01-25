@@ -1,12 +1,15 @@
 import React, { useEffect, useRef, useState } from "react"
 import cx from "classnames"
+
 import {
     EnrichedBlockKeyIndicatorCollection,
     EnrichedBlockKeyIndicator,
 } from "@ourworldindata/types"
 import { urlToSlug } from "@ourworldindata/utils"
-import Chart from "./Chart.js"
+import { makeDateRange, makeSource } from "@ourworldindata/components"
+
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
+import KeyIndicator from "./KeyIndicator.js"
 
 export default function KeyIndicatorCollection({
     d,
@@ -49,7 +52,7 @@ export default function KeyIndicatorCollection({
                             />
                         }
                     >
-                        <KeyIndicatorContent block={block} />
+                        <KeyIndicator d={block} />
                     </AccordionItem>
                 )
             )}
@@ -95,7 +98,6 @@ function AccordionItem({
                 }}
             >
                 {children}
-                <div className="spacer" />
             </div>
         </div>
     )
@@ -116,80 +118,35 @@ function KeyIndicatorHeader({
     if (!linkedChart) return null
     if (!linkedIndicator) return null
 
+    const source = makeSource({
+        attribution: linkedIndicator.attributionUnshortened,
+        hideProcessingLevel: true,
+    })
+    const dateRange = makeDateRange({
+        dateRange: linkedIndicator.dateRange,
+    })
+
     return (
         <div className="key-indicator-header grid grid-cols-12">
-            <div
-                className={cx("key-indicator-header__title", {
-                    // TODO
-                    "col-start-1 span-cols-4": true,
-                    "col-start-1 span-cols-12": false,
-                })}
-            >
-                {linkedIndicator.metadata?.presentation?.titlePublic}
+            <div className="key-indicator-header__title col-start-1 span-cols-4">
+                {linkedIndicator.title}
             </div>
-            <div
-                className={cx(
-                    "key-indicator-header__metadata",
-                    "col-start-5 span-cols-8",
-                    {
-                        visible: showMetadata,
-                    }
-                )}
-                style={{ opacity: 0 }}
-            >
-                {linkedIndicator.metadata?.origins?.[0].title ??
-                    "Placeholder title"}{" "}
-                | 1967-2021
-            </div>
-        </div>
-    )
-}
-
-function KeyIndicatorContent({ block }: { block: EnrichedBlockKeyIndicator }) {
-    const { linkedChart } = useLinkedChart(block.datapageUrl)
-    const { linkedIndicator } = useLinkedIndicator(
-        linkedChart?.indicatorId ?? 0
-    )
-
-    if (!linkedChart) return null
-    if (!linkedIndicator) return null
-
-    return (
-        <div className="grid grid-cols-12">
-            <div className="col-start-1 span-cols-4">
-                <div className="metadata-table">
-                    <div className="metadata-entry">
-                        <div className="metadata-entry__title">Source</div>
-                        <div className="metadata-entry__value">
-                            {linkedIndicator.metadata?.origins?.[0].title ??
-                                "Placeholder title"}
-                        </div>
-                    </div>
-                    <div className="metadata-entry">
-                        <div className="metadata-entry__title">Date range</div>
-                        <div className="metadata-entry__value">1967-2021</div>
-                    </div>
-                    <div className="metadata-entry">
-                        <div className="metadata-entry__title">
-                            Last updated
-                        </div>
-                        <div className="metadata-entry__value">
-                            May 25, 2022
-                        </div>
-                    </div>
+            {(source || dateRange) && (
+                <div
+                    className={cx(
+                        "key-indicator-header__metadata",
+                        "col-start-5 span-cols-8",
+                        {
+                            visible: showMetadata,
+                        }
+                    )}
+                    style={{ opacity: 0 }}
+                >
+                    {source}
+                    {source && " | "}
+                    {dateRange}
                 </div>
-                <p className="body-3-medium" style={{ color: "#577291" }}>
-                    {linkedIndicator.metadata?.description}
-                </p>
-            </div>
-            <Chart
-                className="col-start-5 span-cols-8 margin-0"
-                d={{
-                    url: block.datapageUrl,
-                    type: "chart",
-                    parseErrors: [],
-                }}
-            />
+            )}
         </div>
     )
 }
