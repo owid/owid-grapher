@@ -434,8 +434,9 @@ export const fetchS3MetadataByPath = async (
     const resp = await retryPromise(
         () => fetch(metadataPath, { keepalive: true }),
         {
-            maxRetries: 3,
+            maxRetries: 5,
             exponentialBackoff: true,
+            initialDelay: 1000,
         }
     )
     if (!resp.ok) {
