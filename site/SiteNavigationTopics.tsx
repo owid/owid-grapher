@@ -97,6 +97,8 @@ export const allTopicsInCategory = (
 ): EntryMeta[] => {
     return [
         ...category.entries,
-        ...category.subcategories.flatMap((subcategory) => subcategory.entries),
+        ...(category.subcategories ?? []).flatMap(
+            (subcategory) => subcategory.entries
+        ),
     ]
 }

@@ -19,13 +19,11 @@ import { registerExitHandler } from "./cleanup.js"
 import {
     RelatedChart,
     CategoryWithEntries,
-    EntryNode,
     FullPost,
     WP_PostType,
     DocumentNode,
     PostReference,
     JsonError,
-    CategoryNode,
     FilterFnPostRestApi,
     PostRestApi,
     TopicId,
@@ -49,6 +47,7 @@ import {
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 import { GdocPost } from "./model/Gdoc/GdocPost.js"
 import { Link } from "./model/Link.js"
+import { SiteNavigationStatic } from "../site/SiteNavigation.js"
 
 let _knexInstance: Knex
 
@@ -307,133 +306,19 @@ export const getDocumentsInfo = async (
     }
 }
 
-const getEntryNode = ({
-    slug,
-    title,
-    excerpt,
-    kpi,
-}: EntryNode): {
-    slug: string
-    title: string
-    excerpt: string
-    kpi: string
-} => ({
-    slug,
-    title: decodeHTML(title),
-    excerpt: excerpt === null ? "" : decodeHTML(excerpt),
-    kpi,
-})
-
-const isEntryInSubcategories = (entry: EntryNode, subcategories: any): any => {
-    return subcategories.some((subcategory: any) => {
-        return subcategory.pages.nodes.some(
-            (node: EntryNode) => entry.slug === node.slug
-        )
-    })
-}
-
-// Retrieve a list of categories and their associated entries
-let cachedEntries: CategoryWithEntries[] = []
-export const getEntriesByCategory = async (): Promise<
-    CategoryWithEntries[]
-> => {
-    if (!isWordpressAPIEnabled) return []
-    if (cachedEntries.length) return cachedEntries
-
-    const first = 100
-    // The filtering of cached entries below makes the $first argument
-    // less accurate, as it does not represent the exact number of entries
-    // returned per subcategories but rather their maximum number of entries.
-    const orderby = "TERM_ORDER"
-
-    // hack: using the description field ("01", "02", etc.) to order the top
-    // categories as TERM_ORDER doesn't seem to work as expected anymore.
-    const query = `
-    query getEntriesByCategory($first: Int, $orderby: TermObjectsConnectionOrderbyEnum!) {
-        categories(first: $first, where: {termTaxonomId: ${ENTRIES_CATEGORY_ID}, orderby: $orderby}) {
-          nodes {
-            name
-            children(first: $first, where: {orderby: DESCRIPTION}) {
-              nodes {
-                ...categoryWithEntries
-                children(first: $first, where: {orderby: $orderby}) {
-                  nodes {
-                    ...categoryWithEntries
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      fragment categoryWithEntries on Category {
-        name
-        slug
-        pages(first: $first, where: {orderby: {field: MENU_ORDER, order: ASC}}) {
-          nodes {
-            slug
-            title
-            excerpt
-            kpi
-          }
-        }
-      }
-      `
-    const categories = await graphqlQuery(query, { first, orderby })
-
-    cachedEntries = categories.data.categories.nodes[0].children.nodes.map(
-        ({ name, slug, pages, children }: CategoryNode) => ({
-            name: decodeHTML(name),
-            slug,
-            entries: pages.nodes
-                .filter(
-                    (node: EntryNode) =>
-                        /* As entries are sometimes listed at all levels of the category hierarchy
-                        (e.g. "Entries" > "Demographic Change" > "Life and Death" for "Child and
-                        Infant Mortality"), it is necessary to filter out duplicates, by giving precedent to
-                        the deepest level. In other words, if an entry is present in category 1 and category
-                        1.1, it will only show in category 1.1.
-
-                        N.B. Pre wp-graphql 0.6.0, entries would be returned at all levels of the category
-                        hierarchy, no matter what categories were effectively selected. 0.6.0 fixes that
-                        (cf. https://github.com/wp-graphql/wp-graphql/issues/1100). Even though this behaviour
-                        has been fixed, we still have potential duplicates, from the multiple hierarchical
-                        selection as noted above. The only difference is the nature of the duplicate, which can
-                        now be considered more intentional as it is coming from the data / CMS.
-                        Ultimately, this discrepency in the data should be addressed to make the system
-                        less permissive. */
-                        !isEntryInSubcategories(node, children.nodes)
-                )
-                .map((node: EntryNode) => getEntryNode(node)),
-            subcategories: children.nodes
-                .filter(
-                    (subcategory: CategoryNode) =>
-                        subcategory.pages.nodes.length !== 0
-                )
-                .map(({ name, slug, pages }: CategoryNode) => ({
-                    name: decodeHTML(name),
-                    slug,
-                    entries: pages.nodes.map((node: EntryNode) =>
-                        getEntryNode(node)
-                    ),
-                })),
-        })
-    )
-
-    return cachedEntries
-}
-
 export const isPostCitable = async (post: FullPost): Promise<boolean> => {
-    const entries = await getEntriesByCategory()
+    const entries = SiteNavigationStatic.categories
     return entries.some((category) => {
         return (
             category.entries.some((entry) => entry.slug === post.slug) ||
-            category.subcategories.some((subcategory: CategoryWithEntries) => {
-                return subcategory.entries.some(
-                    (subCategoryEntry) => subCategoryEntry.slug === post.slug
-                )
-            })
+            (category.subcategories ?? []).some(
+                (subcategory: CategoryWithEntries) => {
+                    return subcategory.entries.some(
+                        (subCategoryEntry) =>
+                            subCategoryEntry.slug === post.slug
+                    )
+                }
+            )
         )
     })
 }
@@ -1005,7 +890,6 @@ export const getTables = async (): Promise<Map<string, TablepressTable>> => {
 
 export const flushCache = (): void => {
     cachedAuthorship = undefined
-    cachedEntries = []
     cachedFeaturedImages = undefined
     getBlogIndex.cache.clear?.()
     cachedTables = undefined
