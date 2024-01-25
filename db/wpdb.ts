@@ -436,34 +436,35 @@ export const getPostType = async (search: number | string): Promise<string> => {
 export const getPostIdAndTypeBySlug = async (
     slug: string
 ): Promise<{ id: number; type: string } | undefined> => {
-    const rows = await singleton.query(
-        "SELECT ID, post_type FROM wp_posts WHERE `post_name` = ? AND post_type IN ( ? )",
+    const rows = await db.mysqlFirst(
+        "SELECT id, type FROM posts WHERE `slug` = ? AND type IN ( ? )",
         [slug, [WP_PostType.Post, WP_PostType.Page]]
     )
 
     if (!rows.length) return
 
-    return { id: rows[0].ID, type: rows[0].post_type }
+    return { id: rows[0].id, type: rows[0].type }
 }
 
-// We might want to cache this as the network of prominent links densifies and
-// multiple requests to the same posts are happening.
 export const getPostBySlug = async (slug: string): Promise<FullPost> => {
-    if (!isWordpressAPIEnabled) {
-        throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
-    }
+    // Slugs are not guaranteed to be unique across post types so we are
+    // grabbing the first match in case of duplicates. Here is a query to
+    // get a list of offending slugs:
 
-    const postIdAndType = await getPostIdAndTypeBySlug(slug)
-    if (!postIdAndType)
-        throw new JsonError(`No page found by slug ${slug}`, 404)
+    // SELECT dup_slugs.slug,
+    // GROUP_CONCAT(p.id ORDER BY p.id) AS post_ids,
+    // GROUP_CONCAT(p.type ORDER BY p.id) AS post_types
+    // FROM ( SELECT slug FROM posts GROUP BY slug HAVING COUNT(*) > 1) AS dup_slugs
+    // JOIN posts p ON dup_slugs.slug = p.slug
+    // GROUP BY dup_slugs.slug;
 
-    const { id, type } = postIdAndType
+    const post = await db.mysqlFirst("SELECT * from posts WHERE `slug` = ?", [
+        slug,
+    ])
 
-    const postArr = await apiQuery(
-        `${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`
-    )
+    if (!post) throw new JsonError(`No page found by slug ${slug}`, 404)
 
-    return getFullPost(postArr)
+    return getFullPost(post)
 }
 
 // the /revisions endpoint does not send back all the metadata required for
