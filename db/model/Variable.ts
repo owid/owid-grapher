@@ -413,8 +413,9 @@ export const fetchS3DataValuesByPath = async (
     const resp = await retryPromise(
         () => fetch(dataPath, { keepalive: true }),
         {
-            maxRetries: 3,
+            maxRetries: 5,
             exponentialBackoff: true,
+            initialDelay: 1000,
         }
     )
     if (!resp.ok) {
