@@ -46,12 +46,14 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
                 localImageEtagPath
             )
 
-            const response = await retryPromise(() =>
-                fetch(remoteFilePath, {
-                    headers: {
-                        "If-None-Match": existingEtag,
-                    },
-                })
+            const response = await retryPromise(
+                () =>
+                    fetch(remoteFilePath, {
+                        headers: {
+                            "If-None-Match": existingEtag,
+                        },
+                    }),
+                { maxRetries: 5, exponentialBackoff: true, initialDelay: 1000 }
             )
 
             // Image has not been modified, skip
