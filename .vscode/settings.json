@@ -1,4 +1,3 @@
-// Place your settings in this file to overwrite default and user settings.
 {
     "editor.insertSpaces": true,
     "editor.tabSize": 4,
@@ -20,5 +19,14 @@
     "javascript.preferences.importModuleSpecifierEnding": "js",
     "[sql]": {
         "editor.defaultFormatter": "inferrinizzard.prettier-sql-vscode"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "biomejs.biome"
     }
 }
