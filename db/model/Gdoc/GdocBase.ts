@@ -67,10 +67,7 @@ export class Tag extends BaseEntity implements TagInterface {
     @Column() isBulkImport!: boolean
     @Column({ type: "varchar", nullable: true }) slug!: string | null
     @Column() specialType!: string
-    @ManyToMany(
-        () => GdocBase,
-        (gdoc) => gdoc.tags
-    )
+    @ManyToMany(() => GdocBase, (gdoc) => gdoc.tags)
     gdocs!: GdocBase[]
 }
 

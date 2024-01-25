@@ -325,7 +325,8 @@ france,Life expectancy`
 
     describe("checkboxes", () => {
         it("supports checkboxes with available options", () => {
-            const decisionMatrix = new DecisionMatrix(`${grapherIdKeyword},PerCapita Checkbox
+            const decisionMatrix =
+                new DecisionMatrix(`${grapherIdKeyword},PerCapita Checkbox
 488,true
 4331,false`)
             const { available, checked } =
@@ -336,7 +337,8 @@ france,Life expectancy`
         })
 
         it("supports checkboxes with no available options", () => {
-            const decisionMatrix = new DecisionMatrix(`${grapherIdKeyword},Other Radio,PerCapita Checkbox
+            const decisionMatrix =
+                new DecisionMatrix(`${grapherIdKeyword},Other Radio,PerCapita Checkbox
 488,A,true
 4331,A,true
 4331,B,false`)
@@ -358,7 +360,8 @@ france,Life expectancy`
         })
 
         it("handles illogical states", () => {
-            const decisionMatrix = new DecisionMatrix(`${grapherIdKeyword},Letter Radio,Number Radio,PerCapita Checkbox
+            const decisionMatrix =
+                new DecisionMatrix(`${grapherIdKeyword},Letter Radio,Number Radio,PerCapita Checkbox
 488,A,1,true
 4331,A,1,true
 4331,B,2,false`)

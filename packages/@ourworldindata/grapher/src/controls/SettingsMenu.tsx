@@ -129,8 +129,8 @@ export class SettingsMenu extends React.Component<{
                 selection instanceof SelectionArray
                     ? selection.selectedEntityNames
                     : Array.isArray(selection)
-                      ? selection
-                      : []
+                    ? selection
+                    : []
 
         return !hideZoomToggle && type === ScatterPlot && entities.length > 0
     }
@@ -447,8 +447,8 @@ export class SettingsMenu extends React.Component<{
         return isOnTableTab && showTableFilterToggle
             ? this.renderTableControls()
             : isOnChartTab && showSettingsMenuToggle
-              ? this.renderChartSettings()
-              : null
+            ? this.renderChartSettings()
+            : null
     }
 }
 

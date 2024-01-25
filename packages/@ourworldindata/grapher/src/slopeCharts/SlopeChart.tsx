@@ -568,8 +568,8 @@ class Slope extends React.Component<SlopeProps> {
         const lineStrokeWidth = isHovered
             ? size * 2
             : isFocused
-              ? 1.5 * size
-              : size
+            ? 1.5 * size
+            : size
 
         const leftValueLabelBounds = Bounds.forText(leftValueStr, {
             fontSize: labelFontSize,

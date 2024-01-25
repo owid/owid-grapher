@@ -42,8 +42,8 @@ export class VerticalAxisGridLines extends React.Component<{
                     const color = t.faint
                         ? FAINT_TICK_COLOR
                         : t.solid
-                          ? SOLID_TICK_COLOR
-                          : TICK_COLOR
+                        ? SOLID_TICK_COLOR
+                        : TICK_COLOR
 
                     return (
                         <line
@@ -91,8 +91,8 @@ export class HorizontalAxisGridLines extends React.Component<{
                     const color = t.faint
                         ? FAINT_TICK_COLOR
                         : t.solid
-                          ? SOLID_TICK_COLOR
-                          : TICK_COLOR
+                        ? SOLID_TICK_COLOR
+                        : TICK_COLOR
 
                     return (
                         <line

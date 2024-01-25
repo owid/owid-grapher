@@ -193,7 +193,8 @@ usa,us,23,`)
 it("can handle columns with commas", () => {
     const table = new OwidTable(basicTableCsv)
     table.get("gdp").def.name = "Gross, Domestic, Product"
-    expect(table.toPrettyCsv()).toEqual(`Entity,Code,"Gross, Domestic, Product",pop
+    expect(table.toPrettyCsv())
+        .toEqual(`Entity,Code,"Gross, Domestic, Product",pop
 france,fr,23,4
 iceland,ice,123123456.2,3
 usa,us,23,`)

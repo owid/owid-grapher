@@ -709,11 +709,11 @@ export class ScatterPlotChart
                               SCATTER_POINT_DEFAULT_RADIUS,
                           ]
                     : this.isConnected
-                      ? // Note that the scale starts at 0.
-                          // When using the scale to plot marks, we need to make sure the minimums
-                          // (e.g. `SCATTER_POINT_MIN_RADIUS`) are respected.
-                          [0, SCATTER_LINE_MAX_WIDTH]
-                      : [0, SCATTER_POINT_MAX_RADIUS]
+                    ? // Note that the scale starts at 0.
+                      // When using the scale to plot marks, we need to make sure the minimums
+                      // (e.g. `SCATTER_POINT_MIN_RADIUS`) are respected.
+                      [0, SCATTER_LINE_MAX_WIDTH]
+                    : [0, SCATTER_POINT_MAX_RADIUS]
             )
     }
 

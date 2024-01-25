@@ -89,8 +89,8 @@ async function propsFromQueryParams(
     const page = params.page
         ? expectInt(params.page)
         : params.random
-          ? Math.floor(1 + Math.random() * 180) // Sample one of 180 pages. Some charts won't ever get picked but good enough.
-          : 1
+        ? Math.floor(1 + Math.random() * 180) // Sample one of 180 pages. Some charts won't ever get picked but good enough.
+        : 1
     const perPage = parseIntOrUndefined(params.perPage) ?? 20
     const ids = parseIntArrayOrUndefined(params.ids)
     const datasetIds = parseIntArrayOrUndefined(params.datasetIds)

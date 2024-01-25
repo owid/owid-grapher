@@ -1007,8 +1007,8 @@ class ChoroplethMap extends React.Component<{
                                         (isFocus
                                             ? focusStrokeWidth
                                             : showSelectedStyle
-                                              ? selectedStrokeWidth
-                                              : defaultStrokeWidth) /
+                                            ? selectedStrokeWidth
+                                            : defaultStrokeWidth) /
                                         viewportScale
                                     }
                                     stroke={stroke}

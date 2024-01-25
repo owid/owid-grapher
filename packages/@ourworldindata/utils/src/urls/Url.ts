@@ -68,8 +68,8 @@ export class Url {
                 props.pathname !== undefined
                     ? props.pathname
                     : props.origin
-                      ? ""
-                      : undefined,
+                    ? ""
+                    : undefined,
         }
     }
 

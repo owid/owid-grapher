@@ -181,8 +181,8 @@ export class TimelineController {
             handle === "start" && time > this.endTime
                 ? "end"
                 : handle === "end" && time < this.startTime
-                  ? "start"
-                  : handle
+                ? "start"
+                : handle
 
         if (constrainedHandle !== handle) {
             if (handle === "start")

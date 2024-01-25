@@ -128,8 +128,8 @@ export const DataPageV2Content = ({
         const year = o.dateAccessed
             ? dayjs(o.dateAccessed, ["YYYY-MM-DD", "YYYY"]).year()
             : o.datePublished
-              ? dayjs(o.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
-              : undefined
+            ? dayjs(o.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
+            : undefined
         if (year) return ` (${year})`
         else return ""
     }

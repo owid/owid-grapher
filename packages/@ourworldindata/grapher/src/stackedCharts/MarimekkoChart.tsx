@@ -99,23 +99,22 @@ function MarimekkoBar({
         bar.kind === BarShape.BarPlaceholder
             ? "#555"
             : isHovered
-              ? color(barBaseColor)?.brighter(0.9).toString() ?? barBaseColor
-              : isSelected
-                  ? color(barBaseColor)?.brighter(0.6).toString() ??
-                      barBaseColor
-                  : barBaseColor
+            ? color(barBaseColor)?.brighter(0.9).toString() ?? barBaseColor
+            : isSelected
+            ? color(barBaseColor)?.brighter(0.6).toString() ?? barBaseColor
+            : barBaseColor
     const strokeColor = barColor
     const strokeWidth = isHovered || isSelected ? "1px" : "0.5px"
     const strokeOpacity = isPlaceholder ? 0.8 : isFaint ? 0.2 : 1.0
     const fillOpacity = isHovered
         ? 0.7
         : isFaint
-          ? 0.2
-          : isSelected
-              ? isPlaceholder
-                    ? 0.3
-                    : 0.7
-              : 0.7
+        ? 0.2
+        : isSelected
+        ? isPlaceholder
+            ? 0.3
+            : 0.7
+        : 0.7
     const overalOpacity = isPlaceholder ? 0.2 : 1.0
 
     let barY: number = 0

@@ -30,10 +30,10 @@ export const makeStartLabel = (
     const fontSize = hideConnectedScatterLines
         ? SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES * baseFontSize
         : series.isForeground
-          ? isSubtleForeground
-                ? (8 / BASE_FONT_SIZE) * baseFontSize
-                : (9 / BASE_FONT_SIZE) * baseFontSize
-          : (7 / BASE_FONT_SIZE) * baseFontSize
+        ? isSubtleForeground
+            ? (8 / BASE_FONT_SIZE) * baseFontSize
+            : (9 / BASE_FONT_SIZE) * baseFontSize
+        : (7 / BASE_FONT_SIZE) * baseFontSize
     const firstValue = series.points[0]
     const nextValue = series.points[1]
     const nextSegment = nextValue.position.subtract(firstValue.position)
@@ -88,10 +88,10 @@ export const makeMidLabels = (
     const fontSize = hideConnectedScatterLines
         ? SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES * baseFontSize
         : series.isForeground
-          ? isSubtleForeground
-                ? (8 / BASE_FONT_SIZE) * baseFontSize
-                : (9 / BASE_FONT_SIZE) * baseFontSize
-          : (7 / BASE_FONT_SIZE) * baseFontSize
+        ? isSubtleForeground
+            ? (8 / BASE_FONT_SIZE) * baseFontSize
+            : (9 / BASE_FONT_SIZE) * baseFontSize
+        : (7 / BASE_FONT_SIZE) * baseFontSize
     const fontWeight = 400
 
     // label all the way to the end for the tooltip series, otherwise to n-1
@@ -207,8 +207,8 @@ export const makeEndLabel = (
             hideConnectedScatterLines && series.isForeground
                 ? lastValue.label
                 : series.isTooltip && !series.isFocus
-                  ? "" // don't doubly label the series name when the tooltip is visible
-                  : series.text,
+                ? "" // don't doubly label the series name when the tooltip is visible
+                : series.text,
         fontSize,
         fontWeight,
         color: lastValue.color,

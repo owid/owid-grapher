@@ -41,8 +41,8 @@ export class ExplorerControlBar extends React.Component<{
                     showMobileControls
                         ? `show-controls-popup`
                         : isMobile
-                          ? `hide-controls-popup`
-                          : false
+                        ? `hide-controls-popup`
+                        : false
                 )}
             >
                 {this.props.children}

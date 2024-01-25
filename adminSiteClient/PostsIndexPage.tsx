@@ -68,9 +68,9 @@ class PostRow extends React.Component<PostRowProps> {
         this.postGdocStatus = props.post.gdocSuccessorId
             ? GdocStatus.CONVERTED
             : props.post.gdocSlugSuccessors &&
-                  props.post.gdocSlugSuccessors.length > 0
-              ? GdocStatus.MISSING_WITH_SLUG_SUCCESSOR
-              : GdocStatus.MISSING_NO_SLUG_SUCCESSOR
+              props.post.gdocSlugSuccessors.length > 0
+            ? GdocStatus.MISSING_WITH_SLUG_SUCCESSOR
+            : GdocStatus.MISSING_NO_SLUG_SUCCESSOR
     }
 
     async saveTags(tags: ChartTagJoin[]) {

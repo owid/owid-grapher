@@ -1,6 +1,6 @@
 {
-	"extends": "./tsconfig.json",
-	"compilerOptions": {
-		"module": "ES6"
-	}
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "module": "ES6"
+    }
 }

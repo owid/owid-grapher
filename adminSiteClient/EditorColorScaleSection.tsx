@@ -469,8 +469,8 @@ class NumericBinView extends React.Component<{
                         {bin.props.isOpenLeft
                             ? "≤"
                             : bin.props.isFirst
-                              ? "≥"
-                              : ">"}
+                            ? "≥"
+                            : ">"}
                         {bin.min} ⁠–⁠ {"≤"}
                     </span>
                     <NumberField

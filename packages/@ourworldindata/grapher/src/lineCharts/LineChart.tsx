@@ -598,10 +598,10 @@ export class LineChart
                         const swatch = blurred
                             ? BLUR_LINE_COLOR
                             : this.hasColorScale
-                              ? darkenColorForLine(
-                                      this.getColorScaleColor(point?.colorValue)
-                                  )
-                              : series.color
+                            ? darkenColorForLine(
+                                  this.getColorScaleColor(point?.colorValue)
+                              )
+                            : series.color
 
                         const values = [
                             point?.y,
