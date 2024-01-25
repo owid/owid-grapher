@@ -61,19 +61,20 @@ export default function Tablepress(props: { data: string[][] }) {
     const table = parseTable(data)
     const [headerRow, ...body] = table
     return (
-        <table className="tablepress">
+        <table>
             <thead>
                 <tr>
                     {headerRow.map((cell, i) => (
                         <th
                             key={i}
+                            scope="col"
                             colSpan={cell.colspan}
                             dangerouslySetInnerHTML={{ __html: cell.data }}
                         />
                     ))}
                 </tr>
             </thead>
-            <tbody className="row-hover">
+            <tbody>
                 {body.map((row, i) => (
                     <tr key={i}>
                         {row.map((cell, j) => (

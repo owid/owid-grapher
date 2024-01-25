@@ -612,7 +612,8 @@ h3.article-block__heading.has-supertitle {
 }
 
 div.article-block__table--narrow,
-div.article-block__table--wide {
+div.article-block__table--wide,
+div.raw-html-table__container {
     overflow-x: auto;
     table {
         min-width: 100%;
@@ -649,6 +650,10 @@ div.article-block__table--wide {
             }
         }
     }
+}
+
+div.raw-html-table__container {
+    @include body-3-medium;
 }
 
 .article-block__pull-quote {
