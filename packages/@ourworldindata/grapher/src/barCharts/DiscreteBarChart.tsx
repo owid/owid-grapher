@@ -589,6 +589,13 @@ export class DiscreteBarChart
         ) {
             return SeriesStrategy.entity
         }
+        if (
+            autoStrategy === SeriesStrategy.entity &&
+            this.selectionArray.numSelectedEntities === 1 &&
+            this.yColumns.length > 1
+        ) {
+            return SeriesStrategy.column
+        }
         return autoStrategy
     }
 
