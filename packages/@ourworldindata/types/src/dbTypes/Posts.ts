@@ -7,7 +7,7 @@ import {
     OwidGdocPostInterface,
 } from "../gdocTypes/Gdoc.js"
 
-export const PostRowTableName = "posts"
+export const PostTableName = "posts"
 export interface PostRowPlainFields {
     id: number
     title: string

@@ -1,4 +1,4 @@
-export const NamespacesRowTableName = "namespaces"
+export const NamespacesTableName = "namespaces"
 export interface NamespacesRowForInsert {
     createdAt?: Date
     description?: string | null

@@ -1,4 +1,4 @@
-export const AnalyticsPageviewsRowTableName = "analytics_pageviews"
+export const AnalyticsPageviewsTableName = "analytics_pageviews"
 export interface AnalyticsPageviewsRow {
     day: Date
     url: string

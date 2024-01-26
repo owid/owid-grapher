@@ -1,4 +1,4 @@
-export const SessionsRowTableName = "sessions"
+export const SessionsTableName = "sessions"
 export interface SessionsRowForInsert {
     expire_date: Date
     session_data: string

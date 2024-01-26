@@ -1,7 +1,7 @@
 import { KeyChartLevel } from "../grapherTypes/GrapherTypes.js"
 import { TagsRow } from "./Tags.js"
 
-export const ChartTagsRowTableName = "chart_tags"
+export const ChartTagsTableName = "chart_tags"
 export interface ChartTagsRowForInsert {
     chartId: number
     createdAt?: Date

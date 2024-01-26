@@ -1,4 +1,4 @@
-export const PostsGdocsVariablesFaqsRowTableName = "posts_gdocs_variables_faqs"
+export const PostsGdocsVariablesFaqsTableName = "posts_gdocs_variables_faqs"
 export interface PostsGdocsVariablesFaqsRowForInsert {
     displayOrder?: number
     fragmentId: string

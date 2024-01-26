@@ -1,4 +1,4 @@
-export const ExplorerVariablesRowTableName = "explorer_variables"
+export const ExplorerVariablesTableName = "explorer_variables"
 export interface ExplorerVariablesRowForInsert {
     explorerSlug: string
     id?: number

@@ -2,7 +2,7 @@ import { JsonString } from "../domainTypes/Various.js"
 import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
 import { parseChartConfig, serializeChartConfig } from "./Charts.js"
 
-export const ChartRevisionsRowTableName = "chart_revisions"
+export const ChartRevisionsTableName = "chart_revisions"
 export interface ChartRevisionsRowForInsert {
     chartId?: number | null
     config?: JsonString | null

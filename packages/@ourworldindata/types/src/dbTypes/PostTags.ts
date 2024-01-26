@@ -1,4 +1,4 @@
-export const PostTagsRowTableName = "post_tags"
+export const PostTagsTableName = "post_tags"
 export interface PostTagsRowForInsert {
     createdAt?: Date
     post_id: number

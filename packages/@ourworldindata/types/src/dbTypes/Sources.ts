@@ -8,7 +8,7 @@ export interface SourceDescription {
     additionalInfo?: string
 }
 
-export const SourcesRowTableName = "sources"
+export const SourcesTableName = "sources"
 export interface SourcesRowForInsert {
     createdAt?: Date
     datasetId?: number | null

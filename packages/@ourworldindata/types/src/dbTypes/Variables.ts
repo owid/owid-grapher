@@ -2,7 +2,7 @@ import { OwidVariableDisplayConfigInterface } from "../OwidVariableDisplayConfig
 import { JsonString } from "../domainTypes/Various.js"
 import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
 
-export const VariablesRowTableName = "variables"
+export const VariablesTableName = "variables"
 export interface VariablesRowForInsert {
     attribution?: string | null
     attributionShort?: string | null

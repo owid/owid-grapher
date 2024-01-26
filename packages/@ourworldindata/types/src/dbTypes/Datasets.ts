@@ -1,4 +1,4 @@
-export const DatasetsRowTableName = "datasets"
+export const DatasetsTableName = "datasets"
 export interface DatasetsRowForInsert {
     createdAt?: Date
     createdByUserId: number

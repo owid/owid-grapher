@@ -1,4 +1,4 @@
-export const ImagesRowTableName = "images"
+export const ImagesTableName = "images"
 export interface ImagesRowForInsert {
     defaultAlt: string
     filename: string

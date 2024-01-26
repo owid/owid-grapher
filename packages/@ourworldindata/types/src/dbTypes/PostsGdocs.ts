@@ -5,7 +5,7 @@ import {
     OwidGdocPublicationContext,
 } from "../gdocTypes/Gdoc.js"
 
-export const PostsGdocsRowTableName = "posts_gdocs"
+export const PostsGdocsTableName = "posts_gdocs"
 export interface PostsGdocsRowForInsert {
     breadcrumbs?: JsonString | null
     content: JsonString

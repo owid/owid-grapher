@@ -1,7 +1,7 @@
 import { JsonString } from "../domainTypes/Various.js"
 import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
 
-export const ChartsRowTableName = "charts"
+export const ChartsTableName = "charts"
 export interface ChartsRowForInsert {
     config: JsonString
     createdAt?: Date

@@ -1,4 +1,4 @@
-export const TagsVariablesTopicTagsRowTableName = "tags_variables_topic_tags"
+export const TagsVariablesTopicTagsTableName = "tags_variables_topic_tags"
 export interface TagsVariablesTopicTagsRowForInsert {
     displayOrder?: number
     tagId: number

@@ -1,6 +1,6 @@
 import { JsonString } from "../domainTypes/Various.js"
 
-export const ExplorersRowTableName = "explorers"
+export const ExplorersTableName = "explorers"
 export interface ExplorersRowForInsert {
     config: JsonString
     createdAt?: Date | null

@@ -1,4 +1,4 @@
-export const DatasetFilesRowTableName = "dataset_files"
+export const DatasetFilesTableName = "dataset_files"
 export interface DatasetFilesRowForInsert {
     createdAt?: Date
     datasetId: number

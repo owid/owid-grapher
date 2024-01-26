@@ -12,7 +12,7 @@ export interface SuggestedChartRevisionsExperimental {
     }
 }
 
-export const SuggestedChartRevisionsRowTableName = "suggested_chart_revisions"
+export const SuggestedChartRevisionsTableName = "suggested_chart_revisions"
 export interface SuggestedChartRevisionsRowForInsert {
     changesInDataSummary?: string | null
     chartId: number

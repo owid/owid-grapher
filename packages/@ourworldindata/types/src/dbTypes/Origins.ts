@@ -1,7 +1,7 @@
 import { JsonString } from "../domainTypes/Various.js"
 import { License, parseLicense, serializeLicense } from "./Variables.js"
 
-export const OriginsRowTableName = "origins"
+export const OriginsTableName = "origins"
 export interface OriginsRowForInsert {
     attribution?: string | null
     attributionShort?: string | null

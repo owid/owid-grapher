@@ -1,4 +1,4 @@
-export const ChartSlugRedirectsRowTableName = "chart_slug_redirects"
+export const ChartSlugRedirectsTableName = "chart_slug_redirects"
 export interface ChartSlugRedirectsRowForInsert {
     chart_id: number
     createdAt?: Date

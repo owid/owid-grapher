@@ -1,4 +1,4 @@
-export const ChartDimensionsRowTableName = "chart_dimensions"
+export const ChartDimensionsTableName = "chart_dimensions"
 export interface ChartDimensionsRowForInsert {
     chartId: number
     createdAt?: Date

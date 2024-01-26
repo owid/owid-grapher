@@ -1,4 +1,4 @@
-export const DatasetTagsRowTableName = "dataset_tags"
+export const DatasetTagsTableName = "dataset_tags"
 export interface DatasetTagsRowForInsert {
     createdAt?: Date
     datasetId: number

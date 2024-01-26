@@ -1,5 +1,5 @@
 /** the entity in the `tags` table */
-export const TagsRowTableName = "tags"
+export const TagsTableName = "tags"
 export interface TagsRowForInsert {
     createdAt?: Date
     id?: number

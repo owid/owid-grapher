@@ -1,4 +1,4 @@
-export const OriginsVariablesRowTableName = "origins_variables"
+export const OriginsVariablesTableName = "origins_variables"
 export interface OriginsVariablesRowForInsert {
     displayOrder?: number
     originId: number

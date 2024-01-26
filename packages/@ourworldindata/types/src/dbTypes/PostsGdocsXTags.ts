@@ -1,4 +1,4 @@
-export const PostsGdocsXTagsRowTableName = "posts_gdocs_x_tags"
+export const PostsGdocsXTagsTableName = "posts_gdocs_x_tags"
 export interface PostsGdocsXTagsRowForInsert {
     gdocId: string
     tagId: number

@@ -1,4 +1,4 @@
-export const CountryLatestDataRowTableName = "country_latest_data"
+export const CountryLatestDataTableName = "country_latest_data"
 export interface CountryLatestDataRowForInsert {
     country_code?: string | null
     value?: string | null

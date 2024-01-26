@@ -1,6 +1,6 @@
 import { OwidGdocLinkType } from "../gdocTypes/Gdoc.js"
 
-export const PostsLinksRowTableName = "posts_links"
+export const PostsLinksTableName = "posts_links"
 export interface PostsLinksRowForInsert {
     componentType: string
     hash: string

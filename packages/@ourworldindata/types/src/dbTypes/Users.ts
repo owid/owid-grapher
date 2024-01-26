@@ -1,4 +1,4 @@
-export const UsersRowTableName = "users"
+export const UsersTableName = "users"
 export interface UsersRowForInsert {
     createdAt?: Date
     email: string

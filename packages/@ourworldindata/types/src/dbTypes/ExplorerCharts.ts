@@ -1,4 +1,4 @@
-export const ExplorerChartsRowTableName = "explorer_charts"
+export const ExplorerChartsTableName = "explorer_charts"
 export interface ExplorerChartsRowForInsert {
     chartId: number
     explorerSlug: string

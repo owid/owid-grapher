@@ -1,4 +1,4 @@
-export const EntitiesRowTableName = "entities"
+export const EntitiesTableName = "entities"
 export interface EntitiesRowForInsert {
     code?: string | null
     createdAt?: Date
