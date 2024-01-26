@@ -67,7 +67,7 @@ export interface SettingsMenuManager
     type: ChartTypeName
     isRelativeMode?: boolean
     selection?: SelectionArray | EntityName[]
-    shouldShowEntitySelectionToggle?: boolean
+    hasEntitySelectionToggle?: boolean
     filledDimensions: ChartDimension[]
     xColumnSlug?: string
     xOverrideTime?: number
@@ -191,11 +191,10 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get showTableFilterToggle(): boolean {
-        const { hideTableFilterToggle, shouldShowEntitySelectionToggle } =
-            this.manager
+        const { hideTableFilterToggle, hasEntitySelectionToggle } = this.manager
         return (
             this.selectionArray.hasSelection &&
-            !!shouldShowEntitySelectionToggle &&
+            !!hasEntitySelectionToggle &&
             !hideTableFilterToggle
         )
     }
