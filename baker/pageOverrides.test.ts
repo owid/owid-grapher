@@ -5,8 +5,6 @@ import {
 } from "@ourworldindata/utils"
 import * as pageOverrides from "./pageOverrides.js"
 
-import { jest } from "@jest/globals"
-
 const mockCreatePost = (slug: string): FullPost => {
     return {
         id: 123,
@@ -21,14 +19,6 @@ const mockCreatePost = (slug: string): FullPost => {
 }
 
 const forestLandingSlug = "forests-and-deforestation"
-
-const getPostBySlugLogToSlackNoThrow = jest.spyOn(
-    pageOverrides,
-    "getPostBySlugLogToSlackNoThrow"
-)
-getPostBySlugLogToSlackNoThrow.mockImplementation((landingSlug) =>
-    Promise.resolve(mockCreatePost(landingSlug))
-)
 
 it("gets parent landing", async () => {
     const formattingOptions = extractFormattingOptions(
@@ -72,10 +62,6 @@ it("does not get parent landing (post is already a landing)", async () => {
 it("does not get parent landing and logs (landing post not found)", async () => {
     const formattingOptions = extractFormattingOptions(
         "<!-- formatting-options subnavId:forests subnavCurrentId:forest-area -->"
-    )
-
-    getPostBySlugLogToSlackNoThrow.mockImplementationOnce(() =>
-        Promise.resolve(undefined)
     )
 
     await expect(

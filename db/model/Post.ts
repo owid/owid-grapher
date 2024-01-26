@@ -70,6 +70,16 @@ export const setTagsForPost = async (
 export const getPostRawBySlug = async (
     slug: string
 ): Promise<DbRawPost | undefined> =>
+    // Slugs are not guaranteed to be unique across post types so we are
+    // grabbing the first match in case of duplicates. Here is a query to
+    // get a list of offending slugs:
+
+    // SELECT dup_slugs.slug,
+    // GROUP_CONCAT(p.id ORDER BY p.id) AS post_ids,
+    // GROUP_CONCAT(p.type ORDER BY p.id) AS post_types
+    // FROM ( SELECT slug FROM posts GROUP BY slug HAVING COUNT(*) > 1) AS dup_slugs
+    // JOIN posts p ON dup_slugs.slug = p.slug
+    // GROUP BY dup_slugs.slug;
     (await db.knexTable("posts").where({ slug: slug }))[0]
 
 export const getPostEnrichedBySlug = async (

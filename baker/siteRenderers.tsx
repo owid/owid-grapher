@@ -63,9 +63,9 @@ import { formatPost } from "./formatWordpressPost.js"
 import {
     getBlogIndex,
     getLatestPostRevision,
-    getPostBySlug,
     isPostCitable,
     getBlockContent,
+    getFullPost,
 } from "../db/wpdb.js"
 import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
@@ -87,7 +87,7 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
 import { resolveInternalRedirect } from "./redirects.js"
-import { postsTable } from "../db/model/Post.js"
+import { getPostEnrichedBySlug, postsTable } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
@@ -194,8 +194,10 @@ export const renderGdoc = (gdoc: OwidGdoc, isPreviewing: boolean = false) => {
 }
 
 export const renderPageBySlug = async (slug: string) => {
-    const post = await getPostBySlug(slug)
-    return renderPost(post)
+    const post = await getPostEnrichedBySlug(slug)
+    if (!post) throw new JsonError(`No such post: ${slug}`, 404)
+
+    return renderPost(await getFullPost(post))
 }
 
 export const renderPreview = async (postId: number): Promise<string> => {
@@ -485,8 +487,17 @@ const getCountryProfilePost = memoize(
         grapherExports?: GrapherExports
     ): Promise<[FormattedPost, FormattingOptions]> => {
         // Get formatted content from generic covid country profile page.
-        const genericCountryProfilePost = await getPostBySlug(
+        const genericCountryProfilePostEnriched = await getPostEnrichedBySlug(
             profileSpec.genericProfileSlug
+        )
+        if (!genericCountryProfilePostEnriched)
+            throw new JsonError(
+                `No generic country profile post found: ${profileSpec.genericProfileSlug}`,
+                404
+            )
+
+        const genericCountryProfilePost = await getFullPost(
+            genericCountryProfilePostEnriched
         )
 
         const profileFormattingOptions = extractFormattingOptions(
@@ -505,7 +516,16 @@ const getCountryProfilePost = memoize(
 // todo: we used to flush cache of this thing.
 const getCountryProfileLandingPost = memoize(
     async (profileSpec: CountryProfileSpec) => {
-        return getPostBySlug(profileSpec.landingPageSlug)
+        const landingEnriched = await getPostEnrichedBySlug(
+            profileSpec.landingPageSlug
+        )
+        if (!landingEnriched) {
+            logErrorAndMaybeSendToBugsnag(
+                `No landing page found for country profile ${profileSpec.landingPageSlug}`
+            )
+            return
+        }
+        return getFullPost(landingEnriched)
     }
 )
 
@@ -521,7 +541,9 @@ export const renderCountryProfile = async (
 
     const formattedCountryProfile = formatCountryProfile(formatted, country)
 
+    // get the country profile landing page to use as citation
     const landing = await getCountryProfileLandingPost(profileSpec)
+    if (!landing) return
 
     const overrides: PageOverrides = {
         pageTitle: `${country.name}: ${profileSpec.pageTitle} Country Profile`,
@@ -562,12 +584,10 @@ const renderPostThumbnailBySlug = async (
 ): Promise<string | undefined> => {
     if (!slug) return
 
-    let post
-    try {
-        post = await getPostBySlug(slug)
-    } catch (err) {
-        // if no post is found, then we return early instead of throwing
-    }
+    const postEnriched = await getPostEnrichedBySlug(slug)
+    if (!postEnriched) return
+
+    const post = await getFullPost(postEnriched)
 
     if (!post?.thumbnailUrl) return
     return ReactDOMServer.renderToStaticMarkup(
@@ -604,7 +624,8 @@ export const renderProminentLinks = async (
                         ? (await Chart.getBySlug(resolvedUrl.slug))?.config
                               ?.title // optim?
                         : resolvedUrl.slug &&
-                          (await getPostBySlug(resolvedUrl.slug)).title)
+                          (await getPostEnrichedBySlug(resolvedUrl.slug))
+                              ?.title)
             } finally {
                 if (!title) {
                     logErrorAndMaybeSendToBugsnag(

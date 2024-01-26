@@ -386,27 +386,6 @@ export const getPostIdAndTypeBySlug = async (
     return { id: rows[0].id, type: rows[0].type }
 }
 
-export const getPostBySlug = async (slug: string): Promise<FullPost> => {
-    // Slugs are not guaranteed to be unique across post types so we are
-    // grabbing the first match in case of duplicates. Here is a query to
-    // get a list of offending slugs:
-
-    // SELECT dup_slugs.slug,
-    // GROUP_CONCAT(p.id ORDER BY p.id) AS post_ids,
-    // GROUP_CONCAT(p.type ORDER BY p.id) AS post_types
-    // FROM ( SELECT slug FROM posts GROUP BY slug HAVING COUNT(*) > 1) AS dup_slugs
-    // JOIN posts p ON dup_slugs.slug = p.slug
-    // GROUP BY dup_slugs.slug;
-
-    const post = await db.mysqlFirst("SELECT * from posts WHERE `slug` = ?", [
-        slug,
-    ])
-
-    if (!post) throw new JsonError(`No page found by slug ${slug}`, 404)
-
-    return getFullPost(post)
-}
-
 // the /revisions endpoint does not send back all the metadata required for
 // the proper rendering of the post (e.g. authors), hence the double request.
 export const getLatestPostRevision = async (id: number): Promise<FullPost> => {
