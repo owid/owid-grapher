@@ -1,4 +1,3 @@
-import { decodeHTML } from "entities"
 import { DatabaseConnection } from "./DatabaseConnection.js"
 import {
     WORDPRESS_DB_NAME,
@@ -10,7 +9,6 @@ import {
     WORDPRESS_API_USER,
     WORDPRESS_URL,
     BAKED_BASE_URL,
-    BLOG_SLUG,
 } from "../settings/serverSettings.js"
 import * as db from "./db.js"
 import { Knex, knex } from "knex"
@@ -24,8 +22,6 @@ import {
     DocumentNode,
     PostReference,
     JsonError,
-    FilterFnPostRestApi,
-    PostRestApi,
     TopicId,
     GraphType,
     memoize,
@@ -39,7 +35,7 @@ import {
     Tag,
     OwidGdocPostInterface,
 } from "@ourworldindata/utils"
-import { OwidGdocLinkType, Topic } from "@ourworldindata/types"
+import { OwidGdocLinkType, DbEnrichedPost, Topic } from "@ourworldindata/types"
 import {
     getContentGraph,
     WPPostTypeToGraphDocumentType,
@@ -48,6 +44,7 @@ import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 import { GdocPost } from "./model/Gdoc/GdocPost.js"
 import { Link } from "./model/Link.js"
 import { SiteNavigationStatic } from "../site/SiteNavigation.js"
+import { getPosts, filterListedPosts } from "./model/Post.js"
 
 let _knexInstance: Knex
 
@@ -351,63 +348,6 @@ export const getFeaturedImages = async (): Promise<Map<number, string>> => {
 
 // page => pages, post => posts
 const getEndpointSlugFromType = (type: string): string => `${type}s`
-
-export const selectHomepagePosts: FilterFnPostRestApi = (post) =>
-    post.meta?.owid_publication_context_meta_field?.homepage === true
-
-// Limit not supported with multiple post types:
-// When passing multiple post types, the limit is applied to the resulting array
-// of sequentially sorted posts (all blog posts, then all pages, ...), so there
-// will be a predominance of a certain post type.
-export const getPosts = async (
-    postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
-    filterFunc?: FilterFnPostRestApi,
-    limit?: number
-): Promise<PostRestApi[]> => {
-    if (!isWordpressAPIEnabled) return []
-
-    const perPage = 20
-    const posts: PostRestApi[] = []
-
-    for (const postType of postTypes) {
-        const endpoint = `${WP_API_ENDPOINT}/${getEndpointSlugFromType(
-            postType
-        )}`
-
-        // Get number of items to retrieve
-        const headers = await apiQuery(endpoint, {
-            searchParams: [["per_page", 1]],
-            returnResponseHeadersOnly: true,
-        })
-        const maxAvailable = headers.get("X-WP-TotalPages")
-        const count = limit && limit < maxAvailable ? limit : maxAvailable
-
-        for (let page = 1; page <= Math.ceil(count / perPage); page++) {
-            const postsCurrentPage = await apiQuery(endpoint, {
-                searchParams: [
-                    ["per_page", perPage],
-                    ["page", page],
-                ],
-            })
-            posts.push(...postsCurrentPage)
-        }
-    }
-
-    // Published pages excluded from public views
-    const excludedSlugs = [BLOG_SLUG]
-
-    const filterConditions: Array<FilterFnPostRestApi> = [
-        (post): boolean => !excludedSlugs.includes(post.slug),
-        (post): boolean => !post.slug.endsWith("-country-profile"),
-    ]
-    if (filterFunc) filterConditions.push(filterFunc)
-
-    const filteredPosts = posts.filter((post) =>
-        filterConditions.every((c) => c(post))
-    )
-
-    return limit ? filteredPosts.slice(0, limit) : filteredPosts
-}
 
 // todo / refactor : narrow down scope to getPostTypeById?
 export const getPostType = async (search: number | string): Promise<string> => {
@@ -758,37 +698,40 @@ export const getBlockContent = async (
 }
 
 export const getFullPost = async (
-    postApi: PostRestApi,
+    postApi: DbEnrichedPost,
     excludeContent?: boolean
-): Promise<FullPost> => ({
-    id: postApi.id,
-    type: postApi.type,
-    slug: postApi.slug,
-    path: postApi.slug, // kept for transitioning between legacy BPES (blog post as entry section) and future hierarchical paths
-    title: decodeHTML(postApi.title.rendered),
-    date: new Date(postApi.date_gmt),
-    modifiedDate: new Date(postApi.modified_gmt),
-    authors: postApi.authors_name || [],
-    content: excludeContent ? "" : postApi.content.rendered,
-    excerpt: decodeHTML(postApi.excerpt.rendered),
-    imageUrl: `${BAKED_BASE_URL}${
-        postApi.featured_media_paths.medium_large ?? "/default-thumbnail.jpg"
-    }`,
-    thumbnailUrl: `${BAKED_BASE_URL}${
-        postApi.featured_media_paths?.thumbnail ?? "/default-thumbnail.jpg"
-    }`,
-    imageId: postApi.featured_media,
-    relatedCharts:
-        postApi.type === "page"
-            ? await getRelatedCharts(postApi.id)
-            : undefined,
-})
+): Promise<FullPost> => {
+    const {
+        published_at,
+        updated_at,
+        authors,
+        excerpt,
+        type,
+        content,
+        id,
+        featured_image,
+    } = postApi
+    if (!updated_at) throw new Error("Missing required fields in postApi")
+
+    return {
+        ...postApi,
+        date: published_at || updated_at,
+        modifiedDate: updated_at,
+        authors: authors ?? [],
+        excerpt: excerpt ?? undefined,
+        imageUrl: featured_image ?? `${BAKED_BASE_URL}/default-thumbnail.jpg`,
+        thumbnailUrl:
+            featured_image ?? `${BAKED_BASE_URL}/default-thumbnail.jpg`,
+        relatedCharts: type === "page" ? await getRelatedCharts(id) : undefined,
+        content: excludeContent ? "" : content,
+    }
+}
 
 export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
     await db.getConnection() // side effect: ensure connection is established
     const gdocPosts = await GdocPost.getListedGdocs()
     const wpPosts = await Promise.all(
-        await getPosts([WP_PostType.Post], selectHomepagePosts).then((posts) =>
+        await getPosts([WP_PostType.Post], filterListedPosts).then((posts) =>
             posts.map((post) => getFullPost(post, true))
         )
     )

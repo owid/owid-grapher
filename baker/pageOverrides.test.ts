@@ -12,7 +12,6 @@ const mockCreatePost = (slug: string): FullPost => {
         id: 123,
         type: WP_PostType.Post,
         slug: slug,
-        path: "",
         title: "",
         date: new Date(0),
         modifiedDate: new Date(0),

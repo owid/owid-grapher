@@ -11,7 +11,7 @@ import {
     OwidGdocType,
     type RawPageview,
     Tag,
-    PostRestApi,
+    DbEnrichedPost,
 } from "@ourworldindata/utils"
 import { formatPost } from "../formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
@@ -26,6 +26,7 @@ import { Pageview } from "../../db/model/Pageview.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { ArticleBlocks } from "../../site/gdocs/components/ArticleBlocks.js"
 import React from "react"
+import { getPosts } from "../../db/model/Post.js"
 
 interface TypeAndImportance {
     type: PageType
@@ -72,7 +73,7 @@ function generateChunksFromHtmlText(htmlString: string) {
 }
 
 async function generateWordpressRecords(
-    postsApi: PostRestApi[],
+    postsApi: DbEnrichedPost[],
     pageviews: Record<string, RawPageview>
 ): Promise<PageRecord[]> {
     const getPostTypeAndImportance = (
@@ -111,7 +112,7 @@ async function generateWordpressRecords(
             const record = {
                 objectID: `${rawPost.id}-c${i}`,
                 ...postTypeAndImportance,
-                slug: post.path,
+                slug: post.slug,
                 title: post.title,
                 excerpt: post.excerpt,
                 authors: post.authors,
@@ -119,7 +120,7 @@ async function generateWordpressRecords(
                 modifiedDate: post.modifiedDate.toISOString(),
                 content: c,
                 tags: tags.map((t) => t.name),
-                views_7d: pageviews[`/${post.path}`]?.views_7d ?? 0,
+                views_7d: pageviews[`/${post.slug}`]?.views_7d ?? 0,
                 documentType: "wordpress" as const,
             }
             const score = computeScore(record)
@@ -193,7 +194,7 @@ const getPagesRecords = async () => {
     // TODO: the knex instance should be handed down as a parameter
     const slugsWithPublishedGdocsSuccessors =
         await db.getSlugsWithPublishedGdocsSuccessors(db.knexInstance())
-    const postsApi = await wpdb.getPosts(undefined, (post) => {
+    const postsApi = await getPosts(undefined, (post) => {
         // Two things can happen here:
         // 1. There's a published Gdoc with the same slug
         // 2. This post has a Gdoc successor (which might have a different slug)

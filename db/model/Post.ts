@@ -1,6 +1,13 @@
 import * as db from "../db.js"
 import { Knex } from "knex"
-import { DbEnrichedPost, DbRawPost, parsePostRow } from "@ourworldindata/utils"
+import {
+    DbEnrichedPost,
+    DbRawPost,
+    parsePostRow,
+    FilterFnPostRestApi,
+    WP_PostType,
+} from "@ourworldindata/utils"
+import { BLOG_SLUG } from "../../settings/serverSettings.js"
 
 export const postsTable = "posts"
 
@@ -71,4 +78,31 @@ export const getPostEnrichedBySlug = async (
     const post = await getPostRawBySlug(slug)
     if (!post) return undefined
     return parsePostRow(post)
+}
+
+export const filterListedPosts: FilterFnPostRestApi = (post) => post.isListed
+
+export const getPosts = async (
+    postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
+    filterFunc?: FilterFnPostRestApi
+): Promise<DbEnrichedPost[]> => {
+    const posts: DbRawPost[] = await db
+        .knexTable(postsTable)
+        .where("type", "in", [postTypes.join(",")])
+        .andWhere("status", "publish")
+
+    // Published pages excluded from public views
+    const excludedSlugs = [BLOG_SLUG]
+
+    const filterConditions: Array<FilterFnPostRestApi> = [
+        (post): boolean => !excludedSlugs.includes(post.slug),
+        (post): boolean => !post.slug.endsWith("-country-profile"),
+    ]
+    if (filterFunc) filterConditions.push(filterFunc)
+
+    const filteredPosts = posts
+        .filter((post) => filterConditions.every((c) => c(post)))
+        .map(parsePostRow)
+
+    return filteredPosts
 }

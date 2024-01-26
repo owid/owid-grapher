@@ -1,3 +1,5 @@
+import { DbRawPost } from "../dbTypes/Posts.js"
+
 export enum WP_PostType {
     Post = "post",
     Page = "page",
@@ -51,7 +53,7 @@ export interface PostRestApi {
     }
 }
 
-export type FilterFnPostRestApi = (post: PostRestApi) => boolean
+export type FilterFnPostRestApi = (post: DbRawPost) => boolean
 
 export enum WP_ColumnStyle {
     StickyRight = "sticky-right",

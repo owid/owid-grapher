@@ -29,7 +29,6 @@ export interface IndexPost {
 
 export interface FullPost extends IndexPost {
     id: number
-    path: string
     content: string
     thumbnailUrl?: string
     imageId?: number
