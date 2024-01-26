@@ -1,6 +1,6 @@
 import { PageOverrides } from "../site/LongFormPage.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
-import { urlToSlug, FullPost, JsonError } from "@ourworldindata/utils"
+import { urlToSlug, JsonError } from "@ourworldindata/utils"
 import { FormattingOptions, DbEnrichedPost } from "@ourworldindata/types"
 import { getFullPost, isPostCitable } from "../db/wpdb.js"
 import { getTopSubnavigationParentItem } from "../site/SiteSubnavigation.js"
@@ -8,7 +8,7 @@ import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { getPostEnrichedBySlug } from "../db/model/Post.js"
 
 export const getLandingOnlyIfParent = async (
-    post: FullPost,
+    slug: string,
     formattingOptions: FormattingOptions
 ): Promise<DbEnrichedPost | undefined> => {
     if (!formattingOptions.subnavId) return
@@ -19,12 +19,12 @@ export const getLandingOnlyIfParent = async (
     if (!landingItemHref) return
 
     const landingSlug = urlToSlug(landingItemHref)
-    if (landingSlug === post.slug) return
+    if (landingSlug === slug) return
 
-    // Using no-throw version to prevent throwing and stopping baking mid-way.
-    // It is more desirable to temporarily deploy with citation overrides
-    // absent, while fixing the issue.
     const landing = await getPostEnrichedBySlug(landingSlug)
+    // Continue baking even if a landing page is not found. It is more desirable
+    // to temporarily deploy with citation overrides absent, than throw and halt
+    // baking.
     if (!landing) {
         // todo: the concept of "citation overrides" does not belong to that
         // generic function. Logging this message should be the responsibility
@@ -36,7 +36,7 @@ export const getLandingOnlyIfParent = async (
                 // the href of the "subnavs[${formattingOptions.subnavId}]"
                 // landing page (the first item in the array): it might be
                 // out-of-date and redirected.
-                `Landing page not found. Citation overrides not applied for ${post.slug}. This might be an intermittent issue.`
+                `Landing page not found. Citation overrides not applied for ${slug}. This might be an intermittent issue.`
             )
         )
     }
@@ -45,11 +45,11 @@ export const getLandingOnlyIfParent = async (
 }
 
 export const getPageOverrides = async (
-    post: FullPost,
+    slug: string,
     formattingOptions: FormattingOptions
 ): Promise<PageOverrides | undefined> => {
     const landingEnriched = await getLandingOnlyIfParent(
-        post,
+        slug,
         formattingOptions
     )
     if (!landingEnriched) return

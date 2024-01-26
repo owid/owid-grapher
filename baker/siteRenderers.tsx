@@ -238,7 +238,7 @@ export const renderPost = async (
 
     const formatted = await formatPost(post, formattingOptions, grapherExports)
 
-    const pageOverrides = await getPageOverrides(post, formattingOptions)
+    const pageOverrides = await getPageOverrides(post.slug, formattingOptions)
     const citationStatus =
         (await isPostCitable(post)) || isPageOverridesCitable(pageOverrides)
 
