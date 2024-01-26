@@ -1025,3 +1025,35 @@ div.raw-html-table__container {
         }
     }
 }
+
+.article-block__homepage-search {
+    background-image: url("/images/world.svg");
+    background-color: #00103c;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position-y: -35px;
+    text-align: center;
+
+    h2 {
+        color: $amber;
+    }
+
+    .aa-Form {
+        background-color: #fff;
+        border-color: #dbe5f0;
+    }
+
+    .aa-InputWrapperPrefix {
+        display: initial;
+    }
+
+    .aa-Input::placeholder {
+        color: $blue-30;
+    }
+
+    p {
+        color: $blue-30;
+        display: inline-block;
+        margin: 16px;
+    }
+}

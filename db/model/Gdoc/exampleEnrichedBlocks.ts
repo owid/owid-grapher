@@ -584,4 +584,8 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
+    "homepage-search": {
+        type: "homepage-search",
+        parseErrors: [],
+    },
 }
