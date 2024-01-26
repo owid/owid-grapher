@@ -6,13 +6,14 @@ import { DataTable } from "./DataTable"
 import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
 import {
     childMortalityGrapher,
-    IncompleteDataTable,
-    DataTableWithAggregates,
-    DataTableWithMultipleVariablesAndMultipleYears,
+    GrapherWithIncompleteData,
+    GrapherWithAggregates,
+    GrapherWithMultipleVariablesAndMultipleYears,
 } from "./DataTable.sample"
 
 import Enzyme, { ReactWrapper } from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
+import { LifeExpectancyGrapher } from "../testData/OwidTestData.sample.js"
 Enzyme.configure({ adapter: new Adapter() })
 
 describe("when you render a table", () => {
@@ -99,7 +100,7 @@ describe("when you select a range of years", () => {
 })
 
 describe("when the table doesn't have data for all rows", () => {
-    const grapher = IncompleteDataTable()
+    const grapher = GrapherWithIncompleteData()
     grapher.timelineHandleTimeBounds = [2000, 2000]
     const view = Enzyme.mount(<DataTable manager={grapher} />)
 
@@ -129,7 +130,7 @@ describe("when the table doesn't have data for all rows", () => {
 describe("when the table has aggregates", () => {
     let view: ReactWrapper
     beforeAll(() => {
-        const grapher = DataTableWithAggregates()
+        const grapher = GrapherWithAggregates()
         view = Enzyme.mount(<DataTable manager={grapher} />)
     })
 
@@ -143,11 +144,35 @@ describe("when the table has aggregates", () => {
 describe("when the table has multiple variables and multiple years", () => {
     let view: ReactWrapper
     beforeAll(() => {
-        const grapher = DataTableWithMultipleVariablesAndMultipleYears()
+        const grapher = GrapherWithMultipleVariablesAndMultipleYears()
         view = Enzyme.mount(<DataTable manager={grapher} />)
     })
 
     it("header is split into two rows", () => {
         expect(view.find("thead tr")).toHaveLength(2)
+    })
+})
+
+describe("when the table has no filter toggle", () => {
+    it("does not filter by default if we have a map tab", () => {
+        const grapher = LifeExpectancyGrapher({
+            selectedEntityNames: ["World"],
+            hideEntityControls: true, // no filter toggle
+            hasMapTab: true,
+        })
+        const view = Enzyme.mount(<DataTable manager={grapher} />)
+        const rows = view.find("tbody tr:not(.title)")
+        expect(rows).toHaveLength(grapher.availableEntities.length)
+    })
+
+    it("does not filter by default if the selection is empty", () => {
+        const grapher = LifeExpectancyGrapher({
+            selectedEntityNames: [],
+            hideEntityControls: true, // no filter toggle
+            hasMapTab: false,
+        })
+        const view = Enzyme.mount(<DataTable manager={grapher} />)
+        const rows = view.find("tbody tr:not(.title)")
+        expect(rows).toHaveLength(grapher.availableEntities.length)
     })
 })
