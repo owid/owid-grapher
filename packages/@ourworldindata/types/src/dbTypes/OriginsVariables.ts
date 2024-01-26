@@ -1,7 +1,7 @@
 export const OriginsVariablesTableName = "origins_variables"
-export interface OriginsVariablesRowForInsert {
+export interface DbInsertOriginsVariable {
     displayOrder?: number
     originId: number
     variableId: number
 }
-export type OriginsVariablesRow = Required<OriginsVariablesRowForInsert>
+export type DbPlainOriginVariable = Required<DbInsertOriginsVariable>

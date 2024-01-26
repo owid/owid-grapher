@@ -6,7 +6,7 @@ import {
 } from "../gdocTypes/Gdoc.js"
 
 export const PostsGdocsTableName = "posts_gdocs"
-export interface PostsGdocsRowForInsert {
+export interface DbInsertPostGdoc {
     breadcrumbs?: JsonString | null
     content: JsonString
     createdAt: Date
@@ -19,9 +19,9 @@ export interface PostsGdocsRowForInsert {
     slug: string
     updatedAt?: Date | null
 }
-export type PostsGdocsRowRaw = Required<PostsGdocsRowForInsert>
-export type PostsGdocsRowEnriched = Omit<
-    PostsGdocsRowRaw,
+export type DbRawPostGdoc = Required<DbInsertPostGdoc>
+export type DbEnrichedPostGdoc = Omit<
+    DbRawPostGdoc,
     "content" | "breadcrumbs"
 > & {
     content: OwidGdocContent
@@ -48,9 +48,7 @@ export function serializePostsGdocsBreadcrumbs(
     return breadcrumbs ? JSON.stringify(breadcrumbs) : null
 }
 
-export function parsePostsGdocsRow(
-    row: PostsGdocsRowRaw
-): PostsGdocsRowEnriched {
+export function parsePostsGdocsRow(row: DbRawPostGdoc): DbEnrichedPostGdoc {
     return {
         ...row,
         content: parsePostGdocContent(row.content),
@@ -58,9 +56,7 @@ export function parsePostsGdocsRow(
     }
 }
 
-export function serializePostsGdocsRow(
-    row: PostsGdocsRowEnriched
-): PostsGdocsRowRaw {
+export function serializePostsGdocsRow(row: DbEnrichedPostGdoc): DbRawPostGdoc {
     return {
         ...row,
         content: serializePostGdocContent(row.content),

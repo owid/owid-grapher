@@ -3,7 +3,7 @@ import { JsonString } from "../domainTypes/Various.js"
 import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
 
 export const VariablesTableName = "variables"
-export interface VariablesRowForInsert {
+export interface DbInsertVariable {
     attribution?: string | null
     attributionShort?: string | null
     catalogPath?: string | null
@@ -38,7 +38,7 @@ export interface VariablesRowForInsert {
     unit: string
     updatedAt?: Date | null
 }
-export type VariablesRowRaw = Required<VariablesRowForInsert>
+export type DbRawVariable = Required<DbInsertVariable>
 
 export interface VariableDisplayDimension {
     originalShortName: string
@@ -54,8 +54,8 @@ export interface License {
     url: string
 }
 
-export type VariablesRowEnriched = Omit<
-    VariablesRowRaw,
+export type DbEnrichedVariable = Omit<
+    DbRawVariable,
     | "display"
     | "license"
     | "licenses"
@@ -179,7 +179,7 @@ export function serializeVariableProcessingLog(
     return processingLog ? JSON.stringify(processingLog) : null
 }
 
-export function parseVariablesRow(row: VariablesRowRaw): VariablesRowEnriched {
+export function parseVariablesRow(row: DbRawVariable): DbEnrichedVariable {
     return {
         ...row,
         display: parseVariableDisplayConfig(row.display),
@@ -196,9 +196,7 @@ export function parseVariablesRow(row: VariablesRowRaw): VariablesRowEnriched {
     }
 }
 
-export function serializeVariablesRow(
-    row: VariablesRowEnriched
-): VariablesRowRaw {
+export function serializeVariablesRow(row: DbEnrichedVariable): DbRawVariable {
     return {
         ...row,
         display: serializeVariableDisplayConfig(row.display),

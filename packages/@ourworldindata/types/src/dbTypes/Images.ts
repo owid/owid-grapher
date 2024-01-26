@@ -1,5 +1,5 @@
 export const ImagesTableName = "images"
-export interface ImagesRowForInsert {
+export interface DbInsertImage {
     defaultAlt: string
     filename: string
     googleId: string
@@ -7,4 +7,4 @@ export interface ImagesRowForInsert {
     originalWidth?: number | null
     updatedAt?: string | null
 }
-export type ImagesRow = Required<ImagesRowForInsert>
+export type DbPlainImage = Required<DbInsertImage>

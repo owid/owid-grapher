@@ -1,9 +1,9 @@
 export const ChartSlugRedirectsTableName = "chart_slug_redirects"
-export interface ChartSlugRedirectsRowForInsert {
+export interface DbInsertChartSlugRedirect {
     chart_id: number
     createdAt?: Date
     id?: number
     slug: string
     updatedAt?: Date | null
 }
-export type ChartSlugRedirectsRow = Required<ChartSlugRedirectsRowForInsert>
+export type DbPlainChartSlugRedirect = Required<DbInsertChartSlugRedirect>

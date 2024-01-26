@@ -1,8 +1,8 @@
 import { KeyChartLevel } from "../grapherTypes/GrapherTypes.js"
-import { TagsRow } from "./Tags.js"
+import { DbPlainTag } from "./Tags.js"
 
 export const ChartTagsTableName = "chart_tags"
-export interface ChartTagsRowForInsert {
+export interface DbInsertChartTag {
     chartId: number
     createdAt?: Date
     isApproved?: boolean
@@ -10,11 +10,11 @@ export interface ChartTagsRowForInsert {
     tagId: number
     updatedAt?: Date | null
 }
-export type ChartTagsRow = Required<ChartTagsRowForInsert>
+export type DbPlainChartTag = Required<DbInsertChartTag>
 
 /**
  * A common minimal union of the tags and chart_tags entities.
  * Used anywhere we're using the TagBadge component.
  */
-export type ChartTagJoin = Pick<TagsRow, "id" | "name"> &
-    Partial<Pick<ChartTagsRow, "isApproved" | "keyChartLevel">>
+export type DbChartTagJoin = Pick<DbPlainTag, "id" | "name"> &
+    Partial<Pick<DbPlainChartTag, "isApproved" | "keyChartLevel">>

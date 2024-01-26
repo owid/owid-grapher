@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 
 import {
-    ChartTagJoin,
+    DbChartTagJoin,
     Tag,
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
@@ -37,7 +37,7 @@ interface PostIndexMeta {
     authors: string[] | null
     slug: string
     updatedAtInWordpress: string | null
-    tags: ChartTagJoin[] | null
+    tags: DbChartTagJoin[] | null
     gdocSuccessorId: string | undefined
     gdocSuccessorPublished: boolean
     gdocSlugSuccessors: GDocSlugSuccessor[] | null
@@ -73,7 +73,7 @@ class PostRow extends React.Component<PostRowProps> {
             : GdocStatus.MISSING_NO_SLUG_SUCCESSOR
     }
 
-    async saveTags(tags: ChartTagJoin[]) {
+    async saveTags(tags: DbChartTagJoin[]) {
         const { post } = this.props
         const json = await this.context.admin.requestJSON(
             `/api/posts/${post.id}/setTags`,
@@ -85,7 +85,7 @@ class PostRow extends React.Component<PostRowProps> {
         }
     }
 
-    @action.bound onSaveTags(tags: ChartTagJoin[]) {
+    @action.bound onSaveTags(tags: DbChartTagJoin[]) {
         this.saveTags(tags)
     }
 

@@ -1,7 +1,7 @@
 import React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
-import { ChartTagJoin } from "@ourworldindata/utils"
+import { DbChartTagJoin } from "@ourworldindata/utils"
 import {
     ReactTags,
     ReactTagsAPI,
@@ -10,10 +10,10 @@ import {
 
 @observer
 export class EditTags extends React.Component<{
-    tags: ChartTagJoin[]
-    suggestions: ChartTagJoin[]
+    tags: DbChartTagJoin[]
+    suggestions: DbChartTagJoin[]
     onDelete: (index: number) => void
-    onAdd: (tag: ChartTagJoin) => void
+    onAdd: (tag: DbChartTagJoin) => void
     onSave: () => void
 }> {
     dismissable: boolean = true
@@ -66,7 +66,7 @@ export class EditTags extends React.Component<{
     }
 }
 
-const convertTagToAutocomplete = (t: ChartTagJoin) => ({
+const convertTagToAutocomplete = (t: DbChartTagJoin) => ({
     value: t.id,
     label: t.name,
 })

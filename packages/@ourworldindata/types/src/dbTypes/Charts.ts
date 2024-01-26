@@ -2,7 +2,7 @@ import { JsonString } from "../domainTypes/Various.js"
 import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
 
 export const ChartsTableName = "charts"
-export interface ChartsRowForInsert {
+export interface DbInsertChart {
     config: JsonString
     createdAt?: Date
     id?: number
@@ -16,9 +16,9 @@ export interface ChartsRowForInsert {
     type?: string | null
     updatedAt?: Date | null
 }
-export type ChartsRowRaw = Required<ChartsRowForInsert>
+export type DbRawChart = Required<DbInsertChart>
 
-export type ChartsRowEnriched = Omit<ChartsRowRaw, "config"> & {
+export type DbEnrichedChart = Omit<DbRawChart, "config"> & {
     config: GrapherInterface
 }
 
@@ -30,11 +30,11 @@ export function serializeChartConfig(config: GrapherInterface): JsonString {
     return JSON.stringify(config)
 }
 
-export function parseChartsRow(row: ChartsRowRaw): ChartsRowEnriched {
+export function parseChartsRow(row: DbRawChart): DbEnrichedChart {
     return { ...row, config: parseChartConfig(row.config) }
 }
 
-export function serializeChartsRow(row: ChartsRowEnriched): ChartsRowRaw {
+export function serializeChartsRow(row: DbEnrichedChart): DbRawChart {
     return {
         ...row,
         config: serializeChartConfig(row.config),

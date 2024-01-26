@@ -2,7 +2,7 @@ import { JsonString } from "../domainTypes/Various.js"
 import { License, parseLicense, serializeLicense } from "./Variables.js"
 
 export const OriginsTableName = "origins"
-export interface OriginsRowForInsert {
+export interface DbInsertOrigin {
     attribution?: string | null
     attributionShort?: string | null
     citationFull?: string | null
@@ -19,15 +19,15 @@ export interface OriginsRowForInsert {
     urlMain?: string | null
     versionProducer?: string | null
 }
-export type OriginsRowRaw = Required<OriginsRowForInsert>
-export type OriginsRowEnriched = Omit<OriginsRowRaw, "license"> & {
+export type DbRawOrigin = Required<DbInsertOrigin>
+export type DbEnrichedOrigin = Omit<DbRawOrigin, "license"> & {
     license: License | null
 }
 
-export function parseOriginsRow(row: OriginsRowRaw): OriginsRowEnriched {
+export function parseOriginsRow(row: DbRawOrigin): DbEnrichedOrigin {
     return { ...row, license: parseLicense(row.license) }
 }
 
-export function serializeOriginsRow(row: OriginsRowEnriched): OriginsRowRaw {
+export function serializeOriginsRow(row: DbEnrichedOrigin): DbRawOrigin {
     return { ...row, license: serializeLicense(row.license) }
 }

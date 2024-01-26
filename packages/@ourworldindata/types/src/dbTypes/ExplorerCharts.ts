@@ -1,7 +1,7 @@
 export const ExplorerChartsTableName = "explorer_charts"
-export interface ExplorerChartsRowForInsert {
+export interface DbInsertExplorerChart {
     chartId: number
     explorerSlug: string
     id?: number
 }
-export type ExplorerChartsRow = Required<ExplorerChartsRowForInsert>
+export type DbPlainExplorerChart = Required<DbInsertExplorerChart>

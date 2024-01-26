@@ -4,7 +4,7 @@ import { runInAction, observable } from "mobx"
 import { bind } from "decko"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartTypeName, GrapherInterface } from "@ourworldindata/types"
-import { startCase, ChartTagJoin } from "@ourworldindata/utils"
+import { startCase, DbChartTagJoin } from "@ourworldindata/utils"
 import { References, getFullReferencesCount } from "./ChartEditor.js"
 import { ChartRow } from "./ChartRow.js"
 
@@ -28,7 +28,7 @@ export interface ChartListItem {
     publishedBy: string
     isExplorable: boolean
 
-    tags: ChartTagJoin[]
+    tags: DbChartTagJoin[]
 }
 
 @observer
@@ -40,7 +40,7 @@ export class ChartList extends React.Component<{
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable availableTags: ChartTagJoin[] = []
+    @observable availableTags: DbChartTagJoin[] = []
 
     async fetchRefs(grapherId: number | undefined): Promise<References> {
         const { admin } = this.context

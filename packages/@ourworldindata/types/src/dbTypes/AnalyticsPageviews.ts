@@ -1,5 +1,5 @@
 export const AnalyticsPageviewsTableName = "analytics_pageviews"
-export interface AnalyticsPageviewsRow {
+export interface DbPlainAnalyticsPageview {
     day: Date
     url: string
     views_14d: number

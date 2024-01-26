@@ -1,5 +1,5 @@
 export const UsersTableName = "users"
-export interface UsersRowForInsert {
+export interface DbInsertUser {
     createdAt?: Date
     email: string
     fullName: string
@@ -11,4 +11,4 @@ export interface UsersRowForInsert {
     password?: string | null
     updatedAt?: Date | null
 }
-export type UsersRow = Required<UsersRowForInsert>
+export type DbPlainUser = Required<DbInsertUser>

@@ -55,7 +55,7 @@ import {
     OwidGdoc,
     OwidGdocDataInsightInterface,
     extractFormattingOptions,
-    PostRowRaw,
+    DbRawPost,
 } from "@ourworldindata/utils"
 import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
@@ -458,7 +458,7 @@ export const entriesByYearPage = async (year?: number) => {
         .join("tags", { "tags.id": "post_tags.tag_id" })
         .where({ "tags.name": "Entries" })
         .select("title", "posts.slug", "published_at")) as Pick<
-        PostRowRaw,
+        DbRawPost,
         "title" | "slug" | "published_at"
     >[]
 

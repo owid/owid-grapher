@@ -1,5 +1,5 @@
 export const ChartDimensionsTableName = "chart_dimensions"
-export interface ChartDimensionsRowForInsert {
+export interface DbInsertChartDimension {
     chartId: number
     createdAt?: Date
     id?: number
@@ -8,4 +8,4 @@ export interface ChartDimensionsRowForInsert {
     updatedAt?: Date | null
     variableId: number
 }
-export type ChartDimensionsRow = Required<ChartDimensionsRowForInsert>
+export type DbPlainChartDimension = Required<DbInsertChartDimension>

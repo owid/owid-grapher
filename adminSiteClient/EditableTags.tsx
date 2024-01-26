@@ -5,7 +5,7 @@ import { observer } from "mobx-react"
 import {
     KeyChartLevel,
     TaggableType,
-    ChartTagJoin,
+    DbChartTagJoin,
 } from "@ourworldindata/utils"
 import { TagBadge } from "./TagBadge.js"
 import { EditTags } from "./EditTags.js"
@@ -20,9 +20,9 @@ interface TaggableItem {
 
 @observer
 export class EditableTags extends React.Component<{
-    tags: ChartTagJoin[]
-    suggestions: ChartTagJoin[]
-    onSave: (tags: ChartTagJoin[]) => void
+    tags: DbChartTagJoin[]
+    suggestions: DbChartTagJoin[]
+    onSave: (tags: DbChartTagJoin[]) => void
     disabled?: boolean
     hasKeyChartSupport?: boolean
     hasSuggestionsSupport?: boolean
@@ -34,9 +34,9 @@ export class EditableTags extends React.Component<{
     @observable isEditing: boolean = false
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @observable tags: ChartTagJoin[] = lodash.clone(this.props.tags)
+    @observable tags: DbChartTagJoin[] = lodash.clone(this.props.tags)
 
-    @action.bound onAddTag(tag: ChartTagJoin) {
+    @action.bound onAddTag(tag: DbChartTagJoin) {
         this.tags.push(tag)
         this.tags = lodash
             // we only want to keep one occurrence of the same tag, whether
@@ -92,7 +92,7 @@ export class EditableTags extends React.Component<{
         const { taggable } = this.props
         if (!taggable?.id) return
 
-        const json: Record<"topics", ChartTagJoin[]> =
+        const json: Record<"topics", DbChartTagJoin[]> =
             await this.context.admin.getJSON(
                 `/api/gpt/suggest-topics/${taggable.type}/${taggable.id}.json`
             )
@@ -190,21 +190,21 @@ export class EditableTags extends React.Component<{
     }
 }
 
-const filterUncategorizedTag = (t: ChartTagJoin) => t.name !== "Uncategorized"
+const filterUncategorizedTag = (t: DbChartTagJoin) => t.name !== "Uncategorized"
 
-const filterUnlistedTag = (t: ChartTagJoin) => t.name !== "Unlisted"
+const filterUnlistedTag = (t: DbChartTagJoin) => t.name !== "Unlisted"
 
-const setDefaultKeyChartLevel = (t: ChartTagJoin) => {
+const setDefaultKeyChartLevel = (t: DbChartTagJoin) => {
     if (t.keyChartLevel === undefined) t.keyChartLevel = KeyChartLevel.None
     return t
 }
 
-const setTagStatusToPending = (t: ChartTagJoin) => {
+const setTagStatusToPending = (t: DbChartTagJoin) => {
     t.isApproved = false
     return t
 }
 
-const setTagStatusToApprovedIfUnset = (t: ChartTagJoin) => {
+const setTagStatusToApprovedIfUnset = (t: DbChartTagJoin) => {
     if (t.isApproved === undefined) t.isApproved = true
     return t
 }

@@ -9,7 +9,7 @@ export interface SourceDescription {
 }
 
 export const SourcesTableName = "sources"
-export interface SourcesRowForInsert {
+export interface DbInsertSource {
     createdAt?: Date
     datasetId?: number | null
     description: JsonString
@@ -17,8 +17,8 @@ export interface SourcesRowForInsert {
     name?: string | null
     updatedAt?: Date | null
 }
-export type SourcesRowRaw = Required<SourcesRowForInsert>
-export type SourcesRowEnriched = Omit<SourcesRowRaw, "description"> & {
+export type DbRawSource = Required<DbInsertSource>
+export type DbEnrichedSource = Omit<DbRawSource, "description"> & {
     description: SourceDescription
 }
 
@@ -34,11 +34,11 @@ export function serializeSourceDescription(
     return JSON.stringify(description)
 }
 
-export function parseSourcesRow(row: SourcesRowRaw): SourcesRowEnriched {
+export function parseSourcesRow(row: DbRawSource): DbEnrichedSource {
     return { ...row, description: parseSourceDescription(row.description) }
 }
 
-export function serializeSourcesRow(row: SourcesRowEnriched): SourcesRowRaw {
+export function serializeSourcesRow(row: DbEnrichedSource): DbRawSource {
     return {
         ...row,
         description: serializeSourceDescription(row.description),

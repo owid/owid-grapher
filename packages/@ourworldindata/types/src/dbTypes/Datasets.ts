@@ -1,5 +1,5 @@
 export const DatasetsTableName = "datasets"
-export interface DatasetsRowForInsert {
+export interface DbInsertDataset {
     createdAt?: Date
     createdByUserId: number
     dataEditedAt: Date
@@ -19,4 +19,4 @@ export interface DatasetsRowForInsert {
     updatePeriodDays?: number | null
     version?: string | null
 }
-export type DatasetsRow = Required<DatasetsRowForInsert>
+export type DbPlainDataset = Required<DbInsertDataset>

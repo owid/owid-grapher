@@ -5,7 +5,7 @@ import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 
-import { OwidSource, ChartTagJoin, OwidOrigin } from "@ourworldindata/utils"
+import { OwidSource, DbChartTagJoin, OwidOrigin } from "@ourworldindata/utils"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
@@ -66,7 +66,7 @@ class DatasetEditable {
         additionalInfo: "",
     }
 
-    @observable tags: ChartTagJoin[] = []
+    @observable tags: DbChartTagJoin[] = []
 
     constructor(json: DatasetPageData) {
         for (const key in this) {
@@ -83,7 +83,7 @@ class DatasetTagEditor extends React.Component<{
     newDataset: DatasetEditable
     availableTags: { id: number; name: string; parentName: string }[]
 }> {
-    @action.bound onSaveTags(tags: ChartTagJoin[]) {
+    @action.bound onSaveTags(tags: DbChartTagJoin[]) {
         this.props.newDataset.tags = tags
     }
 

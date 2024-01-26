@@ -8,7 +8,7 @@ import {
 } from "../gdocTypes/Gdoc.js"
 
 export const PostTableName = "posts"
-export interface PostRowPlainFields {
+interface PostRowPlainFields {
     id: number
     title: string
     slug: string
@@ -25,24 +25,24 @@ export interface PostRowPlainFields {
     markdown: string
 }
 
-export interface PostRowUnparsedFields {
+interface PostRowUnparsedFields {
     authors?: string | null
     formattingOptions?: string | null
     archieml?: string | null
     archieml_update_statistics?: string | null
 }
 
-export interface PostRowParsedFields {
+interface PostRowParsedFields {
     authors: string[] | null
     formattingOptions: FormattingOptions | null
     archieml: OwidGdocPostInterface | null
     archieml_update_statistics: OwidArticleBackportingStatistics | null
 }
-export type PostRowForInsert = PostRowPlainFields & PostRowUnparsedFields
+export type DbInsertPost = PostRowPlainFields & PostRowUnparsedFields
 
-export type PostRowRaw = Required<PostRowForInsert>
-export type PostRowEnriched = Required<PostRowPlainFields & PostRowParsedFields>
-export interface PostRowWithGdocPublishStatus extends PostRowRaw {
+export type DbRawPost = Required<DbInsertPost>
+export type DbEnrichedPost = Required<PostRowPlainFields & PostRowParsedFields>
+export interface DbRawPostWithGdocPublishStatus extends DbRawPost {
     isGdocPublished: boolean
 }
 
@@ -62,7 +62,7 @@ export function parsePostArchieml(archieml: string): any {
     return JSON.parse(archieml)
 }
 
-export function parsePostRow(postRow: PostRowRaw): PostRowEnriched {
+export function parsePostRow(postRow: DbRawPost): DbEnrichedPost {
     return {
         ...postRow,
         authors: postRow.authors ? parsePostAuthors(postRow.authors) : null,
@@ -76,7 +76,7 @@ export function parsePostRow(postRow: PostRowRaw): PostRowEnriched {
     }
 }
 
-export function serializePostRow(postRow: PostRowEnriched): PostRowRaw {
+export function serializePostRow(postRow: DbEnrichedPost): DbRawPost {
     return {
         ...postRow,
         authors: JSON.stringify(postRow.authors),

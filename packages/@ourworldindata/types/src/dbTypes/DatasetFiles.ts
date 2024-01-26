@@ -1,9 +1,9 @@
 export const DatasetFilesTableName = "dataset_files"
-export interface DatasetFilesRowForInsert {
+export interface DbInsertDatasetFile {
     createdAt?: Date
     datasetId: number
     file: any
     filename: string
     updatedAt?: Date | null
 }
-export type DatasetFilesRow = Required<DatasetFilesRowForInsert>
+export type DbPlainDatasetFile = Required<DbInsertDatasetFile>

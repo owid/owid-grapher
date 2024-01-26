@@ -13,7 +13,7 @@ export interface SuggestedChartRevisionsExperimental {
 }
 
 export const SuggestedChartRevisionsTableName = "suggested_chart_revisions"
-export interface SuggestedChartRevisionsRowForInsert {
+export interface DbInsertSuggestedChartRevision {
     changesInDataSummary?: string | null
     chartId: number
     createdAt?: Date
@@ -31,11 +31,11 @@ export interface SuggestedChartRevisionsRowForInsert {
     updatedAt?: Date | null
     updatedBy?: number | null
 }
-export type SuggestedChartRevisionsRowRaw =
-    Required<SuggestedChartRevisionsRowForInsert>
+export type DbRawSuggestedChartRevision =
+    Required<DbInsertSuggestedChartRevision>
 
-export type SuggestedChartRevisionsRowEnriched = Omit<
-    SuggestedChartRevisionsRowRaw,
+export type DbEnrichedSuggestedChartRevision = Omit<
+    DbRawSuggestedChartRevision,
     "originalConfig" | "suggestedConfig" | "experimental"
 > & {
     originalConfig: GrapherInterface
@@ -56,8 +56,8 @@ export function serializeSuggestedChartRevisionsExperimental(
 }
 
 export function parseSuggestedChartRevisionsRow(
-    row: SuggestedChartRevisionsRowRaw
-): SuggestedChartRevisionsRowEnriched {
+    row: DbRawSuggestedChartRevision
+): DbEnrichedSuggestedChartRevision {
     return {
         ...row,
         originalConfig: parseChartConfig(row.originalConfig),
@@ -69,8 +69,8 @@ export function parseSuggestedChartRevisionsRow(
 }
 
 export function serializeSuggestedChartRevisionsRow(
-    row: SuggestedChartRevisionsRowEnriched
-): SuggestedChartRevisionsRowRaw {
+    row: DbEnrichedSuggestedChartRevision
+): DbRawSuggestedChartRevision {
     return {
         ...row,
         originalConfig: serializeChartConfig(row.originalConfig),

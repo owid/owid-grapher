@@ -1,5 +1,5 @@
 export const NamespacesTableName = "namespaces"
-export interface NamespacesRowForInsert {
+export interface DbInsertNamespace {
     createdAt?: Date
     description?: string | null
     id?: number
@@ -7,4 +7,4 @@ export interface NamespacesRowForInsert {
     name: string
     updatedAt?: Date | null
 }
-export type NamespacesRow = Required<NamespacesRowForInsert>
+export type DbPlainNamespace = Required<DbInsertNamespace>

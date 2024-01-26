@@ -383,26 +383,26 @@ export {
     ErrorValue,
 } from "./domainTypes/CoreTableTypes.js"
 export {
-    type AnalyticsPageviewsRow,
+    type DbPlainAnalyticsPageview,
     AnalyticsPageviewsTableName,
 } from "./dbTypes/AnalyticsPageviews.js"
 export {
-    type ChartDimensionsRow,
-    type ChartDimensionsRowForInsert,
+    type DbPlainChartDimension,
+    type DbInsertChartDimension,
     ChartDimensionsTableName,
 } from "./dbTypes/ChartDimensions.js"
 export {
-    type ChartRevisionsRowForInsert,
-    type ChartRevisionsRowRaw,
-    type ChartRevisionsRowEnriched,
+    type DbInsertChartRevision,
+    type DbRawChartRevision,
+    type DbEnrichedChartRevision,
     ChartRevisionsTableName,
     parseChartRevisionsRow,
     serializeChartRevisionsRow,
 } from "./dbTypes/ChartRevisions.js"
 export {
-    type ChartsRowForInsert,
-    type ChartsRowRaw,
-    type ChartsRowEnriched,
+    type DbInsertChart,
+    type DbRawChart,
+    type DbEnrichedChart,
     ChartsTableName,
     parseChartConfig,
     serializeChartConfig,
@@ -410,87 +410,84 @@ export {
     serializeChartsRow,
 } from "./dbTypes/Charts.js"
 export {
-    type ChartSlugRedirectsRow,
-    type ChartSlugRedirectsRowForInsert,
+    type DbPlainChartSlugRedirect,
+    type DbInsertChartSlugRedirect,
     ChartSlugRedirectsTableName,
 } from "./dbTypes/ChartSlugRedirects.js"
 export {
-    type ChartTagsRow,
-    type ChartTagsRowForInsert,
+    type DbPlainChartTag,
+    type DbInsertChartTag,
     ChartTagsTableName,
-    type ChartTagJoin,
+    type DbChartTagJoin,
 } from "./dbTypes/ChartTags.js"
 export {
-    type CountryLatestDataRow,
-    type CountryLatestDataRowForInsert,
+    type DbPlainCountryLatestData,
+    type DbInsertCountryLatestData,
     CountryLatestDataTableName,
 } from "./dbTypes/CountryLatestData.js"
 export {
-    type DatasetFilesRow,
-    type DatasetFilesRowForInsert,
+    type DbPlainDatasetFile,
+    type DbInsertDatasetFile,
     DatasetFilesTableName,
 } from "./dbTypes/DatasetFiles.js"
 export {
-    type DatasetsRow,
-    type DatasetsRowForInsert,
+    type DbPlainDataset,
+    type DbInsertDataset,
     DatasetsTableName,
 } from "./dbTypes/Datasets.js"
 export {
-    type DatasetTagsRow,
-    type DatasetTagsRowForInsert,
+    type DbPlainDatasetTag,
+    type DbInsertDatasetTag,
     DatasetTagsTableName,
 } from "./dbTypes/DatasetTags.js"
 export {
-    type EntitiesRow,
-    type EntitiesRowForInsert,
+    type DbPlainEntity,
+    type DbInsertEntity,
     EntitiesTableName,
 } from "./dbTypes/Entities.js"
 export {
-    type ExplorerChartsRow,
-    type ExplorerChartsRowForInsert,
+    type DbPlainExplorerChart,
+    type DbInsertExplorerChart,
     ExplorerChartsTableName,
 } from "./dbTypes/ExplorerCharts.js"
 export {
-    type ExplorersRow,
-    type ExplorersRowForInsert,
+    type DbPlainExplorer,
+    type DbInsertExplorer,
     ExplorersTableName,
 } from "./dbTypes/Explorers.js"
 export {
-    type ExplorerVariablesRow,
-    type ExplorerVariablesRowForInsert,
+    type DbPlainExplorerVariable,
+    type DbInsertExplorerVariable,
     ExplorerVariablesTableName,
 } from "./dbTypes/ExplorerVariables.js"
 export {
-    type ImagesRow,
-    type ImagesRowForInsert,
+    type DbPlainImage,
+    type DbInsertImage,
     ImagesTableName,
 } from "./dbTypes/Images.js"
 export {
-    type NamespacesRow,
-    type NamespacesRowForInsert,
+    type DbPlainNamespace,
+    type DbInsertNamespace,
     NamespacesTableName,
 } from "./dbTypes/Namespaces.js"
 export {
-    type OriginsRowRaw,
-    type OriginsRowEnriched,
-    type OriginsRowForInsert,
+    type DbRawOrigin,
+    type DbEnrichedOrigin,
+    type DbInsertOrigin,
     OriginsTableName,
     parseOriginsRow,
     serializeOriginsRow,
 } from "./dbTypes/Origins.js"
 export {
-    type OriginsVariablesRow,
-    type OriginsVariablesRowForInsert,
+    type DbPlainOriginVariable,
+    type DbInsertOriginsVariable,
     OriginsVariablesTableName,
 } from "./dbTypes/OriginsVariables.js"
 export {
-    type PostRowForInsert,
-    type PostRowParsedFields,
-    type PostRowPlainFields,
-    type PostRowUnparsedFields,
-    type PostRowEnriched,
-    type PostRowRaw,
-    type PostRowWithGdocPublishStatus,
+    type DbInsertPost,
+    type DbEnrichedPost,
+    type DbRawPost,
+    type DbRawPostWithGdocPublishStatus,
     PostTableName,
     parsePostFormattingOptions,
     parsePostAuthors,
@@ -499,9 +496,9 @@ export {
     parsePostArchieml,
 } from "./dbTypes/Posts.js"
 export {
-    type PostsGdocsRowForInsert,
-    type PostsGdocsRowRaw,
-    type PostsGdocsRowEnriched,
+    type DbInsertPostGdoc,
+    type DbRawPostGdoc,
+    type DbEnrichedPostGdoc,
     PostsGdocsTableName,
     parsePostGdocContent,
     serializePostGdocContent,
@@ -511,45 +508,45 @@ export {
     serializePostsGdocsRow,
 } from "./dbTypes/PostsGdocs.js"
 export {
-    type PostsGdocsLinksRow,
-    type PostsGdocsLinksRowForInsert,
+    type DbPlainPostGdocLink,
+    type DbInsertPostGdocLink,
     PostsGdocsLinksTableName,
 } from "./dbTypes/PostsGdocsLinks.js"
 export {
-    type PostsGdocsVariablesFaqsRow,
-    type PostsGdocsVariablesFaqsRowForInsert,
+    type DbPlainPostGdocVariableFaq,
+    type DbInsertPostGdocVariableFaq,
     PostsGdocsVariablesFaqsTableName,
 } from "./dbTypes/PostsGdocsVariablesFaqs.js"
 export {
-    type PostsGdocsXImagesRow,
-    type PostsGdocsXImagesRowForInsert,
+    type DbPlainPostGdocXImage,
+    type DbInsertPostGdocXImage,
     PostsGdocsXImagesTableName,
 } from "./dbTypes/PostsGdocsXImages.js"
 export {
-    type PostsGdocsXTagsRow,
-    type PostsGdocsXTagsRowForInsert,
+    type DbPlainPostGdocXTag,
+    type DbInsertPostGdocXTag,
     PostsGdocsXTagsTableName,
 } from "./dbTypes/PostsGdocsXTags.js"
 export {
-    type PostsLinksRow,
-    type PostsLinksRowForInsert,
+    type DbPlainPostLink,
+    type DbInsertPostLink,
     PostsLinksTableName,
 } from "./dbTypes/PostsLinks.js"
 export {
-    type PostTagsRow,
-    type PostTagsRowForInsert,
+    type DbPlainPostTag,
+    type DbInsertPostTag,
     PostTagsTableName,
 } from "./dbTypes/PostTags.js"
 export {
-    type SessionsRow,
-    type SessionsRowForInsert,
+    type DbPlainSession,
+    type DbInsertSession,
     SessionsTableName,
 } from "./dbTypes/Sessions.js"
 
 export {
-    type SourcesRowForInsert,
-    type SourcesRowRaw,
-    type SourcesRowEnriched,
+    type DbInsertSource,
+    type DbRawSource,
+    type DbEnrichedSource,
     SourcesTableName,
     parseSourceDescription,
     serializeSourceDescription,
@@ -557,9 +554,9 @@ export {
     serializeSourcesRow,
 } from "./dbTypes/Sources.js"
 export {
-    type SuggestedChartRevisionsRowForInsert,
-    type SuggestedChartRevisionsRowRaw,
-    type SuggestedChartRevisionsRowEnriched,
+    type DbInsertSuggestedChartRevision,
+    type DbRawSuggestedChartRevision,
+    type DbEnrichedSuggestedChartRevision,
     SuggestedChartRevisionsTableName,
     parseSuggestedChartRevisionsExperimental,
     serializeSuggestedChartRevisionsExperimental,
@@ -567,24 +564,24 @@ export {
     serializeSuggestedChartRevisionsRow,
 } from "./dbTypes/SuggestedChartRevisions.js"
 export {
-    type TagsRowForInsert,
-    type TagsRow,
+    type DbInsertTag,
+    type DbPlainTag,
     TagsTableName,
 } from "./dbTypes/Tags.js"
 export {
-    type TagsVariablesTopicTagsRow,
-    type TagsVariablesTopicTagsRowForInsert,
+    type DbPlainTagVariableTopicTag,
+    type DbInsertTagVariableTopicTag,
     TagsVariablesTopicTagsTableName,
 } from "./dbTypes/TagsVariables.js"
 export {
-    type UsersRow,
-    type UsersRowForInsert,
+    type DbPlainUser,
+    type DbInsertUser,
     UsersTableName,
 } from "./dbTypes/Users.js"
 export {
-    type VariablesRowRaw,
-    type VariablesRowEnriched,
-    type VariablesRowForInsert,
+    type DbRawVariable,
+    type DbEnrichedVariable,
+    type DbInsertVariable,
     VariablesTableName,
     parseVariableDisplayConfig,
     serializeVariableDisplayConfig,

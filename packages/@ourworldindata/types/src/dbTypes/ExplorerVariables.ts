@@ -1,7 +1,7 @@
 export const ExplorerVariablesTableName = "explorer_variables"
-export interface ExplorerVariablesRowForInsert {
+export interface DbInsertExplorerVariable {
     explorerSlug: string
     id?: number
     variableId: number
 }
-export type ExplorerVariablesRow = Required<ExplorerVariablesRowForInsert>
+export type DbPlainExplorerVariable = Required<DbInsertExplorerVariable>

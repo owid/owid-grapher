@@ -1,6 +1,6 @@
 export const PostsGdocsXTagsTableName = "posts_gdocs_x_tags"
-export interface PostsGdocsXTagsRowForInsert {
+export interface DbInsertPostGdocXTag {
     gdocId: string
     tagId: number
 }
-export type PostsGdocsXTagsRow = Required<PostsGdocsXTagsRowForInsert>
+export type DbPlainPostGdocXTag = Required<DbInsertPostGdocXTag>

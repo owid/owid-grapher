@@ -1,8 +1,8 @@
 export const DatasetTagsTableName = "dataset_tags"
-export interface DatasetTagsRowForInsert {
+export interface DbInsertDatasetTag {
     createdAt?: Date
     datasetId: number
     tagId: number
     updatedAt?: Date | null
 }
-export type DatasetTagsRow = Required<DatasetTagsRowForInsert>
+export type DbPlainDatasetTag = Required<DbInsertDatasetTag>

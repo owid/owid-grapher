@@ -1,7 +1,7 @@
 import { OwidGdocLinkType } from "../gdocTypes/Gdoc.js"
 
 export const PostsLinksTableName = "posts_links"
-export interface PostsLinksRowForInsert {
+export interface DbInsertPostLink {
     componentType: string
     hash: string
     id?: number
@@ -11,4 +11,4 @@ export interface PostsLinksRowForInsert {
     target: string
     text: string
 }
-export type PostsLinksRow = Required<PostsLinksRowForInsert>
+export type DbPlainPostLink = Required<DbInsertPostLink>

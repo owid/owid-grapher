@@ -1,17 +1,13 @@
 import * as db from "../db.js"
 import { Knex } from "knex"
-import {
-    PostRowEnriched,
-    PostRowRaw,
-    parsePostRow,
-} from "@ourworldindata/utils"
+import { DbEnrichedPost, DbRawPost, parsePostRow } from "@ourworldindata/utils"
 
 export const postsTable = "posts"
 
-export const select = <K extends keyof PostRowRaw>(
+export const select = <K extends keyof DbRawPost>(
     ...args: K[]
 ): {
-    from: (query: Knex.QueryBuilder) => Promise<Pick<PostRowRaw, K>[]>
+    from: (query: Knex.QueryBuilder) => Promise<Pick<DbRawPost, K>[]>
 } => ({
     from: (query) => query.select(...args) as any,
 })
@@ -66,12 +62,12 @@ export const setTagsForPost = async (
 
 export const getPostRawBySlug = async (
     slug: string
-): Promise<PostRowRaw | undefined> =>
+): Promise<DbRawPost | undefined> =>
     (await db.knexTable("posts").where({ slug: slug }))[0]
 
 export const getPostEnrichedBySlug = async (
     slug: string
-): Promise<PostRowEnriched | undefined> => {
+): Promise<DbEnrichedPost | undefined> => {
     const post = await getPostRawBySlug(slug)
     if (!post) return undefined
     return parsePostRow(post)

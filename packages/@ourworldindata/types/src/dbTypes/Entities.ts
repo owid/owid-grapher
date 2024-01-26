@@ -1,5 +1,5 @@
 export const EntitiesTableName = "entities"
-export interface EntitiesRowForInsert {
+export interface DbInsertEntity {
     code?: string | null
     createdAt?: Date
     displayName: string
@@ -8,4 +8,4 @@ export interface EntitiesRowForInsert {
     updatedAt?: Date | null
     validated: number
 }
-export type EntitiesRow = Required<EntitiesRowForInsert>
+export type DbPlainEntity = Required<DbInsertEntity>

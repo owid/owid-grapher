@@ -1,6 +1,6 @@
 /** the entity in the `tags` table */
 export const TagsTableName = "tags"
-export interface TagsRowForInsert {
+export interface DbInsertTag {
     createdAt?: Date
     id?: number
     isBulkImport?: number
@@ -10,4 +10,4 @@ export interface TagsRowForInsert {
     specialType?: string | null
     updatedAt?: Date | null
 }
-export type TagsRow = Required<TagsRowForInsert>
+export type DbPlainTag = Required<DbInsertTag>

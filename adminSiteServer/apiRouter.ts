@@ -37,7 +37,7 @@ import {
     OwidGdocPostInterface,
     parseIntOrUndefined,
     parseToOperation,
-    PostRowEnriched,
+    DbEnrichedPost,
     PostRowWithGdocPublishStatus,
     SuggestedChartRevisionStatus,
     variableAnnotationAllowedColumnNamesAndTypes,
@@ -47,7 +47,7 @@ import {
     OwidChartDimensionInterface,
     DimensionProperty,
     TaggableType,
-    ChartTagJoin,
+    DbChartTagJoin,
     OwidGdoc,
 } from "@ourworldindata/utils"
 import {
@@ -2350,7 +2350,7 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
         .knexTable(postsTable)
         .where({ id: postId })
         .select("*")
-        .first()) as PostRowEnriched | undefined
+        .first()) as DbEnrichedPost | undefined
     return camelCaseProperties({ ...post })
 })
 
@@ -2661,7 +2661,7 @@ apiRouter.post(
 
 apiRouter.get(
     `/gpt/suggest-topics/${TaggableType.Charts}/:chartId.json`,
-    async (req: Request): Promise<Record<"topics", ChartTagJoin[]>> => {
+    async (req: Request): Promise<Record<"topics", DbChartTagJoin[]>> => {
         const chartId = parseIntOrUndefined(req.params.chartId)
         if (!chartId) throw new JsonError(`Invalid chart ID`, 400)
 

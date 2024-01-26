@@ -1,7 +1,7 @@
 export const SessionsTableName = "sessions"
-export interface SessionsRowForInsert {
+export interface DbInsertSession {
     expire_date: Date
     session_data: string
     session_key: string
 }
-export type SessionsRow = Required<SessionsRowForInsert>
+export type DbPlainSession = Required<DbInsertSession>
