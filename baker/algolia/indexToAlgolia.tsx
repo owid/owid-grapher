@@ -22,7 +22,7 @@ import {
     PageType,
     SearchIndexName,
 } from "../../site/search/searchTypes.js"
-import { Pageview } from "../../db/model/Pageview.js"
+import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { ArticleBlocks } from "../../site/gdocs/components/ArticleBlocks.js"
 import React from "react"
@@ -196,7 +196,7 @@ function generateGdocRecords(
 
 // Generate records for countries, WP posts (not including posts that have been succeeded by Gdocs equivalents), and Gdocs
 const getPagesRecords = async (knex: Knex<any, any[]>) => {
-    const pageviews = await Pageview.getViewsByUrlObj()
+    const pageviews = await getAnalyticsPageviewsByUrlObj(db.knexInstance())
     const gdocs = await GdocPost.getPublishedGdocs()
     const publishedGdocsBySlug = keyBy(gdocs, "slug")
     // TODO: the knex instance should be handed down as a parameter

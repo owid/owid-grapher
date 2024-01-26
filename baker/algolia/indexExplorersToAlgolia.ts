@@ -9,7 +9,7 @@ import {
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
-import { Pageview } from "../../db/model/Pageview.js"
+import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
 import { chunkParagraphs } from "../chunk.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
 import { Chart } from "../../db/model/Chart.js"
@@ -112,7 +112,7 @@ function getNullishJSONValueAsPlaintext(value: string): string {
 }
 
 const getExplorerRecords = async (): Promise<ExplorerRecord[]> => {
-    const pageviews = await Pageview.getViewsByUrlObj()
+    const pageviews = await getAnalyticsPageviewsByUrlObj(db.knexInstance())
 
     // Fetch info about all charts used in explorers, as linked by the explorer_charts table
     const graphersUsedInExplorers = await db

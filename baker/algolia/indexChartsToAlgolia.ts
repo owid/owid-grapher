@@ -5,7 +5,7 @@ import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRe
 import { ChartRecord, SearchIndexName } from "../../site/search/searchTypes.js"
 import { KeyChartLevel, OwidGdocLinkType, isNil } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
-import { Pageview } from "../../db/model/Pageview.js"
+import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
 import { Link } from "../../db/model/Link.js"
 import { getRelatedArticles } from "../../db/model/Post.js"
 import { Knex } from "knex"
@@ -59,7 +59,7 @@ const getChartsRecords = async (
         )
     }
 
-    const pageviews = await Pageview.getViewsByUrlObj()
+    const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
 
     const records: ChartRecord[] = []
     for (const c of chartsToIndex) {
