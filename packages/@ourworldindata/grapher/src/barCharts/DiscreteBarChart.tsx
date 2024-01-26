@@ -302,7 +302,7 @@ export class DiscreteBarChart
     }
 
     @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager)
+        return makeSelectionArray(this.manager.selection)
     }
 
     // Leave space for extra bar at bottom to show "Add country" button

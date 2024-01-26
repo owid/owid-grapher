@@ -264,7 +264,7 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager)
+        return makeSelectionArray(this.manager.selection)
     }
 
     @computed get drawer(): Element | null {

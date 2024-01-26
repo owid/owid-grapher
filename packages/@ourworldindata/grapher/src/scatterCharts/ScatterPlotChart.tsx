@@ -349,7 +349,7 @@ export class ScatterPlotChart
     }
 
     @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager)
+        return makeSelectionArray(this.manager.selection)
     }
 
     @action.bound private onSelectEntity(entityName: SeriesName): void {

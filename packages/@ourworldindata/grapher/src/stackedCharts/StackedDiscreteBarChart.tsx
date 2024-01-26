@@ -286,7 +286,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager)
+        return makeSelectionArray(this.manager.selection)
     }
 
     @computed private get items(): readonly Item[] {
