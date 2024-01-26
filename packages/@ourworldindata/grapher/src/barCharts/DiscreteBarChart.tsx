@@ -17,6 +17,7 @@ import {
     Color,
     HorizontalAlign,
     AxisAlign,
+    uniqBy,
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -67,7 +68,10 @@ import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { OwidErrorColor, OwidNoDataGray } from "../color/ColorConstants"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
-import { HorizontalNumericColorLegend } from "../horizontalColorLegend/HorizontalColorLegends"
+import {
+    HorizontalColorLegendManager,
+    HorizontalNumericColorLegend,
+} from "../horizontalColorLegend/HorizontalColorLegends"
 import { BaseType, Selection } from "d3"
 import { getElementWithHalo } from "../scatterCharts/Halos.js"
 
@@ -75,6 +79,7 @@ const labelToTextPadding = 10
 const labelToBarPadding = 5
 
 const LEGEND_PADDING = 25
+const DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND = "#787878"
 
 export interface Label {
     valueString: string
@@ -416,6 +421,15 @@ export class DiscreteBarChart
 
         return (
             <g ref={this.base} className="DiscreteBarChart">
+                {this.hasProjectedData && (
+                    <defs>
+                        {/* passed to the legend as pattern for the
+                        projected data legend item */}
+                        {makeProjectedDataPattern(
+                            this.projectedDataColorInLegend
+                        )}
+                    </defs>
+                )}
                 <rect
                     x={boundsWithoutColorLegend.left}
                     y={boundsWithoutColorLegend.top}
@@ -424,7 +438,7 @@ export class DiscreteBarChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                {this.hasColorLegend && (
+                {this.showColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
                 {this.showHorizontalAxis && (
@@ -444,6 +458,7 @@ export class DiscreteBarChart
                 {series.map((series) => {
                     // Todo: add a "placedSeries" getter to get the transformed series, then just loop over the placedSeries and render a bar for each
                     const isNegative = series.value < 0
+                    const isProjection = series.yColumn.isProjection
                     const barX = isNegative
                         ? yAxis.place(series.value)
                         : yAxis.place(this.x0)
@@ -465,6 +480,11 @@ export class DiscreteBarChart
                             className="bar"
                             transform={`translate(0, ${yOffset})`}
                         >
+                            {isProjection && (
+                                <defs>
+                                    {makeProjectedDataPattern(barColor)}
+                                </defs>
+                            )}
                             <text
                                 x={0}
                                 y={0}
@@ -484,7 +504,13 @@ export class DiscreteBarChart
                                 })`}
                                 width={barWidth}
                                 height={barHeight}
-                                fill={barColor}
+                                fill={
+                                    isProjection
+                                        ? `url(#${makeProjectedDataPatternId(
+                                              barColor
+                                          )})`
+                                        : barColor
+                                }
                                 opacity={GRAPHER_AREA_OPACITY_DEFAULT}
                                 style={{ transition: "height 200ms ease" }}
                             />
@@ -601,6 +627,10 @@ export class DiscreteBarChart
 
     @computed protected get yColumns(): CoreColumn[] {
         return this.transformedTable.getColumns(this.yColumnSlugs)
+    }
+
+    @computed get hasProjectedData(): boolean {
+        return this.series.some((series) => series.yColumn.isProjection)
     }
 
     constructSeries(col: CoreColumn, indexes: number[]): DiscreteBarItem[] {
@@ -741,7 +771,11 @@ export class DiscreteBarChart
     // Color legend props
 
     @computed get hasColorLegend(): boolean {
-        return this.hasColorScale && !this.manager.hideLegend
+        return this.hasColorScale || this.hasProjectedData
+    }
+
+    @computed get showColorLegend(): boolean {
+        return this.hasColorLegend && !this.manager.hideLegend
     }
 
     @computed get legendX(): number {
@@ -758,11 +792,41 @@ export class DiscreteBarChart
 
     // TODO just pass colorScale to legend and let it figure it out?
     @computed get numericLegendData(): ColorScaleBin[] {
+        const legendBins = this.colorScale.legendBins.slice()
+
+        // Show a "Projected data" legend item with a striped pattern if appropriate
+        if (this.hasProjectedData) {
+            legendBins.push(
+                new CategoricalBin({
+                    color: this.projectedDataColorInLegend,
+                    label: "Projected data",
+                    index: 0,
+                    value: "projected",
+                    patternRef: makeProjectedDataPatternId(
+                        this.projectedDataColorInLegend
+                    ),
+                })
+            )
+        }
+
         // Move CategoricalBins to end
-        return sortBy(
-            this.colorScale.legendBins,
-            (bin) => bin instanceof CategoricalBin
-        )
+        return sortBy(legendBins, (bin) => bin instanceof CategoricalBin)
+    }
+
+    @computed get projectedDataColorInLegend(): string {
+        // if a single color is in use, use that color in the legend
+        if (uniqBy(this.series, "color").length === 1)
+            return this.series[0].color
+        return DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND
+    }
+
+    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+        if (this.hasColorLegend) {
+            return {
+                numericLegendData: this.numericLegendData,
+            }
+        }
+        return undefined
     }
 
     // TODO just pass colorScale to legend and let it figure it out?
@@ -819,4 +883,36 @@ export class DiscreteBarChart
 
         return series
     }
+}
+
+// Pattern IDs should be unique per document (!), not just per grapher instance.
+// Including the color in the id guarantees that the pattern uses the correct color,
+// even if it gets resolved to a striped pattern of a different grapher instance.
+function makeProjectedDataPatternId(color: string): string {
+    return `DiscreteBarChart_stripes_${color}`
+}
+
+function makeProjectedDataPattern(color: string): JSX.Element {
+    const size = 7
+    return (
+        <pattern
+            id={makeProjectedDataPatternId(color)}
+            patternUnits="userSpaceOnUse"
+            width={size}
+            height={size}
+            patternTransform="rotate(45)"
+        >
+            {/* transparent background */}
+            <rect width={size} height={size} fill={color} opacity={0.5} />
+            {/* stripes */}
+            <line
+                x1="0"
+                y="0"
+                x2="0"
+                y2={size}
+                stroke={color}
+                strokeWidth="10"
+            />
+        </pattern>
+    )
 }
