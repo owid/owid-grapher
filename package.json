@@ -157,7 +157,7 @@
         "js-yaml": "^4.1.0",
         "json8-pointer": "^1.0.6",
         "jsonwebtoken": "^9.0.0",
-        "knex": "^2.4.2",
+        "knex": "^3.1.0",
         "lerna": "^7.4.2",
         "lodash": "^4.17.20",
         "mathjax-full": "^3.1.0",
