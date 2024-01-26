@@ -77,7 +77,9 @@ export const makeClipPath = (
     }
 }
 
-export const makeSelectionArray = (manager: ChartManager): SelectionArray =>
+export const makeSelectionArray = (
+    manager: Pick<ChartManager, "selection">
+): SelectionArray =>
     manager.selection instanceof SelectionArray
         ? manager.selection
         : new SelectionArray(manager.selection ?? [])

@@ -90,6 +90,10 @@ export interface DataTableManager {
     isSmall?: boolean
     isMedium?: boolean
     isNarrow?: boolean
+    selection?: SelectionArray | EntityName[]
+    hasEntitySelectionToggle?: boolean
+    hasMapTab?: boolean
+    hasChartTab?: boolean
 }
 
 @observer
@@ -133,9 +137,31 @@ export class DataTable extends React.Component<{
         }
     }
 
+    @computed get showSelectionOnlyInDataTable(): boolean {
+        const {
+            showSelectionOnlyInDataTable,
+            hasEntitySelectionToggle,
+            hasChartTab,
+            hasMapTab,
+        } = this.manager
+        const { selectionArray } = this
+
+        // filter the table if the "Show selection only" toggle is hidden
+        if (
+            !hasEntitySelectionToggle &&
+            selectionArray.hasSelection &&
+            hasChartTab &&
+            // if we have a map tab, we want to show all entities
+            !hasMapTab
+        )
+            return true
+
+        return !!showSelectionOnlyInDataTable
+    }
+
     @computed get table(): OwidTable {
         let table = this.manager.tableForDisplay
-        if (this.manager.showSelectionOnlyInDataTable) {
+        if (this.showSelectionOnlyInDataTable) {
             table = table.filterByEntityNames(
                 this.selectionArray.selectedEntityNames
             )

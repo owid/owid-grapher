@@ -8,6 +8,7 @@ import { faXmark, faGear } from "@fortawesome/free-solid-svg-icons"
 import { EntityName, ChartTypeName, FacetStrategy } from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartDimension } from "../chart/ChartDimension"
+import { makeSelectionArray } from "../chart/ChartUtils.js"
 import { AxisConfig } from "../axis/AxisConfig"
 import { GRAPHER_SETTINGS_DRAWER_ID } from "../core/GrapherConstants"
 
@@ -66,6 +67,7 @@ export interface SettingsMenuManager
     type: ChartTypeName
     isRelativeMode?: boolean
     selection?: SelectionArray | EntityName[]
+    hasEntitySelectionToggle?: boolean
     filledDimensions: ChartDimension[]
     xColumnSlug?: string
     xOverrideTime?: number
@@ -121,18 +123,12 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get showZoomToggle(): boolean {
-        // TODO:
-        // grapher passes a SelectionArray instance but programmatically defined
-        // managers treat `selection` as a string[] of entity names. do we need both?
-        const { selection, type, hideZoomToggle } = this.manager,
-            entities =
-                selection instanceof SelectionArray
-                    ? selection.selectedEntityNames
-                    : Array.isArray(selection)
-                    ? selection
-                    : []
-
-        return !hideZoomToggle && type === ScatterPlot && entities.length > 0
+        const { type, hideZoomToggle } = this.manager
+        return (
+            !hideZoomToggle &&
+            type === ScatterPlot &&
+            this.selectionArray.hasSelection
+        )
     }
 
     @computed get showNoDataAreaToggle(): boolean {
@@ -195,13 +191,12 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get showTableFilterToggle(): boolean {
-        const { hideTableFilterToggle, selection } = this.manager
-        const hasSelection =
-            selection instanceof SelectionArray
-                ? selection.hasSelection
-                : (selection?.length ?? 0) > 0
-
-        return hasSelection && !hideTableFilterToggle
+        const { hideTableFilterToggle, hasEntitySelectionToggle } = this.manager
+        return (
+            this.selectionArray.hasSelection &&
+            !!hasEntitySelectionToggle &&
+            !hideTableFilterToggle
+        )
     }
 
     @computed get showSettingsMenuToggle(): boolean {
@@ -218,7 +213,7 @@ export class SettingsMenu extends React.Component<{
             this.showAbsRelToggle
         )
 
-        // TODO: add a showCompareEndPointsOnlyTogggle to complement compareEndPointsOnly
+        // TODO: add a showCompareEndPointsOnlyToggle to complement compareEndPointsOnly
     }
 
     componentDidMount(): void {
@@ -266,6 +261,10 @@ export class SettingsMenu extends React.Component<{
     @computed get chartType(): string {
         const { type } = this.manager
         return type.replace(/([A-Z])/g, " $1")
+    }
+
+    @computed get selectionArray(): SelectionArray {
+        return makeSelectionArray(this.manager)
     }
 
     @computed get drawer(): Element | null {

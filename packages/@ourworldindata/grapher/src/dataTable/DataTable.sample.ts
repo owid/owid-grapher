@@ -69,6 +69,7 @@ export const IncompleteDataTable = (
     props: Partial<GrapherInterface> = {}
 ): Grapher =>
     new Grapher({
+        hasMapTab: true,
         tab: GrapherTabOption.table,
         dimensions: [
             {
@@ -145,6 +146,7 @@ export const DataTableWithAggregates = (
     props: Partial<GrapherInterface> = {}
 ): Grapher =>
     new Grapher({
+        hasMapTab: true,
         tab: GrapherTabOption.table,
         dimensions: [
             {
@@ -216,6 +218,7 @@ export const DataTableWithMultipleVariablesAndMultipleYears = (
     props: Partial<GrapherInterface> = {}
 ): Grapher =>
     new Grapher({
+        hasMapTab: true,
         tab: GrapherTabOption.table,
         dimensions: [
             {

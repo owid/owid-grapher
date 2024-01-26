@@ -3042,13 +3042,16 @@ export class Grapher
             : timeColumn.formatValue(value)
     }
 
-    @computed get showChangeEntityButton(): boolean {
-        return !this.hideEntityControls && this.canChangeEntity
+    @computed get hasChangeEntityButton(): boolean {
+        return this.canChangeEntity
     }
 
-    @computed get showAddEntityButton(): boolean {
+    @computed get showChangeEntityButton(): boolean {
+        return !this.hideEntityControls && this.hasChangeEntityButton
+    }
+
+    @computed get hasAddEntityButton(): boolean {
         return (
-            !this.hideEntityControls &&
             this.canSelectMultipleEntities &&
             (this.isLineChart ||
                 this.isStackedArea ||
@@ -3057,13 +3060,29 @@ export class Grapher
         )
     }
 
-    @computed get showSelectEntitiesButton(): boolean {
+    @computed get showAddEntityButton(): boolean {
+        return !this.hideEntityControls && this.hasAddEntityButton
+    }
+
+    @computed get hasSelectEntitiesButton(): boolean {
         return (
-            !this.hideEntityControls &&
             this.addCountryMode !== EntitySelectionMode.Disabled &&
             this.numSelectableEntityNames > 1 &&
             !this.showAddEntityButton &&
             !this.showChangeEntityButton
+        )
+    }
+
+    @computed get showSelectEntitiesButton(): boolean {
+        return !this.hideEntityControls && this.hasSelectEntitiesButton
+    }
+
+    @computed get hasEntitySelectionToggle(): boolean {
+        return (
+            this.hasChartTab &&
+            (this.hasChangeEntityButton ||
+                this.hasAddEntityButton ||
+                this.hasSelectEntitiesButton)
         )
     }
 
