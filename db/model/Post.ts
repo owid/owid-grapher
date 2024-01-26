@@ -67,6 +67,14 @@ export const setTagsForPost = async (
             )
     })
 
+export const getPostEnrichedById = async (
+    id: number
+): Promise<DbEnrichedPost | undefined> => {
+    const post: DbRawPost = await db.knexTable("posts").where({ id }).first()
+    if (!post) return undefined
+    return parsePostRow(post)
+}
+
 export const getPostRawBySlug = async (
     slug: string
 ): Promise<DbRawPost | undefined> =>

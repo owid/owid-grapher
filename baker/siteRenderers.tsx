@@ -62,7 +62,6 @@ import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
 import {
     getBlogIndex,
-    getLatestPostRevision,
     isPostCitable,
     getBlockContent,
     getFullPost,
@@ -87,7 +86,11 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
 import { resolveInternalRedirect } from "./redirects.js"
-import { getPostEnrichedBySlug, postsTable } from "../db/model/Post.js"
+import {
+    getPostEnrichedById,
+    getPostEnrichedBySlug,
+    postsTable,
+} from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
@@ -201,8 +204,10 @@ export const renderPageBySlug = async (slug: string) => {
 }
 
 export const renderPreview = async (postId: number): Promise<string> => {
-    const postApi = await getLatestPostRevision(postId)
-    return renderPost(postApi)
+    const post = await getPostEnrichedById(postId)
+    if (!post) throw new JsonError(`No such post: ${postId}`, 404)
+
+    return renderPost(await getFullPost(post))
 }
 
 export const renderMenuJson = async () => {

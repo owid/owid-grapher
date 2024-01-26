@@ -114,7 +114,6 @@ class WPDB {
 
 export const singleton = new WPDB()
 
-const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
 const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
 const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
 
@@ -346,9 +345,6 @@ export const getFeaturedImages = async (): Promise<Map<number, string>> => {
     return featuredImages
 }
 
-// page => pages, post => posts
-const getEndpointSlugFromType = (type: string): string => `${type}s`
-
 // todo / refactor : narrow down scope to getPostTypeById?
 export const getPostType = async (search: number | string): Promise<string> => {
     const paramName = typeof search === "number" ? "id" : "slug"
@@ -384,35 +380,6 @@ export const getPostIdAndTypeBySlug = async (
     if (!rows.length) return
 
     return { id: rows[0].id, type: rows[0].type }
-}
-
-// the /revisions endpoint does not send back all the metadata required for
-// the proper rendering of the post (e.g. authors), hence the double request.
-export const getLatestPostRevision = async (id: number): Promise<FullPost> => {
-    const type = await getPostType(id)
-    const endpointSlug = getEndpointSlugFromType(type)
-
-    const postApi = await apiQuery(`${WP_API_ENDPOINT}/${endpointSlug}/${id}`)
-
-    const revision = (
-        await apiQuery(
-            `${WP_API_ENDPOINT}/${endpointSlug}/${id}/revisions?per_page=1`
-        )
-    )[0]
-
-    // Since WP does not store metadata for revisions, some elements of a
-    // previewed page will not reflect the latest edits:
-    // - published date (will show the correct one - that is the one in the
-    //   sidebar - for unpublished posts though. For published posts, the
-    //   current published date is displayed, regardless of what is shown
-    //   and could have been modified in the sidebar.)
-    // - authors
-    // ...
-    return getFullPost({
-        ...postApi,
-        content: revision.content,
-        title: revision.title,
-    })
 }
 
 export const getRelatedCharts = async (
