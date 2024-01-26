@@ -266,7 +266,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
             where
                 post_type = 'revision'
         ),
-        -- CET to now only keep the first revision for each post
+        -- CTE to now only keep the first revision for each post
         first_revision as (
             select
                 post_date as created_at,
@@ -300,7 +300,16 @@ const syncPostsToGrapher = async (): Promise<void> => {
                 AND meta_key = '_thumbnail_id') AS featured_image_id
         FROM
             wp_posts p
-            )
+            ),
+        -- CTE to get all posts that are listed on the homepage, in the newsletter and in the latest section
+        isListed_posts as (
+            select
+                post_id as id,
+                1 as isListed
+            from wp_postmeta
+            where meta_key = "owid_publication_context_meta_field"
+            and meta_value = 'a:3:{s:20:"immediate_newsletter";b:1;s:8:"homepage";b:1;s:6:"latest";b:1;}'
+        )
         -- Finally collect all the fields we want to keep - this is everything from wp_posts, the authors from the
         -- posts_with_authors CTE and the created_at from the first_revision CTE
         select
@@ -308,11 +317,13 @@ const syncPostsToGrapher = async (): Promise<void> => {
             pwa.authors as authors,
             fr.created_at as created_at,
             -- select the featured image url and normalize the to point to our full domain at the wp-content folder
-            regexp_replace((SELECT guid FROM wp_posts WHERE ID = fi.featured_image_id), '^https://owid.cloud/(app|wp-content)/', 'https://ourworldindata.org/wp-content/') AS featured_image
+            regexp_replace((SELECT guid FROM wp_posts WHERE ID = fi.featured_image_id), '^https://owid.cloud/(app|wp-content)/', 'https://ourworldindata.org/wp-content/') AS featured_image,
+            ilp.isListed
         from wp_posts p
 		left join post_ids_with_authors pwa   on p.ID = pwa.ID
         left join first_revision fr on fr.post_id = pwa.ID
         left join post_featured_image fi on fi.ID = p.id
+        left join isListed_posts ilp on ilp.id = p.ID
         where p.post_type in ('post', 'page', 'wp_block') AND post_status != 'trash'
         `
     )
@@ -341,6 +352,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
             slug: post.post_name.replace(/__/g, "/"),
             type: post.post_type,
             status: post.post_status,
+            isListed: post.isListed ?? false,
             content: dereferenceTablePressFn(
                 dereferenceReusableBlocksFn(content)
             ),

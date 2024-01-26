@@ -14,6 +14,7 @@ export interface DbInsertPost {
     slug: string
     type: WP_PostType
     status: string
+    isListed: boolean
     content: string
     published_at?: Date | null
     updated_at?: Date | null
