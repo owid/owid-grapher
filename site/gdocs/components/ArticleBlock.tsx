@@ -39,6 +39,7 @@ import KeyIndicator from "./KeyIndicator.js"
 import KeyIndicatorCollection from "./KeyIndicatorCollection.js"
 import { PillRow } from "./PillRow.js"
 import { Autocomplete } from "../../search/Autocomplete.js"
+import { HomepageSearch } from "./HomepageSearch.js"
 
 export type Container =
     | "default"
@@ -658,20 +659,9 @@ export default function ArticleBlock({
         })
         .with({ type: "homepage-search" }, (_) => {
             return (
-                <div className={getLayout("homepage-search", containerType)}>
-                    <h2 className="h2-bold span-cols-14">
-                        Search Our World in Data
-                    </h2>
-                    <Autocomplete
-                        placeholder="Try “COVID-19”, “GDP”, “Energy”, “CO2 emissions per capita”…"
-                        className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
-                        detachedMediaQuery="none"
-                    />
-                    <p className="span-cols-14">
-                        3343 charts across 297 topics — All free: open access
-                        and open source
-                    </p>
-                </div>
+                <HomepageSearch
+                    className={getLayout("homepage-search", containerType)}
+                />
             )
         })
         .exhaustive()
