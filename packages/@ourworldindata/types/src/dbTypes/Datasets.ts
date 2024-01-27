@@ -10,7 +10,7 @@ export interface DbInsertDataset {
     isPrivate?: number
     metadataEditedAt: Date
     metadataEditedByUserId: number
-    name?: string | null
+    name: string
     namespace: string
     nonRedistributable?: number
     shortName?: string | null
