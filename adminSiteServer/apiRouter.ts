@@ -38,7 +38,7 @@ import {
     parseIntOrUndefined,
     parseToOperation,
     DbEnrichedPost,
-    PostRowWithGdocPublishStatus,
+    DbRawPostWithGdocPublishStatus,
     SuggestedChartRevisionStatus,
     variableAnnotationAllowedColumnNamesAndTypes,
     VariableAnnotationsResponseRow,
@@ -2361,7 +2361,7 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
         .knexTable("posts_with_gdoc_publish_status")
         .where({ id: postId })
         .select("*")
-        .first()) as PostRowWithGdocPublishStatus | undefined
+        .first()) as DbRawPostWithGdocPublishStatus | undefined
 
     if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
     const existingGdocId = post.gdocSuccessorId
@@ -2423,7 +2423,7 @@ apiRouter.post("/posts/:postId/unlinkGdoc", async (req: Request) => {
         .knexTable("posts_with_gdoc_publish_status")
         .where({ id: postId })
         .select("*")
-        .first()) as PostRowWithGdocPublishStatus | undefined
+        .first()) as DbRawPostWithGdocPublishStatus | undefined
 
     if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
     const existingGdocId = post.gdocSuccessorId

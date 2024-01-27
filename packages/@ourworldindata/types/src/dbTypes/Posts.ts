@@ -7,8 +7,8 @@ import {
     OwidGdocPostInterface,
 } from "../gdocTypes/Gdoc.js"
 
-export const PostTableName = "posts"
-interface PostRowPlainFields {
+export const PostsTableName = "posts"
+export interface DbInsertPost {
     id: number
     title: string
     slug: string
@@ -23,25 +23,21 @@ interface PostRowPlainFields {
     created_at_in_wordpress?: Date | null
     featured_image: string
     markdown: string
-}
-
-interface PostRowUnparsedFields {
     authors?: string | null
     formattingOptions?: string | null
     archieml?: string | null
     archieml_update_statistics?: string | null
 }
-
-interface PostRowParsedFields {
+export type DbRawPost = Required<DbInsertPost>
+export type DbEnrichedPost = Omit<
+    DbRawPost,
+    "authors" | "formattingOptions" | "archieml" | "archieml_update_statistics"
+> & {
     authors: string[] | null
     formattingOptions: FormattingOptions | null
     archieml: OwidGdocPostInterface | null
     archieml_update_statistics: OwidArticleBackportingStatistics | null
 }
-export type DbInsertPost = PostRowPlainFields & PostRowUnparsedFields
-
-export type DbRawPost = Required<DbInsertPost>
-export type DbEnrichedPost = Required<PostRowPlainFields & PostRowParsedFields>
 export interface DbRawPostWithGdocPublishStatus extends DbRawPost {
     isGdocPublished: boolean
 }
