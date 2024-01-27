@@ -1,4 +1,4 @@
-import { OwidGdocLinkType } from "@ourworldindata/types/dist/gdocTypes/Gdoc.js"
+import { OwidGdocLinkType } from "@ourworldindata/types"
 import {
     spansToUnformattedPlainText,
     gdocUrlRegex,
