@@ -51,6 +51,7 @@ import {
     ControlsRow,
     ControlsRowManager,
 } from "../controls/controlsRow/ControlsRow"
+import { LabeledSwitch } from "../controls/LabeledSwitch.js"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -345,34 +346,8 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             bottom: "0",
         }
 
-        const isGlobe = this.manager.isGlobe
-
         return (
             <div style={containerStyle}>
-                {this.manager.tab === GrapherTabOption.map && (
-                    <>
-                        <div className="ActionButton" style={globeSwitcher}>
-                            {isGlobe ? (
-                                <button
-                                    onClick={() =>
-                                        (this.manager.isGlobe = false)
-                                    }
-                                >
-                                    <FontAwesomeIcon icon={faMap} /> Map View
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() =>
-                                        (this.manager.isGlobe = true)
-                                    }
-                                >
-                                    <FontAwesomeIcon icon={faEarthAmericas} />{" "}
-                                    Globe View
-                                </button>
-                            )}
-                        </div>
-                    </>
-                )}
                 <svg
                     {...this.svgProps}
                     width={width}

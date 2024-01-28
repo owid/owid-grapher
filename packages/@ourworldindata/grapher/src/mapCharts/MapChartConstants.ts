@@ -55,7 +55,7 @@ export interface RenderFeature {
 }
 
 export interface MapChartManager extends ChartManager {
-    isGlobe: boolean
+    isGlobe?: boolean
     mapColumnSlug?: ColumnSlug
     mapIsClickable?: boolean
     tab?: GrapherTabOption // Used to switch to chart tab on map click
