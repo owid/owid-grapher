@@ -1,9 +1,9 @@
-import { CoreColumn, EntityName, OwidTable } from "@ourworldindata/core-table"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     ColorSchemeName,
     GrapherTabOption,
     MapProjectionName,
-    SeriesName
+    SeriesName,
 } from "@ourworldindata/types"
 import {
     Bounds,
@@ -273,14 +273,14 @@ export class MapChart
         return this.props.manager
     }
 
-    @computed private get entityNamesWithData(): Set<EntityName> {
+    @computed private get entityNamesWithData(): Set<any> {
         // We intentionally use `inputTable` here instead of `transformedTable`, because of countries where there is no data
         // available in the map view for the current year, but data might still be available for other chart types
         return this.inputTable.entitiesWith([this.mapColumnSlug])
     }
 
     // Determine if we can go to line chart by clicking on a given map entity
-    private isEntityClickable(entityName?: EntityName): boolean {
+    private isEntityClickable(entityName?: any): boolean {
         if (!this.manager.mapIsClickable || !entityName) return false
         return this.entityNamesWithData.has(entityName)
     }
@@ -293,7 +293,7 @@ export class MapChart
         d: GeoFeature,
         ev: React.MouseEvent<SVGElement>
     ): void {
-        const entityName = d.id as EntityName
+        const entityName = d.id as any
         if (!this.isEntityClickable(entityName)) return
 
         if (!ev.shiftKey) {
@@ -313,8 +313,8 @@ export class MapChart
         this.onLegendMouseLeave()
     }
 
-    @observable isGlobe(): boolean {
-        return this.manager.isGlobe
+    @computed get isGlobe(): boolean {
+        return this.manager.isGlobe ?? false
     }
 
     @action.bound onLegendMouseOver(bracket: MapBracket): void {
@@ -646,8 +646,11 @@ class ChoroplethMap extends React.Component<{
     manager: ChoroplethMapManager
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
-    globeProjection: any
-    dragging: any
+
+    lastScreenX: number = 0
+    lastScreenY: number = 0
+    @observable
+    globeRotation: any
     enableDragging: boolean = false
 
     @computed private get uid(): number {
@@ -771,7 +774,7 @@ class ChoroplethMap extends React.Component<{
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
     @computed private get viewportScale(): number {
         const { bounds, viewport, mapBounds } = this
-        if (this.manager.isGlobe()) {
+        if (this.manager.isGlobe) {
             return Math.min(
                 bounds.width / mapBounds.width,
                 bounds.height / mapBounds.height
@@ -801,16 +804,23 @@ class ChoroplethMap extends React.Component<{
         }
     }
 
+    @computed get globeProjection(): any {
+        const worldView = this.manager.projection === MapProjectionName.World
+
+        const scale = worldView ? this.globeScale : this.globeScale * 1.8
+        return geoOrthographic()
+            ?.scale(scale)
+            .center([0, 0])
+            .rotate(
+                worldView
+                    ? this.globeRotation || [0, 0]
+                    : this.viewport.rotation
+            )
+            .translate([this.bounds.width / 2, this.bounds.height / 2])
+    }
+
     getPath(feature: RenderFeature): string {
-        if (!this.globeProjection) {
-            this.dragging = [0, 0]
-            this.globeProjection = geoOrthographic()
-                ?.scale(this.globeScale)
-                .center([0, 0])
-                .rotate([-30, 0])
-                .translate([this.bounds.width / 2, this.bounds.height / 2])
-        }
-        if (this.manager.isGlobe()) {
+        if (this.manager.isGlobe) {
             return geoPath().projection(this.globeProjection)(feature.geo) ?? ""
         } else {
             return feature.path
@@ -838,7 +848,7 @@ class ChoroplethMap extends React.Component<{
         const newOffsetY = boundsCenterY - newCenterY
 
         const matrixStr = `matrix(${viewportScale},0,0,${viewportScale},${newOffsetX},${newOffsetY})`
-        if (this.manager.isGlobe()) {
+        if (this.manager.isGlobe) {
             return ``
         }
         return matrixStr
@@ -847,14 +857,14 @@ class ChoroplethMap extends React.Component<{
     // Features that aren't part of the current projection (e.g. India if we're showing Africa)
     @computed private get featuresOutsideProjection(): RenderFeature[] {
         return difference(
-            renderFeaturesFor(this.manager.projection, this.manager.isGlobe()),
+            renderFeaturesFor(this.manager.projection, this.manager.isGlobe),
             this.featuresInProjection
         )
     }
 
     @computed private get featuresInProjection(): RenderFeature[] {
         const { projection } = this.manager
-        const features = renderFeaturesFor(projection, this.manager.isGlobe())
+        const features = renderFeaturesFor(projection, this.manager.isGlobe)
         if (projection === MapProjectionName.World) return features
 
         return features.filter(
@@ -891,6 +901,22 @@ class ChoroplethMap extends React.Component<{
     @observable private hoverEnterFeature?: RenderFeature
     @observable private hoverNearbyFeature?: RenderFeature
     @action.bound private onMouseMove(ev: React.MouseEvent<SVGGElement>): void {
+        if (this.enableDragging) {
+            requestAnimationFrame(() => {
+                const rotate = this.globeProjection.rotate()
+                const sensitivity = 0.8
+                const rotateX = rotate[0] + (ev.screenX - this.lastScreenX) * sensitivity
+                let rotateY = rotate[1] - (ev.screenY - this.lastScreenY)  * sensitivity
+                // https://github.com/owid/owid-grapher/pull/3057#discussion_r1459309897
+                rotateY = Math.max(-90, Math.min(90, rotateY))
+    
+                this.globeRotation = [rotateX, rotateY]
+                this.lastScreenX = ev.screenX
+                this.lastScreenY = ev.screenY
+            })
+   
+        }
+
         if (ev.shiftKey) this.showSelectedStyle = true // Turn on highlight selection. To turn off, user can switch tabs.
         if (this.hoverEnterFeature) return
 
@@ -899,10 +925,10 @@ class ChoroplethMap extends React.Component<{
             const { x, y } = getRelativeMouse(subunits, ev)
             const distance = MAP_HOVER_TARGET_RANGE
             let feature = null
-            if (!this.manager.isGlobe()) {
+            if (!this.manager.isGlobe) {
                 feature = this.quadtree.find(x, y, distance)
             }
-            if (!this.manager.isGlobe() && feature) {
+            if (!this.manager.isGlobe && feature) {
                 if (feature.id !== this.hoverNearbyFeature?.id) {
                     this.hoverNearbyFeature = feature
                     this.manager.onMapMouseOver(feature.geo)
@@ -963,25 +989,6 @@ class ChoroplethMap extends React.Component<{
         // this needs to be referenced here or it will be recomputed on every mousemove
         const _cachedCentroids = this.quadtree
 
-        if (this.manager.isGlobe()) {
-            if (this.manager.projection !== MapProjectionName.World) {
-                this.globeProjection?.scale(this.globeScale * 1.8)
-                this.globeProjection?.center([0, 0])
-                this.globeProjection?.rotate(this.viewport.rotation)
-            } else {
-                this.globeProjection?.scale(this.globeScale)
-
-                this.globeProjection?.translate([
-                    this.bounds.width / 2,
-                    this.bounds.height / 2,
-                ])
-
-                this.globeProjection?.center([0, 0])
-                this.globeProjection?.rotate(this.viewport.rotation)
-                this.globeProjection?.rotate(this?.dragging)
-            }
-        }
-
         return (
             <g
                 ref={this.base}
@@ -989,21 +996,11 @@ class ChoroplethMap extends React.Component<{
                 clipPath={clipPath.id}
                 onMouseDown={(ev: SVGMouseEvent): void => {
                     this.enableDragging = true
+                    this.lastScreenX = ev.screenX
+                    this.lastScreenY = ev.screenY
                     ev.preventDefault() /* Without this, title may get selected while shift clicking */
                 }}
-                onMouseMove={(ev: React.MouseEvent<SVGGElement>) => {
-                    if (this.enableDragging) {
-                        const rotate = this.globeProjection.rotate()
-                        const sensitivity = 1.25
-                        const rotateX = rotate[0] + ev.movementX * sensitivity
-                        let rotateY = rotate[1] - ev.movementY * sensitivity
-                        rotateY = Math.max(-90, Math.min(90, rotateY))
-
-                        this.dragging = [rotateX, rotateY]
-                    }
-
-                    this.onMouseMove(ev)
-                }}
+                onMouseMove={this.onMouseMove}
                 onMouseLeave={this.onMouseLeave}
                 onMouseUp={() => {
                     this.enableDragging = false
@@ -1027,7 +1024,9 @@ class ChoroplethMap extends React.Component<{
                                     <path
                                         key={feature.id}
                                         d={this.getPath(feature)}
-                                        strokeWidth={defaultStrokeWidth / viewportScale}
+                                        strokeWidth={
+                                            defaultStrokeWidth / viewportScale
+                                        }
                                         stroke={"#aaa"}
                                         fill={"#fff"}
                                     />

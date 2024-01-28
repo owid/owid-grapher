@@ -56,6 +56,7 @@ import {
     TIMELINE_HEIGHT,
 } from "../timeline/TimelineComponent"
 import { TimelineController } from "../timeline/TimelineController"
+import { LabeledSwitch } from "../controls/LabeledSwitch.js"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -292,6 +293,15 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                         }
                         bottom={this.framePaddingVertical}
                     />
+                    {this.manager.tab === GrapherTabOption.map && (
+                        <LabeledSwitch
+                            label="Globe view"
+                            value={this.manager.isGlobe}
+                            onToggle={() =>
+                                (this.manager.isGlobe = !this.manager.isGlobe)
+                            }
+                        />
+                    )}
                     <MapProjectionMenu manager={this.manager} />
                 </div>
             </nav>
@@ -368,38 +378,11 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             margin: "10px",
             display: "flex",
             position: "absolute",
-            bottom: "0"
+            bottom: "0",
         }
-
- 
-        const isGlobe = this.manager.isGlobe
 
         return (
             <div style={containerStyle}>
-                {this.manager.tab === GrapherTabOption.map && (
-                    <>
-                        <div className="ActionButton" style={globeSwitcher}>
-                            {isGlobe ? (
-                                <button
-                                    onClick={() =>
-                                        (this.manager.isGlobe = false)
-                                    }
-                                >
-                                    <FontAwesomeIcon icon={faMap} /> Map View
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() =>
-                                        (this.manager.isGlobe = true)
-                                    }
-                                >
-                                    <FontAwesomeIcon icon={faEarthAmericas} />{" "}
-                                    Globe View
-                                </button>
-                            )}
-                        </div>
-                    </>
-                )}
                 <svg
                     {...this.svgProps}
                     width={width}
