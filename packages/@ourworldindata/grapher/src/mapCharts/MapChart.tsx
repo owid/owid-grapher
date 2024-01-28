@@ -4,6 +4,7 @@ import {
     GrapherTabOption,
     MapProjectionName,
     SeriesName,
+    EntityName
 } from "@ourworldindata/types"
 import {
     Bounds,
@@ -269,14 +270,14 @@ export class MapChart
         return this.props.manager
     }
 
-    @computed private get entityNamesWithData(): Set<any> {
+    @computed private get entityNamesWithData(): Set<EntityName> {
         // We intentionally use `inputTable` here instead of `transformedTable`, because of countries where there is no data
         // available in the map view for the current year, but data might still be available for other chart types
         return this.inputTable.entitiesWith([this.mapColumnSlug])
     }
 
     // Determine if we can go to line chart by clicking on a given map entity
-    private isEntityClickable(entityName?: any): boolean {
+    private isEntityClickable(entityName?: EntityName): boolean {
         if (!this.manager.mapIsClickable || !entityName) return false
         return this.entityNamesWithData.has(entityName)
     }
