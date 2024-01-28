@@ -142,12 +142,8 @@ const geoBoundsFor = (projectionName: MapProjectionName): Bounds[] => {
 // Bundle GeoFeatures with the calculated info needed to render them
 const renderFeaturesCache = new Map<MapProjectionName, RenderFeature[]>()
 const renderFeaturesFor = (
-    projectionName: MapProjectionName,
-    isGlobe = false
+    projectionName: MapProjectionName
 ): RenderFeature[] => {
-    if (isGlobe) {
-        renderFeaturesCache.get(MapProjectionName.World)
-    }
 
     if (renderFeaturesCache.has(projectionName))
         return renderFeaturesCache.get(projectionName)!
@@ -857,14 +853,14 @@ class ChoroplethMap extends React.Component<{
     // Features that aren't part of the current projection (e.g. India if we're showing Africa)
     @computed private get featuresOutsideProjection(): RenderFeature[] {
         return difference(
-            renderFeaturesFor(this.manager.projection, this.manager.isGlobe),
+            renderFeaturesFor(this.manager.projection),
             this.featuresInProjection
         )
     }
 
     @computed private get featuresInProjection(): RenderFeature[] {
         const { projection } = this.manager
-        const features = renderFeaturesFor(projection, this.manager.isGlobe)
+        const features = renderFeaturesFor(projection)
         if (projection === MapProjectionName.World) return features
 
         return features.filter(
