@@ -33,7 +33,7 @@ export interface ChoroplethSeries extends ChartSeries {
 }
 
 export interface ChoroplethMapManager {
-    isGlobe: any
+    isGlobe: boolean
     choroplethData: Map<SeriesName, ChoroplethSeries>
     choroplethMapBounds: Bounds
     projection: MapProjectionName
