@@ -43,7 +43,7 @@ export default function KeyIndicator({
 
     return (
         <div className={cx("key-indicator grid grid-cols-12", className)}>
-            <div className="col-start-1 span-cols-4">
+            <div className="col-start-1 span-cols-4 span-sm-cols-12">
                 <div className="indicator-title">{linkedIndicator.title}</div>
                 {d.title && <h3 className="narrative-title">{d.title}</h3>}
                 {d.blurb && (
@@ -94,14 +94,24 @@ export default function KeyIndicator({
                         </div>
                     )}
                 </div>
-                <a className="datapage-link" href={d.datapageUrl}>
+                <a
+                    className="datapage-link datapage-link-desktop"
+                    href={d.datapageUrl}
+                >
                     Explore and learn more about this data
                 </a>
             </div>
             <Chart
-                className="col-start-5 span-cols-8 margin-0"
+                className="col-start-5 span-cols-8 span-sm-cols-12 margin-0"
                 d={{ url: d.datapageUrl, type: "chart", parseErrors: [] }}
+                shouldOptimizeForHorizontalSpace={false}
             />
+            <a
+                className="datapage-link datapage-link-mobile col-start-1 span-cols-12"
+                href={d.datapageUrl}
+            >
+                Explore and learn more about this data
+            </a>
         </div>
     )
 }

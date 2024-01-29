@@ -1,11 +1,13 @@
 .key-indicator {
-    $frame-padding: 24px;
-    $padding: 16px;
-
     background-color: $blue-10;
-    padding: $frame-padding;
-    margin: 0 (-$frame-padding);
-    margin-bottom: $frame-padding;
+
+    margin: 0 -24px 24px;
+    padding: 16px 24px;
+
+    @include sm-only {
+        margin: 0 -16px 16px;
+        padding: 16px;
+    }
 
     .indicator-title {
         @include body-2-semibold;
@@ -23,21 +25,35 @@
     .blurb {
         @include body-2-regular;
         color: $blue-90;
-        margin-bottom: $padding;
+        margin-bottom: 16px;
+
+        p:first-of-type {
+            margin-top: 0;
+        }
+
+        p:last-of-type {
+            margin-bottom: 0;
+        }
     }
 
     .blurb a {
         @include owid-link-90;
     }
 
+    .metadata {
+        @include sm-only {
+            display: none;
+        }
+    }
+
     .metadata--border-top {
         border-top: solid rgba(164, 182, 202, 0.5);
-        padding-top: $padding;
+        padding-top: 16px;
     }
 
     .metadata-entry {
         @include body-3-medium;
-        margin-bottom: $padding;
+        margin-bottom: 16px;
     }
 
     .metadata-entry__title {
@@ -63,7 +79,19 @@
         background-color: $blue-60;
         cursor: pointer;
         border: none;
+    }
 
-        margin-top: $padding;
+    .datapage-link-desktop {
+        margin-top: 8px;
+        @include sm-only {
+            display: none;
+        }
+    }
+
+    .datapage-link-mobile {
+        margin-top: 16px;
+        @include sm-up {
+            display: none;
+        }
     }
 }
