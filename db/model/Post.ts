@@ -106,7 +106,7 @@ export const getPosts = async (
 ): Promise<DbEnrichedPost[]> => {
     const posts: DbRawPost[] = await db
         .knexTable(postsTable)
-        .where("type", "in", [postTypes.join(",")])
+        .where("type", "in", postTypes)
         .andWhere("status", "publish")
 
     // Published pages excluded from public views
