@@ -649,7 +649,7 @@ export const getFullPost = async (
 ): Promise<FullPost> => {
     const {
         published_at,
-        updated_at,
+        updated_at_in_wordpress,
         authors,
         excerpt,
         type,
@@ -657,12 +657,16 @@ export const getFullPost = async (
         id,
         featured_image,
     } = postApi
-    if (!updated_at) throw new Error("Missing required fields in postApi")
+
+    if (!updated_at_in_wordpress)
+        throw new Error(
+            "Missing required updated_at_in_wordpress field in postApi"
+        )
 
     return {
         ...postApi,
-        date: published_at || updated_at,
-        modifiedDate: updated_at,
+        date: published_at || updated_at_in_wordpress,
+        modifiedDate: updated_at_in_wordpress,
         authors: authors ?? [],
         excerpt: excerpt ?? undefined,
         imageUrl: featured_image ?? `${BAKED_BASE_URL}/default-thumbnail.jpg`,
