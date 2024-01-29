@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import cx from "classnames"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faPlus } from "@fortawesome/free-solid-svg-icons"
 
 import {
     EnrichedBlockKeyIndicatorCollection,
@@ -49,6 +51,7 @@ export default function KeyIndicatorCollection({
                             <KeyIndicatorHeader
                                 block={block}
                                 showMetadata={!isBlockOpen[blockIndex]}
+                                showIcon={!isBlockOpen[blockIndex]}
                             />
                         }
                     >
@@ -106,9 +109,11 @@ function AccordionItem({
 function KeyIndicatorHeader({
     block,
     showMetadata = true,
+    showIcon = false,
 }: {
     block: EnrichedBlockKeyIndicator
     showMetadata?: boolean
+    showIcon?: boolean
 }) {
     const { linkedChart } = useLinkedChart(block.datapageUrl)
     const { linkedIndicator } = useLinkedIndicator(
@@ -128,7 +133,7 @@ function KeyIndicatorHeader({
 
     return (
         <div className="key-indicator-header grid grid-cols-12">
-            <div className="key-indicator-header__title col-start-1 span-cols-4">
+            <div className="key-indicator-header__title col-start-1 span-cols-4 span-sm-cols-11">
                 {linkedIndicator.title}
             </div>
             {(source || dateRange) && (
@@ -145,6 +150,11 @@ function KeyIndicatorHeader({
                     {source}
                     {source && " | "}
                     {dateRange}
+                </div>
+            )}
+            {showIcon && (
+                <div className="key-indicator-header__icon col-start-12 span-cols-1">
+                    <FontAwesomeIcon icon={faPlus} />
                 </div>
             )}
         </div>

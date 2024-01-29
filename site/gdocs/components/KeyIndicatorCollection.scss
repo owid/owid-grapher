@@ -1,44 +1,32 @@
 .key-indicator-collection {
-    $padding: 24px;
-    $icon-width: 24px;
-    $duration: 0.4s; // TODO
+    $duration: 0.4s;
 
-    margin: 0 (-$padding);
+    margin: 0 -24px;
 
     .accordion-item {
         background-color: $blue-10;
     }
 
     .accordion-item + .accordion-item {
-        margin-top: 4px;
+        margin-top: 1px;
     }
 
     .accordion-item__header {
         width: 100%;
         text-align: left;
-        padding: $padding;
+        padding: 12px 24px;
     }
 
-    // .accordion-item__header > *:nth-last-child(2) {
-    //     margin-right: $icon-width;
-    // }
-
-    // .accordion-item__header > *:last-child {
-    //     position: absolute;
-    //     width: $icon-width;
-    //     top: $padding;
-    //     right: $padding;
-    //     text-align: right;
-    // }
-
     .accordion-item__content {
-        padding: 0 $padding;
+        padding: 0 24px;
         overflow: hidden;
         transition: height $duration cubic-bezier(0.76, 0, 0.24, 1);
     }
 
-    h3 {
-        margin-top: 0;
+    .key-indicator-header {
+        @include sm-only {
+            align-items: center;
+        }
     }
 
     .key-indicator-header__title {
@@ -50,26 +38,27 @@
         @include body-3-medium;
         color: #60758c;
         opacity: 0;
-        transition: opacity 0.2s; // TODO
+        transition: opacity 0.2s;
+
+        @include sm-only {
+            display: none;
+        }
+    }
+
+    .key-indicator-header__icon {
+        color: $blue-90;
+        font-size: 0.875rem;
+        font-weight: 900;
+        text-align: right;
+
+        @include sm-up {
+            display: none;
+        }
     }
 
     .key-indicator-header__metadata.visible {
         opacity: 1 !important;
-        transition: opacity 0.2s $duration; // TODO
-    }
-
-    .metadata-entry + .metadata-entry {
-        margin-top: 8px;
-    }
-
-    .metadata-entry__title {
-        @include body-3-medium;
-        color: $blue-50;
-    }
-
-    .metadata-entry__value {
-        @include body-3-medium;
-        color: $blue-90;
+        transition: opacity 0.2s $duration;
     }
 
     button {
@@ -81,6 +70,10 @@
 
     button[disabled] {
         cursor: default;
+    }
+
+    h3 {
+        margin-top: 0;
     }
 
     // update <KeyIndicator /> styles
