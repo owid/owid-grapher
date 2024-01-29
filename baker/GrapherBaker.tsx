@@ -59,13 +59,13 @@ import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
-import pMap from "p-map"
-import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import { Knex } from "knex"
+import { knexRaw } from "../db/db.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
     isPreviewing: boolean,
+    knex: Knex<any, any[]>,
     imageMetadataDictionary?: Record<string, Image>
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
@@ -112,23 +112,28 @@ type EnrichedFaqLookupSuccess = {
 
 type EnrichedFaqLookupResult = EnrichedFaqLookupError | EnrichedFaqLookupSuccess
 
-export async function renderDataPageV2({
-    variableId,
-    variableMetadata,
-    isPreviewing,
-    useIndicatorGrapherConfigs,
-    pageGrapher,
-    imageMetadataDictionary = {},
-}: {
-    variableId: number
-    variableMetadata: OwidVariableWithSource
-    isPreviewing: boolean
-    useIndicatorGrapherConfigs: boolean
-    pageGrapher?: GrapherInterface
-    imageMetadataDictionary?: Record<string, ImageMetadata>
-}) {
-    const grapherConfigForVariable =
-        await getMergedGrapherConfigForVariable(variableId)
+export async function renderDataPageV2(
+    {
+        variableId,
+        variableMetadata,
+        isPreviewing,
+        useIndicatorGrapherConfigs,
+        pageGrapher,
+        imageMetadataDictionary = {},
+    }: {
+        variableId: number
+        variableMetadata: OwidVariableWithSource
+        isPreviewing: boolean
+        useIndicatorGrapherConfigs: boolean
+        pageGrapher?: GrapherInterface
+        imageMetadataDictionary?: Record<string, ImageMetadata>
+    },
+    knex: Knex<any, any[]>
+) {
+    const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
+        variableId,
+        knex
+    )
     // Only merge the grapher config on the indicator if the caller tells us to do so -
     // this is true for preview pages for datapages on the indicator level but false
     // if we are on Grapher pages. Once we have a good way in the grapher admin for how
@@ -469,12 +474,15 @@ export const bakeSingleGrapherChart = async (
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
     async (bakedSiteDir: string, knex: Knex<any, any[]>) => {
         const chartsToBake: { id: number; config: string; slug: string }[] =
-            await db.queryMysql(`
+            await knexRaw(
+                `
                 SELECT
                     id, config, config->>'$.slug' as slug
                 FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
                 ORDER BY JSON_EXTRACT(config, "$.slug") ASC
-                `)
+                `,
+                knex
+            )
 
         const newSlugs = chartsToBake.map((row) => row.slug)
         await fs.mkdirp(bakedSiteDir + "/grapher")

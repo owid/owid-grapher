@@ -96,7 +96,7 @@ export const denormalizeLatestCountryData = async (variableIds?: number[]) => {
 
     const currentYear = new Date().getUTCFullYear()
 
-    const df = (await dataAsDF(variableIds))
+    const df = (await dataAsDF(variableIds, db.knexInstance()))
         .filter(
             pl
                 .col("entityId")

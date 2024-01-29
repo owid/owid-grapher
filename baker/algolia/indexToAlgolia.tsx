@@ -224,7 +224,7 @@ const getPagesRecords = async (knex: Knex<any, any[]>) => {
     return [...countryRecords, ...wordpressRecords, ...gdocsRecords]
 }
 
-const indexToAlgolia = async () => {
+const indexToAlgolia = async (knex: Knex<any, any[]>) => {
     if (!ALGOLIA_INDEXING) return
 
     const client = getAlgoliaClient()
@@ -235,7 +235,7 @@ const indexToAlgolia = async () => {
     const index = client.initIndex(SearchIndexName.Pages)
 
     await db.getConnection()
-    const records = await getPagesRecords(db.knexInstance())
+    const records = await getPagesRecords(knex)
 
     index.replaceAllObjects(records)
 
@@ -248,4 +248,4 @@ process.on("unhandledRejection", (e) => {
     process.exit(1)
 })
 
-indexToAlgolia()
+indexToAlgolia(db.knexInstance())

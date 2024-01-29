@@ -3,7 +3,7 @@ import sqlFixtures from "sql-fixtures"
 import { dbTestConfig } from "./dbTestConfig.js"
 import { dataSource } from "./dataSource.dbtests.js"
 import { knex, Knex } from "knex"
-import { getConnection } from "../db.js"
+import { getConnection, knexRaw } from "../db.js"
 import { DataSource } from "typeorm"
 import { insertUser, updateUser, User } from "../model/User.js"
 import { Chart } from "../model/Chart.js"
@@ -131,8 +131,59 @@ test("knex interface", async () => {
 
         // Use raw queries, using ?? to specify the table name using the shared const value
         // The pick type is used to type the result row
-        const usersFromRawQuery: Pick<DbPlainUser, "email">[] = await trx.raw(
+        const usersFromRawQuery: Pick<DbPlainUser, "email">[] = await knexRaw(
             "select email from ??",
+            trx,
+            [UsersTableName]
+        )
+        expect(usersFromRawQuery.length).toBe(2)
+    })
+})
+
+test("knex interface raw", async () => {
+    if (!knexInstance) throw new Error("Knex connection not initialized")
+
+    // Create a transaction and run all tests inside it
+    knexInstance.transaction(async (trx) => {
+        // Fetch all users into memory
+        const users = await trx
+            .from<DbPlainUser>(UsersTableName)
+            .select("isSuperuser", "email")
+        expect(users.length).toBe(1)
+
+        // Fetch all users in a streaming fashion, iterate over them async to avoid having to load everything into memory
+        const usersStream = trx
+            .from<DbPlainUser>(UsersTableName)
+            .select("isSuperuser", "email")
+            .stream()
+
+        for await (const user of usersStream) {
+            expect(user.isSuperuser).toBe(0)
+            expect(user.email).toBe("admin@example.com")
+        }
+
+        // Use the insert helper method
+        await insertUser(trx, {
+            email: "test@example.com",
+            fullName: "Test User",
+        })
+
+        // Use the update helper method
+        await updateUser(trx, 2, { isSuperuser: 1 })
+
+        // Check results after update and insert
+        const afterUpdate = await trx
+            .from<DbPlainUser>(UsersTableName)
+            .select("isSuperuser", "email")
+            .orderBy("id")
+        expect(afterUpdate.length).toBe(2)
+        expect(afterUpdate[1].isSuperuser).toBe(1)
+
+        // Use raw queries, using ?? to specify the table name using the shared const value
+        // The pick type is used to type the result row
+        const usersFromRawQuery: Pick<DbPlainUser, "email">[] = await knexRaw(
+            "select email from ??",
+            trx,
             [UsersTableName]
         )
         expect(usersFromRawQuery.length).toBe(2)

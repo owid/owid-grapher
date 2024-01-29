@@ -307,12 +307,16 @@ adminRouter.get("/datapage-preview/:id", async (req, res) => {
     if (!variableMetadata) throw new JsonError("No such variable", 404)
 
     res.send(
-        await renderDataPageV2({
-            variableId,
-            variableMetadata,
-            isPreviewing: true,
-            useIndicatorGrapherConfigs: true,
-        })
+        await renderDataPageV2(
+            {
+                variableId,
+                variableMetadata,
+                isPreviewing: true,
+                useIndicatorGrapherConfigs: true,
+                publishedExplorersBySlug,
+            },
+            db.knexInstance()
+        )
     )
 })
 

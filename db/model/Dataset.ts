@@ -77,7 +77,7 @@ export async function writeDatasetCSV(
         )
     ).map((row) => row.variableId)
 
-    await writeVariableCSV(variableIds, stream)
+    await writeVariableCSV(variableIds, stream, knex)
 }
 
 export async function datasetToCSV(
