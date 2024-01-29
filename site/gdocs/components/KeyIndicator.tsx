@@ -7,7 +7,11 @@ import {
     EnrichedBlockKeyIndicator,
     EnrichedBlockText,
 } from "@ourworldindata/types"
-import { makeDateRange, makeLastUpdated } from "@ourworldindata/components"
+import {
+    makeDateRange,
+    makeLastUpdated,
+    SimpleMarkdownText,
+} from "@ourworldindata/components"
 import { capitalize, joinTitleFragments } from "@ourworldindata/utils"
 
 import Chart from "./Chart.js"
@@ -96,9 +100,11 @@ export default function KeyIndicator({
                     )}
                 </div>
                 {linkedIndicator.descriptionShort && (
-                    <p className="description">
-                        {linkedIndicator.descriptionShort}
-                    </p>
+                    <div className="description">
+                        <SimpleMarkdownText
+                            text={linkedIndicator.descriptionShort}
+                        />
+                    </div>
                 )}
                 <a
                     className="datapage-link datapage-link-desktop"
