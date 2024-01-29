@@ -53,6 +53,7 @@ import {
 import {
     GrapherInterface,
     OwidGdocLinkType,
+    OwidGdocType,
     grapherKeysToSerialize,
 } from "@ourworldindata/types"
 import {
@@ -2408,6 +2409,7 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
         gdoc.slug = post.slug
         gdoc.tags = tags
         gdoc.content.title = post.title
+        gdoc.content.type = archieMl.content.type || OwidGdocType.Article
         gdoc.published = false
         gdoc.createdAt = new Date()
         gdoc.publishedAt = post.published_at
