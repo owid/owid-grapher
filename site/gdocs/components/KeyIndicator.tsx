@@ -7,11 +7,8 @@ import {
     EnrichedBlockKeyIndicator,
     EnrichedBlockText,
 } from "@ourworldindata/types"
-import {
-    makeSource,
-    makeDateRange,
-    makeLastUpdated,
-} from "@ourworldindata/components"
+import { makeDateRange, makeLastUpdated } from "@ourworldindata/components"
+import { capitalize, joinTitleFragments } from "@ourworldindata/utils"
 
 import Chart from "./Chart.js"
 import Paragraph from "./Paragraph.js"
@@ -32,10 +29,12 @@ export default function KeyIndicator({
     if (!linkedChart) return null
     if (!linkedIndicator) return null
 
-    const source = makeSource({
-        attribution: linkedIndicator.attributionUnshortened,
-        hideProcessingLevel: true,
-    })
+    const source = capitalize(
+        joinTitleFragments(
+            linkedIndicator.attributionShort,
+            linkedIndicator.titleVariant
+        )
+    )
     const dateRange = makeDateRange({
         dateRange: linkedIndicator.dateRange,
     })

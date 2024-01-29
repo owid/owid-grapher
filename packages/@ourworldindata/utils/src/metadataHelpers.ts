@@ -298,12 +298,10 @@ export function grabMetadataForGdocLinkedIndicator(
             metadata.display?.name ??
             metadata.name ??
             "",
+        titleVariant: metadata.presentation?.titleVariant,
+        attributionShort: metadata.presentation?.attributionShort,
         dateRange: metadata.timespan,
         lastUpdated: getLastUpdatedFromVariable(metadata),
-        attributionUnshortened: getAttributionUnshortened({
-            attributions: getAttributionFragmentsFromVariable(metadata),
-            origins: metadata.origins ?? [],
-        }),
         descriptionShort: metadata.descriptionShort,
     }
 }
