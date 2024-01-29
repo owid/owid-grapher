@@ -32,6 +32,7 @@ export interface LinkedIndicator {
     dateRange?: string
     lastUpdated?: string
     attributionUnshortened?: string
+    descriptionShort?: string
 }
 
 export enum OwidGdocType {

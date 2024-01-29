@@ -64,6 +64,13 @@
         color: $blue-90;
     }
 
+    .description {
+        @include body-3-medium;
+        color: $blue-60;
+        margin-top: 0;
+        margin-bottom: 16px;
+    }
+
     .datapage-link {
         @include body-3-medium;
 

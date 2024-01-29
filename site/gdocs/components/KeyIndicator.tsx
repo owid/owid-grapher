@@ -96,6 +96,11 @@ export default function KeyIndicator({
                         </div>
                     )}
                 </div>
+                {linkedIndicator.descriptionShort && (
+                    <p className="description">
+                        {linkedIndicator.descriptionShort}
+                    </p>
+                )}
                 <a
                     className="datapage-link datapage-link-desktop"
                     href={d.datapageUrl}

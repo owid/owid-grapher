@@ -304,5 +304,6 @@ export function grabMetadataForGdocLinkedIndicator(
             attributions: getAttributionFragmentsFromVariable(metadata),
             origins: metadata.origins ?? [],
         }),
+        descriptionShort: metadata.descriptionShort,
     }
 }
