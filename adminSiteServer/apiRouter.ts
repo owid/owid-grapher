@@ -59,10 +59,6 @@ import {
     getVariableDataRoute,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
-import {
-    CountryNameFormat,
-    CountryDefByKey,
-} from "../adminSiteClient/CountryNameFormat.js"
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"

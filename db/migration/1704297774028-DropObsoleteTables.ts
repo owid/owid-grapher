@@ -16,5 +16,7 @@ export class DropObsoleteTables1704297774028 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE IF EXISTS importer_importhistory`)
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {}
+    public async down(_queryRunner: QueryRunner): Promise<void> {
+        return
+    }
 }
