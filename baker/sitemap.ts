@@ -58,8 +58,10 @@ const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl[] => {
 }
 
 export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
+    // TODO: the knex instance should be handed down as a parameter
+    const knex = db.knexInstance()
     const alreadyPublishedViaGdocsSlugsSet =
-        await db.getSlugsWithPublishedGdocsSuccessors()
+        await db.getSlugsWithPublishedGdocsSuccessors(knex)
     const postsApi = await wpdb.getPosts(
         undefined,
         (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
@@ -67,7 +69,7 @@ export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
     const gdocPosts = await GdocPost.getPublishedGdocs()
     const charts = (await db
         .knexTable(Chart.table)
-        .select(db.knexRaw(`updatedAt, config->>"$.slug" AS slug`))
+        .select(knex.raw(`updatedAt, config->>"$.slug" AS slug`))
         .whereRaw('config->"$.isPublished" = true')) as {
         updatedAt: Date
         slug: string

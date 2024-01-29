@@ -34,9 +34,14 @@ async function downloadAndInsertCSV(): Promise<void> {
     console.log("Parsed CSV data:", onlyValidRows.length, "rows")
     console.log("Columns:", parsedData.meta.fields)
 
-    await db.knexRaw("TRUNCATE TABLE analytics_pageviews")
+    // TODO: this instance should be handed down as a parameter
+    const knex = db.knexInstance()
 
-    await db.knexInstance().batchInsert("analytics_pageviews", onlyValidRows)
+    knex.transaction(async (trx) => {
+        await db.knexRaw("TRUNCATE TABLE analytics_pageviews", trx)
+
+        await trx.batchInsert("analytics_pageviews", onlyValidRows)
+    })
     console.log("CSV data inserted successfully!")
 }
 

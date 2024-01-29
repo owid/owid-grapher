@@ -411,8 +411,9 @@ export class SiteBaker {
 
     private async bakePosts() {
         if (!this.bakeSteps.has("wordpressPosts")) return
+        // TODO: the knex instance should be handed down as a parameter
         const alreadyPublishedViaGdocsSlugsSet =
-            await db.getSlugsWithPublishedGdocsSuccessors()
+            await db.getSlugsWithPublishedGdocsSuccessors(db.knexInstance())
 
         const postsApi = await wpdb.getPosts(
             undefined,
@@ -719,6 +720,8 @@ export class SiteBaker {
             await entriesByYearPage()
         )
 
+        const knex = db.knexInstance()
+
         const rows = (await db
             .knexTable(postsTable)
             .where({ status: "publish" })
@@ -726,7 +729,7 @@ export class SiteBaker {
             .join("post_tags", { "post_tags.post_id": "posts.id" })
             .join("tags", { "tags.id": "post_tags.tag_id" })
             .where({ "tags.name": "Entries" })
-            .select(db.knexRaw("distinct year(published_at) as year"))
+            .select(knex.raw("distinct year(published_at) as year"))
             .orderBy("year", "DESC")) as { year: number }[]
 
         const years = rows.map((r) => r.year)
