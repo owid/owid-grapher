@@ -2,7 +2,7 @@ import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
-import { ChartTagJoin } from "@ourworldindata/utils"
+import { DbChartTagJoin } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
 import { BindString, NumericSelectField, FieldsRow, Timeago } from "./Forms.js"
 import { DatasetList, DatasetListItem } from "./DatasetList.js"
@@ -18,8 +18,8 @@ interface TagPageData {
     updatedAt: string
     datasets: DatasetListItem[]
     charts: ChartListItem[]
-    children: ChartTagJoin[]
-    possibleParents: ChartTagJoin[]
+    children: DbChartTagJoin[]
+    possibleParents: DbChartTagJoin[]
     isBulkImport: boolean
     slug: string | null
 }
@@ -174,7 +174,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                                             <TagBadge
                                                 tag={
                                                     this
-                                                        .parentTag as ChartTagJoin
+                                                        .parentTag as DbChartTagJoin
                                                 }
                                             />
                                         )}
@@ -207,7 +207,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                     <section>
                         <h3>Subcategories</h3>
                         {tag.children.map((c) => (
-                            <TagBadge tag={c as ChartTagJoin} key={c.id} />
+                            <TagBadge tag={c as DbChartTagJoin} key={c.id} />
                         ))}
                     </section>
                 )}

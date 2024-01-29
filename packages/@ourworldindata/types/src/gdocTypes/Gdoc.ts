@@ -1,4 +1,4 @@
-import { Tag } from "../dbTypes/Tags.js"
+import { Tag } from "../domainTypes/Tag.js"
 import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
 import { TocHeadingWithTitleSupertitle } from "../domainTypes/Toc.js"
@@ -98,6 +98,7 @@ export type MinimalDataInsightInterface = Pick<
 }
 
 export type OwidGdoc = OwidGdocPostInterface | OwidGdocDataInsightInterface
+export type OwidGdocContent = OwidGdocPostContent | OwidGdocDataInsightContent
 
 export enum OwidGdocErrorMessageType {
     Error = "error",
@@ -129,9 +130,16 @@ export interface OwidGdocJSON
     updatedAt: string | null
 }
 
+export enum OwidGdocLinkType {
+    Gdoc = "gdoc",
+    Url = "url",
+    Grapher = "grapher",
+    Explorer = "explorer",
+}
+
 export interface OwidGdocLinkJSON {
     source: Record<string, any>
-    linkType: "gdoc" | "url" | "grapher" | "explorer"
+    linkType: OwidGdocLinkType
     target: string
     componentType: string
     text: string

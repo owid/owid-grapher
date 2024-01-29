@@ -5,7 +5,7 @@ import { BAKE_ON_CHANGE } from "../settings/serverSettings.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 import { exit } from "../db/cleanup.js"
 import {
-    PostRowEnriched,
+    DbEnrichedPost,
     extractFormattingOptions,
     sortBy,
     serializePostRow,
@@ -129,7 +129,7 @@ const syncPostToGrapher = async (
                       ? "1970-01-01 00:00:00"
                       : wpPost.created_at,
               formattingOptions: formattingOptions,
-          } as PostRowEnriched)
+          } as DbEnrichedPost)
         : undefined
 
     await db.knexInstance().transaction(async (transaction) => {

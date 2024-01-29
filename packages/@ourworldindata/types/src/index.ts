@@ -49,9 +49,7 @@ export {
     DeployStatus,
     type DeployMetadata,
 } from "./domainTypes/DeployStatus.js"
-export { type Tag } from "./dbTypes/Tags.js"
-
-export { type ChartTag, type ChartTagJoin } from "./dbTypes/ChartTags.js"
+export { type Tag } from "./domainTypes/Tag.js"
 
 export {
     IDEAL_PLOT_ASPECT_RATIO,
@@ -278,6 +276,7 @@ export {
     GdocsContentSource,
     type OwidArticleBackportingStatistics,
     type LinkedChart,
+    OwidGdocLinkType,
     DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
 } from "./gdocTypes/Gdoc.js"
 
@@ -311,23 +310,6 @@ export {
     type SpanUnderline,
     type UnformattedSpan,
 } from "./gdocTypes/Spans.js"
-
-export {
-    parsePostFormattingOptions,
-    parsePostAuthors,
-    parsePostRow,
-    serializePostRow,
-    parsePostArchieml,
-} from "./dbTypes/PostsUtilities.js"
-
-export {
-    type PostRowParsedFields,
-    type PostRowPlainFields,
-    type PostRowUnparsedFields,
-    type PostRowEnriched,
-    type PostRowRaw,
-    type PostRowWithGdocPublishStatus,
-} from "./dbTypes/Posts.js"
 
 export type { GDriveImageMetadata, ImageMetadata } from "./gdocTypes/Image.js"
 export {
@@ -400,3 +382,224 @@ export {
     type CoreColumnDef,
     ErrorValue,
 } from "./domainTypes/CoreTableTypes.js"
+export {
+    type DbPlainAnalyticsPageview,
+    AnalyticsPageviewsTableName,
+} from "./dbTypes/AnalyticsPageviews.js"
+export {
+    type DbPlainChartDimension,
+    type DbInsertChartDimension,
+    ChartDimensionsTableName,
+} from "./dbTypes/ChartDimensions.js"
+export {
+    type DbInsertChartRevision,
+    type DbRawChartRevision,
+    type DbEnrichedChartRevision,
+    ChartRevisionsTableName,
+    parseChartRevisionsRow,
+    serializeChartRevisionsRow,
+} from "./dbTypes/ChartRevisions.js"
+export {
+    type DbInsertChart,
+    type DbRawChart,
+    type DbEnrichedChart,
+    ChartsTableName,
+    parseChartConfig,
+    serializeChartConfig,
+    parseChartsRow,
+    serializeChartsRow,
+} from "./dbTypes/Charts.js"
+export {
+    type DbPlainChartSlugRedirect,
+    type DbInsertChartSlugRedirect,
+    ChartSlugRedirectsTableName,
+} from "./dbTypes/ChartSlugRedirects.js"
+export {
+    type DbPlainChartTag,
+    type DbInsertChartTag,
+    ChartTagsTableName,
+    type DbChartTagJoin,
+} from "./dbTypes/ChartTags.js"
+export {
+    type DbPlainCountryLatestData,
+    type DbInsertCountryLatestData,
+    CountryLatestDataTableName,
+} from "./dbTypes/CountryLatestData.js"
+export {
+    type DbPlainDatasetFile,
+    type DbInsertDatasetFile,
+    DatasetFilesTableName,
+} from "./dbTypes/DatasetFiles.js"
+export {
+    type DbPlainDataset,
+    type DbInsertDataset,
+    DatasetsTableName,
+} from "./dbTypes/Datasets.js"
+export {
+    type DbPlainDatasetTag,
+    type DbInsertDatasetTag,
+    DatasetTagsTableName,
+} from "./dbTypes/DatasetTags.js"
+export {
+    type DbPlainEntity,
+    type DbInsertEntity,
+    EntitiesTableName,
+} from "./dbTypes/Entities.js"
+export {
+    type DbPlainExplorerChart,
+    type DbInsertExplorerChart,
+    ExplorerChartsTableName,
+} from "./dbTypes/ExplorerCharts.js"
+export {
+    type DbPlainExplorer,
+    type DbInsertExplorer,
+    ExplorersTableName,
+} from "./dbTypes/Explorers.js"
+export {
+    type DbPlainExplorerVariable,
+    type DbInsertExplorerVariable,
+    ExplorerVariablesTableName,
+} from "./dbTypes/ExplorerVariables.js"
+export {
+    type DbPlainImage,
+    type DbInsertImage,
+    ImagesTableName,
+} from "./dbTypes/Images.js"
+export {
+    type DbPlainNamespace,
+    type DbInsertNamespace,
+    NamespacesTableName,
+} from "./dbTypes/Namespaces.js"
+export {
+    type DbRawOrigin,
+    type DbEnrichedOrigin,
+    type DbInsertOrigin,
+    OriginsTableName,
+    parseOriginsRow,
+    serializeOriginsRow,
+} from "./dbTypes/Origins.js"
+export {
+    type DbPlainOriginVariable,
+    type DbInsertOriginsVariable,
+    OriginsVariablesTableName,
+} from "./dbTypes/OriginsVariables.js"
+export {
+    type DbInsertPost,
+    type DbEnrichedPost,
+    type DbRawPost,
+    type DbRawPostWithGdocPublishStatus,
+    PostsTableName,
+    parsePostFormattingOptions,
+    parsePostAuthors,
+    parsePostRow,
+    serializePostRow,
+    parsePostArchieml,
+} from "./dbTypes/Posts.js"
+export {
+    type DbInsertPostGdoc,
+    type DbRawPostGdoc,
+    type DbEnrichedPostGdoc,
+    PostsGdocsTableName,
+    parsePostGdocContent,
+    serializePostGdocContent,
+    parsePostsGdocsBreadcrumbs,
+    serializePostsGdocsBreadcrumbs,
+    parsePostsGdocsRow,
+    serializePostsGdocsRow,
+} from "./dbTypes/PostsGdocs.js"
+export {
+    type DbPlainPostGdocLink,
+    type DbInsertPostGdocLink,
+    PostsGdocsLinksTableName,
+} from "./dbTypes/PostsGdocsLinks.js"
+export {
+    type DbPlainPostGdocVariableFaq,
+    type DbInsertPostGdocVariableFaq,
+    PostsGdocsVariablesFaqsTableName,
+} from "./dbTypes/PostsGdocsVariablesFaqs.js"
+export {
+    type DbPlainPostGdocXImage,
+    type DbInsertPostGdocXImage,
+    PostsGdocsXImagesTableName,
+} from "./dbTypes/PostsGdocsXImages.js"
+export {
+    type DbPlainPostGdocXTag,
+    type DbInsertPostGdocXTag,
+    PostsGdocsXTagsTableName,
+} from "./dbTypes/PostsGdocsXTags.js"
+export {
+    type DbPlainPostLink,
+    type DbInsertPostLink,
+    PostsLinksTableName,
+} from "./dbTypes/PostsLinks.js"
+export {
+    type DbPlainPostTag,
+    type DbInsertPostTag,
+    PostTagsTableName,
+} from "./dbTypes/PostTags.js"
+export {
+    type DbPlainSession,
+    type DbInsertSession,
+    SessionsTableName,
+} from "./dbTypes/Sessions.js"
+
+export {
+    type DbInsertSource,
+    type DbRawSource,
+    type DbEnrichedSource,
+    SourcesTableName,
+    parseSourceDescription,
+    serializeSourceDescription,
+    parseSourcesRow,
+    serializeSourcesRow,
+} from "./dbTypes/Sources.js"
+export {
+    type DbInsertSuggestedChartRevision,
+    type DbRawSuggestedChartRevision,
+    type DbEnrichedSuggestedChartRevision,
+    SuggestedChartRevisionsTableName,
+    parseSuggestedChartRevisionsExperimental,
+    serializeSuggestedChartRevisionsExperimental,
+    parseSuggestedChartRevisionsRow,
+    serializeSuggestedChartRevisionsRow,
+} from "./dbTypes/SuggestedChartRevisions.js"
+export {
+    type DbInsertTag,
+    type DbPlainTag,
+    TagsTableName,
+} from "./dbTypes/Tags.js"
+export {
+    type DbPlainTagVariableTopicTag,
+    type DbInsertTagVariableTopicTag,
+    TagsVariablesTopicTagsTableName,
+} from "./dbTypes/TagsVariables.js"
+export {
+    type DbPlainUser,
+    type DbInsertUser,
+    UsersTableName,
+} from "./dbTypes/Users.js"
+export {
+    type DbRawVariable,
+    type DbEnrichedVariable,
+    type DbInsertVariable,
+    VariablesTableName,
+    parseVariableDisplayConfig,
+    serializeVariableDisplayConfig,
+    parseVariableDimensions,
+    serializeVariableDimensions,
+    parseVariablesRow,
+    serializeVariablesRow,
+    parseVariableDescriptionKey,
+    serializeVariableDescriptionKey,
+    parseVariableOriginalMetadata,
+    serializeVariableOriginalMetadata,
+    parseVariableLicenses,
+    serializeVariableLicenses,
+    parseVariableGrapherConfigAdmin,
+    serializeVariableGrapherConfigAdmin,
+    parseVariableGrapherConfigETL,
+    serializeVariableGrapherConfigETL,
+    parseVariableProcessingLog,
+    serializeVariableProcessingLog,
+    type License,
+} from "./dbTypes/Variables.js"

@@ -190,8 +190,9 @@ const getPagesRecords = async () => {
     const pageviews = await Pageview.getViewsByUrlObj()
     const gdocs = await GdocPost.getPublishedGdocs()
     const publishedGdocsBySlug = keyBy(gdocs, "slug")
+    // TODO: the knex instance should be handed down as a parameter
     const slugsWithPublishedGdocsSuccessors =
-        await db.getSlugsWithPublishedGdocsSuccessors()
+        await db.getSlugsWithPublishedGdocsSuccessors(db.knexInstance())
     const postsApi = await wpdb.getPosts(undefined, (post) => {
         // Two things can happen here:
         // 1. There's a published Gdoc with the same slug

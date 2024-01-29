@@ -4,7 +4,7 @@ import { GrapherInterface } from "@ourworldindata/types"
 import {
     DimensionProperty,
     KeyChartLevel,
-    PostRowEnriched,
+    DbEnrichedPost,
     RelatedChart,
 } from "@ourworldindata/utils"
 import React from "react"
@@ -30,7 +30,7 @@ const mockGrapher: GrapherInterface = {
 }
 
 let grapher: GrapherInterface
-let post: PostRowEnriched
+let post: DbEnrichedPost
 let relatedCharts: RelatedChart[]
 
 beforeAll(() => {

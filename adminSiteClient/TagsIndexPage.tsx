@@ -5,7 +5,7 @@ import * as lodash from "lodash"
 import { Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
 import { FieldsRow, Modal, TextField } from "./Forms.js"
-import { Tag, ChartTagJoin } from "@ourworldindata/utils"
+import { Tag, DbChartTagJoin } from "@ourworldindata/utils"
 import { TagBadge } from "./TagBadge.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
@@ -146,7 +146,7 @@ export class TagsIndexPage extends React.Component {
                             {parentCategories.map((parent) => (
                                 <TagBadge
                                     key={parent.id}
-                                    tag={parent as ChartTagJoin}
+                                    tag={parent as DbChartTagJoin}
                                 />
                             ))}
                             <button

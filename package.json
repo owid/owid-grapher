@@ -44,7 +44,8 @@
         "testCypress": "yarn cypress open --project devTools --config-file cypress/cypress.json",
         "testLint": "eslint .",
         "testPrettierAll": "yarn prettier --check \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml}\"",
-        "testJest": "lerna run buildTests && jest"
+        "testJest": "lerna run buildTests && jest",
+        "generateDbTypes": "npx @rmp135/sql-ts -c db/sql-ts/sql-ts-config.json"
     },
     "dependencies": {
         "@algolia/autocomplete-js": "^1.10.0",
@@ -156,7 +157,7 @@
         "js-yaml": "^4.1.0",
         "json8-pointer": "^1.0.6",
         "jsonwebtoken": "^9.0.0",
-        "knex": "^2.4.2",
+        "knex": "^3.1.0",
         "lerna": "^7.4.2",
         "lodash": "^4.17.20",
         "mathjax-full": "^3.1.0",
@@ -230,6 +231,7 @@
     },
     "devDependencies": {
         "@cloudflare/workers-types": "^4.20230821.0",
+        "@rmp135/sql-ts": "^1.18.1",
         "@stripe/stripe-js": "^1.54.0",
         "@testing-library/jest-dom": "^6.1.3",
         "@testing-library/react": "^12.1.5",

@@ -8,7 +8,7 @@ import {
     extractFormattingOptions,
     groupBy,
     keyBy,
-    PostRowEnriched,
+    DbEnrichedPost,
     sortBy,
     serializePostRow,
 } from "@ourworldindata/utils"
@@ -118,7 +118,7 @@ export const postLinkCompareStringGenerator = (item: PostLink): string =>
     `${item.linkType} - ${item.target} - ${item.hash} - ${item.queryString}`
 
 export function getLinksToAddAndRemoveForPost(
-    post: PostRowEnriched,
+    post: DbEnrichedPost,
     existingLinksForPost: PostLink[],
     content: string,
     postId: number
@@ -314,7 +314,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
                 post.created_at === zeroDateString ? null : post.created_at,
             formattingOptions: formattingOptions,
         }
-    }) as PostRowEnriched[]
+    }) as DbEnrichedPost[]
     const postLinks = await PostLink.find()
     const postLinksById = groupBy(postLinks, (link: PostLink) => link.sourceId)
 

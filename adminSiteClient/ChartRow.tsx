@@ -11,19 +11,19 @@ import {
     BAKED_GRAPHER_URL,
 } from "../settings/clientSettings.js"
 import { ChartListItem, showChartType } from "./ChartList.js"
-import { TaggableType, ChartTagJoin } from "@ourworldindata/utils"
+import { TaggableType, DbChartTagJoin } from "@ourworldindata/utils"
 
 @observer
 export class ChartRow extends React.Component<{
     chart: ChartListItem
     searchHighlight?: (text: string) => string | JSX.Element
-    availableTags: ChartTagJoin[]
+    availableTags: DbChartTagJoin[]
     onDelete: (chart: ChartListItem) => void
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    async saveTags(tags: ChartTagJoin[]) {
+    async saveTags(tags: DbChartTagJoin[]) {
         const { chart } = this.props
         const json = await this.context.admin.requestJSON(
             `/api/charts/${chart.id}/setTags`,
@@ -35,7 +35,7 @@ export class ChartRow extends React.Component<{
         }
     }
 
-    @action.bound onSaveTags(tags: ChartTagJoin[]) {
+    @action.bound onSaveTags(tags: DbChartTagJoin[]) {
         this.saveTags(tags)
     }
 

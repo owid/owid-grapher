@@ -2,6 +2,8 @@ export type Integer = number
 
 export type OwidVariableId = Integer // remove.
 
+export type JsonString = string
+
 /**
  * Pageview information about a single URL
  */

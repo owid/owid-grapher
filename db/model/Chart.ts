@@ -17,7 +17,7 @@ import {
     KeyChartLevel,
     MultipleOwidVariableDataDimensionsMap,
     Tag,
-    ChartTagJoin,
+    DbChartTagJoin,
 } from "@ourworldindata/utils"
 import { GrapherInterface, ChartTypeName } from "@ourworldindata/types"
 import { OpenAI } from "openai"
@@ -116,7 +116,10 @@ WHERE c.config -> "$.isPublished" = true
         return await Chart.findOneBy({ id })
     }
 
-    static async setTags(chartId: number, tags: ChartTagJoin[]): Promise<void> {
+    static async setTags(
+        chartId: number,
+        tags: DbChartTagJoin[]
+    ): Promise<void> {
         await db.transaction(async (t) => {
             const tagRows = tags.map((tag) => [
                 tag.id,

@@ -37,8 +37,8 @@ import {
     OwidGdocPostInterface,
     parseIntOrUndefined,
     parseToOperation,
-    PostRowEnriched,
-    PostRowWithGdocPublishStatus,
+    DbEnrichedPost,
+    DbRawPostWithGdocPublishStatus,
     SuggestedChartRevisionStatus,
     variableAnnotationAllowedColumnNamesAndTypes,
     VariableAnnotationsResponseRow,
@@ -47,10 +47,14 @@ import {
     OwidChartDimensionInterface,
     DimensionProperty,
     TaggableType,
-    ChartTagJoin,
+    DbChartTagJoin,
     OwidGdoc,
 } from "@ourworldindata/utils"
-import { GrapherInterface, grapherKeysToSerialize } from "@ourworldindata/types"
+import {
+    GrapherInterface,
+    OwidGdocLinkType,
+    grapherKeysToSerialize,
+} from "@ourworldindata/types"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
@@ -221,7 +225,7 @@ const getReferencesByChartId = async (chartId: number): Promise<References> => {
     const permalinksPromise = wpdb.getPermalinks()
     const publishedLinksToChartPromise = Link.getPublishedLinksTo(
         slugs,
-        "grapher"
+        OwidGdocLinkType.Grapher
     )
     const explorerSlugsPromise = db.queryMysql(
         `select distinct explorerSlug from explorer_charts where chartId = ?`,
@@ -2346,7 +2350,7 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
         .knexTable(postsTable)
         .where({ id: postId })
         .select("*")
-        .first()) as PostRowEnriched | undefined
+        .first()) as DbEnrichedPost | undefined
     return camelCaseProperties({ ...post })
 })
 
@@ -2357,7 +2361,7 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
         .knexTable("posts_with_gdoc_publish_status")
         .where({ id: postId })
         .select("*")
-        .first()) as PostRowWithGdocPublishStatus | undefined
+        .first()) as DbRawPostWithGdocPublishStatus | undefined
 
     if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
     const existingGdocId = post.gdocSuccessorId
@@ -2419,7 +2423,7 @@ apiRouter.post("/posts/:postId/unlinkGdoc", async (req: Request) => {
         .knexTable("posts_with_gdoc_publish_status")
         .where({ id: postId })
         .select("*")
-        .first()) as PostRowWithGdocPublishStatus | undefined
+        .first()) as DbRawPostWithGdocPublishStatus | undefined
 
     if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
     const existingGdocId = post.gdocSuccessorId
@@ -2657,7 +2661,7 @@ apiRouter.post(
 
 apiRouter.get(
     `/gpt/suggest-topics/${TaggableType.Charts}/:chartId.json`,
-    async (req: Request): Promise<Record<"topics", ChartTagJoin[]>> => {
+    async (req: Request): Promise<Record<"topics", DbChartTagJoin[]>> => {
         const chartId = parseIntOrUndefined(req.params.chartId)
         if (!chartId) throw new JsonError(`Invalid chart ID`, 400)
 
