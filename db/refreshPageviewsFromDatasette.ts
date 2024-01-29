@@ -37,7 +37,7 @@ async function downloadAndInsertCSV(): Promise<void> {
     // TODO: this instance should be handed down as a parameter
     const knex = db.knexInstance()
 
-    knex.transaction(async (trx) => {
+    await knex.transaction(async (trx) => {
         await db.knexRaw("TRUNCATE TABLE analytics_pageviews", trx)
 
         await trx.batchInsert("analytics_pageviews", onlyValidRows)
