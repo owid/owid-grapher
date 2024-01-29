@@ -13,7 +13,7 @@ import {
     OwidVariableId,
     retryPromise,
     GrapherInterface,
-    VariablesRowRaw,
+    DbRawVariable,
     VariablesTableName,
     ChartsTableName,
 } from "@ourworldindata/utils"
@@ -24,19 +24,21 @@ import {
 import pl from "nodejs-polars"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
 import { escape } from "mysql"
+import { Knex } from "knex/types"
+import { knexRaw, knexRawFirst } from "../db.js"
 
 export async function getMergedGrapherConfigForVariable(
-    variableId: number
+    variableId: number,
+    knex: Knex<any, any[]>
 ): Promise<GrapherInterface | undefined> {
     const rows: Pick<
-        VariablesRowRaw,
+        DbRawVariable,
         "grapherConfigAdmin" | "grapherConfigETL"
-    >[] = await db
-        .knexInstance()
-        .raw(
-            `SELECT grapherConfigAdmin, grapherConfigETL FROM variables WHERE id = ?`,
-            [variableId]
-        )
+    >[] = await knexRaw(
+        `SELECT grapherConfigAdmin, grapherConfigETL FROM variables WHERE id = ?`,
+        knex,
+        [variableId]
+    )
     if (!rows.length) return
     const row = rows[0]
     const grapherConfigAdmin = row.grapherConfigAdmin
@@ -89,11 +91,12 @@ export async function getDataForMultipleVariables(
 
 export async function writeVariableCSV(
     variableIds: number[],
-    stream: Writable
+    stream: Writable,
+    knex: Knex<any, any[]>
 ): Promise<void> {
     // get variables as dataframe
     const variablesDF = (
-        await db.knexInstance().raw(
+        await knex.raw(
             `-- sql
         SELECT
             id as variableId,
@@ -114,7 +117,8 @@ export async function writeVariableCSV(
 
     // get data values as dataframe
     const dataValuesDF = await dataAsDF(
-        variablesDF.getColumn("variableId").toArray()
+        variablesDF.getColumn("variableId").toArray(),
+        knex
     )
 
     dataValuesDF
@@ -130,26 +134,26 @@ export async function writeVariableCSV(
         .writeCSV(stream)
 }
 
-export const getDataValue = async ({
-    variableId,
-    entityId,
-    year,
-}: DataValueQueryArgs): Promise<DataValueResult | undefined> => {
+export const getDataValue = async (
+    { variableId, entityId, year }: DataValueQueryArgs,
+    knex: Knex<any, any[]>
+): Promise<DataValueResult | undefined> => {
     if (!variableId || !entityId) return
 
-    let df = (await dataAsDF([variableId])).filter(
+    let df = (await dataAsDF([variableId], knex)).filter(
         pl.col("entityId").eq(entityId)
     )
 
     const unit = (
-        await db.knexInstance().raw(
+        await knexRawFirst<Pick<DbRawVariable, "unit">>(
             `-- sql
         SELECT unit FROM ??
         WHERE id = ?
         `,
+            knex,
             [VariablesTableName, variableId]
         )
-    ).unit
+    )?.unit
 
     if (year) {
         df = df.filter(pl.col("year").eq(year))
@@ -176,17 +180,19 @@ export const getDataValue = async ({
 
 export const getOwidChartDimensionConfigForVariable = async (
     variableId: OwidVariableId,
-    chartId: number
+    chartId: number,
+    knex: Knex<any, any[]>
 ): Promise<OwidChartDimensionInterface | undefined> => {
-    const row = await db.knexInstance().raw(
+    const row = await db.knexRawFirst<{ dimensions: string }>(
         `
         SELECT config->"$.dimensions" AS dimensions
         FROM ??
         WHERE id = ?
         `,
+        knex,
         [ChartsTableName, chartId]
     )
-    if (!row.dimensions) return
+    if (!row?.dimensions) return
     const dimensions = JSON.parse(row.dimensions)
     return dimensions.find(
         (dimension: OwidChartDimensionInterface) =>
@@ -195,18 +201,21 @@ export const getOwidChartDimensionConfigForVariable = async (
 }
 
 export const getOwidVariableDisplayConfig = async (
-    variableId: OwidVariableId
+    variableId: OwidVariableId,
+    knex: Knex<any, any[]>
 ): Promise<OwidVariableDisplayConfigInterface | undefined> => {
-    const row = await db.mysqlFirst(
+    const row = await knexRawFirst<Pick<DbRawVariable, "display">>(
         `SELECT display FROM variables WHERE id = ?`,
+        knex,
         [variableId]
     )
-    if (!row.display) return
+    if (!row?.display) return
     return JSON.parse(row.display)
 }
 
 export const entitiesAsDF = async (
-    entityIds: number[]
+    entityIds: number[],
+    knex: Knex<any, any[]>
 ): Promise<pl.DataFrame> => {
     return (
         await readSQLasDF(
@@ -217,7 +226,8 @@ export const entitiesAsDF = async (
             code AS entityCode
         FROM entities WHERE id in (?)
         `,
-            [_.uniq(entityIds)]
+            [_.uniq(entityIds)],
+            knex
         )
     ).select(
         pl.col("entityId").cast(pl.Int32),
@@ -251,7 +261,8 @@ const emptyDataDF = (): pl.DataFrame => {
 }
 
 export const _dataAsDFfromS3 = async (
-    variableIds: OwidVariableId[]
+    variableIds: OwidVariableId[],
+    knex: Knex<any, any[]>
 ): Promise<pl.DataFrame> => {
     if (variableIds.length === 0) {
         return emptyDataDF()
@@ -288,15 +299,19 @@ export const _dataAsDFfromS3 = async (
         return emptyDataDF()
     }
 
-    const entityDF = await entitiesAsDF(df.getColumn("entityId").toArray())
+    const entityDF = await entitiesAsDF(
+        df.getColumn("entityId").toArray(),
+        knex
+    )
 
     return _castDataDF(df.join(entityDF, { on: "entityId" }))
 }
 
 export const dataAsDF = async (
-    variableIds: OwidVariableId[]
+    variableIds: OwidVariableId[],
+    knex: Knex<any, any[]>
 ): Promise<pl.DataFrame> => {
-    return _dataAsDFfromS3(variableIds)
+    return _dataAsDFfromS3(variableIds, knex)
 }
 
 export const fetchS3Values = async (
@@ -365,9 +380,10 @@ export const createDataFrame = (data: unknown): pl.DataFrame => {
 
 export const readSQLasDF = async (
     sql: string,
-    params: any[]
+    params: any[],
+    knex: Knex<any, any[]>
 ): Promise<pl.DataFrame> => {
-    return createDataFrame(await db.queryMysql(sql, params))
+    return createDataFrame(await knexRaw(sql, knex, params))
 }
 
 /**
@@ -375,7 +391,8 @@ export const readSQLasDF = async (
  */
 export const searchVariables = async (
     query: string,
-    limit: number
+    limit: number,
+    knex: Knex<any, any>
 ): Promise<VariablesSearchResult> => {
     const whereClauses = buildWhereClauses(query)
 
@@ -405,9 +422,9 @@ export const searchVariables = async (
         ORDER BY d.dataEditedAt DESC
         LIMIT ${escape(limit)}
     `
-    const rows = await queryRegexSafe(sqlResults)
+    const rows = await queryRegexSafe(sqlResults, knex)
 
-    const numTotalRows = await queryRegexCount(sqlCount)
+    const numTotalRows = await queryRegexCount(sqlCount, knex)
 
     rows.forEach((row: any) => {
         if (row.catalogPath) {
@@ -527,21 +544,24 @@ const buildWhereClauses = (query: string): string[] => {
  * This is useful if the regex is user-supplied and we want them to be able
  * to construct it incrementally.
  */
-const queryRegexSafe = async (query: string): Promise<any> => {
+const queryRegexSafe = async (
+    query: string,
+    knex: Knex<any, any>
+): Promise<any> => {
     // catch regular expression failures in MySQL and return empty result
-    return await db
-        .knexInstance()
-        .raw(query)
-        .catch((err) => {
-            if (err.message.includes("regular expression")) {
-                return []
-            }
-            throw err
-        })
+    return await knexRaw(query, knex).catch((err) => {
+        if (err.message.includes("regular expression")) {
+            return []
+        }
+        throw err
+    })
 }
 
-const queryRegexCount = async (query: string): Promise<number> => {
-    const results = await queryRegexSafe(query)
+const queryRegexCount = async (
+    query: string,
+    knex: Knex<any, any>
+): Promise<number> => {
+    const results = await queryRegexSafe(query, knex)
     if (!results.length) {
         return 0
     }

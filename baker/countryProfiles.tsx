@@ -3,8 +3,8 @@ import * as db from "../db/db.js"
 import { CountriesIndexPage } from "../site/CountriesIndexPage.js"
 import {
     GrapherInterface,
-    VariablesRowEnriched,
-    VariablesRowRaw,
+    DbEnrichedVariable,
+    DbRawVariable,
     VariablesTableName,
     parseVariablesRow,
 } from "@ourworldindata/types"
@@ -53,13 +53,13 @@ const countryIndicatorGraphers = async (): Promise<GrapherInterface[]> =>
     })
 
 export const countryIndicatorVariables = async (): Promise<
-    VariablesRowEnriched[]
+    DbEnrichedVariable[]
 > =>
     bakeCache(countryIndicatorVariables, async () => {
         const variableIds = (await countryIndicatorGraphers()).map(
             (c) => c.dimensions![0]!.variableId
         )
-        const rows: VariablesRowRaw[] = await db
+        const rows: DbRawVariable[] = await db
             .knexTable(VariablesTableName)
             .whereIn("id", variableIds)
         return rows.map(parseVariablesRow)
@@ -96,7 +96,7 @@ export const denormalizeLatestCountryData = async (variableIds?: number[]) => {
 
     const currentYear = new Date().getUTCFullYear()
 
-    const df = (await dataAsDF(variableIds))
+    const df = (await dataAsDF(variableIds, db.knexInstance()))
         .filter(
             pl
                 .col("entityId")

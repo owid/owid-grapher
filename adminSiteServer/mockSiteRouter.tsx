@@ -53,6 +53,7 @@ import {
 } from "../baker/GrapherBaker.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
+import * as db from "../db/db.js"
 
 require("express-async-errors")
 
@@ -160,6 +161,7 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
     res.send(
         await renderPreviewDataPageOrGrapherPage(
             entity.config,
+            db.knexInstance(),
             publishedExplorersBySlug
         )
     )
@@ -227,19 +229,28 @@ mockSiteRouter.get("/datapage-preview/:id", async (req, res) => {
         await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
     res.send(
-        await renderDataPageV2({
-            variableId,
-            variableMetadata,
-            isPreviewing: true,
-            useIndicatorGrapherConfigs: true,
-            publishedExplorersBySlug,
-        })
+        await renderDataPageV2(
+            {
+                variableId,
+                variableMetadata,
+                isPreviewing: true,
+                useIndicatorGrapherConfigs: true,
+                publishedExplorersBySlug,
+            },
+            db.knexInstance()
+        )
     )
 })
 
 countryProfileSpecs.forEach((spec) =>
     mockSiteRouter.get(`/${spec.rootPath}/:countrySlug`, async (req, res) =>
-        res.send(await countryProfileCountryPage(spec, req.params.countrySlug))
+        res.send(
+            await countryProfileCountryPage(
+                spec,
+                req.params.countrySlug,
+                db.knexInstance()
+            )
+        )
     )
 )
 
@@ -345,7 +356,7 @@ mockSiteRouter.get("/*", async (req, res) => {
     }
 
     try {
-        res.send(await renderPageBySlug(slug))
+        res.send(await renderPageBySlug(slug, db.knexInstance()))
     } catch (e) {
         console.error(e)
         res.status(404).send(await renderNotFoundPage())

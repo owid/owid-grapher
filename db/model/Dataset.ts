@@ -14,14 +14,16 @@ import { Source } from "./Source.js"
 
 import * as db from "../db.js"
 import {
-    TagsRow,
-    VariablesRowRaw,
+    DbPlainTag,
+    DbRawVariable,
     VariablesTableName,
     slugify,
 } from "@ourworldindata/utils"
 import filenamify from "filenamify"
 import { writeVariableCSV } from "./Variable.js"
 import _ from "lodash"
+import { Knex } from "knex"
+import { knexRaw } from "../db.js"
 
 @Entity("datasets")
 @Unique(["name", "namespace"])
@@ -43,20 +45,25 @@ export class Dataset extends BaseEntity {
     createdByUser!: Relation<User>
 
     // Export dataset variables to CSV (not including metadata)
-    static async writeCSV(datasetId: number, stream: Writable): Promise<void> {
+    static async writeCSV(
+        datasetId: number,
+        stream: Writable,
+        knex: Knex<any, any[]>
+    ): Promise<void> {
         // get variables of a dataset
         const variableIds = (
-            await db.queryMysql(
+            await knexRaw(
                 `
             SELECT
                 id as variableId
             FROM variables v
             WHERE datasetId=?`,
+                knex,
                 [datasetId]
             )
         ).map((row: any) => row.variableId)
 
-        await writeVariableCSV(variableIds, stream)
+        await writeVariableCSV(variableIds, stream, knex)
     }
 
     static async setTags(datasetId: number, tagIds: number[]): Promise<void> {
@@ -73,12 +80,16 @@ export class Dataset extends BaseEntity {
         })
     }
 
-    async toCSV(): Promise<string> {
+    async toCSV(knex: Knex<any, any[]>): Promise<string> {
         let csv = ""
-        await Dataset.writeCSV(this.id, {
-            write: (s: string) => (csv += s),
-            end: () => null,
-        } as any)
+        await Dataset.writeCSV(
+            this.id,
+            {
+                write: (s: string) => (csv += s),
+                end: () => null,
+            } as any,
+            knex
+        )
         return csv
     }
 
@@ -96,13 +107,12 @@ export class Dataset extends BaseEntity {
         const sources = await Source.findBy({ datasetId: this.id })
         const variables = (await db
             .knexTable(VariablesTableName)
-            .where({ datasetId: this.id })) as VariablesRowRaw[]
-        const tags: Pick<TagsRow, "id" | "name">[] = await db
-            .knexInstance()
-            .raw(
-                `SELECT t.id, t.name FROM dataset_tags dt JOIN tags t ON t.id=dt.tagId WHERE dt.datasetId=?`,
-                [this.id]
-            )
+            .where({ datasetId: this.id })) as DbRawVariable[]
+        const tags: Pick<DbPlainTag, "id" | "name">[] = await knexRaw(
+            `SELECT t.id, t.name FROM dataset_tags dt JOIN tags t ON t.id=dt.tagId WHERE dt.datasetId=?`,
+            db.knexInstance(), // TODO: pass down the knex instance instead of using the global one
+            [this.id]
+        )
 
         const initialFields = [
             { name: "Entity", type: "string" },

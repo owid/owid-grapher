@@ -84,6 +84,7 @@ import {
 import pMap from "p-map"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { fullGdocToMinimalGdoc } from "../db/model/Gdoc/gdocUtils.js"
+import { Knex } from "knex"
 
 type PrefetchedAttachments = {
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
@@ -194,7 +195,7 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked embeds" })
     }
 
-    private async bakeCountryProfiles() {
+    private async bakeCountryProfiles(knex: Knex<any, any[]>) {
         if (!this.bakeSteps.has("countryProfiles")) return
         await Promise.all(
             countryProfileSpecs.map(async (spec) => {
@@ -207,6 +208,7 @@ export class SiteBaker {
                     const html = await renderCountryProfile(
                         spec,
                         country,
+                        knex,
                         this.grapherExports
                     ).catch(() =>
                         console.error(
@@ -240,8 +242,13 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
-    private async bakePost(post: FullPost) {
-        const html = await renderPost(post, this.baseUrl, this.grapherExports)
+    private async bakePost(post: FullPost, knex: Knex<any, any[]>) {
+        const html = await renderPost(
+            post,
+            knex,
+            this.baseUrl,
+            this.grapherExports
+        )
 
         const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
         await fs.mkdirp(path.dirname(outPath))
@@ -409,7 +416,7 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ removed deleted posts" })
     }
 
-    private async bakePosts() {
+    private async bakePosts(knex: Knex<any, any[]>) {
         if (!this.bakeSteps.has("wordpressPosts")) return
         // TODO: the knex instance should be handed down as a parameter
         const alreadyPublishedViaGdocsSlugsSet =
@@ -423,7 +430,9 @@ export class SiteBaker {
         await pMap(
             postsApi,
             async (postApi) =>
-                wpdb.getFullPost(postApi).then((post) => this.bakePost(post)),
+                wpdb
+                    .getFullPost(postApi)
+                    .then((post) => this.bakePost(post, knex)),
             { concurrency: 10 }
         )
 
@@ -824,26 +833,27 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked redirects" })
     }
 
-    async bakeWordpressPages() {
+    async bakeWordpressPages(knex: Knex<any, any[]>) {
         await this.bakeRedirects()
         await this.bakeEmbeds()
         await this.bakeBlogIndex()
         await this.bakeRSS()
         await this.bakeAssets()
         await this.bakeGoogleScholar()
-        await this.bakePosts()
+        await this.bakePosts(knex)
     }
 
-    private async _bakeNonWordpressPages() {
+    private async _bakeNonWordpressPages(knex: Knex<any, any[]>) {
         if (this.bakeSteps.has("countries")) {
             await bakeCountries(this)
         }
         await this.bakeSpecialPages()
-        await this.bakeCountryProfiles()
+        await this.bakeCountryProfiles(knex)
         await this.bakeExplorers()
         if (this.bakeSteps.has("charts")) {
             await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
-                this.bakedSiteDir
+                this.bakedSiteDir,
+                knex
             )
             this.progressBar.tick({
                 name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
@@ -856,7 +866,7 @@ export class SiteBaker {
         await this.bakeDriveImages()
     }
 
-    async bakeNonWordpressPages() {
+    async bakeNonWordpressPages(knex: Knex<any, any[]>) {
         await db.getConnection()
         const progressBarTotal = nonWordpressSteps
             .map((step) => this.bakeSteps.has(step))
@@ -867,15 +877,15 @@ export class SiteBaker {
                 total: progressBarTotal,
             }
         )
-        await this._bakeNonWordpressPages()
+        await this._bakeNonWordpressPages(knex)
     }
 
-    async bakeAll() {
+    async bakeAll(knex: Knex<any, any[]>) {
         // Ensure caches are correctly initialized
         this.flushCache()
         await this.removeDeletedPosts()
-        await this.bakeWordpressPages()
-        await this._bakeNonWordpressPages()
+        await this.bakeWordpressPages(knex)
+        await this._bakeNonWordpressPages(knex)
         this.flushCache()
     }
 

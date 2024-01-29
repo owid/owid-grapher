@@ -11,8 +11,8 @@ import { Dataset } from "./Dataset.js"
 import { ChartRevision } from "./ChartRevision.js"
 import { BCryptHasher } from "../hashers.js"
 import {
-    UsersRow,
-    UsersRowForInsert,
+    DbPlainUser,
+    DbInsertUser,
     UsersTableName,
 } from "@ourworldindata/types"
 import { Knex } from "knex"
@@ -56,13 +56,13 @@ export async function setPassword(
 export async function getUserById(
     knex: Knex<any, any[]>,
     id: number
-): Promise<UsersRow | undefined> {
-    return knex<UsersRow>(UsersTableName).where({ id }).first()
+): Promise<DbPlainUser | undefined> {
+    return knex<DbPlainUser>(UsersTableName).where({ id }).first()
 }
 
 export async function insertUser(
     knex: Knex<any, any[]>,
-    user: UsersRowForInsert
+    user: DbInsertUser
 ): Promise<{ id: number }> {
     return knex(UsersTableName).returning("id").insert(user)
 }
@@ -70,7 +70,7 @@ export async function insertUser(
 export async function updateUser(
     knex: Knex<any, any[]>,
     id: number,
-    user: Partial<UsersRowForInsert>
+    user: Partial<DbInsertUser>
 ): Promise<void> {
     return knex(UsersTableName).where({ id }).update(user)
 }

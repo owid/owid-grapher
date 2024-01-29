@@ -92,6 +92,7 @@ import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 import { SiteNavigationStatic } from "../site/SiteNavigation.js"
+import { Knex } from "knex"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
@@ -193,14 +194,20 @@ export const renderGdoc = (gdoc: OwidGdoc, isPreviewing: boolean = false) => {
     )
 }
 
-export const renderPageBySlug = async (slug: string) => {
+export const renderPageBySlug = async (
+    slug: string,
+    knex: Knex<any, any[]>
+) => {
     const post = await getPostBySlug(slug)
-    return renderPost(post)
+    return renderPost(post, knex)
 }
 
-export const renderPreview = async (postId: number): Promise<string> => {
+export const renderPreview = async (
+    postId: number,
+    knex: Knex<any, any[]>
+): Promise<string> => {
     const postApi = await getLatestPostRevision(postId)
-    return renderPost(postApi)
+    return renderPost(postApi, knex)
 }
 
 export const renderMenuJson = async () => {
@@ -209,6 +216,7 @@ export const renderMenuJson = async () => {
 
 export const renderPost = async (
     post: FullPost,
+    knex: Knex<any, any[]>,
     baseUrl: string = BAKED_BASE_URL,
     grapherExports?: GrapherExports
 ) => {
@@ -229,7 +237,12 @@ export const renderPost = async (
     // Extract formatting options from post HTML comment (if any)
     const formattingOptions = extractFormattingOptions(post.content)
 
-    const formatted = await formatPost(post, formattingOptions, grapherExports)
+    const formatted = await formatPost(
+        post,
+        formattingOptions,
+        knex,
+        grapherExports
+    )
 
     const pageOverrides = await getPageOverrides(post, formattingOptions)
     const citationStatus =
@@ -482,6 +495,7 @@ export const feedbackPage = () =>
 const getCountryProfilePost = memoize(
     async (
         profileSpec: CountryProfileSpec,
+        knex: Knex<any, any[]>,
         grapherExports?: GrapherExports
     ): Promise<[FormattedPost, FormattingOptions]> => {
         // Get formatted content from generic covid country profile page.
@@ -495,6 +509,7 @@ const getCountryProfilePost = memoize(
         const formattedPost = await formatPost(
             genericCountryProfilePost,
             profileFormattingOptions,
+            knex,
             grapherExports
         )
 
@@ -512,10 +527,12 @@ const getCountryProfileLandingPost = memoize(
 export const renderCountryProfile = async (
     profileSpec: CountryProfileSpec,
     country: Country,
+    knex: Knex<any, any[]>,
     grapherExports?: GrapherExports
 ) => {
     const [formatted, formattingOptions] = await getCountryProfilePost(
         profileSpec,
+        knex,
         grapherExports
     )
 
@@ -546,13 +563,14 @@ export const renderCountryProfile = async (
 
 export const countryProfileCountryPage = async (
     profileSpec: CountryProfileSpec,
-    countrySlug: string
+    countrySlug: string,
+    knex: Knex<any, any[]>
 ) => {
     const country = getCountryBySlug(countrySlug)
     if (!country) throw new JsonError(`No such country ${countrySlug}`, 404)
 
     // Voluntarily not dealing with grapherExports on devServer for simplicity
-    return renderCountryProfile(profileSpec, country)
+    return renderCountryProfile(profileSpec, country, knex)
 }
 
 export const flushCache = () => getCountryProfilePost.cache.clear?.()

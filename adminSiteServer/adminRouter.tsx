@@ -148,7 +148,7 @@ adminRouter.get("/datasets/:datasetId.csv", async (req, res) => {
             callback(null)
         },
     })
-    await Dataset.writeCSV(datasetId, writeStream)
+    await Dataset.writeCSV(datasetId, writeStream, db.knexInstance())
     res.end()
 })
 
@@ -167,13 +167,13 @@ adminRouter.get("/datasets/:datasetId/downloadZip", async (req, res) => {
 adminRouter.get("/posts/preview/:postId", async (req, res) => {
     const postId = expectInt(req.params.postId)
 
-    res.send(await renderPreview(postId))
+    res.send(await renderPreview(postId, db.knexInstance()))
 })
 
 adminRouter.get("/posts/compare/:postId", async (req, res) => {
     const postId = expectInt(req.params.postId)
 
-    const wpPage = await renderPreview(postId)
+    const wpPage = await renderPreview(postId, db.knexInstance())
     const archieMlText = await Post.select(
         "archieml",
         "archieml_update_statistics"
@@ -279,13 +279,16 @@ adminRouter.get("/datapage-preview/:id", async (req, res) => {
         await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
     res.send(
-        await renderDataPageV2({
-            variableId,
-            variableMetadata,
-            isPreviewing: true,
-            useIndicatorGrapherConfigs: true,
-            publishedExplorersBySlug,
-        })
+        await renderDataPageV2(
+            {
+                variableId,
+                variableMetadata,
+                isPreviewing: true,
+                useIndicatorGrapherConfigs: true,
+                publishedExplorersBySlug,
+            },
+            db.knexInstance()
+        )
     )
 })
 
@@ -300,6 +303,7 @@ adminRouter.get("/grapher/:slug", async (req, res) => {
     res.send(
         await renderPreviewDataPageOrGrapherPage(
             entity.config,
+            db.knexInstance(),
             publishedExplorersBySlug
         )
     )

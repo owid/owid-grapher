@@ -5,6 +5,7 @@ import { hideBin } from "yargs/helpers"
 import { BakeStep, BakeStepConfig, bakeSteps, SiteBaker } from "./SiteBaker.js"
 import fs from "fs-extra"
 import { normalize } from "path"
+import * as db from "../db/db.js"
 
 const bakeDomainToFolder = async (
     baseUrl = "http://localhost:3000/",
@@ -15,7 +16,7 @@ const bakeDomainToFolder = async (
     fs.mkdirp(dir)
     const baker = new SiteBaker(dir, baseUrl, bakeSteps)
     console.log(`Baking site locally with baseUrl '${baseUrl}' to dir '${dir}'`)
-    await baker.bakeAll()
+    await baker.bakeAll(db.knexInstance())
 }
 
 yargs(hideBin(process.argv))

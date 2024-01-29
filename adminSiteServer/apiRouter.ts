@@ -54,7 +54,7 @@ import {
 import {
     GrapherInterface,
     OwidGdocLinkType,
-    UsersRow,
+    DbPlainUser,
     UsersTableName,
     grapherKeysToSerialize,
 } from "@ourworldindata/types"
@@ -1415,20 +1415,20 @@ apiRouter.post(
 )
 
 apiRouter.get("/users.json", async (req: Request, res: Response) => ({
-    users: db
+    users: await db
         .knexInstance()
         .select(
-            "id" satisfies keyof UsersRow,
-            "email" satisfies keyof UsersRow,
-            "fullName" satisfies keyof UsersRow,
-            "isActive" satisfies keyof UsersRow,
-            "isSuperuser" satisfies keyof UsersRow,
-            "createdAt" satisfies keyof UsersRow,
-            "updatedAt" satisfies keyof UsersRow,
-            "lastLogin" satisfies keyof UsersRow,
-            "lastSeen" satisfies keyof UsersRow
+            "id" satisfies keyof DbPlainUser,
+            "email" satisfies keyof DbPlainUser,
+            "fullName" satisfies keyof DbPlainUser,
+            "isActive" satisfies keyof DbPlainUser,
+            "isSuperuser" satisfies keyof DbPlainUser,
+            "createdAt" satisfies keyof DbPlainUser,
+            "updatedAt" satisfies keyof DbPlainUser,
+            "lastLogin" satisfies keyof DbPlainUser,
+            "lastSeen" satisfies keyof DbPlainUser
         )
-        .from<UsersRow>(UsersTableName)
+        .from<DbPlainUser>(UsersTableName)
         .orderBy("lastSeen", "desc"),
 }))
 
@@ -1455,23 +1455,18 @@ apiRouter.put("/users/:userId", async (req: Request, res: Response) => {
     if (!res.locals.user.isSuperuser)
         throw new JsonError("Permission denied", 403)
 
-    const userId = parseIntOrUndefined(req.params.userId)
-    const user =
-        userId !== undefined
-            ? await getUserById(db.knexInstance(), userId)
-            : null
-    if (!user) throw new JsonError("No such user", 404)
+    return db.knexInstance().transaction(async (t) => {
+        const userId = parseIntOrUndefined(req.params.userId)
+        const user = userId !== undefined ? await getUserById(t, userId) : null
+        if (!user) throw new JsonError("No such user", 404)
 
-    user.fullName = req.body.fullName
-    user.isActive = req.body.isActive
+        user.fullName = req.body.fullName
+        user.isActive = req.body.isActive
 
-    await updateUser(
-        db.knexInstance(),
-        userId!,
-        pick(user, ["fullName", "isActive"])
-    )
+        await updateUser(t, userId!, pick(user, ["fullName", "isActive"]))
 
-    return { success: true }
+        return { success: true }
+    })
 })
 
 apiRouter.post("/users/add", async (req: Request, res: Response) => {
@@ -1491,7 +1486,7 @@ apiRouter.post("/users/add", async (req: Request, res: Response) => {
 apiRouter.get("/variables.json", async (req) => {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
     const query = req.query.search as string
-    return await searchVariables(query, limit)
+    return await searchVariables(query, limit, db.knexInstance())
 })
 
 apiRouter.get(
@@ -1709,8 +1704,10 @@ apiRouter.get(
 
         await Chart.assignTagsForCharts(charts)
 
-        const grapherConfig =
-            await getMergedGrapherConfigForVariable(variableId)
+        const grapherConfig = await getMergedGrapherConfigForVariable(
+            variableId,
+            db.knexInstance()
+        )
         if (
             grapherConfig &&
             (!grapherConfig.dimensions || grapherConfig.dimensions.length === 0)

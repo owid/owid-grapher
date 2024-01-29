@@ -104,7 +104,7 @@ export async function syncDatasetToGitRepo(
     await Promise.all([
         fs.writeFile(
             path.join(tmpDatasetDir, `${dataset.filename}.csv`),
-            await dataset.toCSV()
+            await dataset.toCSV(db.knexInstance())
         ),
         fs.writeFile(
             path.join(tmpDatasetDir, `datapackage.json`),

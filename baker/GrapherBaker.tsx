@@ -63,10 +63,13 @@ import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 import { isEmpty } from "lodash"
 import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
+import { Knex } from "knex"
+import { knexRaw } from "../db/db.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
     isPreviewing: boolean,
+    knex: Knex<any, any[]>,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>,
     imageMetadataDictionary?: Record<string, Image>
 ) => {
@@ -102,15 +105,18 @@ const renderDatapageIfApplicable = async (
                 !isEmpty(variableMetadata.descriptionFromProducer) ||
                 !isEmpty(variableMetadata.presentation?.titlePublic))
         ) {
-            return await renderDataPageV2({
-                variableId,
-                variableMetadata,
-                isPreviewing: isPreviewing,
-                useIndicatorGrapherConfigs: false,
-                pageGrapher: grapher,
-                publishedExplorersBySlug,
-                imageMetadataDictionary,
-            })
+            return await renderDataPageV2(
+                {
+                    variableId,
+                    variableMetadata,
+                    isPreviewing: isPreviewing,
+                    useIndicatorGrapherConfigs: false,
+                    pageGrapher: grapher,
+                    publishedExplorersBySlug,
+                    imageMetadataDictionary,
+                },
+                knex
+            )
         }
     }
     return undefined
@@ -122,12 +128,14 @@ const renderDatapageIfApplicable = async (
  */
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
+    knex: Knex<any, any[]>,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>,
     imageMetadataDictionary?: Record<string, Image>
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(
         grapher,
         false,
+        knex,
         publishedExplorersBySlug,
         imageMetadataDictionary
     )
@@ -147,25 +155,30 @@ type EnrichedFaqLookupSuccess = {
 
 type EnrichedFaqLookupResult = EnrichedFaqLookupError | EnrichedFaqLookupSuccess
 
-export async function renderDataPageV2({
-    variableId,
-    variableMetadata,
-    isPreviewing,
-    useIndicatorGrapherConfigs,
-    pageGrapher,
-    publishedExplorersBySlug,
-    imageMetadataDictionary = {},
-}: {
-    variableId: number
-    variableMetadata: OwidVariableWithSource
-    isPreviewing: boolean
-    useIndicatorGrapherConfigs: boolean
-    pageGrapher?: GrapherInterface
-    publishedExplorersBySlug?: Record<string, ExplorerProgram>
-    imageMetadataDictionary?: Record<string, ImageMetadata>
-}) {
-    const grapherConfigForVariable =
-        await getMergedGrapherConfigForVariable(variableId)
+export async function renderDataPageV2(
+    {
+        variableId,
+        variableMetadata,
+        isPreviewing,
+        useIndicatorGrapherConfigs,
+        pageGrapher,
+        publishedExplorersBySlug,
+        imageMetadataDictionary = {},
+    }: {
+        variableId: number
+        variableMetadata: OwidVariableWithSource
+        isPreviewing: boolean
+        useIndicatorGrapherConfigs: boolean
+        pageGrapher?: GrapherInterface
+        publishedExplorersBySlug?: Record<string, ExplorerProgram>
+        imageMetadataDictionary?: Record<string, ImageMetadata>
+    },
+    knex: Knex<any, any[]>
+) {
+    const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
+        variableId,
+        knex
+    )
     // Only merge the grapher config on the indicator if the caller tells us to do so -
     // this is true for preview pages for datapages on the indicator level but false
     // if we are on Grapher pages. Once we have a good way in the grapher admin for how
@@ -345,11 +358,13 @@ export async function renderDataPageV2({
  */
 export const renderPreviewDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
+    knex: Knex<any, any[]>,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
 ) => {
     const datapage = await renderDatapageIfApplicable(
         grapher,
         true,
+        knex,
         publishedExplorersBySlug
     )
     if (datapage) return datapage
@@ -398,7 +413,8 @@ const chartIsSameVersion = async (
 const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     bakedSiteDir: string,
     imageMetadataDictionary: Record<string, Image>,
-    grapher: GrapherInterface
+    grapher: GrapherInterface,
+    knex: Knex<any, any[]>
 ) => {
     const htmlPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     const isSameVersion = await chartIsSameVersion(htmlPath, grapher.version)
@@ -415,7 +431,12 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     await fs.writeFile(
         outPath,
-        await renderDataPageOrGrapherPage(grapher, {}, imageMetadataDictionary)
+        await renderDataPageOrGrapherPage(
+            grapher,
+            knex,
+            {},
+            imageMetadataDictionary
+        )
     )
     console.log(outPath)
 
@@ -477,7 +498,8 @@ export interface BakeSingleGrapherChartArguments {
 }
 
 export const bakeSingleGrapherChart = async (
-    args: BakeSingleGrapherChartArguments
+    args: BakeSingleGrapherChartArguments,
+    knex: Knex<any, any[]>
 ) => {
     const grapher: GrapherInterface = JSON.parse(args.config)
     grapher.id = args.id
@@ -492,20 +514,24 @@ export const bakeSingleGrapherChart = async (
     await bakeGrapherPageAndVariablesPngAndSVGIfChanged(
         args.bakedSiteDir,
         args.imageMetadataDictionary,
-        grapher
+        grapher,
+        knex
     )
     return args
 }
 
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
-    async (bakedSiteDir: string) => {
+    async (bakedSiteDir: string, knex: Knex<any, any[]>) => {
         const chartsToBake: { id: number; config: string; slug: string }[] =
-            await db.queryMysql(`
+            await knexRaw(
+                `
                 SELECT
                     id, config, config->>'$.slug' as slug
                 FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
                 ORDER BY JSON_EXTRACT(config, "$.slug") ASC
-                `)
+                `,
+                knex
+            )
 
         const newSlugs = chartsToBake.map((row) => row.slug)
         await fs.mkdirp(bakedSiteDir + "/grapher")
@@ -538,7 +564,7 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         if (MAX_NUM_BAKE_PROCESSES === 1) {
             await Promise.all(
                 jobs.map(async (job) => {
-                    await bakeSingleGrapherChart(job)
+                    await bakeSingleGrapherChart(job, knex)
                     progressBar.tick({ name: `slug ${job.slug}` })
                 })
             )
