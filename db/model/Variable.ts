@@ -425,7 +425,16 @@ export const fetchS3DataValuesByPath = async (
             } ${await resp.text()}`
         )
     }
-    return resp.json()
+    try {
+        return await resp.json()
+    } catch (error: any) {
+        // Handle the case where the response is not valid JSON
+        throw new Error(
+            `Error parsing JSON from response for ${dataPath}: ${
+                error.message
+            }\nResponse Body: ${await resp.text()}`
+        )
+    }
 }
 
 export const fetchS3MetadataByPath = async (
