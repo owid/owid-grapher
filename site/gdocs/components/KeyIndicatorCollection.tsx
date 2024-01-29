@@ -7,8 +7,12 @@ import {
     EnrichedBlockKeyIndicatorCollection,
     EnrichedBlockKeyIndicator,
 } from "@ourworldindata/types"
-import { urlToSlug } from "@ourworldindata/utils"
-import { makeDateRange, makeSource } from "@ourworldindata/components"
+import {
+    capitalize,
+    joinTitleFragments,
+    urlToSlug,
+} from "@ourworldindata/utils"
+import { makeDateRange } from "@ourworldindata/components"
 
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 import KeyIndicator from "./KeyIndicator.js"
@@ -123,10 +127,12 @@ function KeyIndicatorHeader({
     if (!linkedChart) return null
     if (!linkedIndicator) return null
 
-    const source = makeSource({
-        attribution: linkedIndicator.attributionUnshortened,
-        hideProcessingLevel: true,
-    })
+    const source = capitalize(
+        joinTitleFragments(
+            linkedIndicator.attributionShort,
+            linkedIndicator.titleVariant
+        )
+    )
     const dateRange = makeDateRange({
         dateRange: linkedIndicator.dateRange,
     })
