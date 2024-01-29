@@ -1,5 +1,7 @@
 import React from "react"
 import cx from "classnames"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 
 import {
     EnrichedBlockKeyIndicator,
@@ -111,6 +113,7 @@ export default function KeyIndicator({
                 href={d.datapageUrl}
             >
                 Explore and learn more about this data
+                <FontAwesomeIcon icon={faArrowRight} />
             </a>
         </div>
     )
