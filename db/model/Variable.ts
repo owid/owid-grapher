@@ -425,7 +425,17 @@ export const fetchS3DataValuesByPath = async (
             } ${await resp.text()}`
         )
     }
-    return resp.json()
+    try {
+        return await resp.json()
+    } catch (error: any) {
+        throw new Error(
+            `Error parsing JSON from response for ${dataPath}: ${
+                error.message
+            }\nStatus Code: ${resp.status} ${
+                resp.statusText
+            }\nResponse Body: ${await resp.text()}`
+        )
+    }
 }
 
 export const fetchS3MetadataByPath = async (
@@ -446,7 +456,17 @@ export const fetchS3MetadataByPath = async (
             } ${resp.statusText} ${await resp.text()}`
         )
     }
-    return resp.json()
+    try {
+        return await resp.json()
+    } catch (error: any) {
+        throw new Error(
+            `Error parsing JSON from response for ${metadataPath}: ${
+                error.message
+            }\nStatus Code: ${resp.status} ${
+                resp.statusText
+            }\nResponse Body: ${await resp.text()}`
+        )
+    }
 }
 
 export const createDataFrame = (data: unknown): pl.DataFrame => {
