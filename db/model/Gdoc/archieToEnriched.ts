@@ -39,12 +39,14 @@ export function generateStickyNav(
     // We are using this for linear topic pages, as a way to have a document using the topic page template
     // but without a sticky nav
     if (content["sticky-nav"]) return content["sticky-nav"]
-    // These are the default headings that we'll try to find and create sticky nav headings for
-    // Even if the id for the heading is "key-insights-on-poverty", we can just do substring matches
-    const headingToIdMap = {
-        ["acknowledgements"]: "Acknowledgements",
-        ["country-profiles"]: "Country Profiles",
-        ["explore"]: "Data Explorer",
+
+    // RegEx strings to match heading IDs with their corresponding sticky nav item text
+    // e.g. if we find a heading with an ID of "explore-our-data-on-poverty", we want to add a sticky nav item with the text "Data Explorer"
+    const headingsByIdRegEx = {
+        ["^acknowledgements"]: "Acknowledgements",
+        ["^country-profiles"]: "Country Profiles",
+        // Assumes explorer headings are of the form "Explore data on [topic]" or "Explore our data on [topic]"
+        ["^explore(-our)?-data"]: "Data Explorer",
         [RESEARCH_AND_WRITING_ID]: "Research & Writing",
         [ALL_CHARTS_ID]: "Charts",
         [CITATION_ID]: "Cite This Work",
@@ -65,10 +67,10 @@ export function generateStickyNav(
             if (checkNodeIsSpan(node)) return node
             if (node.type === "heading") {
                 const headingId = convertHeadingTextToId(node.text)
-                for (const [substring, title] of Object.entries(
-                    headingToIdMap
+                for (const [regex, title] of Object.entries(
+                    headingsByIdRegEx
                 )) {
-                    if (headingId.includes(substring)) {
+                    if (new RegExp(regex).test(headingId)) {
                         stickyNavItems.push({
                             text: title,
                             target: `#${headingId}`,
@@ -78,19 +80,19 @@ export function generateStickyNav(
             }
             if (node.type === "key-insights") {
                 stickyNavItems.push({
-                    text: headingToIdMap[KEY_INSIGHTS_ID],
+                    text: headingsByIdRegEx[KEY_INSIGHTS_ID],
                     target: `#${KEY_INSIGHTS_ID}`,
                 })
             }
             if (node.type === "all-charts") {
                 stickyNavItems.push({
-                    text: headingToIdMap[ALL_CHARTS_ID],
+                    text: headingsByIdRegEx[ALL_CHARTS_ID],
                     target: `#${ALL_CHARTS_ID}`,
                 })
             }
             if (node.type === "research-and-writing") {
                 stickyNavItems.push({
-                    text: headingToIdMap[RESEARCH_AND_WRITING_ID],
+                    text: headingsByIdRegEx[RESEARCH_AND_WRITING_ID],
                     target: `#${RESEARCH_AND_WRITING_ID}`,
                 })
             }
