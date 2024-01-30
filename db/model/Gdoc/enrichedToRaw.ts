@@ -446,6 +446,7 @@ export function enrichedBlockToRawBlock(
                               value: spansToHtmlText(enriched.value),
                           }))
                         : undefined,
+                    source: b.source,
                 },
             }
         })

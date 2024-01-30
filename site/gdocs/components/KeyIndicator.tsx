@@ -33,12 +33,14 @@ export default function KeyIndicator({
     if (!linkedChart) return null
     if (!linkedIndicator) return null
 
-    const source = capitalize(
-        joinTitleFragments(
-            linkedIndicator.attributionShort,
-            linkedIndicator.titleVariant
+    const source =
+        d.source ||
+        capitalize(
+            joinTitleFragments(
+                linkedIndicator.attributionShort,
+                linkedIndicator.titleVariant
+            )
         )
-    )
     const dateRange = makeDateRange({
         dateRange: linkedIndicator.dateRange,
     })

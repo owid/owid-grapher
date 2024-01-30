@@ -1933,6 +1933,7 @@ const parseKeyIndicator = (
         datapageUrl: url,
         blurb: parsedBlurb.length > 0 ? parsedBlurb : undefined,
         title: val.title,
+        source: val.source,
         parseErrors: parsedBlurbErrors,
     }) as EnrichedBlockKeyIndicator
 }

@@ -628,6 +628,7 @@ function* rawBlockKeyIndicatorToArchieMLString(
     if (typeof block.value !== "string") {
         yield* propertyToArchieMLString("datapageUrl", block.value)
         yield* propertyToArchieMLString("title", block.value)
+        yield* propertyToArchieMLString("source", block.value)
         if (block.value.blurb) {
             yield "[.+blurb]"
             for (const textBlock of block.value.blurb) {
