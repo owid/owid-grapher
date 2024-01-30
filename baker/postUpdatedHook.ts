@@ -79,20 +79,32 @@ const syncPostToGrapher = async (
             wp_posts p
         WHERE
             p.ID = ?
-            )
+            ),
+        -- CTE to get whether the post is listed on the homepage, latest, or newsletter
+        isListed_posts as (
+            select
+                post_id as id,
+                1 as isListed
+            from wp_postmeta
+            where meta_key = "owid_publication_context_meta_field"
+            and meta_value = 'a:3:{s:20:"immediate_newsletter";b:1;s:8:"homepage";b:1;s:6:"latest";b:1;}'
+            and post_id = ?
+        )
         -- finally here we select all the fields from posts_with_authors and
         -- then we join in the first_revision to get the created_at field
         select
             p.*,
             pwa.authors,
             fr.created_at as created_at,
-            regexp_replace((SELECT guid FROM wp_posts WHERE ID = fi.featured_image_id), '^https://owid.cloud/(app|wp-content)/', 'https://ourworldindata.org/wp-content/') AS featured_image
+            regexp_replace((SELECT guid FROM wp_posts WHERE ID = fi.featured_image_id), '^https://owid.cloud/(app|wp-content)/', 'https://ourworldindata.org/wp-content/') AS featured_image,
+            ilp.isListed
         from wp_posts p
         left join post_ids_with_authors pwa on pwa.id = p.id
         left join first_revision fr on fr.post_id = p.id
         left join post_featured_image fi on fi.ID = p.id
+        left join isListed_posts ilp on ilp.id = p.ID
         where p.id = ?`,
-        [postId, postId, postId, postId]
+        [postId, postId, postId, postId, postId]
     )
     const dereferenceReusableBlocksFn = await buildReusableBlocksResolver()
     const dereferenceTablePressFn = await buildTablePressResolver()
@@ -114,6 +126,7 @@ const syncPostToGrapher = async (
               slug: wpPost.post_name.replace(/__/g, "/"),
               type: wpPost.post_type,
               status: wpPost.post_status,
+              isListed: wpPost.isListed ?? false,
               content: wpPost.post_content,
               featured_image: wpPost.featured_image || "",
               published_at:
