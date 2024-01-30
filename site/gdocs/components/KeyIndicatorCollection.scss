@@ -39,6 +39,10 @@
         color: $blue-90;
     }
 
+    .key-indicator-header--content-visible .key-indicator-header__title {
+        color: $blue-60;
+    }
+
     .key-indicator-header__metadata {
         @include body-3-medium;
         color: #60758c;

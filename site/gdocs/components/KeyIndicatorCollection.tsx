@@ -63,8 +63,7 @@ export default function KeyIndicatorCollection({
                             header={
                                 <KeyIndicatorHeader
                                     block={block}
-                                    showMetadata={!isOpen}
-                                    showIcon={!isOpen}
+                                    isContentVisible={isOpen}
                                 />
                             }
                         >
@@ -116,7 +115,7 @@ function AccordionItem({
                             setTimeout(() => {
                                 if (!ref.current) return
                                 if (!isElementFullyVisible(ref.current)) {
-                                    ref.current?.scrollIntoView({
+                                    ref.current.scrollIntoView({
                                         behavior: "smooth",
                                     })
                                 }
@@ -149,12 +148,10 @@ function AccordionItem({
 
 function KeyIndicatorHeader({
     block,
-    showMetadata = true,
-    showIcon = false,
+    isContentVisible,
 }: {
     block: EnrichedBlockKeyIndicator
-    showMetadata?: boolean
-    showIcon?: boolean
+    isContentVisible?: boolean
 }) {
     const { linkedChart } = useLinkedChart(block.datapageUrl)
     const { linkedIndicator } = useLinkedIndicator(
@@ -175,7 +172,11 @@ function KeyIndicatorHeader({
     })
 
     return (
-        <div className="key-indicator-header grid grid-cols-12">
+        <div
+            className={cx("key-indicator-header grid grid-cols-12", {
+                "key-indicator-header--content-visible": isContentVisible,
+            })}
+        >
             <div className="key-indicator-header__title col-start-1 span-cols-4 span-sm-cols-11">
                 {linkedIndicator.title}
             </div>
@@ -185,7 +186,7 @@ function KeyIndicatorHeader({
                         "key-indicator-header__metadata",
                         "col-start-5 span-cols-8",
                         {
-                            visible: showMetadata,
+                            visible: !isContentVisible,
                         }
                     )}
                     style={{ opacity: 0 }}
@@ -195,7 +196,7 @@ function KeyIndicatorHeader({
                     {dateRange}
                 </div>
             )}
-            {showIcon && (
+            {!isContentVisible && (
                 <div className="key-indicator-header__icon col-start-12 span-cols-1">
                     <FontAwesomeIcon icon={faPlus} />
                 </div>
