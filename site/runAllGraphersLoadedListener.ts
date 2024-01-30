@@ -1,15 +1,17 @@
 import {
     GRAPHER_EMBEDDED_FIGURE_ATTR,
     GRAPHER_LOADED_EVENT_NAME,
-    ALL_GRAPHERS_LOADED_EVENT_NAME,
 } from "@ourworldindata/grapher"
 import {
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
     ExplorerContainerId,
 } from "../explorer/ExplorerConstants.js"
 
-// Counts the number of embeds in the page and dispatches an event when all of them are loaded
-// See Grapher.tsx for the mobx reaction that is dispatched when a grapher is loaded
+/**
+ * Counts the number of visible chart embeds in the page and sets a boolean on the window once all of them have loaded
+ * We set a boolean instead of dispatching a second event, because grapher pages can sometimes finish loading faster than others scripts can execute
+ * See Grapher.tsx for the mobx reaction that is dispatched when a grapher is loaded
+ */
 export function runAllGraphersLoadedListener() {
     const grapherEmbeds = [
         ...document.querySelectorAll(
@@ -33,22 +35,13 @@ export function runAllGraphersLoadedListener() {
     })
 
     if (grapherEmbeds.length === 0) {
-        // Putting this dispatch inside a timeout so external scripts have enough time to set up a listener.
-        // This isn't ideal, but it seems better than duplicating the grapher selection and filtering code any time
-        // we need to handle the case where there are no graphers on the page.
-        setTimeout(() => {
-            document.dispatchEvent(
-                new CustomEvent(ALL_GRAPHERS_LOADED_EVENT_NAME)
-            )
-        }, 2000)
+        window._OWID_HAVE_ALL_GRAPHERS_LOADED = true
     }
     let loadedEmbeds = 0
     document.addEventListener(GRAPHER_LOADED_EVENT_NAME, () => {
         loadedEmbeds++
         if (loadedEmbeds === grapherEmbeds.length) {
-            document.dispatchEvent(
-                new CustomEvent(ALL_GRAPHERS_LOADED_EVENT_NAME)
-            )
+            window._OWID_HAVE_ALL_GRAPHERS_LOADED = true
         }
     })
 }
