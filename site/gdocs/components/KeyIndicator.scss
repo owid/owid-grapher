@@ -40,7 +40,8 @@
         @include owid-link-90;
     }
 
-    .metadata {
+    .metadata,
+    .description {
         @include sm-only {
             display: none;
         }
