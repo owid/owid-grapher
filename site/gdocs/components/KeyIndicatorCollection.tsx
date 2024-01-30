@@ -17,6 +17,9 @@ import { makeDateRange } from "@ourworldindata/components"
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 import KeyIndicator from "./KeyIndicator.js"
 
+// keep in sync with $duration in KeyIndicatorCollection.scss
+const HEIGHT_ANIMATION_DURATION_IN_SECONDS = 0.4
+
 export default function KeyIndicatorCollection({
     d,
     className,
@@ -80,10 +83,11 @@ function AccordionItem({
     header: React.ReactNode
     children: React.ReactNode
 }) {
-    const { ref, height } = useHeight()
+    const ref = useRef<HTMLDivElement>(null)
+    const { ref: contentRef, height } = useHeight()
 
     return (
-        <div className="accordion-item">
+        <div ref={ref} className="accordion-item">
             <button
                 className="accordion-item__header"
                 onClick={() => {
@@ -91,6 +95,18 @@ function AccordionItem({
                         close()
                     } else {
                         open()
+
+                        // scroll accordion item into view
+                        // after the animation has finished
+                        // if it's not fully visible
+                        setTimeout(() => {
+                            if (!ref.current) return
+                            if (!isElementFullyVisible(ref.current)) {
+                                ref.current?.scrollIntoView({
+                                    behavior: "smooth",
+                                })
+                            }
+                        }, HEIGHT_ANIMATION_DURATION_IN_SECONDS * 1000)
                     }
                 }}
                 disabled={isOpen}
@@ -98,7 +114,7 @@ function AccordionItem({
                 {header}
             </button>
             <div
-                ref={ref}
+                ref={contentRef}
                 className="accordion-item__content"
                 style={{
                     height: isOpen ? `${height}px` : "0px",
@@ -191,4 +207,13 @@ const useHeight = () => {
     }, [])
 
     return { ref, height }
+}
+
+function isElementFullyVisible(element: HTMLElement): boolean {
+    const bbox = element.getBoundingClientRect()
+    const viewHeight = Math.max(
+        document.documentElement.clientHeight,
+        window.innerHeight
+    )
+    return bbox.top >= 0 && bbox.bottom <= viewHeight
 }
