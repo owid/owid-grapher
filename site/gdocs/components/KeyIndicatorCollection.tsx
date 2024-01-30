@@ -132,7 +132,6 @@ function AccordionItem({
             </h3>
             <div
                 id={contentId}
-                ref={contentRef}
                 className="accordion-item__content"
                 style={{
                     height: isOpen ? `${height}px` : "0px",
@@ -140,7 +139,7 @@ function AccordionItem({
                 role="region"
                 aria-labelledby={headerId}
             >
-                {children}
+                <div ref={contentRef}>{children}</div>
             </div>
         </div>
     )
