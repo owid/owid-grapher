@@ -22,6 +22,7 @@ import {
     _OWID_DATA_INSIGHTS_INDEX_PAGE_DATA,
     hydrateDataInsightsIndexPage,
 } from "./DataInsightsIndexPageContent.js"
+import { runAllGraphersLoadedListener } from "./runAllGraphersLoadedListener.js"
 
 export const runSiteFooterScripts = (
     args:
@@ -42,6 +43,7 @@ export const runSiteFooterScripts = (
     switch (context) {
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content(isPreviewing)
+            runAllGraphersLoadedListener()
             runLightbox()
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
             runSiteTools()
@@ -51,12 +53,14 @@ export const runSiteFooterScripts = (
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
+            runAllGraphersLoadedListener()
             runSiteTools()
             runCookiePreferencesManager()
             runDetailsOnDemand()
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
+            runAllGraphersLoadedListener()
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
             runFootnotes()
             runDetailsOnDemand()
@@ -87,6 +91,7 @@ export const runSiteFooterScripts = (
             hydrateStickyNav()
             MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
             MultiEmbedderSingleton.embedAll()
+            runAllGraphersLoadedListener()
             runLightbox()
             hydrateProminentLink(MultiEmbedderSingleton.selection)
             runFootnotes()
