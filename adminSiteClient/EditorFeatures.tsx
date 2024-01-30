@@ -26,7 +26,12 @@ export class EditorFeatures {
     }
 
     @computed get canCustomizeXAxisLabel() {
-        return true
+        return (
+            this.grapher.isLineChart ||
+            this.grapher.isScatter ||
+            this.grapher.isMarimekko ||
+            this.grapher.isStackedArea
+        )
     }
 
     @computed get canCustomizeYAxis() {
