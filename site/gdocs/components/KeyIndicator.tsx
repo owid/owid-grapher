@@ -50,7 +50,7 @@ export default function KeyIndicator({
         <div className={cx("key-indicator grid grid-cols-12", className)}>
             <div className="col-start-1 span-cols-4 span-sm-cols-12">
                 <div className="indicator-title">{linkedIndicator.title}</div>
-                {d.title && <h3 className="narrative-title">{d.title}</h3>}
+                {d.title && <h4 className="narrative-title">{d.title}</h4>}
                 {d.blurb && (
                     <div className="blurb">
                         {d.blurb.map(
