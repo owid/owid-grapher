@@ -1,5 +1,5 @@
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import {
@@ -52,7 +52,7 @@ export interface AbstractStackedChartProps {
 @observer
 export class AbstractStackedChart
     extends React.Component<AbstractStackedChartProps>
-    implements ChartInterface, FontSizeManager
+    implements ChartInterface, AxisManager
 {
     transformTable(table: OwidTable): OwidTable {
         table = table.filterByEntityNames(
@@ -146,6 +146,10 @@ export class AbstractStackedChart
 
     @computed get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
+    }
+
+    @computed get detailsOrderedByReference(): Set<string> {
+        return this.manager.detailsOrderedByReference ?? new Set()
     }
 
     protected get paddingForLegend(): number {

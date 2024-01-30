@@ -376,6 +376,10 @@ export class ScatterPlotChart
         )
     }
 
+    @computed get detailsOrderedByReference(): Set<string> {
+        return this.manager.detailsOrderedByReference ?? new Set()
+    }
+
     @computed get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
@@ -786,6 +790,7 @@ export class ScatterPlotChart
                             ? GRAPHER_AXIS_LINE_WIDTH_THICK
                             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
                     }
+                    dodMarker={manager.detailsMarkerInSvg}
                 />
                 {comparisonLines &&
                     comparisonLines.map((line, i) => (
@@ -1127,22 +1132,31 @@ export class ScatterPlotChart
         return this.domainDefault("y")
     }
 
+    @computed get currentVerticalAxisLabel(): string {
+        const { manager, yAxisConfig, yColumn } = this
+
+        let label = yAxisConfig.label || yColumn?.displayName || ""
+
+        if (manager.isRelativeMode && label && label.length > 1) {
+            label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
+                label
+            )}`
+        }
+
+        return label
+    }
+
     @computed private get verticalAxisPart(): VerticalAxis {
         const { manager, yDomainDefault, validValuesForAxisDomainY } = this
         const axisConfig = this.yAxisConfig
 
         const axis = axisConfig.toVerticalAxis()
         axis.formatColumn = this.yColumn
-        const label = axisConfig.label || this.yColumn?.displayName || ""
         axis.scaleType = this.yScaleType
+        axis.label = this.currentVerticalAxisLabel
 
         if (manager.isRelativeMode) {
             axis.domain = yDomainDefault // Overwrite author's min/max
-            if (label && label.length > 1) {
-                axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
-                    label
-                )}`
-            }
         } else {
             const isAnyValueOutsideUserDomain = validValuesForAxisDomainY.some(
                 (value) => value < axis.domain[0] || value > axis.domain[1]
@@ -1156,8 +1170,6 @@ export class ScatterPlotChart
             ) {
                 axis.updateDomainPreservingUserSettings(yDomainDefault)
             }
-
-            axis.label = label
         }
 
         return axis
@@ -1176,20 +1188,31 @@ export class ScatterPlotChart
         return xDimName
     }
 
+    @computed get currentHorizontalAxisLabel(): string {
+        const { manager, xAxisConfig, xAxisLabelBase } = this
+
+        let label = xAxisConfig.label || xAxisLabelBase
+        if (manager.isRelativeMode && label && label.length > 1) {
+            label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
+                label
+            )}`
+        }
+
+        return label
+    }
+
     @computed private get horizontalAxisPart(): HorizontalAxis {
-        const { xDomainDefault, manager, xAxisLabelBase } = this
+        const { xDomainDefault, manager } = this
         const { xAxisConfig, validValuesForAxisDomainX } = this
         const axis = xAxisConfig.toHorizontalAxis()
         axis.formatColumn = this.xColumn
         axis.scaleType = this.xScaleType
+
+        if (this.currentHorizontalAxisLabel)
+            axis.label = this.currentHorizontalAxisLabel
+
         if (manager.isRelativeMode) {
             axis.domain = xDomainDefault // Overwrite author's min/max
-            const label = xAxisConfig.label || xAxisLabelBase
-            if (label && label.length > 1) {
-                axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
-                    label
-                )}`
-            }
         } else {
             const isAnyValueOutsideUserDomain = validValuesForAxisDomainX.some(
                 (value) => value < axis.domain[0] || value > axis.domain[1]
@@ -1203,9 +1226,6 @@ export class ScatterPlotChart
             ) {
                 axis.updateDomainPreservingUserSettings(xDomainDefault)
             }
-
-            const label = xAxisConfig.label || xAxisLabelBase
-            if (label) axis.label = label
         }
         return axis
     }

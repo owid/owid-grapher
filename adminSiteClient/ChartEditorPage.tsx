@@ -19,6 +19,7 @@ import {
     set,
     groupBy,
     extractDetailsFromSyntax,
+    getIndexableKeys,
 } from "@ourworldindata/utils"
 import {
     Topic,
@@ -36,6 +37,8 @@ import {
     ChartEditorManager,
     Dataset,
     getFullReferencesCount,
+    DetailReferences,
+    FieldWithDetailReferences,
 } from "./ChartEditor.js"
 import { EditorBasicTab } from "./EditorBasicTab.js"
 import { EditorDataTab } from "./EditorDataTab.js"
@@ -256,10 +259,17 @@ export class ChartEditorPage
 
     // unvalidated terms extracted from the subtitle and note fields
     // these may point to non-existent details e.g. ["not_a_real_term", "pvotery"]
-    @computed get currentDetailReferences() {
+    @computed
+    get currentDetailReferences(): DetailReferences {
         return {
             subtitle: extractDetailsFromSyntax(this.grapher.currentSubtitle),
             note: extractDetailsFromSyntax(this.grapher.note),
+            axisLabelX: extractDetailsFromSyntax(
+                this.grapher.xAxisConfig.label ?? ""
+            ),
+            axisLabelY: extractDetailsFromSyntax(
+                this.grapher.yAxisConfig.label ?? ""
+            ),
         }
     }
 
@@ -278,12 +288,39 @@ export class ChartEditorPage
         return grapherConfigDetails
     }
 
-    @computed get invalidDetailReferences() {
-        const { subtitle, note } = this.currentDetailReferences
-        return {
-            subtitle: subtitle.filter((key) => !this.details[key]),
-            note: note.filter((key) => !this.details[key]),
-        }
+    @computed
+    get invalidDetailReferences(): ChartEditorManager["invalidDetailReferences"] {
+        const { currentDetailReferences } = this
+        const keys = getIndexableKeys(currentDetailReferences)
+
+        const invalidDetailReferences = Object.fromEntries(
+            keys.map((key: FieldWithDetailReferences) => [
+                key,
+                currentDetailReferences[key].filter(
+                    (term: string) => !this.details[term]
+                ),
+            ])
+        ) as DetailReferences
+
+        return invalidDetailReferences
+    }
+
+    @computed get errorMessages(): ChartEditorManager["errorMessages"] {
+        const { invalidDetailReferences } = this
+        const keys = getIndexableKeys(invalidDetailReferences)
+
+        const errorMessages: ChartEditorManager["errorMessages"] = {}
+
+        keys.forEach((key: FieldWithDetailReferences) => {
+            const references = invalidDetailReferences[key]
+            if (references.length) {
+                errorMessages[
+                    key
+                ] = `Invalid detail(s) specified: ${references.join(", ")}`
+            }
+        })
+
+        return errorMessages
     }
 
     @computed get admin(): Admin {

@@ -53,12 +53,15 @@ export interface Annotation {
     entityName?: string
     year?: number
 }
+
 export enum KeyChartLevel {
     None = 0, // not a key chart, will not show in the all charts block of the related topic page
     Bottom = 1, // chart will show at the bottom of the all charts block
     Middle = 2, // chart will show in the middle of the all charts block
     Top = 3, // chart will show at the top of the all charts block
 }
+
+export type DodMarker = "superscript" | "underline" | "none"
 
 export interface BasicChartInformation {
     title: string

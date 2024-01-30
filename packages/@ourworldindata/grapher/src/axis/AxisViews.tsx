@@ -13,7 +13,7 @@ import {
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
 import { GRAPHER_DARK_TEXT } from "../core/GrapherConstants"
-import { ScaleType } from "@ourworldindata/types"
+import { ScaleType, DodMarker } from "@ourworldindata/types"
 
 const dasharrayFromFontSize = (fontSize: number): string => {
     const dashLength = Math.round((fontSize / 16) * 3)
@@ -157,13 +157,20 @@ interface DualAxisViewProps {
     labelColor?: string
     tickColor?: string
     lineWidth?: number
+    dodMarker?: DodMarker
 }
 
 @observer
 export class DualAxisComponent extends React.Component<DualAxisViewProps> {
     render(): JSX.Element {
-        const { dualAxis, showTickMarks, labelColor, tickColor, lineWidth } =
-            this.props
+        const {
+            dualAxis,
+            showTickMarks,
+            labelColor,
+            tickColor,
+            lineWidth,
+            dodMarker,
+        } = this.props
         const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
 
         const verticalGridlines = verticalAxis.hideGridlines ? null : (
@@ -188,6 +195,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 verticalAxis={verticalAxis}
                 labelColor={labelColor}
                 tickColor={tickColor}
+                dodMarker={dodMarker}
             />
         )
 
@@ -200,6 +208,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 labelColor={labelColor}
                 tickColor={tickColor}
                 tickMarkWidth={lineWidth}
+                dodMarker={dodMarker}
             />
         )
 
@@ -220,21 +229,24 @@ export class VerticalAxisComponent extends React.Component<{
     verticalAxis: VerticalAxis
     labelColor?: string
     tickColor?: string
+    dodMarker?: DodMarker
 }> {
     render(): JSX.Element {
-        const { bounds, verticalAxis, labelColor, tickColor } = this.props
+        const { bounds, verticalAxis, labelColor, tickColor, dodMarker } =
+            this.props
         const { tickLabels, labelTextWrap } = verticalAxis
 
         return (
             <g className="VerticalAxis">
                 {labelTextWrap &&
-                    labelTextWrap.render(
+                    labelTextWrap.renderSVG(
                         -verticalAxis.rangeCenter - labelTextWrap.width / 2,
                         bounds.left,
                         {
                             transform: "rotate(-90)",
                             fill: labelColor || GRAPHER_DARK_TEXT,
-                        }
+                        },
+                        dodMarker
                     )}
                 {tickLabels.map((label, i) => {
                     const { y, xAlign, yAlign, formattedValue } = label
@@ -271,6 +283,7 @@ export class HorizontalAxisComponent extends React.Component<{
     labelColor?: string
     tickColor?: string
     tickMarkWidth?: number
+    dodMarker?: DodMarker
 }> {
     @computed get scaleType(): ScaleType {
         return this.props.axis.scaleType
@@ -297,6 +310,7 @@ export class HorizontalAxisComponent extends React.Component<{
             labelColor,
             tickColor,
             tickMarkWidth,
+            dodMarker,
         } = this.props
         const { tickLabels, labelTextWrap: label, labelOffset, orient } = axis
         const horizontalAxisLabelsOnTop = orient === Position.top
@@ -325,10 +339,11 @@ export class HorizontalAxisComponent extends React.Component<{
         return (
             <g className="HorizontalAxis">
                 {label &&
-                    label.render(
+                    label.renderSVG(
                         axis.rangeCenter - label.width / 2,
                         labelYPosition,
-                        { fill: labelColor || GRAPHER_DARK_TEXT }
+                        { fill: labelColor || GRAPHER_DARK_TEXT },
+                        dodMarker
                     )}
                 {tickMarks}
                 {tickLabels.map((label, i) => {

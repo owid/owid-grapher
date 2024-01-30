@@ -22,10 +22,10 @@ export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
     render() {
         const { editor } = this.props
         const { grapher } = editor
-        const hasDetailErrors = Boolean(
-            editor.manager.invalidDetailReferences.subtitle.length ||
-                editor.manager.invalidDetailReferences.note.length
-        )
+        const detailErrorsCount = Object.values(
+            editor.manager.invalidDetailReferences
+        ).reduce((acc, curr) => acc + curr.length, 0)
+        const hasDetailErrors = detailErrorsCount > 0
 
         const isSavingDisabled = grapher.hasFatalErrors || hasDetailErrors
 

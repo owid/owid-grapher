@@ -56,7 +56,7 @@ import {
 } from "./SlopeChartConstants"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 
 @observer
 export class SlopeChart
@@ -88,6 +88,10 @@ export class SlopeChart
 
     @computed.struct get bounds() {
         return this.props.bounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed get detailsOrderedByReference(): Set<string> {
+        return this.manager.detailsOrderedByReference ?? new Set()
     }
 
     @computed get fontSize() {
@@ -651,7 +655,7 @@ class Slope extends React.Component<SlopeProps> {
 @observer
 class LabelledSlopes
     extends React.Component<LabelledSlopesProps>
-    implements FontSizeManager
+    implements AxisManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 

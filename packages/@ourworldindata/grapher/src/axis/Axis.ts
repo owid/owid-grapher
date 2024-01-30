@@ -21,8 +21,8 @@ import {
     ValueRange,
     cloneDeep,
 } from "@ourworldindata/utils"
-import { AxisConfig } from "./AxisConfig"
-import { TextWrap } from "@ourworldindata/components"
+import { AxisConfig, AxisManager } from "./AxisConfig"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
 import { GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants.js"
 
@@ -61,6 +61,7 @@ const boundsFromLabelPlacement = (label: TickLabelPlacement): Bounds => {
 
 abstract class AbstractAxis {
     config: AxisConfig
+    axisManager?: AxisManager
 
     @observable.ref domain: ValueRange
     @observable formatColumn?: CoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
@@ -69,9 +70,10 @@ abstract class AbstractAxis {
     @observable private _scaleType?: ScaleType
     @observable private _label?: string
 
-    constructor(config: AxisConfig) {
+    constructor(config: AxisConfig, axisManager?: AxisManager) {
         this.config = config
         this.domain = [config.domain[0], config.domain[1]]
+        this.axisManager = axisManager
     }
 
     /**
@@ -426,14 +428,16 @@ abstract class AbstractAxis {
         return GRAPHER_FONT_SCALE_12 * this.fontSize
     }
 
-    @computed get labelTextWrap(): TextWrap | undefined {
+    @computed get labelTextWrap(): MarkdownTextWrap | undefined {
         const text = this.label
         return text
-            ? new TextWrap({
+            ? new MarkdownTextWrap({
                   maxWidth: this.labelWidth,
                   fontSize: this.labelFontSize,
                   text,
                   lineHeight: 1,
+                  detailsOrderedByReference:
+                      this.axisManager?.detailsOrderedByReference,
               })
             : undefined
     }
@@ -441,7 +445,7 @@ abstract class AbstractAxis {
 
 export class HorizontalAxis extends AbstractAxis {
     clone(): HorizontalAxis {
-        return new HorizontalAxis(this.config)._update(this)
+        return new HorizontalAxis(this.config, this.axisManager)._update(this)
     }
 
     @computed get orient(): Position {
@@ -558,7 +562,7 @@ export class HorizontalAxis extends AbstractAxis {
 
 export class VerticalAxis extends AbstractAxis {
     clone(): VerticalAxis {
-        return new VerticalAxis(this.config)._update(this)
+        return new VerticalAxis(this.config, this.axisManager)._update(this)
     }
 
     @computed get orient(): Position {

@@ -66,6 +66,7 @@ import {
     compact,
     getOriginAttributionFragments,
     sortBy,
+    excludeNull,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -100,6 +101,7 @@ import {
     ColorSchemeName,
     AxisConfigInterface,
     GrapherStaticFormat,
+    DodMarker,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -136,7 +138,7 @@ import {
     getSelectedEntityNamesParam,
     setSelectedEntityNamesParam,
 } from "./EntityUrlBuilder"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { FullScreen } from "../fullScreen/FullScreen"
@@ -322,7 +324,7 @@ export class Grapher
     implements
         TimelineManager,
         ChartManager,
-        FontSizeManager,
+        AxisManager,
         CaptionedChartManager,
         SourcesModalManager,
         DownloadModalManager,
@@ -1234,11 +1236,30 @@ export class Grapher
         return this.slug ?? slugify(this.displayTitle)
     }
 
+    @computed get currentVerticalAxisLabel(): string | undefined {
+        if (this.isReady && this.chartInstance.currentVerticalAxisLabel) {
+            return this.chartInstance.currentVerticalAxisLabel
+        }
+        return this.yAxisConfig.label
+    }
+
+    @computed get currentHorizontalAxisLabel(): string | undefined {
+        if (this.isReady && this.chartInstance.currentHorizontalAxisLabel) {
+            return this.chartInstance.currentHorizontalAxisLabel
+        }
+        return this.xAxisConfig.label
+    }
+
     @observable shouldIncludeDetailsInStaticExport = true
 
     // Used for superscript numbers in static exports
     @computed get detailsOrderedByReference(): Set<string> {
-        const textInOrderOfAppearance = this.currentSubtitle + this.note
+        const textInOrderOfAppearance = excludeNull([
+            this.currentSubtitle,
+            this.currentVerticalAxisLabel,
+            this.currentHorizontalAxisLabel,
+            this.note,
+        ]).join()
         const details = textInOrderOfAppearance.matchAll(
             new RegExp(detailOnDemandRegex, "g")
         )
@@ -1247,6 +1268,15 @@ export class Grapher
             uniqueDetails.add(detail)
         }
         return uniqueDetails
+    }
+
+    @computed get detailsMarkerInSvg(): DodMarker {
+        const { isStatic, shouldIncludeDetailsInStaticExport } = this
+        return !isStatic
+            ? "underline"
+            : shouldIncludeDetailsInStaticExport
+            ? "superscript"
+            : "none"
     }
 
     // Used for static exports. Defined at this level because they need to

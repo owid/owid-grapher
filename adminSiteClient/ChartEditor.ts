@@ -84,6 +84,14 @@ export class EditorDatabase {
     }
 }
 
+export type FieldWithDetailReferences =
+    | "subtitle"
+    | "note"
+    | "axisLabelX"
+    | "axisLabelY"
+
+export type DetailReferences = Record<FieldWithDetailReferences, string[]>
+
 export interface ChartEditorManager {
     admin: Admin
     grapher: Grapher
@@ -94,7 +102,8 @@ export interface ChartEditorManager {
     pageviews?: RawPageview
     allTopics: Topic[]
     details: DetailDictionary
-    invalidDetailReferences: Record<"subtitle" | "note", string[]>
+    invalidDetailReferences: DetailReferences
+    errorMessages: Partial<Record<FieldWithDetailReferences, string>>
 }
 
 interface VariableIdUsageRecord {

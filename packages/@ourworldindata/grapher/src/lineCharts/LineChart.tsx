@@ -58,7 +58,7 @@ import {
     BASE_FONT_SIZE,
 } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
     LinesProps,
@@ -266,7 +266,7 @@ export class LineChart
     implements
         ChartInterface,
         LineLegendManager,
-        FontSizeManager,
+        AxisManager,
         ColorScaleManager,
         HorizontalColorLegendManager
 {
@@ -690,6 +690,10 @@ export class LineChart
         return guid()
     }
 
+    @computed get detailsOrderedByReference(): Set<string> {
+        return this.manager.detailsOrderedByReference ?? new Set()
+    }
+
     @computed get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
@@ -792,6 +796,7 @@ export class LineChart
                             ? GRAPHER_AXIS_LINE_WIDTH_THICK
                             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
                     }
+                    dodMarker={manager.detailsMarkerInSvg}
                 />
                 <g clipPath={clipPath.id}>
                     {comparisonLines.map((line, index) => (

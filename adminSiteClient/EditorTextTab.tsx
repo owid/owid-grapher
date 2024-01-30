@@ -9,7 +9,7 @@ import {
     Grapher,
     getErrorMessageRelatedQuestionUrl,
 } from "@ourworldindata/grapher"
-import { getIndexableKeys, slugify } from "@ourworldindata/utils"
+import { slugify } from "@ourworldindata/utils"
 import { action, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
@@ -75,20 +75,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
     }
 
     @computed get errorMessages() {
-        const { invalidDetailReferences } = this.props.editor.manager
-        const keys = getIndexableKeys(invalidDetailReferences)
-
-        const errorMessages: Partial<Record<(typeof keys)[number], string>> = {}
-
-        keys.forEach((key) => {
-            const references = invalidDetailReferences[key]
-            if (references.length) {
-                errorMessages[
-                    key
-                ] = `Invalid detail(s) specified: ${references.join(", ")}`
-            }
-        })
-        return errorMessages
+        return this.props.editor.manager.errorMessages
     }
 
     @computed get showAnyAnnotationFieldInTitleToggle() {

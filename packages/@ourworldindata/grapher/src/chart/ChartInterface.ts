@@ -49,4 +49,7 @@ export interface ChartInterface {
      * Does not necessarily contain FacetStrategy.None -- there are situations where an unfaceted chart doesn't make sense.
      */
     availableFacetStrategies?: FacetStrategy[]
+
+    currentVerticalAxisLabel?: string
+    currentHorizontalAxisLabel?: string
 }

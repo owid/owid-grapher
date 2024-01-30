@@ -109,6 +109,7 @@ export {
     type SeriesName,
     type LegacyGrapherQueryParams,
     GrapherStaticFormat,
+    type DodMarker,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {

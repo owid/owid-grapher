@@ -12,7 +12,9 @@ import {
     FontFamily,
     dropWhile,
     dropRightWhile,
+    cloneDeep,
 } from "@ourworldindata/utils"
+import { DodMarker } from "@ourworldindata/types"
 import { TextWrap } from "../TextWrap/TextWrap.js"
 import fromMarkdown from "mdast-util-from-markdown"
 import type { Root, Content } from "mdast"
@@ -323,7 +325,7 @@ export class IRDetailOnDemand extends IRElement {
     }
     toSVG(key?: React.Key): JSX.Element {
         return (
-            <tspan key={key}>
+            <tspan key={key} className="dod-span" data-id={this.term}>
                 {this.children.map((child, i) => child.toSVG(i))}
             </tspan>
         )
@@ -436,7 +438,10 @@ export const isTextToken = (token: IRToken): token is IRText | IRWhitespace =>
  * information and is not easily reversible.
  * See also https://github.com/owid/owid-grapher/issues/1785
  */
-export const recursiveMergeTextTokens = (tokens: IRToken[]): IRToken[] => {
+export const recursiveMergeTextTokens = (
+    tokens: IRToken[],
+    fontParams?: IRFontParams
+): IRToken[] => {
     if (tokens.length === 0) return []
 
     // merge adjacent text tokens into one
@@ -448,7 +453,10 @@ export const recursiveMergeTextTokens = (tokens: IRToken[]): IRToken[] => {
                 acc.pop()
                 return [
                     ...acc,
-                    new IRText(l.toPlaintext() + token.toPlaintext()),
+                    new IRText(
+                        l.toPlaintext() + token.toPlaintext(),
+                        fontParams
+                    ),
                 ]
             }
         }
@@ -458,7 +466,9 @@ export const recursiveMergeTextTokens = (tokens: IRToken[]): IRToken[] => {
     // recursively enter non-text tokens, and merge their children
     return mergedTextTokens.map((token) => {
         if (token instanceof IRElement) {
-            return token.getClone(recursiveMergeTextTokens(token.children))
+            return token.getClone(
+                recursiveMergeTextTokens(token.children, fontParams)
+            )
         }
         return token
     })
@@ -564,48 +574,24 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     @computed get htmlLines(): IRToken[][] {
         const tokens = this.tokensFromMarkdown
         const lines = splitIntoLines(tokens, this.maxWidth)
-        return lines.map(recursiveMergeTextTokens)
+        return lines.map((line) =>
+            recursiveMergeTextTokens(line, this.fontParams)
+        )
     }
 
-    // We render DoDs differently for SVG (superscript reference  numbers) so we need to calculate
-    // their width differently. Height should remain the same.
     @computed get svgLines(): IRToken[][] {
-        const references = this.detailsOrderedByReference
-        function appendReferenceNumbers(tokens: IRToken[]): IRToken[] {
-            function traverse(
-                token: IRToken,
-                callback: (token: IRToken) => any
-            ): any {
-                if (token instanceof IRElement) {
-                    token.children.flatMap((child) => traverse(child, callback))
-                }
-                return callback(token)
-            }
-
-            const appendedTokens: IRToken[] = tokens.flatMap((token) =>
-                traverse(token, (token: IRToken) => {
-                    if (token instanceof IRDetailOnDemand) {
-                        const referenceIndex =
-                            [...references].findIndex(
-                                (term) => term === token.term
-                            ) + 1
-                        if (referenceIndex === 0) return token
-                        token.children.push(
-                            new IRSuperscript(
-                                String(referenceIndex),
-                                token.fontParams
-                            )
-                        )
-                    }
-                    return token
-                })
-            )
-
-            return appendedTokens
-        }
-
         const tokens = this.tokensFromMarkdown
-        const tokensWithReferenceNumbers = appendReferenceNumbers(tokens)
+        const lines = splitIntoLines(tokens, this.maxWidth)
+        return lines
+    }
+
+    @computed get svgLinesWithDodReferenceNumbers(): IRToken[][] {
+        const references = this.detailsOrderedByReference
+        const tokens = this.tokensFromMarkdown
+        const tokensWithReferenceNumbers = appendReferenceNumbers(
+            tokens,
+            references
+        )
         return splitIntoLines(tokensWithReferenceNumbers, this.maxWidth)
     }
 
@@ -654,10 +640,15 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     renderSVG(
         x: number,
         y: number,
-        options?: React.SVGProps<SVGTextElement>
+        options?: React.SVGProps<SVGTextElement>,
+        dodMarker: DodMarker = "superscript"
     ): JSX.Element | null {
-        const { svgLines, fontSize, lineHeight } = this
-        if (svgLines.length === 0) return null
+        const { fontSize, lineHeight } = this
+        const lines =
+            dodMarker === "superscript"
+                ? this.svgLinesWithDodReferenceNumbers
+                : this.svgLines
+        if (lines.length === 0) return null
 
         // Magic number set through experimentation.
         // The HTML and SVG renderers need to position lines identically.
@@ -669,23 +660,56 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         const containerHeight = lineHeight * fontSize
         const yOffset =
             y + (containerHeight - (containerHeight - textHeight) / 2)
+
+        const getLineY = (lineIndex: number) =>
+            yOffset + lineHeight * fontSize * lineIndex
+
         return (
-            <text
-                x={x.toFixed(1)}
-                y={yOffset.toFixed(1)}
-                style={this.style}
-                {...options}
-            >
-                {svgLines.map((line, i) => (
-                    <tspan
-                        key={i}
-                        x={x}
-                        y={(yOffset + lineHeight * fontSize * i).toFixed(1)}
-                    >
-                        {line.map((token, i) => token.toSVG(i))}
-                    </tspan>
-                ))}
-            </text>
+            <g className="markdown-text-wrap">
+                <text
+                    x={x.toFixed(1)}
+                    y={yOffset.toFixed(1)}
+                    style={this.style}
+                    {...options}
+                >
+                    {lines.map((line, lineIndex) => (
+                        <tspan
+                            key={lineIndex}
+                            x={x}
+                            y={getLineY(lineIndex).toFixed(1)}
+                        >
+                            {line.map((token, tokenIndex) =>
+                                token.toSVG(tokenIndex)
+                            )}
+                        </tspan>
+                    ))}
+                </text>
+                {/* SVG doesn't support dotted underlines, so we draw them manually */}
+                {dodMarker === "underline" &&
+                    lines.map((line, lineIndex) => {
+                        const y = (getLineY(lineIndex) + 2).toFixed(1)
+                        let currWidth = 0
+                        return line.map((token) => {
+                            const underline =
+                                token instanceof IRDetailOnDemand ? (
+                                    <line
+                                        className="dod-underline"
+                                        x1={x + currWidth}
+                                        y1={y}
+                                        x2={x + currWidth + token.width}
+                                        y2={y}
+                                        stroke="currentColor"
+                                        strokeWidth={1}
+                                        strokeDasharray={1}
+                                        // important for rotated text
+                                        transform={options?.transform}
+                                    />
+                                ) : null
+                            currWidth += token.width
+                            return underline
+                        })
+                    })}
+            </g>
         )
     }
 
@@ -1027,4 +1051,32 @@ function convertMarkdownNodeToIRTokens(
         )
         .exhaustive()
     return converted
+}
+
+function appendReferenceNumbers(
+    tokens: IRToken[],
+    references: Set<string>
+): IRToken[] {
+    function traverse(token: IRToken, callback: (token: IRToken) => any): any {
+        if (token instanceof IRElement) {
+            token.children.flatMap((child) => traverse(child, callback))
+        }
+        return callback(token)
+    }
+
+    const appendedTokens: IRToken[] = cloneDeep(tokens).flatMap((token) =>
+        traverse(token, (token: IRToken) => {
+            if (token instanceof IRDetailOnDemand) {
+                const referenceIndex =
+                    [...references].findIndex((term) => term === token.term) + 1
+                if (referenceIndex === 0) return token
+                token.children.push(
+                    new IRSuperscript(String(referenceIndex), token.fontParams)
+                )
+            }
+            return token
+        })
+    )
+
+    return appendedTokens
 }
