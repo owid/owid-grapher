@@ -12,6 +12,10 @@
         margin-top: 1px;
     }
 
+    .accordion-item h3 {
+        margin: 0;
+    }
+
     .accordion-item__header {
         width: 100%;
         text-align: left;
@@ -71,10 +75,6 @@
 
     button[disabled] {
         cursor: default;
-    }
-
-    h3 {
-        margin-top: 0;
     }
 
     // update <KeyIndicator /> styles

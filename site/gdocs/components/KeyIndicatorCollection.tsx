@@ -38,45 +38,54 @@ export default function KeyIndicatorCollection({
     return (
         <div className={cx("key-indicator-collection", className)}>
             {d.blocks.map(
-                (block: EnrichedBlockKeyIndicator, blockIndex: number) => (
-                    <AccordionItem
-                        key={block.datapageUrl}
-                        isOpen={isBlockOpen[blockIndex]}
-                        open={() => {
-                            // open block, close all others
-                            const updated = slugs.map(() => false)
-                            updated[blockIndex] = true
-                            setBlockOpen(updated)
-                        }}
-                        close={() => {
-                            // close block, leave others as they are
-                            const updated = [...isBlockOpen]
-                            updated[blockIndex] = false
-                            setBlockOpen(updated)
-                        }}
-                        header={
-                            <KeyIndicatorHeader
-                                block={block}
-                                showMetadata={!isBlockOpen[blockIndex]}
-                                showIcon={!isBlockOpen[blockIndex]}
-                            />
-                        }
-                    >
-                        <KeyIndicator d={block} />
-                    </AccordionItem>
-                )
+                (block: EnrichedBlockKeyIndicator, blockIndex: number) => {
+                    const isOpen = isBlockOpen[blockIndex]
+                    const slug = urlToSlug(block.datapageUrl)
+
+                    return (
+                        <AccordionItem
+                            // assumes a key indicator doesn't appear twice on a page
+                            id={`key-indicator-collection_${slug}`}
+                            key={block.datapageUrl}
+                            isOpen={isOpen}
+                            open={() => {
+                                // open block, close all others
+                                const updated = slugs.map(() => false)
+                                updated[blockIndex] = true
+                                setBlockOpen(updated)
+                            }}
+                            close={() => {
+                                // close block, leave others as they are
+                                const updated = [...isBlockOpen]
+                                updated[blockIndex] = false
+                                setBlockOpen(updated)
+                            }}
+                            header={
+                                <KeyIndicatorHeader
+                                    block={block}
+                                    showMetadata={!isOpen}
+                                    showIcon={!isOpen}
+                                />
+                            }
+                        >
+                            <KeyIndicator d={block} />
+                        </AccordionItem>
+                    )
+                }
             )}
         </div>
     )
 }
 
 function AccordionItem({
+    id,
     isOpen,
     open,
     close,
     header,
     children,
 }: {
+    id: string
     isOpen: boolean
     open: () => void
     close: () => void
@@ -86,39 +95,51 @@ function AccordionItem({
     const ref = useRef<HTMLDivElement>(null)
     const { ref: contentRef, height } = useHeight()
 
+    const headerId = `${id}_header`
+    const contentId = `${id}_content`
+
     return (
         <div ref={ref} className="accordion-item">
-            <button
-                className="accordion-item__header"
-                onClick={() => {
-                    if (isOpen) {
-                        close()
-                    } else {
-                        open()
+            <h3>
+                <button
+                    id={headerId}
+                    className="accordion-item__header"
+                    onClick={() => {
+                        if (isOpen) {
+                            close()
+                        } else {
+                            open()
 
-                        // scroll accordion item into view
-                        // after the animation has finished
-                        // if it's not fully visible
-                        setTimeout(() => {
-                            if (!ref.current) return
-                            if (!isElementFullyVisible(ref.current)) {
-                                ref.current?.scrollIntoView({
-                                    behavior: "smooth",
-                                })
-                            }
-                        }, HEIGHT_ANIMATION_DURATION_IN_SECONDS * 1000)
-                    }
-                }}
-                disabled={isOpen}
-            >
-                {header}
-            </button>
+                            // scroll accordion item into view
+                            // after the animation has finished
+                            // if it's not fully visible
+                            setTimeout(() => {
+                                if (!ref.current) return
+                                if (!isElementFullyVisible(ref.current)) {
+                                    ref.current?.scrollIntoView({
+                                        behavior: "smooth",
+                                    })
+                                }
+                            }, HEIGHT_ANIMATION_DURATION_IN_SECONDS * 1000)
+                        }
+                    }}
+                    disabled={isOpen}
+                    aria-disabled={isOpen}
+                    aria-expanded={isOpen}
+                    aria-controls={contentId}
+                >
+                    {header}
+                </button>
+            </h3>
             <div
+                id={contentId}
                 ref={contentRef}
                 className="accordion-item__content"
                 style={{
                     height: isOpen ? `${height}px` : "0px",
                 }}
+                role="region"
+                aria-labelledby={headerId}
             >
                 {children}
             </div>
