@@ -26,7 +26,7 @@ export function runAllGraphersLoadedListener() {
     ].filter((el) => {
         let parent = el.parentElement
         while (parent) {
-            if (parent.style.display === "none") return false
+            if (window.getComputedStyle(parent).display === "none") return false
             parent = parent.parentElement
         }
         return true
