@@ -98,7 +98,10 @@ function AccordionItem({
     const contentId = `${id}_content`
 
     return (
-        <div ref={ref} className="accordion-item">
+        <div
+            ref={ref}
+            className={cx("accordion-item", { "accordion-item--open": isOpen })}
+        >
             <h3>
                 <button
                     id={headerId}
@@ -183,7 +186,7 @@ function KeyIndicatorHeader({
                 <div
                     className={cx(
                         "key-indicator-header__metadata",
-                        "col-start-5 span-cols-8",
+                        "col-start-5 span-cols-7",
                         {
                             visible: !isContentVisible,
                         }

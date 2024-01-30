@@ -5,11 +5,27 @@
     margin: 0 -24px;
 
     .accordion-item {
-        background-color: $blue-10;
+        background-color: $white;
+
+        @include sm-only {
+            background-color: $blue-10;
+        }
     }
 
     .accordion-item + .accordion-item {
-        margin-top: 1px;
+        border-top: 1px solid $blue-10;
+
+        @include sm-only {
+            border-top-color: $white;
+        }
+    }
+
+    .accordion-item--open {
+        background-color: $blue-10;
+    }
+
+    :not(.accordion-item--open):hover {
+        background-color: $blue-10;
     }
 
     .accordion-item h3 {
@@ -29,6 +45,8 @@
     }
 
     .key-indicator-header {
+        align-items: center;
+
         @include sm-only {
             align-items: center;
         }
@@ -61,8 +79,14 @@
         text-align: right;
 
         @include sm-up {
-            display: none;
+            opacity: 0;
+            transition: opacity 0.2s;
         }
+    }
+
+    :not(.accordion-item--open):hover .key-indicator-header__icon {
+        opacity: 1;
+        transition: opacity 0s;
     }
 
     .key-indicator-header__metadata.visible {
