@@ -15,6 +15,7 @@ import {
 import { postsTable, select } from "./model/Post.js"
 import { PostLink } from "./model/PostLink.js"
 import { renderTablePress } from "../site/Tablepress.js"
+import pMap from "p-map"
 
 const zeroDateString = "0000-00-00 00:00:00"
 
@@ -327,39 +328,48 @@ const syncPostsToGrapher = async (): Promise<void> => {
         .filter((p) => !doesExistInWordpress[p.id])
         .map((p) => p.id)
 
-    const toInsert = rows.map((post: any) => {
-        const content = post.post_content as string
-        const formattingOptions = extractFormattingOptions(content)
-        const authors: string[] = sortBy(
-            JSON.parse(post.authors),
-            (item: { author: string; order: number }) => item.order
-        ).map((author: { author: string; order: number }) => author.author)
+    const toInsert = (await pMap(
+        rows,
+        async (post: any) => {
+            console.log("Processing post", post.ID, post.post_title)
+            const content = post.post_content as string
+            const formattingOptions = extractFormattingOptions(content)
+            const authors: string[] = sortBy(
+                JSON.parse(post.authors),
+                (item: { author: string; order: number }) => item.order
+            ).map((author: { author: string; order: number }) => author.author)
 
-        return {
-            id: post.ID,
-            title: post.post_title,
-            slug: post.post_name.replace(/__/g, "/"),
-            type: post.post_type,
-            status: post.post_status,
-            content: dereferenceTablePressFn(
-                dereferenceReusableBlocksFn(content)
-            ),
-            featured_image: post.featured_image || "",
-            published_at:
-                post.post_date_gmt === zeroDateString
-                    ? null
-                    : post.post_date_gmt,
-            updated_at_in_wordpress:
-                post.post_modified_gmt === zeroDateString
-                    ? "1970-01-01 00:00:00"
-                    : post.post_modified_gmt,
-            authors: authors,
-            excerpt: post.post_excerpt,
-            created_at_in_wordpress:
-                post.created_at === zeroDateString ? null : post.created_at,
-            formattingOptions: formattingOptions,
-        }
-    }) as DbEnrichedPost[]
+            return {
+                id: post.ID,
+                title: post.post_title,
+                slug: post.post_name.replace(/__/g, "/"),
+                type: post.post_type,
+                status: post.post_status,
+                content: dereferenceTablePressFn(
+                    dereferenceReusableBlocksFn(content)
+                ),
+                wpApiSnapshot:
+                    post.post_type === "wp_block"
+                        ? await wpdb.getBlockApi(post.ID)
+                        : await wpdb.getPostApiBySlug(post.post_name),
+                featured_image: post.featured_image || "",
+                published_at:
+                    post.post_date_gmt === zeroDateString
+                        ? null
+                        : post.post_date_gmt,
+                updated_at_in_wordpress:
+                    post.post_modified_gmt === zeroDateString
+                        ? "1970-01-01 00:00:00"
+                        : post.post_modified_gmt,
+                authors: authors,
+                excerpt: post.post_excerpt,
+                created_at_in_wordpress:
+                    post.created_at === zeroDateString ? null : post.created_at,
+                formattingOptions: formattingOptions,
+            }
+        },
+        { concurrency: 20 }
+    )) as DbEnrichedPost[]
     const postLinks = await PostLink.find()
     const postLinksById = groupBy(postLinks, (link: PostLink) => link.sourceId)
 
