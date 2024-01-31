@@ -66,7 +66,7 @@ import {
     compact,
     getOriginAttributionFragments,
     sortBy,
-    excludeNull,
+    excludeNullish,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -1254,11 +1254,11 @@ export class Grapher
 
     // Used for superscript numbers in static exports
     @computed get detailsOrderedByReference(): Set<string> {
-        const textInOrderOfAppearance = excludeNull([
-            this.currentSubtitle,
+        const textInOrderOfAppearance = excludeNullish([
+            !this.hideSubtitle ? this.currentSubtitle : null,
             this.currentVerticalAxisLabel,
             this.currentHorizontalAxisLabel,
-            this.note,
+            !this.hideNote ? this.note : null,
         ]).join()
         const details = textInOrderOfAppearance.matchAll(
             new RegExp(detailOnDemandRegex, "g")
