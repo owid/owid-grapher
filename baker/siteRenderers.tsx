@@ -63,9 +63,9 @@ import { formatPost } from "./formatWordpressPost.js"
 import {
     getBlogIndex,
     getLatestPostRevision,
-    getPostBySlug,
     isPostCitable,
     getBlockContent,
+    getPostBySlugFromSnapshot,
 } from "../db/wpdb.js"
 import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
@@ -194,7 +194,7 @@ export const renderGdoc = (gdoc: OwidGdoc, isPreviewing: boolean = false) => {
 }
 
 export const renderPageBySlug = async (slug: string) => {
-    const post = await getPostBySlug(slug)
+    const post = await getPostBySlugFromSnapshot(slug)
     return renderPost(post)
 }
 
@@ -485,7 +485,7 @@ const getCountryProfilePost = memoize(
         grapherExports?: GrapherExports
     ): Promise<[FormattedPost, FormattingOptions]> => {
         // Get formatted content from generic covid country profile page.
-        const genericCountryProfilePost = await getPostBySlug(
+        const genericCountryProfilePost = await getPostBySlugFromSnapshot(
             profileSpec.genericProfileSlug
         )
 
@@ -505,7 +505,7 @@ const getCountryProfilePost = memoize(
 // todo: we used to flush cache of this thing.
 const getCountryProfileLandingPost = memoize(
     async (profileSpec: CountryProfileSpec) => {
-        return getPostBySlug(profileSpec.landingPageSlug)
+        return getPostBySlugFromSnapshot(profileSpec.landingPageSlug)
     }
 )
 
@@ -564,7 +564,7 @@ const renderPostThumbnailBySlug = async (
 
     let post
     try {
-        post = await getPostBySlug(slug)
+        post = await getPostBySlugFromSnapshot(slug)
     } catch (err) {
         // if no post is found, then we return early instead of throwing
     }
@@ -604,7 +604,8 @@ export const renderProminentLinks = async (
                         ? (await Chart.getBySlug(resolvedUrl.slug))?.config
                               ?.title // optim?
                         : resolvedUrl.slug &&
-                          (await getPostBySlug(resolvedUrl.slug)).title)
+                          (await getPostBySlugFromSnapshot(resolvedUrl.slug))
+                              .title)
             } finally {
                 if (!title) {
                     logErrorAndMaybeSendToBugsnag(
