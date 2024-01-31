@@ -751,7 +751,9 @@ const getExplorerTitleByUrl = async (url: Url): Promise<string | undefined> => {
                 : undefined)
         )
     }
-    return explorer.explorerTitle
+    // Maintaining old behaviour so that we don't have to redesign WP prominent links
+    // since we're removing WP soon
+    return `${explorer.explorerTitle} Data Explorer`
 }
 
 /**

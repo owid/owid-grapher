@@ -115,6 +115,7 @@ export const ChartsIndexPage = (props: {
                                                 ({
                                                     title,
                                                     explorerTitle,
+                                                    explorerSubtitle,
                                                     slug,
                                                 }) => (
                                                     <li key={slug}>
@@ -124,6 +125,9 @@ export const ChartsIndexPage = (props: {
                                                             {explorerTitle ??
                                                                 title}
                                                         </a>
+                                                        <p className="charts-index-page__explorer-subtitle">
+                                                            {explorerSubtitle}
+                                                        </p>
                                                     </li>
                                                 )
                                             )}

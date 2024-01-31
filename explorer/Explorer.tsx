@@ -786,9 +786,8 @@ export class Explorer
     private renderHeaderElement() {
         return (
             <div className="ExplorerHeaderBox">
-                <div></div>
                 <div className="ExplorerTitle">
-                    {this.explorerProgram.explorerTitle}
+                    {this.explorerProgram.explorerTitle} Data Explorer
                 </div>
                 <div className="ExplorerSubtitle">
                     <MarkdownTextWrap
@@ -796,6 +795,16 @@ export class Explorer
                         text={this.explorerProgram.explorerSubtitle || ""}
                     />
                 </div>
+                {this.explorerProgram.downloadDataLink && (
+                    <a
+                        href={this.explorerProgram.downloadDataLink}
+                        target="_blank"
+                        rel="noopener"
+                        className="ExplorerDownloadLink"
+                    >
+                        Download this dataset
+                    </a>
+                )}
             </div>
         )
     }

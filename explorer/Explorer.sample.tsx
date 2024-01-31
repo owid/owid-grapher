@@ -4,7 +4,7 @@ import { GrapherTabOption } from "@ourworldindata/types"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { Explorer, ExplorerProps } from "./Explorer.js"
 
-const SampleExplorerOfGraphersProgram = `explorerTitle	CO₂ Data Explorer
+const SampleExplorerOfGraphersProgram = `explorerTitle	CO₂
 isPublished	false
 explorerSubtitle	Download the complete <i>Our World in Data</i> <a href="https://github.com/owid/co2-data">CO₂ and GHG Emissions Dataset</a>.
 subNavId	co2

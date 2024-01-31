@@ -1005,6 +1005,11 @@ html:not(.js) {
 .ChartsIndexPage #explorers-section {
     padding-bottom: $vertical-spacing;
     border-bottom: 1px solid $blue-20;
+    .charts-index-page__explorer-subtitle {
+        @include body-3-medium-italic;
+        margin-top: 0;
+        margin-bottom: 4px;
+    }
 }
 
 .NotFoundPage > main {

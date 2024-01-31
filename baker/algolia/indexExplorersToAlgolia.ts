@@ -158,9 +158,13 @@ const getExplorerRecords = async (): Promise<ExplorerRecord[]> => {
                     ? textChunks
                     : [""]
 
+                const formattedTitle = `${getNullishJSONValueAsPlaintext(
+                    title
+                )} Data Explorer`
+
                 return textChunksForIteration.map((chunk, i) => ({
                     slug,
-                    title: getNullishJSONValueAsPlaintext(title),
+                    title: formattedTitle,
                     subtitle: getNullishJSONValueAsPlaintext(subtitle),
                     views_7d: pageviews[`/explorers/${slug}`]?.views_7d ?? 0,
                     text: chunk,
