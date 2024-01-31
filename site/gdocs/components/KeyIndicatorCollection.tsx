@@ -112,12 +112,13 @@ function AccordionItem({
                         } else {
                             open()
 
-                            // scroll accordion item into view
-                            // after the animation has finished
-                            // if it's not fully visible
+                            // scroll accordion item into view if it's not visible after opening
                             setTimeout(() => {
                                 if (!ref.current) return
-                                if (!isElementFullyVisible(ref.current)) {
+                                if (
+                                    !isElementFullyVisible(ref.current) &&
+                                    !isElementAtTopOfViewport(ref.current)
+                                ) {
                                     ref.current.scrollIntoView({
                                         behavior: "smooth",
                                     })
@@ -240,4 +241,13 @@ function isElementFullyVisible(element: HTMLElement): boolean {
         window.innerHeight
     )
     return bbox.top >= 0 && bbox.bottom <= viewHeight
+}
+
+function isElementAtTopOfViewport(element: HTMLElement): boolean {
+    const bbox = element.getBoundingClientRect()
+    const viewHeight = Math.max(
+        document.documentElement.clientHeight,
+        window.innerHeight
+    )
+    return bbox.top >= 0 && bbox.top < 0.33 * viewHeight
 }
