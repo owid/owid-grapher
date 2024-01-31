@@ -6,7 +6,6 @@ import { observer } from "mobx-react"
 import { ChartIndexPage } from "./ChartIndexPage.js"
 import { UsersIndexPage } from "./UsersIndexPage.js"
 import { DatasetsIndexPage } from "./DatasetsIndexPage.js"
-import { CountryStandardizerPage } from "./CountryStandardizerPage.js"
 import { UserEditPage } from "./UserEditPage.js"
 import { VariableEditPage } from "./VariableEditPage.js"
 import { VariablesIndexPage } from "./VariablesIndexPage.js"
@@ -243,11 +242,6 @@ export class AdminApp extends React.Component<{
                                         )}
                                     />
                                 )}
-                            />
-                            <Route
-                                exact
-                                path="/standardize"
-                                component={CountryStandardizerPage}
                             />
                             <Route
                                 exact

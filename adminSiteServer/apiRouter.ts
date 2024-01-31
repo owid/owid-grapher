@@ -60,10 +60,6 @@ import {
     getVariableDataRoute,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
-import {
-    CountryNameFormat,
-    CountryDefByKey,
-} from "../adminSiteClient/CountryNameFormat.js"
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
@@ -576,74 +572,6 @@ apiRouter.get(
 apiRouter.get("/topics.json", async (req: Request, res: Response) => ({
     topics: await wpdb.getTopics(),
 }))
-
-apiRouter.get("/countries.json", async (req: Request, res: Response) => {
-    let rows = []
-
-    const input = req.query.input as string
-    const output = req.query.output as string
-
-    if (input === CountryNameFormat.NonStandardCountryName) {
-        const outputColumn = CountryDefByKey[output].column_name
-
-        rows = await db.queryMysql(`
-            SELECT country_name as input, ${outputColumn} as output
-            FROM country_name_tool_countryname ccn
-            LEFT JOIN country_name_tool_countrydata ccd on ccn.owid_country = ccd.id
-            LEFT JOIN country_name_tool_continent con on con.id = ccd.continent`)
-    } else {
-        const inputColumn = CountryDefByKey[input].column_name
-        const outputColumn = CountryDefByKey[output].column_name
-
-        rows = await db.queryMysql(
-            `SELECT ${inputColumn} as input, ${outputColumn} as output
-            FROM country_name_tool_countrydata ccd
-            LEFT JOIN country_name_tool_continent con on con.id = ccd.continent`
-        )
-    }
-
-    return {
-        countries: rows,
-    }
-})
-
-apiRouter.post("/countries", async (req: Request, res: Response) => {
-    const countries = req.body.countries
-
-    const mapOwidNameToId: any = {}
-    let owidRows = []
-
-    // find owid ID
-    const owidNames = Object.keys(countries).map((key) => countries[key])
-    owidRows = await db.queryMysql(
-        `SELECT id, owid_name
-        FROM country_name_tool_countrydata
-        WHERE owid_name in (?)
-        `,
-        [owidNames]
-    )
-    for (const row of owidRows) {
-        mapOwidNameToId[row.owid_name] = row.id
-    }
-
-    // insert one by one (ideally do a bulk insert)
-    for (const country of Object.keys(countries)) {
-        const owidName = countries[country]
-
-        console.log(
-            `adding ${country}, ${mapOwidNameToId[owidName]}, ${owidName}`
-        )
-
-        await db.execute(
-            `INSERT INTO country_name_tool_countryname (country_name, owid_country)
-            VALUES (?, ?)`,
-            [country, mapOwidNameToId[owidName]]
-        )
-    }
-
-    return { success: true }
-})
-
 apiRouter.get(
     "/editorData/variables.json",
     async (req: Request, res: Response) => {
