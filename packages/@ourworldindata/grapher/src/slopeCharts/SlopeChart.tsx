@@ -641,10 +641,13 @@ class Slope extends React.Component<SlopeProps> {
                     </Text>
                 )}
                 {hasRightLabel &&
-                    rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, {textProps: {
-                        fill: labelColor,
-                        fontWeight: isFocused || isHovered ? "bold" : undefined,
-                    }})}
+                    rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, {
+                        textProps: {
+                            fill: labelColor,
+                            fontWeight:
+                                isFocused || isHovered ? "bold" : undefined,
+                        },
+                    })}
             </g>
         )
     }
