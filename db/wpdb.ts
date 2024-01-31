@@ -48,6 +48,7 @@ import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 import { GdocPost } from "./model/Gdoc/GdocPost.js"
 import { Link } from "./model/Link.js"
 import { SiteNavigationStatic } from "../site/SiteNavigation.js"
+import { getPostEnrichedBySlug } from "./model/Post.js"
 
 let _knexInstance: Knex
 
@@ -446,7 +447,9 @@ export const getPostIdAndTypeBySlug = async (
     return { id: rows[0].ID, type: rows[0].post_type }
 }
 
-export const getPostApiBySlug = async (slug: string): Promise<PostRestApi> => {
+export const getPostApiBySlugFromApi = async (
+    slug: string
+): Promise<PostRestApi> => {
     if (!isWordpressAPIEnabled) {
         throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
     }
@@ -462,14 +465,26 @@ export const getPostApiBySlug = async (slug: string): Promise<PostRestApi> => {
 
 // We might want to cache this as the network of prominent links densifies and
 // multiple requests to the same posts are happening.
-export const getPostBySlug = async (slug: string): Promise<FullPost> => {
+export const DEPRECATEDgetPostBySlugFromApi = async (
+    slug: string
+): Promise<FullPost> => {
     if (!isWordpressAPIEnabled) {
         throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
     }
 
-    const postApi = await getPostApiBySlug(slug)
+    const postApi = await getPostApiBySlugFromApi(slug)
 
     return getFullPost(postApi)
+}
+
+export const getPostBySlugFromSnapshot = async (
+    slug: string
+): Promise<FullPost> => {
+    const postEnriched = await getPostEnrichedBySlug(slug)
+    if (!postEnriched?.wpApiSnapshot)
+        throw new JsonError(`No page snapshot found by slug ${slug}`, 404)
+
+    return getFullPost(postEnriched.wpApiSnapshot)
 }
 
 // the /revisions endpoint does not send back all the metadata required for
