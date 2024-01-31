@@ -142,7 +142,8 @@ export class VerticalColorLegend extends React.Component<{
 
         return (
             <>
-                {title && title.render(x, y, { fontWeight: 700 })}
+                {title &&
+                    title.render(x, y, { textProps: { fontWeight: 700 } })}
                 <g
                     className="ScatterColorLegend clickable"
                     style={{ cursor: "pointer" }}
@@ -191,7 +192,11 @@ export class VerticalColorLegend extends React.Component<{
                                     x + rectSize + rectPadding,
                                     y + markOffset,
                                     isFocus
-                                        ? { style: { fontWeight: "bold" } }
+                                        ? {
+                                              textProps: {
+                                                  style: { fontWeight: "bold" },
+                                              },
+                                          }
                                         : undefined
                                 )}
                             </g>

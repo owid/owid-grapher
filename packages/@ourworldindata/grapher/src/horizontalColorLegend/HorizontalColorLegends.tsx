@@ -626,7 +626,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                         height -
                         this.legendTitle.height +
                         this.legendTitleFontSize * 0.2,
-                    { fill: this.legendTextColor }
+                    { textProps: { fill: this.legendTextColor } }
                 )}
             </g>
         )

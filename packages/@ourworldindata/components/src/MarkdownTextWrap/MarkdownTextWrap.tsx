@@ -14,7 +14,7 @@ import {
     dropRightWhile,
     cloneDeep,
 } from "@ourworldindata/utils"
-import { DodMarker } from "@ourworldindata/types"
+import { DetailsMarker } from "@ourworldindata/types"
 import { TextWrap } from "../TextWrap/TextWrap.js"
 import fromMarkdown from "mdast-util-from-markdown"
 import type { Root, Content } from "mdast"
@@ -640,8 +640,13 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     renderSVG(
         x: number,
         y: number,
-        options?: React.SVGProps<SVGTextElement>,
-        dodMarker: DodMarker = "superscript"
+        {
+            textProps,
+            dodMarker = "superscript",
+        }: {
+            textProps?: React.SVGProps<SVGTextElement>
+            dodMarker?: DetailsMarker
+        } = {}
     ): JSX.Element | null {
         const { fontSize, lineHeight } = this
         const lines =
@@ -670,7 +675,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
                     x={x.toFixed(1)}
                     y={yOffset.toFixed(1)}
                     style={this.style}
-                    {...options}
+                    {...textProps}
                 >
                     {lines.map((line, lineIndex) => (
                         <tspan
@@ -702,7 +707,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
                                         strokeWidth={1}
                                         strokeDasharray={1}
                                         // important for rotated text
-                                        transform={options?.transform}
+                                        transform={textProps?.transform}
                                     />
                                 ) : null
                             currWidth += token.width

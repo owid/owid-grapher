@@ -1,5 +1,5 @@
 import { TooltipManager } from "../tooltip/TooltipProps"
-import { GrapherInterface } from "@ourworldindata/types"
+import { GrapherInterface, DetailsMarker } from "@ourworldindata/types"
 import { ActionButtonsManager } from "../controls/ActionButtons"
 
 export interface FooterManager extends TooltipManager, ActionButtonsManager {
@@ -23,4 +23,5 @@ export interface FooterManager extends TooltipManager, ActionButtonsManager {
     hideOriginUrl?: boolean
     secondaryColorInStaticCharts?: string
     isStaticAndSmall?: boolean
+    detailsMarkerInSvg?: DetailsMarker
 }

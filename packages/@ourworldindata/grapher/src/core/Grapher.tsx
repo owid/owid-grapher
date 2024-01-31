@@ -101,7 +101,7 @@ import {
     ColorSchemeName,
     AxisConfigInterface,
     GrapherStaticFormat,
-    DodMarker,
+    DetailsMarker,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -1270,7 +1270,7 @@ export class Grapher
         return uniqueDetails
     }
 
-    @computed get detailsMarkerInSvg(): DodMarker {
+    @computed get detailsMarkerInSvg(): DetailsMarker {
         const { isStatic, shouldIncludeDetailsInStaticExport } = this
         return !isStatic
             ? "underline"

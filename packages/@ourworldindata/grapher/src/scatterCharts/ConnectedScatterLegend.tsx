@@ -77,11 +77,13 @@ export class ConnectedScatterLegend {
                     fill="#fff"
                     opacity={0}
                 />
-                {startLabel.render(targetX, targetY, { fill: fontColor })}
+                {startLabel.render(targetX, targetY, {
+                    textProps: { fill: fontColor },
+                })}
                 {endLabel.render(
                     targetX + manager.sidebarWidth - endLabel.width,
                     targetY,
-                    { fill: fontColor }
+                    { textProps: { fill: fontColor } }
                 )}
                 <line
                     x1={lineLeft}

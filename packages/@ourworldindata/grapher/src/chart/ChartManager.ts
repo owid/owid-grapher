@@ -10,7 +10,7 @@ import {
     AxisConfigInterface,
     ColorSchemeName,
     EntityName,
-    DodMarker,
+    DetailsMarker,
 } from "@ourworldindata/types"
 import { TooltipManager } from "../tooltip/TooltipProps"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -97,5 +97,5 @@ export interface ChartManager {
     secondaryColorInStaticCharts?: string
 
     detailsOrderedByReference?: Set<string>
-    detailsMarkerInSvg?: DodMarker
+    detailsMarkerInSvg?: DetailsMarker
 }

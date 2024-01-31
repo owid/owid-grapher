@@ -240,9 +240,8 @@ export class TextWrap {
     render(
         x: number,
         y: number,
-        options?: React.SVGProps<SVGTextElement>
+        { textProps }: { textProps?: React.SVGProps<SVGTextElement> } = {}
     ): JSX.Element | null {
-        //React.SVGAttributes<SVGTextElement>) {
         const { props, lines, fontSize, fontWeight, lineHeight } = this
 
         if (lines.length === 0) return null
@@ -263,7 +262,7 @@ export class TextWrap {
                 fontWeight={fontWeight}
                 x={x.toFixed(1)}
                 y={yOffset.toFixed(1)}
-                {...options}
+                {...textProps}
             >
                 {lines.map((line, i) => {
                     if (props.rawHtml)

@@ -585,10 +585,12 @@ class Slope extends React.Component<SlopeProps> {
                         leftLabelBounds.x + leftLabelBounds.width,
                         leftLabelBounds.y,
                         {
-                            textAnchor: "end",
-                            fill: labelColor,
-                            fontWeight:
-                                isFocused || isHovered ? "bold" : undefined,
+                            textProps: {
+                                textAnchor: "end",
+                                fill: labelColor,
+                                fontWeight:
+                                    isFocused || isHovered ? "bold" : undefined,
+                            },
                         }
                     )}
                 {hasLeftLabel && (
@@ -639,10 +641,10 @@ class Slope extends React.Component<SlopeProps> {
                     </Text>
                 )}
                 {hasRightLabel &&
-                    rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, {
+                    rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, {textProps: {
                         fill: labelColor,
                         fontWeight: isFocused || isHovered ? "bold" : undefined,
-                    })}
+                    }})}
             </g>
         )
     }

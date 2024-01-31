@@ -292,10 +292,7 @@ export class Footer<
             maxWidth: this.noteMaxWidth,
             fontSize,
             lineHeight,
-            detailsOrderedByReference:
-                manager.shouldIncludeDetailsInStaticExport
-                    ? manager.detailsOrderedByReference
-                    : new Set(),
+            detailsOrderedByReference: manager.detailsOrderedByReference,
         })
     }
 
@@ -773,7 +770,8 @@ export class StaticFooter extends Footer<StaticFooterProps> {
                 {this.showNote &&
                     note.renderSVG(
                         targetX,
-                        targetY + sources.height + this.verticalPadding
+                        targetY + sources.height + this.verticalPadding,
+                        { dodMarker: this.manager.detailsMarkerInSvg }
                     )}
                 {showLicenseNextToSources
                     ? licenseAndOriginUrl.render(

@@ -1,4 +1,5 @@
 import { Bounds } from "@ourworldindata/utils"
+import { DetailsMarker } from "@ourworldindata/types"
 
 export interface HeaderManager {
     currentTitle?: string
@@ -24,4 +25,5 @@ export interface HeaderManager {
     hideSubtitle?: boolean
     secondaryColorInStaticCharts?: string
     isStaticAndSmall?: boolean
+    detailsMarkerInSvg?: DetailsMarker
 }

@@ -13,7 +13,7 @@ import {
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
 import { GRAPHER_DARK_TEXT } from "../core/GrapherConstants"
-import { ScaleType, DodMarker } from "@ourworldindata/types"
+import { ScaleType, DetailsMarker } from "@ourworldindata/types"
 
 const dasharrayFromFontSize = (fontSize: number): string => {
     const dashLength = Math.round((fontSize / 16) * 3)
@@ -157,7 +157,7 @@ interface DualAxisViewProps {
     labelColor?: string
     tickColor?: string
     lineWidth?: number
-    dodMarker?: DodMarker
+    dodMarker?: DetailsMarker
 }
 
 @observer
@@ -229,7 +229,7 @@ export class VerticalAxisComponent extends React.Component<{
     verticalAxis: VerticalAxis
     labelColor?: string
     tickColor?: string
-    dodMarker?: DodMarker
+    dodMarker?: DetailsMarker
 }> {
     render(): JSX.Element {
         const { bounds, verticalAxis, labelColor, tickColor, dodMarker } =
@@ -243,10 +243,12 @@ export class VerticalAxisComponent extends React.Component<{
                         -verticalAxis.rangeCenter - labelTextWrap.width / 2,
                         bounds.left,
                         {
-                            transform: "rotate(-90)",
-                            fill: labelColor || GRAPHER_DARK_TEXT,
-                        },
-                        dodMarker
+                            textProps: {
+                                transform: "rotate(-90)",
+                                fill: labelColor || GRAPHER_DARK_TEXT,
+                            },
+                            dodMarker,
+                        }
                     )}
                 {tickLabels.map((label, i) => {
                     const { y, xAlign, yAlign, formattedValue } = label
@@ -283,7 +285,7 @@ export class HorizontalAxisComponent extends React.Component<{
     labelColor?: string
     tickColor?: string
     tickMarkWidth?: number
-    dodMarker?: DodMarker
+    dodMarker?: DetailsMarker
 }> {
     @computed get scaleType(): ScaleType {
         return this.props.axis.scaleType
@@ -342,8 +344,12 @@ export class HorizontalAxisComponent extends React.Component<{
                     label.renderSVG(
                         axis.rangeCenter - label.width / 2,
                         labelYPosition,
-                        { fill: labelColor || GRAPHER_DARK_TEXT },
-                        dodMarker
+                        {
+                            textProps: {
+                                fill: labelColor || GRAPHER_DARK_TEXT,
+                            },
+                            dodMarker,
+                        }
                     )}
                 {tickMarks}
                 {tickLabels.map((label, i) => {

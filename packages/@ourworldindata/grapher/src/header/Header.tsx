@@ -164,10 +164,7 @@ export class Header<
             fontSize: this.subtitleFontSize,
             text: this.subtitleText,
             lineHeight: this.subtitleLineHeight,
-            detailsOrderedByReference: this.manager
-                .shouldIncludeDetailsInStaticExport
-                ? this.manager.detailsOrderedByReference
-                : new Set(),
+            detailsOrderedByReference: this.manager.detailsOrderedByReference,
         })
     }
 
@@ -293,7 +290,7 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                         rel="noopener"
                     >
                         {title.render(x, y, {
-                            fill: GRAPHER_DARK_TEXT,
+                            textProps: { fill: GRAPHER_DARK_TEXT },
                         })}
                     </a>
                 )}
@@ -305,7 +302,10 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                                 ? title.height + this.subtitleMarginTop
                                 : 0),
                         {
-                            fill: manager.secondaryColorInStaticCharts,
+                            textProps: {
+                                fill: manager.secondaryColorInStaticCharts,
+                            },
+                            dodMarker: this.manager.detailsMarkerInSvg,
                         }
                     )}
             </g>
