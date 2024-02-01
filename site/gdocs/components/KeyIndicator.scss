@@ -1,31 +1,43 @@
 .key-indicator {
-    background-color: $blue-10;
+    background-color: $blue-5;
 
     margin: 0 -24px 24px;
-    padding: 16px 24px;
+    padding: 24px;
 
     @include sm-only {
         margin: 0 -16px 16px;
         padding: 16px;
     }
 
+    .left {
+        @include sm-only {
+            margin-bottom: 16px;
+        }
+    }
+
     .indicator-title {
         @include body-2-semibold;
-        color: $blue-60;
-        margin-bottom: 14px;
+        color: $blue-90;
+        margin-bottom: 16px;
+    }
+
+    .indicator-source {
+        @include body-3-medium;
+        display: inline-block;
+        margin-left: 8px;
+        color: $blue-50;
     }
 
     .narrative-title {
-        @include h3-bold;
+        @include subtitle-2-bold;
         color: $blue-90;
         margin-top: 0;
-        margin-bottom: 8px;
+        margin-bottom: 16px;
     }
 
     .blurb {
         @include body-2-regular;
         color: $blue-90;
-        margin-bottom: 16px;
 
         p:first-of-type {
             margin-top: 0;
@@ -40,21 +52,8 @@
         @include owid-link-90;
     }
 
-    .metadata,
-    .description {
-        @include sm-only {
-            display: none;
-        }
-    }
-
-    .metadata--border-top {
-        border-top: solid rgba(164, 182, 202, 0.5);
-        padding-top: 16px;
-    }
-
     .metadata-entry {
         @include body-3-medium;
-        margin-bottom: 16px;
     }
 
     .metadata-entry__title {
@@ -87,10 +86,20 @@
         background-color: $blue-60;
         cursor: pointer;
         border: none;
+
+        &:hover {
+            background-color: $blue-90;
+        }
+
+        svg {
+            font-size: 0.75rem;
+            margin-left: 8px;
+        }
     }
 
+    // TODO: should this be at the bottom of the section?
     .datapage-link-desktop {
-        margin-top: 8px;
+        margin-top: 24px;
         @include sm-only {
             display: none;
         }
@@ -100,11 +109,6 @@
         margin-top: 16px;
         @include sm-up {
             display: none;
-        }
-
-        svg {
-            font-size: 0.75rem;
-            margin-left: 8px;
         }
     }
 }

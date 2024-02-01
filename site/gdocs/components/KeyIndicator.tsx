@@ -6,6 +6,7 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import {
     EnrichedBlockKeyIndicator,
     EnrichedBlockText,
+    LinkedIndicator,
 } from "@ourworldindata/types"
 import {
     makeDateRange,
@@ -41,78 +42,25 @@ export default function KeyIndicator({
                 linkedIndicator.titleVariant
             )
         )
-    const dateRange = makeDateRange({
-        dateRange: linkedIndicator.dateRange,
-    })
-    const lastUpdated = makeLastUpdated({
-        lastUpdated: linkedIndicator.lastUpdated,
-    })
 
     return (
         <div className={cx("key-indicator grid grid-cols-12", className)}>
-            <div className="col-start-1 span-cols-4 span-sm-cols-12">
-                <div className="indicator-title">{linkedIndicator.title}</div>
-                {d.title && <h4 className="narrative-title">{d.title}</h4>}
-                {d.blurb && (
-                    <div className="blurb">
-                        {d.blurb.map(
-                            (textBlock: EnrichedBlockText, i: number) => (
-                                <Paragraph d={textBlock} key={i} />
-                            )
-                        )}
-                    </div>
-                )}
-                <div
-                    className={cx("metadata grid grid-cols-4", {
-                        "metadata--border-top": d.title || d.blurb,
-                    })}
-                >
-                    {source && (
-                        <div className="metadata-entry col-start-1 span-cols-4">
-                            <div className="metadata-entry__title">Source</div>
-                            <div className="metadata-entry__value">
-                                {source}
-                            </div>
-                        </div>
-                    )}
-                    {dateRange && (
-                        <div className="metadata-entry col-start-1 span-cols-2">
-                            <div className="metadata-entry__title">
-                                Date range
-                            </div>
-                            <div className="metadata-entry__value">
-                                {dateRange}
-                            </div>
-                        </div>
-                    )}
-                    {lastUpdated && (
-                        <div
-                            className={cx("metadata-entry", {
-                                "col-start-3 span-cols-2": !!dateRange,
-                                "col-start-1 span-cols-4": !dateRange,
-                            })}
-                        >
-                            <div className="metadata-entry__title">
-                                Last updated
-                            </div>
-                            <div className="metadata-entry__value">
-                                {lastUpdated}
-                            </div>
-                        </div>
-                    )}
+            <div className="left col-start-1 span-cols-4 span-sm-cols-12">
+                <div className="indicator-title">
+                    {linkedIndicator.title}{" "}
+                    <span className="indicator-source">{source}</span>
                 </div>
-                {linkedIndicator.descriptionShort && (
-                    <div className="description">
-                        <SimpleMarkdownText
-                            text={linkedIndicator.descriptionShort}
-                        />
-                    </div>
+                {d.title || d.blurb ? (
+                    <IndicatorNarrative block={d} />
+                ) : (
+                    <IndicatorMetadata linkedIndicator={linkedIndicator} />
                 )}
                 <a
                     className="datapage-link datapage-link-desktop"
                     href={d.datapageUrl}
                 >
                     Explore and learn more about this data
+                    <FontAwesomeIcon icon={faArrowRight} />
                 </a>
             </div>
             <Chart
@@ -125,8 +73,76 @@ export default function KeyIndicator({
                 href={d.datapageUrl}
             >
                 Explore and learn more about this data
-                <FontAwesomeIcon icon={faArrowRight} />
             </a>
         </div>
+    )
+}
+
+function IndicatorNarrative({
+    block,
+}: {
+    block: EnrichedBlockKeyIndicator
+}): JSX.Element {
+    return (
+        <>
+            {block.title && <h4 className="narrative-title">{block.title}</h4>}
+            {block.blurb && (
+                <div className="blurb">
+                    {block.blurb.map(
+                        (textBlock: EnrichedBlockText, i: number) => (
+                            <Paragraph d={textBlock} key={i} />
+                        )
+                    )}
+                </div>
+            )}
+        </>
+    )
+}
+
+function IndicatorMetadata({
+    linkedIndicator,
+}: {
+    linkedIndicator: LinkedIndicator
+}): JSX.Element {
+    const dateRange = makeDateRange({
+        dateRange: linkedIndicator.dateRange,
+    })
+    const lastUpdated = makeLastUpdated({
+        lastUpdated: linkedIndicator.lastUpdated,
+    })
+
+    return (
+        <>
+            {linkedIndicator.descriptionShort && (
+                <div className="description">
+                    <SimpleMarkdownText
+                        text={linkedIndicator.descriptionShort}
+                    />
+                </div>
+            )}
+            <div className="metadata grid grid-cols-4">
+                {dateRange && (
+                    <div className="metadata-entry col-start-1 span-cols-2">
+                        <div className="metadata-entry__title">Date range</div>
+                        <div className="metadata-entry__value">{dateRange}</div>
+                    </div>
+                )}
+                {lastUpdated && (
+                    <div
+                        className={cx("metadata-entry", {
+                            "col-start-3 span-cols-2": !!dateRange,
+                            "col-start-1 span-cols-4": !dateRange,
+                        })}
+                    >
+                        <div className="metadata-entry__title">
+                            Last updated
+                        </div>
+                        <div className="metadata-entry__value">
+                            {lastUpdated}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </>
     )
 }
