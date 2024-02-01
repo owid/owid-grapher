@@ -267,23 +267,6 @@ export const getPermalinks = async (): Promise<{
         postName.replace(/\/+$/g, "").replace(/--/g, "/").replace(/__/g, "/"),
 })
 
-let cachedFeaturedImages: Map<number, string> | undefined
-export const getFeaturedImages = async (): Promise<Map<number, string>> => {
-    if (cachedFeaturedImages) return cachedFeaturedImages
-
-    const rows = await singleton.query(
-        `SELECT wp_postmeta.post_id, wp_posts.guid FROM wp_postmeta INNER JOIN wp_posts ON wp_posts.ID=wp_postmeta.meta_value WHERE wp_postmeta.meta_key='_thumbnail_id'`
-    )
-
-    const featuredImages = new Map<number, string>()
-    for (const row of rows) {
-        featuredImages.set(row.post_id, row.guid)
-    }
-
-    cachedFeaturedImages = featuredImages
-    return featuredImages
-}
-
 // page => pages, post => posts
 export const getEndpointSlugFromType = (type: string): string => `${type}s`
 
@@ -321,14 +304,6 @@ export const getPosts = async (
     if (filterFunc) filterConditions.push(filterFunc)
 
     return posts.filter((post) => filterConditions.every((c) => c(post)))
-}
-
-// todo / refactor : narrow down scope to getPostTypeById?
-export const getPostType = async (search: number | string): Promise<string> => {
-    const paramName = typeof search === "number" ? "id" : "slug"
-    return apiQuery(`${OWID_API_ENDPOINT}/type`, {
-        searchParams: [[paramName, search]],
-    })
 }
 
 // The API query in getPostType is cleaner but slower, which becomes more of an
@@ -776,7 +751,6 @@ export const getTables = async (): Promise<Map<string, TablepressTable>> => {
 }
 
 export const flushCache = (): void => {
-    cachedFeaturedImages = undefined
     getBlogIndex.cache.clear?.()
     cachedTables = undefined
 }

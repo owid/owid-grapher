@@ -18,12 +18,12 @@ import { BLOG_SLUG } from "../settings/serverSettings.js"
 import {
     WP_API_ENDPOINT,
     apiQuery,
-    getEndpointSlugFromType,
     getFullPost,
     getPostApiBySlugFromApi,
-    getPostType,
     isWordpressAPIEnabled,
     singleton,
+    OWID_API_ENDPOINT,
+    getEndpointSlugFromType,
 } from "./wpdb.js"
 
 // Limit not supported with multiple post types: When passing multiple post
@@ -99,7 +99,7 @@ export const DEPRECATEDgetPostBySlugFromApi = async (
 export const DEPRECATEDgetLatestPostRevision = async (
     id: number
 ): Promise<FullPost> => {
-    const type = await getPostType(id)
+    const type = await DEPRECATEDgetPostType(id)
     const endpointSlug = getEndpointSlugFromType(type)
 
     const postApi = await apiQuery(`${WP_API_ENDPOINT}/${endpointSlug}/${id}`)
@@ -154,7 +154,7 @@ export const DEPRECATEDgetTagsByPostId = async (): Promise<
 }
 
 // Retrieve a map of post ids to authors
-export let cachedAuthorship: Map<number, string[]> | undefined
+let cachedAuthorship: Map<number, string[]> | undefined
 export const DEPRECATEDgetAuthorship = async (): Promise<
     Map<number, string[]>
 > => {
@@ -179,4 +179,31 @@ export const DEPRECATEDgetAuthorship = async (): Promise<
 
     cachedAuthorship = authorship
     return authorship
+}
+
+// todo / refactor : narrow down scope to getPostTypeById?
+export const DEPRECATEDgetPostType = async (
+    search: number | string
+): Promise<string> => {
+    const paramName = typeof search === "number" ? "id" : "slug"
+    return apiQuery(`${OWID_API_ENDPOINT}/type`, {
+        searchParams: [[paramName, search]],
+    })
+}
+
+let cachedFeaturedImages: Map<number, string> | undefined
+export const getFeaturedImages = async (): Promise<Map<number, string>> => {
+    if (cachedFeaturedImages) return cachedFeaturedImages
+
+    const rows = await singleton.query(
+        `SELECT wp_postmeta.post_id, wp_posts.guid FROM wp_postmeta INNER JOIN wp_posts ON wp_posts.ID=wp_postmeta.meta_value WHERE wp_postmeta.meta_key='_thumbnail_id'`
+    )
+
+    const featuredImages = new Map<number, string>()
+    for (const row of rows) {
+        featuredImages.set(row.post_id, row.guid)
+    }
+
+    cachedFeaturedImages = featuredImages
+    return featuredImages
 }
