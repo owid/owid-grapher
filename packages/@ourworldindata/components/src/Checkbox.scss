@@ -39,6 +39,10 @@
         }
     }
 
+    input:focus-visible + .custom {
+        outline: 2px solid $controls-color;
+    }
+
     input:active + .custom {
         background: $active-fill;
     }
