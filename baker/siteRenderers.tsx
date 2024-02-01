@@ -62,10 +62,10 @@ import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
 import {
     getBlogIndex,
-    getLatestPostRevision,
     isPostCitable,
     getBlockContent,
     getPostBySlugFromSnapshot,
+    getPostByIdFromSnapshot,
 } from "../db/wpdb.js"
 import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
@@ -195,7 +195,7 @@ export const renderPageBySlug = async (slug: string) => {
 }
 
 export const renderPreview = async (postId: number): Promise<string> => {
-    const postApi = await getLatestPostRevision(postId)
+    const postApi = await getPostByIdFromSnapshot(postId)
     return renderPost(postApi)
 }
 

@@ -63,12 +63,25 @@ export const setTagsForPost = async (
 export const getPostRawBySlug = async (
     slug: string
 ): Promise<DbRawPost | undefined> =>
-    (await db.knexTable("posts").where({ slug: slug }))[0]
+    (await db.knexTable(postsTable).where({ slug }))[0]
+
+export const getPostRawById = async (
+    id: number
+): Promise<DbRawPost | undefined> =>
+    (await db.knexTable(postsTable).where({ id }))[0]
 
 export const getPostEnrichedBySlug = async (
     slug: string
 ): Promise<DbEnrichedPost | undefined> => {
     const post = await getPostRawBySlug(slug)
+    if (!post) return undefined
+    return parsePostRow(post)
+}
+
+export const getPostEnrichedById = async (
+    id: number
+): Promise<DbEnrichedPost | undefined> => {
+    const post = await getPostRawById(id)
     if (!post) return undefined
     return parsePostRow(post)
 }

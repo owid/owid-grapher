@@ -21,6 +21,7 @@ import {
     getEndpointSlugFromType,
     getFullPost,
     getPostApiBySlugFromApi,
+    getPostType,
     isWordpressAPIEnabled,
 } from "./wpdb.js"
 
@@ -90,4 +91,35 @@ export const DEPRECATEDgetPostBySlugFromApi = async (
     const postApi = await getPostApiBySlugFromApi(slug)
 
     return getFullPost(postApi)
+}
+
+// the /revisions endpoint does not send back all the metadata required for
+// the proper rendering of the post (e.g. authors), hence the double request.
+export const DEPRECATEDgetLatestPostRevision = async (
+    id: number
+): Promise<FullPost> => {
+    const type = await getPostType(id)
+    const endpointSlug = getEndpointSlugFromType(type)
+
+    const postApi = await apiQuery(`${WP_API_ENDPOINT}/${endpointSlug}/${id}`)
+
+    const revision = (
+        await apiQuery(
+            `${WP_API_ENDPOINT}/${endpointSlug}/${id}/revisions?per_page=1`
+        )
+    )[0]
+
+    // Since WP does not store metadata for revisions, some elements of a
+    // previewed page will not reflect the latest edits:
+    // - published date (will show the correct one - that is the one in the
+    //   sidebar - for unpublished posts though. For published posts, the
+    //   current published date is displayed, regardless of what is shown
+    //   and could have been modified in the sidebar.)
+    // - authors
+    // ...
+    return getFullPost({
+        ...postApi,
+        content: revision.content,
+        title: revision.title,
+    })
 }
