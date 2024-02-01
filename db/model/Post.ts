@@ -1,6 +1,7 @@
 import * as db from "../db.js"
 import { Knex } from "knex"
 import {
+    CategoryWithEntries,
     DbEnrichedPost,
     DbRawPost,
     FullPost,
@@ -8,6 +9,7 @@ import {
     parsePostRow,
 } from "@ourworldindata/utils"
 import { getFullPost } from "../wpdb.js"
+import { SiteNavigationStatic } from "../../site/SiteNavigation.js"
 
 export const postsTable = "posts"
 
@@ -111,4 +113,20 @@ export const getFullPostByIdFromSnapshot = async (
         throw new JsonError(`No page snapshot found by id ${id}`, 404)
 
     return getFullPost(postEnriched.wpApiSnapshot)
+}
+
+export const isPostSlugCitable = async (slug: string): Promise<boolean> => {
+    const entries = SiteNavigationStatic.categories
+    return entries.some((category) => {
+        return (
+            category.entries.some((entry) => entry.slug === slug) ||
+            (category.subcategories ?? []).some(
+                (subcategory: CategoryWithEntries) => {
+                    return subcategory.entries.some(
+                        (subCategoryEntry) => subCategoryEntry.slug === slug
+                    )
+                }
+            )
+        )
+    })
 }
