@@ -60,7 +60,7 @@ import {
 import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
-import { getBlogIndex, getBlockContent } from "../db/wpdb.js"
+import { getBlockContent } from "../db/wpdb.js"
 import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
@@ -82,6 +82,7 @@ import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
 import { resolveInternalRedirect } from "./redirects.js"
 import {
+    getBlogIndex,
     getFullPostByIdFromSnapshot,
     getFullPostBySlugFromSnapshot,
     isPostSlugCitable,

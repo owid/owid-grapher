@@ -71,7 +71,12 @@ import {
     bakeAllPublishedExplorers,
 } from "./ExplorerBaker.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { getPostsFromSnapshots, postsTable } from "../db/model/Post.js"
+import {
+    getBlogIndex,
+    getFullPost,
+    getPostsFromSnapshots,
+    postsTable,
+} from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { Image } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
@@ -389,7 +394,7 @@ export class SiteBaker {
 
         const postSlugs = []
         for (const postApi of postsApi) {
-            const post = await wpdb.getFullPost(postApi)
+            const post = await getFullPost(postApi)
             postSlugs.push(post.slug)
         }
 
@@ -423,7 +428,7 @@ export class SiteBaker {
         await pMap(
             postsApi,
             async (postApi) =>
-                wpdb.getFullPost(postApi).then((post) => this.bakePost(post)),
+                getFullPost(postApi).then((post) => this.bakePost(post)),
             { concurrency: 10 }
         )
 
@@ -747,7 +752,7 @@ export class SiteBaker {
     // Bake the blog index
     private async bakeBlogIndex() {
         if (!this.bakeSteps.has("blogIndex")) return
-        const allPosts = await wpdb.getBlogIndex()
+        const allPosts = await getBlogIndex()
         const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
 
         for (let i = 1; i <= numPages; i++) {

@@ -1,19 +1,27 @@
-import * as db from "../db.js"
-import { Knex } from "knex"
+import * as db from "../db"
 import {
-    CategoryWithEntries,
-    DbEnrichedPost,
     DbRawPost,
-    FilterFnPostRestApi,
+    DbEnrichedPost,
+    parsePostRow,
     FullPost,
     JsonError,
-    PostRestApi,
+    CategoryWithEntries,
     WP_PostType,
-    parsePostRow,
-} from "@ourworldindata/utils"
-import { getFullPost } from "../wpdb.js"
-import { SiteNavigationStatic } from "../../site/SiteNavigation.js"
+    FilterFnPostRestApi,
+    PostRestApi,
+    RelatedChart,
+    IndexPost,
+    OwidGdocPostInterface,
+    IMAGES_DIRECTORY,
+} from "@ourworldindata/types"
+import { Knex } from "knex"
+import { memoize, orderBy } from "lodash"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { BLOG_SLUG } from "../../settings/serverSettings.js"
+import { selectHomepagePosts } from "../wpdb.js"
+import { GdocPost } from "./Gdoc/GdocPost.js"
+import { SiteNavigationStatic } from "../../site/SiteNavigation.js"
+import { decodeHTML } from "entities"
 
 export const postsTable = "posts"
 
@@ -166,4 +174,89 @@ export const getPostsFromSnapshots = async (
     if (filterFunc) filterConditions.push(filterFunc)
 
     return posts.filter((post) => filterConditions.every((c) => c(post)))
+}
+
+export const getPostRelatedCharts = async (
+    postId: number
+): Promise<RelatedChart[]> =>
+    db.queryMysql(`
+        SELECT DISTINCT
+            charts.config->>"$.slug" AS slug,
+            charts.config->>"$.title" AS title,
+            charts.config->>"$.variantName" AS variantName,
+            chart_tags.keyChartLevel
+        FROM charts
+        INNER JOIN chart_tags ON charts.id=chart_tags.chartId
+        INNER JOIN post_tags ON chart_tags.tagId=post_tags.tag_id
+        WHERE post_tags.post_id=${postId}
+        AND charts.config->>"$.isPublished" = "true"
+        ORDER BY title ASC
+    `)
+
+export const getFullPost = async (
+    postApi: PostRestApi,
+    excludeContent?: boolean
+): Promise<FullPost> => ({
+    id: postApi.id,
+    type: postApi.type,
+    slug: postApi.slug,
+    path: postApi.slug, // kept for transitioning between legacy BPES (blog post as entry section) and future hierarchical paths
+    title: decodeHTML(postApi.title.rendered),
+    date: new Date(postApi.date_gmt),
+    modifiedDate: new Date(postApi.modified_gmt),
+    authors: postApi.authors_name || [],
+    content: excludeContent ? "" : postApi.content.rendered,
+    excerpt: decodeHTML(postApi.excerpt.rendered),
+    imageUrl: `${BAKED_BASE_URL}${
+        postApi.featured_media_paths.medium_large ?? "/default-thumbnail.jpg"
+    }`,
+    thumbnailUrl: `${BAKED_BASE_URL}${
+        postApi.featured_media_paths?.thumbnail ?? "/default-thumbnail.jpg"
+    }`,
+    imageId: postApi.featured_media,
+    relatedCharts:
+        postApi.type === "page"
+            ? await getPostRelatedCharts(postApi.id)
+            : undefined,
+})
+
+export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
+    await db.getConnection() // side effect: ensure connection is established
+    const gdocPosts = await GdocPost.getListedGdocs()
+    const wpPosts = await Promise.all(
+        await getPostsFromSnapshots(
+            [WP_PostType.Post],
+            selectHomepagePosts
+        ).then((posts) => posts.map((post) => getFullPost(post, true)))
+    )
+
+    const gdocSlugs = new Set(gdocPosts.map(({ slug }) => slug))
+    const posts = [...mapGdocsToWordpressPosts(gdocPosts)]
+
+    // Only adding each wpPost if there isn't already a gdoc with the same slug,
+    // to make sure we use the most up-to-date metadata
+    for (const wpPost of wpPosts) {
+        if (!gdocSlugs.has(wpPost.slug)) {
+            posts.push(wpPost)
+        }
+    }
+
+    return orderBy(posts, (post) => post.date.getTime(), ["desc"])
+})
+
+export const mapGdocsToWordpressPosts = (
+    gdocs: OwidGdocPostInterface[]
+): IndexPost[] => {
+    return gdocs.map((gdoc) => ({
+        title: gdoc.content["atom-title"] || gdoc.content.title || "Untitled",
+        slug: gdoc.slug,
+        type: gdoc.content.type,
+        date: gdoc.publishedAt as Date,
+        modifiedDate: gdoc.updatedAt as Date,
+        authors: gdoc.content.authors,
+        excerpt: gdoc.content["atom-excerpt"] || gdoc.content.excerpt,
+        imageUrl: gdoc.content["featured-image"]
+            ? `${BAKED_BASE_URL}${IMAGES_DIRECTORY}${gdoc.content["featured-image"]}`
+            : `${BAKED_BASE_URL}/default-thumbnail.jpg`,
+    }))
 }

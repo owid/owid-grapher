@@ -26,7 +26,6 @@ import {
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
-    getRelatedCharts,
     getRelatedChartsForVariable,
     getRelatedResearchAndWritingForVariable,
     isWordpressAPIEnabled,
@@ -44,7 +43,10 @@ import {
 import * as db from "../db/db.js"
 import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
-import { getPostEnrichedBySlug } from "../db/model/Post.js"
+import {
+    getPostEnrichedBySlug,
+    getPostRelatedCharts,
+} from "../db/model/Post.js"
 import { ChartTypeName, GrapherInterface } from "@ourworldindata/types"
 import workerpool from "workerpool"
 import ProgressBar from "progress"
@@ -362,7 +364,7 @@ const renderGrapherPage = async (grapher: GrapherInterface) => {
     const post = postSlug ? await getPostEnrichedBySlug(postSlug) : undefined
     const relatedCharts =
         post && isWordpressDBEnabled
-            ? await getRelatedCharts(post.id)
+            ? await getPostRelatedCharts(post.id)
             : undefined
     const relatedArticles =
         grapher.id && isWordpressAPIEnabled
