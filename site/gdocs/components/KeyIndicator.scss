@@ -29,7 +29,9 @@
     }
 
     .narrative-title {
-        @include subtitle-2-bold;
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: calc(28 / 22);
         color: $blue-90;
         margin-top: 0;
         margin-bottom: 16px;
