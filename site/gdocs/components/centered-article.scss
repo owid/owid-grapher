@@ -1038,22 +1038,6 @@ div.raw-html-table__container {
         color: $amber;
     }
 
-    h2.homepage-search__search-heading {
-        @include md-down {
-            @include body-2-regular;
-            color: $blue-30;
-            margin: 0;
-            margin-bottom: 8px;
-        }
-    }
-
-    h2.homepage-search__mobile-headline {
-        margin: 16px 0;
-        @include md-up {
-            display: none;
-        }
-    }
-
     .aa-Form {
         background-color: #fff;
         border-color: #dbe5f0;
