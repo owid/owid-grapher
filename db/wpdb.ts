@@ -123,9 +123,9 @@ class WPDB {
 
 export const singleton = new WPDB()
 
-const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
-const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
-const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
+export const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
+export const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
+export const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
 
 export const ENTRIES_CATEGORY_ID = 44
 
@@ -161,7 +161,7 @@ const graphqlQuery = async (
  *
  * Note: throws on response.status >= 200 && response.status < 300.
  */
-const apiQuery = async (
+export const apiQuery = async (
     endpoint: string,
     params?: {
         returnResponseHeadersOnly?: boolean
@@ -356,64 +356,10 @@ export const getFeaturedImages = async (): Promise<Map<number, string>> => {
 }
 
 // page => pages, post => posts
-const getEndpointSlugFromType = (type: string): string => `${type}s`
+export const getEndpointSlugFromType = (type: string): string => `${type}s`
 
 export const selectHomepagePosts: FilterFnPostRestApi = (post) =>
     post.meta?.owid_publication_context_meta_field?.homepage === true
-
-// Limit not supported with multiple post types:
-// When passing multiple post types, the limit is applied to the resulting array
-// of sequentially sorted posts (all blog posts, then all pages, ...), so there
-// will be a predominance of a certain post type.
-export const DEPRECATEDgetPosts = async (
-    postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
-    filterFunc?: FilterFnPostRestApi,
-    limit?: number
-): Promise<PostRestApi[]> => {
-    if (!isWordpressAPIEnabled) return []
-
-    const perPage = 20
-    const posts: PostRestApi[] = []
-
-    for (const postType of postTypes) {
-        const endpoint = `${WP_API_ENDPOINT}/${getEndpointSlugFromType(
-            postType
-        )}`
-
-        // Get number of items to retrieve
-        const headers = await apiQuery(endpoint, {
-            searchParams: [["per_page", 1]],
-            returnResponseHeadersOnly: true,
-        })
-        const maxAvailable = headers.get("X-WP-TotalPages")
-        const count = limit && limit < maxAvailable ? limit : maxAvailable
-
-        for (let page = 1; page <= Math.ceil(count / perPage); page++) {
-            const postsCurrentPage = await apiQuery(endpoint, {
-                searchParams: [
-                    ["per_page", perPage],
-                    ["page", page],
-                ],
-            })
-            posts.push(...postsCurrentPage)
-        }
-    }
-
-    // Published pages excluded from public views
-    const excludedSlugs = [BLOG_SLUG]
-
-    const filterConditions: Array<FilterFnPostRestApi> = [
-        (post): boolean => !excludedSlugs.includes(post.slug),
-        (post): boolean => !post.slug.endsWith("-country-profile"),
-    ]
-    if (filterFunc) filterConditions.push(filterFunc)
-
-    const filteredPosts = posts.filter((post) =>
-        filterConditions.every((c) => c(post))
-    )
-
-    return limit ? filteredPosts.slice(0, limit) : filteredPosts
-}
 
 export const getPosts = async (
     postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
@@ -499,20 +445,6 @@ export const getPostApiBySlugFromApi = async (
     const { id, type } = postIdAndType
 
     return apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
-}
-
-// We might want to cache this as the network of prominent links densifies and
-// multiple requests to the same posts are happening.
-export const DEPRECATEDgetPostBySlugFromApi = async (
-    slug: string
-): Promise<FullPost> => {
-    if (!isWordpressAPIEnabled) {
-        throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
-    }
-
-    const postApi = await getPostApiBySlugFromApi(slug)
-
-    return getFullPost(postApi)
 }
 
 export const getPostBySlugFromSnapshot = async (
