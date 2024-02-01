@@ -2,14 +2,15 @@ import { PageOverrides } from "../site/LongFormPage.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { urlToSlug, FullPost, JsonError } from "@ourworldindata/utils"
 import { FormattingOptions } from "@ourworldindata/types"
-import { getPostBySlugFromSnapshot, isPostCitable } from "../db/wpdb.js"
+import { isPostCitable } from "../db/wpdb.js"
 import { getTopSubnavigationParentItem } from "../site/SiteSubnavigation.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { getFullPostBySlugFromSnapshot } from "../db/model/Post.js"
 
 export const getPostBySlugLogToSlackNoThrow = async (slug: string) => {
     let post
     try {
-        post = await getPostBySlugFromSnapshot(slug)
+        post = await getFullPostBySlugFromSnapshot(slug)
     } catch (err) {
         logErrorAndMaybeSendToBugsnag(err)
     } finally {
