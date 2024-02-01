@@ -10,7 +10,6 @@ import {
     WORDPRESS_API_USER,
     WORDPRESS_URL,
     BAKED_BASE_URL,
-    BLOG_SLUG,
 } from "../settings/serverSettings.js"
 import * as db from "./db.js"
 import { Knex, knex } from "knex"
@@ -38,12 +37,7 @@ import {
     Tag,
     OwidGdocPostInterface,
 } from "@ourworldindata/utils"
-import {
-    DbRawPost,
-    OwidGdocLinkType,
-    Topic,
-    parsePostRow,
-} from "@ourworldindata/types"
+import { OwidGdocLinkType, Topic } from "@ourworldindata/types"
 import {
     getContentGraph,
     WPPostTypeToGraphDocumentType,
@@ -51,7 +45,7 @@ import {
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 import { GdocPost } from "./model/Gdoc/GdocPost.js"
 import { Link } from "./model/Link.js"
-import { postsTable } from "./model/Post.js"
+import { getPostsFromSnapshots } from "./model/Post.js"
 
 let _knexInstance: Knex
 
@@ -272,39 +266,6 @@ export const getEndpointSlugFromType = (type: string): string => `${type}s`
 
 export const selectHomepagePosts: FilterFnPostRestApi = (post) =>
     post.meta?.owid_publication_context_meta_field?.homepage === true
-
-export const getPosts = async (
-    postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
-    filterFunc?: FilterFnPostRestApi
-): Promise<PostRestApi[]> => {
-    const rawPosts: DbRawPost[] = (
-        await db.knexInstance().raw(
-            `
-                SELECT * FROM ${postsTable}
-                WHERE status = "publish"
-                AND type IN (?)
-                ORDER BY JSON_UNQUOTE(JSON_EXTRACT(wpApiSnapshot, '$.date')) DESC;
-            `,
-            [postTypes].join(",")
-        )
-    )[0]
-
-    const posts = rawPosts
-        .map(parsePostRow)
-        .map((p) => p.wpApiSnapshot)
-        .filter((p) => p !== null) as PostRestApi[]
-
-    // Published pages excluded from public views
-    const excludedSlugs = [BLOG_SLUG]
-
-    const filterConditions: Array<FilterFnPostRestApi> = [
-        (post): boolean => !excludedSlugs.includes(post.slug),
-        (post): boolean => !post.slug.endsWith("-country-profile"),
-    ]
-    if (filterFunc) filterConditions.push(filterFunc)
-
-    return posts.filter((post) => filterConditions.every((c) => c(post)))
-}
 
 // The API query in getPostType is cleaner but slower, which becomes more of an
 // issue with prominent links requesting posts by slugs (getPostBySlug) to
@@ -649,9 +610,10 @@ export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
     await db.getConnection() // side effect: ensure connection is established
     const gdocPosts = await GdocPost.getListedGdocs()
     const wpPosts = await Promise.all(
-        await getPosts([WP_PostType.Post], selectHomepagePosts).then((posts) =>
-            posts.map((post) => getFullPost(post, true))
-        )
+        await getPostsFromSnapshots(
+            [WP_PostType.Post],
+            selectHomepagePosts
+        ).then((posts) => posts.map((post) => getFullPost(post, true)))
     )
 
     const gdocSlugs = new Set(gdocPosts.map(({ slug }) => slug))

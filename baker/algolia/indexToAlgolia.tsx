@@ -26,6 +26,7 @@ import { Pageview } from "../../db/model/Pageview.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { ArticleBlocks } from "../../site/gdocs/components/ArticleBlocks.js"
 import React from "react"
+import { getPostsFromSnapshots } from "../../db/model/Post.js"
 
 interface TypeAndImportance {
     type: PageType
@@ -193,7 +194,7 @@ const getPagesRecords = async () => {
     // TODO: the knex instance should be handed down as a parameter
     const slugsWithPublishedGdocsSuccessors =
         await db.getSlugsWithPublishedGdocsSuccessors(db.knexInstance())
-    const postsApi = await wpdb.getPosts(undefined, (post) => {
+    const postsApi = await getPostsFromSnapshots(undefined, (post) => {
         // Two things can happen here:
         // 1. There's a published Gdoc with the same slug
         // 2. This post has a Gdoc successor (which might have a different slug)
