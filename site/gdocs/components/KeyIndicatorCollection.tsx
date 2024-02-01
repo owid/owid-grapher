@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faPlus } from "@fortawesome/free-solid-svg-icons"
+import { faArrowRight, faPlus } from "@fortawesome/free-solid-svg-icons"
 
 import {
     EnrichedBlockKeyIndicatorCollection,
@@ -12,7 +12,6 @@ import {
     joinTitleFragments,
     urlToSlug,
 } from "@ourworldindata/utils"
-import { makeDateRange } from "@ourworldindata/components"
 
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 import KeyIndicator from "./KeyIndicator.js"
@@ -108,7 +107,7 @@ function AccordionItem({
             <h3>
                 <button
                     id={headerId}
-                    className="accordion-item__header"
+                    className="accordion-item__button"
                     onClick={() => {
                         if (isOpen) {
                             close()
@@ -137,6 +136,14 @@ function AccordionItem({
                     {header}
                 </button>
             </h3>
+            {!isOpen && (
+                <a
+                    className="accordion-item__link-mobile"
+                    href="https://ourworldindata.org/grapher/life-expectancy"
+                >
+                    {header}
+                </a>
+            )}
             <div
                 id={contentId}
                 className="accordion-item__content"
@@ -167,12 +174,14 @@ function KeyIndicatorHeader({
     if (!linkedChart) return null
     if (!linkedIndicator) return null
 
-    const source = capitalize(
-        joinTitleFragments(
-            linkedIndicator.attributionShort,
-            linkedIndicator.titleVariant
+    const source =
+        block.source ||
+        capitalize(
+            joinTitleFragments(
+                linkedIndicator.attributionShort,
+                linkedIndicator.titleVariant
+            )
         )
-    )
 
     return (
         <div
@@ -181,7 +190,7 @@ function KeyIndicatorHeader({
             })}
         >
             <div className="key-indicator-header__title col-start-1 span-cols-11">
-                {linkedIndicator.title}
+                <span className="title">{linkedIndicator.title}</span>
                 {source && (
                     <span className="key-indicator-header__source">
                         {source}
@@ -190,7 +199,10 @@ function KeyIndicatorHeader({
             </div>
             {!isContentVisible && (
                 <div className="key-indicator-header__icon col-start-12 span-cols-1">
+                    {/* desktop */}
                     <FontAwesomeIcon icon={faPlus} />
+                    {/* mobile */}
+                    <FontAwesomeIcon icon={faArrowRight} />
                 </div>
             )}
         </div>

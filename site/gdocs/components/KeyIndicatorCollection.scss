@@ -21,23 +21,37 @@
         margin: 0;
     }
 
-    .accordion-item__header {
-        background-color: $white;
+    .accordion-item__button,
+    .accordion-item__link-mobile {
+        display: block;
         width: 100%;
+        background-color: $white;
         text-align: left;
+    }
+
+    .accordion-item__button {
         padding: 16px 24px;
     }
 
-    .accordion-item--open .accordion-item__header {
+    .accordion-item__link-mobile {
+        padding: 12px 24px;
+        line-height: 1.2;
+    }
+
+    .accordion-item__link-mobile:active .title {
+        text-decoration: underline;
+    }
+
+    .accordion-item--open .accordion-item__button {
         background-color: $blue-20;
     }
 
-    .accordion-item--closed .accordion-item__header:hover {
+    .accordion-item--closed .accordion-item__button:hover {
         background-color: $blue-5;
     }
 
     .accordion-item--closed
-        .accordion-item__header:hover
+        .accordion-item__button:hover
         .key-indicator-header__icon {
         opacity: 1;
         transition: opacity 0s;
@@ -82,6 +96,52 @@
 
     button[disabled] {
         cursor: default;
+    }
+
+    @include sm-up {
+        .accordion-item__link-mobile {
+            display: none;
+        }
+
+        svg[data-icon="arrow-right"] {
+            display: none;
+        }
+    }
+
+    @include sm-only {
+        .accordion-item:first-of-type::after {
+            content: "More featured indicators";
+            @include h5-black-caps;
+            display: block;
+            margin: 24px 24px 16px 24px;
+            color: $blue-60;
+        }
+
+        .accordion-item:nth-of-type(2) {
+            border-top: 1px solid $border;
+        }
+
+        .accordion-item__button {
+            padding-bottom: 0;
+        }
+
+        .accordion-item--closed .accordion-item__button {
+            display: none;
+        }
+
+        .accordion-item--open .accordion-item__button {
+            background-color: $blue-5;
+        }
+
+        .accordion-item--closed .key-indicator-header__source {
+            display: block;
+            margin-left: 0;
+            margin-top: 2px;
+        }
+
+        svg[data-icon="plus"] {
+            display: none;
+        }
     }
 
     // update <KeyIndicator /> styles
