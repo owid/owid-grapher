@@ -1179,33 +1179,40 @@ function cheerioToArchieML(
                     }
                 }
             )
-            .with({ tagName: "p" }, (): BlockParseResult<EnrichedBlockText> => {
-                const children = cheerioElementsToArchieML(
-                    element.children,
-                    context
-                )
+            .with(
+                { tagName: "p" },
+                (): BlockParseResult<ArchieBlockOrWpComponent> => {
+                    const children = cheerioElementsToArchieML(
+                        element.children,
+                        context
+                    )
 
-                const [textChildren, otherChildren] = partition(
-                    children.content,
-                    isEnrichedTextBlock
-                )
-                const errors = children.errors
-                if (otherChildren.length > 0)
-                    errors.push({
-                        name: "unexpected elements in p",
-                        details: `Found ${otherChildren.length} elements`,
-                    })
-                return {
-                    errors: errors,
-                    content: [
-                        {
-                            type: "text",
-                            value: textChildren.flatMap((child) => child.value),
-                            parseErrors: [],
-                        },
-                    ],
+                    const [textChildren, otherChildren] = partition(
+                        children.content,
+                        isEnrichedTextBlock
+                    )
+
+                    let result: BlockParseResult<ArchieBlockOrWpComponent>
+                    if (otherChildren.length) {
+                        result = {
+                            errors: [],
+                            content: [
+                                {
+                                    type: "text",
+                                    value: textChildren.flatMap(
+                                        (child) => child.value
+                                    ),
+                                    parseErrors: [],
+                                },
+                            ],
+                        }
+                    } else {
+                        result = children
+                    }
+
+                    return result
                 }
-            })
+            )
             .with(
                 { tagName: "ul" },
                 (): BlockParseResult<EnrichedBlockList> => {
