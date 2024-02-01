@@ -455,7 +455,8 @@ const TimelineHandle = ({
     onBlur?: React.FocusEventHandler<HTMLDivElement>
 }): JSX.Element => {
     return (
-        // @ts-expect-error aria-value* fields expect a number, but we're passing a string
+        // @ts-expect-error aria-value* fields expect a number, but if we're dealing with daily data,
+        // the numeric representation of a date is meaningless, so we pass the formatted date string instead.
         <div
             className={classNames("handle", type)}
             style={{
@@ -463,9 +464,9 @@ const TimelineHandle = ({
             }}
             role="slider"
             tabIndex={0}
-            aria-valuemin={formattedMinTime}
-            aria-valuenow={formattedCurrTime}
-            aria-valuemax={formattedMaxTime}
+            aria-valuemin={castToNumberIfPossible(formattedMinTime)}
+            aria-valuenow={castToNumberIfPossible(formattedCurrTime)}
+            aria-valuemax={castToNumberIfPossible(formattedMaxTime)}
             aria-label={label}
             onFocus={onFocus}
             onBlur={onBlur}
@@ -488,4 +489,12 @@ const TimelineHandle = ({
             )}
         </div>
     )
+}
+
+function castToNumberIfPossible(s: string): string | number {
+    return isNumber(s) ? +s : s
+}
+
+function isNumber(s: string): boolean {
+    return /^\d+$/.test(s)
 }
