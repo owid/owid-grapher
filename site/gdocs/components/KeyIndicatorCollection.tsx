@@ -100,7 +100,10 @@ function AccordionItem({
     return (
         <div
             ref={ref}
-            className={cx("accordion-item", { "accordion-item--open": isOpen })}
+            className={cx("accordion-item", {
+                "accordion-item--open": isOpen,
+                "accordion-item--closed": !isOpen,
+            })}
         >
             <h3>
                 <button
@@ -170,9 +173,6 @@ function KeyIndicatorHeader({
             linkedIndicator.titleVariant
         )
     )
-    const dateRange = makeDateRange({
-        dateRange: linkedIndicator.dateRange,
-    })
 
     return (
         <div
@@ -180,25 +180,14 @@ function KeyIndicatorHeader({
                 "key-indicator-header--content-visible": isContentVisible,
             })}
         >
-            <div className="key-indicator-header__title col-start-1 span-cols-4 span-sm-cols-11">
+            <div className="key-indicator-header__title col-start-1 span-cols-11">
                 {linkedIndicator.title}
+                {source && (
+                    <span className="key-indicator-header__source">
+                        {source}
+                    </span>
+                )}
             </div>
-            {(source || dateRange) && (
-                <div
-                    className={cx(
-                        "key-indicator-header__metadata",
-                        "col-start-5 span-cols-7",
-                        {
-                            visible: !isContentVisible,
-                        }
-                    )}
-                    style={{ opacity: 0 }}
-                >
-                    {source}
-                    {source && " | "}
-                    {dateRange}
-                </div>
-            )}
             {!isContentVisible && (
                 <div className="key-indicator-header__icon col-start-12 span-cols-1">
                     <FontAwesomeIcon icon={faPlus} />

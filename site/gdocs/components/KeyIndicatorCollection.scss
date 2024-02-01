@@ -1,31 +1,20 @@
 .key-indicator-collection {
     // keep in sync with HEIGHT_ANIMATION_DURATION_IN_SECONDS in KeyIndicatorCollection.tsx
     $duration: 0.4s;
+    $border: $blue-10;
 
     margin: 0 -24px;
 
-    .accordion-item {
-        background-color: $white;
-
-        @include sm-only {
-            background-color: $blue-10;
-        }
+    .accordion-item--closed + .accordion-item--closed {
+        border-top: 1px solid $border;
     }
 
-    .accordion-item + .accordion-item {
-        border-top: 1px solid $blue-10;
-
-        @include sm-only {
-            border-top-color: $white;
-        }
+    .accordion-item--closed:first-of-type {
+        border-top: 1px solid $border;
     }
 
-    .accordion-item--open {
-        background-color: $blue-10;
-    }
-
-    :not(.accordion-item--open):hover {
-        background-color: $blue-10;
+    .accordion-item--closed:last-of-type {
+        border-bottom: 1px solid $border;
     }
 
     .accordion-item h3 {
@@ -33,9 +22,25 @@
     }
 
     .accordion-item__header {
+        background-color: $white;
         width: 100%;
         text-align: left;
-        padding: 12px 24px;
+        padding: 16px 24px;
+    }
+
+    .accordion-item--open .accordion-item__header {
+        background-color: $blue-20;
+    }
+
+    .accordion-item--closed .accordion-item__header:hover {
+        background-color: $blue-5;
+    }
+
+    .accordion-item--closed
+        .accordion-item__header:hover
+        .key-indicator-header__icon {
+        opacity: 1;
+        transition: opacity 0s;
     }
 
     .accordion-item__content {
@@ -44,32 +49,16 @@
         transition: height $duration cubic-bezier(0.76, 0, 0.24, 1);
     }
 
-    .key-indicator-header {
-        align-items: center;
-
-        @include sm-only {
-            align-items: center;
-        }
-    }
-
     .key-indicator-header__title {
         @include body-2-semibold;
         color: $blue-90;
     }
 
-    .key-indicator-header--content-visible .key-indicator-header__title {
-        color: $blue-60;
-    }
-
-    .key-indicator-header__metadata {
+    .key-indicator-header__source {
         @include body-3-medium;
-        color: #60758c;
-        opacity: 0;
-        transition: opacity 0.2s;
-
-        @include sm-only {
-            display: none;
-        }
+        display: inline-block;
+        margin-left: 8px;
+        color: $blue-50;
     }
 
     .key-indicator-header__icon {
@@ -82,16 +71,6 @@
             opacity: 0;
             transition: opacity 0.2s;
         }
-    }
-
-    :not(.accordion-item--open):hover .key-indicator-header__icon {
-        opacity: 1;
-        transition: opacity 0s;
-    }
-
-    .key-indicator-header__metadata.visible {
-        opacity: 1 !important;
-        transition: opacity 0.2s $duration;
     }
 
     button {
@@ -108,7 +87,6 @@
     // update <KeyIndicator /> styles
     .key-indicator {
         margin-bottom: 0;
-        padding-top: 0;
         .indicator-title {
             display: none;
         }
