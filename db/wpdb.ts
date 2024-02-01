@@ -39,7 +39,12 @@ import {
     Tag,
     OwidGdocPostInterface,
 } from "@ourworldindata/utils"
-import { OwidGdocLinkType, Topic } from "@ourworldindata/types"
+import {
+    DbRawPost,
+    OwidGdocLinkType,
+    Topic,
+    parsePostRow,
+} from "@ourworldindata/types"
 import {
     getContentGraph,
     WPPostTypeToGraphDocumentType,
@@ -48,7 +53,7 @@ import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 import { GdocPost } from "./model/Gdoc/GdocPost.js"
 import { Link } from "./model/Link.js"
 import { SiteNavigationStatic } from "../site/SiteNavigation.js"
-import { getPostEnrichedBySlug } from "./model/Post.js"
+import { getPostEnrichedBySlug, postsTable } from "./model/Post.js"
 
 let _knexInstance: Knex
 
@@ -360,7 +365,7 @@ export const selectHomepagePosts: FilterFnPostRestApi = (post) =>
 // When passing multiple post types, the limit is applied to the resulting array
 // of sequentially sorted posts (all blog posts, then all pages, ...), so there
 // will be a predominance of a certain post type.
-export const getPosts = async (
+export const DEPRECATEDgetPosts = async (
     postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
     filterFunc?: FilterFnPostRestApi,
     limit?: number
@@ -408,6 +413,39 @@ export const getPosts = async (
     )
 
     return limit ? filteredPosts.slice(0, limit) : filteredPosts
+}
+
+export const getPosts = async (
+    postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
+    filterFunc?: FilterFnPostRestApi
+): Promise<PostRestApi[]> => {
+    const rawPosts: DbRawPost[] = (
+        await db.knexInstance().raw(
+            `
+                SELECT * FROM ${postsTable}
+                WHERE status = "publish"
+                AND type IN (?)
+                ORDER BY JSON_UNQUOTE(JSON_EXTRACT(wpApiSnapshot, '$.date')) DESC;
+            `,
+            [postTypes].join(",")
+        )
+    )[0]
+
+    const posts = rawPosts
+        .map(parsePostRow)
+        .map((p) => p.wpApiSnapshot)
+        .filter((p) => p !== null) as PostRestApi[]
+
+    // Published pages excluded from public views
+    const excludedSlugs = [BLOG_SLUG]
+
+    const filterConditions: Array<FilterFnPostRestApi> = [
+        (post): boolean => !excludedSlugs.includes(post.slug),
+        (post): boolean => !post.slug.endsWith("-country-profile"),
+    ]
+    if (filterFunc) filterConditions.push(filterFunc)
+
+    return posts.filter((post) => filterConditions.every((c) => c(post)))
 }
 
 // todo / refactor : narrow down scope to getPostTypeById?
