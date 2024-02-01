@@ -18,7 +18,6 @@ import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup.js"
 import {
     RelatedChart,
-    CategoryWithEntries,
     FullPost,
     WP_PostType,
     DocumentNode,
@@ -52,7 +51,6 @@ import {
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 import { GdocPost } from "./model/Gdoc/GdocPost.js"
 import { Link } from "./model/Link.js"
-import { SiteNavigationStatic } from "../site/SiteNavigation.js"
 import { postsTable } from "./model/Post.js"
 
 let _knexInstance: Knex
@@ -258,23 +256,6 @@ export const getDocumentsInfo = async (
     } else {
         return documents
     }
-}
-
-export const isPostCitable = async (post: FullPost): Promise<boolean> => {
-    const entries = SiteNavigationStatic.categories
-    return entries.some((category) => {
-        return (
-            category.entries.some((entry) => entry.slug === post.slug) ||
-            (category.subcategories ?? []).some(
-                (subcategory: CategoryWithEntries) => {
-                    return subcategory.entries.some(
-                        (subCategoryEntry) =>
-                            subCategoryEntry.slug === post.slug
-                    )
-                }
-            )
-        )
-    })
 }
 
 export const getPermalinks = async (): Promise<{

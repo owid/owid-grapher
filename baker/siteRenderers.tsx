@@ -60,7 +60,7 @@ import {
 import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
-import { getBlogIndex, isPostCitable, getBlockContent } from "../db/wpdb.js"
+import { getBlogIndex, getBlockContent } from "../db/wpdb.js"
 import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
@@ -84,6 +84,7 @@ import { resolveInternalRedirect } from "./redirects.js"
 import {
     getFullPostByIdFromSnapshot,
     getFullPostBySlugFromSnapshot,
+    isPostSlugCitable,
     postsTable,
 } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
@@ -227,7 +228,8 @@ export const renderPost = async (
 
     const pageOverrides = await getPageOverrides(post, formattingOptions)
     const citationStatus =
-        (await isPostCitable(post)) || isPageOverridesCitable(pageOverrides)
+        (await isPostSlugCitable(post.slug)) ||
+        isPageOverridesCitable(pageOverrides)
 
     return renderToHtmlPage(
         <LongFormPage
