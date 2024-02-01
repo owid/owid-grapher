@@ -2681,7 +2681,7 @@ export class Grapher
     // (e.g. stand-alone charts in the main text of an article)
     @computed get isMedium(): boolean {
         if (this.isStatic) return false
-        return this.renderWidth <= 840
+        return this.renderWidth <= 845
     }
 
     @computed get isStaticAndSmall(): boolean {
