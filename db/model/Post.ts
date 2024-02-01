@@ -18,7 +18,6 @@ import { Knex } from "knex"
 import { memoize, orderBy } from "lodash"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { BLOG_SLUG } from "../../settings/serverSettings.js"
-import { selectHomepagePosts } from "../wpdb.js"
 import { GdocPost } from "./Gdoc/GdocPost.js"
 import { SiteNavigationStatic } from "../../site/SiteNavigation.js"
 import { decodeHTML } from "entities"
@@ -219,6 +218,9 @@ export const getFullPost = async (
             ? await getPostRelatedCharts(postApi.id)
             : undefined,
 })
+
+const selectHomepagePosts: FilterFnPostRestApi = (post) =>
+    post.meta?.owid_publication_context_meta_field?.homepage === true
 
 export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
     await db.getConnection() // side effect: ensure connection is established
