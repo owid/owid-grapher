@@ -82,6 +82,7 @@ export class EntitySelectionToggle extends React.Component<{
                         e.stopPropagation()
                     }}
                     data-track-note="chart_add_entity"
+                    aria-label={`${label.action} ${label.entity}`}
                 >
                     {label.icon}
                     <label>

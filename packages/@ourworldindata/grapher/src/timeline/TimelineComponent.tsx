@@ -258,7 +258,7 @@ export class TimelineComponent extends React.Component<{
         const time =
             markerType === "start" ? controller.minTime : controller.maxTime
         return (
-            <div
+            <button
                 className="date clickable"
                 onClick={(): void =>
                     markerType === "start"
@@ -267,7 +267,7 @@ export class TimelineComponent extends React.Component<{
                 }
             >
                 {this.formatTime(time)}
-            </div>
+            </button>
         )
     }
 

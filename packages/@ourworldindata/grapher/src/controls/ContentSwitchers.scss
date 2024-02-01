@@ -24,7 +24,7 @@
         position: relative;
     }
 
-    li > a {
+    li > button {
         $height: $controlRowHeight - 2 * $visual-gap;
 
         display: block;
@@ -69,7 +69,7 @@
         }
     }
 
-    li.active > a {
+    li.active > button {
         color: $active-text;
         background-color: $active-fill;
 
@@ -105,7 +105,7 @@
 }
 
 &.GrapherComponentMedium {
-    .ContentSwitchers:not(.iconOnly) li > a {
+    .ContentSwitchers:not(.iconOnly) li > button {
         padding: 0 8px;
     }
 }
