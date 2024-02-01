@@ -60,13 +60,7 @@ import {
 import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
-import {
-    getBlogIndex,
-    isPostCitable,
-    getBlockContent,
-    getPostBySlugFromSnapshot,
-    getPostByIdFromSnapshot,
-} from "../db/wpdb.js"
+import { getBlogIndex, isPostCitable, getBlockContent } from "../db/wpdb.js"
 import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
@@ -87,7 +81,11 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
 import { resolveInternalRedirect } from "./redirects.js"
-import { postsTable } from "../db/model/Post.js"
+import {
+    getFullPostByIdFromSnapshot,
+    getFullPostBySlugFromSnapshot,
+    postsTable,
+} from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
@@ -194,12 +192,12 @@ export const renderGdoc = (gdoc: OwidGdoc, isPreviewing: boolean = false) => {
 }
 
 export const renderPageBySlug = async (slug: string) => {
-    const post = await getPostBySlugFromSnapshot(slug)
+    const post = await getFullPostBySlugFromSnapshot(slug)
     return renderPost(post)
 }
 
 export const renderPreview = async (postId: number): Promise<string> => {
-    const postApi = await getPostByIdFromSnapshot(postId)
+    const postApi = await getFullPostByIdFromSnapshot(postId)
     return renderPost(postApi)
 }
 
@@ -485,7 +483,7 @@ const getCountryProfilePost = memoize(
         grapherExports?: GrapherExports
     ): Promise<[FormattedPost, FormattingOptions]> => {
         // Get formatted content from generic covid country profile page.
-        const genericCountryProfilePost = await getPostBySlugFromSnapshot(
+        const genericCountryProfilePost = await getFullPostBySlugFromSnapshot(
             profileSpec.genericProfileSlug
         )
 
@@ -505,7 +503,7 @@ const getCountryProfilePost = memoize(
 // todo: we used to flush cache of this thing.
 const getCountryProfileLandingPost = memoize(
     async (profileSpec: CountryProfileSpec) => {
-        return getPostBySlugFromSnapshot(profileSpec.landingPageSlug)
+        return getFullPostBySlugFromSnapshot(profileSpec.landingPageSlug)
     }
 )
 
@@ -564,7 +562,7 @@ const renderPostThumbnailBySlug = async (
 
     let post
     try {
-        post = await getPostBySlugFromSnapshot(slug)
+        post = await getFullPostBySlugFromSnapshot(slug)
     } catch (err) {
         // if no post is found, then we return early instead of throwing
     }
@@ -604,8 +602,11 @@ export const renderProminentLinks = async (
                         ? (await Chart.getBySlug(resolvedUrl.slug))?.config
                               ?.title // optim?
                         : resolvedUrl.slug &&
-                          (await getPostBySlugFromSnapshot(resolvedUrl.slug))
-                              .title)
+                          (
+                              await getFullPostBySlugFromSnapshot(
+                                  resolvedUrl.slug
+                              )
+                          ).title)
             } finally {
                 if (!title) {
                     logErrorAndMaybeSendToBugsnag(

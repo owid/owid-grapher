@@ -1,6 +1,13 @@
 import * as db from "../db.js"
 import { Knex } from "knex"
-import { DbEnrichedPost, DbRawPost, parsePostRow } from "@ourworldindata/utils"
+import {
+    DbEnrichedPost,
+    DbRawPost,
+    FullPost,
+    JsonError,
+    parsePostRow,
+} from "@ourworldindata/utils"
+import { getFullPost } from "../wpdb.js"
 
 export const postsTable = "posts"
 
@@ -84,4 +91,24 @@ export const getPostEnrichedById = async (
     const post = await getPostRawById(id)
     if (!post) return undefined
     return parsePostRow(post)
+}
+
+export const getFullPostBySlugFromSnapshot = async (
+    slug: string
+): Promise<FullPost> => {
+    const postEnriched = await getPostEnrichedBySlug(slug)
+    if (!postEnriched?.wpApiSnapshot)
+        throw new JsonError(`No page snapshot found by slug ${slug}`, 404)
+
+    return getFullPost(postEnriched.wpApiSnapshot)
+}
+
+export const getFullPostByIdFromSnapshot = async (
+    id: number
+): Promise<FullPost> => {
+    const postEnriched = await getPostEnrichedById(id)
+    if (!postEnriched?.wpApiSnapshot)
+        throw new JsonError(`No page snapshot found by id ${id}`, 404)
+
+    return getFullPost(postEnriched.wpApiSnapshot)
 }

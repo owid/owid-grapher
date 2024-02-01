@@ -53,11 +53,7 @@ import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 import { GdocPost } from "./model/Gdoc/GdocPost.js"
 import { Link } from "./model/Link.js"
 import { SiteNavigationStatic } from "../site/SiteNavigation.js"
-import {
-    getPostEnrichedById,
-    getPostEnrichedBySlug,
-    postsTable,
-} from "./model/Post.js"
+import { postsTable } from "./model/Post.js"
 
 let _knexInstance: Knex
 
@@ -449,26 +445,6 @@ export const getPostApiBySlugFromApi = async (
     const { id, type } = postIdAndType
 
     return apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
-}
-
-export const getPostBySlugFromSnapshot = async (
-    slug: string
-): Promise<FullPost> => {
-    const postEnriched = await getPostEnrichedBySlug(slug)
-    if (!postEnriched?.wpApiSnapshot)
-        throw new JsonError(`No page snapshot found by slug ${slug}`, 404)
-
-    return getFullPost(postEnriched.wpApiSnapshot)
-}
-
-export const getPostByIdFromSnapshot = async (
-    id: number
-): Promise<FullPost> => {
-    const postEnriched = await getPostEnrichedById(id)
-    if (!postEnriched?.wpApiSnapshot)
-        throw new JsonError(`No page snapshot found by id ${id}`, 404)
-
-    return getFullPost(postEnriched.wpApiSnapshot)
 }
 
 export const getRelatedCharts = async (
