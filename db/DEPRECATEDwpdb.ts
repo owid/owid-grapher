@@ -18,13 +18,13 @@ import { BLOG_SLUG } from "../settings/serverSettings.js"
 import {
     WP_API_ENDPOINT,
     apiQuery,
-    getFullPost,
     getPostApiBySlugFromApi,
     isWordpressAPIEnabled,
     singleton,
     OWID_API_ENDPOINT,
     getEndpointSlugFromType,
 } from "./wpdb.js"
+import { getFullPost } from "./model/Post.js"
 
 // Limit not supported with multiple post types: When passing multiple post
 // types, the limit is applied to the resulting array of sequentially sorted

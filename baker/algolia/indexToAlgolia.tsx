@@ -26,7 +26,7 @@ import { Pageview } from "../../db/model/Pageview.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { ArticleBlocks } from "../../site/gdocs/components/ArticleBlocks.js"
 import React from "react"
-import { getPostsFromSnapshots } from "../../db/model/Post.js"
+import { getFullPost, getPostsFromSnapshots } from "../../db/model/Post.js"
 
 interface TypeAndImportance {
     type: PageType
@@ -93,7 +93,7 @@ async function generateWordpressRecords(
     const records: PageRecord[] = []
 
     for (const postApi of postsApi) {
-        const rawPost = await wpdb.getFullPost(postApi)
+        const rawPost = await getFullPost(postApi)
         if (isEmpty(rawPost.content)) {
             // we have some posts that are only placeholders (e.g. for a redirect); don't index these
             console.log(

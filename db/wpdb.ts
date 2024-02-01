@@ -1,4 +1,3 @@
-import { decodeHTML } from "entities"
 import { DatabaseConnection } from "./DatabaseConnection.js"
 import {
     WORDPRESS_DB_NAME,
@@ -9,7 +8,6 @@ import {
     WORDPRESS_API_PASS,
     WORDPRESS_API_USER,
     WORDPRESS_URL,
-    BAKED_BASE_URL,
 } from "../settings/serverSettings.js"
 import * as db from "./db.js"
 import { Knex, knex } from "knex"
@@ -17,7 +15,6 @@ import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup.js"
 import {
     RelatedChart,
-    FullPost,
     WP_PostType,
     DocumentNode,
     PostReference,
@@ -26,16 +23,11 @@ import {
     PostRestApi,
     TopicId,
     GraphType,
-    memoize,
-    IndexPost,
-    orderBy,
-    IMAGES_DIRECTORY,
     uniqBy,
     sortBy,
     DataPageRelatedResearch,
     OwidGdocType,
     Tag,
-    OwidGdocPostInterface,
 } from "@ourworldindata/utils"
 import { OwidGdocLinkType, Topic } from "@ourworldindata/types"
 import {
@@ -43,9 +35,8 @@ import {
     WPPostTypeToGraphDocumentType,
 } from "./contentGraph.js"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
-import { GdocPost } from "./model/Gdoc/GdocPost.js"
 import { Link } from "./model/Link.js"
-import { getPostsFromSnapshots } from "./model/Post.js"
+import { getBlogIndex } from "./model/Post.js"
 
 let _knexInstance: Knex
 
@@ -312,23 +303,6 @@ export const getPostApiBySlugFromApi = async (
     return apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
 }
 
-export const getRelatedCharts = async (
-    postId: number
-): Promise<RelatedChart[]> =>
-    db.queryMysql(`
-        SELECT DISTINCT
-            charts.config->>"$.slug" AS slug,
-            charts.config->>"$.title" AS title,
-            charts.config->>"$.variantName" AS variantName,
-            chart_tags.keyChartLevel
-        FROM charts
-        INNER JOIN chart_tags ON charts.id=chart_tags.chartId
-        INNER JOIN post_tags ON chart_tags.tagId=post_tags.tag_id
-        WHERE post_tags.post_id=${postId}
-        AND charts.config->>"$.isPublished" = "true"
-        ORDER BY title ASC
-    `)
-
 export const getPostTags = async (
     postId: number
 ): Promise<Pick<Tag, "id" | "name">[]> => {
@@ -577,74 +551,6 @@ export const getBlockContent = async (
     const post = await getBlockApi(id)
 
     return post.data?.wpBlock?.content ?? undefined
-}
-
-export const getFullPost = async (
-    postApi: PostRestApi,
-    excludeContent?: boolean
-): Promise<FullPost> => ({
-    id: postApi.id,
-    type: postApi.type,
-    slug: postApi.slug,
-    path: postApi.slug, // kept for transitioning between legacy BPES (blog post as entry section) and future hierarchical paths
-    title: decodeHTML(postApi.title.rendered),
-    date: new Date(postApi.date_gmt),
-    modifiedDate: new Date(postApi.modified_gmt),
-    authors: postApi.authors_name || [],
-    content: excludeContent ? "" : postApi.content.rendered,
-    excerpt: decodeHTML(postApi.excerpt.rendered),
-    imageUrl: `${BAKED_BASE_URL}${
-        postApi.featured_media_paths.medium_large ?? "/default-thumbnail.jpg"
-    }`,
-    thumbnailUrl: `${BAKED_BASE_URL}${
-        postApi.featured_media_paths?.thumbnail ?? "/default-thumbnail.jpg"
-    }`,
-    imageId: postApi.featured_media,
-    relatedCharts:
-        postApi.type === "page"
-            ? await getRelatedCharts(postApi.id)
-            : undefined,
-})
-
-export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
-    await db.getConnection() // side effect: ensure connection is established
-    const gdocPosts = await GdocPost.getListedGdocs()
-    const wpPosts = await Promise.all(
-        await getPostsFromSnapshots(
-            [WP_PostType.Post],
-            selectHomepagePosts
-        ).then((posts) => posts.map((post) => getFullPost(post, true)))
-    )
-
-    const gdocSlugs = new Set(gdocPosts.map(({ slug }) => slug))
-    const posts = [...mapGdocsToWordpressPosts(gdocPosts)]
-
-    // Only adding each wpPost if there isn't already a gdoc with the same slug,
-    // to make sure we use the most up-to-date metadata
-    for (const wpPost of wpPosts) {
-        if (!gdocSlugs.has(wpPost.slug)) {
-            posts.push(wpPost)
-        }
-    }
-
-    return orderBy(posts, (post) => post.date.getTime(), ["desc"])
-})
-
-export const mapGdocsToWordpressPosts = (
-    gdocs: OwidGdocPostInterface[]
-): IndexPost[] => {
-    return gdocs.map((gdoc) => ({
-        title: gdoc.content["atom-title"] || gdoc.content.title || "Untitled",
-        slug: gdoc.slug,
-        type: gdoc.content.type,
-        date: gdoc.publishedAt as Date,
-        modifiedDate: gdoc.updatedAt as Date,
-        authors: gdoc.content.authors,
-        excerpt: gdoc.content["atom-excerpt"] || gdoc.content.excerpt,
-        imageUrl: gdoc.content["featured-image"]
-            ? `${BAKED_BASE_URL}${IMAGES_DIRECTORY}${gdoc.content["featured-image"]}`
-            : `${BAKED_BASE_URL}/default-thumbnail.jpg`,
-    }))
 }
 
 export const getTopics = async (cursor: string = ""): Promise<Topic[]> => {
