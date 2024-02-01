@@ -4,12 +4,16 @@ import {
     CategoryWithEntries,
     DbEnrichedPost,
     DbRawPost,
+    FilterFnPostRestApi,
     FullPost,
     JsonError,
+    PostRestApi,
+    WP_PostType,
     parsePostRow,
 } from "@ourworldindata/utils"
 import { getFullPost } from "../wpdb.js"
 import { SiteNavigationStatic } from "../../site/SiteNavigation.js"
+import { BLOG_SLUG } from "../../settings/serverSettings.js"
 
 export const postsTable = "posts"
 
@@ -129,4 +133,37 @@ export const isPostSlugCitable = async (slug: string): Promise<boolean> => {
             )
         )
     })
+}
+
+export const getPostsFromSnapshots = async (
+    postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
+    filterFunc?: FilterFnPostRestApi
+): Promise<PostRestApi[]> => {
+    const rawPosts: DbRawPost[] = (
+        await db.knexInstance().raw(
+            `
+                SELECT * FROM ${postsTable}
+                WHERE status = "publish"
+                AND type IN (?)
+                ORDER BY JSON_UNQUOTE(JSON_EXTRACT(wpApiSnapshot, '$.date')) DESC;
+            `,
+            [postTypes].join(",")
+        )
+    )[0]
+
+    const posts = rawPosts
+        .map(parsePostRow)
+        .map((p) => p.wpApiSnapshot)
+        .filter((p) => p !== null) as PostRestApi[]
+
+    // Published pages excluded from public views
+    const excludedSlugs = [BLOG_SLUG]
+
+    const filterConditions: Array<FilterFnPostRestApi> = [
+        (post): boolean => !excludedSlugs.includes(post.slug),
+        (post): boolean => !post.slug.endsWith("-country-profile"),
+    ]
+    if (filterFunc) filterConditions.push(filterFunc)
+
+    return posts.filter((post) => filterConditions.every((c) => c(post)))
 }

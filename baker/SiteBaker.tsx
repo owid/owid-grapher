@@ -75,7 +75,7 @@ import {
     bakeAllPublishedExplorers,
 } from "./ExplorerBaker.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { postsTable } from "../db/model/Post.js"
+import { getPostsFromSnapshots, postsTable } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { Image } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
@@ -424,7 +424,7 @@ export class SiteBaker {
 
     private async removeDeletedPosts() {
         if (!this.bakeSteps.has("removeDeletedPosts")) return
-        const postsApi = await wpdb.getPosts()
+        const postsApi = await getPostsFromSnapshots()
 
         const postSlugs = []
         for (const postApi of postsApi) {
@@ -454,7 +454,7 @@ export class SiteBaker {
         const alreadyPublishedViaGdocsSlugsSet =
             await db.getSlugsWithPublishedGdocsSuccessors(db.knexInstance())
 
-        const postsApi = await wpdb.getPosts(
+        const postsApi = await getPostsFromSnapshots(
             undefined,
             (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
         )

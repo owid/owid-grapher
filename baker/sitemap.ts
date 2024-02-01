@@ -6,13 +6,13 @@ import {
 } from "../settings/serverSettings.js"
 import { dayjs, countries, queryParamsToStr } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
-import * as wpdb from "../db/wpdb.js"
 import urljoin from "url-join"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
+import { getPostsFromSnapshots } from "../db/model/Post.js"
 
 interface SitemapUrl {
     loc: string
@@ -62,7 +62,7 @@ export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
     const knex = db.knexInstance()
     const alreadyPublishedViaGdocsSlugsSet =
         await db.getSlugsWithPublishedGdocsSuccessors(knex)
-    const postsApi = await wpdb.getPosts(
+    const postsApi = await getPostsFromSnapshots(
         undefined,
         (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
     )
