@@ -260,3 +260,7 @@ export const mapGdocsToWordpressPosts = (
             : `${BAKED_BASE_URL}/default-thumbnail.jpg`,
     }))
 }
+
+export const postsFlushCache = (): void => {
+    getBlogIndex.cache.clear?.()
+}

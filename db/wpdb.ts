@@ -36,7 +36,6 @@ import {
 } from "./contentGraph.js"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 import { Link } from "./model/Link.js"
-import { getBlogIndex } from "./model/Post.js"
 
 let _knexInstance: Knex
 
@@ -612,8 +611,4 @@ export const getTables = async (): Promise<Map<string, TablepressTable>> => {
     }
 
     return tables
-}
-
-export const flushCache = (): void => {
-    getBlogIndex.cache.clear?.()
 }
