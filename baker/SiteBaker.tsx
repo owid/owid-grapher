@@ -75,6 +75,7 @@ import {
     getBlogIndex,
     getFullPost,
     getPostsFromSnapshots,
+    postsFlushCache,
     postsTable,
 } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
@@ -912,7 +913,7 @@ export class SiteBaker {
 
     private flushCache() {
         // Clear caches to allow garbage collection while waiting for next run
-        wpdb.flushCache()
+        postsFlushCache()
         siteBakingFlushCache()
         redirectsFlushCache()
         this.progressBar.tick({ name: "✅ cache flushed" })
