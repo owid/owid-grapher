@@ -285,9 +285,9 @@ export class TimelineComponent extends React.Component<{
             controller.resetStartToMin()
         } else if (key === "End") {
             controller.setStartToMax()
-        } else if (key === "ArrowLeft") {
+        } else if (key === "ArrowLeft" || key === "ArrowDown") {
             controller.decreaseStartTime()
-        } else if (key === "ArrowRight") {
+        } else if (key === "ArrowRight" || key === "ArrowUp") {
             controller.increaseStartTime()
         }
     }
@@ -298,9 +298,9 @@ export class TimelineComponent extends React.Component<{
             controller.setEndToMin()
         } else if (key === "End") {
             controller.resetEndToMax()
-        } else if (key === "ArrowLeft") {
+        } else if (key === "ArrowLeft" || key === "ArrowDown") {
             controller.decreaseEndTime()
-        } else if (key === "ArrowRight") {
+        } else if (key === "ArrowRight" || key === "ArrowUp") {
             controller.increaseEndTime()
         }
     }
