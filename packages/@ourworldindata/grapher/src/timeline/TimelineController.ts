@@ -65,6 +65,10 @@ export class TimelineController {
         return this.timesAsc[this.timesAsc.indexOf(time) + 1] ?? this.maxTime
     }
 
+    getPrevTime(time: number): number {
+        return this.timesAsc[this.timesAsc.indexOf(time) - 1] ?? this.minTime
+    }
+
     // By default, play means extend the endTime to the right. Toggle this to play one time unit at a time.
     private rangeMode = true
     toggleRangeMode(): this {
@@ -109,6 +113,26 @@ export class TimelineController {
         }
 
         return tickCount
+    }
+
+    increaseStartTime(): void {
+        const nextTime = this.getNextTime(this.startTime)
+        this.updateStartTime(nextTime)
+    }
+
+    decreaseStartTime(): void {
+        const prevTime = this.getPrevTime(this.startTime)
+        this.updateStartTime(prevTime)
+    }
+
+    increaseEndTime(): void {
+        const nextTime = this.getNextTime(this.endTime)
+        this.updateEndTime(nextTime)
+    }
+
+    decreaseEndTime(): void {
+        const prevTime = this.getPrevTime(this.endTime)
+        this.updateEndTime(prevTime)
     }
 
     private stop(): void {
@@ -214,5 +238,13 @@ export class TimelineController {
 
     resetEndToMax(): void {
         this.updateEndTime(TimeBoundValue.positiveInfinity)
+    }
+
+    setStartToMax(): void {
+        this.updateStartTime(TimeBoundValue.positiveInfinity)
+    }
+
+    setEndToMin(): void {
+        this.updateEndTime(TimeBoundValue.negativeInfinity)
     }
 }

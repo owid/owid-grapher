@@ -279,6 +279,32 @@ export class TimelineComponent extends React.Component<{
         this.controller.togglePlay()
     }
 
+    @action.bound updateStartTimeOnKeyDown(key: string): void {
+        const { controller } = this
+        if (key === "Home") {
+            controller.resetStartToMin()
+        } else if (key === "End") {
+            controller.setStartToMax()
+        } else if (key === "ArrowLeft") {
+            controller.decreaseStartTime()
+        } else if (key === "ArrowRight") {
+            controller.increaseStartTime()
+        }
+    }
+
+    @action.bound updateEndTimeOnKeyDown(key: string): void {
+        const { controller } = this
+        if (key === "Home") {
+            controller.setEndToMin()
+        } else if (key === "End") {
+            controller.resetEndToMax()
+        } else if (key === "ArrowLeft") {
+            controller.decreaseEndTime()
+        } else if (key === "ArrowRight") {
+            controller.increaseEndTime()
+        }
+    }
+
     convertToTime(time: number): number {
         if (time === -Infinity) return this.controller.minTime
         if (time === +Infinity) return this.controller.maxTime
@@ -291,6 +317,8 @@ export class TimelineComponent extends React.Component<{
             controller
         const { startHandleTimeBound, endHandleTimeBound } = manager
 
+        const formattedMinTime = this.formatTime(minTime)
+        const formattedMaxTime = this.formatTime(maxTime)
         const formattedStartTime = this.formatTime(
             timeFromTimebounds(startHandleTimeBound, minTime, maxTime)
         )
@@ -337,12 +365,29 @@ export class TimelineComponent extends React.Component<{
                 >
                     <TimelineHandle
                         type="startMarker"
+                        label="Start time"
                         offsetPercent={startTimeProgress * 100}
-                        tooltipContent={formattedStartTime}
+                        formattedMinTime={formattedMinTime}
+                        formattedMaxTime={formattedMaxTime}
+                        formattedCurrTime={formattedStartTime}
                         tooltipVisible={this.startTooltipVisible}
                         tooltipZIndex={
                             this.lastUpdatedTooltip === "startMarker" ? 2 : 1
                         }
+                        onKeyDown={action((e) => {
+                            // prevent browser to scroll to the top or bottom of the page
+                            if (e.key === "Home" || e.key === "End")
+                                e.preventDefault()
+
+                            this.updateStartTimeOnKeyDown(e.key)
+                        })}
+                        onFocus={action(() => {
+                            this.showTooltips()
+                        })}
+                        onBlur={action(() => {
+                            this.startTooltipVisible = false
+                            this.endTooltipVisible = false
+                        })}
                     />
                     <div
                         className="interval"
@@ -353,12 +398,29 @@ export class TimelineComponent extends React.Component<{
                     />
                     <TimelineHandle
                         type="endMarker"
+                        label="End time"
                         offsetPercent={endTimeProgress * 100}
-                        tooltipContent={formattedEndTime}
+                        formattedMinTime={formattedMinTime}
+                        formattedMaxTime={formattedMaxTime}
+                        formattedCurrTime={formattedEndTime}
                         tooltipVisible={this.endTooltipVisible}
                         tooltipZIndex={
                             this.lastUpdatedTooltip === "endMarker" ? 2 : 1
                         }
+                        onKeyDown={action((e) => {
+                            // prevent browser to scroll to the top or bottom of the page
+                            if (e.key === "Home" || e.key === "End")
+                                e.preventDefault()
+
+                            this.updateEndTimeOnKeyDown(e.key)
+                        })}
+                        onFocus={action(() => {
+                            this.showTooltips()
+                        })}
+                        onBlur={action(() => {
+                            this.startTooltipVisible = false
+                            this.endTooltipVisible = false
+                        })}
                     />
                 </div>
                 {this.timelineEdgeMarker("end")}
@@ -369,23 +431,45 @@ export class TimelineComponent extends React.Component<{
 
 const TimelineHandle = ({
     type,
+    label,
     offsetPercent,
-    tooltipContent,
+    formattedMinTime,
+    formattedMaxTime,
+    formattedCurrTime,
     tooltipVisible,
     tooltipZIndex,
+    onKeyDown,
+    onFocus,
+    onBlur,
 }: {
     type: "startMarker" | "endMarker"
+    label: string
     offsetPercent: number
-    tooltipContent: string
+    formattedMinTime: string
+    formattedMaxTime: string
+    formattedCurrTime: string
     tooltipVisible: boolean
     tooltipZIndex: number
+    onKeyDown?: React.KeyboardEventHandler<HTMLDivElement>
+    onFocus?: React.FocusEventHandler<HTMLDivElement>
+    onBlur?: React.FocusEventHandler<HTMLDivElement>
 }): JSX.Element => {
     return (
+        // @ts-expect-error aria-value* fields expect a number, but we're passing a string
         <div
             className={classNames("handle", type)}
             style={{
                 left: `${offsetPercent}%`,
             }}
+            role="slider"
+            tabIndex={0}
+            aria-valuemin={formattedMinTime}
+            aria-valuenow={formattedCurrTime}
+            aria-valuemax={formattedMaxTime}
+            aria-label={label}
+            onFocus={onFocus}
+            onBlur={onBlur}
+            onKeyDown={onKeyDown}
         >
             <div className="icon" />
             {tooltipVisible && (
@@ -398,7 +482,7 @@ const TimelineHandle = ({
                         className="handle-label"
                         style={{ zIndex: tooltipZIndex }}
                     >
-                        {tooltipContent}
+                        {formattedCurrTime}
                     </div>
                 </>
             )}
