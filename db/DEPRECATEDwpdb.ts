@@ -23,6 +23,7 @@ import {
     getPostApiBySlugFromApi,
     getPostType,
     isWordpressAPIEnabled,
+    singleton,
 } from "./wpdb.js"
 
 // Limit not supported with multiple post types: When passing multiple post
@@ -122,4 +123,60 @@ export const DEPRECATEDgetLatestPostRevision = async (
         content: revision.content,
         title: revision.title,
     })
+}
+
+export const DEPRECATEDgetTagsByPostId = async (): Promise<
+    Map<number, string[]>
+> => {
+    const tagsByPostId = new Map<number, string[]>()
+    const rows = await singleton.query(`
+        SELECT p.id, t.name
+        FROM wp_posts p
+        JOIN wp_term_relationships tr
+            on (p.id=tr.object_id)
+        JOIN wp_term_taxonomy tt
+            on (tt.term_taxonomy_id=tr.term_taxonomy_id
+            and tt.taxonomy='post_tag')
+        JOIN wp_terms t
+            on (tt.term_id=t.term_id)
+    `)
+
+    for (const row of rows) {
+        let cats = tagsByPostId.get(row.id)
+        if (!cats) {
+            cats = []
+            tagsByPostId.set(row.id, cats)
+        }
+        cats.push(row.name)
+    }
+
+    return tagsByPostId
+}
+
+// Retrieve a map of post ids to authors
+export let cachedAuthorship: Map<number, string[]> | undefined
+export const DEPRECATEDgetAuthorship = async (): Promise<
+    Map<number, string[]>
+> => {
+    if (cachedAuthorship) return cachedAuthorship
+
+    const authorRows = await singleton.query(`
+        SELECT object_id, terms.description FROM wp_term_relationships AS rels
+        LEFT JOIN wp_term_taxonomy AS terms ON terms.term_taxonomy_id=rels.term_taxonomy_id
+        WHERE terms.taxonomy='author'
+        ORDER BY rels.term_order ASC
+    `)
+
+    const authorship = new Map<number, string[]>()
+    for (const row of authorRows) {
+        let authors = authorship.get(row.object_id)
+        if (!authors) {
+            authors = []
+            authorship.set(row.object_id, authors)
+        }
+        authors.push(row.description.split(" ").slice(0, 2).join(" "))
+    }
+
+    cachedAuthorship = authorship
+    return authorship
 }
