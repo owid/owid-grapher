@@ -19,7 +19,6 @@ import {
     DocumentNode,
     PostReference,
     JsonError,
-    FilterFnPostRestApi,
     PostRestApi,
     TopicId,
     GraphType,
@@ -253,9 +252,6 @@ export const getPermalinks = async (): Promise<{
 
 // page => pages, post => posts
 export const getEndpointSlugFromType = (type: string): string => `${type}s`
-
-export const selectHomepagePosts: FilterFnPostRestApi = (post) =>
-    post.meta?.owid_publication_context_meta_field?.homepage === true
 
 // The API query in getPostType is cleaner but slower, which becomes more of an
 // issue with prominent links requesting posts by slugs (getPostBySlug) to
