@@ -538,16 +538,6 @@ export const getBlockApiFromApi = async (id: number): Promise<any> => {
     return graphqlQuery(query, { id })
 }
 
-export const getBlockContentFromApi = async (
-    id: number
-): Promise<string | undefined> => {
-    if (!isWordpressAPIEnabled) return undefined
-
-    const post = await getBlockApiFromApi(id)
-
-    return post.data?.wpBlock?.content ?? undefined
-}
-
 export const getTopics = async (cursor: string = ""): Promise<Topic[]> => {
     if (!isWordpressAPIEnabled) return []
     const query = `query {

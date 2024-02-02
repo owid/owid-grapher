@@ -23,6 +23,7 @@ import {
     singleton,
     OWID_API_ENDPOINT,
     getEndpointSlugFromType,
+    getBlockApiFromApi,
 } from "./wpdb.js"
 import { getFullPost } from "./model/Post.js"
 
@@ -246,4 +247,14 @@ export const DEPRECATEDgetTables = async (): Promise<
     }
 
     return cachedTables
+}
+
+export const DEPRECATEDgetBlockContentFromApi = async (
+    id: number
+): Promise<string | undefined> => {
+    if (!isWordpressAPIEnabled) return undefined
+
+    const post = await getBlockApiFromApi(id)
+
+    return post.data?.wpBlock?.content ?? undefined
 }
