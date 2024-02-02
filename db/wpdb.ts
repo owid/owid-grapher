@@ -28,7 +28,7 @@ import {
     OwidGdocType,
     Tag,
 } from "@ourworldindata/utils"
-import { OwidGdocLinkType, Topic } from "@ourworldindata/types"
+import { OwidGdocLinkType } from "@ourworldindata/types"
 import {
     getContentGraph,
     WPPostTypeToGraphDocumentType,
@@ -117,7 +117,7 @@ export const ENTRIES_CATEGORY_ID = 44
  * every query. So it is the caller's responsibility to throw (if necessary) on
  * "faux 404".
  */
-const graphqlQuery = async (
+export const graphqlQuery = async (
     query: string,
     variables: any = {}
 ): Promise<any> => {
@@ -536,33 +536,6 @@ export const getBlockApiFromApi = async (id: number): Promise<any> => {
       }
     `
     return graphqlQuery(query, { id })
-}
-
-export const getTopics = async (cursor: string = ""): Promise<Topic[]> => {
-    if (!isWordpressAPIEnabled) return []
-    const query = `query {
-        pages (first: 100, after:"${cursor}", where: {categoryId:${ENTRIES_CATEGORY_ID}} ) {
-            pageInfo {
-                hasNextPage
-                endCursor
-            }
-            nodes {
-                id: databaseId
-                name: title
-            }
-        }
-      }`
-
-    const documents = await graphqlQuery(query, { cursor })
-    const pageInfo = documents.data.pages.pageInfo
-    const topics: Topic[] = documents.data.pages.nodes
-    if (topics.length === 0) return []
-
-    if (pageInfo.hasNextPage) {
-        return topics.concat(await getTopics(pageInfo.endCursor))
-    } else {
-        return topics
-    }
 }
 
 export interface TablepressTable {

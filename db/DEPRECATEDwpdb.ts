@@ -13,6 +13,7 @@ import {
     PostRestApi,
     FullPost,
     JsonError,
+    Topic,
 } from "@ourworldindata/types"
 import { BLOG_SLUG } from "../settings/serverSettings.js"
 import {
@@ -24,6 +25,8 @@ import {
     OWID_API_ENDPOINT,
     getEndpointSlugFromType,
     getBlockApiFromApi,
+    graphqlQuery,
+    ENTRIES_CATEGORY_ID,
 } from "./wpdb.js"
 import { getFullPost } from "./model/Post.js"
 
@@ -219,4 +222,34 @@ export const DEPRECATEDgetBlockContentFromApi = async (
     const post = await getBlockApiFromApi(id)
 
     return post.data?.wpBlock?.content ?? undefined
+}
+
+export const DEPRECATEDgetTopics = async (
+    cursor: string = ""
+): Promise<Topic[]> => {
+    if (!isWordpressAPIEnabled) return []
+
+    const query = `query {
+        pages (first: 100, after:"${cursor}", where: {categoryId:${ENTRIES_CATEGORY_ID}} ) {
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+            nodes {
+                id: databaseId
+                name: title
+            }
+        }
+      }`
+
+    const documents = await graphqlQuery(query, { cursor })
+    const pageInfo = documents.data.pages.pageInfo
+    const topics: Topic[] = documents.data.pages.nodes
+    if (topics.length === 0) return []
+
+    if (pageInfo.hasNextPage) {
+        return topics.concat(await DEPRECATEDgetTopics(pageInfo.endCursor))
+    } else {
+        return topics
+    }
 }
