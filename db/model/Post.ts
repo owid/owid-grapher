@@ -14,6 +14,7 @@ import {
     OwidGdocPostInterface,
     IMAGES_DIRECTORY,
     snapshotIsPostRestApi,
+    snapshotIsBlockGraphQlApi,
 } from "@ourworldindata/types"
 import { Knex } from "knex"
 import { memoize, orderBy } from "lodash"
@@ -111,7 +112,10 @@ export const getFullPostBySlugFromSnapshot = async (
     slug: string
 ): Promise<FullPost> => {
     const postEnriched = await getPostEnrichedBySlug(slug)
-    if (!snapshotIsPostRestApi(postEnriched?.wpApiSnapshot))
+    if (
+        !postEnriched?.wpApiSnapshot ||
+        !snapshotIsPostRestApi(postEnriched.wpApiSnapshot)
+    )
         throw new JsonError(`No page snapshot found by slug ${slug}`, 404)
 
     return getFullPost(postEnriched.wpApiSnapshot)
@@ -121,7 +125,10 @@ export const getFullPostByIdFromSnapshot = async (
     id: number
 ): Promise<FullPost> => {
     const postEnriched = await getPostEnrichedById(id)
-    if (!snapshotIsPostRestApi(postEnriched?.wpApiSnapshot))
+    if (
+        !postEnriched?.wpApiSnapshot ||
+        !snapshotIsPostRestApi(postEnriched.wpApiSnapshot)
+    )
         throw new JsonError(`No page snapshot found by id ${id}`, 404)
 
     return getFullPost(postEnriched.wpApiSnapshot)
@@ -266,4 +273,17 @@ export const mapGdocsToWordpressPosts = (
 
 export const postsFlushCache = (): void => {
     getBlogIndex.cache.clear?.()
+}
+
+export const getBlockContentFromSnapshot = async (
+    id: number
+): Promise<string | undefined> => {
+    const enrichedBlock = await getPostEnrichedById(id)
+    if (
+        !enrichedBlock?.wpApiSnapshot ||
+        !snapshotIsBlockGraphQlApi(enrichedBlock.wpApiSnapshot)
+    )
+        return
+
+    return enrichedBlock?.wpApiSnapshot.data?.wpBlock?.content
 }
