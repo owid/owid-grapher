@@ -502,6 +502,7 @@ export {
     serializePostRow,
     parsePostArchieml,
     snapshotIsPostRestApi,
+    snapshotIsBlockGraphQlApi,
 } from "./dbTypes/Posts.js"
 export {
     type DbInsertPostGdoc,

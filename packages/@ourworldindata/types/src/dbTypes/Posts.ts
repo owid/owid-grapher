@@ -97,11 +97,15 @@ export function serializePostRow(postRow: DbEnrichedPost): DbRawPost {
 }
 
 export const snapshotIsPostRestApi = (
-    snapshot: PostRestApi | BlockGraphQlApi | undefined | null
+    snapshot: PostRestApi | BlockGraphQlApi
 ): snapshot is PostRestApi => {
-    if (!snapshot) return false
-
     return [WP_PostType.Page, WP_PostType.Post].includes(
         (snapshot as PostRestApi).type
     )
+}
+
+export const snapshotIsBlockGraphQlApi = (
+    snapshot: PostRestApi | BlockGraphQlApi
+): snapshot is BlockGraphQlApi => {
+    return (snapshot as BlockGraphQlApi).data?.wpBlock?.content !== undefined
 }
