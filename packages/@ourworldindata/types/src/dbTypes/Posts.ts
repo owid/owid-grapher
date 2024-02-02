@@ -2,6 +2,7 @@ import {
     WP_PostType,
     FormattingOptions,
     PostRestApi,
+    BlockGraphQlApi,
 } from "../wordpressTypes/WordpressTypes.js"
 import {
     OwidArticleBackportingStatistics,
@@ -43,7 +44,7 @@ export type DbEnrichedPost = Omit<
     formattingOptions: FormattingOptions | null
     archieml: OwidGdocPostInterface | null
     archieml_update_statistics: OwidArticleBackportingStatistics | null
-    wpApiSnapshot: PostRestApi | null
+    wpApiSnapshot: PostRestApi | BlockGraphQlApi | null
 }
 export interface DbRawPostWithGdocPublishStatus extends DbRawPost {
     isGdocPublished: boolean
@@ -93,4 +94,14 @@ export function serializePostRow(postRow: DbEnrichedPost): DbRawPost {
         ),
         wpApiSnapshot: JSON.stringify(postRow.wpApiSnapshot),
     }
+}
+
+export const snapshotIsPostRestApi = (
+    snapshot: PostRestApi | BlockGraphQlApi | undefined | null
+): snapshot is PostRestApi => {
+    if (!snapshot) return false
+
+    return [WP_PostType.Page, WP_PostType.Post].includes(
+        (snapshot as PostRestApi).type
+    )
 }
