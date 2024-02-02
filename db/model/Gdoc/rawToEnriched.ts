@@ -1894,6 +1894,8 @@ const parseKeyIndicator = (
     ): EnrichedBlockKeyIndicator => ({
         type: "key-indicator",
         datapageUrl,
+        title: "",
+        blurb: [],
         parseErrors: [error],
     })
 
@@ -1915,7 +1917,13 @@ const parseKeyIndicator = (
 
     const url = extractUrl(val.datapageUrl)
 
-    if (val.blurb && !isArray(val.blurb))
+    if (!val.title)
+        return createError(
+            { message: "title property is missing or empty" },
+            url
+        )
+
+    if (!isArray(val.blurb))
         return createError(
             {
                 message:
@@ -1924,14 +1932,13 @@ const parseKeyIndicator = (
             url
         )
 
-    const blurb = val.blurb ?? []
-    const parsedBlurb = blurb.map(parseText)
+    const parsedBlurb = val.blurb.map(parseText)
     const parsedBlurbErrors = parsedBlurb.flatMap((block) => block.parseErrors)
 
     return omitUndefinedValues({
         type: "key-indicator",
         datapageUrl: url,
-        blurb: parsedBlurb.length > 0 ? parsedBlurb : undefined,
+        blurb: parsedBlurb,
         title: val.title,
         source: val.source,
         parseErrors: parsedBlurbErrors,

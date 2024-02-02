@@ -538,6 +538,8 @@ export const enrichedBlockExamples: Record<
     "key-indicator": {
         type: "key-indicator",
         datapageUrl: "https://ourworldindata.org/grapher/life-expectancy",
+        title: "How did people's life expectancy change over time?",
+        blurb: [enrichedBlockText],
         parseErrors: [],
     },
 }

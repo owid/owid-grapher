@@ -6,14 +6,8 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import {
     EnrichedBlockKeyIndicator,
     EnrichedBlockText,
-    LinkedIndicator,
 } from "@ourworldindata/types"
-import {
-    makeDateRange,
-    makeLastUpdated,
-    SimpleMarkdownText,
-} from "@ourworldindata/components"
-import { capitalize, joinTitleFragments } from "@ourworldindata/utils"
+import { capitalize } from "@ourworldindata/utils"
 
 import Chart from "./Chart.js"
 import Paragraph from "./Paragraph.js"
@@ -34,14 +28,7 @@ export default function KeyIndicator({
     if (!linkedChart) return null
     if (!linkedIndicator) return null
 
-    const source =
-        d.source ||
-        capitalize(
-            joinTitleFragments(
-                linkedIndicator.attributionShort,
-                linkedIndicator.titleVariant
-            )
-        )
+    const source = capitalize(d.source || linkedIndicator.source)
 
     return (
         <div className={cx("key-indicator grid grid-cols-12", className)}>
@@ -50,11 +37,12 @@ export default function KeyIndicator({
                     {linkedIndicator.title}{" "}
                     <span className="indicator-source">{source}</span>
                 </div>
-                {d.title || d.blurb ? (
-                    <IndicatorNarrative block={d} />
-                ) : (
-                    <IndicatorMetadata linkedIndicator={linkedIndicator} />
-                )}
+                <h4 className="narrative-title">{d.title}</h4>
+                <div className="blurb">
+                    {d.blurb.map((textBlock: EnrichedBlockText, i: number) => (
+                        <Paragraph d={textBlock} key={i} />
+                    ))}
+                </div>
                 <a
                     className="datapage-link datapage-link-desktop"
                     href={linkedChart.resolvedUrl}
@@ -79,74 +67,5 @@ export default function KeyIndicator({
                 Explore and learn more about this data
             </a>
         </div>
-    )
-}
-
-function IndicatorNarrative({
-    block,
-}: {
-    block: EnrichedBlockKeyIndicator
-}): JSX.Element {
-    return (
-        <>
-            {block.title && <h4 className="narrative-title">{block.title}</h4>}
-            {block.blurb && (
-                <div className="blurb">
-                    {block.blurb.map(
-                        (textBlock: EnrichedBlockText, i: number) => (
-                            <Paragraph d={textBlock} key={i} />
-                        )
-                    )}
-                </div>
-            )}
-        </>
-    )
-}
-
-function IndicatorMetadata({
-    linkedIndicator,
-}: {
-    linkedIndicator: LinkedIndicator
-}): JSX.Element {
-    const dateRange = makeDateRange({
-        dateRange: linkedIndicator.dateRange,
-    })
-    const lastUpdated = makeLastUpdated({
-        lastUpdated: linkedIndicator.lastUpdated,
-    })
-
-    return (
-        <>
-            {linkedIndicator.descriptionShort && (
-                <div className="description">
-                    <SimpleMarkdownText
-                        text={linkedIndicator.descriptionShort}
-                    />
-                </div>
-            )}
-            <div className="metadata grid grid-cols-4">
-                {dateRange && (
-                    <div className="metadata-entry col-start-1 span-cols-2">
-                        <div className="metadata-entry__title">Date range</div>
-                        <div className="metadata-entry__value">{dateRange}</div>
-                    </div>
-                )}
-                {lastUpdated && (
-                    <div
-                        className={cx("metadata-entry", {
-                            "col-start-3 span-cols-2": !!dateRange,
-                            "col-start-1 span-cols-4": !dateRange,
-                        })}
-                    >
-                        <div className="metadata-entry__title">
-                            Last updated
-                        </div>
-                        <div className="metadata-entry__value">
-                            {lastUpdated}
-                        </div>
-                    </div>
-                )}
-            </div>
-        </>
     )
 }

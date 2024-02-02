@@ -7,6 +7,7 @@ import {
     OwidSource,
     OwidVariableWithSourceAndDimension,
     LinkedIndicator,
+    joinTitleFragments,
 } from "@ourworldindata/types"
 import { compact, uniq, last, excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
@@ -293,15 +294,14 @@ export function grabMetadataForGdocLinkedIndicator(
 ): Omit<LinkedIndicator, "id"> {
     return {
         title:
-            metadata.presentation?.titlePublic ??
-            metadata.presentation?.grapherConfigETL?.title ??
-            metadata.display?.name ??
-            metadata.name ??
+            metadata.presentation?.titlePublic ||
+            metadata.presentation?.grapherConfigETL?.title ||
+            metadata.display?.name ||
+            metadata.name ||
             "",
-        titleVariant: metadata.presentation?.titleVariant,
-        attributionShort: metadata.presentation?.attributionShort,
-        dateRange: metadata.timespan,
-        lastUpdated: getLastUpdatedFromVariable(metadata),
-        descriptionShort: metadata.descriptionShort,
+        source: joinTitleFragments(
+            metadata.presentation?.attributionShort,
+            metadata.presentation?.titleVariant
+        ),
     }
 }

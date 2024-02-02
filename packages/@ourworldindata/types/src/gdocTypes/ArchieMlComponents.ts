@@ -101,8 +101,8 @@ export type RawBlockKeyIndicator = {
 export type EnrichedBlockKeyIndicator = {
     type: "key-indicator"
     datapageUrl: string
-    title?: string
-    blurb?: EnrichedBlockText[]
+    title: string
+    blurb: EnrichedBlockText[]
     source?: string
 } & EnrichedBlockWithParseErrors
 
