@@ -13,6 +13,7 @@ import {
     IndexPost,
     OwidGdocPostInterface,
     IMAGES_DIRECTORY,
+    snapshotIsPostRestApi,
 } from "@ourworldindata/types"
 import { Knex } from "knex"
 import { memoize, orderBy } from "lodash"
@@ -110,7 +111,7 @@ export const getFullPostBySlugFromSnapshot = async (
     slug: string
 ): Promise<FullPost> => {
     const postEnriched = await getPostEnrichedBySlug(slug)
-    if (!postEnriched?.wpApiSnapshot)
+    if (!snapshotIsPostRestApi(postEnriched?.wpApiSnapshot))
         throw new JsonError(`No page snapshot found by slug ${slug}`, 404)
 
     return getFullPost(postEnriched.wpApiSnapshot)
@@ -120,7 +121,7 @@ export const getFullPostByIdFromSnapshot = async (
     id: number
 ): Promise<FullPost> => {
     const postEnriched = await getPostEnrichedById(id)
-    if (!postEnriched?.wpApiSnapshot)
+    if (!snapshotIsPostRestApi(postEnriched?.wpApiSnapshot))
         throw new JsonError(`No page snapshot found by id ${id}`, 404)
 
     return getFullPost(postEnriched.wpApiSnapshot)
