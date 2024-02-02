@@ -1,5 +1,5 @@
-name: SVG diff
-on: [push, pull_request]
+name: SVG diff (all views)
+on: workflow_dispatch
 
 jobs:
     svgTester:
@@ -57,7 +57,7 @@ jobs:
               env:
                   # using "ternary operator" from https://github.com/actions/runner/issues/409#issuecomment-752775072
                   RM_ON_ERROR: ${{ env.PUSH_BRANCH_NAME == 'master' && '' || '--rm-on-error' }}
-              run: node --enable-source-maps itsJustJavascript/devTools/svgTester/verify-graphs.js -i owid-grapher-svgs/configs -o owid-grapher-svgs/svg -r owid-grapher-svgs/svg $RM_ON_ERROR > compare-result
+              run: node --enable-source-maps itsJustJavascript/devTools/svgTester/verify-graphs.js -i owid-grapher-svgs/configs -o owid-grapher-svgs/all-views/svg -r owid-grapher-svgs/all-views/svg --ids-from-file owid-grapher-svgs/most-viewed-charts.txt --all-views $RM_ON_ERROR > compare-result
 
             # If the last step failed we want to commit all changed svgs and push them to the new branch on the owid-grapher-svgs repo
             - uses: stefanzweifel/git-auto-commit-action@v4
@@ -66,7 +66,7 @@ jobs:
                   repository: ./owid-grapher-svgs/
                   branch: ${{ env.PUSH_BRANCH_NAME }}
                   push_options: "--force"
-                  commit_message: Automated commit with svg differences triggered by commit https://github.com/owid/owid-grapher/commit/${{github.sha}}
+                  commit_message: Automated commit with svg differences of all views triggered by commit https://github.com/owid/owid-grapher/commit/${{github.sha}}
 
             # The action fails if there were any errors.
             - name: Fail with error message if we had errors
