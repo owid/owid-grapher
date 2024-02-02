@@ -15,12 +15,7 @@ import {
     EnrichedBlockKeyIndicator,
     GrapherTabOption,
 } from "@ourworldindata/types"
-import {
-    Url,
-    capitalize,
-    joinTitleFragments,
-    urlToSlug,
-} from "@ourworldindata/utils"
+import { Url, capitalize, urlToSlug } from "@ourworldindata/utils"
 
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 import KeyIndicator from "./KeyIndicator.js"
@@ -197,14 +192,7 @@ function KeyIndicatorHeader({
     const activeTab =
         tabFromQueryParams || linkedChart.tab || GrapherTabOption.chart
 
-    const source =
-        block.source ||
-        capitalize(
-            joinTitleFragments(
-                linkedIndicator.attributionShort,
-                linkedIndicator.titleVariant
-            )
-        )
+    const source = capitalize(block.source || linkedIndicator.source)
 
     return (
         <div
