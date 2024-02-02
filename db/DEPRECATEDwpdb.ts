@@ -23,6 +23,7 @@ import {
     singleton,
     OWID_API_ENDPOINT,
     getEndpointSlugFromType,
+    getBlockApiFromApi,
 } from "./wpdb.js"
 import { getFullPost } from "./model/Post.js"
 
@@ -208,4 +209,14 @@ export const DEPRECATEDgetFeaturedImages = async (): Promise<
 
     cachedFeaturedImages = featuredImages
     return featuredImages
+}
+
+export const DEPRECATEDgetBlockContentFromApi = async (
+    id: number
+): Promise<string | undefined> => {
+    if (!isWordpressAPIEnabled) return undefined
+
+    const post = await getBlockApiFromApi(id)
+
+    return post.data?.wpBlock?.content ?? undefined
 }
