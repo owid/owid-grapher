@@ -40,6 +40,7 @@ import KeyIndicatorCollection from "./KeyIndicatorCollection.js"
 import { PillRow } from "./PillRow.js"
 import { Autocomplete } from "../../search/Autocomplete.js"
 import { HomepageSearch } from "./HomepageSearch.js"
+import { HomepageIntro } from "./HomepageIntro.js"
 
 export type Container =
     | "default"
@@ -661,6 +662,14 @@ export default function ArticleBlock({
             return (
                 <HomepageSearch
                     className={getLayout("homepage-search", containerType)}
+                />
+            )
+        })
+        .with({ type: "homepage-intro" }, (block) => {
+            return (
+                <HomepageIntro
+                    className={getLayout("homepage-intro")}
+                    {...block}
                 />
             )
         })

@@ -109,6 +109,9 @@ import {
     EnrichedBlockPillRow,
     RawBlockHomepageSearch,
     EnrichedBlockHomepageSearch,
+    EnrichedBlockHomepageIntro,
+    RawBlockHomepageIntro,
+    EnrichedBlockHomepageIntroPost,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -211,6 +214,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "key-indicator-collection" }, parseKeyIndicatorCollection)
         .with({ type: "pill-row" }, parsePillRow)
         .with({ type: "homepage-search" }, parseHomepageSearch)
+        .with({ type: "homepage-intro" }, parseHomepageIntro)
         .exhaustive()
 }
 
@@ -2118,5 +2122,105 @@ function parseHomepageSearch(
     return {
         type: "homepage-search",
         parseErrors: [],
+    }
+}
+
+function parseHomepageIntro(
+    raw: RawBlockHomepageIntro
+): EnrichedBlockHomepageIntro {
+    const enrichedFeaturedWork: EnrichedBlockHomepageIntroPost[] = []
+    const parseErrors: ParseError[] = []
+    function createError(error: ParseError): EnrichedBlockHomepageIntro {
+        return {
+            type: "homepage-intro",
+            featuredWork: [],
+            parseErrors: [error],
+        }
+    }
+
+    if (!raw.value["featured-work"]) {
+        return createError({
+            message: "Homepage intro is missing featured work",
+        })
+    }
+
+    for (const post of raw.value["featured-work"]) {
+        if (!post.value.url) {
+            parseErrors.push({
+                message: "Featured work is missing a url",
+            })
+        }
+        if (!["primary", "secondary", "tertiary"].includes(post.type)) {
+            parseErrors.push({
+                message:
+                    "Featured work must be of type primary, secondary, or tertiary",
+            })
+        }
+        const url = extractUrl(post.value.url)
+        const linkType = getLinkType(url)
+
+        if (["gdoc", "explorer", "grapher"].includes(linkType)) {
+            enrichedFeaturedWork.push({
+                type: post.type,
+                url,
+            })
+        } else if (!post.value.title) {
+            parseErrors.push({
+                message: `Featured work using plain URL "${url}" is missing a title`,
+            })
+        } else if (!post.value.authors) {
+            parseErrors.push({
+                message: `Featured work using plain URL "${url}" is missing authors`,
+            })
+        } else if (post.type !== "tertiary" && !post.value.description) {
+            parseErrors.push({
+                message: `Featured work using plain URL "${url}" is missing a description`,
+            })
+        } else if (post.type !== "tertiary" && !post.value.filename) {
+            parseErrors.push({
+                message: `Featured work using plain URL "${url}" is missing a filename (thumbnail)`,
+            })
+        } else {
+            enrichedFeaturedWork.push({
+                type: post.type,
+                url,
+                title: post.value.title,
+                authors: parseAuthors(post.value.authors),
+                description: post.value.description,
+                filename: post.value.filename,
+                kicker: post.value.kicker,
+            })
+        }
+    }
+
+    // We will likely support multile layouts in the future even though it's static now
+    const expectedFeaturedWorkShape = {
+        primary: 1,
+        secondary: 2,
+        tertiary: 2,
+    }
+    if (!parseErrors.length) {
+        const featuredWorkCounts = enrichedFeaturedWork.reduce(
+            (counts, post) => {
+                counts[post.type]++
+                return counts
+            },
+            { primary: 0, secondary: 0, tertiary: 0 }
+        )
+        Object.entries(expectedFeaturedWorkShape).forEach((shape) => {
+            const type = shape[0] as "primary" | "secondary" | "tertiary"
+            const expectedCount = shape[1] as number
+            if (featuredWorkCounts[type] !== expectedCount) {
+                parseErrors.push({
+                    message: `Expected ${expectedCount} ${type} featured work, but found ${featuredWorkCounts[type]}`,
+                })
+            }
+        })
+    }
+
+    return {
+        type: "homepage-intro",
+        featuredWork: enrichedFeaturedWork,
+        parseErrors,
     }
 }

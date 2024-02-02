@@ -1,4 +1,5 @@
 import { EnrichedBlockKeyIndicator } from "@ourworldindata/types"
+import { getLinkType } from "@ourworldindata/components"
 import {
     OwidEnrichedGdocBlock,
     Span,
@@ -302,6 +303,15 @@ ${links}`
         })
         .with({ type: "homepage-search" }, (_): string | undefined => {
             return ""
+        })
+        .with({ type: "homepage-intro" }, (b): string | undefined => {
+            return b.featuredWork
+                .map((item) =>
+                    getLinkType(item.url) === "gdoc"
+                        ? ""
+                        : `[${item.title}(${item.url})]`
+                )
+                .join("\n")
         })
         .exhaustive()
 }

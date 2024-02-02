@@ -538,6 +538,19 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                     })
                 )
             })
+            .with({ type: "homepage-intro" }, (homepageIntro) => {
+                return homepageIntro.featuredWork.map((featuredWork) =>
+                    Link.createFromUrl({
+                        url: featuredWork.url,
+                        source: this,
+                        componentType: homepageIntro.type,
+                        text:
+                            featuredWork.title ||
+                            featuredWork.description ||
+                            "",
+                    })
+                )
+            })
             .with(
                 {
                     // no urls directly on any of these blocks

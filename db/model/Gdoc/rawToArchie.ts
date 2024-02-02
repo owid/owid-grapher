@@ -1,3 +1,4 @@
+import { RawBlockHomepageIntro } from "@ourworldindata/types"
 import {
     OwidRawGdocBlock,
     RawBlockHeading,
@@ -694,6 +695,25 @@ function* rawBlockHomepageSearchToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockHomepageIntroToArchieMLString(
+    block: RawBlockHomepageIntro
+): Generator<string, void, undefined> {
+    yield "{.homepage-intro}"
+    yield "[.+featured-work]"
+    if (block.value?.["featured-work"]) {
+        for (const post of block.value["featured-work"]) {
+            const value = post.value
+            yield* propertyToArchieMLString("title", value)
+            yield* propertyToArchieMLString("description", value)
+            yield* propertyToArchieMLString("url", value)
+            yield* propertyToArchieMLString("filename", value)
+            yield* propertyToArchieMLString("kicker", value)
+        }
+    }
+    yield "[]"
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock | RawBlockTableRow
 ): Generator<string, void, undefined> {
@@ -769,6 +789,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             { type: "homepage-search" },
             rawBlockHomepageSearchToArchieMLString
         )
+        .with({ type: "homepage-intro" }, rawBlockHomepageIntroToArchieMLString)
         .exhaustive()
     yield* content
 }

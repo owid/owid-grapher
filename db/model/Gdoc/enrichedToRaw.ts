@@ -41,6 +41,7 @@ import {
     RawBlockKeyIndicatorCollection,
     RawBlockPillRow,
     RawBlockHomepageSearch,
+    RawBlockHomepageIntro,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -483,6 +484,22 @@ export function enrichedBlockToRawBlock(
         .with({ type: "homepage-search" }, (_): RawBlockHomepageSearch => {
             return {
                 type: "homepage-search",
+            }
+        })
+        .with({ type: "homepage-intro" }, (b): RawBlockHomepageIntro => {
+            return {
+                type: "homepage-intro",
+                value: {
+                    ["featured-work"]: b.featuredWork.map(
+                        ({ type, authors, ...value }) => ({
+                            type,
+                            value: {
+                                ...value,
+                                authors: authors?.join(", "),
+                            },
+                        })
+                    ),
+                },
             }
         })
         .exhaustive()
