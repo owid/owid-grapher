@@ -36,6 +36,7 @@ import {
     OwidGdocMinimalPostInterface,
     urlToSlug,
     grabMetadataForGdocLinkedIndicator,
+    GrapherTabOption,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { google } from "googleapis"
@@ -583,11 +584,13 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                     if (!chart) return
                     const resolvedSlug = chart.config.slug ?? ""
                     const resolvedTitle = chart.config.title ?? ""
+                    const tab = chart.config.tab ?? GrapherTabOption.chart
                     const datapageIndicator =
                         await getVariableOfDatapageIfApplicable(chart.config)
                     const linkedChart: LinkedChart = {
                         originalSlug,
                         title: resolvedTitle,
+                        tab,
                         resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
                         thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
                         indicatorId: datapageIndicator?.id,

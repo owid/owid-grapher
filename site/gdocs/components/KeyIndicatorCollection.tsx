@@ -1,13 +1,22 @@
 import React, { useEffect, useRef, useState } from "react"
 import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowRight, faPlus } from "@fortawesome/free-solid-svg-icons"
+import {
+    faArrowRight,
+    faPlus,
+    faEarthAmericas,
+    faChartLine,
+    faTable,
+    IconDefinition,
+} from "@fortawesome/free-solid-svg-icons"
 
 import {
     EnrichedBlockKeyIndicatorCollection,
     EnrichedBlockKeyIndicator,
+    GrapherTabOption,
 } from "@ourworldindata/types"
 import {
+    Url,
     capitalize,
     joinTitleFragments,
     urlToSlug,
@@ -18,6 +27,12 @@ import KeyIndicator from "./KeyIndicator.js"
 
 // keep in sync with $duration in KeyIndicatorCollection.scss
 const HEIGHT_ANIMATION_DURATION_IN_SECONDS = 0.4
+
+const tabIconMap: Record<GrapherTabOption, IconDefinition> = {
+    [GrapherTabOption.chart]: faChartLine,
+    [GrapherTabOption.map]: faEarthAmericas,
+    [GrapherTabOption.table]: faTable,
+}
 
 export default function KeyIndicatorCollection({
     d,
@@ -45,7 +60,7 @@ export default function KeyIndicatorCollection({
                         <AccordionItem
                             // assumes a key indicator doesn't appear twice on a page
                             id={`key-indicator-collection_${slug}`}
-                            key={block.datapageUrl}
+                            key={slug}
                             isOpen={isOpen}
                             open={() => {
                                 // open block, close all others
@@ -174,6 +189,14 @@ function KeyIndicatorHeader({
     if (!linkedChart) return null
     if (!linkedIndicator) return null
 
+    const { queryParams } = Url.fromURL(linkedChart.resolvedUrl)
+    const tabFromQueryParams =
+        queryParams.tab && isValidGrapherTab(queryParams.tab)
+            ? queryParams.tab
+            : undefined
+    const activeTab =
+        tabFromQueryParams || linkedChart.tab || GrapherTabOption.chart
+
     const source =
         block.source ||
         capitalize(
@@ -185,12 +208,18 @@ function KeyIndicatorHeader({
 
     return (
         <div
-            className={cx("key-indicator-header grid grid-cols-12", {
+            className={cx("key-indicator-header", {
                 "key-indicator-header--content-visible": isContentVisible,
             })}
         >
-            <div className="key-indicator-header__title col-start-1 span-cols-11">
-                <span className="title">{linkedIndicator.title}</span>
+            <div>
+                <FontAwesomeIcon
+                    icon={tabIconMap[activeTab]}
+                    className="key-indicator-header__tab-icon"
+                />
+                <span className="key-indicator-header__title">
+                    {linkedIndicator.title}
+                </span>
                 {source && (
                     <span className="key-indicator-header__source">
                         {source}
@@ -198,11 +227,17 @@ function KeyIndicatorHeader({
                 )}
             </div>
             {!isContentVisible && (
-                <div className="key-indicator-header__icon col-start-12 span-cols-1">
+                <div>
                     {/* desktop */}
-                    <FontAwesomeIcon icon={faPlus} />
+                    <FontAwesomeIcon
+                        icon={faPlus}
+                        className="key-indicator-header__icon"
+                    />
                     {/* mobile */}
-                    <FontAwesomeIcon icon={faArrowRight} />
+                    <FontAwesomeIcon
+                        icon={faArrowRight}
+                        className="key-indicator-header__icon"
+                    />
                 </div>
             )}
         </div>
@@ -251,4 +286,8 @@ function isElementAtTopOfViewport(element: HTMLElement): boolean {
         window.innerHeight
     )
     return bbox.top >= 0 && bbox.top < 0.33 * viewHeight
+}
+
+function isValidGrapherTab(tab: string): tab is GrapherTabOption {
+    return Object.values(GrapherTabOption).includes(tab as GrapherTabOption)
 }

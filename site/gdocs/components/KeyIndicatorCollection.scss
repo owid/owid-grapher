@@ -1,20 +1,11 @@
 .key-indicator-collection {
-    // keep in sync with HEIGHT_ANIMATION_DURATION_IN_SECONDS in KeyIndicatorCollection.tsx
-    $duration: 0.4s;
-    $border: $blue-10;
+    $duration: 0.4s; // keep in sync with HEIGHT_ANIMATION_DURATION_IN_SECONDS in KeyIndicatorCollection.tsx
+    $border: $blue-20;
 
     margin: 0 -24px;
 
-    .accordion-item--closed + .accordion-item--closed {
+    .accordion-item + .accordion-item {
         border-top: 1px solid $border;
-    }
-
-    .accordion-item--closed:first-of-type {
-        border-top: 1px solid $border;
-    }
-
-    .accordion-item--closed:last-of-type {
-        border-bottom: 1px solid $border;
     }
 
     .accordion-item h3 {
@@ -25,21 +16,18 @@
     .accordion-item__link-mobile {
         display: block;
         width: 100%;
-        background-color: $white;
         text-align: left;
     }
 
     .accordion-item__button {
+        background-color: $blue-5;
         padding: 16px 24px;
     }
 
     .accordion-item__link-mobile {
+        background-color: $white;
         padding: 12px 24px;
         line-height: 1.2;
-    }
-
-    .accordion-item__link-mobile:active .title {
-        text-decoration: underline;
     }
 
     .accordion-item--open .accordion-item__button {
@@ -47,14 +35,7 @@
     }
 
     .accordion-item--closed .accordion-item__button:hover {
-        background-color: $blue-5;
-    }
-
-    .accordion-item--closed
-        .accordion-item__button:hover
-        .key-indicator-header__icon {
-        opacity: 1;
-        transition: opacity 0s;
+        background-color: $blue-20;
     }
 
     .accordion-item__content {
@@ -63,27 +44,44 @@
         transition: height $duration cubic-bezier(0.76, 0, 0.24, 1);
     }
 
+    .key-indicator-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .key-indicator-header__tab-icon {
+        font-size: 0.8125rem;
+        color: $blue-50;
+        margin-right: 8px;
+        vertical-align: baseline;
+    }
+
     .key-indicator-header__title {
         @include body-2-semibold;
         color: $blue-90;
     }
 
+    .accordion-item__link-mobile:active .key-indicator-header__title {
+        text-decoration: underline;
+        text-underline-offset: 4px;
+    }
+
     .key-indicator-header__source {
         @include body-3-medium;
         display: inline-block;
-        margin-left: 8px;
         color: $blue-50;
+        margin-left: 8px;
     }
 
     .key-indicator-header__icon {
         color: $blue-90;
         font-size: 0.875rem;
         font-weight: 900;
-        text-align: right;
 
-        @include sm-up {
-            opacity: 0;
-            transition: opacity 0.2s;
+        @include sm-only {
+            font-size: 0.75rem;
         }
     }
 
@@ -103,7 +101,7 @@
             display: none;
         }
 
-        svg[data-icon="arrow-right"] {
+        .key-indicator-header__icon[data-icon="arrow-right"] {
             display: none;
         }
     }
@@ -139,7 +137,11 @@
             margin-top: 2px;
         }
 
-        svg[data-icon="plus"] {
+        .key-indicator-header__tab-icon {
+            display: none;
+        }
+
+        .key-indicator-header__icon[data-icon="plus"] {
             display: none;
         }
     }
