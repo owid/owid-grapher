@@ -57,7 +57,7 @@ export default function KeyIndicator({
                 )}
                 <a
                     className="datapage-link datapage-link-desktop"
-                    href={d.datapageUrl}
+                    href={linkedChart.resolvedUrl}
                 >
                     Explore and learn more about this data
                     <FontAwesomeIcon icon={faArrowRight} />
@@ -65,12 +65,16 @@ export default function KeyIndicator({
             </div>
             <Chart
                 className="col-start-5 span-cols-8 span-sm-cols-12 margin-0"
-                d={{ url: d.datapageUrl, type: "chart", parseErrors: [] }}
+                d={{
+                    url: linkedChart.resolvedUrl,
+                    type: "chart",
+                    parseErrors: [],
+                }}
                 shouldOptimizeForHorizontalSpace={false}
             />
             <a
                 className="datapage-link datapage-link-mobile col-start-1 span-cols-12"
-                href={d.datapageUrl}
+                href={linkedChart.resolvedUrl}
             >
                 Explore and learn more about this data
             </a>
