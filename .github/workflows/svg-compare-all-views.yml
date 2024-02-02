@@ -1,5 +1,5 @@
 name: SVG diff (all views)
-on: workflow_dispatch
+on: [push, pull_request]
 
 jobs:
     svgTester:
