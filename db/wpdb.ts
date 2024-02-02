@@ -525,7 +525,7 @@ export const getRelatedArticles = async (
     )
 }
 
-export const getBlockApi = async (id: number): Promise<any> => {
+export const getBlockApiFromApi = async (id: number): Promise<any> => {
     if (!isWordpressAPIEnabled) return undefined
 
     const query = `
@@ -538,12 +538,12 @@ export const getBlockApi = async (id: number): Promise<any> => {
     return graphqlQuery(query, { id })
 }
 
-export const getBlockContent = async (
+export const getBlockContentFromApi = async (
     id: number
 ): Promise<string | undefined> => {
     if (!isWordpressAPIEnabled) return undefined
 
-    const post = await getBlockApi(id)
+    const post = await getBlockApiFromApi(id)
 
     return post.data?.wpBlock?.content ?? undefined
 }
