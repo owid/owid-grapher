@@ -1207,7 +1207,38 @@ function cheerioToArchieML(
                             ],
                         }
                     } else {
-                        result = children
+                        function joinConsecutiveTextBlocks(
+                            blocks: ArchieBlockOrWpComponent[]
+                        ): ArchieBlockOrWpComponent[] {
+                            const joinedBlocks: ArchieBlockOrWpComponent[] = []
+                            let currentTextBlock: EnrichedBlockText | null =
+                                null
+
+                            for (const block of blocks) {
+                                if (isEnrichedTextBlock(block)) {
+                                    if (currentTextBlock) {
+                                        currentTextBlock.value.push(
+                                            ...block.value
+                                        )
+                                    } else {
+                                        currentTextBlock = block
+                                        joinedBlocks.push(currentTextBlock)
+                                    }
+                                } else {
+                                    currentTextBlock = null
+                                    joinedBlocks.push(block)
+                                }
+                            }
+
+                            return joinedBlocks
+                        }
+
+                        result = {
+                            content: joinConsecutiveTextBlocks(
+                                children.content
+                            ),
+                            errors: [],
+                        }
                     }
 
                     return result
