@@ -1950,11 +1950,12 @@ function parseKeyIndicatorCollection(
     raw: RawBlockKeyIndicatorCollection
 ): EnrichedBlockKeyIndicatorCollection {
     const createError = (
-        error: ParseError
+        error: ParseError,
+        warnings: ParseError[] = []
     ): EnrichedBlockKeyIndicatorCollection => ({
         type: "key-indicator-collection",
         blocks: [],
-        parseErrors: [error],
+        parseErrors: [error, ...warnings],
     })
 
     const warnings = []
@@ -1983,20 +1984,30 @@ function parseKeyIndicatorCollection(
         keyIndicatorBlocks.map(parseRawBlocksToEnrichedBlocks)
     ) as EnrichedBlockKeyIndicator[]
 
-    if (parsedBlocks.length <= 1) {
-        const message =
-            parsedBlocks.length === 0
-                ? "key-indicator-collection contains no key-indicator blocks"
-                : "key-indicator-collection contains only one key-indicator block"
+    const validBlocks = parsedBlocks.filter(
+        (block) =>
+            block.parseErrors.filter((error) => !error.isWarning).length === 0
+    )
+
+    if (validBlocks.length < parsedBlocks.length) {
         warnings.push({
-            message,
+            message:
+                "key-indicator-collection contains at least one invalid key-indicators block",
             isWarning: true,
         })
     }
 
+    if (validBlocks.length <= 1) {
+        const message =
+            validBlocks.length === 0
+                ? "key-indicator-collection contains no valid key-indicator blocks"
+                : "key-indicator-collection contains only one valid key-indicator block"
+        return createError({ message }, warnings)
+    }
+
     return {
         type: "key-indicator-collection",
-        blocks: parsedBlocks,
+        blocks: validBlocks,
         parseErrors: warnings,
     }
 }
