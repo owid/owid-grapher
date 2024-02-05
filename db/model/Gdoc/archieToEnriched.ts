@@ -21,6 +21,7 @@ import {
     RESEARCH_AND_WRITING_ID,
     checkIsPlainObjectWithGuard,
     identity,
+    isEmpty,
 } from "@ourworldindata/utils"
 import { convertHeadingTextToId } from "@ourworldindata/components"
 import { parseRawBlocksToEnrichedBlocks, parseRefs } from "./rawToEnriched.js"
@@ -100,12 +101,15 @@ export function generateStickyNav(
         })
     )
 
+    if (!isEmpty(content.refs?.definitions)) {
+        stickyNavItems.push({
+            text: "Endnotes",
+            target: `#${ENDNOTES_ID}`,
+        })
+    }
+
     stickyNavItems.push(
         ...[
-            {
-                text: "Endnotes",
-                target: `#${ENDNOTES_ID}`,
-            },
             {
                 text: "Cite This Work",
                 target: `#${CITATION_ID}`,
