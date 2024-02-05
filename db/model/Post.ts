@@ -162,7 +162,7 @@ export const getPostsFromSnapshots = async (
                 AND type IN (?)
                 ORDER BY JSON_UNQUOTE(JSON_EXTRACT(wpApiSnapshot, '$.date')) DESC;
             `,
-            [postTypes].join(",")
+            [postTypes]
         )
     )[0]
 
