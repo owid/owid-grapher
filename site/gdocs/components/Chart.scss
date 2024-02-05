@@ -1,11 +1,5 @@
 figure.chart {
     height: $grapher-height;
-
-    @include sm-only {
-        // 50px is the height of the header on mobile
-        // 1rem is additional padding
-        height: calc(100vh - 50px - 1rem);
-    }
 }
 
 figure.explorer {

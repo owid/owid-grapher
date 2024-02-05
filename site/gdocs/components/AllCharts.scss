@@ -5,13 +5,5 @@
 
     figure[data-grapher-src] {
         height: $grapher-height;
-
-        @include sm-only {
-            // 50px is the height of the header on mobile
-            // 40px is the height of the gallery navigation
-            // 1rem is the margin between the figure and the gallery navigation
-            // 1rem is additional padding
-            height: calc(100vh - 90px - 2rem);
-        }
     }
 }

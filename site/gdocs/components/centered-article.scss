@@ -778,13 +778,6 @@ div.article-block__table--wide {
             width: 100%;
             > figure {
                 margin: 0;
-
-                @include sm-only {
-                    // 50px is the height of the header on mobile
-                    // 65px is the height of the navigation
-                    // 1rem is additional padding
-                    height: calc(100vh - 115px - 1rem);
-                }
             }
         }
     }
