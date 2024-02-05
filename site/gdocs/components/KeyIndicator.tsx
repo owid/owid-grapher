@@ -28,7 +28,7 @@ export default function KeyIndicator({
     if (!linkedChart) return null
     if (!linkedIndicator) return null
 
-    const source = capitalize(d.source || linkedIndicator.source)
+    const source = capitalize(d.source || linkedIndicator.attributionShort)
 
     return (
         <div className={cx("key-indicator grid grid-cols-12", className)}>

@@ -29,7 +29,7 @@ export interface LinkedChart {
 export interface LinkedIndicator {
     id: number
     title: string
-    source?: string
+    attributionShort?: string
 }
 
 export enum OwidGdocType {

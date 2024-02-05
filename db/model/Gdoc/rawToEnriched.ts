@@ -1890,7 +1890,7 @@ const parseKeyIndicator = (
 ): EnrichedBlockKeyIndicator => {
     const createError = (
         error: ParseError,
-        datapageUrl: string
+        datapageUrl = ""
     ): EnrichedBlockKeyIndicator => ({
         type: "key-indicator",
         datapageUrl,
@@ -1902,18 +1902,14 @@ const parseKeyIndicator = (
     const val = raw.value
 
     if (typeof val === "string")
-        return createError(
-            {
-                message: "Value is a string, not an object with properties",
-            },
-            ""
-        )
+        return createError({
+            message: "Value is a string, not an object with properties",
+        })
 
     if (!val.datapageUrl)
-        return createError(
-            { message: "datapageUrl property is missing or empty" },
-            ""
-        )
+        return createError({
+            message: "datapageUrl property is missing or empty",
+        })
 
     const url = extractUrl(val.datapageUrl)
 
@@ -1922,6 +1918,8 @@ const parseKeyIndicator = (
             { message: "title property is missing or empty" },
             url
         )
+
+    if (!val.blurb) return createError({ message: "blurb is missing" }, url)
 
     if (!isArray(val.blurb))
         return createError(

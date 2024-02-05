@@ -34,12 +34,12 @@ import {
     DataPageRelatedResearch,
     isEmpty,
     excludeUndefined,
+    OwidOrigin,
     DataPageDataV2,
     getCitationShort,
     GrapherInterface,
     getCitationLong,
     joinTitleFragments,
-    getAttributionUnshortened,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -126,12 +126,24 @@ export const DataPageV2Content = ({
         datapageData.descriptionKey && datapageData.descriptionKey.length > 0
 
     const sourcesForDisplay = prepareSourcesForDisplay(datapageData)
+    const getYearSuffixFromOrigin = (o: OwidOrigin) => {
+        const year = o.dateAccessed
+            ? dayjs(o.dateAccessed, ["YYYY-MM-DD", "YYYY"]).year()
+            : o.datePublished
+            ? dayjs(o.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
+            : undefined
+        if (year) return ` (${year})`
+        else return ""
+    }
     const producers = uniq(datapageData.origins.map((o) => `${o.producer}`))
+    const producersWithYear = uniq(
+        datapageData.origins.map(
+            (o) => `${o.producer}${getYearSuffixFromOrigin(o)}`
+        )
+    )
 
-    const attributionUnshortened = getAttributionUnshortened({
-        attributions: datapageData.attributions,
-        origins: datapageData.origins,
-    })
+    const attributionFragments = datapageData.attributions ?? producersWithYear
+    const attributionUnshortened = attributionFragments.join("; ")
     const citationShort = getCitationShort(
         datapageData.origins,
         datapageData.attributions,

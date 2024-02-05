@@ -275,20 +275,6 @@ export const formatSourceDate = (
     return parsedDate.format(format)
 }
 
-export function getAttributionUnshortened({
-    origins,
-    attributions,
-}: {
-    origins: OwidOrigin[]
-    attributions: string[]
-}): string {
-    const producersWithYear = uniq(
-        origins.map((o) => `${o.producer}${getYearSuffixFromOrigin(o)}`)
-    )
-    const attributionFragments = attributions ?? producersWithYear
-    return attributionFragments.join("; ")
-}
-
 export function grabMetadataForGdocLinkedIndicator(
     metadata: OwidVariableWithSourceAndDimension
 ): Omit<LinkedIndicator, "id"> {
@@ -299,7 +285,7 @@ export function grabMetadataForGdocLinkedIndicator(
             metadata.display?.name ||
             metadata.name ||
             "",
-        source: joinTitleFragments(
+        attributionShort: joinTitleFragments(
             metadata.presentation?.attributionShort,
             metadata.presentation?.titleVariant
         ),

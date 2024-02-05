@@ -133,7 +133,6 @@ export {
     getCitationLong,
     getCitationShort,
     grabMetadataForGdocLinkedIndicator,
-    getAttributionUnshortened,
 } from "./metadataHelpers.js"
 
 export {

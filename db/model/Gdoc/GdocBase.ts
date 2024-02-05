@@ -521,6 +521,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                         "horizontal-rule",
                         "html",
                         "image",
+                        "key-indicator",
                         "list",
                         "missing-data",
                         "numbered-list",
@@ -532,8 +533,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                         "sticky-left",
                         "sticky-right",
                         "table",
-                        "text",
-                        "key-indicator"
+                        "text"
                     ),
                 },
                 () => []
@@ -744,8 +744,33 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
             []
         )
 
+        // Validate that charts referenced in key-indicator blocks render a datapage
+        const contentErrors: OwidGdocErrorMessage[] = []
+        for (const enrichedBlockSource of this.enrichedBlockSources) {
+            enrichedBlockSource.forEach((block) =>
+                traverseEnrichedBlocks(block, (block) => {
+                    if (block.type === "key-indicator" && block.datapageUrl) {
+                        const slug = urlToSlug(block.datapageUrl)
+                        const linkedChart = this.linkedCharts?.[slug]
+                        if (linkedChart && !linkedChart.indicatorId) {
+                            contentErrors.push({
+                                property: "body",
+                                type: OwidGdocErrorMessageType.Error,
+                                message: `Grapher chart with slug ${slug} is not a datapage`,
+                            })
+                        }
+                    }
+                })
+            )
+        }
+
         const subclassErrors = await this._validateSubclass(this)
-        this.errors = [...filenameErrors, ...linkErrors, ...subclassErrors]
+        this.errors = [
+            ...filenameErrors,
+            ...linkErrors,
+            ...contentErrors,
+            ...subclassErrors,
+        ]
     }
 
     async loadState(
