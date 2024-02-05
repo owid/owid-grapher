@@ -5,6 +5,7 @@ figure.chart {
         // 50px is the height of the header on mobile
         // 1rem is additional padding
         height: calc(100vh - 50px - 1rem);
+        max-height: $grapher-max-height;
     }
 }
 

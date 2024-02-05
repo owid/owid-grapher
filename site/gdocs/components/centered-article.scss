@@ -784,6 +784,7 @@ div.article-block__table--wide {
                     // 65px is the height of the navigation
                     // 1rem is additional padding
                     height: calc(100vh - 115px - 1rem);
+                    max-height: $grapher-max-height;
                 }
             }
         }

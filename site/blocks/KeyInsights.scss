@@ -1,7 +1,7 @@
 @import "react-horizontal-scrolling-menu/styles.css";
 
 .wp-block-owid-key-insights {
-    --slide-content-height: 575px; // keep in sync with $grapher-height
+    --slide-content-height: #{$grapher-height};
 
     @include sm-only {
         // 50px is the height of the header on mobile
@@ -96,6 +96,7 @@
     .slides {
         figure.chart:not(.grapherPreview) {
             height: var(--slide-content-height, $grapher-height);
+            max-height: $grapher-max-height;
         }
 
         @include sm-only {
@@ -110,6 +111,7 @@
             .wp-block-columns.is-style-sticky-right .wp-block-column {
                 &:first-child {
                     height: var(--slide-content-height, $grapher-height);
+                    max-height: $grapher-max-height;
                     overflow-y: auto;
                     -webkit-mask-image: linear-gradient(
                         180deg,
