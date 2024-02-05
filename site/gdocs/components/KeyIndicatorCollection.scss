@@ -1,11 +1,12 @@
 .key-indicator-collection {
     $duration: 0.4s; // keep in sync with HEIGHT_ANIMATION_DURATION_IN_SECONDS in KeyIndicatorCollection.tsx
-    $border: $blue-20;
 
-    margin: 0 -24px;
+    --border: #{$blue-20};
+
+    margin: 24px -24px;
 
     .accordion-item + .accordion-item {
-        border-top: 1px solid $border;
+        border-top: 1px solid var(--border);
     }
 
     .accordion-item h3 {
@@ -22,16 +23,36 @@
     .accordion-item__button {
         background-color: $blue-5;
         padding: 16px 24px;
+
+        @include sm-only {
+            padding-bottom: 0;
+        }
     }
 
+    // on desktop, show a clickable header that opens the accordion
+    .accordion-item--closed .accordion-item__button {
+        @include sm-only {
+            display: none;
+        }
+    }
+
+    // on mobile, show an anchor that links to the datapage
     .accordion-item__link-mobile {
         background-color: $white;
         padding: 12px 24px;
         line-height: 1.2;
+
+        @include sm-up {
+            display: none;
+        }
     }
 
     .accordion-item--open .accordion-item__button {
         background-color: $blue-20;
+
+        @include sm-only {
+            background-color: $blue-5;
+        }
     }
 
     .accordion-item--closed .accordion-item__button:hover {
@@ -47,7 +68,6 @@
     .key-indicator-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
         gap: 8px;
     }
 
@@ -56,14 +76,30 @@
         color: $blue-50;
         margin-right: 8px;
         vertical-align: baseline;
+
+        @include sm-only {
+            display: none;
+        }
     }
 
     .key-indicator-header__title {
         @include body-2-semibold;
         color: $blue-90;
+        margin-right: 8px;
+
+        @include sm-only {
+            line-height: 1.2;
+        }
     }
 
-    .accordion-item__link-mobile:active .key-indicator-header__title {
+    .accordion-item--closed .key-indicator-header__title {
+        @include sm-only {
+            margin-left: 0;
+        }
+    }
+
+    .accordion-item__link-mobile:active:not(:hover)
+        .key-indicator-header__title {
         text-decoration: underline;
         text-underline-offset: 4px;
     }
@@ -72,7 +108,13 @@
         @include body-3-medium;
         display: inline-block;
         color: $blue-50;
-        margin-left: 8px;
+    }
+
+    .accordion-item--closed .key-indicator-header__source {
+        @include sm-only {
+            display: block;
+            margin-top: 2px;
+        }
     }
 
     .key-indicator-header__icon {
@@ -82,6 +124,20 @@
 
         @include sm-only {
             font-size: 0.75rem;
+        }
+    }
+
+    // hidden on mobile
+    .key-indicator-header__icon[data-icon="plus"] {
+        @include sm-only {
+            display: none;
+        }
+    }
+
+    // hidden on desktop
+    .key-indicator-header__icon[data-icon="arrow-right"] {
+        @include sm-up {
+            display: none;
         }
     }
 
@@ -96,58 +152,29 @@
         cursor: default;
     }
 
-    @include sm-up {
-        .accordion-item__link-mobile {
-            display: none;
-        }
-
-        .key-indicator-header__icon[data-icon="arrow-right"] {
-            display: none;
-        }
-    }
-
     @include sm-only {
+        --border: #{$blue-10};
+
         .accordion-item:first-of-type::after {
             content: "More featured indicators";
             @include h5-black-caps;
             display: block;
-            margin: 24px 24px 16px 24px;
+            margin: 24px 24px 16px;
             color: $blue-60;
         }
 
         .accordion-item:nth-of-type(2) {
-            border-top: 1px solid $border;
+            border-top: 1px solid var(--border);
         }
 
-        .accordion-item__button {
-            padding-bottom: 0;
-        }
-
-        .accordion-item--closed .accordion-item__button {
-            display: none;
-        }
-
-        .accordion-item--open .accordion-item__button {
-            background-color: $blue-5;
-        }
-
-        .accordion-item--closed .key-indicator-header__source {
-            display: block;
-            margin-left: 0;
-            margin-top: 2px;
-        }
-
-        .key-indicator-header__tab-icon {
-            display: none;
-        }
-
-        .key-indicator-header__icon[data-icon="plus"] {
-            display: none;
+        .accordion-item:last-of-type {
+            border-bottom: 1px solid var(--border);
         }
     }
 
     // update <KeyIndicator /> styles
     .key-indicator {
+        margin-top: 0;
         margin-bottom: 0;
         .indicator-title {
             display: none;

@@ -114,6 +114,7 @@ function AccordionItem({
                 "accordion-item--closed": !isOpen,
             })}
         >
+            {/* desktop */}
             <h3>
                 <button
                     id={headerId}
@@ -146,6 +147,7 @@ function AccordionItem({
                     {header}
                 </button>
             </h3>
+            {/* mobile */}
             {!isOpen && (
                 <a
                     className="accordion-item__link-mobile"
@@ -195,11 +197,7 @@ function KeyIndicatorHeader({
     const source = capitalize(block.source || linkedIndicator.source)
 
     return (
-        <div
-            className={cx("key-indicator-header", {
-                "key-indicator-header--content-visible": isContentVisible,
-            })}
-        >
+        <div className="key-indicator-header">
             <div>
                 <FontAwesomeIcon
                     icon={tabIconMap[activeTab]}
