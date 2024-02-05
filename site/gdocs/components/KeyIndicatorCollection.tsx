@@ -194,7 +194,7 @@ function KeyIndicatorHeader({
     const activeTab =
         tabFromQueryParams || linkedChart.tab || GrapherTabOption.chart
 
-    const source = capitalize(block.source || linkedIndicator.source)
+    const source = capitalize(block.source || linkedIndicator.attributionShort)
 
     return (
         <div className="key-indicator-header">
