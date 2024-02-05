@@ -716,10 +716,7 @@ export interface TablepressTable {
     tableId: string
     data: string[][]
 }
-export let cachedTables: Map<string, TablepressTable> | undefined
 export const getTables = async (): Promise<Map<string, TablepressTable>> => {
-    if (cachedTables) return cachedTables
-
     const optRows = await singleton.query(`
         SELECT option_value AS json FROM wp_options WHERE option_name='tablepress_tables'
     `)
@@ -735,21 +732,20 @@ export const getTables = async (): Promise<Map<string, TablepressTable>> => {
         tableContents.set(row.ID, row.post_content)
     }
 
-    cachedTables = new Map()
+    const tables = new Map()
     for (const tableId in tableToPostIds) {
         const data = JSON.parse(
             tableContents.get(tableToPostIds[tableId]) || "[]"
         )
-        cachedTables.set(tableId, {
+        tables.set(tableId, {
             tableId: tableId,
             data: data,
         })
     }
 
-    return cachedTables
+    return tables
 }
 
 export const flushCache = (): void => {
     getBlogIndex.cache.clear?.()
-    cachedTables = undefined
 }
