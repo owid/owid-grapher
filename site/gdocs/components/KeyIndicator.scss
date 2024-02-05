@@ -1,7 +1,7 @@
 .key-indicator {
     background-color: $blue-5;
 
-    margin: 0 -24px 24px;
+    margin: 24px -24px;
     padding: 24px;
 
     @include sm-only {
@@ -78,16 +78,21 @@
 
         display: block;
         @include sm-up {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
         }
 
         min-height: 40px;
         padding: 8px 24px;
+        margin-top: 16px;
         text-align: center;
         color: $white;
         background-color: $blue-60;
         cursor: pointer;
         border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
         &:hover {
             background-color: $blue-90;
@@ -99,16 +104,13 @@
         }
     }
 
-    // TODO: should this be at the bottom of the section?
     .datapage-link-desktop {
-        margin-top: 24px;
         @include sm-only {
             display: none;
         }
     }
 
     .datapage-link-mobile {
-        margin-top: 16px;
         @include sm-up {
             display: none;
         }
