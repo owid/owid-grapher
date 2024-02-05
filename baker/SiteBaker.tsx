@@ -325,7 +325,7 @@ export class SiteBaker {
             const publishedChartsRaw = await Chart.mapSlugsToConfigs()
             const publishedCharts: LinkedChart[] = await Promise.all(
                 publishedChartsRaw.map(async (chart) => {
-                  const tab = chart.config.tab ?? GrapherTabOption.chart
+                    const tab = chart.config.tab ?? GrapherTabOption.chart
                     const datapageIndicator =
                         await getVariableOfDatapageIfApplicable(chart.config)
                     return {
