@@ -1338,7 +1338,24 @@ function cheerioToArchieML(
                 }
             )
             .with(
-                { tagName: P.union("svg", "table", "video") },
+                { tagName: "table" },
+                (): BlockParseResult<EnrichedBlockHtml> => {
+                    return {
+                        errors: [],
+                        content: [
+                            {
+                                type: "html",
+                                value: `<div class="raw-html-table__container">${
+                                    context.$.html(element) ?? ""
+                                }</div>`,
+                                parseErrors: [],
+                            },
+                        ],
+                    }
+                }
+            )
+            .with(
+                { tagName: P.union("svg", "video") },
                 (): BlockParseResult<EnrichedBlockHtml> => {
                     return {
                         errors: [],

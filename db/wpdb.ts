@@ -850,7 +850,7 @@ export const getTopics = async (cursor: string = ""): Promise<Topic[]> => {
     }
 }
 
-interface TablepressTable {
+export interface TablepressTable {
     tableId: string
     data: string[][]
 }

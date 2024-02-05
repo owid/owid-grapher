@@ -14,6 +14,7 @@ import * as wpdb from "../db/wpdb.js"
 import * as db from "../db/db.js"
 import {
     buildReusableBlocksResolver,
+    buildTablePressResolver,
     getLinksToAddAndRemoveForPost,
 } from "../db/syncPostsToGrapher.js"
 import { postsTable, select } from "../db/model/Post.js"
@@ -94,6 +95,7 @@ const syncPostToGrapher = async (
         [postId, postId, postId, postId]
     )
     const dereferenceReusableBlocksFn = await buildReusableBlocksResolver()
+    const dereferenceTablePressFn = await buildTablePressResolver()
 
     const matchingRows = await db.knexTable(postsTable).where({ id: postId })
     const existsInGrapher = !!matchingRows.length
@@ -137,8 +139,8 @@ const syncPostToGrapher = async (
             // Delete from grapher
             await transaction.table(postsTable).where({ id: postId }).delete()
         else if (postRow) {
-            const contentWithBlocksInlined = dereferenceReusableBlocksFn(
-                postRow.content
+            const contentWithBlocksInlined = dereferenceTablePressFn(
+                dereferenceReusableBlocksFn(postRow.content)
             )
             postRow.content = contentWithBlocksInlined
 

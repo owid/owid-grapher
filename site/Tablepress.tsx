@@ -1,4 +1,5 @@
 import React from "react"
+import ReactDOMServer from "react-dom/server.js"
 
 interface Cell {
     data: string
@@ -15,6 +16,7 @@ function cell(data?: string) {
 }
 
 const ROWSPAN_TOKEN = "#rowspan#"
+const COLSPAN_TOKEN = "#colspan#"
 
 function parseTable(table: string[][]): Cell[][] {
     const resultTable: Cell[][] = []
@@ -31,6 +33,16 @@ function parseTable(table: string[][]): Cell[][] {
                 } else {
                     resultRow.push(cell())
                 }
+            } else if (data === COLSPAN_TOKEN) {
+                let j = c - 1
+                while (j >= 0 && row[j] === COLSPAN_TOKEN) {
+                    j--
+                }
+                if (j >= 0) {
+                    resultRow[j].colspan++
+                } else {
+                    resultRow.push(cell())
+                }
             } else {
                 resultRow.push(cell(data))
             }
@@ -40,23 +52,29 @@ function parseTable(table: string[][]): Cell[][] {
     return resultTable
 }
 
+export const renderTablePress = (table: string[][]) => {
+    return ReactDOMServer.renderToStaticMarkup(<Tablepress data={table} />)
+}
+
 export default function Tablepress(props: { data: string[][] }) {
     const { data } = props
     const table = parseTable(data)
     const [headerRow, ...body] = table
     return (
-        <table className="tablepress">
+        <table>
             <thead>
                 <tr>
                     {headerRow.map((cell, i) => (
                         <th
                             key={i}
+                            scope="col"
+                            colSpan={cell.colspan}
                             dangerouslySetInnerHTML={{ __html: cell.data }}
                         />
                     ))}
                 </tr>
             </thead>
-            <tbody className="row-hover">
+            <tbody>
                 {body.map((row, i) => (
                     <tr key={i}>
                         {row.map((cell, j) => (
@@ -64,7 +82,9 @@ export default function Tablepress(props: { data: string[][] }) {
                                 key={j}
                                 colSpan={cell.colspan}
                                 rowSpan={cell.rowspan}
-                                dangerouslySetInnerHTML={{ __html: cell.data }}
+                                dangerouslySetInnerHTML={{
+                                    __html: cell.data,
+                                }}
                             />
                         ))}
                     </tr>

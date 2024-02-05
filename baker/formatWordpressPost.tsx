@@ -3,8 +3,6 @@ import urlSlug from "url-slug"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import { BAKED_BASE_URL, HTTPS_ONLY } from "../settings/serverSettings.js"
-import { getTables } from "../db/wpdb.js"
-import Tablepress from "../site/Tablepress.js"
 import { GrapherExports } from "../baker/GrapherBakingUtils.js"
 import { AllCharts, renderAllCharts } from "../site/blocks/AllCharts.js"
 import { FormattingOptions } from "@ourworldindata/types"
@@ -248,17 +246,6 @@ export const formatWordpressPost = async (
             )
         }
     )
-
-    // Insert [table id=foo] tablepress tables
-    const tables = await getTables()
-    html = html.replace(/\[table\s+id=(\d+)\s*\/\]/g, (match, tableId) => {
-        const table = tables.get(tableId)
-        if (table)
-            return ReactDOMServer.renderToStaticMarkup(
-                <Tablepress data={table.data} />
-            )
-        return "UNKNOWN TABLE"
-    })
 
     // Give "Add country" text (and variations) the appearance of "+ Add Country" chart control
     html = html.replace(
