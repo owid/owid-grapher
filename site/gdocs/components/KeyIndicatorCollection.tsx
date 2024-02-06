@@ -48,8 +48,8 @@ export default function KeyIndicatorCollection({
         <div className={cx("key-indicator-collection", className)}>
             {d.blocks.map(
                 (block: EnrichedBlockKeyIndicator, blockIndex: number) => {
+                    const slug = slugs[blockIndex]
                     const isOpen = isBlockOpen[blockIndex]
-                    const slug = urlToSlug(block.datapageUrl)
 
                     return (
                         <AccordionItem
@@ -75,6 +75,14 @@ export default function KeyIndicatorCollection({
                                     isContentVisible={isOpen}
                                 />
                             }
+                            mobileHeader={
+                                <KeyIndicatorLink block={block}>
+                                    <KeyIndicatorHeader
+                                        block={block}
+                                        isContentVisible={isOpen}
+                                    />
+                                </KeyIndicatorLink>
+                            }
                         >
                             <KeyIndicator d={block} />
                         </AccordionItem>
@@ -91,6 +99,7 @@ function AccordionItem({
     open,
     close,
     header,
+    mobileHeader,
     children,
 }: {
     id: string
@@ -98,6 +107,7 @@ function AccordionItem({
     open: () => void
     close: () => void
     header: React.ReactNode
+    mobileHeader: React.ReactNode
     children: React.ReactNode
 }) {
     const ref = useRef<HTMLDivElement>(null)
@@ -148,14 +158,7 @@ function AccordionItem({
                 </button>
             </h3>
             {/* mobile */}
-            {!isOpen && (
-                <a
-                    className="accordion-item__link-mobile"
-                    href="https://ourworldindata.org/grapher/life-expectancy"
-                >
-                    {header}
-                </a>
-            )}
+            {!isOpen && mobileHeader}
             <div
                 id={contentId}
                 className="accordion-item__content"
@@ -229,6 +232,31 @@ function KeyIndicatorHeader({
                 </div>
             )}
         </div>
+    )
+}
+
+function KeyIndicatorLink({
+    block,
+    children,
+}: {
+    block: EnrichedBlockKeyIndicator
+    children: React.ReactNode
+}) {
+    const { linkedChart } = useLinkedChart(block.datapageUrl)
+    const { linkedIndicator } = useLinkedIndicator(
+        linkedChart?.indicatorId ?? 0
+    )
+
+    if (!linkedChart) return null
+    if (!linkedIndicator) return null
+
+    return (
+        <a
+            className="accordion-item__link-mobile"
+            href={linkedChart.resolvedUrl}
+        >
+            {children}
+        </a>
     )
 }
 
