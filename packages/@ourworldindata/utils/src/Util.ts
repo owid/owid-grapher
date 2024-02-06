@@ -1825,3 +1825,40 @@ export function cartesian<T>(matrix: T[][]): T[][] {
         [[]]
     )
 }
+
+export function makeDetailIdFromText({
+    text,
+    type,
+}: {
+    text: string
+    type: "indicator"
+}): string {
+    return `grapher_${type}_${slugify(text)}`
+}
+
+export function makeMarkdownDetail({
+    text,
+    id,
+}: {
+    text: string
+    id: string
+}): string {
+    return `[${text}](#dod:${id})`
+}
+
+export function maybeMakeMarkdownDetail({
+    text,
+    type,
+    details,
+}: {
+    text?: string
+    type: "indicator"
+    details: Set<string>
+}): string | undefined {
+    if (!text) return text
+    const maybeDetailId = makeDetailIdFromText({ text, type })
+    if (details.has(maybeDetailId)) {
+        return makeMarkdownDetail({ id: maybeDetailId, text })
+    }
+    return text
+}

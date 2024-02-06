@@ -21,6 +21,7 @@ import {
     getRelativeMouse,
     ColorSchemeName,
     EntitySelectionMode,
+    maybeMakeMarkdownDetail,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -599,10 +600,20 @@ export class MarimekkoChart
         )
     }
 
+    @computed get defaultYAxisLabel(): string | undefined {
+        return this.yColumns.length > 0
+            ? this.yColumns[0].displayName
+            : undefined
+    }
+
     @computed get currentVerticalAxisLabel(): string {
         const config = this.yAxisConfig
         const fallbackLabel =
-            this.yColumns.length > 0 ? this.yColumns[0].displayName : ""
+            maybeMakeMarkdownDetail({
+                text: this.defaultYAxisLabel,
+                type: "indicator",
+                details: this.detailsOrderedByReference,
+            }) ?? ""
         return this.isNarrow ? "" : config.label || fallbackLabel
     }
 
@@ -622,10 +633,18 @@ export class MarimekkoChart
     }
 
     @computed private get xAxisLabelBase(): string {
-        const xDimName = this.xColumn?.displayName
+        const xDimName = maybeMakeMarkdownDetail({
+            text: this.defaultXAxisLabel,
+            type: "indicator",
+            details: this.detailsOrderedByReference,
+        })
         if (this.manager.xOverrideTime !== undefined)
             return `${xDimName} in ${this.manager.xOverrideTime}`
         return xDimName ?? "" // This sets the axis label to emtpy if we don't have an x column - not entirely sure this is what we want
+    }
+
+    @computed get defaultXAxisLabel(): string | undefined {
+        return this.xColumn?.displayName
     }
 
     @computed get currentHorizontalAxisLabel(): string {

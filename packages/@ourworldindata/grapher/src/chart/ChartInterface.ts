@@ -50,6 +50,6 @@ export interface ChartInterface {
      */
     availableFacetStrategies?: FacetStrategy[]
 
-    currentVerticalAxisLabel?: string
-    currentHorizontalAxisLabel?: string
+    defaultYAxisLabel?: string
+    defaultXAxisLabel?: string
 }

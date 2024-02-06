@@ -66,7 +66,7 @@ import {
     compact,
     getOriginAttributionFragments,
     sortBy,
-    excludeNullish,
+    makeDetailIdFromText,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -102,6 +102,7 @@ import {
     AxisConfigInterface,
     GrapherStaticFormat,
     DetailsMarker,
+    DetailDictionary,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -198,7 +199,12 @@ import {
     type GrapherExport,
 } from "../captionedChart/StaticChartRasterizer.js"
 
-declare const window: any
+declare global {
+    interface Window {
+        details?: DetailDictionary
+        admin?: any // TODO: use stricter type
+    }
+}
 
 async function loadVariablesDataAdmin(
     variableFetchBaseUrl: string | undefined,
@@ -1236,38 +1242,85 @@ export class Grapher
         return this.slug ?? slugify(this.displayTitle)
     }
 
-    @computed get currentVerticalAxisLabel(): string | undefined {
-        if (this.isReady && this.chartInstance.currentVerticalAxisLabel) {
-            return this.chartInstance.currentVerticalAxisLabel
+    @computed get defaultYAxisLabel(): string | undefined {
+        if (this.isReady && this.chartInstance.defaultYAxisLabel) {
+            return this.chartInstance.defaultYAxisLabel
         }
-        return this.yAxisConfig.label
+        return undefined
     }
 
-    @computed get currentHorizontalAxisLabel(): string | undefined {
-        if (this.isReady && this.chartInstance.currentHorizontalAxisLabel) {
-            return this.chartInstance.currentHorizontalAxisLabel
+    @computed get defaultXAxisLabel(): string | undefined {
+        if (this.isReady && this.chartInstance.defaultXAxisLabel) {
+            return this.chartInstance.defaultXAxisLabel
         }
-        return this.xAxisConfig.label
+        return undefined
     }
 
     @observable shouldIncludeDetailsInStaticExport = true
 
     // Used for superscript numbers in static exports
     @computed get detailsOrderedByReference(): Set<string> {
-        const textInOrderOfAppearance = excludeNullish([
-            !this.hideSubtitle ? this.currentSubtitle : null,
-            this.currentVerticalAxisLabel,
-            this.currentHorizontalAxisLabel,
-            !this.hideNote ? this.note : null,
-        ]).join()
-        const details = textInOrderOfAppearance.matchAll(
-            new RegExp(detailOnDemandRegex, "g")
-        )
-        const uniqueDetails = new Set<string>()
-        for (const [_, detail] of details) {
-            uniqueDetails.add(detail)
+        if (typeof window === "undefined" || !window.details) return new Set()
+
+        function extractDetailIdsFromText(
+            text: string,
+            isHidden = false
+        ): string[] {
+            if (isHidden) return []
+            const matches = text.matchAll(new RegExp(detailOnDemandRegex, "g"))
+            return [...matches].map(([detailId]) => detailId)
         }
-        return uniqueDetails
+
+        // if a custom axis label is given, extract details from text.
+        // otherwise, check if a detail exists for the default axis label
+        function extractDetailIdsFromAxisLabel(
+            configLabel?: string,
+            defaultLabel?: string
+        ): string[] {
+            if (configLabel) {
+                return extractDetailIdsFromText(configLabel)
+            } else if (defaultLabel) {
+                return [
+                    makeDetailIdFromText({
+                        text: defaultLabel,
+                        type: "indicator",
+                    }),
+                ]
+            }
+            return []
+        }
+
+        // extract detail from supporting text
+        const subtitleDetailIds = extractDetailIdsFromText(
+            this.currentSubtitle,
+            this.hideSubtitle
+        )
+        const noteDetailIds = extractDetailIdsFromText(this.note, this.hideNote)
+
+        // extract details from axis labels
+        const yAxisDetailIds = extractDetailIdsFromAxisLabel(
+            this.yAxisConfig.label,
+            this.defaultYAxisLabel
+        )
+        const xAxisDetailIds = extractDetailIdsFromAxisLabel(
+            this.xAxisConfig.label,
+            this.defaultXAxisLabel
+        )
+
+        // should be ordered by appearance
+        const uniqueDetailIds = uniq([
+            ...subtitleDetailIds,
+            ...yAxisDetailIds,
+            ...xAxisDetailIds,
+            ...noteDetailIds,
+        ])
+
+        const validDetailIds = uniqueDetailIds.filter(
+            (detail: string) => window.details?.[detail] !== undefined
+        )
+
+        // todo: return array
+        return new Set(validDetailIds)
     }
 
     @computed get detailsMarkerInSvg(): DetailsMarker {
@@ -1285,7 +1338,7 @@ export class Grapher
         if (typeof window === "undefined") return []
         return [...this.detailsOrderedByReference].map((term, i) => {
             let text = `**${i + 1}.** `
-            const detail: EnrichedDetail = window.details?.[term]
+            const detail: EnrichedDetail | undefined = window.details?.[term]
             if (detail) {
                 const plainText = detail.text.map(({ value }) =>
                     spansToUnformattedPlainText(value)
