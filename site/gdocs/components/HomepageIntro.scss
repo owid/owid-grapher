@@ -1,0 +1,115 @@
+/* Layout */
+.homepage-intro__our-mission-container {
+    border-right: 1px solid $blue-10;
+    padding-right: var(--grid-gap);
+}
+
+.homepage-intro__featured-work-container {
+    // 1fr is needed so that the tertiary tiles fit directly below the primary tile
+    // without the container expanding and taking up extra white space
+    grid-template-rows: auto auto 1fr auto;
+}
+
+.homepage-intro__secondary-tiles {
+    grid-row-start: 2;
+    grid-row-end: 4;
+}
+
+.homepage-intro__tertiary-tiles {
+    margin-top: 32px;
+}
+
+/* Left column */
+
+.homepage-intro__featured-work-heading,
+.homepage-intro__our-mission-heading {
+    margin-top: 0;
+    margin-bottom: 16px;
+    padding-top: 24px;
+    color: $blue-60;
+}
+
+.homepage-intro__our-mission-lead {
+    @include subtitle-2;
+    font-weight: bold;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    color: $blue-90;
+}
+
+.homepage-intro__subscribe-button,
+.homepage-intro__donate-button {
+    display: block;
+    width: 100%;
+    border: 1px solid $vermillion;
+    color: $vermillion;
+    text-align: center;
+    padding: 9.5px 0;
+
+    &:hover {
+        border-color: $accent-vermillion;
+        color: $accent-vermillion;
+    }
+}
+
+.homepage-intro__donate-button {
+    background-color: $vermillion;
+    color: #fff;
+    border-color: none;
+
+    &:hover {
+        background-color: $accent-vermillion;
+        color: #fff;
+    }
+}
+
+.homepage-intro__mission-wrapper {
+    padding-bottom: 24px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid $blue-10;
+    color: $blue-60;
+}
+
+.homepage-intro__media-logos {
+    margin-top: 16px;
+    width: 100%;
+}
+
+/* Tiles */
+
+.homepage-intro__featured-tile {
+    color: $blue-90;
+
+    img {
+        display: block;
+    }
+}
+
+.homepage-intro__featured-work-kicker {
+    color: $blue-60;
+}
+
+.homepage-intro__primary-tiles .homepage-intro__featured-work-title {
+    @include h2-bold;
+    margin: 4px 0;
+}
+
+.homepage-intro__secondary-tiles .homepage-intro__featured-work-title,
+.homepage-intro__tertiary-tiles .homepage-intro__featured-work-title {
+    @include h3-bold;
+    margin: 4px 0;
+}
+
+.homepage-intro__featured-tile:hover .homepage-intro__featured-work-title {
+    @include owid-link-90;
+}
+
+.homepage-intro__featured-work-description {
+    margin: 0;
+}
+
+.homepage-intro__featured-work-authors {
+    color: $blue-60;
+    font-weight: 400;
+    margin-top: 4px;
+}

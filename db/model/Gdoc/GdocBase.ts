@@ -194,6 +194,13 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                                 }
                             })
                         }
+                        if (item.type === "homepage-intro") {
+                            item.featuredWork.forEach((featuredWork) => {
+                                if (featuredWork.filename) {
+                                    filenames.add(featuredWork.filename)
+                                }
+                            })
+                        }
                     }
                     return item
                 })
