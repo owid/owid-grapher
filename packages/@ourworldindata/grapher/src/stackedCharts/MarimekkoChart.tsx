@@ -861,8 +861,8 @@ export class MarimekkoChart
         return this.baseFontSize
     }
 
-    @computed get detailsOrderedByReference(): Set<string> {
-        return this.manager.detailsOrderedByReference ?? new Set()
+    @computed get detailsOrderedByReference(): string[] {
+        return this.manager.detailsOrderedByReference ?? []
     }
 
     @computed get categoricalLegendData(): CategoricalBin[] {

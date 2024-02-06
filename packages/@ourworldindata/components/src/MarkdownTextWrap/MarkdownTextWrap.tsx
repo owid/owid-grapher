@@ -516,7 +516,7 @@ type MarkdownTextWrapProps = {
     lineHeight?: number
     maxWidth?: number
     style?: CSSProperties
-    detailsOrderedByReference?: Set<string>
+    detailsOrderedByReference?: string[]
 }
 
 export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
@@ -558,8 +558,8 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         text = text.replaceAll("@@LINEBREAK@@", "  \n")
         return text
     }
-    @computed get detailsOrderedByReference(): Set<string> {
-        return this.props.detailsOrderedByReference || new Set()
+    @computed get detailsOrderedByReference(): string[] {
+        return this.props.detailsOrderedByReference || []
     }
 
     @computed get plaintext(): string {
@@ -1060,7 +1060,7 @@ function convertMarkdownNodeToIRTokens(
 
 function appendReferenceNumbers(
     tokens: IRToken[],
-    references: Set<string>
+    references: string[]
 ): IRToken[] {
     function traverse(token: IRToken, callback: (token: IRToken) => any): any {
         if (token instanceof IRElement) {
@@ -1073,7 +1073,7 @@ function appendReferenceNumbers(
         traverse(token, (token: IRToken) => {
             if (token instanceof IRDetailOnDemand) {
                 const referenceIndex =
-                    [...references].findIndex((term) => term === token.term) + 1
+                    references.findIndex((term) => term === token.term) + 1
                 if (referenceIndex === 0) return token
                 token.children.push(
                     new IRSuperscript(String(referenceIndex), token.fontParams)

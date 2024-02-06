@@ -291,7 +291,7 @@ export class EditorExportTab extends React.Component<EditorExportTabProps> {
                             }
                         />
                     )}
-                    {this.originalGrapher.detailsOrderedByReference.size >
+                    {this.originalGrapher.detailsOrderedByReference.length >
                         0 && (
                         <Toggle
                             label="Details on demand"

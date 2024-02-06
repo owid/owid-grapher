@@ -9,7 +9,7 @@ export interface HeaderManager {
     logo?: string
     canonicalUrl?: string
     tabBounds?: Bounds
-    detailsOrderedByReference?: Set<string>
+    detailsOrderedByReference?: string[]
     shouldIncludeDetailsInStaticExport?: boolean
     isExportingToSvgOrPng?: boolean
     isNarrow?: boolean

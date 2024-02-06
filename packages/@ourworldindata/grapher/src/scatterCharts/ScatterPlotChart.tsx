@@ -377,8 +377,8 @@ export class ScatterPlotChart
         )
     }
 
-    @computed get detailsOrderedByReference(): Set<string> {
-        return this.manager.detailsOrderedByReference ?? new Set()
+    @computed get detailsOrderedByReference(): string[] {
+        return this.manager.detailsOrderedByReference ?? []
     }
 
     @computed get fontSize(): number {

@@ -1853,11 +1853,11 @@ export function maybeMakeMarkdownDetail({
 }: {
     text?: string
     type: "indicator"
-    details: Set<string>
+    details: string[]
 }): string | undefined {
     if (!text) return text
     const maybeDetailId = makeDetailIdFromText({ text, type })
-    if (details.has(maybeDetailId)) {
+    if (details.includes(maybeDetailId)) {
         return makeMarkdownDetail({ id: maybeDetailId, text })
     }
     return text

@@ -19,7 +19,7 @@ import {
 
 export interface AxisManager {
     fontSize: number
-    detailsOrderedByReference?: Set<string>
+    detailsOrderedByReference?: string[]
 }
 
 class AxisConfigDefaults implements AxisConfigInterface {

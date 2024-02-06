@@ -168,7 +168,7 @@ async function fetchAndRenderGrapherToSvg({
     const promises = []
     promises.push(grapher.downloadLegacyDataFromOwidVariableIds())
 
-    if (options.details && grapher.detailsOrderedByReference.size) {
+    if (options.details && grapher.detailsOrderedByReference.length) {
         promises.push(
             await fetch("https://ourworldindata.org/dods.json")
                 .then((r) => r.json())

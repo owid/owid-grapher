@@ -1,5 +1,5 @@
 import { TooltipManager } from "../tooltip/TooltipProps"
-import { GrapherInterface, DetailsMarker } from "@ourworldindata/types"
+import { DetailsMarker } from "@ourworldindata/types"
 import { ActionButtonsManager } from "../controls/ActionButtons"
 
 export interface FooterManager extends TooltipManager, ActionButtonsManager {
@@ -7,8 +7,7 @@ export interface FooterManager extends TooltipManager, ActionButtonsManager {
     note?: string
     hasOWIDLogo?: boolean
     originUrlWithProtocol?: string
-    details?: GrapherInterface["details"]
-    detailsOrderedByReference?: Set<string>
+    detailsOrderedByReference?: string[]
     shouldIncludeDetailsInStaticExport?: boolean
     isSourcesModalOpen?: boolean
     isSmall?: boolean

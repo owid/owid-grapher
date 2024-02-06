@@ -96,6 +96,6 @@ export interface ChartManager {
     isStaticAndSmall?: boolean
     secondaryColorInStaticCharts?: string
 
-    detailsOrderedByReference?: Set<string>
+    detailsOrderedByReference?: string[]
     detailsMarkerInSvg?: DetailsMarker
 }

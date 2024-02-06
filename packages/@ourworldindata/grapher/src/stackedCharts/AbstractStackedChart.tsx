@@ -148,8 +148,8 @@ export class AbstractStackedChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed get detailsOrderedByReference(): Set<string> {
-        return this.manager.detailsOrderedByReference ?? new Set()
+    @computed get detailsOrderedByReference(): string[] {
+        return this.manager.detailsOrderedByReference ?? []
     }
 
     protected get paddingForLegend(): number {
