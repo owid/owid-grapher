@@ -347,6 +347,7 @@ export function ActionButton(props: {
                 onMouseLeave={(): void => {
                     setShowTooltip(false)
                 }}
+                aria-label={props.label}
             >
                 <FontAwesomeIcon icon={props.icon} />
                 {props.showLabel && (

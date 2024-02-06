@@ -80,19 +80,20 @@ function Tab(props: {
     tab: GrapherTabOption
     icon: JSX.Element
     isActive?: boolean
-    onClick?: React.MouseEventHandler<HTMLAnchorElement>
+    onClick?: React.MouseEventHandler<HTMLButtonElement>
     showLabel?: boolean
 }): JSX.Element {
     const className = "tab clickable" + (props.isActive ? " active" : "")
     return (
         <li key={props.tab} className={className}>
-            <a
+            <button
                 onClick={props.onClick}
                 data-track-note={"chart_click_" + props.tab}
+                aria-label={props.tab}
             >
                 {props.icon}
                 {props.showLabel && <span className="label">{props.tab}</span>}
-            </a>
+            </button>
         </li>
     )
 }

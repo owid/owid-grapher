@@ -80,6 +80,10 @@ $lato: $sans-serif-font-stack;
                 }
             }
 
+            input:focus-visible + .outer {
+                outline: 2px solid $controls-color;
+            }
+
             input:checked + .outer {
                 background: $active-fill;
                 .inner {
