@@ -198,19 +198,21 @@ function KeyIndicatorHeader({
 
     return (
         <div className="key-indicator-header">
-            <div>
+            <div className="key-indicator-header__left">
                 <FontAwesomeIcon
                     icon={tabIconMap[activeTab]}
                     className="key-indicator-header__tab-icon"
                 />
-                <span className="key-indicator-header__title">
-                    {linkedIndicator.title}
-                </span>
-                {source && (
-                    <span className="key-indicator-header__source">
-                        {source}
+                <div>
+                    <span className="key-indicator-header__title">
+                        {linkedIndicator.title}
                     </span>
-                )}
+                    {source && (
+                        <span className="key-indicator-header__source">
+                            {source}
+                        </span>
+                    )}
+                </div>
             </div>
             {!isContentVisible && (
                 <div>

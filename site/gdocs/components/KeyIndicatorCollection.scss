@@ -71,15 +71,15 @@
         gap: 8px;
     }
 
+    .key-indicator-header__left {
+        display: flex;
+        align-items: baseline;
+    }
+
     .key-indicator-header__tab-icon {
         font-size: 0.8125rem;
         color: $blue-50;
         margin-right: 8px;
-        vertical-align: baseline;
-
-        @include sm-only {
-            display: none;
-        }
     }
 
     .key-indicator-header__title {
