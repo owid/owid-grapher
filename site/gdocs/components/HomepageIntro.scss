@@ -79,6 +79,7 @@
 
 .homepage-intro__featured-tile {
     color: $blue-90;
+    display: block;
 
     img {
         display: block;
@@ -102,6 +103,9 @@
 
 .homepage-intro__featured-tile:hover .homepage-intro__featured-work-title {
     @include owid-link-90;
+    &:hover {
+        text-decoration: underline;
+    }
 }
 
 .homepage-intro__featured-work-description {
