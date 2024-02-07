@@ -19,7 +19,11 @@ import {
     Tag,
     DbChartTagJoin,
 } from "@ourworldindata/utils"
-import { GrapherInterface, ChartTypeName } from "@ourworldindata/types"
+import {
+    GrapherInterface,
+    ChartTypeName,
+    RelatedChart,
+} from "@ourworldindata/types"
 import { OpenAI } from "openai"
 import { OPENAI_API_KEY } from "../../settings/serverSettings.js"
 
@@ -349,4 +353,29 @@ export const getMostViewedGrapherIdsByChartType = async (
         [chartType, count]
     )
     return ids.map((row: any) => row.id)
+}
+
+export const getRelatedChartsForVariable = async (
+    variableId: number,
+    chartIdsToExclude: number[] = []
+): Promise<RelatedChart[]> => {
+    const excludeChartIds =
+        chartIdsToExclude.length > 0
+            ? `AND charts.id NOT IN (${chartIdsToExclude.join(", ")})`
+            : ""
+
+    return db.queryMysql(`-- sql
+                SELECT
+                    charts.config->>"$.slug" AS slug,
+                    charts.config->>"$.title" AS title,
+                    charts.config->>"$.variantName" AS variantName,
+                    MAX(chart_tags.keyChartLevel) as keyChartLevel
+                FROM charts
+                INNER JOIN chart_tags ON charts.id=chart_tags.chartId
+                WHERE JSON_CONTAINS(config->'$.dimensions', '{"variableId":${variableId}}')
+                AND charts.config->>"$.isPublished" = "true"
+                ${excludeChartIds}
+                GROUP BY charts.id
+                ORDER BY title ASC
+            `)
 }

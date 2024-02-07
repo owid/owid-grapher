@@ -14,7 +14,6 @@ import { Knex, knex } from "knex"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup.js"
 import {
-    RelatedChart,
     WP_PostType,
     JsonError,
     PostRestApi,
@@ -208,31 +207,6 @@ export const getPostApiBySlugFromApi = async (
     const { id, type } = postIdAndType
 
     return apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
-}
-
-export const getRelatedChartsForVariable = async (
-    variableId: number,
-    chartIdsToExclude: number[] = []
-): Promise<RelatedChart[]> => {
-    const excludeChartIds =
-        chartIdsToExclude.length > 0
-            ? `AND charts.id NOT IN (${chartIdsToExclude.join(", ")})`
-            : ""
-
-    return db.queryMysql(`-- sql
-                SELECT
-                    charts.config->>"$.slug" AS slug,
-                    charts.config->>"$.title" AS title,
-                    charts.config->>"$.variantName" AS variantName,
-                    MAX(chart_tags.keyChartLevel) as keyChartLevel
-                FROM charts
-                INNER JOIN chart_tags ON charts.id=chart_tags.chartId
-                WHERE JSON_CONTAINS(config->'$.dimensions', '{"variableId":${variableId}}')
-                AND charts.config->>"$.isPublished" = "true"
-                ${excludeChartIds}
-                GROUP BY charts.id
-                ORDER BY title ASC
-            `)
 }
 
 interface RelatedResearchQueryResult {
