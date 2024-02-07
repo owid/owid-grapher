@@ -357,3 +357,12 @@ export const getRelatedArticles = async (
         (a, b) => (a.title.toLowerCase() > b.title.toLowerCase() ? 1 : -1)
     )
 }
+
+export const getPermalinks = async (): Promise<{
+    // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage
+    get: (ID: number, postName: string) => string
+}> => ({
+    // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage
+    get: (ID: number, postName: string): string =>
+        postName.replace(/\/+$/g, "").replace(/--/g, "/").replace(/__/g, "/"),
+})
