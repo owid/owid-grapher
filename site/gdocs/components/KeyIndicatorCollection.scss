@@ -1,9 +1,10 @@
 .key-indicator-collection {
     $duration: 0.4s; // keep in sync with HEIGHT_ANIMATION_DURATION_IN_SECONDS in KeyIndicatorCollection.tsx
 
+    --padding: var(--grid-gap, 24px);
     --border: #{$blue-20};
 
-    margin: 24px -24px;
+    margin: 24px calc(-1 * var(--padding));
 
     .accordion-item + .accordion-item {
         border-top: 1px solid var(--border);
@@ -22,7 +23,7 @@
 
     .accordion-item__button {
         background-color: $blue-5;
-        padding: 16px 24px;
+        padding: 16px var(--padding);
 
         @include sm-only {
             padding-bottom: 0;
@@ -39,7 +40,7 @@
     // on mobile, show an anchor that links to the datapage
     .accordion-item__link-mobile {
         background-color: $white;
-        padding: 12px 24px;
+        padding: 12px 0;
         line-height: 1.2;
 
         @include sm-up {
@@ -60,7 +61,6 @@
     }
 
     .accordion-item__content {
-        padding: 0 24px;
         overflow: hidden;
         transition: height $duration cubic-bezier(0.76, 0, 0.24, 1);
     }
@@ -159,7 +159,7 @@
             content: "More featured indicators";
             @include h5-black-caps;
             display: block;
-            margin: 24px 24px 16px;
+            margin: 24px var(--padding) 16px;
             color: $blue-60;
         }
 
@@ -170,12 +170,15 @@
         .accordion-item:last-of-type {
             border-bottom: 1px solid var(--border);
         }
+
+        .accordion-item--closed {
+            margin: 0 var(--padding);
+        }
     }
 
-    // update <KeyIndicator /> styles
+    // overwrite <KeyIndicator /> styles
     .key-indicator {
-        margin-top: 0;
-        margin-bottom: 0;
+        margin: 0;
         .indicator-metadata {
             display: none;
         }
