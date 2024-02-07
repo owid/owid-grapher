@@ -380,68 +380,15 @@ export const getGdocsPostReferencesByChartId = async (
 }
 
 /*
- * Get all the related research and writing for a chart
+ * Get all the gdocs and Wordpress posts mentioning a chart
  */
 export const getRelatedArticles = async (
     chartId: number
 ): Promise<PostReference[] | undefined> => {
-    const relatedPosts: PostReference[] = (
-        await db.knexInstance().raw(
-            `
-        SELECT
-            p.title,
-            p.slug,
-            p.id,
-            "UNUSED" as url
-        FROM
-            posts_with_gdoc_publish_status p
-            JOIN posts_links pl ON p.id = pl.sourceId
-            JOIN charts c ON pl.target = c.slug
-            OR pl.target IN (
-                SELECT
-                    cr.slug
-                FROM
-                    chart_slug_redirects cr
-                WHERE
-                    cr.chart_id = c.id
-            )
-        WHERE
-            c.id = ?
-            AND p.status = 'publish'
-            AND p.isGdocPublished = 0
-            AND p.type != 'wp_block'
-            -- note: we are not filtering by linkType to cast of wider net: if a post links to an
-            -- explorer having the same slug as the grapher chart, we want to surface it as
-            -- a "Related research" as it is most likely relevant.
-        UNION
-        SELECT
-            pg.content ->> '$.title' AS title,
-            pg.slug AS slug,
-            pg.id AS id,
-            "UNUSED" as url
-        FROM
-            posts_gdocs pg
-            JOIN posts_gdocs_links pgl ON pg.id = pgl.sourceId
-            JOIN charts c ON pgl.target = c.slug
-            OR pgl.target IN (
-                SELECT
-                    cr.slug
-                FROM
-                    chart_slug_redirects cr
-                WHERE
-                    cr.chart_id = c.id
-            )
-        WHERE
-            c.id = ?
-            AND pg.content ->> '$.type' <> 'fragment'
-            AND pg.published = 1
-            -- note: we are not filtering by linkType here either, for the same reason as above.
-        `,
-            [chartId, chartId]
-        )
-    )[0]
+    const wordpressPosts = await getWordpressPostReferencesByChartId(chartId)
+    const gdocsPosts = await getGdocsPostReferencesByChartId(chartId)
 
-    return uniqBy(relatedPosts, "slug").sort(
+    return [...wordpressPosts, ...gdocsPosts].sort(
         // Alphabetise
         (a, b) => (a.title.toLowerCase() > b.title.toLowerCase() ? 1 : -1)
     )
