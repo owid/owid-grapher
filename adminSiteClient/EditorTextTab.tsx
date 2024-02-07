@@ -15,7 +15,7 @@ import { observer } from "mobx-react"
 import React from "react"
 import Select from "react-select"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
-import { ChartEditor } from "./ChartEditor.js"
+import { ChartEditor, ChartEditorManager } from "./ChartEditor.js"
 import {
     AutoTextField,
     BindAutoString,
@@ -74,7 +74,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         grapher.hideAnnotationFieldsInTitle.changeInPrefix = value || undefined
     }
 
-    @computed get errorMessages() {
+    @computed get errorMessages(): ChartEditorManager["errorMessages"] {
         return this.props.editor.manager.errorMessages
     }
 

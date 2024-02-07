@@ -25,6 +25,7 @@ import {
     Topic,
     GrapherInterface,
     GrapherStaticFormat,
+    DimensionProperty,
 } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
@@ -307,17 +308,49 @@ export class ChartEditorPage
 
     @computed get errorMessages(): ChartEditorManager["errorMessages"] {
         const { invalidDetailReferences } = this
-        const keys = getIndexableKeys(invalidDetailReferences)
 
         const errorMessages: ChartEditorManager["errorMessages"] = {}
 
-        keys.forEach((key: FieldWithDetailReferences) => {
-            const references = invalidDetailReferences[key]
-            if (references.length) {
-                errorMessages[
-                    key
-                ] = `Invalid detail(s) specified: ${references.join(", ")}`
+        // add error messages for each field with invalid detail references
+        getIndexableKeys(invalidDetailReferences).forEach(
+            (key: FieldWithDetailReferences) => {
+                const references = invalidDetailReferences[key]
+                if (references.length) {
+                    errorMessages[
+                        key
+                    ] = `Invalid detail(s) specified: ${references.join(", ")}`
+                }
             }
+        )
+
+        return errorMessages
+    }
+
+    @computed
+    get errorMessagesForDimensions(): ChartEditorManager["errorMessagesForDimensions"] {
+        const errorMessages: ChartEditorManager["errorMessagesForDimensions"] =
+            {
+                [DimensionProperty.y]: [],
+                [DimensionProperty.x]: [],
+                [DimensionProperty.color]: [],
+                [DimensionProperty.size]: [],
+                [DimensionProperty.table]: [], // not used
+            }
+
+        this.grapher.dimensionSlots.forEach((slot) => {
+            slot.dimensions.forEach((dimension, dimensionIndex) => {
+                const details = extractDetailsFromSyntax(
+                    dimension.display.name ?? ""
+                )
+                const hasDetailsInDisplayName = details.length > 0
+
+                // add error message if details are referenced in the display name
+                if (hasDetailsInDisplayName) {
+                    errorMessages[slot.property][dimensionIndex] = {
+                        displayName: "Detail syntax is not supported",
+                    }
+                }
+            })
         })
 
         return errorMessages

@@ -11,6 +11,7 @@ import {
     type RawPageview,
     Topic,
     PostReference,
+    DimensionProperty,
 } from "@ourworldindata/utils"
 import { computed, observable, runInAction, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
@@ -92,6 +93,10 @@ export type FieldWithDetailReferences =
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
+export interface DimensionErrorMessages {
+    displayName?: string
+}
+
 export interface ChartEditorManager {
     admin: Admin
     grapher: Grapher
@@ -104,6 +109,10 @@ export interface ChartEditorManager {
     details: DetailDictionary
     invalidDetailReferences: DetailReferences
     errorMessages: Partial<Record<FieldWithDetailReferences, string>>
+    errorMessagesForDimensions: Record<
+        DimensionProperty,
+        DimensionErrorMessages[]
+    >
 }
 
 interface VariableIdUsageRecord {
