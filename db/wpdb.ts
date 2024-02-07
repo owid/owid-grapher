@@ -21,7 +21,6 @@ import {
     uniqBy,
     sortBy,
     DataPageRelatedResearch,
-    Tag,
 } from "@ourworldindata/utils"
 
 let _knexInstance: Knex
@@ -209,16 +208,6 @@ export const getPostApiBySlugFromApi = async (
     const { id, type } = postIdAndType
 
     return apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
-}
-
-export const getPostTags = async (
-    postId: number
-): Promise<Pick<Tag, "id" | "name">[]> => {
-    return await db
-        .knexTable("post_tags")
-        .select("tags.id", "tags.name")
-        .where({ post_id: postId })
-        .join("tags", "tags.id", "=", "post_tags.tag_id")
 }
 
 export const getRelatedChartsForVariable = async (

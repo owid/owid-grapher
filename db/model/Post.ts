@@ -17,6 +17,7 @@ import {
     snapshotIsPostRestApi,
     snapshotIsBlockGraphQlApi,
     PostReference,
+    Tag,
 } from "@ourworldindata/types"
 import { uniqBy } from "@ourworldindata/utils"
 import { Knex } from "knex"
@@ -366,3 +367,13 @@ export const getPermalinks = async (): Promise<{
     get: (ID: number, postName: string): string =>
         postName.replace(/\/+$/g, "").replace(/--/g, "/").replace(/__/g, "/"),
 })
+
+export const getPostTags = async (
+    postId: number
+): Promise<Pick<Tag, "id" | "name">[]> => {
+    return await db
+        .knexTable("post_tags")
+        .select("tags.id", "tags.name")
+        .where({ post_id: postId })
+        .join("tags", "tags.id", "=", "post_tags.tag_id")
+}
