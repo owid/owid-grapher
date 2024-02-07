@@ -1,13 +1,10 @@
 .key-indicator {
+    --padding: var(--grid-gap, 24px);
+
     background-color: $blue-5;
 
-    margin: 24px -24px;
-    padding: 24px;
-
-    @include sm-only {
-        margin: 0 -16px 16px;
-        padding: 16px;
-    }
+    margin: 24px calc(-1 * var(--padding));
+    padding: var(--padding);
 
     .left {
         @include sm-only {
