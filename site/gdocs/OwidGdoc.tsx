@@ -80,7 +80,7 @@ export function OwidGdoc({
             <DataInsightPage {...props} />
         ))
         .with({ content: { type: OwidGdocType.Homepage } }, (props) => (
-            <Homepage {...props} totalCharts={1000} totalTopics={100} />
+            <Homepage {...props} />
         ))
         .with({ content: { type: OwidGdocType.Fragment } }, (props) => (
             <Fragment {...props} />

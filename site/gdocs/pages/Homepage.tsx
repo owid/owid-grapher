@@ -11,19 +11,15 @@ import {
     NewsletterSubscriptionContext,
     NewsletterSubscriptionForm,
 } from "../../NewsletterSubscription.js"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import { OwidGdocHomepageContent } from "@ourworldindata/types"
 
 export interface HomepageProps {
-    totalCharts: number
-    totalTopics: number
     content: OwidGdocHomepageContent
 }
 
 export const Homepage = (props: HomepageProps): JSX.Element => {
-    const baseUrl = BAKED_BASE_URL
-    const { totalCharts, totalTopics, content } = props
+    const { content } = props
 
     return (
         <div className="grid grid-cols-12-full-width">

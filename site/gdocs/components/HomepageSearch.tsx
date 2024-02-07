@@ -7,9 +7,18 @@ export function HomepageSearch(props: { className?: string }) {
     const chartCount = homepageMetadata?.chartCount
     const topicCount = homepageMetadata?.topicCount
     const message =
-        chartCount && topicCount
-            ? `${chartCount} charts across ${topicCount} topics — All free: open access and open source`
-            : "Thousand of charts across 200 topics - All free: open access and open source"
+        chartCount && topicCount ? (
+            <>
+                <a href="/charts">{chartCount}</a> charts across{" "}
+                <a href="#all-topics">{topicCount}</a> topics — All free: open
+                access and open source
+            </>
+        ) : (
+            <>
+                Thousand of charts across 200 topics - All free: open access and
+                open source
+            </>
+        )
     return (
         <div className={props.className}>
             <h2 className="h1-semibold span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
@@ -21,7 +30,7 @@ export function HomepageSearch(props: { className?: string }) {
                 className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
                 detachedMediaQuery="none"
             />
-            <p className="span-cols-14">{message}</p>
+            <p className="span-cols-14 homepage-search__tagline">{message}</p>
         </div>
     )
 }

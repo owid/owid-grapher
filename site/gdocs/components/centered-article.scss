@@ -1055,5 +1055,12 @@ div.raw-html-table__container {
         color: $blue-30;
         display: inline-block;
         margin: 16px;
+        a {
+            @include owid-link-60;
+            color: $blue-30;
+            &:visited {
+                color: $blue-30;
+            }
+        }
     }
 }
