@@ -52,7 +52,6 @@ import {
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
-    OwidGdocLinkType,
     OwidGdocType,
     grapherKeysToSerialize,
 } from "@ourworldindata/types"
@@ -199,6 +198,43 @@ export const getWordpressPostReferencesByChartId = async (
     return relatedWordpressPosts
 }
 
+export const getGdocsPostReferencesByChartId = async (
+    chartId: number
+): Promise<PostReference[]> => {
+    const relatedGdocsPosts: PostReference[] = (
+        await db.knexInstance().raw(
+            `
+            SELECT DISTINCT
+                pg.content ->> '$.title' AS title,
+                pg.slug AS slug,
+                pg.id AS id,
+                CONCAT("${BAKED_BASE_URL}","/",pg.slug) as url
+            FROM
+                posts_gdocs pg
+                JOIN posts_gdocs_links pgl ON pg.id = pgl.sourceId
+                JOIN charts c ON pgl.target = c.slug
+                OR pgl.target IN (
+                    SELECT
+                        cr.slug
+                    FROM
+                        chart_slug_redirects cr
+                    WHERE
+                        cr.chart_id = c.id
+                )
+            WHERE
+                c.id = ?
+                AND pg.content ->> '$.type' <> 'fragment'
+                AND pg.published = 1
+            ORDER BY
+                pg.content ->> '$.title' ASC
+        `,
+            [chartId]
+        )
+    )[0]
+
+    return relatedGdocsPosts
+}
+
 const getReferencesByChartId = async (chartId: number): Promise<References> => {
     const rows = await db.queryMysql(
         `
@@ -228,32 +264,19 @@ const getReferencesByChartId = async (chartId: number): Promise<References> => {
         }
 
     const postsWordpressPromise = getWordpressPostReferencesByChartId(chartId)
-    const publishedLinksToChartPromise = Link.getPublishedLinksTo(
-        slugs,
-        OwidGdocLinkType.Grapher
-    )
+    const postGdocsPromise = getGdocsPostReferencesByChartId(chartId)
     const explorerSlugsPromise = db.queryMysql(
         `select distinct explorerSlug from explorer_charts where chartId = ?`,
         [chartId]
     )
-    const [postsWordpress, publishedLinksToChart, explorerSlugs] =
-        await Promise.all([
-            postsWordpressPromise,
-            publishedLinksToChartPromise,
-            explorerSlugsPromise,
-        ])
-
-    const publishedGdocPostsThatReferenceChart = publishedLinksToChart.map(
-        (link) => ({
-            id: link.source.id,
-            title: link.source.content.title ?? "",
-            slug: link.source.slug,
-            url: `${BAKED_BASE_URL}/${link.source.slug}`,
-        })
-    )
+    const [postsWordpress, postsGdocs, explorerSlugs] = await Promise.all([
+        postsWordpressPromise,
+        postGdocsPromise,
+        explorerSlugsPromise,
+    ])
 
     return {
-        postsGdocs: publishedGdocPostsThatReferenceChart,
+        postsGdocs,
         postsWordpress,
         explorers: explorerSlugs.map(
             (row: { explorerSlug: string }) => row.explorerSlug
