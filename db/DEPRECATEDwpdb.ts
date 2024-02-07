@@ -15,21 +15,21 @@ import {
     JsonError,
     Topic,
 } from "@ourworldindata/types"
-import { BLOG_SLUG } from "../settings/serverSettings.js"
+import { BLOG_SLUG, WORDPRESS_URL } from "../settings/serverSettings.js"
 import {
     FOR_SYNC_ONLY_WP_API_ENDPOINT,
     FOR_SYNC_ONLY_apiQuery,
     FOR_SYNC_ONLY_getPostApiBySlugFromApi,
     isWordpressAPIEnabled,
     singleton,
-    OWID_API_ENDPOINT,
     FOR_SYNC_ONLY_getEndpointSlugFromType,
     FOR_SYNC_ONLY_getBlockApiFromApi,
     FOR_SYNC_ONLY_graphqlQuery,
 } from "./wpdb.js"
 import { getFullPost } from "./model/Post.js"
 
-const ENTRIES_CATEGORY_ID = 44
+const DEPRECATED_ENTRIES_CATEGORY_ID = 44
+const DEPRECATED_OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
 
 // Limit not supported with multiple post types: When passing multiple post
 // types, the limit is applied to the resulting array of sequentially sorted
@@ -193,7 +193,7 @@ export const DEPRECATEDgetPostType = async (
     search: number | string
 ): Promise<string> => {
     const paramName = typeof search === "number" ? "id" : "slug"
-    return FOR_SYNC_ONLY_apiQuery(`${OWID_API_ENDPOINT}/type`, {
+    return FOR_SYNC_ONLY_apiQuery(`${DEPRECATED_OWID_API_ENDPOINT}/type`, {
         searchParams: [[paramName, search]],
     })
 }
@@ -233,7 +233,7 @@ export const DEPRECATEDgetTopics = async (
     if (!isWordpressAPIEnabled) return []
 
     const query = `query {
-        pages (first: 100, after:"${cursor}", where: {categoryId:${ENTRIES_CATEGORY_ID}} ) {
+        pages (first: 100, after:"${cursor}", where: {categoryId:${DEPRECATED_ENTRIES_CATEGORY_ID}} ) {
             pageInfo {
                 hasNextPage
                 endCursor

@@ -83,7 +83,6 @@ class WPDB {
 export const singleton = new WPDB()
 
 export const FOR_SYNC_ONLY_WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
-export const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
 export const FOR_SYNC_ONLY_WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
 
 /* Wordpress GraphQL API query
