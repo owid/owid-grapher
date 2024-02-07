@@ -116,9 +116,8 @@ export const LongFormPage = (props: {
                 pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
                 imageUrl={
-                    post.imageUrl
-                        ? encodeURI(formatUrls(post.imageUrl))
-                        : undefined
+                    // uriEncoding is taken care of inside the Head component
+                    post.imageUrl ? formatUrls(post.imageUrl) : undefined
                 }
                 baseUrl={baseUrl}
             >

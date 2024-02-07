@@ -73,10 +73,9 @@ export default function OwidGdocPage({
                 pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
                 imageUrl={
+                    // uriEncoding is taken care of inside the Head component
                     featuredImageFilename
-                        ? encodeURI(
-                              filenameToUrl(featuredImageFilename, baseUrl)
-                          )
+                        ? filenameToUrl(featuredImageFilename, baseUrl)
                         : undefined
                 }
                 baseUrl={baseUrl}
