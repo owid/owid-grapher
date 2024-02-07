@@ -149,33 +149,6 @@ async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
 }
 
 const getReferencesByChartId = async (chartId: number): Promise<References> => {
-    const rows = await db.queryMysql(
-        `
-        SELECT config->"$.slug" AS slug
-        FROM charts
-        WHERE id = ?
-        UNION
-        SELECT slug AS slug
-        FROM chart_slug_redirects
-        WHERE chart_id = ?
-    `,
-        [chartId, chartId]
-    )
-
-    const slugs: string[] = rows
-        .map(
-            (row: { slug?: string }) =>
-                row.slug && row.slug.replace(/^"|"$/g, "")
-        )
-        .filter((slug: string | undefined) => !isUndefined(slug))
-
-    if (!slugs || slugs.length === 0)
-        return {
-            postsGdocs: [],
-            postsWordpress: [],
-            explorers: [],
-        }
-
     const postsWordpressPromise = getWordpressPostReferencesByChartId(chartId)
     const postGdocsPromise = getGdocsPostReferencesByChartId(chartId)
     const explorerSlugsPromise = db.queryMysql(
