@@ -33,8 +33,10 @@ export default function KeyIndicator({
     return (
         <div className={cx("key-indicator grid grid-cols-12", className)}>
             <div className="left col-start-1 span-cols-4 span-sm-cols-12">
-                <div className="indicator-title">
-                    {linkedIndicator.title}{" "}
+                <div className="indicator-metadata">
+                    <span className="indicator-title">
+                        {linkedIndicator.title}
+                    </span>{" "}
                     <span className="indicator-source">{source}</span>
                 </div>
                 <h4 className="narrative-title">{d.title}</h4>

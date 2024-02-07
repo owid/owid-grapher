@@ -15,16 +15,19 @@
         }
     }
 
+    .indicator-metadata {
+        margin-bottom: 16px;
+    }
+
     .indicator-title {
         @include body-2-semibold;
         color: $blue-90;
-        margin-bottom: 16px;
+        margin-right: 8px;
     }
 
     .indicator-source {
         @include body-3-medium;
         display: inline-block;
-        margin-left: 8px;
         color: $blue-50;
     }
 
@@ -35,6 +38,10 @@
         color: $blue-90;
         margin-top: 0;
         margin-bottom: 16px;
+
+        @include sm-only {
+            font-size: 1.25rem;
+        }
     }
 
     .blurb {
