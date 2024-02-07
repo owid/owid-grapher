@@ -5,7 +5,6 @@ import { transaction } from "../db/db.js"
 import * as db from "../db/db.js"
 import { imageStore } from "../db/model/Image.js"
 import { GdocXImage } from "../db/model/GdocXImage.js"
-import * as wpdb from "../db/wpdb.js"
 import { DEPRECATEDgetTopics } from "../db/DEPRECATEDwpdb.js"
 import {
     UNCATEGORIZED_TAG_ID,
@@ -73,7 +72,11 @@ import {
 import { ChartRevision } from "../db/model/ChartRevision.js"
 import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
-import { ChartRedirect, References } from "../adminSiteClient/ChartEditor.js"
+import {
+    ChartRedirect,
+    PostReference,
+    References,
+} from "../adminSiteClient/ChartEditor.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import { escape } from "mysql"
@@ -82,7 +85,6 @@ import {
     postsTable,
     setTagsForPost,
     getTagsByPostId,
-    getPermalinks,
 } from "../db/model/Post.js"
 import {
     checkFullDeployFallback,
@@ -149,44 +151,52 @@ async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
     return logs
 }
 
-const getPostsForSlugs = async (
-    slugs: string[]
-): Promise<{ ID: number; post_title: string; post_name: string }[]> => {
-    if (!wpdb.singleton) return []
-    // Hacky approach to find all the references to a chart by searching for
-    // the chart URL through the Wordpress database.
-    // The Grapher should work without the Wordpress database, so we need to
-    // handle failures gracefully.
-    // NOTE: Sometimes slugs can be substrings of other slugs, e.g.
-    // `grapher/gdp` is a substring of `grapher/gdp-maddison`. We need to be
-    // careful not to erroneously match those, which is why we switched to a
-    // REGEXP.
-    try {
-        const posts = await wpdb.singleton.query(
+export const getWordpressPostReferencesByChartId = async (
+    chartId: number
+): Promise<PostReference[]> => {
+    const relatedWordpressPosts: PostReference[] = (
+        await db.knexInstance().raw(
             `
-                SELECT ID, post_title, post_name
-                FROM wp_posts
-                WHERE
-                    (post_type='page' OR post_type='post' OR post_type='wp_block')
-                    AND post_status='publish'
-                    AND (
-                        ${slugs
-                            .map(
-                                () =>
-                                    `post_content REGEXP CONCAT('grapher/', ?, '[^a-zA-Z_\-]')`
-                            )
-                            .join(" OR ")}
-                    )
-            `,
-            slugs.map(lodash.escapeRegExp)
+            SELECT DISTINCT
+                p.title,
+                p.slug,
+                p.id,
+                CONCAT("${BAKED_BASE_URL}","/",p.slug) as url
+            FROM
+                posts p
+                JOIN posts_links pl ON p.id = pl.sourceId
+                JOIN charts c ON pl.target = c.slug
+                OR pl.target IN (
+                    SELECT
+                        cr.slug
+                    FROM
+                        chart_slug_redirects cr
+                    WHERE
+                        cr.chart_id = c.id
+                )
+            WHERE
+                c.id = ?
+                AND p.status = 'publish'
+                AND p.type != 'wp_block'
+                AND pl.linkType = 'grapher'
+                AND p.slug NOT IN (
+                    -- We want to exclude the slugs of published gdocs, since they override the Wordpress posts
+                    -- published under the same slugs.
+                    SELECT
+                        slug from posts_gdocs pg
+                    WHERE
+                        pg.slug = p.slug
+                        AND pg.content ->> '$.type' <> 'fragment'
+                        AND pg.published = 1
+                )
+            ORDER BY
+                p.title ASC
+        `,
+            [chartId]
         )
-        return posts
-    } catch (error) {
-        console.warn(`Error in getReferencesByChartId`)
-        console.error(error)
-        // We can ignore errors due to not being able to connect.
-        return []
-    }
+    )[0]
+
+    return relatedWordpressPosts
 }
 
 const getReferencesByChartId = async (chartId: number): Promise<References> => {
@@ -217,8 +227,7 @@ const getReferencesByChartId = async (chartId: number): Promise<References> => {
             explorers: [],
         }
 
-    const postsPromise = getPostsForSlugs(slugs)
-    const permalinksPromise = getPermalinks()
+    const postsWordpressPromise = getWordpressPostReferencesByChartId(chartId)
     const publishedLinksToChartPromise = Link.getPublishedLinksTo(
         slugs,
         OwidGdocLinkType.Grapher
@@ -227,10 +236,9 @@ const getReferencesByChartId = async (chartId: number): Promise<References> => {
         `select distinct explorerSlug from explorer_charts where chartId = ?`,
         [chartId]
     )
-    const [posts, permalinks, publishedLinksToChart, explorerSlugs] =
+    const [postsWordpress, publishedLinksToChart, explorerSlugs] =
         await Promise.all([
-            postsPromise,
-            permalinksPromise,
+            postsWordpressPromise,
             publishedLinksToChartPromise,
             explorerSlugsPromise,
         ])
@@ -244,19 +252,9 @@ const getReferencesByChartId = async (chartId: number): Promise<References> => {
         })
     )
 
-    const publishedWPPostsThatReferenceChart = posts.map((post) => {
-        const slug = permalinks.get(post.ID, post.post_name)
-        return {
-            id: post.ID.toString(),
-            title: post.post_title,
-            slug: slug,
-            url: `${BAKED_BASE_URL}/${slug}`,
-        }
-    })
-
     return {
         postsGdocs: publishedGdocPostsThatReferenceChart,
-        postsWordpress: publishedWPPostsThatReferenceChart,
+        postsWordpress,
         explorers: explorerSlugs.map(
             (row: { explorerSlug: string }) => row.explorerSlug
         ),

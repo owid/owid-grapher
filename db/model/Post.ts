@@ -360,15 +360,6 @@ export const getRelatedArticles = async (
     )
 }
 
-export const getPermalinks = async (): Promise<{
-    // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage
-    get: (ID: number, postName: string) => string
-}> => ({
-    // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage
-    get: (ID: number, postName: string): string =>
-        postName.replace(/\/+$/g, "").replace(/--/g, "/").replace(/__/g, "/"),
-})
-
 export const getPostTags = async (
     postId: number
 ): Promise<Pick<Tag, "id" | "name">[]> => {
