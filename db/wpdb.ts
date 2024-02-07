@@ -23,11 +23,7 @@ import {
     sortBy,
     DataPageRelatedResearch,
     Tag,
-    DocumentNode,
-    TopicId,
 } from "@ourworldindata/utils"
-import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
-import { WPPostTypeToGraphDocumentType } from "./contentGraph.js"
 
 let _knexInstance: Knex
 
@@ -166,72 +162,6 @@ export const apiQuery = async (
     return params && params.returnResponseHeadersOnly
         ? response.headers
         : response.json()
-}
-
-export const getDocumentsInfo = async (
-    type: WP_PostType,
-    cursor: string = "",
-    where: string = ""
-): Promise<DocumentNode[]> => {
-    const typePlural = `${type}s`
-    const query = `
-    query($cursor: String){
-        ${typePlural}(first:50, after: $cursor, where:{${where}}) {
-            pageInfo {
-                hasNextPage
-                endCursor
-            }
-            nodes {
-                id: databaseId
-                title
-                slug
-                type: __typename
-                content
-                image: featuredImage {
-                    node {
-                        sourceUrl
-                    }
-                }
-                ${
-                    TOPICS_CONTENT_GRAPH
-                        ? `
-                parentTopics {
-                    nodes {
-                        id: databaseId
-                    }
-                }
-
-                `
-                        : ""
-                }
-            }
-        }
-    }
-    `
-
-    const result = await graphqlQuery(query, { cursor })
-    if (!result.data) return []
-
-    const pageInfo = result.data[typePlural].pageInfo
-    const nodes: Array<
-        Omit<DocumentNode, "image" | "parentTopics"> & {
-            image: { node: { sourceUrl: string } } | null
-            parentTopics?: { nodes: { id: TopicId }[] }
-        }
-    > = result.data[typePlural].nodes
-    const documents = nodes.map((node) => ({
-        ...node,
-        type: WPPostTypeToGraphDocumentType[type.toLowerCase() as WP_PostType],
-        image: node.image?.node.sourceUrl ?? null,
-        parentTopics: node.parentTopics?.nodes.map((topic) => topic.id) ?? [],
-    }))
-    if (pageInfo.hasNextPage) {
-        return documents.concat(
-            await getDocumentsInfo(type, pageInfo.endCursor, where)
-        )
-    } else {
-        return documents
-    }
 }
 
 export const getPermalinks = async (): Promise<{
