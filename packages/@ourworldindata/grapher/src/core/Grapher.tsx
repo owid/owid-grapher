@@ -1262,22 +1262,14 @@ export class Grapher
     @computed get detailsOrderedByReference(): string[] {
         if (typeof window === "undefined") return []
 
-        function extractDetailIdsFromText(
-            text: string,
-            isHidden = false
-        ): string[] {
-            if (isHidden) return []
-            return extractDetailsFromSyntax(text)
-        }
-
-        // if a custom axis label is given, extract details from text.
+        // if a custom axis label is given, extract details from it;
         // otherwise, check if a detail exists for the default axis label
-        function extractDetailIdsFromAxisLabel(
+        function extractDetailsFromAxisLabel(
             configLabel?: string,
             defaultLabel?: string
         ): string[] {
             if (configLabel) {
-                return extractDetailIdsFromText(configLabel)
+                return extractDetailsFromSyntax(configLabel)
             } else if (defaultLabel) {
                 return [
                     makeDetailIdFromText({
@@ -1289,37 +1281,38 @@ export class Grapher
             return []
         }
 
-        // extract detail from supporting text
-        const subtitleDetailIds = extractDetailIdsFromText(
-            this.currentSubtitle,
-            this.hideSubtitle
-        )
-        const noteDetailIds = extractDetailIdsFromText(this.note, this.hideNote)
+        // extract details from supporting text
+        const subtitleDetails = !this.hideSubtitle
+            ? extractDetailsFromSyntax(this.currentSubtitle)
+            : []
+        const noteDetails = !this.hideNote
+            ? extractDetailsFromSyntax(this.note)
+            : []
 
         // extract details from axis labels
-        const yAxisDetailIds = extractDetailIdsFromAxisLabel(
+        const yAxisDetails = extractDetailsFromAxisLabel(
             this.yAxisConfig.label,
             this.defaultYAxisLabel
         )
-        const xAxisDetailIds = extractDetailIdsFromAxisLabel(
+        const xAxisDetails = extractDetailsFromAxisLabel(
             this.xAxisConfig.label,
             this.defaultXAxisLabel
         )
 
-        // should be ordered by appearance
-        const uniqueDetailIds = uniq([
-            ...subtitleDetailIds,
-            ...yAxisDetailIds,
-            ...xAxisDetailIds,
-            ...noteDetailIds,
+        // text fragments are ordered by appearance
+        const uniqueDetails = uniq([
+            ...subtitleDetails,
+            ...yAxisDetails,
+            ...xAxisDetails,
+            ...noteDetails,
         ])
 
-        const validDetailIds = uniqueDetailIds.filter((detailId: string) => {
+        const validDetails = uniqueDetails.filter((detailId: string) => {
             const detail = window.details?.[detailId]
             return detail !== undefined
         })
 
-        return validDetailIds
+        return validDetails
     }
 
     @computed get detailsMarkerInSvg(): DetailsMarker {
