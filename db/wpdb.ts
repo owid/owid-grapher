@@ -82,9 +82,9 @@ class WPDB {
 
 export const singleton = new WPDB()
 
-export const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
+export const FOR_SYNC_ONLY_WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
 export const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
-export const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
+export const FOR_SYNC_ONLY_WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
 
 /* Wordpress GraphQL API query
  *
@@ -93,11 +93,11 @@ export const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
  * every query. So it is the caller's responsibility to throw (if necessary) on
  * "faux 404".
  */
-export const graphqlQuery = async (
+export const FOR_SYNC_ONLY_graphqlQuery = async (
     query: string,
     variables: any = {}
 ): Promise<any> => {
-    const response = await fetch(WP_GRAPHQL_ENDPOINT, {
+    const response = await fetch(FOR_SYNC_ONLY_WP_GRAPHQL_ENDPOINT, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -118,7 +118,7 @@ export const graphqlQuery = async (
  *
  * Note: throws on response.status >= 200 && response.status < 300.
  */
-export const apiQuery = async (
+export const FOR_SYNC_ONLY_apiQuery = async (
     endpoint: string,
     params?: {
         returnResponseHeadersOnly?: boolean
@@ -152,7 +152,8 @@ export const apiQuery = async (
 }
 
 // page => pages, post => posts
-export const getEndpointSlugFromType = (type: string): string => `${type}s`
+export const FOR_SYNC_ONLY_getEndpointSlugFromType = (type: string): string =>
+    `${type}s`
 
 // The API query in getPostType is cleaner but slower, which becomes more of an
 // issue with prominent links requesting posts by slugs (getPostBySlug) to
@@ -170,7 +171,7 @@ export const getEndpointSlugFromType = (type: string): string => `${type}s`
 // not supported which means pages and posts are in direct competition for root
 // paths. So authors need to be diligent when creating paths to make sure pages
 // and posts paths don't collide. This is not enforced at the application level.
-export const getPostIdAndTypeBySlug = async (
+export const SYNC_ONLY_getPostIdAndTypeBySlug = async (
     slug: string
 ): Promise<{ id: number; type: string } | undefined> => {
     const rows = await singleton.query(
@@ -183,20 +184,24 @@ export const getPostIdAndTypeBySlug = async (
     return { id: rows[0].ID, type: rows[0].post_type }
 }
 
-export const getPostApiBySlugFromApi = async (
+export const FOR_SYNC_ONLY_getPostApiBySlugFromApi = async (
     slug: string
 ): Promise<PostRestApi> => {
     if (!isWordpressAPIEnabled) {
         throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
     }
 
-    const postIdAndType = await getPostIdAndTypeBySlug(slug)
+    const postIdAndType = await SYNC_ONLY_getPostIdAndTypeBySlug(slug)
     if (!postIdAndType)
         throw new JsonError(`No page found by slug ${slug}`, 404)
 
     const { id, type } = postIdAndType
 
-    return apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
+    return FOR_SYNC_ONLY_apiQuery(
+        `${FOR_SYNC_ONLY_WP_API_ENDPOINT}/${FOR_SYNC_ONLY_getEndpointSlugFromType(
+            type
+        )}/${id}`
+    )
 }
 
 export interface RelatedResearchQueryResult {
@@ -212,7 +217,9 @@ export interface RelatedResearchQueryResult {
     post_source: string
     tags: string
 }
-export const getBlockApiFromApi = async (id: number): Promise<any> => {
+export const FOR_SYNC_ONLY_getBlockApiFromApi = async (
+    id: number
+): Promise<any> => {
     if (!isWordpressAPIEnabled) return undefined
 
     const query = `
@@ -222,14 +229,16 @@ export const getBlockApiFromApi = async (id: number): Promise<any> => {
         }
       }
     `
-    return graphqlQuery(query, { id })
+    return FOR_SYNC_ONLY_graphqlQuery(query, { id })
 }
 
-export interface TablepressTable {
+export interface FOR_SYNC_ONLY_TablepressTable {
     tableId: string
     data: string[][]
 }
-export const getTables = async (): Promise<Map<string, TablepressTable>> => {
+export const FOR_SYNC_ONLY_getTables = async (): Promise<
+    Map<string, FOR_SYNC_ONLY_TablepressTable>
+> => {
     const optRows = await singleton.query(`
         SELECT option_value AS json FROM wp_options WHERE option_name='tablepress_tables'
     `)
