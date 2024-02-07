@@ -989,17 +989,19 @@ div.raw-html-table__container {
 
 .article-block__pill-row {
     background-color: $blue-20;
+    scrollbar-width: thin;
+    overflow-x: auto;
     .article-block__pill-row-interior {
         display: flex;
         padding: 8px 0;
     }
     p {
         color: $blue-60;
-        margin-right: 9px;
+        margin: 0 9px 0 0;
+        line-height: 32px;
+        white-space: nowrap;
     }
     ul {
-        scrollbar-width: thin;
-        overflow-x: auto;
         list-style: none;
         display: flex;
         flex-wrap: nowrap;
@@ -1012,7 +1014,7 @@ div.raw-html-table__container {
             color: $blue-100;
             background-color: #fff;
             line-height: 2rem;
-            padding: 5.5px 16px;
+            padding: 0 16px;
             display: inline-block;
             transition: background-color 250ms;
             border-radius: 32px;
