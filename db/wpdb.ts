@@ -16,25 +16,18 @@ import { registerExitHandler } from "./cleanup.js"
 import {
     RelatedChart,
     WP_PostType,
-    DocumentNode,
     PostReference,
     JsonError,
     PostRestApi,
-    TopicId,
-    GraphType,
     uniqBy,
     sortBy,
     DataPageRelatedResearch,
-    OwidGdocType,
     Tag,
+    DocumentNode,
+    TopicId,
 } from "@ourworldindata/utils"
-import { OwidGdocLinkType } from "@ourworldindata/types"
-import {
-    getContentGraph,
-    WPPostTypeToGraphDocumentType,
-} from "./contentGraph.js"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
-import { Link } from "./model/Link.js"
+import { WPPostTypeToGraphDocumentType } from "./contentGraph.js"
 
 let _knexInstance: Knex
 
@@ -481,45 +474,67 @@ export const getRelatedResearchAndWritingForVariable = async (
     return uniqBy(allSortedRelatedResearch, "url")
 }
 
+/*
+ * Get all the related research and writing for a chart
+ */
 export const getRelatedArticles = async (
     chartId: number
 ): Promise<PostReference[] | undefined> => {
-    const graph = await getContentGraph()
-
-    const chartRecord = await graph.find(GraphType.Chart, chartId)
-
-    if (!chartRecord.payload.count) return
-
-    const chart = chartRecord.payload.records[0]
-    const publishedLinksToChart = await Link.getPublishedLinksTo(
-        [chart.slug],
-        OwidGdocLinkType.Grapher
-    )
-    const publishedGdocPostsThatReferenceChart: PostReference[] =
-        publishedLinksToChart
-            .filter(
-                (link) => link.source.content.type !== OwidGdocType.Fragment
+    const relatedPosts: PostReference[] = (
+        await db.knexInstance().raw(
+            `
+        SELECT
+            p.title,
+            p.slug,
+            p.id
+        FROM
+            posts_with_gdoc_publish_status p
+            JOIN posts_links pl ON p.id = pl.sourceId
+            JOIN charts c ON pl.target = c.slug
+            OR pl.target IN (
+                SELECT
+                    cr.slug
+                FROM
+                    chart_slug_redirects cr
+                WHERE
+                    cr.chart_id = c.id
             )
-            .map((link) => ({
-                id: link.source.id,
-                title: link.source.content.title!,
-                slug: link.source.slug,
-            }))
-    const relatedArticles: PostReference[] = await Promise.all(
-        chart.embeddedIn.map(async (postId: any) => {
-            const postRecord = await graph.find(GraphType.Document, postId)
-            const post = postRecord.payload.records[0]
-            return {
-                id: postId,
-                title: post.title,
-                slug: post.slug,
-            }
-        })
-    )
-    return uniqBy(
-        [...relatedArticles, ...publishedGdocPostsThatReferenceChart],
-        "slug"
-    ).sort(
+        WHERE
+            c.id = ?
+            AND p.status = 'publish'
+            AND p.isGdocPublished = 0
+            AND p.type != 'wp_block'
+            -- note: we are not filtering by linkType to cast of wider net: if a post links to an
+            -- explorer having the same slug as the grapher chart, we want to surface it as
+            -- a "Related research" as it is most likely relevant.
+        UNION
+        SELECT
+            pg.content ->> '$.title' AS title,
+            pg.slug AS slug,
+            pg.id AS id
+        FROM
+            posts_gdocs pg
+            JOIN posts_gdocs_links pgl ON pg.id = pgl.sourceId
+            JOIN charts c ON pgl.target = c.slug
+            OR pgl.target IN (
+                SELECT
+                    cr.slug
+                FROM
+                    chart_slug_redirects cr
+                WHERE
+                    cr.chart_id = c.id
+            )
+        WHERE
+            c.id = ?
+            AND pg.content ->> '$.type' <> 'fragment'
+            AND pg.published = 1
+            -- note: we are not filtering by linkType here either, for the same reason as above.
+        `,
+            [chartId, chartId]
+        )
+    )[0]
+
+    return uniqBy(relatedPosts, "slug").sort(
         // Alphabetise
         (a, b) => (a.title.toLowerCase() > b.title.toLowerCase() ? 1 : -1)
     )
