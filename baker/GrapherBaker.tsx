@@ -15,7 +15,6 @@ import {
     partition,
 } from "@ourworldindata/utils"
 import {
-    getRelatedArticles,
     getRelatedChartsForVariable,
     getRelatedResearchAndWritingForVariable,
     isWordpressAPIEnabled,
@@ -35,6 +34,7 @@ import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedir
 import {
     getPostEnrichedBySlug,
     getPostRelatedCharts,
+    getRelatedArticles,
 } from "../db/model/Post.js"
 import {
     JsonError,

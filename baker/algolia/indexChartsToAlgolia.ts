@@ -1,5 +1,4 @@
 import * as db from "../../db/db.js"
-import { getRelatedArticles } from "../../db/wpdb.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects.js"
@@ -8,6 +7,7 @@ import { KeyChartLevel, OwidGdocLinkType, isNil } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { Pageview } from "../../db/model/Pageview.js"
 import { Link } from "../../db/model/Link.js"
+import { getRelatedArticles } from "../../db/model/Post.js"
 
 const computeScore = (record: Omit<ChartRecord, "score">): number => {
     const { numRelatedArticles, views_7d } = record
