@@ -296,7 +296,7 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     ],
                 },
                 {
-                    name: "Distribution of the World Population",
+                    name: "Geography of the World Population",
                     slug: "distribution-of-the-world-population",
                     entries: [
                         {
@@ -314,20 +314,7 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
         {
             name: "Health",
             slug: "health",
-            entries: [
-                {
-                    slug: "tuberculosis",
-                    title: "Tuberculosis",
-                },
-                {
-                    slug: "pandemics",
-                    title: "Pandemics",
-                },
-                {
-                    slug: "cardiovascular-diseases",
-                    title: "Cardiovascular Diseases",
-                },
-            ],
+            entries: [],
             subcategories: [
                 {
                     name: "Health Risks",
@@ -336,6 +323,14 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         {
                             slug: "lead-pollution",
                             title: "Lead Pollution",
+                        },
+                        {
+                            slug: "alcohol-consumption",
+                            title: "Alcohol Consumption",
+                        },
+                        {
+                            slug: "illicit-drug-use",
+                            title: "Opioids, Cocaine, Cannabis, and Other Illicit Drugs",
                         },
                         {
                             slug: "air-pollution",
@@ -357,14 +352,6 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             slug: "smoking",
                             title: "Smoking",
                         },
-                        {
-                            slug: "alcohol-consumption",
-                            title: "Alcohol Consumption",
-                        },
-                        {
-                            slug: "illicit-drug-use",
-                            title: "Opioids, Cocaine, Cannabis, and Other Illicit Drugs",
-                        },
                     ],
                 },
                 {
@@ -372,16 +359,16 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     slug: "infectious-diseases",
                     entries: [
                         {
-                            slug: "influenza",
-                            title: "Influenza",
+                            slug: "coronavirus",
+                            title: "Coronavirus Pandemic (COVID-19)",
+                        },
+                        {
+                            slug: "pandemics",
+                            title: "Pandemics",
                         },
                         {
                             slug: "monkeypox",
                             title: "Mpox (monkeypox)",
-                        },
-                        {
-                            slug: "coronavirus",
-                            title: "Coronavirus Pandemic (COVID-19)",
                         },
                         {
                             slug: "hiv-aids",
@@ -392,16 +379,16 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Malaria",
                         },
                         {
-                            slug: "eradication-of-diseases",
-                            title: "Eradication of Diseases",
-                        },
-                        {
                             slug: "diarrheal-diseases",
                             title: "Diarrheal Diseases",
                         },
                         {
-                            slug: "smallpox",
-                            title: "Smallpox",
+                            slug: "influenza",
+                            title: "Influenza",
+                        },
+                        {
+                            slug: "tuberculosis",
+                            title: "Tuberculosis",
                         },
                         {
                             slug: "polio",
@@ -415,6 +402,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             slug: "tetanus",
                             title: "Tetanus",
                         },
+                        {
+                            slug: "smallpox",
+                            title: "Smallpox",
+                        },
                     ],
                 },
                 {
@@ -422,38 +413,46 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     slug: "health-institutions-and-interventions",
                     entries: [
                         {
+                            slug: "vaccination",
+                            title: "Vaccination",
+                        },
+                        {
                             slug: "financing-healthcare",
                             title: "Healthcare Spending",
                         },
                         {
-                            slug: "vaccination",
-                            title: "Vaccination",
+                            slug: "eradication-of-diseases",
+                            title: "Eradication of Diseases",
                         },
                     ],
                 },
                 {
                     name: "Life and Death",
-                    slug: "life-death-health",
+                    slug: "life-and-death",
                     entries: [
                         {
                             slug: "life-expectancy",
                             title: "Life Expectancy",
                         },
                         {
+                            slug: "causes-of-death",
+                            title: "Causes of Death",
+                        },
+                        {
                             slug: "child-mortality",
                             title: "Child and Infant Mortality",
                         },
                         {
-                            slug: "maternal-mortality",
-                            title: "Maternal Mortality",
+                            slug: "mental-health",
+                            title: "Mental Health",
                         },
                         {
-                            slug: "health-meta",
-                            title: "Global Health",
+                            slug: "suicide",
+                            title: "Suicides",
                         },
                         {
-                            slug: "causes-of-death",
-                            title: "Causes of Death",
+                            slug: "cardiovascular-diseases",
+                            title: "Cardiovascular Diseases",
                         },
                         {
                             slug: "burden-of-disease",
@@ -464,12 +463,12 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Cancer",
                         },
                         {
-                            slug: "mental-health",
-                            title: "Mental Health",
+                            slug: "maternal-mortality",
+                            title: "Maternal Mortality",
                         },
                         {
-                            slug: "suicide",
-                            title: "Suicides",
+                            slug: "health-meta",
+                            title: "Global Health",
                         },
                     ],
                 },
@@ -481,39 +480,35 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
             entries: [],
             subcategories: [
                 {
-                    name: "Energy",
-                    slug: "energy",
+                    name: "Energy Systems",
+                    slug: "energy-systems",
                     entries: [
-                        {
-                            slug: "nuclear-energy",
-                            title: "Nuclear Energy",
-                        },
                         {
                             slug: "energy-access",
                             title: "Access to Energy",
                         },
                         {
-                            slug: "energy",
-                            title: "Energy",
+                            slug: "fossil-fuels",
+                            title: "Fossil Fuels",
                         },
                         {
                             slug: "renewable-energy",
                             title: "Renewable Energy",
                         },
                         {
-                            slug: "fossil-fuels",
-                            title: "Fossil Fuels",
+                            slug: "energy",
+                            title: "Energy",
+                        },
+                        {
+                            slug: "nuclear-energy",
+                            title: "Nuclear Energy",
                         },
                     ],
                 },
                 {
                     name: "Waste and Pollution",
-                    slug: "waste",
+                    slug: "waste-and-pollution",
                     entries: [
-                        {
-                            slug: "lead-pollution",
-                            title: "Lead Pollution",
-                        },
                         {
                             slug: "plastic-pollution",
                             title: "Plastic Pollution",
@@ -522,11 +517,15 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             slug: "oil-spills",
                             title: "Oil Spills",
                         },
+                        {
+                            slug: "lead-pollution",
+                            title: "Lead Pollution",
+                        },
                     ],
                 },
                 {
-                    name: "Air and Climate",
-                    slug: "air-and-climate",
+                    name: "Climate and Air",
+                    slug: "climate-and-air",
                     entries: [
                         {
                             slug: "co2-and-greenhouse-gas-emissions",
@@ -535,6 +534,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         {
                             slug: "climate-change",
                             title: "Climate Change",
+                        },
+                        {
+                            slug: "ozone-layer",
+                            title: "Ozone Layer",
                         },
                         {
                             slug: "air-pollution",
@@ -547,10 +550,6 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         {
                             slug: "indoor-air-pollution",
                             title: "Indoor Air Pollution",
-                        },
-                        {
-                            slug: "ozone-layer",
-                            title: "Ozone Layer",
                         },
                     ],
                 },
@@ -577,9 +576,13 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     ],
                 },
                 {
-                    name: "Land and Ecosystems",
+                    name: "Environment and Ecosystems",
                     slug: "land-and-ecosystems",
                     entries: [
+                        {
+                            slug: "natural-disasters",
+                            title: "Natural Disasters",
+                        },
                         {
                             slug: "biodiversity",
                             title: "Biodiversity",
@@ -589,16 +592,16 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Environmental Impacts of Food Production",
                         },
                         {
+                            slug: "animal-welfare",
+                            title: "Animal Welfare",
+                        },
+                        {
                             slug: "forests-and-deforestation",
                             title: "Forests and Deforestation",
                         },
                         {
                             slug: "land-use",
                             title: "Land Use",
-                        },
-                        {
-                            slug: "natural-disasters",
-                            title: "Natural Disasters",
                         },
                     ],
                 },
@@ -607,12 +610,7 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
         {
             name: "Food and Agriculture",
             slug: "food",
-            entries: [
-                {
-                    slug: "animal-welfare",
-                    title: "Animal Welfare",
-                },
-            ],
+            entries: [],
             subcategories: [
                 {
                     name: "Nutrition",
@@ -623,12 +621,20 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Hunger and Undernourishment",
                         },
                         {
-                            slug: "famines",
-                            title: "Famines",
-                        },
-                        {
                             slug: "food-supply",
                             title: "Food Supply",
+                        },
+                        {
+                            slug: "food-prices",
+                            title: "Food Prices",
+                        },
+                        {
+                            slug: "diet-compositions",
+                            title: "Diet Compositions",
+                        },
+                        {
+                            slug: "obesity",
+                            title: "Obesity",
                         },
                         {
                             slug: "human-height",
@@ -639,20 +645,8 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Micronutrient Deficiency",
                         },
                         {
-                            slug: "diet-compositions",
-                            title: "Diet Compositions",
-                        },
-                        {
-                            slug: "food-prices",
-                            title: "Food Prices",
-                        },
-                        {
-                            slug: "obesity",
-                            title: "Obesity",
-                        },
-                        {
-                            slug: "alcohol-consumption",
-                            title: "Alcohol Consumption",
+                            slug: "famines",
+                            title: "Famines",
                         },
                     ],
                 },
@@ -660,10 +654,6 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     name: "Food Production",
                     slug: "food-production",
                     entries: [
-                        {
-                            slug: "farm-size",
-                            title: "Farm Size and Productivity",
-                        },
                         {
                             slug: "agricultural-production",
                             title: "Agricultural Production",
@@ -673,12 +663,20 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Environmental Impacts of Food Production",
                         },
                         {
+                            slug: "animal-welfare",
+                            title: "Animal Welfare",
+                        },
+                        {
                             slug: "crop-yields",
                             title: "Crop Yields",
                         },
                         {
                             slug: "meat-production",
                             title: "Meat and Dairy Production",
+                        },
+                        {
+                            slug: "farm-size",
+                            title: "Farm Size and Productivity",
                         },
                     ],
                 },
@@ -687,20 +685,20 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     slug: "agricultural-inputs",
                     entries: [
                         {
-                            slug: "employment-in-agriculture",
-                            title: "Employment in Agriculture",
-                        },
-                        {
-                            slug: "land-use",
-                            title: "Land Use",
-                        },
-                        {
                             slug: "fertilizers",
                             title: "Fertilizers",
                         },
                         {
                             slug: "pesticides",
                             title: "Pesticides",
+                        },
+                        {
+                            slug: "employment-in-agriculture",
+                            title: "Employment in Agriculture",
+                        },
+                        {
+                            slug: "land-use",
+                            title: "Land Use",
                         },
                     ],
                 },
@@ -716,16 +714,16 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     slug: "public-sector",
                     entries: [
                         {
-                            slug: "government-spending",
-                            title: "Government Spending",
+                            slug: "state-capacity",
+                            title: "State Capacity",
                         },
                         {
                             slug: "taxation",
                             title: "Taxation",
                         },
                         {
-                            slug: "military-personnel-spending",
-                            title: "Military Personnel and Spending",
+                            slug: "government-spending",
+                            title: "Government Spending",
                         },
                         {
                             slug: "financing-healthcare",
@@ -735,6 +733,14 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             slug: "financing-education",
                             title: "Education Spending",
                         },
+                        {
+                            slug: "military-personnel-spending",
+                            title: "Military Personnel and Spending",
+                        },
+                        {
+                            slug: "corruption",
+                            title: "Corruption",
+                        },
                     ],
                 },
                 {
@@ -742,23 +748,17 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     slug: "poverty-and-prosperity",
                     entries: [
                         {
-                            slug: "economic-inequality",
-                            title: "Economic Inequality",
-                        },
-                        {
                             slug: "poverty",
                             title: "Poverty",
+                        },
+                        {
+                            slug: "economic-inequality",
+                            title: "Economic Inequality",
                         },
                         {
                             slug: "economic-growth",
                             title: "Economic Growth",
                         },
-                    ],
-                },
-                {
-                    name: "Economic Inequality",
-                    slug: "economic-inequality",
-                    entries: [
                         {
                             slug: "economic-inequality-by-gender",
                             title: "Economic Inequality by Gender",
@@ -784,19 +784,13 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     ],
                 },
                 {
-                    name: "Corruption",
-                    slug: "corruption",
-                    entries: [
-                        {
-                            slug: "corruption",
-                            title: "Corruption",
-                        },
-                    ],
-                },
-                {
-                    name: "Trade and Migration",
+                    name: "Global Connections",
                     slug: "trade-migration",
                     entries: [
+                        {
+                            slug: "tourism",
+                            title: "Tourism",
+                        },
                         {
                             slug: "migration",
                             title: "Migration",
@@ -804,10 +798,6 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         {
                             slug: "trade-and-globalization",
                             title: "Trade and Globalization",
-                        },
-                        {
-                            slug: "tourism",
-                            title: "Tourism",
                         },
                     ],
                 },
@@ -819,7 +809,7 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
             entries: [],
             subcategories: [
                 {
-                    name: "Educational Access and Outcomes",
+                    name: "Education",
                     slug: "educational-outcomes",
                     entries: [
                         {
@@ -831,32 +821,26 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Literacy",
                         },
                         {
-                            slug: "research-and-development",
-                            title: "Research and Development",
-                        },
-                    ],
-                },
-                {
-                    name: "Inputs to Education",
-                    slug: "inputs-to-education",
-                    entries: [
-                        {
                             slug: "financing-education",
                             title: "Education Spending",
                         },
                     ],
                 },
                 {
-                    name: "Media",
-                    slug: "media-education",
+                    name: "Knowledge",
+                    slug: "inputs-to-education",
                     entries: [
                         {
-                            slug: "books",
-                            title: "Books",
+                            slug: "research-and-development",
+                            title: "Research and Development",
                         },
                         {
                             slug: "internet",
                             title: "Internet",
+                        },
+                        {
+                            slug: "books",
+                            title: "Books",
                         },
                     ],
                 },
@@ -865,86 +849,71 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
         {
             name: "Innovation and Technological Change",
             slug: "technology",
-            entries: [],
-            subcategories: [
+            entries: [
                 {
-                    name: "Technological Change",
+                    slug: "artificial-intelligence",
+                    title: "Artificial Intelligence",
+                },
+                {
+                    slug: "space-exploration-satellites",
+                    title: "Space Exploration and Satellites",
+                },
+                {
+                    slug: "internet",
+                    title: "Internet",
+                },
+                {
+                    slug: "research-and-development",
+                    title: "Research and Development",
+                },
+                {
                     slug: "technological-change",
-                    entries: [
-                        {
-                            slug: "artificial-intelligence",
-                            title: "Artificial Intelligence",
-                        },
-                        {
-                            slug: "space-exploration-satellites",
-                            title: "Space Exploration and Satellites",
-                        },
-                        {
-                            slug: "transport",
-                            title: "Transport",
-                        },
-                        {
-                            slug: "internet",
-                            title: "Internet",
-                        },
-                        {
-                            slug: "research-and-development",
-                            title: "Research and Development",
-                        },
-                        {
-                            slug: "technological-change",
-                            title: "Technological Change",
-                        },
-                    ],
+                    title: "Technological Change",
+                },
+                {
+                    slug: "transport",
+                    title: "Transport",
                 },
             ],
+            subcategories: [],
         },
         {
-            name: "Living Conditions, Community and Wellbeing",
+            name: "Living Conditions, Community, and Wellbeing",
             slug: "work-life",
             entries: [],
             subcategories: [
                 {
-                    name: "Culture",
-                    slug: "culture",
+                    name: "Housing and Infrastructure",
+                    slug: "housing-and-infrastructure",
                     entries: [
-                        {
-                            slug: "trust",
-                            title: "Trust",
-                        },
-                    ],
-                },
-                {
-                    name: "Housing",
-                    slug: "housing",
-                    entries: [
-                        {
-                            slug: "clean-water-sanitation",
-                            title: "Clean Water and Sanitation",
-                        },
                         {
                             slug: "energy-access",
                             title: "Access to Energy",
-                        },
-                        {
-                            slug: "water-access",
-                            title: "Clean Water",
-                        },
-                        {
-                            slug: "homelessness",
-                            title: "Homelessness",
-                        },
-                        {
-                            slug: "indoor-air-pollution",
-                            title: "Indoor Air Pollution",
                         },
                         {
                             slug: "light-at-night",
                             title: "Light at Night",
                         },
                         {
+                            slug: "clean-water-sanitation",
+                            title: "Clean Water and Sanitation",
+                        },
+                        {
+                            slug: "water-access",
+                            title: "Clean Water",
+                        },
+                        {
                             slug: "sanitation",
                             title: "Sanitation",
+                        },
+                        {
+                            slug: "indoor-air-pollution",
+                            title: "Indoor Air Pollution",
+                        },
+
+                        {
+                            slug: "homelessness",
+                            title: "Homelessness",
                         },
                     ],
                 },
@@ -960,10 +929,6 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             slug: "working-hours",
                             title: "Working Hours",
                         },
-                        {
-                            slug: "tourism",
-                            title: "Tourism",
-                        },
                     ],
                 },
                 {
@@ -978,6 +943,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             slug: "social-connections-and-loneliness",
                             title: "Loneliness and Social Connections",
                         },
+                        {
+                            slug: "trust",
+                            title: "Trust",
+                        },
                     ],
                 },
                 {
@@ -985,12 +954,12 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     slug: "happiness-wellbeing",
                     entries: [
                         {
-                            slug: "happiness-and-life-satisfaction",
-                            title: "Happiness and Life Satisfaction",
-                        },
-                        {
                             slug: "human-development-index",
                             title: "Human Development Index (HDI)",
+                        },
+                        {
+                            slug: "happiness-and-life-satisfaction",
+                            title: "Happiness and Life Satisfaction",
                         },
                     ],
                 },
@@ -999,100 +968,80 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
         {
             name: "Human Rights and Democracy",
             slug: "politics",
-            entries: [],
-            subcategories: [
+            entries: [
                 {
-                    name: "Human Rights",
                     slug: "human-rights",
-                    entries: [
-                        {
-                            slug: "state-capacity",
-                            title: "State Capacity",
-                        },
-                        {
-                            slug: "lgbt-rights",
-                            title: "LGBT+ Rights",
-                        },
-                        {
-                            slug: "women-rights",
-                            title: "Women’s Rights",
-                        },
-                        {
-                            slug: "child-labor",
-                            title: "Child Labor",
-                        },
-                        {
-                            slug: "human-rights",
-                            title: "Human Rights",
-                        },
-                    ],
+                    title: "Human Rights",
                 },
                 {
-                    name: "Democracy and Corruption",
                     slug: "democracy",
-                    entries: [
-                        {
-                            slug: "democracy",
-                            title: "Democracy",
-                        },
-                        {
-                            slug: "corruption",
-                            title: "Corruption",
-                        },
-                    ],
+                    title: "Democracy",
+                },
+                {
+                    slug: "state-capacity",
+                    title: "State Capacity",
+                },
+                {
+                    slug: "women-rights",
+                    title: "Women’s Rights",
+                },
+                {
+                    slug: "lgbt-rights",
+                    title: "LGBT+ Rights",
+                },
+                {
+                    slug: "economic-inequality-by-gender",
+                    title: "Economic Inequality by Gender",
+                },
+                {
+                    slug: "violence-against-rights-for-children",
+                    title: "Violence Against Children and Children’s Rights",
+                },
+                {
+                    slug: "child-labor",
+                    title: "Child Labor",
                 },
             ],
+            subcategories: [],
         },
         {
             name: "Violence and War",
             slug: "violence-rights",
-            entries: [],
-            subcategories: [
+            entries: [
                 {
-                    name: "War and Peace",
-                    slug: "war-peace",
-                    entries: [
-                        {
-                            slug: "biological-and-chemical-weapons",
-                            title: "Biological and Chemical Weapons",
-                        },
-                        {
-                            slug: "war-and-peace",
-                            title: "War and Peace",
-                        },
-                        {
-                            slug: "military-personnel-spending",
-                            title: "Military Personnel and Spending",
-                        },
-                        {
-                            slug: "terrorism",
-                            title: "Terrorism",
-                        },
-                        {
-                            slug: "nuclear-weapons",
-                            title: "Nuclear Weapons",
-                        },
-                    ],
+                    slug: "war-and-peace",
+                    title: "War and Peace",
                 },
                 {
-                    name: "Violence",
-                    slug: "violence",
-                    entries: [
-                        {
-                            slug: "state-capacity",
-                            title: "State Capacity",
-                        },
-                        {
-                            slug: "violence-against-rights-for-children",
-                            title: "Violence Against Children and Children’s Rights",
-                        },
-                        {
-                            slug: "homicides",
-                            title: "Homicides",
-                        },
-                    ],
+                    slug: "nuclear-weapons",
+                    title: "Nuclear Weapons",
+                },
+                {
+                    slug: "homicides",
+                    title: "Homicides",
+                },
+                {
+                    slug: "terrorism",
+                    title: "Terrorism",
+                },
+                {
+                    slug: "state-capacity",
+                    title: "State Capacity",
+                },
+                {
+                    slug: "military-personnel-spending",
+                    title: "Military Personnel and Spending",
+                },
+                {
+                    slug: "biological-and-chemical-weapons",
+                    title: "Biological and Chemical Weapons",
+                },
+                {
+                    slug: "violence-against-rights-for-children",
+                    title: "Violence Against Children and Children’s Rights",
                 },
             ],
+            subcategories: [],
         },
     ],
 }
