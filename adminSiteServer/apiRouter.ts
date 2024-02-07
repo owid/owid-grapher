@@ -42,7 +42,6 @@ import {
     SuggestedChartRevisionStatus,
     variableAnnotationAllowedColumnNamesAndTypes,
     VariableAnnotationsResponseRow,
-    isUndefined,
     OwidVariableWithSource,
     OwidChartDimensionInterface,
     DimensionProperty,
