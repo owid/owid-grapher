@@ -26,9 +26,10 @@ import {
     getEndpointSlugFromType,
     getBlockApiFromApi,
     graphqlQuery,
-    ENTRIES_CATEGORY_ID,
 } from "./wpdb.js"
 import { getFullPost } from "./model/Post.js"
+
+const ENTRIES_CATEGORY_ID = 44
 
 // Limit not supported with multiple post types: When passing multiple post
 // types, the limit is applied to the resulting array of sequentially sorted

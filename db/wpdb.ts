@@ -86,8 +86,6 @@ export const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
 export const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
 export const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
 
-export const ENTRIES_CATEGORY_ID = 44
-
 /* Wordpress GraphQL API query
  *
  * Note: in contrast to the REST API query, the GraphQL query does not throw when a
