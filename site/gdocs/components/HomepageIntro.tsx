@@ -6,6 +6,8 @@ import { useLinkedDocument } from "../utils.js"
 import { DocumentContext } from "../OwidGdoc.js"
 import Image from "./Image.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 
 type FeaturedWorkTileProps =
     EnrichedBlockHomepageIntro["featuredWork"][number] & {
@@ -96,8 +98,8 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
         (work) => work.type
     )
     return (
-        <div className={className}>
-            <section className="span-cols-3 col-start-1 homepage-intro__our-mission-container">
+        <section className={className}>
+            <section className="span-cols-3 col-start-2 homepage-intro__our-mission-container">
                 <h2 className="h5-black-caps homepage-intro__our-mission-heading">
                     Our Mission
                 </h2>
@@ -145,7 +147,7 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                     height={128}
                 />
             </section>
-            <section className="grid grid-cols-9 span-cols-9 col-start-4 homepage-intro__featured-work-container">
+            <section className="grid grid-cols-9 span-cols-9 col-start-5 homepage-intro__featured-work-container">
                 <h2 className="span-cols-9 h5-black-caps homepage-intro__featured-work-heading">
                     Featured work
                 </h2>
@@ -168,8 +170,17 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                             isMinimal
                         />
                     ))}
+                    <div className="span-cols-6">
+                        <a
+                            href="/latest"
+                            className="body-3-medium homepage-intro__see-all-work-button"
+                        >
+                            See all our latest work
+                            <FontAwesomeIcon icon={faArrowRight} />
+                        </a>
+                    </div>
                 </div>
             </section>
-        </div>
+        </section>
     )
 }

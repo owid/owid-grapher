@@ -72,7 +72,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["gray-section"]: "span-cols-14 grid grid-cols-12-full-width",
         ["heading"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["homepage-search"]: "grid grid-cols-12-full-width span-cols-14",
-        ["homepage-intro"]: "grid col-start-2 span-cols-12",
+        ["homepage-intro"]: "grid grid-cols-12-full-width span-cols-14",
         ["horizontal-rule"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["html"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["image--narrow"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12",

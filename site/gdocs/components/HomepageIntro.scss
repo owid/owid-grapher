@@ -1,13 +1,23 @@
 /* Layout */
+.article-block__homepage-intro {
+    --homepage-intro-bottom-padding: 24px;
+}
+
+.article-block__homepage-intro {
+    border-bottom: 1px solid $blue-10;
+}
+
 .homepage-intro__our-mission-container {
     border-right: 1px solid $blue-10;
     padding-right: var(--grid-gap);
+    padding-bottom: var(--homepage-intro-bottom-padding);
 }
 
 .homepage-intro__featured-work-container {
     // 1fr is needed so that the tertiary tiles fit directly below the primary tile
     // without the container expanding and taking up extra white space
     grid-template-rows: auto auto 1fr auto;
+    padding-bottom: var(--homepage-intro-bottom-padding);
 }
 
 .homepage-intro__secondary-tiles {
@@ -38,17 +48,28 @@
 }
 
 .homepage-intro__subscribe-button,
+.homepage-intro__see-all-work-button,
 .homepage-intro__donate-button {
     display: block;
     width: 100%;
     border: 1px solid $vermillion;
     color: $vermillion;
     text-align: center;
-    padding: 9.5px 0;
+    padding: 8.5px 0;
 
     &:hover {
         border-color: $accent-vermillion;
         color: $accent-vermillion;
+    }
+}
+
+.homepage-intro__see-all-work-button {
+    margin-top: 64px;
+    width: auto;
+    padding: 8.5px 24px;
+    display: inline-block;
+    svg {
+        margin-left: 8px;
     }
 }
 
