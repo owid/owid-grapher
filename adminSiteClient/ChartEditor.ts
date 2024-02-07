@@ -10,6 +10,7 @@ import {
     type DetailDictionary,
     type RawPageview,
     Topic,
+    PostReference,
 } from "@ourworldindata/utils"
 import { computed, observable, runInAction, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
@@ -52,13 +53,6 @@ export const getFullReferencesCount = (references: References): number => {
         references.postsGdocs.length +
         references.explorers.length
     )
-}
-
-export interface PostReference {
-    id: string
-    title: string
-    slug: string
-    url: string
 }
 
 export interface ChartRedirect {

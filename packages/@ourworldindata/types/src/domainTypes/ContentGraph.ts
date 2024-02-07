@@ -11,7 +11,8 @@ export interface CategoryWithEntries {
 }
 
 export interface PostReference {
-    id: number | string
+    id: string
     title: string
     slug: string
+    url: string
 }

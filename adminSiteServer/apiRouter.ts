@@ -71,11 +71,7 @@ import {
 import { ChartRevision } from "../db/model/ChartRevision.js"
 import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
-import {
-    ChartRedirect,
-    PostReference,
-    References,
-} from "../adminSiteClient/ChartEditor.js"
+import { ChartRedirect, References } from "../adminSiteClient/ChartEditor.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import { escape } from "mysql"
@@ -84,6 +80,8 @@ import {
     postsTable,
     setTagsForPost,
     getTagsByPostId,
+    getWordpressPostReferencesByChartId,
+    getGdocsPostReferencesByChartId,
 } from "../db/model/Post.js"
 import {
     checkFullDeployFallback,
@@ -148,91 +146,6 @@ async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
         [chartId]
     )
     return logs
-}
-
-export const getWordpressPostReferencesByChartId = async (
-    chartId: number
-): Promise<PostReference[]> => {
-    const relatedWordpressPosts: PostReference[] = (
-        await db.knexInstance().raw(
-            `
-            SELECT DISTINCT
-                p.title,
-                p.slug,
-                p.id,
-                CONCAT("${BAKED_BASE_URL}","/",p.slug) as url
-            FROM
-                posts p
-                JOIN posts_links pl ON p.id = pl.sourceId
-                JOIN charts c ON pl.target = c.slug
-                OR pl.target IN (
-                    SELECT
-                        cr.slug
-                    FROM
-                        chart_slug_redirects cr
-                    WHERE
-                        cr.chart_id = c.id
-                )
-            WHERE
-                c.id = ?
-                AND p.status = 'publish'
-                AND p.type != 'wp_block'
-                AND pl.linkType = 'grapher'
-                AND p.slug NOT IN (
-                    -- We want to exclude the slugs of published gdocs, since they override the Wordpress posts
-                    -- published under the same slugs.
-                    SELECT
-                        slug from posts_gdocs pg
-                    WHERE
-                        pg.slug = p.slug
-                        AND pg.content ->> '$.type' <> 'fragment'
-                        AND pg.published = 1
-                )
-            ORDER BY
-                p.title ASC
-        `,
-            [chartId]
-        )
-    )[0]
-
-    return relatedWordpressPosts
-}
-
-export const getGdocsPostReferencesByChartId = async (
-    chartId: number
-): Promise<PostReference[]> => {
-    const relatedGdocsPosts: PostReference[] = (
-        await db.knexInstance().raw(
-            `
-            SELECT DISTINCT
-                pg.content ->> '$.title' AS title,
-                pg.slug AS slug,
-                pg.id AS id,
-                CONCAT("${BAKED_BASE_URL}","/",pg.slug) as url
-            FROM
-                posts_gdocs pg
-                JOIN posts_gdocs_links pgl ON pg.id = pgl.sourceId
-                JOIN charts c ON pgl.target = c.slug
-                OR pgl.target IN (
-                    SELECT
-                        cr.slug
-                    FROM
-                        chart_slug_redirects cr
-                    WHERE
-                        cr.chart_id = c.id
-                )
-            WHERE
-                c.id = ?
-                AND pg.content ->> '$.type' <> 'fragment'
-                AND pg.published = 1
-            ORDER BY
-                pg.content ->> '$.title' ASC
-        `,
-            [chartId]
-        )
-    )[0]
-
-    return relatedGdocsPosts
 }
 
 const getReferencesByChartId = async (chartId: number): Promise<References> => {
