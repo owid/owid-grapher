@@ -278,8 +278,8 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     ],
                 },
                 {
-                    name: "Life and Death",
-                    slug: "life-and-death",
+                    name: "Births and Deaths",
+                    slug: "births-and-deaths",
                     entries: [
                         {
                             slug: "life-expectancy",
