@@ -283,7 +283,7 @@ export class ExplorersIndexPage extends React.Component<{
     private async fetchAllExplorers() {
         const { searchInput } = this
 
-        const response = await fetch(GetAllExplorersRoute)
+        const response = await fetch(`/admin/${GetAllExplorersRoute}`)
         const json = (await response.json()) as ExplorersRouteResponse
         if (!json.success) alert(JSON.stringify(json.errorMessage))
         this.needsPull = json.needsPull
