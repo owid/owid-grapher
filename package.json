@@ -45,6 +45,7 @@
         "testLint": "eslint .",
         "testPrettierAll": "yarn prettier --check \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml}\"",
         "testJest": "lerna run buildTests && jest",
+        "testSiteNavigation": "node --enable-source-maps ./itsJustJavascript/devTools/navigationTest/navigationTest.js",
         "generateDbTypes": "npx @rmp135/sql-ts -c db/sql-ts/sql-ts-config.json"
     },
     "dependencies": {
