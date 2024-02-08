@@ -312,7 +312,7 @@
         }
     }
 }
-.homepage-topics {
+.homepage-topics-section {
     > h2 {
         margin-top: 40px;
         margin-bottom: 8px;
@@ -340,7 +340,7 @@
         line-height: 1.33;
     }
     .homepage-topic__subtopic,
-    .homepage-topic__subtopic-entry {
+    .homepage-topic__topic-entry {
         display: inline list-item;
     }
     .homepage-topic__subtopic {
@@ -355,8 +355,11 @@
         }
     }
 
-    .homepage-topic__subtopic-entry {
+    .homepage-topic__topic-entry {
         padding-right: 8px;
+        &:first-child {
+            list-style: none;
+        }
         &::marker {
             color: $blue-30;
         }
@@ -369,7 +372,7 @@
         }
     }
 
-    .homepage-topic__subtopic + .homepage-topic__subtopic-entry {
+    .homepage-topic__subtopic + .homepage-topic__topic-entry {
         margin-left: 8px;
         list-style: none;
     }

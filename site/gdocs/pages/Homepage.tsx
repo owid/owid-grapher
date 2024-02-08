@@ -12,7 +12,11 @@ import {
     NewsletterSubscriptionForm,
 } from "../../NewsletterSubscription.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
-import { OwidGdocHomepageContent } from "@ourworldindata/types"
+import {
+    CategoryWithEntries,
+    EntryMeta,
+    OwidGdocHomepageContent,
+} from "@ourworldindata/types"
 import { SiteNavigationStatic } from "../../SiteNavigation.js"
 
 export interface HomepageProps {
@@ -117,46 +121,64 @@ const SocialSection = () => {
     )
 }
 
+type FlattenedCategory = EntryMeta & { isSubcategoryHeading?: boolean }
+
+// We have to flatten the categories because it's not possible to inline wrap nested <ul> elements the way we'd like them to
+const flattenCategories = (categories: CategoryWithEntries[]) =>
+    categories.map((category) => {
+        // First show any top-level entries that exist on the category
+        const flattened: FlattenedCategory[] = [...category.entries]
+        category.subcategories?.forEach((subcategory) => {
+            // Then for each subcategory, show the subcategory heading and then its entries
+            flattened.push({
+                title: subcategory.name,
+                slug: subcategory.slug,
+                isSubcategoryHeading: true,
+            })
+            flattened.push(...subcategory.entries)
+        })
+        return { entries: flattened, name: category.name }
+    })
+
 const AllTopicsSection = () => {
-    const { categories } = SiteNavigationStatic
+    const flattenedCategories = flattenCategories(
+        SiteNavigationStatic.categories
+    )
     return (
         <section
             id="all-topics"
-            className="grid span-cols-12 col-start-2 homepage-topics"
+            className="grid span-cols-12 col-start-2 homepage-topics-section"
         >
             <h2 className="h2-bold span-cols-12">All our topics</h2>
             <p className="body-2-regular span-cols-12">
                 All our data, research, and writing — topic by topic.
             </p>
-            {categories.map((category) => (
+            {flattenedCategories.map((category) => (
                 <section
-                    key={category.slug}
+                    key={category.name}
                     className="homepage-topic span-cols-12"
                 >
                     <h2 className="homepage-topic__topic-name h3-bold">
                         {category.name}
                     </h2>
                     <ul className="homepage-topic__topic-list display-3-regular">
-                        {category?.subcategories?.map(
-                            // We have to flatten the list because otherwise the text won't wrap the way we need
-                            ({ slug, name, entries }) => (
-                                <>
+                        {category.entries.map(
+                            ({ slug, title, isSubcategoryHeading }) =>
+                                isSubcategoryHeading ? (
                                     <li
                                         className="homepage-topic__subtopic"
-                                        key={slug}
+                                        key={`subtopic-entry-${slug}`}
                                     >
-                                        {name}:
+                                        {title}
                                     </li>
-                                    {entries.map(({ slug, title }) => (
-                                        <li
-                                            className="homepage-topic__subtopic-entry"
-                                            key={slug}
-                                        >
-                                            <a href={`${slug}`}>{title}</a>
-                                        </li>
-                                    ))}
-                                </>
-                            )
+                                ) : (
+                                    <li
+                                        className="homepage-topic__topic-entry"
+                                        key={`topic-entry-${slug}`}
+                                    >
+                                        <a href={`/${slug}`}>{title}</a>
+                                    </li>
+                                )
                         )}
                     </ul>
                 </section>
