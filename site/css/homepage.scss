@@ -224,49 +224,91 @@
     }
 }
 
-.homepage-subscribe {
-    padding: 3rem 0;
-    margin: 0;
+#subscribe {
+    background-color: $blue-5;
+    padding-bottom: 24px;
+}
 
-    h2 {
-        font-family: $serif-font-stack;
-        font-size: 1.5rem;
-        margin: -0.5rem 0 1rem;
+.homepage-social-ribbon {
+    @include body-3-medium;
+
+    > h2 {
+        margin-top: 24px;
+        margin-bottom: 8px;
     }
 
-    .owid-row {
-        row-gap: 32px;
+    .NewsletterSubscriptionForm__header {
+        margin-bottom: 16px;
+        display: block;
+    }
+    .owid-checkbox-block {
+        margin-bottom: 16px;
+        .label-title {
+            font-weight: bold;
+        }
     }
 }
 
-.homepage-subscribe--social-media {
-    .shaded-box {
-        flex: 1;
-        padding: 2rem;
-        background-color: $blue-10;
-        color: $text-color;
+.homepage-social-ribbon__social-media {
+    margin-top: var(--grid-gap);
+    padding: 24px;
+    background-color: $blue-20;
+    h2 {
+        margin: 0;
     }
+}
 
-    .list-item {
-        color: $blue-90;
-        display: flex;
-        align-items: center;
-        transition: opacity 200ms ease;
+.NewsletterSubscription__email {
+    border: 1px solid #dbe5f0;
+    border-radius: 0;
+    height: inherit;
+    padding: 0 16px;
+    flex: 1;
+    margin-right: 8px;
+    width: 100%;
+}
 
-        .icon {
-            font-size: 1.375rem;
-            flex: 0;
-            min-width: 2.1rem;
-        }
+.NewsletterSubscription__privacy {
+    margin-top: 8px;
+    a {
+        @include owid-link-90;
+    }
+}
 
-        .label {
-            font-size: 1rem;
-            font-weight: 700;
-            flex: 1;
-        }
+.NewsletterSubscription__email-submit {
+    height: 40px;
+    display: flex;
+    justify-content: space-between;
+}
 
+.NewsletterSubscription__submit {
+    @include body-3-medium;
+    padding: 0 24px;
+    color: #fff;
+    border: none;
+    background-color: #ce261e;
+    cursor: pointer;
+    &:hover {
+        background-color: #b40000;
+    }
+}
+
+.homepage-social-ribbon__social-list {
+    margin-top: 16px;
+    li {
+        list-style: none;
+        margin-bottom: 8px;
         &:hover {
-            opacity: 0.6;
+            a {
+                color: $blue-60;
+            }
+        }
+        a {
+            color: $blue-90;
+            font-weight: bold;
+        }
+        svg {
+            margin-right: 8px;
         }
     }
 }

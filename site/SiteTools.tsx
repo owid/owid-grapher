@@ -39,7 +39,7 @@ export const runSiteTools = () => {
     )
 
     const newsletterSubscriptionFormRootHomepage = document.querySelector(
-        ".homepage-subscribe .newsletter-subscription .root"
+        ".homepage-social-ribbon #newsletter-subscription-root"
     )
     if (newsletterSubscriptionFormRootHomepage) {
         ReactDOM.hydrate(
