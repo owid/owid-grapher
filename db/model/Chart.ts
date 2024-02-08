@@ -25,7 +25,10 @@ import {
     RelatedChart,
 } from "@ourworldindata/types"
 import { OpenAI } from "openai"
-import { OPENAI_API_KEY } from "../../settings/serverSettings.js"
+import {
+    BAKED_BASE_URL,
+    OPENAI_API_KEY,
+} from "../../settings/serverSettings.js"
 
 // XXX hardcoded filtering to public parent tags
 export const PUBLIC_TAG_PARENT_IDS = [
@@ -378,4 +381,55 @@ export const getRelatedChartsForVariable = async (
                 GROUP BY charts.id
                 ORDER BY title ASC
             `)
+}
+
+export const getChartEmbedUrlsInPublishedWordpressPosts = async (): Promise<
+    string[]
+> => {
+    const chartSlugQueryString: { target: string; queryString: string }[] = (
+        await db.knexInstance().raw(
+            `
+            SELECT
+                pl.target,
+                pl.queryString
+            FROM
+                posts_links pl
+                JOIN posts p ON p.id = pl.sourceId
+            WHERE
+                pl.linkType = "grapher"
+                AND pl.componentType = "src"
+                AND p.status = "publish"
+                AND p.type != 'wp_block'
+                AND p.slug NOT IN (
+                    -- We want to exclude the slugs of published gdocs, since they override the Wordpress posts
+                    -- published under the same slugs.
+                    SELECT
+                        slug from posts_gdocs pg
+                    WHERE
+                        pg.slug = p.slug
+                        AND pg.content ->> '$.type' <> 'fragment'
+                        AND pg.published = 1
+                )
+        -- Commenting this out since we currently don't do anything with the baked embeds in gdocs posts
+        -- see https://github.com/owid/owid-grapher/issues/2992#issuecomment-1934690219
+        -- Rename to getChartEmbedUrlsInPublishedPosts if we decide to use this
+        --  UNION
+        --  SELECT
+        --      pgl.target,
+        --      pgl.queryString
+        --  FROM
+        --      posts_gdocs_links pgl
+        --      JOIN posts_gdocs pg on pg.id = pgl.sourceId
+        --  WHERE
+        --      pgl.linkType = "grapher"
+        --      AND pgl.componentType = "chart"
+        --      AND pg.content ->> '$.type' <> 'fragment'
+        --      AND pg.published = 1
+    `
+        )
+    )[0]
+
+    return chartSlugQueryString.map((row) => {
+        return `${BAKED_BASE_URL}/${row.target}${row.queryString}`
+    })
 }

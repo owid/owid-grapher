@@ -2,7 +2,6 @@ import fs from "fs-extra"
 import path from "path"
 import { glob } from "glob"
 import { keyBy, without, uniq, mapValues, pick } from "lodash"
-import cheerio from "cheerio"
 import ProgressBar from "progress"
 import * as wpdb from "../db/wpdb.js"
 import * as db from "../db/db.js"
@@ -86,7 +85,10 @@ import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { Image } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-import { Chart } from "../db/model/Chart.js"
+import {
+    Chart,
+    getChartEmbedUrlsInPublishedWordpressPosts,
+} from "../db/model/Chart.js"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
@@ -185,23 +187,11 @@ export class SiteBaker {
 
     private async bakeEmbeds() {
         if (!this.bakeSteps.has("embeds")) return
-        // Find all grapher urls used as embeds in all posts on the site
-        const rows = await wpdb.singleton.query(
-            `SELECT post_content FROM wp_posts WHERE (post_type='page' OR post_type='post' OR post_type='wp_block') AND post_status='publish'`
+
+        // Find all grapher urls used as embeds in all Wordpress posts on the site
+        const grapherUrls = uniq(
+            await getChartEmbedUrlsInPublishedWordpressPosts()
         )
-        let grapherUrls = []
-        for (const row of rows) {
-            const $ = cheerio.load(row.post_content)
-            grapherUrls.push(
-                ...$("iframe")
-                    .toArray()
-                    .filter((el) =>
-                        (el.attribs["src"] || "").match(/\/grapher\//)
-                    )
-                    .map((el) => el.attribs["src"].trim())
-            )
-        }
-        grapherUrls = uniq(grapherUrls)
 
         await bakeGrapherUrls(grapherUrls)
 
