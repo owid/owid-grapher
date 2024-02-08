@@ -9,10 +9,10 @@ import {
     OwidGdoc as OwidGdocUnionType,
     SiteFooterContext,
     OwidGdocType,
-    filenameToUrl,
 } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
 import { match, P } from "ts-pattern"
+import { IMAGES_DIRECTORY } from "@ourworldindata/types"
 
 declare global {
     interface Window {
@@ -75,7 +75,7 @@ export default function OwidGdocPage({
                 imageUrl={
                     // uriEncoding is taken care of inside the Head component
                     featuredImageFilename
-                        ? filenameToUrl(featuredImageFilename, baseUrl)
+                        ? `${baseUrl}${IMAGES_DIRECTORY}${featuredImageFilename}`
                         : undefined
                 }
                 baseUrl={baseUrl}

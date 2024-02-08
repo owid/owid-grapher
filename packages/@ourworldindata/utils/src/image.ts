@@ -3,12 +3,7 @@ Common utlities for deriving properties from image metadata.
 */
 
 import { traverseEnrichedBlocks } from "./Util.js"
-import {
-    OwidGdoc,
-    OwidGdocType,
-    IMAGES_DIRECTORY,
-    ImageMetadata,
-} from "@ourworldindata/types"
+import { OwidGdoc, OwidGdocType, ImageMetadata } from "@ourworldindata/types"
 import { match, P } from "ts-pattern"
 
 export function getSizes(
@@ -50,12 +45,6 @@ export function getFilenameWithoutExtension(
 export function getFilenameAsPng(filename: ImageMetadata["filename"]): string {
     return `${getFilenameWithoutExtension(filename)}.png`
 }
-
-/**
- * example-image.png -> https://ourworldindata.org/uploads/published/example-image.png
- */
-export const filenameToUrl = (filename: string, baseUrl: string): string =>
-    new URL(`${IMAGES_DIRECTORY}${getFilenameAsPng(filename)}`, baseUrl).href
 
 export type SourceProps = {
     media: string | undefined
