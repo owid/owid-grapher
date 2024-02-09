@@ -607,3 +607,5 @@ export {
     serializeVariableProcessingLog,
     type License,
 } from "./dbTypes/Variables.js"
+
+export { RedirectCode, type Redirect } from "./dbTypes/Redirects.js"

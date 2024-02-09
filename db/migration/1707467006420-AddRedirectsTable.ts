@@ -7,7 +7,7 @@ export class AddRedirectsTable1707467006420 implements MigrationInterface {
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 source TEXT NOT NULL,
                 target TEXT NOT NULL,
-                code ENUM('301', '302') DEFAULT '301',
+                code INT DEFAULT 301,
                 createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             );

@@ -13,6 +13,7 @@ import { Knex, knex } from "knex"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup.js"
 import { WP_PostType, JsonError, PostRestApi } from "@ourworldindata/utils"
+import { Redirect } from "@ourworldindata/types"
 
 let _knexInstance: Knex
 
@@ -265,4 +266,11 @@ export const FOR_SYNC_ONLY_getTables = async (): Promise<
     }
 
     return tables
+}
+
+export const FOR_SYNC_ONLY_getRedirects = async (): Promise<Redirect[]> => {
+    return singleton.query(`
+        SELECT url AS source, action_data AS target, action_code AS code
+        FROM wp_redirection_items WHERE status = 'enabled'
+    `)
 }
