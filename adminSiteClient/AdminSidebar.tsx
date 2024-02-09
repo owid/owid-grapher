@@ -44,6 +44,13 @@ export const AdminSidebar = (): JSX.Element => (
                 <Link to="/explorers">
                     <FontAwesomeIcon icon={faCoffee} /> Explorers
                 </Link>
+                <ul>
+                    <li>
+                        <Link to="/explorer-tags">
+                            <FontAwesomeIcon icon={faTag} /> Explorer Tags
+                        </Link>
+                    </li>
+                </ul>
             </li>
             <li className="header">DATA</li>
 

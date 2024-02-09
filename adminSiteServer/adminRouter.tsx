@@ -30,6 +30,7 @@ import {
     DefaultNewExplorerSlug,
     EXPLORERS_PREVIEW_ROUTE,
     GetAllExplorersRoute,
+    GetAllExplorersTagsRoute,
 } from "../explorer/ExplorerConstants.js"
 import {
     ExplorerProgram,
@@ -251,6 +252,41 @@ const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
 adminRouter.get(`/${GetAllExplorersRoute}`, async (req, res) => {
     res.send(await explorerAdminServer.getAllExplorersCommand())
+})
+
+adminRouter.get(`/${GetAllExplorersTagsRoute}`, async (req, res) => {
+    const explorers = await db
+        .knexRaw(
+            `SELECT
+            e.slug,
+            CASE 
+                WHEN COUNT(t.id) = 0 THEN JSON_ARRAY()
+                ELSE JSON_ARRAYAGG(JSON_OBJECT('name', t.name, 'id', t.id))
+            END AS tags
+        FROM
+            explorers e
+        LEFT JOIN explorers_x_tags ext ON
+            e.slug = ext.explorerSlug
+        LEFT JOIN tags t ON
+            ext.tagId = t.id
+        WHERE
+            e.isPublished = 1
+        GROUP BY
+            e.slug`,
+            db.knexInstance()
+        )
+        .then((result) => {
+            return result.map((row: any) => {
+                return {
+                    slug: row.slug,
+                    tags: JSON.parse(row.tags),
+                }
+            })
+        })
+
+    res.send({
+        explorers,
+    })
 })
 
 adminRouter.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {

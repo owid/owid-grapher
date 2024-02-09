@@ -2609,4 +2609,30 @@ apiRouter.get(
     }
 )
 
+apiRouter.post("/explorer/:slug/tags", async (req: Request, res: Response) => {
+    const { slug } = req.params
+    const { tagIds } = req.body
+    const explorer = await db.knexRaw(
+        `SELECT * FROM explorers WHERE slug = ?`,
+        db.knexInstance(),
+        [slug]
+    )
+    if (!explorer)
+        throw new JsonError(`No explorer found for slug ${slug}`, 404)
+
+    db.knexInstance().transaction(async (t) => {
+        await t.raw(`DELETE FROM explorers_x_tags WHERE explorerSlug = ?`, [
+            slug,
+        ])
+        for (const tagId of tagIds) {
+            await t.raw(
+                `INSERT INTO explorers_x_tags (explorerSlug, tagId) VALUES (?, ?)`,
+                [slug, tagId]
+            )
+        }
+    })
+
+    return { success: true }
+})
+
 export { apiRouter }

@@ -20,6 +20,7 @@ import { TestIndexPage } from "./TestIndexPage.js"
 import { NotFoundPage } from "./NotFoundPage.js"
 import { PostEditorPage } from "./PostEditorPage.js"
 import { DeployStatusPage } from "./DeployStatusPage.js"
+import { ExplorerTagsPage } from "./ExplorerTagsPage.js"
 import { SuggestedChartRevisionApproverPage } from "./SuggestedChartRevisionApproverPage.js"
 import { SuggestedChartRevisionListPage } from "./SuggestedChartRevisionListPage.js"
 import { SuggestedChartRevisionImportPage } from "./SuggestedChartRevisionImportPage.js"
@@ -302,6 +303,11 @@ export class AdminApp extends React.Component<{
                                 exact
                                 path="/deploys"
                                 component={DeployStatusPage}
+                            />
+                            <Route
+                                exact
+                                path="/explorer-tags"
+                                component={ExplorerTagsPage}
                             />
                             <Route
                                 exact
