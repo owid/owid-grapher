@@ -1,5 +1,4 @@
 import * as db from "../db/db.js"
-import * as wpdb from "../db/wpdb.js"
 import { memoize, JsonError, Url } from "@ourworldindata/utils"
 import { isCanonicalInternalUrl } from "./formatting.js"
 import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
@@ -101,14 +100,12 @@ export const stripTrailingSlash = (url: string) => {
 }
 
 export const getWordpressRedirectsMap = async () => {
-    const wordpressRedirectRows = (await wpdb.singleton.query(
-        `SELECT url, action_data FROM wp_redirection_items WHERE status = 'enabled'`
-    )) as Array<{ url: string; action_data: string }>
+    const redirectsFromDb = await getRedirectsFromDb()
 
     return new Map(
-        wordpressRedirectRows.map((row) => [
-            stripTrailingSlash(row.url),
-            stripTrailingSlash(row.action_data),
+        redirectsFromDb.map((row) => [
+            stripTrailingSlash(row.source),
+            stripTrailingSlash(row.target),
         ])
     )
 }
