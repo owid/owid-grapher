@@ -36,6 +36,7 @@ import {
     RawBlockVideo,
     RawBlockTable,
     RawBlockBlockquote,
+    RawBlockExplorerTiles,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -419,6 +420,12 @@ export function enrichedBlockToRawBlock(
                         },
                     })),
                 },
+            }
+        })
+        .with({ type: "explorer-tiles" }, (b): RawBlockExplorerTiles => {
+            return {
+                type: "explorer-tiles",
+                value: b,
             }
         })
         .with({ type: "blockquote" }, (b): RawBlockBlockquote => {

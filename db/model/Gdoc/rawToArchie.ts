@@ -36,6 +36,7 @@ import {
     RawBlockTable,
     RawBlockTableRow,
     RawBlockBlockquote,
+    RawBlockExplorerTiles,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
@@ -588,6 +589,22 @@ function* rawBlockRowToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockExplorerTilesToArchieMLString(
+    block: RawBlockExplorerTiles
+): Generator<string, void, undefined> {
+    yield "{.explorer-tiles}"
+    yield* propertyToArchieMLString("title", block.value)
+    yield* propertyToArchieMLString("subtitle", block.value)
+    if (block.value.explorers) {
+        yield "[.explorers]"
+        for (const explorer of block.value.explorers) {
+            yield* propertyToArchieMLString("url", explorer)
+        }
+        yield "[]"
+    }
+    yield "{}"
+}
+
 function* rawBlockBlockquoteToArchieMLString(
     blockquote: RawBlockBlockquote
 ): Generator<string, void, undefined> {
@@ -683,6 +700,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "entry-summary" }, rawBlockEntrySummaryToArchieMLString)
         .with({ type: "table" }, rawBlockTableToArchieMLString)
         .with({ type: "table-row" }, rawBlockRowToArchieMLString)
+        .with({ type: "explorer-tiles" }, rawBlockExplorerTilesToArchieMLString)
         .with({ type: "blockquote" }, rawBlockBlockquoteToArchieMLString)
         .exhaustive()
     yield* content

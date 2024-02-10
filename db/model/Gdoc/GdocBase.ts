@@ -448,6 +448,19 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
             })
             .with(
                 {
+                    type: "explorer-tiles",
+                },
+                (explorerTiles) =>
+                    explorerTiles.explorers.map(({ url }) =>
+                        Link.createFromUrl({
+                            url,
+                            source: this,
+                            componentType: "explorer-tiles",
+                        })
+                    )
+            )
+            .with(
+                {
                     type: "research-and-writing",
                 },
                 (researchAndWriting) => {
