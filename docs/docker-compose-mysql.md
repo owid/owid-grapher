@@ -29,6 +29,8 @@ git clone https://github.com/owid/owid-content
 
 ## Starting our development environment
 
+On **MacOS** make sure you're running the Docker Software, which is not on the command line like everything else. This error may appear `Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?` Your 0 TMux is probably broken too.
+
 Make a copy of `.env.example-grapher` for the server to configure itself with.
 
 ```bash
