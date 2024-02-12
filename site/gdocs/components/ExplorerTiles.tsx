@@ -1,12 +1,14 @@
 import { EnrichedBlockExplorerTiles } from "@ourworldindata/types"
-import React from "react"
+import React, { useContext } from "react"
 import { useLinkedChart } from "../utils.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
+import { DocumentContext } from "../OwidGdoc.js"
 
 function ExplorerTile({ url }: { url: string }) {
     const { linkedChart, errorMessage } = useLinkedChart(url)
-    if (errorMessage) {
+    const { isPreviewing } = useContext(DocumentContext)
+    if (errorMessage && isPreviewing) {
         return <p>{errorMessage}</p>
     }
     if (!linkedChart) {
@@ -18,10 +20,11 @@ function ExplorerTile({ url }: { url: string }) {
             href={linkedChart.resolvedUrl}
         >
             <div className="explorer-tile__text-container">
+                {/* TODO: add tag icon img */}
                 <p className="h3-bold explorer-tile__title">
                     {linkedChart.title}
                 </p>
-                <p className="h3-bold explorer-tile__suffix">Data Explorer</p>
+                <p className="h3-bold explorer-tile__suffix"> Data Explorer</p>
             </div>
         </a>
     )
