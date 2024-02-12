@@ -258,21 +258,17 @@ adminRouter.get(`/${GetAllExplorersTagsRoute}`, async (req, res) => {
     const explorers = await db
         .knexRaw(
             `SELECT
-            e.slug,
-            CASE 
+            ext.explorerSlug as slug,
+            CASE
                 WHEN COUNT(t.id) = 0 THEN JSON_ARRAY()
                 ELSE JSON_ARRAYAGG(JSON_OBJECT('name', t.name, 'id', t.id))
             END AS tags
         FROM
-            explorers e
-        LEFT JOIN explorers_x_tags ext ON
-            e.slug = ext.explorerSlug
+            explorer_tags ext
         LEFT JOIN tags t ON
             ext.tagId = t.id
-        WHERE
-            e.isPublished = 1
         GROUP BY
-            e.slug`,
+            ext.explorerSlug`,
             db.knexInstance()
         )
         .then((result) => {

@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class ExplorersXTags1707502831161 implements MigrationInterface {
+export class ExplorerTags1707502831161 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         queryRunner.query(`
             CREATE TABLE explorer_tags (
