@@ -11,6 +11,7 @@ import {
     RawBlockText,
     RefDictionary,
 } from "./ArchieMlComponents.js"
+import { DbChartTagJoin } from "../dbTypes/ChartTags.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -23,6 +24,7 @@ export interface LinkedChart {
     resolvedUrl: string
     title: string
     thumbnail?: string
+    tags: DbChartTagJoin[]
 }
 
 export enum OwidGdocType {

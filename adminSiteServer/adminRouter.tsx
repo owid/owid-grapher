@@ -255,30 +255,7 @@ adminRouter.get(`/${GetAllExplorersRoute}`, async (req, res) => {
 })
 
 adminRouter.get(`/${GetAllExplorersTagsRoute}`, async (req, res) => {
-    const explorers = await db
-        .knexRaw(
-            `SELECT
-            ext.explorerSlug as slug,
-            CASE
-                WHEN COUNT(t.id) = 0 THEN JSON_ARRAY()
-                ELSE JSON_ARRAYAGG(JSON_OBJECT('name', t.name, 'id', t.id))
-            END AS tags
-        FROM
-            explorer_tags ext
-        LEFT JOIN tags t ON
-            ext.tagId = t.id
-        GROUP BY
-            ext.explorerSlug`,
-            db.knexInstance()
-        )
-        .then((result) => {
-            return result.map((row: any) => {
-                return {
-                    slug: row.slug,
-                    tags: JSON.parse(row.tags),
-                }
-            })
-        })
+    const explorers = await db.getExplorerTags(db.knexInstance())
 
     res.send({
         explorers,
@@ -307,8 +284,6 @@ adminRouter.get("/datapage-preview/:id", async (req, res) => {
     const variableId = expectInt(req.params.id)
     const variableMetadata = await getVariableMetadata(variableId)
     if (!variableMetadata) throw new JsonError("No such variable", 404)
-    const publishedExplorersBySlug =
-        await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
     res.send(
         await renderDataPageV2({
@@ -316,7 +291,6 @@ adminRouter.get("/datapage-preview/:id", async (req, res) => {
             variableMetadata,
             isPreviewing: true,
             useIndicatorGrapherConfigs: true,
-            publishedExplorersBySlug,
         })
     )
 })
@@ -325,16 +299,7 @@ adminRouter.get("/grapher/:slug", async (req, res) => {
     const entity = await Chart.getBySlug(req.params.slug)
     if (!entity) throw new JsonError("No such chart", 404)
 
-    const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
-    const publishedExplorersBySlug =
-        await explorerAdminServer.getAllPublishedExplorersBySlug()
-
-    res.send(
-        await renderPreviewDataPageOrGrapherPage(
-            entity.config,
-            publishedExplorersBySlug
-        )
-    )
+    res.send(await renderPreviewDataPageOrGrapherPage(entity.config))
 })
 
 const gitCmsServer = new GitCmsServer({

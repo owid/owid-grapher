@@ -67,7 +67,6 @@ import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
     isPreviewing: boolean,
-    publishedExplorersBySlug?: Record<string, ExplorerProgram>,
     imageMetadataDictionary?: Record<string, Image>
 ) => {
     // If we have a single Y variable and that one has a schema version >= 2,
@@ -108,7 +107,6 @@ const renderDatapageIfApplicable = async (
                 isPreviewing: isPreviewing,
                 useIndicatorGrapherConfigs: false,
                 pageGrapher: grapher,
-                publishedExplorersBySlug,
                 imageMetadataDictionary,
             })
         }
@@ -122,13 +120,11 @@ const renderDatapageIfApplicable = async (
  */
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
-    publishedExplorersBySlug?: Record<string, ExplorerProgram>,
     imageMetadataDictionary?: Record<string, Image>
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(
         grapher,
         false,
-        publishedExplorersBySlug,
         imageMetadataDictionary
     )
     if (datapage) return datapage
@@ -153,7 +149,6 @@ export async function renderDataPageV2({
     isPreviewing,
     useIndicatorGrapherConfigs,
     pageGrapher,
-    publishedExplorersBySlug,
     imageMetadataDictionary = {},
 }: {
     variableId: number
@@ -161,7 +156,6 @@ export async function renderDataPageV2({
     isPreviewing: boolean
     useIndicatorGrapherConfigs: boolean
     pageGrapher?: GrapherInterface
-    publishedExplorersBySlug?: Record<string, ExplorerProgram>
     imageMetadataDictionary?: Record<string, ImageMetadata>
 }) {
     const grapherConfigForVariable =
@@ -178,7 +172,7 @@ export async function renderDataPageV2({
         uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
     )
     const gdocFetchPromises = faqDocs.map((gdocId) =>
-        getDatapageGdoc(gdocId, isPreviewing, publishedExplorersBySlug)
+        getDatapageGdoc(gdocId, isPreviewing)
     )
     const gdocs = await Promise.all(gdocFetchPromises)
     const gdocIdToFragmentIdToBlock: Record<string, FaqDictionary> = {}
@@ -344,14 +338,9 @@ export async function renderDataPageV2({
  * Similar to renderDataPageOrGrapherPage(), but for admin previews
  */
 export const renderPreviewDataPageOrGrapherPage = async (
-    grapher: GrapherInterface,
-    publishedExplorersBySlug?: Record<string, ExplorerProgram>
+    grapher: GrapherInterface
 ) => {
-    const datapage = await renderDatapageIfApplicable(
-        grapher,
-        true,
-        publishedExplorersBySlug
-    )
+    const datapage = await renderDatapageIfApplicable(grapher, true)
     if (datapage) return datapage
 
     return renderGrapherPage(grapher)
@@ -415,7 +404,7 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     await fs.writeFile(
         outPath,
-        await renderDataPageOrGrapherPage(grapher, {}, imageMetadataDictionary)
+        await renderDataPageOrGrapherPage(grapher, imageMetadataDictionary)
     )
     console.log(outPath)
 

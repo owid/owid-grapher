@@ -2423,14 +2423,7 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
         | undefined
 
     try {
-        const publishedExplorersBySlug =
-            await explorerAdminServer.getAllPublishedExplorersBySlugCached()
-
-        const gdoc = await GdocFactory.load(
-            id,
-            publishedExplorersBySlug,
-            contentSource
-        )
+        const gdoc = await GdocFactory.load(id, contentSource)
 
         if (!gdoc.published) {
             await gdoc.save()
@@ -2452,24 +2445,22 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
 apiRouter.put("/gdocs/:id", async (req, res) => {
     const { id } = req.params
     const nextGdocJSON: OwidGdocJSON = req.body
-    const explorers =
-        await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
     if (isEmpty(nextGdocJSON)) {
         // Check to see if the gdoc already exists in the database
         const existingGdoc = await GdocBase.findOneBy({ id })
         if (existingGdoc) {
-            return GdocFactory.load(id, explorers, GdocsContentSource.Gdocs)
+            return GdocFactory.load(id, GdocsContentSource.Gdocs)
         } else {
-            return GdocFactory.create(id, explorers)
+            return GdocFactory.create(id)
         }
     }
 
-    const prevGdoc = await GdocFactory.load(id, {})
+    const prevGdoc = await GdocFactory.load(id)
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     const nextGdoc = GdocFactory.fromJSON(nextGdocJSON)
-    await nextGdoc.loadState(explorers)
+    await nextGdoc.loadState()
 
     // Deleting and recreating these is simpler than tracking orphans over the next code block
     await GdocXImage.delete({ gdocId: id })

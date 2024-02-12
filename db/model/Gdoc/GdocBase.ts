@@ -9,6 +9,7 @@ import {
     ManyToMany,
     JoinTable,
 } from "typeorm"
+import * as db from "../../db"
 import { getUrlTarget } from "@ourworldindata/components"
 import {
     LinkedChart,
@@ -549,9 +550,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         }
     }
 
-    async loadLinkedCharts(
-        publishedExplorersBySlug: Record<string, any>
-    ): Promise<void> {
+    async loadLinkedCharts(): Promise<void> {
         const slugToIdMap = await Chart.mapSlugsToIds()
         const linkedGrapherCharts = await Promise.all(
             [...this.linkedChartSlugs.grapher.values()].map(
@@ -567,11 +566,16 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                         title: resolvedTitle,
                         resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
                         thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
+                        tags: [],
                     }
                     return linkedChart
                 }
             )
         ).then(excludeNullish)
+
+        const publishedExplorersBySlug = await db.getPublishedExplorersBySlug(
+            db.knexInstance()
+        )
 
         const linkedExplorerCharts = await Promise.all(
             [...this.linkedChartSlugs.explorer.values()].map((originalSlug) => {
@@ -580,9 +584,10 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                 const linkedChart: LinkedChart = {
                     // we are assuming explorer slugs won't change
                     originalSlug,
-                    title: explorer?.explorerTitle ?? "",
+                    title: explorer?.title ?? "",
                     resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${originalSlug}`,
                     thumbnail: `${BAKED_BASE_URL}/default-thumbnail.jpg`,
+                    tags: explorer.tags,
                 }
                 return linkedChart
             })
@@ -641,9 +646,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         this.content = archieToEnriched(text, this._enrichSubclassContent)
     }
 
-    async validate(
-        publishedExplorersBySlug: Record<string, any>
-    ): Promise<void> {
+    async validate(): Promise<void> {
         const filenameErrors: OwidGdocErrorMessage[] = this.filenames.reduce(
             (
                 errors: OwidGdocErrorMessage[],
@@ -668,6 +671,9 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         )
 
         const chartIdsBySlug = await Chart.mapSlugsToIds()
+        const publishedExplorersBySlug = await db.getPublishedExplorersBySlug(
+            db.knexInstance()
+        )
 
         const linkErrors: OwidGdocErrorMessage[] = this.links.reduce(
             (errors: OwidGdocErrorMessage[], link): OwidGdocErrorMessage[] => {
@@ -696,6 +702,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                         })
                     }
                 }
+
                 if (link.linkType === "explorer") {
                     if (!publishedExplorersBySlug[link.target]) {
                         errors.push({
@@ -714,14 +721,12 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         this.errors = [...filenameErrors, ...linkErrors, ...subclassErrors]
     }
 
-    async loadState(
-        publishedExplorersBySlug: Record<string, any>
-    ): Promise<void> {
+    async loadState(): Promise<void> {
         await this.loadLinkedDocuments()
         await this.loadImageMetadata()
-        await this.loadLinkedCharts(publishedExplorersBySlug)
+        await this.loadLinkedCharts()
         await this._loadSubclassAttachments()
-        await this.validate(publishedExplorersBySlug)
+        await this.validate()
     }
 
     toJSON<T extends OwidGdocBaseInterface>(): T {

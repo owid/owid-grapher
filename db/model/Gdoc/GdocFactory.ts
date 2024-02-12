@@ -54,10 +54,7 @@ export class GdocFactory {
             .exhaustive()
     }
 
-    static async create(
-        id: string,
-        publishedExplorersBySlug: Record<string, any>
-    ): Promise<OwidGdoc> {
+    static async create(id: string): Promise<OwidGdoc> {
         // Fetch the data from Google Docs and save it to the database
         // We have to fetch it here because we need to know the type of the Gdoc in this.load()
         const base = new GdocBase(id)
@@ -66,21 +63,14 @@ export class GdocFactory {
 
         // Load its metadata and state so that subclass parsing & validation is also done.
         // This involves a second call to the DB and Google, which makes me sad, but it'll do for now.
-        const gdoc = await this.load(
-            id,
-            publishedExplorersBySlug,
-            GdocsContentSource.Gdocs
-        )
+        const gdoc = await this.load(id, GdocsContentSource.Gdocs)
 
         await gdoc.save()
 
         return gdoc
     }
 
-    static async loadBySlug(
-        slug: string,
-        publishedExplorersBySlug: Record<string, any>
-    ): Promise<GdocPost | GdocDataInsight> {
+    static async loadBySlug(slug: string): Promise<GdocPost | GdocDataInsight> {
         const base = await GdocBase.findOne({
             where: { slug, published: true },
         })
@@ -89,14 +79,13 @@ export class GdocFactory {
                 `No published Google Doc with slug "${slug}" found in the database`
             )
         }
-        return this.load(base.id, publishedExplorersBySlug)
+        return this.load(base.id)
     }
 
     // From an ID, get a Gdoc object with all its metadata and state loaded, in its correct subclass.
     // If contentSource is Gdocs, use live data from Google, otherwise use the data in the DB.
     static async load(
         id: string,
-        publishedExplorersBySlug: Record<string, any>,
         contentSource?: GdocsContentSource
     ): Promise<GdocPost | GdocDataInsight> {
         const base = await GdocBase.findOne({
@@ -138,7 +127,7 @@ export class GdocFactory {
             await gdoc.fetchAndEnrichGdoc()
         }
 
-        await gdoc.loadState(publishedExplorersBySlug)
+        await gdoc.loadState()
 
         return gdoc
     }

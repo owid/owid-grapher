@@ -78,8 +78,7 @@ export const getDatapageDataV2 = async (
  */
 export const getDatapageGdoc = async (
     googleDocEditLinkOrId: string,
-    isPreviewing: boolean,
-    publishedExplorersBySlug?: Record<string, ExplorerProgram>
+    isPreviewing: boolean
 ): Promise<OwidGdocPostInterface | null> => {
     // Get the google doc id from the datapage JSON file and return early if
     // none found
@@ -100,12 +99,9 @@ export const getDatapageGdoc = async (
     // support images (imageMetadata won't be set).
 
     const datapageGdoc =
-        isPreviewing &&
-        publishedExplorersBySlug &&
-        OwidGoogleAuth.areGdocAuthKeysSet()
+        isPreviewing && OwidGoogleAuth.areGdocAuthKeysSet()
             ? ((await GdocFactory.load(
                   googleDocId,
-                  publishedExplorersBySlug,
                   GdocsContentSource.Gdocs
               )) as GdocPost)
             : await GdocPost.findOneBy({ id: googleDocId })

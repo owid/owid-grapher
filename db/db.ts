@@ -10,6 +10,8 @@ import {
     GRAPHER_DB_PORT,
 } from "../settings/serverSettings.js"
 import { registerExitHandler } from "./cleanup.js"
+import { keyBy } from "@ourworldindata/utils"
+import { DbChartTagJoin } from "@ourworldindata/types"
 let typeormDataSource: DataSource
 
 export const getConnection = async (
@@ -139,4 +141,66 @@ export const getSlugsWithPublishedGdocsSuccessors = async (
             where isGdocPublished = TRUE`,
         knex
     ).then((rows) => new Set(rows.map((row: any) => row.slug)))
+}
+
+export const getExplorerTags = async (
+    knex: Knex<any, any[]>
+): Promise<{ slug: string; tags: DbChartTagJoin[] }[]> => {
+    return knexRaw<{ slug: string; tags: string }>(
+        `-- sql
+        SELECT
+        ext.explorerSlug as slug,
+        CASE
+            WHEN COUNT(t.id) = 0 THEN JSON_ARRAY()
+            ELSE JSON_ARRAYAGG(JSON_OBJECT('name', t.name, 'id', t.id))
+        END AS tags
+        FROM
+            explorer_tags ext
+        LEFT JOIN tags t ON
+            ext.tagId = t.id
+        GROUP BY
+            ext.explorerSlug`,
+        knex
+    ).then((rows) =>
+        rows.map((row) => ({
+            slug: row.slug,
+            tags: JSON.parse(row.tags) as DbChartTagJoin[],
+        }))
+    )
+}
+
+export const getPublishedExplorersBySlug = async (
+    knex: Knex<any, any[]>
+): Promise<{
+    [slug: string]: {
+        slug: string
+        title: string
+        subtitle: string
+        tags: DbChartTagJoin[]
+    }
+}> => {
+    const tags = await getExplorerTags(knex)
+    const tagsBySlug = keyBy(tags, "slug")
+    return knexRaw(
+        `-- sql
+        SELECT
+            slug,
+            JSON_UNQUOTE(JSON_EXTRACT(config, "$.explorerTitle")) as title,
+            JSON_UNQUOTE(JSON_EXTRACT(config, "$.explorerSubtitle")) as subtitle
+        FROM
+            explorers
+        WHERE
+            isPublished = TRUE`,
+        knex
+    ).then((rows) => {
+        const processed = rows.map((row: any) => {
+            return {
+                slug: row.slug,
+                title: row.title,
+                subtitle: row.subtitle === "null" ? "" : row.subtitle,
+                tags: tagsBySlug[row.slug]?.tags ?? [],
+            }
+        })
+        return keyBy(processed, "slug")
+    })
 }
