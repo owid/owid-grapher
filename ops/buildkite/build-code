@@ -49,9 +49,6 @@ update_env() {
     sed -i "s|^BAKED_SITE_DIR=.*$|BAKED_SITE_DIR=/home/owid/live-data/bakedSite|" owid-grapher/.env
     # NOTE: this should be identical once we merge to master
     sed -i "s|^BAKED_BASE_URL=.*$|BAKED_BASE_URL=$BAKED_BASE_URL|" owid-grapher/.env
-    # replace live-db.owid.io by owid-live-db
-    sed -i "s|^GRAPHER_DB_HOST=.*$|GRAPHER_DB_HOST=owid-live-db|" owid-grapher/.env
-    sed -i "s|^WORDPRESS_DB_HOST=.*$|WORDPRESS_DB_HOST=owid-live-db|" owid-grapher/.env
     # replace wordpress directory
     sed -i "s|^WORDPRESS_DIR=.*$|WORDPRESS_DIR=/home/owid/wordpress|" owid-grapher/.env
     # increase parallelisation of grapher baking
