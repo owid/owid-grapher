@@ -108,8 +108,8 @@ check_env WORDPRESS_DB_PASS
 # Wordpress DB
 if [ "${SKIP_DB_DL}" = false ]; then
   echo "Downloading Wordpress database (live_wordpress)"
-  ssh owid@live-db.owid.io "sudo mysqldump --default-character-set=utf8mb4 live_wordpress -r /tmp/live_wordpress.sql"
-  rsync -hav --progress owid@live-db.owid.io:/tmp/live_wordpress.sql $DL_FOLDER
+  ssh owid@prod-db.owid.io "sudo mysqldump --default-character-set=utf8mb4 live_wordpress -r /tmp/live_wordpress.sql"
+  rsync -hav --progress owid@prod-db.owid.io:/tmp/live_wordpress.sql $DL_FOLDER
 fi
 echo "Importing Wordpress database (live_wordpress)"
 purge_wordpress_db
