@@ -585,6 +585,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                     // we are assuming explorer slugs won't change
                     originalSlug,
                     title: explorer?.title ?? "",
+                    subtitle: explorer?.subtitle ?? "",
                     resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${originalSlug}`,
                     thumbnail: `${BAKED_BASE_URL}/default-thumbnail.jpg`,
                     tags: explorer.tags,

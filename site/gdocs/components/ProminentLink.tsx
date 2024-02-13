@@ -60,6 +60,7 @@ export const ProminentLink = (props: {
         href = `${linkedChart?.resolvedUrl}`
         title = title ?? `${linkedChart?.title} Data Explorer`
         thumbnail = thumbnail ?? linkedChart?.thumbnail
+        description = description ?? linkedChart?.subtitle
     }
 
     const Thumbnail = ({ thumbnail }: { thumbnail: string }) => {

@@ -23,6 +23,7 @@ export interface LinkedChart {
     originalSlug: string
     resolvedUrl: string
     title: string
+    subtitle?: string
     thumbnail?: string
     tags: DbChartTagJoin[]
 }
