@@ -56,8 +56,8 @@ export function ExplorerTiles({
                 {subtitle}
             </p>
             <div className="span-cols-12 grid explorer-tiles-grid">
-                {explorers.map((explorer, i) => (
-                    <ExplorerTile key={i} {...explorer} />
+                {explorers.map((explorer) => (
+                    <ExplorerTile key={explorer.url} {...explorer} />
                 ))}
             </div>
         </div>
