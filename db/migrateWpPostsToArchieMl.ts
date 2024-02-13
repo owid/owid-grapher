@@ -111,7 +111,7 @@ const migrate = async (): Promise<void> => {
                 relatedCharts = await getPostRelatedCharts(post.id)
             }
 
-            const shouldIncludeMaxAsAuthor = await isPostSlugCitable(post.slug)
+            const shouldIncludeMaxAsAuthor = isPostSlugCitable(post.slug)
             if (
                 shouldIncludeMaxAsAuthor &&
                 post.authors &&

@@ -64,7 +64,7 @@ export const getPageOverrides = async (
     const landing = await getLandingOnlyIfParent(post, formattingOptions)
     if (!landing) return
 
-    const isParentLandingCitable = await isPostSlugCitable(landing.slug)
+    const isParentLandingCitable = isPostSlugCitable(landing.slug)
     if (!isParentLandingCitable) return
 
     return {

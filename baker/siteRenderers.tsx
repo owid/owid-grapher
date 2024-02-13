@@ -229,8 +229,7 @@ export const renderPost = async (
 
     const pageOverrides = await getPageOverrides(post, formattingOptions)
     const citationStatus =
-        (await isPostSlugCitable(post.slug)) ||
-        isPageOverridesCitable(pageOverrides)
+        isPostSlugCitable(post.slug) || isPageOverridesCitable(pageOverrides)
 
     return renderToHtmlPage(
         <LongFormPage

@@ -134,7 +134,7 @@ export const getFullPostByIdFromSnapshot = async (
     return getFullPost(postEnriched.wpApiSnapshot)
 }
 
-export const isPostSlugCitable = async (slug: string): Promise<boolean> => {
+export const isPostSlugCitable = (slug: string): boolean => {
     const entries = SiteNavigationStatic.categories
     return entries.some((category) => {
         return (
