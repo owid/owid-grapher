@@ -54,7 +54,6 @@ import {
     getMergedGrapherConfigForVariable,
 } from "../db/model/Variable.js"
 import { getDatapageDataV2, getDatapageGdoc } from "../datapage/Datapage.js"
-import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Image } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 

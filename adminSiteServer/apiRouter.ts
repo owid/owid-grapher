@@ -77,7 +77,6 @@ import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import { escape } from "mysql"
 import Papa from "papaparse"
-import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import {
     postsTable,
     setTagsForPost,
@@ -92,12 +91,10 @@ import { dataSource } from "../db/dataSource.js"
 import { createGdocAndInsertOwidGdocPostContent } from "../db/model/Gdoc/archieToGdoc.js"
 import { Link } from "../db/model/Link.js"
 import { In } from "typeorm"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 
 const apiRouter = new FunctionalRouter()
-const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
 // Call this to trigger build and deployment of static charts on change
 const triggerStaticBuild = async (user: CurrentUser, commitMessage: string) => {
