@@ -160,7 +160,7 @@ export const getPostsFromSnapshots = async (
                 SELECT * FROM ${postsTable}
                 WHERE status = "publish"
                 AND type IN (?)
-                ORDER BY JSON_UNQUOTE(JSON_EXTRACT(wpApiSnapshot, '$.date')) DESC;
+                ORDER BY wpApiSnapshot->>'$.date' DESC;
             `,
             [postTypes]
         )
