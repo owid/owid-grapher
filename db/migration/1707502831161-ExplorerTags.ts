@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class ExplorerTags1707502831161 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`
+        await queryRunner.query(`
             CREATE TABLE explorer_tags (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 explorerSlug VARCHAR(150) NOT NULL,
@@ -15,7 +15,7 @@ export class ExplorerTags1707502831161 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`
+        await queryRunner.query(`
             DROP TABLE IF EXISTS explorer_tags;
         `)
     }

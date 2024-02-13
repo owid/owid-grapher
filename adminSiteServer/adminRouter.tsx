@@ -254,11 +254,9 @@ adminRouter.get(`/${GetAllExplorersRoute}`, async (req, res) => {
     res.send(await explorerAdminServer.getAllExplorersCommand())
 })
 
-adminRouter.get(`/${GetAllExplorersTagsRoute}`, async (req, res) => {
-    const explorers = await db.getExplorerTags(db.knexInstance())
-
-    res.send({
-        explorers,
+adminRouter.get(`/${GetAllExplorersTagsRoute}`, async (_, res) => {
+    return res.send({
+        explorers: await db.getExplorerTags(db.knexInstance()),
     })
 })
 

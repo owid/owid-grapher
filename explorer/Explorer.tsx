@@ -799,7 +799,7 @@ export class Explorer
                     <a
                         href={this.explorerProgram.downloadDataLink}
                         target="_blank"
-                        rel="noopener"
+                        rel="noopener noreferrer"
                         className="ExplorerDownloadLink"
                     >
                         Download this dataset

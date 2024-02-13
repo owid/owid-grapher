@@ -2604,7 +2604,7 @@ apiRouter.post("/explorer/:slug/tags", async (req: Request, res: Response) => {
     if (!explorer)
         throw new JsonError(`No explorer found for slug ${slug}`, 404)
 
-    db.knexInstance().transaction(async (t) => {
+    await db.knexInstance().transaction(async (t) => {
         await t.table("explorer_tags").where({ explorerSlug: slug }).delete()
         for (const tagId of tagIds) {
             await t.table("explorer_tags").insert({ explorerSlug: slug, tagId })
