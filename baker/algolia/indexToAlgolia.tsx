@@ -148,6 +148,8 @@ function generateGdocRecords(
             case OwidGdocType.Fragment:
                 // this should not happen because we filter out fragments; but we want to have an exhaustive switch/case so we include it
                 return { type: "other", importance: 0 }
+            case OwidGdocType.AboutPage:
+                return { type: "about", importance: 0 }
             case OwidGdocType.Article:
             case undefined:
                 return { type: "article", importance: 0 }
