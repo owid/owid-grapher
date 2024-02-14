@@ -253,8 +253,12 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
                                     {gdoc.content.authors?.join(", ")}
                                 </p>
                                 <span className="gdoc-index-item__tags">
-                                    {gdoc.content.type !==
-                                        OwidGdocType.Fragment && gdoc.tags ? (
+                                    {gdoc.content.type &&
+                                    ![
+                                        OwidGdocType.Fragment,
+                                        OwidGdocType.AboutPage,
+                                    ].includes(gdoc.content.type) &&
+                                    gdoc.tags ? (
                                         <EditableTags
                                             tags={gdoc.tags}
                                             onSave={(tags) =>
