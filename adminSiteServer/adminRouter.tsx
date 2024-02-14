@@ -167,18 +167,26 @@ adminRouter.get("/datasets/:datasetId/downloadZip", async (req, res) => {
 
 adminRouter.get("/posts/preview/:postId", async (req, res) => {
     const postId = expectInt(req.params.postId)
-
-    res.send(await renderPreview(postId))
+    const preview = await db.knexInstance().transaction(async (knex) => {
+        return renderPreview(postId, knex)
+    })
+    res.send(preview)
 })
 
 adminRouter.get("/posts/compare/:postId", async (req, res) => {
     const postId = expectInt(req.params.postId)
 
-    const wpPage = await renderPreview(postId)
-    const archieMlText = await Post.select(
-        "archieml",
-        "archieml_update_statistics"
-    ).from(db.knexTable(Post.postsTable).where({ id: postId }))
+    const [wpPage, archieMlText] = await db
+        .knexInstance()
+        .transaction(async (t) => {
+            const wpPage = await renderPreview(postId, t)
+            const archieMlText = await Post.select(
+                "archieml",
+                "archieml_update_statistics"
+            ).from(t(Post.postsTable).where({ id: postId }))
+            return [wpPage, archieMlText]
+        })
+
     if (
         archieMlText.length === 0 ||
         archieMlText[0].archieml === null ||
@@ -263,19 +271,23 @@ adminRouter.get(`/${GetAllExplorersTagsRoute}`, async (_, res) => {
 adminRouter.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
     const slug = slugify(req.params.slug)
     const filename = slug + EXPLORER_FILE_SUFFIX
-    if (slug === DefaultNewExplorerSlug)
-        return res.send(
-            await renderExplorerPage(
-                new ExplorerProgram(DefaultNewExplorerSlug, "")
+
+    const explorerPage = await db.knexInstance().transaction(async (knex) => {
+        if (slug === DefaultNewExplorerSlug)
+            return renderExplorerPage(
+                new ExplorerProgram(DefaultNewExplorerSlug, ""),
+                knex
             )
+        if (
+            !slug ||
+            !fs.existsSync(explorerAdminServer.absoluteFolderPath + filename)
         )
-    if (
-        !slug ||
-        !fs.existsSync(explorerAdminServer.absoluteFolderPath + filename)
-    )
-        return res.send(`File not found`)
-    const explorer = await explorerAdminServer.getExplorerFromFile(filename)
-    return res.send(await renderExplorerPage(explorer))
+            return `File not found`
+        const explorer = await explorerAdminServer.getExplorerFromFile(filename)
+        return renderExplorerPage(explorer, knex)
+    })
+
+    res.send(explorerPage)
 })
 
 adminRouter.get("/datapage-preview/:id", async (req, res) => {
@@ -297,7 +309,12 @@ adminRouter.get("/grapher/:slug", async (req, res) => {
     const entity = await Chart.getBySlug(req.params.slug)
     if (!entity) throw new JsonError("No such chart", 404)
 
-    res.send(await renderPreviewDataPageOrGrapherPage(entity.config))
+    const previewDataPageOrGrapherPage = db
+        .knexInstance()
+        .transaction(async (knex) =>
+            renderPreviewDataPageOrGrapherPage(entity.config, knex)
+        )
+    res.send(previewDataPageOrGrapherPage)
 })
 
 const gitCmsServer = new GitCmsServer({

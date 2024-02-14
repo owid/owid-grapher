@@ -4,8 +4,9 @@ import { isCanonicalInternalUrl } from "./formatting.js"
 import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
+import { Knex } from "knex"
 
-export const getRedirects = async () => {
+export const getRedirects = async (knex: Knex<any, any[]>) => {
     const staticRedirects = [
         // RSS feed
         "/feed /atom.xml 302",
@@ -59,7 +60,7 @@ export const getRedirects = async () => {
 
     // Get redirects from the database (exported from the Wordpress DB)
     // Redirects are assumed to be trailing-slash-free (see syncRedirectsToGrapher.ts)
-    const redirectsFromDb = (await getRedirectsFromDb()).map(
+    const redirectsFromDb = (await getRedirectsFromDb(knex)).map(
         (row) => `${row.source} ${row.target} ${row.code}`
     )
 
@@ -91,19 +92,19 @@ export const getGrapherRedirectsMap = async (
     )
 }
 
-export const getWordpressRedirectsMap = async () => {
-    const redirectsFromDb = await getRedirectsFromDb()
+export const getWordpressRedirectsMap = async (knex: Knex<any, any[]>) => {
+    const redirectsFromDb = await getRedirectsFromDb(knex)
 
     return new Map(redirectsFromDb.map((row) => [row.source, row.target]))
 }
 
 export const getGrapherAndWordpressRedirectsMap = memoize(
-    async (): Promise<Map<string, string>> => {
+    async (knex: Knex<any, any[]>): Promise<Map<string, string>> => {
         // source: pathnames only (e.g. /transport)
         // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
 
         const grapherRedirects = await getGrapherRedirectsMap()
-        const wordpressRedirects = await getWordpressRedirectsMap()
+        const wordpressRedirects = await getWordpressRedirectsMap(knex)
 
         // The order the redirects are added to the map is important. Adding the
         // Wordpress redirects last means that Wordpress redirects can overwrite
@@ -158,7 +159,10 @@ export const resolveRedirectFromMap = async (
     return _resolveRedirectFromMap(url)
 }
 
-export const resolveInternalRedirect = async (url: Url): Promise<Url> => {
+export const resolveInternalRedirect = async (
+    url: Url,
+    knex: Knex<any, any[]>
+): Promise<Url> => {
     if (!isCanonicalInternalUrl(url)) return url
 
     // Assumes that redirects in explorer code are final (in line with the
@@ -186,7 +190,7 @@ export const resolveInternalRedirect = async (url: Url): Promise<Url> => {
     return resolveExplorerRedirect(
         await resolveRedirectFromMap(
             url,
-            await getGrapherAndWordpressRedirectsMap()
+            await getGrapherAndWordpressRedirectsMap(knex)
         )
     )
 }

@@ -93,6 +93,7 @@ import { Link } from "../db/model/Link.js"
 import { In } from "typeorm"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
+import { Knex } from "knex"
 
 const apiRouter = new FunctionalRouter()
 
@@ -147,9 +148,15 @@ async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
     return logs
 }
 
-const getReferencesByChartId = async (chartId: number): Promise<References> => {
-    const postsWordpressPromise = getWordpressPostReferencesByChartId(chartId)
-    const postGdocsPromise = getGdocsPostReferencesByChartId(chartId)
+const getReferencesByChartId = async (
+    chartId: number,
+    knex: Knex<any, any[]>
+): Promise<References> => {
+    const postsWordpressPromise = getWordpressPostReferencesByChartId(
+        chartId,
+        knex
+    )
+    const postGdocsPromise = getGdocsPostReferencesByChartId(chartId, knex)
     const explorerSlugsPromise = db.queryMysql(
         `select distinct explorerSlug from explorer_charts where chartId = ?`,
         [chartId]
@@ -440,11 +447,15 @@ apiRouter.get(
 
 apiRouter.get(
     "/charts/:chartId.references.json",
-    async (req: Request, res: Response) => ({
-        references: await getReferencesByChartId(
-            parseInt(req.params.chartId as string)
-        ),
-    })
+    async (req: Request, res: Response) => {
+        const references = db.knexInstance().transaction(async (knex) => ({
+            references: await getReferencesByChartId(
+                parseInt(req.params.chartId as string),
+                knex
+            ),
+        }))
+        return references
+    }
 )
 
 apiRouter.get(

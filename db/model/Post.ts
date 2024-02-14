@@ -157,11 +157,12 @@ export const isPostSlugCitable = (slug: string): boolean => {
 }
 
 export const getPostsFromSnapshots = async (
+    knex: Knex<any, any[]>,
     postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
     filterFunc?: FilterFnPostRestApi
 ): Promise<PostRestApi[]> => {
     const rawPosts: Pick<DbRawPost, "wpApiSnapshot">[] = (
-        await db.knexInstance().raw(
+        await knex.raw(
             `
                 SELECT wpApiSnapshot FROM ${postsTable}
                 WHERE wpApiSnapshot IS NOT NULL
@@ -237,29 +238,32 @@ export const getFullPost = async (
 const selectHomepagePosts: FilterFnPostRestApi = (post) =>
     post.meta?.owid_publication_context_meta_field?.homepage === true
 
-export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
-    await db.getConnection() // side effect: ensure connection is established
-    const gdocPosts = await GdocPost.getListedGdocs()
-    const wpPosts = await Promise.all(
-        await getPostsFromSnapshots(
-            [WP_PostType.Post],
-            selectHomepagePosts
-        ).then((posts) => posts.map((post) => getFullPost(post, true)))
-    )
+export const getBlogIndex = memoize(
+    async (knex: Knex<any, any[]>): Promise<IndexPost[]> => {
+        await db.getConnection() // side effect: ensure connection is established
+        const gdocPosts = await GdocPost.getListedGdocs()
+        const wpPosts = await Promise.all(
+            await getPostsFromSnapshots(
+                knex,
+                [WP_PostType.Post],
+                selectHomepagePosts
+            ).then((posts) => posts.map((post) => getFullPost(post, true)))
+        )
 
-    const gdocSlugs = new Set(gdocPosts.map(({ slug }) => slug))
-    const posts = [...mapGdocsToWordpressPosts(gdocPosts)]
+        const gdocSlugs = new Set(gdocPosts.map(({ slug }) => slug))
+        const posts = [...mapGdocsToWordpressPosts(gdocPosts)]
 
-    // Only adding each wpPost if there isn't already a gdoc with the same slug,
-    // to make sure we use the most up-to-date metadata
-    for (const wpPost of wpPosts) {
-        if (!gdocSlugs.has(wpPost.slug)) {
-            posts.push(wpPost)
+        // Only adding each wpPost if there isn't already a gdoc with the same slug,
+        // to make sure we use the most up-to-date metadata
+        for (const wpPost of wpPosts) {
+            if (!gdocSlugs.has(wpPost.slug)) {
+                posts.push(wpPost)
+            }
         }
-    }
 
-    return orderBy(posts, (post) => post.date.getTime(), ["desc"])
-})
+        return orderBy(posts, (post) => post.date.getTime(), ["desc"])
+    }
+)
 
 export const mapGdocsToWordpressPosts = (
     gdocs: OwidGdocPostInterface[]
@@ -296,10 +300,11 @@ export const getBlockContentFromSnapshot = async (
 }
 
 export const getWordpressPostReferencesByChartId = async (
-    chartId: number
+    chartId: number,
+    knex: Knex<any, any[]>
 ): Promise<PostReference[]> => {
     const relatedWordpressPosts: PostReference[] = (
-        await db.knexInstance().raw(
+        await knex.raw(
             `
             SELECT DISTINCT
                 p.title,
@@ -344,10 +349,11 @@ export const getWordpressPostReferencesByChartId = async (
 }
 
 export const getGdocsPostReferencesByChartId = async (
-    chartId: number
+    chartId: number,
+    knex: Knex<any, any[]>
 ): Promise<PostReference[]> => {
     const relatedGdocsPosts: PostReference[] = (
-        await db.knexInstance().raw(
+        await knex.raw(
             `
             SELECT DISTINCT
                 pg.content ->> '$.title' AS title,
@@ -387,10 +393,14 @@ export const getGdocsPostReferencesByChartId = async (
  * Get all the gdocs and Wordpress posts mentioning a chart
  */
 export const getRelatedArticles = async (
-    chartId: number
+    chartId: number,
+    knex: Knex<any, any[]>
 ): Promise<PostReference[] | undefined> => {
-    const wordpressPosts = await getWordpressPostReferencesByChartId(chartId)
-    const gdocsPosts = await getGdocsPostReferencesByChartId(chartId)
+    const wordpressPosts = await getWordpressPostReferencesByChartId(
+        chartId,
+        knex
+    )
+    const gdocsPosts = await getGdocsPostReferencesByChartId(chartId, knex)
 
     return [...wordpressPosts, ...gdocsPosts].sort(
         // Alphabetise
