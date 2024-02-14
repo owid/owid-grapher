@@ -425,7 +425,11 @@ export function enrichedBlockToRawBlock(
         .with({ type: "explorer-tiles" }, (b): RawBlockExplorerTiles => {
             return {
                 type: "explorer-tiles",
-                value: b,
+                value: {
+                    title: b.title,
+                    subtitle: b.subtitle,
+                    explorers: b.explorers,
+                },
             }
         })
         .with({ type: "blockquote" }, (b): RawBlockBlockquote => {
