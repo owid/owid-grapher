@@ -3,7 +3,7 @@ export enum RedirectCode {
     FOUND = 302,
 }
 
-export interface Redirect {
+export interface DbPlainRedirect {
     source: string
     target: string
     code: RedirectCode
