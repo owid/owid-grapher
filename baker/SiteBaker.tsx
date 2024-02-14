@@ -779,9 +779,8 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked google drive images" })
     }
 
-    // Make sure that our tag icons don't have typos, nor reference tags that have been renamed
-    // We want to be sure that if we have a tag name, we'll be able to load its icon like so:
-    // <img src={`/images/tag-icons/${tag.name}.svg`} />
+    // We don't have an icon for every single tag (yet), but for the icons that we *do* have,
+    // we want to make sure that we have a corresponding tag in the database.
     private async validateTagIcons() {
         const allTags = await db
             .knexTable("tags")
