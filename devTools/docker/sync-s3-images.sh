@@ -13,4 +13,12 @@ fi
 # for local development, it should be owid-image-upload/local-yourname
 # at least until we decide to instead host images locally, if ever
 
+if ! grep -q 'profile owid-spaces' ~/.aws/config; then
+  echo 'Please configure your S3 credentials for profile owid-spaces:'
+  echo
+  echo '  aws configure --profile=owid-spaces'
+  echo
+  exit 1
+fi
+
 aws --profile=owid-spaces --endpoint=https://nyc3.digitaloceanspaces.com s3 sync s3://owid-image-upload/production/ s3://$IMAGE_HOSTING_BUCKET_PATH/ --acl public-read
