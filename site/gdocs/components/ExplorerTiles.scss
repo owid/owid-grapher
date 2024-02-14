@@ -22,33 +22,41 @@
             color: $accent-vermillion;
             border-color: $accent-vermillion;
         }
-        @include md-down {
+        @include sm-only {
             justify-self: start;
             margin-top: 16px;
             order: 4;
-        }
-        @include sm-only {
             text-align: center;
             width: 100%;
         }
     }
     .explorer-tiles-grid {
         row-gap: var(--grid-gap);
+        @include md-down {
+            grid-template-rows: repeat(2, 1fr);
+            column-gap: var(--grid-gap);
+        }
     }
     .explorer-tile {
-        height: 130px;
         background-image: url("/explorer-thumbnail.webp");
         background-size: cover;
-        position: relative;
+        padding: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    .explorer-tile__icon {
+        background-color: $blue-55;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
     }
     .explorer-tile__text-container {
-        position: absolute;
-        bottom: 16px;
-        left: 16px;
+        width: 100%;
+        margin-top: 18px;
     }
     .explorer-tile__title,
     .explorer-tile__suffix {
-        display: inline;
         margin: 0;
     }
     .explorer-tile__title {

@@ -14,13 +14,22 @@ function ExplorerTile({ url }: { url: string }) {
     if (!linkedChart) {
         return null
     }
+    const icon = linkedChart.tags[0] ? (
+        <img
+            height={40}
+            width={40}
+            src={`/images/tag-icons/${linkedChart.tags[0].name}.svg`}
+            className="explorer-tile__icon"
+        />
+    ) : null
+
     return (
         <a
             className="explorer-tile span-cols-3 span-md-cols-6"
             href={linkedChart.resolvedUrl}
         >
+            {icon}
             <div className="explorer-tile__text-container">
-                {/* TODO: add tag icon img */}
                 <p className="h3-bold explorer-tile__title">
                     {linkedChart.title}
                 </p>
@@ -46,13 +55,13 @@ export function ExplorerTiles({
                 {title}
             </h2>
             <a
-                className="span-cols-4 col-start-9 col-md-start-1 span-md-cols-12 body-3-medium explorer-tiles__cta"
+                className="span-cols-4 col-start-9 span-md-cols-5 col-md-start-8 col-sm-start-1 span-sm-cols-12 body-3-medium explorer-tiles__cta"
                 href="/charts"
             >
                 See all our charts and explorers{" "}
                 <FontAwesomeIcon icon={faArrowRight} />
             </a>
-            <p className="body-2-regular explorer-tiles__subtitle span-cols-8 span-md-cols-12">
+            <p className="body-2-regular explorer-tiles__subtitle span-cols-8 span-md-cols-7 span-sm-cols-12">
                 {subtitle}
             </p>
             <div className="span-cols-12 grid explorer-tiles-grid">
