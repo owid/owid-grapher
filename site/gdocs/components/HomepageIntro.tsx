@@ -103,36 +103,41 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                 <h2 className="h5-black-caps homepage-intro__our-mission-heading">
                     Our Mission
                 </h2>
-                <div className="homepage-intro__mission-wrapper body-3-medium">
+                <div className="homepage-intro__mission-wrapper">
                     <p className="homepage-intro__our-mission-lead">
                         What do we need to know to make the world a better
                         place?
                     </p>
-                    <p>
-                        At Our World in Data, we believe that we need to know
-                        two things: which problems the world is facing and that
-                        it is possible to make progress against large problems.
+                    <p className="homepage-intro__mission-answer">
+                        To make progress against the pressing problems the world
+                        faces, we need to be informed by the best research and
+                        data.
                     </p>
-                    <p>
-                        To see the progress we are making and understand the
-                        problems we are facing we have to rely on carefully
-                        collected statistics.
+                    <p className="homepage-intro__mission-answer">
+                        Our World in Data makes this knowledge accessible and
+                        understandable, to empower those working to build a
+                        better world.
                     </p>
                     <a
+                        className="homepage-intro__mission-link body-2-semibold"
+                        href="/about"
+                    >
+                        Read about our mission{" "}
+                        <FontAwesomeIcon icon={faArrowRight} />
+                    </a>
+                    <a
                         href="#newsletter"
-                        className="homepage-intro__subscribe-button"
+                        className="homepage-intro__subscribe-button body-3-medium"
                     >
                         Subscribe to our newsletter
                     </a>
                 </div>
                 <div className="homepage-intro__mission-wrapper body-3-medium">
                     <p>
-                        Our World in Data is an open access publication that is
-                        making data accessible and understandable.
-                    </p>
-                    <p>
-                        Reader donations allow us to focus on what's really
-                        important.
+                        We are a non-profit — all our work is free to use and
+                        open source. We believe the best research and data
+                        should be accessible to everyone. Consider supporting us
+                        if you find our work valuable.
                     </p>
                     <a className="homepage-intro__donate-button" href="/donate">
                         Donate to support us
@@ -142,9 +147,9 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                 <img
                     className="homepage-intro__media-logos"
                     src={`/media-logos.svg`}
-                    alt="Logos of the publications that have used our content. From left to right: Science, Nature, BBC, Vox, CNN, The New York Times, Financial Times, The Guardian, PNAS, The Atlantic, The Washington Post"
-                    width={278}
-                    height={128}
+                    alt="Logos of the publications that have used our content. From left to right: Science, Nature, PNAS, BBC, Financial Times, The New York Times, The Guardian, The Atlantic, and The Washington Post"
+                    width={230}
+                    height={75}
                 />
             </section>
             <section className="grid grid-cols-9 span-cols-9 col-start-5 homepage-intro__featured-work-container">
