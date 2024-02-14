@@ -161,18 +161,17 @@ export const getPostsFromSnapshots = async (
     postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
     filterFunc?: FilterFnPostRestApi
 ): Promise<PostRestApi[]> => {
-    const rawPosts: Pick<DbRawPost, "wpApiSnapshot">[] = (
-        await knex.raw(
-            `
+    const rawPosts: Pick<DbRawPost, "wpApiSnapshot">[] = await db.knexRaw(
+        `
                 SELECT wpApiSnapshot FROM ${postsTable}
                 WHERE wpApiSnapshot IS NOT NULL
                 AND status = "publish"
                 AND type IN (?)
                 ORDER BY wpApiSnapshot->>'$.date' DESC;
             `,
-            [postTypes]
-        )
-    )[0]
+        knex,
+        [postTypes]
+    )
 
     const posts = rawPosts
         .map((p) => p.wpApiSnapshot)
@@ -303,9 +302,8 @@ export const getWordpressPostReferencesByChartId = async (
     chartId: number,
     knex: Knex<any, any[]>
 ): Promise<PostReference[]> => {
-    const relatedWordpressPosts: PostReference[] = (
-        await knex.raw(
-            `
+    const relatedWordpressPosts: PostReference[] = await db.knexRaw(
+        `
             SELECT DISTINCT
                 p.title,
                 p.slug,
@@ -341,9 +339,9 @@ export const getWordpressPostReferencesByChartId = async (
             ORDER BY
                 p.title ASC
         `,
-            [chartId]
-        )
-    )[0]
+        knex,
+        [chartId]
+    )
 
     return relatedWordpressPosts
 }
@@ -352,9 +350,8 @@ export const getGdocsPostReferencesByChartId = async (
     chartId: number,
     knex: Knex<any, any[]>
 ): Promise<PostReference[]> => {
-    const relatedGdocsPosts: PostReference[] = (
-        await knex.raw(
-            `
+    const relatedGdocsPosts: PostReference[] = await db.knexRaw(
+        `
             SELECT DISTINCT
                 pg.content ->> '$.title' AS title,
                 pg.slug AS slug,
@@ -382,9 +379,9 @@ export const getGdocsPostReferencesByChartId = async (
             ORDER BY
                 pg.content ->> '$.title' ASC
         `,
-            [chartId]
-        )
-    )[0]
+        knex,
+        [chartId]
+    )
 
     return relatedGdocsPosts
 }

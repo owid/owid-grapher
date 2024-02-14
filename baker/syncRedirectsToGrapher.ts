@@ -60,8 +60,9 @@ export const syncRedirectsToGrapher = async (): Promise<void> => {
             console.log(
                 `Adding redirect: ${source} -> ${resolvedTarget} (${code})`
             )
-            await knex.raw(
+            await db.knexRaw(
                 `INSERT INTO redirects (source, target, code) VALUES (?, ?, ?)`,
+                knex,
                 [source, resolvedTarget, code]
             )
         }
