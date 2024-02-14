@@ -779,6 +779,24 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked google drive images" })
     }
 
+    // We don't have an icon for every single tag (yet), but for the icons that we *do* have,
+    // we want to make sure that we have a corresponding tag in the database.
+    private async validateTagIcons() {
+        const allTags = await db
+            .knexTable("tags")
+            .select<{ name: string }[]>("name")
+        const tagNames = new Set(allTags.map((tag) => tag.name))
+        const tagIcons = await fs.readdir("public/images/tag-icons")
+        for (const icon of tagIcons) {
+            const iconName = icon.split(".")[0]
+            if (!tagNames.has(iconName)) {
+                logErrorAndMaybeSendToBugsnag(
+                    `Tag icon "${icon}" does not have a corresponding tag in the database.`
+                )
+            }
+        }
+    }
+
     // Bake the static assets
     private async bakeAssets() {
         if (!this.bakeSteps.has("assets")) return
@@ -793,6 +811,7 @@ export class SiteBaker {
         await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/dist/assets ${this.bakedSiteDir}/assets`
         )
+        await this.validateTagIcons()
         await execWrapper(
             `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/ ${excludes}`
         )
