@@ -445,7 +445,7 @@ export interface BakeSingleGrapherChartArguments {
 
 export const bakeSingleGrapherChart = async (
     args: BakeSingleGrapherChartArguments,
-    knex: Knex<any, any[]>
+    knex: Knex<any, any[]> = db.knexInstance()
 ) => {
     const grapher: GrapherInterface = JSON.parse(args.config)
     grapher.id = args.id
