@@ -165,6 +165,7 @@ export const DataPageV2Content = ({
         linkedDocuments = {},
         imageMetadata = {},
         linkedCharts = {},
+        linkedIndicators = {},
         relatedCharts = [],
     } = faqEntries ?? {}
 
@@ -237,6 +238,7 @@ export const DataPageV2Content = ({
                 linkedDocuments,
                 imageMetadata,
                 linkedCharts,
+                linkedIndicators,
                 relatedCharts,
             }}
         >
@@ -749,7 +751,7 @@ const KeyDataTable = (props: {
     const links = makeLinks({ link: datapageData.source?.link })
 
     return (
-        <div className="key-data-block grid grid-cols-4 grid-sm-cols-12 ">
+        <div className="key-data-block grid grid-cols-4 grid-sm-cols-12">
             {datapageData.descriptionShort && (
                 <div className="key-data span-cols-4 span-sm-cols-12">
                     <div className="key-data__title key-data-description-short__title">

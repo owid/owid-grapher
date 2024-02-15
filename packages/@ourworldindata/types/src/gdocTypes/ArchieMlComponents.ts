@@ -86,6 +86,36 @@ export type EnrichedBlockChart = {
     tabs?: ChartTabKeyword[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockKeyIndicatorValue = {
+    datapageUrl?: string
+    title?: string
+    text?: RawBlockText[]
+    source?: string
+}
+
+export type RawBlockKeyIndicator = {
+    type: "key-indicator"
+    value: RawBlockKeyIndicatorValue | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedBlockKeyIndicator = {
+    type: "key-indicator"
+    datapageUrl: string
+    title: string
+    text: EnrichedBlockText[]
+    source?: string
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockKeyIndicatorCollection = {
+    type: "key-indicator-collection"
+    value: OwidRawGdocBlock[]
+}
+
+export type EnrichedBlockKeyIndicatorCollection = {
+    type: "key-indicator-collection"
+    blocks: EnrichedBlockKeyIndicator[]
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockScroller = {
     type: "scroller"
     value: OwidRawGdocBlock[] | ArchieMLUnexpectedNonObjectValue
@@ -723,6 +753,8 @@ export type OwidRawGdocBlock =
     | RawBlockEntrySummary
     | RawBlockTable
     | RawBlockBlockquote
+    | RawBlockKeyIndicator
+    | RawBlockKeyIndicatorCollection
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -760,3 +792,5 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockEntrySummary
     | EnrichedBlockTable
     | EnrichedBlockBlockquote
+    | EnrichedBlockKeyIndicator
+    | EnrichedBlockKeyIndicatorCollection

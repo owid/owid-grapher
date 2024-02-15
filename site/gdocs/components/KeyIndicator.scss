@@ -1,0 +1,132 @@
+.key-indicator {
+    --padding: var(--grid-gap, 24px);
+
+    background-color: $blue-5;
+
+    margin: 24px calc(-1 * var(--padding));
+    padding: var(--padding);
+
+    .left {
+        @include sm-only {
+            margin-bottom: 16px;
+        }
+    }
+
+    .indicator-metadata {
+        margin-bottom: 16px;
+        @include sm-only {
+            display: none;
+        }
+    }
+
+    .indicator-title {
+        @include body-2-semibold;
+        color: $blue-90;
+        margin-right: 8px;
+    }
+
+    .indicator-source {
+        @include body-3-medium;
+        display: inline-block;
+        color: $blue-50;
+    }
+
+    .narrative-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: calc(28 / 22);
+        color: $blue-90;
+        margin-top: 0;
+        margin-bottom: 16px;
+
+        @include sm-only {
+            font-size: 1.25rem;
+        }
+    }
+
+    .text {
+        @include body-2-regular;
+        color: $blue-90;
+
+        p:first-of-type {
+            margin-top: 0;
+        }
+
+        p:last-of-type {
+            margin-bottom: 0;
+        }
+    }
+
+    .text a {
+        @include owid-link-90;
+    }
+
+    .metadata-entry {
+        @include body-3-medium;
+    }
+
+    .metadata-entry__title {
+        color: $blue-50;
+    }
+
+    .metadata-entry__value {
+        color: $blue-90;
+    }
+
+    .description {
+        @include body-3-medium;
+        color: $blue-60;
+        margin-top: 0;
+        margin-bottom: 16px;
+    }
+
+    .datapage-link {
+        @include body-3-medium;
+
+        display: block;
+        @include sm-up {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        min-height: 40px;
+        padding: 8px 24px;
+        margin-top: 16px;
+        text-align: center;
+        color: $white;
+        background-color: $blue-60;
+        cursor: pointer;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+            background-color: $blue-90;
+        }
+
+        svg {
+            font-size: 0.75rem;
+            margin-left: 8px;
+        }
+    }
+
+    .datapage-link-desktop {
+        @include sm-only {
+            display: none;
+        }
+    }
+
+    .datapage-link-mobile {
+        @include sm-up {
+            display: none;
+        }
+    }
+
+    .key-indicator-chart {
+        @include sm-only {
+            order: -1;
+            margin-bottom: 16px;
+        }
+    }
+}

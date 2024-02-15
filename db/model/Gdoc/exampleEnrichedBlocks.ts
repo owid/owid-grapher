@@ -535,4 +535,33 @@ export const enrichedBlockExamples: Record<
         citation: "Max Roser",
         parseErrors: [],
     },
+    "key-indicator": {
+        type: "key-indicator",
+        datapageUrl: "https://ourworldindata.org/grapher/life-expectancy",
+        title: "How did people's life expectancy change over time?",
+        text: [enrichedBlockText],
+        parseErrors: [],
+    },
+    "key-indicator-collection": {
+        type: "key-indicator-collection",
+        blocks: [
+            {
+                type: "key-indicator",
+                datapageUrl:
+                    "https://ourworldindata.org/grapher/life-expectancy",
+                title: "How did people's life expectancy change over time?",
+                text: [enrichedBlockText],
+                parseErrors: [],
+            },
+            {
+                type: "key-indicator",
+                datapageUrl:
+                    "https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty",
+                title: "What share of the population is living in extreme poverty?",
+                text: [enrichedBlockText],
+                parseErrors: [],
+            },
+        ],
+        parseErrors: [],
+    },
 }

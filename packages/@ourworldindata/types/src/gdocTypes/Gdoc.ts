@@ -1,5 +1,5 @@
 import { Tag } from "../domainTypes/Tag.js"
-import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
+import { GrapherTabOption, RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
 import { TocHeadingWithTitleSupertitle } from "../domainTypes/Toc.js"
 import { ImageMetadata } from "./Image.js"
@@ -22,7 +22,21 @@ export interface LinkedChart {
     originalSlug: string
     resolvedUrl: string
     title: string
+    tab?: GrapherTabOption
     thumbnail?: string
+    indicatorId?: number // in case of a datapage
+}
+
+/**
+ * A linked indicator is derived from a linked grapher's config (see: getVariableOfDatapageIfApplicable)
+ * e.g. https://ourworldindata.org/grapher/tomato-production -> config for grapher with { slug: "tomato-production" } -> indicator metadata
+ * currently we only attach a small amount of metadata that we need for key-indicator blocks.
+ * In the future we might want to attach more metadata, e.g. the indicator's description, source, etc
+ */
+export interface LinkedIndicator {
+    id: number
+    title: string
+    attributionShort?: string
 }
 
 export enum OwidGdocType {
@@ -46,6 +60,7 @@ export interface OwidGdocBaseInterface {
     breadcrumbs?: BreadcrumbItem[] | null
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     linkedCharts?: Record<string, LinkedChart>
+    linkedIndicators?: Record<number, LinkedIndicator>
     imageMetadata?: Record<string, ImageMetadata>
     relatedCharts?: RelatedChart[]
     tags?: Tag[]

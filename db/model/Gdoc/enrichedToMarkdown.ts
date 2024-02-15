@@ -1,3 +1,4 @@
+import { EnrichedBlockKeyIndicator } from "@ourworldindata/types"
 import {
     OwidEnrichedGdocBlock,
     Span,
@@ -270,6 +271,26 @@ ${links}`
                 )
             ).join("\n\n> ")
             return `> ${text}` + b.citation ? `\n-- ${b.citation}` : ""
+        })
+        .with({ type: "key-indicator" }, (b): string | undefined =>
+            markdownComponent(
+                "KeyIndicator",
+                {
+                    datapageUrl: b.datapageUrl,
+                    title: b.title,
+                    source: b.source,
+                    // text ignored
+                },
+                exportComponents
+            )
+        )
+        .with({ type: "key-indicator-collection" }, (b): string | undefined => {
+            const keyIndicators = b.blocks
+                .map((keyIndicatorBlock: EnrichedBlockKeyIndicator) =>
+                    enrichedBlockToMarkdown(keyIndicatorBlock, exportComponents)
+                )
+                .join("\n")
+            return `<KeyIndicatorCollection>\n${keyIndicators}\n</KeyIndicatorCollection>`
         })
         .exhaustive()
 }
