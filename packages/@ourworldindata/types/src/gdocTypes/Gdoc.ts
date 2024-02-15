@@ -26,6 +26,12 @@ export interface LinkedChart {
     indicatorId?: number // in case of a datapage
 }
 
+/**
+ * A linked indicator is derived from a linked grapher's config (see: getVariableOfDatapageIfApplicable)
+ * e.g. https://ourworldindata.org/grapher/tomato-production -> config for grapher with { slug: "tomato-production" } -> indicator metadata
+ * currently we only attach a small amount of metadata that we need for key-indicator blocks.
+ * In the future we might want to attach more metadata, e.g. the indicator's description, source, etc
+ */
 export interface LinkedIndicator {
     id: number
     title: string
