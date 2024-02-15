@@ -10,8 +10,11 @@
         border-top: 1px solid var(--border);
     }
 
-    .accordion-item h3 {
+    .accordion-item .accordion-item__heading {
         margin: 0;
+        @include sm-only {
+            display: none;
+        }
     }
 
     .accordion-item__button,

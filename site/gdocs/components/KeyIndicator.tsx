@@ -54,7 +54,7 @@ export default function KeyIndicator({
                 </a>
             </div>
             <Chart
-                className="col-start-5 span-cols-8 span-sm-cols-12 margin-0"
+                className="key-indicator-chart col-start-5 span-cols-8 span-sm-cols-12 margin-0"
                 d={{
                     url: linkedChart.resolvedUrl,
                     type: "chart",

@@ -125,7 +125,7 @@ function AccordionItem({
             })}
         >
             {/* desktop */}
-            <h3>
+            <h3 className="accordion-item__heading">
                 <button
                     id={headerId}
                     className="accordion-item__button"
