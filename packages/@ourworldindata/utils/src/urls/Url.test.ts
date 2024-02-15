@@ -108,4 +108,27 @@ describe(Url, () => {
             ).isUpload
         ).toBe(false)
     })
+
+    it("prints URL with no trailing slash", () => {
+        const urlSlash = Url.fromURL("https://ourworldindata.org/")
+        expect(urlSlash.fullUrlNoTrailingSlash).toEqual(
+            "https://ourworldindata.org"
+        )
+        const urlNoSlash = Url.fromURL("https://ourworldindata.org")
+        expect(urlNoSlash.fullUrlNoTrailingSlash).toEqual(
+            "https://ourworldindata.org"
+        )
+    })
+
+    it("prints path with no trailing slash", () => {
+        const urlSlash = Url.fromURL("/grapher/abc/")
+        expect(urlSlash.fullUrlNoTrailingSlash).toEqual("/grapher/abc")
+        const urlNoSlash = Url.fromURL("/grapher/abc")
+        expect(urlNoSlash.fullUrlNoTrailingSlash).toEqual("/grapher/abc")
+    })
+
+    it("prints URL with only trailing slash when no origin", () => {
+        const url = Url.fromURL("/")
+        expect(url.fullUrlNoTrailingSlash).toEqual("/")
+    })
 })

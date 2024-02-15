@@ -113,6 +113,10 @@ export class Url {
         ]).join("")
     }
 
+    get fullUrlNoTrailingSlash(): string {
+        return this.fullUrl.replace(/\/$/, "") || "/"
+    }
+
     get queryParams(): QueryParams {
         return strToQueryParams(this.queryStr)
     }
