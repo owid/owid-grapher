@@ -1817,7 +1817,7 @@ function parseExplorerTiles(
     if (!raw.value.subtitle)
         return createError({ message: "Explorer tiles missing subtitle" })
 
-    if (!raw.value.explorers || !raw.value.explorers.length)
+    if (!raw.value.explorers?.length)
         return createError({ message: "Explorer tiles missing explorers" })
 
     const parsedExplorerUrls: { url: string }[] = []

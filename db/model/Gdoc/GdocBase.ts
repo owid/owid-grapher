@@ -578,7 +578,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         )
 
         const linkedExplorerCharts = await Promise.all(
-            [...this.linkedChartSlugs.explorer.values()].map((originalSlug) => {
+            this.linkedChartSlugs.explorer.map((originalSlug) => {
                 const explorer = publishedExplorersBySlug[originalSlug]
                 if (!explorer) return
                 const linkedChart: LinkedChart = {

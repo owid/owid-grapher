@@ -185,8 +185,8 @@ export const getPublishedExplorersBySlug = async (
         `-- sql
         SELECT
             slug,
-            JSON_UNQUOTE(JSON_EXTRACT(config, "$.explorerTitle")) as title,
-            JSON_UNQUOTE(JSON_EXTRACT(config, "$.explorerSubtitle")) as subtitle
+            config->>"$.explorerTitle" as title,
+            config->>"$.explorerSubtitle" as subtitle
         FROM
             explorers
         WHERE
