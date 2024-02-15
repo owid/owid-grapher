@@ -52,6 +52,14 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
                         headers: {
                             "If-None-Match": existingEtag,
                         },
+                    }).then((response) => {
+                        // If the response status is 404, throw an error to trigger retry
+                        if (!response.ok) {
+                            throw new Error(
+                                `Fetching image failed: ${response.status} ${response.statusText} ${response.url}`
+                            )
+                        }
+                        return response
                     }),
                 { maxRetries: 5, exponentialBackoff: true, initialDelay: 1000 }
             )
@@ -63,12 +71,6 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
                 // Log fetched images, this should be pretty rare as most images should return 304
                 console.log(
                     `Fetching image ${image.filename} from ${remoteFilePath} using etag ${existingEtag}...`
-                )
-            }
-
-            if (!response.ok) {
-                throw new Error(
-                    `Fetching image failed: ${response.status} ${response.statusText} ${response.url}`
                 )
             }
 
