@@ -504,6 +504,15 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                     }),
                 ]
             })
+            .with({ type: "key-indicator" }, (block) => {
+                return [
+                    Link.createFromUrl({
+                        url: block.datapageUrl,
+                        source: this,
+                        componentType: block.type,
+                    }),
+                ]
+            })
             .with(
                 {
                     // no urls directly on any of these blocks
@@ -521,7 +530,6 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                         "horizontal-rule",
                         "html",
                         "image",
-                        "key-indicator",
                         "list",
                         "missing-data",
                         "numbered-list",

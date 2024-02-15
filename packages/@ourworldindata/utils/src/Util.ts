@@ -1626,6 +1626,17 @@ export function traverseEnrichedBlocks(
         })
         .with(
             {
+                type: "key-indicator",
+            },
+            (keyIndicator) => {
+                callback(keyIndicator)
+                keyIndicator.blurb.forEach((node) => {
+                    traverseEnrichedBlocks(node, callback, spanCallback)
+                })
+            }
+        )
+        .with(
+            {
                 type: P.union(
                     "chart-story",
                     "chart",
@@ -1643,8 +1654,7 @@ export function traverseEnrichedBlocks(
                     "sdg-toc",
                     "topic-page-intro",
                     "all-charts",
-                    "entry-summary",
-                    "key-indicator"
+                    "entry-summary"
                 ),
             },
             callback

@@ -1903,7 +1903,7 @@ const parseKeyIndicator = (
 
     if (typeof val === "string")
         return createError({
-            message: "Value is a string, not an object with properties",
+            message: `key-indicator block must be written as "{.key-indicator}"`,
         })
 
     if (!val.datapageUrl)
