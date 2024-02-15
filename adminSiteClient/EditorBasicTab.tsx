@@ -90,7 +90,8 @@ class DimensionSlotView extends React.Component<{
         } else if (
             grapher.yColumnsFromDimensions.length > 1 &&
             !grapher.isStackedArea &&
-            !grapher.isStackedBar
+            !grapher.isStackedBar &&
+            !grapher.isStackedDiscreteBar
         ) {
             // non-stacked charts with multiple y-dimensions should select a single entity by default.
             // if possible, the currently selected entity is persisted, otherwise "World" is preferred
