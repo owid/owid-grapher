@@ -1,6 +1,6 @@
-import * as db from "./db"
-import * as wpdb from "./wpdb"
-import { getRedirectsFromDb } from "./model/Redirect.js"
+import * as db from "../db/db"
+import * as wpdb from "../db/wpdb"
+import { getRedirectsFromDb } from "../db/model/Redirect.js"
 
 const removeTrailingSlashIfNotRoot = (str: string): string => {
     return str.replace(/\/$/, "") || "/"
