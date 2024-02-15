@@ -441,7 +441,7 @@ export function enrichedBlockToRawBlock(
                 value: {
                     datapageUrl: b.datapageUrl,
                     title: b.title,
-                    blurb: b.blurb.map((enriched) => ({
+                    text: b.text.map((enriched) => ({
                         type: "text",
                         value: spansToHtmlText(enriched.value),
                     })),

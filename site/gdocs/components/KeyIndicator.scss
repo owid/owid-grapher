@@ -44,7 +44,7 @@
         }
     }
 
-    .blurb {
+    .text {
         @include body-2-regular;
         color: $blue-90;
 
@@ -57,7 +57,7 @@
         }
     }
 
-    .blurb a {
+    .text a {
         @include owid-link-90;
     }
 

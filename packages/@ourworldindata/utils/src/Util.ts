@@ -1630,7 +1630,7 @@ export function traverseEnrichedBlocks(
             },
             (keyIndicator) => {
                 callback(keyIndicator)
-                keyIndicator.blurb.forEach((node) => {
+                keyIndicator.text.forEach((node) => {
                     traverseEnrichedBlocks(node, callback, spanCallback)
                 })
             }

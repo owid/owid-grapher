@@ -89,7 +89,7 @@ export type EnrichedBlockChart = {
 export type RawBlockKeyIndicatorValue = {
     datapageUrl?: string
     title?: string
-    blurb?: RawBlockText[]
+    text?: RawBlockText[]
     source?: string
 }
 
@@ -102,7 +102,7 @@ export type EnrichedBlockKeyIndicator = {
     type: "key-indicator"
     datapageUrl: string
     title: string
-    blurb: EnrichedBlockText[]
+    text: EnrichedBlockText[]
     source?: string
 } & EnrichedBlockWithParseErrors
 

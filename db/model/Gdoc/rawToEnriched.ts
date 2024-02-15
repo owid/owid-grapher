@@ -1898,7 +1898,7 @@ const parseKeyIndicator = (
         type: "key-indicator",
         datapageUrl,
         title: "",
-        blurb: [],
+        text: [],
         parseErrors: [error],
     })
 
@@ -1922,24 +1922,24 @@ const parseKeyIndicator = (
             url
         )
 
-    if (!val.blurb) return createError({ message: "blurb is missing" }, url)
+    if (!val.text) return createError({ message: "text is missing" }, url)
 
-    if (!isArray(val.blurb))
+    if (!isArray(val.text))
         return createError(
             {
                 message:
-                    "Blurb is not a freeform array. Make sure you've written [.+blurb]",
+                    "Blurb is not a freeform array. Make sure you've written [.+text]",
             },
             url
         )
 
-    const parsedBlurb = val.blurb.map(parseText)
+    const parsedBlurb = val.text.map(parseText)
     const parsedBlurbErrors = parsedBlurb.flatMap((block) => block.parseErrors)
 
     return omitUndefinedValues({
         type: "key-indicator",
         datapageUrl: url,
-        blurb: parsedBlurb,
+        text: parsedBlurb,
         title: val.title,
         source: val.source,
         parseErrors: parsedBlurbErrors,

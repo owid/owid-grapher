@@ -539,7 +539,7 @@ export const enrichedBlockExamples: Record<
         type: "key-indicator",
         datapageUrl: "https://ourworldindata.org/grapher/life-expectancy",
         title: "How did people's life expectancy change over time?",
-        blurb: [enrichedBlockText],
+        text: [enrichedBlockText],
         parseErrors: [],
     },
     "key-indicator-collection": {
@@ -550,7 +550,7 @@ export const enrichedBlockExamples: Record<
                 datapageUrl:
                     "https://ourworldindata.org/grapher/life-expectancy",
                 title: "How did people's life expectancy change over time?",
-                blurb: [enrichedBlockText],
+                text: [enrichedBlockText],
                 parseErrors: [],
             },
             {
@@ -558,7 +558,7 @@ export const enrichedBlockExamples: Record<
                 datapageUrl:
                     "https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty",
                 title: "What share of the population is living in extreme poverty?",
-                blurb: [enrichedBlockText],
+                text: [enrichedBlockText],
                 parseErrors: [],
             },
         ],

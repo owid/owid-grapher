@@ -40,8 +40,8 @@ export default function KeyIndicator({
                     <span className="indicator-source">{source}</span>
                 </div>
                 <h4 className="narrative-title">{d.title}</h4>
-                <div className="blurb">
-                    {d.blurb.map((textBlock: EnrichedBlockText, i: number) => (
+                <div className="text">
+                    {d.text.map((textBlock: EnrichedBlockText, i: number) => (
                         <Paragraph d={textBlock} key={i} />
                     ))}
                 </div>

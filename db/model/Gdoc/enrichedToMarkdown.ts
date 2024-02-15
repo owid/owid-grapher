@@ -279,7 +279,7 @@ ${links}`
                     datapageUrl: b.datapageUrl,
                     title: b.title,
                     source: b.source,
-                    // blurb ignored
+                    // text ignored
                 },
                 exportComponents
             )
