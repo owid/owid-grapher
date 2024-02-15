@@ -1,9 +1,12 @@
 import { Entity, Column } from "typeorm"
+import * as db from "../../db"
 import {
     OwidGdocErrorMessage,
+    OwidGdocErrorMessageType,
     OwidGdocHomepageContent,
     OwidGdocHomepageInterface,
     OwidGdocMinimalPostInterface,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 
@@ -27,6 +30,24 @@ export class GdocHomepage
 
     _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
+        const otherPublishedHomepages = await db.knexRaw<{ id: string }>(
+            `
+            SELECT 
+                id
+            FROM posts_gdocs
+            WHERE content->>"$.type" = "${OwidGdocType.Homepage}"
+            AND published = TRUE
+            AND id != ?`,
+            db.knexInstance(),
+            [this.id]
+        )
+        if (otherPublishedHomepages.length > 0) {
+            errors.push({
+                property: "published",
+                message: `There can only be one published homepage. There is a homepage with the ID ${otherPublishedHomepages[0].id} that is already published.`,
+                type: OwidGdocErrorMessageType.Error,
+            })
+        }
         return errors
     }
 
