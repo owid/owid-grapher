@@ -2,8 +2,24 @@ import * as db from "./db"
 import * as wpdb from "./wpdb"
 import { getRedirectsFromDb } from "./model/Redirect.js"
 
+const removeTrailingSlashIfNotRoot = (str: string): string => {
+    return str.replace(/\/$/, "") || "/"
+}
+
 export const syncRedirectsToGrapher = async (): Promise<void> => {
-    const allWordpressRedirects = await wpdb.FOR_SYNC_ONLY_getRedirects()
+    const allWordpressRedirectsRaw = await wpdb.FOR_SYNC_ONLY_getRedirects()
+    const allWordpressRedirects = allWordpressRedirectsRaw.map((r) => {
+        return {
+            // In absolute terms, redirecting the "/" path is unlikely but there
+            // could be rare temporary use cases for it. In the context of this
+            // short-lived script, this doesn't really matter either way given
+            // none of the redirects this script will parse are from the root
+            // path, but we keep it here for completeness.
+            source: removeTrailingSlashIfNotRoot(r.source),
+            target: removeTrailingSlashIfNotRoot(r.target),
+            code: r.code,
+        }
+    })
     const existingRedirectsFromDb = await getRedirectsFromDb()
 
     await db.knexInstance().transaction(async (t) => {
