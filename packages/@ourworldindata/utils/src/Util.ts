@@ -1636,6 +1636,15 @@ export function traverseEnrichedBlocks(
             }
         )
         .with(
+            { type: "key-indicator-collection" },
+            (keyIndicatorCollection) => {
+                callback(keyIndicatorCollection)
+                keyIndicatorCollection.blocks.forEach((node) =>
+                    traverseEnrichedBlocks(node, callback, spanCallback)
+                )
+            }
+        )
+        .with(
             {
                 type: P.union(
                     "chart-story",

@@ -57,6 +57,7 @@ import {
     OwidGdocMinimalPostInterface,
     excludeUndefined,
     grabMetadataForGdocLinkedIndicator,
+    GrapherTabOption,
 } from "@ourworldindata/utils"
 
 import { execWrapper } from "../db/execWrapper.js"
@@ -324,11 +325,13 @@ export class SiteBaker {
             const publishedChartsRaw = await Chart.mapSlugsToConfigs()
             const publishedCharts: LinkedChart[] = await Promise.all(
                 publishedChartsRaw.map(async (chart) => {
+                    const tab = chart.config.tab ?? GrapherTabOption.chart
                     const datapageIndicator =
                         await getVariableOfDatapageIfApplicable(chart.config)
                     return {
                         originalSlug: chart.slug,
                         resolvedUrl: `${BAKED_GRAPHER_URL}/${chart.config.slug}`,
+                        tab,
                         queryString: "",
                         title: chart.config.title || "",
                         thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart.config.slug}.svg`,

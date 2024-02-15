@@ -542,4 +542,26 @@ export const enrichedBlockExamples: Record<
         blurb: [enrichedBlockText],
         parseErrors: [],
     },
+    "key-indicator-collection": {
+        type: "key-indicator-collection",
+        blocks: [
+            {
+                type: "key-indicator",
+                datapageUrl:
+                    "https://ourworldindata.org/grapher/life-expectancy",
+                title: "How did people's life expectancy change over time?",
+                blurb: [enrichedBlockText],
+                parseErrors: [],
+            },
+            {
+                type: "key-indicator",
+                datapageUrl:
+                    "https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty",
+                title: "What share of the population is living in extreme poverty?",
+                blurb: [enrichedBlockText],
+                parseErrors: [],
+            },
+        ],
+        parseErrors: [],
+    },
 }

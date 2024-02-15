@@ -1,5 +1,5 @@
 import { Tag } from "../domainTypes/Tag.js"
-import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
+import { GrapherTabOption, RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
 import { TocHeadingWithTitleSupertitle } from "../domainTypes/Toc.js"
 import { ImageMetadata } from "./Image.js"
@@ -22,6 +22,7 @@ export interface LinkedChart {
     originalSlug: string
     resolvedUrl: string
     title: string
+    tab?: GrapherTabOption
     thumbnail?: string
     indicatorId?: number // in case of a datapage
 }

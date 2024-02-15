@@ -1,0 +1,189 @@
+.key-indicator-collection {
+    $duration: 0.4s; // keep in sync with HEIGHT_ANIMATION_DURATION_IN_SECONDS in KeyIndicatorCollection.tsx
+
+    --padding: var(--grid-gap, 24px);
+    --border: #{$blue-20};
+
+    margin: 24px calc(-1 * var(--padding));
+
+    .accordion-item + .accordion-item {
+        border-top: 1px solid var(--border);
+    }
+
+    .accordion-item .accordion-item__heading {
+        margin: 0;
+        @include sm-only {
+            display: none;
+        }
+    }
+
+    .accordion-item__button,
+    .accordion-item__link-mobile {
+        display: block;
+        width: 100%;
+        text-align: left;
+    }
+
+    .accordion-item__button {
+        background-color: $blue-5;
+        padding: 16px var(--padding);
+
+        @include sm-only {
+            padding-bottom: 0;
+        }
+    }
+
+    // on desktop, show a clickable header that opens the accordion
+    .accordion-item--closed .accordion-item__button {
+        @include sm-only {
+            display: none;
+        }
+    }
+
+    // on mobile, show an anchor that links to the datapage
+    .accordion-item__link-mobile {
+        background-color: $white;
+        padding: 12px 0;
+        line-height: 1.2;
+
+        @include sm-up {
+            display: none;
+        }
+    }
+
+    .accordion-item--open .accordion-item__button {
+        background-color: $blue-20;
+
+        @include sm-only {
+            background-color: $blue-5;
+        }
+    }
+
+    .accordion-item--closed .accordion-item__button:hover {
+        background-color: $blue-20;
+    }
+
+    .accordion-item__content {
+        overflow: hidden;
+        transition: height $duration cubic-bezier(0.76, 0, 0.24, 1);
+    }
+
+    .key-indicator-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .key-indicator-header__left {
+        display: flex;
+        align-items: baseline;
+    }
+
+    .key-indicator-header__tab-icon {
+        font-size: 0.8125rem;
+        color: $blue-50;
+        margin-right: 8px;
+    }
+
+    .key-indicator-header__title {
+        @include body-2-semibold;
+        color: $blue-90;
+        margin-right: 8px;
+
+        @include sm-only {
+            line-height: 1.2;
+        }
+    }
+
+    .accordion-item--closed .key-indicator-header__title {
+        @include sm-only {
+            margin-left: 0;
+        }
+    }
+
+    .accordion-item__link-mobile:active:not(:hover)
+        .key-indicator-header__title {
+        text-decoration: underline;
+        text-underline-offset: 4px;
+    }
+
+    .key-indicator-header__source {
+        @include body-3-medium;
+        display: inline-block;
+        color: $blue-50;
+    }
+
+    .accordion-item--closed .key-indicator-header__source {
+        @include sm-only {
+            display: block;
+            margin-top: 2px;
+        }
+    }
+
+    .key-indicator-header__icon {
+        color: $blue-90;
+        font-size: 0.875rem;
+        font-weight: 900;
+
+        @include sm-only {
+            font-size: 0.75rem;
+        }
+    }
+
+    // hidden on mobile
+    .key-indicator-header__icon[data-icon="plus"] {
+        @include sm-only {
+            display: none;
+        }
+    }
+
+    // hidden on desktop
+    .key-indicator-header__icon[data-icon="arrow-right"] {
+        @include sm-up {
+            display: none;
+        }
+    }
+
+    button {
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        background-color: transparent;
+    }
+
+    button[disabled] {
+        cursor: default;
+    }
+
+    @include sm-only {
+        --border: #{$blue-10};
+
+        .accordion-item:first-of-type::after {
+            content: "More featured indicators";
+            @include h5-black-caps;
+            display: block;
+            margin: 24px var(--padding) 16px;
+            color: $blue-60;
+        }
+
+        .accordion-item:nth-of-type(2) {
+            border-top: 1px solid var(--border);
+        }
+
+        .accordion-item:last-of-type {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .accordion-item--closed {
+            margin: 0 var(--padding);
+        }
+    }
+
+    // overwrite <KeyIndicator /> styles
+    .key-indicator {
+        margin: 0;
+        .indicator-metadata {
+            display: none;
+        }
+    }
+}

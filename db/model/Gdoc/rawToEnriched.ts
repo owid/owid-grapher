@@ -101,6 +101,8 @@ import {
     tableTemplates,
     RawBlockBlockquote,
     EnrichedBlockBlockquote,
+    RawBlockKeyIndicatorCollection,
+    EnrichedBlockKeyIndicatorCollection,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -199,6 +201,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "entry-summary" }, parseEntrySummary)
         .with({ type: "table" }, parseTable)
         .with({ type: "key-indicator" }, parseKeyIndicator)
+        .with({ type: "key-indicator-collection" }, parseKeyIndicatorCollection)
         .exhaustive()
 }
 
@@ -1941,4 +1944,70 @@ const parseKeyIndicator = (
         source: val.source,
         parseErrors: parsedBlurbErrors,
     }) as EnrichedBlockKeyIndicator
+}
+
+function parseKeyIndicatorCollection(
+    raw: RawBlockKeyIndicatorCollection
+): EnrichedBlockKeyIndicatorCollection {
+    const createError = (
+        error: ParseError,
+        warnings: ParseError[] = []
+    ): EnrichedBlockKeyIndicatorCollection => ({
+        type: "key-indicator-collection",
+        blocks: [],
+        parseErrors: [error, ...warnings],
+    })
+
+    const warnings = []
+
+    if (!Array.isArray(raw.value)) {
+        return createError({
+            message:
+                "key-indicator-collection is not a freeform array. Make sure you've written [.+key-indicator-collection]",
+        })
+    }
+
+    const blocks = raw.value
+    const keyIndicatorBlocks = blocks.filter(
+        (block) => block.type === "key-indicator"
+    )
+
+    if (keyIndicatorBlocks.length < blocks.length) {
+        warnings.push({
+            message:
+                "key-indicator-collection contains blocks that are not key-indicators blocks",
+            isWarning: true,
+        })
+    }
+
+    const parsedBlocks = compact(
+        keyIndicatorBlocks.map(parseRawBlocksToEnrichedBlocks)
+    ) as EnrichedBlockKeyIndicator[]
+
+    const validBlocks = parsedBlocks.filter(
+        (block) =>
+            block.parseErrors.filter((error) => !error.isWarning).length === 0
+    )
+
+    if (validBlocks.length < parsedBlocks.length) {
+        warnings.push({
+            message:
+                "key-indicator-collection contains at least one invalid key-indicators block",
+            isWarning: true,
+        })
+    }
+
+    if (validBlocks.length <= 1) {
+        const message =
+            validBlocks.length === 0
+                ? "key-indicator-collection contains no valid key-indicator blocks"
+                : "key-indicator-collection contains only one valid key-indicator block"
+        return createError({ message }, warnings)
+    }
+
+    return {
+        type: "key-indicator-collection",
+        blocks: validBlocks,
+        parseErrors: warnings,
+    }
 }
