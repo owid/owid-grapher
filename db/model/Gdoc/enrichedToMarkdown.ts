@@ -264,6 +264,7 @@ ${links}`
             })
             return "\n" + rows.join("\n") // markdown tables need a leading empty line
         })
+        .with({ type: "explorer-tiles" }, () => undefined) // Note: dropped
         .with({ type: "blockquote" }, (b): string | undefined => {
             const text = excludeNullish(
                 b.text.map((text) =>

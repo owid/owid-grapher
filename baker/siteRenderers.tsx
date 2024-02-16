@@ -169,16 +169,12 @@ export const renderGdocsPageBySlug = async (
     slug: string,
     isPreviewing: boolean = false
 ): Promise<string | undefined> => {
-    const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
-    const publishedExplorersBySlug =
-        await explorerAdminServer.getAllPublishedExplorersBySlug()
-
-    const gdoc = await GdocFactory.loadBySlug(slug, publishedExplorersBySlug)
+    const gdoc = await GdocFactory.loadBySlug(slug)
     if (!gdoc) {
         throw new Error(`Failed to render an unknown GDocs post: ${slug}.`)
     }
 
-    await gdoc.loadState(publishedExplorersBySlug)
+    await gdoc.loadState()
 
     return renderGdoc(gdoc, isPreviewing)
 }
@@ -267,7 +263,7 @@ export const renderFrontPage = async () => {
             id: GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
         })
         if (!frontPageConfigGdoc) throw new Error("No front page config found")
-        await frontPageConfigGdoc.loadState({})
+        await frontPageConfigGdoc.loadState()
         const frontPageConfig: any = frontPageConfigGdoc.content
         const featuredPosts: { slug: string; position: number }[] =
             frontPageConfig["featured-posts"] ?? []
@@ -331,8 +327,7 @@ export const renderFrontPage = async () => {
 
 export const renderDonatePage = async () => {
     const faqsGdoc = (await GdocFactory.load(
-        GDOCS_DONATE_FAQS_DOCUMENT_ID,
-        {}
+        GDOCS_DONATE_FAQS_DOCUMENT_ID
     )) as GdocPost
     if (!faqsGdoc)
         throw new Error(
@@ -751,7 +746,9 @@ const getExplorerTitleByUrl = async (url: Url): Promise<string | undefined> => {
                 : undefined)
         )
     }
-    return explorer.explorerTitle
+    // Maintaining old behaviour so that we don't have to redesign WP prominent links
+    // since we're removing WP soon
+    return `${explorer.explorerTitle} Data Explorer`
 }
 
 /**

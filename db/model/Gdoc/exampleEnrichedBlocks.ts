@@ -529,6 +529,17 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
+    ["explorer-tiles"]: {
+        type: "explorer-tiles",
+        title: "Explore the data",
+        subtitle:
+            "Our explorers show even more data than our normal visualizations.",
+        explorers: [
+            { url: "https://ourworldindata.org/explorers/energy" },
+            { url: "https://ourworldindata.org/explorers/poverty-explorer" },
+        ],
+        parseErrors: [],
+    },
     blockquote: {
         type: "blockquote",
         text: [enrichedBlockText],

@@ -39,10 +39,10 @@ html.IsInIframe #ExplorerContainer {
     .ExplorerSubtitle {
         color: #7a899e;
         font-size: 13px;
-
-        a {
-            @include owid-link-60;
-        }
+    }
+    .ExplorerDownloadLink {
+        font-size: 13px;
+        @include owid-link-60;
     }
 }
 

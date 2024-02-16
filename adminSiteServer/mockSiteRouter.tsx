@@ -151,18 +151,9 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
     const entity = await Chart.getBySlug(req.params.slug)
     if (!entity) throw new JsonError("No such chart", 404)
 
-    const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
-    const publishedExplorersBySlug =
-        await explorerAdminServer.getAllPublishedExplorersBySlug()
-
     // XXX add dev-prod parity for this
     res.set("Access-Control-Allow-Origin", "*")
-    res.send(
-        await renderPreviewDataPageOrGrapherPage(
-            entity.config,
-            publishedExplorersBySlug
-        )
-    )
+    res.send(await renderPreviewDataPageOrGrapherPage(entity.config))
 })
 
 mockSiteRouter.get("/", async (req, res) => {
@@ -182,7 +173,7 @@ mockSiteRouter.get("/data-insights/:pageNumberOrSlug?", async (req, res) => {
         const dataInsights =
             await GdocDataInsight.getPublishedDataInsights(pageNumber)
         // calling fetchImageMetadata 20 times makes me sad, would be nice if we could cache this
-        await Promise.all(dataInsights.map((insight) => insight.loadState({})))
+        await Promise.all(dataInsights.map((insight) => insight.loadState()))
         const totalPageCount = await GdocDataInsight.getTotalPageCount()
         return renderDataInsightsIndexPage(
             dataInsights,
@@ -223,8 +214,6 @@ mockSiteRouter.get("/charts", async (req, res) => {
 mockSiteRouter.get("/datapage-preview/:id", async (req, res) => {
     const variableId = expectInt(req.params.id)
     const variableMetadata = await getVariableMetadata(variableId)
-    const publishedExplorersBySlug =
-        await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
     res.send(
         await renderDataPageV2({
@@ -232,7 +221,6 @@ mockSiteRouter.get("/datapage-preview/:id", async (req, res) => {
             variableMetadata,
             isPreviewing: true,
             useIndicatorGrapherConfigs: true,
-            publishedExplorersBySlug,
         })
     )
 })

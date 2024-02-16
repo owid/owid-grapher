@@ -12,6 +12,7 @@ import {
     EnrichedBlockHorizontalRule,
     EnrichedBlockHtml,
     EnrichedBlockImage,
+    EnrichedBlockExplorerTiles,
     EnrichedBlockVideo,
     EnrichedBlockKeyInsights,
     EnrichedBlockList,
@@ -103,6 +104,7 @@ import {
     EnrichedBlockBlockquote,
     RawBlockKeyIndicatorCollection,
     EnrichedBlockKeyIndicatorCollection,
+    RawBlockExplorerTiles,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -117,7 +119,7 @@ import {
     partition,
     compact,
 } from "@ourworldindata/utils"
-import { checkIsInternalLink } from "@ourworldindata/components"
+import { checkIsInternalLink, getLinkType } from "@ourworldindata/components"
 import {
     extractUrl,
     getTitleSupertitleFromHeadingText,
@@ -199,6 +201,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "expandable-paragraph" }, parseExpandableParagraph)
         .with({ type: "align" }, parseAlign)
         .with({ type: "entry-summary" }, parseEntrySummary)
+        .with({ type: "explorer-tiles" }, parseExplorerTiles)
         .with({ type: "table" }, parseTable)
         .with({ type: "key-indicator" }, parseKeyIndicator)
         .with({ type: "key-indicator-collection" }, parseKeyIndicatorCollection)
@@ -1800,6 +1803,48 @@ function parseEntrySummary(
         type: "entry-summary",
         items,
         parseErrors,
+    }
+}
+
+function parseExplorerTiles(
+    raw: RawBlockExplorerTiles
+): EnrichedBlockExplorerTiles {
+    function createError(error: ParseError): EnrichedBlockExplorerTiles {
+        return {
+            type: "explorer-tiles",
+            title: "",
+            subtitle: "",
+            explorers: [],
+            parseErrors: [error],
+        }
+    }
+
+    if (!raw.value.title)
+        return createError({ message: "Explorer tiles missing title" })
+
+    if (!raw.value.subtitle)
+        return createError({ message: "Explorer tiles missing subtitle" })
+
+    if (!raw.value.explorers?.length)
+        return createError({ message: "Explorer tiles missing explorers" })
+
+    const parsedExplorerUrls: { url: string }[] = []
+    for (const explorer of raw.value.explorers) {
+        const url = extractUrl(explorer.url)
+        if (getLinkType(url) !== "explorer") {
+            return createError({
+                message: `Explorer tiles contains a non-explorer URL: ${url}`,
+            })
+        }
+        parsedExplorerUrls.push({ url })
+    }
+
+    return {
+        type: "explorer-tiles",
+        title: raw.value.title,
+        subtitle: raw.value.subtitle,
+        explorers: parsedExplorerUrls,
+        parseErrors: [],
     }
 }
 

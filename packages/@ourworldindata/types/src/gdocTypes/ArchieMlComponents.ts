@@ -705,6 +705,22 @@ export type EnrichedBlockBlockquote = {
     citation?: string
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockExplorerTiles = {
+    type: "explorer-tiles"
+    value: {
+        title?: string
+        subtitle?: string
+        explorers?: { url: string }[]
+    }
+}
+
+export type EnrichedBlockExplorerTiles = {
+    type: "explorer-tiles"
+    title: string
+    subtitle: string
+    explorers: { url: string }[]
+} & EnrichedBlockWithParseErrors
+
 export type Ref = {
     id: string
     // Can be -1
@@ -724,6 +740,7 @@ export type OwidRawGdocBlock =
     | RawBlockChart
     | RawBlockScroller
     | RawBlockChartStory
+    | RawBlockExplorerTiles
     | RawBlockImage
     | RawBlockVideo
     | RawBlockList
@@ -764,6 +781,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockChart
     | EnrichedBlockScroller
     | EnrichedBlockChartStory
+    | EnrichedBlockExplorerTiles
     | EnrichedBlockImage
     | EnrichedBlockVideo
     | EnrichedBlockList

@@ -77,7 +77,6 @@ import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import { escape } from "mysql"
 import Papa from "papaparse"
-import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import {
     postsTable,
     setTagsForPost,
@@ -92,12 +91,10 @@ import { dataSource } from "../db/dataSource.js"
 import { createGdocAndInsertOwidGdocPostContent } from "../db/model/Gdoc/archieToGdoc.js"
 import { Link } from "../db/model/Link.js"
 import { In } from "typeorm"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 
 const apiRouter = new FunctionalRouter()
-const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
 // Call this to trigger build and deployment of static charts on change
 const triggerStaticBuild = async (user: CurrentUser, commitMessage: string) => {
@@ -2423,14 +2420,7 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
         | undefined
 
     try {
-        const publishedExplorersBySlug =
-            await explorerAdminServer.getAllPublishedExplorersBySlugCached()
-
-        const gdoc = await GdocFactory.load(
-            id,
-            publishedExplorersBySlug,
-            contentSource
-        )
+        const gdoc = await GdocFactory.load(id, contentSource)
 
         if (!gdoc.published) {
             await gdoc.save()
@@ -2452,24 +2442,22 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
 apiRouter.put("/gdocs/:id", async (req, res) => {
     const { id } = req.params
     const nextGdocJSON: OwidGdocJSON = req.body
-    const explorers =
-        await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
     if (isEmpty(nextGdocJSON)) {
         // Check to see if the gdoc already exists in the database
         const existingGdoc = await GdocBase.findOneBy({ id })
         if (existingGdoc) {
-            return GdocFactory.load(id, explorers, GdocsContentSource.Gdocs)
+            return GdocFactory.load(id, GdocsContentSource.Gdocs)
         } else {
-            return GdocFactory.create(id, explorers)
+            return GdocFactory.create(id)
         }
     }
 
-    const prevGdoc = await GdocFactory.load(id, {})
+    const prevGdoc = await GdocFactory.load(id)
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     const nextGdoc = GdocFactory.fromJSON(nextGdocJSON)
-    await nextGdoc.loadState(explorers)
+    await nextGdoc.loadState()
 
     // Deleting and recreating these is simpler than tracking orphans over the next code block
     await GdocXImage.delete({ gdocId: id })
@@ -2608,5 +2596,28 @@ apiRouter.get(
         }
     }
 )
+
+apiRouter.post("/explorer/:slug/tags", async (req: Request, res: Response) => {
+    const { slug } = req.params
+    const { tagIds } = req.body
+    const explorer = await db.knexTable("explorers").where({ slug }).first()
+    if (!explorer)
+        throw new JsonError(`No explorer found for slug ${slug}`, 404)
+
+    await db.knexInstance().transaction(async (t) => {
+        await t.table("explorer_tags").where({ explorerSlug: slug }).delete()
+        for (const tagId of tagIds) {
+            await t.table("explorer_tags").insert({ explorerSlug: slug, tagId })
+        }
+    })
+
+    return { success: true }
+})
+
+apiRouter.delete("/explorer/:slug/tags", async (req: Request) => {
+    const { slug } = req.params
+    await db.knexTable("explorer_tags").where({ explorerSlug: slug }).delete()
+    return { success: true }
+})
 
 export { apiRouter }

@@ -31,7 +31,6 @@ import { mockSiteRouter } from "./mockSiteRouter.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { GdocsContentSource } from "@ourworldindata/utils"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
-import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 
 interface OwidAdminAppOptions {
@@ -124,16 +123,11 @@ export class OwidAdminApp {
             )
         })
 
-        const adminExplorerServer = new ExplorerAdminServer(GIT_CMS_DIR)
         // Public preview of a Gdoc document
         app.get("/gdocs/:id/preview", async (req, res) => {
-            const publishedExplorersBySlug =
-                await adminExplorerServer.getAllPublishedExplorersBySlugCached()
-
             try {
                 const gdoc = await GdocFactory.load(
                     req.params.id,
-                    publishedExplorersBySlug,
                     GdocsContentSource.Gdocs
                 )
 

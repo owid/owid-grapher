@@ -11,7 +11,6 @@ import {
     getNextUpdateFromVariable,
     omitUndefinedValues,
 } from "@ourworldindata/utils"
-import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 import { OwidGoogleAuth } from "../db/OwidGoogleAuth.js"
@@ -78,8 +77,7 @@ export const getDatapageDataV2 = async (
  */
 export const getDatapageGdoc = async (
     googleDocEditLinkOrId: string,
-    isPreviewing: boolean,
-    publishedExplorersBySlug?: Record<string, ExplorerProgram>
+    isPreviewing: boolean
 ): Promise<OwidGdocPostInterface | null> => {
     // Get the google doc id from the datapage JSON file and return early if
     // none found
@@ -100,12 +98,9 @@ export const getDatapageGdoc = async (
     // support images (imageMetadata won't be set).
 
     const datapageGdoc =
-        isPreviewing &&
-        publishedExplorersBySlug &&
-        OwidGoogleAuth.areGdocAuthKeysSet()
+        isPreviewing && OwidGoogleAuth.areGdocAuthKeysSet()
             ? ((await GdocFactory.load(
                   googleDocId,
-                  publishedExplorersBySlug,
                   GdocsContentSource.Gdocs
               )) as GdocPost)
             : await GdocPost.findOneBy({ id: googleDocId })

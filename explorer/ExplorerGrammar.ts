@@ -49,7 +49,7 @@ export const ExplorerGrammar: Grammar = {
     explorerTitle: {
         ...StringCellDef,
         keyword: "explorerTitle",
-        valuePlaceholder: "Life Expectancy Data Explorer",
+        valuePlaceholder: "Life Expectancy",
         description:
             "The title will appear in the top left corner of the Explorer.",
     },

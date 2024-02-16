@@ -318,6 +318,7 @@ export class SiteBaker {
                         thumbnail:
                             cur.thumbnail ||
                             `${BAKED_BASE_URL}/default-thumbnail.jpg`,
+                        tags: [],
                     }))
                 )
 
@@ -336,6 +337,7 @@ export class SiteBaker {
                         title: chart.config.title || "",
                         thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart.config.slug}.svg`,
                         indicatorId: datapageIndicator?.id,
+                        tags: [],
                     }
                 })
             )
@@ -506,9 +508,7 @@ export class SiteBaker {
             // this is a no-op if the gdoc doesn't have an all-chart block
             await publishedGdoc.loadRelatedCharts()
 
-            const publishedExplorersBySlug =
-                await this.explorerAdminServer.getAllPublishedExplorersBySlugCached()
-            await publishedGdoc.validate(publishedExplorersBySlug)
+            await publishedGdoc.validate()
             if (
                 publishedGdoc.errors.filter(
                     (e) => e.type === OwidGdocErrorMessageType.Error
@@ -705,9 +705,7 @@ export class SiteBaker {
             }
             dataInsight.latestDataInsights = latestDataInsights
 
-            const publishedExplorersBySlug =
-                await this.explorerAdminServer.getAllPublishedExplorersBySlugCached()
-            await dataInsight.validate(publishedExplorersBySlug)
+            await dataInsight.validate()
             if (
                 dataInsight.errors.filter(
                     (e) => e.type === OwidGdocErrorMessageType.Error

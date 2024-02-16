@@ -34,6 +34,7 @@ import { ResearchAndWriting } from "./ResearchAndWriting.js"
 import { AllCharts } from "./AllCharts.js"
 import Video from "./Video.js"
 import { Table } from "./Table.js"
+import { ExplorerTiles } from "./ExplorerTiles.js"
 import KeyIndicator from "./KeyIndicator.js"
 import KeyIndicatorCollection from "./KeyIndicatorCollection.js"
 
@@ -64,6 +65,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["divider"]: "col-start-2 span-cols-12",
         ["explorer"]: "col-start-2 span-cols-12",
+        ["explorer-tiles"]: "grid grid-cols-12 span-cols-12 col-start-2",
         ["gray-section"]: "span-cols-14 grid grid-cols-12-full-width",
         ["heading"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["horizontal-rule"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -627,6 +629,12 @@ export default function ArticleBlock({
                 </blockquote>
             )
         })
+        .with({ type: "explorer-tiles" }, (block) => (
+            <ExplorerTiles
+                className={getLayout("explorer-tiles", containerType)}
+                {...block}
+            />
+        ))
         .with({ type: "key-indicator" }, (block) => (
             <KeyIndicator className={getLayout("key-indicator")} d={block} />
         ))

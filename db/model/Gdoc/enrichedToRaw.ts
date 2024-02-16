@@ -36,6 +36,7 @@ import {
     RawBlockVideo,
     RawBlockTable,
     RawBlockBlockquote,
+    RawBlockExplorerTiles,
     RawBlockKeyIndicator,
     RawBlockKeyIndicatorCollection,
 } from "@ourworldindata/types"
@@ -420,6 +421,16 @@ export function enrichedBlockToRawBlock(
                             })),
                         },
                     })),
+                },
+            }
+        })
+        .with({ type: "explorer-tiles" }, (b): RawBlockExplorerTiles => {
+            return {
+                type: "explorer-tiles",
+                value: {
+                    title: b.title,
+                    subtitle: b.subtitle,
+                    explorers: b.explorers,
                 },
             }
         })

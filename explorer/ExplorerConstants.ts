@@ -72,6 +72,8 @@ export const ExplorerContainerId = "ExplorerContainer"
 
 export const GetAllExplorersRoute = "allExplorers.json"
 
+export const GetAllExplorersTagsRoute = "allExplorersTags.json"
+
 export const EXPLORERS_ROUTE_FOLDER = "explorers" // Url path: http://owid.org/{explorers}
 export const EXPLORERS_GIT_CMS_FOLDER = "explorers" // Disk path: /home/owid/git-content/{explorers}
 export const EXPLORERS_PREVIEW_ROUTE = `${EXPLORERS_ROUTE_FOLDER}/preview`

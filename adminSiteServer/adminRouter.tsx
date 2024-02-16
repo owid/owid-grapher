@@ -30,6 +30,7 @@ import {
     DefaultNewExplorerSlug,
     EXPLORERS_PREVIEW_ROUTE,
     GetAllExplorersRoute,
+    GetAllExplorersTagsRoute,
 } from "../explorer/ExplorerConstants.js"
 import {
     ExplorerProgram,
@@ -253,6 +254,12 @@ adminRouter.get(`/${GetAllExplorersRoute}`, async (req, res) => {
     res.send(await explorerAdminServer.getAllExplorersCommand())
 })
 
+adminRouter.get(`/${GetAllExplorersTagsRoute}`, async (_, res) => {
+    return res.send({
+        explorers: await db.getExplorerTags(db.knexInstance()),
+    })
+})
+
 adminRouter.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
     const slug = slugify(req.params.slug)
     const filename = slug + EXPLORER_FILE_SUFFIX
@@ -275,8 +282,6 @@ adminRouter.get("/datapage-preview/:id", async (req, res) => {
     const variableId = expectInt(req.params.id)
     const variableMetadata = await getVariableMetadata(variableId)
     if (!variableMetadata) throw new JsonError("No such variable", 404)
-    const publishedExplorersBySlug =
-        await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
     res.send(
         await renderDataPageV2({
@@ -284,7 +289,6 @@ adminRouter.get("/datapage-preview/:id", async (req, res) => {
             variableMetadata,
             isPreviewing: true,
             useIndicatorGrapherConfigs: true,
-            publishedExplorersBySlug,
         })
     )
 })
@@ -293,16 +297,7 @@ adminRouter.get("/grapher/:slug", async (req, res) => {
     const entity = await Chart.getBySlug(req.params.slug)
     if (!entity) throw new JsonError("No such chart", 404)
 
-    const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
-    const publishedExplorersBySlug =
-        await explorerAdminServer.getAllPublishedExplorersBySlug()
-
-    res.send(
-        await renderPreviewDataPageOrGrapherPage(
-            entity.config,
-            publishedExplorersBySlug
-        )
-    )
+    res.send(await renderPreviewDataPageOrGrapherPage(entity.config))
 })
 
 const gitCmsServer = new GitCmsServer({
