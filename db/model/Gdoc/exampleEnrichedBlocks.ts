@@ -588,4 +588,35 @@ export const enrichedBlockExamples: Record<
         type: "homepage-search",
         parseErrors: [],
     },
+    "homepage-intro": {
+        type: "homepage-intro",
+        featuredWork: [
+            {
+                type: "primary",
+                url: "https://ourworldindata.org/optimism-and-pessimism",
+                title: "Optimism & Pessimism",
+                description:
+                    "Why are so many people pessimistic about the future?",
+                kicker: "Article - 10 Mins",
+                authors: ["Our World In Data"],
+            },
+            {
+                type: "secondary",
+                url: "https://ourworldindata.org/flu-deaths",
+                title: "How many people die from the flu?",
+                description:
+                    "The risk of death from influenza has declined over time, but globally, hundreds of thousands of people still die from the disease each year.",
+                kicker: "Article - 10 Mins",
+                authors: ["Our World In Data"],
+            },
+            {
+                type: "tertiary",
+                url: "https://ourworldindata.org/front-end-engineer",
+                title: "We’re looking for a front-end engineer to join our team.",
+                kicker: "Announcement",
+                authors: ["Our World In Data"],
+            },
+        ],
+        parseErrors: [],
+    },
 }

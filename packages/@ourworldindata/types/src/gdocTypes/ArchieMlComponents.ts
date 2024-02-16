@@ -762,6 +762,41 @@ export type EnrichedBlockHomepageSearch = {
     type: "homepage-search"
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockHomepageIntroPost = {
+    type: "primary" | "secondary" | "tertiary"
+    value: {
+        url?: string
+        title?: string
+        description?: string
+        kicker?: string
+        authors?: string
+        filename?: string
+    }
+}
+
+export type RawBlockHomepageIntro = {
+    type: "homepage-intro"
+    value: {
+        ["featured-work"]?: RawBlockHomepageIntroPost[]
+    }
+}
+
+export type EnrichedBlockHomepageIntroPost = {
+    type: "primary" | "secondary" | "tertiary"
+    url: string
+    // the rest are optional because if this is a gdoc, we resolve metadata automatically
+    title?: string
+    description?: string
+    kicker?: string
+    authors?: string[]
+    filename?: string
+}
+
+export type EnrichedBlockHomepageIntro = {
+    type: "homepage-intro"
+    featuredWork: EnrichedBlockHomepageIntroPost[]
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
@@ -803,6 +838,7 @@ export type OwidRawGdocBlock =
     | RawBlockKeyIndicatorCollection
     | RawBlockPillRow
     | RawBlockHomepageSearch
+    | RawBlockHomepageIntro
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -845,3 +881,4 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockKeyIndicatorCollection
     | EnrichedBlockPillRow
     | EnrichedBlockHomepageSearch
+    | EnrichedBlockHomepageIntro

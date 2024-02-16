@@ -194,6 +194,13 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                                 }
                             })
                         }
+                        if (item.type === "homepage-intro") {
+                            item.featuredWork.forEach((featuredWork) => {
+                                if (featuredWork.filename) {
+                                    filenames.add(featuredWork.filename)
+                                }
+                            })
+                        }
                     }
                     return item
                 })
@@ -535,6 +542,19 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                         source: this,
                         componentType: pillRow.type,
                         text: pill.text,
+                    })
+                )
+            })
+            .with({ type: "homepage-intro" }, (homepageIntro) => {
+                return homepageIntro.featuredWork.map((featuredWork) =>
+                    Link.createFromUrl({
+                        url: featuredWork.url,
+                        source: this,
+                        componentType: homepageIntro.type,
+                        text:
+                            featuredWork.title ||
+                            featuredWork.description ||
+                            "",
                     })
                 )
             })
