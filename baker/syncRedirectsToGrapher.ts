@@ -6,7 +6,7 @@ import { Redirect, Url } from "@ourworldindata/utils"
 
 // A close cousing of the getWordpressRedirectsMap() function from
 // redirects.ts.
-const getWordpressRedirectsMap = (
+const getWordpressRedirectsMapFromRedirects = (
     redirects: Redirect[]
 ): Map<string, string> => {
     return new Map(redirects.map((r) => [r.source, r.target]))
@@ -37,7 +37,7 @@ export const syncRedirectsToGrapher = async (): Promise<void> => {
             // Wordpress redirects until we reach a final target
             const resolvedUrl = await resolveRedirectFromMap(
                 Url.fromURL(source),
-                getWordpressRedirectsMap(allWordpressRedirects)
+                getWordpressRedirectsMapFromRedirects(allWordpressRedirects)
             )
 
             // Use the no-trailing slash version of the resolved target URL.
