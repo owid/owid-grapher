@@ -1,5 +1,4 @@
 import { Entity, Column } from "typeorm"
-import * as db from "../../db"
 import {
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
@@ -56,25 +55,27 @@ export class GdocHomepage
 
     _loadSubclassAttachments = async (): Promise<void> => {
         const totalNumberOfCharts = await db
-            .queryMysql(
+            .knexRawFirst<{ count: number }>(
                 `
-            SELECT COUNT(*) AS count
-            FROM charts
-            WHERE publishedAt IS NOT NULL`
+                SELECT COUNT(*) AS count
+                FROM charts
+                WHERE publishedAt IS NOT NULL`,
+                db.knexInstance()
             )
-            .then((res) => res[0].count)
+            .then((res) => res?.count)
 
         const totalNumberOfTopics = await db
-            .queryMysql(
+            .knexRawFirst<{ count: number }>(
                 `
-            SELECT COUNT(DISTINCT(tagId)) AS count
-            FROM chart_tags
-            WHERE chartId IN (
-            SELECT id
-            FROM charts
-            WHERE publishedAt IS NOT NULL)`
+                SELECT COUNT(DISTINCT(tagId)) AS count
+                FROM chart_tags
+                WHERE chartId IN (
+                SELECT id
+                FROM charts
+                WHERE publishedAt IS NOT NULL)`,
+                db.knexInstance()
             )
-            .then((res) => res[0].count)
+            .then((res) => res?.count)
 
         this.homepageMetadata = {
             chartCount: totalNumberOfCharts,
