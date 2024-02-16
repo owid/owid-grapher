@@ -512,10 +512,12 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         )
 
         if (MAX_NUM_BAKE_PROCESSES === 1) {
-            for (const job of jobs) {
-                await bakeSingleGrapherChart(job)
-                progressBar.tick({ name: `slug ${job.slug}` })
-            }
+            await Promise.all(
+                jobs.map(async (job) => {
+                    await bakeSingleGrapherChart(job)
+                    progressBar.tick({ name: `slug ${job.slug}` })
+                })
+            )
         } else {
             const poolOptions = {
                 minWorkers: 2,
