@@ -300,5 +300,8 @@ ${links}`
                 .join("\n")
             return [title, pills].join("\n")
         })
+        .with({ type: "homepage-search" }, (_): string | undefined => {
+            return ""
+        })
         .exhaustive()
 }

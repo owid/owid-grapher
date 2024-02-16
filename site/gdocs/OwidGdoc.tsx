@@ -17,6 +17,7 @@ import { GdocPost } from "./pages/GdocPost.js"
 import { DataInsightPage } from "./pages/DataInsight.js"
 import { Fragment } from "./pages/Fragment.js"
 import { Homepage } from "./pages/Homepage.js"
+import { OwidGdocHomepageMetadata } from "@ourworldindata/types"
 
 export const AttachmentsContext = createContext<{
     linkedCharts: Record<string, LinkedChart>
@@ -25,6 +26,7 @@ export const AttachmentsContext = createContext<{
     imageMetadata: Record<string, ImageMetadata>
     relatedCharts: RelatedChart[]
     latestDataInsights?: MinimalDataInsightInterface[]
+    homepageMetadata?: OwidGdocHomepageMetadata
 }>({
     linkedDocuments: {},
     imageMetadata: {},
@@ -32,6 +34,7 @@ export const AttachmentsContext = createContext<{
     linkedIndicators: {},
     relatedCharts: [],
     latestDataInsights: [],
+    homepageMetadata: {},
 })
 
 export const DocumentContext = createContext<{ isPreviewing: boolean }>({
@@ -77,7 +80,7 @@ export function OwidGdoc({
             <DataInsightPage {...props} />
         ))
         .with({ content: { type: OwidGdocType.Homepage } }, (props) => (
-            <Homepage {...props} totalCharts={1000} totalTopics={100} />
+            <Homepage {...props} />
         ))
         .with({ content: { type: OwidGdocType.Fragment } }, (props) => (
             <Fragment {...props} />
@@ -106,6 +109,7 @@ export function OwidGdoc({
                 linkedIndicators: get(props, "linkedIndicators", {}),
                 relatedCharts: get(props, "relatedCharts", []),
                 latestDataInsights: get(props, "latestDataInsights", []),
+                homepageMetadata: get(props, "homepageMetadata", []),
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>

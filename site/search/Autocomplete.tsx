@@ -203,20 +203,26 @@ export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
 export function Autocomplete({
     onActivate,
     onClose,
+    className,
+    placeholder = "Search for a topic, chart or article...",
+    detachedMediaQuery = "(max-width: 960px)",
 }: {
-    onActivate: () => void
-    onClose: () => void
+    onActivate?: () => void
+    onClose?: () => void
+    className?: string
+    placeholder?: string
+    detachedMediaQuery?: string
 }) {
     useEffect(() => {
         const search = autocomplete({
+            placeholder,
+            detachedMediaQuery,
             container: AUTOCOMPLETE_CONTAINER_ID,
-            placeholder: "Search for a topic, chart or article...",
             openOnFocus: true,
-            detachedMediaQuery: "(max-width: 960px)",
             onStateChange({ state, prevState }) {
-                if (!prevState.isOpen && state.isOpen) {
+                if (onActivate && !prevState.isOpen && state.isOpen) {
                     onActivate()
-                } else if (prevState.isOpen && !state.isOpen) {
+                } else if (onClose && prevState.isOpen && !state.isOpen) {
                     onClose()
                 }
             },
@@ -268,7 +274,7 @@ export function Autocomplete({
         }
 
         return () => search.destroy()
-    }, [onActivate, onClose])
+    }, [onActivate, onClose, placeholder, detachedMediaQuery])
 
-    return <div id="autocomplete" />
+    return <div className={className} id="autocomplete" />
 }

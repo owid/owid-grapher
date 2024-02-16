@@ -107,6 +107,8 @@ import {
     RawBlockExplorerTiles,
     RawBlockPillRow,
     EnrichedBlockPillRow,
+    RawBlockHomepageSearch,
+    EnrichedBlockHomepageSearch,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -208,6 +210,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "key-indicator" }, parseKeyIndicator)
         .with({ type: "key-indicator-collection" }, parseKeyIndicatorCollection)
         .with({ type: "pill-row" }, parsePillRow)
+        .with({ type: "homepage-search" }, parseHomepageSearch)
         .exhaustive()
 }
 
@@ -2106,5 +2109,14 @@ function parsePillRow(raw: RawBlockPillRow): EnrichedBlockPillRow {
         parseErrors: [],
         pills: pills,
         title: raw.value.title,
+    }
+}
+
+function parseHomepageSearch(
+    _: RawBlockHomepageSearch
+): EnrichedBlockHomepageSearch {
+    return {
+        type: "homepage-search",
+        parseErrors: [],
     }
 }

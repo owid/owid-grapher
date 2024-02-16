@@ -123,9 +123,15 @@ export interface OwidGdocHomepageContent {
     body: OwidEnrichedGdocBlock[]
 }
 
+export interface OwidGdocHomepageMetadata {
+    chartCount?: number
+    topicCount?: number
+}
+
 export interface OwidGdocHomepageInterface extends OwidGdocBaseInterface {
     content: OwidGdocHomepageContent
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
+    homepageMetadata?: OwidGdocHomepageMetadata
     tags?: Tag[] // won't be used, but necessary in various validation steps
 }
 

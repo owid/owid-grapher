@@ -22,6 +22,7 @@ import classnames from "classnames"
 import { useTriggerOnEscape } from "./hooks.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { AUTOCOMPLETE_CONTAINER_ID } from "./search/Autocomplete.js"
+import { OwidGdocType } from "@ourworldindata/types"
 
 export enum Menu {
     Topics = "topics",
@@ -117,6 +118,12 @@ export const SiteNavigation = ({
 
     useTriggerOnEscape(closeOverlay)
 
+    // Doing it this way instead of looking at the window.location.pathname,
+    // so that the nav search bar doesn't render in the preview either
+    const isOnHomepage =
+        typeof window !== "undefined" &&
+        window._OWID_GDOC_PROPS?.content?.type === OwidGdocType.Homepage
+
     return (
         <>
             {menu && <div className="overlay" onClick={closeOverlay} />}
@@ -191,11 +198,13 @@ export const SiteNavigation = ({
                             </ul>
                         </nav>
                         <div className="site-search-cta">
-                            <SiteSearchNavigation
-                                isActive={menu === Menu.Search}
-                                onClose={closeOverlay}
-                                onActivate={setSearchAsActiveMenu}
-                            />
+                            {!isOnHomepage && (
+                                <SiteSearchNavigation
+                                    isActive={menu === Menu.Search}
+                                    onClose={closeOverlay}
+                                    onActivate={setSearchAsActiveMenu}
+                                />
+                            )}
                             <SiteNavigationToggle
                                 ariaLabel="Toggle subscribe menu"
                                 isActive={menu === Menu.Subscribe}

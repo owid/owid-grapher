@@ -754,6 +754,14 @@ export type EnrichedBlockPillRow = {
     }[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockHomepageSearch = {
+    type: "homepage-search"
+}
+
+export type EnrichedBlockHomepageSearch = {
+    type: "homepage-search"
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
@@ -794,6 +802,7 @@ export type OwidRawGdocBlock =
     | RawBlockKeyIndicator
     | RawBlockKeyIndicatorCollection
     | RawBlockPillRow
+    | RawBlockHomepageSearch
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -835,3 +844,4 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockKeyIndicator
     | EnrichedBlockKeyIndicatorCollection
     | EnrichedBlockPillRow
+    | EnrichedBlockHomepageSearch

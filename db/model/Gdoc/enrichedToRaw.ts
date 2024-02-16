@@ -40,6 +40,7 @@ import {
     RawBlockKeyIndicator,
     RawBlockKeyIndicatorCollection,
     RawBlockPillRow,
+    RawBlockHomepageSearch,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -477,6 +478,11 @@ export function enrichedBlockToRawBlock(
                     title: b.title,
                     pills: b.pills,
                 },
+            }
+        })
+        .with({ type: "homepage-search" }, (_): RawBlockHomepageSearch => {
+            return {
+                type: "homepage-search",
             }
         })
         .exhaustive()
