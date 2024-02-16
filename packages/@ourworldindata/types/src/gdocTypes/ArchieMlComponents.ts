@@ -733,6 +733,27 @@ export type RefDictionary = {
     [refId: string]: Ref
 }
 
+export type RawBlockPillRow = {
+    type: "pill-row"
+    value: {
+        title?: string
+        pills?: {
+            text?: string
+            url?: string
+        }[]
+    }
+}
+
+export type EnrichedBlockPillRow = {
+    type: "pill-row"
+    title: string
+    pills: {
+        // optional because when linking to a gdoc we can use that title
+        text?: string
+        url: string
+    }[]
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
@@ -772,6 +793,7 @@ export type OwidRawGdocBlock =
     | RawBlockBlockquote
     | RawBlockKeyIndicator
     | RawBlockKeyIndicatorCollection
+    | RawBlockPillRow
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -812,3 +834,4 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockBlockquote
     | EnrichedBlockKeyIndicator
     | EnrichedBlockKeyIndicatorCollection
+    | EnrichedBlockPillRow

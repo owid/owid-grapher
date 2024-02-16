@@ -105,6 +105,8 @@ import {
     RawBlockKeyIndicatorCollection,
     EnrichedBlockKeyIndicatorCollection,
     RawBlockExplorerTiles,
+    RawBlockPillRow,
+    EnrichedBlockPillRow,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -205,6 +207,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "table" }, parseTable)
         .with({ type: "key-indicator" }, parseKeyIndicator)
         .with({ type: "key-indicator-collection" }, parseKeyIndicatorCollection)
+        .with({ type: "pill-row" }, parsePillRow)
         .exhaustive()
 }
 
@@ -2054,5 +2057,54 @@ function parseKeyIndicatorCollection(
         type: "key-indicator-collection",
         blocks: validBlocks,
         parseErrors: warnings,
+    }
+}
+
+function parsePillRow(raw: RawBlockPillRow): EnrichedBlockPillRow {
+    function createError(error: ParseError): EnrichedBlockPillRow {
+        return {
+            type: "pill-row",
+            parseErrors: [error],
+            pills: [],
+            title: "",
+        }
+    }
+
+    if (!raw.value.title) {
+        return createError({
+            message: "Pill row is missing a title",
+        })
+    }
+    if (!raw.value.pills) {
+        return createError({
+            message: "Pill row is missing pills",
+        })
+    }
+
+    const pills: { text: string; url: string }[] = []
+
+    for (const rawPill of raw.value.pills) {
+        const url = extractUrl(rawPill.url)
+        if (!url) {
+            return createError({
+                message: "A pill is missing a url",
+            })
+        }
+
+        if (!rawPill.text && getLinkType(url) !== "gdoc") {
+            return createError({
+                message:
+                    "A pill that is linking to a non-gdoc resource is missing text",
+            })
+        }
+
+        pills.push({ text: rawPill.text!, url })
+    }
+
+    return {
+        type: "pill-row",
+        parseErrors: [],
+        pills: pills,
+        title: raw.value.title,
     }
 }

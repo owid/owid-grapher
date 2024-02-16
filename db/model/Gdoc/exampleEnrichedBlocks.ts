@@ -6,7 +6,7 @@ import {
     OwidEnrichedGdocBlock,
     Span,
     SpanSimpleText,
-} from "@ourworldindata/utils"
+} from "@ourworldindata/types"
 
 const spanSimpleText: SpanSimpleText = {
     spanType: "span-simple-text",
@@ -572,6 +572,15 @@ export const enrichedBlockExamples: Record<
                 text: [enrichedBlockText],
                 parseErrors: [],
             },
+        ],
+        parseErrors: [],
+    },
+    "pill-row": {
+        type: "pill-row",
+        title: "Recently updated",
+        pills: [
+            { text: "Energy", url: "https://ourworldindata.org/energy" },
+            { text: "Poverty", url: "https://ourworldindata.org/poverty" },
         ],
         parseErrors: [],
     },

@@ -255,6 +255,8 @@ export {
     type EnrichedBlockKeyIndicator,
     type EnrichedBlockKeyIndicatorCollection,
     type RawBlockResearchAndWritingRow,
+    type RawBlockPillRow,
+    type EnrichedBlockPillRow,
 } from "./gdocTypes/ArchieMlComponents.js"
 export {
     OwidGdocPublicationContext,
@@ -269,6 +271,8 @@ export {
     type OwidGdocDataInsightContent,
     type OwidGdocDataInsightInterface,
     type MinimalDataInsightInterface,
+    type OwidGdocHomepageContent,
+    type OwidGdocHomepageInterface,
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
     type OwidGdoc,
     type RawDetail,
