@@ -1,4 +1,3 @@
-import { RawBlockHomepageIntro } from "@ourworldindata/types"
 import {
     OwidRawGdocBlock,
     RawBlockHeading,
@@ -7,6 +6,7 @@ import {
     RawBlockChart,
     RawBlockChartStory,
     RawBlockGraySection,
+    RawBlockHomepageIntro,
     RawBlockHorizontalRule,
     RawBlockHtml,
     RawBlockImage,

@@ -9,6 +9,7 @@ import {
     OwidGdoc as OwidGdocInterface,
     MinimalDataInsightInterface,
     OwidGdocMinimalPostInterface,
+    OwidGdocHomepageMetadata,
 } from "@ourworldindata/types"
 import { get, getOwidGdocFromJSON } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
@@ -17,7 +18,6 @@ import { GdocPost } from "./pages/GdocPost.js"
 import { DataInsightPage } from "./pages/DataInsight.js"
 import { Fragment } from "./pages/Fragment.js"
 import { Homepage } from "./pages/Homepage.js"
-import { OwidGdocHomepageMetadata } from "@ourworldindata/types"
 
 export const AttachmentsContext = createContext<{
     linkedCharts: Record<string, LinkedChart>
