@@ -38,8 +38,8 @@ import { ExplorerTiles } from "./ExplorerTiles.js"
 import KeyIndicator from "./KeyIndicator.js"
 import KeyIndicatorCollection from "./KeyIndicatorCollection.js"
 import { PillRow } from "./PillRow.js"
-import { HomepageSearch } from "./HomepageSearch.js"
 import { HomepageIntro } from "./HomepageIntro.js"
+import { HomepageSearch } from "./HomepageSearch.js"
 
 export type Container =
     | "default"

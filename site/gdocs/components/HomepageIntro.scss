@@ -13,6 +13,12 @@
     padding-bottom: var(--homepage-intro-bottom-padding);
 }
 
+.homepage-intro__mission-link {
+    display: inline-block;
+    color: $blue-90;
+    margin-bottom: 16px;
+}
+
 .homepage-intro__featured-work-container {
     // 1fr is needed so that the tertiary tiles fit directly below the primary tile
     // without the container expanding and taking up extra white space
@@ -39,12 +45,25 @@
     color: $blue-60;
 }
 
+// A non-standard typography style that isn't defined in the typography.scss file
 .homepage-intro__our-mission-lead {
-    @include subtitle-2;
+    font-size: 1.375rem;
+    line-height: 1.75rem;
     font-weight: bold;
     margin-top: 16px;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
     color: $blue-90;
+}
+
+// A non-standard typography style that isn't defined in the typography.scss file
+.homepage-intro__mission-answer {
+    color: $blue-60;
+    font-family: $sans-serif-font-stack;
+    font-weight: normal;
+    font-size: 1.25rem;
+    line-height: 1.625rem;
+    margin-bottom: 16px;
+    margin-top: 0;
 }
 
 .homepage-intro__subscribe-button,
