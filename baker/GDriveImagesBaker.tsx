@@ -52,6 +52,22 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
                         headers: {
                             "If-None-Match": existingEtag,
                         },
+                    }).then((response) => {
+                        if (response.status === 304) {
+                            // Image has not been modified, skip without logging
+                            return response
+                        } else if (response.ok) {
+                            // Log fetched images if it was success but wasn't 304
+                            console.log(
+                                `Fetching image ${image.filename} from ${remoteFilePath} using etag ${existingEtag}...`
+                            )
+                            return response
+                        } else {
+                            // If the response status is 404, throw an error to trigger retry
+                            const msg = `Fetching image failed: ${response.status} ${response.statusText} ${response.url}`
+                            console.log(msg)
+                            throw new Error(msg)
+                        }
                     }),
                 { maxRetries: 5, exponentialBackoff: true, initialDelay: 1000 }
             )
@@ -59,17 +75,6 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
             // Image has not been modified, skip
             if (response.status === 304) {
                 return
-            } else {
-                // Log fetched images, this should be pretty rare as most images should return 304
-                console.log(
-                    `Fetching image ${image.filename} from ${remoteFilePath} using etag ${existingEtag}...`
-                )
-            }
-
-            if (!response.ok) {
-                throw new Error(
-                    `Fetching image failed: ${response.status} ${response.statusText} ${response.url}`
-                )
             }
 
             let buffer = Buffer.from(await response.arrayBuffer())

@@ -7,22 +7,12 @@ import {
     urlToSlug,
     without,
     deserializeJSONFromHTML,
-    OwidVariableDataMetadataDimensions,
     uniq,
-    JsonError,
     keyBy,
-    DimensionProperty,
-    OwidVariableWithSource,
     mergePartialGrapherConfigs,
-    OwidChartDimensionInterface,
     compact,
-    OwidGdocPostInterface,
     merge,
-    EnrichedFaq,
-    FaqEntryData,
-    FaqDictionary,
     partition,
-    ImageMetadata,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -45,13 +35,25 @@ import * as db from "../db/db.js"
 import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import { getPostEnrichedBySlug } from "../db/model/Post.js"
-import { ChartTypeName, GrapherInterface } from "@ourworldindata/types"
+import {
+    JsonError,
+    GrapherInterface,
+    OwidVariableDataMetadataDimensions,
+    DimensionProperty,
+    OwidVariableWithSource,
+    OwidChartDimensionInterface,
+    OwidGdocPostInterface,
+    EnrichedFaq,
+    FaqEntryData,
+    FaqDictionary,
+    ImageMetadata,
+} from "@ourworldindata/types"
 import workerpool from "workerpool"
 import ProgressBar from "progress"
 import {
     getVariableData,
-    getVariableMetadata,
     getMergedGrapherConfigForVariable,
+    getVariableOfDatapageIfApplicable,
 } from "../db/model/Variable.js"
 import { getDatapageDataV2, getDatapageGdoc } from "../datapage/Datapage.js"
 import { Image } from "../db/model/Image.js"
@@ -60,7 +62,6 @@ import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
-import { isEmpty } from "lodash"
 import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
 
 const renderDatapageIfApplicable = async (
@@ -68,49 +69,18 @@ const renderDatapageIfApplicable = async (
     isPreviewing: boolean,
     imageMetadataDictionary?: Record<string, Image>
 ) => {
-    // If we have a single Y variable and that one has a schema version >= 2,
-    // meaning it has the metadata to render a datapage, AND if the metadata includes
-    // text for at least one of the description* fields or titlePublic, then we show the datapage
-    // based on this information.
-    const yVariableIds = grapher
-        .dimensions!.filter((d) => d.property === DimensionProperty.y)
-        .map((d) => d.variableId)
-    const xVariableIds = grapher
-        .dimensions!.filter((d) => d.property === DimensionProperty.x)
-        .map((d) => d.variableId)
-    // Make a data page for single indicator indicator charts.
-    // For scatter plots we want to only show a data page if it has no X variable mapped, which
-    // is a special case where time is the X axis. Marimekko charts are the other chart that uses
-    // the X dimension but there we usually map population on X which should not prevent us from
-    // showing a data page.
-    if (
-        yVariableIds.length === 1 &&
-        (grapher.type !== ChartTypeName.ScatterPlot ||
-            xVariableIds.length === 0)
-    ) {
-        const variableId = yVariableIds[0]
-        const variableMetadata = await getVariableMetadata(variableId)
+    const variable = await getVariableOfDatapageIfApplicable(grapher)
 
-        if (
-            variableMetadata.schemaVersion !== undefined &&
-            variableMetadata.schemaVersion >= 2 &&
-            (!isEmpty(variableMetadata.descriptionShort) ||
-                !isEmpty(variableMetadata.descriptionProcessing) ||
-                !isEmpty(variableMetadata.descriptionKey) ||
-                !isEmpty(variableMetadata.descriptionFromProducer) ||
-                !isEmpty(variableMetadata.presentation?.titlePublic))
-        ) {
-            return await renderDataPageV2({
-                variableId,
-                variableMetadata,
-                isPreviewing: isPreviewing,
-                useIndicatorGrapherConfigs: false,
-                pageGrapher: grapher,
-                imageMetadataDictionary,
-            })
-        }
-    }
-    return undefined
+    if (!variable) return undefined
+
+    return await renderDataPageV2({
+        variableId: variable.id,
+        variableMetadata: variable.metadata,
+        isPreviewing: isPreviewing,
+        useIndicatorGrapherConfigs: false,
+        pageGrapher: grapher,
+        imageMetadataDictionary,
+    })
 }
 
 /**

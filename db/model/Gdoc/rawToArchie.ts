@@ -32,12 +32,14 @@ import {
     RawBlockExpandableParagraph,
     RawBlockAlign,
     RawBlockEntrySummary,
-    isArray,
     RawBlockTable,
     RawBlockTableRow,
     RawBlockBlockquote,
+    RawBlockKeyIndicator,
+    RawBlockKeyIndicatorCollection,
     RawBlockExplorerTiles,
-} from "@ourworldindata/utils"
+} from "@ourworldindata/types"
+import { isArray } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
 export function appendDotEndIfMultiline(
@@ -637,6 +639,36 @@ function* rawBlockTableToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockKeyIndicatorToArchieMLString(
+    block: RawBlockKeyIndicator
+): Generator<string, void, undefined> {
+    yield "{.key-indicator}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("datapageUrl", block.value)
+        yield* propertyToArchieMLString("title", block.value)
+        yield* propertyToArchieMLString("source", block.value)
+        if (block.value.text) {
+            yield "[.+text]"
+            for (const textBlock of block.value.text) {
+                yield* OwidRawGdocBlockToArchieMLStringGenerator(textBlock)
+            }
+            yield "[]"
+        }
+    }
+    yield "{}"
+}
+
+function* rawBlockKeyIndicatorCollectionToArchieMLString(
+    block: RawBlockKeyIndicatorCollection
+): Generator<string, void, undefined> {
+    yield "[.+key-indicator-collection]"
+    if (typeof block.value !== "string") {
+        for (const b of block.value)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
+    }
+    yield "[]"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock | RawBlockTableRow
 ): Generator<string, void, undefined> {
@@ -702,6 +734,11 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "table-row" }, rawBlockRowToArchieMLString)
         .with({ type: "explorer-tiles" }, rawBlockExplorerTilesToArchieMLString)
         .with({ type: "blockquote" }, rawBlockBlockquoteToArchieMLString)
+        .with({ type: "key-indicator" }, rawBlockKeyIndicatorToArchieMLString)
+        .with(
+            { type: "key-indicator-collection" },
+            rawBlockKeyIndicatorCollectionToArchieMLString
+        )
         .exhaustive()
     yield* content
 }

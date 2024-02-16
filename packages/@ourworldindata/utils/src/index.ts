@@ -132,6 +132,7 @@ export {
     formatSourceDate,
     getCitationLong,
     getCitationShort,
+    grabMetadataForGdocLinkedIndicator,
 } from "./metadataHelpers.js"
 
 export {

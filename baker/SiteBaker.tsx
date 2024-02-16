@@ -47,6 +47,7 @@ import {
     countries,
     FullPost,
     LinkedChart,
+    LinkedIndicator,
     extractDetailsFromSyntax,
     OwidGdocErrorMessageType,
     ImageMetadata,
@@ -54,6 +55,9 @@ import {
     OwidGdocType,
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
     OwidGdocMinimalPostInterface,
+    excludeUndefined,
+    grabMetadataForGdocLinkedIndicator,
+    GrapherTabOption,
 } from "@ourworldindata/utils"
 
 import { execWrapper } from "../db/execWrapper.js"
@@ -84,6 +88,10 @@ import {
 import pMap from "p-map"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { fullGdocToMinimalGdoc } from "../db/model/Gdoc/gdocUtils.js"
+import {
+    getVariableMetadata,
+    getVariableOfDatapageIfApplicable,
+} from "../db/model/Variable.js"
 
 type PrefetchedAttachments = {
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
@@ -92,6 +100,7 @@ type PrefetchedAttachments = {
         graphers: Record<string, LinkedChart>
         explorers: Record<string, LinkedChart>
     }
+    linkedIndicators: Record<number, LinkedIndicator>
 }
 
 // These aren't all "wordpress" steps
@@ -283,7 +292,7 @@ export class SiteBaker {
         return without(existingSlugs, ...postSlugsFromDb)
     }
 
-    // Prefetches all linkedDocuments, imageMetadata, and linkedCharts instead of having to fetch them
+    // Prefetches all linkedDocuments, imageMetadata, linkedCharts, and linkedIndicators instead of having to fetch them
     // for each individual gdoc. Optionally takes a tuple of string arrays to pick from the prefetched
     // dictionaries.
     _prefetchedAttachmentsCache: PrefetchedAttachments | undefined = undefined
@@ -312,24 +321,41 @@ export class SiteBaker {
                         tags: [],
                     }))
                 )
+
             // Includes redirects
-            const publishedChartsBySlug = await Chart.mapSlugsToConfigs().then(
-                (results) =>
-                    results.reduce(
-                        (acc, cur) => ({
-                            ...acc,
-                            [cur.slug]: {
-                                originalSlug: cur.slug,
-                                resolvedUrl: `${BAKED_GRAPHER_URL}/${cur.config.slug}`,
-                                queryString: "",
-                                title: cur.config.title || "",
-                                thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${cur.config.slug}.svg`,
-                                tags: [],
-                            },
-                        }),
-                        {} as Record<string, LinkedChart>
-                    )
+            const publishedChartsRaw = await Chart.mapSlugsToConfigs()
+            const publishedCharts: LinkedChart[] = await Promise.all(
+                publishedChartsRaw.map(async (chart) => {
+                    const tab = chart.config.tab ?? GrapherTabOption.chart
+                    const datapageIndicator =
+                        await getVariableOfDatapageIfApplicable(chart.config)
+                    return {
+                        originalSlug: chart.slug,
+                        resolvedUrl: `${BAKED_GRAPHER_URL}/${chart.config.slug}`,
+                        tab,
+                        queryString: "",
+                        title: chart.config.title || "",
+                        thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart.config.slug}.svg`,
+                        indicatorId: datapageIndicator?.id,
+                        tags: [],
+                    }
+                })
             )
+            const publishedChartsBySlug = keyBy(publishedCharts, "originalSlug")
+
+            const datapageIndicatorIds = excludeUndefined(
+                publishedCharts.map((chart) => chart.indicatorId)
+            )
+            const datapageIndicators: LinkedIndicator[] = await Promise.all(
+                datapageIndicatorIds.map(async (indicatorId: number) => {
+                    const metadata = await getVariableMetadata(indicatorId)
+                    return {
+                        id: indicatorId,
+                        ...grabMetadataForGdocLinkedIndicator(metadata),
+                    }
+                })
+            )
+            const datapageIndicatorsById = keyBy(datapageIndicators, "id")
 
             const prefetchedAttachments = {
                 linkedDocuments: publishedGdocsDictionary,
@@ -338,6 +364,7 @@ export class SiteBaker {
                     explorers: publishedExplorersBySlug,
                     graphers: publishedChartsBySlug,
                 },
+                linkedIndicators: datapageIndicatorsById,
             }
             this._prefetchedAttachmentsCache = prefetchedAttachments
         }
@@ -358,6 +385,16 @@ export class SiteBaker {
                 .map((gdoc) => gdoc["featured-image"])
                 .filter((filename): filename is string => !!filename)
 
+            const linkedGrapherCharts = pick(
+                this._prefetchedAttachmentsCache.linkedCharts.graphers,
+                linkedGrapherSlugs
+            )
+            const linkedIndicatorIds = excludeUndefined(
+                Object.values(linkedGrapherCharts).map(
+                    (chart) => chart.indicatorId
+                )
+            )
+
             return {
                 linkedDocuments,
                 imageMetadata: pick(
@@ -366,11 +403,7 @@ export class SiteBaker {
                 ),
                 linkedCharts: {
                     graphers: {
-                        ...pick(
-                            this._prefetchedAttachmentsCache.linkedCharts
-                                .graphers,
-                            linkedGrapherSlugs
-                        ),
+                        ...linkedGrapherCharts,
                     },
                     explorers: {
                         ...pick(
@@ -380,6 +413,10 @@ export class SiteBaker {
                         ),
                     },
                 },
+                linkedIndicators: pick(
+                    this._prefetchedAttachmentsCache.linkedIndicators,
+                    linkedIndicatorIds
+                ),
             }
         }
         return this._prefetchedAttachmentsCache
@@ -466,6 +503,7 @@ export class SiteBaker {
                 ...attachments.linkedCharts.graphers,
                 ...attachments.linkedCharts.explorers,
             }
+            publishedGdoc.linkedIndicators = attachments.linkedIndicators
 
             // this is a no-op if the gdoc doesn't have an all-chart block
             await publishedGdoc.loadRelatedCharts()

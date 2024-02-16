@@ -304,7 +304,10 @@ export class ChartEditorPage
         this.fetchRefs()
         this.fetchRedirects()
         this.fetchPageviews()
-        this.fetchTopics()
+
+        // (2024-02-15) Disabled due to slow query performance
+        // https://github.com/owid/owid-grapher/issues/3198
+        // this.fetchTopics()
     }
 
     disposers: IReactionDisposer[] = []

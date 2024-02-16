@@ -146,7 +146,11 @@ export type DataPageParseError = { message: string; path?: string }
 
 export type FaqEntryData = Pick<
     OwidGdocPostInterface,
-    "linkedCharts" | "linkedDocuments" | "relatedCharts" | "imageMetadata"
+    | "linkedCharts"
+    | "linkedIndicators"
+    | "linkedDocuments"
+    | "relatedCharts"
+    | "imageMetadata"
 > & {
     faqs: OwidEnrichedGdocBlock[]
 }

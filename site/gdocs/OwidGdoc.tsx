@@ -2,15 +2,15 @@ import React, { createContext } from "react"
 import ReactDOM from "react-dom"
 import {
     LinkedChart,
-    getOwidGdocFromJSON,
+    LinkedIndicator,
     ImageMetadata,
     RelatedChart,
-    get,
     OwidGdocType,
     OwidGdoc as OwidGdocInterface,
     MinimalDataInsightInterface,
     OwidGdocMinimalPostInterface,
-} from "@ourworldindata/utils"
+} from "@ourworldindata/types"
+import { get, getOwidGdocFromJSON } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
 import { match, P } from "ts-pattern"
 import { GdocPost } from "./pages/GdocPost.js"
@@ -19,6 +19,7 @@ import { Fragment } from "./pages/Fragment.js"
 
 export const AttachmentsContext = createContext<{
     linkedCharts: Record<string, LinkedChart>
+    linkedIndicators: Record<number, LinkedIndicator>
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
     imageMetadata: Record<string, ImageMetadata>
     relatedCharts: RelatedChart[]
@@ -27,6 +28,7 @@ export const AttachmentsContext = createContext<{
     linkedDocuments: {},
     imageMetadata: {},
     linkedCharts: {},
+    linkedIndicators: {},
     relatedCharts: [],
     latestDataInsights: [],
 })
@@ -97,6 +99,7 @@ export function OwidGdoc({
                 linkedDocuments: get(props, "linkedDocuments", {}),
                 imageMetadata: get(props, "imageMetadata", {}),
                 linkedCharts: get(props, "linkedCharts", {}),
+                linkedIndicators: get(props, "linkedIndicators", {}),
                 relatedCharts: get(props, "relatedCharts", []),
                 latestDataInsights: get(props, "latestDataInsights", []),
             }}

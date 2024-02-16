@@ -5,6 +5,9 @@ import {
     DisplaySource,
     IndicatorTitleWithFragments,
     OwidSource,
+    OwidVariableWithSourceAndDimension,
+    LinkedIndicator,
+    joinTitleFragments,
 } from "@ourworldindata/types"
 import { compact, uniq, last, excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
@@ -194,6 +197,7 @@ const getYearSuffixFromOrigin = (o: OwidOrigin): string => {
     if (year) return ` (${year})`
     else return ""
 }
+
 export const getCitationShort = (
     origins: OwidOrigin[],
     attributions: string[],
@@ -261,6 +265,7 @@ export const getCitationLong = (
         canonicalUrl ? `Retrieved ${today} from ${canonicalUrl}` : undefined,
     ]).join(" ")
 }
+
 export const formatSourceDate = (
     date: string | undefined,
     format: string
@@ -268,4 +273,21 @@ export const formatSourceDate = (
     const parsedDate = dayjs(date ?? "", ["YYYY-MM-DD", "DD/MM/YYYY"])
     if (!parsedDate.isValid()) return date || null
     return parsedDate.format(format)
+}
+
+export function grabMetadataForGdocLinkedIndicator(
+    metadata: OwidVariableWithSourceAndDimension
+): Omit<LinkedIndicator, "id"> {
+    return {
+        title:
+            metadata.presentation?.titlePublic ||
+            metadata.presentation?.grapherConfigETL?.title ||
+            metadata.display?.name ||
+            metadata.name ||
+            "",
+        attributionShort: joinTitleFragments(
+            metadata.presentation?.attributionShort,
+            metadata.presentation?.titleVariant
+        ),
+    }
 }

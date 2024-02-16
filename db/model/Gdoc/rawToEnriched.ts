@@ -3,7 +3,6 @@ import {
     ChartPositionChoice,
     ChartControlKeyword,
     ChartTabKeyword,
-    compact,
     EnrichedBlockAside,
     EnrichedBlockCallout,
     EnrichedBlockChart,
@@ -34,12 +33,11 @@ import {
     EnrichedRecircLink,
     EnrichedScrollerItem,
     EnrichedSDGGridItem,
-    isArray,
+    EnrichedBlockKeyIndicator,
     OwidEnrichedGdocBlock,
     OwidRawGdocBlock,
     OwidGdocErrorMessage,
     ParseError,
-    partition,
     RawBlockAdditionalCharts,
     RawBlockAside,
     RawBlockCallout,
@@ -62,23 +60,18 @@ import {
     RawBlockStickyLeftContainer,
     RawBlockStickyRightContainer,
     RawBlockText,
+    RawBlockKeyIndicator,
     Span,
     SpanSimpleText,
-    omitUndefinedValues,
     EnrichedBlockSimpleText,
     BlockImageSize,
     checkIsBlockImageSize,
     RawBlockTopicPageIntro,
     EnrichedBlockTopicPageIntro,
-    Url,
     EnrichedTopicPageIntroRelatedTopic,
     DetailDictionary,
     EnrichedDetail,
-    checkIsPlainObjectWithGuard,
     EnrichedBlockKeyInsightsSlide,
-    keyBy,
-    filterValidStringValues,
-    uniq,
     RawBlockResearchAndWriting,
     RawBlockResearchAndWritingLink,
     EnrichedBlockResearchAndWriting,
@@ -90,7 +83,6 @@ import {
     EnrichedBlockAllCharts,
     RefDictionary,
     OwidGdocErrorMessageType,
-    excludeNullish,
     RawBlockResearchAndWritingRow,
     EnrichedBlockAlign,
     HorizontalAlign,
@@ -110,8 +102,22 @@ import {
     tableTemplates,
     RawBlockBlockquote,
     EnrichedBlockBlockquote,
-    traverseEnrichedSpan,
+    RawBlockKeyIndicatorCollection,
+    EnrichedBlockKeyIndicatorCollection,
     RawBlockExplorerTiles,
+} from "@ourworldindata/types"
+import {
+    traverseEnrichedSpan,
+    keyBy,
+    filterValidStringValues,
+    uniq,
+    excludeNullish,
+    checkIsPlainObjectWithGuard,
+    omitUndefinedValues,
+    Url,
+    isArray,
+    partition,
+    compact,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink, getLinkType } from "@ourworldindata/components"
 import {
@@ -197,6 +203,8 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "entry-summary" }, parseEntrySummary)
         .with({ type: "explorer-tiles" }, parseExplorerTiles)
         .with({ type: "table" }, parseTable)
+        .with({ type: "key-indicator" }, parseKeyIndicator)
+        .with({ type: "key-indicator-collection" }, parseKeyIndicatorCollection)
         .exhaustive()
 }
 
@@ -1923,4 +1931,128 @@ export function parseRefs({
     )
 
     return { definitions: parsedRefs, errors: refErrors }
+}
+
+const parseKeyIndicator = (
+    raw: RawBlockKeyIndicator
+): EnrichedBlockKeyIndicator => {
+    const createError = (
+        error: ParseError,
+        datapageUrl = ""
+    ): EnrichedBlockKeyIndicator => ({
+        type: "key-indicator",
+        datapageUrl,
+        title: "",
+        text: [],
+        parseErrors: [error],
+    })
+
+    const val = raw.value
+
+    if (typeof val === "string")
+        return createError({
+            message: `key-indicator block must be written as "{.key-indicator}"`,
+        })
+
+    if (!val.datapageUrl)
+        return createError({
+            message: "datapageUrl property is missing or empty",
+        })
+
+    const url = extractUrl(val.datapageUrl)
+
+    if (!val.title)
+        return createError(
+            { message: "title property is missing or empty" },
+            url
+        )
+
+    if (!val.text) return createError({ message: "text is missing" }, url)
+
+    if (!isArray(val.text))
+        return createError(
+            {
+                message:
+                    "Blurb is not a freeform array. Make sure you've written [.+text]",
+            },
+            url
+        )
+
+    const parsedBlurb = val.text.map(parseText)
+    const parsedBlurbErrors = parsedBlurb.flatMap((block) => block.parseErrors)
+
+    return omitUndefinedValues({
+        type: "key-indicator",
+        datapageUrl: url,
+        text: parsedBlurb,
+        title: val.title,
+        source: val.source,
+        parseErrors: parsedBlurbErrors,
+    }) as EnrichedBlockKeyIndicator
+}
+
+function parseKeyIndicatorCollection(
+    raw: RawBlockKeyIndicatorCollection
+): EnrichedBlockKeyIndicatorCollection {
+    const createError = (
+        error: ParseError,
+        warnings: ParseError[] = []
+    ): EnrichedBlockKeyIndicatorCollection => ({
+        type: "key-indicator-collection",
+        blocks: [],
+        parseErrors: [error, ...warnings],
+    })
+
+    const warnings = []
+
+    if (!Array.isArray(raw.value)) {
+        return createError({
+            message:
+                "key-indicator-collection is not a freeform array. Make sure you've written [.+key-indicator-collection]",
+        })
+    }
+
+    const blocks = raw.value
+    const keyIndicatorBlocks = blocks.filter(
+        (block) => block.type === "key-indicator"
+    )
+
+    if (keyIndicatorBlocks.length < blocks.length) {
+        warnings.push({
+            message:
+                "key-indicator-collection contains blocks that are not key-indicators blocks",
+            isWarning: true,
+        })
+    }
+
+    const parsedBlocks = compact(
+        keyIndicatorBlocks.map(parseRawBlocksToEnrichedBlocks)
+    ) as EnrichedBlockKeyIndicator[]
+
+    const validBlocks = parsedBlocks.filter(
+        (block) =>
+            block.parseErrors.filter((error) => !error.isWarning).length === 0
+    )
+
+    if (validBlocks.length < parsedBlocks.length) {
+        warnings.push({
+            message:
+                "key-indicator-collection contains at least one invalid key-indicators block",
+            isWarning: true,
+        })
+    }
+
+    if (validBlocks.length <= 1) {
+        const message =
+            validBlocks.length === 0
+                ? "key-indicator-collection contains no valid key-indicator blocks"
+                : "key-indicator-collection contains only one valid key-indicator block"
+        return createError({ message }, warnings)
+    }
+
+    return {
+        type: "key-indicator-collection",
+        blocks: validBlocks,
+        parseErrors: warnings,
+    }
 }

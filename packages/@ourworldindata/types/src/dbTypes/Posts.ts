@@ -1,6 +1,7 @@
 import {
     WP_PostType,
     FormattingOptions,
+    PostRestApi,
 } from "../wordpressTypes/WordpressTypes.js"
 import {
     OwidArticleBackportingStatistics,
@@ -27,16 +28,22 @@ export interface DbInsertPost {
     formattingOptions?: string | null
     archieml?: string | null
     archieml_update_statistics?: string | null
+    wpApiSnapshot?: string | null
 }
 export type DbRawPost = Required<DbInsertPost>
 export type DbEnrichedPost = Omit<
     DbRawPost,
-    "authors" | "formattingOptions" | "archieml" | "archieml_update_statistics"
+    | "authors"
+    | "formattingOptions"
+    | "archieml"
+    | "archieml_update_statistics"
+    | "wpApiSnapshot"
 > & {
     authors: string[] | null
     formattingOptions: FormattingOptions | null
     archieml: OwidGdocPostInterface | null
     archieml_update_statistics: OwidArticleBackportingStatistics | null
+    wpApiSnapshot: PostRestApi | null
 }
 export interface DbRawPostWithGdocPublishStatus extends DbRawPost {
     isGdocPublished: boolean
@@ -69,6 +76,9 @@ export function parsePostRow(postRow: DbRawPost): DbEnrichedPost {
         archieml_update_statistics: postRow.archieml_update_statistics
             ? JSON.parse(postRow.archieml_update_statistics)
             : null,
+        wpApiSnapshot: postRow.wpApiSnapshot
+            ? JSON.parse(postRow.wpApiSnapshot)
+            : null,
     }
 }
 
@@ -81,5 +91,6 @@ export function serializePostRow(postRow: DbEnrichedPost): DbRawPost {
         archieml_update_statistics: JSON.stringify(
             postRow.archieml_update_statistics
         ),
+        wpApiSnapshot: JSON.stringify(postRow.wpApiSnapshot),
     }
 }

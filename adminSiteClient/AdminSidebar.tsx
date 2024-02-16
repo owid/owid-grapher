@@ -5,7 +5,6 @@ import {
     faChartBar,
     faFile,
     faTable,
-    faTruckFast,
     faSkullCrossbones,
     faPen,
     faDatabase,
@@ -19,9 +18,10 @@ import {
     faSatelliteDish,
     faCodeBranch,
     faDownload,
+    faHatWizard,
 } from "@fortawesome/free-solid-svg-icons"
 
-import { FASTTRACK_URL } from "../settings/clientSettings.js"
+import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
 
 export const AdminSidebar = (): JSX.Element => (
     <aside className="AdminSidebar">
@@ -56,12 +56,12 @@ export const AdminSidebar = (): JSX.Element => (
 
             <li>
                 <a
-                    href={FASTTRACK_URL}
+                    href={ETL_WIZARD_URL}
                     target="_blank"
                     rel="noopener"
                     title="Tailscale required"
                 >
-                    <FontAwesomeIcon icon={faTruckFast} /> Fast-track
+                    <FontAwesomeIcon icon={faHatWizard} /> Wizard
                 </a>
             </li>
             <li>

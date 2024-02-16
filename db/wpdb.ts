@@ -446,9 +446,7 @@ export const getPostIdAndTypeBySlug = async (
     return { id: rows[0].ID, type: rows[0].post_type }
 }
 
-// We might want to cache this as the network of prominent links densifies and
-// multiple requests to the same posts are happening.
-export const getPostBySlug = async (slug: string): Promise<FullPost> => {
+export const getPostApiBySlug = async (slug: string): Promise<PostRestApi> => {
     if (!isWordpressAPIEnabled) {
         throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
     }
@@ -459,11 +457,19 @@ export const getPostBySlug = async (slug: string): Promise<FullPost> => {
 
     const { id, type } = postIdAndType
 
-    const postArr = await apiQuery(
-        `${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`
-    )
+    return apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
+}
 
-    return getFullPost(postArr)
+// We might want to cache this as the network of prominent links densifies and
+// multiple requests to the same posts are happening.
+export const getPostBySlug = async (slug: string): Promise<FullPost> => {
+    if (!isWordpressAPIEnabled) {
+        throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
+    }
+
+    const postApi = await getPostApiBySlug(slug)
+
+    return getFullPost(postApi)
 }
 
 // the /revisions endpoint does not send back all the metadata required for
@@ -739,9 +745,7 @@ export const getRelatedArticles = async (
     )
 }
 
-export const getBlockContent = async (
-    id: number
-): Promise<string | undefined> => {
+export const getBlockApi = async (id: number): Promise<any> => {
     if (!isWordpressAPIEnabled) return undefined
 
     const query = `
@@ -751,7 +755,15 @@ export const getBlockContent = async (
         }
       }
     `
-    const post = await graphqlQuery(query, { id })
+    return graphqlQuery(query, { id })
+}
+
+export const getBlockContent = async (
+    id: number
+): Promise<string | undefined> => {
+    if (!isWordpressAPIEnabled) return undefined
+
+    const post = await getBlockApi(id)
 
     return post.data?.wpBlock?.content ?? undefined
 }

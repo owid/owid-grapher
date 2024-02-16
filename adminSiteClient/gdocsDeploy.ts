@@ -1,12 +1,11 @@
+import { isEqual, omit } from "@ourworldindata/utils"
 import {
     OwidGdoc,
     OwidGdocBaseInterface,
     OwidGdocPostContent,
-    isEqual,
-    omit,
     OwidGdocDataInsightContent,
     OwidGdocType,
-} from "@ourworldindata/utils"
+} from "@ourworldindata/types"
 import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./GdocsDiff.js"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../settings/clientSettings.js"
 
@@ -52,6 +51,7 @@ export const checkIsLightningUpdate = (
         breadcrumbs: true,
         errors: true,
         linkedCharts: true,
+        linkedIndicators: true,
         linkedDocuments: true,
         relatedCharts: true,
         revisionId: true,
