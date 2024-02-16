@@ -430,6 +430,7 @@ export const fetchS3DataValuesByPath = async (
     try {
         return await resp.json()
     } catch (error: any) {
+        console.log(`?????????????? invalid JSON from ${dataPath}`)
         throw new Error(
             `Error parsing JSON from response for ${dataPath}: ${
                 error.message
@@ -461,6 +462,7 @@ export const fetchS3MetadataByPath = async (
     try {
         return await resp.json()
     } catch (error: any) {
+        console.log(`?????????????? invalid JSON from ${metadataPath}`)
         throw new Error(
             `Error parsing JSON from response for ${metadataPath}: ${
                 error.message

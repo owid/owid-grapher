@@ -459,10 +459,16 @@ export const bakeSingleGrapherChart = async (
         return
     }
 
+    const startTime = Date.now()
     await bakeGrapherPageAndVariablesPngAndSVGIfChanged(
         args.bakedSiteDir,
         args.imageMetadataDictionary,
         grapher
+    )
+    console.log(
+        `Baking chart ${grapher.slug} took ${
+            (Date.now() - startTime) / 1000
+        } seconds.`
     )
     return args
 }
