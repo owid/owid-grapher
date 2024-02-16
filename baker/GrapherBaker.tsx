@@ -29,7 +29,6 @@ import {
     OPTIMIZE_SVG_EXPORTS,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
-    MAX_NUM_BAKE_PROCESSES,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import { glob } from "glob"
@@ -48,7 +47,6 @@ import {
     FaqDictionary,
     ImageMetadata,
 } from "@ourworldindata/types"
-import workerpool from "workerpool"
 import ProgressBar from "progress"
 import {
     getVariableData,
@@ -505,33 +503,12 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             }
         )
 
-        if (MAX_NUM_BAKE_PROCESSES === 1) {
-            await Promise.all(
-                jobs.map(async (job) => {
-                    await bakeSingleGrapherChart(job)
-                    progressBar.tick({ name: `slug ${job.slug}` })
-                })
-            )
-        } else {
-            const poolOptions = {
-                minWorkers: 2,
-                maxWorkers: MAX_NUM_BAKE_PROCESSES,
-            }
-            const pool = workerpool.pool(__dirname + "/worker.js", poolOptions)
-            try {
-                await Promise.all(
-                    jobs.map((job) =>
-                        pool.exec("bakeSingleGrapherChart", [job]).then(() =>
-                            progressBar.tick({
-                                name: `Baked chart ${job.slug}`,
-                            })
-                        )
-                    )
-                )
-            } finally {
-                await pool.terminate(true)
-            }
-        }
+        await Promise.all(
+            jobs.map(async (job) => {
+                await bakeSingleGrapherChart(job)
+                progressBar.tick({ name: `slug ${job.slug}` })
+            })
+        )
 
         await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
         progressBar.tick({ name: `✅ Deleted old graphers` })
