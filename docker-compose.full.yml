@@ -37,7 +37,9 @@ services:
         command: --default-authentication-plugin=mysql_native_password
         restart: always
         volumes:
+            - ./devTools/docker/my.cnf:/etc/my.cnf:ro
             - mysql_data:/var/lib/mysql
+            - ./logs:/var/log/mysql
         ports:
             # Exposing via the port specified for Grapher
             # Should always be the same as the WordPress port, because we store both DBs on the same server

@@ -56,6 +56,7 @@ up: require create-if-missing.env ../owid-content tmp-downloads/owid_metadata.sq
 	yarn run tsc -b
 
 	@echo '==> Starting dev environment'
+	@mkdir -p logs
 	tmux new-session -s grapher \
 		-n docker 'docker-compose -f docker-compose.grapher.yml up' \; \
 			set remain-on-exit on \; \
@@ -83,6 +84,7 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 	yarn run tsc -b
 
 	@echo '==> Starting dev environment'
+	@mkdir -p logs
 	tmux new-session -s grapher \
 		-n admin \
 			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
