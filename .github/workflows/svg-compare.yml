@@ -65,7 +65,6 @@ jobs:
               with:
                   repository: ./owid-grapher-svgs/
                   branch: ${{ env.PUSH_BRANCH_NAME }}
-                  push_options: "--force"
                   commit_message: Automated commit with svg differences triggered by commit https://github.com/owid/owid-grapher/commit/${{github.sha}}
 
             # The action fails if there were any errors.
