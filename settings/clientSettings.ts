@@ -73,9 +73,9 @@ export const IMAGE_HOSTING_BUCKET_PATH: string =
 export const IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH: string =
     IMAGE_HOSTING_BUCKET_PATH.slice(IMAGE_HOSTING_BUCKET_PATH.indexOf("/") + 1)
 
-// Fast-track settings, by default points to staging version. You need Tailscale to access it.
-export const FASTTRACK_URL: string =
-    process.env.FASTTRACK_URL ?? "http://owid-analytics:8083/"
+// Link to production wizard.  You need Tailscale to access it in production.
+export const ETL_WIZARD_URL: string =
+    process.env.ETL_WIZARD_URL ?? "http://localhost:8053/"
 
 export const GDOCS_DETAILS_ON_DEMAND_ID: string =
     process.env.GDOCS_DETAILS_ON_DEMAND_ID ?? ""
