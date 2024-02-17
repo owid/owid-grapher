@@ -29,7 +29,7 @@ const SocialSection = () => {
             className="grid grid-cols-12-full-width span-cols-14"
             id="subscribe"
         >
-            <section className="homepage-social-ribbon span-cols-8 col-start-2">
+            <section className="homepage-social-ribbon span-cols-8 col-start-2 span-sm-cols-12 col-sm-start-2">
                 <h2 className="h2-semibold">Subscribe to our newsletter</h2>
                 <div id="newsletter-subscription-root">
                     {/* Hydrated in runSiteTools() */}
@@ -38,7 +38,7 @@ const SocialSection = () => {
                     />
                 </div>
             </section>
-            <section className="homepage-social-ribbon__social-media span-cols-4">
+            <section className="homepage-social-ribbon__social-media span-cols-4 span-sm-cols-12 col-sm-start-2">
                 <h2 className="h2-semibold">Follow us</h2>
                 <ul className="homepage-social-ribbon__social-list">
                     <li>

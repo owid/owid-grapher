@@ -177,11 +177,20 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                             />
                         ))}
                     </div>
+                    <div className="span-cols-6 ">
+                        <a
+                            href="/latest"
+                            className="body-3-medium homepage-intro__see-all-work-button"
+                        >
+                            See all our latest work
+                            <FontAwesomeIcon icon={faArrowRight} />
+                        </a>
+                    </div>
                 </div>
-                <div className="span-cols-6">
+                <div className="span-cols-6 span-sm-cols-12">
                     <a
                         href="/latest"
-                        className="body-3-medium homepage-intro__see-all-work-button"
+                        className="body-3-medium homepage-intro__see-all-work-button homepage-intro__see-all-work-button--mobile"
                     >
                         See all our latest work
                         <FontAwesomeIcon icon={faArrowRight} />

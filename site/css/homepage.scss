@@ -260,6 +260,7 @@
 
 .NewsletterSubscription__email {
     border: 1px solid #dbe5f0;
+    background: $blue-5;
     border-radius: 0;
     height: inherit;
     padding: 0 16px;
@@ -346,9 +347,11 @@
     .homepage-topic__subtopic {
         font-weight: bold;
         list-style: none;
+        white-space: nowrap;
+        display: inline-block;
         &:not(:first-child) {
             &::before {
-                content: "—";
+                content: "|";
                 margin-right: 8px;
                 color: $blue-90;
             }

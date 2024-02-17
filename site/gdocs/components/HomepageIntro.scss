@@ -69,15 +69,20 @@
             align-self: flex-start;
             .homepage-intro__featured-tile {
                 margin-right: 0;
-                margin-bottom: 16px;
+                padding-bottom: 16px;
+                &:not(:last-child) {
+                    border-bottom: 1px solid $blue-20;
+                    margin-bottom: 12px;
+                }
             }
         }
     }
 }
 
+// Needed to make the see-all-work button stick below the tertiary tiles
 .homepage-intro__secondary-tiles {
     grid-row-start: 1;
-    grid-row-end: 3;
+    grid-row-end: 4;
 }
 
 .homepage-intro__tertiary-tiles {
@@ -139,9 +144,15 @@
     svg {
         margin-left: 8px;
     }
+}
 
+.homepage-intro__see-all-work-button--mobile {
+    display: none;
+    margin-top: 0;
     @include sm-only {
+        display: block;
         margin-top: 0;
+        width: 100%;
     }
 }
 
