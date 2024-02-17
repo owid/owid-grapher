@@ -152,38 +152,40 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                     height={75}
                 />
             </section>
-            <section className="grid grid-cols-9 span-cols-9 col-start-5 homepage-intro__featured-work-container">
-                <h2 className="span-cols-9 h5-black-caps homepage-intro__featured-work-heading">
+            <section className="grid grid-cols-9 span-cols-9 col-start-5 span-sm-cols-12 col-sm-start-2 homepage-intro__right-section">
+                <h2 className="span-cols-9 span-sm-cols-12 h5-black-caps homepage-intro__featured-work-heading">
                     Featured work
                 </h2>
-                <div className="homepage-intro__primary-tiles span-cols-6">
-                    {primary.map((work, i) => (
-                        <FeaturedWorkTile key={i} {...work} />
-                    ))}
-                </div>
-                <div className="homepage-intro__secondary-tiles span-cols-3 col-start-7">
-                    {secondary.map((work, i) => (
-                        <FeaturedWorkTile key={i} {...work} />
-                    ))}
-                </div>
-                <div className="homepage-intro__tertiary-tiles span-cols-6 grid grid-cols-6">
-                    {tertiary.map((work, i) => (
-                        <FeaturedWorkTile
-                            key={i}
-                            {...work}
-                            className="span-cols-3"
-                            isMinimal
-                        />
-                    ))}
-                    <div className="span-cols-6">
-                        <a
-                            href="/latest"
-                            className="body-3-medium homepage-intro__see-all-work-button"
-                        >
-                            See all our latest work
-                            <FontAwesomeIcon icon={faArrowRight} />
-                        </a>
+                <div className="grid grid-cols-9 span-cols-9 span-sm-cols-12 homepage-intro__featured-work-container">
+                    <div className="homepage-intro__primary-tiles span-cols-6">
+                        {primary.map((work, i) => (
+                            <FeaturedWorkTile key={i} {...work} />
+                        ))}
                     </div>
+                    <div className="homepage-intro__secondary-tiles span-cols-3 col-start-7">
+                        {secondary.map((work, i) => (
+                            <FeaturedWorkTile key={i} {...work} />
+                        ))}
+                    </div>
+                    <div className="homepage-intro__tertiary-tiles span-cols-6 grid grid-cols-6">
+                        {tertiary.map((work, i) => (
+                            <FeaturedWorkTile
+                                key={i}
+                                {...work}
+                                className="span-cols-3"
+                                isMinimal
+                            />
+                        ))}
+                    </div>
+                </div>
+                <div className="span-cols-6">
+                    <a
+                        href="/latest"
+                        className="body-3-medium homepage-intro__see-all-work-button"
+                    >
+                        See all our latest work
+                        <FontAwesomeIcon icon={faArrowRight} />
+                    </a>
                 </div>
             </section>
         </section>

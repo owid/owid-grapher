@@ -5,12 +5,19 @@
 
 .article-block__homepage-intro {
     border-bottom: 1px solid $blue-10;
+    @include sm-only {
+        border: none;
+    }
 }
 
 .homepage-intro__our-mission-container {
     border-right: 1px solid $blue-10;
     padding-right: var(--grid-gap);
     padding-bottom: var(--homepage-intro-bottom-padding);
+
+    @include sm-only {
+        display: none;
+    }
 }
 
 .homepage-intro__mission-link {
@@ -24,11 +31,53 @@
     // without the container expanding and taking up extra white space
     grid-template-rows: auto auto 1fr auto;
     padding-bottom: var(--homepage-intro-bottom-padding);
+
+    // A bunch of nested styles for the mobile view which standardizes all the tiles
+    @include sm-only {
+        display: flex;
+        overflow-x: scroll;
+        grid-gap: 0;
+        padding-bottom: 8px;
+        margin-bottom: 8px;
+        > .homepage-intro__primary-tiles,
+        > .homepage-intro__secondary-tiles,
+        > .homepage-intro__tertiary-tiles {
+            display: flex;
+            margin-top: 0;
+            .homepage-intro__featured-tile {
+                width: 298px;
+                margin-right: 16px;
+                .homepage-intro__featured-work-title {
+                    @include h3-bold;
+                    margin-top: 4px;
+                    margin-bottom: 0;
+                }
+                .homepage-intro__featured-work-description {
+                    @include body-3-medium;
+                }
+
+                .homepage-intro__featured-work-authors {
+                    margin-bottom: 0;
+                }
+            }
+        }
+
+        > .homepage-intro__tertiary-tiles {
+            background: $blue-10;
+            padding: 16px;
+            flex-direction: column;
+            align-self: flex-start;
+            .homepage-intro__featured-tile {
+                margin-right: 0;
+                margin-bottom: 16px;
+            }
+        }
+    }
 }
 
 .homepage-intro__secondary-tiles {
-    grid-row-start: 2;
-    grid-row-end: 4;
+    grid-row-start: 1;
+    grid-row-end: 3;
 }
 
 .homepage-intro__tertiary-tiles {
@@ -90,6 +139,10 @@
     svg {
         margin-left: 8px;
     }
+
+    @include sm-only {
+        margin-top: 0;
+    }
 }
 
 .homepage-intro__donate-button {
@@ -123,6 +176,12 @@
 
     img {
         display: block;
+
+        @include sm-only {
+            height: 172px;
+            width: 298px;
+            object-fit: cover;
+        }
     }
 }
 
