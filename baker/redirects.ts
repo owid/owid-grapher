@@ -91,12 +91,6 @@ export const getGrapherRedirectsMap = async (
     )
 }
 
-export const stripTrailingSlash = (url: string) => {
-    if (url === "/") return url
-
-    return url.replace(/\/$/, "") // remove trailing slash: /abc/ -> /abc
-}
-
 export const getWordpressRedirectsMap = async () => {
     const redirectsFromDb = await getRedirectsFromDb()
 
