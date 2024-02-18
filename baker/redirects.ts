@@ -58,11 +58,9 @@ export const getRedirects = async () => {
     ]
 
     // Get redirects from the database (exported from the Wordpress DB)
+    // Redirects are assumed to be trailing-slash-free (see syncRedirectsToGrapher.ts)
     const redirectsFromDb = (await getRedirectsFromDb()).map(
-        (row) =>
-            `${stripTrailingSlash(row.source)} ${stripTrailingSlash(
-                row.target
-            )} ${row.code}`
+        (row) => `${row.source} ${row.target} ${row.code}`
     )
 
     // Add newlines in between so we get some more overview
@@ -102,12 +100,7 @@ export const stripTrailingSlash = (url: string) => {
 export const getWordpressRedirectsMap = async () => {
     const redirectsFromDb = await getRedirectsFromDb()
 
-    return new Map(
-        redirectsFromDb.map((row) => [
-            stripTrailingSlash(row.source),
-            stripTrailingSlash(row.target),
-        ])
-    )
+    return new Map(redirectsFromDb.map((row) => [row.source, row.target]))
 }
 
 export const getGrapherAndWordpressRedirectsMap = memoize(
