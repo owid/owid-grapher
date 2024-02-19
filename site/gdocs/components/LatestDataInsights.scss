@@ -3,6 +3,7 @@
     padding: 24px 0;
     @include sm-only {
         margin-top: 24px;
+        background-color: #fff;
     }
 }
 .latest-data-insights-block__header {
@@ -35,6 +36,9 @@
         .latest-data-insights-block__card-title {
             text-decoration: underline;
         }
+    }
+    @include sm-only {
+        background-color: $blue-5;
     }
 }
 

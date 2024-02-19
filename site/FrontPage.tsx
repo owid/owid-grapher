@@ -2,11 +2,7 @@ import React from "react"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-import {
-    faRss,
-    faAngleRight,
-    faExternalLinkAlt,
-} from "@fortawesome/free-solid-svg-icons"
+import { faRss, faAngleRight } from "@fortawesome/free-solid-svg-icons"
 import {
     faTwitter,
     faFacebookSquare,

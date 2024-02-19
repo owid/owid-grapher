@@ -16,7 +16,7 @@ export const LatestDataInsightsBlock = ({
     if (!latestDataInsights?.length) return null
     return (
         <section className={cx(className, "latest-data-insights-block")}>
-            <header className="latest-data-insights-block__header span-cols-8 col-start-2">
+            <header className="latest-data-insights-block__header span-cols-8 col-start-2 span-sm-cols-12 col-sm-start-2">
                 <h2 className="h2-bold">Latest Data Insights</h2>
                 <p className="body-2-regular">
                     Bite-sized insights on how the world is changing.
