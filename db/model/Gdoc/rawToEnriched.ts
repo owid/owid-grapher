@@ -2015,14 +2015,14 @@ function parseKeyIndicatorCollection(
 
     const warnings = []
 
-    if (!Array.isArray(raw.value)) {
+    if (!Array.isArray(raw.value.indicators)) {
         return createError({
             message:
-                "key-indicator-collection is not a freeform array. Make sure you've written [.+key-indicator-collection]",
+                "key-indicator-collection requires an [.+indicators] block with an array of {.key-indicator} blocks",
         })
     }
 
-    const blocks = raw.value
+    const blocks = raw.value.indicators
     const keyIndicatorBlocks = blocks.filter(
         (block) => block.type === "key-indicator"
     )

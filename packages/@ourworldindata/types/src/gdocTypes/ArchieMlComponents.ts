@@ -108,11 +108,25 @@ export type EnrichedBlockKeyIndicator = {
 
 export type RawBlockKeyIndicatorCollection = {
     type: "key-indicator-collection"
-    value: OwidRawGdocBlock[]
+    value: {
+        heading?: string
+        subtitle?: string
+        button?: {
+            text?: string
+            url?: string
+        }
+        indicators: OwidRawGdocBlock[]
+    }
 }
 
 export type EnrichedBlockKeyIndicatorCollection = {
     type: "key-indicator-collection"
+    heading?: string
+    subtitle?: string
+    button?: {
+        text: string
+        url: string
+    }
     blocks: EnrichedBlockKeyIndicator[]
 } & EnrichedBlockWithParseErrors
 

@@ -468,7 +468,9 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockKeyIndicatorCollection => {
                 return {
                     type: "key-indicator-collection",
-                    value: b.blocks.map(enrichedBlockToRawBlock),
+                    value: {
+                        indicators: b.blocks.map(enrichedBlockToRawBlock),
+                    },
                 }
             }
         )

@@ -144,14 +144,17 @@
     svg {
         margin-left: 8px;
     }
+
+    @include sm-only {
+        display: none;
+    }
 }
 
 .homepage-intro__see-all-work-button--mobile {
     display: none;
-    margin-top: 0;
     @include sm-only {
         display: block;
-        margin-top: 0;
+        margin-top: 24px;
         width: 100%;
     }
 }

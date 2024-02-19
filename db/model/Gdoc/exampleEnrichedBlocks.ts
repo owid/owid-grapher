@@ -555,6 +555,12 @@ export const enrichedBlockExamples: Record<
     },
     "key-indicator-collection": {
         type: "key-indicator-collection",
+        heading: "Explore key indicators on poverty",
+        subtitle: "These indicators show how poverty has changed over time.",
+        button: {
+            text: "Explore the data",
+            url: "https://ourworldindata.org/grapher/total-cases-covid-19",
+        },
         blocks: [
             {
                 type: "key-indicator",

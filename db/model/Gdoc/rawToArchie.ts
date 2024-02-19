@@ -680,12 +680,14 @@ function* rawBlockPillRowToArchieMLString(
 function* rawBlockKeyIndicatorCollectionToArchieMLString(
     block: RawBlockKeyIndicatorCollection
 ): Generator<string, void, undefined> {
-    yield "[.+key-indicator-collection]"
-    if (typeof block.value !== "string") {
-        for (const b of block.value)
+    yield "{.key-indicator-collection}"
+    if (typeof block.value.indicators !== "string") {
+        yield "[.+indicators]"
+        for (const b of block.value.indicators)
             yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
+        yield "[]"
     }
-    yield "[]"
+    yield "{}"
 }
 
 function* rawBlockHomepageSearchToArchieMLString(
