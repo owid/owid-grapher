@@ -3,6 +3,7 @@ import {
     DbRawPost,
     DbEnrichedPost,
     parsePostRow,
+    parsePostWpApiSnapshot,
     FullPost,
     JsonError,
     CategoryWithEntries,
@@ -154,11 +155,12 @@ export const getPostsFromSnapshots = async (
     postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
     filterFunc?: FilterFnPostRestApi
 ): Promise<PostRestApi[]> => {
-    const rawPosts: DbRawPost[] = (
+    const rawPosts: Pick<DbRawPost, "wpApiSnapshot">[] = (
         await db.knexInstance().raw(
             `
-                SELECT * FROM ${postsTable}
-                WHERE status = "publish"
+                SELECT wpApiSnapshot FROM ${postsTable}
+                WHERE wpApiSnapshot IS NOT NULL
+                AND status = "publish"
                 AND type IN (?)
                 ORDER BY wpApiSnapshot->>'$.date' DESC;
             `,
@@ -167,9 +169,9 @@ export const getPostsFromSnapshots = async (
     )[0]
 
     const posts = rawPosts
-        .map(parsePostRow)
         .map((p) => p.wpApiSnapshot)
-        .filter((p) => p !== null) as PostRestApi[]
+        .filter((snapshot) => snapshot !== null)
+        .map((snapshot) => parsePostWpApiSnapshot(snapshot!))
 
     // Published pages excluded from public views
     const excludedSlugs = [BLOG_SLUG]

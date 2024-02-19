@@ -66,6 +66,10 @@ export function parsePostArchieml(archieml: string): any {
     return JSON.parse(archieml)
 }
 
+export function parsePostWpApiSnapshot(wpApiSnapshot: string): PostRestApi {
+    return JSON.parse(wpApiSnapshot)
+}
+
 export function parsePostRow(postRow: DbRawPost): DbEnrichedPost {
     return {
         ...postRow,
@@ -78,7 +82,7 @@ export function parsePostRow(postRow: DbRawPost): DbEnrichedPost {
             ? JSON.parse(postRow.archieml_update_statistics)
             : null,
         wpApiSnapshot: postRow.wpApiSnapshot
-            ? JSON.parse(postRow.wpApiSnapshot)
+            ? parsePostWpApiSnapshot(postRow.wpApiSnapshot)
             : null,
     }
 }
