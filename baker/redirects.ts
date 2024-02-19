@@ -96,7 +96,7 @@ export const getGrapherRedirectsMap = async (
     )
 }
 
-const formatWpUrl = (url: string) => {
+export const formatWpUrl = (url: string) => {
     if (url === "/") return url
 
     return url
@@ -132,16 +132,15 @@ export const getGrapherAndWordpressRedirectsMap = memoize(
     }
 )
 
-export const resolveGrapherAndWordpressRedirect = async (
-    url: Url
+export const resolveRedirectFromMap = async (
+    url: Url,
+    redirectsMap: Map<string, string>
 ): Promise<Url> => {
     const MAX_RECURSION_DEPTH = 25
     let recursionDepth = 0
     const originalUrl = url
 
-    const _resolveGrapherAndWordpressRedirect = async (
-        url: Url
-    ): Promise<Url> => {
+    const _resolveRedirectFromMap = async (url: Url): Promise<Url> => {
         ++recursionDepth
         if (recursionDepth > MAX_RECURSION_DEPTH) {
             logErrorAndMaybeSendToBugsnag(
@@ -154,8 +153,7 @@ export const resolveGrapherAndWordpressRedirect = async (
 
         if (!url.pathname || !isCanonicalInternalUrl(url)) return url
 
-        const redirects = await getGrapherAndWordpressRedirectsMap()
-        const target = redirects.get(url.pathname)
+        const target = redirectsMap.get(url.pathname)
 
         if (!target) return url
         const targetUrl = Url.fromURL(target)
@@ -169,7 +167,7 @@ export const resolveGrapherAndWordpressRedirect = async (
             return originalUrl
         }
 
-        return _resolveGrapherAndWordpressRedirect(
+        return _resolveRedirectFromMap(
             // Pass query params through only if none present on the target (cf.
             // netlify behaviour)
             url.queryStr && !targetUrl.queryStr
@@ -177,7 +175,7 @@ export const resolveGrapherAndWordpressRedirect = async (
                 : targetUrl
         )
     }
-    return _resolveGrapherAndWordpressRedirect(url)
+    return _resolveRedirectFromMap(url)
 }
 
 export const resolveInternalRedirect = async (url: Url): Promise<Url> => {
@@ -206,7 +204,10 @@ export const resolveInternalRedirect = async (url: Url): Promise<Url> => {
     //   (wordpress), not what is redirected.
 
     return resolveExplorerRedirect(
-        await resolveGrapherAndWordpressRedirect(url)
+        await resolveRedirectFromMap(
+            url,
+            await getGrapherAndWordpressRedirectsMap()
+        )
     )
 }
 
