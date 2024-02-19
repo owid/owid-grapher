@@ -15,20 +15,21 @@ import {
     JsonError,
     Topic,
 } from "@ourworldindata/types"
-import { BLOG_SLUG } from "../settings/serverSettings.js"
+import { BLOG_SLUG, WORDPRESS_URL } from "../settings/serverSettings.js"
 import {
-    WP_API_ENDPOINT,
-    apiQuery,
-    getPostApiBySlugFromApi,
+    FOR_SYNC_ONLY_WP_API_ENDPOINT,
+    FOR_SYNC_ONLY_apiQuery,
+    FOR_SYNC_ONLY_getPostApiBySlugFromApi,
     isWordpressAPIEnabled,
     singleton,
-    OWID_API_ENDPOINT,
-    getEndpointSlugFromType,
-    getBlockApiFromApi,
-    graphqlQuery,
-    ENTRIES_CATEGORY_ID,
+    FOR_SYNC_ONLY_getEndpointSlugFromType,
+    FOR_SYNC_ONLY_getBlockApiFromApi,
+    FOR_SYNC_ONLY_graphqlQuery,
 } from "./wpdb.js"
 import { getFullPost } from "./model/Post.js"
+
+const DEPRECATED_ENTRIES_CATEGORY_ID = 44
+const DEPRECATED_OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
 
 // Limit not supported with multiple post types: When passing multiple post
 // types, the limit is applied to the resulting array of sequentially sorted
@@ -45,12 +46,12 @@ export const DEPRECATEDgetPosts = async (
     const posts: PostRestApi[] = []
 
     for (const postType of postTypes) {
-        const endpoint = `${WP_API_ENDPOINT}/${getEndpointSlugFromType(
+        const endpoint = `${FOR_SYNC_ONLY_WP_API_ENDPOINT}/${FOR_SYNC_ONLY_getEndpointSlugFromType(
             postType
         )}`
 
         // Get number of items to retrieve
-        const headers = await apiQuery(endpoint, {
+        const headers = await FOR_SYNC_ONLY_apiQuery(endpoint, {
             searchParams: [["per_page", 1]],
             returnResponseHeadersOnly: true,
         })
@@ -58,7 +59,7 @@ export const DEPRECATEDgetPosts = async (
         const count = limit && limit < maxAvailable ? limit : maxAvailable
 
         for (let page = 1; page <= Math.ceil(count / perPage); page++) {
-            const postsCurrentPage = await apiQuery(endpoint, {
+            const postsCurrentPage = await FOR_SYNC_ONLY_apiQuery(endpoint, {
                 searchParams: [
                     ["per_page", perPage],
                     ["page", page],
@@ -93,7 +94,7 @@ export const DEPRECATEDgetPostBySlugFromApi = async (
         throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
     }
 
-    const postApi = await getPostApiBySlugFromApi(slug)
+    const postApi = await FOR_SYNC_ONLY_getPostApiBySlugFromApi(slug)
 
     return getFullPost(postApi)
 }
@@ -104,13 +105,15 @@ export const DEPRECATEDgetLatestPostRevision = async (
     id: number
 ): Promise<FullPost> => {
     const type = await DEPRECATEDgetPostType(id)
-    const endpointSlug = getEndpointSlugFromType(type)
+    const endpointSlug = FOR_SYNC_ONLY_getEndpointSlugFromType(type)
 
-    const postApi = await apiQuery(`${WP_API_ENDPOINT}/${endpointSlug}/${id}`)
+    const postApi = await FOR_SYNC_ONLY_apiQuery(
+        `${FOR_SYNC_ONLY_WP_API_ENDPOINT}/${endpointSlug}/${id}`
+    )
 
     const revision = (
-        await apiQuery(
-            `${WP_API_ENDPOINT}/${endpointSlug}/${id}/revisions?per_page=1`
+        await FOR_SYNC_ONLY_apiQuery(
+            `${FOR_SYNC_ONLY_WP_API_ENDPOINT}/${endpointSlug}/${id}/revisions?per_page=1`
         )
     )[0]
 
@@ -190,7 +193,7 @@ export const DEPRECATEDgetPostType = async (
     search: number | string
 ): Promise<string> => {
     const paramName = typeof search === "number" ? "id" : "slug"
-    return apiQuery(`${OWID_API_ENDPOINT}/type`, {
+    return FOR_SYNC_ONLY_apiQuery(`${DEPRECATED_OWID_API_ENDPOINT}/type`, {
         searchParams: [[paramName, search]],
     })
 }
@@ -219,7 +222,7 @@ export const DEPRECATEDgetBlockContentFromApi = async (
 ): Promise<string | undefined> => {
     if (!isWordpressAPIEnabled) return undefined
 
-    const post = await getBlockApiFromApi(id)
+    const post = await FOR_SYNC_ONLY_getBlockApiFromApi(id)
 
     return post.data?.wpBlock?.content ?? undefined
 }
@@ -230,7 +233,7 @@ export const DEPRECATEDgetTopics = async (
     if (!isWordpressAPIEnabled) return []
 
     const query = `query {
-        pages (first: 100, after:"${cursor}", where: {categoryId:${ENTRIES_CATEGORY_ID}} ) {
+        pages (first: 100, after:"${cursor}", where: {categoryId:${DEPRECATED_ENTRIES_CATEGORY_ID}} ) {
             pageInfo {
                 hasNextPage
                 endCursor
@@ -242,7 +245,7 @@ export const DEPRECATEDgetTopics = async (
         }
       }`
 
-    const documents = await graphqlQuery(query, { cursor })
+    const documents = await FOR_SYNC_ONLY_graphqlQuery(query, { cursor })
     const pageInfo = documents.data.pages.pageInfo
     const topics: Topic[] = documents.data.pages.nodes
     if (topics.length === 0) return []

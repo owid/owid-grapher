@@ -14,13 +14,7 @@ import {
     merge,
     partition,
 } from "@ourworldindata/utils"
-import {
-    getRelatedArticles,
-    getRelatedChartsForVariable,
-    getRelatedResearchAndWritingForVariable,
-    isWordpressAPIEnabled,
-    isWordpressDBEnabled,
-} from "../db/wpdb.js"
+import { isWordpressAPIEnabled, isWordpressDBEnabled } from "../db/wpdb.js"
 import fs from "fs-extra"
 import * as lodash from "lodash"
 import { bakeGraphersToPngs } from "./GrapherImageBaker.js"
@@ -35,6 +29,8 @@ import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedir
 import {
     getPostEnrichedBySlug,
     getPostRelatedCharts,
+    getRelatedArticles,
+    getRelatedResearchAndWritingForVariable,
 } from "../db/model/Post.js"
 import {
     JsonError,
@@ -64,6 +60,7 @@ import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
 import pMap from "p-map"
+import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,

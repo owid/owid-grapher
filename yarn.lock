@@ -9028,13 +9028,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"error-class@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "error-class@npm:2.0.2"
-  checksum: fda8a1c9445c22b912c6f15c73afc863bec8072c57037606c7d106e8da4aa0a758f23af64d3dc3a51dc8e8187327118bee2b6e44d286597e108317470cb97569
-  languageName: node
-  linkType: hard
-
 "error-ex@npm:^1.3.1":
   version: 1.3.2
   resolution: "error-ex@npm:1.3.2"
@@ -9629,13 +9622,6 @@ __metadata:
   version: 1.8.1
   resolution: "etag@npm:1.8.1"
   checksum: 571aeb3dbe0f2bbd4e4fadbdb44f325fc75335cd5f6f6b6a091e6a06a9f25ed5392f0863c5442acb0646787446e816f13cbfc6edce5b07658541dff573cab1ff
-  languageName: node
-  linkType: hard
-
-"event-lite@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "event-lite@npm:0.1.2"
-  checksum: 9ebf3c7675a2586d392bf26f864ceabff83b233024fcf0a85ff3815a6faba2ff3ab720e941074f57c2501135abccc356c7b83e41ffcdd4988c7403bf3344366f
   languageName: node
   linkType: hard
 
@@ -10317,16 +10303,6 @@ __metadata:
     node-domexception: "npm:1.0.0"
     web-streams-polyfill: "npm:4.0.0-beta.3"
   checksum: 29622f75533107c1bbcbe31fda683e6a55859af7f48ec354a9800591ce7947ed84cd3ef2b2fcb812047a884f17a1bac75ce098ffc17e23402cd373e49c1cd335
-  languageName: node
-  linkType: hard
-
-"fortune@npm:^5.5.17":
-  version: 5.5.17
-  resolution: "fortune@npm:5.5.17"
-  dependencies:
-    error-class: "npm:^2.0.2"
-    event-lite: "npm:^0.1.2"
-  checksum: e90ac2a19f156e250ba58ab6e49924e02cfe1418180b4665f9e134af08cba06e26ee8f6d29c02a5efd9e6e86f949ce2785e4feb6b8b6cdd98d905776f11631c8
   languageName: node
   linkType: hard
 
@@ -11112,7 +11088,6 @@ __metadata:
     express-async-errors: "npm:^3.1.1"
     express-rate-limit: "npm:^5.1.3"
     filenamify: "npm:^4.1.0"
-    fortune: "npm:^5.5.17"
     fs-extra: "npm:^11.1.1"
     fuzzyset: "npm:^1.0.5"
     fuzzysort: "npm:^1.1.4"

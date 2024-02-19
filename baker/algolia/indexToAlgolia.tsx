@@ -26,7 +26,11 @@ import { Pageview } from "../../db/model/Pageview.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { ArticleBlocks } from "../../site/gdocs/components/ArticleBlocks.js"
 import React from "react"
-import { getFullPost, getPostsFromSnapshots } from "../../db/model/Post.js"
+import {
+    getFullPost,
+    getPostTags,
+    getPostsFromSnapshots,
+} from "../../db/model/Post.js"
 
 interface TypeAndImportance {
     type: PageType
@@ -104,7 +108,7 @@ async function generateWordpressRecords(
 
         const post = await formatPost(rawPost, { footnotes: false })
         const chunks = generateChunksFromHtmlText(post.html)
-        const tags = await wpdb.getPostTags(post.id)
+        const tags = await getPostTags(post.id)
         const postTypeAndImportance = getPostTypeAndImportance(post, tags)
 
         let i = 0

@@ -122,15 +122,8 @@ export {
 
 export {
     type EntryMeta,
-    type EntryNode,
     type PostReference,
-    type CategoryNode,
-    type DocumentNode,
     type CategoryWithEntries,
-    GraphDocumentType,
-    GraphType,
-    type AlgoliaRecord,
-    type ChartRecord,
 } from "./domainTypes/ContentGraph.js"
 export {
     WP_BlockClass,

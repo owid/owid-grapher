@@ -82,6 +82,7 @@ import {
     postsTable,
     setTagsForPost,
     getTagsByPostId,
+    getPermalinks,
 } from "../db/model/Post.js"
 import {
     checkFullDeployFallback,
@@ -217,7 +218,7 @@ const getReferencesByChartId = async (chartId: number): Promise<References> => {
         }
 
     const postsPromise = getPostsForSlugs(slugs)
-    const permalinksPromise = wpdb.getPermalinks()
+    const permalinksPromise = getPermalinks()
     const publishedLinksToChartPromise = Link.getPublishedLinksTo(
         slugs,
         OwidGdocLinkType.Grapher
