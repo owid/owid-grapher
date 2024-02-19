@@ -296,7 +296,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                         OwidGdocType.Article,
                                         OwidGdocType.TopicPage,
                                         OwidGdocType.LinearTopicPage,
-                                        OwidGdocType.Fragment
+                                        OwidGdocType.Fragment,
+                                        OwidGdocType.AboutPage
                                     ),
                                 },
                             },

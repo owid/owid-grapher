@@ -48,6 +48,7 @@ export enum OwidGdocType {
     Fragment = "fragment",
     LinearTopicPage = "linear-topic-page",
     DataInsight = "data-insight",
+    AboutPage = "about-page",
 }
 
 export interface OwidGdocBaseInterface {
@@ -177,6 +178,7 @@ export interface OwidGdocPostContent {
         | OwidGdocType.Article
         | OwidGdocType.TopicPage
         | OwidGdocType.LinearTopicPage
+        | OwidGdocType.AboutPage
         // TODO: Fragments need their own OwidGdocFragment interface and flow in the UI
         // Historically they were treated the same as GdocPosts but not baked
         // In reality, they have multiple possible data structures in their content (details, faqs, frontPageConfig, etc)

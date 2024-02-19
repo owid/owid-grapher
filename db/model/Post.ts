@@ -19,6 +19,7 @@ import {
     PostReference,
     Tag,
     DataPageRelatedResearch,
+    OwidGdocType,
 } from "@ourworldindata/types"
 import { uniqBy, sortBy, memoize, orderBy } from "@ourworldindata/utils"
 import { Knex } from "knex"
@@ -367,7 +368,10 @@ export const getGdocsPostReferencesByChartId = async (
                 )
             WHERE
                 c.id = ?
-                AND pg.content ->> '$.type' <> 'fragment'
+                AND pg.content ->> '$.type' NOT IN (
+                    '${OwidGdocType.Fragment}',
+                    '${OwidGdocType.AboutPage}'
+                )
                 AND pg.published = 1
             ORDER BY
                 pg.content ->> '$.title' ASC

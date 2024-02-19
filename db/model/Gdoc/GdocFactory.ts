@@ -41,7 +41,8 @@ export class GdocFactory {
                     OwidGdocType.Article,
                     OwidGdocType.LinearTopicPage,
                     OwidGdocType.TopicPage,
-                    OwidGdocType.Fragment
+                    OwidGdocType.Fragment,
+                    OwidGdocType.AboutPage
                 ),
                 // TODO: better validation here?
                 () => GdocPost.create({ ...(json as any) })
@@ -116,7 +117,8 @@ export class GdocFactory {
                     OwidGdocType.Article,
                     OwidGdocType.LinearTopicPage,
                     OwidGdocType.TopicPage,
-                    OwidGdocType.Fragment
+                    OwidGdocType.Fragment,
+                    OwidGdocType.AboutPage
                 ),
                 () => GdocPost.create(base)
             )

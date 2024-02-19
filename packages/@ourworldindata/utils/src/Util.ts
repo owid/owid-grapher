@@ -1795,6 +1795,7 @@ export function checkIsGdocPost(x: unknown): x is OwidGdocPostInterface {
         OwidGdocType.TopicPage,
         OwidGdocType.LinearTopicPage,
         OwidGdocType.Fragment,
+        OwidGdocType.AboutPage,
     ].includes(type)
 }
 

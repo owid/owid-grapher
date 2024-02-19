@@ -112,6 +112,7 @@ export const checkIsLightningUpdate = (
         [OwidGdocType.LinearTopicPage]: postlightningPropContentConfigMap,
         [OwidGdocType.TopicPage]: postlightningPropContentConfigMap,
         [OwidGdocType.DataInsight]: dataInsightLightningPropContentConfigMap,
+        [OwidGdocType.AboutPage]: postlightningPropContentConfigMap,
     }
 
     const getLightningPropKeys = (configMap: Record<string, boolean>) =>

@@ -85,7 +85,8 @@ export function getFeaturedImageFilename(gdoc: OwidGdoc): string | undefined {
                     type: P.union(
                         OwidGdocType.Article,
                         OwidGdocType.TopicPage,
-                        OwidGdocType.LinearTopicPage
+                        OwidGdocType.LinearTopicPage,
+                        OwidGdocType.AboutPage
                     ),
                 },
             },
