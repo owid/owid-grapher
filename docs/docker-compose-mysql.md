@@ -58,12 +58,6 @@ The first time you run this it will take a while to download and set up the data
 
 Now you can open [http://localhost:3030/admin/charts](http://localhost:3030/admin/charts) and start creating charts. Any changes to the TypeScript code you make will be automatically compiled, but you will have to refresh your page to see the changes.
 
-### Trouble-shooting: MacOS and Docker for Desktop
-
-+ For **MacOS** users: Ensure the Docker Software is running. If you encounter the error `Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?` then it could be the MacOS applications folder Docker software not running rather than a terminal command problem.
-+ If you are blocked by a Docker session that won't delete then restart the machine, don't forget to start Docker for Desktop too.
-+ If you see `error getting credentials - err: exec: "docker-credential-desktop": executable file not found in $PATH, out: ''` [see this forum answer](https://forums.docker.com/t/docker-credential-desktop-exe-executable-file-not-found-in-path-using-wsl2/100225/5) - `vim ~/.docker/config.json` then change `credsStore` into `credStore`.
-
 ## Inspecting the databases
 
 For all operating systems, we recommend using [DBeaver](https://dbeaver.io/).
@@ -109,3 +103,10 @@ rm tmp-downloads/*
 With that done, the next time you run `make up`, the database files will be re-downloaded.
 
 A new database will then be created (expect another 10-20 minutes.)
+
+### Troubleshooting
+
+- For **MacOS** users: Ensure the Docker Desktop is installed and running. If you encounter the error `Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?` then it's most likely that Docker is not running and you need to start (or restart) it
+- If you are blocked by a Docker session that won't delete then restart the machine, don't forget to start Docker for Desktop too.
+- If you see `error getting credentials - err: exec: "docker-credential-desktop": executable file not found in $PATH, out: ''` [see this forum answer](https://forums.docker.com/t/docker-credential-desktop-exe-executable-file-not-found-in-path-using-wsl2/100225/5) - `vim ~/.docker/config.json` then change `credsStore` into `credStore`.
+
