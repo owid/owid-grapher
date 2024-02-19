@@ -1,3 +1,7 @@
+// Most of this CSS will get removed soon once we merge the gdocs homepage branch,
+// For now, it's a mess of old styles and overrides to allow us to stay on the old homepage
+// until we merge and publish the gdocs branch
+
 .homepage-masthead {
     background: url(/images/WorldMapDark2.png) 50% 0 $oxford-blue;
     background-image: image-set(
@@ -246,6 +250,44 @@
         .label-title {
             font-weight: bold;
         }
+    }
+}
+
+.FrontPage .NewsletterSubscription__email {
+    background-color: #fff;
+}
+.FrontPage .homepage-subscribe#subscribe {
+    background: #fff;
+}
+.homepage-subscribe--social-media {
+    margin-top: var(--grid-gap);
+    padding: 24px;
+    h2 {
+        margin: 0;
+    }
+    .shaded-box {
+        flex: 1;
+        padding: 2rem;
+        background-color: $blue-10;
+        color: $text-color;
+    }
+
+    .list-item {
+        color: #1d3d63;
+        display: flex;
+        align-items: center;
+        transition: opacity 0.2s ease;
+        .icon {
+            font-size: 1.375rem;
+            flex: 0;
+            min-width: 2.1rem;
+        }
+    }
+
+    .label {
+        font-size: 1rem;
+        font-weight: 700;
+        flex: 1;
     }
 }
 

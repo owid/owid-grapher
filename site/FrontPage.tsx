@@ -187,7 +187,7 @@ export const FrontPage = (props: {
                             <div className="owid-col owid-col--lg-1">
                                 <div className="homepage-subscribe--social-media">
                                     <div className="shaded-box">
-                                        <h2>Follow us</h2>
+                                        <h2 className="h2-bold">Follow us</h2>
                                         <div className="list">
                                             <a
                                                 href="https://twitter.com/ourworldindata"
@@ -281,67 +281,6 @@ export const FrontPage = (props: {
                     </div>
                 </section>
 
-                <section className="homepage-projects">
-                    <div className="wrapper">
-                        <div className="list">
-                            <a
-                                href="/sdgs"
-                                className="list-item"
-                                data-track-note="homepage_projects"
-                            >
-                                <div className="icon-left">
-                                    <picture>
-                                        <source
-                                            srcSet={`${baseUrl}/sdg-wheel.avif`}
-                                            type="image/avif"
-                                        />
-                                        <img
-                                            src={`${baseUrl}/sdg-wheel.png`}
-                                            alt="SDG Tracker logo"
-                                            loading="lazy"
-                                        />
-                                    </picture>
-                                </div>
-                                <div className="content">
-                                    <h3>
-                                        Sustainable Development Goals Tracker
-                                    </h3>
-                                    <p>
-                                        Is the world on track to reach the
-                                        Sustainable Development Goals?
-                                    </p>
-                                </div>
-                                <div className="icon-right">
-                                    <FontAwesomeIcon icon={faExternalLinkAlt} />
-                                </div>
-                            </a>
-                            <a
-                                href="/teaching"
-                                className="list-item"
-                                data-track-note="homepage_projects"
-                            >
-                                <div className="icon-left">
-                                    <img
-                                        src={`${baseUrl}/teaching-hub.svg`}
-                                        alt="Teaching Hub logo"
-                                        loading="lazy"
-                                    />
-                                </div>
-                                <div className="content">
-                                    <h3>Teaching Hub</h3>
-                                    <p>
-                                        Slides, research, and visualizations for
-                                        teaching and learning about global
-                                        development
-                                    </p>
-                                </div>
-                                <div className="icon-right">
-                                    <FontAwesomeIcon icon={faExternalLinkAlt} />
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </section>
                 <SiteFooter baseUrl={baseUrl} />
             </body>
         </html>
