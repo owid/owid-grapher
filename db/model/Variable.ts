@@ -415,10 +415,10 @@ export const fetchS3DataValuesByPath = async (
     const resp = await retryPromise(
         () =>
             fetch(dataPath, { keepalive: true }).then((response) => {
-                if (!resp.ok) {
+                if (!response.ok) {
                     // Trigger retry
                     throw new Error(
-                        `Error fetching data from S3 for ${dataPath}: ${resp.status} ${resp.statusText}`
+                        `Error fetching data from S3 for ${dataPath}: ${response.status} ${response.statusText}`
                     )
                 }
                 return response
@@ -448,10 +448,10 @@ export const fetchS3MetadataByPath = async (
     const resp = await retryPromise(
         () =>
             fetch(metadataPath, { keepalive: true }).then((response) => {
-                if (!resp.ok) {
+                if (!response.ok) {
                     // Trigger retry
                     throw new Error(
-                        `Error fetching metadata from S3 for ${metadataPath}: ${resp.status} ${resp.statusText}`
+                        `Error fetching metadata from S3 for ${metadataPath}: ${response.status} ${response.statusText}`
                     )
                 }
                 return response
