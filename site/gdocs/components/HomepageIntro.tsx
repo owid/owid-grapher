@@ -126,7 +126,7 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                         <FontAwesomeIcon icon={faArrowRight} />
                     </a>
                     <a
-                        href="#newsletter"
+                        href="#subscribe"
                         className="homepage-intro__subscribe-button body-3-medium"
                     >
                         Subscribe to our newsletter
