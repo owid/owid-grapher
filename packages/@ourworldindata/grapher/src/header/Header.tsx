@@ -305,7 +305,7 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                             textProps: {
                                 fill: manager.secondaryColorInStaticCharts,
                             },
-                            dodMarker: this.manager.detailsMarkerInSvg,
+                            detailsMarker: this.manager.detailsMarkerInSvg,
                         }
                     )}
             </g>

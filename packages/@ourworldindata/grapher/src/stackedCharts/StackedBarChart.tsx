@@ -450,7 +450,7 @@ export class StackedBarChart
                     bounds={bounds}
                     verticalAxis={verticalAxis}
                     labelColor={manager.secondaryColorInStaticCharts}
-                    dodMarker={manager.detailsMarkerInSvg}
+                    detailsMarker={manager.detailsMarkerInSvg}
                 />
                 <VerticalAxisGridLines
                     verticalAxis={verticalAxis}

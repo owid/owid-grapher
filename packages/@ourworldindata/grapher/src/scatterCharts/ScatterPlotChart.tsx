@@ -791,7 +791,7 @@ export class ScatterPlotChart
                             ? GRAPHER_AXIS_LINE_WIDTH_THICK
                             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
                     }
-                    dodMarker={manager.detailsMarkerInSvg}
+                    detailsMarker={manager.detailsMarkerInSvg}
                 />
                 {comparisonLines &&
                     comparisonLines.map((line, i) => (

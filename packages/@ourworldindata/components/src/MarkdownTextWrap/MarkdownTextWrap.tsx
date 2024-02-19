@@ -642,15 +642,15 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         y: number,
         {
             textProps,
-            dodMarker = "superscript",
+            detailsMarker = "superscript",
         }: {
             textProps?: React.SVGProps<SVGTextElement>
-            dodMarker?: DetailsMarker
+            detailsMarker?: DetailsMarker
         } = {}
     ): JSX.Element | null {
         const { fontSize, lineHeight } = this
         const lines =
-            dodMarker === "superscript"
+            detailsMarker === "superscript"
                 ? this.svgLinesWithDodReferenceNumbers
                 : this.svgLines
         if (lines.length === 0) return null
@@ -690,7 +690,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
                     ))}
                 </text>
                 {/* SVG doesn't support dotted underlines, so we draw them manually */}
-                {dodMarker === "underline" &&
+                {detailsMarker === "underline" &&
                     lines.map((line, lineIndex) => {
                         const y = (getLineY(lineIndex) + 2).toFixed(1)
                         let currWidth = 0

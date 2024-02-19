@@ -157,7 +157,7 @@ interface DualAxisViewProps {
     labelColor?: string
     tickColor?: string
     lineWidth?: number
-    dodMarker?: DetailsMarker
+    detailsMarker?: DetailsMarker
 }
 
 @observer
@@ -169,7 +169,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
             labelColor,
             tickColor,
             lineWidth,
-            dodMarker,
+            detailsMarker,
         } = this.props
         const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
 
@@ -195,7 +195,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 verticalAxis={verticalAxis}
                 labelColor={labelColor}
                 tickColor={tickColor}
-                dodMarker={dodMarker}
+                detailsMarker={detailsMarker}
             />
         )
 
@@ -208,7 +208,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 labelColor={labelColor}
                 tickColor={tickColor}
                 tickMarkWidth={lineWidth}
-                dodMarker={dodMarker}
+                detailsMarker={detailsMarker}
             />
         )
 
@@ -229,10 +229,10 @@ export class VerticalAxisComponent extends React.Component<{
     verticalAxis: VerticalAxis
     labelColor?: string
     tickColor?: string
-    dodMarker?: DetailsMarker
+    detailsMarker?: DetailsMarker
 }> {
     render(): JSX.Element {
-        const { bounds, verticalAxis, labelColor, tickColor, dodMarker } =
+        const { bounds, verticalAxis, labelColor, tickColor, detailsMarker } =
             this.props
         const { tickLabels, labelTextWrap } = verticalAxis
 
@@ -247,7 +247,7 @@ export class VerticalAxisComponent extends React.Component<{
                                 transform: "rotate(-90)",
                                 fill: labelColor || GRAPHER_DARK_TEXT,
                             },
-                            dodMarker,
+                            detailsMarker,
                         }
                     )}
                 {tickLabels.map((label, i) => {
@@ -285,7 +285,7 @@ export class HorizontalAxisComponent extends React.Component<{
     labelColor?: string
     tickColor?: string
     tickMarkWidth?: number
-    dodMarker?: DetailsMarker
+    detailsMarker?: DetailsMarker
 }> {
     @computed get scaleType(): ScaleType {
         return this.props.axis.scaleType
@@ -312,7 +312,7 @@ export class HorizontalAxisComponent extends React.Component<{
             labelColor,
             tickColor,
             tickMarkWidth,
-            dodMarker,
+            detailsMarker,
         } = this.props
         const { tickLabels, labelTextWrap: label, labelOffset, orient } = axis
         const horizontalAxisLabelsOnTop = orient === Position.top
@@ -348,7 +348,7 @@ export class HorizontalAxisComponent extends React.Component<{
                             textProps: {
                                 fill: labelColor || GRAPHER_DARK_TEXT,
                             },
-                            dodMarker,
+                            detailsMarker,
                         }
                     )}
                 {tickMarks}

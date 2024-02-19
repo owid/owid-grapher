@@ -1008,7 +1008,7 @@ export class MarimekkoChart
                             ? GRAPHER_AXIS_LINE_WIDTH_THICK
                             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
                     }
-                    dodMarker={manager.detailsMarkerInSvg}
+                    detailsMarker={manager.detailsMarkerInSvg}
                 />
                 <HorizontalCategoricalColorLegend manager={this} />
                 {this.renderBars()}

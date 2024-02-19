@@ -796,7 +796,7 @@ export class LineChart
                             ? GRAPHER_AXIS_LINE_WIDTH_THICK
                             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
                     }
-                    dodMarker={manager.detailsMarkerInSvg}
+                    detailsMarker={manager.detailsMarkerInSvg}
                 />
                 <g clipPath={clipPath.id}>
                     {comparisonLines.map((line, index) => (

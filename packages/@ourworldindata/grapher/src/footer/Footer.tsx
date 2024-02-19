@@ -771,7 +771,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
                     note.renderSVG(
                         targetX,
                         targetY + sources.height + this.verticalPadding,
-                        { dodMarker: this.manager.detailsMarkerInSvg }
+                        { detailsMarker: this.manager.detailsMarkerInSvg }
                     )}
                 {showLicenseNextToSources
                     ? licenseAndOriginUrl.render(

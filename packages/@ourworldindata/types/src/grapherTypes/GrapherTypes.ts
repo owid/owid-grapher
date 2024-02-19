@@ -61,10 +61,12 @@ export enum KeyChartLevel {
     Top = 3, // chart will show at the top of the all charts block
 }
 
-// How to mark a detail on demand
-// - superscript: add a superscript reference number
-// - underline: underline the text
-// - none: don't mark it
+/**
+ * How to mark a detail on demand:
+ * - superscript: add a superscript reference number
+ * - underline: underline the text
+ * - none: don't mark it
+ */
 export type DetailsMarker = "superscript" | "underline" | "none"
 
 export interface BasicChartInformation {
