@@ -985,11 +985,11 @@ html:not(.js) {
         }
 
         ul > li {
+            @include body-3-medium;
             width: 100%;
             list-style-type: none;
             padding: 0.1em 0;
             padding-right: 0.1em;
-            font-size: 0.8em;
             max-width: 90vw;
         }
 
@@ -1009,6 +1009,9 @@ html:not(.js) {
 .ChartsIndexPage #explorers-section {
     padding-bottom: $vertical-spacing;
     border-bottom: 1px solid $blue-20;
+    a {
+        @include body-3-medium;
+    }
     .charts-index-page__explorer-subtitle {
         @include body-3-medium-italic;
         margin-top: 0;
