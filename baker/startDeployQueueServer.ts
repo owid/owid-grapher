@@ -35,7 +35,7 @@ const main = async () => {
         setTimeout(deployIfQueueIsNotEmpty, 10 * 1000)
     })
 
-    deployIfQueueIsNotEmpty()
+    deployIfQueueIsNotEmpty(db.knexInstance())
 }
 
 main()

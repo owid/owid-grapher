@@ -23,12 +23,14 @@ import {
     GrapherInterface,
     ChartTypeName,
     RelatedChart,
+    DbPlainPostLink,
 } from "@ourworldindata/types"
 import { OpenAI } from "openai"
 import {
     BAKED_BASE_URL,
     OPENAI_API_KEY,
 } from "../../settings/serverSettings.js"
+import { Knex } from "knex"
 
 // XXX hardcoded filtering to public parent tags
 export const PUBLIC_TAG_PARENT_IDS = [
@@ -383,12 +385,14 @@ export const getRelatedChartsForVariable = async (
             `)
 }
 
-export const getChartEmbedUrlsInPublishedWordpressPosts = async (): Promise<
-    string[]
-> => {
-    const chartSlugQueryString: { target: string; queryString: string }[] = (
-        await db.knexInstance().raw(
-            `
+export const getChartEmbedUrlsInPublishedWordpressPosts = async (
+    knex: Knex<any, any[]>
+): Promise<string[]> => {
+    const chartSlugQueryString: Pick<
+        DbPlainPostLink,
+        "target" | "queryString"
+    >[] = await db.knexRaw(
+        `
             SELECT
                 pl.target,
                 pl.queryString
@@ -425,9 +429,9 @@ export const getChartEmbedUrlsInPublishedWordpressPosts = async (): Promise<
         --      AND pgl.componentType = "chart"
         --      AND pg.content ->> '$.type' <> 'fragment'
         --      AND pg.published = 1
-    `
-        )
-    )[0]
+    `,
+        knex
+    )
 
     return chartSlugQueryString.map((row) => {
         return `${BAKED_BASE_URL}/${row.target}${row.queryString}`

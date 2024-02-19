@@ -11,6 +11,7 @@ import {
 import { SiteBaker } from "../baker/SiteBaker.js"
 import { WebClient } from "@slack/web-api"
 import { DeployChange, DeployMetadata } from "@ourworldindata/utils"
+import { Knex } from "knex"
 
 const deployQueueServer = new DeployQueueServer()
 
@@ -34,6 +35,7 @@ export const defaultCommitMessage = async (): Promise<string> => {
  */
 const triggerBakeAndDeploy = async (
     deployMetadata: DeployMetadata,
+    knex: Knex<any, any[]>,
     lightningQueue?: DeployChange[]
 ) => {
     // deploy to Buildkite if we're on master and BUILDKITE_API_ACCESS_TOKEN is set
@@ -60,7 +62,7 @@ const triggerBakeAndDeploy = async (
 
             await baker.bakeGDocPosts(lightningQueue.map((c) => c.slug!))
         } else {
-            await baker.bakeAll()
+            await baker.bakeAll(knex)
         }
     }
 }
@@ -151,7 +153,7 @@ let deploying = false
  * the end of the current one, as long as there are changes in the queue.
  * If there are no changes in the queue, a deploy won't be initiated.
  */
-export const deployIfQueueIsNotEmpty = async () => {
+export const deployIfQueueIsNotEmpty = async (knex: Knex<any, any[]>) => {
     if (deploying) return
     deploying = true
     let failures = 0
@@ -184,6 +186,7 @@ export const deployIfQueueIsNotEmpty = async () => {
                 await getChangesSlackMentions(parsedQueue)
             await triggerBakeAndDeploy(
                 { title: changesAuthorNames[0], changesSlackMentions },
+                knex,
                 // If every DeployChange is a lightning change, then we can do a
                 // lightning deploy. In the future, we might want to separate
                 // lightning updates from regular deploys so we could prioritize

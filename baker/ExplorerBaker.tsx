@@ -5,34 +5,38 @@ import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrl
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { explorerRedirectTable } from "../explorerAdminServer/ExplorerRedirects.js"
 import { renderExplorerPage } from "./siteRenderers.js"
+import { Knex } from "knex"
 
 export const bakeAllPublishedExplorers = async (
     outputFolder: string,
-    explorerAdminServer: ExplorerAdminServer
+    explorerAdminServer: ExplorerAdminServer,
+    knex: Knex<any, any[]>
 ) => {
     // remove all existing explorers, since we're re-baking every single one anyway
     fs.remove(outputFolder)
     fs.mkdirp(outputFolder)
 
     const published = await explorerAdminServer.getAllPublishedExplorers()
-    await bakeExplorersToDir(outputFolder, published)
+    await bakeExplorersToDir(outputFolder, published, knex)
 }
 
 const bakeExplorersToDir = async (
     directory: string,
-    explorers: ExplorerProgram[] = []
+    explorers: ExplorerProgram[] = [],
+    knex: Knex<any, any[]>
 ) => {
     for (const explorer of explorers) {
         await write(
             `${directory}/${explorer.slug}.html`,
-            await renderExplorerPage(explorer)
+            await renderExplorerPage(explorer, knex)
         )
     }
 }
 
 export const bakeAllExplorerRedirects = async (
     outputFolder: string,
-    explorerAdminServer: ExplorerAdminServer
+    explorerAdminServer: ExplorerAdminServer,
+    knex: Knex<any, any[]>
 ) => {
     const explorers = await explorerAdminServer.getAllExplorers()
     const redirects = explorerRedirectTable.rows
@@ -53,7 +57,7 @@ export const bakeAllExplorerRedirects = async (
                 `No explorer with slug '${explorerSlug}'. Fix the list of explorer redirects and retry.`
             )
         }
-        const html = await renderExplorerPage(program, {
+        const html = await renderExplorerPage(program, knex, {
             explorerUrlMigrationId: migrationId,
             baseQueryStr,
         })

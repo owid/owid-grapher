@@ -2,12 +2,12 @@ import * as db from "../db/db"
 import * as wpdb from "../db/wpdb"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
 import { resolveRedirectFromMap } from "./redirects.js"
-import { Redirect, Url } from "@ourworldindata/utils"
+import { DbPlainRedirect, Url } from "@ourworldindata/utils"
 
 // A close cousing of the getWordpressRedirectsMap() function from
 // redirects.ts.
 const getWordpressRedirectsMapFromRedirects = (
-    redirects: Redirect[]
+    redirects: DbPlainRedirect[]
 ): Map<string, string> => {
     return new Map(redirects.map((r) => [r.source, r.target]))
 }
@@ -27,9 +27,9 @@ export const syncRedirectsToGrapher = async (): Promise<void> => {
         target: stripTrailingSlash(r.target),
     }))
 
-    const existingRedirectsFromDb = await getRedirectsFromDb()
+    await db.knexInstance().transaction(async (knex) => {
+        const existingRedirectsFromDb = await getRedirectsFromDb(knex)
 
-    await db.knexInstance().transaction(async (t) => {
         for (const { source, code } of allWordpressRedirects) {
             // We only want to insert redirects for which we don't have a redirected source yet
             if (existingRedirectsFromDb.some((r) => r.source === source)) {
@@ -60,8 +60,9 @@ export const syncRedirectsToGrapher = async (): Promise<void> => {
             console.log(
                 `Adding redirect: ${source} -> ${resolvedTarget} (${code})`
             )
-            await t.raw(
+            await db.knexRaw(
                 `INSERT INTO redirects (source, target, code) VALUES (?, ?, ?)`,
+                knex,
                 [source, resolvedTarget, code]
             )
         }

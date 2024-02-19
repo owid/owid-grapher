@@ -1,12 +1,16 @@
+import { Knex } from "knex"
+import { DbPlainRedirect } from "@ourworldindata/types"
 import * as db from "../db"
-import { Redirect } from "@ourworldindata/types"
 
-export const getRedirectsFromDb = async (): Promise<Redirect[]> => {
-    const redirectsFromDb = (
-        await db.knexInstance().raw(`
+export const getRedirectsFromDb = async (
+    knex: Knex<any, any[]>
+): Promise<DbPlainRedirect[]> => {
+    const redirectsFromDb: DbPlainRedirect[] = await db.knexRaw(
+        `
         SELECT source, target, code FROM redirects
-        `)
-    )[0]
+        `,
+        knex
+    )
 
     return redirectsFromDb
 }

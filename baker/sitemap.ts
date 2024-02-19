@@ -13,6 +13,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getPostsFromSnapshots } from "../db/model/Post.js"
+import { Knex } from "knex"
 
 interface SitemapUrl {
     loc: string
@@ -57,12 +58,14 @@ const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl[] => {
     }
 }
 
-export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
-    // TODO: the knex instance should be handed down as a parameter
-    const knex = db.knexInstance()
+export const makeSitemap = async (
+    explorerAdminServer: ExplorerAdminServer,
+    knex: Knex<any, any[]>
+) => {
     const alreadyPublishedViaGdocsSlugsSet =
         await db.getSlugsWithPublishedGdocsSuccessors(knex)
     const postsApi = await getPostsFromSnapshots(
+        knex,
         undefined,
         (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
     )
