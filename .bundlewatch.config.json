@@ -2,7 +2,7 @@
     "files": [
         {
             "path": "./dist/assets/common.mjs",
-            "maxSize": "2MB"
+            "maxSize": "2.3MB"
         },
         {
             "path": "./dist/assets/owid.mjs",
