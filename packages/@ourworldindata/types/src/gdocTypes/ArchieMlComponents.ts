@@ -770,6 +770,7 @@ export type EnrichedBlockPillRow = {
 
 export type RawBlockHomepageSearch = {
     type: "homepage-search"
+    value: Record<string, never>
 }
 
 export type EnrichedBlockHomepageSearch = {

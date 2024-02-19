@@ -4,10 +4,11 @@
     --padding: var(--grid-gap, 24px);
     --border: #{$blue-20};
 
-    margin: 24px calc(-1 * var(--padding));
+    margin: 24px 0;
 
     @include sm-only {
         background-color: $blue-5;
+        margin: 24px -16px;
     }
 
     .accordion-item + .accordion-item {

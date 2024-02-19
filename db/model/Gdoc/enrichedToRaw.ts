@@ -486,6 +486,7 @@ export function enrichedBlockToRawBlock(
         .with({ type: "homepage-search" }, (_): RawBlockHomepageSearch => {
             return {
                 type: "homepage-search",
+                value: {},
             }
         })
         .with({ type: "homepage-intro" }, (b): RawBlockHomepageIntro => {

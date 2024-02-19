@@ -555,12 +555,6 @@ export const enrichedBlockExamples: Record<
     },
     "key-indicator-collection": {
         type: "key-indicator-collection",
-        heading: "Explore key indicators on poverty",
-        subtitle: "These indicators show how poverty has changed over time.",
-        button: {
-            text: "Explore the data",
-            url: "https://ourworldindata.org/grapher/total-cases-covid-19",
-        },
         blocks: [
             {
                 type: "key-indicator",
@@ -604,6 +598,7 @@ export const enrichedBlockExamples: Record<
                 description:
                     "Why are so many people pessimistic about the future?",
                 kicker: "Article - 10 Mins",
+                filename: "optimism-and-pessimism.jpg",
                 authors: ["Our World In Data"],
             },
             {
@@ -613,12 +608,29 @@ export const enrichedBlockExamples: Record<
                 description:
                     "The risk of death from influenza has declined over time, but globally, hundreds of thousands of people still die from the disease each year.",
                 kicker: "Article - 10 Mins",
+                filename: "optimism-and-pessimism.jpg",
                 authors: ["Our World In Data"],
+            },
+            {
+                type: "secondary",
+                url: "https://ourworldindata.org/something",
+                title: "Is this a rhetorical question?",
+                description: "Blah blah",
+                kicker: "Article - 10 Mins",
+                filename: "featured-image.jpg",
+                authors: ["Max Roser"],
             },
             {
                 type: "tertiary",
                 url: "https://ourworldindata.org/front-end-engineer",
                 title: "We’re looking for a front-end engineer to join our team.",
+                kicker: "Announcement",
+                authors: ["Our World In Data"],
+            },
+            {
+                type: "tertiary",
+                url: "https://ourworldindata.org/civil-engineer",
+                title: "We’re looking to build bridges with a civil engineer.",
                 kicker: "Announcement",
                 authors: ["Our World In Data"],
             },

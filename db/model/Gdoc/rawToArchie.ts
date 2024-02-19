@@ -658,6 +658,7 @@ function* rawBlockKeyIndicatorToArchieMLString(
             yield "[]"
         }
     }
+    yield "{}"
 }
 
 function* rawBlockPillRowToArchieMLString(
@@ -683,8 +684,9 @@ function* rawBlockKeyIndicatorCollectionToArchieMLString(
     yield "{.key-indicator-collection}"
     if (typeof block.value.indicators !== "string") {
         yield "[.+indicators]"
-        for (const b of block.value.indicators)
+        for (const b of block.value.indicators) {
             yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
+        }
         yield "[]"
     }
     yield "{}"
@@ -705,11 +707,14 @@ function* rawBlockHomepageIntroToArchieMLString(
     if (block.value?.["featured-work"]) {
         for (const post of block.value["featured-work"]) {
             const value = post.value
+            yield `{.${post.type}}`
             yield* propertyToArchieMLString("title", value)
             yield* propertyToArchieMLString("description", value)
             yield* propertyToArchieMLString("url", value)
             yield* propertyToArchieMLString("filename", value)
             yield* propertyToArchieMLString("kicker", value)
+            yield* propertyToArchieMLString("authors", value)
+            yield "{}"
         }
     }
     yield "[]"
