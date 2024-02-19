@@ -88,6 +88,8 @@ import {
     HorizontalAlign,
     RawBlockAlign,
     FaqDictionary,
+    RawBlockLatestDataInsights,
+    EnrichedBlockLatestDataInsights,
     EnrichedFaq,
     RawBlockEntrySummary,
     EnrichedBlockEntrySummary,
@@ -212,6 +214,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "table" }, parseTable)
         .with({ type: "key-indicator" }, parseKeyIndicator)
         .with({ type: "key-indicator-collection" }, parseKeyIndicatorCollection)
+        .with({ type: "latest-data-insights" }, parseLatestDataInsights)
         .with({ type: "pill-row" }, parsePillRow)
         .with({ type: "homepage-search" }, parseHomepageSearch)
         .with({ type: "homepage-intro" }, parseHomepageIntro)
@@ -2113,6 +2116,15 @@ function parsePillRow(raw: RawBlockPillRow): EnrichedBlockPillRow {
         parseErrors: [],
         pills: pills,
         title: raw.value.title,
+    }
+}
+
+function parseLatestDataInsights(
+    _: RawBlockLatestDataInsights
+): EnrichedBlockLatestDataInsights {
+    return {
+        type: "latest-data-insights",
+        parseErrors: [],
     }
 }
 

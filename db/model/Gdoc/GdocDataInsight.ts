@@ -10,7 +10,7 @@ import {
     OwidGdocMinimalPostInterface,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
-import { getConnection } from "../../../db/db.js"
+import * as db from "../../../db/db.js"
 
 @Entity("posts_gdocs")
 export class GdocDataInsight
@@ -45,30 +45,7 @@ export class GdocDataInsight
     }
 
     _loadSubclassAttachments = async (): Promise<void> => {
-        this.latestDataInsights = await GdocDataInsight.loadLatestDataInsights()
-    }
-
-    static async loadLatestDataInsights(): Promise<
-        MinimalDataInsightInterface[]
-    > {
-        const c = await getConnection()
-        return (
-            await c.query(`
-        SELECT
-            content->>'$.title' AS title,
-            publishedAt,
-            ROW_NUMBER() OVER (ORDER BY publishedAt DESC) - 1 AS \`index\`
-        FROM posts_gdocs
-        WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
-            AND published = TRUE
-            AND publishedAt < NOW()
-        ORDER BY publishedAt DESC
-        LIMIT 5
-        `)
-        ).map((record: any) => ({
-            ...record,
-            index: Number(record.index),
-        })) as MinimalDataInsightInterface[]
+        this.latestDataInsights = await db.getLatestDataInsights()
     }
 
     static async getPublishedDataInsights(
@@ -93,24 +70,12 @@ export class GdocDataInsight
         })
     }
 
-    static async getPublishedDataInsightCount(): Promise<number> {
-        const c = await getConnection()
-        const query = `
-            SELECT COUNT(*) AS count
-            FROM posts_gdocs
-            WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
-                AND published = TRUE
-                AND publishedAt < NOW()
-        `
-        return (await c.query(query))[0].count
-    }
-
     /**
      * Returns the number of pages that will exist on the data insights index page
      * based on the number of published data insights and DATA_INSIGHTS_INDEX_PAGE_SIZE
      */
     static async getTotalPageCount(): Promise<number> {
-        const count = await GdocDataInsight.getPublishedDataInsightCount()
+        const count = await db.getPublishedDataInsightCount()
         return Math.ceil(count / DATA_INSIGHTS_INDEX_PAGE_SIZE)
     }
 }

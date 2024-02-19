@@ -637,4 +637,8 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
+    "latest-data-insights": {
+        type: "latest-data-insights",
+        parseErrors: [],
+    },
 }

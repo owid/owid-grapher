@@ -42,6 +42,7 @@ import {
     RawBlockPillRow,
     RawBlockHomepageSearch,
     RawBlockHomepageIntro,
+    RawBlockLatestDataInsights,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -463,6 +464,13 @@ export function enrichedBlockToRawBlock(
                 },
             }
         })
+        .with(
+            { type: "latest-data-insights" },
+            (_): RawBlockLatestDataInsights => ({
+                type: "latest-data-insights",
+                value: {},
+            })
+        )
         .with(
             { type: "key-indicator-collection" },
             (b): RawBlockKeyIndicatorCollection => {

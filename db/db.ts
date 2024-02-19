@@ -11,7 +11,11 @@ import {
 } from "../settings/serverSettings.js"
 import { registerExitHandler } from "./cleanup.js"
 import { keyBy } from "@ourworldindata/utils"
-import { DbChartTagJoin } from "@ourworldindata/types"
+import {
+    DbChartTagJoin,
+    MinimalDataInsightInterface,
+    OwidGdocType,
+} from "@ourworldindata/types"
 let typeormDataSource: DataSource
 
 export const getConnection = async (
@@ -203,4 +207,64 @@ export const getPublishedExplorersBySlug = async (
         })
         return keyBy(processed, "slug")
     })
+}
+
+export const getLatestDataInsights = (
+    limit = 5
+): Promise<MinimalDataInsightInterface[]> => {
+    return knexRaw(
+        `
+        SELECT
+            content->>'$.title' AS title,
+            publishedAt,
+            ROW_NUMBER() OVER (ORDER BY publishedAt DESC) - 1 AS \`index\`
+        FROM posts_gdocs
+        WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
+            AND published = TRUE
+            AND publishedAt < NOW()
+        ORDER BY publishedAt DESC
+        LIMIT ?
+        `,
+        knexInstance(),
+        [limit]
+    ).then((results) =>
+        results.map((record: any) => ({
+            ...record,
+            index: Number(record.index),
+        }))
+    ) as Promise<MinimalDataInsightInterface[]>
+}
+
+export const getPublishedDataInsightCount = (): Promise<number> => {
+    return knexRawFirst<{ count: number }>(
+        `SELECT COUNT(*) AS count
+        FROM posts_gdocs
+        WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
+            AND published = TRUE
+            AND publishedAt < NOW()`,
+        knexInstance()
+    ).then((res) => res?.count ?? 0)
+}
+
+export const getTotalNumberOfCharts = (): Promise<number> => {
+    return knexRawFirst<{ count: number }>(
+        `
+        SELECT COUNT(*) AS count
+        FROM charts
+        WHERE publishedAt IS NOT NULL`,
+        knexInstance()
+    ).then((res) => res?.count ?? 0)
+}
+
+export const getTotalNumberOfTopics = (): Promise<number> => {
+    return knexRawFirst<{ count: number }>(
+        `
+        SELECT COUNT(DISTINCT(tagId)) AS count
+        FROM chart_tags
+        WHERE chartId IN (
+        SELECT id
+        FROM charts
+        WHERE publishedAt IS NOT NULL)`,
+        knexInstance()
+    ).then((res) => res?.count ?? 0)
 }

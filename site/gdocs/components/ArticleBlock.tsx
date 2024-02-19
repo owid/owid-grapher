@@ -40,6 +40,7 @@ import KeyIndicatorCollection from "./KeyIndicatorCollection.js"
 import { PillRow } from "./PillRow.js"
 import { HomepageIntro } from "./HomepageIntro.js"
 import { HomepageSearch } from "./HomepageSearch.js"
+import { LatestDataInsightsBlock } from "./LatestDataInsights.js"
 
 export type Container =
     | "default"
@@ -81,6 +82,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["key-indicator"]: "col-start-2 span-cols-12",
         ["key-indicator-collection"]: "grid col-start-2 span-cols-12",
         ["key-insights"]: "col-start-2 span-cols-12",
+        ["latest-data-insights"]: "grid grid-cols-12-full-width span-cols-14",
         ["list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["numbered-list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
@@ -639,6 +641,11 @@ export default function ArticleBlock({
             <ExplorerTiles
                 className={getLayout("explorer-tiles", containerType)}
                 {...block}
+            />
+        ))
+        .with({ type: "latest-data-insights" }, () => (
+            <LatestDataInsightsBlock
+                className={getLayout("latest-data-insights", containerType)}
             />
         ))
         .with({ type: "key-indicator" }, (block) => (

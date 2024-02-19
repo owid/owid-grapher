@@ -54,32 +54,11 @@ export class GdocHomepage
     }
 
     _loadSubclassAttachments = async (): Promise<void> => {
-        const totalNumberOfCharts = await db
-            .knexRawFirst<{ count: number }>(
-                `
-                SELECT COUNT(*) AS count
-                FROM charts
-                WHERE publishedAt IS NOT NULL`,
-                db.knexInstance()
-            )
-            .then((res) => res?.count)
-
-        const totalNumberOfTopics = await db
-            .knexRawFirst<{ count: number }>(
-                `
-                SELECT COUNT(DISTINCT(tagId)) AS count
-                FROM chart_tags
-                WHERE chartId IN (
-                SELECT id
-                FROM charts
-                WHERE publishedAt IS NOT NULL)`,
-                db.knexInstance()
-            )
-            .then((res) => res?.count)
-
         this.homepageMetadata = {
-            chartCount: totalNumberOfCharts,
-            topicCount: totalNumberOfTopics,
+            chartCount: await db.getTotalNumberOfCharts(),
+            topicCount: await db.getTotalNumberOfTopics(),
         }
+
+        this.latestDataInsights = await db.getLatestDataInsights(4)
     }
 }

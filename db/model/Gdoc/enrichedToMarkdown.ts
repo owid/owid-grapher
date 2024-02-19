@@ -213,6 +213,7 @@ ${b.url}`
         .with({ type: "topic-page-intro" }, (b): string | undefined =>
             enrichedBlocksToMarkdown(b.content, exportComponents)
         )
+        .with({ type: "latest-data-insights" }, (): undefined => undefined) // Note: dropped
         .with({ type: "key-insights" }, (b): string | undefined => {
             // TODO: handle either filename or url as a chart or image
             const insightTexts = b.insights.map((insight) => {

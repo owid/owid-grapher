@@ -1,0 +1,69 @@
+.latest-data-insights-block {
+    background-color: $blue-5;
+    padding: 24px 0;
+    @include sm-only {
+        margin-top: 24px;
+    }
+}
+.latest-data-insights-block__header {
+    margin-bottom: 16px;
+    h2 {
+        color: $blue-90;
+        margin: 0;
+    }
+    p {
+        color: $blue-60;
+        margin: 0;
+    }
+}
+
+.latest-data-insights-block__card-container {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+.latest-data-insights-block__card {
+    min-width: 302px;
+    background-color: #fff;
+    padding: 16px;
+    align-self: start;
+    &:not(:last-child) {
+        margin-right: var(--grid-gap);
+    }
+    &:hover {
+        .latest-data-insights-block__card-title {
+            text-decoration: underline;
+        }
+    }
+}
+
+.latest-data-insights-block__card-date {
+    margin-bottom: 4px;
+    margin-top: 0;
+    color: $blue-60;
+}
+
+.latest-data-insights-block__card .latest-data-insights-block__card-title {
+    margin: 0;
+    color: $blue-90;
+}
+
+.latest-data-insights-block__see-all-data-insights-button {
+    color: $vermillion;
+    border: 1px solid $vermillion;
+    padding: 8.5px 24px;
+    justify-self: end;
+    align-self: center;
+    &:hover {
+        border-color: $accent-vermillion;
+        color: $accent-vermillion;
+    }
+
+    @include sm-only {
+        margin-top: 16px;
+        justify-self: unset;
+        text-align: center;
+        order: 2;
+    }
+}

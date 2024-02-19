@@ -7,7 +7,10 @@ import {
     OwidGdocMinimalPostInterface,
     merge,
 } from "@ourworldindata/utils"
-import { DataInsightBody, indexToIdMap } from "./gdocs/pages/DataInsight.js"
+import {
+    DataInsightBody,
+    dataInsightIndexToIdMap,
+} from "./gdocs/pages/DataInsight.js"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -122,7 +125,9 @@ export const DataInsightsIndexPageContent = (
                 </header>
                 {dataInsights.map((dataInsight, index) => {
                     const id =
-                        pageNumber === 0 ? indexToIdMap[index] : undefined
+                        pageNumber === 0
+                            ? dataInsightIndexToIdMap[index]
+                            : undefined
                     return (
                         <DataInsightBody
                             key={dataInsight.id}

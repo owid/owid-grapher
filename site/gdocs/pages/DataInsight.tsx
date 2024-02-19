@@ -25,7 +25,7 @@ export const THIRD_MOST_RECENT_INSIGHT = "third-most-recent-data-insight"
 export const FOURTH_MOST_RECENT_INSIGHT = "fourth-most-recent-data-insight"
 export const FIFTH_MOST_RECENT_INSIGHT = "fifth-most-recent-data-insight"
 
-export const indexToIdMap: Record<number, string> = {
+export const dataInsightIndexToIdMap: Record<number, string> = {
     0: MOST_RECENT_DATA_INSIGHT,
     1: SECOND_MOST_RECENT_INSIGHT,
     2: THIRD_MOST_RECENT_INSIGHT,
@@ -39,7 +39,7 @@ const DataInsightCard = (props: MinimalDataInsightInterface): JSX.Element => {
         : null
     return (
         <a
-            href={`/data-insights#${indexToIdMap[props.index]}`}
+            href={`/data-insights#${dataInsightIndexToIdMap[props.index]}`}
             className="data-insight-card"
         >
             <p className="data-insight-card__published-at h6-black-caps">

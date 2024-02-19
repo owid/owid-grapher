@@ -812,6 +812,15 @@ export type EnrichedBlockHomepageIntro = {
     featuredWork: EnrichedBlockHomepageIntroPost[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockLatestDataInsights = {
+    type: "latest-data-insights"
+    value: Record<string, never>
+}
+
+export type EnrichedBlockLatestDataInsights = {
+    type: "latest-data-insights"
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
@@ -854,6 +863,7 @@ export type OwidRawGdocBlock =
     | RawBlockPillRow
     | RawBlockHomepageSearch
     | RawBlockHomepageIntro
+    | RawBlockLatestDataInsights
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -897,3 +907,4 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockPillRow
     | EnrichedBlockHomepageSearch
     | EnrichedBlockHomepageIntro
+    | EnrichedBlockLatestDataInsights

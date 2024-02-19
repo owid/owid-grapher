@@ -1667,7 +1667,8 @@ export function traverseEnrichedBlocks(
                     "explorer-tiles",
                     "pill-row",
                     "homepage-search",
-                    "homepage-intro"
+                    "homepage-intro",
+                    "latest-data-insights"
                 ),
             },
             callback
