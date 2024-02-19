@@ -7,14 +7,13 @@ function Pill(props: { text?: string; url: string }) {
     const { linkedDocument, errorMessage } = useLinkedDocument(props.url)
     const { isPreviewing } = useContext(DocumentContext)
     const url = linkedDocument ? `/${linkedDocument.slug}` : props.url
-    const text = linkedDocument ? linkedDocument.title : props.text
+    const text = props.text ?? linkedDocument?.title
 
     if (isPreviewing) {
         if (errorMessage || !text || !url) {
             return (
                 <li className="article-block__pill article-block__pill--error">
-                    Something is wrong with a document you're linking to in this
-                    pill. This message won't appear on the live site.
+                    {errorMessage}
                 </li>
             )
         }
