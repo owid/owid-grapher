@@ -51,6 +51,14 @@ export interface PostRestApi {
     }
 }
 
+export interface BlockGraphQlApi {
+    data?: {
+        wpBlock?: {
+            content: string
+        }
+    }
+}
+
 export type FilterFnPostRestApi = (post: PostRestApi) => boolean
 
 export enum WP_ColumnStyle {

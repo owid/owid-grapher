@@ -350,8 +350,8 @@ const syncPostsToGrapher = async (): Promise<void> => {
                 ),
                 wpApiSnapshot:
                     post.post_type === "wp_block"
-                        ? await wpdb.getBlockApi(post.ID)
-                        : await wpdb.getPostApiBySlug(post.post_name),
+                        ? await wpdb.getBlockApiFromApi(post.ID)
+                        : await wpdb.getPostApiBySlugFromApi(post.post_name),
                 featured_image: post.featured_image || "",
                 published_at:
                     post.post_date_gmt === zeroDateString

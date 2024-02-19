@@ -1,6 +1,29 @@
-import * as db from "../db.js"
+import * as db from "../db"
+import {
+    DbRawPost,
+    DbEnrichedPost,
+    parsePostRow,
+    parsePostWpApiSnapshot,
+    FullPost,
+    JsonError,
+    CategoryWithEntries,
+    WP_PostType,
+    FilterFnPostRestApi,
+    PostRestApi,
+    RelatedChart,
+    IndexPost,
+    OwidGdocPostInterface,
+    IMAGES_DIRECTORY,
+    snapshotIsPostRestApi,
+    snapshotIsBlockGraphQlApi,
+} from "@ourworldindata/types"
 import { Knex } from "knex"
-import { DbEnrichedPost, DbRawPost, parsePostRow } from "@ourworldindata/utils"
+import { memoize, orderBy } from "lodash"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
+import { BLOG_SLUG } from "../../settings/serverSettings.js"
+import { GdocPost } from "./Gdoc/GdocPost.js"
+import { SiteNavigationStatic } from "../../site/SiteNavigation.js"
+import { decodeHTML } from "entities"
 
 export const postsTable = "posts"
 
@@ -63,7 +86,12 @@ export const setTagsForPost = async (
 export const getPostRawBySlug = async (
     slug: string
 ): Promise<DbRawPost | undefined> =>
-    (await db.knexTable("posts").where({ slug: slug }))[0]
+    (await db.knexTable(postsTable).where({ slug }))[0]
+
+export const getPostRawById = async (
+    id: number
+): Promise<DbRawPost | undefined> =>
+    (await db.knexTable(postsTable).where({ id }))[0]
 
 export const getPostEnrichedBySlug = async (
     slug: string
@@ -71,4 +99,193 @@ export const getPostEnrichedBySlug = async (
     const post = await getPostRawBySlug(slug)
     if (!post) return undefined
     return parsePostRow(post)
+}
+
+export const getPostEnrichedById = async (
+    id: number
+): Promise<DbEnrichedPost | undefined> => {
+    const post = await getPostRawById(id)
+    if (!post) return undefined
+    return parsePostRow(post)
+}
+
+export const getFullPostBySlugFromSnapshot = async (
+    slug: string
+): Promise<FullPost> => {
+    const postEnriched = await getPostEnrichedBySlug(slug)
+    if (
+        !postEnriched?.wpApiSnapshot ||
+        !snapshotIsPostRestApi(postEnriched.wpApiSnapshot)
+    )
+        throw new JsonError(`No page snapshot found by slug ${slug}`, 404)
+
+    return getFullPost(postEnriched.wpApiSnapshot)
+}
+
+export const getFullPostByIdFromSnapshot = async (
+    id: number
+): Promise<FullPost> => {
+    const postEnriched = await getPostEnrichedById(id)
+    if (
+        !postEnriched?.wpApiSnapshot ||
+        !snapshotIsPostRestApi(postEnriched.wpApiSnapshot)
+    )
+        throw new JsonError(`No page snapshot found by id ${id}`, 404)
+
+    return getFullPost(postEnriched.wpApiSnapshot)
+}
+
+export const isPostSlugCitable = (slug: string): boolean => {
+    const entries = SiteNavigationStatic.categories
+    return entries.some((category) => {
+        return (
+            category.entries.some((entry) => entry.slug === slug) ||
+            (category.subcategories ?? []).some(
+                (subcategory: CategoryWithEntries) => {
+                    return subcategory.entries.some(
+                        (subCategoryEntry) => subCategoryEntry.slug === slug
+                    )
+                }
+            )
+        )
+    })
+}
+
+export const getPostsFromSnapshots = async (
+    postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
+    filterFunc?: FilterFnPostRestApi
+): Promise<PostRestApi[]> => {
+    const rawPosts: Pick<DbRawPost, "wpApiSnapshot">[] = (
+        await db.knexInstance().raw(
+            `
+                SELECT wpApiSnapshot FROM ${postsTable}
+                WHERE wpApiSnapshot IS NOT NULL
+                AND status = "publish"
+                AND type IN (?)
+                ORDER BY wpApiSnapshot->>'$.date' DESC;
+            `,
+            [postTypes]
+        )
+    )[0]
+
+    const posts = rawPosts
+        .map((p) => p.wpApiSnapshot)
+        .filter((snapshot) => snapshot !== null)
+        .map((snapshot) => parsePostWpApiSnapshot(snapshot!))
+
+    // Published pages excluded from public views
+    const excludedSlugs = [BLOG_SLUG]
+
+    const filterConditions: Array<FilterFnPostRestApi> = [
+        (post): boolean => !excludedSlugs.includes(post.slug),
+        (post): boolean => !post.slug.endsWith("-country-profile"),
+    ]
+    if (filterFunc) filterConditions.push(filterFunc)
+
+    return posts.filter((post) => filterConditions.every((c) => c(post)))
+}
+
+export const getPostRelatedCharts = async (
+    postId: number
+): Promise<RelatedChart[]> =>
+    db.queryMysql(`
+        SELECT DISTINCT
+            charts.config->>"$.slug" AS slug,
+            charts.config->>"$.title" AS title,
+            charts.config->>"$.variantName" AS variantName,
+            chart_tags.keyChartLevel
+        FROM charts
+        INNER JOIN chart_tags ON charts.id=chart_tags.chartId
+        INNER JOIN post_tags ON chart_tags.tagId=post_tags.tag_id
+        WHERE post_tags.post_id=${postId}
+        AND charts.config->>"$.isPublished" = "true"
+        ORDER BY title ASC
+    `)
+
+export const getFullPost = async (
+    postApi: PostRestApi,
+    excludeContent?: boolean
+): Promise<FullPost> => ({
+    id: postApi.id,
+    type: postApi.type,
+    slug: postApi.slug,
+    path: postApi.slug, // kept for transitioning between legacy BPES (blog post as entry section) and future hierarchical paths
+    title: decodeHTML(postApi.title.rendered),
+    date: new Date(postApi.date_gmt),
+    modifiedDate: new Date(postApi.modified_gmt),
+    authors: postApi.authors_name || [],
+    content: excludeContent ? "" : postApi.content.rendered,
+    excerpt: decodeHTML(postApi.excerpt.rendered),
+    imageUrl: `${BAKED_BASE_URL}${
+        postApi.featured_media_paths.medium_large ?? "/default-thumbnail.jpg"
+    }`,
+    thumbnailUrl: `${BAKED_BASE_URL}${
+        postApi.featured_media_paths?.thumbnail ?? "/default-thumbnail.jpg"
+    }`,
+    imageId: postApi.featured_media,
+    relatedCharts:
+        postApi.type === "page"
+            ? await getPostRelatedCharts(postApi.id)
+            : undefined,
+})
+
+const selectHomepagePosts: FilterFnPostRestApi = (post) =>
+    post.meta?.owid_publication_context_meta_field?.homepage === true
+
+export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
+    await db.getConnection() // side effect: ensure connection is established
+    const gdocPosts = await GdocPost.getListedGdocs()
+    const wpPosts = await Promise.all(
+        await getPostsFromSnapshots(
+            [WP_PostType.Post],
+            selectHomepagePosts
+        ).then((posts) => posts.map((post) => getFullPost(post, true)))
+    )
+
+    const gdocSlugs = new Set(gdocPosts.map(({ slug }) => slug))
+    const posts = [...mapGdocsToWordpressPosts(gdocPosts)]
+
+    // Only adding each wpPost if there isn't already a gdoc with the same slug,
+    // to make sure we use the most up-to-date metadata
+    for (const wpPost of wpPosts) {
+        if (!gdocSlugs.has(wpPost.slug)) {
+            posts.push(wpPost)
+        }
+    }
+
+    return orderBy(posts, (post) => post.date.getTime(), ["desc"])
+})
+
+export const mapGdocsToWordpressPosts = (
+    gdocs: OwidGdocPostInterface[]
+): IndexPost[] => {
+    return gdocs.map((gdoc) => ({
+        title: gdoc.content["atom-title"] || gdoc.content.title || "Untitled",
+        slug: gdoc.slug,
+        type: gdoc.content.type,
+        date: gdoc.publishedAt as Date,
+        modifiedDate: gdoc.updatedAt as Date,
+        authors: gdoc.content.authors,
+        excerpt: gdoc.content["atom-excerpt"] || gdoc.content.excerpt,
+        imageUrl: gdoc.content["featured-image"]
+            ? `${BAKED_BASE_URL}${IMAGES_DIRECTORY}${gdoc.content["featured-image"]}`
+            : `${BAKED_BASE_URL}/default-thumbnail.jpg`,
+    }))
+}
+
+export const postsFlushCache = (): void => {
+    getBlogIndex.cache.clear?.()
+}
+
+export const getBlockContentFromSnapshot = async (
+    id: number
+): Promise<string | undefined> => {
+    const enrichedBlock = await getPostEnrichedById(id)
+    if (
+        !enrichedBlock?.wpApiSnapshot ||
+        !snapshotIsBlockGraphQlApi(enrichedBlock.wpApiSnapshot)
+    )
+        return
+
+    return enrichedBlock?.wpApiSnapshot.data?.wpBlock?.content
 }

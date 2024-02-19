@@ -19,7 +19,7 @@ import {
     adjustHeadingLevels,
     findMinimumHeadingLevel,
 } from "./model/Gdoc/htmlToEnriched.js"
-import { getRelatedCharts, isPostCitable } from "./wpdb.js"
+import { getPostRelatedCharts, isPostSlugCitable } from "./model/Post.js"
 import { enrichedBlocksToMarkdown } from "./model/Gdoc/enrichedToMarkdown.js"
 
 // slugs from all the linear entries we want to migrate from @edomt
@@ -108,13 +108,10 @@ const migrate = async (): Promise<void> => {
             const text = post.content
             let relatedCharts: RelatedChart[] = []
             if (isEntry) {
-                relatedCharts = await getRelatedCharts(post.id)
+                relatedCharts = await getPostRelatedCharts(post.id)
             }
 
-            const shouldIncludeMaxAsAuthor = await isPostCitable(
-                // Only needs post.slug
-                post as any
-            )
+            const shouldIncludeMaxAsAuthor = isPostSlugCitable(post.slug)
             if (
                 shouldIncludeMaxAsAuthor &&
                 post.authors &&

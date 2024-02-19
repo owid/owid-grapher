@@ -6,6 +6,7 @@ import * as db from "../db/db.js"
 import { imageStore } from "../db/model/Image.js"
 import { GdocXImage } from "../db/model/GdocXImage.js"
 import * as wpdb from "../db/wpdb.js"
+import { DEPRECATEDgetTopics } from "../db/DEPRECATEDwpdb.js"
 import {
     UNCATEGORIZED_TAG_ID,
     BAKE_ON_CHANGE,
@@ -567,7 +568,7 @@ apiRouter.get(
 )
 
 apiRouter.get("/topics.json", async (req: Request, res: Response) => ({
-    topics: await wpdb.getTopics(),
+    topics: await DEPRECATEDgetTopics(),
 }))
 apiRouter.get(
     "/editorData/variables.json",

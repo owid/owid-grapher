@@ -138,6 +138,7 @@ export {
     WP_ColumnStyle,
     WP_PostType,
     type PostRestApi,
+    type BlockGraphQlApi,
     type FilterFnPostRestApi,
     type FormattingOptions,
     SubNavId,
@@ -499,8 +500,11 @@ export {
     parsePostFormattingOptions,
     parsePostAuthors,
     parsePostRow,
+    parsePostWpApiSnapshot,
     serializePostRow,
     parsePostArchieml,
+    snapshotIsPostRestApi,
+    snapshotIsBlockGraphQlApi,
 } from "./dbTypes/Posts.js"
 export {
     type DbInsertPostGdoc,

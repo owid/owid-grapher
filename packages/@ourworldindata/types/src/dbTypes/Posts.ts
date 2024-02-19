@@ -2,6 +2,7 @@ import {
     WP_PostType,
     FormattingOptions,
     PostRestApi,
+    BlockGraphQlApi,
 } from "../wordpressTypes/WordpressTypes.js"
 import {
     OwidArticleBackportingStatistics,
@@ -43,7 +44,7 @@ export type DbEnrichedPost = Omit<
     formattingOptions: FormattingOptions | null
     archieml: OwidGdocPostInterface | null
     archieml_update_statistics: OwidArticleBackportingStatistics | null
-    wpApiSnapshot: PostRestApi | null
+    wpApiSnapshot: PostRestApi | BlockGraphQlApi | null
 }
 export interface DbRawPostWithGdocPublishStatus extends DbRawPost {
     isGdocPublished: boolean
@@ -65,6 +66,10 @@ export function parsePostArchieml(archieml: string): any {
     return JSON.parse(archieml)
 }
 
+export function parsePostWpApiSnapshot(wpApiSnapshot: string): PostRestApi {
+    return JSON.parse(wpApiSnapshot)
+}
+
 export function parsePostRow(postRow: DbRawPost): DbEnrichedPost {
     return {
         ...postRow,
@@ -77,7 +82,7 @@ export function parsePostRow(postRow: DbRawPost): DbEnrichedPost {
             ? JSON.parse(postRow.archieml_update_statistics)
             : null,
         wpApiSnapshot: postRow.wpApiSnapshot
-            ? JSON.parse(postRow.wpApiSnapshot)
+            ? parsePostWpApiSnapshot(postRow.wpApiSnapshot)
             : null,
     }
 }
@@ -93,4 +98,18 @@ export function serializePostRow(postRow: DbEnrichedPost): DbRawPost {
         ),
         wpApiSnapshot: JSON.stringify(postRow.wpApiSnapshot),
     }
+}
+
+export const snapshotIsPostRestApi = (
+    snapshot: PostRestApi | BlockGraphQlApi
+): snapshot is PostRestApi => {
+    return [WP_PostType.Page, WP_PostType.Post].includes(
+        (snapshot as PostRestApi).type
+    )
+}
+
+export const snapshotIsBlockGraphQlApi = (
+    snapshot: PostRestApi | BlockGraphQlApi
+): snapshot is BlockGraphQlApi => {
+    return (snapshot as BlockGraphQlApi).data?.wpBlock?.content !== undefined
 }

@@ -75,7 +75,13 @@ import {
     bakeAllPublishedExplorers,
 } from "./ExplorerBaker.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { postsTable } from "../db/model/Post.js"
+import {
+    getBlogIndex,
+    getFullPost,
+    getPostsFromSnapshots,
+    postsFlushCache,
+    postsTable,
+} from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { Image } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
@@ -424,11 +430,14 @@ export class SiteBaker {
 
     private async removeDeletedPosts() {
         if (!this.bakeSteps.has("removeDeletedPosts")) return
-        const postsApi = await wpdb.getPosts()
+
+        await db.getConnection()
+
+        const postsApi = await getPostsFromSnapshots()
 
         const postSlugs = []
         for (const postApi of postsApi) {
-            const post = await wpdb.getFullPost(postApi)
+            const post = await getFullPost(postApi)
             postSlugs.push(post.slug)
         }
 
@@ -454,7 +463,7 @@ export class SiteBaker {
         const alreadyPublishedViaGdocsSlugsSet =
             await db.getSlugsWithPublishedGdocsSuccessors(db.knexInstance())
 
-        const postsApi = await wpdb.getPosts(
+        const postsApi = await getPostsFromSnapshots(
             undefined,
             (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
         )
@@ -462,7 +471,7 @@ export class SiteBaker {
         await pMap(
             postsApi,
             async (postApi) =>
-                wpdb.getFullPost(postApi).then((post) => this.bakePost(post)),
+                getFullPost(postApi).then((post) => this.bakePost(post)),
             { concurrency: 10 }
         )
 
@@ -783,7 +792,7 @@ export class SiteBaker {
     // Bake the blog index
     private async bakeBlogIndex() {
         if (!this.bakeSteps.has("blogIndex")) return
-        const allPosts = await wpdb.getBlogIndex()
+        const allPosts = await getBlogIndex()
         const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
 
         for (let i = 1; i <= numPages; i++) {
@@ -962,7 +971,7 @@ export class SiteBaker {
 
     private flushCache() {
         // Clear caches to allow garbage collection while waiting for next run
-        wpdb.flushCache()
+        postsFlushCache()
         siteBakingFlushCache()
         redirectsFlushCache()
         this.progressBar.tick({ name: "✅ cache flushed" })

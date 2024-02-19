@@ -60,13 +60,6 @@ import {
 import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
-import {
-    getBlogIndex,
-    getLatestPostRevision,
-    getPostBySlug,
-    isPostCitable,
-    getBlockContent,
-} from "../db/wpdb.js"
 import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
@@ -87,7 +80,14 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
 import { resolveInternalRedirect } from "./redirects.js"
-import { postsTable } from "../db/model/Post.js"
+import {
+    getBlockContentFromSnapshot,
+    getBlogIndex,
+    getFullPostByIdFromSnapshot,
+    getFullPostBySlugFromSnapshot,
+    isPostSlugCitable,
+    postsTable,
+} from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
@@ -190,12 +190,12 @@ export const renderGdoc = (gdoc: OwidGdoc, isPreviewing: boolean = false) => {
 }
 
 export const renderPageBySlug = async (slug: string) => {
-    const post = await getPostBySlug(slug)
+    const post = await getFullPostBySlugFromSnapshot(slug)
     return renderPost(post)
 }
 
 export const renderPreview = async (postId: number): Promise<string> => {
-    const postApi = await getLatestPostRevision(postId)
+    const postApi = await getFullPostByIdFromSnapshot(postId)
     return renderPost(postApi)
 }
 
@@ -229,7 +229,7 @@ export const renderPost = async (
 
     const pageOverrides = await getPageOverrides(post, formattingOptions)
     const citationStatus =
-        (await isPostCitable(post)) || isPageOverridesCitable(pageOverrides)
+        isPostSlugCitable(post.slug) || isPageOverridesCitable(pageOverrides)
 
     return renderToHtmlPage(
         <LongFormPage
@@ -480,7 +480,7 @@ const getCountryProfilePost = memoize(
         grapherExports?: GrapherExports
     ): Promise<[FormattedPost, FormattingOptions]> => {
         // Get formatted content from generic covid country profile page.
-        const genericCountryProfilePost = await getPostBySlug(
+        const genericCountryProfilePost = await getFullPostBySlugFromSnapshot(
             profileSpec.genericProfileSlug
         )
 
@@ -500,7 +500,7 @@ const getCountryProfilePost = memoize(
 // todo: we used to flush cache of this thing.
 const getCountryProfileLandingPost = memoize(
     async (profileSpec: CountryProfileSpec) => {
-        return getPostBySlug(profileSpec.landingPageSlug)
+        return getFullPostBySlugFromSnapshot(profileSpec.landingPageSlug)
     }
 )
 
@@ -559,7 +559,7 @@ const renderPostThumbnailBySlug = async (
 
     let post
     try {
-        post = await getPostBySlug(slug)
+        post = await getFullPostBySlugFromSnapshot(slug)
     } catch (err) {
         // if no post is found, then we return early instead of throwing
     }
@@ -599,7 +599,11 @@ export const renderProminentLinks = async (
                         ? (await Chart.getBySlug(resolvedUrl.slug))?.config
                               ?.title // optim?
                         : resolvedUrl.slug &&
-                          (await getPostBySlug(resolvedUrl.slug)).title)
+                          (
+                              await getFullPostBySlugFromSnapshot(
+                                  resolvedUrl.slug
+                              )
+                          ).title)
             } finally {
                 if (!title) {
                     logErrorAndMaybeSendToBugsnag(
@@ -709,7 +713,7 @@ export const renderExplorerPage = async (
 
     const wpContent = program.wpBlockId
         ? await renderReusableBlock(
-              await getBlockContent(program.wpBlockId),
+              await getBlockContentFromSnapshot(program.wpBlockId),
               program.wpBlockId
           )
         : undefined
