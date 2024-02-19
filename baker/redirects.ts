@@ -1,9 +1,9 @@
 import * as db from "../db/db.js"
-import * as wpdb from "../db/wpdb.js"
 import { memoize, JsonError, Url } from "@ourworldindata/utils"
 import { isCanonicalInternalUrl } from "./formatting.js"
 import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { getRedirectsFromDb } from "../db/model/Redirect.js"
 
 export const getRedirects = async () => {
     const staticRedirects = [
@@ -57,22 +57,17 @@ export const getRedirects = async () => {
         "/grapher/exports/* https://assets.ourworldindata.org/grapher/exports/:splat 301",
     ]
 
-    // Redirects from Wordpress admin UI
-    const wpRedirectRows = await wpdb.singleton.query(
-        `SELECT url, action_data, action_code FROM wp_redirection_items WHERE status = 'enabled'`
-    )
-    const wpRedirects = wpRedirectRows.map(
-        (row) =>
-            `${formatWpUrl(row.url)} ${formatWpUrl(row.action_data)} ${
-                row.action_code
-            }`
+    // Get redirects from the database (exported from the Wordpress DB)
+    // Redirects are assumed to be trailing-slash-free (see syncRedirectsToGrapher.ts)
+    const redirectsFromDb = (await getRedirectsFromDb()).map(
+        (row) => `${row.source} ${row.target} ${row.code}`
     )
 
     // Add newlines in between so we get some more overview
     return [
         ...staticRedirects,
         "",
-        ...wpRedirects,
+        ...redirectsFromDb,
         "",
         ...dynamicRedirects, // Cloudflare requires all dynamic redirects to be at the very end of the _redirects file
     ]
@@ -96,25 +91,10 @@ export const getGrapherRedirectsMap = async (
     )
 }
 
-export const formatWpUrl = (url: string) => {
-    if (url === "/") return url
-
-    return url
-        .replace(/__/g, "/") // replace __: abc__xyz -> abc/xyz
-        .replace(/\/$/, "") // remove trailing slash: /abc/ -> /abc
-}
-
 export const getWordpressRedirectsMap = async () => {
-    const wordpressRedirectRows = (await wpdb.singleton.query(
-        `SELECT url, action_data FROM wp_redirection_items WHERE status = 'enabled'`
-    )) as Array<{ url: string; action_data: string }>
+    const redirectsFromDb = await getRedirectsFromDb()
 
-    return new Map(
-        wordpressRedirectRows.map((row) => [
-            formatWpUrl(row.url),
-            formatWpUrl(row.action_data),
-        ])
-    )
+    return new Map(redirectsFromDb.map((row) => [row.source, row.target]))
 }
 
 export const getGrapherAndWordpressRedirectsMap = memoize(

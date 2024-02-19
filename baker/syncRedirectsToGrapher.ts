@@ -1,7 +1,7 @@
 import * as db from "../db/db"
 import * as wpdb from "../db/wpdb"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
-import { formatWpUrl, resolveRedirectFromMap } from "./redirects.js"
+import { resolveRedirectFromMap } from "./redirects.js"
 import { Redirect, Url } from "@ourworldindata/utils"
 
 // A close cousing of the getWordpressRedirectsMap() function from
@@ -12,13 +12,19 @@ const getWordpressRedirectsMapFromRedirects = (
     return new Map(redirects.map((r) => [r.source, r.target]))
 }
 
+const stripTrailingSlash = (url: string) => {
+    if (url === "/") return url
+
+    return url.replace(/\/$/, "") // remove trailing slash: /abc/ -> /abc
+}
+
 export const syncRedirectsToGrapher = async (): Promise<void> => {
     const allWordpressRedirectsRaw = await wpdb.FOR_SYNC_ONLY_getRedirects()
 
     const allWordpressRedirects = allWordpressRedirectsRaw.map((r) => ({
         ...r,
-        source: formatWpUrl(r.source),
-        target: formatWpUrl(r.target),
+        source: stripTrailingSlash(r.source),
+        target: stripTrailingSlash(r.target),
     }))
 
     const existingRedirectsFromDb = await getRedirectsFromDb()
