@@ -61,6 +61,7 @@ import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
+import pMap from "p-map"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -491,11 +492,13 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             }
         )
 
-        await Promise.all(
-            jobs.map(async (job) => {
+        await pMap(
+            jobs,
+            async (job) => {
                 await bakeSingleGrapherChart(job)
                 progressBar.tick({ name: `slug ${job.slug}` })
-            })
+            },
+            { concurrency: 10 }
         )
 
         await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
