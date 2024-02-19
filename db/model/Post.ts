@@ -294,80 +294,105 @@ export const getBlockContentFromSnapshot = async (
     return enrichedBlock?.wpApiSnapshot.data?.wpBlock?.content
 }
 
+export const getWordpressPostReferencesByChartId = async (
+    chartId: number
+): Promise<PostReference[]> => {
+    const relatedWordpressPosts: PostReference[] = (
+        await db.knexInstance().raw(
+            `
+            SELECT DISTINCT
+                p.title,
+                p.slug,
+                p.id,
+                CONCAT("${BAKED_BASE_URL}","/",p.slug) as url
+            FROM
+                posts p
+                JOIN posts_links pl ON p.id = pl.sourceId
+                JOIN charts c ON pl.target = c.slug
+                OR pl.target IN (
+                    SELECT
+                        cr.slug
+                    FROM
+                        chart_slug_redirects cr
+                    WHERE
+                        cr.chart_id = c.id
+                )
+            WHERE
+                c.id = ?
+                AND p.status = 'publish'
+                AND p.type != 'wp_block'
+                AND pl.linkType = 'grapher'
+                AND p.slug NOT IN (
+                    -- We want to exclude the slugs of published gdocs, since they override the Wordpress posts
+                    -- published under the same slugs.
+                    SELECT
+                        slug from posts_gdocs pg
+                    WHERE
+                        pg.slug = p.slug
+                        AND pg.content ->> '$.type' <> 'fragment'
+                        AND pg.published = 1
+                )
+            ORDER BY
+                p.title ASC
+        `,
+            [chartId]
+        )
+    )[0]
+
+    return relatedWordpressPosts
+}
+
+export const getGdocsPostReferencesByChartId = async (
+    chartId: number
+): Promise<PostReference[]> => {
+    const relatedGdocsPosts: PostReference[] = (
+        await db.knexInstance().raw(
+            `
+            SELECT DISTINCT
+                pg.content ->> '$.title' AS title,
+                pg.slug AS slug,
+                pg.id AS id,
+                CONCAT("${BAKED_BASE_URL}","/",pg.slug) as url
+            FROM
+                posts_gdocs pg
+                JOIN posts_gdocs_links pgl ON pg.id = pgl.sourceId
+                JOIN charts c ON pgl.target = c.slug
+                OR pgl.target IN (
+                    SELECT
+                        cr.slug
+                    FROM
+                        chart_slug_redirects cr
+                    WHERE
+                        cr.chart_id = c.id
+                )
+            WHERE
+                c.id = ?
+                AND pg.content ->> '$.type' <> 'fragment'
+                AND pg.published = 1
+            ORDER BY
+                pg.content ->> '$.title' ASC
+        `,
+            [chartId]
+        )
+    )[0]
+
+    return relatedGdocsPosts
+}
+
 /*
- * Get all the related research and writing for a chart
+ * Get all the gdocs and Wordpress posts mentioning a chart
  */
 export const getRelatedArticles = async (
     chartId: number
 ): Promise<PostReference[] | undefined> => {
-    const relatedPosts: PostReference[] = (
-        await db.knexInstance().raw(
-            `
-        SELECT
-            p.title,
-            p.slug,
-            p.id
-        FROM
-            posts_with_gdoc_publish_status p
-            JOIN posts_links pl ON p.id = pl.sourceId
-            JOIN charts c ON pl.target = c.slug
-            OR pl.target IN (
-                SELECT
-                    cr.slug
-                FROM
-                    chart_slug_redirects cr
-                WHERE
-                    cr.chart_id = c.id
-            )
-        WHERE
-            c.id = ?
-            AND p.status = 'publish'
-            AND p.isGdocPublished = 0
-            AND p.type != 'wp_block'
-            -- note: we are not filtering by linkType to cast of wider net: if a post links to an
-            -- explorer having the same slug as the grapher chart, we want to surface it as
-            -- a "Related research" as it is most likely relevant.
-        UNION
-        SELECT
-            pg.content ->> '$.title' AS title,
-            pg.slug AS slug,
-            pg.id AS id
-        FROM
-            posts_gdocs pg
-            JOIN posts_gdocs_links pgl ON pg.id = pgl.sourceId
-            JOIN charts c ON pgl.target = c.slug
-            OR pgl.target IN (
-                SELECT
-                    cr.slug
-                FROM
-                    chart_slug_redirects cr
-                WHERE
-                    cr.chart_id = c.id
-            )
-        WHERE
-            c.id = ?
-            AND pg.content ->> '$.type' <> 'fragment'
-            AND pg.published = 1
-            -- note: we are not filtering by linkType here either, for the same reason as above.
-        `,
-            [chartId, chartId]
-        )
-    )[0]
+    const wordpressPosts = await getWordpressPostReferencesByChartId(chartId)
+    const gdocsPosts = await getGdocsPostReferencesByChartId(chartId)
 
-    return uniqBy(relatedPosts, "slug").sort(
+    return [...wordpressPosts, ...gdocsPosts].sort(
         // Alphabetise
         (a, b) => (a.title.toLowerCase() > b.title.toLowerCase() ? 1 : -1)
     )
 }
-
-export const getPermalinks = async (): Promise<{
-    // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage
-    get: (ID: number, postName: string) => string
-}> => ({
-    // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage
-    get: (ID: number, postName: string): string =>
-        postName.replace(/\/+$/g, "").replace(/--/g, "/").replace(/__/g, "/"),
-})
 
 export const getPostTags = async (
     postId: number
