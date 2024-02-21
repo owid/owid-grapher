@@ -13,7 +13,7 @@ import {
 } from "./gdocs/pages/DataInsight.js"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 
 const Pagination = (props: { pageNumber: number; totalPageCount: number }) => {

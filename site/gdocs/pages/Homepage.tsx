@@ -1,4 +1,4 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faRss } from "@fortawesome/free-solid-svg-icons"
 import {
     faTwitter,

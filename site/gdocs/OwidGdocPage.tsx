@@ -99,7 +99,10 @@ export default function OwidGdocPage({
                 ></script>
             </Head>
             <body>
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader
+                    baseUrl={baseUrl}
+                    isOnHomepage={gdoc.content.type === OwidGdocType.Homepage}
+                />
                 <div id="owid-document-root">
                     <DebugProvider debug={debug}>
                         <OwidGdoc {...gdoc} isPreviewing={isPreviewing} />

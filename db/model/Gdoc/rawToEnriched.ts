@@ -2085,7 +2085,7 @@ function parsePillRow(raw: RawBlockPillRow): EnrichedBlockPillRow {
             message: "Pill row is missing a title",
         })
     }
-    if (!raw.value.pills) {
+    if (!raw.value.pills?.length) {
         return createError({
             message: "Pill row is missing pills",
         })

@@ -37,7 +37,7 @@ import {
     pageTypeDisplayNames,
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import { logSiteSearchClick } from "./searchClient.js"
 import {

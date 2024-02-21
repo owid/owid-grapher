@@ -1,7 +1,7 @@
 import { EnrichedBlockExplorerTiles } from "@ourworldindata/types"
 import React, { useContext } from "react"
 import { useLinkedChart } from "../utils.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { DocumentContext } from "../OwidGdoc.js"
 

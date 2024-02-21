@@ -14,6 +14,7 @@ export const SearchPage = (props: { baseUrl: string }) => {
                 baseUrl={baseUrl}
             />
             <script
+                type="application/ld+json"
                 dangerouslySetInnerHTML={{
                     // Structured data for google
                     __html: JSON.stringify({

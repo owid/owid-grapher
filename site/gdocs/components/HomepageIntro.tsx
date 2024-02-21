@@ -1,19 +1,21 @@
 import React, { useContext } from "react"
 import cx from "classnames"
-import { EnrichedBlockHomepageIntro } from "@ourworldindata/types"
+import {
+    EnrichedBlockHomepageIntro,
+    EnrichedBlockHomepageIntroPost,
+} from "@ourworldindata/types"
 import { formatAuthors, groupBy } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
 import { DocumentContext } from "../OwidGdoc.js"
 import Image from "./Image.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 
-type FeaturedWorkTileProps =
-    EnrichedBlockHomepageIntro["featuredWork"][number] & {
-        isTertiary?: boolean
-        className?: string
-    }
+type FeaturedWorkTileProps = EnrichedBlockHomepageIntroPost & {
+    isTertiary?: boolean
+    className?: string
+}
 
 function FeaturedWorkTile({
     isTertiary,

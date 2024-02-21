@@ -13,7 +13,11 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SiteNavigationTopics } from "./SiteNavigationTopics.js"
 import { SiteLogos } from "./SiteLogos.js"
-import { CategoryWithEntries } from "@ourworldindata/utils"
+import {
+    CategoryWithEntries,
+    OwidGdocType,
+    getOwidGdocFromJSON,
+} from "@ourworldindata/utils"
 import { SiteResources } from "./SiteResources.js"
 import { SiteSearchNavigation } from "./SiteSearchNavigation.js"
 import { SiteMobileMenu } from "./SiteMobileMenu.js"
@@ -22,7 +26,6 @@ import classnames from "classnames"
 import { useTriggerOnEscape } from "./hooks.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { AUTOCOMPLETE_CONTAINER_ID } from "./search/Autocomplete.js"
-import { OwidGdocType } from "@ourworldindata/types"
 
 export enum Menu {
     Topics = "topics",
@@ -39,9 +42,11 @@ const HAS_DONATION_FLAG = false
 export const SiteNavigation = ({
     baseUrl,
     hideDonationFlag,
+    isOnHomepage,
 }: {
     baseUrl: string
     hideDonationFlag?: boolean
+    isOnHomepage?: boolean
 }) => {
     const [menu, setActiveMenu] = React.useState<Menu | null>(null)
     const [categorizedTopics, setCategorizedTopics] = useState<
@@ -117,12 +122,6 @@ export const SiteNavigation = ({
     }, [])
 
     useTriggerOnEscape(closeOverlay)
-
-    // Doing it this way instead of looking at the window.location.pathname,
-    // so that the nav search bar doesn't render in the preview either
-    const isOnHomepage =
-        typeof window !== "undefined" &&
-        window._OWID_GDOC_PROPS?.content?.type === OwidGdocType.Homepage
 
     return (
         <>
@@ -252,10 +251,16 @@ export const runSiteNavigation = (
     baseUrl: string,
     hideDonationFlag?: boolean
 ) => {
+    let isOnHomepage = false
+    if (window._OWID_GDOC_PROPS) {
+        const props = getOwidGdocFromJSON(window._OWID_GDOC_PROPS)
+        isOnHomepage = props?.content?.type === OwidGdocType.Homepage
+    }
     ReactDOM.render(
         <SiteNavigation
             baseUrl={baseUrl}
             hideDonationFlag={hideDonationFlag}
+            isOnHomepage={isOnHomepage}
         />,
         document.querySelector(".site-navigation-root")
     )

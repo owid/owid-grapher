@@ -19,7 +19,7 @@ import {
     ALGOLIA_SEARCH_KEY,
 } from "../../settings/clientSettings.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 type BaseItem = Record<string, unknown>
 

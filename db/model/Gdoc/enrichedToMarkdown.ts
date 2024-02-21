@@ -310,8 +310,9 @@ ${links}`
                 .map((item) =>
                     getLinkType(item.url) === "gdoc"
                         ? ""
-                        : `[${item.title}(${item.url})]`
+                        : `- [${item.title}(${item.url})]`
                 )
+                .filter((item) => item !== "")
                 .join("\n")
         })
         .exhaustive()

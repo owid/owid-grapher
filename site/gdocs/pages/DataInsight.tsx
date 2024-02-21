@@ -5,7 +5,7 @@ import {
     faChevronRight,
 } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     OwidGdocDataInsightInterface,
     formatAuthors,
