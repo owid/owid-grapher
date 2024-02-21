@@ -352,6 +352,9 @@
     }
 }
 .homepage-topics-section {
+    @include sm-only {
+        display: none;
+    }
     > h2 {
         margin-top: 40px;
         margin-bottom: 0;
