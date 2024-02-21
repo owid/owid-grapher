@@ -1,7 +1,7 @@
 import React, { useContext } from "react"
 import cx from "classnames"
 import { EnrichedBlockHomepageIntro } from "@ourworldindata/types"
-import { groupBy } from "@ourworldindata/utils"
+import { formatAuthors, groupBy } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
 import { DocumentContext } from "../OwidGdoc.js"
 import Image from "./Image.js"
@@ -11,12 +11,12 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 
 type FeaturedWorkTileProps =
     EnrichedBlockHomepageIntro["featuredWork"][number] & {
-        isMinimal?: boolean
+        isTertiary?: boolean
         className?: string
     }
 
 function FeaturedWorkTile({
-    isMinimal,
+    isTertiary,
     title,
     kicker,
     authors,
@@ -28,7 +28,7 @@ function FeaturedWorkTile({
     const { linkedDocument, errorMessage } = useLinkedDocument(url)
     const { isPreviewing } = useContext(DocumentContext)
     const linkedDocumentFeaturedImage = linkedDocument?.["featured-image"]
-    const thumbnailFilename = filename || linkedDocumentFeaturedImage
+    const thumbnailFilename = filename ?? linkedDocumentFeaturedImage
     const href = `/${linkedDocument?.slug}` || url
 
     if (isPreviewing) {
@@ -42,12 +42,12 @@ function FeaturedWorkTile({
                 />
             )
         }
-        if (!isMinimal && !thumbnailFilename) {
+        if (!isTertiary && !thumbnailFilename) {
             return (
                 <BlockErrorFallback
                     error={{
                         name: "Error with featured work",
-                        message: `No thumbnail found for featured work. This block won't render when the page is published`,
+                        message: `No thumbnail found for featured work. Only tertiary tiles can have missing images. This block won't render when the page is published`,
                     }}
                 />
             )
@@ -61,9 +61,12 @@ function FeaturedWorkTile({
     return (
         <a
             href={href}
-            className={cx("homepage-intro__featured-tile", className)}
+            className={cx("homepage-intro__featured-tile", className, {
+                "homepage-intro__featured-tile--missing-image":
+                    !thumbnailFilename,
+            })}
         >
-            {!isMinimal && thumbnailFilename && (
+            {thumbnailFilename && (
                 <Image shouldLightbox={false} filename={thumbnailFilename} />
             )}
             {kicker && (
@@ -74,14 +77,14 @@ function FeaturedWorkTile({
             {title && (
                 <p className="homepage-intro__featured-work-title">{title}</p>
             )}
-            {!isMinimal && description && (
+            {description && (
                 <p className="homepage-intro__featured-work-description">
                     {description}
                 </p>
             )}
             {authors && (
                 <p className="body-3-medium-italic homepage-intro__featured-work-authors">
-                    {authors.join(", ")}
+                    {formatAuthors({ authors })}
                 </p>
             )}
         </a>
@@ -134,16 +137,19 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                 </div>
                 <div className="homepage-intro__mission-wrapper body-3-medium">
                     <p>
-                        We are a non-profit — all our work is free to use and
-                        open source. We believe the best research and data
-                        should be accessible to everyone. Consider supporting us
-                        if you find our work valuable.
+                        <strong>
+                            We are a non-profit — all our work is free to use
+                            and open source.
+                        </strong>{" "}
+                        We believe the best research and data should be
+                        accessible to everyone. Consider supporting us if you
+                        find our work valuable.
                     </p>
                     <a className="homepage-intro__donate-button" href="/donate">
                         Donate to support us
                     </a>
                 </div>
-                <div className="h5-black-caps">As seen on</div>
+                <div className="h6-black-caps">As seen on</div>
                 <img
                     className="homepage-intro__media-logos"
                     src={`/media-logos.svg`}
@@ -152,11 +158,11 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                     height={75}
                 />
             </section>
-            <section className="grid grid-cols-9 span-cols-9 col-start-5 span-sm-cols-12 col-sm-start-2 homepage-intro__right-section">
-                <h2 className="span-cols-9 span-sm-cols-12 h5-black-caps homepage-intro__featured-work-heading">
+            <section className="grid grid-cols-9 span-cols-9 col-start-5 span-md-cols-12 col-md-start-2 homepage-intro__right-section">
+                <h2 className="span-cols-9 span-md-cols-12 h5-black-caps homepage-intro__featured-work-heading">
                     Featured work
                 </h2>
-                <div className="grid grid-cols-9 span-cols-9 span-sm-cols-12 homepage-intro__featured-work-container">
+                <div className="grid grid-cols-9 span-cols-9 span-md-cols-12 homepage-intro__featured-work-container">
                     <div className="homepage-intro__primary-tiles span-cols-6">
                         {primary.map((work, i) => (
                             <FeaturedWorkTile key={i} {...work} />
@@ -171,13 +177,13 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                         {tertiary.map((work, i) => (
                             <FeaturedWorkTile
                                 key={i}
-                                {...work}
                                 className="span-cols-3"
-                                isMinimal
+                                isTertiary
+                                {...work}
                             />
                         ))}
                     </div>
-                    <div className="span-cols-6 ">
+                    <div className="span-cols-6 homepage-intro__see-all-work-button-container">
                         <a
                             href="/latest"
                             className="body-3-medium homepage-intro__see-all-work-button"

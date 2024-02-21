@@ -58,7 +58,7 @@ export function ExplorerTiles({
                 className="span-cols-4 col-start-9 span-md-cols-5 col-md-start-8 col-sm-start-1 span-sm-cols-12 body-3-medium explorer-tiles__cta"
                 href="/charts"
             >
-                See all our charts and explorers{" "}
+                See all our Data Explorers{" "}
                 <FontAwesomeIcon icon={faArrowRight} />
             </a>
             <p className="body-2-regular explorer-tiles__subtitle span-cols-8 span-md-cols-7 span-sm-cols-12">

@@ -989,7 +989,7 @@ div.raw-html-table__container {
 
 .article-block__pill-row {
     background-color: $blue-20;
-    scrollbar-width: thin;
+    scrollbar-width: none;
     overflow-x: auto;
     .article-block__pill-row-interior {
         display: flex;
@@ -1020,7 +1020,7 @@ div.raw-html-table__container {
             border-radius: 32px;
             white-space: nowrap;
             &:hover {
-                background-color: $gray-10;
+                background-color: $blue-5;
             }
         }
     }
@@ -1028,14 +1028,19 @@ div.raw-html-table__container {
 
 .article-block__homepage-search {
     background-image: url("/images/world.svg");
-    background-color: #00103c;
-    background-size: cover;
+    background-color: $blue-100;
     background-repeat: no-repeat;
-    background-position-y: -35px;
+    background-position: center;
+    background-size: 80%;
     text-align: center;
+
+    @include sm-only {
+        background-size: 100%;
+    }
 
     h2 {
         color: $amber;
+        margin: 24px 0;
     }
 
     h2.homepage-search__search-heading {
@@ -1054,13 +1059,63 @@ div.raw-html-table__container {
         }
     }
 
+    .homepage-search__open-source-notice {
+        &:before {
+            content: " — ";
+        }
+
+        @include sm-only {
+            display: block;
+            &:before {
+                content: none;
+            }
+        }
+    }
+
+    .aa-DetachedSearchButton {
+        background-color: #fff;
+        border-radius: 0;
+        justify-content: space-between;
+        cursor: text;
+        height: 56px;
+    }
+
+    .aa-DetachedSearchButtonIcon {
+        position: absolute;
+        right: 0;
+        background: white;
+        svg {
+            fill: $blue-50;
+        }
+    }
+
+    .aa-DetachedSearchButtonPlaceholder {
+        display: block;
+        margin-left: 16px;
+        white-space: nowrap;
+        color: $blue-40;
+        width: calc(100% - 56px);
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
     .aa-Form {
         background-color: #fff;
         border-color: #dbe5f0;
+        height: 56px;
+    }
+
+    .aa-Input {
+        padding: 40px 0;
+        font-size: 1rem;
+        &::placeholder {
+            color: $blue-40;
+        }
     }
 
     .aa-InputWrapperPrefix {
         display: initial;
+        margin-right: 8px;
     }
 
     .aa-Input::placeholder {
@@ -1070,7 +1125,7 @@ div.raw-html-table__container {
     p {
         color: $blue-30;
         display: inline-block;
-        margin: 16px;
+        margin: 8px 0 32px;
         a {
             @include owid-link-60;
             color: $blue-30;
@@ -1079,4 +1134,8 @@ div.raw-html-table__container {
             }
         }
     }
+}
+
+.homepage-search__panel {
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
 }

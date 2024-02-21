@@ -9,14 +9,16 @@ export function HomepageSearch(props: { className?: string }) {
     const message =
         chartCount && topicCount ? (
             <>
-                <a href="/charts">{chartCount}</a> charts across{" "}
-                <a href="#all-topics">{topicCount}</a> topics — All free: open
-                access and open source
+                <a href="/charts">{chartCount} charts</a> across{" "}
+                <a href="#all-topics">{topicCount} topics</a>
+                <span className="homepage-search__open-source-notice">
+                    All free: open access and open source
+                </span>
             </>
         ) : (
             <>
-                Thousand of charts across 200 topics - All free: open access and
-                open source
+                Thousands of charts across 200 topics - All free: open access
+                and open source
             </>
         )
     return (
@@ -26,9 +28,9 @@ export function HomepageSearch(props: { className?: string }) {
                 problems.
             </h2>
             <Autocomplete
-                placeholder="Try “COVID-19”, “GDP”, “Energy”, “CO2 emissions per capita”…"
+                placeholder="Try “Life expectancy”, “Economic growth”, “Homicide rate”, Biodiversity”…"
                 className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
-                detachedMediaQuery="none"
+                panelClassName="homepage-search__panel"
             />
             <p className="span-cols-14 homepage-search__tagline">{message}</p>
         </div>

@@ -222,7 +222,7 @@ function KeyIndicatorHeader({
     const activeTab =
         tabFromQueryParams || linkedChart.tab || GrapherTabOption.chart
 
-    const source = capitalize(block.source || linkedIndicator.attributionShort)
+    const source = block.source || linkedIndicator.attributionShort
 
     return (
         <div className="key-indicator-header">

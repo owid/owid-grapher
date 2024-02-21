@@ -253,9 +253,6 @@
     }
 }
 
-.FrontPage .NewsletterSubscription__email {
-    background-color: #fff;
-}
 .FrontPage .homepage-subscribe#subscribe {
     background: #fff;
 }
@@ -302,7 +299,6 @@
 
 .NewsletterSubscription__email {
     border: 1px solid #dbe5f0;
-    background: $blue-5;
     border-radius: 0;
     height: inherit;
     padding: 0 16px;
@@ -358,7 +354,7 @@
 .homepage-topics-section {
     > h2 {
         margin-top: 40px;
-        margin-bottom: 8px;
+        margin-bottom: 0;
         & + p {
             margin-bottom: 8px;
             margin-top: 0;
@@ -385,12 +381,14 @@
     .homepage-topic__subtopic,
     .homepage-topic__topic-entry {
         display: inline list-item;
+        font-size: 0.875rem;
     }
     .homepage-topic__subtopic {
         font-weight: bold;
         list-style: none;
         white-space: nowrap;
         display: inline-block;
+        margin-right: 6px;
         &:not(:first-child) {
             &::before {
                 content: "|";
@@ -401,7 +399,7 @@
     }
 
     .homepage-topic__topic-entry {
-        padding-right: 8px;
+        padding-right: 6px;
         &:first-child {
             list-style: none;
         }
@@ -418,7 +416,6 @@
     }
 
     .homepage-topic__subtopic + .homepage-topic__topic-entry {
-        margin-left: 8px;
         list-style: none;
     }
 }

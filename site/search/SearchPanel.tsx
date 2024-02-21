@@ -482,7 +482,7 @@ export class InstantSearchContainer extends React.Component {
             >
                 <div className="search-panel">
                     <SearchBox
-                        placeholder="Try “COVID”, “Poverty”, “New Zealand”, “CO2 emissions per capita”..."
+                        placeholder="Try “Life expectancy”, “Population in extreme poverty”, “Homicide rate”, Biodiversity”…"
                         className="searchbox"
                         queryHook={this.handleQuery}
                     />

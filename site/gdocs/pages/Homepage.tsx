@@ -169,7 +169,7 @@ const AllTopicsSection = () => {
                                         className="homepage-topic__subtopic"
                                         key={`subtopic-entry-${slug}`}
                                     >
-                                        {title}
+                                        {title}:
                                     </li>
                                 ) : (
                                     <li

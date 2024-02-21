@@ -104,6 +104,10 @@
         align-self: center;
         justify-self: end;
 
+        svg {
+            font-size: 0.75rem;
+        }
+
         @include sm-only {
             margin: 24px 16px;
             justify-self: unset;

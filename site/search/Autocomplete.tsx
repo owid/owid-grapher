@@ -206,18 +206,23 @@ export function Autocomplete({
     className,
     placeholder = "Search for a topic, chart or article...",
     detachedMediaQuery = "(max-width: 960px)",
+    panelClassName,
 }: {
     onActivate?: () => void
     onClose?: () => void
     className?: string
     placeholder?: string
     detachedMediaQuery?: string
+    panelClassName?: string
 }) {
     useEffect(() => {
         const search = autocomplete({
             placeholder,
             detachedMediaQuery,
             container: AUTOCOMPLETE_CONTAINER_ID,
+            classNames: {
+                panel: panelClassName,
+            },
             openOnFocus: true,
             onStateChange({ state, prevState }) {
                 if (onActivate && !prevState.isOpen && state.isOpen) {
