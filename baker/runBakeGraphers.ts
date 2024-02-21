@@ -1,5 +1,6 @@
 #! /usr/bin/env node
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker.js"
+import * as db from "../db/db"
 
 /**
  * This bakes all the Graphers to a folder on your computer, running the same baking code as the SiteBaker.
@@ -9,7 +10,8 @@ import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } fro
 
 const main = async (folder: string) => {
     await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
-        folder
+        folder,
+        db.knexInstance()
     )
 }
 

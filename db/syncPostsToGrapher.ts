@@ -124,7 +124,7 @@ export async function buildReusableBlocksResolver(): Promise<BlockResolveFunctio
  * representation.
  */
 export function buildTablePressReplacerFunction(
-    tables: Map<string, wpdb.TablepressTable>
+    tables: Map<string, wpdb.FOR_SYNC_ONLY_TablepressTable>
 ): ReplacerFunction {
     return (
         _match: string,
@@ -151,7 +151,7 @@ function replaceTablePressShortcodes(
 }
 
 export async function buildTablePressResolver(): Promise<BlockResolveFunction> {
-    const allTables = await wpdb.getTables()
+    const allTables = await wpdb.FOR_SYNC_ONLY_getTables()
     const replacerFunction = buildTablePressReplacerFunction(allTables)
     return (content: string) =>
         replaceTablePressShortcodes(content, replacerFunction)
@@ -350,8 +350,10 @@ const syncPostsToGrapher = async (): Promise<void> => {
                 ),
                 wpApiSnapshot:
                     post.post_type === "wp_block"
-                        ? await wpdb.getBlockApi(post.ID)
-                        : await wpdb.getPostApiBySlug(post.post_name),
+                        ? await wpdb.FOR_SYNC_ONLY_getBlockApiFromApi(post.ID)
+                        : await wpdb.FOR_SYNC_ONLY_getPostApiBySlugFromApi(
+                              post.post_name
+                          ),
                 featured_image: post.featured_image || "",
                 published_at:
                     post.post_date_gmt === zeroDateString

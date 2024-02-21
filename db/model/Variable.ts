@@ -413,20 +413,22 @@ export const fetchS3DataValuesByPath = async (
     dataPath: string
 ): Promise<OwidVariableMixedData> => {
     const resp = await retryPromise(
-        () => fetch(dataPath, { keepalive: true }),
+        () =>
+            fetch(dataPath, { keepalive: true }).then((response) => {
+                if (!response.ok) {
+                    // Trigger retry
+                    throw new Error(
+                        `Error fetching data from S3 for ${dataPath}: ${response.status} ${response.statusText}`
+                    )
+                }
+                return response
+            }),
         {
             maxRetries: 7,
             exponentialBackoff: true,
             initialDelay: 1000,
         }
     )
-    if (!resp.ok) {
-        throw new Error(
-            `Error fetching data from S3 for ${dataPath}: ${resp.status} ${
-                resp.statusText
-            } ${await resp.text()}`
-        )
-    }
     try {
         return await resp.json()
     } catch (error: any) {
@@ -444,20 +446,22 @@ export const fetchS3MetadataByPath = async (
     metadataPath: string
 ): Promise<OwidVariableWithSourceAndDimension> => {
     const resp = await retryPromise(
-        () => fetch(metadataPath, { keepalive: true }),
+        () =>
+            fetch(metadataPath, { keepalive: true }).then((response) => {
+                if (!response.ok) {
+                    // Trigger retry
+                    throw new Error(
+                        `Error fetching metadata from S3 for ${metadataPath}: ${response.status} ${response.statusText}`
+                    )
+                }
+                return response
+            }),
         {
             maxRetries: 7,
             exponentialBackoff: true,
             initialDelay: 1000,
         }
     )
-    if (!resp.ok) {
-        throw new Error(
-            `Error fetching metadata from S3 for ${metadataPath}: ${
-                resp.status
-            } ${resp.statusText} ${await resp.text()}`
-        )
-    }
     try {
         return await resp.json()
     } catch (error: any) {

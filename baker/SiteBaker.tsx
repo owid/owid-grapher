@@ -2,7 +2,6 @@ import fs from "fs-extra"
 import path from "path"
 import { glob } from "glob"
 import { keyBy, without, uniq, mapValues, pick } from "lodash"
-import cheerio from "cheerio"
 import ProgressBar from "progress"
 import * as wpdb from "../db/wpdb.js"
 import * as db from "../db/db.js"
@@ -75,12 +74,21 @@ import {
     bakeAllPublishedExplorers,
 } from "./ExplorerBaker.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { postsTable } from "../db/model/Post.js"
+import {
+    getBlogIndex,
+    getFullPost,
+    getPostsFromSnapshots,
+    postsFlushCache,
+    postsTable,
+} from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { Image } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-import { Chart } from "../db/model/Chart.js"
+import {
+    Chart,
+    getChartEmbedUrlsInPublishedWordpressPosts,
+} from "../db/model/Chart.js"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
@@ -92,6 +100,7 @@ import {
     getVariableMetadata,
     getVariableOfDatapageIfApplicable,
 } from "../db/model/Variable.js"
+import { Knex } from "knex"
 
 type PrefetchedAttachments = {
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
@@ -177,25 +186,13 @@ export class SiteBaker {
         this.explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
     }
 
-    private async bakeEmbeds() {
+    private async bakeEmbeds(knex: Knex<any, any[]>) {
         if (!this.bakeSteps.has("embeds")) return
-        // Find all grapher urls used as embeds in all posts on the site
-        const rows = await wpdb.singleton.query(
-            `SELECT post_content FROM wp_posts WHERE (post_type='page' OR post_type='post' OR post_type='wp_block') AND post_status='publish'`
+
+        // Find all grapher urls used as embeds in all Wordpress posts on the site
+        const grapherUrls = uniq(
+            await getChartEmbedUrlsInPublishedWordpressPosts(knex)
         )
-        let grapherUrls = []
-        for (const row of rows) {
-            const $ = cheerio.load(row.post_content)
-            grapherUrls.push(
-                ...$("iframe")
-                    .toArray()
-                    .filter((el) =>
-                        (el.attribs["src"] || "").match(/\/grapher\//)
-                    )
-                    .map((el) => el.attribs["src"].trim())
-            )
-        }
-        grapherUrls = uniq(grapherUrls)
 
         await bakeGrapherUrls(grapherUrls)
 
@@ -203,7 +200,7 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked embeds" })
     }
 
-    private async bakeCountryProfiles() {
+    private async bakeCountryProfiles(knex: Knex<any, any[]>) {
         if (!this.bakeSteps.has("countryProfiles")) return
         await Promise.all(
             countryProfileSpecs.map(async (spec) => {
@@ -216,6 +213,7 @@ export class SiteBaker {
                     const html = await renderCountryProfile(
                         spec,
                         country,
+                        knex,
                         this.grapherExports
                     ).catch(() =>
                         console.error(
@@ -249,8 +247,13 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
-    private async bakePost(post: FullPost) {
-        const html = await renderPost(post, this.baseUrl, this.grapherExports)
+    private async bakePost(post: FullPost, knex: Knex<any, any[]>) {
+        const html = await renderPost(
+            post,
+            knex,
+            this.baseUrl,
+            this.grapherExports
+        )
 
         const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
         await fs.mkdirp(path.dirname(outPath))
@@ -422,13 +425,16 @@ export class SiteBaker {
         return this._prefetchedAttachmentsCache
     }
 
-    private async removeDeletedPosts() {
+    private async removeDeletedPosts(knex: Knex<any, any[]>) {
         if (!this.bakeSteps.has("removeDeletedPosts")) return
-        const postsApi = await wpdb.getPosts()
+
+        await db.getConnection()
+
+        const postsApi = await getPostsFromSnapshots(knex)
 
         const postSlugs = []
         for (const postApi of postsApi) {
-            const post = await wpdb.getFullPost(postApi)
+            const post = await getFullPost(postApi)
             postSlugs.push(post.slug)
         }
 
@@ -448,13 +454,14 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ removed deleted posts" })
     }
 
-    private async bakePosts() {
+    private async bakePosts(knex: Knex<any, any[]>) {
         if (!this.bakeSteps.has("wordpressPosts")) return
         // TODO: the knex instance should be handed down as a parameter
         const alreadyPublishedViaGdocsSlugsSet =
             await db.getSlugsWithPublishedGdocsSuccessors(db.knexInstance())
 
-        const postsApi = await wpdb.getPosts(
+        const postsApi = await getPostsFromSnapshots(
+            knex,
             undefined,
             (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
         )
@@ -462,7 +469,7 @@ export class SiteBaker {
         await pMap(
             postsApi,
             async (postApi) =>
-                wpdb.getFullPost(postApi).then((post) => this.bakePost(post)),
+                getFullPost(postApi).then((post) => this.bakePost(post, knex)),
             { concurrency: 10 }
         )
 
@@ -535,11 +542,11 @@ export class SiteBaker {
     }
 
     // Bake unique individual pages
-    private async bakeSpecialPages() {
+    private async bakeSpecialPages(knex: Knex<any, any[]>) {
         if (!this.bakeSteps.has("specialPages")) return
         await this.stageWrite(
             `${this.bakedSiteDir}/index.html`,
-            await renderFrontPage()
+            await renderFrontPage(knex)
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/donate.html`,
@@ -576,7 +583,7 @@ export class SiteBaker {
 
         await this.stageWrite(
             `${this.bakedSiteDir}/sitemap.xml`,
-            await makeSitemap(this.explorerAdminServer)
+            await makeSitemap(this.explorerAdminServer, knex)
         )
 
         await this.stageWrite(
@@ -586,17 +593,19 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked special pages" })
     }
 
-    private async bakeExplorers() {
+    private async bakeExplorers(knex: Knex<any, any[]>) {
         if (!this.bakeSteps.has("explorers")) return
 
         await bakeAllExplorerRedirects(
             this.bakedSiteDir,
-            this.explorerAdminServer
+            this.explorerAdminServer,
+            knex
         )
 
         await bakeAllPublishedExplorers(
             `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}`,
-            this.explorerAdminServer
+            this.explorerAdminServer,
+            knex
         )
 
         this.progressBar.tick({ name: "✅ baked explorers" })
@@ -780,29 +789,29 @@ export class SiteBaker {
     }
 
     // Bake the blog index
-    private async bakeBlogIndex() {
+    private async bakeBlogIndex(knex: Knex<any, any[]>) {
         if (!this.bakeSteps.has("blogIndex")) return
-        const allPosts = await wpdb.getBlogIndex()
+        const allPosts = await getBlogIndex(knex)
         const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
 
         for (let i = 1; i <= numPages; i++) {
             const slug = i === 1 ? "latest" : `latest/page/${i}`
-            const html = await renderBlogByPageNum(i)
+            const html = await renderBlogByPageNum(i, knex)
             await this.stageWrite(`${this.bakedSiteDir}/${slug}.html`, html)
         }
         this.progressBar.tick({ name: "✅ baked blog index" })
     }
 
     // Bake the RSS feed
-    private async bakeRSS() {
+    private async bakeRSS(knex: Knex<any, any[]>) {
         if (!this.bakeSteps.has("rss")) return
         await this.stageWrite(
             `${this.bakedSiteDir}/atom.xml`,
-            await makeAtomFeed()
+            await makeAtomFeed(knex)
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/atom-no-topic-pages.xml`,
-            await makeAtomFeedNoTopicPages()
+            await makeAtomFeedNoTopicPages(knex)
         )
         this.progressBar.tick({ name: "✅ baked rss" })
     }
@@ -860,9 +869,9 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked assets" })
     }
 
-    async bakeRedirects() {
+    async bakeRedirects(knex: Knex<any, any[]>) {
         if (!this.bakeSteps.has("redirects")) return
-        const redirects = await getRedirects()
+        const redirects = await getRedirects(knex)
         this.progressBar.tick({ name: "✅ got redirects" })
         await this.stageWrite(
             path.join(this.bakedSiteDir, `_redirects`),
@@ -878,26 +887,27 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked redirects" })
     }
 
-    async bakeWordpressPages() {
-        await this.bakeRedirects()
-        await this.bakeEmbeds()
-        await this.bakeBlogIndex()
-        await this.bakeRSS()
+    async bakeWordpressPages(knex: Knex<any, any[]>) {
+        await this.bakeRedirects(knex)
+        await this.bakeEmbeds(knex)
+        await this.bakeBlogIndex(knex)
+        await this.bakeRSS(knex)
         await this.bakeAssets()
         await this.bakeGoogleScholar()
-        await this.bakePosts()
+        await this.bakePosts(knex)
     }
 
-    private async _bakeNonWordpressPages() {
+    private async _bakeNonWordpressPages(knex: Knex<any, any[]>) {
         if (this.bakeSteps.has("countries")) {
             await bakeCountries(this)
         }
-        await this.bakeSpecialPages()
-        await this.bakeCountryProfiles()
-        await this.bakeExplorers()
+        await this.bakeSpecialPages(knex)
+        await this.bakeCountryProfiles(knex)
+        await this.bakeExplorers(knex)
         if (this.bakeSteps.has("charts")) {
             await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
-                this.bakedSiteDir
+                this.bakedSiteDir,
+                knex
             )
             this.progressBar.tick({
                 name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
@@ -910,7 +920,7 @@ export class SiteBaker {
         await this.bakeDriveImages()
     }
 
-    async bakeNonWordpressPages() {
+    async bakeNonWordpressPages(knex: Knex<any, any[]>) {
         await db.getConnection()
         const progressBarTotal = nonWordpressSteps
             .map((step) => this.bakeSteps.has(step))
@@ -921,15 +931,15 @@ export class SiteBaker {
                 total: progressBarTotal,
             }
         )
-        await this._bakeNonWordpressPages()
+        await this._bakeNonWordpressPages(knex)
     }
 
-    async bakeAll() {
+    async bakeAll(knex: Knex<any, any[]>) {
         // Ensure caches are correctly initialized
         this.flushCache()
-        await this.removeDeletedPosts()
-        await this.bakeWordpressPages()
-        await this._bakeNonWordpressPages()
+        await this.removeDeletedPosts(knex)
+        await this.bakeWordpressPages(knex)
+        await this._bakeNonWordpressPages(knex)
         this.flushCache()
     }
 
@@ -961,7 +971,7 @@ export class SiteBaker {
 
     private flushCache() {
         // Clear caches to allow garbage collection while waiting for next run
-        wpdb.flushCache()
+        postsFlushCache()
         siteBakingFlushCache()
         redirectsFlushCache()
         this.progressBar.tick({ name: "✅ cache flushed" })

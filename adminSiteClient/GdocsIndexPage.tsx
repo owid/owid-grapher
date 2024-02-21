@@ -11,6 +11,7 @@ import {
     faPuzzlePiece,
     faQuestion,
     faThList,
+    faBuildingNgo,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -39,6 +40,7 @@ const iconGdocTypeMap = {
     [OwidGdocType.LinearTopicPage]: <FontAwesomeIcon icon={faLightbulb} />,
     [OwidGdocType.DataInsight]: <FontAwesomeIcon icon={faThList} />,
     [OwidGdocType.Homepage]: <FontAwesomeIcon icon={faHouse} />,
+    [OwidGdocType.AboutPage]: <FontAwesomeIcon icon={faBuildingNgo} />,
 }
 
 @observer
@@ -57,6 +59,7 @@ class GdocsIndexPageSearch extends React.Component<{
             OwidGdocType.TopicPage,
             OwidGdocType.LinearTopicPage,
             OwidGdocType.DataInsight,
+            OwidGdocType.AboutPage,
         ]
         return (
             <div className="d-flex flex-grow-1 flex-wrap">
@@ -116,6 +119,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         [OwidGdocType.LinearTopicPage]: false,
         [OwidGdocType.DataInsight]: false,
         [OwidGdocType.Homepage]: false,
+        [OwidGdocType.AboutPage]: false,
     }
 
     @observable search = { value: "" }
@@ -252,8 +256,12 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
                                     {gdoc.content.authors?.join(", ")}
                                 </p>
                                 <span className="gdoc-index-item__tags">
-                                    {gdoc.content.type !==
-                                        OwidGdocType.Fragment && gdoc.tags ? (
+                                    {gdoc.content.type &&
+                                    ![
+                                        OwidGdocType.Fragment,
+                                        OwidGdocType.AboutPage,
+                                    ].includes(gdoc.content.type) &&
+                                    gdoc.tags ? (
                                         <EditableTags
                                             tags={gdoc.tags}
                                             onSave={(tags) =>

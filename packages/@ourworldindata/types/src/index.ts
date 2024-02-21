@@ -122,15 +122,8 @@ export {
 
 export {
     type EntryMeta,
-    type EntryNode,
     type PostReference,
-    type CategoryNode,
-    type DocumentNode,
     type CategoryWithEntries,
-    GraphDocumentType,
-    GraphType,
-    type AlgoliaRecord,
-    type ChartRecord,
 } from "./domainTypes/ContentGraph.js"
 export {
     WP_BlockClass,
@@ -138,6 +131,7 @@ export {
     WP_ColumnStyle,
     WP_PostType,
     type PostRestApi,
+    type BlockGraphQlApi,
     type FilterFnPostRestApi,
     type FormattingOptions,
     SubNavId,
@@ -512,8 +506,11 @@ export {
     parsePostFormattingOptions,
     parsePostAuthors,
     parsePostRow,
+    parsePostWpApiSnapshot,
     serializePostRow,
     parsePostArchieml,
+    snapshotIsPostRestApi,
+    snapshotIsBlockGraphQlApi,
 } from "./dbTypes/Posts.js"
 export {
     type DbInsertPostGdoc,
@@ -623,3 +620,5 @@ export {
     serializeVariableProcessingLog,
     type License,
 } from "./dbTypes/Variables.js"
+
+export { RedirectCode, type DbPlainRedirect } from "./dbTypes/Redirects.js"

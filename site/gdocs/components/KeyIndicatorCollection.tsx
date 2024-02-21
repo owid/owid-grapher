@@ -15,7 +15,7 @@ import {
     EnrichedBlockKeyIndicator,
     GrapherTabOption,
 } from "@ourworldindata/types"
-import { Url, capitalize, urlToSlug } from "@ourworldindata/utils"
+import { Url, urlToSlug } from "@ourworldindata/utils"
 
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 import KeyIndicator from "./KeyIndicator.js"

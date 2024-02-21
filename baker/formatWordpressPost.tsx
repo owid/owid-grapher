@@ -59,6 +59,7 @@ import { renderKeyInsights, renderProminentLinks } from "./siteRenderers.js"
 import { KEY_INSIGHTS_CLASS_NAME } from "../site/blocks/KeyInsights.js"
 import { RELATED_CHARTS_CLASS_NAME } from "../site/blocks/RelatedCharts.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { Knex } from "knex"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -128,6 +129,7 @@ const formatLatex = async (
 export const formatWordpressPost = async (
     post: FullPost,
     formattingOptions: FormattingOptions,
+    knex: Knex<any, any[]>,
     grapherExports?: GrapherExports
 ): Promise<FormattedPost> => {
     let html = post.content
@@ -310,7 +312,7 @@ export const formatWordpressPost = async (
     renderCodeSnippets(cheerioEl)
     renderHelp(cheerioEl)
     renderAllCharts(cheerioEl, post)
-    await renderProminentLinks(cheerioEl, post.id)
+    await renderProminentLinks(cheerioEl, post.id, knex)
 
     // Extract inline styling
     let style
@@ -593,6 +595,7 @@ export const formatWordpressPost = async (
 export const formatPost = async (
     post: FullPost,
     formattingOptions: FormattingOptions,
+    knex: Knex<any, any[]>,
     grapherExports?: GrapherExports
 ): Promise<FormattedPost> => {
     // No formatting applied, plain source HTML returned
@@ -612,5 +615,5 @@ export const formatPost = async (
         ...formattingOptions,
     }
 
-    return formatWordpressPost(post, options, grapherExports)
+    return formatWordpressPost(post, options, knex, grapherExports)
 }

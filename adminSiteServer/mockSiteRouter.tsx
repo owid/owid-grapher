@@ -53,6 +53,7 @@ import {
 } from "../baker/GrapherBaker.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
+import * as db from "../db/db.js"
 
 require("express-async-errors")
 
@@ -64,17 +65,26 @@ mockSiteRouter.use(express.json())
 
 mockSiteRouter.get("/sitemap.xml", async (req, res) => {
     res.set("Content-Type", "application/xml")
-    res.send(await makeSitemap(explorerAdminServer))
+    const sitemap = await db
+        .knexInstance()
+        .transaction(async (knex) => makeSitemap(explorerAdminServer, knex))
+    res.send(sitemap)
 })
 
 mockSiteRouter.get("/atom.xml", async (req, res) => {
     res.set("Content-Type", "application/xml")
-    res.send(await makeAtomFeed())
+    const atomFeed = await db
+        .knexInstance()
+        .transaction(async (knex) => makeAtomFeed(knex))
+    res.send(atomFeed)
 })
 
 mockSiteRouter.get("/atom-no-topic-pages.xml", async (req, res) => {
     res.set("Content-Type", "application/xml")
-    res.send(await makeAtomFeedNoTopicPages())
+    const atomFeedNoTopicPages = await db
+        .knexInstance()
+        .transaction(async (knex) => makeAtomFeedNoTopicPages(knex))
+    res.send(atomFeedNoTopicPages)
 })
 
 mockSiteRouter.get("/entries-by-year", async (req, res) =>
@@ -116,8 +126,15 @@ mockSiteRouter.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
     const explorerProgram = explorers.find(
         (program) => program.slug === req.params.slug
     )
-    if (explorerProgram) res.send(await renderExplorerPage(explorerProgram))
-    else
+    if (explorerProgram) {
+        const explorerPage = await db
+            .knexInstance()
+            .transaction(async (knex) => {
+                return renderExplorerPage(explorerProgram, knex)
+            })
+
+        res.send(explorerPage)
+    } else
         throw new JsonError(
             "A published explorer with that slug was not found",
             404
@@ -131,12 +148,13 @@ mockSiteRouter.get("/*", async (req, res, next) => {
     const { migrationId, baseQueryStr } = explorerRedirect
     const { explorerSlug } = explorerUrlMigrationsById[migrationId]
     const program = await explorerAdminServer.getExplorerFromSlug(explorerSlug)
-    res.send(
-        await renderExplorerPage(program, {
+    const explorerPage = await db.knexInstance().transaction(async (knex) => {
+        return renderExplorerPage(program, knex, {
             explorerUrlMigrationId: migrationId,
             baseQueryStr,
         })
-    )
+    })
+    res.send(explorerPage)
 })
 
 mockSiteRouter.get("/collection/top-charts", async (_, res) => {
@@ -153,11 +171,19 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
 
     // XXX add dev-prod parity for this
     res.set("Access-Control-Allow-Origin", "*")
-    res.send(await renderPreviewDataPageOrGrapherPage(entity.config))
+    const previewDataPageOrGrapherPage = await db
+        .knexInstance()
+        .transaction(async (knex) =>
+            renderPreviewDataPageOrGrapherPage(entity.config, knex)
+        )
+    res.send(previewDataPageOrGrapherPage)
 })
 
 mockSiteRouter.get("/", async (req, res) => {
-    res.send(await renderFrontPage())
+    const frontPage = await db
+        .knexInstance()
+        .transaction(async (knex) => renderFrontPage(knex))
+    res.send(frontPage)
 })
 
 mockSiteRouter.get("/donate", async (req, res) =>
@@ -226,24 +252,37 @@ mockSiteRouter.get("/datapage-preview/:id", async (req, res) => {
 })
 
 countryProfileSpecs.forEach((spec) =>
-    mockSiteRouter.get(`/${spec.rootPath}/:countrySlug`, async (req, res) =>
-        res.send(await countryProfileCountryPage(spec, req.params.countrySlug))
-    )
+    mockSiteRouter.get(`/${spec.rootPath}/:countrySlug`, async (req, res) => {
+        const countryPage = await db
+            .knexInstance()
+            .transaction(async (knex) =>
+                countryProfileCountryPage(spec, req.params.countrySlug, knex)
+            )
+        res.send(countryPage)
+    })
 )
 
 mockSiteRouter.get("/search", async (req, res) =>
     res.send(await renderSearchPage())
 )
 
-mockSiteRouter.get("/latest", async (req, res) =>
-    res.send(await renderBlogByPageNum(1))
-)
+mockSiteRouter.get("/latest", async (req, res) => {
+    const latest = await db
+        .knexInstance()
+        .transaction(async (knex) => renderBlogByPageNum(1, knex))
+    res.send(latest)
+})
 
 mockSiteRouter.get("/latest/page/:pageno", async (req, res) => {
     const pagenum = parseInt(req.params.pageno, 10)
-    if (!isNaN(pagenum))
-        res.send(await renderBlogByPageNum(isNaN(pagenum) ? 1 : pagenum))
-    else throw new Error("invalid page number")
+    if (!isNaN(pagenum)) {
+        const latestPageNum = await db
+            .knexInstance()
+            .transaction(async (knex) =>
+                renderBlogByPageNum(isNaN(pagenum) ? 1 : pagenum, knex)
+            )
+        res.send(latestPageNum)
+    } else throw new Error("invalid page number")
 })
 
 mockSiteRouter.get("/headerMenu.json", async (req, res) => {
@@ -333,7 +372,10 @@ mockSiteRouter.get("/*", async (req, res) => {
     }
 
     try {
-        res.send(await renderPageBySlug(slug))
+        const page = await db
+            .knexInstance()
+            .transaction(async (knex) => renderPageBySlug(slug, knex))
+        res.send(page)
     } catch (e) {
         console.error(e)
         res.status(404).send(await renderNotFoundPage())

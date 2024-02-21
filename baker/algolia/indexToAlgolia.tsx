@@ -26,6 +26,12 @@ import { Pageview } from "../../db/model/Pageview.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { ArticleBlocks } from "../../site/gdocs/components/ArticleBlocks.js"
 import React from "react"
+import {
+    getFullPost,
+    getPostTags,
+    getPostsFromSnapshots,
+} from "../../db/model/Post.js"
+import { Knex } from "knex"
 
 interface TypeAndImportance {
     type: PageType
@@ -73,7 +79,8 @@ function generateChunksFromHtmlText(htmlString: string) {
 
 async function generateWordpressRecords(
     postsApi: PostRestApi[],
-    pageviews: Record<string, RawPageview>
+    pageviews: Record<string, RawPageview>,
+    knex: Knex<any, any[]>
 ): Promise<PageRecord[]> {
     const getPostTypeAndImportance = (
         post: FormattedPost,
@@ -92,7 +99,7 @@ async function generateWordpressRecords(
     const records: PageRecord[] = []
 
     for (const postApi of postsApi) {
-        const rawPost = await wpdb.getFullPost(postApi)
+        const rawPost = await getFullPost(postApi)
         if (isEmpty(rawPost.content)) {
             // we have some posts that are only placeholders (e.g. for a redirect); don't index these
             console.log(
@@ -101,9 +108,9 @@ async function generateWordpressRecords(
             continue
         }
 
-        const post = await formatPost(rawPost, { footnotes: false })
+        const post = await formatPost(rawPost, { footnotes: false }, knex)
         const chunks = generateChunksFromHtmlText(post.html)
-        const tags = await wpdb.getPostTags(post.id)
+        const tags = await getPostTags(post.id)
         const postTypeAndImportance = getPostTypeAndImportance(post, tags)
 
         let i = 0
@@ -143,6 +150,8 @@ function generateGdocRecords(
             case OwidGdocType.Fragment:
                 // this should not happen because we filter out fragments; but we want to have an exhaustive switch/case so we include it
                 return { type: "other", importance: 0 }
+            case OwidGdocType.AboutPage:
+                return { type: "about", importance: 0 }
             case OwidGdocType.Article:
             case undefined:
                 return { type: "article", importance: 0 }
@@ -186,14 +195,14 @@ function generateGdocRecords(
 }
 
 // Generate records for countries, WP posts (not including posts that have been succeeded by Gdocs equivalents), and Gdocs
-const getPagesRecords = async () => {
+const getPagesRecords = async (knex: Knex<any, any[]>) => {
     const pageviews = await Pageview.getViewsByUrlObj()
     const gdocs = await GdocPost.getPublishedGdocs()
     const publishedGdocsBySlug = keyBy(gdocs, "slug")
     // TODO: the knex instance should be handed down as a parameter
     const slugsWithPublishedGdocsSuccessors =
         await db.getSlugsWithPublishedGdocsSuccessors(db.knexInstance())
-    const postsApi = await wpdb.getPosts(undefined, (post) => {
+    const postsApi = await getPostsFromSnapshots(knex, undefined, (post) => {
         // Two things can happen here:
         // 1. There's a published Gdoc with the same slug
         // 2. This post has a Gdoc successor (which might have a different slug)
@@ -205,7 +214,11 @@ const getPagesRecords = async () => {
     })
 
     const countryRecords = generateCountryRecords(countries, pageviews)
-    const wordpressRecords = await generateWordpressRecords(postsApi, pageviews)
+    const wordpressRecords = await generateWordpressRecords(
+        postsApi,
+        pageviews,
+        knex
+    )
     const gdocsRecords = generateGdocRecords(gdocs, pageviews)
 
     return [...countryRecords, ...wordpressRecords, ...gdocsRecords]
@@ -222,7 +235,7 @@ const indexToAlgolia = async () => {
     const index = client.initIndex(SearchIndexName.Pages)
 
     await db.getConnection()
-    const records = await getPagesRecords()
+    const records = await getPagesRecords(db.knexInstance())
 
     index.replaceAllObjects(records)
 

@@ -33,7 +33,7 @@ services:
         command: --default-authentication-plugin=mysql_native_password
         restart: always
         volumes:
-            - ./devTools/my.cnf:/etc/my.cnf:ro
+            - ./devTools/docker/my.cnf:/etc/my.cnf:ro
             - mysql_data_public:/var/lib/mysql
             - ./logs:/var/log/mysql
         ports:

@@ -70,7 +70,8 @@ export function OwidGdoc({
                     type: P.union(
                         OwidGdocType.Article,
                         OwidGdocType.TopicPage,
-                        OwidGdocType.LinearTopicPage
+                        OwidGdocType.LinearTopicPage,
+                        OwidGdocType.AboutPage
                     ),
                 },
             },

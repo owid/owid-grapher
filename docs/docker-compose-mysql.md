@@ -103,3 +103,9 @@ rm tmp-downloads/*
 With that done, the next time you run `make up`, the database files will be re-downloaded.
 
 A new database will then be created (expect another 10-20 minutes.)
+
+### Troubleshooting
+
+-   For **MacOS** users: Ensure the Docker Desktop is installed and running. If you encounter the error `Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?` then it's most likely that Docker is not running and you need to start (or restart) it
+-   If you are blocked by a Docker session that won't delete then restart the machine, don't forget to start Docker for Desktop too.
+-   If you see `error getting credentials - err: exec: "docker-credential-desktop": executable file not found in $PATH, out: ''` [see this forum answer](https://forums.docker.com/t/docker-credential-desktop-exe-executable-file-not-found-in-path-using-wsl2/100225/5) - `vim ~/.docker/config.json` then change `credsStore` into `credStore`.

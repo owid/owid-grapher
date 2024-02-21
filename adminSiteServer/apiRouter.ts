@@ -5,7 +5,7 @@ import { transaction } from "../db/db.js"
 import * as db from "../db/db.js"
 import { imageStore } from "../db/model/Image.js"
 import { GdocXImage } from "../db/model/GdocXImage.js"
-import * as wpdb from "../db/wpdb.js"
+import { DEPRECATEDgetTopics } from "../db/DEPRECATEDwpdb.js"
 import {
     UNCATEGORIZED_TAG_ID,
     BAKE_ON_CHANGE,
@@ -42,7 +42,6 @@ import {
     SuggestedChartRevisionStatus,
     variableAnnotationAllowedColumnNamesAndTypes,
     VariableAnnotationsResponseRow,
-    isUndefined,
     OwidVariableWithSource,
     OwidChartDimensionInterface,
     DimensionProperty,
@@ -52,7 +51,6 @@ import {
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
-    OwidGdocLinkType,
     OwidGdocType,
     grapherKeysToSerialize,
 } from "@ourworldindata/types"
@@ -81,6 +79,8 @@ import {
     postsTable,
     setTagsForPost,
     getTagsByPostId,
+    getWordpressPostReferencesByChartId,
+    getGdocsPostReferencesByChartId,
 } from "../db/model/Post.js"
 import {
     checkFullDeployFallback,
@@ -93,6 +93,7 @@ import { Link } from "../db/model/Link.js"
 import { In } from "typeorm"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
+import { Knex } from "knex"
 
 const apiRouter = new FunctionalRouter()
 
@@ -147,114 +148,28 @@ async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
     return logs
 }
 
-const getPostsForSlugs = async (
-    slugs: string[]
-): Promise<{ ID: number; post_title: string; post_name: string }[]> => {
-    if (!wpdb.singleton) return []
-    // Hacky approach to find all the references to a chart by searching for
-    // the chart URL through the Wordpress database.
-    // The Grapher should work without the Wordpress database, so we need to
-    // handle failures gracefully.
-    // NOTE: Sometimes slugs can be substrings of other slugs, e.g.
-    // `grapher/gdp` is a substring of `grapher/gdp-maddison`. We need to be
-    // careful not to erroneously match those, which is why we switched to a
-    // REGEXP.
-    try {
-        const posts = await wpdb.singleton.query(
-            `
-                SELECT ID, post_title, post_name
-                FROM wp_posts
-                WHERE
-                    (post_type='page' OR post_type='post' OR post_type='wp_block')
-                    AND post_status='publish'
-                    AND (
-                        ${slugs
-                            .map(
-                                () =>
-                                    `post_content REGEXP CONCAT('grapher/', ?, '[^a-zA-Z_\-]')`
-                            )
-                            .join(" OR ")}
-                    )
-            `,
-            slugs.map(lodash.escapeRegExp)
-        )
-        return posts
-    } catch (error) {
-        console.warn(`Error in getReferencesByChartId`)
-        console.error(error)
-        // We can ignore errors due to not being able to connect.
-        return []
-    }
-}
-
-const getReferencesByChartId = async (chartId: number): Promise<References> => {
-    const rows = await db.queryMysql(
-        `
-        SELECT config->"$.slug" AS slug
-        FROM charts
-        WHERE id = ?
-        UNION
-        SELECT slug AS slug
-        FROM chart_slug_redirects
-        WHERE chart_id = ?
-    `,
-        [chartId, chartId]
+const getReferencesByChartId = async (
+    chartId: number,
+    knex: Knex<any, any[]>
+): Promise<References> => {
+    const postsWordpressPromise = getWordpressPostReferencesByChartId(
+        chartId,
+        knex
     )
-
-    const slugs: string[] = rows
-        .map(
-            (row: { slug?: string }) =>
-                row.slug && row.slug.replace(/^"|"$/g, "")
-        )
-        .filter((slug: string | undefined) => !isUndefined(slug))
-
-    if (!slugs || slugs.length === 0)
-        return {
-            postsGdocs: [],
-            postsWordpress: [],
-            explorers: [],
-        }
-
-    const postsPromise = getPostsForSlugs(slugs)
-    const permalinksPromise = wpdb.getPermalinks()
-    const publishedLinksToChartPromise = Link.getPublishedLinksTo(
-        slugs,
-        OwidGdocLinkType.Grapher
-    )
+    const postGdocsPromise = getGdocsPostReferencesByChartId(chartId, knex)
     const explorerSlugsPromise = db.queryMysql(
         `select distinct explorerSlug from explorer_charts where chartId = ?`,
         [chartId]
     )
-    const [posts, permalinks, publishedLinksToChart, explorerSlugs] =
-        await Promise.all([
-            postsPromise,
-            permalinksPromise,
-            publishedLinksToChartPromise,
-            explorerSlugsPromise,
-        ])
-
-    const publishedGdocPostsThatReferenceChart = publishedLinksToChart.map(
-        (link) => ({
-            id: link.source.id,
-            title: link.source.content.title ?? "",
-            slug: link.source.slug,
-            url: `${BAKED_BASE_URL}/${link.source.slug}`,
-        })
-    )
-
-    const publishedWPPostsThatReferenceChart = posts.map((post) => {
-        const slug = permalinks.get(post.ID, post.post_name)
-        return {
-            id: post.ID.toString(),
-            title: post.post_title,
-            slug: slug,
-            url: `${BAKED_BASE_URL}/${slug}`,
-        }
-    })
+    const [postsWordpress, postsGdocs, explorerSlugs] = await Promise.all([
+        postsWordpressPromise,
+        postGdocsPromise,
+        explorerSlugsPromise,
+    ])
 
     return {
-        postsGdocs: publishedGdocPostsThatReferenceChart,
-        postsWordpress: publishedWPPostsThatReferenceChart,
+        postsGdocs,
+        postsWordpress,
         explorers: explorerSlugs.map(
             (row: { explorerSlug: string }) => row.explorerSlug
         ),
@@ -532,11 +447,15 @@ apiRouter.get(
 
 apiRouter.get(
     "/charts/:chartId.references.json",
-    async (req: Request, res: Response) => ({
-        references: await getReferencesByChartId(
-            parseInt(req.params.chartId as string)
-        ),
-    })
+    async (req: Request, res: Response) => {
+        const references = db.knexInstance().transaction(async (knex) => ({
+            references: await getReferencesByChartId(
+                parseInt(req.params.chartId as string),
+                knex
+            ),
+        }))
+        return references
+    }
 )
 
 apiRouter.get(
@@ -567,7 +486,7 @@ apiRouter.get(
 )
 
 apiRouter.get("/topics.json", async (req: Request, res: Response) => ({
-    topics: await wpdb.getTopics(),
+    topics: await DEPRECATEDgetTopics(),
 }))
 apiRouter.get(
     "/editorData/variables.json",

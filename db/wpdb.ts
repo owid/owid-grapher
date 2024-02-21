@@ -1,4 +1,3 @@
-import { decodeHTML } from "entities"
 import { DatabaseConnection } from "./DatabaseConnection.js"
 import {
     WORDPRESS_DB_NAME,
@@ -9,45 +8,12 @@ import {
     WORDPRESS_API_PASS,
     WORDPRESS_API_USER,
     WORDPRESS_URL,
-    BAKED_BASE_URL,
-    BLOG_SLUG,
 } from "../settings/serverSettings.js"
-import * as db from "./db.js"
 import { Knex, knex } from "knex"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup.js"
-import {
-    RelatedChart,
-    CategoryWithEntries,
-    FullPost,
-    WP_PostType,
-    DocumentNode,
-    PostReference,
-    JsonError,
-    FilterFnPostRestApi,
-    PostRestApi,
-    TopicId,
-    GraphType,
-    memoize,
-    IndexPost,
-    orderBy,
-    IMAGES_DIRECTORY,
-    uniqBy,
-    sortBy,
-    DataPageRelatedResearch,
-    OwidGdocType,
-    Tag,
-    OwidGdocPostInterface,
-} from "@ourworldindata/utils"
-import { OwidGdocLinkType, Topic } from "@ourworldindata/types"
-import {
-    getContentGraph,
-    WPPostTypeToGraphDocumentType,
-} from "./contentGraph.js"
-import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
-import { GdocPost } from "./model/Gdoc/GdocPost.js"
-import { Link } from "./model/Link.js"
-import { SiteNavigationStatic } from "../site/SiteNavigation.js"
+import { WP_PostType, JsonError, PostRestApi } from "@ourworldindata/utils"
+import { DbPlainRedirect } from "@ourworldindata/types"
 
 let _knexInstance: Knex
 
@@ -117,11 +83,8 @@ class WPDB {
 
 export const singleton = new WPDB()
 
-const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
-const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
-const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
-
-export const ENTRIES_CATEGORY_ID = 44
+export const FOR_SYNC_ONLY_WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
+export const FOR_SYNC_ONLY_WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
 
 /* Wordpress GraphQL API query
  *
@@ -130,11 +93,11 @@ export const ENTRIES_CATEGORY_ID = 44
  * every query. So it is the caller's responsibility to throw (if necessary) on
  * "faux 404".
  */
-const graphqlQuery = async (
+export const FOR_SYNC_ONLY_graphqlQuery = async (
     query: string,
     variables: any = {}
 ): Promise<any> => {
-    const response = await fetch(WP_GRAPHQL_ENDPOINT, {
+    const response = await fetch(FOR_SYNC_ONLY_WP_GRAPHQL_ENDPOINT, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -155,7 +118,7 @@ const graphqlQuery = async (
  *
  * Note: throws on response.status >= 200 && response.status < 300.
  */
-const apiQuery = async (
+export const FOR_SYNC_ONLY_apiQuery = async (
     endpoint: string,
     params?: {
         returnResponseHeadersOnly?: boolean
@@ -188,234 +151,9 @@ const apiQuery = async (
         : response.json()
 }
 
-// Retrieve a map of post ids to authors
-let cachedAuthorship: Map<number, string[]> | undefined
-export const getAuthorship = async (): Promise<Map<number, string[]>> => {
-    if (cachedAuthorship) return cachedAuthorship
-
-    const authorRows = await singleton.query(`
-        SELECT object_id, terms.description FROM wp_term_relationships AS rels
-        LEFT JOIN wp_term_taxonomy AS terms ON terms.term_taxonomy_id=rels.term_taxonomy_id
-        WHERE terms.taxonomy='author'
-        ORDER BY rels.term_order ASC
-    `)
-
-    const authorship = new Map<number, string[]>()
-    for (const row of authorRows) {
-        let authors = authorship.get(row.object_id)
-        if (!authors) {
-            authors = []
-            authorship.set(row.object_id, authors)
-        }
-        authors.push(row.description.split(" ").slice(0, 2).join(" "))
-    }
-
-    cachedAuthorship = authorship
-    return authorship
-}
-
-export const getTagsByPostId = async (): Promise<Map<number, string[]>> => {
-    const tagsByPostId = new Map<number, string[]>()
-    const rows = await singleton.query(`
-        SELECT p.id, t.name
-        FROM wp_posts p
-        JOIN wp_term_relationships tr
-            on (p.id=tr.object_id)
-        JOIN wp_term_taxonomy tt
-            on (tt.term_taxonomy_id=tr.term_taxonomy_id
-            and tt.taxonomy='post_tag')
-        JOIN wp_terms t
-            on (tt.term_id=t.term_id)
-    `)
-
-    for (const row of rows) {
-        let cats = tagsByPostId.get(row.id)
-        if (!cats) {
-            cats = []
-            tagsByPostId.set(row.id, cats)
-        }
-        cats.push(row.name)
-    }
-
-    return tagsByPostId
-}
-
-export const getDocumentsInfo = async (
-    type: WP_PostType,
-    cursor: string = "",
-    where: string = ""
-): Promise<DocumentNode[]> => {
-    const typePlural = `${type}s`
-    const query = `
-    query($cursor: String){
-        ${typePlural}(first:50, after: $cursor, where:{${where}}) {
-            pageInfo {
-                hasNextPage
-                endCursor
-            }
-            nodes {
-                id: databaseId
-                title
-                slug
-                type: __typename
-                content
-                image: featuredImage {
-                    node {
-                        sourceUrl
-                    }
-                }
-                ${
-                    TOPICS_CONTENT_GRAPH
-                        ? `
-                parentTopics {
-                    nodes {
-                        id: databaseId
-                    }
-                }
-
-                `
-                        : ""
-                }
-            }
-        }
-    }
-    `
-
-    const result = await graphqlQuery(query, { cursor })
-    if (!result.data) return []
-
-    const pageInfo = result.data[typePlural].pageInfo
-    const nodes: Array<
-        Omit<DocumentNode, "image" | "parentTopics"> & {
-            image: { node: { sourceUrl: string } } | null
-            parentTopics?: { nodes: { id: TopicId }[] }
-        }
-    > = result.data[typePlural].nodes
-    const documents = nodes.map((node) => ({
-        ...node,
-        type: WPPostTypeToGraphDocumentType[type.toLowerCase() as WP_PostType],
-        image: node.image?.node.sourceUrl ?? null,
-        parentTopics: node.parentTopics?.nodes.map((topic) => topic.id) ?? [],
-    }))
-    if (pageInfo.hasNextPage) {
-        return documents.concat(
-            await getDocumentsInfo(type, pageInfo.endCursor, where)
-        )
-    } else {
-        return documents
-    }
-}
-
-export const isPostCitable = async (post: FullPost): Promise<boolean> => {
-    const entries = SiteNavigationStatic.categories
-    return entries.some((category) => {
-        return (
-            category.entries.some((entry) => entry.slug === post.slug) ||
-            (category.subcategories ?? []).some(
-                (subcategory: CategoryWithEntries) => {
-                    return subcategory.entries.some(
-                        (subCategoryEntry) =>
-                            subCategoryEntry.slug === post.slug
-                    )
-                }
-            )
-        )
-    })
-}
-
-export const getPermalinks = async (): Promise<{
-    // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage
-    get: (ID: number, postName: string) => string
-}> => ({
-    // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage
-    get: (ID: number, postName: string): string =>
-        postName.replace(/\/+$/g, "").replace(/--/g, "/").replace(/__/g, "/"),
-})
-
-let cachedFeaturedImages: Map<number, string> | undefined
-export const getFeaturedImages = async (): Promise<Map<number, string>> => {
-    if (cachedFeaturedImages) return cachedFeaturedImages
-
-    const rows = await singleton.query(
-        `SELECT wp_postmeta.post_id, wp_posts.guid FROM wp_postmeta INNER JOIN wp_posts ON wp_posts.ID=wp_postmeta.meta_value WHERE wp_postmeta.meta_key='_thumbnail_id'`
-    )
-
-    const featuredImages = new Map<number, string>()
-    for (const row of rows) {
-        featuredImages.set(row.post_id, row.guid)
-    }
-
-    cachedFeaturedImages = featuredImages
-    return featuredImages
-}
-
 // page => pages, post => posts
-const getEndpointSlugFromType = (type: string): string => `${type}s`
-
-export const selectHomepagePosts: FilterFnPostRestApi = (post) =>
-    post.meta?.owid_publication_context_meta_field?.homepage === true
-
-// Limit not supported with multiple post types:
-// When passing multiple post types, the limit is applied to the resulting array
-// of sequentially sorted posts (all blog posts, then all pages, ...), so there
-// will be a predominance of a certain post type.
-export const getPosts = async (
-    postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
-    filterFunc?: FilterFnPostRestApi,
-    limit?: number
-): Promise<PostRestApi[]> => {
-    if (!isWordpressAPIEnabled) return []
-
-    const perPage = 20
-    const posts: PostRestApi[] = []
-
-    for (const postType of postTypes) {
-        const endpoint = `${WP_API_ENDPOINT}/${getEndpointSlugFromType(
-            postType
-        )}`
-
-        // Get number of items to retrieve
-        const headers = await apiQuery(endpoint, {
-            searchParams: [["per_page", 1]],
-            returnResponseHeadersOnly: true,
-        })
-        const maxAvailable = headers.get("X-WP-TotalPages")
-        const count = limit && limit < maxAvailable ? limit : maxAvailable
-
-        for (let page = 1; page <= Math.ceil(count / perPage); page++) {
-            const postsCurrentPage = await apiQuery(endpoint, {
-                searchParams: [
-                    ["per_page", perPage],
-                    ["page", page],
-                ],
-            })
-            posts.push(...postsCurrentPage)
-        }
-    }
-
-    // Published pages excluded from public views
-    const excludedSlugs = [BLOG_SLUG]
-
-    const filterConditions: Array<FilterFnPostRestApi> = [
-        (post): boolean => !excludedSlugs.includes(post.slug),
-        (post): boolean => !post.slug.endsWith("-country-profile"),
-    ]
-    if (filterFunc) filterConditions.push(filterFunc)
-
-    const filteredPosts = posts.filter((post) =>
-        filterConditions.every((c) => c(post))
-    )
-
-    return limit ? filteredPosts.slice(0, limit) : filteredPosts
-}
-
-// todo / refactor : narrow down scope to getPostTypeById?
-export const getPostType = async (search: number | string): Promise<string> => {
-    const paramName = typeof search === "number" ? "id" : "slug"
-    return apiQuery(`${OWID_API_ENDPOINT}/type`, {
-        searchParams: [[paramName, search]],
-    })
-}
+export const FOR_SYNC_ONLY_getEndpointSlugFromType = (type: string): string =>
+    `${type}s`
 
 // The API query in getPostType is cleaner but slower, which becomes more of an
 // issue with prominent links requesting posts by slugs (getPostBySlug) to
@@ -433,7 +171,7 @@ export const getPostType = async (search: number | string): Promise<string> => {
 // not supported which means pages and posts are in direct competition for root
 // paths. So authors need to be diligent when creating paths to make sure pages
 // and posts paths don't collide. This is not enforced at the application level.
-export const getPostIdAndTypeBySlug = async (
+export const SYNC_ONLY_getPostIdAndTypeBySlug = async (
     slug: string
 ): Promise<{ id: number; type: string } | undefined> => {
     const rows = await singleton.query(
@@ -446,114 +184,27 @@ export const getPostIdAndTypeBySlug = async (
     return { id: rows[0].ID, type: rows[0].post_type }
 }
 
-export const getPostApiBySlug = async (slug: string): Promise<PostRestApi> => {
+export const FOR_SYNC_ONLY_getPostApiBySlugFromApi = async (
+    slug: string
+): Promise<PostRestApi> => {
     if (!isWordpressAPIEnabled) {
         throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
     }
 
-    const postIdAndType = await getPostIdAndTypeBySlug(slug)
+    const postIdAndType = await SYNC_ONLY_getPostIdAndTypeBySlug(slug)
     if (!postIdAndType)
         throw new JsonError(`No page found by slug ${slug}`, 404)
 
     const { id, type } = postIdAndType
 
-    return apiQuery(`${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`)
+    return FOR_SYNC_ONLY_apiQuery(
+        `${FOR_SYNC_ONLY_WP_API_ENDPOINT}/${FOR_SYNC_ONLY_getEndpointSlugFromType(
+            type
+        )}/${id}`
+    )
 }
 
-// We might want to cache this as the network of prominent links densifies and
-// multiple requests to the same posts are happening.
-export const getPostBySlug = async (slug: string): Promise<FullPost> => {
-    if (!isWordpressAPIEnabled) {
-        throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
-    }
-
-    const postApi = await getPostApiBySlug(slug)
-
-    return getFullPost(postApi)
-}
-
-// the /revisions endpoint does not send back all the metadata required for
-// the proper rendering of the post (e.g. authors), hence the double request.
-export const getLatestPostRevision = async (id: number): Promise<FullPost> => {
-    const type = await getPostType(id)
-    const endpointSlug = getEndpointSlugFromType(type)
-
-    const postApi = await apiQuery(`${WP_API_ENDPOINT}/${endpointSlug}/${id}`)
-
-    const revision = (
-        await apiQuery(
-            `${WP_API_ENDPOINT}/${endpointSlug}/${id}/revisions?per_page=1`
-        )
-    )[0]
-
-    // Since WP does not store metadata for revisions, some elements of a
-    // previewed page will not reflect the latest edits:
-    // - published date (will show the correct one - that is the one in the
-    //   sidebar - for unpublished posts though. For published posts, the
-    //   current published date is displayed, regardless of what is shown
-    //   and could have been modified in the sidebar.)
-    // - authors
-    // ...
-    return getFullPost({
-        ...postApi,
-        content: revision.content,
-        title: revision.title,
-    })
-}
-
-export const getRelatedCharts = async (
-    postId: number
-): Promise<RelatedChart[]> =>
-    db.queryMysql(`
-        SELECT DISTINCT
-            charts.config->>"$.slug" AS slug,
-            charts.config->>"$.title" AS title,
-            charts.config->>"$.variantName" AS variantName,
-            chart_tags.keyChartLevel
-        FROM charts
-        INNER JOIN chart_tags ON charts.id=chart_tags.chartId
-        INNER JOIN post_tags ON chart_tags.tagId=post_tags.tag_id
-        WHERE post_tags.post_id=${postId}
-        AND charts.config->>"$.isPublished" = "true"
-        ORDER BY title ASC
-    `)
-
-export const getPostTags = async (
-    postId: number
-): Promise<Pick<Tag, "id" | "name">[]> => {
-    return await db
-        .knexTable("post_tags")
-        .select("tags.id", "tags.name")
-        .where({ post_id: postId })
-        .join("tags", "tags.id", "=", "post_tags.tag_id")
-}
-
-export const getRelatedChartsForVariable = async (
-    variableId: number,
-    chartIdsToExclude: number[] = []
-): Promise<RelatedChart[]> => {
-    const excludeChartIds =
-        chartIdsToExclude.length > 0
-            ? `AND charts.id NOT IN (${chartIdsToExclude.join(", ")})`
-            : ""
-
-    return db.queryMysql(`-- sql
-                SELECT
-                    charts.config->>"$.slug" AS slug,
-                    charts.config->>"$.title" AS title,
-                    charts.config->>"$.variantName" AS variantName,
-                    MAX(chart_tags.keyChartLevel) as keyChartLevel
-                FROM charts
-                INNER JOIN chart_tags ON charts.id=chart_tags.chartId
-                WHERE JSON_CONTAINS(config->'$.dimensions', '{"variableId":${variableId}}')
-                AND charts.config->>"$.isPublished" = "true"
-                ${excludeChartIds}
-                GROUP BY charts.id
-                ORDER BY title ASC
-            `)
-}
-
-interface RelatedResearchQueryResult {
+export interface RelatedResearchQueryResult {
     linkTargetSlug: string
     componentType: string
     chartSlug: string
@@ -566,186 +217,9 @@ interface RelatedResearchQueryResult {
     post_source: string
     tags: string
 }
-export const getRelatedResearchAndWritingForVariable = async (
-    variableId: number
-): Promise<DataPageRelatedResearch[]> => {
-    const wp_posts: RelatedResearchQueryResult[] = await db.queryMysql(
-        `-- sql
-            -- What we want here is to get from the variable to the charts
-            -- to the posts and collect different pieces of information along the way
-            -- One important complication is that the slugs that are used in posts to
-            -- embed charts can either be the current slugs or old slugs that are redirected
-            -- now.
-            select
-                distinct
-                pl.target as linkTargetSlug,
-                pl.componentType as componentType,
-                coalesce(csr.slug, c.slug) as chartSlug,
-                p.title as title,
-                p.slug as postSlug,
-                coalesce(csr.chart_id, c.id) as chartId,
-                p.authors as authors,
-                p.featured_image as thumbnail,
-                coalesce(pv.views_365d, 0) as pageviews,
-                'wordpress' as post_source,
-                (select coalesce(JSON_ARRAYAGG(t.name), JSON_ARRAY())
-                    from post_tags pt
-                    join tags t on pt.tag_id = t.id
-                    where pt.post_id = p.id
-                ) as tags
-            from
-                posts_links pl
-            join posts p on
-                pl.sourceId = p.id
-            left join charts c on
-                pl.target = c.slug
-            left join chart_slug_redirects csr on
-                pl.target = csr.slug
-            left join chart_dimensions cd on
-                cd.chartId = coalesce(csr.chart_id, c.id)
-            left join analytics_pageviews pv on
-                pv.url = concat('https://ourworldindata.org/', p.slug )
-            left join posts_gdocs pg on
-            	pg.id = p.gdocSuccessorId
-            left join posts_gdocs pgs on
-                pgs.slug = p.slug
-            left join post_tags pt on
-                pt.post_id = p.id
-            where
-                -- we want only urls that point to grapher charts
-                pl.linkType = 'grapher'
-                -- componentType src is for those links that matched the anySrcregex (not anyHrefRegex or prominentLinkRegex)
-                -- this means that only the links that are of the iframe kind will be kept - normal a href style links will
-                -- be disregarded
-                and componentType = 'src'
-                and cd.variableId = ?
-                and cd.property in ('x', 'y') -- ignore cases where the indicator is size, color etc
-                and p.status = 'publish' -- only use published wp posts
-                and p.type != 'wp_block'
-                and coalesce(pg.published, 0) = 0 -- ignore posts if the wp post has a published gdoc successor. The
-                                                  -- coalesce makes sure that if there is no gdoc successor then
-                                                  -- the filter keeps the post
-                and coalesce(pgs.published, 0) = 0 -- ignore posts if there is a gdoc post with the same slug that is published
-                      -- this case happens for example for topic pages that are newly created (successorId is null)
-                      -- but that replace an old wordpress page
-
-            `,
-        [variableId]
-    )
-
-    const gdocs_posts: RelatedResearchQueryResult[] = await db.queryMysql(
-        `-- sql
-            select
-                distinct
-                pl.target as linkTargetSlug,
-                pl.componentType as componentType,
-                coalesce(csr.slug, c.slug) as chartSlug,
-                p.content ->> '$.title' as title,
-                p.slug as postSlug,
-                coalesce(csr.chart_id, c.id) as chartId,
-                p.content ->> '$.authors' as authors,
-                p.content ->> '$."featured-image"' as thumbnail,
-                coalesce(pv.views_365d, 0) as pageviews,
-                'gdocs' as post_source,
-                (select coalesce(JSON_ARRAYAGG(t.name), JSON_ARRAY())
-                    from posts_gdocs_x_tags pt
-                    join tags t on pt.tagId = t.id
-                    where pt.gdocId = p.id
-                ) as tags
-            from
-                posts_gdocs_links pl
-            join posts_gdocs p on
-                pl.sourceId = p.id
-            left join charts c on
-                pl.target = c.slug
-            left join chart_slug_redirects csr on
-                pl.target = csr.slug
-            join chart_dimensions cd on
-                cd.chartId = coalesce(csr.chart_id, c.id)
-            left join analytics_pageviews pv on
-                pv.url = concat('https://ourworldindata.org/', p.slug )
-            left join posts_gdocs_x_tags pt on
-                pt.gdocId = p.id
-            where
-                pl.linkType = 'grapher'
-                and componentType = 'chart' -- this filters out links in tags and keeps only embedded charts
-                and cd.variableId = ?
-                and cd.property in ('x', 'y') -- ignore cases where the indicator is size, color etc
-                and p.published = 1
-                and p.content ->> '$.type' != 'fragment'`,
-        [variableId]
-    )
-
-    const combined = [...wp_posts, ...gdocs_posts]
-
-    // we could do the sorting in the SQL query if we'd union the two queries
-    // but it seemed easier to understand if we do the sort here
-    const sorted = sortBy(combined, (post) => -post.pageviews)
-
-    const allSortedRelatedResearch = sorted.map((post) => {
-        const parsedAuthors = JSON.parse(post.authors)
-        const parsedTags = post.tags !== "" ? JSON.parse(post.tags) : []
-
-        return {
-            title: post.title,
-            url: `/${post.postSlug}`,
-            variantName: "",
-            authors: parsedAuthors,
-            imageUrl: post.thumbnail,
-            tags: parsedTags,
-        }
-    })
-    // the queries above use distinct but because of the information we pull in if the same piece of research
-    // uses different charts that all use a single indicator we would get duplicates for the post to link to so
-    // here we deduplicate by url. The first item is retained by uniqBy, latter ones are discarded.
-    return uniqBy(allSortedRelatedResearch, "url")
-}
-
-export const getRelatedArticles = async (
-    chartId: number
-): Promise<PostReference[] | undefined> => {
-    const graph = await getContentGraph()
-
-    const chartRecord = await graph.find(GraphType.Chart, chartId)
-
-    if (!chartRecord.payload.count) return
-
-    const chart = chartRecord.payload.records[0]
-    const publishedLinksToChart = await Link.getPublishedLinksTo(
-        [chart.slug],
-        OwidGdocLinkType.Grapher
-    )
-    const publishedGdocPostsThatReferenceChart: PostReference[] =
-        publishedLinksToChart
-            .filter(
-                (link) => link.source.content.type !== OwidGdocType.Fragment
-            )
-            .map((link) => ({
-                id: link.source.id,
-                title: link.source.content.title!,
-                slug: link.source.slug,
-            }))
-    const relatedArticles: PostReference[] = await Promise.all(
-        chart.embeddedIn.map(async (postId: any) => {
-            const postRecord = await graph.find(GraphType.Document, postId)
-            const post = postRecord.payload.records[0]
-            return {
-                id: postId,
-                title: post.title,
-                slug: post.slug,
-            }
-        })
-    )
-    return uniqBy(
-        [...relatedArticles, ...publishedGdocPostsThatReferenceChart],
-        "slug"
-    ).sort(
-        // Alphabetise
-        (a, b) => (a.title.toLowerCase() > b.title.toLowerCase() ? 1 : -1)
-    )
-}
-
-export const getBlockApi = async (id: number): Promise<any> => {
+export const FOR_SYNC_ONLY_getBlockApiFromApi = async (
+    id: number
+): Promise<any> => {
     if (!isWordpressAPIEnabled) return undefined
 
     const query = `
@@ -755,122 +229,16 @@ export const getBlockApi = async (id: number): Promise<any> => {
         }
       }
     `
-    return graphqlQuery(query, { id })
+    return FOR_SYNC_ONLY_graphqlQuery(query, { id })
 }
 
-export const getBlockContent = async (
-    id: number
-): Promise<string | undefined> => {
-    if (!isWordpressAPIEnabled) return undefined
-
-    const post = await getBlockApi(id)
-
-    return post.data?.wpBlock?.content ?? undefined
-}
-
-export const getFullPost = async (
-    postApi: PostRestApi,
-    excludeContent?: boolean
-): Promise<FullPost> => ({
-    id: postApi.id,
-    type: postApi.type,
-    slug: postApi.slug,
-    path: postApi.slug, // kept for transitioning between legacy BPES (blog post as entry section) and future hierarchical paths
-    title: decodeHTML(postApi.title.rendered),
-    date: new Date(postApi.date_gmt),
-    modifiedDate: new Date(postApi.modified_gmt),
-    authors: postApi.authors_name || [],
-    content: excludeContent ? "" : postApi.content.rendered,
-    excerpt: decodeHTML(postApi.excerpt.rendered),
-    imageUrl: `${BAKED_BASE_URL}${
-        postApi.featured_media_paths.medium_large ?? "/default-thumbnail.jpg"
-    }`,
-    thumbnailUrl: `${BAKED_BASE_URL}${
-        postApi.featured_media_paths?.thumbnail ?? "/default-thumbnail.jpg"
-    }`,
-    imageId: postApi.featured_media,
-    relatedCharts:
-        postApi.type === "page"
-            ? await getRelatedCharts(postApi.id)
-            : undefined,
-})
-
-export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
-    await db.getConnection() // side effect: ensure connection is established
-    const gdocPosts = await GdocPost.getListedGdocs()
-    const wpPosts = await Promise.all(
-        await getPosts([WP_PostType.Post], selectHomepagePosts).then((posts) =>
-            posts.map((post) => getFullPost(post, true))
-        )
-    )
-
-    const gdocSlugs = new Set(gdocPosts.map(({ slug }) => slug))
-    const posts = [...mapGdocsToWordpressPosts(gdocPosts)]
-
-    // Only adding each wpPost if there isn't already a gdoc with the same slug,
-    // to make sure we use the most up-to-date metadata
-    for (const wpPost of wpPosts) {
-        if (!gdocSlugs.has(wpPost.slug)) {
-            posts.push(wpPost)
-        }
-    }
-
-    return orderBy(posts, (post) => post.date.getTime(), ["desc"])
-})
-
-export const mapGdocsToWordpressPosts = (
-    gdocs: OwidGdocPostInterface[]
-): IndexPost[] => {
-    return gdocs.map((gdoc) => ({
-        title: gdoc.content["atom-title"] || gdoc.content.title || "Untitled",
-        slug: gdoc.slug,
-        type: gdoc.content.type,
-        date: gdoc.publishedAt as Date,
-        modifiedDate: gdoc.updatedAt as Date,
-        authors: gdoc.content.authors,
-        excerpt: gdoc.content["atom-excerpt"] || gdoc.content.excerpt,
-        imageUrl: gdoc.content["featured-image"]
-            ? `${BAKED_BASE_URL}${IMAGES_DIRECTORY}${gdoc.content["featured-image"]}`
-            : `${BAKED_BASE_URL}/default-thumbnail.jpg`,
-    }))
-}
-
-export const getTopics = async (cursor: string = ""): Promise<Topic[]> => {
-    if (!isWordpressAPIEnabled) return []
-    const query = `query {
-        pages (first: 100, after:"${cursor}", where: {categoryId:${ENTRIES_CATEGORY_ID}} ) {
-            pageInfo {
-                hasNextPage
-                endCursor
-            }
-            nodes {
-                id: databaseId
-                name: title
-            }
-        }
-      }`
-
-    const documents = await graphqlQuery(query, { cursor })
-    const pageInfo = documents.data.pages.pageInfo
-    const topics: Topic[] = documents.data.pages.nodes
-    if (topics.length === 0) return []
-
-    if (pageInfo.hasNextPage) {
-        return topics.concat(await getTopics(pageInfo.endCursor))
-    } else {
-        return topics
-    }
-}
-
-export interface TablepressTable {
+export interface FOR_SYNC_ONLY_TablepressTable {
     tableId: string
     data: string[][]
 }
-
-let cachedTables: Map<string, TablepressTable> | undefined
-export const getTables = async (): Promise<Map<string, TablepressTable>> => {
-    if (cachedTables) return cachedTables
-
+export const FOR_SYNC_ONLY_getTables = async (): Promise<
+    Map<string, FOR_SYNC_ONLY_TablepressTable>
+> => {
     const optRows = await singleton.query(`
         SELECT option_value AS json FROM wp_options WHERE option_name='tablepress_tables'
     `)
@@ -886,23 +254,25 @@ export const getTables = async (): Promise<Map<string, TablepressTable>> => {
         tableContents.set(row.ID, row.post_content)
     }
 
-    cachedTables = new Map()
+    const tables = new Map()
     for (const tableId in tableToPostIds) {
         const data = JSON.parse(
             tableContents.get(tableToPostIds[tableId]) || "[]"
         )
-        cachedTables.set(tableId, {
+        tables.set(tableId, {
             tableId: tableId,
             data: data,
         })
     }
 
-    return cachedTables
+    return tables
 }
 
-export const flushCache = (): void => {
-    cachedAuthorship = undefined
-    cachedFeaturedImages = undefined
-    getBlogIndex.cache.clear?.()
-    cachedTables = undefined
+export const FOR_SYNC_ONLY_getRedirects = async (): Promise<
+    DbPlainRedirect[]
+> => {
+    return singleton.query(`
+        SELECT url AS source, action_data AS target, action_code AS code
+        FROM wp_redirection_items WHERE status = 'enabled'
+    `)
 }

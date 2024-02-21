@@ -85,7 +85,12 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         const errors: OwidGdocErrorMessage[] = []
 
         if (!this.tags?.length) {
-            if (this.content.type !== OwidGdocType.Fragment) {
+            if (
+                this.content.type &&
+                ![OwidGdocType.Fragment, OwidGdocType.AboutPage].includes(
+                    this.content.type
+                )
+            ) {
                 errors.push({
                     property: "content",
                     message:
@@ -232,6 +237,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
                         OwidGdocType.Article,
                         OwidGdocType.TopicPage,
                         OwidGdocType.LinearTopicPage,
+                        OwidGdocType.AboutPage,
                     ].includes(type)
             )
         )

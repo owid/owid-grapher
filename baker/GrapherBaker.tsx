@@ -14,14 +14,7 @@ import {
     merge,
     partition,
 } from "@ourworldindata/utils"
-import {
-    getRelatedArticles,
-    getRelatedCharts,
-    getRelatedChartsForVariable,
-    getRelatedResearchAndWritingForVariable,
-    isWordpressAPIEnabled,
-    isWordpressDBEnabled,
-} from "../db/wpdb.js"
+import { isWordpressAPIEnabled, isWordpressDBEnabled } from "../db/wpdb.js"
 import fs from "fs-extra"
 import * as lodash from "lodash"
 import { bakeGraphersToPngs } from "./GrapherImageBaker.js"
@@ -29,12 +22,16 @@ import {
     OPTIMIZE_SVG_EXPORTS,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
-    MAX_NUM_BAKE_PROCESSES,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
-import { getPostEnrichedBySlug } from "../db/model/Post.js"
+import {
+    getPostEnrichedBySlug,
+    getPostRelatedCharts,
+    getRelatedArticles,
+    getRelatedResearchAndWritingForVariable,
+} from "../db/model/Post.js"
 import {
     JsonError,
     GrapherInterface,
@@ -48,7 +45,6 @@ import {
     FaqDictionary,
     ImageMetadata,
 } from "@ourworldindata/types"
-import workerpool from "workerpool"
 import ProgressBar from "progress"
 import {
     getVariableData,
@@ -63,6 +59,9 @@ import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
+import pMap from "p-map"
+import { getRelatedChartsForVariable } from "../db/model/Chart.js"
+import { Knex } from "knex"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -89,6 +88,7 @@ const renderDatapageIfApplicable = async (
  */
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
+    knex: Knex<any, any[]>,
     imageMetadataDictionary?: Record<string, Image>
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(
@@ -97,7 +97,7 @@ export const renderDataPageOrGrapherPage = async (
         imageMetadataDictionary
     )
     if (datapage) return datapage
-    return renderGrapherPage(grapher)
+    return renderGrapherPage(grapher, knex)
 }
 
 type EnrichedFaqLookupError = {
@@ -307,24 +307,28 @@ export async function renderDataPageV2({
  * Similar to renderDataPageOrGrapherPage(), but for admin previews
  */
 export const renderPreviewDataPageOrGrapherPage = async (
-    grapher: GrapherInterface
+    grapher: GrapherInterface,
+    knex: Knex<any, any[]>
 ) => {
     const datapage = await renderDatapageIfApplicable(grapher, true)
     if (datapage) return datapage
 
-    return renderGrapherPage(grapher)
+    return renderGrapherPage(grapher, knex)
 }
 
-const renderGrapherPage = async (grapher: GrapherInterface) => {
+const renderGrapherPage = async (
+    grapher: GrapherInterface,
+    knex: Knex<any, any[]>
+) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
     const post = postSlug ? await getPostEnrichedBySlug(postSlug) : undefined
     const relatedCharts =
         post && isWordpressDBEnabled
-            ? await getRelatedCharts(post.id)
+            ? await getPostRelatedCharts(post.id)
             : undefined
     const relatedArticles =
         grapher.id && isWordpressAPIEnabled
-            ? await getRelatedArticles(grapher.id)
+            ? await getRelatedArticles(grapher.id, knex)
             : undefined
 
     return renderToHtmlPage(
@@ -356,7 +360,8 @@ const chartIsSameVersion = async (
 const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     bakedSiteDir: string,
     imageMetadataDictionary: Record<string, Image>,
-    grapher: GrapherInterface
+    grapher: GrapherInterface,
+    knex: Knex<any, any[]>
 ) => {
     const htmlPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     const isSameVersion = await chartIsSameVersion(htmlPath, grapher.version)
@@ -373,7 +378,11 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     await fs.writeFile(
         outPath,
-        await renderDataPageOrGrapherPage(grapher, imageMetadataDictionary)
+        await renderDataPageOrGrapherPage(
+            grapher,
+            knex,
+            imageMetadataDictionary
+        )
     )
     console.log(outPath)
 
@@ -435,7 +444,8 @@ export interface BakeSingleGrapherChartArguments {
 }
 
 export const bakeSingleGrapherChart = async (
-    args: BakeSingleGrapherChartArguments
+    args: BakeSingleGrapherChartArguments,
+    knex: Knex<any, any[]> = db.knexInstance()
 ) => {
     const grapher: GrapherInterface = JSON.parse(args.config)
     grapher.id = args.id
@@ -450,13 +460,14 @@ export const bakeSingleGrapherChart = async (
     await bakeGrapherPageAndVariablesPngAndSVGIfChanged(
         args.bakedSiteDir,
         args.imageMetadataDictionary,
-        grapher
+        grapher,
+        knex
     )
     return args
 }
 
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
-    async (bakedSiteDir: string) => {
+    async (bakedSiteDir: string, knex: Knex<any, any[]>) => {
         const chartsToBake: { id: number; config: string; slug: string }[] =
             await db.queryMysql(`
                 SELECT
@@ -493,33 +504,14 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             }
         )
 
-        if (MAX_NUM_BAKE_PROCESSES === 1) {
-            await Promise.all(
-                jobs.map(async (job) => {
-                    await bakeSingleGrapherChart(job)
-                    progressBar.tick({ name: `slug ${job.slug}` })
-                })
-            )
-        } else {
-            const poolOptions = {
-                minWorkers: 2,
-                maxWorkers: MAX_NUM_BAKE_PROCESSES,
-            }
-            const pool = workerpool.pool(__dirname + "/worker.js", poolOptions)
-            try {
-                await Promise.all(
-                    jobs.map((job) =>
-                        pool.exec("bakeSingleGrapherChart", [job]).then(() =>
-                            progressBar.tick({
-                                name: `Baked chart ${job.slug}`,
-                            })
-                        )
-                    )
-                )
-            } finally {
-                await pool.terminate(true)
-            }
-        }
+        await pMap(
+            jobs,
+            async (job) => {
+                await bakeSingleGrapherChart(job, knex)
+                progressBar.tick({ name: `slug ${job.slug}` })
+            },
+            { concurrency: 10 }
+        )
 
         await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
         progressBar.tick({ name: `✅ Deleted old graphers` })

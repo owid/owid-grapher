@@ -21,7 +21,8 @@ const citationDescriptionsByArticleType: Record<
     | OwidGdocType.Article
     | OwidGdocType.TopicPage
     | OwidGdocType.LinearTopicPage
-    | OwidGdocType.Fragment,
+    | OwidGdocType.Fragment
+    | OwidGdocType.AboutPage,
     string
 > = {
     [OwidGdocType.TopicPage]:
@@ -33,6 +34,9 @@ const citationDescriptionsByArticleType: Record<
     // This case should never occur as Fragments aren't baked and can't be viewed by themselves.
     [OwidGdocType.Fragment]:
         "Our articles and data visualizations rely on work from many different people and organizations. When citing this text, please also cite the underlying data sources. This text can be cited as:",
+    // It is unlikely that we would want to cite an about page, but there might be a use case for it.
+    [OwidGdocType.AboutPage]:
+        "Our articles and data visualizations rely on work from many different people and organizations. When citing this page, please also cite the underlying data sources. This page can be cited as:",
 }
 
 export function GdocPost({
