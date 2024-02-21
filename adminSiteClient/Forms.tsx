@@ -806,6 +806,42 @@ export class BindStringArray extends React.Component<{
 }
 
 @observer
+export class BindDropdown extends React.Component<{
+    field: string
+    store: Record<string, any>
+    label?: React.ReactNode
+    options: Array<{ value: string; label: string }>
+    disabled?: boolean
+}> {
+    @action.bound onChange(event: React.ChangeEvent<HTMLSelectElement>) {
+        const value = event.target.value
+        this.props.store[this.props.field] = value
+    }
+
+    render() {
+        const { field, store, label, options, disabled } = this.props
+        const value = store[field] || "" // Default to empty string if no value is set
+
+        return (
+            <div>
+                {label && <label>{label}</label>}{" "}
+                <select
+                    value={value}
+                    onChange={this.onChange}
+                    disabled={disabled}
+                >
+                    {options.map((option) => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+            </div>
+        )
+    }
+}
+
+@observer
 export class BindAutoString<
     T extends { [field: string]: any },
     K extends Extract<keyof T, string>,
@@ -1142,7 +1178,20 @@ const createBulletList = (items: string[]): string => {
 }
 
 const parseBulletList = (bulletedString: string): string[] => {
-    return bulletedString
+    // Return an array with a single empty string if the input is empty
+    if (bulletedString === "") {
+        return [""]
+    }
+
+    const items = bulletedString
         .split(/\n•\s?/)
         .map((item) => item.replace(/^•\s?/, ""))
+
+    // Check if the input string ends with a newline. If it does, ensure the last item is an empty string.
+    if (bulletedString.endsWith("\n")) {
+        items[items.length - 1] = items[items.length - 1].trim()
+        items.push("")
+    }
+
+    return items
 }

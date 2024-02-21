@@ -17,6 +17,7 @@ import {
     BindStringArray,
     BindFloat,
     FieldsRow,
+    BindDropdown,
     Toggle,
 } from "./Forms.js"
 import {
@@ -407,10 +408,20 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         />
                                     </div>
                                     <div className="col">
-                                        <BindString
-                                            label="Processing level"
+                                        <BindDropdown
+                                            label="Processing Level"
                                             field="processingLevel"
                                             store={newVariable}
+                                            options={[
+                                                {
+                                                    value: "minor",
+                                                    label: "Minor",
+                                                },
+                                                {
+                                                    value: "major",
+                                                    label: "Major",
+                                                },
+                                            ]}
                                         />
                                         <BindString
                                             label="Number of days between OWID updates"
