@@ -144,7 +144,7 @@ def embedded_stylesheet(woff_files):
         'Lato-Regular',
         'Lato-Italic',
         'Lato-Bold',
-        'PlayfairDisplay-Medium',
+        'PlayfairDisplay-SemiBold',
     ]
 
     # use the latin subsets to keep the size down
