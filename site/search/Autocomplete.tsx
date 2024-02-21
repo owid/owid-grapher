@@ -73,11 +73,12 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
     onSelect,
     getItemUrl,
     getItems() {
-        // TODO: this should probably be integrated with GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID for v2
-        return ["COVID-19", "Energy", "GDP", "Poverty", "CO2"].map((term) => ({
-            title: term,
-            slug: `/search?q=${term}`,
-        }))
+        return ["CO2", "Energy", "Education", "Poverty", "Democracy"].map(
+            (term) => ({
+                title: term,
+                slug: `/search?q=${term}`,
+            })
+        )
     },
 
     templates: {
@@ -279,7 +280,7 @@ export function Autocomplete({
         }
 
         return () => search.destroy()
-    }, [onActivate, onClose, placeholder, detachedMediaQuery])
+    }, [onActivate, onClose, placeholder, detachedMediaQuery, panelClassName])
 
     return <div className={className} id="autocomplete" />
 }
