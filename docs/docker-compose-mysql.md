@@ -41,12 +41,13 @@ Then run:
 make up
 ```
 
-This should fire up a tmux console with 4 tabs:
+This should fire up a tmux console with 5 tabs:
 
-1. A tab that gives a brief overview of how to use this tmux setup
-2. A tab that outputs the Docker compose container logs
-3. A tab that shows the result of the TypeScript watch compiler process
-4. A tab that shows the output of the vite and admin server watch processes
+0. A _docker_ tab that outputs the Docker compose container logs
+1. An _admin_ tab which shiows the DB connection
+2. A _vite_ tab which shows TypeScript watch results
+3. A _lerna_ tab
+4. A _welcome_ tab that gives a brief overview of how to use this tmux setup - text details of the welcome tab can be found under the image
 
 The first time you run this it will take a while to download and set up the database (10-20 minutes is expected). Switch to the database tab and wait until you see this message:
 
@@ -54,7 +55,29 @@ The first time you run this it will take a while to download and set up the data
 ✅ All done, grapher DB is loaded ✅
 ```
 
-![Terminal screenshot of the running system](./screenshots/tmux-setup.png)
+## Visual and text output after successful run
+
+<img width="634" alt="a graphical output the expected result of running these steps" src="https://github.com/owid/owid-grapher/assets/10499070/b38ff245-f0e1-4eea-a0de-47d28cec2a75">
+
+### The image above includes the important options and notes
+
+* 0: move to pane numbered O
+* n: make a new terminal pane
+* R: restart a crashed pane
+* X: kill and close a pane
+* l: close all panes and exit tmux
+  
+**Note** the first time you run this, it can take 5-15 mins to create the db. You can watch its progress by switching to pane 1 (admin).
+
+### And the following URLs
+
+* http://Localhost:3030/<-- a basic version of Our World in Data
+* http://localhost:3030/grapher/life-expectancy-an example chart
+* http://Localhost:3030/admin/ *- an admin interface, **login with** "admin@example.com" / "admin"
+* http://localhost:3030/admin/test <-- a list of all charts in the db
+* http://localhost:8080/wp/wp-admin/ <-- the WordPress admin interface
+* http://Localhost:8090/ <-- the vite dev server
+* http://localhost:8788/ <-- the cloudflare functions dev server
 
 Now you can open [http://localhost:3030/admin/charts](http://localhost:3030/admin/charts) and start creating charts. Any changes to the TypeScript code you make will be automatically compiled, but you will have to refresh your page to see the changes.
 
@@ -104,7 +127,7 @@ With that done, the next time you run `make up`, the database files will be re-d
 
 A new database will then be created (expect another 10-20 minutes.)
 
-### Troubleshooting
+## Troubleshooting
 
 -   For **MacOS** users: Ensure the Docker Desktop is installed and running. If you encounter the error `Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?` then it's most likely that Docker is not running and you need to start (or restart) it
 -   If you are blocked by a Docker session that won't delete then restart the machine, don't forget to start Docker for Desktop too.
