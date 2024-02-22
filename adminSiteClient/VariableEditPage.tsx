@@ -169,14 +169,14 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                     </li>
                     <li className="breadcrumb-item active">{variable.name}</li>
                 </ol>
-                <div className="row">
-                    <div className="col">
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault()
-                                this.save()
-                            }}
-                        >
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault()
+                        this.save()
+                    }}
+                >
+                    <div className="row">
+                        <div className="col">
                             <section>
                                 <h3>Indicator metadata</h3>
                                 {isV2MetadataVariable && (
@@ -296,39 +296,27 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     />
                                 </FieldsRow>
                             </section>
-                            <input
-                                type="submit"
-                                className="btn btn-success"
-                                value="Update indicator"
-                            />
-                            <hr></hr>
-                        </form>
-                    </div>
-                    {this.grapher && (
-                        <div className="col">
-                            <div className="topbar">
-                                <h3>Preview</h3>
-                                <Link
-                                    className="btn btn-secondary"
-                                    to={`/charts/create/${Base64.encode(
-                                        JSON.stringify(this.grapher.object)
-                                    )}`}
-                                >
-                                    Edit as new chart
-                                </Link>
-                            </div>
-                            <GrapherFigureView grapher={this.grapher} />
                         </div>
-                    )}
-                </div>
-                <div className="row">
-                    <div className="col">
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault()
-                                this.save()
-                            }}
-                        >
+                        {/* BUG: when user pres Enter when editing form, chart will switch to `Table` tab */}
+                        {this.grapher && (
+                            <div className="col">
+                                <div className="topbar">
+                                    <h3>Preview</h3>
+                                    <Link
+                                        className="btn btn-secondary"
+                                        to={`/charts/create/${Base64.encode(
+                                            JSON.stringify(this.grapher.object)
+                                        )}`}
+                                    >
+                                        Edit as new chart
+                                    </Link>
+                                </div>
+                                <GrapherFigureView grapher={this.grapher} />
+                            </div>
+                        )}
+                    </div>
+                    <div className="row">
+                        <div className="col">
                             <section>
                                 <h4>
                                     Data Page&nbsp;
@@ -470,10 +458,10 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                 className="btn btn-success"
                                 value="Update indicator"
                             />
-                            <hr></hr>
-                        </form>
+                        </div>
                     </div>
-                </div>
+                    <hr></hr>
+                </form>
                 <div className="row">
                     <div className="col">
                         <form>
