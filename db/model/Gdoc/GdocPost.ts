@@ -1,4 +1,4 @@
-import { Entity, Column, LessThanOrEqual } from "typeorm"
+import { Entity, Column, LessThan } from "typeorm"
 import {
     type OwidGdocPostContent,
     OwidGdocPostInterface,
@@ -12,6 +12,7 @@ import {
     RawBlockText,
     RelatedChart,
     OwidGdocMinimalPostInterface,
+    getNextDayMidnightDate,
 } from "@ourworldindata/utils"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 import {
@@ -226,7 +227,17 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         return GdocPost.find({
             where: {
                 published: true,
-                publishedAt: LessThanOrEqual(new Date()),
+                // Get all articles published today, from 00:00 to 23:59. This
+                // is to handle the following edge case:
+                // - article published on the 3rd of January at 22:34
+                // - article unpublished some time later
+                // - article republished on the 4th of January at 08:16
+                //
+                // Yet, the article publication date is now the 4th of January
+                // at 22:34, so the article won't be eligigle for publishing
+                // until later that day. See why we maintain the time of the
+                // first publication in GdocsDateline.tsx.
+                publishedAt: LessThan(getNextDayMidnightDate(new Date())),
             },
             relations: ["tags"],
         }).then((gdocs) =>
@@ -250,7 +261,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         return GdocPost.findBy({
             published: true,
             publicationContext: OwidGdocPublicationContext.listed,
-            publishedAt: LessThanOrEqual(new Date()),
+            publishedAt: LessThan(getNextDayMidnightDate(new Date())),
         })
     }
 }

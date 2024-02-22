@@ -29,6 +29,7 @@ import {
     findGreatestCommonDivisorOfArray,
     traverseEnrichedBlocks,
     cartesian,
+    getNextDayMidnightDate,
 } from "./Util.js"
 import {
     BlockImageSize,
@@ -790,5 +791,20 @@ describe(cartesian, () => {
             ["b", "y", "+"],
             ["b", "y", "-"],
         ])
+    })
+})
+
+describe(getNextDayMidnightDate, () => {
+    it("returns the next day at midnight", () => {
+        const date = new Date("2024-01-01T01:20:30Z")
+        expect(getNextDayMidnightDate(date)).toEqual(
+            new Date("2024-01-02T00:00:00Z")
+        )
+    })
+    it("returns the next day at midnight across months", () => {
+        const date = new Date("2024-01-31T01:20:30Z")
+        expect(getNextDayMidnightDate(date)).toEqual(
+            new Date("2024-02-01T00:00:00Z")
+        )
     })
 })

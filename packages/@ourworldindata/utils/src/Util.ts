@@ -1819,3 +1819,10 @@ export function cartesian<T>(matrix: T[][]): T[][] {
         [[]]
     )
 }
+
+export function getNextDayMidnightDate(currentDay: Date): Date {
+    const nextDay = new Date(currentDay)
+    nextDay.setDate(nextDay.getDate() + 1)
+    nextDay.setHours(0, 0, 0, 0)
+    return nextDay
+}

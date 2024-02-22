@@ -202,6 +202,7 @@ export {
     lowercaseObjectKeys,
     detailOnDemandRegex,
     extractDetailsFromSyntax,
+    getNextDayMidnightDate,
 } from "./Util.js"
 
 export { isPresent } from "./isPresent.js"
