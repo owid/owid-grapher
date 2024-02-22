@@ -4,6 +4,7 @@ import { useLinkedChart } from "../utils.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { DocumentContext } from "../OwidGdoc.js"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 
 function ExplorerTile({ url }: { url: string }) {
     const { linkedChart, errorMessage } = useLinkedChart(url)
@@ -18,7 +19,7 @@ function ExplorerTile({ url }: { url: string }) {
         <img
             height={40}
             width={40}
-            src={`/images/tag-icons/${linkedChart.tags[0].name}.svg`}
+            src={`${BAKED_BASE_URL}/images/tag-icons/${linkedChart.tags[0].name}.svg`}
             className="explorer-tile__icon"
         />
     ) : null
