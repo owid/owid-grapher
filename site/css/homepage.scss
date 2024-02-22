@@ -403,13 +403,19 @@
 
     .homepage-topic__topic-entry {
         padding-right: 6px;
-        &:first-child {
-            list-style: none;
-        }
-        &::marker {
+        list-style: none;
+        &:before {
             color: $blue-30;
+            content: "•";
+            margin-right: 6px;
+            color: $blue-40;
         }
-
+        &:first-child {
+            // No disc for the first topic when there's no subtopic heading
+            &:before {
+                content: unset;
+            }
+        }
         a {
             color: $blue-90;
             &:hover {
@@ -418,7 +424,10 @@
         }
     }
 
+    // No disc for the first topic after a subtopic heading
     .homepage-topic__subtopic + .homepage-topic__topic-entry {
-        list-style: none;
+        &:before {
+            content: unset;
+        }
     }
 }
