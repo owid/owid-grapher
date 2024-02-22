@@ -650,7 +650,9 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                 )
                 const linkedIndicator: LinkedIndicator = {
                     id: linkedChart.indicatorId,
-                    ...grabMetadataForGdocLinkedIndicator(metadata),
+                    ...grabMetadataForGdocLinkedIndicator(metadata, {
+                        chartConfigTitle: linkedChart.title,
+                    }),
                 }
                 return linkedIndicator
             })
