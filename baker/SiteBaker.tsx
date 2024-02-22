@@ -698,8 +698,7 @@ export class SiteBaker {
 
     private async bakeDataInsights() {
         if (!this.bakeSteps.has("dataInsights")) return
-        const latestDataInsights =
-            await GdocDataInsight.loadLatestDataInsights()
+        const latestDataInsights = await db.getLatestDataInsights()
         const publishedDataInsights =
             await GdocDataInsight.getPublishedDataInsights()
 

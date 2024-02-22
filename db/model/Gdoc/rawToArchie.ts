@@ -6,6 +6,7 @@ import {
     RawBlockChart,
     RawBlockChartStory,
     RawBlockGraySection,
+    RawBlockHomepageIntro,
     RawBlockHorizontalRule,
     RawBlockHtml,
     RawBlockImage,
@@ -38,6 +39,9 @@ import {
     RawBlockKeyIndicator,
     RawBlockKeyIndicatorCollection,
     RawBlockExplorerTiles,
+    RawBlockPillRow,
+    RawBlockHomepageSearch,
+    RawBlockLatestDataInsights,
 } from "@ourworldindata/types"
 import { isArray } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
@@ -658,15 +662,71 @@ function* rawBlockKeyIndicatorToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockPillRowToArchieMLString(
+    block: RawBlockPillRow
+): Generator<string, void, undefined> {
+    yield "{.pill-row}"
+    yield* propertyToArchieMLString("title", block.value)
+    const pills = block?.value?.pills
+    if (pills) {
+        yield "[.pills]"
+        for (const pill of pills) {
+            yield* propertyToArchieMLString("text", pill)
+            yield* propertyToArchieMLString("url", pill)
+        }
+        yield "[]"
+    }
+    yield "{}"
+}
+
 function* rawBlockKeyIndicatorCollectionToArchieMLString(
     block: RawBlockKeyIndicatorCollection
 ): Generator<string, void, undefined> {
-    yield "[.+key-indicator-collection]"
-    if (typeof block.value !== "string") {
-        for (const b of block.value)
+    yield "{.key-indicator-collection}"
+    if (typeof block.value.indicators !== "string") {
+        yield "[.+indicators]"
+        for (const b of block.value.indicators) {
             yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
+        }
+        yield "[]"
+    }
+    yield "{}"
+}
+
+function* RawBlockLatestDataInsightsToArchieMLString(
+    _: RawBlockLatestDataInsights
+): Generator<string, void, undefined> {
+    yield "{.latest-data-insights}"
+    yield "{}"
+}
+
+function* rawBlockHomepageSearchToArchieMLString(
+    _: RawBlockHomepageSearch
+): Generator<string, void, undefined> {
+    yield "{.homepage-search}"
+    yield "{}"
+}
+
+function* rawBlockHomepageIntroToArchieMLString(
+    block: RawBlockHomepageIntro
+): Generator<string, void, undefined> {
+    yield "{.homepage-intro}"
+    yield "[.+featured-work]"
+    if (block.value?.["featured-work"]) {
+        for (const post of block.value["featured-work"]) {
+            const value = post.value
+            yield `{.${post.type}}`
+            yield* propertyToArchieMLString("title", value)
+            yield* propertyToArchieMLString("description", value)
+            yield* propertyToArchieMLString("url", value)
+            yield* propertyToArchieMLString("filename", value)
+            yield* propertyToArchieMLString("kicker", value)
+            yield* propertyToArchieMLString("authors", value)
+            yield "{}"
+        }
     }
     yield "[]"
+    yield "{}"
 }
 
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
@@ -739,6 +799,16 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             { type: "key-indicator-collection" },
             rawBlockKeyIndicatorCollectionToArchieMLString
         )
+        .with({ type: "pill-row" }, rawBlockPillRowToArchieMLString)
+        .with(
+            { type: "latest-data-insights" },
+            RawBlockLatestDataInsightsToArchieMLString
+        )
+        .with(
+            { type: "homepage-search" },
+            rawBlockHomepageSearchToArchieMLString
+        )
+        .with({ type: "homepage-intro" }, rawBlockHomepageIntroToArchieMLString)
         .exhaustive()
     yield* content
 }

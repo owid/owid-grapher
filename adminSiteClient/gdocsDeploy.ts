@@ -5,6 +5,7 @@ import {
     OwidGdocPostContent,
     OwidGdocDataInsightContent,
     OwidGdocType,
+    OwidGdocHomepageContent,
 } from "@ourworldindata/types"
 import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./GdocsDiff.js"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../settings/clientSettings.js"
@@ -105,6 +106,15 @@ export const checkIsLightningUpdate = (
         body: false, // requires rebaking the feed
         type: false, // shouldn't be changed, but would require rebaking the feed if it was
     }
+    const homepageLightningPropContentConfigMap: Record<
+        keyof OwidGdocHomepageContent,
+        boolean
+    > = {
+        body: true,
+        title: false, // shouldn't be changed, but won't be used in the baked page anyway
+        authors: false, // shouldn't be set, but defaults to "Our World in Data" because it's assumed to exist in the DB
+        type: false, // should never be changed
+    }
 
     const contentPropsMap: Record<OwidGdocType, Record<string, boolean>> = {
         [OwidGdocType.Article]: postlightningPropContentConfigMap,
@@ -112,6 +122,7 @@ export const checkIsLightningUpdate = (
         [OwidGdocType.LinearTopicPage]: postlightningPropContentConfigMap,
         [OwidGdocType.TopicPage]: postlightningPropContentConfigMap,
         [OwidGdocType.DataInsight]: dataInsightLightningPropContentConfigMap,
+        [OwidGdocType.Homepage]: homepageLightningPropContentConfigMap,
         [OwidGdocType.AboutPage]: postlightningPropContentConfigMap,
     }
 

@@ -1,0 +1,260 @@
+/* Layout */
+.article-block__homepage-intro {
+    --homepage-intro-bottom-padding: 24px;
+}
+
+.article-block__homepage-intro {
+    border-bottom: 1px solid $blue-10;
+    @include sm-only {
+        border: none;
+    }
+}
+
+.homepage-intro__our-mission-container {
+    border-right: 1px solid $blue-10;
+    padding-right: var(--grid-gap);
+    padding-bottom: var(--homepage-intro-bottom-padding);
+
+    @include md-down {
+        display: none;
+    }
+}
+
+.homepage-intro__mission-link {
+    display: inline-block;
+    color: $blue-90;
+    margin-bottom: 16px;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 1px;
+    line-height: 0 !important;
+    &:hover {
+        border-bottom: 1px solid $blue-90;
+    }
+    svg {
+        font-size: 0.875rem;
+    }
+}
+
+.homepage-intro__featured-work-container {
+    // 1fr is needed so that the tertiary tiles fit directly below the primary tile
+    // without the container expanding and taking up extra white space
+    grid-template-rows: auto auto 1fr auto;
+    padding-bottom: var(--homepage-intro-bottom-padding);
+
+    // A bunch of nested styles for the mobile view which standardizes all the tiles
+    @include sm-only {
+        display: flex;
+        overflow-x: scroll;
+        grid-gap: 0;
+        padding-bottom: 8px;
+        margin-bottom: 8px;
+        > .homepage-intro__primary-tiles,
+        > .homepage-intro__secondary-tiles,
+        > .homepage-intro__tertiary-tiles {
+            display: flex;
+            margin-top: 0;
+            .homepage-intro__featured-tile {
+                width: 298px;
+                margin-right: 16px;
+                .homepage-intro__featured-work-title {
+                    @include h3-bold;
+                    margin-top: 4px;
+                    margin-bottom: 0;
+                }
+                .homepage-intro__featured-work-description {
+                    @include body-3-medium;
+                }
+
+                .homepage-intro__featured-work-authors {
+                    margin-bottom: 0;
+                }
+            }
+        }
+    }
+}
+
+// Needed to make the see-all-work button stick below the tertiary tiles
+.homepage-intro__secondary-tiles {
+    grid-row-start: 1;
+    grid-row-end: 4;
+}
+
+.homepage-intro__tertiary-tiles {
+    margin-top: 32px;
+
+    .homepage-intro__featured-tile--missing-image {
+        // If the tertiary tile is missing an image, we hide it on mobile
+        // but we can show it on desktop because we don't show images on desktop
+        @include sm-only {
+            display: none;
+        }
+    }
+
+    picture,
+    .homepage-intro__featured-work-description {
+        display: none;
+        @include sm-only {
+            display: block;
+        }
+    }
+}
+
+/* Left column */
+
+.homepage-intro__featured-work-heading,
+.homepage-intro__our-mission-heading {
+    margin-top: 0;
+    margin-bottom: 16px;
+    padding-top: 24px;
+    color: $blue-60;
+}
+
+// A non-standard typography style that isn't defined in the typography.scss file
+.homepage-intro__our-mission-lead {
+    font-size: 1.375rem;
+    line-height: 1.75rem;
+    font-weight: bold;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    color: $blue-90;
+}
+
+// A non-standard typography style that isn't defined in the typography.scss file
+.homepage-intro__mission-answer {
+    color: $blue-60;
+    font-family: $sans-serif-font-stack;
+    font-weight: normal;
+    font-size: 1.25rem;
+    line-height: 1.625rem;
+    margin-bottom: 16px;
+    margin-top: 0;
+}
+
+.homepage-intro__subscribe-button,
+.homepage-intro__see-all-work-button,
+.homepage-intro__donate-button {
+    display: block;
+    width: 100%;
+    border: 1px solid $vermillion;
+    color: $vermillion;
+    text-align: center;
+    padding: 8.5px 0;
+
+    &:hover {
+        border-color: $accent-vermillion;
+        color: $accent-vermillion;
+    }
+}
+
+.homepage-intro__see-all-work-button-container {
+    display: flex;
+
+    svg {
+        font-size: 0.75rem;
+    }
+}
+
+.homepage-intro__see-all-work-button {
+    align-self: flex-end;
+    width: auto;
+    padding: 8.5px 24px;
+    display: inline-block;
+    svg {
+        margin-left: 8px;
+    }
+
+    @include sm-only {
+        display: none;
+    }
+}
+
+.homepage-intro__see-all-work-button--mobile {
+    display: none;
+    @include sm-only {
+        display: block;
+        margin-top: 24px;
+        width: 100%;
+    }
+}
+
+.homepage-intro__donate-button {
+    background-color: $vermillion;
+    color: #fff;
+    border-color: none;
+
+    &:hover {
+        background-color: $accent-vermillion;
+        color: #fff;
+    }
+}
+
+.homepage-intro__mission-wrapper {
+    padding-bottom: 24px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid $blue-10;
+    color: $blue-60;
+}
+
+.homepage-intro__media-logos {
+    margin-top: 16px;
+    width: 100%;
+}
+
+/* Tiles */
+
+.homepage-intro__featured-tile {
+    color: $blue-90;
+    display: block;
+
+    img {
+        display: block;
+
+        @include sm-only {
+            height: 172px;
+            width: 298px;
+            object-fit: cover;
+        }
+    }
+}
+
+.homepage-intro__featured-work-kicker {
+    color: $blue-60;
+    margin-top: 12px;
+}
+
+.homepage-intro__primary-tiles .homepage-intro__featured-work-title {
+    @include h2-bold;
+    margin: 4px 0;
+}
+
+.homepage-intro__secondary-tiles .homepage-intro__featured-tile {
+    &:not(:last-child) {
+        margin-bottom: 32px;
+    }
+}
+
+.homepage-intro__secondary-tiles .homepage-intro__featured-work-title,
+.homepage-intro__tertiary-tiles .homepage-intro__featured-work-title {
+    @include h3-bold;
+    margin: 4px 0;
+}
+
+.homepage-intro__featured-tile:hover .homepage-intro__featured-work-title {
+    @include owid-link-90;
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.homepage-intro__featured-work-description {
+    margin: 0;
+}
+
+.homepage-intro__featured-work-authors {
+    color: $blue-60;
+    font-weight: 400;
+    margin-top: 4px;
+    margin-bottom: 0;
+    // overriding typography.scss
+    line-height: 1.125rem !important;
+}

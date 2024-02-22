@@ -39,6 +39,10 @@ import {
     RawBlockExplorerTiles,
     RawBlockKeyIndicator,
     RawBlockKeyIndicatorCollection,
+    RawBlockPillRow,
+    RawBlockHomepageSearch,
+    RawBlockHomepageIntro,
+    RawBlockLatestDataInsights,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -461,13 +465,53 @@ export function enrichedBlockToRawBlock(
             }
         })
         .with(
+            { type: "latest-data-insights" },
+            (_): RawBlockLatestDataInsights => ({
+                type: "latest-data-insights",
+                value: {},
+            })
+        )
+        .with(
             { type: "key-indicator-collection" },
             (b): RawBlockKeyIndicatorCollection => {
                 return {
                     type: "key-indicator-collection",
-                    value: b.blocks.map(enrichedBlockToRawBlock),
+                    value: {
+                        indicators: b.blocks.map(enrichedBlockToRawBlock),
+                    },
                 }
             }
         )
+        .with({ type: "pill-row" }, (b): RawBlockPillRow => {
+            return {
+                type: "pill-row",
+                value: {
+                    title: b.title,
+                    pills: b.pills,
+                },
+            }
+        })
+        .with({ type: "homepage-search" }, (_): RawBlockHomepageSearch => {
+            return {
+                type: "homepage-search",
+                value: {},
+            }
+        })
+        .with({ type: "homepage-intro" }, (b): RawBlockHomepageIntro => {
+            return {
+                type: "homepage-intro",
+                value: {
+                    ["featured-work"]: b.featuredWork.map(
+                        ({ type, authors, ...value }) => ({
+                            type,
+                            value: {
+                                ...value,
+                                authors: authors?.join(", "),
+                            },
+                        })
+                    ),
+                },
+            }
+        })
         .exhaustive()
 }

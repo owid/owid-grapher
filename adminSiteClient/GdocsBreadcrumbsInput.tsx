@@ -1,5 +1,5 @@
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     BreadcrumbItem,
     OwidGdocErrorMessage,

@@ -6,7 +6,7 @@ import {
     OwidEnrichedGdocBlock,
     Span,
     SpanSimpleText,
-} from "@ourworldindata/utils"
+} from "@ourworldindata/types"
 
 const spanSimpleText: SpanSimpleText = {
     spanType: "span-simple-text",
@@ -573,6 +573,72 @@ export const enrichedBlockExamples: Record<
                 parseErrors: [],
             },
         ],
+        parseErrors: [],
+    },
+    "pill-row": {
+        type: "pill-row",
+        title: "Recently updated",
+        pills: [
+            { text: "Energy", url: "https://ourworldindata.org/energy" },
+            { text: "Poverty", url: "https://ourworldindata.org/poverty" },
+        ],
+        parseErrors: [],
+    },
+    "homepage-search": {
+        type: "homepage-search",
+        parseErrors: [],
+    },
+    "homepage-intro": {
+        type: "homepage-intro",
+        featuredWork: [
+            {
+                type: "primary",
+                url: "https://ourworldindata.org/optimism-and-pessimism",
+                title: "Optimism & Pessimism",
+                description:
+                    "Why are so many people pessimistic about the future?",
+                kicker: "Article - 10 Mins",
+                filename: "optimism-and-pessimism.jpg",
+                authors: ["Our World In Data"],
+            },
+            {
+                type: "secondary",
+                url: "https://ourworldindata.org/flu-deaths",
+                title: "How many people die from the flu?",
+                description:
+                    "The risk of death from influenza has declined over time, but globally, hundreds of thousands of people still die from the disease each year.",
+                kicker: "Article - 10 Mins",
+                filename: "optimism-and-pessimism.jpg",
+                authors: ["Our World In Data"],
+            },
+            {
+                type: "secondary",
+                url: "https://ourworldindata.org/something",
+                title: "Is this a rhetorical question?",
+                description: "Blah blah",
+                kicker: "Article - 10 Mins",
+                filename: "featured-image.jpg",
+                authors: ["Max Roser"],
+            },
+            {
+                type: "tertiary",
+                url: "https://ourworldindata.org/front-end-engineer",
+                title: "We’re looking for a front-end engineer to join our team.",
+                kicker: "Announcement",
+                authors: ["Our World In Data"],
+            },
+            {
+                type: "tertiary",
+                url: "https://ourworldindata.org/civil-engineer",
+                title: "We’re looking to build bridges with a civil engineer.",
+                kicker: "Announcement",
+                authors: ["Our World In Data"],
+            },
+        ],
+        parseErrors: [],
+    },
+    "latest-data-insights": {
+        type: "latest-data-insights",
         parseErrors: [],
     },
 }

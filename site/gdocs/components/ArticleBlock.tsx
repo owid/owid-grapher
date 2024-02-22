@@ -37,6 +37,10 @@ import { Table } from "./Table.js"
 import { ExplorerTiles } from "./ExplorerTiles.js"
 import KeyIndicator from "./KeyIndicator.js"
 import KeyIndicatorCollection from "./KeyIndicatorCollection.js"
+import { PillRow } from "./PillRow.js"
+import { HomepageIntro } from "./HomepageIntro.js"
+import { HomepageSearch } from "./HomepageSearch.js"
+import { LatestDataInsightsBlock } from "./LatestDataInsights.js"
 
 export type Container =
     | "default"
@@ -68,17 +72,21 @@ const layouts: { [key in Container]: Layouts} = {
         ["explorer-tiles"]: "grid grid-cols-12 span-cols-12 col-start-2",
         ["gray-section"]: "span-cols-14 grid grid-cols-12-full-width",
         ["heading"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["homepage-search"]: "grid grid-cols-12-full-width span-cols-14",
+        ["homepage-intro"]: "grid grid-cols-12-full-width span-cols-14",
         ["horizontal-rule"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["html"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["image--narrow"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12",
         ["image--wide"]: "col-start-4 span-cols-8 col-md-start-2 span-md-cols-12",
         ["image-caption"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["key-indicator"]: "col-start-2 span-cols-12",
-        ["key-indicator-collection"]: "col-start-2 span-cols-12",
+        ["key-indicator-collection"]: "grid col-start-2 span-cols-12",
         ["key-insights"]: "col-start-2 span-cols-12",
+        ["latest-data-insights"]: "grid grid-cols-12-full-width span-cols-14",
         ["list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["numbered-list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
+        ["pill-row"]: "grid span-cols-14 grid-cols-12-full-width",
         ["pull-quote"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["recirc"]: "col-start-11 span-cols-3 span-rows-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["research-and-writing"]: "col-start-2 span-cols-12",
@@ -636,6 +644,11 @@ export default function ArticleBlock({
                 {...block}
             />
         ))
+        .with({ type: "latest-data-insights" }, () => (
+            <LatestDataInsightsBlock
+                className={getLayout("latest-data-insights", containerType)}
+            />
+        ))
         .with({ type: "key-indicator" }, (block) => (
             <KeyIndicator className={getLayout("key-indicator")} d={block} />
         ))
@@ -645,6 +658,29 @@ export default function ArticleBlock({
                 d={block}
             />
         ))
+        .with({ type: "pill-row" }, (block) => {
+            return (
+                <PillRow
+                    {...block}
+                    className={getLayout("pill-row", containerType)}
+                />
+            )
+        })
+        .with({ type: "homepage-search" }, (_) => {
+            return (
+                <HomepageSearch
+                    className={getLayout("homepage-search", containerType)}
+                />
+            )
+        })
+        .with({ type: "homepage-intro" }, (block) => {
+            return (
+                <HomepageIntro
+                    className={getLayout("homepage-intro")}
+                    {...block}
+                />
+            )
+        })
         .exhaustive()
 
     return (

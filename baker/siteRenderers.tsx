@@ -69,6 +69,7 @@ import {
     KEY_INSIGHTS_CLASS_NAME,
 } from "../site/blocks/KeyInsights.js"
 import { formatUrls, KEY_INSIGHTS_H2_CLASSNAME } from "../site/formatting.js"
+import * as db from "../db/db.js"
 
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
@@ -255,7 +256,23 @@ export const renderPost = async (
     )
 }
 
+// This function is temporarily forked until we have fully transitioned to a gdocs homepage,
+// whereupon we'll strip out the old front page code.
 export const renderFrontPage = async (knex: Knex<any, any[]>) => {
+    // Annoying, MySQL+TypeORM doesn't support JSONB, so I'm using raw SQL to confirm if there's a published homepage
+    const gdocHomepageResult = await db.knexRawFirst<{ id: string }>(
+        `SELECT id FROM posts_gdocs WHERE content->>"$.type" = "${OwidGdocType.Homepage}" AND published = TRUE`,
+        db.knexInstance()
+    )
+
+    if (gdocHomepageResult) {
+        const gdocHomepage = await GdocFactory.load(gdocHomepageResult.id)
+        if (gdocHomepage) {
+            await gdocHomepage.loadState()
+            return renderGdoc(gdocHomepage)
+        }
+    }
+
     const posts = await getBlogIndex(knex)
 
     const NUM_FEATURED_POSTS = 6

@@ -22,6 +22,9 @@
             color: $accent-vermillion;
             border-color: $accent-vermillion;
         }
+        svg {
+            font-size: 0.75rem;
+        }
         @include sm-only {
             justify-self: start;
             margin-top: 16px;
@@ -40,13 +43,14 @@
     .explorer-tile {
         background-image: url("/explorer-thumbnail.webp");
         background-size: cover;
+        background-position: center;
         padding: 16px;
         display: flex;
         flex-wrap: wrap;
         align-content: space-between;
     }
     .explorer-tile__icon {
-        background-color: $blue-55;
+        background-color: $blue-65;
         border-radius: 50%;
         width: 40px;
         height: 40px;

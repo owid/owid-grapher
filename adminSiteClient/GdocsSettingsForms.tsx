@@ -4,6 +4,7 @@ import {
     OwidGdocErrorMessage,
     OwidGdocDataInsightInterface,
     OwidGdoc,
+    OwidGdocHomepageInterface,
 } from "@ourworldindata/utils"
 import { EXCERPT_MAX_LENGTH } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
@@ -200,5 +201,25 @@ export const GdocInsightSettings = ({
                 />
             </div>
         </form>
+    )
+}
+
+export const GdocHomepageSettings = ({
+    gdoc,
+    errors,
+}: {
+    gdoc: OwidGdocHomepageInterface
+    errors?: OwidGdocErrorMessage[]
+}) => {
+    if (!gdoc || !errors) return null
+    return (
+        <div className="GdocsSettingsForm">
+            <GdocCommonErrors errors={errors} errorsToFilter={[]} />
+            <div className="form-group">
+                <h3 className="form-section-heading">Homepage settings</h3>
+                <p>The homepage has no custom authors, slug, title, etc.</p>
+                <p>Just hit publish when you'd like to update the page!</p>
+            </div>
+        </div>
     )
 }
