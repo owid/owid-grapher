@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faRss } from "@fortawesome/free-solid-svg-icons"
 import {
-    faTwitter,
+    faXTwitter,
     faFacebookSquare,
     faInstagram,
     faThreads,
@@ -45,15 +45,15 @@ const SocialSection = () => {
                         <a
                             href="https://twitter.com/ourworldindata"
                             className="list-item"
-                            title="Twitter"
+                            title="X"
                             target="_blank"
                             rel="noopener noreferrer"
                             data-track-note="homepage_follow_us"
                         >
                             <span className="icon">
-                                <FontAwesomeIcon icon={faTwitter} />
+                                <FontAwesomeIcon icon={faXTwitter} />
                             </span>
-                            <span className="label">Twitter</span>
+                            <span className="label">X</span>
                         </a>
                     </li>
                     <li>
