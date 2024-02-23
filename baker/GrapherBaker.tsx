@@ -394,7 +394,8 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     await fs.mkdirp(`${bakedSiteDir}/grapher/exports/`)
     const svgPath = `${bakedSiteDir}/grapher/exports/${grapher.slug}.svg`
     const pngPath = `${bakedSiteDir}/grapher/exports/${grapher.slug}.png`
-    if (!isSameVersion || !fs.existsSync(svgPath) || !fs.existsSync(pngPath)) {
+    // if (!isSameVersion || !fs.existsSync(svgPath) || !fs.existsSync(pngPath)) {
+    if (true) {
         const loadDataMetadataPromises: Promise<OwidVariableDataMetadataDimensions>[] =
             variableIds.map(getVariableData)
         const variableDataMetadata = await Promise.all(loadDataMetadataPromises)
