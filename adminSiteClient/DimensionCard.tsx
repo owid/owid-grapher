@@ -14,7 +14,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidTable } from "@ourworldindata/core-table"
-import { makeDetailIdFromText } from "@ourworldindata/utils"
 
 @observer
 export class DimensionCard extends React.Component<{
@@ -151,12 +150,6 @@ export class DimensionCard extends React.Component<{
                             store={dimension.display}
                             auto={column.displayName}
                             onBlur={this.onChange}
-                            helpText={`Detail: ${makeDetailIdFromText({
-                                text:
-                                    dimension.display.name ??
-                                    column.displayName,
-                                type: "indicator",
-                            })}`}
                             errorMessage={this.props.errorMessages?.displayName}
                         />
                         <BindAutoString
