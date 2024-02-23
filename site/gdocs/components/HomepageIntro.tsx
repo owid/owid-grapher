@@ -126,7 +126,7 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                     </p>
                     <a
                         className="homepage-intro__mission-link body-2-semibold"
-                        href="/about"
+                        href="/problems-and-progress"
                     >
                         Read about our mission{" "}
                         <FontAwesomeIcon icon={faArrowRight} />
