@@ -1,7 +1,6 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
 import * as lodash from "lodash"
-import { transaction } from "../db/db.js"
 import * as db from "../db/db.js"
 import { imageStore } from "../db/model/Image.js"
 import { GdocXImage } from "../db/model/GdocXImage.js"

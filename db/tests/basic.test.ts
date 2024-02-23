@@ -94,7 +94,7 @@ test("knex interface", async () => {
     if (!knexInstance) throw new Error("Knex connection not initialized")
 
     // Create a transaction and run all tests inside it
-    knexInstance.transaction(async (trx) => {
+    await knexInstance.transaction(async (trx) => {
         // Fetch all users into memory
         const users = await trx
             .from<DbPlainUser>(UsersTableName)
@@ -144,7 +144,7 @@ test("knex interface raw", async () => {
     if (!knexInstance) throw new Error("Knex connection not initialized")
 
     // Create a transaction and run all tests inside it
-    knexInstance.transaction(async (trx) => {
+    await knexInstance.transaction(async (trx) => {
         // Fetch all users into memory
         const users = await trx
             .from<DbPlainUser>(UsersTableName)
