@@ -54,6 +54,7 @@ import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import * as db from "../db/db.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
+import { DEFAULT_LOCAL_BAKE_DIR } from "../site/SiteConstants.js"
 
 require("express-async-errors")
 
@@ -303,6 +304,13 @@ mockSiteRouter.use(
     // on front page.
     ["/uploads", "/app/uploads"],
     express.static(path.join(WORDPRESS_DIR, "web/app/uploads"), {
+        fallthrough: false,
+    })
+)
+
+mockSiteRouter.use(
+    "/images/published",
+    express.static(path.join(DEFAULT_LOCAL_BAKE_DIR, "images/published"), {
         fallthrough: false,
     })
 )

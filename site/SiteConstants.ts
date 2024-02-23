@@ -12,3 +12,5 @@ const polyfillFeatures = [
 export const POLYFILL_URL: string = `https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=${polyfillFeatures.join(
     ","
 )}`
+
+export const DEFAULT_LOCAL_BAKE_DIR = "localBake"
