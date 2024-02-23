@@ -109,6 +109,7 @@
     color: $blue-90;
     border-radius: 0;
     border: none;
+    padding: 8px;
     &:hover,
     &:focus,
     &:focus-visible {
@@ -173,11 +174,6 @@
     border: none;
     outline: none;
     box-shadow: none;
-
-    @include md-down {
-        // The detached panel gets positioned incorrectly for some reason
-        left: 0 !important;
-    }
 }
 
 .aa-PanelLayout {

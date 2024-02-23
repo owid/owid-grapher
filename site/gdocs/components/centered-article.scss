@@ -986,3 +986,156 @@ div.raw-html-table__container {
         padding: 6px;
     }
 }
+
+.article-block__pill-row {
+    background-color: $blue-20;
+    scrollbar-width: none;
+    overflow-x: auto;
+    .article-block__pill-row-interior {
+        display: flex;
+        padding: 8px 0;
+    }
+    p {
+        color: $blue-60;
+        margin: 0 9px 0 0;
+        line-height: 32px;
+        white-space: nowrap;
+    }
+    ul {
+        list-style: none;
+        display: flex;
+        flex-wrap: nowrap;
+    }
+    .article-block__pill {
+        &:not(:last-child) {
+            margin-right: 8px;
+        }
+        a {
+            color: $blue-100;
+            background-color: #fff;
+            line-height: 2rem;
+            padding: 0 16px;
+            display: inline-block;
+            transition: background-color 250ms;
+            border-radius: 32px;
+            white-space: nowrap;
+            &:hover {
+                background-color: $blue-5;
+            }
+        }
+    }
+}
+
+.article-block__homepage-search {
+    background-image: url("https://ourworldindata.org/images/world.svg");
+    background-color: $blue-100;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 80%;
+    text-align: center;
+
+    @include sm-only {
+        background-size: 100%;
+    }
+
+    h2 {
+        color: $amber;
+        margin: 24px 0;
+    }
+
+    h2.homepage-search__search-heading {
+        @include md-down {
+            @include body-2-regular;
+            color: $blue-30;
+            margin: 0;
+            margin-bottom: 8px;
+        }
+    }
+
+    h2.homepage-search__mobile-headline {
+        margin: 16px 0;
+        @include md-up {
+            display: none;
+        }
+    }
+
+    .homepage-search__open-source-notice {
+        &:before {
+            content: " — ";
+        }
+
+        @include sm-only {
+            display: block;
+            &:before {
+                content: none;
+            }
+        }
+    }
+
+    .aa-DetachedSearchButton {
+        background-color: #fff;
+        border-radius: 0;
+        justify-content: space-between;
+        cursor: text;
+        height: 56px;
+    }
+
+    .aa-DetachedSearchButtonIcon {
+        position: absolute;
+        right: 0;
+        background: white;
+        svg {
+            fill: $blue-50;
+        }
+    }
+
+    .aa-DetachedSearchButtonPlaceholder {
+        display: block;
+        margin-left: 16px;
+        white-space: nowrap;
+        color: $blue-40;
+        width: calc(100% - 56px);
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .aa-Form {
+        background-color: #fff;
+        border-color: #dbe5f0;
+        height: 56px;
+    }
+
+    .aa-Input {
+        padding: 40px 0;
+        font-size: 1rem;
+        &::placeholder {
+            color: $blue-40;
+        }
+    }
+
+    .aa-InputWrapperPrefix {
+        display: initial;
+        margin-right: 8px;
+    }
+
+    .aa-Input::placeholder {
+        color: $blue-30;
+    }
+
+    p {
+        color: $blue-30;
+        display: inline-block;
+        margin: 8px 0 32px;
+        a {
+            @include owid-link-60;
+            color: $blue-30;
+            &:visited {
+                color: $blue-30;
+            }
+        }
+    }
+}
+
+.homepage-search__panel {
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+}

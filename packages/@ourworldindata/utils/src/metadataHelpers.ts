@@ -276,11 +276,13 @@ export const formatSourceDate = (
 }
 
 export function grabMetadataForGdocLinkedIndicator(
-    metadata: OwidVariableWithSourceAndDimension
+    metadata: OwidVariableWithSourceAndDimension,
+    { chartConfigTitle }: { chartConfigTitle: string }
 ): Omit<LinkedIndicator, "id"> {
     return {
         title:
             metadata.presentation?.titlePublic ||
+            chartConfigTitle ||
             metadata.presentation?.grapherConfigETL?.title ||
             metadata.display?.name ||
             metadata.name ||

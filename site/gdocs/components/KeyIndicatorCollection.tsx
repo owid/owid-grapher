@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useContext, useEffect, useRef, useState } from "react"
 import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -15,10 +15,11 @@ import {
     EnrichedBlockKeyIndicator,
     GrapherTabOption,
 } from "@ourworldindata/types"
-import { Url, capitalize, urlToSlug } from "@ourworldindata/utils"
+import { Url, urlToSlug } from "@ourworldindata/utils"
 
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 import KeyIndicator from "./KeyIndicator.js"
+import { AttachmentsContext } from "../OwidGdoc.js"
 
 // keep in sync with $duration in KeyIndicatorCollection.scss
 const HEIGHT_ANIMATION_DURATION_IN_SECONDS = 0.4
@@ -44,52 +45,76 @@ export default function KeyIndicatorCollection({
         slugs.map((_: string, index: number) => index === 0) // the first block is open by default
     )
 
-    return (
-        <div className={cx("key-indicator-collection", className)}>
-            {d.blocks.map(
-                (block: EnrichedBlockKeyIndicator, blockIndex: number) => {
-                    const slug = slugs[blockIndex]
-                    const isOpen = isBlockOpen[blockIndex]
+    const { homepageMetadata } = useContext(AttachmentsContext)
 
-                    return (
-                        <AccordionItem
-                            // assumes a key indicator doesn't appear twice on a page
-                            id={`key-indicator-collection_${slug}`}
-                            key={slug}
-                            isOpen={isOpen}
-                            open={() => {
-                                // open block, close all others
-                                const updated = slugs.map(() => false)
-                                updated[blockIndex] = true
-                                setBlockOpen(updated)
-                            }}
-                            close={() => {
-                                // close block, leave others as they are
-                                const updated = [...isBlockOpen]
-                                updated[blockIndex] = false
-                                setBlockOpen(updated)
-                            }}
-                            header={
-                                <KeyIndicatorHeader
-                                    block={block}
-                                    isContentVisible={isOpen}
-                                />
-                            }
-                            mobileHeader={
-                                <KeyIndicatorLink block={block}>
+    const { blocks } = d
+    return (
+        <section className={cx("key-indicator-collection", className)}>
+            <header className="key-indicator-collection__header span-cols-8 span-sm-cols-12">
+                <h2 className="h2-bold">Explore our data</h2>
+                {homepageMetadata?.chartCount ? (
+                    <p className="body-2-regular">
+                        Featured data from our collection of more than{" "}
+                        {homepageMetadata?.chartCount} interactive charts.
+                    </p>
+                ) : (
+                    <p className="body-2-regular">
+                        Featured data from our collection
+                    </p>
+                )}
+            </header>
+            <a
+                href="/charts"
+                className="key-indicator-collection__all-charts-button body-3-medium span-cols-4 col-start-9 col-sm-start-1 span-sm-cols-12"
+            >
+                See all our data <FontAwesomeIcon icon={faArrowRight} />
+            </a>
+            <div className="span-cols-12">
+                {blocks.map(
+                    (block: EnrichedBlockKeyIndicator, blockIndex: number) => {
+                        const slug = slugs[blockIndex]
+                        const isOpen = isBlockOpen[blockIndex]
+
+                        return (
+                            <AccordionItem
+                                // assumes a key indicator doesn't appear twice on a page
+                                id={`key-indicator-collection_${slug}`}
+                                key={slug}
+                                isOpen={isOpen}
+                                open={() => {
+                                    // open block, close all others
+                                    const updated = slugs.map(() => false)
+                                    updated[blockIndex] = true
+                                    setBlockOpen(updated)
+                                }}
+                                close={() => {
+                                    // close block, leave others as they are
+                                    const updated = [...isBlockOpen]
+                                    updated[blockIndex] = false
+                                    setBlockOpen(updated)
+                                }}
+                                header={
                                     <KeyIndicatorHeader
                                         block={block}
                                         isContentVisible={isOpen}
                                     />
-                                </KeyIndicatorLink>
-                            }
-                        >
-                            <KeyIndicator d={block} />
-                        </AccordionItem>
-                    )
-                }
-            )}
-        </div>
+                                }
+                                mobileHeader={
+                                    <KeyIndicatorLink block={block}>
+                                        <KeyIndicatorHeader
+                                            block={block}
+                                            isContentVisible={isOpen}
+                                        />
+                                    </KeyIndicatorLink>
+                                }
+                            >
+                                <KeyIndicator d={block} />
+                            </AccordionItem>
+                        )
+                    }
+                )}
+            </div>
+        </section>
     )
 }
 
@@ -197,7 +222,7 @@ function KeyIndicatorHeader({
     const activeTab =
         tabFromQueryParams || linkedChart.tab || GrapherTabOption.chart
 
-    const source = capitalize(block.source || linkedIndicator.attributionShort)
+    const source = block.source || linkedIndicator.attributionShort
 
     return (
         <div className="key-indicator-header">

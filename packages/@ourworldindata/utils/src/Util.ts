@@ -1664,7 +1664,11 @@ export function traverseEnrichedBlocks(
                     "topic-page-intro",
                     "all-charts",
                     "entry-summary",
-                    "explorer-tiles"
+                    "explorer-tiles",
+                    "pill-row",
+                    "homepage-search",
+                    "homepage-intro",
+                    "latest-data-insights"
                 ),
             },
             callback

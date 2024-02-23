@@ -37,7 +37,7 @@ import {
     pageTypeDisplayNames,
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import { logSiteSearchClick } from "./searchClient.js"
 import {
@@ -482,7 +482,7 @@ export class InstantSearchContainer extends React.Component {
             >
                 <div className="search-panel">
                     <SearchBox
-                        placeholder="Try “COVID”, “Poverty”, “New Zealand”, “CO2 emissions per capita”..."
+                        placeholder="Try “Life expectancy”, “Population in extreme poverty”, “Homicide rate”, Biodiversity”…"
                         className="searchbox"
                         queryHook={this.handleQuery}
                     />

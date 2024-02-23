@@ -41,6 +41,9 @@ function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
             // TODO: what do we put here?
             return undefined
         })
+        .with({ content: { type: OwidGdocType.Homepage } }, () => {
+            return "Research and data to make progress against the world’s largest problems"
+        })
         .with(
             { content: { type: P.union(OwidGdocType.Fragment, undefined) } },
             () => {
@@ -97,7 +100,10 @@ export default function OwidGdocPage({
                 ></script>
             </Head>
             <body>
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader
+                    baseUrl={baseUrl}
+                    isOnHomepage={gdoc.content.type === OwidGdocType.Homepage}
+                />
                 <div id="owid-document-root">
                     <DebugProvider debug={debug}>
                         <OwidGdoc {...gdoc} isPreviewing={isPreviewing} />

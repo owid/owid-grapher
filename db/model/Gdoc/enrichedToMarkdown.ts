@@ -1,4 +1,5 @@
 import { EnrichedBlockKeyIndicator } from "@ourworldindata/types"
+import { getLinkType } from "@ourworldindata/components"
 import {
     OwidEnrichedGdocBlock,
     Span,
@@ -212,6 +213,7 @@ ${b.url}`
         .with({ type: "topic-page-intro" }, (b): string | undefined =>
             enrichedBlocksToMarkdown(b.content, exportComponents)
         )
+        .with({ type: "latest-data-insights" }, (): undefined => undefined) // Note: dropped
         .with({ type: "key-insights" }, (b): string | undefined => {
             // TODO: handle either filename or url as a chart or image
             const insightTexts = b.insights.map((insight) => {
@@ -292,6 +294,26 @@ ${links}`
                 )
                 .join("\n")
             return `<KeyIndicatorCollection>\n${keyIndicators}\n</KeyIndicatorCollection>`
+        })
+        .with({ type: "pill-row" }, (b): string | undefined => {
+            const title = b.title ? `### ${b.title}` : ""
+            const pills = b.pills
+                .map((pill) => `* [${pill.text}](${pill.url})`)
+                .join("\n")
+            return [title, pills].join("\n")
+        })
+        .with({ type: "homepage-search" }, (_): string | undefined => {
+            return ""
+        })
+        .with({ type: "homepage-intro" }, (b): string | undefined => {
+            return b.featuredWork
+                .map((item) =>
+                    getLinkType(item.url) === "gdoc"
+                        ? ""
+                        : `- [${item.title}(${item.url})]`
+                )
+                .filter((item) => item !== "")
+                .join("\n")
         })
         .exhaustive()
 }

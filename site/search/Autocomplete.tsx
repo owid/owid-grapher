@@ -19,7 +19,7 @@ import {
     ALGOLIA_SEARCH_KEY,
 } from "../../settings/clientSettings.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 type BaseItem = Record<string, unknown>
 
@@ -73,11 +73,12 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
     onSelect,
     getItemUrl,
     getItems() {
-        // TODO: this should probably be integrated with GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID for v2
-        return ["COVID-19", "Energy", "GDP", "Poverty", "CO2"].map((term) => ({
-            title: term,
-            slug: `/search?q=${term}`,
-        }))
+        return ["CO2", "Energy", "Education", "Poverty", "Democracy"].map(
+            (term) => ({
+                title: term,
+                slug: `/search?q=${term}`,
+            })
+        )
     },
 
     templates: {
@@ -203,20 +204,31 @@ export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
 export function Autocomplete({
     onActivate,
     onClose,
+    className,
+    placeholder = "Search for a topic, chart or article...",
+    detachedMediaQuery = "(max-width: 960px)",
+    panelClassName,
 }: {
-    onActivate: () => void
-    onClose: () => void
+    onActivate?: () => void
+    onClose?: () => void
+    className?: string
+    placeholder?: string
+    detachedMediaQuery?: string
+    panelClassName?: string
 }) {
     useEffect(() => {
         const search = autocomplete({
+            placeholder,
+            detachedMediaQuery,
             container: AUTOCOMPLETE_CONTAINER_ID,
-            placeholder: "Search for a topic, chart or article...",
+            classNames: {
+                panel: panelClassName,
+            },
             openOnFocus: true,
-            detachedMediaQuery: "(max-width: 960px)",
             onStateChange({ state, prevState }) {
-                if (!prevState.isOpen && state.isOpen) {
+                if (onActivate && !prevState.isOpen && state.isOpen) {
                     onActivate()
-                } else if (prevState.isOpen && !state.isOpen) {
+                } else if (onClose && prevState.isOpen && !state.isOpen) {
                     onClose()
                 }
             },
@@ -268,7 +280,7 @@ export function Autocomplete({
         }
 
         return () => search.destroy()
-    }, [onActivate, onClose])
+    }, [onActivate, onClose, placeholder, detachedMediaQuery, panelClassName])
 
-    return <div id="autocomplete" />
+    return <div className={className} id="autocomplete" />
 }

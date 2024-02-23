@@ -5,6 +5,7 @@ import { Modal, SearchField } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import {
     faCirclePlus,
+    faHouse,
     faLightbulb,
     faNewspaper,
     faPuzzlePiece,
@@ -38,6 +39,7 @@ const iconGdocTypeMap = {
     [OwidGdocType.TopicPage]: <FontAwesomeIcon icon={faLightbulb} />,
     [OwidGdocType.LinearTopicPage]: <FontAwesomeIcon icon={faLightbulb} />,
     [OwidGdocType.DataInsight]: <FontAwesomeIcon icon={faThList} />,
+    [OwidGdocType.Homepage]: <FontAwesomeIcon icon={faHouse} />,
     [OwidGdocType.AboutPage]: <FontAwesomeIcon icon={faBuildingNgo} />,
 }
 
@@ -116,6 +118,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         [OwidGdocType.TopicPage]: false,
         [OwidGdocType.LinearTopicPage]: false,
         [OwidGdocType.DataInsight]: false,
+        [OwidGdocType.Homepage]: false,
         [OwidGdocType.AboutPage]: false,
     }
 

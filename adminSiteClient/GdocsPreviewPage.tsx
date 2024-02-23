@@ -7,7 +7,11 @@ import React, {
 } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
-import { GdocPostSettings, GdocInsightSettings } from "./GdocsSettingsForms.js"
+import {
+    GdocPostSettings,
+    GdocInsightSettings,
+    GdocHomepageSettings,
+} from "./GdocsSettingsForms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     checkIsPlainObjectWithGuard,
@@ -323,6 +327,19 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                     setCurrentGdoc={(updatedGdoc) =>
                                         setCurrentGdoc(() => updatedGdoc)
                                     }
+                                    errors={errors}
+                                />
+                            )
+                        )
+                        .with(
+                            {
+                                content: {
+                                    type: OwidGdocType.Homepage,
+                                },
+                            },
+                            (gdoc) => (
+                                <GdocHomepageSettings
+                                    gdoc={gdoc}
                                     errors={errors}
                                 />
                             )

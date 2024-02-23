@@ -194,6 +194,13 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                                 }
                             })
                         }
+                        if (item.type === "homepage-intro") {
+                            item.featuredWork.forEach((featuredWork) => {
+                                if (featuredWork.filename) {
+                                    filenames.add(featuredWork.filename)
+                                }
+                            })
+                        }
                     }
                     return item
                 })
@@ -528,6 +535,29 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                     }),
                 ]
             })
+            .with({ type: "pill-row" }, (pillRow) => {
+                return pillRow.pills.map((pill) =>
+                    Link.createFromUrl({
+                        url: pill.url,
+                        source: this,
+                        componentType: pillRow.type,
+                        text: pill.text,
+                    })
+                )
+            })
+            .with({ type: "homepage-intro" }, (homepageIntro) => {
+                return homepageIntro.featuredWork.map((featuredWork) =>
+                    Link.createFromUrl({
+                        url: featuredWork.url,
+                        source: this,
+                        componentType: homepageIntro.type,
+                        text:
+                            featuredWork.title ||
+                            featuredWork.description ||
+                            "",
+                    })
+                )
+            })
             .with(
                 {
                     // no urls directly on any of these blocks
@@ -557,7 +587,9 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                         "sticky-left",
                         "sticky-right",
                         "table",
-                        "text"
+                        "text",
+                        "homepage-search",
+                        "latest-data-insights"
                     ),
                 },
                 () => []
@@ -650,7 +682,9 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                 )
                 const linkedIndicator: LinkedIndicator = {
                     id: linkedChart.indicatorId,
-                    ...grabMetadataForGdocLinkedIndicator(metadata),
+                    ...grabMetadataForGdocLinkedIndicator(metadata, {
+                        chartConfigTitle: linkedChart.title,
+                    }),
                 }
                 return linkedIndicator
             })

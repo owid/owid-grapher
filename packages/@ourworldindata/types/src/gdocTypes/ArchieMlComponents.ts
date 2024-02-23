@@ -108,11 +108,25 @@ export type EnrichedBlockKeyIndicator = {
 
 export type RawBlockKeyIndicatorCollection = {
     type: "key-indicator-collection"
-    value: OwidRawGdocBlock[]
+    value: {
+        heading?: string
+        subtitle?: string
+        button?: {
+            text?: string
+            url?: string
+        }
+        indicators: OwidRawGdocBlock[]
+    }
 }
 
 export type EnrichedBlockKeyIndicatorCollection = {
     type: "key-indicator-collection"
+    heading?: string
+    subtitle?: string
+    button?: {
+        text: string
+        url: string
+    }
     blocks: EnrichedBlockKeyIndicator[]
 } & EnrichedBlockWithParseErrors
 
@@ -733,6 +747,80 @@ export type RefDictionary = {
     [refId: string]: Ref
 }
 
+export type RawBlockPillRow = {
+    type: "pill-row"
+    value: {
+        title?: string
+        pills?: {
+            text?: string
+            url?: string
+        }[]
+    }
+}
+
+export type EnrichedBlockPillRow = {
+    type: "pill-row"
+    title: string
+    pills: {
+        // optional because when linking to a gdoc we can use that title
+        text?: string
+        url: string
+    }[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockHomepageSearch = {
+    type: "homepage-search"
+    value: Record<string, never>
+}
+
+export type EnrichedBlockHomepageSearch = {
+    type: "homepage-search"
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockHomepageIntroPost = {
+    type: "primary" | "secondary" | "tertiary"
+    value: {
+        url?: string
+        title?: string
+        description?: string
+        kicker?: string
+        authors?: string
+        filename?: string
+    }
+}
+
+export type RawBlockHomepageIntro = {
+    type: "homepage-intro"
+    value: {
+        ["featured-work"]?: RawBlockHomepageIntroPost[]
+    }
+}
+
+export type EnrichedBlockHomepageIntroPost = {
+    type: "primary" | "secondary" | "tertiary"
+    url: string
+    // the rest are optional because if this is a gdoc, we resolve metadata automatically
+    title?: string
+    description?: string
+    kicker?: string
+    authors?: string[]
+    filename?: string
+}
+
+export type EnrichedBlockHomepageIntro = {
+    type: "homepage-intro"
+    featuredWork: EnrichedBlockHomepageIntroPost[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockLatestDataInsights = {
+    type: "latest-data-insights"
+    value: Record<string, never>
+}
+
+export type EnrichedBlockLatestDataInsights = {
+    type: "latest-data-insights"
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
@@ -772,6 +860,10 @@ export type OwidRawGdocBlock =
     | RawBlockBlockquote
     | RawBlockKeyIndicator
     | RawBlockKeyIndicatorCollection
+    | RawBlockPillRow
+    | RawBlockHomepageSearch
+    | RawBlockHomepageIntro
+    | RawBlockLatestDataInsights
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -812,3 +904,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockBlockquote
     | EnrichedBlockKeyIndicator
     | EnrichedBlockKeyIndicatorCollection
+    | EnrichedBlockPillRow
+    | EnrichedBlockHomepageSearch
+    | EnrichedBlockHomepageIntro
+    | EnrichedBlockLatestDataInsights

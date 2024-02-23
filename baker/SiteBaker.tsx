@@ -346,15 +346,19 @@ export class SiteBaker {
             )
             const publishedChartsBySlug = keyBy(publishedCharts, "originalSlug")
 
-            const datapageIndicatorIds = excludeUndefined(
-                publishedCharts.map((chart) => chart.indicatorId)
+            const publishedChartsWithIndicatorIds = publishedCharts.filter(
+                (chart) => chart.indicatorId
             )
+
             const datapageIndicators: LinkedIndicator[] = await Promise.all(
-                datapageIndicatorIds.map(async (indicatorId: number) => {
+                publishedChartsWithIndicatorIds.map(async (linkedChart) => {
+                    const indicatorId = linkedChart.indicatorId as number
                     const metadata = await getVariableMetadata(indicatorId)
                     return {
                         id: indicatorId,
-                        ...grabMetadataForGdocLinkedIndicator(metadata),
+                        ...grabMetadataForGdocLinkedIndicator(metadata, {
+                            chartConfigTitle: linkedChart.title,
+                        }),
                     }
                 })
             )
@@ -694,8 +698,7 @@ export class SiteBaker {
 
     private async bakeDataInsights() {
         if (!this.bakeSteps.has("dataInsights")) return
-        const latestDataInsights =
-            await GdocDataInsight.loadLatestDataInsights()
+        const latestDataInsights = await db.getLatestDataInsights()
         const publishedDataInsights =
             await GdocDataInsight.getPublishedDataInsights()
 
