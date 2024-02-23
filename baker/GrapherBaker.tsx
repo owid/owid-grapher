@@ -61,6 +61,8 @@ import { getShortPageCitation } from "../site/gdocs/utils.js"
 import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
 import { Knex } from "knex"
 import { knexRaw } from "../db/db.js"
+import { getRelatedChartsForVariable } from "../db/model/Chart.js"
+import pMap from "p-map"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -72,14 +74,17 @@ const renderDatapageIfApplicable = async (
 
     if (!variable) return undefined
 
-    return await renderDataPageV2({
-        variableId: variable.id,
-        variableMetadata: variable.metadata,
-        isPreviewing: isPreviewing,
-        useIndicatorGrapherConfigs: false,
-        pageGrapher: grapher,
-        imageMetadataDictionary,
-    })
+    return await renderDataPageV2(
+        {
+            variableId: variable.id,
+            variableMetadata: variable.metadata,
+            isPreviewing: isPreviewing,
+            useIndicatorGrapherConfigs: false,
+            pageGrapher: grapher,
+            imageMetadataDictionary,
+        },
+        knex
+    )
 }
 
 /**
@@ -94,6 +99,7 @@ export const renderDataPageOrGrapherPage = async (
     const datapage = await renderDatapageIfApplicable(
         grapher,
         false,
+        knex,
         imageMetadataDictionary
     )
     if (datapage) return datapage
@@ -315,7 +321,7 @@ export const renderPreviewDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     knex: Knex<any, any[]>
 ) => {
-    const datapage = await renderDatapageIfApplicable(grapher, true)
+    const datapage = await renderDatapageIfApplicable(grapher, true, knex)
     if (datapage) return datapage
 
     return renderGrapherPage(grapher, knex)

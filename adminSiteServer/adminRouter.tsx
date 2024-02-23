@@ -313,7 +313,6 @@ adminRouter.get("/datapage-preview/:id", async (req, res) => {
                 variableMetadata,
                 isPreviewing: true,
                 useIndicatorGrapherConfigs: true,
-                publishedExplorersBySlug,
             },
             db.knexInstance()
         )
