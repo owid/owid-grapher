@@ -20,6 +20,7 @@ import {
 } from "../../settings/clientSettings.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { DEFAULT_SEARCH_PLACEHOLDER } from "./searchClient.js"
 
 type BaseItem = Record<string, unknown>
 
@@ -205,7 +206,7 @@ export function Autocomplete({
     onActivate,
     onClose,
     className,
-    placeholder = "Search for a topic, chart or article...",
+    placeholder = DEFAULT_SEARCH_PLACEHOLDER,
     detachedMediaQuery = "(max-width: 960px)",
     panelClassName,
 }: {

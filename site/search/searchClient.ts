@@ -28,3 +28,6 @@ export const logSiteSearchClick = (
     const client = getInsightsClient()
     client("clickedObjectIDsAfterSearch", { ...event, eventName: "click" })
 }
+
+export const DEFAULT_SEARCH_PLACEHOLDER =
+    "Try “Life expectancy”, “Economic Growth”, “Homicide rate”, “Biodiversity”…"
