@@ -1594,7 +1594,7 @@ apiRouter.get(
 )
 
 apiRouter.get("/datasets.json", async (req) => {
-    await db.knexInstance().transaction(
+    return db.knexInstance().transaction(
         async (trx) => {
             const datasets = await db.knexRaw<Record<string, any>>(
                 `
@@ -1658,7 +1658,7 @@ apiRouter.get("/datasets.json", async (req) => {
 apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
     const datasetId = expectInt(req.params.datasetId)
 
-    await db.knexInstance().transaction(
+    return db.knexInstance().transaction(
         async (trx) => {
             const dataset = await db.knexRawFirst<Record<string, any>>(
                 `
@@ -2329,7 +2329,7 @@ apiRouter.post("/posts/:postId/unlinkGdoc", async (req: Request) => {
 
 apiRouter.get("/sources/:sourceId.json", async (req: Request) => {
     const sourceId = expectInt(req.params.sourceId)
-    db.knexInstance().transaction(
+    return db.knexInstance().transaction(
         async (trx) => {
             const source = await db.knexRawFirst<Record<string, any>>(
                 `

@@ -11,6 +11,7 @@ const main = async () => {
         if (!dataset.isPrivate && !dataset.nonRedistributable)
             await syncDatasetToGitRepo(knex, dataset.id, { commitOnly: true })
     }
+    await db.closeTypeOrmAndKnexConnections()
 }
 
 main()
