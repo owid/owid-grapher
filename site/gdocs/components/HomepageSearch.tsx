@@ -28,7 +28,6 @@ export function HomepageSearch(props: { className?: string }) {
                 problems.
             </h2>
             <Autocomplete
-                placeholder="Try “Life expectancy”, “Economic growth”, “Homicide rate”, Biodiversity”…"
                 className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
                 panelClassName="homepage-search__panel"
             />
