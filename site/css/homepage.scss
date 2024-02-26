@@ -381,6 +381,8 @@
     .homepage-topic__topic-list {
         line-height: 1.33;
         line-break: anywhere;
+        display: flex;
+        flex-wrap: wrap;
     }
     .homepage-topic__subtopic,
     .homepage-topic__topic-entry {
