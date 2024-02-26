@@ -1,0 +1,53 @@
+.author-header {
+    margin: 56px 0;
+}
+
+.author-header__name {
+    @include display-1-semibold;
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.author-header__role {
+    @include body-1-regular;
+    color: $blue-60;
+}
+
+.author-header__bio {
+    @include body-1-regular;
+    margin-top: 8px;
+    color: $blue-90;
+}
+
+.author-header__portrait {
+    margin-top: 0;
+    margin-bottom: 24px;
+    img {
+        border-radius: 50%;
+    }
+}
+
+.article-block__socials {
+    color: $blue-60;
+    @include body-3-medium;
+
+    ul {
+        margin-left: 24px;
+        list-style-type: none;
+        list-style-position: inside;
+    }
+
+    li {
+        margin-bottom: 16px;
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    a {
+        @include owid-link-60;
+    }
+    svg {
+        margin-right: 8px;
+    }
+}
