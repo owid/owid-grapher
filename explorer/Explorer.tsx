@@ -89,7 +89,6 @@ export interface ExplorerProps extends SerializedGridProgram {
     isPreview?: boolean
     canonicalUrl?: string
     selection?: SelectionArray
-    shouldOptimizeForHorizontalSpace?: boolean // only relevant for explorers with hidden controls
 }
 
 const renderLivePreviewVersion = (props: ExplorerProps) => {
@@ -212,17 +211,6 @@ export class Explorer
     componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
         this.updateGrapherFromExplorer()
-
-        // Optimizing for horizontal space makes only sense if the controls are hidden
-        // and the explorer in fact looks like an ordinary grapher chart.
-        // Since switching between charts is not possible when the controls are hidden,
-        // we only need to run this code once.
-        if (
-            this.queryParams.hideControls &&
-            this.props.shouldOptimizeForHorizontalSpace
-        ) {
-            this.grapher!.shouldOptimizeForHorizontalSpace = true
-        }
 
         let url = Url.fromQueryParams(this.initialQueryParams)
 

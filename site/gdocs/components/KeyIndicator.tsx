@@ -60,7 +60,6 @@ export default function KeyIndicator({
                     type: "chart",
                     parseErrors: [],
                 }}
-                shouldOptimizeForHorizontalSpace={false}
             />
             <a
                 className="datapage-link datapage-link-mobile col-start-1 span-cols-12"

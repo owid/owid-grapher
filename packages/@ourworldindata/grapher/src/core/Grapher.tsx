@@ -302,7 +302,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bindUrlToWindow?: boolean
     isEmbeddedInAnOwidPage?: boolean
     isEmbeddedInADataPage?: boolean
-    shouldOptimizeForHorizontalSpace?: boolean
 
     manager?: GrapherManager
     instanceRef?: React.RefObject<Grapher>
@@ -459,19 +458,6 @@ export class Grapher
 
     isEmbeddedInAnOwidPage?: boolean = this.props.isEmbeddedInAnOwidPage
     isEmbeddedInADataPage?: boolean = this.props.isEmbeddedInADataPage
-
-    // if true, grapher bleeds onto the edges horizontally and the left and right borders
-    // are removed while the top and bottom borders stretch across the entire page
-    @observable shouldOptimizeForHorizontalSpace = false
-
-    @computed private get optimizeForHorizontalSpace(): boolean {
-        return (
-            this.isNarrow &&
-            this.shouldOptimizeForHorizontalSpace &&
-            // in full-screen mode, we prefer padding on the sides
-            !this.isInFullScreenMode
-        )
-    }
 
     /**
      * todo: factor this out and make more RAII.
@@ -2517,7 +2503,6 @@ export class Grapher
             GrapherPortraitClass: this.isPortrait,
             isStatic: this.isStatic,
             isExportingToSvgOrPng: this.isExportingToSvgOrPng,
-            optimizeForHorizontalSpace: this.optimizeForHorizontalSpace,
             GrapherComponentNarrow: this.isNarrow,
             GrapherComponentSemiNarrow: this.isSemiNarrow,
             GrapherComponentSmall: this.isSmall,
@@ -2648,11 +2633,8 @@ export class Grapher
         return this.props.baseFontSize ?? this.baseFontSize
     }
 
-    // when optimized for horizontal screen, grapher bleeds onto the edges horizontally
     @computed get framePaddingHorizontal(): number {
-        return this.optimizeForHorizontalSpace
-            ? 0
-            : DEFAULT_GRAPHER_FRAME_PADDING
+        return DEFAULT_GRAPHER_FRAME_PADDING
     }
 
     @computed get framePaddingVertical(): number {
