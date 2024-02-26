@@ -30,7 +30,7 @@ export function generateSrcSet(
         .map((size) => {
             const path = `/images/published/${getFilenameWithoutExtension(
                 encodeURIComponent(filename)
-            )}_${size}.webp`
+            )}_${size}.png`
             return `${path} ${size}w`
         })
         .join(", ")
