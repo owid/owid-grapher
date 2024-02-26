@@ -165,7 +165,7 @@ export class DiscreteBarChart
 
     @computed private get boundsWithoutColorLegend(): Bounds {
         return this.bounds.padTop(
-            this.hasColorLegend ? this.legendHeight + LEGEND_PADDING : 0
+            this.showColorLegend ? this.legendHeight + LEGEND_PADDING : 0
         )
     }
 
