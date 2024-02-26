@@ -113,7 +113,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["chart"]: "span-cols-8 span-lg-cols-9 span-md-cols-12",
     },
     ["author-header"]: {
-        ["default"]: "span-cols-8",
+        ["default"]: "span-cols-6",
         ["image"]: "span-cols-2",
         ["socials"]: "span-cols-3",
     },
