@@ -260,6 +260,11 @@ export {
     type EnrichedBlockPillRow,
     type RawBlockHomepageSearch,
     type EnrichedBlockHomepageSearch,
+    type RawBlockSocials,
+    type EnrichedBlockSocials,
+    SocialLinkType,
+    type RawSocialLink,
+    type EnrichedSocialLink,
 } from "./gdocTypes/ArchieMlComponents.js"
 export {
     OwidGdocPublicationContext,
@@ -267,6 +272,8 @@ export {
     type OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     type OwidGdocLinkJSON,
+    type OwidGdocAuthorContent,
+    type OwidGdocAuthorInterface,
     type OwidGdocBaseInterface,
     type OwidGdocPostContent,
     type OwidGdocPostInterface,

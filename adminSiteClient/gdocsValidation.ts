@@ -11,6 +11,8 @@ import {
     checkIsGdocPost,
     checkIsDataInsight,
     OwidGdocDataInsightInterface,
+    checkIsAuthor,
+    OwidGdocAuthorInterface,
 } from "@ourworldindata/utils"
 
 function validateTitle(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
@@ -208,6 +210,25 @@ function validateAtomFields(
     }
 }
 
+function validateSocials(
+    gdoc: OwidGdocAuthorInterface,
+    errors: OwidGdocErrorMessage[]
+) {
+    const { socials } = gdoc.content
+
+    if (!socials?.parseErrors) return
+
+    errors.push(
+        ...socials.parseErrors.map((parseError) => ({
+            message: parseError.message,
+            type: parseError.isWarning
+                ? OwidGdocErrorMessageType.Warning
+                : OwidGdocErrorMessageType.Error,
+            property: "socials" as const,
+        }))
+    )
+}
+
 export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
     const errors: OwidGdocErrorMessage[] = []
 
@@ -225,11 +246,11 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
         validateExcerpt(gdoc, errors)
         validateBreadcrumbs(gdoc, errors)
         validateAtomFields(gdoc, errors)
-    }
-
-    if (checkIsDataInsight(gdoc)) {
+    } else if (checkIsDataInsight(gdoc)) {
         validateApprovedBy(gdoc, errors)
         validateGrapherUrl(gdoc, errors)
+    } else if (checkIsAuthor(gdoc)) {
+        validateSocials(gdoc, errors)
     }
 
     return errors

@@ -4,6 +4,7 @@ import { BreadcrumbItem } from "../domainTypes/Site.js"
 import { TocHeadingWithTitleSupertitle } from "../domainTypes/Toc.js"
 import { ImageMetadata } from "./Image.js"
 import {
+    EnrichedBlockSocials,
     EnrichedBlockText,
     EnrichedBlockWithParseErrors,
     OwidEnrichedGdocBlock,
@@ -50,6 +51,7 @@ export enum OwidGdocType {
     DataInsight = "data-insight",
     Homepage = "homepage",
     AboutPage = "about-page",
+    Author = "author",
 }
 
 export interface OwidGdocBaseInterface {
@@ -138,15 +140,32 @@ export interface OwidGdocHomepageInterface extends OwidGdocBaseInterface {
     tags?: Tag[] // won't be used, but necessary in various validation steps
 }
 
+export interface OwidGdocAuthorContent {
+    type: OwidGdocType.Author
+    title?: string
+    role: string
+    bio?: EnrichedBlockText[]
+    socials?: EnrichedBlockSocials
+    "featured-image"?: string
+    authors: string[]
+    body: OwidEnrichedGdocBlock[]
+}
+
+export interface OwidGdocAuthorInterface extends OwidGdocBaseInterface {
+    content: OwidGdocAuthorContent
+}
+
 export type OwidGdocContent =
     | OwidGdocPostContent
     | OwidGdocDataInsightContent
     | OwidGdocHomepageContent
+    | OwidGdocAuthorContent
 
 export type OwidGdoc =
     | OwidGdocPostInterface
     | OwidGdocDataInsightInterface
     | OwidGdocHomepageInterface
+    | OwidGdocAuthorInterface
 
 export enum OwidGdocErrorMessageType {
     Error = "error",
@@ -158,6 +177,9 @@ export type OwidGdocProperty =
     | keyof OwidGdocPostContent
     | keyof OwidGdocDataInsightInterface
     | keyof OwidGdocDataInsightContent
+    | keyof OwidGdocAuthorInterface
+    | keyof OwidGdocAuthorContent
+
 export type OwidGdocErrorMessageProperty =
     | OwidGdocProperty
     | `${OwidGdocProperty}${string}` // also allows for nesting, like `breadcrumbs[0].label`

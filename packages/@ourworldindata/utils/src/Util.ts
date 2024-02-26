@@ -161,6 +161,7 @@ import {
     type EnrichedScrollerItem,
     type OwidGdocPostInterface,
     type OwidGdocDataInsightInterface,
+    type OwidGdocAuthorInterface,
     type OwidGdoc,
     OwidGdocType,
     type OwidGdocJSON,
@@ -1670,7 +1671,8 @@ export function traverseEnrichedBlocks(
                     "pill-row",
                     "homepage-search",
                     "homepage-intro",
-                    "latest-data-insights"
+                    "latest-data-insights",
+                    "socials"
                 ),
             },
             callback
@@ -1812,6 +1814,10 @@ export function checkIsDataInsight(
     return type === OwidGdocType.DataInsight
 }
 
+export function checkIsAuthor(x: unknown): x is OwidGdocAuthorInterface {
+    const type = get(x, "content.type")
+    return type === OwidGdocType.Author
+}
 /**
  * Returns the cartesian product of the given arrays.
  *

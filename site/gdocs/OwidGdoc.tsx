@@ -18,6 +18,7 @@ import { GdocPost } from "./pages/GdocPost.js"
 import { DataInsightPage } from "./pages/DataInsight.js"
 import { Fragment } from "./pages/Fragment.js"
 import { Homepage } from "./pages/Homepage.js"
+import { Author } from "./pages/Author.js"
 
 export const AttachmentsContext = createContext<{
     linkedCharts: Record<string, LinkedChart>
@@ -82,6 +83,9 @@ export function OwidGdoc({
         ))
         .with({ content: { type: OwidGdocType.Homepage } }, (props) => (
             <Homepage {...props} />
+        ))
+        .with({ content: { type: OwidGdocType.Author } }, (props) => (
+            <Author {...props} />
         ))
         .with({ content: { type: OwidGdocType.Fragment } }, (props) => (
             <Fragment {...props} />

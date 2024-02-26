@@ -5,6 +5,7 @@ import {
     OwidGdocDataInsightInterface,
     OwidGdoc,
     OwidGdocHomepageInterface,
+    OwidGdocAuthorInterface,
 } from "@ourworldindata/utils"
 import { EXCERPT_MAX_LENGTH } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
@@ -219,6 +220,44 @@ export const GdocHomepageSettings = ({
                 <h3 className="form-section-heading">Homepage settings</h3>
                 <p>The homepage has no custom authors, slug, title, etc.</p>
                 <p>Just hit publish when you'd like to update the page!</p>
+            </div>
+        </div>
+    )
+}
+
+export const GdocAuthorSettings = ({
+    gdoc,
+    setCurrentGdoc,
+    errors,
+}: {
+    gdoc: OwidGdocAuthorInterface
+    setCurrentGdoc: (gdoc: OwidGdocAuthorInterface) => void
+    errors?: OwidGdocErrorMessage[]
+}) => {
+    if (!gdoc || !errors) return null
+    return (
+        <div className="GdocsSettingsForm">
+            <GdocCommonErrors errors={errors} errorsToFilter={[]} />
+            <div className="form-group">
+                <h3 className="form-section-heading">Common settings</h3>
+                <GdocsSettingsContentField
+                    property="title"
+                    gdoc={gdoc}
+                    errors={errors}
+                />
+                <GdocsSlug
+                    gdoc={gdoc}
+                    setCurrentGdoc={setCurrentGdoc}
+                    errors={errors}
+                />
+            </div>
+            <div className="form-group">
+                <h3 className="form-section-heading">Author settings</h3>
+                <GdocsSettingsContentField
+                    property="role"
+                    gdoc={gdoc}
+                    errors={errors}
+                />
             </div>
         </div>
     )

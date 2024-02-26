@@ -43,6 +43,7 @@ import {
     RawBlockHomepageSearch,
     RawBlockHomepageIntro,
     RawBlockLatestDataInsights,
+    RawBlockSocials,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -511,6 +512,12 @@ export function enrichedBlockToRawBlock(
                         })
                     ),
                 },
+            }
+        })
+        .with({ type: "socials" }, (b): RawBlockSocials => {
+            return {
+                type: "socials",
+                value: b.links,
             }
         })
         .exhaustive()

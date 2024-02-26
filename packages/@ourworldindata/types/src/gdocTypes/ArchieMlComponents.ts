@@ -821,6 +821,32 @@ export type EnrichedBlockLatestDataInsights = {
     type: "latest-data-insights"
 } & EnrichedBlockWithParseErrors
 
+export enum SocialLinkType {
+    X = "x",
+    Facebook = "facebook",
+    Instagram = "instagram",
+    Youtube = "youtube",
+    Linkedin = "linkedin",
+}
+
+export type RawSocialLink = {
+    text: string
+    url: string
+    type?: SocialLinkType
+}
+
+export type RawBlockSocials = {
+    type: "socials"
+    value: RawSocialLink[] | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedSocialLink = RawSocialLink
+
+export type EnrichedBlockSocials = {
+    type: "socials"
+    links: EnrichedSocialLink[]
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
@@ -864,6 +890,7 @@ export type OwidRawGdocBlock =
     | RawBlockHomepageSearch
     | RawBlockHomepageIntro
     | RawBlockLatestDataInsights
+    | RawBlockSocials
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -908,3 +935,4 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockHomepageSearch
     | EnrichedBlockHomepageIntro
     | EnrichedBlockLatestDataInsights
+    | EnrichedBlockSocials

@@ -9,6 +9,7 @@ import {
     OwidGdoc as OwidGdocUnionType,
     SiteFooterContext,
     OwidGdocType,
+    spansToUnformattedPlainText,
 } from "@ourworldindata/utils"
 import { getCanonicalUrl, getPageTitle } from "@ourworldindata/components"
 import { DebugProvider } from "./DebugContext.js"
@@ -44,6 +45,13 @@ function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
         })
         .with({ content: { type: OwidGdocType.Homepage } }, () => {
             return "Research and data to make progress against the world’s largest problems"
+        })
+        .with({ content: { type: OwidGdocType.Author } }, (gdoc) => {
+            return gdoc.content.bio
+                ? spansToUnformattedPlainText(
+                      gdoc.content.bio.flatMap((block) => block.value)
+                  )
+                : undefined
         })
         .with(
             { content: { type: P.union(OwidGdocType.Fragment, undefined) } },
