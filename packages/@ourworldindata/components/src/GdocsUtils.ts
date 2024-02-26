@@ -74,6 +74,12 @@ function _getPrefixedPath(prefix: string, gdoc: OwidGdoc): string {
         )
         .with(
             {
+                content: { type: OwidGdocType.Author },
+            },
+            () => `${prefix}/team/${gdoc.slug}`
+        )
+        .with(
+            {
                 content: { type: P.union(OwidGdocType.Fragment, undefined) },
             },
             () => ""
@@ -109,7 +115,8 @@ export function getPageTitle(gdoc: OwidGdoc) {
                         OwidGdocType.TopicPage,
                         OwidGdocType.LinearTopicPage,
                         OwidGdocType.AboutPage,
-                        OwidGdocType.DataInsight
+                        OwidGdocType.DataInsight,
+                        OwidGdocType.Author
                     ),
                 },
             },

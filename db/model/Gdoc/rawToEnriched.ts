@@ -114,6 +114,10 @@ import {
     EnrichedBlockHomepageIntro,
     RawBlockHomepageIntro,
     EnrichedBlockHomepageIntroPost,
+    RawBlockSocials,
+    EnrichedBlockSocials,
+    EnrichedSocialLink,
+    SocialLinkType,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -218,6 +222,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "pill-row" }, parsePillRow)
         .with({ type: "homepage-search" }, parseHomepageSearch)
         .with({ type: "homepage-intro" }, parseHomepageIntro)
+        .with({ type: "socials" }, parseSocials)
         .exhaustive()
 }
 
@@ -2241,5 +2246,61 @@ function parseHomepageIntro(
         type: "homepage-intro",
         featuredWork: enrichedFeaturedWork,
         parseErrors,
+    }
+}
+
+export const parseSocials = (raw: RawBlockSocials): EnrichedBlockSocials => {
+    const createError = (error: ParseError): EnrichedBlockSocials => ({
+        type: "socials",
+        parseErrors: [error],
+        links: [],
+    })
+
+    if (typeof raw.value === "string")
+        return createError({
+            message: `Socials block must be written as an array ([socials] or [.socials] when used in [+body])`,
+        })
+
+    if (!raw.value.length) {
+        return createError({
+            message: "Socials block is empty",
+        })
+    }
+
+    const links: EnrichedSocialLink[] = []
+
+    for (const link of raw.value) {
+        if (!link.url) {
+            return createError({
+                message: "Link is missing a url",
+            })
+        }
+        if (!link.text) {
+            return createError({
+                message: "Link is missing text",
+            })
+        }
+        if (
+            link.type &&
+            Object.values(SocialLinkType).indexOf(link.type) === -1
+        ) {
+            return createError({
+                message: `Link type must be one of ${Object.values(
+                    SocialLinkType
+                ).join(", ")}`,
+            })
+        }
+
+        links.push({
+            url: link.url,
+            text: link.text,
+            type: link.type,
+        })
+    }
+
+    return {
+        type: "socials",
+        links,
+        parseErrors: [],
     }
 }

@@ -24,6 +24,7 @@ const generateResponsiveSizes = (numberOfColumns: number): string =>
         1280 * (numberOfColumns / 12)
     )}px`
 
+const gridSpan2 = generateResponsiveSizes(2)
 const gridSpan5 = generateResponsiveSizes(5)
 const gridSpan6 = generateResponsiveSizes(6)
 const gridSpan7 = generateResponsiveSizes(7)
@@ -43,6 +44,7 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["datapage"]: gridSpan6,
     ["full-width"]: "100vw",
     ["key-insight"]: gridSpan5,
+    ["author-header"]: gridSpan2,
 }
 
 export default function Image(props: {

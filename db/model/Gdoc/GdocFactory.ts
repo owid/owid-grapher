@@ -11,11 +11,14 @@ import { GdocBase, Tag } from "./GdocBase.js"
 import { GdocPost } from "./GdocPost.js"
 import { GdocDataInsight } from "./GdocDataInsight.js"
 import { GdocHomepage } from "./GdocHomepage.js"
+import { GdocAuthor } from "./GdocAuthor.js"
 
 // Handles the registration and loading of Gdocs
 // Couldn't put this in GdocBase because of circular dependency issues
 export class GdocFactory {
-    static fromJSON(json: Record<string, any>): GdocPost | GdocDataInsight {
+    static fromJSON(
+        json: Record<string, any>
+    ): GdocPost | GdocDataInsight | GdocAuthor {
         if (typeof json.content === "string") {
             json.content = JSON.parse(json.content)
         }
@@ -58,6 +61,11 @@ export class GdocFactory {
                 // TODO: better validation here?
                 () => GdocHomepage.create({ ...(json as any) })
             )
+            .with(
+                OwidGdocType.Author,
+                // TODO: better validation here?
+                () => GdocAuthor.create({ ...(json as any) })
+            )
             .exhaustive()
     }
 
@@ -79,7 +87,7 @@ export class GdocFactory {
 
     static async loadBySlug(
         slug: string
-    ): Promise<GdocPost | GdocDataInsight | GdocHomepage> {
+    ): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
         const base = await GdocBase.findOne({
             where: { slug, published: true },
         })
@@ -96,7 +104,7 @@ export class GdocFactory {
     static async load(
         id: string,
         contentSource?: GdocsContentSource
-    ): Promise<GdocPost | GdocDataInsight | GdocHomepage> {
+    ): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
         const base = await GdocBase.findOne({
             where: {
                 id,
@@ -132,6 +140,7 @@ export class GdocFactory {
             )
             .with(OwidGdocType.DataInsight, () => GdocDataInsight.create(base))
             .with(OwidGdocType.Homepage, () => GdocHomepage.create(base))
+            .with(OwidGdocType.Author, () => GdocAuthor.create(base))
             .exhaustive()
 
         if (contentSource === GdocsContentSource.Gdocs) {

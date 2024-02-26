@@ -315,5 +315,10 @@ ${links}`
                 .filter((item) => item !== "")
                 .join("\n")
         })
+        .with({ type: "socials" }, (b): string | undefined => {
+            return b.links
+                .map((link) => `* [${link.text}](${link.url})`)
+                .join("\n")
+        })
         .exhaustive()
 }
