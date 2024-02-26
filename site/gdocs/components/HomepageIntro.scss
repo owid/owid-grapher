@@ -58,8 +58,7 @@
                 margin-right: 16px;
                 .homepage-intro__featured-work-title {
                     @include h3-bold;
-                    margin-top: 4px;
-                    margin-bottom: 0;
+                    margin: 0;
                 }
                 .homepage-intro__featured-work-description {
                     @include body-3-medium;
@@ -148,6 +147,11 @@
 
 .homepage-intro__see-all-work-button-container {
     display: flex;
+    margin-top: 32px;
+
+    @include sm-only {
+        margin-top: 0;
+    }
 
     svg {
         font-size: 0.75rem;
@@ -204,7 +208,8 @@
 
 .homepage-intro__featured-tile {
     color: $blue-90;
-    display: block;
+    display: flex;
+    flex-direction: column;
 
     img {
         display: block;
@@ -222,21 +227,33 @@
     margin-top: 12px;
 }
 
-.homepage-intro__primary-tiles .homepage-intro__featured-work-title {
-    @include h2-bold;
-    margin: 4px 0;
+.homepage-intro__primary-tiles {
+    .homepage-intro__featured-work-title {
+        @include h2-bold;
+        line-height: 2rem;
+        margin: 4px 0 0 0;
+    }
+}
+
+// Shared styles for items in secondary and tertiary tiles
+.homepage-intro__secondary-tiles,
+.homepage-intro__tertiary-tiles {
+    .homepage-intro__featured-work-title {
+        @include h3-bold;
+        line-height: 1.5rem;
+        letter-spacing: -0.1px;
+        margin: 4px 0 0 0;
+    }
+    .homepage-intro__featured-work-description {
+        font-size: 0.875rem;
+        line-height: 1.3125rem;
+    }
 }
 
 .homepage-intro__secondary-tiles .homepage-intro__featured-tile {
     &:not(:last-child) {
         margin-bottom: 32px;
     }
-}
-
-.homepage-intro__secondary-tiles .homepage-intro__featured-work-title,
-.homepage-intro__tertiary-tiles .homepage-intro__featured-work-title {
-    @include h3-bold;
-    margin: 4px 0;
 }
 
 .homepage-intro__featured-tile:hover .homepage-intro__featured-work-title {
