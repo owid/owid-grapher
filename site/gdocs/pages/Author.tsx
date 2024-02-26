@@ -1,5 +1,6 @@
 import React from "react"
 import {
+    OwidEnrichedGdocBlock,
     OwidGdocAuthorContent,
     OwidGdocAuthorInterface,
 } from "@ourworldindata/types"
@@ -85,6 +86,19 @@ const AuthorHeader = (gdoc: OwidGdocAuthorInterface) => {
     )
 }
 
+export const AuthorWork = ({ blocks }: { blocks: OwidEnrichedGdocBlock[] }) => {
+    return (
+        <div className="author-work grid grid-cols-12-full-width span-cols-14">
+            <ArticleBlocks blocks={blocks} />
+        </div>
+    )
+}
+
 export const Author = (gdoc: OwidGdocAuthorInterface): JSX.Element => {
-    return <AuthorHeader {...gdoc} />
+    return (
+        <>
+            <AuthorHeader {...gdoc} />
+            <AuthorWork blocks={gdoc.content.body} />
+        </>
+    )
 }
