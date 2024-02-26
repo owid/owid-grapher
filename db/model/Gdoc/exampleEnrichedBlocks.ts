@@ -365,6 +365,7 @@ export const enrichedBlockExamples: Record<
     "research-and-writing": {
         type: "research-and-writing",
         parseErrors: [],
+        heading: "Featured Work",
         primary: [
             {
                 value: {
