@@ -495,6 +495,7 @@ function* rawResearchAndWritingToArchieMLString(
         yield* propertyToArchieMLString("filename", link)
     }
     yield "{.research-and-writing}"
+    yield* propertyToArchieMLString("heading", block.value)
     if (primary) {
         yield "[.primary]"
         if (isArray(primary)) {

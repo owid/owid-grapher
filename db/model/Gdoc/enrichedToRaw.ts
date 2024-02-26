@@ -371,6 +371,7 @@ export function enrichedBlockToRawBlock(
                 return {
                     type: b.type,
                     value: {
+                        heading: b.heading,
                         primary: b.primary.map((enriched) =>
                             enrichedLinkToRawLink(enriched)
                         ),

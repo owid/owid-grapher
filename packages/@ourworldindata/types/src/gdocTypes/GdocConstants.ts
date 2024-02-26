@@ -7,6 +7,8 @@ export const CITATION_ID = "article-citation"
 export const ENDNOTES_ID = "article-endnotes"
 export const RESEARCH_AND_WRITING_ID = "research-writing"
 
+export const RESEARCH_AND_WRITING_DEFAULT_HEADING = "Research & Writing"
+
 export const IMAGES_DIRECTORY = "/images/published/"
 
 /** Works for:

@@ -538,6 +538,7 @@ export type RawBlockResearchAndWritingRow = {
 export type RawBlockResearchAndWriting = {
     type: "research-and-writing"
     value: {
+        heading?: string
         // We're migrating these to be arrays, but have to support the old use-case until it's done
         primary?:
             | RawBlockResearchAndWritingLink
@@ -567,6 +568,7 @@ export type EnrichedBlockResearchAndWritingRow = {
 
 export type EnrichedBlockResearchAndWriting = {
     type: "research-and-writing"
+    heading?: string
     primary: EnrichedBlockResearchAndWritingLink[]
     secondary: EnrichedBlockResearchAndWritingLink[]
     more?: EnrichedBlockResearchAndWritingRow

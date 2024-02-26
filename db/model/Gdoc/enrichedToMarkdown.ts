@@ -1,4 +1,7 @@
-import { EnrichedBlockKeyIndicator } from "@ourworldindata/types"
+import {
+    EnrichedBlockKeyIndicator,
+    RESEARCH_AND_WRITING_DEFAULT_HEADING,
+} from "@ourworldindata/types"
 import { getLinkType } from "@ourworldindata/components"
 import {
     OwidEnrichedGdocBlock,
@@ -250,7 +253,7 @@ ${allInsights}`
                 ),
                 ...(b.more?.articles ?? []).map((item) => item.value.url),
             ].map((link) => `* ${link}\n`)
-            return `## Related research and writing
+            return `## ${b.heading || RESEARCH_AND_WRITING_DEFAULT_HEADING}
 ${links}`
         })
         .with({ type: "align" }, (b): string | undefined =>

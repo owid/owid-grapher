@@ -1637,6 +1637,7 @@ function parseResearchAndWritingBlock(
 ): EnrichedBlockResearchAndWriting {
     const createError = (
         error: ParseError,
+        heading = "",
         primary = [
             {
                 value: { url: "" },
@@ -1654,6 +1655,7 @@ function parseResearchAndWritingBlock(
         rows: EnrichedBlockResearchAndWritingRow[] = []
     ): EnrichedBlockResearchAndWriting => ({
         type: "research-and-writing",
+        heading,
         primary,
         secondary,
         more,
@@ -1755,6 +1757,7 @@ function parseResearchAndWritingBlock(
 
     return {
         type: "research-and-writing",
+        heading: raw.value.heading,
         primary,
         secondary,
         more,
