@@ -18,7 +18,7 @@ import { GdocAuthor } from "./GdocAuthor.js"
 export class GdocFactory {
     static fromJSON(
         json: Record<string, any>
-    ): GdocPost | GdocDataInsight | GdocAuthor {
+    ): GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor {
         if (typeof json.content === "string") {
             json.content = JSON.parse(json.content)
         }
