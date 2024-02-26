@@ -4,11 +4,13 @@ import {
     EnrichedBlockResearchAndWriting,
     EnrichedBlockResearchAndWritingLink,
     RESEARCH_AND_WRITING_ID,
+    slugify,
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
 import { formatAuthors } from "../../clientFormatting.js"
 import Image from "./Image.js"
 import { DocumentContext } from "../OwidGdoc.js"
+import { RESEARCH_AND_WRITING_DEFAULT_HEADING } from "@ourworldindata/types"
 
 type ResearchAndWritingProps = {
     className?: string
@@ -92,15 +94,18 @@ function ResearchAndWritingLink(
 }
 
 export function ResearchAndWriting(props: ResearchAndWritingProps) {
-    const { primary, secondary, more, rows, className } = props
+    const { heading, primary, secondary, more, rows, className } = props
+
+    const slug = heading ? slugify(heading) : RESEARCH_AND_WRITING_ID
+
     return (
         <div className={cx(className, "grid")}>
             <h1
                 className="article-block__heading span-cols-12 h1-semibold"
-                id={RESEARCH_AND_WRITING_ID}
+                id={slug}
             >
-                Research & Writing
-                <a className="deep-link" href={`#${RESEARCH_AND_WRITING_ID}`} />
+                {heading || RESEARCH_AND_WRITING_DEFAULT_HEADING}
+                <a className="deep-link" href={`#${slug}`} />
             </h1>
             <div className="span-cols-12 research-and-writing-row">
                 <div className="grid research-and-writing-row__links">
