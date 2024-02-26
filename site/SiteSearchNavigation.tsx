@@ -13,7 +13,11 @@ export const SiteSearchNavigation = ({
 }) => {
     return (
         <div className={cx("SiteSearchNavigation", { active: isActive })}>
-            <Autocomplete onActivate={onActivate} onClose={onClose} />
+            <Autocomplete
+                onActivate={onActivate}
+                onClose={onClose}
+                placeholder="Search for a topic, chart or article..."
+            />
         </div>
     )
 }
