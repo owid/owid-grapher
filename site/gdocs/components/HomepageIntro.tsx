@@ -11,6 +11,7 @@ import Image from "./Image.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 
 type FeaturedWorkTileProps = EnrichedBlockHomepageIntroPost & {
     isTertiary?: boolean
@@ -125,7 +126,7 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                     </p>
                     <a
                         className="homepage-intro__mission-link body-2-semibold"
-                        href="/about"
+                        href="/problems-and-progress"
                     >
                         Read about our mission{" "}
                         <FontAwesomeIcon icon={faArrowRight} />
@@ -154,7 +155,7 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                 <div className="h6-black-caps">As seen on</div>
                 <img
                     className="homepage-intro__media-logos"
-                    src={`/media-logos.svg`}
+                    src={`${BAKED_BASE_URL}/media-logos.svg`}
                     alt="Logos of the publications that have used our content. From left to right: Science, Nature, PNAS, BBC, Financial Times, The New York Times, The Guardian, The Atlantic, and The Washington Post"
                     width={230}
                     height={75}

@@ -237,7 +237,8 @@ export const getLatestDataInsights = (
 
 export const getPublishedDataInsightCount = (): Promise<number> => {
     return knexRawFirst<{ count: number }>(
-        `SELECT COUNT(*) AS count
+        `
+        SELECT COUNT(*) AS count
         FROM posts_gdocs
         WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
             AND published = TRUE
@@ -251,12 +252,12 @@ export const getTotalNumberOfCharts = (): Promise<number> => {
         `
         SELECT COUNT(*) AS count
         FROM charts
-        WHERE publishedAt IS NOT NULL`,
+        WHERE config->"$.isPublished" = TRUE`,
         knexInstance()
     ).then((res) => res?.count ?? 0)
 }
 
-export const getTotalNumberOfTopics = (): Promise<number> => {
+export const getTotalNumberOfInUseGrapherTags = (): Promise<number> => {
     return knexRawFirst<{ count: number }>(
         `
         SELECT COUNT(DISTINCT(tagId)) AS count

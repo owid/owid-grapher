@@ -10,6 +10,7 @@ import {
 import { GdocBase } from "./GdocBase.js"
 import * as db from "../../db.js"
 import { OwidGdocHomepageMetadata } from "@ourworldindata/types"
+import { UNIQUE_TOPIC_COUNT } from "../../../site/SiteNavigation.js"
 
 @Entity("posts_gdocs")
 export class GdocHomepage
@@ -56,7 +57,7 @@ export class GdocHomepage
     _loadSubclassAttachments = async (): Promise<void> => {
         this.homepageMetadata = {
             chartCount: await db.getTotalNumberOfCharts(),
-            topicCount: await db.getTotalNumberOfTopics(),
+            topicCount: UNIQUE_TOPIC_COUNT,
         }
 
         this.latestDataInsights = await db.getLatestDataInsights(4)

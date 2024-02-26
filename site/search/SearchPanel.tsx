@@ -39,7 +39,10 @@ import {
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
-import { logSiteSearchClick } from "./searchClient.js"
+import {
+    DEFAULT_SEARCH_PLACEHOLDER,
+    logSiteSearchClick,
+} from "./searchClient.js"
 import {
     PreferenceType,
     getPreferenceValue,
@@ -482,7 +485,7 @@ export class InstantSearchContainer extends React.Component {
             >
                 <div className="search-panel">
                     <SearchBox
-                        placeholder="Try “Life expectancy”, “Population in extreme poverty”, “Homicide rate”, Biodiversity”…"
+                        placeholder={DEFAULT_SEARCH_PLACEHOLDER}
                         className="searchbox"
                         queryHook={this.handleQuery}
                     />

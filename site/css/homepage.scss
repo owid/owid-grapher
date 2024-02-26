@@ -380,11 +380,15 @@
     }
     .homepage-topic__topic-list {
         line-height: 1.33;
+        line-break: anywhere;
+        display: flex;
+        flex-wrap: wrap;
     }
     .homepage-topic__subtopic,
     .homepage-topic__topic-entry {
         display: inline list-item;
         font-size: 0.875rem;
+        white-space: nowrap;
     }
     .homepage-topic__subtopic {
         font-weight: bold;
