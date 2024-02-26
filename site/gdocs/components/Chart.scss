@@ -9,3 +9,11 @@ figure.explorer {
 div.margin-0 figure {
     margin: 0;
 }
+
+@include sm-only {
+    .full-width-on-mobile {
+        width: auto;
+        margin-left: calc(-1 * var(--grid-gap));
+        margin-right: calc(-1 * var(--grid-gap));
+    }
+}

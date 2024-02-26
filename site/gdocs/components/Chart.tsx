@@ -19,9 +19,11 @@ import cx from "classnames"
 export default function Chart({
     d,
     className,
+    fullWidthOnMobile = false,
 }: {
     d: EnrichedBlockChart
     className?: string
+    fullWidthOnMobile?: boolean
 }) {
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(0, refChartContainer)
@@ -81,7 +83,9 @@ export default function Chart({
 
     return (
         <div
-            className={cx(d.position, className)}
+            className={cx(d.position, className, {
+                "full-width-on-mobile": fullWidthOnMobile,
+            })}
             style={{ gridRow: d.row, gridColumn: d.column }}
             ref={refChartContainer}
         >

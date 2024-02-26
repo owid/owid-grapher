@@ -209,6 +209,7 @@ export default function ArticleBlock({
                 <Chart
                     className={getLayout(layoutSubtype, containerType)}
                     d={block}
+                    fullWidthOnMobile={true}
                 />
             )
         })
