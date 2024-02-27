@@ -58,6 +58,7 @@ import {
     DbRawVariable,
     DbRawOrigin,
     parseOriginsRow,
+    AnalyticsPageviewsTableName,
 } from "@ourworldindata/types"
 import {
     getVariableDataRoute,
@@ -67,7 +68,6 @@ import { getDatasetById, setTagsForDataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { GdocBase, Tag as TagEntity } from "../db/model/Gdoc/GdocBase.js"
-import { Pageview } from "../db/model/Pageview.js"
 import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
@@ -480,9 +480,14 @@ apiRouter.get(
         ).then((chart) => chart?.config?.slug)
         if (!slug) return {}
 
-        const pageviewsByUrl = await Pageview.findOneBy({
-            url: `https://ourworldindata.org/grapher/${slug}`,
-        })
+        const pageviewsByUrl = await db.knexRawFirst(
+            "select * from ?? where url = ?",
+            db.knexInstance(),
+            [
+                AnalyticsPageviewsTableName,
+                `https://ourworldindata.org/grapher/${slug}`,
+            ]
+        )
 
         return {
             pageviews: pageviewsByUrl ?? undefined,

@@ -9,10 +9,11 @@ import {
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
-import { Pageview } from "../../db/model/Pageview.js"
+import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
 import { chunkParagraphs } from "../chunk.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
 import { Chart } from "../../db/model/Chart.js"
+import { Knex } from "knex"
 
 type ExplorerBlockColumns = {
     type: "columns"
@@ -111,16 +112,19 @@ function getNullishJSONValueAsPlaintext(value: string): string {
     return value !== "null" ? cheerio.load(value)("body").text() : ""
 }
 
-const getExplorerRecords = async (): Promise<ExplorerRecord[]> => {
-    const pageviews = await Pageview.getViewsByUrlObj()
+const getExplorerRecords = async (
+    knex: Knex<any, any[]>
+): Promise<ExplorerRecord[]> => {
+    const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
 
     // Fetch info about all charts used in explorers, as linked by the explorer_charts table
     const graphersUsedInExplorers = await db
-        .queryMysql(
+        .knexRaw<{ chartId: number }>(
             `
         SELECT DISTINCT chartId
         FROM explorer_charts
-        `
+        `,
+            knex
         )
         .then((results: { chartId: number }[]) =>
             results.map(({ chartId }) => chartId)
@@ -129,7 +133,7 @@ const getExplorerRecords = async (): Promise<ExplorerRecord[]> => {
         .then((charts) => keyBy(charts, "id"))
 
     const explorerRecords = await db
-        .queryMysql(
+        .knexRaw<Omit<ExplorerEntry, "views_7d">>(
             `
     SELECT slug,
         COALESCE(config->>"$.explorerSubtitle", "null")     AS subtitle,
@@ -137,9 +141,10 @@ const getExplorerRecords = async (): Promise<ExplorerRecord[]> => {
         COALESCE(config->>"$.blocks", "null")               AS blocks
     FROM explorers
     WHERE isPublished = true
-    `
+    `,
+            knex
         )
-        .then((results: ExplorerEntry[]) =>
+        .then((results) =>
             results.flatMap(({ slug, title, subtitle, blocks }) => {
                 const textFromExplorer = extractTextFromExplorer(
                     blocks,
@@ -190,8 +195,8 @@ const indexExplorersToAlgolia = async () => {
     try {
         const index = client.initIndex(SearchIndexName.Explorers)
 
-        await db.getConnection()
-        const records = await getExplorerRecords()
+        const knex = db.knexInstance()
+        const records = await getExplorerRecords(knex)
         await index.replaceAllObjects(records)
 
         await db.closeTypeOrmAndKnexConnections()
