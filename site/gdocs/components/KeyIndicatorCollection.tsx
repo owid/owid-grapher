@@ -20,6 +20,7 @@ import { Url, urlToSlug } from "@ourworldindata/utils"
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 import KeyIndicator from "./KeyIndicator.js"
 import { AttachmentsContext } from "../OwidGdoc.js"
+import { Button } from "@ourworldindata/components"
 
 // keep in sync with $duration in KeyIndicatorCollection.scss
 const HEIGHT_ANIMATION_DURATION_IN_SECONDS = 0.4
@@ -63,12 +64,12 @@ export default function KeyIndicatorCollection({
                     </p>
                 )}
             </header>
-            <a
+            <Button
                 href="/charts"
                 className="key-indicator-collection__all-charts-button body-3-medium span-cols-4 col-start-9 col-sm-start-1 span-sm-cols-12"
-            >
-                See all our data <FontAwesomeIcon icon={faArrowRight} />
-            </a>
+                text="See all our data"
+                theme="outline-vermillion"
+            />
             <div className="span-cols-12">
                 {blocks.map(
                     (block: EnrichedBlockKeyIndicator, blockIndex: number) => {

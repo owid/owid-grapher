@@ -96,17 +96,10 @@
     }
 
     .key-indicator-collection__all-charts-button {
-        color: $vermillion;
-        border: 1px solid $vermillion;
-        padding: 8.5px 24px;
         // needed to align the button with the header
         margin-top: -16px;
         align-self: center;
         justify-self: end;
-
-        svg {
-            font-size: 0.75rem;
-        }
 
         @include sm-only {
             margin: 24px 16px;
