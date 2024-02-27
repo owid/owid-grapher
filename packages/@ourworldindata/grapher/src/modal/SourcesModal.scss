@@ -132,6 +132,21 @@
             --non-expandable-border: #{$border};
         }
 
+        .ExpandableToggle__content {
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                color: $dark-text;
+                font-family: $sans-serif-font-stack;
+                font-size: 1em !important;
+                margin-top: 14px;
+                margin-bottom: 6px;
+            }
+        }
+
         .Tabs__tab {
             font-size: $tab-font-size;
             padding: 8px $tab-padding;
