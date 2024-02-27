@@ -172,6 +172,42 @@ export class TestIndexPage extends React.Component {
                             </Link>
                         </li>
                     </ul>
+
+                    <h2>Test Explorer Embeds</h2>
+                    <ul>
+                        <li>
+                            <Link native target="_blank" to="/test/explorers">
+                                All explorers
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                native
+                                target="_blank"
+                                to="/test/explorers?type=grapher-ids"
+                            >
+                                Grapher ID-based explorers
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                native
+                                target="_blank"
+                                to="/test/explorers?type=csv-files"
+                            >
+                                CSV file-based explorers
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                native
+                                target="_blank"
+                                to="/test/explorers?type=indicators"
+                            >
+                                Indicator-based explorers
+                            </Link>
+                        </li>
+                    </ul>
                 </main>
             </AdminLayout>
         )
