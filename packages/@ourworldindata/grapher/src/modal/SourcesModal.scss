@@ -33,11 +33,24 @@
             }
         }
 
-        .description-below-title p {
+        .description-below-title {
             @include body-3-medium;
-            margin-top: 8px;
-            margin-bottom: 16px;
             color: $dark-text;
+
+            p {
+                margin-top: 8px;
+                margin-bottom: 16px;
+            }
+
+            ul,
+            ol {
+                padding-left: 1em;
+                margin: 1em 0;
+
+                li + li {
+                    margin-top: 0.5em;
+                }
+            }
         }
 
         .title-fragments {
