@@ -4,7 +4,6 @@ import {
     datasetToCSV,
     datasetToDatapackage,
     getDatasetById,
-    isDatasetWithName,
 } from "../db/model/Dataset.js"
 import {
     GIT_DATASETS_DIR,
@@ -82,9 +81,6 @@ export async function syncDatasetToGitRepo(
     const dataset = await getDatasetById(knex, datasetId)
 
     if (!dataset) throw new JsonError(`No such dataset ${datasetId}`, 404)
-
-    if (!isDatasetWithName(dataset))
-        throw new JsonError(`Dataset ${datasetId} has no name`, 500)
 
     const datasetFilename = filenamify(dataset.name)
 

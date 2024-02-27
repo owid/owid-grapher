@@ -1844,7 +1844,7 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
 
         try {
             await syncDatasetToGitRepo(trx, datasetId, {
-                oldDatasetName: dataset.name!,
+                oldDatasetName: dataset.name,
                 commitName: res.locals.user.fullName,
                 commitEmail: res.locals.user.email,
             })
@@ -1918,7 +1918,7 @@ apiRouter.delete(
         })
 
         try {
-            await removeDatasetFromGitRepo(dataset.name!, dataset.namespace, {
+            await removeDatasetFromGitRepo(dataset.name, dataset.namespace, {
                 commitName: res.locals.user.fullName,
                 commitEmail: res.locals.user.email,
             })

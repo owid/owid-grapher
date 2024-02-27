@@ -52,8 +52,8 @@ export async function getSourcesForDataset(
     return sources
 }
 
-export async function sourceToDatapackage(
+export function sourceToDatapackage(
     source: DbEnrichedSource
-): Promise<any> {
+): Record<string, any> {
     return Object.assign({}, { name: source.name }, source.description)
 }

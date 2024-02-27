@@ -160,9 +160,3 @@ export async function datasetToDatapackage(
 
     return dataPackage
 }
-
-export function isDatasetWithName(
-    dataset: DbPlainDataset
-): dataset is DbPlainDataset & { name: NonNullable<DbPlainDataset["name"]> } {
-    return dataset.name !== undefined && dataset.name !== null
-}
