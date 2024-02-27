@@ -196,12 +196,12 @@ function generateGdocRecords(
 
 // Generate records for countries, WP posts (not including posts that have been succeeded by Gdocs equivalents), and Gdocs
 const getPagesRecords = async (knex: Knex<any, any[]>) => {
-    const pageviews = await getAnalyticsPageviewsByUrlObj(db.knexInstance())
+    const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
     const gdocs = await GdocPost.getPublishedGdocs()
     const publishedGdocsBySlug = keyBy(gdocs, "slug")
     // TODO: the knex instance should be handed down as a parameter
     const slugsWithPublishedGdocsSuccessors =
-        await db.getSlugsWithPublishedGdocsSuccessors(db.knexInstance())
+        await db.getSlugsWithPublishedGdocsSuccessors(knex)
     const postsApi = await getPostsFromSnapshots(knex, undefined, (post) => {
         // Two things can happen here:
         // 1. There's a published Gdoc with the same slug
