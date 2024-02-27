@@ -25,8 +25,6 @@ import {
     GrapherInterface,
     OwidProcessingLevel,
     DbRawVariable,
-    VariablesTableName,
-    ChartsTableName,
 } from "@ourworldindata/types"
 import { Knex } from "knex/types"
 import { knexRaw, knexRawFirst } from "../db.js"
