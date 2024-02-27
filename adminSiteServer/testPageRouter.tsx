@@ -316,14 +316,15 @@ function EmbedTestPage(props: EmbedTestPageProps) {
         html, body {
             height: 100%;
             margin: 0;
-            background-color: #f1f1f1;
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
 
         figure, iframe {
             border: 0;
             flex: 1;
-            height: 450px;
+            height: 575px;
+            width: 100%;
+            max-width: 815px;
             margin: 10px;
         }
 
@@ -441,7 +442,7 @@ testPageRouter.get("/embeds/:id", async (req, res) => {
     const chart = await Chart.createQueryBuilder()
         .where("id = :id", { id: id })
         .getOne()
-    const viewProps = await getViewPropsFromQueryParams(req.query)
+    const viewProps = getViewPropsFromQueryParams(req.query)
     if (chart) {
         const charts = [
             {
@@ -518,7 +519,6 @@ function EmbedVariantsTestPage(
         html, body {
             height: 100%;
             margin: 0;
-            background-color: #f1f1f1;
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
 
@@ -614,7 +614,7 @@ testPageRouter.get("/previews", async (req, res) => {
 testPageRouter.get("/embedVariants", async (req, res) => {
     const rows = await db.queryMysql(`SELECT config FROM charts WHERE id=64`)
     const charts = rows.map((row: any) => JSON.parse(row.config))
-    const viewProps = await getViewPropsFromQueryParams(req.query)
+    const viewProps = getViewPropsFromQueryParams(req.query)
 
     res.send(
         renderToHtmlPage(
