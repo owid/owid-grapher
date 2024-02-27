@@ -30,7 +30,7 @@ export function generateSrcSet(
         .map((size) => {
             const path = `/images/published/${getFilenameWithoutExtension(
                 encodeURIComponent(filename)
-            )}_${size}.webp`
+            )}_${size}.png`
             return `${path} ${size}w`
         })
         .join(", ")
@@ -42,8 +42,27 @@ export function getFilenameWithoutExtension(
     return filename.slice(0, filename.indexOf("."))
 }
 
+export function getFilenameExtension(
+    filename: ImageMetadata["filename"]
+): string {
+    return filename.slice(filename.indexOf(".") + 1)
+}
+
 export function getFilenameAsPng(filename: ImageMetadata["filename"]): string {
     return `${getFilenameWithoutExtension(filename)}.png`
+}
+
+export function getFilenameMIMEType(filename: string): string | undefined {
+    const fileExtension = getFilenameExtension(filename)
+    const MIMEType = {
+        png: "image/png",
+        svg: "image/svg+xml",
+        jpg: "image/jpg",
+        jpeg: "image/jpeg",
+        webp: "image/webp",
+    }[fileExtension]
+
+    return MIMEType
 }
 
 export type SourceProps = {
@@ -92,11 +111,11 @@ export function getFeaturedImageFilename(gdoc: OwidGdoc): string | undefined {
             },
             (match) => {
                 const featuredImageSlug = match.content["featured-image"]
-                // Social media platforms don't support SVG's for og:image
-                // So no matter what, we use the png fallback that the baker generates
-                return featuredImageSlug
+                if (!featuredImageSlug) return undefined
+                // Social media platforms don't support SVG's for og:image, in which case, use the fallback PNG that the baker generates
+                return getFilenameExtension(featuredImageSlug) === "svg"
                     ? getFilenameAsPng(featuredImageSlug)
-                    : undefined
+                    : featuredImageSlug
             }
         )
         .with({ content: { type: OwidGdocType.DataInsight } }, (gdoc) => {

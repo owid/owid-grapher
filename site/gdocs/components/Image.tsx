@@ -4,6 +4,7 @@ import {
     IMAGES_DIRECTORY,
     generateSourceProps,
     ImageMetadata,
+    getFilenameMIMEType,
 } from "@ourworldindata/utils"
 import { LIGHTBOX_IMAGE_CLASS } from "../../Lightbox.js"
 import {
@@ -104,7 +105,7 @@ export default function Image(props: {
                 <source
                     srcSet={`${makePreviewUrl(i.filename)} ${i.originalWidth}w`}
                     media={sm ? "(max-width: 768px)" : undefined}
-                    type="image/webp"
+                    type={getFilenameMIMEType(i.filename)}
                     sizes={
                         containerSizes[containerType] ?? containerSizes.default
                     }
@@ -156,7 +157,7 @@ export default function Image(props: {
                 <source
                     key={i}
                     {...props}
-                    type="image/webp"
+                    type="image/png"
                     sizes={
                         containerSizes[containerType] ?? containerSizes.default
                     }

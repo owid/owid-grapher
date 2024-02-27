@@ -80,17 +80,21 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
             let buffer = Buffer.from(await response.arrayBuffer())
 
             if (!image.isSvg) {
+                // Save the original image
+                await fs.writeFile(
+                    path.join(imagesDirectory, image.filename),
+                    buffer
+                )
+                // Save resized versions
                 await Promise.all(
                     image.sizes!.map((width) => {
                         const localResizedFilepath = path.join(
                             imagesDirectory,
-                            `${image.filenameWithoutExtension}_${width}.webp`
+                            `${image.filenameWithoutExtension}_${width}.png`
                         )
                         return sharp(buffer)
                             .resize(width)
-                            .webp({
-                                lossless: true,
-                            })
+                            .png()
                             .toFile(localResizedFilepath)
                     })
                 )
@@ -110,12 +114,12 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
                         `$1<defs><style>@import url(${BAKED_BASE_URL}/fonts.css)</style></defs>`
                     )
                 buffer = Buffer.from(svg)
+                // Save the svg
+                await fs.writeFile(
+                    path.join(imagesDirectory, image.filename),
+                    buffer
+                )
             }
-            // For SVG, and a non-webp fallback copy of the image
-            await fs.writeFile(
-                path.join(imagesDirectory, image.filename),
-                buffer
-            )
 
             // Save the etag to a sidecar
             await fs.writeFile(

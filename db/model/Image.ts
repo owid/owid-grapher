@@ -18,6 +18,7 @@ import {
     GDriveImageMetadata,
     ImageMetadata,
     findDuplicates,
+    getFilenameMIMEType,
 } from "@ourworldindata/utils"
 import { OwidGoogleAuth } from "../OwidGoogleAuth.js"
 import {
@@ -233,18 +234,11 @@ export class Image extends BaseEntity implements ImageMetadata {
         const bucket = IMAGE_HOSTING_BUCKET_PATH.slice(0, indexOfFirstSlash)
         const directory = IMAGE_HOSTING_BUCKET_PATH.slice(indexOfFirstSlash + 1)
 
-        const fileExtension = this.fileExtension
-        const MIMEType = {
-            png: "image/png",
-            svg: "image/svg+xml",
-            jpg: "image/jpg",
-            jpeg: "image/jpeg",
-            webp: "image/webp",
-        }[fileExtension]
+        const MIMEType = getFilenameMIMEType(this.filename)
 
         if (!MIMEType) {
             throw new Error(
-                `Error uploading image: unsupported file extension ${fileExtension}`
+                `Error uploading image "${this.filename}": unsupported file extension`
             )
         }
 

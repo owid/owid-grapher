@@ -363,6 +363,8 @@ export {
     generateSrcSet,
     getFilenameWithoutExtension,
     getFilenameAsPng,
+    getFilenameExtension,
+    getFilenameMIMEType,
     type SourceProps,
     generateSourceProps,
     getFeaturedImageFilename,
