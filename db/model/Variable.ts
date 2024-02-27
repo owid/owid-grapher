@@ -212,9 +212,9 @@ export async function writeVariableCSV(
             id as variableId,
             name as variableName,
             columnOrder
-        FROM ?? v
+        FROM variables v
         WHERE id IN (?)`,
-            [VariablesTableName, variableIds],
+            [variableIds],
             knex
         )
     ).withColumn(pl.col("variableId").cast(pl.Int32))
@@ -258,11 +258,11 @@ export const getDataValue = async (
     const unit = (
         await knexRawFirst<Pick<DbRawVariable, "unit">>(
             `-- sql
-        SELECT unit FROM ??
+        SELECT unit FROM variables
         WHERE id = ?
         `,
             knex,
-            [VariablesTableName, variableId]
+            [variableId]
         )
     )?.unit
 
@@ -297,11 +297,11 @@ export const getOwidChartDimensionConfigForVariable = async (
     const row = await db.knexRawFirst<{ dimensions: string }>(
         `
         SELECT config->"$.dimensions" AS dimensions
-        FROM ??
+        FROM charts
         WHERE id = ?
         `,
         knex,
-        [ChartsTableName, chartId]
+        [chartId]
     )
     if (!row?.dimensions) return
     const dimensions = JSON.parse(row.dimensions)

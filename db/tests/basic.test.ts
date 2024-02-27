@@ -132,9 +132,9 @@ test("knex interface", async () => {
         // Use raw queries, using ?? to specify the table name using the shared const value
         // The pick type is used to type the result row
         const usersFromRawQuery: Pick<DbPlainUser, "email">[] = await knexRaw(
-            "select email from ??",
+            "select email from users",
             trx,
-            [UsersTableName]
+            []
         )
         expect(usersFromRawQuery.length).toBe(2)
         await deleteUser(trx, 2)
