@@ -1,7 +1,6 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
 import * as lodash from "lodash"
-import { transaction } from "../db/db.js"
 import * as db from "../db/db.js"
 import { imageStore } from "../db/model/Image.js"
 import { GdocXImage } from "../db/model/GdocXImage.js"
@@ -48,11 +47,14 @@ import {
     TaggableType,
     DbChartTagJoin,
     OwidGdoc,
+    pick,
 } from "@ourworldindata/utils"
 import {
     DbPlainDatasetTag,
     GrapherInterface,
     OwidGdocType,
+    DbPlainUser,
+    UsersTableName,
     DbPlainTag,
     grapherKeysToSerialize,
     DbRawVariable,
@@ -65,7 +67,7 @@ import {
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import { getDatasetById, setTagsForDataset } from "../db/model/Dataset.js"
-import { User } from "../db/model/User.js"
+import { getUserById, insertUser, updateUser } from "../db/model/User.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { GdocBase, Tag as TagEntity } from "../db/model/Gdoc/GdocBase.js"
 import {
@@ -1267,38 +1269,29 @@ apiRouter.post(
 )
 
 apiRouter.get("/users.json", async (req: Request, res: Response) => ({
-    users: await User.find({
-        select: [
-            "id",
-            "email",
-            "fullName",
-            "isActive",
-            "isSuperuser",
-            "createdAt",
-            "updatedAt",
-            "lastLogin",
-            "lastSeen",
-        ],
-        order: { lastSeen: "DESC" },
-    }),
+    users: await db
+        .knexInstance()
+        .select(
+            "id" satisfies keyof DbPlainUser,
+            "email" satisfies keyof DbPlainUser,
+            "fullName" satisfies keyof DbPlainUser,
+            "isActive" satisfies keyof DbPlainUser,
+            "isSuperuser" satisfies keyof DbPlainUser,
+            "createdAt" satisfies keyof DbPlainUser,
+            "updatedAt" satisfies keyof DbPlainUser,
+            "lastLogin" satisfies keyof DbPlainUser,
+            "lastSeen" satisfies keyof DbPlainUser
+        )
+        .from<DbPlainUser>(UsersTableName)
+        .orderBy("lastSeen", "desc"),
 }))
 
-apiRouter.get("/users/:userId.json", async (req: Request, res: Response) => ({
-    user: await User.findOne({
-        where: { id: parseIntOrUndefined(req.params.userId) },
-        select: {
-            id: true,
-            email: true,
-            fullName: true,
-            isActive: true,
-            isSuperuser: true,
-            createdAt: true,
-            updatedAt: true,
-            lastLogin: true,
-            lastSeen: true,
-        },
-    }),
-}))
+apiRouter.get("/users/:userId.json", async (req: Request, res: Response) => {
+    const id = parseIntOrUndefined(req.params.userId)
+    if (!id) throw new JsonError("No user id given")
+    const user = await getUserById(db.knexInstance(), id)
+    return { user }
+})
 
 apiRouter.delete("/users/:userId", async (req: Request, res: Response) => {
     if (!res.locals.user.isSuperuser)
@@ -1316,16 +1309,18 @@ apiRouter.put("/users/:userId", async (req: Request, res: Response) => {
     if (!res.locals.user.isSuperuser)
         throw new JsonError("Permission denied", 403)
 
-    const userId = parseIntOrUndefined(req.params.userId)
-    const user =
-        userId !== undefined ? await User.findOneBy({ id: userId }) : null
-    if (!user) throw new JsonError("No such user", 404)
+    return db.knexInstance().transaction(async (t) => {
+        const userId = parseIntOrUndefined(req.params.userId)
+        const user = userId !== undefined ? await getUserById(t, userId) : null
+        if (!user) throw new JsonError("No such user", 404)
 
-    user.fullName = req.body.fullName
-    user.isActive = req.body.isActive
-    await user.save()
+        user.fullName = req.body.fullName
+        user.isActive = req.body.isActive
 
-    return { success: true }
+        await updateUser(t, userId!, pick(user, ["fullName", "isActive"]))
+
+        return { success: true }
+    })
 })
 
 apiRouter.post("/users/add", async (req: Request, res: Response) => {
@@ -1334,13 +1329,9 @@ apiRouter.post("/users/add", async (req: Request, res: Response) => {
 
     const { email, fullName } = req.body
 
-    await transaction(async (ctx) => {
-        const user = new User()
-        user.email = email
-        user.fullName = fullName
-        user.createdAt = new Date()
-        user.updatedAt = new Date()
-        await ctx.manager.getRepository(User).save(user)
+    await insertUser(db.knexInstance(), {
+        email,
+        fullName,
     })
 
     return { success: true }
@@ -1349,7 +1340,7 @@ apiRouter.post("/users/add", async (req: Request, res: Response) => {
 apiRouter.get("/variables.json", async (req) => {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
     const query = req.query.search as string
-    return await searchVariables(query, limit)
+    return await searchVariables(query, limit, db.knexInstance())
 })
 
 apiRouter.get(
@@ -1567,8 +1558,10 @@ apiRouter.get(
 
         await Chart.assignTagsForCharts(charts)
 
-        const grapherConfig =
-            await getMergedGrapherConfigForVariable(variableId)
+        const grapherConfig = await getMergedGrapherConfigForVariable(
+            variableId,
+            db.knexInstance()
+        )
         if (
             grapherConfig &&
             (!grapherConfig.dimensions || grapherConfig.dimensions.length === 0)

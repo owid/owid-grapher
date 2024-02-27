@@ -242,12 +242,15 @@ mockSiteRouter.get("/datapage-preview/:id", async (req, res) => {
     const variableMetadata = await getVariableMetadata(variableId)
 
     res.send(
-        await renderDataPageV2({
-            variableId,
-            variableMetadata,
-            isPreviewing: true,
-            useIndicatorGrapherConfigs: true,
-        })
+        await renderDataPageV2(
+            {
+                variableId,
+                variableMetadata,
+                isPreviewing: true,
+                useIndicatorGrapherConfigs: true,
+            },
+            db.knexInstance()
+        )
     )
 })
 

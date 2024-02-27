@@ -183,18 +183,19 @@ export const formatWordpressPost = async (
         const { queryArgs, template } = dataValueConfiguration
         const { variableId, chartId } = queryArgs
         const { value, year, unit, entityName } =
-            (await getDataValue(queryArgs)) || {}
+            (await getDataValue(queryArgs, knex)) || {}
 
         if (!value || !year || !entityName || !template) continue
 
         let formattedValue
         if (variableId && chartId) {
             const legacyVariableDisplayConfig =
-                await getOwidVariableDisplayConfig(variableId)
+                await getOwidVariableDisplayConfig(variableId, knex)
             const legacyChartDimension =
                 await getOwidChartDimensionConfigForVariable(
                     variableId,
-                    chartId
+                    chartId,
+                    knex
                 )
             formattedValue = formatDataValue(
                 value,
