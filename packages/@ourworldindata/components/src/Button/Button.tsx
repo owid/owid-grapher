@@ -6,7 +6,7 @@ import { IconDefinition, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 type ButtonCommonProps = {
     text: string
     className?: string
-    theme: "solid-vermillion" | "outline-vermillion"
+    theme: "solid-vermillion" | "outline-vermillion" | "solid-blue"
     /** Set to null to hide the icon */
     icon?: IconDefinition | null
 }

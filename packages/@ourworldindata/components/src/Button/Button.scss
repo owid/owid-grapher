@@ -5,6 +5,7 @@
     border-radius: 0;
     text-align: center;
     display: block;
+    cursor: pointer;
 
     svg {
         font-size: 0.75rem;
@@ -27,5 +28,14 @@
     &:hover {
         border-color: $accent-vermillion;
         color: $accent-vermillion;
+    }
+}
+
+.owid-btn--solid-blue {
+    background-color: $blue-60;
+    color: #fff;
+
+    &:hover {
+        background-color: $blue-90;
     }
 }

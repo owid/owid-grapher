@@ -12,6 +12,7 @@ import { capitalize } from "@ourworldindata/utils"
 import Chart from "./Chart.js"
 import Paragraph from "./Paragraph.js"
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
+import { Button } from "@ourworldindata/components"
 
 export default function KeyIndicator({
     d,
@@ -45,13 +46,12 @@ export default function KeyIndicator({
                         <Paragraph d={textBlock} key={i} />
                     ))}
                 </div>
-                <a
+                <Button
                     className="datapage-link datapage-link-desktop"
                     href={linkedChart.resolvedUrl}
-                >
-                    Explore and learn more about this data
-                    <FontAwesomeIcon icon={faArrowRight} />
-                </a>
+                    text="Explore and learn more about this data"
+                    theme="solid-blue"
+                />
             </div>
             <Chart
                 className="key-indicator-chart col-start-5 span-cols-8 span-sm-cols-12 margin-0"
@@ -62,12 +62,12 @@ export default function KeyIndicator({
                 }}
                 shouldOptimizeForHorizontalSpace={false}
             />
-            <a
+            <Button
                 className="datapage-link datapage-link-mobile col-start-1 span-cols-12"
                 href={linkedChart.resolvedUrl}
-            >
-                Explore and learn more about this data
-            </a>
+                text="Explore and learn more about this data"
+                theme="solid-blue"
+            />
         </div>
     )
 }

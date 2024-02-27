@@ -81,34 +81,8 @@
     }
 
     .datapage-link {
-        @include body-3-medium;
-
-        display: block;
-        @include sm-up {
-            display: inline-flex;
-            align-items: center;
-        }
-
-        min-height: 40px;
-        padding: 8px 24px;
         margin-top: 16px;
-        text-align: center;
-        color: $white;
-        background-color: $blue-60;
-        cursor: pointer;
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        &:hover {
-            background-color: $blue-90;
-        }
-
-        svg {
-            font-size: 0.75rem;
-            margin-left: 8px;
-        }
+        display: inline-block;
     }
 
     .datapage-link-desktop {
