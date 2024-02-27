@@ -42,8 +42,27 @@ export function getFilenameWithoutExtension(
     return filename.slice(0, filename.indexOf("."))
 }
 
+export function getFilenameExtension(
+    filename: ImageMetadata["filename"]
+): string {
+    return filename.slice(filename.indexOf(".") + 1)
+}
+
 export function getFilenameAsPng(filename: ImageMetadata["filename"]): string {
     return `${getFilenameWithoutExtension(filename)}.png`
+}
+
+export function getFilenameMIMEType(filename: string): string | undefined {
+    const fileExtension = getFilenameExtension(filename)
+    const MIMEType = {
+        png: "image/png",
+        svg: "image/svg+xml",
+        jpg: "image/jpg",
+        jpeg: "image/jpeg",
+        webp: "image/webp",
+    }[fileExtension]
+
+    return MIMEType
 }
 
 export type SourceProps = {
