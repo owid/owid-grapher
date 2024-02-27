@@ -1,4 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm"
+import { Knex } from "knex"
+import {
+    DbEnrichedSource,
+    DbRawSource,
+    SourcesTableName,
+    parseSourcesRow,
+} from "@ourworldindata/types"
 
 @Entity("sources")
 export class Source extends BaseEntity {
@@ -6,9 +13,47 @@ export class Source extends BaseEntity {
     @Column() datasetId!: number
     @Column() name!: string
     @Column({ default: "{}", type: "json" }) description!: any
+}
 
-    // To datapackage json format
-    toDatapackage(): any {
-        return Object.assign({}, { name: this.name }, this.description)
-    }
+export async function getSourceById(
+    knex: Knex<any, any[]>,
+    sourceId: number
+): Promise<DbEnrichedSource | undefined> {
+    const rawSource: DbRawSource | undefined = await knex<DbRawSource>(
+        SourcesTableName
+    )
+        .where({ id: sourceId })
+        .first()
+    if (!rawSource) return undefined
+    const source = parseSourcesRow({
+        ...rawSource,
+        // for backwards compatibility
+        description: rawSource.description ?? "{}",
+    })
+    return source
+}
+
+export async function getSourcesForDataset(
+    knex: Knex<any, any[]>,
+    datasetId: number
+): Promise<DbEnrichedSource[]> {
+    const rawSources: DbRawSource[] = await knex<DbRawSource>(
+        SourcesTableName
+    ).where({
+        datasetId,
+    })
+    const sources = rawSources.map((rawSource) =>
+        parseSourcesRow({
+            ...rawSource,
+            // for backwards compatibility
+            description: rawSource.description ?? "{}",
+        })
+    )
+    return sources
+}
+
+export function sourceToDatapackage(
+    source: DbEnrichedSource
+): Record<string, any> {
+    return Object.assign({}, { name: source.name }, source.description)
 }
