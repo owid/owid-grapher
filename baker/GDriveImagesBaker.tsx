@@ -114,6 +114,7 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
                         `$1<defs><style>@import url(${BAKED_BASE_URL}/fonts.css)</style></defs>`
                     )
                 buffer = Buffer.from(svg)
+                // Save the svg
                 await fs.writeFile(
                     path.join(imagesDirectory, image.filename),
                     buffer

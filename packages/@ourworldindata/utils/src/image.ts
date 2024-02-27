@@ -111,11 +111,11 @@ export function getFeaturedImageFilename(gdoc: OwidGdoc): string | undefined {
             },
             (match) => {
                 const featuredImageSlug = match.content["featured-image"]
-                // Social media platforms don't support SVG's for og:image
-                // So no matter what, we use the png fallback that the baker generates
-                return featuredImageSlug
+                if (!featuredImageSlug) return undefined
+                // Social media platforms don't support SVG's for og:image, in which case, use the fallback PNG that the baker generates
+                return getFilenameExtension(featuredImageSlug) === "svg"
                     ? getFilenameAsPng(featuredImageSlug)
-                    : undefined
+                    : featuredImageSlug
             }
         )
         .with({ content: { type: OwidGdocType.DataInsight } }, (gdoc) => {
