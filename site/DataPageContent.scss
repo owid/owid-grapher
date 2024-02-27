@@ -174,11 +174,12 @@
             margin: 0;
         }
 
-        ul {
+        ul,
+        ol {
             padding-left: 1em;
+            margin: 1em 0;
 
             li {
-                @include body-2-regular;
                 margin-bottom: 1em;
 
                 &:last-child {
