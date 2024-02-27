@@ -1811,9 +1811,9 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
     const dataset = await getDatasetById(knex, datasetId)
     if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
-    await knex.transaction(async (t) => {
+    await knex.transaction(async (trx) => {
         const newDataset = (req.body as { dataset: any }).dataset
-        await t.raw(
+        await db.knexRaw(
             `
             UPDATE datasets
             SET
@@ -1822,6 +1822,7 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
                 metadataEditedByUserId=?
             WHERE id=?
             `,
+            trx,
             [
                 newDataset.nonRedistributable,
                 new Date(),
@@ -1831,15 +1832,18 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
         )
 
         const tagRows = newDataset.tags.map((tag: any) => [tag.id, datasetId])
-        await t.raw(`DELETE FROM dataset_tags WHERE datasetId=?`, [datasetId])
+        await db.knexRaw(`DELETE FROM dataset_tags WHERE datasetId=?`, trx, [
+            datasetId,
+        ])
         if (tagRows.length)
-            await t.raw(
+            await db.knexRaw(
                 `INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`,
+                trx,
                 [tagRows]
             )
 
         try {
-            await syncDatasetToGitRepo(t, datasetId, {
+            await syncDatasetToGitRepo(trx, datasetId, {
                 oldDatasetName: dataset.name!,
                 commitName: res.locals.user.fullName,
                 commitEmail: res.locals.user.email,
@@ -1860,10 +1864,12 @@ apiRouter.post(
         const knex = db.knexInstance()
         const dataset = await getDatasetById(knex, datasetId)
         if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
-        await knex.transaction(async (t) => {
-            await t.raw(`UPDATE datasets SET isArchived = 1 WHERE id=?`, [
-                datasetId,
-            ])
+        await knex.transaction(async (trx) => {
+            await db.knexRaw(
+                `UPDATE datasets SET isArchived = 1 WHERE id=?`,
+                trx,
+                [datasetId]
+            )
         })
         return { success: true }
     }
@@ -1889,17 +1895,26 @@ apiRouter.delete(
         const dataset = await getDatasetById(knex, datasetId)
         if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
-        await knex.transaction(async (t) => {
-            await t.raw(
+        await knex.transaction(async (trx) => {
+            await db.knexRaw(
                 `DELETE d FROM country_latest_data AS d JOIN variables AS v ON d.variable_id=v.id WHERE v.datasetId=?`,
+                trx,
                 [datasetId]
             )
-            await t.raw(`DELETE FROM dataset_files WHERE datasetId=?`, [
+            await db.knexRaw(
+                `DELETE FROM dataset_files WHERE datasetId=?`,
+                trx,
+                [datasetId]
+            )
+            await db.knexRaw(`DELETE FROM variables WHERE datasetId=?`, trx, [
                 datasetId,
             ])
-            await t.raw(`DELETE FROM variables WHERE datasetId=?`, [datasetId])
-            await t.raw(`DELETE FROM sources WHERE datasetId=?`, [datasetId])
-            await t.raw(`DELETE FROM datasets WHERE id=?`, [datasetId])
+            await db.knexRaw(`DELETE FROM sources WHERE datasetId=?`, trx, [
+                datasetId,
+            ])
+            await db.knexRaw(`DELETE FROM datasets WHERE id=?`, trx, [
+                datasetId,
+            ])
         })
 
         try {
@@ -1926,8 +1941,8 @@ apiRouter.post(
         if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
         if (req.body.republish) {
-            await knex.transaction(async (t) => {
-                await t.raw(
+            await knex.transaction(async (trx) => {
+                await db.knexRaw(
                     `
             UPDATE charts
             SET config = JSON_SET(config, "$.version", config->"$.version" + 1)
@@ -1938,6 +1953,7 @@ apiRouter.post(
                 WHERE variables.datasetId = ?
             )
             `,
+                    trx,
                     [datasetId]
                 )
             })

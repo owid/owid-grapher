@@ -95,12 +95,15 @@ export async function setTagsForDataset(
     datasetId: number,
     tagIds: number[]
 ): Promise<void> {
-    await knex.transaction(async (t: Knex<any, any[]>) => {
+    await knex.transaction(async (trx: Knex<any, any[]>) => {
         const tagRows = tagIds.map((tagId) => [tagId, datasetId])
-        await t.raw(`DELETE FROM dataset_tags WHERE datasetId=?`, [datasetId])
+        await db.knexRaw(`DELETE FROM dataset_tags WHERE datasetId=?`, trx, [
+            datasetId,
+        ])
         if (tagRows.length)
-            await t.raw(
+            await db.knexRaw(
                 `INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`,
+                trx,
                 [tagRows]
             )
     })
