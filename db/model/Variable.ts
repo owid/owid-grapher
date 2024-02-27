@@ -206,7 +206,7 @@ export async function writeVariableCSV(
 ): Promise<void> {
     // get variables as dataframe
     const variablesDF = (
-        await knex.raw(
+        await readSQLasDF(
             `-- sql
         SELECT
             id as variableId,
@@ -214,7 +214,8 @@ export async function writeVariableCSV(
             columnOrder
         FROM ?? v
         WHERE id IN (?)`,
-            [VariablesTableName, variableIds]
+            [VariablesTableName, variableIds],
+            knex
         )
     ).withColumn(pl.col("variableId").cast(pl.Int32))
 
