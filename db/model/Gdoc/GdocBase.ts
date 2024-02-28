@@ -844,7 +844,6 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         await this.loadLinkedDocuments()
         await this.loadImageMetadata()
         await this.loadLinkedCharts()
-        await this.loadLinkedCharts()
         await this.loadLinkedIndicators() // depends on linked charts
         await this._loadSubclassAttachments()
         await this.validate()
