@@ -646,8 +646,8 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
             )
         ).then(excludeNullish)
 
-        const publishedExplorersBySlug = await db.getPublishedExplorersBySlug(
-            db.knexInstance()
+        const publishedExplorersBySlug = await db.knexReadonlyTransaction(
+            (trx) => db.getPublishedExplorersBySlug(trx)
         )
 
         const linkedExplorerCharts = await Promise.all(
@@ -773,8 +773,8 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         )
 
         const chartIdsBySlug = await Chart.mapSlugsToIds()
-        const publishedExplorersBySlug = await db.getPublishedExplorersBySlug(
-            db.knexInstance()
+        const publishedExplorersBySlug = await db.knexReadonlyTransaction(
+            (trx) => db.getPublishedExplorersBySlug(trx)
         )
 
         const linkErrors: OwidGdocErrorMessage[] = this.links.reduce(

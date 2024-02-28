@@ -9,9 +9,11 @@ import * as db from "../db/db.js"
  */
 
 const main = async (folder: string) => {
-    await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
-        folder,
-        db.knexInstance()
+    db.knexReadonlyTransaction((trx) =>
+        bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
+            folder,
+            trx
+        )
     )
 }
 

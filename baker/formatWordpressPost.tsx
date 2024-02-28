@@ -59,7 +59,7 @@ import { renderKeyInsights, renderProminentLinks } from "./siteRenderers.js"
 import { KEY_INSIGHTS_CLASS_NAME } from "../site/blocks/KeyInsights.js"
 import { RELATED_CHARTS_CLASS_NAME } from "../site/blocks/RelatedCharts.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-import { Knex } from "knex"
+import { KnexReadonlyTransaction } from "../db/db.js"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -129,7 +129,7 @@ const formatLatex = async (
 export const formatWordpressPost = async (
     post: FullPost,
     formattingOptions: FormattingOptions,
-    knex: Knex<any, any[]>,
+    knex: KnexReadonlyTransaction,
     grapherExports?: GrapherExports
 ): Promise<FormattedPost> => {
     let html = post.content
@@ -596,7 +596,7 @@ export const formatWordpressPost = async (
 export const formatPost = async (
     post: FullPost,
     formattingOptions: FormattingOptions,
-    knex: Knex<any, any[]>,
+    knex: KnexReadonlyTransaction,
     grapherExports?: GrapherExports
 ): Promise<FormattedPost> => {
     // No formatting applied, plain source HTML returned

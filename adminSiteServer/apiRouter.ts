@@ -14,7 +14,7 @@ import {
 } from "../settings/serverSettings.js"
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
-import { Request, Response, CurrentUser } from "./authentication.js"
+import { Request, CurrentUser } from "./authentication.js"
 import {
     getMergedGrapherConfigForVariable,
     fetchS3MetadataByPath,
@@ -36,7 +36,6 @@ import {
     OwidGdocPostInterface,
     parseIntOrUndefined,
     parseToOperation,
-    DbEnrichedPost,
     DbRawPostWithGdocPublishStatus,
     SuggestedChartRevisionStatus,
     variableAnnotationAllowedColumnNamesAndTypes,
@@ -60,7 +59,9 @@ import {
     DbRawVariable,
     DbRawOrigin,
     parseOriginsRow,
-    AnalyticsPageviewsTableName,
+    PostsTableName,
+    DbRawPost,
+    DbPlainDataset,
 } from "@ourworldindata/types"
 import {
     getVariableDataRoute,
@@ -100,7 +101,12 @@ import { Link } from "../db/model/Link.js"
 import { In } from "typeorm"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
-import { Knex } from "knex"
+import {
+    getRouteWithROTransaction,
+    deleteRouteWithRWTransaction,
+    putRouteWithRWTransaction,
+    postRouteWithRWTransaction,
+} from "./routerHelpers.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -157,7 +163,7 @@ async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
 
 const getReferencesByChartId = async (
     chartId: number,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<References> => {
     const postsWordpressPromise = getWordpressPostReferencesByChartId(
         chartId,
@@ -313,8 +319,12 @@ const saveGrapher = async (
 
     // So we can generate country profiles including this chart data
     if (newConfig.isPublished && referencedVariablesMightChange)
-        await denormalizeLatestCountryData(
-            newDimensions.map((d) => d.variableId)
+        // TODO: remove this ad hoc knex transaction context when we switch the function to knex
+        await db.knexReadWriteTransaction((trx) =>
+            denormalizeLatestCountryData(
+                trx,
+                newDimensions.map((d) => d.variableId)
+            )
         )
 
     if (
@@ -344,7 +354,7 @@ const saveGrapher = async (
     return chartId
 }
 
-apiRouter.get("/charts.json", async (req: Request, res: Response) => {
+apiRouter.get("/charts.json", async (req, res) => {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
     const charts = await db.queryMysql(
         `
@@ -361,7 +371,7 @@ apiRouter.get("/charts.json", async (req: Request, res: Response) => {
     return { charts }
 })
 
-apiRouter.get("/charts.csv", async (req: Request, res: Response) => {
+apiRouter.get("/charts.csv", async (req, res) => {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
 
     // note: this query is extended from OldChart.listFields.
@@ -415,78 +425,67 @@ apiRouter.get("/charts.csv", async (req: Request, res: Response) => {
     return csv
 })
 
-apiRouter.get(
-    "/charts/:chartId.config.json",
-    async (req: Request, res: Response) => expectChartById(req.params.chartId)
+apiRouter.get("/charts/:chartId.config.json", async (req, res) =>
+    expectChartById(req.params.chartId)
 )
 
-apiRouter.get(
-    "/editorData/namespaces.json",
-    async (req: Request, res: Response) => {
-        const rows = (await db.queryMysql(
-            `SELECT DISTINCT
+apiRouter.get("/editorData/namespaces.json", async (req, res) => {
+    const rows = (await db.queryMysql(
+        `SELECT DISTINCT
                 namespace AS name,
                 namespaces.description AS description,
                 namespaces.isArchived AS isArchived
             FROM active_datasets
             JOIN namespaces ON namespaces.name = active_datasets.namespace`
-        )) as { name: string; description?: string; isArchived: boolean }[]
+    )) as { name: string; description?: string; isArchived: boolean }[]
 
-        return {
-            namespaces: lodash
-                .sortBy(rows, (row) => row.description)
-                .map((namespace) => ({
-                    ...namespace,
-                    isArchived: !!namespace.isArchived,
-                })),
-        }
+    return {
+        namespaces: lodash
+            .sortBy(rows, (row) => row.description)
+            .map((namespace) => ({
+                ...namespace,
+                isArchived: !!namespace.isArchived,
+            })),
     }
-)
+})
 
-apiRouter.get(
-    "/charts/:chartId.logs.json",
-    async (req: Request, res: Response) => ({
-        logs: await getLogsByChartId(parseInt(req.params.chartId as string)),
-    })
-)
+apiRouter.get("/charts/:chartId.logs.json", async (req, res) => ({
+    logs: await getLogsByChartId(parseInt(req.params.chartId as string)),
+}))
 
-apiRouter.get(
+getRouteWithROTransaction(
+    apiRouter,
     "/charts/:chartId.references.json",
-    async (req: Request, res: Response) => {
-        const references = db.knexInstance().transaction(async (knex) => ({
+    async (req, res, trx) => {
+        const references = {
             references: await getReferencesByChartId(
                 parseInt(req.params.chartId as string),
-                knex
+                trx
             ),
-        }))
+        }
         return references
     }
 )
 
-apiRouter.get(
-    "/charts/:chartId.redirects.json",
-    async (req: Request, res: Response) => ({
-        redirects: await getRedirectsByChartId(
-            parseInt(req.params.chartId as string)
-        ),
-    })
-)
+apiRouter.get("/charts/:chartId.redirects.json", async (req, res) => ({
+    redirects: await getRedirectsByChartId(
+        parseInt(req.params.chartId as string)
+    ),
+}))
 
-apiRouter.get(
+getRouteWithROTransaction(
+    apiRouter,
     "/charts/:chartId.pageviews.json",
-    async (req: Request, res: Response) => {
+    async (req, res, trx) => {
         const slug = await Chart.getById(
             parseInt(req.params.chartId as string)
         ).then((chart) => chart?.config?.slug)
         if (!slug) return {}
 
         const pageviewsByUrl = await db.knexRawFirst(
-            db.knexInstance(),
-            "select * from ?? where url = ?",
-            [
-                AnalyticsPageviewsTableName,
-                `https://ourworldindata.org/grapher/${slug}`,
-            ]
+            trx,
+            "select * from analytics_pageviews where url = ?",
+            [`https://ourworldindata.org/grapher/${slug}`]
         )
 
         return {
@@ -495,15 +494,27 @@ apiRouter.get(
     }
 )
 
-apiRouter.get("/topics.json", async (req: Request, res: Response) => ({
+apiRouter.get("/topics.json", async (req, res) => ({
     topics: await DEPRECATEDgetTopics(),
 }))
-apiRouter.get(
+getRouteWithROTransaction(
+    apiRouter,
     "/editorData/variables.json",
-    async (req: Request, res: Response) => {
+    async (req, res, trx) => {
         const datasets = []
-        const rows = await db.queryMysql(
-            `SELECT
+        const rows = await db.knexRaw<
+            Pick<DbRawVariable, "name" | "id"> & {
+                datasetId: number
+                datasetName: string
+                datasetVersion: string
+            } & Pick<
+                    DbPlainDataset,
+                    "namespace" | "isPrivate" | "nonRedistributable"
+                >
+        >(
+            trx,
+            `-- sql
+        SELECT
                 v.name,
                 v.id,
                 d.id as datasetId,
@@ -537,15 +548,15 @@ apiRouter.get(
                     name: row.datasetName,
                     version: row.datasetVersion,
                     namespace: row.namespace,
-                    isPrivate: row.isPrivate,
-                    nonRedistributable: row.nonRedistributable,
+                    isPrivate: !!row.isPrivate,
+                    nonRedistributable: !!row.nonRedistributable,
                     variables: [],
                 }
             }
 
             dataset.variables.push({
                 id: row.id,
-                name: row.name,
+                name: row.name ?? "",
             })
         }
 
@@ -555,26 +566,23 @@ apiRouter.get(
     }
 )
 
-apiRouter.get(
-    "/data/variables/data/:variableStr.json",
-    async (req: Request, res: Response) => {
-        const variableStr = req.params.variableStr as string
-        if (!variableStr) throw new JsonError("No variable id given")
-        if (variableStr.includes("+"))
-            throw new JsonError(
-                "Requesting multiple variables at the same time is no longer supported"
-            )
-        const variableId = parseInt(variableStr)
-        if (isNaN(variableId)) throw new JsonError("Invalid variable id")
-        return await fetchS3DataValuesByPath(
-            getVariableDataRoute(DATA_API_URL, variableId) + "?nocache"
+apiRouter.get("/data/variables/data/:variableStr.json", async (req, res) => {
+    const variableStr = req.params.variableStr as string
+    if (!variableStr) throw new JsonError("No variable id given")
+    if (variableStr.includes("+"))
+        throw new JsonError(
+            "Requesting multiple variables at the same time is no longer supported"
         )
-    }
-)
+    const variableId = parseInt(variableStr)
+    if (isNaN(variableId)) throw new JsonError("Invalid variable id")
+    return await fetchS3DataValuesByPath(
+        getVariableDataRoute(DATA_API_URL, variableId) + "?nocache"
+    )
+})
 
 apiRouter.get(
     "/data/variables/metadata/:variableStr.json",
-    async (req: Request, res: Response) => {
+    async (req, res) => {
         const variableStr = req.params.variableStr as string
         if (!variableStr) throw new JsonError("No variable id given")
         if (variableStr.includes("+"))
@@ -589,25 +597,22 @@ apiRouter.get(
     }
 )
 
-apiRouter.post("/charts", async (req: Request, res: Response) => {
+apiRouter.post("/charts", async (req, res) => {
     const chartId = await db.transaction(async (t) => {
         return saveGrapher(t, res.locals.user, req.body)
     })
     return { success: true, chartId: chartId }
 })
 
-apiRouter.post(
-    "/charts/:chartId/setTags",
-    async (req: Request, res: Response) => {
-        const chartId = expectInt(req.params.chartId)
+apiRouter.post("/charts/:chartId/setTags", async (req, res) => {
+    const chartId = expectInt(req.params.chartId)
 
-        await Chart.setTags(chartId, req.body.tags)
+    await Chart.setTags(chartId, req.body.tags)
 
-        return { success: true }
-    }
-)
+    return { success: true }
+})
 
-apiRouter.put("/charts/:chartId", async (req: Request, res: Response) => {
+apiRouter.put("/charts/:chartId", async (req, res) => {
     const existingConfig = await expectChartById(req.params.chartId)
 
     await db.transaction(async (t) => {
@@ -618,7 +623,7 @@ apiRouter.put("/charts/:chartId", async (req: Request, res: Response) => {
     return { success: true, chartId: existingConfig.id, newLog: logs[0] }
 })
 
-apiRouter.delete("/charts/:chartId", async (req: Request, res: Response) => {
+apiRouter.delete("/charts/:chartId", async (req, res) => {
     const chart = await expectChartById(req.params.chartId)
     const links = await Link.getPublishedLinksTo([chart.slug!])
     if (links.length) {
@@ -651,59 +656,57 @@ apiRouter.delete("/charts/:chartId", async (req: Request, res: Response) => {
     return { success: true }
 })
 
-apiRouter.get(
-    "/suggested-chart-revisions",
-    async (req: Request, res: Response) => {
-        const isValidSortBy = (sortBy: string) => {
-            return [
-                "updatedAt",
-                "createdAt",
-                "suggestedReason",
-                "id",
-                "chartId",
-                "status",
-                "variableId",
-                "chartUpdatedAt",
-                "chartCreatedAt",
-            ].includes(sortBy)
-        }
-        const isValidSortOrder = (sortOrder: string) => {
-            return (
-                sortOrder !== undefined &&
-                sortOrder !== null &&
-                ["ASC", "DESC"].includes(sortOrder.toUpperCase())
-            )
-        }
-        const limit =
-            req.query.limit !== undefined ? expectInt(req.query.limit) : 10000
-        const offset =
-            req.query.offset !== undefined ? expectInt(req.query.offset) : 0
-        const sortBy = isValidSortBy(req.query.sortBy as string)
-            ? req.query.sortBy
-            : "updatedAt"
-        const sortOrder = isValidSortOrder(req.query.sortOrder as string)
-            ? (req.query.sortOrder as string).toUpperCase()
-            : "DESC"
-        const status = SuggestedChartRevision.isValidStatus(
-            req.query.status as SuggestedChartRevisionStatus
+apiRouter.get("/suggested-chart-revisions", async (req, res) => {
+    const isValidSortBy = (sortBy: string) => {
+        return [
+            "updatedAt",
+            "createdAt",
+            "suggestedReason",
+            "id",
+            "chartId",
+            "status",
+            "variableId",
+            "chartUpdatedAt",
+            "chartCreatedAt",
+        ].includes(sortBy)
+    }
+    const isValidSortOrder = (sortOrder: string) => {
+        return (
+            sortOrder !== undefined &&
+            sortOrder !== null &&
+            ["ASC", "DESC"].includes(sortOrder.toUpperCase())
         )
-            ? req.query.status
-            : null
+    }
+    const limit =
+        req.query.limit !== undefined ? expectInt(req.query.limit) : 10000
+    const offset =
+        req.query.offset !== undefined ? expectInt(req.query.offset) : 0
+    const sortBy = isValidSortBy(req.query.sortBy as string)
+        ? req.query.sortBy
+        : "updatedAt"
+    const sortOrder = isValidSortOrder(req.query.sortOrder as string)
+        ? (req.query.sortOrder as string).toUpperCase()
+        : "DESC"
+    const status = SuggestedChartRevision.isValidStatus(
+        req.query.status as SuggestedChartRevisionStatus
+    )
+        ? req.query.status
+        : null
 
-        let orderBy
-        if (sortBy === "variableId") {
-            orderBy =
-                "CAST(scr.suggestedConfig->>'$.dimensions[0].variableId' as SIGNED)"
-        } else if (sortBy === "chartUpdatedAt") {
-            orderBy = "c.updatedAt"
-        } else if (sortBy === "chartCreatedAt") {
-            orderBy = "c.createdAt"
-        } else {
-            orderBy = `scr.${sortBy}`
-        }
+    let orderBy
+    if (sortBy === "variableId") {
+        orderBy =
+            "CAST(scr.suggestedConfig->>'$.dimensions[0].variableId' as SIGNED)"
+    } else if (sortBy === "chartUpdatedAt") {
+        orderBy = "c.updatedAt"
+    } else if (sortBy === "chartCreatedAt") {
+        orderBy = "c.createdAt"
+    } else {
+        orderBy = `scr.${sortBy}`
+    }
 
-        const suggestedChartRevisions = await db.queryMysql(
-            `-- sql
+    const suggestedChartRevisions = await db.queryMysql(
+        `-- sql
             SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt,
                 scr.suggestedReason, scr.decisionReason, scr.status,
                 scr.suggestedConfig, scr.originalConfig, scr.changesInDataSummary,
@@ -722,203 +725,194 @@ apiRouter.get(
             ORDER BY ${orderBy} ${sortOrder}
             LIMIT ? OFFSET ?
         `,
-            status ? [status, limit, offset] : [limit, offset]
-        )
+        status ? [status, limit, offset] : [limit, offset]
+    )
 
-        let numTotalRows = (
-            await db.queryMysql(
-                `
+    let numTotalRows = (
+        await db.queryMysql(
+            `
                 SELECT COUNT(*) as count
                 FROM suggested_chart_revisions
                 ${status ? "WHERE status = ?" : ""}
             `,
-                status ? [status] : []
-            )
-        )[0].count
-        numTotalRows = numTotalRows ? parseInt(numTotalRows) : numTotalRows
-
-        suggestedChartRevisions.map(
-            (suggestedChartRevision: SuggestedChartRevision) => {
-                suggestedChartRevision.suggestedConfig = JSON.parse(
-                    suggestedChartRevision.suggestedConfig
-                )
-                suggestedChartRevision.existingConfig = JSON.parse(
-                    suggestedChartRevision.existingConfig
-                )
-                suggestedChartRevision.originalConfig = JSON.parse(
-                    suggestedChartRevision.originalConfig
-                )
-                suggestedChartRevision.experimental = JSON.parse(
-                    suggestedChartRevision.experimental
-                )
-                suggestedChartRevision.canApprove =
-                    SuggestedChartRevision.checkCanApprove(
-                        suggestedChartRevision
-                    )
-                suggestedChartRevision.canReject =
-                    SuggestedChartRevision.checkCanReject(
-                        suggestedChartRevision
-                    )
-                suggestedChartRevision.canFlag =
-                    SuggestedChartRevision.checkCanFlag(suggestedChartRevision)
-                suggestedChartRevision.canPending =
-                    SuggestedChartRevision.checkCanPending(
-                        suggestedChartRevision
-                    )
-            }
+            status ? [status] : []
         )
+    )[0].count
+    numTotalRows = numTotalRows ? parseInt(numTotalRows) : numTotalRows
 
-        return {
-            suggestedChartRevisions: suggestedChartRevisions,
-            numTotalRows: numTotalRows,
+    suggestedChartRevisions.map(
+        (suggestedChartRevision: SuggestedChartRevision) => {
+            suggestedChartRevision.suggestedConfig = JSON.parse(
+                suggestedChartRevision.suggestedConfig
+            )
+            suggestedChartRevision.existingConfig = JSON.parse(
+                suggestedChartRevision.existingConfig
+            )
+            suggestedChartRevision.originalConfig = JSON.parse(
+                suggestedChartRevision.originalConfig
+            )
+            suggestedChartRevision.experimental = JSON.parse(
+                suggestedChartRevision.experimental
+            )
+            suggestedChartRevision.canApprove =
+                SuggestedChartRevision.checkCanApprove(suggestedChartRevision)
+            suggestedChartRevision.canReject =
+                SuggestedChartRevision.checkCanReject(suggestedChartRevision)
+            suggestedChartRevision.canFlag =
+                SuggestedChartRevision.checkCanFlag(suggestedChartRevision)
+            suggestedChartRevision.canPending =
+                SuggestedChartRevision.checkCanPending(suggestedChartRevision)
         }
+    )
+
+    return {
+        suggestedChartRevisions: suggestedChartRevisions,
+        numTotalRows: numTotalRows,
     }
-)
+})
 
-apiRouter.post(
-    "/suggested-chart-revisions",
-    async (req: Request, res: Response) => {
-        const messages: any[] = []
-        const status = SuggestedChartRevisionStatus.pending
-        const suggestedReason = req.body.suggestedReason
-            ? String(req.body.suggestedReason)
-            : null
-        const changesInDataSummary = req.body.changesInDataSummary
-            ? String(req.body.changesInDataSummary)
-            : null
-        const convertStringsToNull =
-            typeof req.body.convertStringsToNull === "boolean"
-                ? req.body.convertStringsToNull
-                : true
-        const suggestedConfigs = req.body.suggestedConfigs as any[]
+apiRouter.post("/suggested-chart-revisions", async (req, res) => {
+    const messages: any[] = []
+    const status = SuggestedChartRevisionStatus.pending
+    const suggestedReason = req.body.suggestedReason
+        ? String(req.body.suggestedReason)
+        : null
+    const changesInDataSummary = req.body.changesInDataSummary
+        ? String(req.body.changesInDataSummary)
+        : null
+    const convertStringsToNull =
+        typeof req.body.convertStringsToNull === "boolean"
+            ? req.body.convertStringsToNull
+            : true
+    const suggestedConfigs = req.body.suggestedConfigs as any[]
 
-        // suggestedConfigs must be an array of length > 0
-        if (!(Array.isArray(suggestedConfigs) && suggestedConfigs.length > 0)) {
-            throw new JsonError(
-                "POST body must contain a `suggestedConfigs` property, which must be an Array with length > 0."
-            )
-        }
-
-        // tries to convert each config field to json (e.g. the `map` field
-        // should be converted to json if it is present).
-        suggestedConfigs.map((config) => {
-            Object.keys(config).map((k) => {
-                try {
-                    const json = JSON.parse(config[k])
-                    config[k] = json
-                } catch (error) {
-                    // do nothing.
-                }
-            })
-        })
-
-        // checks for required keys
-        const requiredKeys = ["id", "version"]
-        suggestedConfigs.map((config) => {
-            requiredKeys.map((k) => {
-                if (!config.hasOwnProperty(k)) {
-                    throw new JsonError(
-                        `The "${k}" field is required, but one or more chart configs in the POST body does not contain it.`
-                    )
-                }
-            })
-        })
-
-        // safely sets types of keys that are used in db queries below.
-        const typeConversions = [
-            { key: "id", expectedType: "number", f: expectInt },
-            { key: "version", expectedType: "number", f: expectInt },
-        ]
-        suggestedConfigs.map((config) => {
-            typeConversions.map((obj) => {
-                config[obj.key] = obj.f(config[obj.key])
-                if (
-                    config[obj.key] !== null &&
-                    config[obj.key] !== undefined &&
-                    typeof config[obj.key] !== obj.expectedType
-                ) {
-                    throw new JsonError(
-                        `Expected all "${obj.key}" values to be non-null and of ` +
-                            `type "${obj.expectedType}", but one or more chart ` +
-                            `configs contains a "${obj.key}" value that does ` +
-                            `not meet this criteria.`
-                    )
-                }
-            })
-        })
-
-        // checks for invalid keys
-        const uniqKeys = new Set()
-        suggestedConfigs.map((config) => {
-            Object.keys(config).forEach((item) => {
-                uniqKeys.add(item)
-            })
-        })
-        const invalidKeys = [...uniqKeys].filter(
-            (v) => !grapherKeysToSerialize.includes(v as string)
+    // suggestedConfigs must be an array of length > 0
+    if (!(Array.isArray(suggestedConfigs) && suggestedConfigs.length > 0)) {
+        throw new JsonError(
+            "POST body must contain a `suggestedConfigs` property, which must be an Array with length > 0."
         )
-        if (invalidKeys.length > 0) {
-            throw new JsonError(
-                `The following fields are not valid chart config fields: ${invalidKeys}`
-            )
-        }
+    }
 
-        // checks that no duplicate chart ids are present.
-        const chartIds = suggestedConfigs.map((config) => config.id)
-        if (new Set(chartIds).size !== chartIds.length) {
-            throw new JsonError(
-                `Found one or more duplicate chart ids in POST body.`
-            )
-        }
-
-        // converts some strings to null
-        if (convertStringsToNull) {
-            const isNullString = (value: string): boolean => {
-                const nullStrings = ["nan", "na"]
-                return nullStrings.includes(value.toLowerCase())
+    // tries to convert each config field to json (e.g. the `map` field
+    // should be converted to json if it is present).
+    suggestedConfigs.map((config) => {
+        Object.keys(config).map((k) => {
+            try {
+                const json = JSON.parse(config[k])
+                config[k] = json
+            } catch (error) {
+                // do nothing.
             }
-            suggestedConfigs.map((config) => {
-                for (const key of Object.keys(config)) {
-                    if (
-                        typeof config[key] === "string" &&
-                        isNullString(config[key])
-                    ) {
-                        config[key] = null
-                    }
-                }
-            })
-        }
+        })
+    })
 
-        // empty strings mean that the field should NOT be overwritten, so we
-        // remove key-value pairs where value === ""
+    // checks for required keys
+    const requiredKeys = ["id", "version"]
+    suggestedConfigs.map((config) => {
+        requiredKeys.map((k) => {
+            if (!config.hasOwnProperty(k)) {
+                throw new JsonError(
+                    `The "${k}" field is required, but one or more chart configs in the POST body does not contain it.`
+                )
+            }
+        })
+    })
+
+    // safely sets types of keys that are used in db queries below.
+    const typeConversions = [
+        { key: "id", expectedType: "number", f: expectInt },
+        { key: "version", expectedType: "number", f: expectInt },
+    ]
+    suggestedConfigs.map((config) => {
+        typeConversions.map((obj) => {
+            config[obj.key] = obj.f(config[obj.key])
+            if (
+                config[obj.key] !== null &&
+                config[obj.key] !== undefined &&
+                typeof config[obj.key] !== obj.expectedType
+            ) {
+                throw new JsonError(
+                    `Expected all "${obj.key}" values to be non-null and of ` +
+                        `type "${obj.expectedType}", but one or more chart ` +
+                        `configs contains a "${obj.key}" value that does ` +
+                        `not meet this criteria.`
+                )
+            }
+        })
+    })
+
+    // checks for invalid keys
+    const uniqKeys = new Set()
+    suggestedConfigs.map((config) => {
+        Object.keys(config).forEach((item) => {
+            uniqKeys.add(item)
+        })
+    })
+    const invalidKeys = [...uniqKeys].filter(
+        (v) => !grapherKeysToSerialize.includes(v as string)
+    )
+    if (invalidKeys.length > 0) {
+        throw new JsonError(
+            `The following fields are not valid chart config fields: ${invalidKeys}`
+        )
+    }
+
+    // checks that no duplicate chart ids are present.
+    const chartIds = suggestedConfigs.map((config) => config.id)
+    if (new Set(chartIds).size !== chartIds.length) {
+        throw new JsonError(
+            `Found one or more duplicate chart ids in POST body.`
+        )
+    }
+
+    // converts some strings to null
+    if (convertStringsToNull) {
+        const isNullString = (value: string): boolean => {
+            const nullStrings = ["nan", "na"]
+            return nullStrings.includes(value.toLowerCase())
+        }
         suggestedConfigs.map((config) => {
             for (const key of Object.keys(config)) {
-                if (config[key] === "") {
-                    delete config[key]
+                if (
+                    typeof config[key] === "string" &&
+                    isNullString(config[key])
+                ) {
+                    config[key] = null
                 }
             }
         })
+    }
 
-        await db.transaction(async (t) => {
-            const whereCond1 = suggestedConfigs
-                .map(
-                    (config) =>
-                        `(id = ${escape(
-                            config.id
-                        )} AND config->"$.version" = ${escape(config.version)})`
-                )
-                .join(" OR ")
-            const whereCond2 = suggestedConfigs
-                .map(
-                    (config) =>
-                        `(chartId = ${escape(
-                            config.id
-                        )} AND config->"$.version" = ${escape(config.version)})`
-                )
-                .join(" OR ")
-            // retrieves original chart configs
-            let rows: any[] = await t.query(
-                `
+    // empty strings mean that the field should NOT be overwritten, so we
+    // remove key-value pairs where value === ""
+    suggestedConfigs.map((config) => {
+        for (const key of Object.keys(config)) {
+            if (config[key] === "") {
+                delete config[key]
+            }
+        }
+    })
+
+    await db.transaction(async (t) => {
+        const whereCond1 = suggestedConfigs
+            .map(
+                (config) =>
+                    `(id = ${escape(
+                        config.id
+                    )} AND config->"$.version" = ${escape(config.version)})`
+            )
+            .join(" OR ")
+        const whereCond2 = suggestedConfigs
+            .map(
+                (config) =>
+                    `(chartId = ${escape(
+                        config.id
+                    )} AND config->"$.version" = ${escape(config.version)})`
+            )
+            .join(" OR ")
+        // retrieves original chart configs
+        let rows: any[] = await t.query(
+            `
                 SELECT id, config, 1 as priority
                 FROM charts
                 WHERE ${whereCond1}
@@ -931,161 +925,158 @@ apiRouter.post(
 
                 ORDER BY priority
                 `
-            )
+        )
 
-            rows.map((row) => {
-                row.config = JSON.parse(row.config)
-            })
+        rows.map((row) => {
+            row.config = JSON.parse(row.config)
+        })
 
-            // drops duplicate id-version rows (keeping the row from the
-            // `charts` table when available).
-            rows = rows.filter(
-                (v, i, a) =>
-                    a.findIndex(
-                        (el) =>
-                            el.id === v.id &&
-                            el.config.version === v.config.version
-                    ) === i
-            )
-            if (rows.length < suggestedConfigs.length) {
-                // identifies which particular chartId-version combinations have
-                // not been found in the DB
-                const missingConfigs = suggestedConfigs.filter((config) => {
-                    const i = rows.findIndex((row) => {
-                        return (
-                            row.id === config.id &&
-                            row.config.version === config.version
-                        )
-                    })
-                    return i === -1
+        // drops duplicate id-version rows (keeping the row from the
+        // `charts` table when available).
+        rows = rows.filter(
+            (v, i, a) =>
+                a.findIndex(
+                    (el) =>
+                        el.id === v.id && el.config.version === v.config.version
+                ) === i
+        )
+        if (rows.length < suggestedConfigs.length) {
+            // identifies which particular chartId-version combinations have
+            // not been found in the DB
+            const missingConfigs = suggestedConfigs.filter((config) => {
+                const i = rows.findIndex((row) => {
+                    return (
+                        row.id === config.id &&
+                        row.config.version === config.version
+                    )
                 })
-                throw new JsonError(
-                    `Failed to retrieve the following chartId-version combinations:\n${missingConfigs
-                        .map((c) => {
-                            return JSON.stringify({
-                                id: c.id,
-                                version: c.version,
-                            })
+                return i === -1
+            })
+            throw new JsonError(
+                `Failed to retrieve the following chartId-version combinations:\n${missingConfigs
+                    .map((c) => {
+                        return JSON.stringify({
+                            id: c.id,
+                            version: c.version,
                         })
-                        .join(
-                            "\n"
-                        )}\nPlease check that each chartId and version exists.`
-                )
-            } else if (rows.length > suggestedConfigs.length) {
-                throw new JsonError(
-                    "Retrieved more chart configs than expected. This may be due to a bug on the server."
-                )
+                    })
+                    .join(
+                        "\n"
+                    )}\nPlease check that each chartId and version exists.`
+            )
+        } else if (rows.length > suggestedConfigs.length) {
+            throw new JsonError(
+                "Retrieved more chart configs than expected. This may be due to a bug on the server."
+            )
+        }
+        const originalConfigs: Record<string, GrapherInterface> = rows.reduce(
+            (obj: any, row: any) => ({
+                ...obj,
+                [row.id]: row.config,
+            }),
+            {}
+        )
+
+        // some chart configs do not have an `id` field, so we check for it
+        // and insert the id here as needed. This is important for the
+        // lodash.isEqual condition later on.
+        for (const [id, config] of Object.entries(originalConfigs)) {
+            if (config.id === null || config.id === undefined) {
+                config.id = parseInt(id)
             }
-            const originalConfigs: Record<string, GrapherInterface> =
-                rows.reduce(
-                    (obj: any, row: any) => ({
-                        ...obj,
-                        [row.id]: row.config,
-                    }),
-                    {}
-                )
+        }
 
-            // some chart configs do not have an `id` field, so we check for it
-            // and insert the id here as needed. This is important for the
-            // lodash.isEqual condition later on.
-            for (const [id, config] of Object.entries(originalConfigs)) {
-                if (config.id === null || config.id === undefined) {
-                    config.id = parseInt(id)
+        // sanity check that each original config also has the required keys.
+        Object.values(originalConfigs).map((config) => {
+            requiredKeys.map((k) => {
+                if (!config.hasOwnProperty(k)) {
+                    throw new JsonError(
+                        `The "${k}" field is required, but one or more ` +
+                            `chart configs in the database does not ` +
+                            `contain it. Please report this issue to a ` +
+                            `developer.`
+                    )
+                }
+            })
+        })
+
+        // if a field is null in the suggested config and the field does not
+        // exist in the original config, then we can delete the field from
+        // the suggested config b/c the non-existence of the field on the
+        // original config is equivalent to null.
+        suggestedConfigs.map((config: any) => {
+            const chartId = config.id as number
+            const originalConfig = originalConfigs[chartId]
+            for (const key of Object.keys(config)) {
+                if (
+                    config[key] === null &&
+                    !originalConfig.hasOwnProperty(key)
+                ) {
+                    delete config[key]
                 }
             }
+        })
 
-            // sanity check that each original config also has the required keys.
-            Object.values(originalConfigs).map((config) => {
-                requiredKeys.map((k) => {
-                    if (!config.hasOwnProperty(k)) {
-                        throw new JsonError(
-                            `The "${k}" field is required, but one or more ` +
-                                `chart configs in the database does not ` +
-                                `contain it. Please report this issue to a ` +
-                                `developer.`
-                        )
-                    }
-                })
-            })
-
-            // if a field is null in the suggested config and the field does not
-            // exist in the original config, then we can delete the field from
-            // the suggested config b/c the non-existence of the field on the
-            // original config is equivalent to null.
-            suggestedConfigs.map((config: any) => {
-                const chartId = config.id as number
-                const originalConfig = originalConfigs[chartId]
-                for (const key of Object.keys(config)) {
-                    if (
-                        config[key] === null &&
-                        !originalConfig.hasOwnProperty(key)
-                    ) {
-                        delete config[key]
-                    }
+        // constructs array of suggested chart revisions to insert.
+        const values: any[] = []
+        suggestedConfigs.map((config) => {
+            const chartId = config.id as number
+            const originalConfig = originalConfigs[chartId]
+            const suggestedConfig: GrapherInterface = Object.assign(
+                {},
+                JSON.parse(JSON.stringify(originalConfig)),
+                config
+            )
+            if (!lodash.isEqual(suggestedConfig, originalConfig)) {
+                if (suggestedConfig.version) {
+                    suggestedConfig.version += 1
                 }
-            })
+                values.push([
+                    chartId,
+                    JSON.stringify(suggestedConfig),
+                    JSON.stringify(originalConfig),
+                    suggestedReason,
+                    changesInDataSummary,
+                    status,
+                    res.locals.user.id,
+                    new Date(),
+                    new Date(),
+                ])
+            }
+        })
 
-            // constructs array of suggested chart revisions to insert.
-            const values: any[] = []
-            suggestedConfigs.map((config) => {
-                const chartId = config.id as number
-                const originalConfig = originalConfigs[chartId]
-                const suggestedConfig: GrapherInterface = Object.assign(
-                    {},
-                    JSON.parse(JSON.stringify(originalConfig)),
-                    config
-                )
-                if (!lodash.isEqual(suggestedConfig, originalConfig)) {
-                    if (suggestedConfig.version) {
-                        suggestedConfig.version += 1
-                    }
-                    values.push([
-                        chartId,
-                        JSON.stringify(suggestedConfig),
-                        JSON.stringify(originalConfig),
-                        suggestedReason,
-                        changesInDataSummary,
-                        status,
-                        res.locals.user.id,
-                        new Date(),
-                        new Date(),
-                    ])
-                }
-            })
-
-            // inserts suggested chart revisions
-            const result = await t.execute(
-                `
+        // inserts suggested chart revisions
+        const result = await t.execute(
+            `
                 INSERT INTO suggested_chart_revisions
                 (chartId, suggestedConfig, originalConfig, suggestedReason, changesInDataSummary, status, createdBy, createdAt, updatedAt)
                 VALUES
                 ?
                 `,
-                [values]
-            )
-            if (result.affectedRows > 0) {
-                messages.push({
-                    type: "success",
-                    text: `${result.affectedRows} chart revisions have been queued for approval.`,
-                })
-            }
-            if (suggestedConfigs.length - result.affectedRows > 0) {
-                messages.push({
-                    type: "warning",
-                    text: `${
-                        suggestedConfigs.length - result.affectedRows
-                    } chart revisions have not been queued for approval (e.g. because the chart revision does not contain any changes).`,
-                })
-            }
-        })
+            [values]
+        )
+        if (result.affectedRows > 0) {
+            messages.push({
+                type: "success",
+                text: `${result.affectedRows} chart revisions have been queued for approval.`,
+            })
+        }
+        if (suggestedConfigs.length - result.affectedRows > 0) {
+            messages.push({
+                type: "warning",
+                text: `${
+                    suggestedConfigs.length - result.affectedRows
+                } chart revisions have not been queued for approval (e.g. because the chart revision does not contain any changes).`,
+            })
+        }
+    })
 
-        return { success: true, messages }
-    }
-)
+    return { success: true, messages }
+})
 
 apiRouter.get(
     "/suggested-chart-revisions/:suggestedChartRevisionId",
-    async (req: Request, res: Response) => {
+    async (req, res) => {
         const suggestedChartRevisionId = expectInt(
             req.params.suggestedChartRevisionId
         )
@@ -1144,7 +1135,7 @@ apiRouter.get(
 
 apiRouter.post(
     "/suggested-chart-revisions/:suggestedChartRevisionId/update",
-    async (req: Request, res: Response) => {
+    async (req, res) => {
         const suggestedChartRevisionId = expectInt(
             req.params.suggestedChartRevisionId
         )
@@ -1266,9 +1257,8 @@ apiRouter.post(
     }
 )
 
-apiRouter.get("/users.json", async (req: Request, res: Response) => ({
-    users: await db
-        .knexInstance()
+getRouteWithROTransaction(apiRouter, "/users.json", async (req, res, trx) => ({
+    users: await trx
         .select(
             "id" satisfies keyof DbPlainUser,
             "email" satisfies keyof DbPlainUser,
@@ -1284,14 +1274,18 @@ apiRouter.get("/users.json", async (req: Request, res: Response) => ({
         .orderBy("lastSeen", "desc"),
 }))
 
-apiRouter.get("/users/:userId.json", async (req: Request, res: Response) => {
-    const id = parseIntOrUndefined(req.params.userId)
-    if (!id) throw new JsonError("No user id given")
-    const user = await getUserById(db.knexInstance(), id)
-    return { user }
-})
+getRouteWithROTransaction(
+    apiRouter,
+    "/users/:userId.json",
+    async (req, res, trx) => {
+        const id = parseIntOrUndefined(req.params.userId)
+        if (!id) throw new JsonError("No user id given")
+        const user = await getUserById(trx, id)
+        return { user }
+    }
+)
 
-apiRouter.delete("/users/:userId", async (req: Request, res: Response) => {
+apiRouter.delete("/users/:userId", async (req, res) => {
     if (!res.locals.user.isSuperuser)
         throw new JsonError("Permission denied", 403)
 
@@ -1303,43 +1297,54 @@ apiRouter.delete("/users/:userId", async (req: Request, res: Response) => {
     return { success: true }
 })
 
-apiRouter.put("/users/:userId", async (req: Request, res: Response) => {
-    if (!res.locals.user.isSuperuser)
-        throw new JsonError("Permission denied", 403)
+putRouteWithRWTransaction(
+    apiRouter,
+    "/users/:userId",
+    async (req, res, trx: db.KnexReadWriteTransaction) => {
+        if (!res.locals.user.isSuperuser)
+            throw new JsonError("Permission denied", 403)
 
-    return db.knexInstance().transaction(async (t) => {
         const userId = parseIntOrUndefined(req.params.userId)
-        const user = userId !== undefined ? await getUserById(t, userId) : null
+        const user =
+            userId !== undefined ? await getUserById(trx, userId) : null
         if (!user) throw new JsonError("No such user", 404)
 
         user.fullName = req.body.fullName
         user.isActive = req.body.isActive
 
-        await updateUser(t, userId!, pick(user, ["fullName", "isActive"]))
+        await updateUser(trx, userId!, pick(user, ["fullName", "isActive"]))
 
         return { success: true }
-    })
-})
+    }
+)
 
-apiRouter.post("/users/add", async (req: Request, res: Response) => {
-    if (!res.locals.user.isSuperuser)
-        throw new JsonError("Permission denied", 403)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/users/add",
+    async (req, res, trx: db.KnexReadWriteTransaction) => {
+        if (!res.locals.user.isSuperuser)
+            throw new JsonError("Permission denied", 403)
 
-    const { email, fullName } = req.body
+        const { email, fullName } = req.body
 
-    await insertUser(db.knexInstance(), {
-        email,
-        fullName,
-    })
+        await insertUser(trx, {
+            email,
+            fullName,
+        })
 
-    return { success: true }
-})
+        return { success: true }
+    }
+)
 
-apiRouter.get("/variables.json", async (req) => {
-    const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
-    const query = req.query.search as string
-    return await searchVariables(query, limit, db.knexInstance())
-})
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables.json",
+    async (req, res, trx) => {
+        const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
+        const query = req.query.search as string
+        return await searchVariables(query, limit, trx)
+    }
+)
 
 apiRouter.get(
     "/chart-bulk-update",
@@ -1525,9 +1530,10 @@ ORDER BY usageCount DESC`
 })
 
 // Used in VariableEditPage
-apiRouter.get(
+getRouteWithROTransaction(
+    apiRouter,
     "/variables/:variableId.json",
-    async (req: Request, res: Response) => {
+    async (req, res, trx) => {
         const variableId = expectInt(req.params.variableId)
 
         const variable = await fetchS3MetadataByPath(
@@ -1558,7 +1564,7 @@ apiRouter.get(
 
         const grapherConfig = await getMergedGrapherConfigForVariable(
             variableId,
-            db.knexInstance()
+            trx
         )
         if (
             grapherConfig &&
@@ -1589,12 +1595,13 @@ apiRouter.get(
     }
 )
 
-apiRouter.get("/datasets.json", async (req) => {
-    return db.knexInstance().transaction(
-        async (trx) => {
-            const datasets = await db.knexRaw<Record<string, any>>(
-                trx,
-                `
+getRouteWithROTransaction(
+    apiRouter,
+    "/datasets.json",
+    async (req, res, trx) => {
+        const datasets = await db.knexRaw<Record<string, any>>(
+            trx,
+            `
         WITH variable_counts AS (
             SELECT
                 v.datasetId,
@@ -1624,41 +1631,40 @@ apiRouter.get("/datasets.json", async (req) => {
         JOIN datasets d ON d.id=ad.id
         ORDER BY ad.dataEditedAt DESC
     `
-            )
+        )
 
-            const tags = await db.knexRaw<
-                Pick<DbPlainTag, "id" | "name"> &
-                    Pick<DbPlainDatasetTag, "datasetId">
-            >(
-                trx,
-                `
+        const tags = await db.knexRaw<
+            Pick<DbPlainTag, "id" | "name"> &
+                Pick<DbPlainDatasetTag, "datasetId">
+        >(
+            trx,
+            `
         SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
         JOIN tags t ON dt.tagId = t.id
     `
+        )
+        const tagsByDatasetId = lodash.groupBy(tags, (t) => t.datasetId)
+        for (const dataset of datasets) {
+            dataset.tags = (tagsByDatasetId[dataset.id] || []).map((t) =>
+                lodash.omit(t, "datasetId")
             )
-            const tagsByDatasetId = lodash.groupBy(tags, (t) => t.datasetId)
-            for (const dataset of datasets) {
-                dataset.tags = (tagsByDatasetId[dataset.id] || []).map((t) =>
-                    lodash.omit(t, "datasetId")
-                )
-            }
-            /*LEFT JOIN variables AS v ON v.datasetId=d.id
+        }
+        /*LEFT JOIN variables AS v ON v.datasetId=d.id
     GROUP BY d.id*/
 
-            return { datasets: datasets }
-        },
-        { readOnly: true }
-    )
-})
+        return { datasets: datasets }
+    }
+)
 
-apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
-    const datasetId = expectInt(req.params.datasetId)
+getRouteWithROTransaction(
+    apiRouter,
+    "/datasets/:datasetId.json",
+    async (req: Request, res, trx) => {
+        const datasetId = expectInt(req.params.datasetId)
 
-    return db.knexInstance().transaction(
-        async (trx) => {
-            const dataset = await db.knexRawFirst<Record<string, any>>(
-                trx,
-                `
+        const dataset = await db.knexRawFirst<Record<string, any>>(
+            trx,
+            `
         SELECT d.id,
             d.namespace,
             d.name,
@@ -1681,42 +1687,42 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
         JOIN users mu ON mu.id=d.metadataEditedByUserId
         WHERE d.id = ?
     `,
-                [datasetId]
-            )
+            [datasetId]
+        )
 
-            if (!dataset)
-                throw new JsonError(`No dataset by id '${datasetId}'`, 404)
+        if (!dataset)
+            throw new JsonError(`No dataset by id '${datasetId}'`, 404)
 
-            const zipFile = await db.knexRawFirst(
-                trx,
-                `SELECT filename FROM dataset_files WHERE datasetId=?`,
-                [datasetId]
-            )
-            if (zipFile) dataset.zipFile = zipFile
+        const zipFile = await db.knexRawFirst(
+            trx,
+            `SELECT filename FROM dataset_files WHERE datasetId=?`,
+            [datasetId]
+        )
+        if (zipFile) dataset.zipFile = zipFile
 
-            const variables: Pick<
-                DbRawVariable,
-                "id" | "name" | "description" | "display" | "catalogPath"
-            >[] = await db.knexRaw(
-                trx,
-                `
+        const variables: Pick<
+            DbRawVariable,
+            "id" | "name" | "description" | "display" | "catalogPath"
+        >[] = await db.knexRaw(
+            trx,
+            `
         SELECT v.id, v.name, v.description, v.display, v.catalogPath
         FROM variables AS v
         WHERE v.datasetId = ?
     `,
-                [datasetId]
-            )
+            [datasetId]
+        )
 
-            for (const v of variables) {
-                v.display = JSON.parse(v.display)
-            }
+        for (const v of variables) {
+            v.display = JSON.parse(v.display)
+        }
 
-            dataset.variables = variables
+        dataset.variables = variables
 
-            // add all origins
-            const origins: DbRawOrigin[] = await db.knexRaw(
-                trx,
-                `
+        // add all origins
+        const origins: DbRawOrigin[] = await db.knexRaw(
+            trx,
+            `
         select distinct
             o.*
         from origins_variables as ov
@@ -1724,36 +1730,36 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
         join variables as v on ov.variableId = v.id
         where v.datasetId = ?
     `,
-                [datasetId]
-            )
+            [datasetId]
+        )
 
-            const parsedOrigins = origins.map(parseOriginsRow)
+        const parsedOrigins = origins.map(parseOriginsRow)
 
-            dataset.origins = parsedOrigins
+        dataset.origins = parsedOrigins
 
-            const sources = await db.knexRaw(
-                trx,
-                `
+        const sources = await db.knexRaw(
+            trx,
+            `
         SELECT s.id, s.name, s.description
         FROM sources AS s
         WHERE s.datasetId = ?
         ORDER BY s.id ASC
     `,
-                [datasetId]
-            )
+            [datasetId]
+        )
 
-            // expand description of sources and add to dataset as variableSources
-            dataset.variableSources = sources.map((s: any) => {
-                return {
-                    id: s.id,
-                    name: s.name,
-                    ...JSON.parse(s.description),
-                }
-            })
+        // expand description of sources and add to dataset as variableSources
+        dataset.variableSources = sources.map((s: any) => {
+            return {
+                id: s.id,
+                name: s.name,
+                ...JSON.parse(s.description),
+            }
+        })
 
-            const charts = await db.knexRaw(
-                trx,
-                `
+        const charts = await db.knexRaw(
+            trx,
+            `
         SELECT ${OldChart.listFields}
         FROM charts
         JOIN chart_dimensions AS cd ON cd.chartId = charts.id
@@ -1763,51 +1769,50 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
         WHERE v.datasetId = ?
         GROUP BY charts.id
     `,
-                [datasetId]
-            )
+            [datasetId]
+        )
 
-            dataset.charts = charts
+        dataset.charts = charts
 
-            await Chart.assignTagsForCharts(charts as any)
+        await Chart.assignTagsForCharts(charts as any)
 
-            const tags = await db.knexRaw(
-                trx,
-                `
+        const tags = await db.knexRaw(
+            trx,
+            `
         SELECT t.id, t.name
         FROM tags t
         JOIN dataset_tags dt ON dt.tagId = t.id
         WHERE dt.datasetId = ?
     `,
-                [datasetId]
-            )
-            dataset.tags = tags
+            [datasetId]
+        )
+        dataset.tags = tags
 
-            const availableTags = await db.knexRaw(
-                trx,
-                `
+        const availableTags = await db.knexRaw(
+            trx,
+            `
         SELECT t.id, t.name, p.name AS parentName
         FROM tags AS t
         JOIN tags AS p ON t.parentId=p.id
         WHERE p.isBulkImport IS FALSE
     `
-            )
-            dataset.availableTags = availableTags
+        )
+        dataset.availableTags = availableTags
 
-            return { dataset: dataset }
-        },
-        { readOnly: true }
-    )
-})
+        return { dataset: dataset }
+    }
+)
 
-apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
-    // Only updates `nonRedistributable` and `tags`, other fields come from ETL
-    // and are not editable
-    const datasetId = expectInt(req.params.datasetId)
-    const knex = db.knexInstance()
-    const dataset = await getDatasetById(knex, datasetId)
-    if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
+putRouteWithRWTransaction(
+    apiRouter,
+    "/datasets/:datasetId",
+    async (req, res, trx) => {
+        // Only updates `nonRedistributable` and `tags`, other fields come from ETL
+        // and are not editable
+        const datasetId = expectInt(req.params.datasetId)
+        const dataset = await getDatasetById(trx, datasetId)
+        if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
-    await knex.transaction(async (trx) => {
         const newDataset = (req.body as { dataset: any }).dataset
         await db.knexRaw(
             trx,
@@ -1848,70 +1853,62 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
             logErrorAndMaybeSendToBugsnag(err, req)
             // Continue
         }
-    })
 
-    return { success: true }
-})
+        return { success: true }
+    }
+)
 
-apiRouter.post(
+postRouteWithRWTransaction(
+    apiRouter,
     "/datasets/:datasetId/setArchived",
-    async (req: Request, res: Response) => {
+    async (req, res, trx) => {
         const datasetId = expectInt(req.params.datasetId)
-        const knex = db.knexInstance()
-        const dataset = await getDatasetById(knex, datasetId)
+        const dataset = await getDatasetById(trx, datasetId)
         if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
-        await knex.transaction(async (trx) => {
-            await db.knexRaw(
-                trx,
-                `UPDATE datasets SET isArchived = 1 WHERE id=?`,
-                [datasetId]
-            )
-        })
+
+        await db.knexRaw(trx, `UPDATE datasets SET isArchived = 1 WHERE id=?`, [
+            datasetId,
+        ])
         return { success: true }
     }
 )
 
-apiRouter.post(
+postRouteWithRWTransaction(
+    apiRouter,
     "/datasets/:datasetId/setTags",
-    async (req: Request, res: Response) => {
+    async (req, res, trx) => {
         const datasetId = expectInt(req.params.datasetId)
 
-        await setTagsForDataset(db.knexInstance(), datasetId, req.body.tagIds)
+        await setTagsForDataset(trx, datasetId, req.body.tagIds)
 
         return { success: true }
     }
 )
 
-apiRouter.delete(
+deleteRouteWithRWTransaction(
+    apiRouter,
     "/datasets/:datasetId",
-    async (req: Request, res: Response) => {
+    async (req, res, trx) => {
         const datasetId = expectInt(req.params.datasetId)
 
-        const knex = db.knexInstance()
-        const dataset = await getDatasetById(knex, datasetId)
+        const dataset = await getDatasetById(trx, datasetId)
         if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
-        await knex.transaction(async (trx) => {
-            await db.knexRaw(
-                trx,
-                `DELETE d FROM country_latest_data AS d JOIN variables AS v ON d.variable_id=v.id WHERE v.datasetId=?`,
-                [datasetId]
-            )
-            await db.knexRaw(
-                trx,
-                `DELETE FROM dataset_files WHERE datasetId=?`,
-                [datasetId]
-            )
-            await db.knexRaw(trx, `DELETE FROM variables WHERE datasetId=?`, [
-                datasetId,
-            ])
-            await db.knexRaw(trx, `DELETE FROM sources WHERE datasetId=?`, [
-                datasetId,
-            ])
-            await db.knexRaw(trx, `DELETE FROM datasets WHERE id=?`, [
-                datasetId,
-            ])
-        })
+        await db.knexRaw(
+            trx,
+            `DELETE d FROM country_latest_data AS d JOIN variables AS v ON d.variable_id=v.id WHERE v.datasetId=?`,
+            [datasetId]
+        )
+        await db.knexRaw(trx, `DELETE FROM dataset_files WHERE datasetId=?`, [
+            datasetId,
+        ])
+        await db.knexRaw(trx, `DELETE FROM variables WHERE datasetId=?`, [
+            datasetId,
+        ])
+        await db.knexRaw(trx, `DELETE FROM sources WHERE datasetId=?`, [
+            datasetId,
+        ])
+        await db.knexRaw(trx, `DELETE FROM datasets WHERE id=?`, [datasetId])
 
         try {
             await removeDatasetFromGitRepo(dataset.name, dataset.namespace, {
@@ -1927,20 +1924,19 @@ apiRouter.delete(
     }
 )
 
-apiRouter.post(
+postRouteWithRWTransaction(
+    apiRouter,
     "/datasets/:datasetId/charts",
-    async (req: Request, res: Response) => {
+    async (req, res, trx) => {
         const datasetId = expectInt(req.params.datasetId)
 
-        const knex = db.knexInstance()
-        const dataset = await getDatasetById(knex, datasetId)
+        const dataset = await getDatasetById(trx, datasetId)
         if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
         if (req.body.republish) {
-            await knex.transaction(async (trx) => {
-                await db.knexRaw(
-                    trx,
-                    `
+            await db.knexRaw(
+                trx,
+                `
             UPDATE charts
             SET config = JSON_SET(config, "$.version", config->"$.version" + 1)
             WHERE id IN (
@@ -1950,9 +1946,8 @@ apiRouter.post(
                 WHERE variables.datasetId = ?
             )
             `,
-                    [datasetId]
-                )
-            })
+                [datasetId]
+            )
         }
 
         await triggerStaticBuild(
@@ -1965,14 +1960,14 @@ apiRouter.post(
 )
 
 // Get a list of redirects that map old slugs to charts
-apiRouter.get("/redirects.json", async (req: Request, res: Response) => ({
+apiRouter.get("/redirects.json", async (req, res) => ({
     redirects: await db.queryMysql(`
         SELECT r.id, r.slug, r.chart_id as chartId, JSON_UNQUOTE(JSON_EXTRACT(charts.config, "$.slug")) AS chartSlug
         FROM chart_slug_redirects AS r JOIN charts ON charts.id = r.chart_id
         ORDER BY r.id DESC`),
 }))
 
-apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
+apiRouter.get("/tags/:tagId.json", async (req, res) => {
     const tagId = expectInt(req.params.tagId) as number | null
 
     // NOTE (Mispy): The "uncategorized" tag is special -- it represents all untagged stuff
@@ -2119,7 +2114,7 @@ apiRouter.post("/tags/new", async (req: Request) => {
     return { success: true, tagId: result.insertId }
 })
 
-apiRouter.get("/tags.json", async (req: Request, res: Response) => {
+apiRouter.get("/tags.json", async (req, res) => {
     const tags = await db.queryMysql(`
         SELECT t.id, t.name, t.parentId, t.specialType
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
@@ -2132,7 +2127,7 @@ apiRouter.get("/tags.json", async (req: Request, res: Response) => {
     }
 })
 
-apiRouter.delete("/tags/:tagId/delete", async (req: Request, res: Response) => {
+apiRouter.delete("/tags/:tagId/delete", async (req, res) => {
     const tagId = expectInt(req.params.tagId)
 
     await db.transaction(async (t) => {
@@ -2157,7 +2152,7 @@ apiRouter.post("/charts/:chartId/redirects/new", async (req: Request) => {
     return { success: true, redirect: redirect }
 })
 
-apiRouter.delete("/redirects/:id", async (req: Request, res: Response) => {
+apiRouter.delete("/redirects/:id", async (req, res) => {
     const id = expectInt(req.params.id)
 
     const redirect = await db.mysqlFirst(
@@ -2223,154 +2218,163 @@ apiRouter.get("/posts.json", async (req) => {
     return { posts: rows }
 })
 
-apiRouter.post(
-    "/posts/:postId/setTags",
-    async (req: Request, res: Response) => {
-        const postId = expectInt(req.params.postId)
+apiRouter.post("/posts/:postId/setTags", async (req, res) => {
+    const postId = expectInt(req.params.postId)
 
-        await setTagsForPost(postId, req.body.tagIds)
+    await setTagsForPost(postId, req.body.tagIds)
+
+    return { success: true }
+})
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/posts/:postId.json",
+    async (req, res, trx) => {
+        const postId = expectInt(req.params.postId)
+        const post = (await trx
+            .table(PostsTableName)
+            .where({ id: postId })
+            .select("*")
+            .first()) as DbRawPost | undefined
+        return camelCaseProperties({ ...post })
+    }
+)
+
+postRouteWithRWTransaction(
+    apiRouter,
+    "/posts/:postId/createGdoc",
+    async (req: Request, res, trx) => {
+        const postId = expectInt(req.params.postId)
+        const allowRecreate = !!req.body.allowRecreate
+        const post = (await trx
+            .table("posts_with_gdoc_publish_status")
+            .where({ id: postId })
+            .select("*")
+            .first()) as DbRawPostWithGdocPublishStatus | undefined
+
+        if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
+        const existingGdocId = post.gdocSuccessorId
+        if (!allowRecreate && existingGdocId)
+            throw new JsonError("A gdoc already exists for this post", 400)
+        if (allowRecreate && existingGdocId && post.isGdocPublished) {
+            throw new JsonError(
+                "A gdoc already exists for this post and it is already published",
+                400
+            )
+        }
+        if (post.archieml === null)
+            throw new JsonError(
+                `ArchieML was not present for post with id ${postId}`,
+                500
+            )
+        const tagsByPostId = await getTagsByPostId(trx)
+        const tags =
+            tagsByPostId
+                .get(postId)
+                ?.map(({ id }) => TagEntity.create({ id })) || []
+        const archieMl = JSON.parse(
+            // Google Docs interprets &region in grapher URLS as ®ion
+            // So we escape them here
+            post.archieml.replaceAll("&", "&amp;")
+        ) as OwidGdocPostInterface
+        const gdocId = await createGdocAndInsertOwidGdocPostContent(
+            archieMl.content,
+            post.gdocSuccessorId
+        )
+        // If we did not yet have a gdoc associated with this post, we need to register
+        // the gdocSuccessorId and create an entry in the posts_gdocs table. Otherwise
+        // we don't need to make changes to the DB (only the gdoc regeneration was required)
+        if (!existingGdocId) {
+            post.gdocSuccessorId = gdocId
+            // This is not ideal - we are using knex for on thing and typeorm for another
+            // which means that we can't wrap this in a transaction. We should probably
+            // move posts to use typeorm as well or at least have a typeorm alternative for it
+            await trx
+                .table(postsTable)
+                .where({ id: postId })
+                .update("gdocSuccessorId", gdocId)
+
+            const gdoc = new GdocPost(gdocId)
+            gdoc.slug = post.slug
+            gdoc.tags = tags
+            gdoc.content.title = post.title
+            gdoc.content.type = archieMl.content.type || OwidGdocType.Article
+            gdoc.published = false
+            gdoc.createdAt = new Date()
+            gdoc.publishedAt = post.published_at
+            await dataSource.getRepository(GdocPost).save(gdoc)
+        }
+
+        return { googleDocsId: gdocId }
+    }
+)
+
+postRouteWithRWTransaction(
+    apiRouter,
+    "/posts/:postId/unlinkGdoc",
+    async (req: Request, res, trx) => {
+        const postId = expectInt(req.params.postId)
+        const post = (await trx
+            .table("posts_with_gdoc_publish_status")
+            .where({ id: postId })
+            .select("*")
+            .first()) as DbRawPostWithGdocPublishStatus | undefined
+
+        if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
+        const existingGdocId = post.gdocSuccessorId
+        if (!existingGdocId)
+            throw new JsonError("No gdoc exists for this post", 400)
+        if (existingGdocId && post.isGdocPublished) {
+            throw new JsonError(
+                "The GDoc is already published - you can't unlink it",
+                400
+            )
+        }
+        // This is not ideal - we are using knex for on thing and typeorm for another
+        // which means that we can't wrap this in a transaction. We should probably
+        // move posts to use typeorm as well or at least have a typeorm alternative for it
+        await trx
+            .table(postsTable)
+            .where({ id: postId })
+            .update("gdocSuccessorId", null)
+
+        await dataSource.getRepository(GdocPost).delete(existingGdocId)
 
         return { success: true }
     }
 )
 
-apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
-    const postId = expectInt(req.params.postId)
-    const post = (await db
-        .knexTable(postsTable)
-        .where({ id: postId })
-        .select("*")
-        .first()) as DbEnrichedPost | undefined
-    return camelCaseProperties({ ...post })
-})
+getRouteWithROTransaction(
+    apiRouter,
+    "/sources/:sourceId.json",
+    async (req: Request, res, trx) => {
+        const sourceId = expectInt(req.params.sourceId)
 
-apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
-    const postId = expectInt(req.params.postId)
-    const allowRecreate = !!req.body.allowRecreate
-    const post = (await db
-        .knexTable("posts_with_gdoc_publish_status")
-        .where({ id: postId })
-        .select("*")
-        .first()) as DbRawPostWithGdocPublishStatus | undefined
-
-    if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
-    const existingGdocId = post.gdocSuccessorId
-    if (!allowRecreate && existingGdocId)
-        throw new JsonError("A gdoc already exists for this post", 400)
-    if (allowRecreate && existingGdocId && post.isGdocPublished) {
-        throw new JsonError(
-            "A gdoc already exists for this post and it is already published",
-            400
-        )
-    }
-    if (post.archieml === null)
-        throw new JsonError(
-            `ArchieML was not present for post with id ${postId}`,
-            500
-        )
-    const tagsByPostId = await getTagsByPostId()
-    const tags =
-        tagsByPostId.get(postId)?.map(({ id }) => TagEntity.create({ id })) ||
-        []
-    const archieMl = JSON.parse(
-        // Google Docs interprets &region in grapher URLS as ®ion
-        // So we escape them here
-        post.archieml.replaceAll("&", "&amp;")
-    ) as OwidGdocPostInterface
-    const gdocId = await createGdocAndInsertOwidGdocPostContent(
-        archieMl.content,
-        post.gdocSuccessorId
-    )
-    // If we did not yet have a gdoc associated with this post, we need to register
-    // the gdocSuccessorId and create an entry in the posts_gdocs table. Otherwise
-    // we don't need to make changes to the DB (only the gdoc regeneration was required)
-    if (!existingGdocId) {
-        post.gdocSuccessorId = gdocId
-        // This is not ideal - we are using knex for on thing and typeorm for another
-        // which means that we can't wrap this in a transaction. We should probably
-        // move posts to use typeorm as well or at least have a typeorm alternative for it
-        await db
-            .knexTable(postsTable)
-            .where({ id: postId })
-            .update("gdocSuccessorId", gdocId)
-
-        const gdoc = new GdocPost(gdocId)
-        gdoc.slug = post.slug
-        gdoc.tags = tags
-        gdoc.content.title = post.title
-        gdoc.content.type = archieMl.content.type || OwidGdocType.Article
-        gdoc.published = false
-        gdoc.createdAt = new Date()
-        gdoc.publishedAt = post.published_at
-        await dataSource.getRepository(GdocPost).save(gdoc)
-    }
-
-    return { googleDocsId: gdocId }
-})
-
-apiRouter.post("/posts/:postId/unlinkGdoc", async (req: Request) => {
-    const postId = expectInt(req.params.postId)
-    const post = (await db
-        .knexTable("posts_with_gdoc_publish_status")
-        .where({ id: postId })
-        .select("*")
-        .first()) as DbRawPostWithGdocPublishStatus | undefined
-
-    if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
-    const existingGdocId = post.gdocSuccessorId
-    if (!existingGdocId)
-        throw new JsonError("No gdoc exists for this post", 400)
-    if (existingGdocId && post.isGdocPublished) {
-        throw new JsonError(
-            "The GDoc is already published - you can't unlink it",
-            400
-        )
-    }
-    // This is not ideal - we are using knex for on thing and typeorm for another
-    // which means that we can't wrap this in a transaction. We should probably
-    // move posts to use typeorm as well or at least have a typeorm alternative for it
-    await db
-        .knexTable(postsTable)
-        .where({ id: postId })
-        .update("gdocSuccessorId", null)
-
-    await dataSource.getRepository(GdocPost).delete(existingGdocId)
-
-    return { success: true }
-})
-
-apiRouter.get("/sources/:sourceId.json", async (req: Request) => {
-    const sourceId = expectInt(req.params.sourceId)
-    return db.knexInstance().transaction(
-        async (trx) => {
-            const source = await db.knexRawFirst<Record<string, any>>(
-                trx,
-                `
+        const source = await db.knexRawFirst<Record<string, any>>(
+            trx,
+            `
         SELECT s.id, s.name, s.description, s.createdAt, s.updatedAt, d.namespace
         FROM sources AS s
         JOIN active_datasets AS d ON d.id=s.datasetId
         WHERE s.id=?`,
-                [sourceId]
-            )
-            if (!source)
-                throw new JsonError(`No source by id '${sourceId}'`, 404)
-            source.variables = await db.knexRaw(
-                trx,
-                `SELECT id, name, updatedAt FROM variables WHERE variables.sourceId=?`,
-                [sourceId]
-            )
+            [sourceId]
+        )
+        if (!source) throw new JsonError(`No source by id '${sourceId}'`, 404)
+        source.variables = await db.knexRaw(
+            trx,
+            `SELECT id, name, updatedAt FROM variables WHERE variables.sourceId=?`,
+            [sourceId]
+        )
 
-            return { source: source }
-        },
-        { readOnly: true }
-    )
-})
+        return { source: source }
+    }
+)
 
 apiRouter.get("/deploys.json", async () => ({
     deploys: await new DeployQueueServer().getDeploys(),
 }))
 
-apiRouter.put("/deploy", async (req: Request, res: Response) => {
+apiRouter.put("/deploy", async (req, res) => {
     triggerStaticBuild(res.locals.user, "Manually triggered deploy")
 })
 
@@ -2510,14 +2514,14 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     return nextGdoc
 })
 
-apiRouter.delete("/gdocs/:id", async (req, res) => {
+deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     const { id } = req.params
 
     const gdoc = await GdocPost.findOneBy({ id })
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    await db
-        .knexTable("posts")
+    await trx
+        .table("posts")
         .where({ gdocSuccessorId: gdoc.id })
         .update({ gdocSuccessorId: null })
 
@@ -2532,22 +2536,19 @@ apiRouter.delete("/gdocs/:id", async (req, res) => {
     return {}
 })
 
-apiRouter.post(
-    "/gdocs/:gdocId/setTags",
-    async (req: Request, res: Response) => {
-        const { gdocId } = req.params
-        const { tagIds } = req.body
+apiRouter.post("/gdocs/:gdocId/setTags", async (req, res) => {
+    const { gdocId } = req.params
+    const { tagIds } = req.body
 
-        const gdoc = await GdocPost.findOneBy({ id: gdocId })
-        if (!gdoc) return Error(`Unable to find Gdoc with ID: ${gdocId}`)
-        const tags = await dataSource
-            .getRepository(TagEntity)
-            .findBy({ id: In(tagIds) })
-        gdoc.tags = tags
-        await gdoc.save()
-        return { success: true }
-    }
-)
+    const gdoc = await GdocPost.findOneBy({ id: gdocId })
+    if (!gdoc) return Error(`Unable to find Gdoc with ID: ${gdocId}`)
+    const tags = await dataSource
+        .getRepository(TagEntity)
+        .findBy({ id: In(tagIds) })
+    gdoc.tags = tags
+    await gdoc.save()
+    return { success: true }
+})
 
 apiRouter.get(
     `/gpt/suggest-topics/${TaggableType.Charts}/:chartId.json`,
@@ -2569,27 +2570,35 @@ apiRouter.get(
     }
 )
 
-apiRouter.post("/explorer/:slug/tags", async (req: Request, res: Response) => {
-    const { slug } = req.params
-    const { tagIds } = req.body
-    const explorer = await db.knexTable("explorers").where({ slug }).first()
-    if (!explorer)
-        throw new JsonError(`No explorer found for slug ${slug}`, 404)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/explorer/:slug/tags",
+    async (req, res, trx) => {
+        const { slug } = req.params
+        const { tagIds } = req.body
+        const explorer = await trx.table("explorers").where({ slug }).first()
+        if (!explorer)
+            throw new JsonError(`No explorer found for slug ${slug}`, 404)
 
-    await db.knexInstance().transaction(async (t) => {
-        await t.table("explorer_tags").where({ explorerSlug: slug }).delete()
+        await trx.table("explorer_tags").where({ explorerSlug: slug }).delete()
         for (const tagId of tagIds) {
-            await t.table("explorer_tags").insert({ explorerSlug: slug, tagId })
+            await trx
+                .table("explorer_tags")
+                .insert({ explorerSlug: slug, tagId })
         }
-    })
 
-    return { success: true }
-})
+        return { success: true }
+    }
+)
 
-apiRouter.delete("/explorer/:slug/tags", async (req: Request) => {
-    const { slug } = req.params
-    await db.knexTable("explorer_tags").where({ explorerSlug: slug }).delete()
-    return { success: true }
-})
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/explorer/:slug/tags",
+    async (req: Request, res, trx) => {
+        const { slug } = req.params
+        await trx.table("explorer_tags").where({ explorerSlug: slug }).delete()
+        return { success: true }
+    }
+)
 
 export { apiRouter }

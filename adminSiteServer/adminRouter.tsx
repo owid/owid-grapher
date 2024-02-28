@@ -139,7 +139,7 @@ adminRouter.get("/logout", logOut)
 adminRouter.get("/datasets/:datasetId.csv", async (req, res) => {
     const datasetId = expectInt(req.params.datasetId)
 
-    await db.knexInstance().transaction(async (t) => {
+    await db.knexReadonlyTransaction(async (t) => {
         const datasetName = (
             await db.knexRawFirst<Pick<DbPlainDataset, "name">>(
                 t,
@@ -166,19 +166,19 @@ adminRouter.get("/datasets/:datasetId/downloadZip", async (req, res) => {
 
     res.attachment("additional-material.zip")
 
-    const knex = db.knexInstance()
-
-    const file = await db.knexRawFirst<
-        Pick<DbPlainDatasetFile, "filename" | "file">
-    >(knex, `SELECT filename, file FROM dataset_files WHERE datasetId=?`, [
-        datasetId,
-    ])
+    const file = await await db.knexReadonlyTransaction((knex) =>
+        db.knexRawFirst<Pick<DbPlainDatasetFile, "filename" | "file">>(
+            knex,
+            `SELECT filename, file FROM dataset_files WHERE datasetId=?`,
+            [datasetId]
+        )
+    )
     res.send(file?.file)
 })
 
 adminRouter.get("/posts/preview/:postId", async (req, res) => {
     const postId = expectInt(req.params.postId)
-    const preview = await db.knexInstance().transaction(async (knex) => {
+    const preview = await db.knexReadonlyTransaction(async (knex) => {
         return renderPreview(postId, knex)
     })
     res.send(preview)
@@ -187,16 +187,16 @@ adminRouter.get("/posts/preview/:postId", async (req, res) => {
 adminRouter.get("/posts/compare/:postId", async (req, res) => {
     const postId = expectInt(req.params.postId)
 
-    const [wpPage, archieMlText] = await db
-        .knexInstance()
-        .transaction(async (t) => {
+    const [wpPage, archieMlText] = await db.knexReadonlyTransaction(
+        async (t) => {
             const wpPage = await renderPreview(postId, t)
             const archieMlText = await Post.select(
                 "archieml",
                 "archieml_update_statistics"
             ).from(t(Post.postsTable).where({ id: postId }))
             return [wpPage, archieMlText]
-        })
+        }
+    )
 
     if (
         archieMlText.length === 0 ||
@@ -275,7 +275,9 @@ adminRouter.get(`/${GetAllExplorersRoute}`, async (req, res) => {
 
 adminRouter.get(`/${GetAllExplorersTagsRoute}`, async (_, res) => {
     return res.send({
-        explorers: await db.getExplorerTags(db.knexInstance()),
+        explorers: await db.knexReadonlyTransaction((trx) =>
+            db.getExplorerTags(trx)
+        ),
     })
 })
 
@@ -283,7 +285,7 @@ adminRouter.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
     const slug = slugify(req.params.slug)
     const filename = slug + EXPLORER_FILE_SUFFIX
 
-    const explorerPage = await db.knexInstance().transaction(async (knex) => {
+    const explorerPage = await db.knexReadonlyTransaction(async (knex) => {
         if (slug === DefaultNewExplorerSlug)
             return renderExplorerPage(
                 new ExplorerProgram(DefaultNewExplorerSlug, ""),
@@ -307,14 +309,16 @@ adminRouter.get("/datapage-preview/:id", async (req, res) => {
     if (!variableMetadata) throw new JsonError("No such variable", 404)
 
     res.send(
-        await renderDataPageV2(
-            {
-                variableId,
-                variableMetadata,
-                isPreviewing: true,
-                useIndicatorGrapherConfigs: true,
-            },
-            db.knexInstance()
+        await db.knexReadonlyTransaction((trx) =>
+            renderDataPageV2(
+                {
+                    variableId,
+                    variableMetadata,
+                    isPreviewing: true,
+                    useIndicatorGrapherConfigs: true,
+                },
+                trx
+            )
         )
     )
 })
@@ -323,11 +327,9 @@ adminRouter.get("/grapher/:slug", async (req, res) => {
     const entity = await Chart.getBySlug(req.params.slug)
     if (!entity) throw new JsonError("No such chart", 404)
 
-    const previewDataPageOrGrapherPage = db
-        .knexInstance()
-        .transaction(async (knex) =>
-            renderPreviewDataPageOrGrapherPage(entity.config, knex)
-        )
+    const previewDataPageOrGrapherPage = db.knexReadonlyTransaction(
+        async (knex) => renderPreviewDataPageOrGrapherPage(entity.config, knex)
+    )
     res.send(previewDataPageOrGrapherPage)
 })
 

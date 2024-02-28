@@ -65,34 +65,38 @@ mockSiteRouter.use(express.json())
 
 mockSiteRouter.get("/sitemap.xml", async (req, res) => {
     res.set("Content-Type", "application/xml")
-    const sitemap = await db
-        .knexInstance()
-        .transaction(async (knex) => makeSitemap(explorerAdminServer, knex))
+    const sitemap = await db.knexReadonlyTransaction(async (knex) =>
+        makeSitemap(explorerAdminServer, knex)
+    )
     res.send(sitemap)
 })
 
 mockSiteRouter.get("/atom.xml", async (req, res) => {
     res.set("Content-Type", "application/xml")
-    const atomFeed = await db
-        .knexInstance()
-        .transaction(async (knex) => makeAtomFeed(knex))
+    const atomFeed = await db.knexReadonlyTransaction(async (knex) =>
+        makeAtomFeed(knex)
+    )
     res.send(atomFeed)
 })
 
 mockSiteRouter.get("/atom-no-topic-pages.xml", async (req, res) => {
     res.set("Content-Type", "application/xml")
-    const atomFeedNoTopicPages = await db
-        .knexInstance()
-        .transaction(async (knex) => makeAtomFeedNoTopicPages(knex))
+    const atomFeedNoTopicPages = await db.knexReadonlyTransaction(
+        async (knex) => makeAtomFeedNoTopicPages(knex)
+    )
     res.send(atomFeedNoTopicPages)
 })
 
 mockSiteRouter.get("/entries-by-year", async (req, res) =>
-    res.send(await entriesByYearPage())
+    res.send(await db.knexReadonlyTransaction((trx) => entriesByYearPage(trx)))
 )
 
 mockSiteRouter.get(`/entries-by-year/:year`, async (req, res) =>
-    res.send(await entriesByYearPage(parseInt(req.params.year)))
+    res.send(
+        await db.knexReadonlyTransaction((trx) =>
+            entriesByYearPage(trx, parseInt(req.params.year))
+        )
+    )
 )
 
 mockSiteRouter.get(
@@ -127,11 +131,9 @@ mockSiteRouter.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
         (program) => program.slug === req.params.slug
     )
     if (explorerProgram) {
-        const explorerPage = await db
-            .knexInstance()
-            .transaction(async (knex) => {
-                return renderExplorerPage(explorerProgram, knex)
-            })
+        const explorerPage = await db.knexReadonlyTransaction(async (knex) => {
+            return renderExplorerPage(explorerProgram, knex)
+        })
 
         res.send(explorerPage)
     } else
@@ -148,7 +150,7 @@ mockSiteRouter.get("/*", async (req, res, next) => {
     const { migrationId, baseQueryStr } = explorerRedirect
     const { explorerSlug } = explorerUrlMigrationsById[migrationId]
     const program = await explorerAdminServer.getExplorerFromSlug(explorerSlug)
-    const explorerPage = await db.knexInstance().transaction(async (knex) => {
+    const explorerPage = await db.knexReadonlyTransaction(async (knex) => {
         return renderExplorerPage(program, knex, {
             explorerUrlMigrationId: migrationId,
             baseQueryStr,
@@ -171,18 +173,16 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
 
     // XXX add dev-prod parity for this
     res.set("Access-Control-Allow-Origin", "*")
-    const previewDataPageOrGrapherPage = await db
-        .knexInstance()
-        .transaction(async (knex) =>
-            renderPreviewDataPageOrGrapherPage(entity.config, knex)
-        )
+    const previewDataPageOrGrapherPage = await db.knexReadonlyTransaction(
+        async (knex) => renderPreviewDataPageOrGrapherPage(entity.config, knex)
+    )
     res.send(previewDataPageOrGrapherPage)
 })
 
 mockSiteRouter.get("/", async (req, res) => {
-    const frontPage = await db
-        .knexInstance()
-        .transaction(async (knex) => renderFrontPage(knex))
+    const frontPage = await db.knexReadonlyTransaction(async (knex) =>
+        renderFrontPage(knex)
+    )
     res.send(frontPage)
 })
 
@@ -246,25 +246,25 @@ mockSiteRouter.get("/datapage-preview/:id", async (req, res) => {
     const variableMetadata = await getVariableMetadata(variableId)
 
     res.send(
-        await renderDataPageV2(
-            {
-                variableId,
-                variableMetadata,
-                isPreviewing: true,
-                useIndicatorGrapherConfigs: true,
-            },
-            db.knexInstance()
+        await db.knexReadonlyTransaction((trx) =>
+            renderDataPageV2(
+                {
+                    variableId,
+                    variableMetadata,
+                    isPreviewing: true,
+                    useIndicatorGrapherConfigs: true,
+                },
+                trx
+            )
         )
     )
 })
 
 countryProfileSpecs.forEach((spec) =>
     mockSiteRouter.get(`/${spec.rootPath}/:countrySlug`, async (req, res) => {
-        const countryPage = await db
-            .knexInstance()
-            .transaction(async (knex) =>
-                countryProfileCountryPage(spec, req.params.countrySlug, knex)
-            )
+        const countryPage = await db.knexReadonlyTransaction(async (knex) =>
+            countryProfileCountryPage(spec, req.params.countrySlug, knex)
+        )
         res.send(countryPage)
     })
 )
@@ -274,20 +274,18 @@ mockSiteRouter.get("/search", async (req, res) =>
 )
 
 mockSiteRouter.get("/latest", async (req, res) => {
-    const latest = await db
-        .knexInstance()
-        .transaction(async (knex) => renderBlogByPageNum(1, knex))
+    const latest = await db.knexReadonlyTransaction(async (knex) =>
+        renderBlogByPageNum(1, knex)
+    )
     res.send(latest)
 })
 
 mockSiteRouter.get("/latest/page/:pageno", async (req, res) => {
     const pagenum = parseInt(req.params.pageno, 10)
     if (!isNaN(pagenum)) {
-        const latestPageNum = await db
-            .knexInstance()
-            .transaction(async (knex) =>
-                renderBlogByPageNum(isNaN(pagenum) ? 1 : pagenum, knex)
-            )
+        const latestPageNum = await db.knexReadonlyTransaction(async (knex) =>
+            renderBlogByPageNum(isNaN(pagenum) ? 1 : pagenum, knex)
+        )
         res.send(latestPageNum)
     } else throw new Error("invalid page number")
 })
@@ -337,7 +335,11 @@ mockSiteRouter.get("/countries", async (req, res) =>
 )
 
 mockSiteRouter.get("/country/:countrySlug", async (req, res) =>
-    res.send(await countryProfilePage(req.params.countrySlug, BAKED_BASE_URL))
+    res.send(
+        await db.knexReadonlyTransaction((trx) =>
+            countryProfilePage(trx, req.params.countrySlug, BAKED_BASE_URL)
+        )
+    )
 )
 
 mockSiteRouter.get("/feedback", async (req, res) =>
@@ -375,9 +377,9 @@ mockSiteRouter.get("/*", async (req, res) => {
     }
 
     try {
-        const page = await db
-            .knexInstance()
-            .transaction(async (knex) => renderPageBySlug(slug, knex))
+        const page = await db.knexReadonlyTransaction(async (knex) =>
+            renderPageBySlug(slug, knex)
+        )
         res.send(page)
     } catch (e) {
         console.error(e)

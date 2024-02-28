@@ -30,7 +30,6 @@ import {
     BAKED_BASE_URL,
     OPENAI_API_KEY,
 } from "../../settings/serverSettings.js"
-import { Knex } from "knex"
 
 // XXX hardcoded filtering to public parent tags
 export const PUBLIC_TAG_PARENT_IDS = [
@@ -258,21 +257,6 @@ WHERE c.config -> "$.isPublished" = true
             return []
         }
     }
-
-    static async all(): Promise<ChartRow[]> {
-        const rows = await db.knexTable(Chart.table)
-
-        for (const row of rows) {
-            row.config = JSON.parse(row.config)
-        }
-
-        return rows as ChartRow[] // This cast might be a lie?
-    }
-}
-
-interface ChartRow {
-    id: number
-    config: any
 }
 
 // TODO integrate this old logic with typeorm
@@ -384,7 +368,7 @@ export const getRelatedChartsForVariable = async (
 }
 
 export const getChartEmbedUrlsInPublishedWordpressPosts = async (
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<string[]> => {
     const chartSlugQueryString: Pick<
         DbPlainPostLink,

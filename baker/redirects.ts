@@ -4,9 +4,8 @@ import { isCanonicalInternalUrl } from "./formatting.js"
 import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
-import { Knex } from "knex"
 
-export const getRedirects = async (knex: Knex<any, any[]>) => {
+export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
     const staticRedirects = [
         // RSS feed
         "/feed /atom.xml 302",
@@ -92,14 +91,16 @@ export const getGrapherRedirectsMap = async (
     )
 }
 
-export const getWordpressRedirectsMap = async (knex: Knex<any, any[]>) => {
+export const getWordpressRedirectsMap = async (
+    knex: db.KnexReadonlyTransaction
+) => {
     const redirectsFromDb = await getRedirectsFromDb(knex)
 
     return new Map(redirectsFromDb.map((row) => [row.source, row.target]))
 }
 
 export const getGrapherAndWordpressRedirectsMap = memoize(
-    async (knex: Knex<any, any[]>): Promise<Map<string, string>> => {
+    async (knex: db.KnexReadonlyTransaction): Promise<Map<string, string>> => {
         // source: pathnames only (e.g. /transport)
         // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
 
@@ -161,7 +162,7 @@ export const resolveRedirectFromMap = async (
 
 export const resolveInternalRedirect = async (
     url: Url,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<Url> => {
     if (!isCanonicalInternalUrl(url)) return url
 

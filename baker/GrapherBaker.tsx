@@ -58,7 +58,6 @@ import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
-import { Knex } from "knex"
 import { knexRaw } from "../db/db.js"
 import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import pMap from "p-map"
@@ -66,7 +65,7 @@ import pMap from "p-map"
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
     isPreviewing: boolean,
-    knex: Knex<any, any[]>,
+    knex: db.KnexReadonlyTransaction,
     imageMetadataDictionary?: Record<string, Image>
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
@@ -92,7 +91,7 @@ const renderDatapageIfApplicable = async (
  */
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
-    knex: Knex<any, any[]>,
+    knex: db.KnexReadonlyTransaction,
     imageMetadataDictionary?: Record<string, Image>
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(
@@ -133,7 +132,7 @@ export async function renderDataPageV2(
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
     },
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ) {
     const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
         variableId,
@@ -271,7 +270,7 @@ export async function renderDataPageV2(
                 citation,
             }
         } else {
-            const post = await getPostEnrichedBySlug(slug)
+            const post = await getPostEnrichedBySlug(knex, slug)
             if (post) {
                 const authors = post.authors
                 const citation = getShortPageCitation(
@@ -318,7 +317,7 @@ export async function renderDataPageV2(
  */
 export const renderPreviewDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ) => {
     const datapage = await renderDatapageIfApplicable(grapher, true, knex)
     if (datapage) return datapage
@@ -328,13 +327,17 @@ export const renderPreviewDataPageOrGrapherPage = async (
 
 const renderGrapherPage = async (
     grapher: GrapherInterface,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
-    const post = postSlug ? await getPostEnrichedBySlug(postSlug) : undefined
-    const relatedCharts = post ? await getPostRelatedCharts(post.id) : undefined
+    const post = postSlug
+        ? await getPostEnrichedBySlug(knex, postSlug)
+        : undefined
+    const relatedCharts = post
+        ? await getPostRelatedCharts(knex, post.id)
+        : undefined
     const relatedArticles = grapher.id
-        ? await getRelatedArticles(grapher.id, knex)
+        ? await getRelatedArticles(knex, grapher.id)
         : undefined
 
     return renderToHtmlPage(
@@ -367,7 +370,7 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     bakedSiteDir: string,
     imageMetadataDictionary: Record<string, Image>,
     grapher: GrapherInterface,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ) => {
     const htmlPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     const isSameVersion = await chartIsSameVersion(htmlPath, grapher.version)
@@ -451,7 +454,7 @@ export interface BakeSingleGrapherChartArguments {
 
 export const bakeSingleGrapherChart = async (
     args: BakeSingleGrapherChartArguments,
-    knex: Knex<any, any[]> = db.knexInstance()
+    knex: db.KnexReadonlyTransaction
 ) => {
     const grapher: GrapherInterface = JSON.parse(args.config)
     grapher.id = args.id
@@ -473,7 +476,7 @@ export const bakeSingleGrapherChart = async (
 }
 
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
-    async (bakedSiteDir: string, knex: Knex<any, any[]>) => {
+    async (bakedSiteDir: string, knex: db.KnexReadonlyTransaction) => {
         const chartsToBake: { id: number; config: string; slug: string }[] =
             await knexRaw(
                 knex,
@@ -516,7 +519,9 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         await pMap(
             jobs,
             async (job) => {
-                await bakeSingleGrapherChart(job, knex)
+                db.knexReadonlyTransaction((trx) =>
+                    bakeSingleGrapherChart(job, trx)
+                )
                 progressBar.tick({ name: `slug ${job.slug}` })
             },
             { concurrency: 10 }

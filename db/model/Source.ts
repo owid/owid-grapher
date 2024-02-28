@@ -1,11 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm"
-import { Knex } from "knex"
 import {
     DbEnrichedSource,
     DbRawSource,
     SourcesTableName,
     parseSourcesRow,
 } from "@ourworldindata/types"
+import { KnexReadonlyTransaction } from "../db.js"
 
 @Entity("sources")
 export class Source extends BaseEntity {
@@ -16,7 +16,7 @@ export class Source extends BaseEntity {
 }
 
 export async function getSourceById(
-    knex: Knex<any, any[]>,
+    knex: KnexReadonlyTransaction,
     sourceId: number
 ): Promise<DbEnrichedSource | undefined> {
     const rawSource: DbRawSource | undefined = await knex<DbRawSource>(
@@ -34,7 +34,7 @@ export async function getSourceById(
 }
 
 export async function getSourcesForDataset(
-    knex: Knex<any, any[]>,
+    knex: KnexReadonlyTransaction,
     datasetId: number
 ): Promise<DbEnrichedSource[]> {
     const rawSources: DbRawSource[] = await knex<DbRawSource>(

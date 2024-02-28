@@ -4,7 +4,7 @@ import * as redirects from "./redirects.js"
 import { resolveInternalRedirect } from "./redirects.js"
 
 import { jest } from "@jest/globals"
-import { Knex } from "knex"
+import { KnexReadonlyTransaction } from "../db/db.js"
 
 type ArrayForMap = [string, string][]
 
@@ -16,8 +16,6 @@ const getGrapherAndWordpressRedirectsMap = jest.spyOn(
 const getFormattedUrl = (url: string): Url => {
     return Url.fromURL(formatUrls(url))
 }
-
-const knex: Knex = {} as Knex
 
 it("resolves pathnames", async () => {
     const src = "/hello"
@@ -31,9 +29,12 @@ it("resolves pathnames", async () => {
         Promise.resolve(new Map(redirectsArr))
     )
 
-    expect(await resolveInternalRedirect(urlToResolve, knex)).toEqual(
-        resolvedUrl
-    )
+    expect(
+        await resolveInternalRedirect(
+            urlToResolve,
+            {} as KnexReadonlyTransaction
+        )
+    ).toEqual(resolvedUrl)
 })
 
 it("does not support query string in redirects map", async () => {
@@ -47,9 +48,12 @@ it("does not support query string in redirects map", async () => {
         Promise.resolve(new Map(redirectsArr))
     )
 
-    expect(await resolveInternalRedirect(urlToResolve, knex)).toEqual(
-        urlToResolve
-    )
+    expect(
+        await resolveInternalRedirect(
+            urlToResolve,
+            {} as KnexReadonlyTransaction
+        )
+    ).toEqual(urlToResolve)
 })
 
 it("passes query string params when resolving", async () => {
@@ -69,9 +73,12 @@ it("passes query string params when resolving", async () => {
         Promise.resolve(new Map(redirectsArr))
     )
 
-    expect(await resolveInternalRedirect(urlToResolve, knex)).toEqual(
-        resolvedUrl
-    )
+    expect(
+        await resolveInternalRedirect(
+            urlToResolve,
+            {} as KnexReadonlyTransaction
+        )
+    ).toEqual(resolvedUrl)
 })
 
 it("does not pass query string params when some present on the target", async () => {
@@ -88,9 +95,12 @@ it("does not pass query string params when some present on the target", async ()
         Promise.resolve(new Map(redirectsArr))
     )
 
-    expect(await resolveInternalRedirect(urlToResolve, knex)).toEqual(
-        resolvedUrl
-    )
+    expect(
+        await resolveInternalRedirect(
+            urlToResolve,
+            {} as KnexReadonlyTransaction
+        )
+    ).toEqual(resolvedUrl)
 })
 
 it("resolves self-redirects", async () => {
@@ -104,9 +114,12 @@ it("resolves self-redirects", async () => {
         Promise.resolve(new Map(redirectsArr))
     )
 
-    expect(await resolveInternalRedirect(urlToResolve, knex)).toEqual(
-        urlToResolve
-    )
+    expect(
+        await resolveInternalRedirect(
+            urlToResolve,
+            {} as KnexReadonlyTransaction
+        )
+    ).toEqual(urlToResolve)
 })
 
 it("does not support query params in self-redirects", async () => {
@@ -123,11 +136,17 @@ it("does not support query params in self-redirects", async () => {
         Promise.resolve(new Map(redirectsArr))
     )
 
-    expect(await resolveInternalRedirect(urlToResolve, knex)).toEqual(
-        urlToResolve
-    )
     expect(
-        await resolveInternalRedirect(urlToResolveWithQueryParam, knex)
+        await resolveInternalRedirect(
+            urlToResolve,
+            {} as KnexReadonlyTransaction
+        )
+    ).toEqual(urlToResolve)
+    expect(
+        await resolveInternalRedirect(
+            urlToResolveWithQueryParam,
+            {} as KnexReadonlyTransaction
+        )
     ).toEqual(urlToResolveWithQueryParam)
 })
 
@@ -147,7 +166,10 @@ it("resolves circular redirects", async () => {
         Promise.resolve(new Map(redirectsArr))
     )
 
-    expect(await resolveInternalRedirect(urlToResolve, knex)).toEqual(
-        urlToResolve
-    )
+    expect(
+        await resolveInternalRedirect(
+            urlToResolve,
+            {} as KnexReadonlyTransaction
+        )
+    ).toEqual(urlToResolve)
 })

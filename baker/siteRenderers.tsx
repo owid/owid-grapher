@@ -58,7 +58,7 @@ import {
 import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
-import { queryMysql, knexTable, getHomepageId } from "../db/db.js"
+import { queryMysql, getHomepageId, KnexReadonlyTransaction } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import {
@@ -90,7 +90,6 @@ import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 import { SiteNavigationStatic } from "../site/SiteNavigation.js"
-import { Knex } from "knex"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
@@ -190,17 +189,17 @@ export const renderGdoc = (gdoc: OwidGdoc, isPreviewing: boolean = false) => {
 
 export const renderPageBySlug = async (
     slug: string,
-    knex: Knex<any, any[]>
+    knex: KnexReadonlyTransaction
 ) => {
-    const post = await getFullPostBySlugFromSnapshot(slug)
+    const post = await getFullPostBySlugFromSnapshot(knex, slug)
     return renderPost(post, knex)
 }
 
 export const renderPreview = async (
     postId: number,
-    knex: Knex<any, any[]>
+    knex: KnexReadonlyTransaction
 ): Promise<string> => {
-    const postApi = await getFullPostByIdFromSnapshot(postId)
+    const postApi = await getFullPostByIdFromSnapshot(knex, postId)
     return renderPost(postApi, knex)
 }
 
@@ -210,7 +209,7 @@ export const renderMenuJson = async () => {
 
 export const renderPost = async (
     post: FullPost,
-    knex: Knex<any, any[]>,
+    knex: KnexReadonlyTransaction,
     baseUrl: string = BAKED_BASE_URL,
     grapherExports?: GrapherExports
 ) => {
@@ -238,7 +237,7 @@ export const renderPost = async (
         grapherExports
     )
 
-    const pageOverrides = await getPageOverrides(post, formattingOptions)
+    const pageOverrides = await getPageOverrides(knex, post, formattingOptions)
     const citationStatus =
         isPostSlugCitable(post.slug) || isPageOverridesCitable(pageOverrides)
 
@@ -253,7 +252,7 @@ export const renderPost = async (
     )
 }
 
-export const renderFrontPage = async (knex: Knex<any, any[]>) => {
+export const renderFrontPage = async (knex: KnexReadonlyTransaction) => {
     const gdocHomepageId = await getHomepageId(knex)
 
     if (gdocHomepageId) {
@@ -311,7 +310,7 @@ export const renderDataInsightsIndexPage = (
 
 export const renderBlogByPageNum = async (
     pageNum: number,
-    knex: Knex<any, any[]>
+    knex: KnexReadonlyTransaction
 ) => {
     const allPosts = await getBlogIndex(knex)
 
@@ -337,7 +336,7 @@ export const renderSearchPage = () =>
 export const renderNotFoundPage = () =>
     renderToHtmlPage(<NotFoundPage baseUrl={BAKED_BASE_URL} />)
 
-export async function makeAtomFeed(knex: Knex<any, any[]>) {
+export async function makeAtomFeed(knex: KnexReadonlyTransaction) {
     const posts = (await getBlogIndex(knex)).slice(0, 10)
     return makeAtomFeedFromPosts(posts)
 }
@@ -345,7 +344,7 @@ export async function makeAtomFeed(knex: Knex<any, any[]>) {
 // We don't want to include topic pages in the atom feed that is being consumed
 // by Mailchimp for sending the "immediate update" newsletter. Instead topic
 // pages announcements are sent out manually.
-export async function makeAtomFeedNoTopicPages(knex: Knex<any, any[]>) {
+export async function makeAtomFeedNoTopicPages(knex: KnexReadonlyTransaction) {
     const posts = (await getBlogIndex(knex))
         .filter((post: IndexPost) => post.type !== OwidGdocType.TopicPage)
         .slice(0, 10)
@@ -393,8 +392,12 @@ ${posts
 }
 
 // These pages exist largely just for Google Scholar
-export const entriesByYearPage = async (year?: number) => {
-    const entries = (await knexTable(postsTable)
+export const entriesByYearPage = async (
+    trx: KnexReadonlyTransaction,
+    year?: number
+) => {
+    const entries = (await trx
+        .table(postsTable)
         .where({ status: "publish" })
         .whereNot({ type: "wp_block" })
         .join("post_tags", { "post_tags.post_id": "posts.id" })
@@ -425,11 +428,12 @@ export const feedbackPage = () =>
 const getCountryProfilePost = memoize(
     async (
         profileSpec: CountryProfileSpec,
-        knex: Knex<any, any[]>,
+        knex: KnexReadonlyTransaction,
         grapherExports?: GrapherExports
     ): Promise<[FormattedPost, FormattingOptions]> => {
         // Get formatted content from generic covid country profile page.
         const genericCountryProfilePost = await getFullPostBySlugFromSnapshot(
+            knex,
             profileSpec.genericProfileSlug
         )
 
@@ -449,15 +453,15 @@ const getCountryProfilePost = memoize(
 
 // todo: we used to flush cache of this thing.
 const getCountryProfileLandingPost = memoize(
-    async (profileSpec: CountryProfileSpec) => {
-        return getFullPostBySlugFromSnapshot(profileSpec.landingPageSlug)
+    async (knex: KnexReadonlyTransaction, profileSpec: CountryProfileSpec) => {
+        return getFullPostBySlugFromSnapshot(knex, profileSpec.landingPageSlug)
     }
 )
 
 export const renderCountryProfile = async (
     profileSpec: CountryProfileSpec,
     country: Country,
-    knex: Knex<any, any[]>,
+    knex: KnexReadonlyTransaction,
     grapherExports?: GrapherExports
 ) => {
     const [formatted, formattingOptions] = await getCountryProfilePost(
@@ -468,7 +472,7 @@ export const renderCountryProfile = async (
 
     const formattedCountryProfile = formatCountryProfile(formatted, country)
 
-    const landing = await getCountryProfileLandingPost(profileSpec)
+    const landing = await getCountryProfileLandingPost(knex, profileSpec)
 
     const overrides: PageOverrides = {
         pageTitle: `${country.name}: ${profileSpec.pageTitle} Country Profile`,
@@ -494,7 +498,7 @@ export const renderCountryProfile = async (
 export const countryProfileCountryPage = async (
     profileSpec: CountryProfileSpec,
     countrySlug: string,
-    knex: Knex<any, any[]>
+    knex: KnexReadonlyTransaction
 ) => {
     const country = getCountryBySlug(countrySlug)
     if (!country) throw new JsonError(`No such country ${countrySlug}`, 404)
@@ -506,13 +510,14 @@ export const countryProfileCountryPage = async (
 export const flushCache = () => getCountryProfilePost.cache.clear?.()
 
 const renderPostThumbnailBySlug = async (
+    knex: KnexReadonlyTransaction,
     slug: string | undefined
 ): Promise<string | undefined> => {
     if (!slug) return
 
     let post
     try {
-        post = await getFullPostBySlugFromSnapshot(slug)
+        post = await getFullPostBySlugFromSnapshot(knex, slug)
     } catch (err) {
         // if no post is found, then we return early instead of throwing
     }
@@ -526,7 +531,7 @@ const renderPostThumbnailBySlug = async (
 export const renderProminentLinks = async (
     $: CheerioStatic,
     containerPostId: number,
-    knex: Knex<any, any[]>
+    knex: KnexReadonlyTransaction
 ) => {
     const blocks = $("block[type='prominent-link']").toArray()
     await Promise.all(
@@ -558,6 +563,7 @@ export const renderProminentLinks = async (
                         : resolvedUrl.slug &&
                           (
                               await getFullPostBySlugFromSnapshot(
+                                  knex,
                                   resolvedUrl.slug
                               )
                           ).title)
@@ -585,7 +591,7 @@ export const renderProminentLinks = async (
                     ? renderGrapherThumbnailByResolvedChartSlug(
                           resolvedUrl.slug
                       )
-                    : await renderPostThumbnailBySlug(resolvedUrl.slug))
+                    : await renderPostThumbnailBySlug(knex, resolvedUrl.slug))
 
             const rendered = ReactDOMServer.renderToStaticMarkup(
                 <div className="block-wrapper">
@@ -607,7 +613,7 @@ export const renderProminentLinks = async (
 export const renderReusableBlock = async (
     html: string | undefined,
     containerPostId: number,
-    knex: Knex<any, any[]>
+    knex: KnexReadonlyTransaction
 ): Promise<string | undefined> => {
     if (!html) return
 
@@ -619,7 +625,7 @@ export const renderReusableBlock = async (
 
 export const renderExplorerPage = async (
     program: ExplorerProgram,
-    knex: Knex<any, any[]>,
+    knex: KnexReadonlyTransaction,
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
 ) => {
     const { requiredGrapherIds, requiredVariableIds } = program.decisionMatrix
@@ -672,7 +678,7 @@ export const renderExplorerPage = async (
 
     const wpContent = program.wpBlockId
         ? await renderReusableBlock(
-              await getBlockContentFromSnapshot(program.wpBlockId),
+              await getBlockContentFromSnapshot(knex, program.wpBlockId),
               program.wpBlockId,
               knex
           )
