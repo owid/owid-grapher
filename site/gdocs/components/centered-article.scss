@@ -1059,6 +1059,14 @@ div.raw-html-table__container {
         }
     }
 
+    .homepage-search__all-topics-link {
+        // We hide the all topics section on mobile, so we don't want users to be able to click this
+        @include sm-only {
+            pointer-events: none;
+            text-decoration: none;
+        }
+    }
+
     .homepage-search__open-source-notice {
         &:before {
             content: " — ";
@@ -1070,6 +1078,11 @@ div.raw-html-table__container {
                 content: none;
             }
         }
+    }
+
+    #autocomplete {
+        height: 56px;
+        background-color: #fff;
     }
 
     .aa-DetachedSearchButton {

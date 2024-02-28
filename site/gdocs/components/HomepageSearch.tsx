@@ -10,7 +10,12 @@ export function HomepageSearch(props: { className?: string }) {
         chartCount && topicCount ? (
             <>
                 <a href="/charts">{chartCount} charts</a> across{" "}
-                <a href="#all-topics">{topicCount} topics</a>
+                <a
+                    href="#all-topics"
+                    className="homepage-search__all-topics-link"
+                >
+                    {topicCount} topics
+                </a>
                 <span className="homepage-search__open-source-notice">
                     All free: open access and open source
                 </span>
