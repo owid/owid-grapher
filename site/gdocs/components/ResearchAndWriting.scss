@@ -22,6 +22,8 @@
 }
 
 .research-and-writing-row__link-container {
+    row-gap: 32px;
+
     @include sm-only {
         display: flex;
         overflow-x: auto;
