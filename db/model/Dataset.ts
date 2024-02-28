@@ -69,10 +69,10 @@ export async function writeDatasetCSV(
     // get variables of a dataset
     const variableIds = (
         await db.knexRaw<{ variableId: number }>(
+            knex,
             `SELECT id as variableId
             FROM variables v
             WHERE datasetId=?`,
-            knex,
             [datasetId]
         )
     ).map((row) => row.variableId)
@@ -99,13 +99,14 @@ export async function setTagsForDataset(
 ): Promise<void> {
     await knex.transaction(async (trx: Knex<any, any[]>) => {
         const tagRows = tagIds.map((tagId) => [tagId, datasetId])
-        await db.knexRaw(`DELETE FROM dataset_tags WHERE datasetId=?`, trx, [
+        await db.knexRaw(trx, `DELETE FROM dataset_tags WHERE datasetId=?`, [
             datasetId,
         ])
         if (tagRows.length)
             await db.knexRaw(
-                `INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`,
                 trx,
+                `INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`,
+
                 [tagRows]
             )
     })
@@ -122,8 +123,8 @@ export async function datasetToDatapackage(
         .knexTable(VariablesTableName)
         .where({ datasetId })) as DbRawVariable[]
     const tags = await db.knexRaw<Pick<DbPlainTag, "id" | "name">>(
-        `SELECT t.id, t.name FROM dataset_tags dt JOIN tags t ON t.id=dt.tagId WHERE dt.datasetId=?`,
         knex,
+        `SELECT t.id, t.name FROM dataset_tags dt JOIN tags t ON t.id=dt.tagId WHERE dt.datasetId=?`,
         [datasetId]
     )
 

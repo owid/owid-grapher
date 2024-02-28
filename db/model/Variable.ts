@@ -143,8 +143,8 @@ export async function getMergedGrapherConfigForVariable(
         DbRawVariable,
         "grapherConfigAdmin" | "grapherConfigETL"
     >[] = await knexRaw(
-        `SELECT grapherConfigAdmin, grapherConfigETL FROM variables WHERE id = ?`,
         knex,
+        `SELECT grapherConfigAdmin, grapherConfigETL FROM variables WHERE id = ?`,
         [variableId]
     )
     if (!rows.length) return
@@ -255,11 +255,11 @@ export const getDataValue = async (
 
     const unit = (
         await knexRawFirst<Pick<DbRawVariable, "unit">>(
+            knex,
             `-- sql
         SELECT unit FROM variables
         WHERE id = ?
         `,
-            knex,
             [variableId]
         )
     )?.unit
@@ -293,12 +293,12 @@ export const getOwidChartDimensionConfigForVariable = async (
     knex: Knex<any, any[]>
 ): Promise<OwidChartDimensionInterface | undefined> => {
     const row = await db.knexRawFirst<{ dimensions: string }>(
+        knex,
         `
         SELECT config->"$.dimensions" AS dimensions
         FROM charts
         WHERE id = ?
         `,
-        knex,
         [chartId]
     )
     if (!row?.dimensions) return
@@ -314,8 +314,8 @@ export const getOwidVariableDisplayConfig = async (
     knex: Knex<any, any[]>
 ): Promise<OwidVariableDisplayConfigInterface | undefined> => {
     const row = await knexRawFirst<Pick<DbRawVariable, "display">>(
-        `SELECT display FROM variables WHERE id = ?`,
         knex,
+        `SELECT display FROM variables WHERE id = ?`,
         [variableId]
     )
     if (!row?.display) return
@@ -516,7 +516,7 @@ export const readSQLasDF = async (
     params: any[],
     knex: Knex<any, any[]>
 ): Promise<pl.DataFrame> => {
-    return createDataFrame(await db.knexRaw(sql, knex, params))
+    return createDataFrame(await db.knexRaw(knex, sql, params))
 }
 
 export async function getVariableOfDatapageIfApplicable(
@@ -729,7 +729,7 @@ const queryRegexSafe = async (
     knex: Knex<any, any>
 ): Promise<any> => {
     // catch regular expression failures in MySQL and return empty result
-    return await knexRaw(query, knex).catch((err) => {
+    return await knexRaw(knex, query).catch((err) => {
         if (err.message.includes("regular expression")) {
             return []
         }

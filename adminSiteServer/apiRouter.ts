@@ -481,8 +481,8 @@ apiRouter.get(
         if (!slug) return {}
 
         const pageviewsByUrl = await db.knexRawFirst(
-            "select * from ?? where url = ?",
             db.knexInstance(),
+            "select * from ?? where url = ?",
             [
                 AnalyticsPageviewsTableName,
                 `https://ourworldindata.org/grapher/${slug}`,
@@ -1593,6 +1593,7 @@ apiRouter.get("/datasets.json", async (req) => {
     return db.knexInstance().transaction(
         async (trx) => {
             const datasets = await db.knexRaw<Record<string, any>>(
+                trx,
                 `
         WITH variable_counts AS (
             SELECT
@@ -1622,19 +1623,18 @@ apiRouter.get("/datasets.json", async (req) => {
         JOIN users mu ON mu.id=ad.metadataEditedByUserId
         JOIN datasets d ON d.id=ad.id
         ORDER BY ad.dataEditedAt DESC
-    `,
-                trx
+    `
             )
 
             const tags = await db.knexRaw<
                 Pick<DbPlainTag, "id" | "name"> &
                     Pick<DbPlainDatasetTag, "datasetId">
             >(
+                trx,
                 `
         SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
         JOIN tags t ON dt.tagId = t.id
-    `,
-                trx
+    `
             )
             const tagsByDatasetId = lodash.groupBy(tags, (t) => t.datasetId)
             for (const dataset of datasets) {
@@ -1657,6 +1657,7 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
     return db.knexInstance().transaction(
         async (trx) => {
             const dataset = await db.knexRawFirst<Record<string, any>>(
+                trx,
                 `
         SELECT d.id,
             d.namespace,
@@ -1680,7 +1681,6 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
         JOIN users mu ON mu.id=d.metadataEditedByUserId
         WHERE d.id = ?
     `,
-                trx,
                 [datasetId]
             )
 
@@ -1688,8 +1688,8 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
                 throw new JsonError(`No dataset by id '${datasetId}'`, 404)
 
             const zipFile = await db.knexRawFirst(
-                `SELECT filename FROM dataset_files WHERE datasetId=?`,
                 trx,
+                `SELECT filename FROM dataset_files WHERE datasetId=?`,
                 [datasetId]
             )
             if (zipFile) dataset.zipFile = zipFile
@@ -1698,12 +1698,12 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
                 DbRawVariable,
                 "id" | "name" | "description" | "display" | "catalogPath"
             >[] = await db.knexRaw(
+                trx,
                 `
         SELECT v.id, v.name, v.description, v.display, v.catalogPath
         FROM variables AS v
         WHERE v.datasetId = ?
     `,
-                trx,
                 [datasetId]
             )
 
@@ -1715,6 +1715,7 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 
             // add all origins
             const origins: DbRawOrigin[] = await db.knexRaw(
+                trx,
                 `
         select distinct
             o.*
@@ -1723,7 +1724,6 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
         join variables as v on ov.variableId = v.id
         where v.datasetId = ?
     `,
-                trx,
                 [datasetId]
             )
 
@@ -1732,13 +1732,13 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
             dataset.origins = parsedOrigins
 
             const sources = await db.knexRaw(
+                trx,
                 `
         SELECT s.id, s.name, s.description
         FROM sources AS s
         WHERE s.datasetId = ?
         ORDER BY s.id ASC
     `,
-                trx,
                 [datasetId]
             )
 
@@ -1752,6 +1752,7 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
             })
 
             const charts = await db.knexRaw(
+                trx,
                 `
         SELECT ${OldChart.listFields}
         FROM charts
@@ -1762,7 +1763,6 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
         WHERE v.datasetId = ?
         GROUP BY charts.id
     `,
-                trx,
                 [datasetId]
             )
 
@@ -1771,25 +1771,25 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
             await Chart.assignTagsForCharts(charts as any)
 
             const tags = await db.knexRaw(
+                trx,
                 `
         SELECT t.id, t.name
         FROM tags t
         JOIN dataset_tags dt ON dt.tagId = t.id
         WHERE dt.datasetId = ?
     `,
-                trx,
                 [datasetId]
             )
             dataset.tags = tags
 
             const availableTags = await db.knexRaw(
+                trx,
                 `
         SELECT t.id, t.name, p.name AS parentName
         FROM tags AS t
         JOIN tags AS p ON t.parentId=p.id
         WHERE p.isBulkImport IS FALSE
-    `,
-                trx
+    `
             )
             dataset.availableTags = availableTags
 
@@ -1810,6 +1810,7 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
     await knex.transaction(async (trx) => {
         const newDataset = (req.body as { dataset: any }).dataset
         await db.knexRaw(
+            trx,
             `
             UPDATE datasets
             SET
@@ -1818,7 +1819,6 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
                 metadataEditedByUserId=?
             WHERE id=?
             `,
-            trx,
             [
                 newDataset.nonRedistributable,
                 new Date(),
@@ -1828,13 +1828,13 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
         )
 
         const tagRows = newDataset.tags.map((tag: any) => [tag.id, datasetId])
-        await db.knexRaw(`DELETE FROM dataset_tags WHERE datasetId=?`, trx, [
+        await db.knexRaw(trx, `DELETE FROM dataset_tags WHERE datasetId=?`, [
             datasetId,
         ])
         if (tagRows.length)
             await db.knexRaw(
-                `INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`,
                 trx,
+                `INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`,
                 [tagRows]
             )
 
@@ -1862,8 +1862,8 @@ apiRouter.post(
         if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
         await knex.transaction(async (trx) => {
             await db.knexRaw(
-                `UPDATE datasets SET isArchived = 1 WHERE id=?`,
                 trx,
+                `UPDATE datasets SET isArchived = 1 WHERE id=?`,
                 [datasetId]
             )
         })
@@ -1893,22 +1893,22 @@ apiRouter.delete(
 
         await knex.transaction(async (trx) => {
             await db.knexRaw(
-                `DELETE d FROM country_latest_data AS d JOIN variables AS v ON d.variable_id=v.id WHERE v.datasetId=?`,
                 trx,
+                `DELETE d FROM country_latest_data AS d JOIN variables AS v ON d.variable_id=v.id WHERE v.datasetId=?`,
                 [datasetId]
             )
             await db.knexRaw(
-                `DELETE FROM dataset_files WHERE datasetId=?`,
                 trx,
+                `DELETE FROM dataset_files WHERE datasetId=?`,
                 [datasetId]
             )
-            await db.knexRaw(`DELETE FROM variables WHERE datasetId=?`, trx, [
+            await db.knexRaw(trx, `DELETE FROM variables WHERE datasetId=?`, [
                 datasetId,
             ])
-            await db.knexRaw(`DELETE FROM sources WHERE datasetId=?`, trx, [
+            await db.knexRaw(trx, `DELETE FROM sources WHERE datasetId=?`, [
                 datasetId,
             ])
-            await db.knexRaw(`DELETE FROM datasets WHERE id=?`, trx, [
+            await db.knexRaw(trx, `DELETE FROM datasets WHERE id=?`, [
                 datasetId,
             ])
         })
@@ -1939,6 +1939,7 @@ apiRouter.post(
         if (req.body.republish) {
             await knex.transaction(async (trx) => {
                 await db.knexRaw(
+                    trx,
                     `
             UPDATE charts
             SET config = JSON_SET(config, "$.version", config->"$.version" + 1)
@@ -1949,7 +1950,6 @@ apiRouter.post(
                 WHERE variables.datasetId = ?
             )
             `,
-                    trx,
                     [datasetId]
                 )
             })
@@ -2344,19 +2344,19 @@ apiRouter.get("/sources/:sourceId.json", async (req: Request) => {
     return db.knexInstance().transaction(
         async (trx) => {
             const source = await db.knexRawFirst<Record<string, any>>(
+                trx,
                 `
         SELECT s.id, s.name, s.description, s.createdAt, s.updatedAt, d.namespace
         FROM sources AS s
         JOIN active_datasets AS d ON d.id=s.datasetId
         WHERE s.id=?`,
-                trx,
                 [sourceId]
             )
             if (!source)
                 throw new JsonError(`No source by id '${sourceId}'`, 404)
             source.variables = await db.knexRaw(
-                `SELECT id, name, updatedAt FROM variables WHERE variables.sourceId=?`,
                 trx,
+                `SELECT id, name, updatedAt FROM variables WHERE variables.sourceId=?`,
                 [sourceId]
             )
 

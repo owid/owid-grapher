@@ -390,6 +390,7 @@ export const getChartEmbedUrlsInPublishedWordpressPosts = async (
         DbPlainPostLink,
         "target" | "queryString"
     >[] = await db.knexRaw(
+        knex,
         `
             SELECT
                 pl.target,
@@ -427,8 +428,7 @@ export const getChartEmbedUrlsInPublishedWordpressPosts = async (
         --      AND pgl.componentType = "chart"
         --      AND pg.content ->> '$.type' <> 'fragment'
         --      AND pg.published = 1
-    `,
-        knex
+    `
     )
 
     return chartSlugQueryString.map((row) => {

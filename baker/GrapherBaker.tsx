@@ -476,13 +476,13 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
     async (bakedSiteDir: string, knex: Knex<any, any[]>) => {
         const chartsToBake: { id: number; config: string; slug: string }[] =
             await knexRaw(
+                knex,
                 `
                 SELECT
                     id, config, config->>'$.slug' as slug
                 FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
                 ORDER BY JSON_EXTRACT(config, "$.slug") ASC
-                `,
-                knex
+                `
             )
 
         const newSlugs = chartsToBake.map((row) => row.slug)

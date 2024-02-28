@@ -32,8 +32,8 @@ export async function getAnalyticsPageviewsByUrlObj(
     [url: string]: DbPlainAnalyticsPageview
 }> {
     const pageviews = await db.knexRaw<DbPlainAnalyticsPageview>(
-        "SELECT * FROM ??",
         knex,
+        "SELECT * FROM ??",
         [AnalyticsPageviewsTableName]
     )
 

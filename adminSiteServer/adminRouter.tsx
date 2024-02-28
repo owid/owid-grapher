@@ -142,8 +142,8 @@ adminRouter.get("/datasets/:datasetId.csv", async (req, res) => {
     await db.knexInstance().transaction(async (t) => {
         const datasetName = (
             await db.knexRawFirst<Pick<DbPlainDataset, "name">>(
-                `SELECT name FROM datasets WHERE id=?`,
                 t,
+                `SELECT name FROM datasets WHERE id=?`,
                 [datasetId]
             )
         )?.name
@@ -170,7 +170,7 @@ adminRouter.get("/datasets/:datasetId/downloadZip", async (req, res) => {
 
     const file = await db.knexRawFirst<
         Pick<DbPlainDatasetFile, "filename" | "file">
-    >(`SELECT filename, file FROM dataset_files WHERE datasetId=?`, knex, [
+    >(knex, `SELECT filename, file FROM dataset_files WHERE datasetId=?`, [
         datasetId,
     ])
     res.send(file?.file)
