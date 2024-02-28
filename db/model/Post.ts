@@ -165,6 +165,7 @@ export const getPostsFromSnapshots = async (
     filterFunc?: FilterFnPostRestApi
 ): Promise<PostRestApi[]> => {
     const rawPosts: Pick<DbRawPost, "wpApiSnapshot">[] = await db.knexRaw(
+        knex,
         `
                 SELECT wpApiSnapshot FROM ${postsTable}
                 WHERE wpApiSnapshot IS NOT NULL
@@ -172,7 +173,6 @@ export const getPostsFromSnapshots = async (
                 AND type IN (?)
                 ORDER BY wpApiSnapshot->>'$.date' DESC;
             `,
-        knex,
         [postTypes]
     )
 
@@ -306,6 +306,7 @@ export const getWordpressPostReferencesByChartId = async (
     knex: Knex<any, any[]>
 ): Promise<PostReference[]> => {
     const relatedWordpressPosts: PostReference[] = await db.knexRaw(
+        knex,
         `
             SELECT DISTINCT
                 p.title,
@@ -342,7 +343,6 @@ export const getWordpressPostReferencesByChartId = async (
             ORDER BY
                 p.title ASC
         `,
-        knex,
         [chartId]
     )
 
@@ -354,6 +354,7 @@ export const getGdocsPostReferencesByChartId = async (
     knex: Knex<any, any[]>
 ): Promise<PostReference[]> => {
     const relatedGdocsPosts: PostReference[] = await db.knexRaw(
+        knex,
         `
             SELECT DISTINCT
                 pg.content ->> '$.title' AS title,
@@ -382,7 +383,6 @@ export const getGdocsPostReferencesByChartId = async (
             ORDER BY
                 pg.content ->> '$.title' ASC
         `,
-        knex,
         [chartId]
     )
 
@@ -558,6 +558,7 @@ export const getLatestWorkByAuthor = async (
     author: string
 ): Promise<DbEnrichedLatestWork[]> => {
     const rawLatestWorkLinks: DbRawLatestWork[] = await db.knexRaw(
+        knex,
         `
         SELECT
             pg.id,
@@ -574,7 +575,6 @@ export const getLatestWorkByAuthor = async (
             AND pg.published = TRUE
             AND pg.content->>'$.type' = "${OwidGdocType.Article}"
         `,
-        knex,
         [`%${author}%`]
     )
 

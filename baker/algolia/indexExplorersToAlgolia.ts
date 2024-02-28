@@ -123,20 +123,21 @@ const getExplorerRecords = async (
     // Fetch info about all charts used in explorers, as linked by the explorer_charts table
     const graphersUsedInExplorers = await db
         .knexRaw<DbRawChart>(
+            knex,
             `
         SELECT * FROM charts
         INNER JOIN (
             SELECT DISTINCT chartId AS id FROM explorer_charts
         ) AS ec
         USING (id)
-        `,
-            knex
+        `
         )
         .then((charts) => charts.map((c) => parseChartsRow(c)))
         .then((charts) => keyBy(charts, "id"))
 
     const explorerRecords = await db
         .knexRaw<Omit<ExplorerEntry, "views_7d">>(
+            knex,
             `
     SELECT slug,
         COALESCE(config->>"$.explorerSubtitle", "null")     AS subtitle,
@@ -144,8 +145,7 @@ const getExplorerRecords = async (
         COALESCE(config->>"$.blocks", "null")               AS blocks
     FROM explorers
     WHERE isPublished = true
-    `,
-            knex
+    `
         )
         .then((results) =>
             results.flatMap(({ slug, title, subtitle, blocks }) => {

@@ -34,14 +34,14 @@ export class GdocHomepage
     _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
         const otherPublishedHomepages = await db.knexRaw<{ id: string }>(
+            db.knexInstance(),
             `
-            SELECT 
+            SELECT
                 id
             FROM posts_gdocs
             WHERE content->>"$.type" = "${OwidGdocType.Homepage}"
             AND published = TRUE
             AND id != ?`,
-            db.knexInstance(),
             [this.id]
         )
         if (otherPublishedHomepages.length > 0) {
