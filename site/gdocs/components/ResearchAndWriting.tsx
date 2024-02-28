@@ -74,7 +74,12 @@ function ResearchAndWritingLinkContainer(
                 ) : null}
                 {heading}
                 {subtitle && !shouldHideSubtitle ? (
-                    <p className="research-and-writing-link__description body-1-regular">
+                    <p
+                        className={cx(
+                            "research-and-writing-link__description",
+                            isSmall ? "body-3-medium" : "body-2-regular"
+                        )}
+                    >
                         {subtitle}
                     </p>
                 ) : null}
@@ -112,6 +117,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                         <ResearchAndWritingLinkContainer
                             key={i}
                             className="span-cols-3 span-md-cols-6 span-sm-cols-12"
+                            isSmall
                             {...link}
                         />
                     ))}
