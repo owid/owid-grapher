@@ -710,13 +710,20 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         this.linkedDocuments = keyBy(linkedDocuments, "id")
     }
 
-    async loadImageMetadata(): Promise<void> {
-        if (this.linkedImageFilenames.length) {
-            await imageStore.fetchImageMetadata(this.linkedImageFilenames)
-            const images = await imageStore
-                .syncImagesToS3()
-                .then(excludeUndefined)
-            this.imageMetadata = keyBy(images, "filename")
+    async loadImageMetadata(filenames?: string[]): Promise<void> {
+        const imagesFilenames = filenames ?? this.linkedImageFilenames
+
+        if (!imagesFilenames.length) return
+
+        await imageStore.fetchImageMetadata(imagesFilenames)
+        const images = await imageStore.syncImagesToS3().then(excludeUndefined)
+
+        // Merge the new image metadata with the existing image metadata. This
+        // is used by GdocAuthor to load additional image metadata from the
+        // latest work section.
+        this.imageMetadata = {
+            ...this.imageMetadata,
+            ...keyBy(images, "filename"),
         }
     }
 

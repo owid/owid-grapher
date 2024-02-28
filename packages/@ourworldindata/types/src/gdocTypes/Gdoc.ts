@@ -13,6 +13,7 @@ import {
     RefDictionary,
 } from "./ArchieMlComponents.js"
 import { DbChartTagJoin } from "../dbTypes/ChartTags.js"
+import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -153,6 +154,7 @@ export interface OwidGdocAuthorContent {
 
 export interface OwidGdocAuthorInterface extends OwidGdocBaseInterface {
     content: OwidGdocAuthorContent
+    latestWorkLinks?: DbEnrichedLatestWork[]
 }
 
 export type OwidGdocContent =
