@@ -93,7 +93,7 @@ export type FieldWithDetailReferences =
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
-export interface DimensionErrorMessages {
+export interface DimensionErrorMessage {
     displayName?: string
 }
 
@@ -111,7 +111,7 @@ export interface ChartEditorManager {
     errorMessages: Partial<Record<FieldWithDetailReferences, string>>
     errorMessagesForDimensions: Record<
         DimensionProperty,
-        DimensionErrorMessages[]
+        DimensionErrorMessage[]
     >
 }
 

@@ -2,6 +2,7 @@ import React from "react"
 import { ChartEditor } from "./ChartEditor.js"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
+import { isEmpty } from "@ourworldindata/utils"
 
 @observer
 export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
@@ -23,21 +24,12 @@ export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
         const { editor } = this.props
         const { errorMessages, errorMessagesForDimensions } = editor.manager
 
-        for (const message of Object.values(errorMessages)) {
-            if (message) return true
-        }
+        if (!isEmpty(errorMessages)) return true
 
-        for (const slot of Object.values(errorMessagesForDimensions)) {
-            for (const dimension of slot) {
-                if (!dimension) continue
-                const messages = Object.values(dimension).filter(
-                    (message) => message
-                )
-                if (messages.length > 0) return true
-            }
-        }
-
-        return false
+        const allErrorMessagesForDimensions = Object.values(
+            errorMessagesForDimensions
+        ).flat()
+        return allErrorMessagesForDimensions.some((error) => error)
     }
 
     render() {

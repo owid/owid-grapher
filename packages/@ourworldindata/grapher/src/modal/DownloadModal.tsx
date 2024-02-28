@@ -4,6 +4,7 @@ import { observer } from "mobx-react"
 import {
     Bounds,
     DEFAULT_BOUNDS,
+    isEmpty,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "@ourworldindata/utils"
@@ -204,7 +205,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     @computed private get hasDetails(): boolean {
-        return (this.manager.detailsOrderedByReference ?? []).length > 0
+        return !isEmpty(this.manager.detailsOrderedByReference)
     }
 
     @computed private get showExportControls(): boolean {

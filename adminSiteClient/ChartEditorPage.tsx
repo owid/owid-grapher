@@ -291,19 +291,14 @@ export class ChartEditorPage
 
     @computed
     get invalidDetailReferences(): ChartEditorManager["invalidDetailReferences"] {
-        const { currentDetailReferences } = this
-        const keys = getIndexableKeys(currentDetailReferences)
-
-        const invalidDetailReferences = Object.fromEntries(
-            keys.map((key: FieldWithDetailReferences) => [
-                key,
-                currentDetailReferences[key].filter(
-                    (term: string) => !this.details[term]
-                ),
-            ])
-        ) as DetailReferences
-
-        return invalidDetailReferences
+        const { subtitle, note, axisLabelX, axisLabelY } =
+            this.currentDetailReferences
+        return {
+            subtitle: subtitle.filter((term) => !this.details[term]),
+            note: note.filter((term) => !this.details[term]),
+            axisLabelX: axisLabelX.filter((term) => !this.details[term]),
+            axisLabelY: axisLabelY.filter((term) => !this.details[term]),
+        }
     }
 
     @computed get errorMessages(): ChartEditorManager["errorMessages"] {

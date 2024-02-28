@@ -234,7 +234,7 @@ class DimensionSlotView extends React.Component<{
                                                     isDndEnabled={
                                                         this.isDndEnabled
                                                     }
-                                                    errorMessages={
+                                                    errorMessage={
                                                         this.errorMessages[
                                                             slot.property
                                                         ][index]
