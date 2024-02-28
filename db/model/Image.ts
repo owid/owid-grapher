@@ -35,9 +35,9 @@ class ImageStore {
 
     async fetchImageMetadata(filesnames: string[]): Promise<void> {
         console.log(
-            `Fetching image metadata from Google Drive for ${filesnames.join(
-                ", "
-            )}`
+            `Fetching image metadata from Google Drive ${
+                filesnames.length ? `for ${filesnames.join(", ")}` : ""
+            }`
         )
         const driveClient = google.drive({
             version: "v3",
@@ -96,6 +96,7 @@ class ImageStore {
                 defaultAlt: google.description ?? "",
                 updatedAt: new Date(google.modifiedTime).getTime(),
                 originalWidth: google.imageMediaMetadata?.width,
+                originalHeight: google.imageMediaMetadata?.height,
             }))
 
         const duplicateFilenames = findDuplicates(
