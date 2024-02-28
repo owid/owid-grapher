@@ -9,8 +9,12 @@ import {
 import { useLinkedDocument } from "../utils.js"
 import { formatAuthors } from "../../clientFormatting.js"
 import Image from "./Image.js"
-import { DocumentContext } from "../OwidGdoc.js"
-import { RESEARCH_AND_WRITING_DEFAULT_HEADING } from "@ourworldindata/types"
+import { AttachmentsContext, DocumentContext } from "../OwidGdoc.js"
+import {
+    DbEnrichedLatestWork,
+    RESEARCH_AND_WRITING_DEFAULT_HEADING,
+} from "@ourworldindata/types"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 
 type ResearchAndWritingProps = {
     className?: string
@@ -93,10 +97,29 @@ function ResearchAndWritingLink(
     )
 }
 
+const parseLatestWorkToResearchAndWritingLink = (
+    latestWork: DbEnrichedLatestWork
+): EnrichedBlockResearchAndWritingLink => {
+    return {
+        value: {
+            ...latestWork,
+            url: `${BAKED_BASE_URL}/${latestWork.slug}`,
+            filename: latestWork["featured-image"],
+        },
+    }
+}
+
 export function ResearchAndWriting(props: ResearchAndWritingProps) {
-    const { heading, primary, secondary, more, rows, className } = props
+    const { heading, primary, secondary, more, rows, latest, className } = props
 
     const slug = heading ? slugify(heading) : RESEARCH_AND_WRITING_ID
+
+    const { latestWorkLinks } = useContext(AttachmentsContext)
+    if (latest && latestWorkLinks) {
+        latest.articles = latestWorkLinks.map(
+            parseLatestWorkToResearchAndWritingLink
+        )
+    }
 
     return (
         <div className={cx(className, "grid")}>
@@ -153,6 +176,24 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                         {more.articles.map((link, i) => (
                             <ResearchAndWritingLink
                                 shouldHideThumbnail
+                                shouldHideSubtitle
+                                isSmall
+                                className="span-cols-1"
+                                key={i}
+                                {...link}
+                            />
+                        ))}
+                    </div>
+                </div>
+            ) : null}
+            {latest ? (
+                <div className="span-cols-12 research-and-writing-row">
+                    <h2 className="h2-bold">
+                        {latest.heading || "Latest work"}
+                    </h2>
+                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links">
+                        {latest.articles.map((link, i) => (
+                            <ResearchAndWritingLink
                                 shouldHideSubtitle
                                 isSmall
                                 className="span-cols-1"

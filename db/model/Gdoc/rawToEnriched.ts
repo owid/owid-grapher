@@ -118,6 +118,7 @@ import {
     EnrichedBlockSocials,
     EnrichedSocialLink,
     SocialLinkType,
+    RawBlockLatestWork,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -1652,6 +1653,10 @@ function parseResearchAndWritingBlock(
             heading: "",
             articles: [],
         },
+        latest: EnrichedBlockResearchAndWritingRow = {
+            heading: "",
+            articles: [],
+        },
         rows: EnrichedBlockResearchAndWritingRow[] = []
     ): EnrichedBlockResearchAndWriting => ({
         type: "research-and-writing",
@@ -1659,6 +1664,7 @@ function parseResearchAndWritingBlock(
         primary,
         secondary,
         more,
+        latest,
         rows,
         parseErrors: [error],
     })
@@ -1752,8 +1758,21 @@ function parseResearchAndWritingBlock(
         return { heading: "", articles: [] }
     }
 
+    const parseRowLatest = (
+        rawRow: RawBlockLatestWork
+    ): EnrichedBlockResearchAndWritingRow | undefined => {
+        if (rawRow.heading && typeof rawRow.heading !== "string") {
+            parseErrors.push({ message: `"heading" must be a string` })
+            return
+        }
+        return { heading: rawRow.heading || "", articles: [] }
+    }
+
     const more = raw.value.more ? parseRow(raw.value.more, true) : undefined
     const rows = raw.value.rows?.map((row) => parseRow(row)) || []
+    const latest = raw.value.latest
+        ? parseRowLatest(raw.value.latest)
+        : undefined
 
     return {
         type: "research-and-writing",
@@ -1762,6 +1781,7 @@ function parseResearchAndWritingBlock(
         secondary,
         more,
         rows,
+        latest,
         parseErrors,
     }
 }

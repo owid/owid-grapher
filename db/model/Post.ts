@@ -20,6 +20,9 @@ import {
     Tag,
     DataPageRelatedResearch,
     OwidGdocType,
+    DbRawLatestWork,
+    DbEnrichedLatestWork,
+    parseLatestWork,
 } from "@ourworldindata/types"
 import { uniqBy, sortBy, memoize, orderBy } from "@ourworldindata/utils"
 import { Knex } from "knex"
@@ -548,4 +551,37 @@ export const getRelatedResearchAndWritingForVariable = async (
     // uses different charts that all use a single indicator we would get duplicates for the post to link to so
     // here we deduplicate by url. The first item is retained by uniqBy, latter ones are discarded.
     return uniqBy(allSortedRelatedResearch, "url")
+}
+
+export const getLatestWorkByAuthor = async (
+    knex: Knex<any, any[]>,
+    author: string
+): Promise<DbEnrichedLatestWork[]> => {
+    const rawLatestWorkLinks: DbRawLatestWork[] = await db.knexRaw(
+        `
+        SELECT
+            pg.slug,
+            pg.content->>'$.title' AS title,
+            pg.content->>'$.authors' AS authors,
+            pg.content->>'$."featured-image"' AS "featured-image",
+            pg.publishedAt
+        FROM
+            posts_gdocs pg
+        WHERE
+            pg.content ->> '$.authors' LIKE ?
+            AND pg.published = TRUE
+            AND pg.content->>'$.type' = "${OwidGdocType.Article}"
+        `,
+        knex,
+        [`%${author}%`]
+    )
+
+    // We're sorting in JS because of the "Out of sort memory, consider
+    // increasing server sort buffer size" error when using ORDER BY. Adding an
+    // index on the publishedAt column doesn't help.
+    return sortBy(
+        rawLatestWorkLinks.map((work) => parseLatestWork(work)),
+        // Sort by most recent first
+        (work) => -work.publishedAt! // "!" because we're only selecting published posts, so publishedAt can't be NULL
+    )
 }

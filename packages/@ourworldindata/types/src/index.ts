@@ -181,6 +181,7 @@ export {
     type RawBlockRecirc,
     type RawBlockResearchAndWriting,
     type RawBlockResearchAndWritingLink,
+    type RawBlockLatestWork,
     type RawBlockScroller,
     type RawBlockSDGGrid,
     type RawBlockSDGToc,
@@ -631,3 +632,9 @@ export {
 } from "./dbTypes/Variables.js"
 
 export { RedirectCode, type DbPlainRedirect } from "./dbTypes/Redirects.js"
+
+export {
+    type DbRawLatestWork,
+    type DbEnrichedLatestWork,
+    parseLatestWork,
+} from "./domainTypes/Author.js"

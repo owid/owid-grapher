@@ -6,15 +6,19 @@ import {
     RawBlockText,
     OwidEnrichedGdocBlock,
     OwidGdocErrorMessageType,
+    DbEnrichedLatestWork,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { parseSocials } from "./rawToEnriched.js"
+import { getLatestWorkByAuthor } from "../Post.js"
+import * as db from "../../../db/db.js"
 
 @Entity("posts_gdocs")
 export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
     @Column({ default: "{}", type: "json" })
     content!: OwidGdocAuthorContent
+    latestWorkLinks?: DbEnrichedLatestWork[]
 
     constructor(id?: string) {
         super(id)
@@ -28,6 +32,32 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         if (gdoc.content.bio) blocks.push(...gdoc.content.bio)
 
         return blocks
+    }
+
+    _loadSubclassAttachments = async (): Promise<void> => {
+        if (!this.content.title) return
+        const knex = db.knexInstance()
+
+        this.latestWorkLinks = await getLatestWorkByAuthor(
+            knex,
+            this.content.title
+        )
+        if (!this.latestWorkLinks) return
+
+        // We want to load additional image filenames from the referenced
+        // latest work links. We're not relying here on the Link
+        // infrastructure as we don't yet have a good way of cleaning up
+        // obsolete links from the latest work section. Usually the links
+        // originating from a gdoc are cleaned up when updating/deleting it, but
+        // here the links from the latest section will change independently of a
+        // manual authoring and admin action, so they'll end up being stale
+        // until the author page is updated again.
+        const latestWorkImageFilenames = this.latestWorkLinks
+            .map((d) => d["featured-image"])
+            .filter(Boolean)
+
+        // Load the image metadata for the latest work images
+        return super.loadImageMetadata(latestWorkImageFilenames)
     }
 
     _enrichSubclassContent = (content: Record<string, any>): void => {

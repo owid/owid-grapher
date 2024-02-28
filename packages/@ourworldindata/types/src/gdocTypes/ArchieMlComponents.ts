@@ -535,6 +535,10 @@ export type RawBlockResearchAndWritingRow = {
     articles?: RawBlockResearchAndWritingLink[]
 }
 
+export type RawBlockLatestWork = {
+    heading?: string
+}
+
 export type RawBlockResearchAndWriting = {
     type: "research-and-writing"
     value: {
@@ -548,6 +552,7 @@ export type RawBlockResearchAndWriting = {
             | RawBlockResearchAndWritingLink[]
         more?: RawBlockResearchAndWritingRow
         rows?: RawBlockResearchAndWritingRow[]
+        latest?: RawBlockLatestWork
     }
 }
 
@@ -573,6 +578,7 @@ export type EnrichedBlockResearchAndWriting = {
     secondary: EnrichedBlockResearchAndWritingLink[]
     more?: EnrichedBlockResearchAndWritingRow
     rows: EnrichedBlockResearchAndWritingRow[]
+    latest?: EnrichedBlockResearchAndWritingRow
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockSDGToc = {
