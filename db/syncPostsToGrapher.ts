@@ -11,11 +11,19 @@ import {
     DbEnrichedPost,
     sortBy,
     serializePostRow,
+    DbPlainPostLink,
+    DbInsertPostLink,
 } from "@ourworldindata/utils"
 import { postsTable, select } from "./model/Post.js"
-import { PostLink } from "./model/PostLink.js"
+import {
+    deleteManyPostLinks,
+    getAllPostLinks,
+    insertManyPostLinks,
+    postLinkCreateFromUrl,
+} from "./model/PostLink.js"
 import { renderTablePress } from "../site/Tablepress.js"
 import pMap from "p-map"
+import { Knex } from "knex"
 
 const zeroDateString = "0000-00-00 00:00:00"
 
@@ -157,15 +165,18 @@ export async function buildTablePressResolver(): Promise<BlockResolveFunction> {
         replaceTablePressShortcodes(content, replacerFunction)
 }
 
-export const postLinkCompareStringGenerator = (item: PostLink): string =>
+export const postLinkCompareStringGenerator = (item: DbPlainPostLink): string =>
     `${item.linkType} - ${item.target} - ${item.hash} - ${item.queryString}`
 
 export function getLinksToAddAndRemoveForPost(
     post: DbEnrichedPost,
-    existingLinksForPost: PostLink[],
+    existingLinksForPost: DbPlainPostLink[],
     content: string,
     postId: number
-): { linksToAdd: PostLink[]; linksToDelete: PostLink[] } {
+): {
+    linksToAdd: Omit<DbPlainPostLink, "id">[]
+    linksToDelete: DbPlainPostLink[]
+} {
     const linksInDb = groupBy(
         existingLinksForPost,
         postLinkCompareStringGenerator
@@ -206,15 +217,15 @@ export function getLinksToAddAndRemoveForPost(
     )
     const linksInDocument = keyBy(
         [
-            ...allHrefs.map((link) => PostLink.createFromUrl(link)),
-            ...allSrcs.map((link) => PostLink.createFromUrl(link)),
-            ...allProminentLinks.map((link) => PostLink.createFromUrl(link)),
+            ...allHrefs.map((link) => postLinkCreateFromUrl(link)),
+            ...allSrcs.map((link) => postLinkCreateFromUrl(link)),
+            ...allProminentLinks.map((link) => postLinkCreateFromUrl(link)),
         ],
         postLinkCompareStringGenerator
     )
 
-    const linksToAdd: PostLink[] = []
-    const linksToDelete: PostLink[] = []
+    const linksToAdd: Omit<DbPlainPostLink, "id">[] = []
+    const linksToDelete: DbPlainPostLink[] = []
 
     // This is doing a set difference, but we want to do the set operation on a subset
     // of fields (the ones we stringify into the compare key) while retaining the full
@@ -222,14 +233,15 @@ export function getLinksToAddAndRemoveForPost(
     for (const [linkInDocCompareKey, linkInDoc] of Object.entries(
         linksInDocument
     ))
-        if (!(linkInDocCompareKey in linksInDb)) linksToAdd.push(linkInDoc)
+        if (!(linkInDocCompareKey in linksInDb))
+            linksToAdd.push(linkInDoc as Omit<DbPlainPostLink, "id">)
     for (const [linkInDbCompareKey, linkInDb] of Object.entries(linksInDb))
         if (!(linkInDbCompareKey in linksInDocument))
             linksToDelete.push(...linkInDb)
     return { linksToAdd, linksToDelete }
 }
 
-const syncPostsToGrapher = async (): Promise<void> => {
+const syncPostsToGrapher = async (knex: Knex<any, any[]>): Promise<void> => {
     const dereferenceReusableBlocksFn = await buildReusableBlocksResolver()
     const dereferenceTablePressFn = await buildTablePressResolver()
 
@@ -372,11 +384,14 @@ const syncPostsToGrapher = async (): Promise<void> => {
         },
         { concurrency: 20 }
     )) as DbEnrichedPost[]
-    const postLinks = await PostLink.find()
-    const postLinksById = groupBy(postLinks, (link: PostLink) => link.sourceId)
+    const postLinks = await getAllPostLinks(knex)
+    const postLinksById = groupBy(
+        postLinks,
+        (link: DbPlainPostLink) => link.sourceId
+    )
 
-    const linksToAdd: PostLink[] = []
-    const linksToDelete: PostLink[] = []
+    const linksToAdd: DbInsertPostLink[] = []
+    const linksToDelete: DbPlainPostLink[] = []
 
     for (const post of rows) {
         const existingLinksForPost = postLinksById[post.ID]
@@ -409,26 +424,23 @@ const syncPostsToGrapher = async (): Promise<void> => {
     // TODO: unify our DB access and then do everything in one transaction
     if (linksToAdd.length) {
         console.log("linksToAdd", linksToAdd.length)
-        await PostLink.createQueryBuilder()
-            .insert()
-            .into(PostLink)
-            .values(linksToAdd)
-            .execute()
+        await insertManyPostLinks(knex, postLinks)
     }
 
     if (linksToDelete.length) {
         console.log("linksToDelete", linksToDelete.length)
-        await PostLink.createQueryBuilder()
-            .where("id in (:ids)", { ids: linksToDelete.map((x) => x.id) })
-            .delete()
-            .execute()
+        await deleteManyPostLinks(
+            knex,
+            linksToDelete.map((link) => link.id)
+        )
     }
 }
 
 const main = async (): Promise<void> => {
     try {
         await db.getConnection()
-        await syncPostsToGrapher()
+        const knex = db.knexInstance()
+        await syncPostsToGrapher(knex)
     } finally {
         await wpdb.singleton.end()
         await db.closeTypeOrmAndKnexConnections()
