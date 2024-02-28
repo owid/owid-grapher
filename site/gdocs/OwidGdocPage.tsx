@@ -69,11 +69,14 @@ export default function OwidGdocPage({
     const pageDesc = getPageDesc(gdoc)
     const featuredImageFilename = getFeaturedImageFilename(gdoc)
     const canonicalUrl = `${baseUrl}/${slug}`
+    const pageTitle =
+        // <Head> uses the default title of "Our World in Data" when pageTitle is undefined
+        content.type === OwidGdocType.Homepage ? undefined : content.title
 
     return (
         <html>
             <Head
-                pageTitle={content.title}
+                pageTitle={pageTitle}
                 pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
                 imageUrl={
