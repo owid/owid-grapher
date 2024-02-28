@@ -73,9 +73,10 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
             )
 
             // Image has not been modified, skip
-            if (response.status === 304) {
-                return
-            }
+            // XXX hotfix: force png rebuild every time, to work around missing png size variants on prod
+            // if (response.status === 304) {
+            //     return
+            // }
 
             let buffer = Buffer.from(await response.arrayBuffer())
 
