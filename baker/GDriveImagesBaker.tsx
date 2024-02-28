@@ -50,7 +50,8 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
                 () =>
                     fetch(remoteFilePath, {
                         headers: {
-                            "If-None-Match": existingEtag,
+                            // XXX hotfix: force png rebuild every time, to work around missing png size variants on prod
+                            // "If-None-Match": existingEtag,
                         },
                     }).then((response) => {
                         if (response.status === 304) {
