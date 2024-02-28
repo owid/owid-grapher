@@ -102,7 +102,6 @@ import {
     getVariableMetadata,
     getVariableOfDatapageIfApplicable,
 } from "../db/model/Variable.js"
-import { Knex } from "knex"
 import { getBakePath } from "@ourworldindata/components"
 import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
 
@@ -191,7 +190,7 @@ export class SiteBaker {
         this.explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
     }
 
-    private async bakeEmbeds(knex: Knex<any, any[]>) {
+    private async bakeEmbeds(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("embeds")) return
 
         // Find all grapher urls used as embeds in all Wordpress posts on the site
@@ -205,7 +204,7 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked embeds" })
     }
 
-    private async bakeCountryProfiles(knex: Knex<any, any[]>) {
+    private async bakeCountryProfiles(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("countryProfiles")) return
         await Promise.all(
             countryProfileSpecs.map(async (spec) => {
@@ -248,7 +247,7 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
-    private async bakePost(post: FullPost, knex: Knex<any, any[]>) {
+    private async bakePost(post: FullPost, knex: db.KnexReadonlyTransaction) {
         const html = await renderPost(
             post,
             knex,
@@ -430,7 +429,7 @@ export class SiteBaker {
         return this._prefetchedAttachmentsCache
     }
 
-    private async removeDeletedPosts(knex: Knex<any, any[]>) {
+    private async removeDeletedPosts(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("removeDeletedPosts")) return
 
         await db.getConnection()
@@ -439,7 +438,7 @@ export class SiteBaker {
 
         const postSlugs = []
         for (const postApi of postsApi) {
-            const post = await getFullPost(postApi)
+            const post = await getFullPost(knex, postApi)
             postSlugs.push(post.slug)
         }
 
@@ -459,11 +458,11 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ removed deleted posts" })
     }
 
-    private async bakePosts(knex: Knex<any, any[]>) {
+    private async bakePosts(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("wordpressPosts")) return
         // TODO: the knex instance should be handed down as a parameter
         const alreadyPublishedViaGdocsSlugsSet =
-            await db.getSlugsWithPublishedGdocsSuccessors(db.knexInstance())
+            await db.getSlugsWithPublishedGdocsSuccessors(knex)
 
         const postsApi = await getPostsFromSnapshots(
             knex,
@@ -474,7 +473,9 @@ export class SiteBaker {
         await pMap(
             postsApi,
             async (postApi) =>
-                getFullPost(postApi).then((post) => this.bakePost(post, knex)),
+                getFullPost(knex, postApi).then((post) =>
+                    this.bakePost(post, knex)
+                ),
             { concurrency: 10 }
         )
 
@@ -547,7 +548,7 @@ export class SiteBaker {
     }
 
     // Bake unique individual pages
-    private async bakeSpecialPages(knex: Knex<any, any[]>) {
+    private async bakeSpecialPages(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("specialPages")) return
         await this.stageWrite(
             `${this.bakedSiteDir}/index.html`,
@@ -598,7 +599,7 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked special pages" })
     }
 
-    private async bakeExplorers(knex: Knex<any, any[]>) {
+    private async bakeExplorers(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("explorers")) return
 
         await bakeAllExplorerRedirects(
@@ -825,23 +826,21 @@ export class SiteBaker {
     }
 
     // Pages that are expected by google scholar for indexing
-    private async bakeGoogleScholar() {
+    private async bakeGoogleScholar(trx: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("googleScholar")) return
         await this.stageWrite(
             `${this.bakedSiteDir}/entries-by-year.html`,
-            await entriesByYearPage()
+            await entriesByYearPage(trx)
         )
 
-        const knex = db.knexInstance()
-
-        const rows = (await db
-            .knexTable(postsTable)
+        const rows = (await trx
+            .table(postsTable)
             .where({ status: "publish" })
             .whereNot({ type: "wp_block" })
             .join("post_tags", { "post_tags.post_id": "posts.id" })
             .join("tags", { "tags.id": "post_tags.tag_id" })
             .where({ "tags.name": "Entries" })
-            .select(knex.raw("distinct year(published_at) as year"))
+            .select(trx.raw("distinct year(published_at) as year"))
             .orderBy("year", "DESC")) as { year: number }[]
 
         const years = rows.map((r) => r.year)
@@ -849,7 +848,7 @@ export class SiteBaker {
         for (const year of years) {
             await this.stageWrite(
                 `${this.bakedSiteDir}/entries-by-year/${year}.html`,
-                await entriesByYearPage(year)
+                await entriesByYearPage(trx, year)
             )
         }
 
@@ -857,7 +856,7 @@ export class SiteBaker {
     }
 
     // Bake the blog index
-    private async bakeBlogIndex(knex: Knex<any, any[]>) {
+    private async bakeBlogIndex(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("blogIndex")) return
         const allPosts = await getBlogIndex(knex)
         const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
@@ -871,7 +870,7 @@ export class SiteBaker {
     }
 
     // Bake the RSS feed
-    private async bakeRSS(knex: Knex<any, any[]>) {
+    private async bakeRSS(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("rss")) return
         await this.stageWrite(
             `${this.bakedSiteDir}/atom.xml`,
@@ -893,9 +892,9 @@ export class SiteBaker {
 
     // We don't have an icon for every single tag (yet), but for the icons that we *do* have,
     // we want to make sure that we have a corresponding tag in the database.
-    private async validateTagIcons() {
-        const allTags = await db
-            .knexTable("tags")
+    private async validateTagIcons(trx: db.KnexReadonlyTransaction) {
+        const allTags = await trx
+            .table("tags")
             .select<{ name: string }[]>("name")
         const tagNames = new Set(allTags.map((tag) => tag.name))
         const tagIcons = await fs.readdir("public/images/tag-icons")
@@ -910,7 +909,7 @@ export class SiteBaker {
     }
 
     // Bake the static assets
-    private async bakeAssets() {
+    private async bakeAssets(trx: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("assets")) return
 
         // do not delete images/published folder so that we don't have to sync gdrive images again
@@ -923,7 +922,7 @@ export class SiteBaker {
         await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/dist/assets ${this.bakedSiteDir}/assets`
         )
-        await this.validateTagIcons()
+        await this.validateTagIcons(trx)
         await execWrapper(
             `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/ ${excludes}`
         )
@@ -938,7 +937,7 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked assets" })
     }
 
-    async bakeRedirects(knex: Knex<any, any[]>) {
+    async bakeRedirects(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("redirects")) return
         const redirects = await getRedirects(knex)
         this.progressBar.tick({ name: "✅ got redirects" })
@@ -956,19 +955,19 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked redirects" })
     }
 
-    async bakeWordpressPages(knex: Knex<any, any[]>) {
+    async bakeWordpressPages(knex: db.KnexReadonlyTransaction) {
         await this.bakeRedirects(knex)
         await this.bakeEmbeds(knex)
         await this.bakeBlogIndex(knex)
         await this.bakeRSS(knex)
-        await this.bakeAssets()
-        await this.bakeGoogleScholar()
+        await this.bakeAssets(knex)
+        await this.bakeGoogleScholar(knex)
         await this.bakePosts(knex)
     }
 
-    private async _bakeNonWordpressPages(knex: Knex<any, any[]>) {
+    private async _bakeNonWordpressPages(knex: db.KnexReadonlyTransaction) {
         if (this.bakeSteps.has("countries")) {
-            await bakeCountries(this)
+            await bakeCountries(this, knex)
         }
         await this.bakeSpecialPages(knex)
         await this.bakeCountryProfiles(knex)
@@ -990,7 +989,7 @@ export class SiteBaker {
         await this.bakeDriveImages()
     }
 
-    async bakeNonWordpressPages(knex: Knex<any, any[]>) {
+    async bakeNonWordpressPages(knex: db.KnexReadonlyTransaction) {
         await db.getConnection()
         const progressBarTotal = nonWordpressSteps
             .map((step) => this.bakeSteps.has(step))
@@ -1004,7 +1003,7 @@ export class SiteBaker {
         await this._bakeNonWordpressPages(knex)
     }
 
-    async bakeAll(knex: Knex<any, any[]>) {
+    async bakeAll(knex: db.KnexReadonlyTransaction) {
         // Ensure caches are correctly initialized
         this.flushCache()
         await this.removeDeletedPosts(knex)

@@ -13,7 +13,6 @@ import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getPostsFromSnapshots } from "../db/model/Post.js"
-import { Knex } from "knex"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 
 interface SitemapUrl {
@@ -61,7 +60,7 @@ const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl[] => {
 
 export const makeSitemap = async (
     explorerAdminServer: ExplorerAdminServer,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ) => {
     const alreadyPublishedViaGdocsSlugsSet =
         await db.getSlugsWithPublishedGdocsSuccessors(knex)
@@ -77,8 +76,8 @@ export const makeSitemap = async (
         publishedDataInsights.length
     )
 
-    const charts = (await db
-        .knexTable(Chart.table)
+    const charts = (await knex
+        .table(Chart.table)
         .select(knex.raw(`updatedAt, config->>"$.slug" AS slug`))
         .whereRaw('config->"$.isPublished" = true')) as {
         updatedAt: Date

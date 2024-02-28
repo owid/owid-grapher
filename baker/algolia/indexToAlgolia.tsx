@@ -31,7 +31,6 @@ import {
     getPostTags,
     getPostsFromSnapshots,
 } from "../../db/model/Post.js"
-import { Knex } from "knex"
 import { getIndexName } from "../../site/search/searchClient.js"
 
 interface TypeAndImportance {
@@ -81,7 +80,7 @@ function generateChunksFromHtmlText(htmlString: string) {
 async function generateWordpressRecords(
     postsApi: PostRestApi[],
     pageviews: Record<string, RawPageview>,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<PageRecord[]> {
     const getPostTypeAndImportance = (
         post: FormattedPost,
@@ -100,7 +99,7 @@ async function generateWordpressRecords(
     const records: PageRecord[] = []
 
     for (const postApi of postsApi) {
-        const rawPost = await getFullPost(postApi)
+        const rawPost = await getFullPost(knex, postApi)
         if (isEmpty(rawPost.content)) {
             // we have some posts that are only placeholders (e.g. for a redirect); don't index these
             console.log(
@@ -111,7 +110,7 @@ async function generateWordpressRecords(
 
         const post = await formatPost(rawPost, { footnotes: false }, knex)
         const chunks = generateChunksFromHtmlText(post.html)
-        const tags = await getPostTags(post.id)
+        const tags = await getPostTags(knex, post.id)
         const postTypeAndImportance = getPostTypeAndImportance(post, tags)
 
         let i = 0
@@ -196,7 +195,7 @@ function generateGdocRecords(
 }
 
 // Generate records for countries, WP posts (not including posts that have been succeeded by Gdocs equivalents), and Gdocs
-const getPagesRecords = async (knex: Knex<any, any[]>) => {
+const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
     const gdocs = await GdocPost.getPublishedGdocPosts()
     const publishedGdocsBySlug = keyBy(gdocs, "slug")
@@ -225,7 +224,7 @@ const getPagesRecords = async (knex: Knex<any, any[]>) => {
     return [...countryRecords, ...wordpressRecords, ...gdocsRecords]
 }
 
-const indexToAlgolia = async (knex: Knex<any, any[]>) => {
+const indexToAlgolia = async () => {
     if (!ALGOLIA_INDEXING) return
 
     const client = getAlgoliaClient()
@@ -236,7 +235,7 @@ const indexToAlgolia = async (knex: Knex<any, any[]>) => {
     const index = client.initIndex(getIndexName(SearchIndexName.Pages))
 
     await db.getConnection()
-    const records = await getPagesRecords(knex)
+    const records = await db.knexReadonlyTransaction(getPagesRecords)
 
     index.replaceAllObjects(records)
 
@@ -249,4 +248,4 @@ process.on("unhandledRejection", (e) => {
     process.exit(1)
 })
 
-indexToAlgolia(db.knexInstance())
+indexToAlgolia()

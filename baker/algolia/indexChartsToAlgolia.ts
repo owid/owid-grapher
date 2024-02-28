@@ -8,7 +8,6 @@ import { MarkdownTextWrap } from "@ourworldindata/components"
 import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
 import { Link } from "../../db/model/Link.js"
 import { getRelatedArticles } from "../../db/model/Post.js"
-import { Knex } from "knex"
 import { getIndexName } from "../../site/search/searchClient.js"
 
 const computeScore = (record: Omit<ChartRecord, "score">): number => {
@@ -17,7 +16,7 @@ const computeScore = (record: Omit<ChartRecord, "score">): number => {
 }
 
 const getChartsRecords = async (
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<ChartRecord[]> => {
     const chartsToIndex = await db.queryMysql(`
     SELECT c.id,
@@ -68,7 +67,7 @@ const getChartsRecords = async (
         // otherwise they will fail when rendered in the search results
         if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
 
-        const relatedArticles = (await getRelatedArticles(c.id, knex)) ?? []
+        const relatedArticles = (await getRelatedArticles(knex, c.id)) ?? []
         const linksFromGdocs = await Link.getPublishedLinksTo(
             c.slug,
             OwidGdocLinkType.Grapher
@@ -118,7 +117,7 @@ const indexChartsToAlgolia = async () => {
     const index = client.initIndex(getIndexName(SearchIndexName.Charts))
 
     await db.getConnection()
-    const records = await getChartsRecords(db.knexInstance())
+    const records = await db.knexReadonlyTransaction(getChartsRecords)
     await index.replaceAllObjects(records)
 
     await db.closeTypeOrmAndKnexConnections()

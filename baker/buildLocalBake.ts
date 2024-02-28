@@ -17,7 +17,7 @@ const bakeDomainToFolder = async (
     fs.mkdirp(dir)
     const baker = new SiteBaker(dir, baseUrl, bakeSteps)
     console.log(`Baking site locally with baseUrl '${baseUrl}' to dir '${dir}'`)
-    await baker.bakeAll(db.knexInstance())
+    await db.knexReadonlyTransaction((trx) => baker.bakeAll(trx))
 }
 
 yargs(hideBin(process.argv))

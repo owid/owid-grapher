@@ -111,9 +111,35 @@ export const knexInstance = (): Knex<any, any[]> => {
     return _knexInstance
 }
 
-export const knexTable = (table: string): Knex.QueryBuilder =>
-    knexInstance().table(table)
+declare const __read_capability: unique symbol
+declare const __write_capability: unique symbol
+export type KnexReadonlyTransaction = Knex.Transaction<any, any[]> & {
+    readonly [__read_capability]: "read"
+}
 
+export type KnexReadWriteTransaction = Knex.Transaction<any, any[]> & {
+    readonly [__read_capability]: "read"
+    readonly [__write_capability]: "write"
+}
+
+export async function knexReadonlyTransaction<T>(
+    transactionFn: (trx: KnexReadonlyTransaction) => Promise<T>,
+    knex: Knex<any, any[]> = knexInstance()
+): Promise<T> {
+    return knex.transaction(
+        async (trx) => transactionFn(trx as KnexReadonlyTransaction),
+        { readOnly: true }
+    )
+}
+
+export async function knexReadWriteTransaction<T>(
+    transactionFn: (trx: KnexReadWriteTransaction) => Promise<T>,
+    knex: Knex<any, any[]> = knexInstance()
+): Promise<T> {
+    return knex.transaction(async (trx) =>
+        transactionFn(trx as KnexReadWriteTransaction)
+    )
+}
 export const knexRaw = async <TRow = unknown>(
     knex: Knex<any, any[]>,
     str: string,
@@ -137,7 +163,7 @@ export const knexRawFirst = async <TRow = unknown>(
  *  to help us exclude them from the baking process.
  */
 export const getSlugsWithPublishedGdocsSuccessors = async (
-    knex: Knex<any, any[]>
+    knex: KnexReadonlyTransaction
 ): Promise<Set<string>> => {
     return knexRaw(
         knex,
@@ -148,7 +174,7 @@ export const getSlugsWithPublishedGdocsSuccessors = async (
 }
 
 export const getExplorerTags = async (
-    knex: Knex<any, any[]>
+    knex: KnexReadonlyTransaction
 ): Promise<{ slug: string; tags: DbChartTagJoin[] }[]> => {
     return knexRaw<{ slug: string; tags: string }>(
         knex,
@@ -174,7 +200,7 @@ export const getExplorerTags = async (
 }
 
 export const getPublishedExplorersBySlug = async (
-    knex: Knex<any, any[]>
+    knex: KnexReadonlyTransaction
 ): Promise<{
     [slug: string]: {
         slug: string

@@ -27,6 +27,7 @@ import {
     FOR_SYNC_ONLY_graphqlQuery,
 } from "./wpdb.js"
 import { getFullPost } from "./model/Post.js"
+import { KnexReadonlyTransaction } from "./db.js"
 
 const DEPRECATED_ENTRIES_CATEGORY_ID = 44
 const DEPRECATED_OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
@@ -88,6 +89,7 @@ export const DEPRECATEDgetPosts = async (
 // We might want to cache this as the network of prominent links densifies and
 // multiple requests to the same posts are happening.
 export const DEPRECATEDgetPostBySlugFromApi = async (
+    knex: KnexReadonlyTransaction,
     slug: string
 ): Promise<FullPost> => {
     if (!isWordpressAPIEnabled) {
@@ -96,12 +98,13 @@ export const DEPRECATEDgetPostBySlugFromApi = async (
 
     const postApi = await FOR_SYNC_ONLY_getPostApiBySlugFromApi(slug)
 
-    return getFullPost(postApi)
+    return getFullPost(knex, postApi)
 }
 
 // the /revisions endpoint does not send back all the metadata required for
 // the proper rendering of the post (e.g. authors), hence the double request.
 export const DEPRECATEDgetLatestPostRevision = async (
+    knex: KnexReadonlyTransaction,
     id: number
 ): Promise<FullPost> => {
     const type = await DEPRECATEDgetPostType(id)
@@ -125,7 +128,7 @@ export const DEPRECATEDgetLatestPostRevision = async (
     //   and could have been modified in the sidebar.)
     // - authors
     // ...
-    return getFullPost({
+    return getFullPost(knex, {
         ...postApi,
         content: revision.content,
         title: revision.title,

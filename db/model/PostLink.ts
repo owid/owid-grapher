@@ -6,7 +6,7 @@ import {
     Url,
 } from "@ourworldindata/utils"
 import { getLinkType, getUrlTarget } from "@ourworldindata/components"
-import { Knex } from "knex"
+import { KnexReadWriteTransaction, KnexReadonlyTransaction } from "../db.js"
 export function postLinkCreateFromUrl({
     url,
     sourceId,
@@ -36,41 +36,41 @@ export function postLinkCreateFromUrl({
 }
 
 export async function getPostLinkById(
-    knex: Knex<any, any[]>,
+    knex: KnexReadonlyTransaction,
     id: number
 ): Promise<DbPlainPostLink | undefined> {
     return knex<DbPlainPostLink>(PostsLinksTableName).where({ id }).first()
 }
 
 export async function getAllPostLinks(
-    knex: Knex<any, any[]>
+    knex: KnexReadonlyTransaction
 ): Promise<DbPlainPostLink[]> {
     return knex<DbPlainPostLink>(PostsLinksTableName)
 }
 
 export async function getPostLinksBySourceId(
-    knex: Knex<any, any[]>,
+    knex: KnexReadonlyTransaction,
     sourceId: number
 ): Promise<DbPlainPostLink[]> {
     return knex<DbPlainPostLink>(PostsLinksTableName).where({ sourceId })
 }
 
 export async function insertPostLink(
-    knex: Knex<any, any[]>,
+    knex: KnexReadWriteTransaction,
     postLink: DbInsertPostLink
 ): Promise<{ id: number }> {
     return knex(PostsLinksTableName).returning("id").insert(postLink)
 }
 
 export async function insertManyPostLinks(
-    knex: Knex<any, any[]>,
+    knex: KnexReadWriteTransaction,
     postLinks: DbInsertPostLink[]
 ): Promise<void> {
     return knex.batchInsert(PostsLinksTableName, postLinks)
 }
 
 export async function updatePostLink(
-    knex: Knex<any, any[]>,
+    knex: KnexReadWriteTransaction,
     id: number,
     postLink: DbInsertPostLink
 ): Promise<void> {
@@ -78,14 +78,14 @@ export async function updatePostLink(
 }
 
 export async function deletePostLink(
-    knex: Knex<any, any[]>,
+    knex: KnexReadWriteTransaction,
     id: number
 ): Promise<void> {
     return knex(PostsLinksTableName).where({ id }).delete()
 }
 
 export async function deleteManyPostLinks(
-    knex: Knex<any, any[]>,
+    knex: KnexReadWriteTransaction,
     ids: number[]
 ): Promise<void> {
     return knex(PostsLinksTableName).whereIn("id", ids).delete()

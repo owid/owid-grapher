@@ -9,6 +9,7 @@ import {
     RelatedChart,
     EnrichedBlockAllCharts,
     parsePostAuthors,
+    DbRawPost,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import fs from "fs"
@@ -78,24 +79,38 @@ const entries = new Set([
     "trust",
 ])
 
-const migrate = async (): Promise<void> => {
+const migrate = async (trx: db.KnexReadWriteTransaction): Promise<void> => {
     const writeToFile = false
     const severeErrors: any[] = []
-    await db.getConnection()
 
-    const rawPosts = await Post.select(
-        "id",
-        "slug",
-        "title",
-        "content",
-        "published_at",
-        "updated_at_in_wordpress",
-        "authors",
-        "excerpt",
-        "created_at_in_wordpress",
-        "updated_at",
-        "featured_image"
-    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "54759"))
+    const rawPosts: Pick<
+        DbRawPost,
+        | "id"
+        | "slug"
+        | "title"
+        | "content"
+        | "published_at"
+        | "updated_at_in_wordpress"
+        | "authors"
+        | "excerpt"
+        | "created_at_in_wordpress"
+        | "updated_at"
+        | "featured_image"
+    >[] = await trx
+        .select(
+            "id" satisfies keyof DbRawPost,
+            "slug" satisfies keyof DbRawPost,
+            "title" satisfies keyof DbRawPost,
+            "content" satisfies keyof DbRawPost,
+            "published_at" satisfies keyof DbRawPost,
+            "updated_at_in_wordpress" satisfies keyof DbRawPost,
+            "authors" satisfies keyof DbRawPost,
+            "excerpt" satisfies keyof DbRawPost,
+            "created_at_in_wordpress" satisfies keyof DbRawPost,
+            "updated_at" satisfies keyof DbRawPost,
+            "featured_image" satisfies keyof DbRawPost
+        )
+        .table(Post.postsTable) //.where("id", "=", "54759"))
 
     for (const postRaw of rawPosts) {
         try {
@@ -109,7 +124,7 @@ const migrate = async (): Promise<void> => {
             const text = post.content
             let relatedCharts: RelatedChart[] = []
             if (isEntry) {
-                relatedCharts = await getPostRelatedCharts(post.id)
+                relatedCharts = await getPostRelatedCharts(trx, post.id)
             }
 
             const shouldIncludeMaxAsAuthor = isPostSlugCitable(post.slug)
@@ -256,7 +271,7 @@ const migrate = async (): Promise<void> => {
             const insertQuery = `
         UPDATE posts SET archieml = ?, archieml_update_statistics = ?, markdown = ? WHERE id = ?
         `
-            await db.queryMysql(insertQuery, [
+            await db.knexRaw(trx, insertQuery, [
                 JSON.stringify(archieMlFieldContent, null, 2),
                 JSON.stringify(archieMlStatsContent, null, 2),
                 markdown,
@@ -291,20 +306,15 @@ const migrate = async (): Promise<void> => {
         }
     }
 
-    // const sortedTagCount = _.sortBy(
-    //     Array.from(tagCounts.entries()),
-    //     ([tag, count]) => tag
-    // )
-    // for (const [tag, count] of sortedTagCount) {
-    //     console.log(`${tag}: ${count}`)
-    // }
-
-    await db.closeTypeOrmAndKnexConnections()
-
     if (severeErrors.length > 0) {
         console.error("Errors", severeErrors)
         throw new Error(`${severeErrors.length} items had errors`)
     }
 }
 
-migrate()
+async function runMigrate(): Promise<void> {
+    await db.knexReadWriteTransaction(migrate)
+    await db.closeTypeOrmAndKnexConnections()
+}
+
+runMigrate()

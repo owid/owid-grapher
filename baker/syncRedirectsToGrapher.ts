@@ -18,7 +18,9 @@ const stripTrailingSlash = (url: string) => {
     return url.replace(/\/$/, "") // remove trailing slash: /abc/ -> /abc
 }
 
-export const syncRedirectsToGrapher = async (): Promise<void> => {
+export const syncRedirectsToGrapher = async (
+    trx: db.KnexReadWriteTransaction
+): Promise<void> => {
     const allWordpressRedirectsRaw = await wpdb.FOR_SYNC_ONLY_getRedirects()
 
     const allWordpressRedirects = allWordpressRedirectsRaw.map((r) => ({
@@ -27,52 +29,46 @@ export const syncRedirectsToGrapher = async (): Promise<void> => {
         target: stripTrailingSlash(r.target),
     }))
 
-    await db.knexInstance().transaction(async (knex) => {
-        const existingRedirectsFromDb = await getRedirectsFromDb(knex)
+    const existingRedirectsFromDb = await getRedirectsFromDb(trx)
 
-        for (const { source, code } of allWordpressRedirects) {
-            // We only want to insert redirects for which we don't have a redirected source yet
-            if (existingRedirectsFromDb.some((r) => r.source === source)) {
-                console.log(
-                    `Skipping, a redirect already exists for "${source}"`
-                )
-                continue
-            }
-
-            // Resolve the target of the redirect, recursively following any
-            // Wordpress redirects until we reach a final target
-            const resolvedUrl = await resolveRedirectFromMap(
-                Url.fromURL(source),
-                getWordpressRedirectsMapFromRedirects(allWordpressRedirects)
-            )
-
-            // Use the no-trailing slash version of the resolved target URL.
-            // This is to handle the case where parsing a URL with no pathname
-            // (e.g. https://africaindata.org) still results in a trailing slash
-            // being added by url-parse when creating a new Url object. This
-            // solves the issue at hand, although it's debatable whether the
-            // issue needed fixing for the one case this script will ever come
-            // across (https://africaindata.org). It might just make more sense
-            // to fix this edge case manually and avoid polluting the Url class
-            // with code that won't be used after the migration.
-            const resolvedTarget = resolvedUrl.fullUrlNoTrailingSlash
-
-            console.log(
-                `Adding redirect: ${source} -> ${resolvedTarget} (${code})`
-            )
-            await db.knexRaw(
-                knex,
-                `INSERT INTO redirects (source, target, code) VALUES (?, ?, ?)`,
-                [source, resolvedTarget, code]
-            )
+    for (const { source, code } of allWordpressRedirects) {
+        // We only want to insert redirects for which we don't have a redirected source yet
+        if (existingRedirectsFromDb.some((r) => r.source === source)) {
+            console.log(`Skipping, a redirect already exists for "${source}"`)
+            continue
         }
-    })
+
+        // Resolve the target of the redirect, recursively following any
+        // Wordpress redirects until we reach a final target
+        const resolvedUrl = await resolveRedirectFromMap(
+            Url.fromURL(source),
+            getWordpressRedirectsMapFromRedirects(allWordpressRedirects)
+        )
+
+        // Use the no-trailing slash version of the resolved target URL.
+        // This is to handle the case where parsing a URL with no pathname
+        // (e.g. https://africaindata.org) still results in a trailing slash
+        // being added by url-parse when creating a new Url object. This
+        // solves the issue at hand, although it's debatable whether the
+        // issue needed fixing for the one case this script will ever come
+        // across (https://africaindata.org). It might just make more sense
+        // to fix this edge case manually and avoid polluting the Url class
+        // with code that won't be used after the migration.
+        const resolvedTarget = resolvedUrl.fullUrlNoTrailingSlash
+
+        console.log(`Adding redirect: ${source} -> ${resolvedTarget} (${code})`)
+        await db.knexRaw(
+            trx,
+            `INSERT INTO redirects (source, target, code) VALUES (?, ?, ?)`,
+            [source, resolvedTarget, code]
+        )
+    }
 }
 
 const main = async (): Promise<void> => {
     try {
         await db.getConnection()
-        await syncRedirectsToGrapher()
+        await db.knexReadWriteTransaction((trx) => syncRedirectsToGrapher(trx))
     } finally {
         await wpdb.singleton.end()
         await db.closeTypeOrmAndKnexConnections()

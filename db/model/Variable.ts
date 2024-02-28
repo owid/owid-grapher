@@ -26,7 +26,6 @@ import {
     OwidProcessingLevel,
     DbRawVariable,
 } from "@ourworldindata/types"
-import { Knex } from "knex/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 
 export interface VariableRow {
@@ -137,7 +136,7 @@ export function parseVariableRows(
 
 export async function getMergedGrapherConfigForVariable(
     variableId: number,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<GrapherInterface | undefined> {
     const rows: Pick<
         DbRawVariable,
@@ -200,7 +199,7 @@ export async function getDataForMultipleVariables(
 export async function writeVariableCSV(
     variableIds: number[],
     stream: Writable,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<void> {
     // get variables as dataframe
     const variablesDF = (
@@ -245,7 +244,7 @@ export async function writeVariableCSV(
 
 export const getDataValue = async (
     { variableId, entityId, year }: DataValueQueryArgs,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<DataValueResult | undefined> => {
     if (!variableId || !entityId) return
 
@@ -290,7 +289,7 @@ export const getDataValue = async (
 export const getOwidChartDimensionConfigForVariable = async (
     variableId: OwidVariableId,
     chartId: number,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<OwidChartDimensionInterface | undefined> => {
     const row = await db.knexRawFirst<{ dimensions: string }>(
         knex,
@@ -311,7 +310,7 @@ export const getOwidChartDimensionConfigForVariable = async (
 
 export const getOwidVariableDisplayConfig = async (
     variableId: OwidVariableId,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<OwidVariableDisplayConfigInterface | undefined> => {
     const row = await knexRawFirst<Pick<DbRawVariable, "display">>(
         knex,
@@ -324,7 +323,7 @@ export const getOwidVariableDisplayConfig = async (
 
 export const entitiesAsDF = async (
     entityIds: number[],
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<pl.DataFrame> => {
     return (
         await readSQLasDF(
@@ -371,7 +370,7 @@ const emptyDataDF = (): pl.DataFrame => {
 
 export const _dataAsDFfromS3 = async (
     variableIds: OwidVariableId[],
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<pl.DataFrame> => {
     if (variableIds.length === 0) {
         return emptyDataDF()
@@ -418,7 +417,7 @@ export const _dataAsDFfromS3 = async (
 
 export const dataAsDF = async (
     variableIds: OwidVariableId[],
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<pl.DataFrame> => {
     return _dataAsDFfromS3(variableIds, knex)
 }
@@ -514,7 +513,7 @@ export const createDataFrame = (data: unknown): pl.DataFrame => {
 export const readSQLasDF = async (
     sql: string,
     params: any[],
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<pl.DataFrame> => {
     return createDataFrame(await db.knexRaw(knex, sql, params))
 }
@@ -572,7 +571,7 @@ export async function getVariableOfDatapageIfApplicable(
 export const searchVariables = async (
     query: string,
     limit: number,
-    knex: Knex<any, any>
+    knex: db.KnexReadonlyTransaction
 ): Promise<VariablesSearchResult> => {
     const whereClauses = buildWhereClauses(query)
 
@@ -726,7 +725,7 @@ const buildWhereClauses = (query: string): string[] => {
  */
 const queryRegexSafe = async (
     query: string,
-    knex: Knex<any, any>
+    knex: db.KnexReadonlyTransaction
 ): Promise<any> => {
     // catch regular expression failures in MySQL and return empty result
     return await knexRaw(knex, query).catch((err) => {
@@ -739,7 +738,7 @@ const queryRegexSafe = async (
 
 const queryRegexCount = async (
     query: string,
-    knex: Knex<any, any>
+    knex: db.KnexReadonlyTransaction
 ): Promise<number> => {
     const results = await queryRegexSafe(query, knex)
     if (!results.length) {
