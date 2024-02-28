@@ -161,6 +161,11 @@ export class Image extends BaseEntity implements ImageMetadata {
         nullable: true,
     })
     originalWidth?: number
+    @Column({
+        transformer: new ColumnNumericTransformer(),
+        nullable: true,
+    })
+    originalHeight?: number
 
     get isSvg(): boolean {
         return this.fileExtension === "svg"
@@ -200,6 +205,7 @@ export class Image extends BaseEntity implements ImageMetadata {
                     stored.updatedAt = fresh.updatedAt
                     stored.defaultAlt = fresh.defaultAlt
                     stored.originalWidth = fresh.originalWidth
+                    stored.originalHeight = fresh.originalHeight
                     await stored.save()
                 }
                 return stored
