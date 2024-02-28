@@ -18,13 +18,19 @@ import {
     getLinksToAddAndRemoveForPost,
 } from "../db/syncPostsToGrapher.js"
 import { postsTable, select } from "../db/model/Post.js"
-import { PostLink } from "../db/model/PostLink.js"
+import {
+    deleteManyPostLinks,
+    getPostLinksBySourceId,
+    insertManyPostLinks,
+} from "../db/model/PostLink.js"
+import { Knex } from "knex"
 const argv = parseArgs(process.argv.slice(2))
 
 const zeroDateString = "0000-00-00 00:00:00"
 
 // Sync post from the wordpress database to OWID database
 const syncPostToGrapher = async (
+    knex: Knex<any, any[]>,
     postId: number
 ): Promise<string | undefined> => {
     const rows = await wpdb.singleton.query(
@@ -163,9 +169,10 @@ const syncPostToGrapher = async (
     )[0]
 
     if (postRow) {
-        const existingLinksForPost = await PostLink.findBy({
-            sourceId: wpPost.ID,
-        })
+        const existingLinksForPost = await getPostLinksBySourceId(
+            knex,
+            wpPost.ID
+        )
 
         const { linksToAdd, linksToDelete } = getLinksToAddAndRemoveForPost(
             postRow,
@@ -177,19 +184,15 @@ const syncPostToGrapher = async (
         // TODO: unify our DB access and then do everything in one transaction
         if (linksToAdd.length) {
             console.log("linksToAdd", linksToAdd.length)
-            await PostLink.createQueryBuilder()
-                .insert()
-                .into(PostLink)
-                .values(linksToAdd)
-                .execute()
+            await insertManyPostLinks(knex, linksToAdd)
         }
 
         if (linksToDelete.length) {
             console.log("linksToDelete", linksToDelete.length)
-            await PostLink.createQueryBuilder()
-                .where("id in (:ids)", { ids: linksToDelete.map((x) => x.id) })
-                .delete()
-                .execute()
+            await deleteManyPostLinks(
+                knex,
+                linksToDelete.map((x) => x.id)
+            )
         }
     }
     return newPost ? newPost.slug : undefined
@@ -203,7 +206,7 @@ const main = async (
 ) => {
     console.log(email, name, postId)
     try {
-        const slug = await syncPostToGrapher(postId)
+        const slug = await syncPostToGrapher(db.knexInstance(), postId)
 
         if (BAKE_ON_CHANGE)
             await new DeployQueueServer().enqueueChange({
