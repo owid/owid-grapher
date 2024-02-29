@@ -54,6 +54,7 @@ import {
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import * as db from "../db/db.js"
+import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 
 require("express-async-errors")
 
@@ -195,12 +196,16 @@ mockSiteRouter.get("/thank-you", async (req, res) =>
 )
 
 mockSiteRouter.get("/data-insights/:pageNumberOrSlug?", async (req, res) => {
+    const totalPageCount = calculateDataInsightIndexPageCount(
+        await db
+            .getPublishedDataInsights(db.knexInstance())
+            .then((insights) => insights.length)
+    )
     async function renderIndexPage(pageNumber: number) {
         const dataInsights =
             await GdocDataInsight.getPublishedDataInsights(pageNumber)
         // calling fetchImageMetadata 20 times makes me sad, would be nice if we could cache this
         await Promise.all(dataInsights.map((insight) => insight.loadState()))
-        const totalPageCount = await GdocDataInsight.getTotalPageCount()
         return renderDataInsightsIndexPage(
             dataInsights,
             pageNumber,
@@ -216,9 +221,9 @@ mockSiteRouter.get("/data-insights/:pageNumberOrSlug?", async (req, res) => {
     // pageNumber is 1-indexed, but DB operations are 0-indexed
     const pageNumber = parseInt(pageNumberOrSlug) - 1
     if (!isNaN(pageNumber)) {
-        if (pageNumber <= 0) return res.redirect("/data-insights")
-        const totalPages = await GdocDataInsight.getTotalPageCount()
-        if (pageNumber >= totalPages) return res.redirect("/data-insights")
+        if (pageNumber <= 0 || pageNumber >= totalPageCount) {
+            return res.redirect("/data-insights")
+        }
         return res.send(await renderIndexPage(pageNumber))
     }
 

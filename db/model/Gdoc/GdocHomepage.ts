@@ -60,6 +60,10 @@ export class GdocHomepage
             topicCount: UNIQUE_TOPIC_COUNT,
         }
 
-        this.latestDataInsights = await db.getLatestDataInsights(4)
+        // TODO: refactor these classes to properly use knex - not going to start it now
+        this.latestDataInsights = await db.getPublishedDataInsights(
+            db.knexInstance(),
+            4
+        )
     }
 }

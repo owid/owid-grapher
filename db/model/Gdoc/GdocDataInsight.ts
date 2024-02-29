@@ -45,7 +45,11 @@ export class GdocDataInsight
     }
 
     _loadSubclassAttachments = async (): Promise<void> => {
-        this.latestDataInsights = await db.getLatestDataInsights()
+        // TODO: refactor these classes to properly use knex - not going to start it now
+        this.latestDataInsights = await db.getPublishedDataInsights(
+            db.knexInstance(),
+            5
+        )
     }
 
     static async getPublishedDataInsights(
@@ -68,14 +72,5 @@ export class GdocDataInsight
             skip: isPaging ? page * DATA_INSIGHTS_INDEX_PAGE_SIZE : undefined,
             relations: ["tags"],
         })
-    }
-
-    /**
-     * Returns the number of pages that will exist on the data insights index page
-     * based on the number of published data insights and DATA_INSIGHTS_INDEX_PAGE_SIZE
-     */
-    static async getTotalPageCount(): Promise<number> {
-        const count = await db.getPublishedDataInsightCount()
-        return Math.ceil(count / DATA_INSIGHTS_INDEX_PAGE_SIZE)
     }
 }

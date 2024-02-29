@@ -95,7 +95,10 @@ import {
 } from "../settings/clientSettings.js"
 import pMap from "p-map"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
-import { fullGdocToMinimalGdoc } from "../db/model/Gdoc/gdocUtils.js"
+import {
+    calculateDataInsightIndexPageCount,
+    fullGdocToMinimalGdoc,
+} from "../db/model/Gdoc/gdocUtils.js"
 import {
     getVariableMetadata,
     getVariableOfDatapageIfApplicable,
@@ -698,7 +701,10 @@ export class SiteBaker {
 
     private async bakeDataInsights() {
         if (!this.bakeSteps.has("dataInsights")) return
-        const latestDataInsights = await db.getLatestDataInsights()
+        const latestDataInsights = await db.getPublishedDataInsights(
+            db.knexInstance(),
+            5
+        )
         const publishedDataInsights =
             await GdocDataInsight.getPublishedDataInsights()
 
@@ -740,7 +746,10 @@ export class SiteBaker {
             }
         }
 
-        const totalPageCount = await GdocDataInsight.getTotalPageCount()
+        const totalPageCount = calculateDataInsightIndexPageCount(
+            publishedDataInsights.length
+        )
+
         for (let pageNumber = 0; pageNumber < totalPageCount; pageNumber++) {
             const html = renderDataInsightsIndexPage(
                 publishedDataInsights.slice(
