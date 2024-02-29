@@ -1,6 +1,7 @@
 import {
     capitalize,
     chunk,
+    clamp,
     clone,
     cloneDeep,
     compact,
@@ -71,6 +72,7 @@ import {
 export {
     capitalize,
     chunk,
+    clamp,
     clone,
     cloneDeep,
     compact,

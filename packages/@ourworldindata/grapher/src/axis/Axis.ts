@@ -8,6 +8,7 @@ import {
     max,
     numberMagnitude,
     sortedUniqBy,
+    clamp,
     Bounds,
     DEFAULT_BOUNDS,
     AxisAlign,
@@ -18,6 +19,7 @@ import {
     TickFormattingOptions,
     Tickmark,
     ValueRange,
+    cloneDeep,
 } from "@ourworldindata/utils"
 import { AxisConfig } from "./AxisConfig"
 import { TextWrap } from "@ourworldindata/components"
@@ -82,6 +84,7 @@ abstract class AbstractAxis {
     abstract get labelWidth(): number
 
     abstract placeTickLabel(value: number): TickLabelPlacement
+    abstract get tickLabels(): TickLabelPlacement[]
 
     @computed get hideAxis(): boolean {
         return this.config.hideAxis ?? false
@@ -101,6 +104,10 @@ abstract class AbstractAxis {
 
     @computed get fontSize(): number {
         return this.config.fontSize
+    }
+
+    @computed protected get minTicks(): number {
+        return 2
     }
 
     @computed private get maxTicks(): number {
@@ -188,7 +195,11 @@ abstract class AbstractAxis {
         // NOTE: This setting is used between both log & linear axes, check both when tweaking.
         // -@danielgavrilov, 2021-06-15
         return Math.round(
-            Math.min(this.maxTicks, this.rangeSize / (this.fontSize * 1.8))
+            clamp(
+                this.rangeSize / (this.fontSize * 1.8),
+                this.minTicks,
+                this.maxTicks
+            )
         )
     }
 
@@ -392,31 +403,6 @@ abstract class AbstractAxis {
         return this.getTickValues().filter((tick) => !tick.gridLineOnly)
     }
 
-    @computed get tickLabels(): TickLabelPlacement[] {
-        // Get ticks with coordinates, sorted by priority
-        const tickLabels = sortBy(this.baseTicks, (tick) => tick.priority).map(
-            (tick) => this.placeTickLabel(tick.value)
-        )
-        // Hide overlapping ticks
-        for (let i = 0; i < tickLabels.length; i++) {
-            for (let j = i + 1; j < tickLabels.length; j++) {
-                const t1 = tickLabels[i],
-                    t2 = tickLabels[j]
-                if (t1 === t2 || t1.isHidden || t2.isHidden) continue
-                if (
-                    doIntersect(
-                        // Expand bounds slightly so that labels aren't
-                        // too close together.
-                        boundsFromLabelPlacement(t1).expand(3),
-                        boundsFromLabelPlacement(t2).expand(3)
-                    )
-                )
-                    t2.isHidden = true
-            }
-        }
-        return tickLabels.filter((t) => !t.isHidden)
-    }
-
     formatTick(
         tick: number,
         formattingOptionsOverride?: TickFormattingOptions
@@ -519,6 +505,17 @@ export class HorizontalAxis extends AbstractAxis {
         return sortedUniqBy(sortedTicks, (t) => t.value)
     }
 
+    @computed get tickLabels(): TickLabelPlacement[] {
+        // Get ticks with coordinates, sorted by priority
+        const tickLabels = sortBy(this.baseTicks, (tick) => tick.priority).map(
+            (tick) => this.placeTickLabel(tick.value)
+        )
+        const visibleTickLabels = hideOverlappingTickLabels(tickLabels, {
+            padding: 3,
+        })
+        return visibleTickLabels
+    }
+
     placeTickLabel(value: number): TickLabelPlacement {
         const formattedValue = this.formatTick(value)
         const { width, height } = Bounds.forText(formattedValue, {
@@ -590,6 +587,47 @@ export class VerticalAxis extends AbstractAxis {
 
     @computed get size(): number {
         return this.width
+    }
+
+    @computed get tickLabels(): TickLabelPlacement[] {
+        const { domain } = this
+
+        const tickLabels = sortBy(this.baseTicks, (tick) => tick.priority).map(
+            (tick) => this.placeTickLabel(tick.value)
+        )
+
+        // hide overlapping ticks, and allow for some padding
+        let visibleTicks = hideOverlappingTickLabels(tickLabels, { padding: 3 })
+
+        // if we end up with too few ticks, try again with less padding
+        if (visibleTicks.length < this.minTicks) {
+            visibleTicks = hideOverlappingTickLabels(tickLabels, { padding: 1 })
+        }
+
+        // if we still have too few ticks, de-prioritize the zero tick
+        // if it's a start or end value and drawn as a solid line
+        if (visibleTicks.length < this.minTicks) {
+            const updatedBaseTicks = cloneDeep(this.baseTicks)
+            if (domain[0] === 0 || domain[1] === 0) {
+                const zeroIndex = updatedBaseTicks
+                    .map((tick) => tick.value)
+                    .indexOf(0)
+                if (zeroIndex >= 0 && updatedBaseTicks[zeroIndex].solid) {
+                    updatedBaseTicks[zeroIndex] = {
+                        value: 0,
+                        priority: 3,
+                    }
+                }
+            }
+
+            const tickLabels = sortBy(
+                updatedBaseTicks,
+                (tick) => tick.priority
+            ).map((tick) => this.placeTickLabel(tick.value))
+            visibleTicks = hideOverlappingTickLabels(tickLabels, { padding: 1 })
+        }
+
+        return visibleTicks
     }
 
     placeTickLabel(value: number): TickLabelPlacement {
@@ -665,4 +703,26 @@ export class DualAxis {
     @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
+}
+
+function hideOverlappingTickLabels(
+    tickLabels: TickLabelPlacement[],
+    { padding = 0 }: { padding?: number } = {}
+): TickLabelPlacement[] {
+    for (let i = 0; i < tickLabels.length; i++) {
+        for (let j = i + 1; j < tickLabels.length; j++) {
+            const t1 = tickLabels[i],
+                t2 = tickLabels[j]
+            if (t1 === t2 || t1.isHidden || t2.isHidden) continue
+            if (
+                doIntersect(
+                    // Expand bounds so that labels aren't too close together.
+                    boundsFromLabelPlacement(t1).expand(padding),
+                    boundsFromLabelPlacement(t2).expand(padding)
+                )
+            )
+                t2.isHidden = true
+        }
+    }
+    return tickLabels.filter((tick) => !tick.isHidden)
 }

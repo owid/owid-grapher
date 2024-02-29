@@ -138,6 +138,7 @@ export {
 export {
     capitalize,
     chunk,
+    clamp,
     clone,
     cloneDeep,
     compact,
