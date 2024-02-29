@@ -99,7 +99,7 @@ export interface OwidGdocDataInsightContent {
     type: OwidGdocType.DataInsight
 }
 
-export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 2
+export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
 
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     content: OwidGdocDataInsightContent
