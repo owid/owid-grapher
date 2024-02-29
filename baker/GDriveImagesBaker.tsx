@@ -28,6 +28,15 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
 
     const imagesDirectory = path.join(bakedSiteDir, "images", "published")
 
+    // TODO 2024-02-29: In the retrospective about a recent resized image bug in prod we
+    //                  discussed a few improvements to make to this code:
+    //                  - [ ] Add etags for all the resizes so that we are checking if all
+    //                        the sizes are up to date, not just the original image.
+    //                  - [ ] Clarify the filenames of the paths involved so that it is clear
+    //                        what refers to the original image, the local version, ...
+    //                  - [ ] Break this function into smaller functions to make it easier to
+    //                        understand and maintain.
+
     // If this causes timeout errors, try decreasing concurrency (2 should be safe)
     await pMap(
         images,
