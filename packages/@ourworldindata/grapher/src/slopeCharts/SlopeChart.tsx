@@ -15,6 +15,7 @@ import {
     minBy,
     maxBy,
     exposeInstanceOnWindow,
+    PointVector,
 } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import { observable, computed, action } from "mobx"
@@ -58,11 +59,15 @@ import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 
+export interface SlopeChartManager extends ChartManager {
+    isModalOpen?: boolean
+}
+
 @observer
 export class SlopeChart
     extends React.Component<{
         bounds?: Bounds
-        manager: ChartManager
+        manager: SlopeChartManager
     }>
     implements ChartInterface, VerticalColorLegendManager, ColorScaleManager
 {
@@ -119,12 +124,8 @@ export class SlopeChart
     }
 
     @action.bound onSlopeClick() {
-        const { manager, hoverKey } = this
-        if (
-            manager.addCountryMode === EntitySelectionMode.Disabled ||
-            !manager.addCountryMode ||
-            hoverKey === undefined
-        ) {
+        const { hoverKey, isEntitySelectionEnabled } = this
+        if (!isEntitySelectionEnabled || hoverKey === undefined) {
             return
         }
 
@@ -147,15 +148,18 @@ export class SlopeChart
         return this.selectionArray.selectedEntityNames
     }
 
+    @computed get isEntitySelectionEnabled(): boolean {
+        const { manager } = this
+        return !!(
+            manager.addCountryMode !== EntitySelectionMode.Disabled &&
+            manager.addCountryMode
+        )
+    }
+
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick() {
-        const { manager, hoverColor } = this
-        if (
-            manager.addCountryMode === EntitySelectionMode.Disabled ||
-            !manager.addCountryMode ||
-            hoverColor === undefined
-        )
-            return
+        const { hoverColor, isEntitySelectionEnabled } = this
+        if (!isEntitySelectionEnabled || hoverColor === undefined) return
 
         const seriesNamesToToggle = this.series
             .filter((g) => g.color === hoverColor)
@@ -401,8 +405,43 @@ export class SlopeChart
         return sizeByEntity
     }
 
+    // click anywhere inside the Grapher frame to dismiss the current selection
+    @action.bound onGrapherClick(e: Event): void {
+        const target = e.target as HTMLElement
+
+        // check if the target is an interactive element or contained within one
+        const selector = "a, button, input, .TimelineComponent"
+        const isTargetInteractive = target.closest(selector) !== null
+
+        if (
+            this.isEntitySelectionEnabled &&
+            !this.hoverKey &&
+            !this.hoverColor &&
+            !this.manager.isModalOpen &&
+            !isTargetInteractive
+        ) {
+            this.selectionArray.clearSelection()
+        }
+    }
+
+    @computed private get grapherElement() {
+        return this.manager.base?.current
+    }
+
     componentDidMount() {
+        if (this.grapherElement) {
+            this.grapherElement.addEventListener("click", this.onGrapherClick)
+        }
         exposeInstanceOnWindow(this)
+    }
+
+    componentWillUnmount(): void {
+        if (this.grapherElement) {
+            this.grapherElement.removeEventListener(
+                "click",
+                this.onGrapherClick
+            )
+        }
     }
 
     @computed get series() {
@@ -590,6 +629,7 @@ class Slope extends React.Component<SlopeProps> {
                                 fill: labelColor,
                                 fontWeight:
                                     isFocused || isHovered ? "bold" : undefined,
+                                style: { cursor: "default" },
                             },
                         }
                     )}
@@ -601,6 +641,7 @@ class Slope extends React.Component<SlopeProps> {
                         fontSize={labelFontSize}
                         fill={labelColor}
                         fontWeight={isFocused || isHovered ? "bold" : undefined}
+                        style={{ cursor: "default" }}
                     >
                         {leftValueStr}
                     </Text>
@@ -636,6 +677,7 @@ class Slope extends React.Component<SlopeProps> {
                         fontSize={labelFontSize}
                         fill={labelColor}
                         fontWeight={isFocused || isHovered ? "bold" : undefined}
+                        style={{ cursor: "default" }}
                     >
                         {rightValueStr}
                     </Text>
@@ -646,6 +688,7 @@ class Slope extends React.Component<SlopeProps> {
                             fill: labelColor,
                             fontWeight:
                                 isFocused || isHovered ? "bold" : undefined,
+                            style: { cursor: "default" },
                         },
                     })}
             </g>
@@ -1004,26 +1047,65 @@ class LabelledSlopes
 
             this.mouseFrame = requestAnimationFrame(() => {
                 if (this.props.bounds.contains(mouse)) {
-                    const distToSlope = new Map<SlopeProps, number>()
+                    if (this.slopeData.length === 0) return
+
+                    const { x1: startX, x2: endX } = this.slopeData[0]
+
+                    // whether the mouse is over the chart area,
+                    // the left label area, or the right label area
+                    const mousePosition =
+                        mouse.x < startX
+                            ? "left"
+                            : mouse.x > endX
+                            ? "right"
+                            : "chart"
+
+                    const distToSlopeOrLabel = new Map<SlopeProps, number>()
                     for (const s of this.slopeData) {
+                        // start and end point of a line
+                        let p1: PointVector
+                        let p2: PointVector
+
+                        if (mousePosition === "chart") {
+                            // points define the slope line
+                            p1 = new PointVector(s.x1, s.y1)
+                            p2 = new PointVector(s.x2, s.y2)
+                        } else if (mousePosition === "left") {
+                            const labelBox = s.leftLabelBounds.toProps()
+                            // points define a "strike-through" line that stretches from
+                            // the left side of the left label to the start point of the slopes
+                            const y = labelBox.y + labelBox.height / 2
+                            p1 = new PointVector(labelBox.x, y)
+                            p2 = new PointVector(startX, y)
+                        } else {
+                            const labelBox = s.rightLabelBounds.toProps()
+                            // points define a "strike-through" line that stretches from
+                            // the end point of the slopes to the right side of the right label
+                            const y = labelBox.y + labelBox.height / 2
+                            p1 = new PointVector(endX, y)
+                            p2 = new PointVector(labelBox.x + labelBox.width, y)
+                        }
+
+                        // calculate the distance to the slope or label
                         const dist =
-                            Math.abs(
-                                (s.y2 - s.y1) * mouse.x -
-                                    (s.x2 - s.x1) * mouse.y +
-                                    s.x2 * s.y1 -
-                                    s.y2 * s.x1
-                            ) /
-                            Math.sqrt((s.y2 - s.y1) ** 2 + (s.x2 - s.x1) ** 2)
-                        distToSlope.set(s, dist)
+                            PointVector.distanceFromPointToLineSegmentSq(
+                                mouse,
+                                p1,
+                                p2
+                            )
+                        distToSlopeOrLabel.set(s, dist)
                     }
 
                     const closestSlope = minBy(this.slopeData, (s) =>
-                        distToSlope.get(s)
+                        distToSlopeOrLabel.get(s)
                     )
+                    const distanceSq = distToSlopeOrLabel.get(closestSlope!)!
+                    const tolerance = mousePosition === "chart" ? 20 : 10
+                    const toleranceSq = tolerance * tolerance
 
                     if (
                         closestSlope &&
-                        (distToSlope.get(closestSlope) as number) < 20 &&
+                        distanceSq < toleranceSq &&
                         this.props.onMouseOver
                     ) {
                         this.props.onMouseOver(closestSlope)
