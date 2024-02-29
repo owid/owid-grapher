@@ -4,12 +4,7 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import {
-    dayjs,
-    countries,
-    queryParamsToStr,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
-} from "@ourworldindata/utils"
+import { dayjs, countries, queryParamsToStr } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import urljoin from "url-join"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
