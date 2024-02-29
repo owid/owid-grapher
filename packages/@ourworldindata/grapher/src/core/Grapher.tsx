@@ -700,10 +700,9 @@ export class Grapher
         // Depending on the chart type, the criteria for being able to select an entity are
         // different; e.g. for scatterplots, the entity needs to (1) not be excluded and
         // (2) needs to have data for the x and y dimension.
-        let table =
-            this.isScatter || this.isSlopeChart
-                ? this.tableAfterAuthorTimelineAndActiveChartTransform
-                : this.inputTable
+        let table = this.isScatter
+            ? this.tableAfterAuthorTimelineAndActiveChartTransform
+            : this.inputTable
 
         if (!this.isReady) return table
 
@@ -3078,6 +3077,7 @@ export class Grapher
         return (
             this.canSelectMultipleEntities &&
             (this.isLineChart ||
+                this.isSlopeChart ||
                 this.isStackedArea ||
                 this.isDiscreteBar ||
                 this.isStackedDiscreteBar)

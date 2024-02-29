@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { SlopeChart } from "./SlopeChart"
+import { SlopeChart, SlopeChartManager } from "./SlopeChart"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTableWithStringValues,
@@ -11,9 +11,10 @@ import { DEFAULT_SLOPE_CHART_COLOR } from "./SlopeChartConstants"
 import { isNumber, OwidTableSlugs } from "@ourworldindata/utils"
 
 const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
-const manager: ChartManager = {
+const manager: SlopeChartManager = {
     table,
     yColumnSlug: SampleColumnSlugs.Population,
+    selection: table.availableEntityNames,
 }
 
 it("can create a new slope chart", () => {
@@ -26,6 +27,7 @@ it("slope charts can have different colors", () => {
         table,
         yColumnSlug: SampleColumnSlugs.Population,
         colorColumnSlug: OwidTableSlugs.entityName,
+        selection: table.availableEntityNames,
     }
     const chart = new SlopeChart({ manager })
     expect(chart.series[0].color).not.toEqual(DEFAULT_SLOPE_CHART_COLOR)

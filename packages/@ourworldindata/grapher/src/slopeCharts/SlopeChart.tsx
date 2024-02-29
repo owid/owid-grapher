@@ -3,7 +3,6 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     intersection,
-    without,
     uniq,
     isEmpty,
     last,
@@ -73,6 +72,10 @@ const LABEL_LABEL_PADDING = 4
 const TOP_PADDING = 6
 const BOTTOM_PADDING = 20
 
+export interface SlopeChartManager extends ChartManager {
+    isModalOpen?: boolean
+}
+
 @observer
 export class SlopeChart
     extends React.Component<{
@@ -90,8 +93,15 @@ export class SlopeChart
     // currently hovered legend color
     @observable hoverColor?: string
 
+    // currently focused series keys, activated by clicking on a series or a legend item
+    @observable activeKeys = new Set<string>()
+
     transformTable(table: OwidTable) {
         if (!table.has(this.yColumnSlug)) return table
+
+        table = table.filterByEntityNames(
+            this.selectionArray.selectedEntityNames
+        )
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues([this.yColumnSlug])
@@ -160,7 +170,11 @@ export class SlopeChart
             return
         }
 
-        this.selectionArray.toggleSelection(hoverKey)
+        if (this.activeKeys.has(hoverKey)) {
+            this.activeKeys.delete(hoverKey)
+        } else {
+            this.activeKeys.add(hoverKey)
+        }
     }
 
     @action.bound onLegendMouseOver(binOrColor: string | ColorScaleBin) {
@@ -188,42 +202,61 @@ export class SlopeChart
         )
     }
 
+    @computed private get availableEntityNames(): string[] {
+        return this.selectionArray.availableEntityNames
+    }
+
+    @computed private get isHovering(): boolean {
+        return !!(this.hoverKey || this.hoverColor)
+    }
+
+    private seriesNamesFromColor(color: string) {
+        return this.series
+            .filter((g) => g.color === color)
+            .map((g) => g.seriesName)
+    }
+
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick() {
         const { hoverColor, isEntitySelectionEnabled } = this
         if (!isEntitySelectionEnabled || hoverColor === undefined) return
 
-        const seriesNamesToToggle = this.series
-            .filter((g) => g.color === hoverColor)
-            .map((g) => g.seriesName)
+        // all entities of the color group are toggled,
+        // including entities that are not currently selected/visible
+        const seriesNamesToToggle = this.availableEntityNames.filter((name) => {
+            const color = this.colorBySeriesName.get(name)
+            return color === hoverColor
+        })
+
+        const seriesNames = this.seriesNamesFromColor(hoverColor)
+        const activeSeriesNames = intersection(seriesNames, [
+            ...this.activeKeys,
+        ])
         const areAllSeriesActive =
-            intersection(seriesNamesToToggle, this.selectedEntityNames)
-                .length === seriesNamesToToggle.length
-        if (areAllSeriesActive)
-            this.selectionArray.setSelectedEntities(
-                without(this.selectedEntityNames, ...seriesNamesToToggle)
-            )
-        else
-            this.selectionArray.setSelectedEntities(
-                this.selectedEntityNames.concat(seriesNamesToToggle)
-            )
+            activeSeriesNames.length === seriesNames.length
+
+        if (areAllSeriesActive) {
+            seriesNamesToToggle.forEach((key) => this.activeKeys.delete(key))
+        } else {
+            seriesNamesToToggle.forEach((key) => this.activeKeys.add(key))
+        }
     }
 
     // Colors on the legend for which every matching group is focused
     @computed get focusColors() {
         const { colorsInUse } = this
         return colorsInUse.filter((color) => {
-            const matchingSeriesNames = this.series
-                .filter((g) => g.color === color)
-                .map((g) => g.seriesName)
-            return (
-                intersection(matchingSeriesNames, this.selectedEntityNames)
-                    .length === matchingSeriesNames.length
-            )
+            const matchingSeriesNames = this.seriesNamesFromColor(color)
+            const activeSeriesNames = intersection(matchingSeriesNames, [
+                ...this.activeKeys,
+            ])
+            return activeSeriesNames.length === matchingSeriesNames.length
         })
     }
 
     @computed get focusKeys() {
+        if (this.isHovering || this.activeKeys.size > 0)
+            return [...this.activeKeys]
         return this.selectedEntityNames
     }
 
@@ -234,11 +267,7 @@ export class SlopeChart
         const hoverKeys =
             hoverColor === undefined
                 ? []
-                : uniq(
-                      this.series
-                          .filter((g) => g.color === hoverColor)
-                          .map((g) => g.seriesName)
-                  )
+                : uniq(this.seriesNamesFromColor(hoverColor))
 
         if (hoverKey !== undefined) hoverKeys.push(hoverKey)
 
@@ -247,16 +276,15 @@ export class SlopeChart
 
     // Colors currently on the chart and not greyed out
     @computed get activeColors() {
-        const { hoverKeys, focusKeys } = this
-        const activeKeys = hoverKeys.concat(focusKeys)
+        const { hoverKeys, activeKeys } = this
+        const keys = [...activeKeys, ...hoverKeys]
 
-        if (activeKeys.length === 0)
-            // No hover or focus means they're all active by default
-            return uniq(this.series.map((g) => g.color))
+        // No hover or focus means they're all active by default
+        if (keys.length === 0) return this.colorsInUse
 
         return uniq(
             this.series
-                .filter((g) => activeKeys.indexOf(g.seriesName) !== -1)
+                .filter((g) => keys.includes(g.seriesName))
                 .map((g) => g.color)
         )
     }
@@ -468,6 +496,18 @@ export class SlopeChart
 
     @computed private get grapherElement() {
         return this.manager.base?.current
+    }
+
+    @action.bound onDocumentClick(e: MouseEvent): void {
+        const tagName = (e.target as HTMLElement).tagName
+        const isTargetInteractive = ["A", "BUTTON", "INPUT"].includes(tagName)
+        if (
+            !this.isHovering &&
+            !this.manager.isModalOpen &&
+            !isTargetInteractive
+        ) {
+            this.activeKeys.clear()
+        }
     }
 
     componentDidMount() {
