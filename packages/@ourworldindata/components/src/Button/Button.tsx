@@ -37,12 +37,7 @@ export const Button = ({
 
     if (href) {
         return (
-            <a
-                className={classes}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-            >
+            <a className={classes} href={href}>
                 {text} {icon && <FontAwesomeIcon icon={icon} />}
             </a>
         )
