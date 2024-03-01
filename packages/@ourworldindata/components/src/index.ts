@@ -14,6 +14,8 @@ export {
     getUrlTarget,
     checkIsInternalLink,
     convertHeadingTextToId,
+    getCanonicalUrl,
+    getPageTitle,
 } from "./GdocsUtils.js"
 
 export { ExpandableToggle } from "./ExpandableToggle/ExpandableToggle.js"
