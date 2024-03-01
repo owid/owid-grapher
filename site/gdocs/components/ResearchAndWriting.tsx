@@ -14,7 +14,7 @@ type ResearchAndWritingProps = {
     className?: string
 } & EnrichedBlockResearchAndWriting
 
-function ResearchAndWritingLinkContainer(
+function ResearchAndWritingLink(
     props: EnrichedBlockResearchAndWritingLink & {
         className?: string
         isSmall?: boolean
@@ -105,16 +105,16 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                 <a className="deep-link" href={`#${RESEARCH_AND_WRITING_ID}`} />
             </h1>
             <div className="span-cols-12 research-and-writing-row">
-                <div className="grid research-and-writing-row__link-container">
+                <div className="grid research-and-writing-row__links">
                     {primary.map((link, i) => (
-                        <ResearchAndWritingLinkContainer
+                        <ResearchAndWritingLink
                             className="span-cols-6 span-sm-cols-12"
                             key={i}
                             {...link}
                         />
                     ))}
                     {secondary.map((link, i) => (
-                        <ResearchAndWritingLinkContainer
+                        <ResearchAndWritingLink
                             key={i}
                             className="span-cols-3 span-md-cols-6 span-sm-cols-12"
                             isSmall
@@ -126,9 +126,9 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             {rows.map((row, i) => (
                 <div key={i} className="span-cols-12 research-and-writing-row">
                     <h2 className="h2-bold">{row.heading}</h2>
-                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__link-container">
+                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links">
                         {row.articles.map((link, i) => (
-                            <ResearchAndWritingLinkContainer
+                            <ResearchAndWritingLink
                                 shouldHideSubtitle
                                 isSmall
                                 className="span-cols-1"
@@ -142,9 +142,9 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             {more ? (
                 <div className="span-cols-12 research-and-writing-row">
                     <h2 className="h2-bold">{more.heading}</h2>
-                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__link-container">
+                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links">
                         {more.articles.map((link, i) => (
-                            <ResearchAndWritingLinkContainer
+                            <ResearchAndWritingLink
                                 shouldHideThumbnail
                                 shouldHideSubtitle
                                 isSmall
