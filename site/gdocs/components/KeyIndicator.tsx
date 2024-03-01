@@ -1,18 +1,16 @@
 import React from "react"
 import cx from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 
 import {
     EnrichedBlockKeyIndicator,
     EnrichedBlockText,
 } from "@ourworldindata/types"
 import { capitalize } from "@ourworldindata/utils"
+import { Button } from "@ourworldindata/components"
 
 import Chart from "./Chart.js"
 import Paragraph from "./Paragraph.js"
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
-import { Button } from "@ourworldindata/components"
 
 export default function KeyIndicator({
     d,
