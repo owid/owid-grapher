@@ -1082,29 +1082,13 @@
     font-display: swap;
 }
 
-/* Playfair Display */
-
-@font-face {
-    font-family: "Playfair Display";
-    src: url("/fonts/PlayfairDisplay-Regular.woff2") format("woff2");
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
-}
+/* Playfair Display: smaller, latin-only subset */
 
 @font-face {
     font-family: "Playfair Display";
     src: url("/fonts/PlayfairDisplayLatin-Regular.woff2") format("woff2");
     font-weight: 400;
     font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Playfair Display";
-    src: url("/fonts/PlayfairDisplay-Italic.woff2") format("woff2");
-    font-weight: 400;
-    font-style: italic;
     font-display: swap;
 }
 
@@ -1118,25 +1102,9 @@
 
 @font-face {
     font-family: "Playfair Display";
-    src: url("/fonts/PlayfairDisplay-Medium.woff2") format("woff2");
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Playfair Display";
     src: url("/fonts/PlayfairDisplayLatin-Medium.woff2") format("woff2");
     font-weight: 500;
     font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Playfair Display";
-    src: url("/fonts/PlayfairDisplay-MediumItalic.woff2") format("woff2");
-    font-weight: 500;
-    font-style: italic;
     font-display: swap;
 }
 
@@ -1150,25 +1118,9 @@
 
 @font-face {
     font-family: "Playfair Display";
-    src: url("/fonts/PlayfairDisplay-SemiBold.woff2") format("woff2");
-    font-weight: 600;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Playfair Display";
     src: url("/fonts/PlayfairDisplayLatin-SemiBold.woff2") format("woff2");
     font-weight: 600;
     font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Playfair Display";
-    src: url("/fonts/PlayfairDisplay-SemiBoldItalic.woff2") format("woff2");
-    font-weight: 600;
-    font-style: italic;
     font-display: swap;
 }
 
@@ -1182,25 +1134,9 @@
 
 @font-face {
     font-family: "Playfair Display";
-    src: url("/fonts/PlayfairDisplay-Bold.woff2") format("woff2");
-    font-weight: 700;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Playfair Display";
     src: url("/fonts/PlayfairDisplayLatin-Bold.woff2") format("woff2");
     font-weight: 700;
     font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Playfair Display";
-    src: url("/fonts/PlayfairDisplay-BoldItalic.woff2") format("woff2");
-    font-weight: 700;
-    font-style: italic;
     font-display: swap;
 }
 
@@ -1214,25 +1150,9 @@
 
 @font-face {
     font-family: "Playfair Display";
-    src: url("/fonts/PlayfairDisplay-ExtraBold.woff2") format("woff2");
-    font-weight: 800;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Playfair Display";
     src: url("/fonts/PlayfairDisplayLatin-ExtraBold.woff2") format("woff2");
     font-weight: 800;
     font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Playfair Display";
-    src: url("/fonts/PlayfairDisplay-ExtraBoldItalic.woff2") format("woff2");
-    font-weight: 800;
-    font-style: italic;
     font-display: swap;
 }
 
@@ -1247,25 +1167,9 @@
 
 @font-face {
     font-family: "Playfair Display";
-    src: url("/fonts/PlayfairDisplay-Black.woff2") format("woff2");
-    font-weight: 900;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Playfair Display";
     src: url("/fonts/PlayfairDisplayLatin-Black.woff2") format("woff2");
     font-weight: 900;
     font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Playfair Display";
-    src: url("/fonts/PlayfairDisplay-BlackItalic.woff2") format("woff2");
-    font-weight: 900;
-    font-style: italic;
     font-display: swap;
 }
 
@@ -1279,19 +1183,7 @@
 
 @font-face {
     font-family: "PlayfairDisplay-Regular";
-    src: url("/fonts/PlayfairDisplay-Regular.woff2") format("woff2");
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "PlayfairDisplay-Regular";
     src: url("/fonts/PlayfairDisplayLatin-Regular.woff2") format("woff2");
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "PlayfairDisplay-Italic";
-    src: url("/fonts/PlayfairDisplay-Italic.woff2") format("woff2");
     font-display: swap;
 }
 
@@ -1303,19 +1195,7 @@
 
 @font-face {
     font-family: "PlayfairDisplay-Medium";
-    src: url("/fonts/PlayfairDisplay-Medium.woff2") format("woff2");
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "PlayfairDisplay-Medium";
     src: url("/fonts/PlayfairDisplayLatin-Medium.woff2") format("woff2");
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "PlayfairDisplay-MediumItalic";
-    src: url("/fonts/PlayfairDisplay-MediumItalic.woff2") format("woff2");
     font-display: swap;
 }
 
@@ -1327,19 +1207,7 @@
 
 @font-face {
     font-family: "PlayfairDisplay-SemiBold";
-    src: url("/fonts/PlayfairDisplay-SemiBold.woff2") format("woff2");
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "PlayfairDisplay-SemiBold";
     src: url("/fonts/PlayfairDisplayLatin-SemiBold.woff2") format("woff2");
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "PlayfairDisplay-SemiBoldItalic";
-    src: url("/fonts/PlayfairDisplay-SemiBoldItalic.woff2") format("woff2");
     font-display: swap;
 }
 
@@ -1351,19 +1219,7 @@
 
 @font-face {
     font-family: "PlayfairDisplay-Bold";
-    src: url("/fonts/PlayfairDisplay-Bold.woff2") format("woff2");
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "PlayfairDisplay-Bold";
     src: url("/fonts/PlayfairDisplayLatin-Bold.woff2") format("woff2");
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "PlayfairDisplay-BoldItalic";
-    src: url("/fonts/PlayfairDisplay-BoldItalic.woff2") format("woff2");
     font-display: swap;
 }
 
@@ -1375,19 +1231,7 @@
 
 @font-face {
     font-family: "PlayfairDisplay-ExtraBold";
-    src: url("/fonts/PlayfairDisplay-ExtraBold.woff2") format("woff2");
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "PlayfairDisplay-ExtraBold";
     src: url("/fonts/PlayfairDisplayLatin-ExtraBold.woff2") format("woff2");
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "PlayfairDisplay-ExtraBoldItalic";
-    src: url("/fonts/PlayfairDisplay-ExtraBoldItalic.woff2") format("woff2");
     font-display: swap;
 }
 
@@ -1400,24 +1244,398 @@
 
 @font-face {
     font-family: "PlayfairDisplay-Black";
-    src: url("/fonts/PlayfairDisplay-Black.woff2") format("woff2");
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "PlayfairDisplay-Black";
     src: url("/fonts/PlayfairDisplayLatin-Black.woff2") format("woff2");
     font-display: swap;
 }
 
 @font-face {
     font-family: "PlayfairDisplay-BlackItalic";
+    src: url("/fonts/PlayfairDisplayLatin-BlackItalic.woff2") format("woff2");
+    font-display: swap;
+}
+
+/* Playfair Display: larger, full character set version */
+
+@font-face {
+    font-family: "Playfair Display";
+    src: url("/fonts/PlayfairDisplay-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Playfair Display";
+    src: url("/fonts/PlayfairDisplay-Italic.woff2") format("woff2");
+    font-weight: 400;
+    font-style: italic;
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Playfair Display";
+    src: url("/fonts/PlayfairDisplay-Medium.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Playfair Display";
+    src: url("/fonts/PlayfairDisplay-MediumItalic.woff2") format("woff2");
+    font-weight: 500;
+    font-style: italic;
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Playfair Display";
+    src: url("/fonts/PlayfairDisplay-SemiBold.woff2") format("woff2");
+    font-weight: 600;
+    font-style: normal;
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Playfair Display";
+    src: url("/fonts/PlayfairDisplay-SemiBoldItalic.woff2") format("woff2");
+    font-weight: 600;
+    font-style: italic;
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Playfair Display";
+    src: url("/fonts/PlayfairDisplay-Bold.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Playfair Display";
+    src: url("/fonts/PlayfairDisplay-BoldItalic.woff2") format("woff2");
+    font-weight: 700;
+    font-style: italic;
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Playfair Display";
+    src: url("/fonts/PlayfairDisplay-ExtraBold.woff2") format("woff2");
+    font-weight: 800;
+    font-style: normal;
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Playfair Display";
+    src: url("/fonts/PlayfairDisplay-ExtraBoldItalic.woff2") format("woff2");
+    font-weight: 800;
+    font-style: italic;
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Playfair Display";
+    src: url("/fonts/PlayfairDisplay-Black.woff2") format("woff2");
+    font-weight: 900;
+    font-style: normal;
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Playfair Display";
     src: url("/fonts/PlayfairDisplay-BlackItalic.woff2") format("woff2");
+    font-weight: 900;
+    font-style: italic;
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "PlayfairDisplay-Regular";
+    src: url("/fonts/PlayfairDisplay-Regular.woff2") format("woff2");
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "PlayfairDisplay-Italic";
+    src: url("/fonts/PlayfairDisplay-Italic.woff2") format("woff2");
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "PlayfairDisplay-Medium";
+    src: url("/fonts/PlayfairDisplay-Medium.woff2") format("woff2");
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "PlayfairDisplay-MediumItalic";
+    src: url("/fonts/PlayfairDisplay-MediumItalic.woff2") format("woff2");
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "PlayfairDisplay-SemiBold";
+    src: url("/fonts/PlayfairDisplay-SemiBold.woff2") format("woff2");
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "PlayfairDisplay-SemiBoldItalic";
+    src: url("/fonts/PlayfairDisplay-SemiBoldItalic.woff2") format("woff2");
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "PlayfairDisplay-Bold";
+    src: url("/fonts/PlayfairDisplay-Bold.woff2") format("woff2");
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "PlayfairDisplay-BoldItalic";
+    src: url("/fonts/PlayfairDisplay-BoldItalic.woff2") format("woff2");
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "PlayfairDisplay-ExtraBold";
+    src: url("/fonts/PlayfairDisplay-ExtraBold.woff2") format("woff2");
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "PlayfairDisplay-ExtraBoldItalic";
+    src: url("/fonts/PlayfairDisplay-ExtraBoldItalic.woff2") format("woff2");
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "PlayfairDisplay-Black";
+    src: url("/fonts/PlayfairDisplay-Black.woff2") format("woff2");
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
     font-display: swap;
 }
 
 @font-face {
     font-family: "PlayfairDisplay-BlackItalic";
-    src: url("/fonts/PlayfairDisplayLatin-BlackItalic.woff2") format("woff2");
+    src: url("/fonts/PlayfairDisplay-BlackItalic.woff2") format("woff2");
+    unicode-range: U+D, U+100-103, U+108-117, U+11A-130, U+132-140, U+145-151,
+        U+154-159, U+15C-15F, U+162-177, U+17F, U+18F, U+1A0-1A1, U+1AF-1B0,
+        U+1B7, U+1CD-1CE, U+1D3-1D4, U+1E4-1E9, U+1EE-1EF, U+1F4-1F5, U+1FE-1FF,
+        U+218-21B, U+21E-21F, U+237, U+259, U+292, U+2BB-2BC, U+300-304,
+        U+306-30C, U+323, U+326-328, U+335, U+337-338, U+394, U+3A9, U+3BC,
+        U+400-45F, U+462-463, U+46A-46B, U+490-493, U+496-497, U+49A-49B,
+        U+4A2-4A3, U+4AE-4B1, U+4BA-4BB, U+4C9-4CA, U+4D8-4D9, U+4E8-4E9,
+        U+1E80-1E85, U+1E9E, U+1EA0-1EF9, U+2010, U+2032-2033, U+2052, U+20B9,
+        U+2105, U+2116, U+212A-212B, U+2153-2154, U+25A0-25A1;
     font-display: swap;
 }
