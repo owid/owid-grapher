@@ -71,32 +71,34 @@ export const getTagsByPostId = async (
 }
 
 export const setTags = async (
+    trx: db.KnexReadWriteTransaction,
     postId: number,
     tagIds: number[]
-): Promise<void> =>
-    await db.transaction(async (t) => {
-        const tagRows = tagIds.map((tagId) => [tagId, postId])
-        await t.execute(`DELETE FROM post_tags WHERE post_id=?`, [postId])
-        if (tagRows.length)
-            await t.execute(
-                `INSERT INTO post_tags (tag_id, post_id) VALUES ?`,
-                [tagRows]
-            )
-    })
+): Promise<void> => {
+    const tagRows = tagIds.map((tagId) => [tagId, postId])
+    await db.knexRaw(trx, `DELETE FROM post_tags WHERE post_id=?`, [postId])
+    if (tagRows.length)
+        await db.knexRaw(
+            trx,
+            `INSERT INTO post_tags (tag_id, post_id) VALUES ?`,
+            [tagRows]
+        )
+}
 
 export const setTagsForPost = async (
+    trx: db.KnexReadWriteTransaction,
     postId: number,
     tagIds: number[]
-): Promise<void> =>
-    await db.transaction(async (t) => {
-        const tagRows = tagIds.map((tagId) => [tagId, postId])
-        await t.execute(`DELETE FROM post_tags WHERE post_id=?`, [postId])
-        if (tagRows.length)
-            await t.execute(
-                `INSERT INTO post_tags (tag_id, post_id) VALUES ?`,
-                [tagRows]
-            )
-    })
+): Promise<void> => {
+    const tagRows = tagIds.map((tagId) => [tagId, postId])
+    await db.knexRaw(trx, `DELETE FROM post_tags WHERE post_id=?`, [postId])
+    if (tagRows.length)
+        await db.knexRaw(
+            trx,
+            `INSERT INTO post_tags (tag_id, post_id) VALUES ?`,
+            [tagRows]
+        )
+}
 
 export const getPostRawBySlug = async (
     trx: db.KnexReadonlyTransaction,
@@ -156,6 +158,8 @@ export const getFullPostByIdFromSnapshot = async (
     return getFullPost(trx, postEnriched.wpApiSnapshot)
 }
 
+// TODO: I suggest that in the place where we define SiteNavigationStatic we create a Set with all the leaves and
+//       then this one becomes a simple lookup in the set. Probably nicest to do the set creation as a memoized function.
 export const isPostSlugCitable = (slug: string): boolean => {
     const entries = SiteNavigationStatic.categories
     return entries.some((category) => {
@@ -267,6 +271,7 @@ export const getBlogIndex = memoize(
                 knex,
                 [WP_PostType.Post],
                 selectHomepagePosts
+                // TODO: consider doing this as a join instead of a 1+N query
             ).then((posts) =>
                 posts.map((post) => getFullPost(knex, post, true))
             )
@@ -328,7 +333,7 @@ export const getWordpressPostReferencesByChartId = async (
 ): Promise<PostReference[]> => {
     const relatedWordpressPosts: PostReference[] = await db.knexRaw(
         knex,
-        `
+        `-- sql
             SELECT DISTINCT
                 p.title,
                 p.slug,
@@ -376,7 +381,7 @@ export const getGdocsPostReferencesByChartId = async (
 ): Promise<PostReference[]> => {
     const relatedGdocsPosts: PostReference[] = await db.knexRaw(
         knex,
-        `
+        `-- sql
             SELECT DISTINCT
                 pg.content ->> '$.title' AS title,
                 pg.slug AS slug,
@@ -441,9 +446,11 @@ export const getPostTags = async (
 }
 
 export const getRelatedResearchAndWritingForVariable = async (
+    knex: db.KnexReadonlyTransaction,
     variableId: number
 ): Promise<DataPageRelatedResearch[]> => {
-    const wp_posts: RelatedResearchQueryResult[] = await db.queryMysql(
+    const wp_posts: RelatedResearchQueryResult[] = await db.knexRaw(
+        knex,
         `-- sql
             -- What we want here is to get from the variable to the charts
             -- to the posts and collect different pieces of information along the way
@@ -507,7 +514,8 @@ export const getRelatedResearchAndWritingForVariable = async (
         [variableId]
     )
 
-    const gdocs_posts: RelatedResearchQueryResult[] = await db.queryMysql(
+    const gdocs_posts: RelatedResearchQueryResult[] = await db.knexRaw(
+        knex,
         `-- sql
             select
                 distinct

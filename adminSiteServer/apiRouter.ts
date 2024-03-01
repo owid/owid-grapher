@@ -2218,10 +2218,10 @@ apiRouter.get("/posts.json", async (req) => {
     return { posts: rows }
 })
 
-apiRouter.post("/posts/:postId/setTags", async (req, res) => {
+postRouteWithRWTransaction(apiRouter, "/posts/:postId/setTags", async (req, res, trx) => {
     const postId = expectInt(req.params.postId)
 
-    await setTagsForPost(postId, req.body.tagIds)
+    await setTagsForPost(trx, postId, req.body.tagIds)
 
     return { success: true }
 })
