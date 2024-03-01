@@ -8,23 +8,11 @@
         margin: 0 0 16px 0;
     }
     .explorer-tiles__cta {
-        display: block;
-        padding: 8.5px 16px;
-        color: $vermillion;
-        border: 1px solid $vermillion;
-        border-radius: 0;
         width: fit-content;
         justify-self: end;
         grid-row: span 2;
         align-self: center;
-        height: 40px;
-        &:hover {
-            color: $accent-vermillion;
-            border-color: $accent-vermillion;
-        }
-        svg {
-            font-size: 0.75rem;
-        }
+
         @include sm-only {
             justify-self: start;
             margin-top: 16px;

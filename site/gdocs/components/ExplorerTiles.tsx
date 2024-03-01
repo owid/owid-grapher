@@ -1,8 +1,7 @@
 import { EnrichedBlockExplorerTiles } from "@ourworldindata/types"
+import { Button } from "@ourworldindata/components"
 import React, { useContext } from "react"
 import { useLinkedChart } from "../utils.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { DocumentContext } from "../OwidGdoc.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 
@@ -55,13 +54,13 @@ export function ExplorerTiles({
             <h2 className="h2-bold span-cols-6 span-md-12 explorer-tiles__title">
                 {title}
             </h2>
-            <a
+            <Button
                 className="span-cols-4 col-start-9 span-md-cols-5 col-md-start-8 col-sm-start-1 span-sm-cols-12 body-3-medium explorer-tiles__cta"
                 href="/charts"
-            >
-                See all our Data Explorers{" "}
-                <FontAwesomeIcon icon={faArrowRight} />
-            </a>
+                text="See all our Data Explorers"
+                theme="outline-vermillion"
+            />
+
             <p className="body-2-regular explorer-tiles__subtitle span-cols-8 span-md-cols-7 span-sm-cols-12">
                 {subtitle}
             </p>
