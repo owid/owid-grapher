@@ -30,6 +30,7 @@ export const Footnote = ({
                 )
             }
             interactive
+            interactiveDebounce={50}
             placement="bottom"
             theme="owid-footnote"
             trigger="mouseenter focus click"
