@@ -62,33 +62,31 @@ function ResearchAndWritingLink(
             target="_blank"
             rel="noopener noreferrer"
         >
-            <div>
-                {filename && !shouldHideThumbnail ? (
-                    <figure>
-                        <Image
-                            filename={filename}
-                            shouldLightbox={false}
-                            containerType={isSmall ? "thumbnail" : "default"}
-                        />
-                    </figure>
-                ) : null}
-                {heading}
-                {subtitle && !shouldHideSubtitle ? (
-                    <p
-                        className={cx(
-                            "research-and-writing-link__description",
-                            isSmall ? "body-3-medium" : "body-2-regular"
-                        )}
-                    >
-                        {subtitle}
-                    </p>
-                ) : null}
-                {authors ? (
-                    <p className="research-and-writing-link__authors body-3-medium-italic">
-                        {formatAuthors({ authors })}
-                    </p>
-                ) : null}
-            </div>
+            {filename && !shouldHideThumbnail ? (
+                <figure>
+                    <Image
+                        filename={filename}
+                        shouldLightbox={false}
+                        containerType={isSmall ? "thumbnail" : "default"}
+                    />
+                </figure>
+            ) : null}
+            {heading}
+            {subtitle && !shouldHideSubtitle ? (
+                <p
+                    className={cx(
+                        "research-and-writing-link__description",
+                        isSmall ? "body-3-medium" : "body-2-regular"
+                    )}
+                >
+                    {subtitle}
+                </p>
+            ) : null}
+            {authors ? (
+                <p className="research-and-writing-link__authors body-3-medium-italic">
+                    {formatAuthors({ authors })}
+                </p>
+            ) : null}
         </a>
     )
 }
