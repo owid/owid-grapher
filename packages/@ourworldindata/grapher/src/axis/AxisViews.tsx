@@ -227,14 +227,31 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
 export class VerticalAxisComponent extends React.Component<{
     bounds: Bounds
     verticalAxis: VerticalAxis
+    showTickMarks?: boolean
     labelColor?: string
     tickColor?: string
     detailsMarker?: DetailsMarker
 }> {
     render(): JSX.Element {
-        const { bounds, verticalAxis, labelColor, tickColor, detailsMarker } =
-            this.props
+        const {
+            bounds,
+            verticalAxis,
+            labelColor,
+            tickColor,
+            detailsMarker,
+            showTickMarks,
+        } = this.props
         const { tickLabels, labelTextWrap } = verticalAxis
+
+        const tickMarks = showTickMarks ? (
+            <VerticalAxisTickMarks
+                tickMarkYPositions={tickLabels.map((label) =>
+                    verticalAxis.place(label.value)
+                )}
+                tickMarkLeftPosition={bounds.left + verticalAxis.width}
+                color={SOLID_TICK_COLOR}
+            />
+        ) : undefined
 
         return (
             <g className="VerticalAxis">
@@ -250,6 +267,7 @@ export class VerticalAxisComponent extends React.Component<{
                             detailsMarker,
                         }
                     )}
+                {tickMarks}
                 {tickLabels.map((label, i) => {
                     const { y, xAlign, yAlign, formattedValue } = label
                     return (
@@ -325,7 +343,7 @@ export class HorizontalAxisComponent extends React.Component<{
             : preferredAxisPosition ?? bounds.bottom
 
         const tickMarks = showTickMarks ? (
-            <AxisTickMarks
+            <HorizontalAxisTickMarks
                 tickMarkTopPosition={tickMarksYPosition}
                 tickMarkXPositions={tickLabels.map((label): number =>
                     axis.place(label.value)
@@ -374,7 +392,7 @@ export class HorizontalAxisComponent extends React.Component<{
     }
 }
 
-export class AxisTickMarks extends React.Component<{
+export class HorizontalAxisTickMarks extends React.Component<{
     tickMarkTopPosition: number
     tickMarkXPositions: number[]
     color: string
@@ -393,6 +411,33 @@ export class AxisTickMarks extends React.Component<{
                     y1={tickMarkTopPosition}
                     x2={tickMarkPosition}
                     y2={tickBottom}
+                    stroke={color}
+                    strokeWidth={width}
+                />
+            )
+        })
+    }
+}
+
+export class VerticalAxisTickMarks extends React.Component<{
+    tickMarkLeftPosition: number
+    tickMarkYPositions: number[]
+    color: string
+    width?: number
+}> {
+    render(): JSX.Element[] {
+        const { tickMarkYPositions, tickMarkLeftPosition, color, width } =
+            this.props
+        const tickSize = 5
+        const tickRight = tickMarkLeftPosition + tickSize
+        return tickMarkYPositions.map((tickMarkPosition, index) => {
+            return (
+                <line
+                    key={index}
+                    x1={tickMarkLeftPosition}
+                    y1={tickMarkPosition}
+                    x2={tickRight}
+                    y2={tickMarkPosition}
                     stroke={color}
                     strokeWidth={width}
                 />

@@ -12,7 +12,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     VerticalAxisComponent,
-    AxisTickMarks,
+    HorizontalAxisTickMarks,
     VerticalAxisGridLines,
 } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -460,7 +460,7 @@ export class StackedBarChart
                     strokeWidth={axisLineWidth}
                 />
 
-                <AxisTickMarks
+                <HorizontalAxisTickMarks
                     tickMarkTopPosition={innerBounds.bottom}
                     tickMarkXPositions={ticks.map(
                         (tick) => tick.bounds.centerX

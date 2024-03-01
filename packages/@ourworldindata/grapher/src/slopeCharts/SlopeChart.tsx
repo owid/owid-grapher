@@ -31,7 +31,6 @@ import {
     GRAPHER_DARK_TEXT,
     GRAPHER_FONT_SCALE_9_6,
     GRAPHER_FONT_SCALE_10_5,
-    GRAPHER_FONT_SCALE_12,
     GRAPHER_FONT_SCALE_14,
 } from "../core/GrapherConstants"
 import {
@@ -43,21 +42,22 @@ import {
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
-import { scaleLinear, scaleLog, ScaleLinear, ScaleLogarithmic } from "d3-scale"
+import { scaleLinear, ScaleLinear } from "d3-scale"
 import { extent } from "d3-array"
 import { select } from "d3-selection"
 import { Text } from "../text/Text"
 import {
     DEFAULT_SLOPE_CHART_COLOR,
     LabelledSlopesProps,
-    SlopeAxisProps,
     SlopeChartSeries,
     SlopeChartValue,
     SlopeProps,
 } from "./SlopeChartConstants"
-import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import { OwidTable } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
+import { VerticalAxis } from "../axis/Axis"
+import { VerticalAxisComponent } from "../axis/AxisViews"
 
 export interface SlopeChartManager extends ChartManager {
     isModalOpen?: boolean
@@ -495,82 +495,18 @@ export class SlopeChart
     }
 }
 
-@observer
-class SlopeChartAxis extends React.Component<SlopeAxisProps> {
-    static calculateBounds(
-        containerBounds: Bounds,
-        props: {
-            column: CoreColumn
-            orient: "left" | "right"
-            scale: ScaleLinear<number, number>
-        }
-    ) {
-        const { scale, column } = props
-        const longestTick = maxBy(
-            scale.ticks(6).map((tick) => column.formatValueShort(tick)),
-            (tick) => tick.length
-        )
-        const axisWidth = Bounds.forText(longestTick).width
-        return new Bounds(
-            containerBounds.x,
-            containerBounds.y,
-            axisWidth,
-            containerBounds.height
-        )
-    }
-
-    static getTicks(
-        scale: ScaleLinear<number, number> | ScaleLogarithmic<number, number>,
-        scaleType: ScaleType
-    ) {
-        if (scaleType === ScaleType.log) {
-            let minPower10 = Math.ceil(
-                Math.log(scale.domain()[0]) / Math.log(10)
-            )
-            if (!isFinite(minPower10)) minPower10 = 0
-            let maxPower10 = Math.floor(
-                Math.log(scale.domain()[1]) / Math.log(10)
-            )
-            if (maxPower10 <= minPower10) maxPower10 += 1
-
-            const tickValues = []
-            for (let i = minPower10; i <= maxPower10; i++) {
-                tickValues.push(Math.pow(10, i))
-            }
-            return tickValues
-        } else {
-            return scale.ticks(6)
-        }
-    }
-
-    @computed get ticks() {
-        return SlopeChartAxis.getTicks(this.props.scale, this.props.scaleType)
-    }
-
-    render() {
-        const { bounds, scale, orient, column, fontSize } = this.props
-        const { ticks } = this
-
-        return (
-            <g className="axis">
-                {ticks.map((tick, i) => {
-                    return (
-                        <text
-                            key={i}
-                            x={orient === "left" ? bounds.left : bounds.right}
-                            y={scale(tick)}
-                            fill={GRAPHER_DARK_TEXT}
-                            dominantBaseline="middle"
-                            textAnchor={orient === "left" ? "start" : "end"}
-                            fontSize={fontSize}
-                        >
-                            {column.formatValueShort(tick)}
-                        </text>
-                    )
-                })}
-            </g>
-        )
-    }
+function calculateBounds(containerBounds: Bounds, yAxis: VerticalAxis) {
+    const longestTick = maxBy(
+        yAxis.tickLabels.map((tickLabel) => tickLabel.formattedValue),
+        (tick) => tick.length
+    )
+    const axisWidth = Bounds.forText(longestTick).width
+    return new Bounds(
+        containerBounds.x,
+        containerBounds.y,
+        axisWidth,
+        containerBounds.height
+    )
 }
 
 @observer
@@ -771,6 +707,15 @@ class LabelledSlopes
         return new AxisConfig(this.manager.yAxisConfig, this)
     }
 
+    @computed get yAxis(): VerticalAxis {
+        const axis = this.yAxisConfig.toVerticalAxis()
+        axis.domain = this.yDomain
+        axis.range = this.yRange
+        axis.formatColumn = this.yColumn
+        axis.label = ""
+        return axis
+    }
+
     @computed private get yScaleType() {
         return this.yAxisConfig.scaleType || ScaleType.linear
     }
@@ -807,31 +752,13 @@ class LabelledSlopes
             .range([factor, 4 * factor])
     }
 
-    @computed get yScaleConstructor(): any {
-        return this.yScaleType === ScaleType.log ? scaleLog : scaleLinear
-    }
-
-    @computed private get yScale():
-        | ScaleLinear<number, number>
-        | ScaleLogarithmic<number, number> {
-        return (
-            this.yScaleConstructor()
-                .domain(this.yDomain)
-                // top padding leaves room for point labels
-                // bottom padding leaves room for y-axis labels
-                .range(this.props.bounds.padTop(6).padBottom(24).yRange())
-        )
+    @computed get yRange(): [number, number] {
+        return this.props.bounds.padTop(6).padBottom(24).yRange()
     }
 
     @computed private get xScale(): ScaleLinear<number, number> {
-        const { bounds, isPortrait, xDomain, yScale, yColumn } = this
-        const padding = isPortrait
-            ? 0
-            : SlopeChartAxis.calculateBounds(bounds, {
-                  orient: "left",
-                  scale: yScale,
-                  column: yColumn,
-              }).width
+        const { bounds, isPortrait, xDomain, yAxis } = this
+        const padding = isPortrait ? 0 : calculateBounds(bounds, yAxis).width
         return scaleLinear()
             .domain(xDomain)
             .range(bounds.padWidth(padding).xRange())
@@ -846,14 +773,14 @@ class LabelledSlopes
             data,
             isPortrait,
             xScale,
-            yScale,
+            yAxis,
             sizeScale,
             yColumn,
+            yDomain,
             maxLabelWidth: maxWidth,
         } = this
 
         const slopeData: SlopeProps[] = []
-        const yDomain = yScale.domain()
 
         data.forEach((series) => {
             // Ensure values fit inside the chart
@@ -867,7 +794,7 @@ class LabelledSlopes
             const text = series.seriesName
             const [v1, v2] = series.values
             const [x1, x2] = [xScale(v1.x), xScale(v2.x)]
-            const [y1, y2] = [yScale(v1.y), yScale(v2.y)]
+            const [y1, y2] = [yAxis.place(v1.y), yAxis.place(v2.y)]
             const fontSize =
                 (isPortrait
                     ? GRAPHER_FONT_SCALE_9_6
@@ -1158,23 +1085,20 @@ class LabelledSlopes
     render() {
         const {
             fontSize,
-            yScaleType,
             bounds,
             slopeData,
             isPortrait,
             xDomain,
-            yScale,
+            yAxis,
+            yRange,
             onMouseMove,
-            yColumn,
         } = this
 
         if (isEmpty(slopeData))
             return <NoDataModal manager={this.props.manager} bounds={bounds} />
 
         const { x1, x2 } = slopeData[0]
-        const [y1, y2] = yScale.range()
-
-        const tickFontSize = GRAPHER_FONT_SCALE_12 * fontSize
+        const [y1, y2] = yRange
 
         return (
             <g
@@ -1195,40 +1119,38 @@ class LabelledSlopes
                     opacity={0}
                 />
                 <g className="gridlines">
-                    {SlopeChartAxis.getTicks(yScale, yScaleType).map(
-                        (tick, i) => {
-                            return (
+                    {this.yAxis.tickLabels.map((tick) => {
+                        const y = yAxis.place(tick.value)
+                        return (
+                            <g key={y.toString()}>
+                                {/* grid lines connecting the chart area to the axis */}
                                 <line
-                                    key={i}
-                                    x1={x1}
-                                    y1={yScale(tick)}
-                                    x2={x2}
-                                    y2={yScale(tick)}
+                                    x1={bounds.left + this.yAxis.width + 8}
+                                    y1={y}
+                                    x2={x1}
+                                    y2={y}
                                     stroke="#eee"
                                     strokeDasharray="3,2"
                                 />
-                            )
-                        }
-                    )}
+                                {/* grid lines within the chart area */}
+                                <line
+                                    x1={x1}
+                                    y1={y}
+                                    x2={x2}
+                                    y2={y}
+                                    stroke="#ddd"
+                                    strokeDasharray="3,2"
+                                />
+                            </g>
+                        )
+                    })}
                 </g>
                 {!isPortrait && (
-                    <SlopeChartAxis
-                        orient="left"
-                        column={yColumn}
-                        scale={yScale}
-                        scaleType={yScaleType}
+                    <VerticalAxisComponent
                         bounds={bounds}
-                        fontSize={tickFontSize}
-                    />
-                )}
-                {!isPortrait && (
-                    <SlopeChartAxis
-                        orient="right"
-                        column={yColumn}
-                        scale={yScale}
-                        scaleType={yScaleType}
-                        bounds={bounds}
-                        fontSize={tickFontSize}
+                        verticalAxis={this.yAxis}
+                        showTickMarks={true}
+                        labelColor={this.manager.secondaryColorInStaticCharts}
                     />
                 )}
                 <line x1={x1} y1={y1} x2={x1} y2={y2} stroke="#333" />
