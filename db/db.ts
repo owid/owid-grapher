@@ -269,3 +269,22 @@ export const getTotalNumberOfInUseGrapherTags = (): Promise<number> => {
         knexInstance()
     ).then((res) => res?.count ?? 0)
 }
+
+/**
+ * For usage with GdocFactory.load, until we refactor Gdocs to be entirely Knex-based.
+ */
+export const getHomepageId = (
+    knex: Knex<any, any[]>
+): Promise<string | undefined> => {
+    return knexRawFirst<{ id: string }>(
+        `-- sql
+        SELECT
+            posts_gdocs.id
+        FROM
+            posts_gdocs
+        WHERE
+            content->>'$.type' = '${OwidGdocType.Homepage}'
+            AND published = TRUE`,
+        knex
+    ).then((result) => result?.id)
+}

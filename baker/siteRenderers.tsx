@@ -58,7 +58,7 @@ import {
 import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
-import { queryMysql, knexTable } from "../db/db.js"
+import { queryMysql, knexTable, getHomepageId } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import {
@@ -254,16 +254,10 @@ export const renderPost = async (
 }
 
 export const renderFrontPage = async (knex: Knex<any, any[]>) => {
-    const gdocHomepageResult = await knex.raw<{ id: string }>(
-        `--sql
-        SELECT id
-        FROM posts_gdocs
-        WHERE content->>"$.type" = "${OwidGdocType.Homepage}"
-        AND published = TRUE`
-    )
+    const gdocHomepageId = await getHomepageId(knex)
 
-    if (gdocHomepageResult) {
-        const gdocHomepage = await GdocFactory.load(gdocHomepageResult.id)
+    if (gdocHomepageId) {
+        const gdocHomepage = await GdocFactory.load(gdocHomepageId)
         await gdocHomepage.loadState()
         return renderGdoc(gdocHomepage)
     } else {
