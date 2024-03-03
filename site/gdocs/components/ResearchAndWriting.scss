@@ -1,72 +1,50 @@
+$margin-bottom-grid-cell: 4px;
+
 .article-block__research-and-writing {
     margin-bottom: 40px;
 
     > h1 {
         font-size: 32px;
         margin-bottom: 40px;
-
-        // Only the first large thumbnail, the "shorts" section has a margin
-        // so the second thumbnail doesn't need any
-        + .research-and-writing-link {
-            @include md-down {
-                margin-bottom: 16px;
-            }
-        }
     }
 }
 
-.research-and-writing-row h2 {
-    margin-top: 32px;
+.research-and-writing-row__heading {
+    // The assumption here is that the last item of the cell always has a
+    // margin-bottom of 8px, whether it is author names (topic pages) or an
+    // excerpt (author pages). The calculation is kept visible as a way to
+    // better document what is happening, and to preserve the design intent in
+    // code.
+    margin-top: 32px - $margin-bottom-grid-cell;
     margin-bottom: 24px;
     color: $blue-50;
 }
 
+.research-and-writing-link__title {
+    margin-top: 0;
+    margin-bottom: $margin-bottom-grid-cell;
+}
+
 .research-and-writing-row__links {
-    row-gap: 32px;
+    row-gap: 32px - $margin-bottom-grid-cell;
 
     @include sm-only {
         display: flex;
         overflow-x: auto;
         scrollbar-width: thin;
     }
-    .research-and-writing-link {
-        h3 {
-            @include h3-bold;
-            margin-top: 16px;
-            margin-bottom: 8px;
-        }
-        @include sm-only {
-            flex: 1 0 80%;
-        }
-    }
 }
 
 .research-and-writing-link {
-    h2,
-    h3 {
-        @include owid-link-90;
-        margin-top: 16px;
-        margin-bottom: 8px;
-        text-decoration: none;
+    @include sm-only {
+        flex: 1 0 80%;
     }
 
-    &:hover {
-        h2,
-        h3 {
-            text-decoration: underline;
-        }
-    }
+    @include owid-link-90;
+    text-decoration: none;
 
-    .research-and-writing-link__description {
-        color: $blue-90;
-        margin-bottom: 8px;
-        margin-top: 0;
-    }
-
-    .research-and-writing-link__authors {
-        color: $blue-60;
-        margin-bottom: 8px;
-        margin-top: 0;
+    &:hover .research-and-writing-row-link__title {
+        text-decoration: underline;
     }
 
     figure {
@@ -77,7 +55,7 @@
         box-sizing: border-box;
         position: relative;
         overflow: hidden;
-        margin: 0;
+        margin: 0 0 12px;
     }
 
     img {
@@ -88,6 +66,18 @@
         left: 0;
         top: 0;
     }
+}
+
+.research-and-writing-link__description {
+    color: $blue-90;
+    margin-bottom: $margin-bottom-grid-cell;
+    margin-top: 0;
+}
+
+.research-and-writing-link__authors {
+    color: $blue-60;
+    margin-bottom: $margin-bottom-grid-cell;
+    margin-top: 0;
 }
 
 .research-and-writing-link--error {

@@ -51,7 +51,12 @@ function ResearchAndWritingLink(
 
     const heading = React.createElement(
         isSmall ? "h3" : "h2",
-        { className: isSmall ? "h3-bold" : "h2-bold" },
+        {
+            className: cx(
+                "research-and-writing-link__title",
+                isSmall ? "h3-bold" : "h2-bold"
+            ),
+        },
         title
     )
 
@@ -123,7 +128,9 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             </div>
             {rows.map((row, i) => (
                 <div key={i} className="span-cols-12 research-and-writing-row">
-                    <h2 className="h2-bold">{row.heading}</h2>
+                    <h2 className="h2-bold research-and-writing-row__heading">
+                        {row.heading}
+                    </h2>
                     <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links">
                         {row.articles.map((link, i) => (
                             <ResearchAndWritingLink
@@ -139,7 +146,9 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             ))}
             {more ? (
                 <div className="span-cols-12 research-and-writing-row">
-                    <h2 className="h2-bold">{more.heading}</h2>
+                    <h2 className="h2-bold research-and-writing-row__heading">
+                        {more.heading}
+                    </h2>
                     <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links">
                         {more.articles.map((link, i) => (
                             <ResearchAndWritingLink
