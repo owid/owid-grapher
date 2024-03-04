@@ -11,6 +11,7 @@ import { formatAuthors } from "../../clientFormatting.js"
 import Image from "./Image.js"
 import { AttachmentsContext, DocumentContext } from "../OwidGdoc.js"
 import {
+    DEFAULT_GDOC_FEATURED_IMAGE,
     DbEnrichedLatestWork,
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
 } from "@ourworldindata/types"
@@ -29,7 +30,13 @@ function ResearchAndWritingLink(
     }
 ) {
     let {
-        value: { url, title, subtitle, authors, filename },
+        value: {
+            url,
+            title,
+            subtitle,
+            authors,
+            filename = DEFAULT_GDOC_FEATURED_IMAGE,
+        },
         shouldHideThumbnail = false,
         isSmall = false,
         shouldHideSubtitle = false,
@@ -104,7 +111,7 @@ const parseLatestWorkToResearchAndWritingLink = (
         value: {
             ...latestWork,
             url: `${BAKED_BASE_URL}/${latestWork.slug}`,
-            filename: latestWork["featured-image"],
+            filename: latestWork["featured-image"] || undefined,
         },
     }
 }

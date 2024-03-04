@@ -346,6 +346,7 @@ export {
     IMAGES_DIRECTORY,
     gdocUrlRegex,
     gdocIdRegex,
+    DEFAULT_GDOC_FEATURED_IMAGE,
 } from "./gdocTypes/GdocConstants.js"
 export {
     type OwidVariableWithSource,

@@ -25,3 +25,5 @@ export const gdocUrlRegex =
     /https:\/\/docs\.google\.com\/document(?:\/u\/\d)?\/d\/([\-\w]+)\/?(edit)?#?/
 
 export const gdocIdRegex = /^[0-9A-Za-z\-_]{44}$/
+
+export const DEFAULT_GDOC_FEATURED_IMAGE = "default-featured-image.png"

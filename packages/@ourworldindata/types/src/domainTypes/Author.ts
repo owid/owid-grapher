@@ -2,7 +2,7 @@ export interface DbRawLatestWork {
     slug: string
     title: string
     authors: string
-    "featured-image": string
+    "featured-image": string | null
     publishedAt: Date | null
 }
 
@@ -10,7 +10,7 @@ export interface DbEnrichedLatestWork {
     slug: string
     title: string
     authors: string[]
-    "featured-image": string
+    "featured-image": string | null
     publishedAt: Date | null
 }
 
