@@ -7,6 +7,7 @@ import {
     OwidEnrichedGdocBlock,
     OwidGdocErrorMessageType,
     DbEnrichedLatestWork,
+    DEFAULT_GDOC_FEATURED_IMAGE,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
@@ -54,10 +55,15 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         // until the author page is updated again.
         const latestWorkImageFilenames = this.latestWorkLinks
             .map((d) => d["featured-image"])
-            .filter(Boolean)
+            .filter(Boolean) as string[]
 
-        // Load the image metadata for the latest work images
-        return super.loadImageMetadata(latestWorkImageFilenames)
+        // Load the image metadata for the latest work images, including the
+        // default featured image which is used as a fallback in the entire
+        // research and writing block
+        return super.loadImageMetadata([
+            ...latestWorkImageFilenames,
+            DEFAULT_GDOC_FEATURED_IMAGE,
+        ])
     }
 
     _enrichSubclassContent = (content: Record<string, any>): void => {
