@@ -121,11 +121,25 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
 
     const slug = heading ? slugify(heading) : RESEARCH_AND_WRITING_ID
 
+    // Get the URLs from the links of the featured work section. These will be
+    // excluded from the latest work section below to avoid duplication.
+    const primarySecondaryUrls = [...primary, ...secondary].map(
+        (link) => link.value.url
+    )
     const { latestWorkLinks } = useContext(AttachmentsContext)
     if (latest && latestWorkLinks) {
-        latest.articles = latestWorkLinks.map(
-            parseLatestWorkToResearchAndWritingLink
-        )
+        latest.articles = latestWorkLinks
+            // We want to filter out the primary and secondary links (aka.
+            // featured work links) from the latest work section to avoid
+            // duplication. Only featured links pointing to gdocs are
+            // considered.
+            .filter(
+                (link) =>
+                    !primarySecondaryUrls.includes(
+                        `https://docs.google.com/document/d/${link.id}/edit`
+                    )
+            )
+            .map(parseLatestWorkToResearchAndWritingLink)
     }
 
     return (
