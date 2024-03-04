@@ -82,10 +82,12 @@ export class HorizontalAxisGridLines extends React.Component<{
     render(): JSX.Element {
         const { horizontalAxis, strokeWidth } = this.props
         const { bounds } = this
+        const axis = horizontalAxis.clone()
+        axis.range = bounds.xRange()
 
         return (
             <g className={classNames("AxisGridLines", "verticalLines")}>
-                {horizontalAxis.getTickValues().map((t, i) => {
+                {axis.getTickValues().map((t, i) => {
                     const color = t.faint
                         ? FAINT_TICK_COLOR
                         : t.solid
@@ -95,9 +97,9 @@ export class HorizontalAxisGridLines extends React.Component<{
                     return (
                         <line
                             key={i}
-                            x1={horizontalAxis.place(t.value)}
+                            x1={axis.place(t.value)}
                             y1={bounds.bottom.toFixed(2)}
-                            x2={horizontalAxis.place(t.value)}
+                            x2={axis.place(t.value)}
                             y2={bounds.top.toFixed(2)}
                             stroke={color}
                             strokeWidth={strokeWidth}
@@ -124,6 +126,8 @@ export class HorizontalAxisZeroLine extends React.Component<{
 }> {
     render(): JSX.Element {
         const { bounds, horizontalAxis, strokeWidth } = this.props
+        const axis = horizontalAxis.clone()
+        axis.range = bounds.xRange()
 
         return (
             <g
@@ -134,9 +138,9 @@ export class HorizontalAxisZeroLine extends React.Component<{
                 )}
             >
                 <line
-                    x1={horizontalAxis.place(0)}
+                    x1={axis.place(0)}
                     y1={bounds.bottom.toFixed(2)}
-                    x2={horizontalAxis.place(0)}
+                    x2={axis.place(0)}
                     y2={bounds.top.toFixed(2)}
                     stroke={SOLID_TICK_COLOR}
                     strokeWidth={strokeWidth}
