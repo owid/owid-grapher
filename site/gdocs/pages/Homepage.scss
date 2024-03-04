@@ -1,0 +1,204 @@
+#subscribe {
+    background-color: $blue-5;
+    padding-bottom: 24px;
+}
+
+.homepage-social-ribbon {
+    @include body-3-medium;
+
+    > h2 {
+        margin-top: 24px;
+        margin-bottom: 8px;
+    }
+
+    .NewsletterSubscriptionForm__header {
+        margin-bottom: 16px;
+        display: block;
+    }
+    .owid-checkbox-block {
+        margin-bottom: 16px;
+        .label-title {
+            font-weight: bold;
+        }
+    }
+}
+
+.homepage-subscribe--social-media {
+    margin-top: var(--grid-gap);
+    padding: 24px;
+    h2 {
+        margin: 0;
+    }
+    .shaded-box {
+        flex: 1;
+        padding: 2rem;
+        background-color: $blue-10;
+        color: $text-color;
+    }
+
+    .list-item {
+        color: #1d3d63;
+        display: flex;
+        align-items: center;
+        transition: opacity 0.2s ease;
+        .icon {
+            font-size: 1.375rem;
+            flex: 0;
+            min-width: 2.1rem;
+        }
+    }
+
+    .label {
+        font-size: 1rem;
+        font-weight: 700;
+        flex: 1;
+    }
+}
+
+.homepage-social-ribbon__social-media {
+    margin-top: var(--grid-gap);
+    padding: 24px;
+    background-color: $blue-20;
+    h2 {
+        margin: 0;
+    }
+}
+
+.NewsletterSubscription__email {
+    border: 1px solid #dbe5f0;
+    border-radius: 0;
+    height: inherit;
+    padding: 0 16px;
+    flex: 1;
+    margin-right: 8px;
+    width: 100%;
+}
+
+.NewsletterSubscription__privacy {
+    margin-top: 8px;
+    a {
+        @include owid-link-90;
+    }
+}
+
+.NewsletterSubscription__email-submit {
+    height: 40px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.NewsletterSubscription__submit {
+    @include body-3-medium;
+    padding: 0 24px;
+    color: #fff;
+    border: none;
+    background-color: #ce261e;
+    cursor: pointer;
+    &:hover {
+        background-color: #b40000;
+    }
+}
+
+.homepage-social-ribbon__social-list {
+    margin-top: 16px;
+    li {
+        list-style: none;
+        margin-bottom: 8px;
+        &:hover {
+            a {
+                color: $blue-60;
+            }
+        }
+        a {
+            color: $blue-90;
+            font-weight: bold;
+        }
+        svg {
+            margin-right: 8px;
+        }
+    }
+}
+.homepage-topics-section {
+    @include sm-only {
+        display: none;
+    }
+    > h2 {
+        margin-top: 40px;
+        margin-bottom: 0;
+        & + p {
+            margin-bottom: 8px;
+            margin-top: 0;
+            color: $blue-60;
+        }
+    }
+    .homepage-topic {
+        &:not(:last-child) {
+            padding-bottom: 16px;
+            border-bottom: 1px solid $blue-10;
+        }
+        &:last-child {
+            padding-bottom: 48px;
+        }
+    }
+    .homepage-topic__topic-name {
+        color: $blue-60;
+        margin-top: 16px;
+        margin-bottom: 8px;
+    }
+    .homepage-topic__topic-list {
+        line-height: 1.5rem;
+        line-break: anywhere;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .homepage-topic__subtopic,
+    .homepage-topic__topic-entry {
+        display: inline list-item;
+        font-size: 0.875rem;
+        white-space: nowrap;
+    }
+    .homepage-topic__subtopic {
+        font-weight: bold;
+        list-style: none;
+        white-space: nowrap;
+        display: inline-block;
+        margin-right: 6px;
+        &:not(:first-child) {
+            &::before {
+                content: "|";
+                margin-right: 8px;
+                color: $blue-90;
+            }
+        }
+    }
+
+    .homepage-topic__topic-entry {
+        padding-right: 6px;
+        list-style: none;
+        &:before {
+            color: $blue-30;
+            content: "•";
+            margin-right: 6px;
+            color: $blue-40;
+        }
+        &:first-child {
+            // No disc for the first topic when there's no subtopic heading
+            &:before {
+                content: unset;
+            }
+        }
+        a {
+            color: $blue-90;
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    // No disc for the first topic after a subtopic heading
+    .homepage-topic__subtopic + .homepage-topic__topic-entry {
+        &:before {
+            content: unset;
+        }
+    }
+}

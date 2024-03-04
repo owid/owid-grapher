@@ -4,7 +4,6 @@ import {
     PageOverrides,
 } from "../site/LongFormPage.js"
 import { BlogIndexPage } from "../site/BlogIndexPage.js"
-import { FrontPage } from "../site/FrontPage.js"
 import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage.js"
 import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
 import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.js"
@@ -27,7 +26,6 @@ import {
     BAKED_BASE_URL,
     BLOG_POSTS_PER_PAGE,
     GDOCS_DONATE_FAQS_DOCUMENT_ID,
-    GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
 } from "../settings/serverSettings.js"
 import {
     ADMIN_BASE_URL,
@@ -60,7 +58,7 @@ import {
 import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
-import { queryMysql, knexTable } from "../db/db.js"
+import { queryMysql, knexTable, getHomepageId } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import {
@@ -69,7 +67,6 @@ import {
     KEY_INSIGHTS_CLASS_NAME,
 } from "../site/blocks/KeyInsights.js"
 import { formatUrls, KEY_INSIGHTS_H2_CLASSNAME } from "../site/formatting.js"
-import * as db from "../db/db.js"
 
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
@@ -256,103 +253,21 @@ export const renderPost = async (
     )
 }
 
-// This function is temporarily forked until we have fully transitioned to a gdocs homepage,
-// whereupon we'll strip out the old front page code.
 export const renderFrontPage = async (knex: Knex<any, any[]>) => {
-    // Annoying, MySQL+TypeORM doesn't support JSONB, so I'm using raw SQL to confirm if there's a published homepage
-    const gdocHomepageResult = await db.knexRawFirst<{ id: string }>(
-        `SELECT id FROM posts_gdocs WHERE content->>"$.type" = "${OwidGdocType.Homepage}" AND published = TRUE`,
-        db.knexInstance()
-    )
+    const gdocHomepageId = await getHomepageId(knex)
 
-    if (gdocHomepageResult) {
-        const gdocHomepage = await GdocFactory.load(gdocHomepageResult.id)
-        if (gdocHomepage) {
-            await gdocHomepage.loadState()
-            return renderGdoc(gdocHomepage)
-        }
-    }
-
-    const posts = await getBlogIndex(knex)
-
-    const NUM_FEATURED_POSTS = 6
-
-    /**
-     * A frontPageConfig should specify a list of
-     * articles to feature in the featured work block,
-     * and which position they should be placed in.
-     *
-     * Note that this can be underspecified, so some positions
-     * may not be filled in.
-     *
-     */
-
-    let featuredWork: IndexPost[]
-    try {
-        const frontPageConfigGdoc = await GdocPost.findOneBy({
-            id: GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
-        })
-        if (!frontPageConfigGdoc) throw new Error("No front page config found")
-        await frontPageConfigGdoc.loadState()
-        const frontPageConfig: any = frontPageConfigGdoc.content
-        const featuredPosts: { slug: string; position: number }[] =
-            frontPageConfig["featured-posts"] ?? []
-
-        // Generate the candidate posts to fill in any missing slots
-        const slugs = featuredPosts.map((d) => d.slug)
-        const filteredPosts = posts.filter((post) => {
-            return !slugs.includes(post.slug)
-        })
-
-        /**
-         * Create the final list of featured work by merging the
-         * manually curated list of posts and filling in any empty
-         * positions with the latest available posts, while avoiding
-         * adding any duplicates.
-         */
-        let missingPosts = 0
-        featuredWork = [...new Array(NUM_FEATURED_POSTS)]
-            .map((_, i) => i)
-            .map((idx) => {
-                const manuallySetPost = featuredPosts.find(
-                    (d) => +d.position === idx + 1
-                )
-                if (manuallySetPost) {
-                    const post = posts.find(
-                        (post) => post.slug === manuallySetPost.slug
-                    )
-                    if (post) {
-                        return post
-                    }
-                    console.log(
-                        "Featured work error: could not find listed post with slug: ",
-                        manuallySetPost.slug
-                    )
-                }
-                return filteredPosts[missingPosts++]
-            })
-    } catch (e) {
-        logErrorAndMaybeSendToBugsnag(e)
-        featuredWork = posts.slice(0, 6)
-    }
-
-    const totalCharts = (
-        await queryMysql(
-            `SELECT COUNT(*) AS count
-            FROM charts
-            WHERE
-                is_indexable IS TRUE
-                AND publishedAt IS NOT NULL
-                AND config ->> "$.isPublished" = "true"`
+    if (gdocHomepageId) {
+        const gdocHomepage = await GdocFactory.load(gdocHomepageId)
+        await gdocHomepage.loadState()
+        return renderGdoc(gdocHomepage)
+    } else {
+        logErrorAndMaybeSendToBugsnag(
+            new JsonError(
+                `Failed to find homepage Gdoc with type "${OwidGdocType.Homepage}"`
+            )
         )
-    )[0].count as number
-    return renderToHtmlPage(
-        <FrontPage
-            featuredWork={featuredWork}
-            totalCharts={totalCharts}
-            baseUrl={BAKED_BASE_URL}
-        />
-    )
+        return ""
+    }
 }
 
 export const renderDonatePage = async () => {

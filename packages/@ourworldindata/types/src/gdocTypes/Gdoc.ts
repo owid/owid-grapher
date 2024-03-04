@@ -208,7 +208,7 @@ export interface OwidGdocPostContent {
         | OwidGdocType.AboutPage
         // TODO: Fragments need their own OwidGdocFragment interface and flow in the UI
         // Historically they were treated the same as GdocPosts but not baked
-        // In reality, they have multiple possible data structures in their content (details, faqs, frontPageConfig, etc)
+        // In reality, they have multiple possible data structures in their content (details, faqs, etc)
         // We should be able to render these in the preview before publishing
         // We're keeping them in this union until we have time to sort this out
         | OwidGdocType.Fragment

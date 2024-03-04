@@ -51,7 +51,6 @@
 @import "css/page.scss";
 @import "css/sidebar.scss";
 
-@import "css/homepage.scss";
 @import "css/topic-page.scss";
 @import "css/faq.scss";
 @import "css/covid.scss";
@@ -103,7 +102,9 @@
 @import "./DataPage.scss";
 @import "./DataPageContent.scss";
 @import "./detailsOnDemand.scss";
+
 @import "./gdocs/pages/DataInsight.scss";
+@import "./gdocs/pages/Homepage.scss";
 
 @import "css/donate.scss";
 @import "./ThankYouPage.scss";
@@ -230,6 +231,25 @@ h6:hover .deep-link {
     left: 0 !important;
     margin-left: 20px !important;
     font-size: 16px;
+}
+
+.heading-latest {
+    font-family: $serif-font-stack;
+    font-size: 1.75rem;
+    font-weight: bold;
+    line-height: 1.2;
+    margin: 0 0 2 * $vertical-spacing;
+}
+
+.heading-latest__subtitle {
+    display: block;
+    margin-top: 8px;
+    @include body-2-regular;
+    color: $blue-60;
+
+    @include md-up {
+        @include body-1-regular;
+    }
 }
 
 /* search */
