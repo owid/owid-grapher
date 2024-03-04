@@ -12,18 +12,25 @@ jobs:
             - uses: ./.github/actions/setup-node-yarn-deps
             - uses: ./.github/actions/build-tsc
 
+            # Set branch names and token to be used for pushing to the owid-grapher-svgs repo.
+            # If on a feature branch, create a new branch in the owid-grapher-svgs repo with the same name.
+            # If on master, create a new branch with the current timestamp that will be later merged into master.
             - name: Set branch name and token for OWID runs
               if: ${{ github.repository_owner == 'owid' }}
               shell: bash
               run: |
-                  echo "PUSH_BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+                  [[ ${{ github.ref_name }} = 'master' ]] && suffix="__$(date +%s)" || suffix=""
+                  echo "ORIGINAL_BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+                  echo "PUSH_BRANCH_NAME=${{ github.ref_name }}$suffix" >> $GITHUB_ENV
                   echo "TOKEN=${{ secrets.GITHUBPAT }}" >> $GITHUB_ENV
 
             - name: Set branch name and token for runs from a fork
               if: ${{ github.repository_owner != 'owid' }}
               shell: bash
               run: |
-                  echo "PUSH_BRANCH_NAME=${{ github.repository_owner }}/${{ github.ref_name }}" >> $GITHUB_ENV
+                  [[ ${{ github.ref_name }} = 'master' ]] && suffix="__$(date +%s)" || suffix=""
+                  echo "ORIGINAL_BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+                  echo "PUSH_BRANCH_NAME=${{ github.repository_owner }}/${{ github.ref_name }}$suffix" >> $GITHUB_ENV
                   echo "TOKEN=${{ github.token }}" >> $GITHUB_ENV
 
             # Checkout the owid-grapher-svgs repo into a subfolder. Use a Personal Access Token for checkout so the
@@ -49,7 +56,7 @@ jobs:
               continue-on-error: true
               env:
                   # using "ternary operator" from https://github.com/actions/runner/issues/409#issuecomment-752775072
-                  RM_ON_ERROR: ${{ env.PUSH_BRANCH_NAME == 'master' && '' || '--rm-on-error' }}
+                  RM_ON_ERROR: ${{ env.ORIGINAL_BRANCH_NAME == 'master' && '' || '--rm-on-error' }}
               run: node --enable-source-maps itsJustJavascript/devTools/svgTester/verify-graphs.js -i owid-grapher-svgs/configs -o owid-grapher-svgs/svg -r owid-grapher-svgs/svg $RM_ON_ERROR > compare-result
 
             # If the last step failed we want to commit all changed svgs and push them to the new branch on the owid-grapher-svgs repo
@@ -60,6 +67,18 @@ jobs:
                   branch: ${{ env.PUSH_BRANCH_NAME }}
                   push_options: "--force"
                   commit_message: Automated commit with svg differences triggered by commit https://github.com/owid/owid-grapher/commit/${{github.sha}}
+
+            # Merge differences into owid-grapher-svgs master if we are on master in owid-grapher
+            - name: Merge into owid-grapher-svgs master
+              if: ${{ steps.run-verify-graphs.outcome == 'failure' && env.ORIGINAL_BRANCH_NAME == 'master' }}
+              working-directory: owid-grapher-svgs
+              run: |
+                  git config user.name "${GITHUB_ACTOR}"
+                  git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+                  git checkout master
+                  git pull origin master
+                  git merge -s ort -X theirs -m 'Automated merge commit with svg differences triggered by commit https://github.com/owid/owid-grapher/commit/${{github.sha}}' ${{ env.PUSH_BRANCH_NAME }}
+                  git push --force origin master
 
             # The action fails if there were any errors.
             - name: Fail with error message if we had errors
@@ -74,7 +93,7 @@ jobs:
             # reason to mark this action as failed.
             - name: Fail with error message if we had differences
               if: ${{ steps.run-verify-graphs.outputs.num_differences > 0 }}
-              continue-on-error: ${{ env.PUSH_BRANCH_NAME == 'master' }}
+              continue-on-error: ${{ env.ORIGINAL_BRANCH_NAME == 'master' }}
               uses: actions/github-script@v6
               with:
                   script: |
