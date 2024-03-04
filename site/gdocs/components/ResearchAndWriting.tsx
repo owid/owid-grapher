@@ -149,7 +149,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                     <h2 className="h2-bold research-and-writing-row__heading">
                         {more.heading}
                     </h2>
-                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links">
+                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links research-and-writing-row__links--condensed">
                         {more.articles.map((link, i) => (
                             <ResearchAndWritingLink
                                 shouldHideThumbnail
