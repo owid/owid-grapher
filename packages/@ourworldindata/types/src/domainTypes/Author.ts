@@ -1,4 +1,5 @@
 export interface DbRawLatestWork {
+    id: string
     slug: string
     title: string
     authors: string
@@ -7,6 +8,7 @@ export interface DbRawLatestWork {
 }
 
 export interface DbEnrichedLatestWork {
+    id: string
     slug: string
     title: string
     authors: string[]

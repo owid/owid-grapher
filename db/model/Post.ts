@@ -560,6 +560,7 @@ export const getLatestWorkByAuthor = async (
     const rawLatestWorkLinks: DbRawLatestWork[] = await db.knexRaw(
         `
         SELECT
+            pg.id,
             pg.slug,
             pg.content->>'$.title' AS title,
             pg.content->>'$.authors' AS authors,
