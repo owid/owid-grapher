@@ -608,7 +608,13 @@ export class StaticCaptionedChart extends CaptionedChart {
                     targetX={paddedBounds.x}
                     targetY={paddedBounds.y}
                 />
-                <g style={{ pointerEvents: "none" }}>{this.renderChart()}</g>
+                <g style={{ pointerEvents: "none" }}>
+                    {/*
+                     We cannot render a table to svg, but would rather display nothing at all to avoid issues.
+                     See https://github.com/owid/owid-grapher/issues/3283
+                    */}
+                    {this.manager.isOnTableTab ? undefined : this.renderChart()}
+                </g>
                 <StaticFooter
                     manager={manager}
                     maxWidth={maxWidth}
