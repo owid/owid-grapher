@@ -23,7 +23,7 @@ As of **2023-07-27**, we support the following browsers:
 
 ### Polyfills
 
-We use polyfill.io (see `site/SiteConstants.ts`), so using modern methods like `str.replaceAll()` is fine as long as it's included in the list of polyfilled functions.
+We use cdnjs.cloudflare.com/polyfill (see `site/SiteConstants.ts`), so using modern methods like `str.replaceAll()` is fine as long as it's included in the list of polyfilled functions.
 
 ### Setting the Vite `target`
 
