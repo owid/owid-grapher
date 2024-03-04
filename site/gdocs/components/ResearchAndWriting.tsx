@@ -14,7 +14,7 @@ type ResearchAndWritingProps = {
     className?: string
 } & EnrichedBlockResearchAndWriting
 
-function ResearchAndWritingLinkContainer(
+function ResearchAndWritingLink(
     props: EnrichedBlockResearchAndWritingLink & {
         className?: string
         isSmall?: boolean
@@ -51,7 +51,12 @@ function ResearchAndWritingLinkContainer(
 
     const heading = React.createElement(
         isSmall ? "h3" : "h2",
-        { className: isSmall ? "h3-bold" : "h2-bold" },
+        {
+            className: cx(
+                "research-and-writing-link__title",
+                isSmall ? "h3-bold" : "h2-bold"
+            ),
+        },
         title
     )
 
@@ -62,28 +67,31 @@ function ResearchAndWritingLinkContainer(
             target="_blank"
             rel="noopener noreferrer"
         >
-            <div>
-                {filename && !shouldHideThumbnail ? (
-                    <figure>
-                        <Image
-                            filename={filename}
-                            shouldLightbox={false}
-                            containerType={isSmall ? "thumbnail" : "default"}
-                        />
-                    </figure>
-                ) : null}
-                {heading}
-                {subtitle && !shouldHideSubtitle ? (
-                    <p className="research-and-writing-link__description body-1-regular">
-                        {subtitle}
-                    </p>
-                ) : null}
-                {authors ? (
-                    <p className="research-and-writing-link__authors body-3-medium-italic">
-                        {formatAuthors({ authors })}
-                    </p>
-                ) : null}
-            </div>
+            {filename && !shouldHideThumbnail ? (
+                <figure>
+                    <Image
+                        filename={filename}
+                        shouldLightbox={false}
+                        containerType={isSmall ? "thumbnail" : "default"}
+                    />
+                </figure>
+            ) : null}
+            {heading}
+            {subtitle && !shouldHideSubtitle ? (
+                <p
+                    className={cx(
+                        "research-and-writing-link__description",
+                        isSmall ? "body-3-medium" : "body-2-regular"
+                    )}
+                >
+                    {subtitle}
+                </p>
+            ) : null}
+            {authors ? (
+                <p className="research-and-writing-link__authors body-3-medium-italic">
+                    {formatAuthors({ authors })}
+                </p>
+            ) : null}
         </a>
     )
 }
@@ -100,18 +108,19 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                 <a className="deep-link" href={`#${RESEARCH_AND_WRITING_ID}`} />
             </h1>
             <div className="span-cols-12 research-and-writing-row">
-                <div className="grid research-and-writing-row__link-container">
+                <div className="grid research-and-writing-row__links">
                     {primary.map((link, i) => (
-                        <ResearchAndWritingLinkContainer
+                        <ResearchAndWritingLink
                             className="span-cols-6 span-sm-cols-12"
                             key={i}
                             {...link}
                         />
                     ))}
                     {secondary.map((link, i) => (
-                        <ResearchAndWritingLinkContainer
+                        <ResearchAndWritingLink
                             key={i}
                             className="span-cols-3 span-md-cols-6 span-sm-cols-12"
+                            isSmall
                             {...link}
                         />
                     ))}
@@ -119,10 +128,12 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             </div>
             {rows.map((row, i) => (
                 <div key={i} className="span-cols-12 research-and-writing-row">
-                    <h2 className="h2-bold">{row.heading}</h2>
-                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__link-container">
+                    <h2 className="h2-bold research-and-writing-row__heading">
+                        {row.heading}
+                    </h2>
+                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links">
                         {row.articles.map((link, i) => (
-                            <ResearchAndWritingLinkContainer
+                            <ResearchAndWritingLink
                                 shouldHideSubtitle
                                 isSmall
                                 className="span-cols-1"
@@ -135,10 +146,12 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             ))}
             {more ? (
                 <div className="span-cols-12 research-and-writing-row">
-                    <h2 className="h2-bold">{more.heading}</h2>
-                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__link-container">
+                    <h2 className="h2-bold research-and-writing-row__heading">
+                        {more.heading}
+                    </h2>
+                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links research-and-writing-row__links--condensed">
                         {more.articles.map((link, i) => (
-                            <ResearchAndWritingLinkContainer
+                            <ResearchAndWritingLink
                                 shouldHideThumbnail
                                 shouldHideSubtitle
                                 isSmall
