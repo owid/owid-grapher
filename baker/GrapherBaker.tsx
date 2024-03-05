@@ -14,7 +14,6 @@ import {
     merge,
     partition,
 } from "@ourworldindata/utils"
-import { isWordpressAPIEnabled, isWordpressDBEnabled } from "../db/wpdb.js"
 import fs from "fs-extra"
 import * as lodash from "lodash"
 import { bakeGraphersToPngs } from "./GrapherImageBaker.js"
@@ -333,14 +332,10 @@ const renderGrapherPage = async (
 ) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
     const post = postSlug ? await getPostEnrichedBySlug(postSlug) : undefined
-    const relatedCharts =
-        post && isWordpressDBEnabled
-            ? await getPostRelatedCharts(post.id)
-            : undefined
-    const relatedArticles =
-        grapher.id && isWordpressAPIEnabled
-            ? await getRelatedArticles(grapher.id, knex)
-            : undefined
+    const relatedCharts = post ? await getPostRelatedCharts(post.id) : undefined
+    const relatedArticles = grapher.id
+        ? await getRelatedArticles(grapher.id, knex)
+        : undefined
 
     return renderToHtmlPage(
         <GrapherPage

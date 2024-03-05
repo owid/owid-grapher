@@ -42,7 +42,6 @@ import { getVariableData, getVariableMetadata } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
 import { JsonError } from "@ourworldindata/utils"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
-import { isWordpressAPIEnabled } from "../db/wpdb.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects.js"
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
@@ -289,10 +288,6 @@ mockSiteRouter.get("/latest/page/:pageno", async (req, res) => {
 })
 
 mockSiteRouter.get("/headerMenu.json", async (req, res) => {
-    if (!isWordpressAPIEnabled) {
-        res.status(404).send(await renderNotFoundPage())
-        return
-    }
     res.contentType("application/json")
     res.send(await renderMenuJson())
 })
