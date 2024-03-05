@@ -275,13 +275,22 @@ export class Bounds {
 
     intersects(otherBounds: Bounds): boolean {
         const r2 = otherBounds
-
         return !(
             r2.left > this.right ||
             r2.right < this.left ||
             r2.top > this.bottom ||
             r2.bottom < this.top
         )
+    }
+
+    hasVerticalOverlap(otherBounds: Bounds): boolean {
+        const r2 = otherBounds
+        return !(r2.top > this.bottom || r2.bottom < this.top)
+    }
+
+    hasHorizontalOverlap(otherBounds: Bounds): boolean {
+        const r2 = otherBounds
+        return !(r2.left > this.right || r2.right < this.left)
     }
 
     lines(): PointVector[][] {
