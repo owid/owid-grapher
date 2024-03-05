@@ -43,7 +43,6 @@ import {
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { scaleLinear, ScaleLinear } from "d3-scale"
-import { extent } from "d3-array"
 import { select } from "d3-selection"
 import {
     DEFAULT_SLOPE_CHART_COLOR,
@@ -448,28 +447,6 @@ export class SlopeChart
         return colorByEntity
     }
 
-    @computed private get sizeColumn() {
-        return this.transformedTable.get(this.manager.sizeColumnSlug)
-    }
-
-    // helper method to directly get the associated size value given an Entity
-    // dimension data saves size a level deeper. eg: { Afghanistan => { 1990: 1, 2015: 10 }}
-    // this returns that data in the form { Afghanistan => 1 }
-    @computed private get sizeByEntity(): Map<string, any> {
-        const sizeCol = this.sizeColumn
-        const sizeByEntity = new Map<string, any>()
-
-        if (sizeCol)
-            sizeCol.valueByEntityNameAndOriginalTime.forEach(
-                (timeToSizeMap, entity) => {
-                    const values = Array.from(timeToSizeMap.values())
-                    sizeByEntity.set(entity, values[0]) // hack: default to the value associated with the first time
-                }
-            )
-
-        return sizeByEntity
-    }
-
     // click anywhere inside the Grapher frame to dismiss the current selection
     @action.bound onGrapherClick(e: Event): void {
         const target = e.target as HTMLElement
@@ -513,7 +490,7 @@ export class SlopeChart
         const column = this.yColumn
         if (!column) return []
 
-        const { colorBySeriesName, sizeByEntity } = this
+        const { colorBySeriesName } = this
         const { minTime, maxTime } = column
 
         const table = this.inputTable
@@ -546,7 +523,6 @@ export class SlopeChart
                 return {
                     seriesName,
                     color,
-                    size: sizeByEntity.get(seriesName) || 1,
                     values: sortedValues,
                 } as SlopeChartSeries
             })
@@ -573,7 +549,6 @@ class Slope extends React.Component<SlopeProps> {
             x2,
             y2,
             color,
-            size,
             hasLeftLabel,
             hasRightLabel,
             leftValueLabel,
@@ -591,11 +566,7 @@ class Slope extends React.Component<SlopeProps> {
         const lineColor = isInBackground ? "#e2e2e2" : color
         const labelColor = isInBackground ? "#ccc" : GRAPHER_DARK_TEXT
         const opacity = isHovered ? 1 : isFocused ? 0.7 : 0.5
-        const lineStrokeWidth = isHovered
-            ? size * 2
-            : isFocused
-            ? 1.5 * size
-            : size
+        const lineStrokeWidth = isHovered ? 4 : isFocused ? 3 : 2
 
         const showDots = isFocused || isHovered
         const showValueLabels = isFocused || isHovered
@@ -799,18 +770,6 @@ class LabelledSlopes
         ]
     }
 
-    @computed get sizeScale(): ScaleLinear<number, number> {
-        const factor = this.manager.isStaticAndSmall ? 1.2 : 1
-        return scaleLinear()
-            .domain(
-                extent(this.props.seriesArr.map((series) => series.size)) as [
-                    number,
-                    number,
-                ]
-            )
-            .range([factor, 4 * factor])
-    }
-
     @computed get yRange(): [number, number] {
         return this.bounds
             .padTop(TOP_PADDING)
@@ -925,7 +884,7 @@ class LabelledSlopes
     }
 
     @computed private get initialSlopeData() {
-        const { data, slopeLabels, xScale, yAxis, yDomain, sizeScale } = this
+        const { data, slopeLabels, xScale, yAxis, yDomain } = this
 
         const slopeData: SlopeProps[] = []
 
@@ -950,7 +909,6 @@ class LabelledSlopes
                 x2,
                 y2,
                 color: series.color,
-                size: sizeScale(series.size) || 1,
                 seriesName: series.seriesName,
                 isFocused: false,
                 isHovered: false,
@@ -1027,10 +985,6 @@ class LabelledSlopes
                 // Slopes which already have one label are prioritized for the other side
                 return s1
             else if (!s1.hasLeftLabel && s2.hasLeftLabel) return s2
-            else if (s1.size > s2.size)
-                // Larger sizes get the next priority
-                return s1
-            else if (s2.size > s1.size) return s2
             else return s1 // Equal priority, just do the first one
         }
 
@@ -1072,7 +1026,6 @@ class LabelledSlopes
         })
 
         // Order by focus/hover and size for draw order
-        slopeData = sortBy(slopeData, (slope) => slope.size)
         slopeData = sortBy(slopeData, (slope) =>
             slope.isFocused || slope.isHovered ? 1 : 0
         )

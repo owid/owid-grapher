@@ -24,7 +24,6 @@ export interface SlopeProps extends ChartSeries {
     y1: number
     x2: number
     y2: number
-    size: number
 
     hasLeftLabel: boolean
     leftEntityLabel: TextWrap

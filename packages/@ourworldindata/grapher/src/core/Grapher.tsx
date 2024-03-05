@@ -1204,7 +1204,7 @@ export class Grapher
         if (this.isLineChart || this.isDiscreteBar) return [yAxis, color]
         else if (this.isScatter) return [yAxis, xAxis, size, color]
         else if (this.isMarimekko) return [yAxis, xAxis, color]
-        else if (this.isSlopeChart) return [yAxis, size, color]
+        else if (this.isSlopeChart) return [yAxis, color]
         return [yAxis]
     }
 
