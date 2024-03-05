@@ -42,7 +42,7 @@ import {
     renderDataPageV2,
     renderPreviewDataPageOrGrapherPage,
 } from "../baker/GrapherBaker.js"
-import { Chart } from "../db/model/Chart.js"
+import { getChartConfigBySlug } from "../db/model/Chart.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
 import { DbPlainDatasetFile, DbPlainDataset } from "@ourworldindata/types"
 
@@ -324,11 +324,12 @@ adminRouter.get("/datapage-preview/:id", async (req, res) => {
 })
 
 adminRouter.get("/grapher/:slug", async (req, res) => {
-    const entity = await Chart.getBySlug(req.params.slug)
-    if (!entity) throw new JsonError("No such chart", 404)
-
     const previewDataPageOrGrapherPage = db.knexReadonlyTransaction(
-        async (knex) => renderPreviewDataPageOrGrapherPage(entity.config, knex)
+        async (knex) => {
+            const entity = await getChartConfigBySlug(knex, req.params.slug)
+            if (!entity) throw new JsonError("No such chart", 404)
+            return renderPreviewDataPageOrGrapherPage(entity.config, knex)
+        }
     )
     res.send(previewDataPageOrGrapherPage)
 })

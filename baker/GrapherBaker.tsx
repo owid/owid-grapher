@@ -289,6 +289,7 @@ export async function renderDataPageV2(
     // Get the charts this variable is being used in (aka "related charts")
     // and exclude the current chart to avoid duplicates
     datapageData.allCharts = await getRelatedChartsForVariable(
+        knex,
         variableId,
         grapher && "id" in grapher ? [grapher.id as number] : []
     )

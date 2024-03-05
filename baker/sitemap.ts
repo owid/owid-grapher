@@ -1,10 +1,14 @@
 import { encodeXML } from "entities"
-import { Chart } from "../db/model/Chart.js"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import { dayjs, countries, queryParamsToStr } from "@ourworldindata/utils"
+import {
+    dayjs,
+    countries,
+    queryParamsToStr,
+    ChartsTableName,
+} from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import urljoin from "url-join"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
@@ -77,7 +81,7 @@ export const makeSitemap = async (
     )
 
     const charts = (await knex
-        .table(Chart.table)
+        .table(ChartsTableName)
         .select(knex.raw(`updatedAt, config->>"$.slug" AS slug`))
         .whereRaw('config->"$.isPublished" = true')) as {
         updatedAt: Date

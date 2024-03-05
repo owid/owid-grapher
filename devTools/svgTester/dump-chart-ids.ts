@@ -3,7 +3,10 @@
 import fs from "fs-extra"
 import parseArgs from "minimist"
 
-import { closeTypeOrmAndKnexConnections } from "../../db/db.js"
+import {
+    closeTypeOrmAndKnexConnections,
+    knexReadonlyTransaction,
+} from "../../db/db.js"
 import { getMostViewedGrapherIdsByChartType } from "../../db/model/Chart.js"
 import { CHART_TYPES } from "./utils.js"
 
@@ -14,10 +17,17 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
         const outFile = parsedArgs["o"] ?? DEFAULT_OUT_FILE
 
-        const promises = CHART_TYPES.flatMap((chartType) =>
-            getMostViewedGrapherIdsByChartType(chartType, CHART_COUNT_PER_TYPE)
-        )
-        const chartIds = (await Promise.all(promises)).flatMap((ids) => ids)
+        const chartIds = await knexReadonlyTransaction(async (trx) => {
+            const promises = CHART_TYPES.flatMap((chartType) =>
+                getMostViewedGrapherIdsByChartType(
+                    trx,
+                    chartType,
+                    CHART_COUNT_PER_TYPE
+                )
+            )
+            const chartIds = (await Promise.all(promises)).flatMap((ids) => ids)
+            return chartIds
+        })
 
         console.log(`Writing ${chartIds.length} chart ids to ${outFile}`)
 

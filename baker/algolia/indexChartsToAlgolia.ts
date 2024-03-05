@@ -8,7 +8,6 @@ import { MarkdownTextWrap } from "@ourworldindata/components"
 import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
 import { Link } from "../../db/model/Link.js"
 import { getRelatedArticles } from "../../db/model/Post.js"
-import { Knex } from "knex"
 import { getIndexName } from "../../site/search/searchClient.js"
 
 const computeScore = (record: Omit<ChartRecord, "score">): number => {
@@ -19,7 +18,21 @@ const computeScore = (record: Omit<ChartRecord, "score">): number => {
 const getChartsRecords = async (
     knex: db.KnexReadonlyTransaction
 ): Promise<ChartRecord[]> => {
-    const chartsToIndex = await db.queryMysql(`
+    const chartsToIndex = await db.knexRaw<{
+        id: number
+        slug: string
+        title: string
+        variantName: string
+        subtitle: string
+        availableEntities: string | string[] // initially this is a string but after parsing it is an array and the code below uses mutability
+        numDimensions: string
+        publishedAt: string
+        updatedAt: string
+        tags: string
+        keyChartForTags: string | string[]
+    }>(
+        knex,
+        `-- sql
     SELECT c.id,
         config ->> "$.slug"                   AS slug,
         config ->> "$.title"                  AS title,
@@ -38,14 +51,15 @@ const getChartsRecords = async (
         AND is_indexable IS TRUE
     GROUP BY c.id
     HAVING COUNT(t.id) >= 1
-    `)
+    `
+    )
 
     for (const c of chartsToIndex) {
         if (c.availableEntities !== null) {
             // This is a very rough way to check for the Algolia record size limit, but it's better than the update failing
             // because we exceed the 20KB record size limit
             if (c.availableEntities.length < 12000)
-                c.availableEntities = JSON.parse(c.availableEntities)
+                c.availableEntities = JSON.parse(c.availableEntities as string)
             else {
                 console.info(
                     `Chart ${c.id} has too many entities, skipping its entities`
@@ -55,7 +69,7 @@ const getChartsRecords = async (
         }
 
         c.tags = JSON.parse(c.tags)
-        c.keyChartForTags = JSON.parse(c.keyChartForTags).filter(
+        c.keyChartForTags = JSON.parse(c.keyChartForTags as string).filter(
             (t: string | null) => t
         )
     }
@@ -70,7 +84,7 @@ const getChartsRecords = async (
 
         const relatedArticles = (await getRelatedArticles(knex, c.id)) ?? []
         const linksFromGdocs = await Link.getPublishedLinksTo(
-            c.slug,
+            [c.slug],
             OwidGdocLinkType.Grapher
         )
 
@@ -82,18 +96,18 @@ const getChartsRecords = async (
               }).plaintext
 
         const record = {
-            objectID: c.id,
+            objectID: c.id.toString(),
             chartId: c.id,
             slug: c.slug,
             title: c.title,
             variantName: c.variantName,
             subtitle: plaintextSubtitle,
-            availableEntities: c.availableEntities,
+            availableEntities: c.availableEntities as string[],
             numDimensions: parseInt(c.numDimensions),
             publishedAt: c.publishedAt,
             updatedAt: c.updatedAt,
-            tags: c.tags,
-            keyChartForTags: c.keyChartForTags,
+            tags: c.tags as any as string[],
+            keyChartForTags: c.keyChartForTags as string[],
             titleLength: c.title.length,
             // Number of references to this chart in all our posts and pages
             numRelatedArticles: relatedArticles.length + linksFromGdocs.length,

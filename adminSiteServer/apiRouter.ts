@@ -13,7 +13,16 @@ import {
     DATA_API_URL,
 } from "../settings/serverSettings.js"
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
-import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
+import {
+    OldChartFieldList,
+    assignTagsForCharts,
+    getChartConfigById,
+    getChartSlugById,
+    getGptTopicSuggestions,
+    getRedirectsByChartId,
+    oldChartFieldList,
+    setChartTags,
+} from "../db/model/Chart.js"
 import { Request, CurrentUser } from "./authentication.js"
 import {
     getMergedGrapherConfigForVariable,
@@ -57,10 +66,16 @@ import {
     DbPlainTag,
     grapherKeysToSerialize,
     DbRawVariable,
-    DbRawOrigin,
     parseOriginsRow,
     PostsTableName,
     DbRawPost,
+    DbRawSuggestedChartRevision,
+    DbPlainChartSlugRedirect,
+    DbRawChart,
+    DbInsertChartRevision,
+    serializeChartConfig,
+    DbRawOrigin,
+    DbRawPostGdoc,
     DbPlainDataset,
 } from "@ourworldindata/types"
 import {
@@ -75,10 +90,9 @@ import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
 } from "./gitDataExport.js"
-import { ChartRevision } from "../db/model/ChartRevision.js"
 import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
-import { ChartRedirect, References } from "../adminSiteClient/ChartEditor.js"
+import { References } from "../adminSiteClient/ChartEditor.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import { escape } from "mysql"
@@ -106,6 +120,7 @@ import {
     deleteRouteWithRWTransaction,
     putRouteWithRWTransaction,
     postRouteWithRWTransaction,
+    patchRouteWithRWTransaction,
 } from "./routerHelpers.js"
 
 const apiRouter = new FunctionalRouter()
@@ -148,8 +163,24 @@ const enqueueLightningChange = async (
     })
 }
 
-async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
-    const logs = await db.queryMysql(
+async function getLogsByChartId(
+    knex: db.KnexReadonlyTransaction,
+    chartId: number
+): Promise<
+    {
+        userId: number
+        config: string
+        userName: string
+        createdAt: Date
+    }[]
+> {
+    const logs = await db.knexRaw<{
+        userId: number
+        config: string
+        userName: string
+        createdAt: Date
+    }>(
+        knex,
         `SELECT userId, config, fullName as userName, l.createdAt
         FROM chart_revisions l
         LEFT JOIN users u on u.id = userId
@@ -189,27 +220,18 @@ const getReferencesByChartId = async (
     }
 }
 
-const getRedirectsByChartId = async (
-    chartId: number
-): Promise<ChartRedirect[]> =>
-    await db.queryMysql(
-        `
-        SELECT id, slug, chart_id as chartId
-        FROM chart_slug_redirects
-        WHERE chart_id = ?
-        ORDER BY id ASC`,
-        [chartId]
-    )
-
-const expectChartById = async (chartId: any): Promise<GrapherInterface> => {
-    const chart = await getGrapherById(expectInt(chartId))
-    if (chart) return chart
+const expectChartById = async (
+    knex: db.KnexReadonlyTransaction,
+    chartId: any
+): Promise<GrapherInterface> => {
+    const chart = await getChartConfigById(knex, expectInt(chartId))
+    if (chart) return chart.config
 
     throw new JsonError(`No chart found for id ${chartId}`, 404)
 }
 
 const saveGrapher = async (
-    transactionContext: db.TransactionContext,
+    knex: db.KnexReadWriteTransaction,
     user: CurrentUser,
     newConfig: GrapherInterface,
     existingConfig?: GrapherInterface,
@@ -218,7 +240,8 @@ const saveGrapher = async (
 ) => {
     // Slugs need some special logic to ensure public urls remain consistent whenever possible
     async function isSlugUsedInRedirect() {
-        const rows = await transactionContext.query(
+        const rows = await db.knexRaw<DbPlainChartSlugRedirect>(
+            knex,
             `SELECT * FROM chart_slug_redirects WHERE chart_id != ? AND slug = ?`,
             // -1 is a placeholder ID that will never exist; but we cannot use NULL because
             // in that case we would always get back an empty resultset
@@ -228,7 +251,8 @@ const saveGrapher = async (
     }
 
     async function isSlugUsedInOtherGrapher() {
-        const rows = await transactionContext.query(
+        const rows = await db.knexRaw<Pick<DbRawChart, "id">>(
+            knex,
             `SELECT id FROM charts WHERE id != ? AND config->>"$.isPublished" = "true" AND JSON_EXTRACT(config, "$.slug") = ?`,
             // -1 is a placeholder ID that will never exist; but we cannot use NULL because
             // in that case we would always get back an empty resultset
@@ -255,11 +279,13 @@ const saveGrapher = async (
             existingConfig.slug !== newConfig.slug
         ) {
             // Changing slug of an existing chart, delete any old redirect and create new one
-            await transactionContext.execute(
+            await db.knexRaw(
+                knex,
                 `DELETE FROM chart_slug_redirects WHERE chart_id = ? AND slug = ?`,
                 [existingConfig.id, existingConfig.slug]
             )
-            await transactionContext.execute(
+            await db.knexRaw(
+                knex,
                 `INSERT INTO chart_slug_redirects (chart_id, slug) VALUES (?, ?)`,
                 [existingConfig.id, existingConfig.slug]
             )
@@ -280,12 +306,14 @@ const saveGrapher = async (
     let chartId = existingConfig && existingConfig.id
     const newJsonConfig = JSON.stringify(newConfig)
     if (existingConfig)
-        await transactionContext.query(
+        await db.knexRaw(
+            knex,
             `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=? WHERE id = ?`,
             [newJsonConfig, now, now, user.id, chartId]
         )
     else {
-        const result = await transactionContext.execute(
+        const result = await db.knexRawInsert(
+            knex,
             `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId) VALUES (?)`,
             [[newJsonConfig, now, now, now, user.id]]
         )
@@ -293,25 +321,38 @@ const saveGrapher = async (
     }
 
     // Record this change in version history
-    const log = new ChartRevision()
-    log.chartId = chartId as number
-    log.userId = user.id
-    log.config = newConfig
-    // TODO: the orm needs to support this but it does not :(
-    log.createdAt = new Date()
-    log.updatedAt = new Date()
-    await transactionContext.manager.save(log)
+
+    const chartRevisionLog = {
+        chartId: chartId as number,
+        userId: user.id,
+        config: serializeChartConfig(newConfig),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    } satisfies DbInsertChartRevision
+    await db.knexRaw(
+        knex,
+        `INSERT INTO chart_revisions (chartId, userId, config, createdAt, updatedAt) VALUES (?)`,
+        [
+            [
+                chartRevisionLog.chartId,
+                chartRevisionLog.userId,
+                chartRevisionLog.config,
+                chartRevisionLog.createdAt,
+                chartRevisionLog.updatedAt,
+            ],
+        ]
+    )
 
     // Remove any old dimensions and store the new ones
     // We only note that a relationship exists between the chart and variable in the database; the actual dimension configuration is left to the json
-    await transactionContext.execute(
-        `DELETE FROM chart_dimensions WHERE chartId=?`,
-        [chartId]
-    )
+    await db.knexRaw(knex, `DELETE FROM chart_dimensions WHERE chartId=?`, [
+        chartId,
+    ])
 
     const newDimensions = newConfig.dimensions ?? []
     for (const [i, dim] of newDimensions.entries()) {
-        await transactionContext.execute(
+        await db.knexRaw(
+            knex,
             `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?)`,
             [[chartId, dim.variableId, dim.property, i]]
         )
@@ -320,11 +361,9 @@ const saveGrapher = async (
     // So we can generate country profiles including this chart data
     if (newConfig.isPublished && referencedVariablesMightChange)
         // TODO: remove this ad hoc knex transaction context when we switch the function to knex
-        await db.knexReadWriteTransaction((trx) =>
-            denormalizeLatestCountryData(
-                trx,
-                newDimensions.map((d) => d.variableId)
-            )
+        await denormalizeLatestCountryData(
+            knex,
+            newDimensions.map((d) => d.variableId)
         )
 
     if (
@@ -332,7 +371,8 @@ const saveGrapher = async (
         (!existingConfig || !existingConfig.isPublished)
     ) {
         // Newly published, set publication info
-        await transactionContext.execute(
+        await db.knexRaw(
+            knex,
             `UPDATE charts SET publishedAt=?, publishedByUserId=? WHERE id = ? `,
             [now, user.id, chartId]
         )
@@ -343,7 +383,8 @@ const saveGrapher = async (
         existingConfig.isPublished
     ) {
         // Unpublishing chart, delete any existing redirects to it
-        await transactionContext.execute(
+        await db.knexRaw(
+            knex,
             `DELETE FROM chart_slug_redirects WHERE chart_id = ?`,
             [existingConfig.id]
         )
@@ -354,11 +395,12 @@ const saveGrapher = async (
     return chartId
 }
 
-apiRouter.get("/charts.json", async (req, res) => {
+getRouteWithROTransaction(apiRouter, "/charts.json", async (req, res, trx) => {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
-    const charts = await db.queryMysql(
-        `
-        SELECT ${OldChart.listFields} FROM charts
+    const charts = await db.knexRaw<OldChartFieldList>(
+        trx,
+        `-- sql
+        SELECT ${oldChartFieldList} FROM charts
         JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
         LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
         ORDER BY charts.lastEditedAt DESC LIMIT ?
@@ -366,7 +408,7 @@ apiRouter.get("/charts.json", async (req, res) => {
         [limit]
     )
 
-    await Chart.assignTagsForCharts(charts)
+    await assignTagsForCharts(trx, charts)
 
     return { charts }
 })
@@ -425,8 +467,10 @@ apiRouter.get("/charts.csv", async (req, res) => {
     return csv
 })
 
-apiRouter.get("/charts/:chartId.config.json", async (req, res) =>
-    expectChartById(req.params.chartId)
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId.config.json",
+    async (req, res, trx) => expectChartById(trx, req.params.chartId)
 )
 
 apiRouter.get("/editorData/namespaces.json", async (req, res) => {
@@ -449,9 +493,16 @@ apiRouter.get("/editorData/namespaces.json", async (req, res) => {
     }
 })
 
-apiRouter.get("/charts/:chartId.logs.json", async (req, res) => ({
-    logs: await getLogsByChartId(parseInt(req.params.chartId as string)),
-}))
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId.logs.json",
+    async (req, res, trx) => ({
+        logs: await getLogsByChartId(
+            trx,
+            parseInt(req.params.chartId as string)
+        ),
+    })
+)
 
 getRouteWithROTransaction(
     apiRouter,
@@ -467,19 +518,25 @@ getRouteWithROTransaction(
     }
 )
 
-apiRouter.get("/charts/:chartId.redirects.json", async (req, res) => ({
-    redirects: await getRedirectsByChartId(
-        parseInt(req.params.chartId as string)
-    ),
-}))
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId.redirects.json",
+    async (req, res, trx) => ({
+        redirects: await getRedirectsByChartId(
+            trx,
+            parseInt(req.params.chartId as string)
+        ),
+    })
+)
 
 getRouteWithROTransaction(
     apiRouter,
     "/charts/:chartId.pageviews.json",
     async (req, res, trx) => {
-        const slug = await Chart.getById(
+        const slug = await getChartSlugById(
+            trx,
             parseInt(req.params.chartId as string)
-        ).then((chart) => chart?.config?.slug)
+        )
         if (!slug) return {}
 
         const pageviewsByUrl = await db.knexRawFirst(
@@ -597,64 +654,74 @@ apiRouter.get(
     }
 )
 
-apiRouter.post("/charts", async (req, res) => {
-    const chartId = await db.transaction(async (t) => {
-        return saveGrapher(t, res.locals.user, req.body)
-    })
+postRouteWithRWTransaction(apiRouter, "/charts", async (req, res, trx) => {
+    const chartId = await saveGrapher(trx, res.locals.user, req.body)
+
     return { success: true, chartId: chartId }
 })
 
-apiRouter.post("/charts/:chartId/setTags", async (req, res) => {
-    const chartId = expectInt(req.params.chartId)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/charts/:chartId/setTags",
+    async (req, res, trx) => {
+        const chartId = expectInt(req.params.chartId)
 
-    await Chart.setTags(chartId, req.body.tags)
+        await setChartTags(trx, chartId, req.body.tags)
 
-    return { success: true }
-})
-
-apiRouter.put("/charts/:chartId", async (req, res) => {
-    const existingConfig = await expectChartById(req.params.chartId)
-
-    await db.transaction(async (t) => {
-        await saveGrapher(t, res.locals.user, req.body, existingConfig)
-    })
-
-    const logs = await getLogsByChartId(existingConfig.id as number)
-    return { success: true, chartId: existingConfig.id, newLog: logs[0] }
-})
-
-apiRouter.delete("/charts/:chartId", async (req, res) => {
-    const chart = await expectChartById(req.params.chartId)
-    const links = await Link.getPublishedLinksTo([chart.slug!])
-    if (links.length) {
-        const sources = links.map((link) => link.source.slug).join(", ")
-        throw new Error(
-            `Cannot delete chart in-use in the following published documents: ${sources}`
-        )
+        return { success: true }
     }
+)
 
-    await db.transaction(async (t) => {
-        await t.execute(`DELETE FROM chart_dimensions WHERE chartId=?`, [
+putRouteWithRWTransaction(
+    apiRouter,
+    "/charts/:chartId",
+    async (req, res, trx) => {
+        const existingConfig = await expectChartById(trx, req.params.chartId)
+
+        await saveGrapher(trx, res.locals.user, req.body, existingConfig)
+
+        const logs = await getLogsByChartId(trx, existingConfig.id as number)
+        return { success: true, chartId: existingConfig.id, newLog: logs[0] }
+    }
+)
+
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/charts/:chartId",
+    async (req, res, trx) => {
+        const chart = await expectChartById(trx, req.params.chartId)
+        const links = await Link.getPublishedLinksTo([chart.slug!])
+        if (links.length) {
+            const sources = links.map((link) => link.source.slug).join(", ")
+            throw new Error(
+                `Cannot delete chart in-use in the following published documents: ${sources}`
+            )
+        }
+
+        await db.knexRaw(trx, `DELETE FROM chart_dimensions WHERE chartId=?`, [
             chart.id,
         ])
-        await t.execute(`DELETE FROM chart_slug_redirects WHERE chart_id=?`, [
-            chart.id,
-        ])
-        await t.execute(
+        await db.knexRaw(
+            trx,
+            `DELETE FROM chart_slug_redirects WHERE chart_id=?`,
+            [chart.id]
+        )
+        await db.knexRaw(
+            trx,
             `DELETE FROM suggested_chart_revisions WHERE chartId=?`,
             [chart.id]
         )
-        await t.execute(`DELETE FROM charts WHERE id=?`, [chart.id])
-    })
+        await db.knexRaw(trx, `DELETE FROM charts WHERE id=?`, [chart.id])
 
-    if (chart.isPublished)
-        await triggerStaticBuild(
-            res.locals.user,
-            `Deleting chart ${chart.slug}`
-        )
+        if (chart.isPublished)
+            await triggerStaticBuild(
+                res.locals.user,
+                `Deleting chart ${chart.slug}`
+            )
 
-    return { success: true }
-})
+        return { success: true }
+    }
+)
 
 apiRouter.get("/suggested-chart-revisions", async (req, res) => {
     const isValidSortBy = (sortBy: string) => {
@@ -1133,9 +1200,10 @@ apiRouter.get(
     }
 )
 
-apiRouter.post(
+postRouteWithRWTransaction(
+    apiRouter,
     "/suggested-chart-revisions/:suggestedChartRevisionId/update",
-    async (req, res) => {
+    async (req, res, trx) => {
         const suggestedChartRevisionId = expectInt(
             req.params.suggestedChartRevisionId
         )
@@ -1146,112 +1214,121 @@ apiRouter.post(
             decisionReason: string
         }
 
-        await db.transaction(async (t) => {
-            const suggestedChartRevision = await db.mysqlFirst(
-                `SELECT id, chartId, suggestedConfig, originalConfig, status FROM suggested_chart_revisions WHERE id=?`,
-                [suggestedChartRevisionId]
+        // TODO: remove the :any type when the code below is refactored
+        const suggestedChartRevision: any = await db.knexRawFirst<
+            Pick<
+                DbRawSuggestedChartRevision,
+                "id" | "chartId" | "suggestedConfig" | "originalConfig"
+            >
+        >(
+            trx,
+            `SELECT id, chartId, suggestedConfig, originalConfig, status FROM suggested_chart_revisions WHERE id=?`,
+            [suggestedChartRevisionId]
+        )
+        if (!suggestedChartRevision) {
+            throw new JsonError(
+                `No suggested chart revision found for id '${suggestedChartRevisionId}'`,
+                404
             )
-            if (!suggestedChartRevision) {
-                throw new JsonError(
-                    `No suggested chart revision found for id '${suggestedChartRevisionId}'`,
-                    404
-                )
-            }
-            if (suggestedConfig !== undefined && suggestedConfig !== null) {
-                suggestedChartRevision.suggestedConfig = suggestedConfig
-            } else {
-                suggestedChartRevision.suggestedConfig = JSON.parse(
-                    suggestedChartRevision.suggestedConfig
-                )
-            }
-            suggestedChartRevision.originalConfig = JSON.parse(
-                suggestedChartRevision.originalConfig
+        }
+        if (suggestedConfig !== undefined && suggestedConfig !== null) {
+            suggestedChartRevision.suggestedConfig = suggestedConfig
+        } else {
+            suggestedChartRevision.suggestedConfig = JSON.parse(
+                suggestedChartRevision.suggestedConfig
             )
-            suggestedChartRevision.existingConfig = await expectChartById(
-                suggestedChartRevision.chartId
-            )
+        }
+        suggestedChartRevision.originalConfig = JSON.parse(
+            suggestedChartRevision.originalConfig
+        )
+        suggestedChartRevision.existingConfig = await expectChartById(
+            trx,
+            suggestedChartRevision.chartId
+        )
 
-            const canApprove = SuggestedChartRevision.checkCanApprove(
-                suggestedChartRevision
-            )
-            const canReject = SuggestedChartRevision.checkCanReject(
-                suggestedChartRevision
-            )
-            const canFlag = SuggestedChartRevision.checkCanFlag(
-                suggestedChartRevision
-            )
-            const canPending = SuggestedChartRevision.checkCanPending(
-                suggestedChartRevision
-            )
+        const canApprove = SuggestedChartRevision.checkCanApprove(
+            suggestedChartRevision
+        )
+        const canReject = SuggestedChartRevision.checkCanReject(
+            suggestedChartRevision
+        )
+        const canFlag = SuggestedChartRevision.checkCanFlag(
+            suggestedChartRevision
+        )
+        const canPending = SuggestedChartRevision.checkCanPending(
+            suggestedChartRevision
+        )
 
-            const canUpdate =
-                (status === "approved" && canApprove) ||
-                (status === "rejected" && canReject) ||
-                (status === "pending" && canPending) ||
-                (status === "flagged" && canFlag)
-            if (!canUpdate) {
-                throw new JsonError(
-                    `Suggest chart revision ${suggestedChartRevisionId} cannot be ` +
-                        `updated with status="${status}".`,
-                    404
-                )
-            }
+        const canUpdate =
+            (status === "approved" && canApprove) ||
+            (status === "rejected" && canReject) ||
+            (status === "pending" && canPending) ||
+            (status === "flagged" && canFlag)
+        if (!canUpdate) {
+            throw new JsonError(
+                `Suggest chart revision ${suggestedChartRevisionId} cannot be ` +
+                    `updated with status="${status}".`,
+                404
+            )
+        }
 
-            await t.execute(
-                `
+        await db.knexRaw(
+            trx,
+            `
                 UPDATE suggested_chart_revisions
                 SET status=?, decisionReason=?, updatedAt=?, updatedBy=?
                 WHERE id = ?
                 `,
-                [
-                    status,
-                    decisionReason,
-                    new Date(),
-                    res.locals.user.id,
-                    suggestedChartRevisionId,
-                ]
-            )
+            [
+                status,
+                decisionReason,
+                new Date(),
+                res.locals.user.id,
+                suggestedChartRevisionId,
+            ]
+        )
 
-            // Update config ONLY when APPROVE button is clicked
-            // Makes sense when the suggested config is a sugegstion by GPT, otherwise is redundant but we are cool with it
-            if (status === SuggestedChartRevisionStatus.approved) {
-                await t.execute(
-                    `
+        // Update config ONLY when APPROVE button is clicked
+        // Makes sense when the suggested config is a sugegstion by GPT, otherwise is redundant but we are cool with it
+        if (status === SuggestedChartRevisionStatus.approved) {
+            await db.knexRaw(
+                trx,
+                `
                     UPDATE suggested_chart_revisions
                     SET suggestedConfig=?
                     WHERE id = ?
                     `,
-                    [
-                        JSON.stringify(suggestedChartRevision.suggestedConfig),
-                        suggestedChartRevisionId,
-                    ]
-                )
-            }
-            // note: the calls to saveGrapher() below will never overwrite a config
-            // that has been changed since the suggestedConfig was created, because
-            // if the config has been changed since the suggestedConfig was created
-            // then canUpdate will be false (so an error would have been raised
-            // above).
-            if (status === "approved" && canApprove) {
-                await saveGrapher(
-                    t,
-                    res.locals.user,
-                    suggestedChartRevision.suggestedConfig,
-                    suggestedChartRevision.existingConfig
-                )
-            } else if (
-                status === "rejected" &&
-                canReject &&
-                suggestedChartRevision.status === "approved"
-            ) {
-                await saveGrapher(
-                    t,
-                    res.locals.user,
-                    suggestedChartRevision.originalConfig,
-                    suggestedChartRevision.existingConfig
-                )
-            }
-        })
+                [
+                    JSON.stringify(suggestedChartRevision.suggestedConfig),
+                    suggestedChartRevisionId,
+                ]
+            )
+        }
+        // note: the calls to saveGrapher() below will never overwrite a config
+        // that has been changed since the suggestedConfig was created, because
+        // if the config has been changed since the suggestedConfig was created
+        // then canUpdate will be false (so an error would have been raised
+        // above).
+
+        if (status === "approved" && canApprove) {
+            await saveGrapher(
+                trx,
+                res.locals.user,
+                suggestedChartRevision.suggestedConfig,
+                suggestedChartRevision.existingConfig
+            )
+        } else if (
+            status === "rejected" &&
+            canReject &&
+            suggestedChartRevision.status === "approved"
+        ) {
+            await saveGrapher(
+                trx,
+                res.locals.user,
+                suggestedChartRevision.originalConfig,
+                suggestedChartRevision.existingConfig
+            )
+        }
 
         return { success: true }
     }
@@ -1396,15 +1473,18 @@ WHERE ${whereClause}`)
     }
 )
 
-apiRouter.patch("/chart-bulk-update", async (req, res) => {
-    const patchesList = req.body as GrapherConfigPatch[]
-    const chartIds = new Set(patchesList.map((patch) => patch.id))
+patchRouteWithRWTransaction(
+    apiRouter,
+    "/chart-bulk-update",
+    async (req, res, trx) => {
+        const patchesList = req.body as GrapherConfigPatch[]
+        const chartIds = new Set(patchesList.map((patch) => patch.id))
 
-    await db.transaction(async (manager) => {
-        const configsAndIds = await manager.query(
-            `SELECT id, config FROM charts where id IN (?)`,
-            [[...chartIds.values()]]
-        )
+        const configsAndIds = await db.knexRaw<
+            Pick<DbRawChart, "id" | "config">
+        >(trx, `SELECT id, config FROM charts where id IN (?)`, [
+            [...chartIds.values()],
+        ])
         const configMap = new Map<number, GrapherInterface>(
             configsAndIds.map((item: any) => [
                 item.id,
@@ -1422,17 +1502,17 @@ apiRouter.patch("/chart-bulk-update", async (req, res) => {
 
         for (const [id, newConfig] of configMap.entries()) {
             await saveGrapher(
-                manager,
+                trx,
                 res.locals.user,
                 newConfig,
                 oldValuesConfigMap.get(id),
                 false
             )
         }
-    })
 
-    return { success: true }
-})
+        return { success: true }
+    }
+)
 
 apiRouter.get(
     "/variable-annotations",
@@ -1547,9 +1627,10 @@ getRouteWithROTransaction(
             variable.catalogPath += `#${variable.shortName}`
         }
 
-        const charts = await db.queryMysql(
+        const charts = await db.knexRaw<OldChartFieldList>(
+            trx,
             `
-            SELECT ${OldChart.listFields}
+            SELECT ${oldChartFieldList}
             FROM charts
             JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
             LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
@@ -1560,7 +1641,7 @@ getRouteWithROTransaction(
             [variableId]
         )
 
-        await Chart.assignTagsForCharts(charts)
+        await assignTagsForCharts(trx, charts)
 
         const grapherConfig = await getMergedGrapherConfigForVariable(
             variableId,
@@ -1693,17 +1774,19 @@ getRouteWithROTransaction(
         if (!dataset)
             throw new JsonError(`No dataset by id '${datasetId}'`, 404)
 
-        const zipFile = await db.knexRawFirst(
+        const zipFile = await db.knexRawFirst<{ filename: string }>(
             trx,
             `SELECT filename FROM dataset_files WHERE datasetId=?`,
             [datasetId]
         )
         if (zipFile) dataset.zipFile = zipFile
 
-        const variables: Pick<
-            DbRawVariable,
-            "id" | "name" | "description" | "display" | "catalogPath"
-        >[] = await db.knexRaw(
+        const variables = await db.knexRaw<
+            Pick<
+                DbRawVariable,
+                "id" | "name" | "description" | "display" | "catalogPath"
+            >
+        >(
             trx,
             `
         SELECT v.id, v.name, v.description, v.display, v.catalogPath
@@ -1720,7 +1803,7 @@ getRouteWithROTransaction(
         dataset.variables = variables
 
         // add all origins
-        const origins: DbRawOrigin[] = await db.knexRaw(
+        const origins: DbRawOrigin[] = await db.knexRaw<DbRawOrigin>(
             trx,
             `
         select distinct
@@ -1737,7 +1820,11 @@ getRouteWithROTransaction(
 
         dataset.origins = parsedOrigins
 
-        const sources = await db.knexRaw(
+        const sources = await db.knexRaw<{
+            id: number
+            name: string
+            description: string
+        }>(
             trx,
             `
         SELECT s.id, s.name, s.description
@@ -1757,10 +1844,10 @@ getRouteWithROTransaction(
             }
         })
 
-        const charts = await db.knexRaw(
+        const charts = await db.knexRaw<OldChartFieldList>(
             trx,
             `
-        SELECT ${OldChart.listFields}
+        SELECT ${oldChartFieldList}
         FROM charts
         JOIN chart_dimensions AS cd ON cd.chartId = charts.id
         JOIN variables AS v ON cd.variableId = v.id
@@ -1774,9 +1861,9 @@ getRouteWithROTransaction(
 
         dataset.charts = charts
 
-        await Chart.assignTagsForCharts(charts as any)
+        await assignTagsForCharts(trx, charts)
 
-        const tags = await db.knexRaw(
+        const tags = await db.knexRaw<{ id: number; name: string }>(
             trx,
             `
         SELECT t.id, t.name
@@ -1788,7 +1875,11 @@ getRouteWithROTransaction(
         )
         dataset.tags = tags
 
-        const availableTags = await db.knexRaw(
+        const availableTags = await db.knexRaw<{
+            id: number
+            name: string
+            parentName: string
+        }>(
             trx,
             `
         SELECT t.id, t.name, p.name AS parentName
@@ -1967,26 +2058,56 @@ apiRouter.get("/redirects.json", async (req, res) => ({
         ORDER BY r.id DESC`),
 }))
 
-apiRouter.get("/tags/:tagId.json", async (req, res) => {
-    const tagId = expectInt(req.params.tagId) as number | null
+getRouteWithROTransaction(
+    apiRouter,
+    "/tags/:tagId.json",
+    async (req, res, trx) => {
+        const tagId = expectInt(req.params.tagId) as number | null
 
-    // NOTE (Mispy): The "uncategorized" tag is special -- it represents all untagged stuff
-    // Bit fiddly to handle here but more true to normalized schema than having to remember to add the special tag
-    // every time we create a new chart etcs
-    const uncategorized = tagId === UNCATEGORIZED_TAG_ID
+        // NOTE (Mispy): The "uncategorized" tag is special -- it represents all untagged stuff
+        // Bit fiddly to handle here but more true to normalized schema than having to remember to add the special tag
+        // every time we create a new chart etcs
+        const uncategorized = tagId === UNCATEGORIZED_TAG_ID
 
-    const tag = await db.mysqlFirst(
-        `
+        // TODO: when we have types for our endpoints, make tag of that type instead of any
+        const tag: any = await db.knexRawFirst<
+            Pick<
+                DbPlainTag,
+                | "id"
+                | "name"
+                | "specialType"
+                | "updatedAt"
+                | "parentId"
+                | "slug"
+                | "isBulkImport"
+            >
+        >(
+            trx,
+            `-- sql
         SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, t.slug, p.isBulkImport
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
         WHERE t.id = ?
     `,
-        [tagId]
-    )
+            [tagId]
+        )
 
-    // Datasets tagged with this tag
-    const datasets = await db.queryMysql(
-        `
+        // Datasets tagged with this tag
+        const datasets = await db.knexRaw<
+            Pick<
+                DbPlainDataset,
+                | "id"
+                | "namespace"
+                | "name"
+                | "description"
+                | "createdAt"
+                | "updatedAt"
+                | "dataEditedAt"
+                | "isPrivate"
+                | "nonRedistributable"
+            > & { dataEditedByUserName: string }
+        >(
+            trx,
+            `-- sql
         SELECT
             d.id,
             d.namespace,
@@ -2004,39 +2125,45 @@ apiRouter.get("/tags/:tagId.json", async (req, res) => {
         WHERE dt.tagId ${uncategorized ? "IS NULL" : "= ?"}
         ORDER BY d.dataEditedAt DESC
     `,
-        uncategorized ? [] : [tagId]
-    )
-    tag.datasets = datasets
+            uncategorized ? [] : [tagId]
+        )
+        tag.datasets = datasets
 
-    // The other tags for those datasets
-    if (tag.datasets.length) {
-        if (uncategorized) {
-            for (const dataset of tag.datasets) dataset.tags = []
-        } else {
-            const datasetTags = await db.queryMysql(
-                `
+        // The other tags for those datasets
+        if (tag.datasets.length) {
+            if (uncategorized) {
+                for (const dataset of tag.datasets) dataset.tags = []
+            } else {
+                const datasetTags = await db.knexRaw<{
+                    datasetId: number
+                    id: number
+                    name: string
+                }>(
+                    trx,
+                    `-- sql
                 SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
                 JOIN tags t ON dt.tagId = t.id
                 WHERE dt.datasetId IN (?)
             `,
-                [tag.datasets.map((d: any) => d.id)]
-            )
-            const tagsByDatasetId = lodash.groupBy(
-                datasetTags,
-                (t) => t.datasetId
-            )
-            for (const dataset of tag.datasets) {
-                dataset.tags = tagsByDatasetId[dataset.id].map((t) =>
-                    lodash.omit(t, "datasetId")
+                    [tag.datasets.map((d: any) => d.id)]
                 )
+                const tagsByDatasetId = lodash.groupBy(
+                    datasetTags,
+                    (t) => t.datasetId
+                )
+                for (const dataset of tag.datasets) {
+                    dataset.tags = tagsByDatasetId[dataset.id].map((t) =>
+                        lodash.omit(t, "datasetId")
+                    )
+                }
             }
         }
-    }
 
-    // Charts using datasets under this tag
-    const charts = await db.queryMysql(
-        `
-        SELECT ${OldChart.listFields} FROM charts
+        // Charts using datasets under this tag
+        const charts = await db.knexRaw<OldChartFieldList>(
+            trx,
+            `-- sql
+        SELECT ${oldChartFieldList} FROM charts
         LEFT JOIN chart_tags ct ON ct.chartId=charts.id
         JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
         LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
@@ -2044,132 +2171,167 @@ apiRouter.get("/tags/:tagId.json", async (req, res) => {
         GROUP BY charts.id
         ORDER BY charts.updatedAt DESC
     `,
-        uncategorized ? [] : [tagId]
-    )
-    tag.charts = charts
+            uncategorized ? [] : [tagId]
+        )
+        tag.charts = charts
 
-    await Chart.assignTagsForCharts(charts)
+        await assignTagsForCharts(trx, charts)
 
-    // Subcategories
-    const children = await db.queryMysql(
-        `
+        // Subcategories
+        const children = await db.knexRaw<{ id: number; name: string }>(
+            trx,
+            `-- sql
         SELECT t.id, t.name FROM tags t
         WHERE t.parentId = ?
     `,
-        [tag.id]
-    )
-    tag.children = children
+            [tag.id]
+        )
+        tag.children = children
 
-    // Possible parents to choose from
-    const possibleParents = await db.queryMysql(`
+        // Possible parents to choose from
+        const possibleParents = await db.knexRaw<{ id: number; name: string }>(
+            trx,
+            `-- sql
         SELECT t.id, t.name FROM tags t
         WHERE t.parentId IS NULL AND t.isBulkImport IS FALSE
-    `)
-    tag.possibleParents = possibleParents
+    `
+        )
+        tag.possibleParents = possibleParents
 
-    return {
-        tag,
+        return {
+            tag,
+        }
     }
-})
+)
 
-apiRouter.put("/tags/:tagId", async (req: Request) => {
-    const tagId = expectInt(req.params.tagId)
-    const tag = (req.body as { tag: any }).tag
-    await db.execute(
-        `UPDATE tags SET name=?, updatedAt=?, parentId=?, slug=? WHERE id=?`,
-        [tag.name, new Date(), tag.parentId, tag.slug, tagId]
-    )
-    if (tag.slug) {
-        // See if there's a published gdoc with a matching slug.
-        // We're not enforcing that the gdoc be a topic page, as there are cases like /human-development-index,
-        // where the page for the topic is just an article.
-        const gdoc: OwidGdocPostInterface[] = await db.execute(
-            `SELECT slug FROM posts_gdocs pg
+putRouteWithRWTransaction(
+    apiRouter,
+    "/tags/:tagId",
+    async (req: Request, res, trx) => {
+        const tagId = expectInt(req.params.tagId)
+        const tag = (req.body as { tag: any }).tag
+        await db.knexRaw(
+            trx,
+            `UPDATE tags SET name=?, updatedAt=?, parentId=?, slug=? WHERE id=?`,
+            [tag.name, new Date(), tag.parentId, tag.slug, tagId]
+        )
+        if (tag.slug) {
+            // See if there's a published gdoc with a matching slug.
+            // We're not enforcing that the gdoc be a topic page, as there are cases like /human-development-index,
+            // where the page for the topic is just an article.
+            const gdoc = await db.knexRaw<Pick<DbRawPostGdoc, "slug">>(
+                trx,
+                `SELECT slug FROM posts_gdocs pg
              WHERE EXISTS (
                     SELECT 1
                     FROM posts_gdocs_x_tags gt
                     WHERE pg.id = gt.gdocId AND gt.tagId = ?
             ) AND pg.published = TRUE`,
-            [tag.id]
-        )
-        if (!gdoc.length) {
-            return {
-                success: true,
-                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug.
+                [tag.id]
+            )
+            if (!gdoc.length) {
+                return {
+                    success: true,
+                    tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug.
 
 Are you sure you haven't made a typo?`,
+                }
             }
         }
+        return { success: true }
     }
-    return { success: true }
-})
+)
 
-apiRouter.post("/tags/new", async (req: Request) => {
-    const tag = (req.body as { tag: any }).tag
-    const now = new Date()
-    const result = await db.execute(
-        `INSERT INTO tags (parentId, name, createdAt, updatedAt) VALUES (?, ?, ?, ?)`,
-        [tag.parentId, tag.name, now, now]
-    )
-    return { success: true, tagId: result.insertId }
-})
+postRouteWithRWTransaction(
+    apiRouter,
+    "/tags/new",
+    async (req: Request, res, trx) => {
+        const tag = (req.body as { tag: any }).tag
+        const now = new Date()
+        const result = await db.knexRawInsert(
+            trx,
+            `INSERT INTO tags (parentId, name, createdAt, updatedAt) VALUES (?, ?, ?, ?)`,
+            [tag.parentId, tag.name, now, now]
+        )
+        return { success: true, tagId: result.insertId }
+    }
+)
 
-apiRouter.get("/tags.json", async (req, res) => {
-    const tags = await db.queryMysql(`
+getRouteWithROTransaction(apiRouter, "/tags.json", async (req, res, trx) => {
+    const tags = await db.knexRaw(
+        trx,
+        `-- sql
         SELECT t.id, t.name, t.parentId, t.specialType
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
         WHERE t.isBulkImport IS FALSE AND (t.parentId IS NULL OR p.isBulkImport IS FALSE)
         ORDER BY t.name ASC
-    `)
+    `
+    )
 
     return {
         tags,
     }
 })
 
-apiRouter.delete("/tags/:tagId/delete", async (req, res) => {
-    const tagId = expectInt(req.params.tagId)
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/tags/:tagId/delete",
+    async (req, res, trx) => {
+        const tagId = expectInt(req.params.tagId)
 
-    await db.transaction(async (t) => {
-        await t.execute(`DELETE FROM tags WHERE id=?`, [tagId])
-    })
+        await db.knexRaw(trx, `DELETE FROM tags WHERE id=?`, [tagId])
 
-    return { success: true }
-})
+        return { success: true }
+    }
+)
 
-apiRouter.post("/charts/:chartId/redirects/new", async (req: Request) => {
-    const chartId = expectInt(req.params.chartId)
-    const fields = req.body as { slug: string }
-    const result = await db.execute(
-        `INSERT INTO chart_slug_redirects (chart_id, slug) VALUES (?, ?)`,
-        [chartId, fields.slug]
-    )
-    const redirectId = result.insertId
-    const redirect = await db.mysqlFirst(
-        `SELECT * FROM chart_slug_redirects WHERE id = ?`,
-        [redirectId]
-    )
-    return { success: true, redirect: redirect }
-})
+postRouteWithRWTransaction(
+    apiRouter,
+    "/charts/:chartId/redirects/new",
+    async (req: Request, res, trx) => {
+        const chartId = expectInt(req.params.chartId)
+        const fields = req.body as { slug: string }
+        const result = await db.knexRawInsert(
+            trx,
+            `INSERT INTO chart_slug_redirects (chart_id, slug) VALUES (?, ?)`,
+            [chartId, fields.slug]
+        )
+        const redirectId = result.insertId
+        const redirect = await db.knexRaw<DbPlainChartSlugRedirect>(
+            trx,
+            `SELECT * FROM chart_slug_redirects WHERE id = ?`,
+            [redirectId]
+        )
+        return { success: true, redirect: redirect }
+    }
+)
 
-apiRouter.delete("/redirects/:id", async (req, res) => {
-    const id = expectInt(req.params.id)
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/redirects/:id",
+    async (req, res, trx) => {
+        const id = expectInt(req.params.id)
 
-    const redirect = await db.mysqlFirst(
-        `SELECT * FROM chart_slug_redirects WHERE id = ?`,
-        [id]
-    )
+        const redirect = await db.knexRawFirst<DbPlainChartSlugRedirect>(
+            trx,
+            `SELECT * FROM chart_slug_redirects WHERE id = ?`,
+            [id]
+        )
 
-    if (!redirect) throw new JsonError(`No redirect found for id ${id}`, 404)
+        if (!redirect)
+            throw new JsonError(`No redirect found for id ${id}`, 404)
 
-    await db.execute(`DELETE FROM chart_slug_redirects WHERE id=?`, [id])
-    await triggerStaticBuild(
-        res.locals.user,
-        `Deleting redirect from ${redirect.slug}`
-    )
+        await db.knexRaw(trx, `DELETE FROM chart_slug_redirects WHERE id=?`, [
+            id,
+        ])
+        await triggerStaticBuild(
+            res.locals.user,
+            `Deleting redirect from ${redirect.slug}`
+        )
 
-    return { success: true }
-})
+        return { success: true }
+    }
+)
 
 apiRouter.get("/posts.json", async (req) => {
     const raw_rows = await db.queryMysql(
@@ -2218,13 +2380,17 @@ apiRouter.get("/posts.json", async (req) => {
     return { posts: rows }
 })
 
-postRouteWithRWTransaction(apiRouter, "/posts/:postId/setTags", async (req, res, trx) => {
-    const postId = expectInt(req.params.postId)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/posts/:postId/setTags",
+    async (req, res, trx) => {
+        const postId = expectInt(req.params.postId)
 
-    await setTagsForPost(trx, postId, req.body.tagIds)
+        await setTagsForPost(trx, postId, req.body.tagIds)
 
-    return { success: true }
-})
+        return { success: true }
+    }
+)
 
 getRouteWithROTransaction(
     apiRouter,
@@ -2550,13 +2716,18 @@ apiRouter.post("/gdocs/:gdocId/setTags", async (req, res) => {
     return { success: true }
 })
 
-apiRouter.get(
+getRouteWithROTransaction(
+    apiRouter,
     `/gpt/suggest-topics/${TaggableType.Charts}/:chartId.json`,
-    async (req: Request): Promise<Record<"topics", DbChartTagJoin[]>> => {
+    async (
+        req: Request,
+        res,
+        trx
+    ): Promise<Record<"topics", DbChartTagJoin[]>> => {
         const chartId = parseIntOrUndefined(req.params.chartId)
         if (!chartId) throw new JsonError(`Invalid chart ID`, 400)
 
-        const topics = await Chart.getGptTopicSuggestions(chartId)
+        const topics = await getGptTopicSuggestions(trx, chartId)
 
         if (!topics.length)
             throw new JsonError(

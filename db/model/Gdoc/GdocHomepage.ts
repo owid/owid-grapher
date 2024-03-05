@@ -55,15 +55,13 @@ export class GdocHomepage
     }
 
     _loadSubclassAttachments = async (): Promise<void> => {
+        const knex = db.knexInstance() as db.KnexReadonlyTransaction
         this.homepageMetadata = {
-            chartCount: await db.getTotalNumberOfCharts(),
+            chartCount: await db.getTotalNumberOfCharts(knex), // TODO: replace this with a transaction that is passed in
             topicCount: UNIQUE_TOPIC_COUNT,
         }
 
         // TODO: refactor these classes to properly use knex - not going to start it now
-        this.latestDataInsights = await db.getPublishedDataInsights(
-            db.knexInstance(),
-            4
-        )
+        this.latestDataInsights = await db.getPublishedDataInsights(knex, 4)
     }
 }

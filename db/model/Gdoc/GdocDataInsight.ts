@@ -47,7 +47,7 @@ export class GdocDataInsight
     _loadSubclassAttachments = async (): Promise<void> => {
         // TODO: refactor these classes to properly use knex - not going to start it now
         this.latestDataInsights = await db.getPublishedDataInsights(
-            db.knexInstance(),
+            db.knexInstance() as db.KnexReadonlyTransaction, // TODO: replace this with a transaction that is passed in
             5
         )
     }

@@ -34,7 +34,10 @@ import {
     countriesIndexPage,
 } from "../baker/countryProfiles.js"
 import { makeSitemap } from "../baker/sitemap.js"
-import { Chart, OldChart } from "../db/model/Chart.js"
+import {
+    getChartConfigBySlug,
+    getChartVariableData,
+} from "../db/model/Chart.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { grapherToSVG } from "../baker/GrapherImageBaker.js"
@@ -168,13 +171,16 @@ mockSiteRouter.get("/collection/custom", async (_, res) => {
 })
 
 mockSiteRouter.get("/grapher/:slug", async (req, res) => {
-    const entity = await Chart.getBySlug(req.params.slug)
-    if (!entity) throw new JsonError("No such chart", 404)
-
-    // XXX add dev-prod parity for this
-    res.set("Access-Control-Allow-Origin", "*")
     const previewDataPageOrGrapherPage = await db.knexReadonlyTransaction(
-        async (knex) => renderPreviewDataPageOrGrapherPage(entity.config, knex)
+        async (knex) => {
+            const entity = await getChartConfigBySlug(knex, req.params.slug)
+            if (!entity) throw new JsonError("No such chart", 404)
+
+            // XXX add dev-prod parity for this
+            res.set("Access-Control-Allow-Origin", "*")
+
+            return renderPreviewDataPageOrGrapherPage(entity.config, knex)
+        }
     )
     res.send(previewDataPageOrGrapherPage)
 })
@@ -197,7 +203,9 @@ mockSiteRouter.get("/thank-you", async (req, res) =>
 mockSiteRouter.get("/data-insights/:pageNumberOrSlug?", async (req, res) => {
     const totalPageCount = calculateDataInsightIndexPageCount(
         await db
-            .getPublishedDataInsights(db.knexInstance())
+            .getPublishedDataInsights(
+                db.knexInstance() as db.KnexReadonlyTransaction
+            )
             .then((insights) => insights.length)
     )
     async function renderIndexPage(pageNumber: number) {
@@ -313,10 +321,12 @@ mockSiteRouter.use(
 mockSiteRouter.use("/assets", express.static("dist/assets"))
 
 mockSiteRouter.use("/grapher/exports/:slug.svg", async (req, res) => {
-    const grapher = await OldChart.getBySlug(req.params.slug)
-    const vardata = await grapher.getVariableData()
-    res.setHeader("Content-Type", "image/svg+xml")
-    res.send(await grapherToSVG(grapher.config, vardata))
+    await db.knexReadonlyTransaction(async (knex) => {
+        const grapher = await getChartConfigBySlug(knex, req.params.slug)
+        const vardata = await getChartVariableData(grapher.config)
+        res.setHeader("Content-Type", "image/svg+xml")
+        res.send(await grapherToSVG(grapher.config, vardata))
+    })
 })
 
 mockSiteRouter.use(

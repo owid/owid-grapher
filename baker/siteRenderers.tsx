@@ -73,7 +73,10 @@ import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec.js"
 import { ExplorerPage } from "../site/ExplorerPage.js"
 import { DataInsightsIndexPage } from "../site/DataInsightsIndexPage.js"
-import { Chart } from "../db/model/Chart.js"
+import {
+    getChartConfigBySlug,
+    getEnrichedChartById,
+} from "../db/model/Chart.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
@@ -222,7 +225,7 @@ export const renderPost = async (
             .map((el) => el.attribs["src"].trim())
 
         // This can be slow if uncached!
-        await bakeGrapherUrls(grapherUrls)
+        await bakeGrapherUrls(knex, grapherUrls)
 
         grapherExports = await getGrapherExportsByUrl()
     }
@@ -551,15 +554,16 @@ export const renderProminentLinks = async (
 
             let title
             try {
+                // TODO: consider prefetching the related information instead of inline with 3 awaits here
                 title =
                     $block.find("title").text() ||
                     (!isCanonicalInternalUrl(resolvedUrl)
                         ? null // attempt fallback for internal urls only
                         : resolvedUrl.isExplorer
-                        ? await getExplorerTitleByUrl(resolvedUrl)
+                        ? await getExplorerTitleByUrl(knex, resolvedUrl)
                         : resolvedUrl.isGrapher && resolvedUrl.slug
-                        ? (await Chart.getBySlug(resolvedUrl.slug))?.config
-                              ?.title // optim?
+                        ? (await getChartConfigBySlug(knex, resolvedUrl.slug))
+                              ?.config?.title // optim?
                         : resolvedUrl.slug &&
                           (
                               await getFullPostBySlugFromSnapshot(
@@ -699,7 +703,10 @@ export const renderExplorerPage = async (
     )
 }
 
-const getExplorerTitleByUrl = async (url: Url): Promise<string | undefined> => {
+const getExplorerTitleByUrl = async (
+    knex: KnexReadonlyTransaction,
+    url: Url
+): Promise<string | undefined> => {
     if (!url.isExplorer || !url.slug) return
     // todo / optim: ok to instanciate multiple simple-git?
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
@@ -711,8 +718,12 @@ const getExplorerTitleByUrl = async (url: Url): Promise<string | undefined> => {
         return (
             explorer.grapherConfig.title ??
             (explorer.grapherConfig.grapherId
-                ? (await Chart.getById(explorer.grapherConfig.grapherId))
-                      ?.config?.title
+                ? (
+                      await getEnrichedChartById(
+                          knex,
+                          explorer.grapherConfig.grapherId
+                      )
+                  )?.config?.title
                 : undefined)
         )
     }
