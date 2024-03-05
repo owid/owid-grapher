@@ -3729,7 +3729,6 @@ __metadata:
     "@types/d3-format": "npm:^2"
     "@types/jest": "npm:^29.5.5"
     "@types/lodash": "npm:^4.14.185"
-    "@types/parsimmon": "npm:^1.10.6"
     "@types/react": "npm:^17.0.69"
     "@types/react-tag-autocomplete": "npm:^6.1.1"
     "@types/string-pixel-width": "npm:^1.7.2"
@@ -3743,7 +3742,6 @@ __metadata:
     lodash: "npm:^4.17.20"
     mobx: "npm:^5.15.7"
     mobx-react: "npm:5"
-    parsimmon: "npm:^1.18.1"
     react: "npm:^17.0.2"
     react-select: "npm:^5.7.3"
     react-tag-autocomplete: "npm:^7.1.0"
@@ -4935,13 +4933,6 @@ __metadata:
   version: 4.0.0
   resolution: "@types/parse-json@npm:4.0.0"
   checksum: 4df9de98150d2978afc2161482a3a8e6617883effba3223324f079de97ba7eabd7d84b90ced11c3f82b0c08d4a8383f678c9f73e9c41258f769b3fa234a2bb4f
-  languageName: node
-  linkType: hard
-
-"@types/parsimmon@npm:^1.10.6":
-  version: 1.10.6
-  resolution: "@types/parsimmon@npm:1.10.6"
-  checksum: 56464ac0be19dc17c6f8fb2734d0f9fcd681a3d68ef8465614d7e0567ded465c949125fd56b29affd81d6ce15c23fb028bd66646aec42e572cb3f9caf246078f
   languageName: node
   linkType: hard
 
@@ -11032,7 +11023,6 @@ __metadata:
     "@types/mysql": "npm:^2.15.21"
     "@types/opener": "npm:^1.4.0"
     "@types/papaparse": "npm:^5.3.5"
-    "@types/parsimmon": "npm:^1.10.6"
     "@types/progress": "npm:^2.0.5"
     "@types/prompts": "npm:^2.0.14"
     "@types/randomstring": "npm:^1.1.8"
@@ -11125,7 +11115,6 @@ __metadata:
     opener: "npm:^1.5.2"
     p-map: "npm:^4.0.0"
     papaparse: "npm:^5.3.1"
-    parsimmon: "npm:^1.18.1"
     prettier: "npm:^3.0.3"
     progress: "npm:^2.0.3"
     prompts: "npm:^2.4.0"
@@ -16111,13 +16100,6 @@ __metadata:
   version: 1.3.3
   resolution: "parseurl@npm:1.3.3"
   checksum: 407cee8e0a3a4c5cd472559bca8b6a45b82c124e9a4703302326e9ab60fc1081442ada4e02628efef1eb16197ddc7f8822f5a91fd7d7c86b51f530aedb17dfa2
-  languageName: node
-  linkType: hard
-
-"parsimmon@npm:^1.18.1":
-  version: 1.18.1
-  resolution: "parsimmon@npm:1.18.1"
-  checksum: 2a7e8de47cde53a5ea2a7d79c5b016c9832638c13e222e23b43b487bf507cd32fa45054fdfe5ed8630680f6e1605dbbce74464bf904019bbbedcd1c1a530343e
   languageName: node
   linkType: hard
 
