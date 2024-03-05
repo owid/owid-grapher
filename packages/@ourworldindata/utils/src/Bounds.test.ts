@@ -66,3 +66,27 @@ it("can pad & expand by position", () => {
     const expandedBounds = paddedBounds.expand(pad)
     expect(expandedBounds.equals(bounds)).toBeTruthy()
 })
+
+it("can detect overlapping bounds", () => {
+    const bounds = new Bounds(0, 0, 100, 100)
+    const otherBounds = new Bounds(50, 50, 100, 100)
+    expect(bounds.intersects(otherBounds)).toBeTruthy()
+    expect(bounds.hasVerticalOverlap(otherBounds)).toBeTruthy()
+    expect(bounds.hasHorizontalOverlap(otherBounds)).toBeTruthy()
+})
+
+it("can detect vertical overlap", () => {
+    const bounds = new Bounds(0, 0, 100, 100)
+    const otherBounds = new Bounds(200, 50, 100, 100)
+    expect(bounds.intersects(otherBounds)).toBeFalsy()
+    expect(bounds.hasVerticalOverlap(otherBounds)).toBeTruthy()
+    expect(bounds.hasHorizontalOverlap(otherBounds)).toBeFalsy()
+})
+
+it("can detect horizontal overlap", () => {
+    const bounds = new Bounds(0, 0, 100, 100)
+    const otherBounds = new Bounds(50, 200, 100, 100)
+    expect(bounds.intersects(otherBounds)).toBeFalsy()
+    expect(bounds.hasVerticalOverlap(otherBounds)).toBeFalsy()
+    expect(bounds.hasHorizontalOverlap(otherBounds)).toBeTruthy()
+})

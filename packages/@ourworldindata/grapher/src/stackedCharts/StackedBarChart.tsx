@@ -9,6 +9,8 @@ import {
     sum,
     getRelativeMouse,
     colorScaleConfigDefaults,
+    omit,
+    FontFamily,
 } from "@ourworldindata/utils"
 import {
     VerticalAxisComponent,
@@ -16,7 +18,6 @@ import {
     VerticalAxisGridLines,
 } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { Text } from "../text/Text"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
@@ -575,6 +576,30 @@ export class StackedBarChart
             withMissingValuesAsZeroes(this.unstackedSeries, {
                 enforceUniformSpacing,
             })
+        )
+    }
+}
+
+interface TextProps extends React.SVGProps<SVGTextElement> {
+    x: number
+    y: number
+    fontSize: number
+    fontFamily?: FontFamily
+    children: string
+}
+
+class Text extends React.Component<TextProps> {
+    render(): JSX.Element {
+        const bounds = Bounds.forText(this.props.children, {
+            fontSize: this.props.fontSize,
+            fontFamily: this.props.fontFamily,
+        })
+        const y = this.props.y + bounds.height - bounds.height * 0.2
+
+        return (
+            <text {...omit(this.props, ["children"])} y={y}>
+                {this.props.children}
+            </text>
         )
     }
 }
