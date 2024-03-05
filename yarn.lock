@@ -11171,7 +11171,7 @@ __metadata:
     opener: "npm:^1.5.2"
     p-map: "npm:^4.0.0"
     papaparse: "npm:^5.3.1"
-    prettier: "npm:^3.0.3"
+    prettier: "npm:^3.2.5"
     progress: "npm:^2.0.3"
     prompts: "npm:^2.4.0"
     prop-types: "npm:^15.7.2"
@@ -16491,12 +16491,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.0.3":
-  version: 3.0.3
-  resolution: "prettier@npm:3.0.3"
+"prettier@npm:^3.2.5":
+  version: 3.2.5
+  resolution: "prettier@npm:3.2.5"
   bin:
     prettier: bin/prettier.cjs
-  checksum: ccf1ead9794b017be6b42d0873f459070beef2069eb393c8b4c0d11aa3430acefc54f6d5f44a5b7ce9af05ad8daf694b912f0aa2808d1c22dfa86e61e9d563f8
+  checksum: d509f9da0b70e8cacc561a1911c0d99ec75117faed27b95cc8534cb2349667dee6351b0ca83fa9d5703f14127faa52b798de40f5705f02d843da133fc3aa416a
   languageName: node
   linkType: hard
 

@@ -176,7 +176,7 @@
         "openai": "^4.6.0",
         "p-map": "^4.0.0",
         "papaparse": "^5.3.1",
-        "prettier": "^3.0.3",
+        "prettier": "^3.2.5",
         "progress": "^2.0.3",
         "prompts": "^2.4.0",
         "prop-types": "^15.7.2",
