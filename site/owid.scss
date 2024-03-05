@@ -256,70 +256,72 @@ h6:hover .deep-link {
 /* Teaching Page
 --------------------------------------------- */
 
-.teaching-hub .columns {
-    margin-bottom: 1.5rem;
-}
+.teaching-hub {
+    .columns {
+        margin-bottom: 1.5rem;
 
-.teaching-hub .columns .column {
-    display: inline-block;
-    margin: 0 0.6rem 0.6rem 0;
-}
+        .column {
+            display: inline-block;
+            margin: 0 0.6rem 0.6rem 0;
+        }
 
-@media screen and (max-width: 640px) {
-    .teaching-hub .columns .column {
-        display: block;
+        @media screen and (max-width: 640px) {
+            .column {
+                display: block;
+            }
+        }
     }
-}
 
-.teaching-hub .button {
-    background-color: #3a4c71;
-    color: white;
-    padding: 0.75rem 1.4rem;
-    text-align: center;
-    line-height: 1.2;
-    display: block;
-}
+    .button {
+        background-color: #3a4c71;
+        color: white;
+        padding: 0.75rem 1.4rem;
+        text-align: center;
+        line-height: 1.2;
+        display: block;
 
-.teaching-hub .button:hover {
-    text-decoration: none;
-    background-color: #4b5c7e;
-    color: white;
-}
+        &:hover {
+            text-decoration: none;
+            background-color: #4b5c7e;
+            color: white;
+        }
 
-.teaching-hub a.button:visited {
-    color: white;
-}
+        &:visited {
+            color: white;
+        }
 
-.teaching-hub .primary-button {
-    background-color: #b62300;
-}
+        &.primary-button {
+            background-color: #b62300;
 
-.teaching-hub .primary-button:hover {
-    background-color: #bb4122;
-}
+            &:hover {
+                background-color: #bb4122;
+            }
+        }
 
-.teaching-hub .button .label {
-    font-weight: bold;
-    margin-bottom: 0.3rem;
-}
+        .label {
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+        }
 
-.teaching-hub .button .note {
-    font-size: 68.75%;
-    text-transform: uppercase;
-    letter-spacing: 0.04rem;
-    opacity: 0.6;
-}
+        .note {
+            font-size: 68.75%;
+            text-transform: uppercase;
+            letter-spacing: 0.04rem;
+            opacity: 0.6;
+        }
 
-.teaching-hub .button span {
-    display: block;
-}
+        span {
+            display: block;
+        }
 
-.teaching-hub .authors-byline {
-    display: none;
-}
+        &::selection {
+            background: transparent;
+        }
+    }
 
-.teaching-hub .button::selection {
-    background: transparent;
+    .authors-byline {
+        display: none;
+    }
 }
 
 /* Blog post updates listing on front page */
