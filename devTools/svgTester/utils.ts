@@ -658,7 +658,8 @@ const setGhActionsOutput = (key: string, value: string | number) => {
 
 export function displayVerifyResultsAndGetExitCode(
     validationResults: VerifyResult[],
-    verbose: boolean
+    verbose: boolean,
+    suffix = ""
 ): number {
     let returnCode: number
 
@@ -686,7 +687,7 @@ export function displayVerifyResultsAndGetExitCode(
             for (const result of errorResults) {
                 console.log(result.graphId?.toString(), result.error) // write to stdout one grapher id per file for easy piping to other processes
             }
-            setGhActionsOutput("num_errors", errorResults.length)
+            setGhActionsOutput("num_errors" + suffix, errorResults.length)
         }
         if (differenceResults.length) {
             console.warn(
@@ -699,7 +700,10 @@ export function displayVerifyResultsAndGetExitCode(
             for (const result of differenceResults) {
                 console.log("", result.difference.chartId) // write to stdout one grapher id per file for easy piping to other processes
             }
-            setGhActionsOutput("num_differences", differenceResults.length)
+            setGhActionsOutput(
+                "num_differences" + suffix,
+                differenceResults.length
+            )
         }
         returnCode = errorResults.length + differenceResults.length
     }

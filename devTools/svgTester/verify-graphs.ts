@@ -116,7 +116,8 @@ async function main(args: parseArgs.ParsedArgs) {
 
         const exitCode = utils.displayVerifyResultsAndGetExitCode(
             validationResults,
-            verbose
+            verbose,
+            shouldTestAllChartViews ? "__all_views" : ""
         )
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
@@ -150,7 +151,7 @@ Charts to process:
 Chart configurations to test:
     --query-str, -q     Grapher query string to verify charts with a specific configuration, e.g. tab=chart&stackMode=relative
     --all-views         For each Grapher, verify SVGs for all possible chart configurations
-    
+
 Other options:
     --suffix, -s    Suffix for different SVG files to create <NAME><SUFFIX>.svg files - useful if you want to set output to the same as reference
     --rm-on-error   Remove output files where we encounter errors, so errors are apparent in diffs
