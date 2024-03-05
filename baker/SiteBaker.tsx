@@ -85,8 +85,8 @@ import { Image } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import {
-    Chart,
     getChartEmbedUrlsInPublishedWordpressPosts,
+    mapSlugsToConfigs,
 } from "../db/model/Chart.js"
 import {
     BAKED_BASE_URL,
@@ -198,7 +198,7 @@ export class SiteBaker {
             await getChartEmbedUrlsInPublishedWordpressPosts(knex)
         )
 
-        await bakeGrapherUrls(grapherUrls)
+        await bakeGrapherUrls(knex, grapherUrls)
 
         this.grapherExports = await getGrapherExportsByUrl()
         this.progressBar.tick({ name: "✅ baked embeds" })
@@ -300,6 +300,7 @@ export class SiteBaker {
     // dictionaries.
     _prefetchedAttachmentsCache: PrefetchedAttachments | undefined = undefined
     private async getPrefetchedGdocAttachments(
+        knex: db.KnexReadonlyTransaction,
         picks?: [string[], string[], string[], string[]]
     ): Promise<PrefetchedAttachments> {
         if (!this._prefetchedAttachmentsCache) {
@@ -326,7 +327,7 @@ export class SiteBaker {
                 )
 
             // Includes redirects
-            const publishedChartsRaw = await Chart.mapSlugsToConfigs()
+            const publishedChartsRaw = await mapSlugsToConfigs(knex)
             const publishedCharts: LinkedChart[] = await Promise.all(
                 publishedChartsRaw.map(async (chart) => {
                     const tab = chart.config.tab ?? GrapherTabOption.chart
@@ -483,7 +484,7 @@ export class SiteBaker {
     }
 
     // Bake all GDoc posts, or a subset of them if slugs are provided
-    async bakeGDocPosts(slugs?: string[]) {
+    async bakeGDocPosts(knex: db.KnexReadonlyTransaction, slugs?: string[]) {
         await db.getConnection()
         if (!this.bakeSteps.has("gdocPosts")) return
         const publishedGdocs = await GdocPost.getPublishedGdocPosts()
@@ -504,7 +505,7 @@ export class SiteBaker {
         }
 
         for (const publishedGdoc of gdocsToBake) {
-            const attachments = await this.getPrefetchedGdocAttachments([
+            const attachments = await this.getPrefetchedGdocAttachments(knex, [
                 publishedGdoc.linkedDocumentIds,
                 publishedGdoc.linkedImageFilenames,
                 publishedGdoc.linkedChartSlugs.grapher,
@@ -698,17 +699,14 @@ export class SiteBaker {
         }
     }
 
-    private async bakeDataInsights() {
+    private async bakeDataInsights(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("dataInsights")) return
-        const latestDataInsights = await db.getPublishedDataInsights(
-            db.knexInstance(),
-            5
-        )
+        const latestDataInsights = await db.getPublishedDataInsights(knex, 5)
         const publishedDataInsights =
             await GdocDataInsight.getPublishedDataInsights()
 
         for (const dataInsight of publishedDataInsights) {
-            const attachments = await this.getPrefetchedGdocAttachments([
+            const attachments = await this.getPrefetchedGdocAttachments(knex, [
                 dataInsight.linkedDocumentIds,
                 dataInsight.linkedImageFilenames,
                 dataInsight.linkedChartSlugs.grapher,
@@ -769,13 +767,13 @@ export class SiteBaker {
         }
     }
 
-    private async bakeAuthors() {
+    private async bakeAuthors(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("authors")) return
 
         const publishedAuthors = await GdocAuthor.getPublishedAuthors()
 
         for (const publishedAuthor of publishedAuthors) {
-            const attachments = await this.getPrefetchedGdocAttachments([
+            const attachments = await this.getPrefetchedGdocAttachments(knex, [
                 publishedAuthor.linkedDocumentIds,
                 publishedAuthor.linkedImageFilenames,
                 publishedAuthor.linkedChartSlugs.grapher,
@@ -983,9 +981,9 @@ export class SiteBaker {
         }
         await this.bakeDetailsOnDemand()
         await this.validateGrapherDodReferences()
-        await this.bakeGDocPosts()
-        await this.bakeDataInsights()
-        await this.bakeAuthors()
+        await this.bakeGDocPosts(knex)
+        await this.bakeDataInsights(knex)
+        await this.bakeAuthors(knex)
         await this.bakeDriveImages()
     }
 

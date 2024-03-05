@@ -109,6 +109,7 @@ export {
     type SeriesName,
     type LegacyGrapherQueryParams,
     GrapherStaticFormat,
+    type ChartRedirect,
     type DetailsMarker,
 } from "./grapherTypes/GrapherTypes.js"
 

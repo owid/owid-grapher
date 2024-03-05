@@ -2,12 +2,12 @@ import cheerio from "cheerio"
 import { isArray } from "lodash"
 import { match } from "ts-pattern"
 import {
-    DbEnrichedChart,
+    GrapherInterface,
     DbRawChart,
     checkIsPlainObjectWithGuard,
     identity,
     keyBy,
-    parseChartsRow,
+    parseChartConfig,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import * as db from "../../db/db.js"
@@ -49,7 +49,7 @@ type ExplorerRecord = {
 
 function extractTextFromExplorer(
     blocksString: string,
-    graphersUsedInExplorers: Record<number, DbEnrichedChart | null>
+    graphersUsedInExplorers: Record<number, GrapherInterface | null>
 ): string {
     const blockText = new Set<string>()
     const blocks = JSON.parse(blocksString)
@@ -84,7 +84,6 @@ function extractTextFromExplorer(
                                     if (grapherId !== undefined) {
                                         const chartConfig =
                                             graphersUsedInExplorers[grapherId]
-                                                ?.config
 
                                         if (chartConfig) {
                                             blockText.add(
@@ -121,23 +120,23 @@ const getExplorerRecords = async (
 
     // Fetch info about all charts used in explorers, as linked by the explorer_charts table
     const graphersUsedInExplorers = await db
-        .knexRaw<DbRawChart>(
+        .knexRaw<Pick<DbRawChart, "config">>(
             knex,
-            `
-        SELECT * FROM charts
+            `-- sql
+        SELECT config FROM charts
         INNER JOIN (
             SELECT DISTINCT chartId AS id FROM explorer_charts
         ) AS ec
         USING (id)
         `
         )
-        .then((charts) => charts.map((c) => parseChartsRow(c)))
+        .then((charts) => charts.map((c) => parseChartConfig(c.config)))
         .then((charts) => keyBy(charts, "id"))
 
     const explorerRecords = await db
         .knexRaw<Omit<ExplorerEntry, "views_7d">>(
             knex,
-            `
+            `-- sql
     SELECT slug,
         COALESCE(config->>"$.explorerSubtitle", "null")     AS subtitle,
         COALESCE(config->>"$.explorerTitle", "null")        AS title,

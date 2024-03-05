@@ -9,12 +9,18 @@ import {
     knexReadWriteTransaction,
     KnexReadonlyTransaction,
     KnexReadWriteTransaction,
+    knexRawFirst,
     knexReadonlyTransaction,
 } from "../db.js"
 import { DataSource } from "typeorm"
 import { deleteUser, insertUser, updateUser, User } from "../model/User.js"
-import { Chart } from "../model/Chart.js"
-import { DbPlainUser, UsersTableName } from "@ourworldindata/types"
+import {
+    ChartsTableName,
+    DbInsertChart,
+    DbPlainUser,
+    DbRawChart,
+    UsersTableName,
+} from "@ourworldindata/types"
 
 let knexInstance: Knex<any, unknown[]> | undefined = undefined
 let typeOrmConnection: DataSource | undefined = undefined
@@ -68,32 +74,46 @@ function sleep(time: number, value: any): Promise<any> {
 }
 
 test("timestamps are automatically created and updated", async () => {
-    const chart = new Chart()
-    chart.config = {}
-    chart.lastEditedAt = new Date()
-    chart.lastEditedByUserId = 1
-    await chart.save()
-    const created: Chart | null = await Chart.findOne({ where: { id: 1 } })
-    expect(created).not.toBeNull()
-    if (created) {
-        expect(created.createdAt).not.toBeNull()
-        expect(created.updatedAt).toBeNull()
-        await sleep(1000, undefined)
-        created.lastEditedAt = new Date()
-        await created.save()
-        const updated: Chart | null = await Chart.findOne({ where: { id: 1 } })
-        expect(updated).not.toBeNull()
-        if (updated) {
-            expect(updated.createdAt).not.toBeNull()
-            expect(updated.updatedAt).not.toBeNull()
-            expect(
-                updated.updatedAt.getTime() - updated.createdAt.getTime()
-            ).toBeGreaterThan(800)
-            expect(
-                updated.updatedAt.getTime() - updated.createdAt.getTime()
-            ).toBeLessThanOrEqual(2000)
+    knexReadWriteTransaction(async (trx) => {
+        const chart: DbInsertChart = {
+            config: "{}",
+            lastEditedAt: new Date(),
+            lastEditedByUserId: 1,
+            is_indexable: 0,
         }
-    }
+        await trx.table(ChartsTableName).insert(chart)
+        const created = await knexRawFirst<DbRawChart>(
+            trx,
+            "select * from charts where id = 1",
+            []
+        )
+        expect(created).not.toBeNull()
+        if (created) {
+            expect(created.createdAt).not.toBeNull()
+            expect(created.updatedAt).toBeNull()
+            await sleep(1000, undefined)
+            await trx
+                .table(ChartsTableName)
+                .where({ id: 1 })
+                .update({ is_indexable: 1 })
+            const updated = await knexRawFirst<DbRawChart>(
+                trx,
+                "select * from charts where id = 1",
+                []
+            )
+            expect(updated).not.toBeNull()
+            if (updated) {
+                expect(updated.createdAt).not.toBeNull()
+                expect(updated.updatedAt).not.toBeNull()
+                expect(
+                    updated.updatedAt!.getTime() - updated.createdAt.getTime()
+                ).toBeGreaterThan(800)
+                expect(
+                    updated.updatedAt!.getTime() - updated.createdAt.getTime()
+                ).toBeLessThanOrEqual(2000)
+            }
+        }
+    }, knexInstance)
 })
 
 test("knex interface", async () => {
