@@ -21,118 +21,12 @@ import {
     OwidVariableId,
     ChartTypeName,
     DimensionProperty,
-    OwidLicense,
     GrapherInterface,
-    OwidProcessingLevel,
     DbRawVariable,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 
-export interface VariableRow {
-    id: number
-    name: string
-    shortName?: string
-    code: string | null
-    unit: string
-    shortUnit: string | null
-    description: string | null
-    createdAt: Date
-    updatedAt: Date
-    datasetId: number
-    sourceId: number
-    display: OwidVariableDisplayConfigInterface
-    coverage?: string
-    timespan?: string
-    columnOrder?: number
-    catalogPath?: string
-    dimensions?: Dimensions
-    schemaVersion?: number
-    processingLevel?: OwidProcessingLevel
-    titlePublic?: string
-    titleVariant?: string
-    attributionShort?: string
-    citationInline?: string
-    descriptionShort?: string
-    descriptionFromProducer?: string
-    descriptionKey?: string[] // this is json in the db but by convention it is always a list of strings
-    descriptionProcessing?: string
-    licenses?: OwidLicense[]
-    grapherConfigAdmin?: GrapherInterface
-    grapherConfigETL?: GrapherInterface
-    license?: OwidLicense
-    updatePeriodDays?: number
-    datasetVersion?: string
-    version?: string
-
-    // missing here but existsin the DB:
-    // originalMetadata
-}
-
-interface Dimensions {
-    originalName: string
-    originalShortName: string
-    filters: {
-        name: string
-        value: string
-    }[]
-}
-
-export type UnparsedVariableRow = Omit<
-    VariableRow,
-    | "display"
-    | "descriptionKey"
-    | "grapherConfigAdmin"
-    | "grapherConfigETL"
-    | "license"
-    | "licenses"
-> & {
-    display: string
-    descriptionKey?: string
-    grapherConfigAdmin?: string
-    grapherConfigETL?: string
-    license?: string
-    licenses?: string
-}
-
-export type VariableQueryRow = Readonly<
-    Omit<UnparsedVariableRow, "dimensions"> & {
-        display: string
-        datasetName: string
-        nonRedistributable: number
-        sourceName: string
-        sourceDescription: string
-        dimensions: string
-    }
->
-
-export type Field = keyof VariableRow
-
-export function parseVariableRows(
-    plainRows: UnparsedVariableRow[]
-): VariableRow[] {
-    const parsedRows: VariableRow[] = []
-    for (const plainRow of plainRows) {
-        const row = {
-            ...plainRow,
-            display: plainRow.display
-                ? JSON.parse(plainRow.display)
-                : undefined,
-            descriptionKey: plainRow.descriptionKey
-                ? JSON.parse(plainRow.descriptionKey)
-                : [],
-            grapherConfigAdmin: plainRow.grapherConfigAdmin
-                ? JSON.parse(plainRow.grapherConfigAdmin)
-                : [],
-            grapherConfigETL: plainRow.grapherConfigETL
-                ? JSON.parse(plainRow.grapherConfigETL)
-                : [],
-            licenses: plainRow.licenses ? JSON.parse(plainRow.licenses) : [],
-            license: plainRow.license ? JSON.parse(plainRow.license) : [],
-        }
-        parsedRows.push(row)
-    }
-    return parsedRows
-}
+//export type Field = keyof VariableRow
 
 export async function getMergedGrapherConfigForVariable(
     variableId: number,
