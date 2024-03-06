@@ -45,13 +45,13 @@ export function convertHeadingTextToId(headingText: Span[]): string {
     return urlSlug(spansToUnformattedPlainText(headingText))
 }
 
-export function getCanonicalUrl(baseUrl: string, gdoc: OwidGdoc): string {
+function _getPrefixedPath(prefix: string, gdoc: OwidGdoc): string {
     return match(gdoc)
         .with(
             {
                 content: { type: OwidGdocType.Homepage },
             },
-            () => baseUrl
+            () => prefix
         )
         .with(
             {
@@ -64,13 +64,13 @@ export function getCanonicalUrl(baseUrl: string, gdoc: OwidGdoc): string {
                     ),
                 },
             },
-            () => `${baseUrl}/${gdoc.slug}`
+            () => `${prefix}/${gdoc.slug}`
         )
         .with(
             {
                 content: { type: OwidGdocType.DataInsight },
             },
-            () => `${baseUrl}/data-insights/${gdoc.slug}`
+            () => `${prefix}/data-insights/${gdoc.slug}`
         )
         .with(
             {
@@ -79,6 +79,14 @@ export function getCanonicalUrl(baseUrl: string, gdoc: OwidGdoc): string {
             () => ""
         )
         .exhaustive()
+}
+
+export const getBakePath = (bakedSiteDir: string, gdoc: OwidGdoc): string => {
+    return _getPrefixedPath(bakedSiteDir, gdoc)
+}
+
+export const getCanonicalUrl = (baseUrl: string, gdoc: OwidGdoc): string => {
+    return _getPrefixedPath(baseUrl, gdoc)
 }
 
 export function getPageTitle(gdoc: OwidGdoc) {
