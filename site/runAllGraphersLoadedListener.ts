@@ -7,6 +7,12 @@ import {
     ExplorerContainerId,
 } from "../explorer/ExplorerConstants.js"
 
+declare global {
+    interface Window {
+        _OWID_HAVE_ALL_GRAPHERS_LOADED?: boolean
+    }
+}
+
 /**
  * Counts the number of visible chart embeds in the page and sets a boolean on the window once all of them have loaded
  * We set a boolean instead of dispatching a second event, because grapher pages can sometimes finish loading faster than others scripts can execute
@@ -14,7 +20,7 @@ import {
  */
 export function runAllGraphersLoadedListener() {
     const grapherEmbeds = [
-        ...document.querySelectorAll(
+        ...document.querySelectorAll<HTMLElement>(
             [
                 // embedded graphers
                 `[${GRAPHER_EMBEDDED_FIGURE_ATTR}]`,
@@ -28,7 +34,17 @@ export function runAllGraphersLoadedListener() {
     ].filter((el) => {
         let parent = el.parentElement
         while (parent) {
-            if (window.getComputedStyle(parent).display === "none") return false
+            const computedStyle = window.getComputedStyle(parent)
+            if (
+                computedStyle.display === "none" ||
+                computedStyle.visibility === "hidden"
+            )
+                return false
+
+            // Parent height is so small that the child is not visible, e.g. inside expandable paragraph
+            if (parent.offsetTop + parent.offsetHeight < el.offsetTop)
+                return false
+
             parent = parent.parentElement
         }
         return true
