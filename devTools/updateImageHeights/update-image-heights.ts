@@ -7,7 +7,7 @@ async function updateImageHeights() {
     const transaction = await db.knexInstance().transaction()
     const filenames = await db
         .knexRaw<{ filename: string }>(
-            `SELECT filename
+            `SELECT DISTINCT filename
             FROM posts_gdocs_x_images pgxi
             LEFT JOIN images i ON pgxi.imageId = i.id`,
             transaction
