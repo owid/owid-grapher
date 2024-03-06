@@ -10,6 +10,7 @@ import {
     SiteFooterContext,
     OwidGdocType,
 } from "@ourworldindata/utils"
+import { getCanonicalUrl, getPageTitle } from "@ourworldindata/components"
 import { DebugProvider } from "./DebugContext.js"
 import { match, P } from "ts-pattern"
 import { IMAGES_DIRECTORY } from "@ourworldindata/types"
@@ -64,14 +65,12 @@ export default function OwidGdocPage({
     debug?: boolean
     isPreviewing?: boolean
 }) {
-    const { content, slug, createdAt, updatedAt } = gdoc
+    const { content, createdAt, updatedAt } = gdoc
 
     const pageDesc = getPageDesc(gdoc)
     const featuredImageFilename = getFeaturedImageFilename(gdoc)
-    const canonicalUrl = `${baseUrl}/${slug}`
-    const pageTitle =
-        // <Head> uses the default title of "Our World in Data" when pageTitle is undefined
-        content.type === OwidGdocType.Homepage ? undefined : content.title
+    const canonicalUrl = getCanonicalUrl(baseUrl, gdoc)
+    const pageTitle = getPageTitle(gdoc)
 
     return (
         <html>
