@@ -1,5 +1,6 @@
 import { imageStore } from "../../db/model/Image.js"
 import * as db from "../../db/db.js"
+import * as lodash from "lodash"
 import { exit } from "../../db/cleanup.js"
 
 async function updateImageHeights() {
@@ -21,25 +22,10 @@ async function updateImageHeights() {
         throw new Error("No images found")
     }
 
-    console.log("Batching image metadata...")
-    const batches = filenames.reduce<string[][]>(
-        (acc, filename) => {
-            const lastBatch = acc[acc.length - 1]
-            if (lastBatch.length === 20) {
-                acc.push([filename])
-            } else {
-                lastBatch.push(filename)
-            }
-            return acc
-        },
-        [[]]
-    )
-    console.log("Batching image metadata...done")
-
     let imagesWithoutOriginalHeight = []
     try {
         let index = 0
-        for (const batch of batches) {
+        for (const batch of lodash.chunk(filenames, 20)) {
             const promises = []
             for (const filename of batch) {
                 const image = imageStore.images[filename]
