@@ -122,6 +122,7 @@ import {
     GRAPHER_DARK_TEXT,
     STATIC_EXPORT_DETAIL_SPACING,
     GRAPHER_LIGHT_TEXT,
+    GRAPHER_LOADED_EVENT_NAME,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -2730,7 +2731,7 @@ export class Grapher
                 () => {
                     if (this.isReady) {
                         document.dispatchEvent(
-                            new CustomEvent("grapherLoaded", {
+                            new CustomEvent(GRAPHER_LOADED_EVENT_NAME, {
                                 detail: { grapher: this },
                             })
                         )

@@ -54,8 +54,6 @@ declare global {
     interface Window {
         _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields
         _OWID_GRAPHER_CONFIG: GrapherInterface
-        // Set in runAllGraphersLoadedListener; used in site-screenshots tool
-        _OWID_HAVE_ALL_GRAPHERS_LOADED?: boolean
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
