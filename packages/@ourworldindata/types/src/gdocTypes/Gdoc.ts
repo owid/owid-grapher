@@ -1,4 +1,3 @@
-import { Tag } from "../domainTypes/Tag.js"
 import { GrapherTabOption, RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
 import { TocHeadingWithTitleSupertitle } from "../domainTypes/Toc.js"
@@ -13,6 +12,7 @@ import {
     RefDictionary,
 } from "./ArchieMlComponents.js"
 import { DbChartTagJoin } from "../dbTypes/ChartTags.js"
+import { DbPlainTag } from "../dbTypes/Tags.js"
 import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 
 export enum OwidGdocPublicationContext {
@@ -58,21 +58,23 @@ export enum OwidGdocType {
 export interface OwidGdocBaseInterface {
     id: string
     slug: string
-    content: Record<string, any>
+    // TODO: should we type this as a union of the possible content types instead?
+    content: OwidGdocContent
     published: boolean
     createdAt: Date
     publishedAt: Date | null
     updatedAt: Date | null
     revisionId: string | null
     publicationContext: OwidGdocPublicationContext
-    breadcrumbs?: BreadcrumbItem[] | null
+    breadcrumbs: BreadcrumbItem[] | null
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     linkedCharts?: Record<string, LinkedChart>
     linkedIndicators?: Record<number, LinkedIndicator>
     imageMetadata?: Record<string, ImageMetadata>
     relatedCharts?: RelatedChart[]
-    tags?: Tag[]
+    tags?: DbPlainTag[] | null
     errors?: OwidGdocErrorMessage[]
+    markdown: string | null
 }
 
 export interface OwidGdocPostInterface extends OwidGdocBaseInterface {
@@ -93,6 +95,27 @@ export interface OwidGdocMinimalPostInterface {
     "featured-image"?: string // used in prominent links and research & writing block
 }
 
+export type OwidGdocIndexItem = Pick<
+    OwidGdocBaseInterface,
+    "id" | "slug" | "tags" | "published" | "publishedAt"
+> &
+    Pick<OwidGdocContent, "title" | "authors" | "type">
+
+export function extractGdocIndexItem(
+    gdoc: OwidGdocBaseInterface
+): OwidGdocIndexItem {
+    return {
+        id: gdoc.id,
+        slug: gdoc.slug,
+        tags: gdoc.tags ?? [],
+        published: gdoc.published,
+        publishedAt: gdoc.publishedAt,
+        title: gdoc.content.title ?? "",
+        authors: gdoc.content.authors,
+        type: gdoc.content.type,
+    }
+}
+
 export interface OwidGdocDataInsightContent {
     title: string
     authors: string[]
@@ -107,7 +130,6 @@ export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     content: OwidGdocDataInsightContent
     latestDataInsights?: MinimalDataInsightInterface[]
-    tags?: Tag[]
 }
 
 export type MinimalDataInsightInterface = Pick<
@@ -138,7 +160,6 @@ export interface OwidGdocHomepageInterface extends OwidGdocBaseInterface {
     content: OwidGdocHomepageContent
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     homepageMetadata?: OwidGdocHomepageMetadata
-    tags?: Tag[] // won't be used, but necessary in various validation steps
 }
 
 export interface OwidGdocAuthorContent {
@@ -210,7 +231,7 @@ export enum OwidGdocLinkType {
 }
 
 export interface OwidGdocLinkJSON {
-    source: Record<string, any>
+    // source: Record<string, any>
     linkType: OwidGdocLinkType
     target: string
     componentType: string

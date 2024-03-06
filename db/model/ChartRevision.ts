@@ -1,27 +1,27 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    BaseEntity,
-    ManyToOne,
-    type Relation,
-} from "typeorm"
-import { Chart } from "./Chart.js"
-import { User } from "./User.js"
+// import {
+//     Entity,
+//     PrimaryGeneratedColumn,
+//     Column,
+//     BaseEntity,
+//     ManyToOne,
+//     type Relation,
+// } from "typeorm"
+// // import { Chart } from "./Chart.js"
+// import { User } from "./User.js"
 
-@Entity("chart_revisions")
-export class ChartRevision extends BaseEntity {
-    @PrimaryGeneratedColumn() id!: number
-    @Column() chartId!: number
-    @Column({ type: "json" }) config: any
-    @Column() userId!: number
+// @Entity("chart_revisions")
+// export class ChartRevision extends BaseEntity {
+//     @PrimaryGeneratedColumn() id!: number
+//     @Column() chartId!: number
+//     @Column({ type: "json" }) config: any
+//     @Column() userId!: number
 
-    @Column() createdAt!: Date
-    @Column() updatedAt!: Date
+//     @Column() createdAt!: Date
+//     @Column() updatedAt!: Date
 
-    @ManyToOne(() => User, (user) => user.editedCharts)
-    user!: Relation<User>
+//     @ManyToOne(() => User, (user) => user.editedCharts)
+//     user!: Relation<User>
 
-    @ManyToOne(() => Chart, (chart) => chart.logs)
-    chart!: Relation<Chart>
-}
+//     @ManyToOne(() => Chart, (chart) => chart.logs)
+//     chart!: Relation<Chart>
+// }

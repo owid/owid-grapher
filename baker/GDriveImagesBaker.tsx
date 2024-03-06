@@ -7,8 +7,9 @@ import {
 } from "../settings/serverSettings.js"
 
 import {
-    ImageMetadata,
+    DbRawImage,
     getFilenameAsPng,
+    parseImageRow,
     retryPromise,
 } from "@ourworldindata/utils"
 import { Image } from "../db/model/Image.js"
@@ -16,14 +17,18 @@ import sharp from "sharp"
 import pMap from "p-map"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
-export const bakeDriveImages = async (bakedSiteDir: string) => {
+export const bakeDriveImages = async (
+    knex: db.KnexReadonlyTransaction,
+    bakedSiteDir: string
+) => {
     // Get all GDocs images, download locally and resize them
     const images: Image[] = await db
-        .queryMysql(
+        .knexRaw<DbRawImage>(
+            knex,
             `SELECT * FROM images WHERE id IN (SELECT DISTINCT imageId FROM posts_gdocs_x_images)`
         )
-        .then((results: ImageMetadata[]) =>
-            results.map((result) => Image.create<Image>(result))
+        .then((results) =>
+            results.map((result) => new Image(parseImageRow(result)))
         )
 
     const imagesDirectory = path.join(bakedSiteDir, "images", "published")

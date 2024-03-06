@@ -143,13 +143,25 @@ export async function knexReadWriteTransaction<T>(
 export const knexRaw = async <TRow = unknown>(
     knex: Knex<any, any[]>,
     str: string,
-    params?: any[]
-): Promise<TRow[]> => (await knex.raw(str, params ?? []))[0]
+    params?: any[] | Record<string, any>
+): Promise<TRow[]> => {
+    try {
+        const rawReturnConstruct = await knex.raw(str, params ?? [])
+        return rawReturnConstruct[0]
+    } catch (e) {
+        console.error("Exception when executing SQL statement!", {
+            sql: str,
+            params,
+            error: e,
+        })
+        throw e
+    }
+}
 
 export const knexRawFirst = async <TRow = unknown>(
     knex: KnexReadonlyTransaction,
     str: string,
-    params?: any[]
+    params?: any[] | Record<string, any>
 ): Promise<TRow | undefined> => {
     const results = await knexRaw<TRow>(knex, str, params)
     if (results.length === 0) return undefined
@@ -274,7 +286,7 @@ export const getPublishedDataInsightCount = (
 ): Promise<number> => {
     return knexRawFirst<{ count: number }>(
         knex,
-        `-- sql
+        `
         SELECT COUNT(*) AS count
         FROM posts_gdocs
         WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
@@ -288,7 +300,7 @@ export const getTotalNumberOfCharts = (
 ): Promise<number> => {
     return knexRawFirst<{ count: number }>(
         knex,
-        `-- sql
+        `
         SELECT COUNT(*) AS count
         FROM charts
         WHERE config->"$.isPublished" = TRUE`

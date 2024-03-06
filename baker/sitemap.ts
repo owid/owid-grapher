@@ -73,7 +73,7 @@ export const makeSitemap = async (
         undefined,
         (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
     )
-    const gdocPosts = await GdocPost.getPublishedGdocPosts()
+    const gdocPosts = await GdocPost.getPublishedGdocPosts(knex)
 
     const publishedDataInsights = await db.getPublishedDataInsights(knex)
     const dataInsightFeedPageCount = calculateDataInsightIndexPageCount(

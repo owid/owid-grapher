@@ -1,8 +1,6 @@
-import { Entity, Column, LessThanOrEqual } from "typeorm"
 import {
     type OwidGdocPostContent,
     OwidGdocPostInterface,
-    OwidGdocPublicationContext,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     DetailDictionary,
@@ -12,6 +10,8 @@ import {
     RawBlockText,
     RelatedChart,
     OwidGdocMinimalPostInterface,
+    OwidGdocBaseInterface,
+    excludeNullish,
 } from "@ourworldindata/utils"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 import {
@@ -23,11 +23,15 @@ import { ADMIN_BASE_URL } from "../../../settings/clientSettings.js"
 import { parseDetails, parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
-import { getConnection } from "../../db.js"
+import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
+import {
+    getGdocBaseObjectById,
+    getAndLoadListedGdocPosts,
+    getAndLoadPublishedGdocPosts,
+} from "./GdocFactory.js"
 
-@Entity("posts_gdocs")
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
-    @Column({ default: "{}", type: "json" }) content!: OwidGdocPostContent
+    content!: OwidGdocPostContent
 
     constructor(id?: string) {
         super(id)
@@ -35,10 +39,20 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             authors: ["Our World in Data team"],
         }
     }
-
+    static create(obj: OwidGdocBaseInterface): GdocPost {
+        const gdoc = new GdocPost()
+        Object.assign(gdoc, obj)
+        return gdoc
+    }
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     relatedCharts: RelatedChart[] = []
-    _filenameProperties = ["cover-image", "featured-image"]
+
+    protected typeSpecificFilenames(): string[] {
+        return excludeNullish([
+            this.content["cover-image"],
+            this.content["featured-image"],
+        ])
+    }
 
     _getSubclassEnrichedBlocks = (gdoc: this): OwidEnrichedGdocBlock[] => {
         const enrichedBlocks: OwidEnrichedGdocBlock[] = []
@@ -81,7 +95,9 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         }
     }
 
-    _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
+    _validateSubclass = async (
+        knex: KnexReadonlyTransaction
+    ): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
 
         if (!this.tags?.length) {
@@ -124,7 +140,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
 
         // Unless this is the DoD document, validate that all referenced dods exist
         if (this.id !== GDOCS_DETAILS_ON_DEMAND_ID) {
-            const { details } = await GdocPost.getDetailsOnDemandGdoc()
+            const { details } = await GdocPost.getDetailsOnDemandGdoc(knex)
             for (const detailId of this.details) {
                 if (details && !details[detailId]) {
                     errors.push({
@@ -152,16 +168,21 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         return errors
     }
 
-    _loadSubclassAttachments: () => Promise<void> = async () => {
-        await this.loadRelatedCharts()
-    }
+    _loadSubclassAttachments: (knex: KnexReadonlyTransaction) => Promise<void> =
+        (knex: KnexReadonlyTransaction): Promise<void> =>
+            this.loadRelatedCharts(knex)
 
-    async loadRelatedCharts(): Promise<void> {
+    async loadRelatedCharts(knex: KnexReadonlyTransaction): Promise<void> {
         if (!this.tags?.length || !this.hasAllChartsBlock) return
 
-        const connection = await getConnection()
-        const relatedCharts = await connection.query(
-            `
+        const relatedCharts = await knexRaw<{
+            slug: string
+            title: string
+            variantName: string
+            keyChartLevel: number
+        }>(
+            knex,
+            `-- sql
         SELECT DISTINCT
         charts.config->>"$.slug" AS slug,
         charts.config->>"$.title" AS title,
@@ -179,7 +200,9 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         this.relatedCharts = relatedCharts
     }
 
-    static async getDetailsOnDemandGdoc(): Promise<{
+    static async getDetailsOnDemandGdoc(
+        knex: KnexReadonlyTransaction
+    ): Promise<{
         details: DetailDictionary
         parseErrors: ParseError[]
     }> {
@@ -189,14 +212,14 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             )
             return { details: {}, parseErrors: [] }
         }
-        const gdoc = await GdocPost.findOne({
-            where: {
-                id: GDOCS_DETAILS_ON_DEMAND_ID,
-                published: true,
-            },
-        })
+        const gdoc = await getGdocBaseObjectById(
+            knex,
+            GDOCS_DETAILS_ON_DEMAND_ID,
+            false,
+            true
+        )
 
-        if (!gdoc) {
+        if (!gdoc || !("details" in gdoc.content)) {
             return {
                 details: {},
                 parseErrors: [
@@ -210,7 +233,9 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         return parseDetails(gdoc.content.details)
     }
 
-    static async getPublishedGdocPosts(): Promise<GdocPost[]> {
+    static async getPublishedGdocPosts(
+        knex: KnexReadonlyTransaction
+    ): Promise<GdocPost[]> {
         // #gdocsvalidation this cast means that we trust the admin code and
         // workflow to provide published articles that have all the required content
         // fields (see #gdocsvalidationclient and pending #gdocsvalidationserver).
@@ -223,34 +248,15 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         // mapGdocsToWordpressPosts(). This would make the Gdoc entity coming from
         // the database dependent on the mapping function, which is more practical
         // but also makes it less of a source of truth when considered in isolation.
-        return GdocPost.find({
-            where: {
-                published: true,
-                publishedAt: LessThanOrEqual(new Date()),
-            },
-            relations: ["tags"],
-        }).then((gdocs) =>
-            gdocs.filter(
-                ({ content: { type } }) =>
-                    type &&
-                    [
-                        OwidGdocType.Article,
-                        OwidGdocType.TopicPage,
-                        OwidGdocType.LinearTopicPage,
-                        OwidGdocType.AboutPage,
-                    ].includes(type)
-            )
-        )
+        return getAndLoadPublishedGdocPosts(knex)
     }
 
     /**
      * Excludes published listed Gdocs with a publication date in the future
      */
-    static async getListedGdocPosts(): Promise<GdocPost[]> {
-        return GdocPost.findBy({
-            published: true,
-            publicationContext: OwidGdocPublicationContext.listed,
-            publishedAt: LessThanOrEqual(new Date()),
-        })
+    static async getListedGdocPosts(
+        knex: KnexReadonlyTransaction
+    ): Promise<GdocPost[]> {
+        return getAndLoadListedGdocPosts(knex)
     }
 }

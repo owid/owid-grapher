@@ -3,7 +3,6 @@
 import * as lodash from "lodash"
 import * as db from "../db/db.js"
 import { imageStore } from "../db/model/Image.js"
-import { GdocXImage } from "../db/model/GdocXImage.js"
 import { DEPRECATEDgetTopics } from "../db/DEPRECATEDwpdb.js"
 import {
     UNCATEGORIZED_TAG_ID,
@@ -23,7 +22,7 @@ import {
     oldChartFieldList,
     setChartTags,
 } from "../db/model/Chart.js"
-import { Request, CurrentUser } from "./authentication.js"
+import { Request } from "./authentication.js"
 import {
     getMergedGrapherConfigForVariable,
     fetchS3MetadataByPath,
@@ -54,7 +53,6 @@ import {
     DimensionProperty,
     TaggableType,
     DbChartTagJoin,
-    OwidGdoc,
     pick,
 } from "@ourworldindata/utils"
 import {
@@ -76,6 +74,11 @@ import {
     serializeChartConfig,
     DbRawOrigin,
     DbRawPostGdoc,
+    PostsGdocsXImagesTableName,
+    DbInsertPostGdocXImage,
+    PostsGdocsLinksTableName,
+    PostsGdocsTableName,
+    PostsGdocsXTagsTableName,
     DbPlainDataset,
 } from "@ourworldindata/types"
 import {
@@ -85,7 +88,6 @@ import {
 import { getDatasetById, setTagsForDataset } from "../db/model/Dataset.js"
 import { getUserById, insertUser, updateUser } from "../db/model/User.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
-import { GdocBase, Tag as TagEntity } from "../db/model/Gdoc/GdocBase.js"
 import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
@@ -111,22 +113,33 @@ import {
 } from "../adminSiteClient/gdocsDeploy.js"
 import { dataSource } from "../db/dataSource.js"
 import { createGdocAndInsertOwidGdocPostContent } from "../db/model/Gdoc/archieToGdoc.js"
-import { Link } from "../db/model/Link.js"
-import { In } from "typeorm"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 import {
     getRouteWithROTransaction,
     deleteRouteWithRWTransaction,
     putRouteWithRWTransaction,
     postRouteWithRWTransaction,
     patchRouteWithRWTransaction,
+    getRouteNonIdempotentWithRWTransaction,
 } from "./routerHelpers.js"
+import { getPublishedLinksTo } from "../db/model/Link.js"
+import {
+    createGdocAndInsertIntoDb,
+    gdocFromJSON,
+    getAllGdocIndexItemsOrderedByUpdatedAt,
+    getAndLoadGdocById,
+    getDbEnrichedGdocFromOwidGdoc,
+    getGdocBaseObjectById,
+    loadGdocFromGdocBase,
+    setTagsForGdoc,
+    updateGdocContentOnly,
+    upsertGdoc,
+} from "../db/model/Gdoc/GdocFactory.js"
 
 const apiRouter = new FunctionalRouter()
 
 // Call this to trigger build and deployment of static charts on change
-const triggerStaticBuild = async (user: CurrentUser, commitMessage: string) => {
+const triggerStaticBuild = async (user: DbPlainUser, commitMessage: string) => {
     if (!BAKE_ON_CHANGE) {
         console.log(
             "Not triggering static build because BAKE_ON_CHANGE is false"
@@ -143,7 +156,7 @@ const triggerStaticBuild = async (user: CurrentUser, commitMessage: string) => {
 }
 
 const enqueueLightningChange = async (
-    user: CurrentUser,
+    user: DbPlainUser,
     commitMessage: string,
     slug: string
 ) => {
@@ -232,7 +245,7 @@ const expectChartById = async (
 
 const saveGrapher = async (
     knex: db.KnexReadWriteTransaction,
-    user: CurrentUser,
+    user: DbPlainUser,
     newConfig: GrapherInterface,
     existingConfig?: GrapherInterface,
     referencedVariablesMightChange = true // if the variables a chart uses can change then we need
@@ -690,9 +703,9 @@ deleteRouteWithRWTransaction(
     "/charts/:chartId",
     async (req, res, trx) => {
         const chart = await expectChartById(trx, req.params.chartId)
-        const links = await Link.getPublishedLinksTo([chart.slug!])
+        const links = await getPublishedLinksTo(trx, [chart.slug!])
         if (links.length) {
-            const sources = links.map((link) => link.source.slug).join(", ")
+            const sources = links.map((link) => link.sourceSlug).join(", ")
             throw new Error(
                 `Cannot delete chart in-use in the following published documents: ${sources}`
             )
@@ -2434,10 +2447,7 @@ postRouteWithRWTransaction(
                 500
             )
         const tagsByPostId = await getTagsByPostId(trx)
-        const tags =
-            tagsByPostId
-                .get(postId)
-                ?.map(({ id }) => TagEntity.create({ id })) || []
+        const tags = tagsByPostId.get(postId) || []
         const archieMl = JSON.parse(
             // Google Docs interprets &region in grapher URLS as ®ion
             // So we escape them here
@@ -2462,15 +2472,14 @@ postRouteWithRWTransaction(
 
             const gdoc = new GdocPost(gdocId)
             gdoc.slug = post.slug
-            gdoc.tags = tags
             gdoc.content.title = post.title
             gdoc.content.type = archieMl.content.type || OwidGdocType.Article
             gdoc.published = false
             gdoc.createdAt = new Date()
             gdoc.publishedAt = post.published_at
-            await dataSource.getRepository(GdocPost).save(gdoc)
+            await upsertGdoc(trx, gdoc)
+            await setTagsForGdoc(trx, gdocId, tags)
         }
-
         return { googleDocsId: gdocId }
     }
 )
@@ -2544,65 +2553,73 @@ apiRouter.put("/deploy", async (req, res) => {
     triggerStaticBuild(res.locals.user, "Manually triggered deploy")
 })
 
-apiRouter.get("/gdocs", async () => {
-    // orderBy was leading to a sort buffer overflow (ER_OUT_OF_SORTMEMORY) with MySQL's default sort_buffer_size
-    // when the posts_gdocs table got larger than 9MB, so we sort in memory
-    return GdocPost.find({ relations: ["tags"] }).then((gdocs) =>
-        gdocs.sort((a, b) => {
-            if (!a.updatedAt || !b.updatedAt) return 0
-            return b.updatedAt.getTime() - a.updatedAt.getTime()
-        })
-    )
+getRouteWithROTransaction(apiRouter, "/gdocs", async (req, res, trx) => {
+    return getAllGdocIndexItemsOrderedByUpdatedAt(trx)
 })
 
-apiRouter.get("/gdocs/:id", async (req, res) => {
-    const id = req.params.id
-    const contentSource = req.query.contentSource as
-        | GdocsContentSource
-        | undefined
+getRouteNonIdempotentWithRWTransaction(
+    apiRouter,
+    "/gdocs/:id",
+    async (req, res, trx) => {
+        const id = req.params.id
+        const contentSource = req.query.contentSource as
+            | GdocsContentSource
+            | undefined
 
-    try {
-        const gdoc = await GdocFactory.load(id, contentSource)
+        try {
+            const gdoc = await getAndLoadGdocById(trx, id, contentSource)
 
-        if (!gdoc.published) {
-            await gdoc.save()
+            if (!gdoc.published) {
+                await updateGdocContentOnly(
+                    trx,
+                    id,
+                    gdoc,
+                    gdoc.enrichedBlockSources.flat()
+                )
+            }
+
+            res.set("Cache-Control", "no-store")
+            res.send(gdoc)
+        } catch (error) {
+            console.error("Error fetching gdoc", error)
+            res.status(500).json({
+                error: { message: String(error), status: 500 },
+            })
         }
-
-        res.set("Cache-Control", "no-store")
-        res.send(gdoc)
-    } catch (error) {
-        console.error("Error fetching gdoc", error)
-        res.status(500).json({ error: { message: String(error), status: 500 } })
     }
-})
+)
 
 /**
  * Only supports creating a new empty Gdoc or updating an existing one. Does not
  * support creating a new Gdoc from an existing one. Relevant updates will
  * trigger a deploy.
  */
-apiRouter.put("/gdocs/:id", async (req, res) => {
+putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     const { id } = req.params
     const nextGdocJSON: OwidGdocJSON = req.body
 
     if (isEmpty(nextGdocJSON)) {
         // Check to see if the gdoc already exists in the database
-        const existingGdoc = await GdocBase.findOneBy({ id })
+        const existingGdoc = await getGdocBaseObjectById(trx, id, false)
         if (existingGdoc) {
-            return GdocFactory.load(id, GdocsContentSource.Gdocs)
+            return loadGdocFromGdocBase(
+                trx,
+                existingGdoc,
+                GdocsContentSource.Gdocs
+            )
         } else {
-            return GdocFactory.create(id)
+            return createGdocAndInsertIntoDb(trx, id)
         }
     }
 
-    const prevGdoc = await GdocFactory.load(id)
+    const prevGdoc = await getAndLoadGdocById(trx, id)
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    const nextGdoc = GdocFactory.fromJSON(nextGdocJSON)
-    await nextGdoc.loadState()
+    const nextGdoc = gdocFromJSON(nextGdocJSON)
+    await nextGdoc.loadState(trx)
 
     // Deleting and recreating these is simpler than tracking orphans over the next code block
-    await GdocXImage.delete({ gdocId: id })
+    await trx.table(PostsGdocsXImagesTableName).where({ gdocId: id }).delete()
     const filenames = nextGdoc.filenames
 
     // The concept of a "published gdoc" is looser here than in
@@ -2612,31 +2629,36 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     // synced to S3 and ultimately baked in bakeDriveImages().
     if (filenames.length && nextGdoc.published) {
         await imageStore.fetchImageMetadata(filenames)
-        const images = await imageStore.syncImagesToS3()
+        const images = await imageStore.syncImagesToS3(trx)
+        const gdocXImagesToInsert: DbInsertPostGdocXImage[] = []
         for (const image of images) {
             if (image) {
-                try {
-                    await GdocXImage.save({
-                        gdocId: nextGdoc.id,
-                        imageId: image.id,
-                    })
-                } catch (e) {
-                    console.error(
-                        `Error tracking image reference ${image.filename} with Google ID ${nextGdoc.id}`,
-                        e
-                    )
-                }
+                gdocXImagesToInsert.push({
+                    gdocId: nextGdoc.id,
+                    imageId: image.id,
+                })
             }
+        }
+        try {
+            await trx
+                .table(PostsGdocsXImagesTableName)
+                .insert(gdocXImagesToInsert)
+        } catch (e) {
+            console.error(
+                `Error tracking image references with Google ID ${nextGdoc.id}`,
+                e
+            )
         }
     }
 
-    await Link.delete({
-        source: {
-            id: id,
-        },
-    })
-    if (nextGdoc.published) {
-        await dataSource.getRepository(Link).save(nextGdoc.links)
+    await trx.table(PostsGdocsLinksTableName).where({ sourceId: id }).delete()
+
+    if (
+        nextGdoc.published &&
+        nextGdoc.links !== undefined &&
+        nextGdoc.links.length > 0
+    ) {
+        await trx.table(PostsGdocsLinksTableName).insert(nextGdoc.links)
     }
 
     //todo #gdocsvalidationserver: run validation before saving published
@@ -2656,11 +2678,11 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     // enqueue), so I opted for the version that matches the closest the current
     // baking model, which is "bake what is persisted in the DB". Ultimately, a
     // full sucessful deploy would resolve the state discrepancy either way.
-    await nextGdoc.save()
+    await upsertGdoc(trx, nextGdoc)
 
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
-    const prevJson = prevGdoc.toJSON<OwidGdoc>()
-    const nextJson = nextGdoc.toJSON<OwidGdoc>()
+    const prevJson = getDbEnrichedGdocFromOwidGdoc(prevGdoc)
+    const nextJson = getDbEnrichedGdocFromOwidGdoc(nextGdoc)
     if (checkIsLightningUpdate(prevJson, nextJson, hasChanges)) {
         await enqueueLightningChange(
             res.locals.user,
@@ -2683,7 +2705,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
 deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     const { id } = req.params
 
-    const gdoc = await GdocPost.findOneBy({ id })
+    const gdoc = await getGdocBaseObjectById(trx, id, false)
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     await trx
@@ -2691,30 +2713,30 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
         .where({ gdocSuccessorId: gdoc.id })
         .update({ gdocSuccessorId: null })
 
-    await Link.delete({
-        source: {
-            id,
-        },
-    })
-    await GdocXImage.delete({ gdocId: id })
-    await GdocPost.delete({ id })
+    trx.table(PostsGdocsLinksTableName).where({ sourceId: id }).delete()
+    trx.table(PostsGdocsXImagesTableName).where({ gdocId: id }).delete()
+    trx.table(PostsGdocsTableName).where({ id }).delete()
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })
 
-apiRouter.post("/gdocs/:gdocId/setTags", async (req, res) => {
-    const { gdocId } = req.params
-    const { tagIds } = req.body
+postRouteWithRWTransaction(
+    apiRouter,
+    "/gdocs/:gdocId/setTags",
+    async (req, res, trx) => {
+        const { gdocId } = req.params
+        const { tagIds } = req.body
 
-    const gdoc = await GdocPost.findOneBy({ id: gdocId })
-    if (!gdoc) return Error(`Unable to find Gdoc with ID: ${gdocId}`)
-    const tags = await dataSource
-        .getRepository(TagEntity)
-        .findBy({ id: In(tagIds) })
-    gdoc.tags = tags
-    await gdoc.save()
-    return { success: true }
-})
+        await trx.table(PostsGdocsXTagsTableName).where({ gdocId }).delete()
+        if (tagIds.length) {
+            await trx
+                .table(PostsGdocsXTagsTableName)
+                .insert(tagIds.map((tagId: number) => ({ gdocId, tagId })))
+        }
+
+        return { success: true }
+    }
+)
 
 getRouteWithROTransaction(
     apiRouter,

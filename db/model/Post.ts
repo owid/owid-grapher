@@ -17,12 +17,12 @@ import {
     snapshotIsPostRestApi,
     snapshotIsBlockGraphQlApi,
     PostReference,
-    Tag,
     DataPageRelatedResearch,
     OwidGdocType,
     DbRawLatestWork,
     DbEnrichedLatestWork,
     parseLatestWork,
+    DbPlainTag,
 } from "@ourworldindata/types"
 import { uniqBy, sortBy, memoize, orderBy } from "@ourworldindata/utils"
 import { Knex } from "knex"
@@ -265,7 +265,7 @@ const selectHomepagePosts: FilterFnPostRestApi = (post) =>
 export const getBlogIndex = memoize(
     async (knex: db.KnexReadonlyTransaction): Promise<IndexPost[]> => {
         await db.getConnection() // side effect: ensure connection is established
-        const gdocPosts = await GdocPost.getListedGdocPosts()
+        const gdocPosts = await GdocPost.getListedGdocPosts(knex)
         const wpPosts = await Promise.all(
             await getPostsFromSnapshots(
                 knex,
@@ -437,7 +437,7 @@ export const getRelatedArticles = async (
 export const getPostTags = async (
     trx: db.KnexReadonlyTransaction,
     postId: number
-): Promise<Pick<Tag, "id" | "name">[]> => {
+): Promise<Pick<DbPlainTag, "id" | "name">[]> => {
     return await trx
         .table("post_tags")
         .select("tags.id", "tags.name")

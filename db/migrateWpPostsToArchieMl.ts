@@ -258,6 +258,8 @@ const migrate = async (trx: db.KnexReadWriteTransaction): Promise<void> => {
                 updatedAt: post.updated_at_in_wordpress,
                 publicationContext: OwidGdocPublicationContext.listed, // TODO: not all articles are listed, take this from the DB
                 revisionId: null,
+                breadcrumbs: null,
+                markdown: null,
             }
             const archieMlStatsContent = {
                 errors,

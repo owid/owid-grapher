@@ -6,14 +6,15 @@ import {
     OwidGdocDataInsightContent,
     OwidGdocType,
     OwidGdocHomepageContent,
+    DbEnrichedPostGdoc,
     OwidGdocAuthorContent,
 } from "@ourworldindata/types"
 import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./GdocsDiff.js"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../settings/clientSettings.js"
 
 export const checkFullDeployFallback = (
-    prevGdoc: OwidGdoc,
-    nextGdoc: OwidGdoc,
+    prevGdoc: DbEnrichedPostGdoc,
+    nextGdoc: DbEnrichedPostGdoc,
     hasChanges: boolean
 ) => {
     return hasChanges && (prevGdoc.published || nextGdoc.published)
@@ -27,8 +28,8 @@ export const checkFullDeployFallback = (
  *
  */
 export const checkIsLightningUpdate = (
-    prevGdoc: OwidGdoc,
-    nextGdoc: OwidGdoc,
+    prevGdoc: DbEnrichedPostGdoc,
+    nextGdoc: DbEnrichedPostGdoc,
     hasChanges: boolean
 ) => {
     if (
@@ -66,6 +67,7 @@ export const checkIsLightningUpdate = (
         published: false, // requires an update of the blog roll
         publishedAt: false, // could require an update of the blog roll
         slug: false, // requires updating any articles that link to it
+        markdown: true,
     }
 
     const postlightningPropContentConfigMap: Record<

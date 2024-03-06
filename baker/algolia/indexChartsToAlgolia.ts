@@ -6,9 +6,9 @@ import { ChartRecord, SearchIndexName } from "../../site/search/searchTypes.js"
 import { KeyChartLevel, OwidGdocLinkType, isNil } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
-import { Link } from "../../db/model/Link.js"
 import { getRelatedArticles } from "../../db/model/Post.js"
 import { getIndexName } from "../../site/search/searchClient.js"
+import { getPublishedLinksTo } from "../../db/model/Link.js"
 
 const computeScore = (record: Omit<ChartRecord, "score">): number => {
     const { numRelatedArticles, views_7d } = record
@@ -83,7 +83,8 @@ const getChartsRecords = async (
         if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
 
         const relatedArticles = (await getRelatedArticles(knex, c.id)) ?? []
-        const linksFromGdocs = await Link.getPublishedLinksTo(
+        const linksFromGdocs = await getPublishedLinksTo(
+            knex,
             [c.slug],
             OwidGdocLinkType.Grapher
         )

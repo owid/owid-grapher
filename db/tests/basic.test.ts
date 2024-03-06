@@ -13,7 +13,7 @@ import {
     knexReadonlyTransaction,
 } from "../db.js"
 import { DataSource } from "typeorm"
-import { deleteUser, insertUser, updateUser, User } from "../model/User.js"
+import { deleteUser, insertUser, updateUser } from "../model/User.js"
 import {
     ChartsTableName,
     DbInsertChart,
@@ -58,11 +58,13 @@ afterAll((done: any) => {
 })
 
 test("it can query a user created in fixture via TypeORM", async () => {
-    if (!typeOrmConnection)
-        throw new Error("TypeOrm connection not initialized")
-    const user = await User.findOne({ where: { email: "admin@example.com" } })
-    expect(user!.id).toBe(1)
-    expect(user!.email).toBe("admin@example.com")
+    expect(knexInstance).toBeDefined()
+    const user = await knexInstance!
+        .table(UsersTableName)
+        .where({ email: "admin@example.com" })
+        .first<DbPlainUser>()
+    expect(user.id).toBe(1)
+    expect(user.email).toBe("admin@example.com")
 })
 
 function sleep(time: number, value: any): Promise<any> {
@@ -155,7 +157,6 @@ test("knex interface", async () => {
         expect(afterUpdate.length).toBe(2)
         expect(afterUpdate[1].isSuperuser).toBe(1)
 
-        // Use raw queries, using ?? to specify the table name using the shared const value
         // The pick type is used to type the result row
         const usersFromRawQuery: Pick<DbPlainUser, "email">[] = await knexRaw(
             trx,
@@ -163,6 +164,17 @@ test("knex interface", async () => {
             []
         )
         expect(usersFromRawQuery.length).toBe(2)
+
+        // Check if in queries work as expected
+        const usersFromRawQueryWithInClause: Pick<DbPlainUser, "email">[] =
+            await knexRaw(trx, "select * from users where email in (:emails)", {
+                emails: [
+                    usersFromRawQuery[0].email,
+                    usersFromRawQuery[1].email,
+                ],
+            })
+        expect(usersFromRawQueryWithInClause.length).toBe(2)
+
         await deleteUser(trx, 2)
     }, knexInstance)
 })

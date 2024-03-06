@@ -49,7 +49,6 @@ export {
     DeployStatus,
     type DeployMetadata,
 } from "./domainTypes/DeployStatus.js"
-export { type Tag } from "./domainTypes/Tag.js"
 
 export {
     IDEAL_PLOT_ASPECT_RATIO,
@@ -303,6 +302,9 @@ export {
     OwidGdocLinkType,
     type LinkedIndicator,
     DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
+    type OwidGdocContent,
+    type OwidGdocIndexItem,
+    extractGdocIndexItem,
 } from "./gdocTypes/Gdoc.js"
 
 export {
@@ -488,8 +490,13 @@ export {
     ExplorerVariablesTableName,
 } from "./dbTypes/ExplorerVariables.js"
 export {
-    type DbPlainImage,
+    type DbRawImage,
+    type DbEnrichedImage,
     type DbInsertImage,
+    parseImageRow,
+    parseImageUpdatedAt,
+    serializeImageRow,
+    serializeImageUpdatedAt,
     ImagesTableName,
 } from "./dbTypes/Images.js"
 export {

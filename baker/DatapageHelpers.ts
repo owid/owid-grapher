@@ -11,10 +11,13 @@ import {
     getNextUpdateFromVariable,
     omitUndefinedValues,
 } from "@ourworldindata/utils"
-import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
-import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
+import {
+    getAndLoadGdocById,
+    getGdocBaseObjectById,
+} from "../db/model/Gdoc/GdocFactory.js"
 import { OwidGoogleAuth } from "../db/OwidGoogleAuth.js"
 import { GrapherInterface } from "@ourworldindata/types"
+import { KnexReadonlyTransaction } from "../db/db.js"
 
 export const getDatapageDataV2 = async (
     variableMetadata: OwidVariableWithSource,
@@ -76,6 +79,7 @@ export const getDatapageDataV2 = async (
  * see https://github.com/owid/owid-grapher/issues/2121#issue-1676097164
  */
 export const getDatapageGdoc = async (
+    knex: KnexReadonlyTransaction,
     googleDocEditLinkOrId: string,
     isPreviewing: boolean
 ): Promise<OwidGdocPostInterface | null> => {
@@ -99,11 +103,16 @@ export const getDatapageGdoc = async (
 
     const datapageGdoc =
         isPreviewing && OwidGoogleAuth.areGdocAuthKeysSet()
-            ? ((await GdocFactory.load(
+            ? ((await getAndLoadGdocById(
+                  knex,
                   googleDocId,
                   GdocsContentSource.Gdocs
-              )) as GdocPost)
-            : await GdocPost.findOneBy({ id: googleDocId })
+              )) as OwidGdocPostInterface)
+            : ((await getGdocBaseObjectById(
+                  knex,
+                  googleDocId,
+                  true
+              )) as OwidGdocPostInterface)
 
     return datapageGdoc
 }
