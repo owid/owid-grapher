@@ -1241,58 +1241,11 @@ export class Grapher
         return this.slug ?? slugify(this.displayTitle)
     }
 
-    @computed get defaultYAxisLabel(): string | undefined {
-        if (this.isReady && this.chartInstance.defaultYAxisLabel) {
-            return this.chartInstance.defaultYAxisLabel
-        }
-        return undefined
-    }
-
-    @computed get defaultXAxisLabel(): string | undefined {
-        if (this.isReady && this.chartInstance.defaultXAxisLabel) {
-            return this.chartInstance.defaultXAxisLabel
-        }
-        return undefined
-    }
-
     @observable shouldIncludeDetailsInStaticExport = true
 
     // Used for superscript numbers in static exports
     @computed get detailsOrderedByReference(): string[] {
         if (typeof window === "undefined") return []
-
-        // We are toying with the idea of automatically looking for a detail with a specific prefix
-        // (e.g. grapher_indicator_per-capita-emissions) when an indicator name is used as the default axis label.
-        // This feature is disabled for now, but we might want to enable it in the future.
-        //
-        // // if a custom axis label is given, extract details from it;
-        // // otherwise, check if a detail exists for the default axis label
-        // function extractDetailsFromAxisLabel(
-        //     configLabel?: string,
-        //     defaultLabel?: string
-        // ): string[] {
-        //     if (configLabel) {
-        //         return extractDetailsFromSyntax(configLabel)
-        //     } else if (defaultLabel) {
-        //         return [
-        //             makeDetailIdFromText({
-        //                 text: defaultLabel,
-        //                 type: "indicator",
-        //             }),
-        //         ]
-        //     }
-        //     return []
-        // }
-        //
-        // // extract details from axis labels
-        // const yAxisDetails = extractDetailsFromAxisLabel(
-        //     this.yAxisConfig.label,
-        //     this.defaultYAxisLabel
-        // )
-        // const xAxisDetails = extractDetailsFromAxisLabel(
-        //     this.xAxisConfig.label,
-        //     this.defaultXAxisLabel
-        // )
 
         // extract details from supporting text
         const subtitleDetails = !this.hideSubtitle

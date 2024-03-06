@@ -41,7 +41,6 @@ import {
     PointVector,
     Bounds,
     DEFAULT_BOUNDS,
-    maybeMakeMarkdownDetail,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -1138,21 +1137,9 @@ export class ScatterPlotChart
     }
 
     @computed get currentVerticalAxisLabel(): string {
-        const {
-            manager,
-            yAxisConfig,
-            defaultYAxisLabel,
-            detailsOrderedByReference,
-        } = this
+        const { manager, yAxisConfig, defaultYAxisLabel } = this
 
-        let label =
-            yAxisConfig.label ||
-            maybeMakeMarkdownDetail({
-                text: defaultYAxisLabel,
-                details: detailsOrderedByReference,
-                type: "indicator",
-            }) ||
-            ""
+        let label = yAxisConfig.label || defaultYAxisLabel || ""
 
         if (manager.isRelativeMode && label && label.length > 1) {
             label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
@@ -1203,12 +1190,7 @@ export class ScatterPlotChart
     }
 
     @computed private get xAxisLabelBase(): string {
-        const xDimName =
-            maybeMakeMarkdownDetail({
-                text: this.defaultXAxisLabel,
-                type: "indicator",
-                details: this.detailsOrderedByReference,
-            }) ?? ""
+        const xDimName = this.defaultXAxisLabel ?? ""
         if (this.xOverrideTime !== undefined)
             return `${xDimName} in ${this.xOverrideTime}`
         return xDimName

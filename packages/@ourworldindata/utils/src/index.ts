@@ -203,9 +203,6 @@ export {
     lowercaseObjectKeys,
     detailOnDemandRegex,
     extractDetailsFromSyntax,
-    makeDetailIdFromText,
-    makeMarkdownDetail,
-    maybeMakeMarkdownDetail,
 } from "./Util.js"
 
 export { isPresent } from "./isPresent.js"
