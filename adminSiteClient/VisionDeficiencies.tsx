@@ -5,7 +5,7 @@ import { observer } from "mobx-react"
 import { computed, action } from "mobx"
 import { groupBy, getStylesForTargetHeight } from "@ourworldindata/utils"
 
-// Transformation matrices taken from https://github.com/hail2u/color-blindness-emulation/blob/master/filters.svg?short_path=5708e81
+// Transformation matrices taken from Chromium source: https://github.com/chromium/chromium/blob/a08db9fd8a986495c18226f9fb2f1e836bb87e62/third_party/blink/renderer/core/css/vision_deficiency.cc#L41-L82
 // "Affected" numbers from https://en.wikipedia.org/wiki/Color_blindness#Epidemiology
 
 export interface VisionDeficiency {
@@ -26,10 +26,10 @@ const visionDeficiencies: VisionDeficiency[] = [
         alternativeName: "red-blind",
         affected: "1.3% male, 0.02% female",
         transformationMatrix: `
-                0.567, 0.433, 0,     0, 0
-                0.558, 0.442, 0,     0, 0
-                0,     0.242, 0.758, 0, 0
-                0,     0,     0,     1, 0
+                 0.152,  1.053, -0.205,  0.000,  0.000
+                 0.115,  0.786,  0.099,  0.000,  0.000
+                -0.004, -0.048,  1.052,  0.000,  0.000
+                 0.000,  0.000,  0.000,  1.000,  0.000
                 `,
     },
 
@@ -40,10 +40,10 @@ const visionDeficiencies: VisionDeficiency[] = [
         alternativeName: "green-blind",
         affected: "1.2% male, 0.01% female",
         transformationMatrix: `
-                0.625, 0.375, 0,   0, 0
-                0.7,   0.3,   0,   0, 0
-                0,     0.3,   0.7, 0, 0
-                0,     0,     0,   1, 0
+                 0.367,  0.861, -0.228,  0.000,  0.000
+                 0.280,  0.673,  0.047,  0.000,  0.000
+                -0.012,  0.043,  0.969,  0.000,  0.000
+                 0.000,  0.000,  0.000,  1.000,  0.000
                 `,
     },
     {
@@ -53,10 +53,10 @@ const visionDeficiencies: VisionDeficiency[] = [
         alternativeName: "blue-blind",
         affected: "0.001% male, 0.03% female",
         transformationMatrix: `
-                0.95, 0.05,  0,     0, 0
-                0,    0.433, 0.567, 0, 0
-                0,    0.475, 0.525, 0, 0
-                0,    0,     0,     1, 0
+                 1.256, -0.077, -0.179,  0.000,  0.000
+                -0.078,  0.931,  0.148,  0.000,  0.000
+                 0.005,  0.691,  0.304,  0.000,  0.000
+                 0.000,  0.000,  0.000,  1.000,  0.000
                 `,
     },
     {
@@ -66,63 +66,10 @@ const visionDeficiencies: VisionDeficiency[] = [
         alternativeName: "total color blindness",
         affected: "0.003%",
         transformationMatrix: `
-                0.299, 0.587, 0.114, 0, 0
-                0.299, 0.587, 0.114, 0, 0
-                0.299, 0.587, 0.114, 0, 0
-                0,     0,     0,     1, 0
-                `,
-    },
-    // Then weaknesses
-    {
-        id: "protanomaly",
-        name: "Protanomaly",
-        group: "Reduced vision",
-        alternativeName: "red-weak",
-        affected: "1.3% male, 0.02% female",
-        transformationMatrix: `
-                0.817, 0.183, 0,     0, 0
-                0.333, 0.667, 0,     0, 0
-                0,     0.125, 0.875, 0, 0
-                0,     0,     0,     1, 0
-                `,
-    },
-    {
-        id: "deuteranomaly",
-        name: "Deuteranomaly",
-        group: "Reduced vision",
-        alternativeName: "green-weak",
-        affected: "5.0% male, 0.35% female",
-        transformationMatrix: `
-                0.8,   0.2,   0,     0, 0
-                0.258, 0.742, 0,     0, 0
-                0,     0.142, 0.858, 0, 0
-                0,     0,     0,     1, 0
-                `,
-    },
-    {
-        id: "tritanomaly",
-        name: "Tritanomaly",
-        group: "Reduced vision",
-        alternativeName: "blue-weak",
-        affected: "0.0001% male, 0.0001% female",
-        transformationMatrix: `
-                0.967, 0.033, 0,     0, 0
-                0,     0.733, 0.267, 0, 0
-                0,     0.183, 0.817, 0, 0
-                0,     0,     0,     1, 0
-                `,
-    },
-    {
-        id: "achromatomaly",
-        name: "Achromatomaly",
-        group: "Reduced vision",
-        alternativeName: "weak color visibility",
-        affected: "",
-        transformationMatrix: `
-                0.618, 0.320, 0.062, 0, 0
-                0.163, 0.775, 0.062, 0, 0
-                0.163, 0.320, 0.516, 0, 0
-                0,     0,     0,     1, 0
+                 0.213,  0.715,  0.072,  0.000,  0.000
+                 0.213,  0.715,  0.072,  0.000,  0.000
+                 0.213,  0.715,  0.072,  0.000,  0.000
+                 0.000,  0.000,  0.000,  1.000,  0.000
                 `,
     },
 ]
