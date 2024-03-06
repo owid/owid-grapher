@@ -33,10 +33,10 @@ import {
 class ImageStore {
     images: Record<string, ImageMetadata> | undefined
 
-    async fetchImageMetadata(filesnames: string[]): Promise<void> {
+    async fetchImageMetadata(filenames: string[]): Promise<void> {
         console.log(
             `Fetching image metadata from Google Drive ${
-                filesnames.length ? `for ${filesnames.join(", ")}` : ""
+                filenames.length ? `for ${filenames.join(", ")}` : ""
             }`
         )
         const driveClient = google.drive({
@@ -45,8 +45,8 @@ class ImageStore {
         })
         // e.g. `and (name="example.png" or name="image.svg")`
         // https://developers.google.com/drive/api/guides/search-files#examples
-        const filenamesFilter = filesnames.length
-            ? `and (${filesnames
+        const filenamesFilter = filenames.length
+            ? `and (${filenames
                   .map((filename) => `name='${filename}'`)
                   .join(" or ")})`
             : ""
