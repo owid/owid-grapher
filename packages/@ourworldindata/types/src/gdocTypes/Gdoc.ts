@@ -112,6 +112,8 @@ export type MinimalDataInsightInterface = Pick<
     "title"
 > & {
     publishedAt: string
+    updatedAt: string
+    slug: string
     // We select the 5 most recently published insights
     // We only display 4, but if you're on the DI page for one of them we hide it and show the next most recent
     index: 0 | 1 | 2 | 3 | 4

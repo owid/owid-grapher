@@ -7,6 +7,7 @@ import {
     OwidGdocType,
     formatDate,
     OwidGdocBaseInterface,
+    DATA_INSIGHTS_INDEX_PAGE_SIZE,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import cheerio from "cheerio"
@@ -171,4 +172,14 @@ export function fullGdocToMinimalGdoc(
         type: gdoc.content.type || OwidGdocType.Article,
         "featured-image": gdoc.content["featured-image"],
     }
+}
+
+/**
+ * Calculate the number of pages needed to display all data insights
+ * e.g. if there are 61 data insights and we want to display 20 per page, we need 4 pages
+ */
+export function calculateDataInsightIndexPageCount(
+    publishedDataInsightCount: number
+): number {
+    return Math.ceil(publishedDataInsightCount / DATA_INSIGHTS_INDEX_PAGE_SIZE)
 }

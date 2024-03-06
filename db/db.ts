@@ -209,23 +209,25 @@ export const getPublishedExplorersBySlug = async (
     })
 }
 
-export const getLatestDataInsights = (
-    limit = 5
+export const getPublishedDataInsights = (
+    knex: Knex<any, any[]>,
+    limit = Number.MAX_SAFE_INTEGER // default to no limit
 ): Promise<MinimalDataInsightInterface[]> => {
     return knexRaw(
         `
         SELECT
             content->>'$.title' AS title,
             publishedAt,
+            updatedAt,
+            slug,
             ROW_NUMBER() OVER (ORDER BY publishedAt DESC) - 1 AS \`index\`
         FROM posts_gdocs
         WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
             AND published = TRUE
             AND publishedAt < NOW()
         ORDER BY publishedAt DESC
-        LIMIT ?
-        `,
-        knexInstance(),
+        LIMIT ?`,
+        knex,
         [limit]
     ).then((results) =>
         results.map((record: any) => ({
@@ -233,18 +235,6 @@ export const getLatestDataInsights = (
             index: Number(record.index),
         }))
     ) as Promise<MinimalDataInsightInterface[]>
-}
-
-export const getPublishedDataInsightCount = (): Promise<number> => {
-    return knexRawFirst<{ count: number }>(
-        `
-        SELECT COUNT(*) AS count
-        FROM posts_gdocs
-        WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
-            AND published = TRUE
-            AND publishedAt < NOW()`,
-        knexInstance()
-    ).then((res) => res?.count ?? 0)
 }
 
 export const getTotalNumberOfCharts = (): Promise<number> => {
