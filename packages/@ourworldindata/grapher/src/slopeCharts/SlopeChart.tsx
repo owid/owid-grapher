@@ -16,6 +16,7 @@ import {
     exposeInstanceOnWindow,
     PointVector,
     clamp,
+    HorizontalAlign,
 } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import { observable, computed, action } from "mobx"
@@ -56,9 +57,15 @@ import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { VerticalAxis } from "../axis/Axis"
 import { VerticalAxisComponent } from "../axis/AxisViews"
+import {
+    HorizontalCategoricalColorLegend,
+    HorizontalColorLegendManager,
+} from "../horizontalColorLegend/HorizontalColorLegends"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 
 export interface SlopeChartManager extends ChartManager {
     isModalOpen?: boolean
+    isSemiNarrow?: boolean
 }
 
 const LABEL_SLOPE_PADDING = 8
@@ -73,7 +80,11 @@ export class SlopeChart
         bounds?: Bounds
         manager: SlopeChartManager
     }>
-    implements ChartInterface, VerticalColorLegendManager, ColorScaleManager
+    implements
+        ChartInterface,
+        VerticalColorLegendManager,
+        HorizontalColorLegendManager,
+        ColorScaleManager
 {
     // currently hovered individual series key
     @observable hoverKey?: string
@@ -103,6 +114,15 @@ export class SlopeChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
+    @computed private get isPortrait(): boolean {
+        return !!(this.manager.isNarrow || this.manager.isStaticAndSmall)
+    }
+
+    @computed private get showHorizontalLegend(): boolean {
+        return !!(this.manager.isSemiNarrow || this.manager.isStaticAndSmall)
+    }
+
+    // used by the <VerticalColorLegend /> component
     @computed get legendItems() {
         return this.colorScale.legendBins
             .filter((bin) => this.colorsInUse.includes(bin.color))
@@ -113,6 +133,18 @@ export class SlopeChart
                     color: bin.color,
                 }
             })
+    }
+
+    // used by the <HorizontalCategoricalColorLegend /> component
+    @computed get categoricalLegendData(): CategoricalBin[] {
+        return this.legendItems.map(
+            (legendItem, index) =>
+                new CategoricalBin({
+                    ...legendItem,
+                    index,
+                    value: legendItem.label,
+                })
+        )
     }
 
     @action.bound onSlopeMouseOver(slopeProps: SlopeProps) {
@@ -132,8 +164,9 @@ export class SlopeChart
         this.selectionArray.toggleSelection(hoverKey)
     }
 
-    @action.bound onLegendMouseOver(color: string) {
-        this.hoverColor = color
+    @action.bound onLegendMouseOver(binOrColor: string | ColorScaleBin) {
+        this.hoverColor =
+            typeof binOrColor === "string" ? binOrColor : binOrColor.color
     }
 
     @action.bound onLegendMouseLeave() {
@@ -234,12 +267,34 @@ export class SlopeChart
         return uniq(this.series.map((series) => series.color))
     }
 
-    @computed private get legendWidth(): number {
-        return new VerticalColorLegend({ manager: this }).width
+    @computed get legendAlign(): HorizontalAlign {
+        return HorizontalAlign.left
+    }
+
+    @computed get verticalColorLegend(): VerticalColorLegend {
+        return new VerticalColorLegend({ manager: this })
+    }
+
+    @computed get horizontalColorLegend(): HorizontalCategoricalColorLegend {
+        return new HorizontalCategoricalColorLegend({ manager: this })
+    }
+
+    @computed get legendHeight(): number {
+        return this.showHorizontalLegend
+            ? this.horizontalColorLegend.height
+            : this.verticalColorLegend.height
+    }
+
+    @computed get legendWidth(): number {
+        return this.showHorizontalLegend
+            ? this.bounds.width
+            : this.verticalColorLegend.width
     }
 
     @computed get maxLegendWidth(): number {
-        return this.bounds.width * 0.5
+        return this.showHorizontalLegend
+            ? this.bounds.width
+            : this.bounds.width * 0.5
     }
 
     @computed.struct private get sidebarWidth() {
@@ -248,11 +303,14 @@ export class SlopeChart
 
     // correction is to account for the space taken by the legend
     @computed private get innerBounds() {
-        const { sidebarWidth, showLegend } = this
-
-        return showLegend
-            ? this.bounds.padRight(sidebarWidth + 16)
-            : this.bounds
+        const { sidebarWidth, showLegend, legendHeight } = this
+        let bounds = this.bounds
+        if (showLegend) {
+            bounds = this.showHorizontalLegend
+                ? bounds.padTop(legendHeight + 8)
+                : bounds.padRight(sidebarWidth + 16)
+        }
+        return bounds
     }
 
     // verify the validity of data used to show legend
@@ -275,12 +333,19 @@ export class SlopeChart
             )
 
         const { manager } = this.props
-        const { series, focusKeys, hoverKeys, innerBounds, showLegend } = this
+        const {
+            series,
+            focusKeys,
+            hoverKeys,
+            innerBounds,
+            showLegend,
+            showHorizontalLegend,
+        } = this
 
-        const legend = showLegend ? (
-            <VerticalColorLegend manager={this} />
+        const legend = showHorizontalLegend ? (
+            <HorizontalCategoricalColorLegend manager={this} />
         ) : (
-            <div></div>
+            <VerticalColorLegend manager={this} />
         )
 
         return (
@@ -295,8 +360,9 @@ export class SlopeChart
                     onMouseOver={this.onSlopeMouseOver}
                     onMouseLeave={this.onSlopeMouseLeave}
                     onClick={this.onSlopeClick}
+                    isPortrait={this.isPortrait}
                 />
-                {legend}
+                {showLegend && legend}
             </g>
         )
     }
@@ -306,7 +372,9 @@ export class SlopeChart
     }
 
     @computed get legendX(): number {
-        return this.bounds.right - this.sidebarWidth
+        return this.showHorizontalLegend
+            ? this.bounds.left
+            : this.bounds.right - this.sidebarWidth
     }
 
     @computed get failMessage() {
@@ -679,8 +747,8 @@ class LabelledSlopes
         return this.hoveredSeriesNames.length > 1
     }
 
-    @computed private get isPortrait() {
-        return this.manager.isNarrow || this.manager.isStaticAndSmall
+    @computed get isPortrait(): boolean {
+        return this.props.isPortrait
     }
 
     @computed private get allValues() {
