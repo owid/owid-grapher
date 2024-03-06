@@ -33,11 +33,11 @@ import {
 class ImageStore {
     images: Record<string, ImageMetadata> | undefined
 
-    async fetchImageMetadata(filesnames: string[]): Promise<void> {
+    async fetchImageMetadata(filenames: string[]): Promise<void> {
         console.log(
-            `Fetching image metadata from Google Drive for ${filesnames.join(
-                ", "
-            )}`
+            `Fetching image metadata from Google Drive ${
+                filenames.length ? `for ${filenames.join(", ")}` : ""
+            }`
         )
         const driveClient = google.drive({
             version: "v3",
@@ -45,8 +45,8 @@ class ImageStore {
         })
         // e.g. `and (name="example.png" or name="image.svg")`
         // https://developers.google.com/drive/api/guides/search-files#examples
-        const filenamesFilter = filesnames.length
-            ? `and (${filesnames
+        const filenamesFilter = filenames.length
+            ? `and (${filenames
                   .map((filename) => `name='${filename}'`)
                   .join(" or ")})`
             : ""
@@ -96,6 +96,7 @@ class ImageStore {
                 defaultAlt: google.description ?? "",
                 updatedAt: new Date(google.modifiedTime).getTime(),
                 originalWidth: google.imageMediaMetadata?.width,
+                originalHeight: google.imageMediaMetadata?.height,
             }))
 
         const duplicateFilenames = findDuplicates(
@@ -160,6 +161,11 @@ export class Image extends BaseEntity implements ImageMetadata {
         nullable: true,
     })
     originalWidth?: number
+    @Column({
+        transformer: new ColumnNumericTransformer(),
+        nullable: true,
+    })
+    originalHeight?: number
 
     get isSvg(): boolean {
         return this.fileExtension === "svg"
@@ -199,6 +205,7 @@ export class Image extends BaseEntity implements ImageMetadata {
                     stored.updatedAt = fresh.updatedAt
                     stored.defaultAlt = fresh.defaultAlt
                     stored.originalWidth = fresh.originalWidth
+                    stored.originalHeight = fresh.originalHeight
                     await stored.save()
                 }
                 return stored

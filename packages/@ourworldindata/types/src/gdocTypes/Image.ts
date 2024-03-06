@@ -6,6 +6,7 @@ export interface GDriveImageMetadata {
     description?: string // -> defaultAlt
     imageMediaMetadata?: {
         width?: number // -> originalWidth
+        height?: number // -> originalHeight
     }
 }
 
@@ -17,4 +18,5 @@ export interface ImageMetadata {
     // so we store as an epoch to avoid any conversion issues
     updatedAt: number
     originalWidth?: number
+    originalHeight?: number
 }
