@@ -16,14 +16,14 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
-    Tag,
+    DbChartTagJoin,
     OwidGdocType,
     SearchWord,
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
     spansToUnformattedPlainText,
-    OwidGdoc,
     checkIsGdocPost,
+    OwidGdocIndexItem,
 } from "@ourworldindata/utils"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { Link } from "./Link.js"
@@ -139,11 +139,11 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
     }
 
     @computed
-    get tags(): Tag[] {
+    get tags(): DbChartTagJoin[] {
         return this.context?.availableTags || []
     }
 
-    @computed get allGdocsToShow(): OwidGdoc[] {
+    @computed get allGdocsToShow(): OwidGdocIndexItem[] {
         const { searchWords, context } = this
         if (!context) return []
 
@@ -156,18 +156,18 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
             ? context.gdocs.filter(
                   (gdoc) =>
                       // don't filter docs with no type set
-                      !gdoc.content.type || !!this.filters[gdoc.content.type]
+                      !gdoc.type || !!this.filters[gdoc.type]
               )
             : context.gdocs
 
         if (searchWords.length > 0) {
             const filterFn = filterFunctionForSearchWords(
                 searchWords,
-                (gdoc: OwidGdoc) => {
+                (gdoc: OwidGdocIndexItem) => {
                     const properties = [
-                        gdoc.content.title,
+                        gdoc.title,
                         gdoc.slug,
-                        gdoc.content.authors?.join(" "),
+                        gdoc.authors?.join(" "),
                         gdoc.tags?.map(({ name }) => name).join(" "),
                         gdoc.id,
                     ]
@@ -232,17 +232,16 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
                         <div
                             key={gdoc.id}
                             className={cx(`gdoc-index-item`, {
-                                [`gdoc-index-item__${gdoc.content.type}`]:
-                                    gdoc.content.type,
+                                [`gdoc-index-item__${gdoc.type}`]: gdoc.type,
                             })}
                         >
                             <div className="gdoc-index-item__content">
-                                {gdoc.content.type ? (
+                                {gdoc.type ? (
                                     <span
                                         className="gdoc-index-item__type-icon"
-                                        title={gdoc.content.type}
+                                        title={gdoc.type}
                                     >
-                                        {iconGdocTypeMap[gdoc.content.type]}
+                                        {iconGdocTypeMap[gdoc.type]}
                                     </span>
                                 ) : null}
                                 <Link
@@ -252,19 +251,19 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
                                         className="gdoc-index-item__title"
                                         title="Preview article"
                                     >
-                                        {gdoc.content.title || "Untitled"}
+                                        {gdoc.title || "Untitled"}
                                     </h5>
                                 </Link>
                                 <GdocsEditLink gdocId={gdoc.id} />
                                 <p className="gdoc-index-item__byline">
-                                    {gdoc.content.authors?.join(", ")}
+                                    {gdoc.authors?.join(", ")}
                                 </p>
                                 <span className="gdoc-index-item__tags">
-                                    {gdoc.content.type &&
+                                    {gdoc.type &&
                                     ![
                                         OwidGdocType.Fragment,
                                         OwidGdocType.AboutPage,
-                                    ].includes(gdoc.content.type) &&
+                                    ].includes(gdoc.type) &&
                                     gdoc.tags ? (
                                         <EditableTags
                                             tags={gdoc.tags}
@@ -290,8 +289,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
                                                 : undefined
                                         }
                                         href={
-                                            gdoc.content.type !==
-                                            OwidGdocType.Fragment
+                                            gdoc.type !== OwidGdocType.Fragment
                                                 ? `${BAKED_BASE_URL}/${gdoc.slug}`
                                                 : undefined
                                         }

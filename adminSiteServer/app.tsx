@@ -31,7 +31,7 @@ import { mockSiteRouter } from "./mockSiteRouter.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { GdocsContentSource } from "@ourworldindata/utils"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
-import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
+import { getAndLoadGdocById } from "../db/model/Gdoc/GdocFactory.js"
 
 interface OwidAdminAppOptions {
     gitCmsDir: string
@@ -126,22 +126,25 @@ export class OwidAdminApp {
         // Public preview of a Gdoc document
         app.get("/gdocs/:id/preview", async (req, res) => {
             try {
-                const gdoc = await GdocFactory.load(
-                    req.params.id,
-                    GdocsContentSource.Gdocs
-                )
-
-                res.set("X-Robots-Tag", "noindex")
-                res.send(
-                    renderToHtmlPage(
-                        <OwidGdocPage
-                            baseUrl={BAKED_BASE_URL}
-                            gdoc={gdoc}
-                            debug
-                            isPreviewing
-                        />
+                await db.knexReadonlyTransaction(async (knex) => {
+                    const gdoc = await getAndLoadGdocById(
+                        knex,
+                        req.params.id,
+                        GdocsContentSource.Gdocs
                     )
-                )
+
+                    res.set("X-Robots-Tag", "noindex")
+                    res.send(
+                        renderToHtmlPage(
+                            <OwidGdocPage
+                                baseUrl={BAKED_BASE_URL}
+                                gdoc={gdoc}
+                                debug
+                                isPreviewing
+                            />
+                        )
+                    )
+                })
             } catch (error) {
                 console.error("Error fetching gdoc preview", error)
                 res.status(500).json({

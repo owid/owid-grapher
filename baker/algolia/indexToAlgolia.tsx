@@ -10,8 +10,8 @@ import {
     keyBy,
     OwidGdocType,
     type RawPageview,
-    Tag,
     PostRestApi,
+    DbPlainTag,
 } from "@ourworldindata/utils"
 import { formatPost } from "../formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
@@ -84,7 +84,7 @@ async function generateWordpressRecords(
 ): Promise<PageRecord[]> {
     const getPostTypeAndImportance = (
         post: FormattedPost,
-        tags: Pick<Tag, "name">[]
+        tags: Pick<DbPlainTag, "name">[]
     ): TypeAndImportance => {
         if (post.slug.startsWith("about/") || post.slug === "about")
             return { type: "about", importance: 1 }
@@ -182,7 +182,7 @@ function generateGdocRecords(
                 excerpt: gdoc.content.excerpt,
                 date: gdoc.publishedAt!.toISOString(),
                 modifiedDate: gdoc.updatedAt!.toISOString(),
-                tags: gdoc.tags.map((t) => t.name),
+                tags: gdoc?.tags?.map((t) => t.name),
                 documentType: "gdoc" as const,
                 // authors: gdoc.content.byline, // different format
             }
@@ -197,7 +197,7 @@ function generateGdocRecords(
 // Generate records for countries, WP posts (not including posts that have been succeeded by Gdocs equivalents), and Gdocs
 const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
-    const gdocs = await GdocPost.getPublishedGdocPosts()
+    const gdocs = await GdocPost.getPublishedGdocPosts(knex)
     const publishedGdocsBySlug = keyBy(gdocs, "slug")
     // TODO: the knex instance should be handed down as a parameter
     const slugsWithPublishedGdocsSuccessors =

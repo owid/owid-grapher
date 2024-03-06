@@ -1,4 +1,3 @@
-import { Entity, Column } from "typeorm"
 import {
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
@@ -9,15 +8,15 @@ import {
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import * as db from "../../db.js"
-import { OwidGdocHomepageMetadata } from "@ourworldindata/types"
+import {
+    OwidGdocBaseInterface,
+    OwidGdocHomepageMetadata,
+} from "@ourworldindata/types"
 import { UNIQUE_TOPIC_COUNT } from "../../../site/SiteNavigation.js"
-
-@Entity("posts_gdocs")
 export class GdocHomepage
     extends GdocBase
     implements OwidGdocHomepageInterface
 {
-    @Column({ default: "{}", type: "json" })
     content!: OwidGdocHomepageContent
 
     constructor(id?: string) {
@@ -27,9 +26,14 @@ export class GdocHomepage
         }
     }
 
+    static create(obj: OwidGdocBaseInterface): GdocHomepage {
+        const gdoc = new GdocHomepage()
+        Object.assign(gdoc, obj)
+        return gdoc
+    }
+
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     homepageMetadata: OwidGdocHomepageMetadata = {}
-    _urlProperties: string[] = []
 
     _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
@@ -54,10 +58,11 @@ export class GdocHomepage
         return errors
     }
 
-    _loadSubclassAttachments = async (): Promise<void> => {
-        const knex = db.knexInstance() as db.KnexReadonlyTransaction
+    _loadSubclassAttachments = async (
+        knex: db.KnexReadonlyTransaction
+    ): Promise<void> => {
         this.homepageMetadata = {
-            chartCount: await db.getTotalNumberOfCharts(knex), // TODO: replace this with a transaction that is passed in
+            chartCount: await db.getTotalNumberOfCharts(knex),
             topicCount: UNIQUE_TOPIC_COUNT,
         }
 

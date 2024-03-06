@@ -12,7 +12,7 @@ import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker.js"
 import { warn } from "../serverUtils/errorLog.js"
 import { mapSlugsToIds } from "../db/model/Chart.js"
 import md5 from "md5"
-import { Url, Tag } from "@ourworldindata/utils"
+import { DbPlainTag, Url } from "@ourworldindata/utils"
 
 interface ChartExportMeta {
     key: string
@@ -146,7 +146,7 @@ export async function getTagToSlugMap(): Promise<
 > {
     const tags = (await db.queryMysql(
         `SELECT slug, name, id FROM tags WHERE slug IS NOT NULL`
-    )) as Pick<Tag, "name" | "id" | "slug">[]
+    )) as Pick<DbPlainTag, "name" | "id" | "slug">[]
     const tagsByIdAndName: Record<string | number, string> = {}
     for (const tag of tags) {
         if (tag.slug) {

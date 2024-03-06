@@ -6,14 +6,15 @@ import {
     OwidGdocDataInsightContent,
     OwidGdocType,
     OwidGdocHomepageContent,
+    DbEnrichedPostGdoc,
     OwidGdocAuthorContent,
 } from "@ourworldindata/types"
 import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./GdocsDiff.js"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../settings/clientSettings.js"
 
 export const checkFullDeployFallback = (
-    prevGdoc: OwidGdoc,
-    nextGdoc: OwidGdoc,
+    prevGdoc: DbEnrichedPostGdoc,
+    nextGdoc: DbEnrichedPostGdoc,
     hasChanges: boolean
 ) => {
     return hasChanges && (prevGdoc.published || nextGdoc.published)
@@ -58,6 +59,7 @@ export const checkIsLightningUpdate = (
         relatedCharts: true,
         revisionId: true,
         updatedAt: true,
+        markdown: true,
         createdAt: false, // weird case - can't be updated
         id: false, // weird case - can't be updated
         tags: false, // could require updating datapages, though it's currently not possible to have a difference between prevGdoc.tags and nextGdoc.tags

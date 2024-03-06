@@ -91,7 +91,10 @@ import {
 } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
+import {
+    getAndLoadGdocBySlug,
+    getAndLoadGdocById,
+} from "../db/model/Gdoc/GdocFactory.js"
 import { SiteNavigationStatic } from "../site/SiteNavigation.js"
 
 export const renderToHtmlPage = (element: any) =>
@@ -167,15 +170,16 @@ export function renderDynamicCollectionPage() {
 }
 
 export const renderGdocsPageBySlug = async (
+    knex: KnexReadonlyTransaction,
     slug: string,
     isPreviewing: boolean = false
 ): Promise<string | undefined> => {
-    const gdoc = await GdocFactory.loadBySlug(slug)
+    const gdoc = await getAndLoadGdocBySlug(knex, slug)
     if (!gdoc) {
         throw new Error(`Failed to render an unknown GDocs post: ${slug}.`)
     }
 
-    await gdoc.loadState()
+    await gdoc.loadState(knex)
 
     return renderGdoc(gdoc, isPreviewing)
 }
@@ -259,8 +263,8 @@ export const renderFrontPage = async (knex: KnexReadonlyTransaction) => {
     const gdocHomepageId = await getHomepageId(knex)
 
     if (gdocHomepageId) {
-        const gdocHomepage = await GdocFactory.load(gdocHomepageId)
-        await gdocHomepage.loadState()
+        const gdocHomepage = await getAndLoadGdocById(knex, gdocHomepageId)
+        await gdocHomepage.loadState(knex)
         return renderGdoc(gdocHomepage)
     } else {
         logErrorAndMaybeSendToBugsnag(
@@ -272,8 +276,9 @@ export const renderFrontPage = async (knex: KnexReadonlyTransaction) => {
     }
 }
 
-export const renderDonatePage = async () => {
-    const faqsGdoc = (await GdocFactory.load(
+export const renderDonatePage = async (knex: KnexReadonlyTransaction) => {
+    const faqsGdoc = (await getAndLoadGdocById(
+        knex,
         GDOCS_DONATE_FAQS_DOCUMENT_ID
     )) as GdocPost
     if (!faqsGdoc)

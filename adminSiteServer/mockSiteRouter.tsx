@@ -193,8 +193,12 @@ mockSiteRouter.get("/", async (req, res) => {
     res.send(frontPage)
 })
 
-mockSiteRouter.get("/donate", async (req, res) =>
-    res.send(await renderDonatePage())
+mockSiteRouter.get(
+    "/donate",
+    async (req, res) =>
+        await db.knexReadonlyTransaction(async (knex) =>
+            res.send(await renderDonatePage(knex))
+        )
 )
 
 mockSiteRouter.get("/thank-you", async (req, res) =>
@@ -202,47 +206,51 @@ mockSiteRouter.get("/thank-you", async (req, res) =>
 )
 
 mockSiteRouter.get("/data-insights/:pageNumberOrSlug?", async (req, res) => {
-    const totalPageCount = calculateDataInsightIndexPageCount(
-        await db
-            .getPublishedDataInsights(
-                db.knexInstance() as db.KnexReadonlyTransaction
-            )
-            .then((insights) => insights.length)
-    )
-    async function renderIndexPage(pageNumber: number) {
-        const dataInsights =
-            await GdocDataInsight.getPublishedDataInsights(pageNumber)
-        // calling fetchImageMetadata 20 times makes me sad, would be nice if we could cache this
-        await Promise.all(dataInsights.map((insight) => insight.loadState()))
-        return renderDataInsightsIndexPage(
-            dataInsights,
-            pageNumber,
-            totalPageCount,
-            true
+    return db.knexReadonlyTransaction(async (knex) => {
+        const totalPageCount = calculateDataInsightIndexPageCount(
+            await db
+                .getPublishedDataInsights(knex)
+                .then((insights) => insights.length)
         )
-    }
-    const pageNumberOrSlug = req.params.pageNumberOrSlug
-    if (!pageNumberOrSlug) {
-        return res.send(await renderIndexPage(0))
-    }
-
-    // pageNumber is 1-indexed, but DB operations are 0-indexed
-    const pageNumber = parseInt(pageNumberOrSlug) - 1
-    if (!isNaN(pageNumber)) {
-        if (pageNumber <= 0 || pageNumber >= totalPageCount) {
-            return res.redirect("/data-insights")
+        async function renderIndexPage(pageNumber: number) {
+            const dataInsights = await GdocDataInsight.getPublishedDataInsights(
+                knex,
+                pageNumber
+            )
+            // calling fetchImageMetadata 20 times makes me sad, would be nice if we could cache this
+            await Promise.all(
+                dataInsights.map((insight) => insight.loadState(knex))
+            )
+            return renderDataInsightsIndexPage(
+                dataInsights,
+                pageNumber,
+                totalPageCount,
+                true
+            )
         }
-        return res.send(await renderIndexPage(pageNumber))
-    }
+        const pageNumberOrSlug = req.params.pageNumberOrSlug
+        if (!pageNumberOrSlug) {
+            return res.send(await renderIndexPage(0))
+        }
 
-    const slug = pageNumberOrSlug
-    try {
-        return res.send(await renderGdocsPageBySlug(slug, true))
-    } catch (e) {
-        console.error(e)
-    }
+        // pageNumber is 1-indexed, but DB operations are 0-indexed
+        const pageNumber = parseInt(pageNumberOrSlug) - 1
+        if (!isNaN(pageNumber)) {
+            if (pageNumber <= 0 || pageNumber >= totalPageCount) {
+                return res.redirect("/data-insights")
+            }
+            return res.send(await renderIndexPage(pageNumber))
+        }
 
-    return new JsonError(`Data insight with slug "${slug}" not found`, 404)
+        const slug = pageNumberOrSlug
+        try {
+            return res.send(await renderGdocsPageBySlug(knex, slug, true))
+        } catch (e) {
+            console.error(e)
+        }
+
+        return new JsonError(`Data insight with slug "${slug}" not found`, 404)
+    })
 })
 
 mockSiteRouter.get("/charts", async (req, res) => {
@@ -374,7 +382,9 @@ mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
 
 mockSiteRouter.get("/dods.json", async (_, res) => {
     res.set("Access-Control-Allow-Origin", "*")
-    const { details, parseErrors } = await GdocPost.getDetailsOnDemandGdoc()
+    const { details, parseErrors } = await db.knexReadonlyTransaction((trx) =>
+        GdocPost.getDetailsOnDemandGdoc(trx)
+    )
     if (parseErrors.length) {
         console.error(
             `Error(s) parsing details: ${parseErrors
@@ -388,21 +398,22 @@ mockSiteRouter.get("/dods.json", async (_, res) => {
 mockSiteRouter.get("/*", async (req, res) => {
     const slug = req.path.replace(/^\//, "")
 
-    try {
-        res.send(await renderGdocsPageBySlug(slug))
-    } catch (e) {
-        console.error(e)
-    }
+    await db.knexReadonlyTransaction(async (knex) => {
+        try {
+            const page = await renderGdocsPageBySlug(knex, slug)
+            res.send(page)
+        } catch (e) {
+            console.error(e)
+        }
 
-    try {
-        const page = await db.knexReadonlyTransaction(async (knex) =>
-            renderPageBySlug(slug, knex)
-        )
-        res.send(page)
-    } catch (e) {
-        console.error(e)
-        res.status(404).send(await renderNotFoundPage())
-    }
+        try {
+            const page = await renderPageBySlug(slug, knex)
+            res.send(page)
+        } catch (e) {
+            console.error(e)
+            res.status(404).send(await renderNotFoundPage())
+        }
+    })
 })
 
 export { mockSiteRouter }

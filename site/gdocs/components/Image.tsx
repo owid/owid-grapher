@@ -122,8 +122,8 @@ export default function Image(props: {
                     src={makePreviewUrl(image.filename)}
                     alt={alt}
                     className={maybeLightboxClassName}
-                    width={image.originalWidth}
-                    height={image.originalHeight}
+                    width={image.originalWidth ?? undefined}
+                    height={image.originalHeight ?? undefined}
                 />
             </picture>
         )
@@ -138,8 +138,8 @@ export default function Image(props: {
                     src={imgSrc}
                     alt={alt}
                     className={maybeLightboxClassName}
-                    width={image.originalWidth}
-                    height={image.originalHeight}
+                    width={image.originalWidth ?? undefined}
+                    height={image.originalHeight ?? undefined}
                 />
                 {containerType !== "thumbnail" ? (
                     <a
@@ -176,8 +176,8 @@ export default function Image(props: {
                 loading="lazy"
                 // There's no way of knowing in advance whether we'll be showing the image or smallImage - we just have to choose one
                 // I went with image, as we currently only use smallImage for data insights
-                width={image.originalWidth}
-                height={image.originalHeight}
+                width={image.originalWidth ?? undefined}
+                height={image.originalHeight ?? undefined}
             />
         </picture>
     )

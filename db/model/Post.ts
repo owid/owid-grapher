@@ -17,21 +17,21 @@ import {
     snapshotIsPostRestApi,
     snapshotIsBlockGraphQlApi,
     PostReference,
-    Tag,
     DataPageRelatedResearch,
     OwidGdocType,
     DbRawLatestWork,
     DbEnrichedLatestWork,
     parseLatestWork,
+    DbPlainTag,
 } from "@ourworldindata/types"
 import { uniqBy, sortBy, memoize, orderBy } from "@ourworldindata/utils"
 import { Knex } from "knex"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { BLOG_SLUG } from "../../settings/serverSettings.js"
-import { GdocPost } from "./Gdoc/GdocPost.js"
 import { SiteNavigationStatic } from "../../site/SiteNavigation.js"
 import { decodeHTML } from "entities"
 import { RelatedResearchQueryResult } from "../wpdb"
+import { getAndLoadListedGdocPosts } from "./Gdoc/GdocFactory.js"
 
 export const postsTable = "posts"
 
@@ -265,7 +265,7 @@ const selectHomepagePosts: FilterFnPostRestApi = (post) =>
 export const getBlogIndex = memoize(
     async (knex: db.KnexReadonlyTransaction): Promise<IndexPost[]> => {
         await db.getConnection() // side effect: ensure connection is established
-        const gdocPosts = await GdocPost.getListedGdocPosts()
+        const gdocPosts = await getAndLoadListedGdocPosts(knex)
         const wpPosts = await Promise.all(
             await getPostsFromSnapshots(
                 knex,
@@ -437,7 +437,7 @@ export const getRelatedArticles = async (
 export const getPostTags = async (
     trx: db.KnexReadonlyTransaction,
     postId: number
-): Promise<Pick<Tag, "id" | "name">[]> => {
+): Promise<Pick<DbPlainTag, "id" | "name">[]> => {
     return await trx
         .table("post_tags")
         .select("tags.id", "tags.name")
@@ -457,58 +457,53 @@ export const getRelatedResearchAndWritingForVariable = async (
             -- One important complication is that the slugs that are used in posts to
             -- embed charts can either be the current slugs or old slugs that are redirected
             -- now.
-            select
-                distinct
-                pl.target as linkTargetSlug,
-                pl.componentType as componentType,
-                coalesce(csr.slug, c.slug) as chartSlug,
-                p.title as title,
-                p.slug as postSlug,
-                coalesce(csr.chart_id, c.id) as chartId,
-                p.authors as authors,
-                p.featured_image as thumbnail,
-                coalesce(pv.views_365d, 0) as pageviews,
-                'wordpress' as post_source,
-                (select coalesce(JSON_ARRAYAGG(t.name), JSON_ARRAY())
-                    from post_tags pt
-                    join tags t on pt.tag_id = t.id
-                    where pt.post_id = p.id
-                ) as tags
-            from
+            SELECT DISTINCT
+                pl.target AS linkTargetSlug,
+                pl.componentType AS componentType,
+                COALESCE(csr.slug, c.slug) AS chartSlug,
+                p.title AS title,
+                p.slug AS postSlug,
+                COALESCE(csr.chart_id, c.id) AS chartId,
+                p.authors AS authors,
+                p.featured_image AS thumbnail,
+                COALESCE(pv.views_365d, 0) AS pageviews,
+                'wordpress' AS post_source,
+                (
+                    SELECT
+                        COALESCE(JSON_ARRAYAGG(t.name), JSON_ARRAY())
+                    FROM
+                        post_tags pt
+                        JOIN tags t ON pt.tag_id = t.id
+                    WHERE
+                        pt.post_id = p.id
+                ) AS tags
+            FROM
                 posts_links pl
-            join posts p on
-                pl.sourceId = p.id
-            left join charts c on
-                pl.target = c.slug
-            left join chart_slug_redirects csr on
-                pl.target = csr.slug
-            left join chart_dimensions cd on
-                cd.chartId = coalesce(csr.chart_id, c.id)
-            left join analytics_pageviews pv on
-                pv.url = concat('https://ourworldindata.org/', p.slug )
-            left join posts_gdocs pg on
-            	pg.id = p.gdocSuccessorId
-            left join posts_gdocs pgs on
-                pgs.slug = p.slug
-            left join post_tags pt on
-                pt.post_id = p.id
-            where
+                JOIN posts p ON pl.sourceId = p.id
+                LEFT JOIN charts c ON pl.target = c.slug
+                LEFT JOIN chart_slug_redirects csr ON pl.target = csr.slug
+                LEFT JOIN chart_dimensions cd ON cd.chartId = COALESCE(csr.chart_id, c.id)
+                LEFT JOIN analytics_pageviews pv ON pv.url = CONCAT('https://ourworldindata.org/', p.slug)
+                LEFT JOIN posts_gdocs pg ON pg.id = p.gdocSuccessorId
+                LEFT JOIN posts_gdocs pgs ON pgs.slug = p.slug
+                LEFT JOIN post_tags pt ON pt.post_id = p.id
+            WHERE
                 -- we want only urls that point to grapher charts
                 pl.linkType = 'grapher'
                 -- componentType src is for those links that matched the anySrcregex (not anyHrefRegex or prominentLinkRegex)
                 -- this means that only the links that are of the iframe kind will be kept - normal a href style links will
                 -- be disregarded
-                and componentType = 'src'
-                and cd.variableId = ?
-                and cd.property in ('x', 'y') -- ignore cases where the indicator is size, color etc
-                and p.status = 'publish' -- only use published wp posts
-                and p.type != 'wp_block'
-                and coalesce(pg.published, 0) = 0 -- ignore posts if the wp post has a published gdoc successor. The
-                                                  -- coalesce makes sure that if there is no gdoc successor then
-                                                  -- the filter keeps the post
-                and coalesce(pgs.published, 0) = 0 -- ignore posts if there is a gdoc post with the same slug that is published
-                      -- this case happens for example for topic pages that are newly created (successorId is null)
-                      -- but that replace an old wordpress page
+                AND componentType = 'src'
+                AND cd.variableId = ?
+                AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
+                AND p.status = 'publish' -- only use published wp posts
+                AND p.type != 'wp_block'
+                AND COALESCE(pg.published, 0) = 0 -- ignore posts if the wp post has a published gdoc successor. The
+                -- coalesce makes sure that if there is no gdoc successor then
+                -- the filter keeps the post
+                AND COALESCE(pgs.published, 0) = 0 -- ignore posts if there is a gdoc post with the same slug that is published
+                -- this case happens for example for topic pages that are newly created (successorId is null)
+                -- but that replace an old wordpress page
 
             `,
         [variableId]
@@ -517,44 +512,41 @@ export const getRelatedResearchAndWritingForVariable = async (
     const gdocs_posts: RelatedResearchQueryResult[] = await db.knexRaw(
         knex,
         `-- sql
-            select
-                distinct
-                pl.target as linkTargetSlug,
-                pl.componentType as componentType,
-                coalesce(csr.slug, c.slug) as chartSlug,
-                p.content ->> '$.title' as title,
-                p.slug as postSlug,
-                coalesce(csr.chart_id, c.id) as chartId,
-                p.content ->> '$.authors' as authors,
-                p.content ->> '$."featured-image"' as thumbnail,
-                coalesce(pv.views_365d, 0) as pageviews,
-                'gdocs' as post_source,
-                (select coalesce(JSON_ARRAYAGG(t.name), JSON_ARRAY())
-                    from posts_gdocs_x_tags pt
-                    join tags t on pt.tagId = t.id
-                    where pt.gdocId = p.id
-                ) as tags
-            from
-                posts_gdocs_links pl
-            join posts_gdocs p on
-                pl.sourceId = p.id
-            left join charts c on
-                pl.target = c.slug
-            left join chart_slug_redirects csr on
-                pl.target = csr.slug
-            join chart_dimensions cd on
-                cd.chartId = coalesce(csr.chart_id, c.id)
-            left join analytics_pageviews pv on
-                pv.url = concat('https://ourworldindata.org/', p.slug )
-            left join posts_gdocs_x_tags pt on
-                pt.gdocId = p.id
-            where
-                pl.linkType = 'grapher'
-                and componentType = 'chart' -- this filters out links in tags and keeps only embedded charts
-                and cd.variableId = ?
-                and cd.property in ('x', 'y') -- ignore cases where the indicator is size, color etc
-                and p.published = 1
-                and p.content ->> '$.type' != 'fragment'`,
+        SELECT DISTINCT
+            pl.target AS linkTargetSlug,
+            pl.componentType AS componentType,
+            COALESCE(csr.slug, c.slug) AS chartSlug,
+            p.content ->> '$.title' AS title,
+            p.slug AS postSlug,
+            COALESCE(csr.chart_id, c.id) AS chartId,
+            p.content ->> '$.authors' AS authors,
+            p.content ->> '$."featured-image"' AS thumbnail,
+            COALESCE(pv.views_365d, 0) AS pageviews,
+            'gdocs' AS post_source,
+            (
+                SELECT
+                    COALESCE(JSON_ARRAYAGG(t.name), JSON_ARRAY())
+                FROM
+                    posts_gdocs_x_tags pt
+                    JOIN tags t ON pt.tagId = t.id
+                WHERE
+                    pt.gdocId = p.id
+            ) AS tags
+        FROM
+            posts_gdocs_links pl
+            JOIN posts_gdocs p ON pl.sourceId = p.id
+            LEFT JOIN charts c ON pl.target = c.slug
+            LEFT JOIN chart_slug_redirects csr ON pl.target = csr.slug
+            JOIN chart_dimensions cd ON cd.chartId = COALESCE(csr.chart_id, c.id)
+            LEFT JOIN analytics_pageviews pv ON pv.url = CONCAT('https://ourworldindata.org/', p.slug)
+            LEFT JOIN posts_gdocs_x_tags pt ON pt.gdocId = p.id
+        WHERE
+            pl.linkType = 'grapher'
+            AND componentType = 'chart' -- this filters out links in tags and keeps only embedded charts
+            AND cd.variableId = ?
+            AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
+            AND p.published = 1
+            AND p.content ->> '$.type' != 'fragment'`,
         [variableId]
     )
 
@@ -589,7 +581,7 @@ export const getLatestWorkByAuthor = async (
 ): Promise<DbEnrichedLatestWork[]> => {
     const rawLatestWorkLinks: DbRawLatestWork[] = await db.knexRaw(
         knex,
-        `
+        `-- sql
         SELECT
             pg.id,
             pg.slug,

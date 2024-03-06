@@ -1,23 +1,21 @@
-import { Entity, Column, LessThanOrEqual, Raw } from "typeorm"
 import {
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     OwidGdocDataInsightContent,
     OwidGdocDataInsightInterface,
     MinimalDataInsightInterface,
-    OwidGdocType,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
     OwidGdocMinimalPostInterface,
+    OwidGdocBaseInterface,
+    excludeNullish,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import * as db from "../../../db/db.js"
+import { getAndLoadPublishedDataInsights } from "./GdocFactory.js"
 
-@Entity("posts_gdocs")
 export class GdocDataInsight
     extends GdocBase
     implements OwidGdocDataInsightInterface
 {
-    @Column({ default: "{}", type: "json" })
     content!: OwidGdocDataInsightContent
 
     constructor(id?: string) {
@@ -27,10 +25,19 @@ export class GdocDataInsight
         }
     }
 
+    static create(obj: OwidGdocBaseInterface): GdocDataInsight {
+        const gdoc = new GdocDataInsight()
+        Object.assign(gdoc, obj)
+        return gdoc
+    }
+
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     latestDataInsights: MinimalDataInsightInterface[] = []
     // TODO: support query parameters in grapher urls so we can track country selections
-    _urlProperties: string[] = ["grapher-url"]
+
+    protected typeSpecificUrls(): string[] {
+        return excludeNullish([this.content["grapher-url"]])
+    }
 
     _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
@@ -44,33 +51,17 @@ export class GdocDataInsight
         return errors
     }
 
-    _loadSubclassAttachments = async (): Promise<void> => {
+    _loadSubclassAttachments = async (
+        knex: db.KnexReadonlyTransaction
+    ): Promise<void> => {
         // TODO: refactor these classes to properly use knex - not going to start it now
-        this.latestDataInsights = await db.getPublishedDataInsights(
-            db.knexInstance() as db.KnexReadonlyTransaction, // TODO: replace this with a transaction that is passed in
-            5
-        )
+        this.latestDataInsights = await db.getPublishedDataInsights(knex, 5)
     }
 
     static async getPublishedDataInsights(
+        knex: db.KnexReadonlyTransaction,
         page?: number
     ): Promise<GdocDataInsight[]> {
-        const isPaging = page !== undefined
-        return GdocDataInsight.find({
-            where: {
-                published: true,
-                publishedAt: LessThanOrEqual(new Date()),
-                content: Raw(
-                    (content) =>
-                        `${content}->"$.type" = '${OwidGdocType.DataInsight}'`
-                ),
-            },
-            order: {
-                publishedAt: "DESC",
-            },
-            take: isPaging ? DATA_INSIGHTS_INDEX_PAGE_SIZE : undefined,
-            skip: isPaging ? page * DATA_INSIGHTS_INDEX_PAGE_SIZE : undefined,
-            relations: ["tags"],
-        })
+        return getAndLoadPublishedDataInsights(knex, page)
     }
 }

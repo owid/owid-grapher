@@ -3,12 +3,11 @@ import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 
 import {
-    DbChartTagJoin,
-    Tag,
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
     SearchWord,
     uniq,
+    DbChartTagJoin,
 } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow, Timeago } from "./Forms.js"
@@ -52,7 +51,7 @@ enum GdocStatus {
 
 interface PostRowProps {
     post: PostIndexMeta
-    availableTags: Tag[]
+    availableTags: DbChartTagJoin[]
 }
 
 @observer
@@ -257,7 +256,7 @@ export class PostsIndexPage extends React.Component {
     @observable posts: PostIndexMeta[] = []
     @observable maxVisibleRows = 50
     @observable searchInput?: string
-    @observable availableTags: Tag[] = []
+    @observable availableTags: DbChartTagJoin[] = []
 
     @computed get searchWords(): SearchWord[] {
         const { searchInput } = this

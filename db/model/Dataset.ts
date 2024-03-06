@@ -1,15 +1,5 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    BaseEntity,
-    ManyToOne,
-    Unique,
-    type Relation,
-} from "typeorm"
 import { Writable } from "stream"
 
-import { User } from "./User.js"
 import { getSourcesForDataset, sourceToDatapackage } from "./Source.js"
 
 import * as db from "../db.js"
@@ -23,25 +13,25 @@ import {
     DbRawVariable,
 } from "@ourworldindata/types"
 
-@Entity("datasets")
-@Unique(["name", "namespace"])
-export class Dataset extends BaseEntity {
-    @PrimaryGeneratedColumn() id!: number
-    @Column() name!: string
-    @Column({ default: "owid" }) namespace!: string
-    @Column({ default: "" }) description!: string
-    @Column() createdAt!: Date
-    @Column() updatedAt!: Date
-    @Column() metadataEditedAt!: Date
-    @Column() metadataEditedByUserId!: number
-    @Column() dataEditedAt!: Date
-    @Column() dataEditedByUserId!: number
-    @Column({ default: false }) isPrivate!: boolean
-    @Column({ default: false }) nonRedistributable!: boolean
+// @Entity("datasets")
+// @Unique(["name", "namespace"])
+// export class Dataset extends BaseEntity {
+//     @PrimaryGeneratedColumn() id!: number
+//     @Column() name!: string
+//     @Column({ default: "owid" }) namespace!: string
+//     @Column({ default: "" }) description!: string
+//     @Column() createdAt!: Date
+//     @Column() updatedAt!: Date
+//     @Column() metadataEditedAt!: Date
+//     @Column() metadataEditedByUserId!: number
+//     @Column() dataEditedAt!: Date
+//     @Column() dataEditedByUserId!: number
+//     @Column({ default: false }) isPrivate!: boolean
+//     @Column({ default: false }) nonRedistributable!: boolean
 
-    @ManyToOne(() => User, (user) => user.createdDatasets)
-    createdByUser!: Relation<User>
-}
+//     @ManyToOne(() => User, (user) => user.createdDatasets)
+//     createdByUser!: Relation<User>
+// }
 
 export async function getDatasetById(
     knex: db.KnexReadonlyTransaction,
