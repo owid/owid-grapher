@@ -386,6 +386,11 @@ export function enrichedBlockToRawBlock(
                                   ),
                               }
                             : undefined,
+                        latest: b.latest
+                            ? {
+                                  heading: b.latest.heading,
+                              }
+                            : undefined,
                         rows: b.rows.map(({ heading, articles }) => ({
                             heading: heading,
                             articles: articles.map(enrichedLinkToRawLink),

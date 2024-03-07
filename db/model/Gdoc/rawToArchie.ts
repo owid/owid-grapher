@@ -484,7 +484,7 @@ function* rawKeyInsightsToArchieMLString(
 function* rawResearchAndWritingToArchieMLString(
     block: RawBlockResearchAndWriting
 ): Generator<string, void, undefined> {
-    const { primary, secondary, more, rows } = block.value
+    const { primary, secondary, more, latest, rows } = block.value
     function* rawLinkToArchie(
         link: RawBlockResearchAndWritingLink
     ): Generator<string, void, undefined> {
@@ -528,6 +528,11 @@ function* rawResearchAndWritingToArchieMLString(
             }
             yield "[]"
         }
+        yield "{}"
+    }
+    if (latest) {
+        yield "{.latest}"
+        yield* propertyToArchieMLString("heading", latest)
         yield "{}"
     }
     if (rows) {

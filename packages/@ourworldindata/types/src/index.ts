@@ -233,6 +233,7 @@ export {
     type EnrichedBlockRecirc,
     type EnrichedBlockResearchAndWriting,
     type EnrichedBlockResearchAndWritingLink,
+    type EnrichedBlockLatestWork,
     type EnrichedBlockResearchAndWritingRow,
     type EnrichedBlockScroller,
     type EnrichedBlockSDGGrid,
