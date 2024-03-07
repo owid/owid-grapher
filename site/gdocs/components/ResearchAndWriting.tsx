@@ -26,6 +26,7 @@ function ResearchAndWritingLink(
         className?: string
         isSmall?: boolean
         shouldHideThumbnail?: boolean
+        shouldHideThumbnailSm?: boolean
         shouldHideSubtitle?: boolean
     }
 ) {
@@ -39,6 +40,7 @@ function ResearchAndWritingLink(
             date,
         },
         shouldHideThumbnail = false,
+        shouldHideThumbnailSm = false,
         isSmall = false,
         shouldHideSubtitle = false,
         className,
@@ -66,7 +68,14 @@ function ResearchAndWritingLink(
     return (
         <a
             href={url}
-            className={cx("research-and-writing-link", className)}
+            className={cx(
+                "research-and-writing-link",
+                {
+                    "research-and-writing-link--hide-thumbnail-sm":
+                        shouldHideThumbnailSm,
+                },
+                className
+            )}
             target="_blank"
             rel="noopener noreferrer"
         >
@@ -162,7 +171,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                 <a className="deep-link" href={`#${slug}`} />
             </h1>
             <div className="span-cols-12 research-and-writing-row">
-                <div className="grid research-and-writing-row__links">
+                <div className="grid research-and-writing-row__links research-and-writing-row__links--overflow">
                     {primary.map((link, i) => (
                         <ResearchAndWritingLink
                             className="span-cols-6 span-sm-cols-12"
@@ -185,7 +194,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                     <h2 className="h2-bold research-and-writing-row__heading">
                         {row.heading}
                     </h2>
-                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links">
+                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links research-and-writing-row__links--overflow">
                         {row.articles.map((link, i) => (
                             <ResearchAndWritingLink
                                 shouldHideSubtitle
@@ -203,7 +212,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                     <h2 className="h2-bold research-and-writing-row__heading">
                         {more.heading}
                     </h2>
-                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links research-and-writing-row__links--condensed">
+                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links research-and-writing-row__links--condensed-sm research-and-writing-row__links--condensed research-and-writing-row__links--overflow">
                         {more.articles.map((link, i) => (
                             <ResearchAndWritingLink
                                 shouldHideThumbnail
@@ -222,10 +231,11 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                     <h2 className="h2-bold">
                         {latest.heading || "Latest work"}
                     </h2>
-                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links">
+                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 grid-sm-cols-1 research-and-writing-row__links research-and-writing-row__links--condensed-sm">
                         {latest.articles.map((link, i) => (
                             <ResearchAndWritingLink
                                 isSmall
+                                shouldHideThumbnailSm
                                 className="span-cols-1"
                                 key={i}
                                 {...link}
