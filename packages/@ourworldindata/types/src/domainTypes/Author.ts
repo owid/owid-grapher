@@ -4,7 +4,7 @@ export interface DbRawLatestWork {
     title: string
     authors: string
     "featured-image": string | null
-    publishedAt: Date | null
+    publishedAt: string | null
 }
 
 export interface DbEnrichedLatestWork {
@@ -13,7 +13,7 @@ export interface DbEnrichedLatestWork {
     title: string
     authors: string[]
     "featured-image": string | null
-    publishedAt: Date | null
+    publishedAt: string | null
 }
 
 export const parseLatestWork = (
