@@ -571,6 +571,11 @@ export type EnrichedBlockResearchAndWritingRow = {
     articles: EnrichedBlockResearchAndWritingLink[]
 }
 
+export type EnrichedBlockLatestWork = {
+    heading?: string
+    articles?: EnrichedBlockResearchAndWritingLink[]
+}
+
 export type EnrichedBlockResearchAndWriting = {
     type: "research-and-writing"
     heading?: string
@@ -578,7 +583,7 @@ export type EnrichedBlockResearchAndWriting = {
     secondary: EnrichedBlockResearchAndWritingLink[]
     more?: EnrichedBlockResearchAndWritingRow
     rows: EnrichedBlockResearchAndWritingRow[]
-    latest?: EnrichedBlockResearchAndWritingRow
+    latest?: EnrichedBlockLatestWork
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockSDGToc = {

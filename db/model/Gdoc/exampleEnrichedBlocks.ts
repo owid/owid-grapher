@@ -411,6 +411,10 @@ export const enrichedBlockExamples: Record<
                 },
             ],
         },
+        latest: {
+            heading: "Latest work",
+            // No support for manual articles, they are only being pulled dynamically
+        },
         rows: [
             {
                 heading: "More articles on this topic",

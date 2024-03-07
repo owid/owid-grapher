@@ -127,6 +127,8 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
         (link) => link.value.url
     )
     const { latestWorkLinks } = useContext(AttachmentsContext)
+    // There might be latestWorkLinks available but we only want to show them if
+    // a {.latest} block has been added
     if (latest && latestWorkLinks) {
         latest.articles = latestWorkLinks
             // We want to filter out the primary and secondary links (aka.
@@ -207,7 +209,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                     </div>
                 </div>
             ) : null}
-            {latest ? (
+            {latest?.articles?.length ? (
                 <div className="span-cols-12 research-and-writing-row">
                     <h2 className="h2-bold">
                         {latest.heading || "Latest work"}

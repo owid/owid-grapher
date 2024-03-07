@@ -119,6 +119,7 @@ import {
     EnrichedSocialLink,
     SocialLinkType,
     RawBlockLatestWork,
+    EnrichedBlockLatestWork,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -1760,12 +1761,12 @@ function parseResearchAndWritingBlock(
 
     const parseRowLatest = (
         rawRow: RawBlockLatestWork
-    ): EnrichedBlockResearchAndWritingRow | undefined => {
+    ): EnrichedBlockLatestWork | undefined => {
         if (rawRow.heading && typeof rawRow.heading !== "string") {
             parseErrors.push({ message: `"heading" must be a string` })
             return
         }
-        return { heading: rawRow.heading || "", articles: [] }
+        return { heading: rawRow.heading }
     }
 
     const more = raw.value.more ? parseRow(raw.value.more, true) : undefined
