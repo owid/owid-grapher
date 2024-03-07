@@ -556,7 +556,9 @@ export class StaticCaptionedChart extends CaptionedChart {
                     {this.manager.detailRenderers.map((detail, i) => {
                         previousOffset = yOffset
                         yOffset += detail.height + STATIC_EXPORT_DETAIL_SPACING
-                        return detail.renderSVG(0, previousOffset, { key: i })
+                        return detail.renderSVG(0, previousOffset, {
+                            textProps: { key: i },
+                        })
                     })}
                 </g>
             </>

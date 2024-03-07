@@ -25,7 +25,7 @@ import {
 } from "@ourworldindata/utils"
 import { FieldsRow, Section, SelectField, Toggle } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
-import { ChartEditor } from "./ChartEditor.js"
+import { ChartEditor, ChartEditorManager } from "./ChartEditor.js"
 import { DimensionCard } from "./DimensionCard.js"
 import {
     DragDropContext,
@@ -45,6 +45,11 @@ class DimensionSlotView extends React.Component<{
 
     private get grapher() {
         return this.props.editor.grapher
+    }
+
+    @computed
+    get errorMessages(): ChartEditorManager["errorMessagesForDimensions"] {
+        return this.props.editor.manager.errorMessagesForDimensions
     }
 
     @action.bound private onAddVariables(variableIds: OwidVariableId[]) {
@@ -228,6 +233,11 @@ class DimensionSlotView extends React.Component<{
                                                     }
                                                     isDndEnabled={
                                                         this.isDndEnabled
+                                                    }
+                                                    errorMessage={
+                                                        this.errorMessages[
+                                                            slot.property
+                                                        ][index]
                                                     }
                                                 />
                                             </div>

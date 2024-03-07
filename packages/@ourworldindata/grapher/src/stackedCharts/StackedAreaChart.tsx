@@ -542,6 +542,7 @@ export class StackedAreaChart
                             ? GRAPHER_AXIS_LINE_WIDTH_THICK
                             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
                     }
+                    detailsMarker={manager.detailsMarkerInSvg}
                 />
                 <g clipPath={clipPath.id}>
                     {showLegend && <LineLegend manager={this} />}

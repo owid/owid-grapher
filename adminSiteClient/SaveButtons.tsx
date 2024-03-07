@@ -1,7 +1,8 @@
 import React from "react"
 import { ChartEditor } from "./ChartEditor.js"
-import { action } from "mobx"
+import { action, computed } from "mobx"
 import { observer } from "mobx-react"
+import { isEmpty } from "@ourworldindata/utils"
 
 @observer
 export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
@@ -19,15 +20,24 @@ export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
         else this.props.editor.publishGrapher()
     }
 
+    @computed get hasEditingErrors(): boolean {
+        const { editor } = this.props
+        const { errorMessages, errorMessagesForDimensions } = editor.manager
+
+        if (!isEmpty(errorMessages)) return true
+
+        const allErrorMessagesForDimensions = Object.values(
+            errorMessagesForDimensions
+        ).flat()
+        return allErrorMessagesForDimensions.some((error) => error)
+    }
+
     render() {
+        const { hasEditingErrors } = this
         const { editor } = this.props
         const { grapher } = editor
-        const hasDetailErrors = Boolean(
-            editor.manager.invalidDetailReferences.subtitle.length ||
-                editor.manager.invalidDetailReferences.note.length
-        )
 
-        const isSavingDisabled = grapher.hasFatalErrors || hasDetailErrors
+        const isSavingDisabled = grapher.hasFatalErrors || hasEditingErrors
 
         return (
             <div className="SaveButtons">

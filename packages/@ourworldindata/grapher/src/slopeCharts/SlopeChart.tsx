@@ -56,7 +56,7 @@ import {
 } from "./SlopeChartConstants"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 
 @observer
 export class SlopeChart
@@ -585,10 +585,12 @@ class Slope extends React.Component<SlopeProps> {
                         leftLabelBounds.x + leftLabelBounds.width,
                         leftLabelBounds.y,
                         {
-                            textAnchor: "end",
-                            fill: labelColor,
-                            fontWeight:
-                                isFocused || isHovered ? "bold" : undefined,
+                            textProps: {
+                                textAnchor: "end",
+                                fill: labelColor,
+                                fontWeight:
+                                    isFocused || isHovered ? "bold" : undefined,
+                            },
                         }
                     )}
                 {hasLeftLabel && (
@@ -640,8 +642,11 @@ class Slope extends React.Component<SlopeProps> {
                 )}
                 {hasRightLabel &&
                     rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, {
-                        fill: labelColor,
-                        fontWeight: isFocused || isHovered ? "bold" : undefined,
+                        textProps: {
+                            fill: labelColor,
+                            fontWeight:
+                                isFocused || isHovered ? "bold" : undefined,
+                        },
                     })}
             </g>
         )
@@ -651,7 +656,7 @@ class Slope extends React.Component<SlopeProps> {
 @observer
 class LabelledSlopes
     extends React.Component<LabelledSlopesProps>
-    implements FontSizeManager
+    implements AxisManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 

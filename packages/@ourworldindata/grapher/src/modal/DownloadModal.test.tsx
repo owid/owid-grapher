@@ -38,7 +38,6 @@ it("correctly passes non-redistributable flag", () => {
             rasterize: () => new Promise(() => {}),
             displaySlug: "",
             table: tableFalse,
-            detailRenderers: [],
         },
     })
     expect(viewFalse["nonRedistributable"]).toBeFalsy()
@@ -50,7 +49,6 @@ it("correctly passes non-redistributable flag", () => {
             rasterize: () => new Promise(() => {}),
             displaySlug: "",
             table: tableTrue,
-            detailRenderers: [],
         },
     })
     expect(viewTrue["nonRedistributable"]).toBeTruthy()

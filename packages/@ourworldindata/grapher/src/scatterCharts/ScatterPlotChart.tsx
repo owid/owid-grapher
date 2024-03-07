@@ -41,6 +41,7 @@ import {
     PointVector,
     Bounds,
     DEFAULT_BOUNDS,
+    maybeMakeMarkdownDetail,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -374,6 +375,10 @@ export class ScatterPlotChart
                 this.colorScale.getColor(colorValue)
             )
         )
+    }
+
+    @computed get detailsOrderedByReference(): string[] {
+        return this.manager.detailsOrderedByReference ?? []
     }
 
     @computed get fontSize(): number {
@@ -786,6 +791,7 @@ export class ScatterPlotChart
                             ? GRAPHER_AXIS_LINE_WIDTH_THICK
                             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
                     }
+                    detailsMarker={manager.detailsMarkerInSvg}
                 />
                 {comparisonLines &&
                     comparisonLines.map((line, i) => (
@@ -1127,22 +1133,47 @@ export class ScatterPlotChart
         return this.domainDefault("y")
     }
 
+    @computed get defaultYAxisLabel(): string | undefined {
+        return this.yColumn?.displayName
+    }
+
+    @computed get currentVerticalAxisLabel(): string {
+        const {
+            manager,
+            yAxisConfig,
+            defaultYAxisLabel,
+            detailsOrderedByReference,
+        } = this
+
+        let label =
+            yAxisConfig.label ||
+            maybeMakeMarkdownDetail({
+                text: defaultYAxisLabel,
+                details: detailsOrderedByReference,
+                type: "indicator",
+            }) ||
+            ""
+
+        if (manager.isRelativeMode && label && label.length > 1) {
+            label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
+                label
+            )}`
+        }
+
+        return label
+    }
+
     @computed private get verticalAxisPart(): VerticalAxis {
         const { manager, yDomainDefault, validValuesForAxisDomainY } = this
         const axisConfig = this.yAxisConfig
 
         const axis = axisConfig.toVerticalAxis()
         axis.formatColumn = this.yColumn
-        const label = axisConfig.label || this.yColumn?.displayName || ""
         axis.scaleType = this.yScaleType
+        axis.label = this.currentVerticalAxisLabel
 
         if (manager.isRelativeMode) {
             axis.domain = yDomainDefault // Overwrite author's min/max
-            if (label && label.length > 1) {
-                axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
-                    label
-                )}`
-            }
         } else {
             const isAnyValueOutsideUserDomain = validValuesForAxisDomainY.some(
                 (value) => value < axis.domain[0] || value > axis.domain[1]
@@ -1156,8 +1187,6 @@ export class ScatterPlotChart
             ) {
                 axis.updateDomainPreservingUserSettings(yDomainDefault)
             }
-
-            axis.label = label
         }
 
         return axis
@@ -1169,27 +1198,47 @@ export class ScatterPlotChart
             : this.xAxisConfig.scaleType ?? ScaleType.linear
     }
 
+    @computed get defaultXAxisLabel(): string | undefined {
+        return this.xColumn?.displayName
+    }
+
     @computed private get xAxisLabelBase(): string {
-        const xDimName = this.xColumn?.displayName
+        const xDimName =
+            maybeMakeMarkdownDetail({
+                text: this.defaultXAxisLabel,
+                type: "indicator",
+                details: this.detailsOrderedByReference,
+            }) ?? ""
         if (this.xOverrideTime !== undefined)
             return `${xDimName} in ${this.xOverrideTime}`
         return xDimName
     }
 
+    @computed get currentHorizontalAxisLabel(): string {
+        const { manager, xAxisConfig, xAxisLabelBase } = this
+
+        let label = xAxisConfig.label || xAxisLabelBase
+        if (manager.isRelativeMode && label && label.length > 1) {
+            label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
+                label
+            )}`
+        }
+
+        return label
+    }
+
     @computed private get horizontalAxisPart(): HorizontalAxis {
-        const { xDomainDefault, manager, xAxisLabelBase } = this
+        const { xDomainDefault, manager } = this
         const { xAxisConfig, validValuesForAxisDomainX } = this
         const axis = xAxisConfig.toHorizontalAxis()
         axis.formatColumn = this.xColumn
         axis.scaleType = this.xScaleType
+
+        if (this.currentHorizontalAxisLabel)
+            axis.label = this.currentHorizontalAxisLabel
+
         if (manager.isRelativeMode) {
             axis.domain = xDomainDefault // Overwrite author's min/max
-            const label = xAxisConfig.label || xAxisLabelBase
-            if (label && label.length > 1) {
-                axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
-                    label
-                )}`
-            }
         } else {
             const isAnyValueOutsideUserDomain = validValuesForAxisDomainX.some(
                 (value) => value < axis.domain[0] || value > axis.domain[1]
@@ -1203,9 +1252,6 @@ export class ScatterPlotChart
             ) {
                 axis.updateDomainPreservingUserSettings(xDomainDefault)
             }
-
-            const label = xAxisConfig.label || xAxisLabelBase
-            if (label) axis.label = label
         }
         return axis
     }

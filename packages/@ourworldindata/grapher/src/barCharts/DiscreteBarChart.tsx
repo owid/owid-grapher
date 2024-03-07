@@ -43,7 +43,7 @@ import {
     HorizontalAxisZeroLine,
 } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
@@ -102,7 +102,7 @@ export class DiscreteBarChart
         bounds?: Bounds
         manager: DiscreteBarChartManager
     }>
-    implements ChartInterface, FontSizeManager, ColorScaleManager
+    implements ChartInterface, AxisManager, ColorScaleManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 

@@ -2,7 +2,7 @@ import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartDimension } from "@ourworldindata/grapher"
-import { ChartEditor } from "./ChartEditor.js"
+import { ChartEditor, DimensionErrorMessage } from "./ChartEditor.js"
 import { Toggle, BindAutoString, BindAutoFloat, ColorBox } from "./Forms.js"
 import { Link } from "./Link.js"
 import {
@@ -23,6 +23,7 @@ export class DimensionCard extends React.Component<{
     onChange: (dimension: ChartDimension) => void
     onEdit?: () => void
     onRemove?: () => void
+    errorMessage?: DimensionErrorMessage
 }> {
     @observable.ref isExpanded: boolean = false
 
@@ -149,6 +150,7 @@ export class DimensionCard extends React.Component<{
                             store={dimension.display}
                             auto={column.displayName}
                             onBlur={this.onChange}
+                            errorMessage={this.props.errorMessage?.displayName}
                         />
                         <BindAutoString
                             label="Unit of measurement"

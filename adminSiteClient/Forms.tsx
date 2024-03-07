@@ -781,6 +781,7 @@ export class BindAutoString<
     auto: string
     label?: string
     helpText?: string
+    errorMessage?: string
     softCharacterLimit?: number
     onBlur?: () => void
 }> {

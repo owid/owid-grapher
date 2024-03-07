@@ -10,6 +10,7 @@ import {
     AxisConfigInterface,
     ColorSchemeName,
     EntityName,
+    DetailsMarker,
 } from "@ourworldindata/types"
 import { TooltipManager } from "../tooltip/TooltipProps"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -94,4 +95,7 @@ export interface ChartManager {
     isNarrow?: boolean
     isStaticAndSmall?: boolean
     secondaryColorInStaticCharts?: string
+
+    detailsOrderedByReference?: string[]
+    detailsMarkerInSvg?: DetailsMarker
 }

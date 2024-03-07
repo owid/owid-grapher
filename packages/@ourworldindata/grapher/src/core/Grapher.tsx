@@ -34,7 +34,6 @@ import {
     OwidVariableWithSourceAndDimension,
     Bounds,
     DEFAULT_BOUNDS,
-    detailOnDemandRegex,
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
     TimeBounds,
@@ -66,6 +65,7 @@ import {
     compact,
     getOriginAttributionFragments,
     sortBy,
+    extractDetailsFromSyntax,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -100,6 +100,8 @@ import {
     ColorSchemeName,
     AxisConfigInterface,
     GrapherStaticFormat,
+    DetailsMarker,
+    DetailDictionary,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -136,7 +138,7 @@ import {
     getSelectedEntityNamesParam,
     setSelectedEntityNamesParam,
 } from "./EntityUrlBuilder"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { FullScreen } from "../fullScreen/FullScreen"
@@ -196,7 +198,12 @@ import {
     type GrapherExport,
 } from "../captionedChart/StaticChartRasterizer.js"
 
-declare const window: any
+declare global {
+    interface Window {
+        details?: DetailDictionary
+        admin?: any // TODO: use stricter type
+    }
+}
 
 async function loadVariablesDataAdmin(
     variableFetchBaseUrl: string | undefined,
@@ -322,7 +329,7 @@ export class Grapher
     implements
         TimelineManager,
         ChartManager,
-        FontSizeManager,
+        AxisManager,
         CaptionedChartManager,
         SourcesModalManager,
         DownloadModalManager,
@@ -1234,28 +1241,107 @@ export class Grapher
         return this.slug ?? slugify(this.displayTitle)
     }
 
+    @computed get defaultYAxisLabel(): string | undefined {
+        if (this.isReady && this.chartInstance.defaultYAxisLabel) {
+            return this.chartInstance.defaultYAxisLabel
+        }
+        return undefined
+    }
+
+    @computed get defaultXAxisLabel(): string | undefined {
+        if (this.isReady && this.chartInstance.defaultXAxisLabel) {
+            return this.chartInstance.defaultXAxisLabel
+        }
+        return undefined
+    }
+
     @observable shouldIncludeDetailsInStaticExport = true
 
     // Used for superscript numbers in static exports
-    @computed get detailsOrderedByReference(): Set<string> {
-        const textInOrderOfAppearance = this.currentSubtitle + this.note
-        const details = textInOrderOfAppearance.matchAll(
-            new RegExp(detailOnDemandRegex, "g")
+    @computed get detailsOrderedByReference(): string[] {
+        if (typeof window === "undefined") return []
+
+        // We are toying with the idea of automatically looking for a detail with a specific prefix
+        // (e.g. grapher_indicator_per-capita-emissions) when an indicator name is used as the default axis label.
+        // This feature is disabled for now, but we might want to enable it in the future.
+        //
+        // // if a custom axis label is given, extract details from it;
+        // // otherwise, check if a detail exists for the default axis label
+        // function extractDetailsFromAxisLabel(
+        //     configLabel?: string,
+        //     defaultLabel?: string
+        // ): string[] {
+        //     if (configLabel) {
+        //         return extractDetailsFromSyntax(configLabel)
+        //     } else if (defaultLabel) {
+        //         return [
+        //             makeDetailIdFromText({
+        //                 text: defaultLabel,
+        //                 type: "indicator",
+        //             }),
+        //         ]
+        //     }
+        //     return []
+        // }
+        //
+        // // extract details from axis labels
+        // const yAxisDetails = extractDetailsFromAxisLabel(
+        //     this.yAxisConfig.label,
+        //     this.defaultYAxisLabel
+        // )
+        // const xAxisDetails = extractDetailsFromAxisLabel(
+        //     this.xAxisConfig.label,
+        //     this.defaultXAxisLabel
+        // )
+
+        // extract details from supporting text
+        const subtitleDetails = !this.hideSubtitle
+            ? extractDetailsFromSyntax(this.currentSubtitle)
+            : []
+        const noteDetails = !this.hideNote
+            ? extractDetailsFromSyntax(this.note)
+            : []
+
+        // extract details from axis labels
+        const yAxisDetails = extractDetailsFromSyntax(
+            this.yAxisConfig.label || ""
         )
-        const uniqueDetails = new Set<string>()
-        for (const [_, detail] of details) {
-            uniqueDetails.add(detail)
-        }
-        return uniqueDetails
+        const xAxisDetails = extractDetailsFromSyntax(
+            this.xAxisConfig.label || ""
+        )
+
+        // text fragments are ordered by appearance
+        const uniqueDetails = uniq([
+            ...subtitleDetails,
+            ...yAxisDetails,
+            ...xAxisDetails,
+            ...noteDetails,
+        ])
+
+        const validDetails = uniqueDetails.filter((detailId: string) => {
+            const detail = window.details?.[detailId]
+            return detail !== undefined
+        })
+
+        return validDetails
+    }
+
+    @computed get detailsMarkerInSvg(): DetailsMarker {
+        const { isStatic, shouldIncludeDetailsInStaticExport } = this
+        return !isStatic
+            ? "underline"
+            : shouldIncludeDetailsInStaticExport
+            ? "superscript"
+            : "none"
     }
 
     // Used for static exports. Defined at this level because they need to
     // be accessed by CaptionedChart and DownloadModal
     @computed get detailRenderers(): MarkdownTextWrap[] {
         if (typeof window === "undefined") return []
-        return [...this.detailsOrderedByReference].map((term, i) => {
+        return this.detailsOrderedByReference.map((term, i) => {
             let text = `**${i + 1}.** `
-            const detail: EnrichedDetail = window.details?.[term]
+            const detail: EnrichedDetail | undefined = window.details?.[term]
             if (detail) {
                 const plainText = detail.text.map(({ value }) =>
                     spansToUnformattedPlainText(value)

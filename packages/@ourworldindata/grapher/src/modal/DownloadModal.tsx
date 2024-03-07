@@ -8,7 +8,7 @@ import {
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap, Checkbox } from "@ourworldindata/components"
+import { Checkbox } from "@ourworldindata/components"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
@@ -32,7 +32,7 @@ export interface DownloadModalManager {
     table?: OwidTable
     externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
     shouldIncludeDetailsInStaticExport?: boolean
-    detailRenderers: MarkdownTextWrap[]
+    detailsOrderedByReference?: string[]
     isDownloadModalOpen?: boolean
     tabBounds?: Bounds
     isOnChartOrMapTab?: boolean
@@ -204,11 +204,12 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             !this.manager.shouldIncludeDetailsInStaticExport
     }
 
+    @computed private get hasDetails(): boolean {
+        return !isEmpty(this.manager.detailsOrderedByReference)
+    }
+
     @computed private get showExportControls(): boolean {
-        return (
-            !isEmpty(this.manager.detailRenderers) ||
-            !!this.manager.showAdminControls
-        )
+        return this.hasDetails || !!this.manager.showAdminControls
     }
 
     private renderReady(): JSX.Element {
@@ -260,7 +261,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                         </div>
                         {this.showExportControls && (
                             <div className="static-exports-options">
-                                {!isEmpty(this.manager.detailRenderers) && (
+                                {this.hasDetails && (
                                     <Checkbox
                                         checked={this.shouldIncludeDetails}
                                         label="Include terminology definitions at bottom of chart"

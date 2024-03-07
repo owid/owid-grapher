@@ -21,6 +21,7 @@ import {
     getRelativeMouse,
     ColorSchemeName,
     EntitySelectionMode,
+    maybeMakeMarkdownDetail,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -598,15 +599,31 @@ export class MarimekkoChart
             this
         )
     }
+
+    @computed get defaultYAxisLabel(): string | undefined {
+        return this.yColumns.length > 0
+            ? this.yColumns[0].displayName
+            : undefined
+    }
+
+    @computed get currentVerticalAxisLabel(): string {
+        const config = this.yAxisConfig
+        const fallbackLabel =
+            maybeMakeMarkdownDetail({
+                text: this.defaultYAxisLabel,
+                type: "indicator",
+                details: this.detailsOrderedByReference,
+            }) ?? ""
+        return this.isNarrow ? "" : config.label || fallbackLabel
+    }
+
     @computed private get verticalAxisPart(): VerticalAxis {
         const config = this.yAxisConfig
         const axis = config.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(this.yDomainDefault)
 
         axis.formatColumn = this.yColumns[0]
-        const fallbackLabel =
-            this.yColumns.length > 0 ? this.yColumns[0].displayName : ""
-        axis.label = this.isNarrow ? "" : config.label || fallbackLabel
+        axis.label = this.currentVerticalAxisLabel
 
         return axis
     }
@@ -614,15 +631,30 @@ export class MarimekkoChart
         // TODO: this should probably come from grapher?
         return this.bounds.width < 650 // innerBounds would lead to dependency cycle
     }
+
     @computed private get xAxisLabelBase(): string {
-        const xDimName = this.xColumn?.displayName
+        const xDimName = maybeMakeMarkdownDetail({
+            text: this.defaultXAxisLabel,
+            type: "indicator",
+            details: this.detailsOrderedByReference,
+        })
         if (this.manager.xOverrideTime !== undefined)
             return `${xDimName} in ${this.manager.xOverrideTime}`
         return xDimName ?? "" // This sets the axis label to emtpy if we don't have an x column - not entirely sure this is what we want
     }
 
+    @computed get defaultXAxisLabel(): string | undefined {
+        return this.xColumn?.displayName
+    }
+
+    @computed get currentHorizontalAxisLabel(): string {
+        const { xAxisLabelBase } = this
+        const config = this.xAxisConfig
+        return config.label || xAxisLabelBase
+    }
+
     @computed private get horizontalAxisPart(): HorizontalAxis {
-        const { manager, xAxisLabelBase, xDomainDefault, xColumn } = this
+        const { manager, xDomainDefault, xColumn } = this
         const config = this.xAxisConfig
         let axis = config.toHorizontalAxis()
         if (manager.isRelativeMode && xColumn) {
@@ -632,16 +664,16 @@ export class MarimekkoChart
             axis = new HorizontalAxis(
                 new AxisConfig(
                     { ...config.toObject(), maxTicks: 10 },
-                    config.fontSizeManager
-                )
+                    config.axisManager
+                ),
+                config.axisManager
             )
             axis.domain = [0, 100]
         } else axis.updateDomainPreservingUserSettings(xDomainDefault)
 
         axis.formatColumn = xColumn
 
-        const label = config.label || xAxisLabelBase
-        axis.label = label
+        axis.label = this.currentHorizontalAxisLabel
         return axis
     }
 
@@ -829,6 +861,10 @@ export class MarimekkoChart
         return this.baseFontSize
     }
 
+    @computed get detailsOrderedByReference(): string[] {
+        return this.manager.detailsOrderedByReference ?? []
+    }
+
     @computed get categoricalLegendData(): CategoricalBin[] {
         const { colorColumnSlug, colorScale, series } = this
         const customHiddenCategories =
@@ -972,6 +1008,7 @@ export class MarimekkoChart
                             ? GRAPHER_AXIS_LINE_WIDTH_THICK
                             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
                     }
+                    detailsMarker={manager.detailsMarkerInSvg}
                 />
                 <HorizontalCategoricalColorLegend manager={this} />
                 {this.renderBars()}
