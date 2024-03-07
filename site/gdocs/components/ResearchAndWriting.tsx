@@ -228,7 +228,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             ) : null}
             {latest?.articles?.length ? (
                 <div className="span-cols-12 research-and-writing-row">
-                    <h2 className="h2-bold">
+                    <h2 className="h2-bold research-and-writing-row__heading">
                         {latest.heading || "Latest work"}
                     </h2>
                     <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 grid-sm-cols-1 research-and-writing-row__links research-and-writing-row__links--condensed-sm">
