@@ -22,11 +22,11 @@ $rw-margin-bottom-grid-cell: 4px;
 
 .research-and-writing-row__links {
     row-gap: 40px - $rw-margin-bottom-grid-cell;
+}
 
+.research-and-writing-row__links--condensed-sm {
     @include sm-only {
-        display: flex;
-        overflow-x: auto;
-        scrollbar-width: thin;
+        row-gap: 24px - $rw-margin-bottom-grid-cell;
     }
 }
 
@@ -34,11 +34,19 @@ $rw-margin-bottom-grid-cell: 4px;
     row-gap: 32px - $rw-margin-bottom-grid-cell;
 }
 
-.research-and-writing-link {
+.research-and-writing-row__links--overflow {
     @include sm-only {
-        flex: 1 0 80%;
-    }
+        display: flex;
+        overflow-x: auto;
+        scrollbar-width: thin;
 
+        .research-and-writing-link {
+            flex: 1 0 80%;
+        }
+    }
+}
+
+.research-and-writing-link {
     color: $blue-90;
 
     &:hover .research-and-writing-link__title {
@@ -64,6 +72,14 @@ $rw-margin-bottom-grid-cell: 4px;
         position: absolute;
         left: 0;
         top: 0;
+    }
+}
+
+.research-and-writing-link--hide-thumbnail-sm {
+    @include sm-only {
+        figure {
+            display: none;
+        }
     }
 }
 
