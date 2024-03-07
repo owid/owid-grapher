@@ -396,7 +396,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                         <a href={props.nextPageUrl}>Next &gt;&gt;</a>
                     )}
                 </nav>
-                <script src={`${BAKED_GRAPHER_URL}/embedCharts.js`} />
+                <script src={`${BAKED_BASE_URL}/assets/embedCharts.js`} />
             </body>
         </html>
     )
@@ -572,7 +572,7 @@ function EmbedVariantsTestPage(
                         <a href={props.nextPageUrl}>Next &gt;&gt;</a>
                     )}
                 </nav>
-                <script src={`${BAKED_GRAPHER_URL}/embedCharts.js`} />
+                <script src={`${BAKED_BASE_URL}/assets/embedCharts.js`} />
             </body>
         </html>
     )

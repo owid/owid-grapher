@@ -114,7 +114,7 @@ mockSiteRouter.get(
     }
 )
 
-mockSiteRouter.get("/grapher/embedCharts.js", async (req, res) => {
+mockSiteRouter.get("/assets/embedCharts.js", async (req, res) => {
     res.contentType("text/javascript").send(generateEmbedSnippet())
 })
 
