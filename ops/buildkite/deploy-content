@@ -158,7 +158,7 @@ bake_site() {
 
     (
         cd owid-grapher
-
+        yarn install
         yarn buildTsc
         mkdir -p /home/owid/live-data/bakedSite/grapher
         yarn buildLocalBake $BAKED_BASE_URL /home/owid/live-data/bakedSite
