@@ -217,7 +217,7 @@
         "topojson-client": "^3.1.0",
         "ts-pattern": "^5.0.5",
         "typeorm": "^0.3.14",
-        "typescript": "~5.2.2",
+        "typescript": "~5.4.2",
         "unidecode": "^0.1.8",
         "unified": "^9.0",
         "unist-util-visit": "^2.0.0",
