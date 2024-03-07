@@ -563,6 +563,7 @@ export const getLatestWorkByAuthor = async (
             pg.id,
             pg.slug,
             pg.content->>'$.title' AS title,
+            pg.content->>'$.subtitle' AS subtitle,
             pg.content->>'$.authors' AS authors,
             pg.content->>'$."featured-image"' AS "featured-image",
             pg.publishedAt

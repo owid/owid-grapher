@@ -119,6 +119,7 @@ const parseLatestWorkToResearchAndWritingLink = (
             url: `/${latestWork.slug}`, // we might want to use a version of getCanonicalUrl here if we start linking to types other than OwidGdocType.Article
             filename: latestWork["featured-image"] || undefined,
             date: latestWork.publishedAt || undefined,
+            subtitle: latestWork.subtitle || undefined,
         },
     }
 }
@@ -224,7 +225,6 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                     <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__links">
                         {latest.articles.map((link, i) => (
                             <ResearchAndWritingLink
-                                shouldHideSubtitle
                                 isSmall
                                 className="span-cols-1"
                                 key={i}
