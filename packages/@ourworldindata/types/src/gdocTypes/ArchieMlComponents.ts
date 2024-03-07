@@ -528,6 +528,7 @@ export type RawBlockResearchAndWritingLink = {
     title?: string
     subtitle?: string
     filename?: string
+    date?: string
 }
 
 export type RawBlockResearchAndWritingRow = {
@@ -563,6 +564,7 @@ export type EnrichedBlockResearchAndWritingLink = {
         title?: string
         subtitle?: string
         filename?: string
+        date?: string
     }
 }
 

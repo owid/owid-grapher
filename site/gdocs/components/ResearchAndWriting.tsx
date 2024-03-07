@@ -4,6 +4,7 @@ import {
     EnrichedBlockResearchAndWriting,
     EnrichedBlockResearchAndWritingLink,
     RESEARCH_AND_WRITING_ID,
+    formatDate,
     slugify,
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
@@ -15,7 +16,6 @@ import {
     DbEnrichedLatestWork,
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
 } from "@ourworldindata/types"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 
 type ResearchAndWritingProps = {
     className?: string
@@ -36,6 +36,7 @@ function ResearchAndWritingLink(
             subtitle,
             authors,
             filename = DEFAULT_GDOC_FEATURED_IMAGE,
+            date,
         },
         shouldHideThumbnail = false,
         isSmall = false,
@@ -78,6 +79,11 @@ function ResearchAndWritingLink(
                     />
                 </figure>
             ) : null}
+            {date ? (
+                <p className="research-and-writing-link__date">
+                    {formatDate(new Date(date))}
+                </p>
+            ) : null}
             <h3
                 className={cx("research-and-writing-link__title", {
                     "research-and-writing-link__title--large": !isSmall,
@@ -110,8 +116,9 @@ const parseLatestWorkToResearchAndWritingLink = (
     return {
         value: {
             ...latestWork,
-            url: `${BAKED_BASE_URL}/${latestWork.slug}`,
+            url: `/${latestWork.slug}`, // we might want to use a version of getCanonicalUrl here if we start linking to types other than OwidGdocType.Article
             filename: latestWork["featured-image"] || undefined,
+            date: latestWork.publishedAt || undefined,
         },
     }
 }

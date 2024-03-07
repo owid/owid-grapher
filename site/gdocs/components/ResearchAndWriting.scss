@@ -67,6 +67,13 @@ $rw-margin-bottom-grid-cell: 4px;
     }
 }
 
+.research-and-writing-link__date {
+    @include body-3-medium;
+    color: $blue-60;
+    margin-top: 0;
+    margin-bottom: $rw-margin-bottom-grid-cell;
+}
+
 .research-and-writing-link__title {
     @include h3-bold;
     margin-top: 0;
