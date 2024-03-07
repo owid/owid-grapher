@@ -22,7 +22,12 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
     _filenameProperties: string[] = ["featured-image"]
 
     _getSubclassEnrichedBlocks = (gdoc: this): OwidEnrichedGdocBlock[] => {
-        return gdoc.content.bio ?? []
+        const blocks: OwidEnrichedGdocBlock[] = []
+
+        if (gdoc.content.socials) blocks.push(gdoc.content.socials)
+        if (gdoc.content.bio) blocks.push(...gdoc.content.bio)
+
+        return blocks
     }
 
     _enrichSubclassContent = (content: Record<string, any>): void => {
