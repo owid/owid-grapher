@@ -22,7 +22,7 @@
   "devDependencies": {
     "@types/d3": "^6",
     "eslint": "^8.53.0",
-    "typescript": "~5.2.2"
+    "typescript": "~5.4.2"
   },
   "license": "MIT"
 }
