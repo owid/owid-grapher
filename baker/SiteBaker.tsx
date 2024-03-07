@@ -873,12 +873,13 @@ export class SiteBaker {
             `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/ ${excludes}`
         )
 
-        await fs.ensureDir(`${this.bakedSiteDir}/grapher`)
         await fs.writeFile(
-            `${this.bakedSiteDir}/grapher/embedCharts.js`,
+            `${this.bakedSiteDir}/assets/embedCharts.js`,
             generateEmbedSnippet()
         )
-        this.stage(`${this.bakedSiteDir}/grapher/embedCharts.js`)
+        this.stage(`${this.bakedSiteDir}/assets/embedCharts.js`)
+
+        await fs.ensureDir(`${this.bakedSiteDir}/grapher`)
         this.progressBar.tick({ name: "✅ baked assets" })
     }
 
