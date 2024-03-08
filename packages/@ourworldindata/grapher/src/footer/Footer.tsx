@@ -675,10 +675,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     @computed protected get licenseAndOriginUrlText(): string {
         const { finalUrl, finalUrlText, licenseText, licenseUrl, textColor } =
             this
-        const textDecoration = this.manager.isStaticAndSmall
-            ? "none"
-            : "underline"
-        const linkStyle = `fill: ${textColor};  text-decoration: ${textDecoration};`
+        const linkStyle = `fill: ${textColor};`
         const licenseSvg = `<a target="_blank" style="${linkStyle}" href="${licenseUrl}">${licenseText}</a>`
         if (!finalUrlText) return licenseSvg
         const originUrlSvg = `<a target="_blank" style="${linkStyle}" href="${finalUrl}">${finalUrlText}</a>`
