@@ -243,7 +243,7 @@ const selectHomepagePosts: FilterFnPostRestApi = (post) =>
 export const getBlogIndex = memoize(
     async (knex: Knex<any, any[]>): Promise<IndexPost[]> => {
         await db.getConnection() // side effect: ensure connection is established
-        const gdocPosts = await GdocPost.getListedGdocs()
+        const gdocPosts = await GdocPost.getListedGdocPosts()
         const wpPosts = await Promise.all(
             await getPostsFromSnapshots(
                 knex,
