@@ -28,6 +28,7 @@ function ResearchAndWritingLink(
         shouldHideThumbnail?: boolean
         shouldHideThumbnailSm?: boolean
         shouldHideSubtitle?: boolean
+        shouldHideAuthors?: boolean
     }
 ) {
     let {
@@ -43,6 +44,7 @@ function ResearchAndWritingLink(
         shouldHideThumbnailSm = false,
         isSmall = false,
         shouldHideSubtitle = false,
+        shouldHideAuthors = false,
         className,
     } = props
     const { linkedDocument, errorMessage } = useLinkedDocument(url)
@@ -110,7 +112,7 @@ function ResearchAndWritingLink(
                     {subtitle}
                 </p>
             ) : null}
-            {authors ? (
+            {authors && !shouldHideAuthors ? (
                 <p className="research-and-writing-link__authors body-3-medium-italic">
                     {formatAuthors({ authors })}
                 </p>
@@ -134,7 +136,16 @@ const parseLatestWorkToResearchAndWritingLink = (
 }
 
 export function ResearchAndWriting(props: ResearchAndWritingProps) {
-    const { heading, primary, secondary, more, rows, latest, className } = props
+    const {
+        heading,
+        "hide-authors": hideAuthors,
+        primary,
+        secondary,
+        more,
+        rows,
+        latest,
+        className,
+    } = props
 
     const slug = heading ? slugify(heading) : RESEARCH_AND_WRITING_ID
 
@@ -176,6 +187,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                         <ResearchAndWritingLink
                             className="span-cols-6 span-sm-cols-12"
                             key={i}
+                            shouldHideAuthors={hideAuthors}
                             {...link}
                         />
                     ))}
@@ -184,6 +196,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                             key={i}
                             className="span-cols-3 span-md-cols-6 span-sm-cols-12"
                             isSmall
+                            shouldHideAuthors={hideAuthors}
                             {...link}
                         />
                     ))}
@@ -198,6 +211,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                         {row.articles.map((link, i) => (
                             <ResearchAndWritingLink
                                 shouldHideSubtitle
+                                shouldHideAuthors={hideAuthors}
                                 isSmall
                                 className="span-cols-1"
                                 key={i}
@@ -217,6 +231,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                             <ResearchAndWritingLink
                                 shouldHideThumbnail
                                 shouldHideSubtitle
+                                shouldHideAuthors={hideAuthors}
                                 isSmall
                                 className="span-cols-1"
                                 key={i}
@@ -236,6 +251,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                             <ResearchAndWritingLink
                                 isSmall
                                 shouldHideThumbnailSm
+                                shouldHideAuthors={hideAuthors}
                                 className="span-cols-1"
                                 key={i}
                                 {...link}

@@ -496,6 +496,7 @@ function* rawResearchAndWritingToArchieMLString(
     }
     yield "{.research-and-writing}"
     yield* propertyToArchieMLString("heading", block.value)
+    yield* propertyToArchieMLString("hide-authors", block.value)
     if (primary) {
         yield "[.primary]"
         if (isArray(primary)) {
