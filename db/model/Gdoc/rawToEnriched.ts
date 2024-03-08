@@ -1640,6 +1640,7 @@ function parseResearchAndWritingBlock(
     const createError = (
         error: ParseError,
         heading = "",
+        hideAuthors = false,
         primary = [
             {
                 value: { url: "" },
@@ -1662,6 +1663,7 @@ function parseResearchAndWritingBlock(
     ): EnrichedBlockResearchAndWriting => ({
         type: "research-and-writing",
         heading,
+        "hide-authors": hideAuthors,
         primary,
         secondary,
         more,
@@ -1717,6 +1719,15 @@ function parseResearchAndWritingBlock(
             if (subtitle) enriched.value.subtitle = subtitle
             return enriched
         } else return createLinkError(`Malformed link data: ${typeof rawLink}`)
+    }
+
+    if (
+        raw.value["hide-authors"] &&
+        !["true", "false"].includes(raw.value["hide-authors"])
+    ) {
+        parseErrors.push({
+            message: `"hide-authors" must be true or false if present`,
+        })
     }
 
     if (!raw.value.primary)
@@ -1778,6 +1789,7 @@ function parseResearchAndWritingBlock(
     return {
         type: "research-and-writing",
         heading: raw.value.heading,
+        "hide-authors": raw.value["hide-authors"] === "true",
         primary,
         secondary,
         more,
