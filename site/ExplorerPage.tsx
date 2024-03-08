@@ -98,7 +98,7 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
 
     // Replace thumnails with admin links to baked images
     let resolvedThumbnail
-    if (thumbnail && thumbnail.includes("https://owid.cloud")) {
+    if (thumbnail && thumbnail.startsWith("https://owid.cloud")) {
         resolvedThumbnail = thumbnail.replace("https://owid.cloud", baseUrl)
     } else {
         resolvedThumbnail = thumbnail
