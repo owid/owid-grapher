@@ -96,6 +96,14 @@ const urlMigrationSpec = ${
     };
 window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfigs, partialGrapherConfigs, urlMigrationSpec);`
 
+    // Replace thumnails with admin links to baked images
+    let resolvedThumbnail
+    if (thumbnail && thumbnail.includes("https://owid.cloud")) {
+        resolvedThumbnail = thumbnail.replace("https://owid.cloud", baseUrl)
+    } else {
+        resolvedThumbnail = thumbnail
+    }
+
     return (
         <html>
             <Head
@@ -103,7 +111,7 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                 hideCanonicalUrl // explorers set their canonical url dynamically
                 pageTitle={`${explorerTitle} Data Explorer`}
                 pageDesc={explorerSubtitle}
-                imageUrl={thumbnail}
+                imageUrl={resolvedThumbnail}
                 baseUrl={baseUrl}
             >
                 <IFrameDetector />
