@@ -210,7 +210,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         return parseDetails(gdoc.content.details)
     }
 
-    static async getPublishedGdocs(): Promise<GdocPost[]> {
+    static async getPublishedGdocPosts(): Promise<GdocPost[]> {
         // #gdocsvalidation this cast means that we trust the admin code and
         // workflow to provide published articles that have all the required content
         // fields (see #gdocsvalidationclient and pending #gdocsvalidationserver).
@@ -246,7 +246,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     /**
      * Excludes published listed Gdocs with a publication date in the future
      */
-    static async getListedGdocs(): Promise<GdocPost[]> {
+    static async getListedGdocPosts(): Promise<GdocPost[]> {
         return GdocPost.findBy({
             published: true,
             publicationContext: OwidGdocPublicationContext.listed,

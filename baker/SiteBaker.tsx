@@ -104,6 +104,7 @@ import {
 } from "../db/model/Variable.js"
 import { Knex } from "knex"
 import { getBakePath } from "@ourworldindata/components"
+import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
 
 type PrefetchedAttachments = {
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
@@ -137,6 +138,7 @@ const nonWordpressSteps = [
     "gdriveImages",
     "dods",
     "dataInsights",
+    "authors",
 ] as const
 
 const otherSteps = ["removeDeletedPosts"] as const
@@ -302,7 +304,7 @@ export class SiteBaker {
         picks?: [string[], string[], string[], string[]]
     ): Promise<PrefetchedAttachments> {
         if (!this._prefetchedAttachmentsCache) {
-            const publishedGdocs = await GdocPost.getPublishedGdocs().then(
+            const publishedGdocs = await GdocPost.getPublishedGdocPosts().then(
                 (fullGdocs) => fullGdocs.map(fullGdocToMinimalGdoc)
             )
             const publishedGdocsDictionary = keyBy(publishedGdocs, "id")
@@ -441,7 +443,7 @@ export class SiteBaker {
             postSlugs.push(post.slug)
         }
 
-        const gdocPosts = await GdocPost.getPublishedGdocs()
+        const gdocPosts = await GdocPost.getPublishedGdocPosts()
 
         for (const post of gdocPosts) {
             postSlugs.push(post.slug)
@@ -483,7 +485,7 @@ export class SiteBaker {
     async bakeGDocPosts(slugs?: string[]) {
         await db.getConnection()
         if (!this.bakeSteps.has("gdocPosts")) return
-        const publishedGdocs = await GdocPost.getPublishedGdocs()
+        const publishedGdocs = await GdocPost.getPublishedGdocPosts()
 
         const gdocsToBake =
             slugs !== undefined
@@ -765,6 +767,63 @@ export class SiteBaker {
             await this.stageWrite(outPath, html)
         }
     }
+
+    private async bakeAuthors() {
+        if (!this.bakeSteps.has("authors")) return
+
+        const publishedAuthors = await GdocAuthor.getPublishedAuthors()
+
+        for (const publishedAuthor of publishedAuthors) {
+            const attachments = await this.getPrefetchedGdocAttachments([
+                publishedAuthor.linkedDocumentIds,
+                publishedAuthor.linkedImageFilenames,
+                publishedAuthor.linkedChartSlugs.grapher,
+                publishedAuthor.linkedChartSlugs.explorer,
+            ])
+
+            // We don't need these to be attached to the gdoc in the current
+            // state of author pages. We'll keep them here as documentation
+            // of intent, until we need them.
+            // publishedAuthor.linkedCharts = {
+            //     ...attachments.linkedCharts.graphers,
+            //     ...attachments.linkedCharts.explorers,
+            // }
+
+            // Attach documents metadata linked to in the "featured work" section
+            publishedAuthor.linkedDocuments = attachments.linkedDocuments
+
+            // Attach image metadata for the profile picture and the "featured work" images
+            publishedAuthor.imageMetadata = attachments.imageMetadata
+
+            // Attach image metadata for the “latest work" images
+            await publishedAuthor.loadLatestWorkImages()
+
+            await publishedAuthor.validate()
+            if (
+                publishedAuthor.errors.filter(
+                    (e) => e.type === OwidGdocErrorMessageType.Error
+                ).length
+            ) {
+                await logErrorAndMaybeSendToBugsnag(
+                    `Error(s) baking "${
+                        publishedAuthor.slug
+                    }" :\n  ${publishedAuthor.errors
+                        .map((error) => error.message)
+                        .join("\n  ")}`
+                )
+            }
+            try {
+                await this.bakeOwidGdoc(publishedAuthor)
+            } catch (e) {
+                logErrorAndMaybeSendToBugsnag(
+                    `Error baking author with id "${publishedAuthor.id}" and slug "${publishedAuthor.slug}": ${e}`
+                )
+            }
+        }
+
+        this.progressBar.tick({ name: "✅ baked author pages" })
+    }
+
     // Pages that are expected by google scholar for indexing
     private async bakeGoogleScholar() {
         if (!this.bakeSteps.has("googleScholar")) return
@@ -927,6 +986,7 @@ export class SiteBaker {
         await this.validateGrapherDodReferences()
         await this.bakeGDocPosts()
         await this.bakeDataInsights()
+        await this.bakeAuthors()
         await this.bakeDriveImages()
     }
 

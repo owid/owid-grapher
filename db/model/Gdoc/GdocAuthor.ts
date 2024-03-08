@@ -1,4 +1,4 @@
-import { Entity, Column } from "typeorm"
+import { Entity, Column, Raw } from "typeorm"
 import {
     OwidGdocErrorMessage,
     OwidGdocAuthorInterface,
@@ -8,6 +8,7 @@ import {
     OwidGdocErrorMessageType,
     DbEnrichedLatestWork,
     DEFAULT_GDOC_FEATURED_IMAGE,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
@@ -35,7 +36,11 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         return blocks
     }
 
-    _loadSubclassAttachments = async (): Promise<void> => {
+    _loadSubclassAttachments = (): Promise<void> => {
+        return this.loadLatestWorkImages()
+    }
+
+    loadLatestWorkImages = async (): Promise<void> => {
         if (!this.content.title) return
         const knex = db.knexInstance()
 
@@ -108,5 +113,17 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
             })
         }
         return errors
+    }
+
+    static async getPublishedAuthors(): Promise<GdocAuthor[]> {
+        return GdocAuthor.find({
+            where: {
+                published: true,
+                content: Raw(
+                    (content) =>
+                        `${content}->"$.type" = '${OwidGdocType.Author}'`
+                ),
+            },
+        })
     }
 }
