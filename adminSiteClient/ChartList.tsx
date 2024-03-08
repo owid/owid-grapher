@@ -26,7 +26,6 @@ export interface ChartListItem {
     lastEditedBy: string
     publishedAt: string
     publishedBy: string
-    isExplorable: boolean
 
     tags: DbChartTagJoin[]
 }

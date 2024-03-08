@@ -273,16 +273,15 @@ const saveGrapher = async (
     const now = new Date()
     let chartId = existingConfig && existingConfig.id
     const newJsonConfig = JSON.stringify(newConfig)
-    // todo: drop "isExplorable"
     if (existingConfig)
         await transactionContext.query(
-            `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=?, isExplorable=? WHERE id = ?`,
-            [newJsonConfig, now, now, user.id, false, chartId]
+            `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=? WHERE id = ?`,
+            [newJsonConfig, now, now, user.id, chartId]
         )
     else {
         const result = await transactionContext.execute(
-            `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId, isExplorable) VALUES (?)`,
-            [[newJsonConfig, now, now, now, user.id, false]]
+            `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId) VALUES (?)`,
+            [[newJsonConfig, now, now, now, user.id]]
         )
         chartId = result.insertId
     }
@@ -391,8 +390,7 @@ apiRouter.get("/charts.csv", async (req: Request, res: Response) => {
             lastEditedByUser.fullName AS lastEditedBy,
             charts.publishedAt,
             charts.publishedByUserId,
-            publishedByUser.fullName AS publishedBy,
-            charts.isExplorable AS isExplorable
+            publishedByUser.fullName AS publishedBy
         FROM charts
         JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
         LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
