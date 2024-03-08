@@ -51,7 +51,6 @@ import {
     OwidGdocErrorMessageType,
     ImageMetadata,
     OwidGdoc,
-    OwidGdocType,
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
     OwidGdocMinimalPostInterface,
     excludeUndefined,
@@ -104,6 +103,7 @@ import {
     getVariableOfDatapageIfApplicable,
 } from "../db/model/Variable.js"
 import { Knex } from "knex"
+import { getBakePath } from "@ourworldindata/components"
 
 type PrefetchedAttachments = {
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
@@ -238,13 +238,9 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
-    private async bakeOwidGdoc(post: OwidGdoc) {
-        const html = renderGdoc(post)
-        const dir =
-            post.content.type === OwidGdocType.DataInsight
-                ? "data-insights/"
-                : ""
-        const outPath = path.join(this.bakedSiteDir, `${dir}${post.slug}.html`)
+    private async bakeOwidGdoc(gdoc: OwidGdoc) {
+        const html = renderGdoc(gdoc)
+        const outPath = `${getBakePath(this.bakedSiteDir, gdoc)}.html`
         await fs.mkdirp(path.dirname(outPath))
         await this.stageWrite(outPath, html)
     }

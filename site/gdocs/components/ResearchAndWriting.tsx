@@ -49,17 +49,6 @@ function ResearchAndWritingLink(
         filename = linkedDocument["featured-image"] || filename
     }
 
-    const heading = React.createElement(
-        isSmall ? "h3" : "h2",
-        {
-            className: cx(
-                "research-and-writing-link__title",
-                isSmall ? "h3-bold" : "h2-bold"
-            ),
-        },
-        title
-    )
-
     return (
         <a
             href={url}
@@ -76,13 +65,19 @@ function ResearchAndWritingLink(
                     />
                 </figure>
             ) : null}
-            {heading}
+            <h3
+                className={cx("research-and-writing-link__title", {
+                    "research-and-writing-link__title--large": !isSmall,
+                })}
+            >
+                {title}
+            </h3>
             {subtitle && !shouldHideSubtitle ? (
                 <p
-                    className={cx(
-                        "research-and-writing-link__description",
-                        isSmall ? "body-3-medium" : "body-2-regular"
-                    )}
+                    className={cx("research-and-writing-link__description", {
+                        "research-and-writing-link__description--large":
+                            !isSmall,
+                    })}
                 >
                     {subtitle}
                 </p>

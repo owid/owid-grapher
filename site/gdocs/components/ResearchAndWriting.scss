@@ -68,14 +68,34 @@ $rw-margin-bottom-grid-cell: 4px;
 }
 
 .research-and-writing-link__title {
+    @include h3-bold;
     margin-top: 0;
     margin-bottom: $rw-margin-bottom-grid-cell;
 }
 
+.research-and-writing-link__title--large {
+    @include md-up {
+        @include h2-bold;
+        // Resetting the margins to the base style, as they are overridden by the mixin
+        margin-top: 0;
+        margin-bottom: $rw-margin-bottom-grid-cell;
+    }
+}
+
 .research-and-writing-link__description {
+    @include body-3-medium;
     color: $blue-90;
     margin-bottom: $rw-margin-bottom-grid-cell;
     margin-top: 0;
+}
+
+.research-and-writing-link__description--large {
+    @include md-up {
+        @include body-2-regular;
+        // Resetting the margins to the base style, as they are overridden by the mixin
+        margin-bottom: $rw-margin-bottom-grid-cell;
+        margin-top: 0;
+    }
 }
 
 .research-and-writing-link__authors {

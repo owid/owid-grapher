@@ -14,6 +14,7 @@ export {
     getUrlTarget,
     checkIsInternalLink,
     convertHeadingTextToId,
+    getBakePath,
     getCanonicalUrl,
     getPageTitle,
 } from "./GdocsUtils.js"
