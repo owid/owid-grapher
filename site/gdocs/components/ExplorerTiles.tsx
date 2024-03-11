@@ -22,6 +22,8 @@ function ExplorerTile({ url }: { url: string }) {
                 linkedChart.tags[0].name
             )}.svg`}
             className="explorer-tile__icon"
+            alt={`Icon for topic ${linkedChart.tags[0].name}`}
+            loading="lazy"
         />
     ) : null
 

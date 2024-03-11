@@ -165,6 +165,7 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                     alt="Logos of the publications that have used our content. From left to right: Science, Nature, PNAS, BBC, Financial Times, The New York Times, The Guardian, The Atlantic, and The Washington Post"
                     width={230}
                     height={75}
+                    loading="lazy"
                 />
             </section>
             <section className="grid grid-cols-9 span-cols-9 col-start-5 span-md-cols-12 col-md-start-2 homepage-intro__right-section">
