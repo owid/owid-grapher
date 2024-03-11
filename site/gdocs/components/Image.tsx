@@ -8,8 +8,8 @@ import {
 } from "@ourworldindata/utils"
 import { LIGHTBOX_IMAGE_CLASS } from "../../Lightbox.js"
 import {
-    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
-    IMAGE_HOSTING_CDN_URL,
+    IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH,
+    IMAGE_HOSTING_R2_CDN_URL,
 } from "../../../settings/clientSettings.js"
 import { DocumentContext } from "../OwidGdoc.js"
 import { Container } from "./ArticleBlock.js"
@@ -93,7 +93,7 @@ export default function Image(props: {
 
     if (isPreviewing) {
         const makePreviewUrl = (f: string) =>
-            `${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${encodeURIComponent(
+            `${IMAGE_HOSTING_R2_CDN_URL}/${IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH}/${encodeURIComponent(
                 f
             )}`
 

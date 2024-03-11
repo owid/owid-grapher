@@ -2,8 +2,8 @@ import fs from "fs-extra"
 import path from "path"
 import * as db from "../db/db.js"
 import {
-    IMAGE_HOSTING_CDN_URL,
-    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
+    IMAGE_HOSTING_R2_CDN_URL,
+    IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH,
 } from "../settings/serverSettings.js"
 
 import {
@@ -42,8 +42,8 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
         images,
         async (image) => {
             const remoteFilePath = path.join(
-                IMAGE_HOSTING_CDN_URL,
-                IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
+                IMAGE_HOSTING_R2_CDN_URL,
+                IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH,
                 image.filename
             )
             const localImagePath = path.join(imagesDirectory, image.filename)

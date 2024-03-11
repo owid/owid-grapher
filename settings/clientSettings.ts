@@ -62,16 +62,16 @@ export const GDOCS_CLIENT_EMAIL: string = process.env.GDOCS_CLIENT_EMAIL ?? ""
 export const GDOCS_BASIC_ARTICLE_TEMPLATE_URL: string =
     process.env.GDOCS_BASIC_ARTICLE_TEMPLATE_URL ?? ""
 
-export const IMAGE_HOSTING_SPACE_URL: string =
-    process.env.IMAGE_HOSTING_SPACE_URL || ""
-export const IMAGE_HOSTING_CDN_URL: string =
-    process.env.IMAGE_HOSTING_CDN_URL || ""
+export const IMAGE_HOSTING_R2_CDN_URL: string =
+    process.env.IMAGE_HOSTING_R2_CDN_URL || ""
 // e.g. owid-image-hosting-staging/development
-export const IMAGE_HOSTING_BUCKET_PATH: string =
-    process.env.IMAGE_HOSTING_BUCKET_PATH || ""
+export const IMAGE_HOSTING_R2_BUCKET_PATH: string =
+    process.env.IMAGE_HOSTING_R2_BUCKET_PATH || ""
 // e.g. development
-export const IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH: string =
-    IMAGE_HOSTING_BUCKET_PATH.slice(IMAGE_HOSTING_BUCKET_PATH.indexOf("/") + 1)
+export const IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH: string =
+    IMAGE_HOSTING_R2_BUCKET_PATH.slice(
+        IMAGE_HOSTING_R2_BUCKET_PATH.indexOf("/") + 1
+    )
 
 // Link to production wizard.  You need Tailscale to access it in production.
 export const ETL_WIZARD_URL: string =

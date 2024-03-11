@@ -48,7 +48,7 @@ import { DebugProvider } from "./gdocs/DebugContext.js"
 import dayjs from "dayjs"
 import {
     BAKED_BASE_URL,
-    IMAGE_HOSTING_CDN_URL,
+    IMAGE_HOSTING_R2_CDN_URL,
 } from "../settings/clientSettings.js"
 declare global {
     interface Window {
@@ -191,7 +191,7 @@ export const DataPageV2Content = ({
             return research.imageUrl
         else if (!isEmpty(research.imageUrl))
             return encodeURI(
-                `${IMAGE_HOSTING_CDN_URL}/production/${research.imageUrl}`
+                `${IMAGE_HOSTING_R2_CDN_URL}/production/${research.imageUrl}`
             )
         return `${BAKED_BASE_URL}/default-thumbnail.jpg`
     }

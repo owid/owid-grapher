@@ -12,7 +12,7 @@ fi
 # e.g. owid-image-upload-staging/branch-name
 # for local development, it should be owid-image-upload/my-yourname
 # at least until we decide to instead host images locally, if ever
-if ! grep -q 'profile owid-spaces' ~/.config/rclone/rclone.conf; then
+if ! grep -q '[owid-r2]' ~/.config/rclone/rclone.conf; then
   echo 'Please configure your rclone config for profile owid-r2:'
   echo
   echo '  rclone config'
