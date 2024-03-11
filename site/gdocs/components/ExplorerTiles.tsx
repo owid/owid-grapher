@@ -18,7 +18,9 @@ function ExplorerTile({ url }: { url: string }) {
         <img
             height={40}
             width={40}
-            src={`${BAKED_BASE_URL}/images/tag-icons/${linkedChart.tags[0].name}.svg`}
+            src={`${BAKED_BASE_URL}/images/tag-icons/${encodeURIComponent(
+                linkedChart.tags[0].name
+            )}.svg`}
             className="explorer-tile__icon"
         />
     ) : null
