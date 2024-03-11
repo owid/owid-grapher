@@ -70,7 +70,9 @@ sync_to_r2_rclone() {
     local target=$1
     echo "--- Syncing ${target}..."
     # sync based on modtime and size
-    # this is 3x slower than using aws sync, we'd have to use `--size-only` to get the same performance
+    # rclone is 3x slower than using aws sync (unless we use `--size-only`, which has performance then, but doesn't compare modtime)
+    # this won't be such a problem after we remove /uploads from the sync (syncing grapher/exports only takes 15s
+    # with rclone, and 5s with aws). Then we can remove aws credentials from the machine and R2_ENDPOINT_URL from .env
     rclone sync live-data/bakedSite/${target} r2:owid-assets/${target} --checkers=64 --transfers=64
 }
 
@@ -84,7 +86,7 @@ sync_to_r2_aws() {
 sync_baked_data_to_r2() {
     echo '--- Sync baked data to R2'
     # Cloudflare Pages has limit of 20000 files
-    # TODO: There's also images/published, which are the gdocs images synced from GDrive.
+    # NOTE: There's also images/published, which are the gdocs images synced from GDrive.
     #   There's currently a small-enough amount of them, but we need to sync them to R2 or Cloudflare Images at some point.
     # NOTE: aws is about 3x faster than rclone
     sync_to_r2_aws grapher/exports  # 9203 files

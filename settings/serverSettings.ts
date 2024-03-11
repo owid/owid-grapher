@@ -153,13 +153,12 @@ export const GDOCS_SHARED_DRIVE_ID = serverSettings.GDOCS_SHARED_DRIVE_ID ?? ""
 export const GDOCS_DETAILS_ON_DEMAND_ID =
     serverSettings.GDOCS_DETAILS_ON_DEMAND_ID ?? ""
 
-// TODO: failover if not found
-const rcloneConfig = ini.parse(
-    fs.readFileSync(
-        path.join(os.homedir(), ".config/rclone/rclone.conf"),
-        "utf-8"
-    )
-)
+// Load R2 credentials from rclone config
+let rcloneConfig: any = {}
+const rcloneConfigPath = path.join(os.homedir(), ".config/rclone/rclone.conf")
+if (fs.existsSync(rcloneConfigPath)) {
+    rcloneConfig = ini.parse(fs.readFileSync(rcloneConfigPath, "utf-8"))
+}
 
 // e.g. https://images-staging.owid.io/
 export const IMAGE_HOSTING_R2_CDN_URL: string =
