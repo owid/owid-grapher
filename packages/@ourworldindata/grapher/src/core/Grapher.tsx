@@ -197,6 +197,7 @@ import {
     StaticChartRasterizer,
     type GrapherExport,
 } from "../captionedChart/StaticChartRasterizer.js"
+import { SlopeChartManager } from "../slopeCharts/SlopeChart"
 
 declare global {
     interface Window {
@@ -344,7 +345,8 @@ export class Grapher
         FacetChartManager,
         EntitySelectorModalManager,
         SettingsMenuManager,
-        MapChartManager
+        MapChartManager,
+        SlopeChartManager
 {
     @observable.ref $schema = DEFAULT_GRAPHER_CONFIG_SCHEMA
     @observable.ref type = ChartTypeName.LineChart
@@ -2472,7 +2474,7 @@ export class Grapher
         }
     }
 
-    @computed private get isModalOpen(): boolean {
+    @computed get isModalOpen(): boolean {
         return (
             this.isSelectingData ||
             this.isSourcesModalOpen ||
