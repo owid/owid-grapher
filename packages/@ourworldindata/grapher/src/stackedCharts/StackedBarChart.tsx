@@ -9,6 +9,7 @@ import {
     sum,
     getRelativeMouse,
     colorScaleConfigDefaults,
+    dyFromAlign,
 } from "@ourworldindata/utils"
 import {
     VerticalAxisComponent,
@@ -37,7 +38,7 @@ import {
 } from "./AbstractStackedChart"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { VerticalAxis } from "../axis/Axis"
-import { ColorSchemeName } from "@ourworldindata/types"
+import { ColorSchemeName, VerticalAlign } from "@ourworldindata/types"
 import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
@@ -474,14 +475,14 @@ export class StackedBarChart
                             <text
                                 key={i}
                                 x={tick.bounds.x}
-                                y={tick.bounds.y}
+                                y={tick.bounds.y + 1}
                                 fill={GRAPHER_DARK_TEXT}
                                 fontSize={this.tickFontSize}
                                 onMouseOver={(): void => {
                                     this.onLabelMouseOver(tick)
                                 }}
                                 onMouseLeave={this.onLabelMouseLeave}
-                                dominantBaseline="text-before-edge"
+                                dy={dyFromAlign(VerticalAlign.bottom)}
                             >
                                 {tick.text}
                             </text>
