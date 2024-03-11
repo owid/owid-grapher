@@ -12,7 +12,14 @@ import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
-import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms.js"
+import {
+    BindString,
+    BindStringArray,
+    BindFloat,
+    FieldsRow,
+    BindDropdown,
+    Toggle,
+} from "./Forms.js"
 import {
     OwidVariableWithDataAndSource,
     OwidVariableDisplayConfig,
@@ -23,6 +30,7 @@ import {
     OwidProcessingLevel,
     OwidOrigin,
     OwidSource,
+    stringifyUnknownError,
 } from "@ourworldindata/utils"
 import { GrapherFigureView } from "../site/GrapherFigureView.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
@@ -34,6 +42,8 @@ import { GrapherTabOption, GrapherInterface } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { DATA_API_URL, ETL_API_URL } from "../settings/clientSettings.js"
+import _ from "lodash"
 
 interface VariablePageData
     extends Omit<OwidVariableWithDataAndSource, "source"> {
@@ -44,8 +54,25 @@ interface VariablePageData
     origins: OwidOrigin[]
 }
 
-const createBulletList = (items: string[]): string => {
-    return items.map((item) => `• ${item}`).join("\n")
+// Calculates the difference between two objects, including nested objects.
+const getDifference = <T extends object>(object: T, base: T): Partial<T> => {
+    const changes = (obj: any, baseObj: any): any => {
+        return _.transform(obj, (result: any, value: any, key: keyof any) => {
+            if (_.isArray(value) && _.isArray(baseObj[key])) {
+                // If both are arrays and not equal, return the entire array
+                if (!_.isEqual(value, baseObj[key])) {
+                    result[key] = value
+                }
+            } else if (!_.isEqual(value, baseObj[key])) {
+                // For non-array values
+                result[key] =
+                    _.isObject(value) && _.isObject(baseObj[key])
+                        ? changes(value, baseObj[key])
+                        : value
+            }
+        })
+    }
+    return changes(object, base)
 }
 
 class VariableEditable
@@ -142,9 +169,14 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                     </li>
                     <li className="breadcrumb-item active">{variable.name}</li>
                 </ol>
-                <div className="row">
-                    <div className="col">
-                        <form>
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault()
+                        this.save()
+                    }}
+                >
+                    <div className="row">
+                        <div className="col">
                             <section>
                                 <h3>Indicator metadata</h3>
                                 {isV2MetadataVariable && (
@@ -158,10 +190,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     </>
                                 )}
 
-                                <p>
-                                    Metadata is non-editable and can be only
-                                    changed in ETL.
-                                </p>
                                 <p>
                                     Open the metadata.yaml file:
                                     <a
@@ -179,6 +207,14 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     >
                                         grapher level
                                     </a>
+                                    ,{" "}
+                                    <a
+                                        href={`https://github.com/owid/etl/blob/master/etl/steps/data/grapher/${pathFragments?.producer}/${pathFragments?.version}/${pathFragments?.table}.meta.override.yml`}
+                                        target="_blank"
+                                        rel="noopener"
+                                    >
+                                        override
+                                    </a>
                                     .{" "}
                                     <small>
                                         (opens on master branch - switch as
@@ -190,7 +226,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     field="name"
                                     store={newVariable}
                                     label="Indicator Name"
-                                    disabled={isDisabled}
                                 />
                                 <BindString
                                     field="catalogPath"
@@ -202,7 +237,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     label="Display name"
                                     field="name"
                                     store={newVariable.display}
-                                    disabled={isDisabled}
                                 />
                                 <FieldsRow>
                                     <BindString
@@ -210,14 +244,12 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="unit"
                                         store={newVariable.display}
                                         placeholder={newVariable.unit}
-                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Short (axis) unit"
                                         field="shortUnit"
                                         store={newVariable.display}
                                         placeholder={newVariable.shortUnit}
-                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -226,14 +258,12 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="numDecimalPlaces"
                                         store={newVariable.display}
                                         helpText={`A negative number here will round integers`}
-                                        disabled={isDisabled}
                                     />
                                     <BindFloat
                                         label="Unit conversion factor"
                                         field="conversionFactor"
                                         store={newVariable.display}
                                         helpText={`Multiply all values by this amount`}
-                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -266,28 +296,27 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     />
                                 </FieldsRow>
                             </section>
-                        </form>
-                    </div>
-                    {this.grapher && (
-                        <div className="col">
-                            <div className="topbar">
-                                <h3>Preview</h3>
-                                <Link
-                                    className="btn btn-secondary"
-                                    to={`/charts/create/${Base64.encode(
-                                        JSON.stringify(this.grapher.object)
-                                    )}`}
-                                >
-                                    Edit as new chart
-                                </Link>
-                            </div>
-                            <GrapherFigureView grapher={this.grapher} />
                         </div>
-                    )}
-                </div>
-                <div className="row">
-                    <div className="col">
-                        <form>
+                        {/* BUG: when user pres Enter when editing form, chart will switch to `Table` tab */}
+                        {this.grapher && (
+                            <div className="col">
+                                <div className="topbar">
+                                    <h3>Preview</h3>
+                                    <Link
+                                        className="btn btn-secondary"
+                                        to={`/charts/create/${Base64.encode(
+                                            JSON.stringify(this.grapher.object)
+                                        )}`}
+                                    >
+                                        Edit as new chart
+                                    </Link>
+                                </div>
+                                <GrapherFigureView grapher={this.grapher} />
+                            </div>
+                        )}
+                    </div>
+                    <div className="row">
+                        <div className="col">
                             <section>
                                 <h4>
                                     Data Page&nbsp;
@@ -304,25 +333,21 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         label="Title public"
                                         field="titlePublic"
                                         store={newVariable.presentation}
-                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Title variant"
                                         field="titleVariant"
                                         store={newVariable.presentation}
-                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Attribution"
                                         field="attribution"
                                         store={newVariable.presentation}
-                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Attribution short"
                                         field="attributionShort"
                                         store={newVariable.presentation}
-                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -330,14 +355,12 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         label="Description short"
                                         field="descriptionShort"
                                         store={newVariable}
-                                        disabled={isDisabled}
                                         textarea
                                     />
                                     <BindString
                                         label="Description from producer"
                                         field="descriptionFromProducer"
                                         store={newVariable}
-                                        disabled={isDisabled}
                                         textarea
                                     />
                                 </FieldsRow>
@@ -355,16 +378,10 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         textarea
                                         rows={8}
                                     />
-                                    <BindString
+                                    <BindStringArray
                                         label="Description key"
-                                        field="v"
-                                        store={{
-                                            v: createBulletList(
-                                                newVariable.descriptionKey || []
-                                            ),
-                                        }}
-                                        disabled={isDisabled}
-                                        textarea
+                                        field="descriptionKey"
+                                        store={newVariable}
                                         rows={8}
                                     />
                                 </FieldsRow>
@@ -374,23 +391,30 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                             label="Description processing"
                                             field="descriptionProcessing"
                                             store={newVariable}
-                                            disabled={isDisabled}
                                             textarea
                                             rows={8}
                                         />
                                     </div>
                                     <div className="col">
-                                        <BindString
-                                            label="Processing level"
+                                        <BindDropdown
+                                            label="Processing Level"
                                             field="processingLevel"
                                             store={newVariable}
-                                            disabled={isDisabled}
+                                            options={[
+                                                {
+                                                    value: "minor",
+                                                    label: "Minor",
+                                                },
+                                                {
+                                                    value: "major",
+                                                    label: "Major",
+                                                },
+                                            ]}
                                         />
                                         <BindString
                                             label="Number of days between OWID updates"
                                             field="updatePeriodDays"
                                             store={newVariable}
-                                            disabled={isDisabled}
                                         />
                                     </div>
                                 </FieldsRow>
@@ -429,9 +453,15 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     />
                                 </FieldsRow>
                             </section>
-                        </form>
+                            <input
+                                type="submit"
+                                className="btn btn-success"
+                                value="Update indicator"
+                            />
+                        </div>
                     </div>
-                </div>
+                    <hr></hr>
+                </form>
                 <div className="row">
                     <div className="col">
                         <form>
@@ -472,6 +502,88 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         const { variable } = this.props
 
         return (variable?.schemaVersion ?? 1) >= 2
+    }
+
+    async etlApiIsRunning(): Promise<boolean> {
+        const healthcheckUrl = `${ETL_API_URL}/health`
+        try {
+            await this.context.admin.rawRequest(
+                healthcheckUrl,
+                undefined,
+                "GET"
+            )
+            return true
+        } catch (err) {
+            return false
+        }
+    }
+
+    async save() {
+        const { variable } = this.props
+
+        const url = `${ETL_API_URL}/indicators`
+
+        const indicatorDiff = getDifference(
+            this.newVariable,
+            new VariableEditable(this.props.variable)
+        )
+
+        const data = {
+            catalogPath: variable.catalogPath,
+            indicator: indicatorDiff,
+            dataApiUrl: DATA_API_URL,
+            triggerETL: true,
+        }
+
+        const request = this.context.admin.rawRequest(
+            url,
+            JSON.stringify(data),
+            "PUT"
+        )
+        let response: Response
+        try {
+            response = await request
+        } catch (err) {
+            const title = (await this.etlApiIsRunning())
+                ? `Internal error`
+                : `Error - ETL API is not running on ${ETL_API_URL}`
+
+            this.context.admin.setErrorMessage({
+                title: title,
+                content: JSON.stringify(
+                    {
+                        err: stringifyUnknownError(err),
+                        url,
+                        request: data,
+                    },
+                    null,
+                    2
+                ),
+                isFatal: true,
+            })
+            throw err
+        }
+
+        if (response.status !== 200) {
+            const text = await response.text()
+            const json = JSON.parse(text)
+            this.context.admin.setErrorMessage({
+                title: `Validation error`,
+                content: JSON.stringify(
+                    {
+                        url,
+                        request: data,
+                        response: json.detail,
+                    },
+                    null,
+                    2
+                ),
+                isFatal: false,
+            })
+        } else {
+            // success
+            Object.assign(this.props.variable, _.cloneDeep(this.newVariable))
+        }
     }
 
     @computed private get grapherConfig(): GrapherInterface {

@@ -75,7 +75,11 @@ export const IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH: string =
 
 // Link to production wizard.  You need Tailscale to access it in production.
 export const ETL_WIZARD_URL: string =
-    process.env.ETL_WIZARD_URL ?? "http://localhost:8053/"
+    process.env.ETL_WIZARD_URL ?? `http://${ADMIN_SERVER_HOST}:8053/`
+
+// Production ETL API runs on http://etl-prod-2:8083/v1 (you need Tailscale to access it)
+export const ETL_API_URL: string =
+    process.env.ETL_API_URL ?? `http://${ADMIN_SERVER_HOST}:8081/api/v1`
 
 export const GDOCS_DETAILS_ON_DEMAND_ID: string =
     process.env.GDOCS_DETAILS_ON_DEMAND_ID ?? ""
