@@ -2,26 +2,19 @@
     margin: 56px 0;
 }
 
-.author-header__name {
-    @include display-1-semibold;
-    margin-top: 0;
-    margin-bottom: 8px;
-}
-
 .author-header__role {
-    @include body-1-regular;
+    @include body-2-regular;
     color: $blue-60;
 }
 
-.author-header__bio {
-    @include body-1-regular;
-    margin-top: 8px;
+.article-block__text {
+    @include body-2-regular;
     color: $blue-90;
 }
 
 .author-header__portrait {
     margin-top: 0;
-    margin-bottom: 24px;
+    margin-bottom: 0;
     img {
         border-radius: 50%;
     }
@@ -32,16 +25,8 @@
     @include body-3-medium;
 
     ul {
-        margin-left: 24px;
         list-style-type: none;
         list-style-position: inside;
-    }
-
-    li {
-        margin-bottom: 16px;
-        &:last-child {
-            margin-bottom: 0;
-        }
     }
 
     a {
@@ -49,5 +34,78 @@
     }
     svg {
         margin-right: 8px;
+    }
+}
+
+.author-header--sm {
+    @include sm-up {
+        display: none;
+    }
+
+    .author-header__name {
+        @include h2-bold;
+        margin-top: 8px;
+        margin-bottom: 4px;
+    }
+
+    .author-header__role {
+        margin-bottom: 24px;
+    }
+
+    .article-block__socials {
+        margin-bottom: 32px;
+        ul {
+            display: flex;
+            li {
+                margin-right: 16px;
+                &:last-child {
+                    margin-right: 0;
+                }
+            }
+        }
+    }
+}
+
+.author-header--md {
+    display: none;
+    @include sm-up {
+        display: grid;
+    }
+
+    .author-header__name {
+        @include display-2-semibold;
+        margin-top: 0;
+        margin-bottom: 4px;
+
+        @include md-up {
+            @include display-1-semibold;
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+    }
+
+    .article-block__text {
+        margin-top: 8px;
+        @include md-up {
+            @include body-1-regular;
+        }
+    }
+
+    .author-header__role {
+        @include md-up {
+            @include body-1-regular;
+        }
+    }
+
+    .article-block__socials {
+        margin-top: 24px;
+        margin-left: 24px;
+
+        li {
+            margin-bottom: 16px;
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
     }
 }
