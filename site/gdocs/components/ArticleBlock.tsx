@@ -113,9 +113,10 @@ const layouts: { [key in Container]: Layouts} = {
         ["chart"]: "span-cols-8 span-lg-cols-9 span-md-cols-12",
     },
     ["author-header"]: {
-        ["default"]: "span-cols-6",
-        ["image"]: "span-cols-2",
-        ["socials"]: "span-cols-3",
+        ["default"]: "span-cols-8",
+        ["image"]: "span-cols-2 span-md-cols-3",
+        ["text"]: "span-cols-6 span-md-cols-8 col-sm-start-2 span-sm-cols-12",
+        ["socials"]: "span-cols-3 col-sm-start-2 span-sm-cols-12",
     },
     ["sticky-right-left-column"]: {
         ["chart"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",

@@ -22,36 +22,66 @@ const AuthorHeader = (gdoc: OwidGdocAuthorInterface) => {
     } = gdoc.content
 
     return (
-        <section className="author-header grid grid-cols-12-full-width span-cols-14">
-            <div className="grid grid-cols-8 span-cols-8 col-start-2">
-                <h1 className="author-header__name span-cols-7">{title}</h1>
-                <div className="author-header__role span-cols-7">{role}</div>
-                {bio?.length && (
-                    <div className="author-header__bio grid grid-cols-8 span-cols-8">
-                        <ArticleBlocks
-                            blocks={bio}
+        <>
+            <section className="author-header author-header--sm grid grid-cols-12-full-width span-cols-14">
+                <div className="col-start-2 span-cols-8">
+                    <h1 className="author-header__name">{title}</h1>
+                    <div className="author-header__role">{role}</div>
+                </div>
+                {featuredImage && (
+                    <div className="grid grid-cols-3 col-start-11 span-cols-3">
+                        <Image
+                            filename={featuredImage}
+                            alt={`Portrait of ${title}`}
+                            className={cx(
+                                "author-header__portrait",
+                                getLayout("image", "author-header")
+                            )}
                             containerType="author-header"
                         />
                     </div>
                 )}
-            </div>
-            <div className="grid grid-cols-3 span-cols-3 col-start-10">
-                {featuredImage && (
-                    <Image
-                        filename={featuredImage}
-                        alt={`Portrait of ${title}`}
-                        className={cx(
-                            "author-header__portrait",
-                            getLayout("image", "author-header")
-                        )}
-                        containerType="author-header"
-                    />
-                )}
                 {socials && (
                     <ArticleBlock b={socials} containerType="author-header" />
                 )}
-            </div>
-        </section>
+                {bio?.length && (
+                    <ArticleBlocks blocks={bio} containerType="author-header" />
+                )}
+            </section>
+            <section className="author-header author-header--md grid grid-cols-12-full-width span-cols-14">
+                <div className="grid grid-cols-8 span-cols-8 col-start-2">
+                    <h1 className="author-header__name span-cols-8">{title}</h1>
+                    <div className="author-header__role span-cols-8">
+                        {role}
+                    </div>
+                    {bio?.length && (
+                        <ArticleBlocks
+                            blocks={bio}
+                            containerType="author-header"
+                        />
+                    )}
+                </div>
+                <div className="grid grid-cols-3 col-start-11 span-cols-3">
+                    {featuredImage && (
+                        <Image
+                            filename={featuredImage}
+                            alt={`Portrait of ${title}`}
+                            className={cx(
+                                "author-header__portrait",
+                                getLayout("image", "author-header")
+                            )}
+                            containerType="author-header"
+                        />
+                    )}
+                    {socials && (
+                        <ArticleBlock
+                            b={socials}
+                            containerType="author-header"
+                        />
+                    )}
+                </div>
+            </section>
+        </>
     )
 }
 
