@@ -39,11 +39,11 @@ $rw-margin-bottom-grid-cell: 4px;
         flex: 1 0 80%;
     }
 
-    @include owid-link-90;
-    text-decoration: none;
+    color: $blue-90;
 
-    &:hover .research-and-writing-row-link__title {
+    &:hover .research-and-writing-link__title {
         text-decoration: underline;
+        text-underline-offset: 4px;
     }
 
     figure {
