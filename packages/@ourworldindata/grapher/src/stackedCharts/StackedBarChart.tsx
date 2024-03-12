@@ -446,12 +446,14 @@ export class StackedBarChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                <VerticalAxisComponent
-                    bounds={bounds}
-                    verticalAxis={verticalAxis}
-                    labelColor={manager.secondaryColorInStaticCharts}
-                    detailsMarker={manager.detailsMarkerInSvg}
-                />
+                {!verticalAxis.hideAxis && (
+                    <VerticalAxisComponent
+                        bounds={bounds}
+                        verticalAxis={verticalAxis}
+                        labelColor={manager.secondaryColorInStaticCharts}
+                        detailsMarker={manager.detailsMarkerInSvg}
+                    />
+                )}
                 <VerticalAxisGridLines
                     verticalAxis={verticalAxis}
                     bounds={innerBounds}
