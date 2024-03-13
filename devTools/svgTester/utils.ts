@@ -414,7 +414,7 @@ export async function renderSvg(
             height,
             queryStr,
         },
-        { shouldHashQueryStr: false }
+        { shouldHashQueryStr: false, separator: "?" }
     )
 
     grapher.receiveOwidData(configAndData.variableData)

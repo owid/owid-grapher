@@ -37,12 +37,15 @@ export const grapherUrlToSlugAndQueryStr = (grapherUrl: string) => {
 export const grapherSlugToExportFileKey = (
     slug: string,
     queryStr: string | undefined,
-    { shouldHashQueryStr = true }: { shouldHashQueryStr?: boolean } = {}
+    {
+        shouldHashQueryStr = true,
+        separator = "-",
+    }: { shouldHashQueryStr?: boolean; separator?: string } = {}
 ) => {
     const maybeHashedQueryStr = shouldHashQueryStr
         ? md5(queryStr ?? "")
         : queryStr
-    return `${slug}${queryStr ? `-${maybeHashedQueryStr}` : ""}`
+    return `${slug}${queryStr ? `${separator}${maybeHashedQueryStr}` : ""}`
 }
 
 export interface GrapherExports {
