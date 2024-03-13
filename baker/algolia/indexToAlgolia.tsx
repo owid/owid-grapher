@@ -32,6 +32,7 @@ import {
     getPostsFromSnapshots,
 } from "../../db/model/Post.js"
 import { Knex } from "knex"
+import { getIndexName } from "../../site/search/searchClient.js"
 
 interface TypeAndImportance {
     type: PageType
@@ -232,7 +233,7 @@ const indexToAlgolia = async (knex: Knex<any, any[]>) => {
         console.error(`Failed indexing pages (Algolia client not initialized)`)
         return
     }
-    const index = client.initIndex(SearchIndexName.Pages)
+    const index = client.initIndex(getIndexName(SearchIndexName.Pages))
 
     await db.getConnection()
     const records = await getPagesRecords(knex)

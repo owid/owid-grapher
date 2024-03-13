@@ -20,7 +20,11 @@ import {
 } from "../../settings/clientSettings.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { DEFAULT_SEARCH_PLACEHOLDER } from "./searchClient.js"
+import {
+    DEFAULT_SEARCH_PLACEHOLDER,
+    getIndexName,
+    parseIndexName,
+} from "./searchClient.js"
 
 type BaseItem = Record<string, unknown>
 
@@ -64,7 +68,7 @@ const getItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({ item }) =>
 // The slugs we index to Algolia don't include the /grapher/ or /explorers/ directories
 // Prepend them with this function when we need them
 const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
-    const indexName = item.__autocomplete_indexName as SearchIndexName
+    const indexName = parseIndexName(item.__autocomplete_indexName as string)
     const subdirectory = indexNameToSubdirectoryMap[indexName]
     return `${subdirectory}/${item.slug}`
 }
@@ -111,7 +115,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
             searchClient,
             queries: [
                 {
-                    indexName: SearchIndexName.Pages,
+                    indexName: getIndexName(SearchIndexName.Pages),
                     query,
                     params: {
                         hitsPerPage: 2,
@@ -119,7 +123,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     },
                 },
                 {
-                    indexName: SearchIndexName.Charts,
+                    indexName: getIndexName(SearchIndexName.Charts),
                     query,
                     params: {
                         hitsPerPage: 2,
@@ -127,7 +131,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     },
                 },
                 {
-                    indexName: SearchIndexName.Explorers,
+                    indexName: getIndexName(SearchIndexName.Explorers),
                     query,
                     params: {
                         hitsPerPage: 1,
@@ -141,7 +145,9 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
     templates: {
         header: () => <h5 className="overline-black-caps">Top Results</h5>,
         item: ({ item, components }) => {
-            const index = item.__autocomplete_indexName as SearchIndexName
+            const index = parseIndexName(
+                item.__autocomplete_indexName as string
+            )
             const indexLabel =
                 index === SearchIndexName.Charts
                     ? "Chart"

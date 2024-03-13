@@ -41,6 +41,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import {
     DEFAULT_SEARCH_PLACEHOLDER,
+    getIndexName,
     logSiteSearchClick,
 } from "./searchClient.js"
 import {
@@ -52,7 +53,7 @@ function PagesHit({ hit }: { hit: IPageHit }) {
     return (
         <a
             href={`${BAKED_BASE_URL}/${hit.slug}`}
-            data-algolia-index={SearchIndexName.Pages}
+            data-algolia-index={getIndexName(SearchIndexName.Pages)}
             data-algolia-object-id={hit.objectID}
             data-algolia-position={hit.__position}
         >
@@ -79,7 +80,7 @@ function ChartHit({ hit }: { hit: IChartHit }) {
     return (
         <a
             href={`${BAKED_GRAPHER_URL}/${hit.slug}`}
-            data-algolia-index={SearchIndexName.Charts}
+            data-algolia-index={getIndexName(SearchIndexName.Charts)}
             data-algolia-object-id={hit.objectID}
             data-algolia-position={hit.__position}
         >
@@ -105,7 +106,7 @@ function ChartHit({ hit }: { hit: IChartHit }) {
 function ExplorerHit({ hit }: { hit: IExplorerHit }) {
     return (
         <a
-            data-algolia-index={SearchIndexName.Explorers}
+            data-algolia-index={getIndexName(SearchIndexName.Explorers)}
             data-algolia-object-id={hit.objectID}
             data-algolia-position={hit.__position}
             href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${hit.slug}`}
@@ -175,10 +176,9 @@ function Filters({
     const hitsLengthByIndexName = mapValues(resultsByIndexName, (results) =>
         get(results, ["results", "hits", "length"], 0)
     )
-    hitsLengthByIndexName.all = Object.values(hitsLengthByIndexName).reduce(
-        (a: number, b: number) => a + b,
-        0
-    )
+    hitsLengthByIndexName[getIndexName("all")] = Object.values(
+        hitsLengthByIndexName
+    ).reduce((a: number, b: number) => a + b, 0)
 
     return (
         <div className="search-filters">
@@ -186,28 +186,33 @@ function Filters({
                 ref={categoryFilterContainerRef}
                 className="search-filters__list"
             >
-                {searchCategoryFilters.map(([label, key]) => (
-                    <li
-                        key={key}
-                        data-filter-key={key}
-                        className="search-filters__tab"
-                    >
-                        <button
-                            aria-label={`Toggle filter results by ${label}`}
-                            disabled={hitsLengthByIndexName[key] === 0}
-                            onClick={() => handleCategoryFilterClick(key)}
-                            className={cx("search-filters__tab-button", {
-                                "search-filters__tab-button--is-active":
-                                    activeCategoryFilter === key,
-                            })}
+                {searchCategoryFilters.map(([label, key]) => {
+                    const indexName = getIndexName(key)
+                    return (
+                        <li
+                            key={key}
+                            data-filter-key={key}
+                            className="search-filters__tab"
                         >
-                            {label}
-                            <span className="search-filters__tab-count">
-                                {hitsLengthByIndexName[key]}
-                            </span>
-                        </button>
-                    </li>
-                ))}
+                            <button
+                                aria-label={`Toggle filter results by ${label}`}
+                                disabled={
+                                    hitsLengthByIndexName[indexName] === 0
+                                }
+                                onClick={() => handleCategoryFilterClick(key)}
+                                className={cx("search-filters__tab-button", {
+                                    "search-filters__tab-button--is-active":
+                                        activeCategoryFilter === key,
+                                })}
+                            >
+                                {label}
+                                <span className="search-filters__tab-count">
+                                    {hitsLengthByIndexName[indexName]}
+                                </span>
+                            </button>
+                        </li>
+                    )
+                })}
             </ul>
         </div>
     )
@@ -263,7 +268,7 @@ const SearchResults = (props: SearchResultsProps) => {
                     )
                     if (objectId && position) {
                         logSiteSearchClick({
-                            index: SearchIndexName.Charts,
+                            index: getIndexName(SearchIndexName.Charts),
                             queryID,
                             objectIDs: [objectId],
                             positions: [parseInt(position)],
@@ -319,7 +324,7 @@ const SearchResults = (props: SearchResultsProps) => {
                     />
                 </section>
             </NoResultsBoundary>
-            <Index indexName={SearchIndexName.Explorers}>
+            <Index indexName={getIndexName(SearchIndexName.Explorers)}>
                 <Configure
                     hitsPerPage={10}
                     distinct
@@ -351,7 +356,7 @@ const SearchResults = (props: SearchResultsProps) => {
                     </section>
                 </NoResultsBoundary>
             </Index>
-            <Index indexName={SearchIndexName.Charts}>
+            <Index indexName={getIndexName(SearchIndexName.Charts)}>
                 <Configure
                     hitsPerPage={40}
                     distinct
@@ -465,7 +470,9 @@ export class InstantSearchContainer extends React.Component {
                     // we're customizing it here to remove any filter / facet information so that it's just ?q=some+query
                     stateMapping: {
                         stateToRoute(uiState) {
-                            const query = uiState[SearchIndexName.Pages].query
+                            const query =
+                                uiState[getIndexName(SearchIndexName.Pages)]
+                                    .query
                             return {
                                 q: query,
                             }
@@ -481,7 +488,7 @@ export class InstantSearchContainer extends React.Component {
                     },
                 }}
                 searchClient={this.searchClient}
-                indexName={SearchIndexName.Pages}
+                indexName={getIndexName(SearchIndexName.Pages)}
             >
                 <div className="search-panel">
                     <SearchBox

@@ -14,6 +14,7 @@ import { chunkParagraphs } from "../chunk.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
 import { Chart } from "../../db/model/Chart.js"
 import { Knex } from "knex"
+import { getIndexName } from "../../site/search/searchClient.js"
 
 type ExplorerBlockColumns = {
     type: "columns"
@@ -193,7 +194,7 @@ const indexExplorersToAlgolia = async () => {
     }
 
     try {
-        const index = client.initIndex(SearchIndexName.Explorers)
+        const index = client.initIndex(getIndexName(SearchIndexName.Explorers))
 
         const knex = db.knexInstance()
         const records = await getExplorerRecords(knex)

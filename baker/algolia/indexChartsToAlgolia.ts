@@ -9,6 +9,7 @@ import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
 import { Link } from "../../db/model/Link.js"
 import { getRelatedArticles } from "../../db/model/Post.js"
 import { Knex } from "knex"
+import { getIndexName } from "../../site/search/searchClient.js"
 
 const computeScore = (record: Omit<ChartRecord, "score">): number => {
     const { numRelatedArticles, views_7d } = record
@@ -114,7 +115,7 @@ const indexChartsToAlgolia = async () => {
         return
     }
 
-    const index = client.initIndex(SearchIndexName.Charts)
+    const index = client.initIndex(getIndexName(SearchIndexName.Charts))
 
     await db.getConnection()
     const records = await getChartsRecords(db.knexInstance())
