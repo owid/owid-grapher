@@ -68,6 +68,7 @@ export type IChartHit = Hit<BaseHit> & ChartRecord
 
 export enum SearchIndexName {
     Explorers = "explorers",
+    ExplorerViews = "explorer-views",
     Charts = "charts",
     Pages = "pages",
 }
@@ -85,4 +86,5 @@ export const indexNameToSubdirectoryMap: Record<SearchIndexName, string> = {
     [SearchIndexName.Pages]: "",
     [SearchIndexName.Charts]: "/grapher",
     [SearchIndexName.Explorers]: "/explorers",
+    [SearchIndexName.ExplorerViews]: "/explorers",
 }

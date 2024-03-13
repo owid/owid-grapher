@@ -143,6 +143,22 @@ export const configureAlgolia = async () => {
         disableTypoToleranceOnAttributes: ["text"],
     })
 
+    const explorerViewsIndex = client.initIndex(
+        getIndexName(SearchIndexName.ExplorerViews)
+    )
+
+    await explorerViewsIndex.setSettings({
+        ...baseSettings,
+        searchableAttributes: [
+            "unordered(viewTitle)",
+            "unordered(viewSettings)",
+        ],
+        customRanking: ["desc(score)", "asc(viewIndexWithinExplorer)"],
+        attributeForDistinct: "viewTitleAndExplorerSlug",
+        distinct: true,
+        minWordSizefor1Typo: 6,
+    })
+
     const synonyms = [
         ["owid", "our world in data"],
         ["kids", "children"],
