@@ -8,7 +8,7 @@ import { getMostViewedGrapherIdsByChartType } from "../../db/model/Chart.js"
 import { CHART_TYPES } from "./utils.js"
 
 const DEFAULT_OUT_FILE = "../owid-grapher-svgs/most-viewed-charts.txt"
-const CHART_COUNT_PER_TYPE = 30
+const CHART_COUNT_PER_TYPE = 25
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {

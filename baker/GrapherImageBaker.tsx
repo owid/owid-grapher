@@ -134,11 +134,15 @@ export function initGrapherForSvgExport(
 
 export function buildSvgOutFilename(
     fragments: SvgFilenameFragments,
-    { shouldHashQueryStr = true }: { shouldHashQueryStr?: boolean } = {}
+    {
+        shouldHashQueryStr = true,
+        separator = "-",
+    }: { shouldHashQueryStr?: boolean; separator?: string } = {}
 ): string {
     const { slug, version, width, height, queryStr = "" } = fragments
     const fileKey = grapherSlugToExportFileKey(slug, queryStr, {
         shouldHashQueryStr,
+        separator,
     })
     const outFilename = `${fileKey}_v${version}_${width}x${height}.svg`
     return outFilename
