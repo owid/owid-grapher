@@ -25,9 +25,14 @@ import {
     GrapherTabOption,
     StackMode,
 } from "@ourworldindata/types"
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
+import { ExplorerChartCreationMode } from "../explorer/ExplorerConstants.js"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"
+
+const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
 const testPageRouter = Router()
 
@@ -49,6 +54,21 @@ function getViewPropsFromQueryParams(
     const hasComparisonView = checkHasComparisonView(comparisonUrl)
 
     return { comparisonUrl, hasComparisonView }
+}
+
+function getChartCreationModeFromQueryParams(
+    params: Pick<ExplorerTestPageQueryParams, "type">
+): ExplorerChartCreationMode | undefined {
+    switch (params.type) {
+        case "grapher-ids":
+            return ExplorerChartCreationMode.FromGrapherId
+        case "csv-files":
+            return ExplorerChartCreationMode.FromExplorerTableColumnSlugs
+        case "indicators":
+            return ExplorerChartCreationMode.FromVariableIds
+        default:
+            return undefined
+    }
 }
 
 function parseStringArrayOrUndefined(param: string | undefined): string[] {
@@ -81,6 +101,12 @@ interface EmbedTestPageQueryParams {
     readonly datasetIds?: string
     readonly namespace?: string
     readonly namespaces?: string
+}
+
+interface ExplorerTestPageQueryParams {
+    readonly originalUrl?: string
+    readonly comparisonUrl?: string
+    readonly type?: "grapher-ids" | "csv-files" | "indicators"
 }
 
 async function propsFromQueryParams(
@@ -605,5 +631,115 @@ testPageRouter.get("/:slug.svg", async (req, res) => {
     const vardata = await grapher.getVariableData()
     res.send(await grapherToSVG(grapher.config, vardata))
 })
+
+testPageRouter.get("/explorers", async (req, res) => {
+    let explorers = await explorerAdminServer.getAllPublishedExplorers()
+    const viewProps = getViewPropsFromQueryParams(req.query)
+    const chartCreationMode = getChartCreationModeFromQueryParams(req.query)
+
+    if (chartCreationMode) {
+        explorers = explorers.filter(
+            (explorer) => explorer.chartCreationMode === chartCreationMode
+        )
+    }
+
+    const slugs = explorers.map((explorer) => explorer.slug)
+
+    res.send(
+        renderToHtmlPage(<ExplorerTestPage slugs={slugs} {...viewProps} />)
+    )
+})
+
+interface ExplorerTestPageProps {
+    slugs: string[]
+    comparisonUrl?: string
+    hasComparisonView?: boolean
+}
+
+function ExplorerTestPage(props: ExplorerTestPageProps) {
+    const comparisonUrl = props.comparisonUrl ?? DEFAULT_COMPARISON_URL
+
+    const style = `
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        figure, iframe {
+            border: 0;
+            flex: 1;
+            height: 700px;
+            width: 100%;
+            margin: 10px;
+            max-width: 1200px;
+        }
+
+        .row {
+            padding: 10px;
+            margin: 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .side-by-side {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            width: 100%;
+        }
+
+        .side-by-side + .side-by-side {
+            margin-top: 64px;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .row > h3 {
+          text-align: center;
+        }
+    `
+
+    return (
+        <html>
+            <Head
+                canonicalUrl=""
+                pageTitle="Test Explorers"
+                baseUrl={BAKED_BASE_URL}
+            >
+                <style dangerouslySetInnerHTML={{ __html: style }} />
+            </Head>
+            <body>
+                <div className="row">
+                    <div className="side-by-side">
+                        {props.hasComparisonView && <h3>{comparisonUrl}</h3>}
+                        <h3>{BAKED_BASE_URL}</h3>
+                    </div>
+                </div>
+                {props.slugs.map((slug, index) => (
+                    <div key={slug} className="row">
+                        <h3>
+                            {slug} ({index + 1}/{props.slugs.length})
+                        </h3>
+                        <div className="side-by-side">
+                            {props.hasComparisonView && (
+                                <iframe
+                                    src={`${comparisonUrl}/explorers/${slug}`}
+                                    loading="lazy"
+                                />
+                            )}
+                            <figure
+                                data-explorer-src={`${BAKED_BASE_URL}/explorers/${slug}`}
+                            />
+                        </div>
+                    </div>
+                ))}
+                <script src={`${BAKED_BASE_URL}/assets/embedCharts.js`} />
+            </body>
+        </html>
+    )
+}
 
 export { testPageRouter }
