@@ -798,7 +798,21 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                                         ? manager.onLegendMouseLeave()
                                         : undefined
                                 }
+                                style={{ cursor: "default" }}
                             >
+                                {/* for hover interaction */}
+                                <rect
+                                    x={this.legendX + mark.x}
+                                    y={this.categoryLegendY + mark.y}
+                                    height={mark.rectSize}
+                                    width={
+                                        mark.label.bounds.width +
+                                        mark.label.bounds.x -
+                                        mark.x
+                                    }
+                                    fill="#fff"
+                                    opacity={0}
+                                />
                                 <rect
                                     x={this.legendX + mark.x}
                                     y={this.categoryLegendY + mark.y}
@@ -813,7 +827,6 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                                     strokeWidth={0.4}
                                     opacity={manager.legendOpacity} // defaults to undefined which removes the prop
                                 />
-                                ,
                                 <text
                                     x={this.legendX + mark.label.bounds.x}
                                     y={
