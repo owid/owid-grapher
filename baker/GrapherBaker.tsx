@@ -50,7 +50,7 @@ import {
     getMergedGrapherConfigForVariable,
     getVariableOfDatapageIfApplicable,
 } from "../db/model/Variable.js"
-import { getDatapageDataV2, getDatapageGdoc } from "../datapage/Datapage.js"
+import { getDatapageDataV2, getDatapageGdoc } from "./DatapageHelpers.js"
 import { Image } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 

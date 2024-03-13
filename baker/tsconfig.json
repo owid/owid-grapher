@@ -7,7 +7,6 @@
     "references": [
         { "path": "../site" },
         { "path": "../explorerAdminServer" },
-        { "path": "../datapage" },
         { "path": "../db" },
         { "path": "../settings" },
         { "path": "../serverUtils" },
