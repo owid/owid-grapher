@@ -426,7 +426,7 @@ export class InstantSearchContainer extends React.Component {
         if (params.q) {
             // Algolia runs the search and fills the searchbox input regardless
             // we just need this class to be aware that a query exists so that it doesn't hide the results
-            this.inputValue = decodeURI(params.q)
+            this.inputValue = params.q
         }
     }
 
