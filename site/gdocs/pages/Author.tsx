@@ -22,8 +22,8 @@ const AuthorHeader = (gdoc: OwidGdocAuthorInterface) => {
     } = gdoc.content
 
     return (
-        <>
-            <section className="author-header author-header--sm grid grid-cols-12-full-width span-cols-14">
+        <div className="author-header grid grid-cols-12-full-width span-cols-14">
+            <section className="author-header__sm grid grid-cols-12-full-width span-cols-14">
                 <div className="col-start-2 span-cols-8">
                     <h1 className="author-header__name">{title}</h1>
                     <div className="author-header__role">{role}</div>
@@ -48,7 +48,7 @@ const AuthorHeader = (gdoc: OwidGdocAuthorInterface) => {
                     <ArticleBlocks blocks={bio} containerType="author-header" />
                 )}
             </section>
-            <section className="author-header author-header--md grid grid-cols-12-full-width span-cols-14">
+            <section className="author-header__md grid grid-cols-12-full-width span-cols-14">
                 <div className="grid grid-cols-8 span-cols-8 col-start-2">
                     <h1 className="author-header__name span-cols-8">{title}</h1>
                     <div className="author-header__role span-cols-8">
@@ -81,14 +81,10 @@ const AuthorHeader = (gdoc: OwidGdocAuthorInterface) => {
                     )}
                 </div>
             </section>
-        </>
+        </div>
     )
 }
 
 export const Author = (gdoc: OwidGdocAuthorInterface): JSX.Element => {
-    return (
-        <div className="grid grid-cols-12-full-width">
-            <AuthorHeader {...gdoc} />
-        </div>
-    )
+    return <AuthorHeader {...gdoc} />
 }

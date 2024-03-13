@@ -1,15 +1,24 @@
 .author-header {
-    margin: 56px 0;
+    padding-bottom: 24px;
+    padding-top: 16px;
+    @include sm-up {
+        padding-top: 40px;
+    }
+    background-color: $blue-95;
+
+    .article-block__text {
+        @include body-2-regular;
+        color: $white;
+    }
+}
+
+.author-header__name {
+    color: $amber;
 }
 
 .author-header__role {
     @include body-2-regular;
-    color: $blue-60;
-}
-
-.article-block__text {
-    @include body-2-regular;
-    color: $blue-90;
+    color: $blue-40;
 }
 
 .author-header__portrait {
@@ -21,7 +30,6 @@
 }
 
 .article-block__socials {
-    color: $blue-60;
     @include body-3-medium;
 
     ul {
@@ -30,14 +38,19 @@
     }
 
     a {
-        @include owid-link-60;
+        color: $blue-20;
+        &:hover {
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
     }
     svg {
         margin-right: 8px;
+        color: $blue-50;
     }
 }
 
-.author-header--sm {
+.author-header__sm {
     @include sm-up {
         display: none;
     }
@@ -66,7 +79,7 @@
     }
 }
 
-.author-header--md {
+.author-header__md {
     display: none;
     @include sm-up {
         display: grid;
