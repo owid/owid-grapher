@@ -353,3 +353,6 @@ reindex: itsJustJavascript
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexToAlgolia.js
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexChartsToAlgolia.js
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorersToAlgolia.js
+
+clean:
+	rm -rf node_modules itsJustJavascript
