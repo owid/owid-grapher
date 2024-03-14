@@ -1,14 +1,17 @@
 .author-header {
-    padding-bottom: 24px;
-    padding-top: 16px;
+    padding: 16px 0 32px;
     @include sm-up {
-        padding-top: 40px;
+        padding: 40px 0;
     }
     background-color: $blue-95;
 
     .article-block__text {
         @include body-2-regular;
         color: $white;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
 
         a:visited {
             color: $visited-light;
@@ -106,8 +109,11 @@
         }
     }
 
+    .author-header__role {
+        margin-bottom: 8px;
+    }
+
     .article-block__text {
-        margin-top: 8px;
         @include md-up {
             @include body-1-regular;
         }
