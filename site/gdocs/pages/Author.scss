@@ -28,8 +28,13 @@
 .author-header__portrait {
     margin-top: 0;
     margin-bottom: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: $blue-20;
+
     img {
-        border-radius: 50%;
+        display: block;
+        mix-blend-mode: luminosity;
     }
 }
 
