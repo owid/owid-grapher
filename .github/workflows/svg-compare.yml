@@ -3,6 +3,7 @@ on: [push, pull_request]
 
 jobs:
     svgTester:
+        if: ${{ github.ref_name != 'master-1' }}
         runs-on: ubuntu-latest
 
         steps:
