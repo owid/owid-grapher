@@ -29,6 +29,7 @@ import {
     findGreatestCommonDivisorOfArray,
     traverseEnrichedBlocks,
     cartesian,
+    splitLastParenthetical,
 } from "./Util.js"
 import {
     BlockImageSize,
@@ -790,5 +791,27 @@ describe(cartesian, () => {
             ["b", "y", "+"],
             ["b", "y", "-"],
         ])
+    })
+})
+
+describe(splitLastParenthetical, () => {
+    it("splits the last pair of parentheses", () => {
+        expect(splitLastParenthetical("World (excl. China)")).toEqual({
+            name: "World ",
+            parenthetical: "(excl. China)",
+        })
+    })
+
+    it("doesn't split text if there are no parentheses", () => {
+        expect(splitLastParenthetical("World")).toEqual({
+            name: "World",
+            parenthetical: undefined,
+        })
+    })
+
+    it("only splits the last pair of parentheses, even if there are multiple pairs", () => {
+        expect(
+            splitLastParenthetical("World (excl. China) (excl. India)")
+        ).toEqual({ name: "World (excl. China) ", parenthetical: "(excl. India)" })
     })
 })

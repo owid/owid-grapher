@@ -117,6 +117,9 @@ export {
     checkIsGdocPost,
     checkIsDataInsight,
     cartesian,
+    makeGrapherDetailIdFromText,
+    makeMarkdownDetail,
+    splitLastParenthetical,
 } from "./Util.js"
 
 export {

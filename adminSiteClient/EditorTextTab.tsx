@@ -91,6 +91,8 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         const { grapher, references, features } = this.props.editor
         const { relatedQuestions } = grapher
 
+        const regionDetailIds = grapher.regionDetails.map((detail) => detail.id)
+
         return (
             <div className="EditorTextTab">
                 <Section name="Header">
@@ -206,7 +208,12 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         label="Footer note"
                         field="note"
                         store={grapher}
-                        helpText="Any important clarification needed to avoid miscommunication"
+                        helpText={
+                            "Any important clarification needed to avoid miscommunication." +
+                            (regionDetailIds.length > 0
+                                ? `Use the following detail ID(s) to overwrite the default region definition explanation: ${regionDetailIds}`
+                                : "")
+                        }
                         softCharacterLimit={140}
                         errorMessage={this.errorMessages.note}
                         textarea

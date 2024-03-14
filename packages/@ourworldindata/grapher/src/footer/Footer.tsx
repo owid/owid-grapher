@@ -100,11 +100,15 @@ export class Footer<
     }
 
     @computed protected get noteText(): string {
-        return this.manager.note ? `Note: ${this.manager.note}` : ""
+        return this.manager.currentNote
+            ? `Note: ${this.manager.currentNote}`
+            : ""
     }
 
     @computed protected get markdownNoteText(): string {
-        return this.manager.note ? `**Note:** ${this.manager.note}` : ""
+        return this.manager.currentNote
+            ? `**Note:** ${this.manager.currentNote}`
+            : ""
     }
 
     @computed protected get licenseText(): string {
