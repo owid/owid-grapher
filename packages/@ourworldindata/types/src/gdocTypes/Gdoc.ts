@@ -326,6 +326,7 @@ export type EnrichedDetail = {
 } & EnrichedBlockWithParseErrors
 
 export type DetailDictionary = Record<string, EnrichedDetail>
+export const DETAILS_LOADED_EVENT_NAME = "detailsLoaded"
 
 export type RawFaq = {
     id: string

@@ -66,6 +66,10 @@ import {
     getOriginAttributionFragments,
     sortBy,
     extractDetailsFromSyntax,
+    makeGrapherDetailIdFromText,
+    makeMarkdownDetail,
+    uniqBy,
+    splitLastParenthetical,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -102,6 +106,7 @@ import {
     GrapherStaticFormat,
     DetailsMarker,
     DetailDictionary,
+    DETAILS_LOADED_EVENT_NAME,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -439,6 +444,9 @@ export class Grapher
 
     @observable.ref windowInnerWidth?: number
     @observable.ref windowInnerHeight?: number
+
+    @observable.ref details: DetailDictionary =
+        typeof window !== "undefined" && window.details ? window.details : {}
 
     owidDataset?: MultipleOwidVariableDataDimensionsMap = undefined // This is used for passing data for testing
 
@@ -1245,10 +1253,41 @@ export class Grapher
 
     @observable shouldIncludeDetailsInStaticExport = true
 
+    @computed get regionDetails(): { name: string; id: string }[] {
+        function extractDetailFromEntityName(
+            entityName: string
+        ): { name: string; id: string } | undefined {
+            const { parenthetical } = splitLastParenthetical(entityName)
+            if (parenthetical === undefined) return
+            const maybeSource = parenthetical.slice(1, -1)
+            return {
+                name: maybeSource,
+                id: makeGrapherDetailIdFromText({
+                    text: maybeSource,
+                    type: "regions",
+                }),
+            }
+        }
+
+        const regionDetails = uniqBy(
+            excludeUndefined(
+                this.availableEntities.map((entity) =>
+                    extractDetailFromEntityName(entity.entityName)
+                )
+            ),
+            (detail) => detail.id
+        )
+
+        const validDetails = regionDetails.filter(({ id }) => {
+            const detail = this.details[id]
+            return detail !== undefined
+        })
+
+        return validDetails
+    }
+
     // Used for superscript numbers in static exports
     @computed get detailsOrderedByReference(): string[] {
-        if (typeof window === "undefined") return []
-
         // extract details from supporting text
         const subtitleDetails = !this.hideSubtitle
             ? extractDetailsFromSyntax(this.currentSubtitle)
@@ -1265,12 +1304,16 @@ export class Grapher
             this.xAxisConfig.label || ""
         )
 
+        // extract details from entity names
+        const regionDetails = this.regionDetails.map((detail) => detail.id)
+
         // text fragments are ordered by appearance
         const uniqueDetails = uniq([
             ...subtitleDetails,
             ...yAxisDetails,
             ...xAxisDetails,
             ...noteDetails,
+            ...regionDetails,
         ])
 
         return uniqueDetails
@@ -1288,10 +1331,9 @@ export class Grapher
     // Used for static exports. Defined at this level because they need to
     // be accessed by CaptionedChart and DownloadModal
     @computed get detailRenderers(): MarkdownTextWrap[] {
-        if (typeof window === "undefined") return []
         return this.detailsOrderedByReference.map((term, i) => {
             let text = `**${i + 1}.** `
-            const detail: EnrichedDetail | undefined = window.details?.[term]
+            const detail: EnrichedDetail | undefined = this.details[term]
             if (detail) {
                 const plainText = detail.text.map(({ value }) =>
                     spansToUnformattedPlainText(value)
@@ -1408,6 +1450,29 @@ export class Grapher
             text = appendAnnotationField(text, this.timeTitleSuffix)
 
         return text.trim()
+    }
+
+    /**
+     * The authored note with region details appended.
+     */
+    @computed get currentNote(): string {
+        let note = this.note ?? ""
+        note = note.trim()
+
+        const noteDetails = extractDetailsFromSyntax(note)
+
+        // append region details that are not already in the note
+        for (const detail of this.regionDetails) {
+            if (!noteDetails.includes(detail.id)) {
+                const markdownDetail = makeMarkdownDetail({
+                    text: detail.name,
+                    id: detail.id,
+                })
+                note += ` Region DoD: ${markdownDetail}.`
+            }
+        }
+
+        return note
     }
 
     /**
@@ -2777,6 +2842,18 @@ export class Grapher
         )
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
+
+        // update details when they are loaded
+        const onDetailsLoaded = (e: Event): void => {
+            this.details = (e as CustomEvent).detail?.details ?? {}
+        }
+        document.addEventListener(DETAILS_LOADED_EVENT_NAME, onDetailsLoaded)
+        this.disposers.push(() => {
+            window.removeEventListener(
+                DETAILS_LOADED_EVENT_NAME,
+                onDetailsLoaded
+            )
+        })
     }
 
     private _shortcutsBound = false

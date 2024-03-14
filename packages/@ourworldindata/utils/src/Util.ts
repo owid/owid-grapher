@@ -1866,3 +1866,39 @@ export function isElementHidden(element: Element | null): boolean {
         return true
     return isElementHidden(element.parentElement)
 }
+
+export function makeGrapherDetailIdFromText({
+    text,
+    type,
+}: {
+    text: string
+    type: "regions"
+}): string {
+    return `grapher_${type}_${slugify(text)}`
+}
+
+export function makeMarkdownDetail({
+    text,
+    id,
+}: {
+    text: string
+    id: string
+}): string {
+    return `[${text}](#dod:${id})`
+}
+
+/**
+ * Splits the last parenthetical from a string.
+ *
+ * For example:
+ *      - "World (excl. China)" => { name: "World", parenthetical: "(excl. China)" }
+ *      - "World" => { name: "World", parenthetical: undefined }
+ *      - "World (excl. China) (excl. India)" => { name: "World (excl. China)", parenthetical: "(excl. India)" }
+ */
+export function splitLastParenthetical(text: string): {
+    name: string
+    parenthetical: string | undefined
+} {
+    const [_, name, parenthetical] = text.match(/^(.*?)(\([^()]*\))?$/) ?? []
+    return { name, parenthetical }
+}

@@ -121,6 +121,9 @@ export {
     checkIsAuthor,
     cartesian,
     isElementHidden,
+    makeGrapherDetailIdFromText,
+    makeMarkdownDetail,
+    splitLastParenthetical,
 } from "./Util.js"
 
 export {

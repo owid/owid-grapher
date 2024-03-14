@@ -4,7 +4,10 @@ import { Instance } from "tippy.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { renderToStaticMarkup } from "react-dom/server.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
-import { DetailDictionary } from "@ourworldindata/utils"
+import {
+    DetailDictionary,
+    DETAILS_LOADED_EVENT_NAME,
+} from "@ourworldindata/utils"
 
 type Tippyfied<E> = E & {
     _tippy?: Instance
@@ -24,6 +27,11 @@ export async function runDetailsOnDemand() {
             Accept: "application/json",
         },
     }).then((res) => res.json())
+    document.dispatchEvent(
+        new CustomEvent(DETAILS_LOADED_EVENT_NAME, {
+            detail: { details: window.details },
+        })
+    )
 
     document.addEventListener("mouseover", handleEvent, { passive: true })
     document.addEventListener("touchstart", handleEvent, { passive: true })

@@ -296,6 +296,7 @@ export {
     type EnrichedDetail,
     type EnrichedFaq,
     type DetailDictionary,
+    DETAILS_LOADED_EVENT_NAME,
     GdocsContentSource,
     type OwidArticleBackportingStatistics,
     type LinkedChart,

@@ -4,7 +4,13 @@ import { CoreColumn } from "@ourworldindata/core-table"
 import { NO_DATA_LABEL } from "../color/ColorScale.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
-import { sum, zip, uniq, isNumber } from "@ourworldindata/utils"
+import {
+    sum,
+    zip,
+    uniq,
+    isNumber,
+    splitLastParenthetical,
+} from "@ourworldindata/utils"
 import {
     TooltipTableProps,
     TooltipValueProps,
@@ -178,8 +184,10 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                             notice,
                             swatch = "transparent",
                         } = row
-                        const [_m, seriesName, seriesParenthetical] =
-                            name.match(/^(.*?)(\([^()]*\))?$/) ?? []
+                        const {
+                            name: seriesName,
+                            parenthetical: seriesParenthetical,
+                        } = splitLastParenthetical(name)
 
                         return (
                             <tr
