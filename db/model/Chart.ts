@@ -48,7 +48,6 @@ export class Chart extends BaseEntity {
     @Column({ nullable: true }) publishedByUserId!: number
     @Column() createdAt!: Date
     @Column() updatedAt!: Date
-    @Column() isExplorable!: boolean
 
     @ManyToOne(() => User, (user) => user.lastEditedCharts)
     lastEditedByUser!: Relation<User>
@@ -294,8 +293,7 @@ export class OldChart {
         lastEditedByUser.fullName AS lastEditedBy,
         charts.publishedAt,
         charts.publishedByUserId,
-        publishedByUser.fullName AS publishedBy,
-        charts.isExplorable AS isExplorable
+        publishedByUser.fullName AS publishedBy
     `
 
     static async getBySlug(slug: string): Promise<OldChart> {

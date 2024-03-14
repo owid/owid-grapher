@@ -7,7 +7,6 @@ export interface DbInsertChart {
     createdAt?: Date
     id?: number
     is_indexable?: number
-    isExplorable?: number
     lastEditedAt: Date
     lastEditedByUserId: number
     publishedAt?: Date | null

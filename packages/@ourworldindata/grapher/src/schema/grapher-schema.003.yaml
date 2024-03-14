@@ -671,9 +671,4 @@ properties:
             - auto
             - hide
             - show
-    isExplorable:
-        type: boolean
-        default: false
-        description: Legacy flag, should be removed
-        $comment: Remove this flag once the codepaths that use it are deleted
 additionalProperties: false

@@ -65,7 +65,6 @@ test("timestamps are automatically created and updated", async () => {
     chart.config = {}
     chart.lastEditedAt = new Date()
     chart.lastEditedByUserId = 1
-    chart.isExplorable = true
     await chart.save()
     const created: Chart | null = await Chart.findOne({ where: { id: 1 } })
     expect(created).not.toBeNull()
@@ -73,7 +72,7 @@ test("timestamps are automatically created and updated", async () => {
         expect(created.createdAt).not.toBeNull()
         expect(created.updatedAt).toBeNull()
         await sleep(1000, undefined)
-        created.isExplorable = false
+        created.lastEditedAt = new Date()
         await created.save()
         const updated: Chart | null = await Chart.findOne({ where: { id: 1 } })
         expect(updated).not.toBeNull()
