@@ -812,6 +812,9 @@ describe(splitLastParenthetical, () => {
     it("only splits the last pair of parentheses, even if there are multiple pairs", () => {
         expect(
             splitLastParenthetical("World (excl. China) (excl. India)")
-        ).toEqual({ name: "World (excl. China) ", parenthetical: "(excl. India)" })
+        ).toEqual({
+            name: "World (excl. China) ",
+            parenthetical: "(excl. India)",
+        })
     })
 })
