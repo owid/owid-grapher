@@ -46,7 +46,9 @@ const countryIndicatorGraphers = async (): Promise<GrapherInterface[]> =>
         const graphers = (
             await db
                 .knexTable("charts")
-                .whereRaw("publishedAt is not null and is_indexable is true")
+                .whereRaw(
+                    "publishedAt is not null and config->>'$.isPublished' = 'true' and is_indexable is true"
+                )
         ).map((c: any) => JSON.parse(c.config)) as GrapherInterface[]
 
         return graphers.filter(checkShouldShowIndicator)
