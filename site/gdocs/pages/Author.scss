@@ -9,6 +9,10 @@
     .article-block__text {
         @include body-2-regular;
         color: $white;
+
+        a:visited {
+            color: $visited-light;
+        }
     }
 }
 
