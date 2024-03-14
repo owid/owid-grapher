@@ -4040,13 +4040,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stripe/stripe-js@npm:^1.54.0":
-  version: 1.54.0
-  resolution: "@stripe/stripe-js@npm:1.54.0"
-  checksum: 53371e0a8541d9a9f07cb2431fef12a07c0e7027dcbbcb8e5f16706d19901672fa7af3368878767468506e95896ddbdb3645073e3a5114cdf054d38bef3898f5
-  languageName: node
-  linkType: hard
-
 "@testing-library/dom@npm:^8.0.0":
   version: 8.13.0
   resolution: "@testing-library/dom@npm:8.13.0"
@@ -11046,7 +11039,6 @@ __metadata:
     "@rmp135/sql-ts": "npm:^1.18.1"
     "@sinclair/typebox": "npm:^0.28.5"
     "@slack/web-api": "npm:^6.11.1"
-    "@stripe/stripe-js": "npm:^1.54.0"
     "@testing-library/jest-dom": "npm:^6.1.3"
     "@testing-library/react": "npm:^12.1.5"
     "@tippyjs/react": "npm:^4.2.6"
@@ -11207,7 +11199,7 @@ __metadata:
     simple-statistics: "npm:^7.3.2"
     sql-fixtures: "npm:^1.0.4"
     string-pixel-width: "npm:^1.10.0"
-    stripe: "npm:^14.8.0"
+    stripe: "npm:^14.20.0"
     striptags: "npm:^3.2.0"
     svgo: "npm:^3.0.2"
     timezone-mock: "npm:^1.0.18"
@@ -15834,7 +15826,7 @@ __metadata:
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     itty-router: "npm:^4.0.23"
-    stripe: "npm:^14.5.0"
+    stripe: "npm:^14.20.0"
     svg2png-wasm: "npm:^1.4.1"
   languageName: unknown
   linkType: soft
@@ -19417,13 +19409,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stripe@npm:^14.5.0, stripe@npm:^14.8.0":
-  version: 14.8.0
-  resolution: "stripe@npm:14.8.0"
+"stripe@npm:^14.20.0":
+  version: 14.20.0
+  resolution: "stripe@npm:14.20.0"
   dependencies:
     "@types/node": "npm:>=8.1.0"
     qs: "npm:^6.11.0"
-  checksum: 6cf0046b210e43eeacd8a630c43b2478d5d18213a65f06234c5572cbf01b454356843a15cff8f84c5e72e9d65c21fec5cff0728b6dca1d2f26217dc27d9d41e6
+  checksum: 6dd8f0511ba730f1a510695f29f587ce49b73db6c7fa4d150e4b9ff8dc740ca05a5349d4f0020bc12a1ae5fa9bef403bb1eb0c5e66e7cdd6e7eeeab2c36b42bd
   languageName: node
   linkType: hard
 
