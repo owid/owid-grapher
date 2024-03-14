@@ -12,6 +12,7 @@ import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
+import { keyBy } from "lodash"
 
 interface ExplorerViewEntry {
     viewTitle: string
@@ -39,6 +40,9 @@ interface ExplorerViewEntryWithExplorerInfo extends ExplorerViewEntry {
     objectID?: string
 }
 
+// Creates a search-ready string from a choice.
+// Special handling is pretty much only necessary for checkboxes: If they are not ticked, then their name is not included.
+// Imagine a "Per capita" checkbox, for example. If it's not ticked, then we don't want searches for "per capita" to wrongfully match it.
 const explorerChoiceToViewSettings = (
     choices: ExplorerChoiceParams,
     decisionMatrix: DecisionMatrix
@@ -101,9 +105,6 @@ const getExplorerViewRecordsForExplorerSlug = async (
                 )
             })
 
-            // TODO: Handle grapherId and fetch title/subtitle
-            // TODO: Handle indicator-based explorers
-
             const record: ExplorerViewEntry = {
                 viewTitle: explorerDecisionMatrix.selectedRow.title,
                 viewSubtitle: explorerDecisionMatrix.selectedRow.subtitle,
@@ -120,6 +121,44 @@ const getExplorerViewRecordsForExplorerSlug = async (
             }
             return record
         })
+
+    // Enrich `grapherId`-powered views with title/subtitle
+    const grapherIds = records
+        .filter((record) => record.viewGrapherId !== undefined)
+        .map((record) => record.viewGrapherId as number)
+
+    if (grapherIds.length) {
+        console.log(
+            `Fetching grapher info from ${grapherIds.length} graphers for explorer ${slug}`
+        )
+        const grapherIdToTitle = await trx
+            .table("charts")
+            .select(
+                "id",
+                trx.raw("config->>'$.title' as title"),
+                trx.raw("config->>'$.subtitle' as subtitle")
+            )
+            .whereIn("id", grapherIds)
+            .andWhereRaw("config->>'$.isPublished' = 'true'")
+            .then((rows) => keyBy(rows, "id"))
+
+        for (const record of records) {
+            if (record.viewGrapherId !== undefined) {
+                const grapherInfo = grapherIdToTitle[record.viewGrapherId]
+                if (grapherInfo === undefined) {
+                    console.warn(
+                        `Grapher id ${record.viewGrapherId} not found for explorer ${slug}`
+                    )
+                    continue
+                }
+                record.viewTitle = grapherInfo.title
+                record.viewSubtitle = grapherInfo.subtitle
+                record.titleLength = grapherInfo.title?.length
+            }
+        }
+    }
+
+    // TODO: Handle indicator-based explorers
 
     return records
 }
