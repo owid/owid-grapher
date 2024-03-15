@@ -60,9 +60,17 @@ $rw-margin-bottom-grid-cell: 4px;
         display: flex;
         overflow-x: auto;
         scrollbar-width: thin;
+        margin-right: calc(
+            -1 * var(--grid-gap)
+        ); // pull the carousel to the right edge of the viewport...
 
         .research-and-writing-link {
             flex: 1 0 80%;
+            &:last-child {
+                margin-right: var(
+                    --grid-gap
+                ); // ... and bring back some breathing space to the right edge of the last thumbnail
+            }
         }
     }
 }
