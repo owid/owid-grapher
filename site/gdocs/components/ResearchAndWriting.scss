@@ -18,6 +18,10 @@ $rw-margin-bottom-grid-cell: 4px;
     @include sm-up {
         margin: 32px 0 24px;
     }
+
+    a.deep-link {
+        margin-top: 11px;
+    }
 }
 
 .research-and-writing-row__heading {
