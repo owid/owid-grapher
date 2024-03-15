@@ -1,5 +1,4 @@
 import React from "react"
-import { createPortal } from "react-dom"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
@@ -10,7 +9,6 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { ChartDimension } from "../chart/ChartDimension"
 import { makeSelectionArray } from "../chart/ChartUtils.js"
 import { AxisConfig } from "../axis/AxisConfig"
-import { GRAPHER_SETTINGS_DRAWER_ID } from "../core/GrapherConstants"
 
 import { AxisScaleToggle } from "./settings/AxisScaleToggle"
 import { AbsRelToggle, AbsRelToggleManager } from "./settings/AbsRelToggle"
@@ -48,10 +46,6 @@ export interface SettingsMenuManager
         ZoomToggleManager,
         TableFilterToggleManager,
         FacetStrategySelectionManager {
-    showConfigurationDrawer?: boolean
-    isInIFrame?: boolean
-    isEmbeddedInAnOwidPage?: boolean
-
     // ArchieML directives
     hideFacetControl?: boolean
     hideRelativeToggle?: boolean
@@ -91,8 +85,7 @@ export class SettingsMenu extends React.Component<{
     top: number
     bottom: number
 }> {
-    @observable.ref active: boolean = false // set to true when the menu's display has been requested
-    @observable.ref visible: boolean = false // true while menu is active and during enter/exit transitions
+    @observable.ref active: boolean = false
     contentRef: React.RefObject<HTMLDivElement> = React.createRef() // the menu contents & backdrop
 
     static shouldShow(manager: SettingsMenuManager): boolean {
@@ -243,15 +236,8 @@ export class SettingsMenu extends React.Component<{
             this.toggleVisibility()
     }
 
-    @action.bound toggleVisibility(e?: React.MouseEvent): void {
+    @action.bound toggleVisibility(): void {
         this.active = !this.active
-        if (this.active) this.visible = true
-        this.drawer?.classList.toggle("active", this.active)
-        e?.stopPropagation()
-    }
-
-    @action.bound onAnimationEnd(): void {
-        if (!this.active) this.visible = false
     }
 
     @computed get manager(): SettingsMenuManager {
@@ -267,38 +253,15 @@ export class SettingsMenu extends React.Component<{
         return makeSelectionArray(this.manager.selection)
     }
 
-    @computed get drawer(): Element | null {
-        const { isInIFrame, isEmbeddedInAnOwidPage } = this.manager
-        // Use the drawer `<nav>` element if it exists in the page markup (as it does on grapher and data pages)
-        // unless this is an external embed or an internal one (e.g., in the data page's Related Charts block).
-        // Otherwise, render into a drop-down menu.
-        return isInIFrame || isEmbeddedInAnOwidPage
-            ? null
-            : document.querySelector(`nav#${GRAPHER_SETTINGS_DRAWER_ID}`)
-    }
-
-    @computed get layout(): { maxHeight: string; top: number } | void {
-        // constrain height only in the pop-up case (drawers are full-height)
-        if (!this.drawer) {
-            const { top, bottom } = this.props,
-                maxHeight = `calc(100% - ${top + bottom}px)`
-            return { maxHeight, top }
-        }
-    }
-
-    private animationFor(selector: string): { animation: string } {
-        const phase = this.active ? "enter" : "exit",
-            timing = this.drawer ? "333ms" : "0"
-        return { animation: `${selector}-${phase} ${timing}` }
+    @computed get layout(): { maxHeight: string; top: number } {
+        const { top, bottom } = this.props,
+            maxHeight = `calc(100% - ${top + bottom}px)`
+        return { maxHeight, top }
     }
 
     @computed get menu(): JSX.Element | void {
-        const { visible, drawer } = this
-
-        if (visible) {
-            return !drawer
-                ? this.menuContents
-                : createPortal(this.menuContents, drawer)
+        if (this.active) {
+            return this.menuContents
         }
     }
 
@@ -340,13 +303,10 @@ export class SettingsMenu extends React.Component<{
                 <div
                     className="settings-menu-backdrop"
                     onClick={this.toggleVisibility}
-                    style={this.animationFor("settings-menu-backdrop")}
-                    onAnimationEnd={this.onAnimationEnd} // triggers unmount
                 ></div>
                 <div
                     className="settings-menu-controls"
                     style={{
-                        ...this.animationFor("settings-menu-controls"),
                         ...this.layout,
                     }}
                 >
