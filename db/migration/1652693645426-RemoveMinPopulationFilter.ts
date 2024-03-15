@@ -13,7 +13,7 @@ export class RemoveMinPopulationFilter1652693645426
         }
 
         for (const [tableName, columnName] of Object.entries(tables)) {
-            queryRunner.query(`UPDATE ${tableName}
+            await queryRunner.query(`UPDATE ${tableName}
         SET ${columnName} = JSON_REMOVE(${columnName}, '$.minPopulationFilter')
         WHERE JSON_CONTAINS_PATH(${columnName}, 'one', '$.minPopulationFilter') = 1;`)
         }

@@ -18,7 +18,7 @@ export const getPostBySlugLogToSlackNoThrow = async (
     try {
         post = await getFullPostBySlugFromSnapshot(knex, slug)
     } catch (err) {
-        logErrorAndMaybeSendToBugsnag(err)
+        void logErrorAndMaybeSendToBugsnag(err)
     } finally {
         return post
     }
@@ -47,7 +47,7 @@ export const getLandingOnlyIfParent = async (
         // todo: the concept of "citation overrides" does not belong to that
         // generic function. Logging this message should be the responsibility
         // of the caller function.
-        logErrorAndMaybeSendToBugsnag(
+        await logErrorAndMaybeSendToBugsnag(
             new JsonError(
                 // This error often shows up intermittently as a false-positive (DB unavailable when calling getPostBySlug()?)
                 // If it happens systematically, please check

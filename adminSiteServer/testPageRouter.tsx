@@ -243,7 +243,7 @@ async function propsFromQueryParams(
 
     if (datasetIds.length > 0) {
         const datasetIds = params.datasetIds
-        query.andWhere(
+        query = query.andWhere(
             `
             EXISTS(
                 SELECT *
@@ -258,7 +258,7 @@ async function propsFromQueryParams(
     }
 
     if (namespaces.length > 0) {
-        query.andWhere(
+        query = query.andWhere(
             `
             EXISTS(
                 SELECT *

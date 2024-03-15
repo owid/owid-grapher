@@ -206,7 +206,7 @@ export async function renderDataPageV2(
 
     if (faqResolveErrors.length > 0) {
         for (const error of faqResolveErrors) {
-            logErrorAndMaybeSendToBugsnag(
+            await logErrorAndMaybeSendToBugsnag(
                 new JsonError(
                     `Data page error in finding FAQs for variable ${variableId}: ${error.error}`
                 )
@@ -250,7 +250,7 @@ export async function renderDataPageV2(
         try {
             slug = await getSlugForTopicTag(firstTopicTag)
         } catch (error) {
-            logErrorAndMaybeSendToBugsnag(
+            await logErrorAndMaybeSendToBugsnag(
                 `Datapage with variableId "${variableId}" and title "${datapageData.title.title}" is using "${firstTopicTag}" as its primary tag, which we are unable to resolve to a tag in the grapher DB`
             )
         }
@@ -519,7 +519,7 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         await pMap(
             jobs,
             async (job) => {
-                db.knexReadonlyTransaction((trx) =>
+                await db.knexReadonlyTransaction((trx) =>
                     bakeSingleGrapherChart(job, trx)
                 )
                 progressBar.tick({ name: `slug ${job.slug}` })

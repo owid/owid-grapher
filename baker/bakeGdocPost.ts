@@ -6,7 +6,7 @@ import { SiteBaker } from "./SiteBaker.js"
 import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 
-yargs(hideBin(process.argv))
+void yargs(hideBin(process.argv))
     .command<{ slug: string }>(
         "$0 [slug]",
         "Bake single GDoc post",

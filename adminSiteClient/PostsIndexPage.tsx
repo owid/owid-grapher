@@ -85,7 +85,7 @@ class PostRow extends React.Component<PostRowProps> {
     }
 
     @action.bound onSaveTags(tags: DbChartTagJoin[]) {
-        this.saveTags(tags)
+        void this.saveTags(tags)
     }
 
     @action.bound async onConvertGdoc(allowRecreate: boolean = false) {
@@ -106,7 +106,7 @@ class PostRow extends React.Component<PostRowProps> {
                 "This will overwrite the existing GDoc. Are you sure?"
             )
         ) {
-            this.onConvertGdoc(true)
+            void this.onConvertGdoc(true)
         }
     }
 
@@ -376,7 +376,7 @@ export class PostsIndexPage extends React.Component {
     }
 
     componentDidMount() {
-        this.getData()
-        this.getTags()
+        void this.getData()
+        void this.getTags()
     }
 }

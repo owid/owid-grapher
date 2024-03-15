@@ -90,7 +90,7 @@ export class GitCmsServer {
     }
 
     private async autopush() {
-        if (this.options.shouldAutoPush) this.git.push()
+        if (this.options.shouldAutoPush) void this.git.push()
     }
 
     private async pullCommand(verbose: boolean | undefined = undefined) {
@@ -203,7 +203,7 @@ export class GitCmsServer {
             return { success: true }
         } catch (error) {
             const err = error as Error
-            logErrorAndMaybeSendToBugsnag(err)
+            void logErrorAndMaybeSendToBugsnag(err)
             return { success: false, error: err.toString() }
         }
     }
@@ -247,7 +247,7 @@ export class GitCmsServer {
             return { success: true }
         } catch (error) {
             const err = error as Error
-            logErrorAndMaybeSendToBugsnag(err)
+            void logErrorAndMaybeSendToBugsnag(err)
             return { success: false, error: err.toString() }
         }
     }

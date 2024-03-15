@@ -279,7 +279,7 @@ export class ChartEditor {
 
         if (window.confirm(`Publish chart at ${url}?`)) {
             this.grapher.isPublished = true
-            this.saveGrapher({
+            void this.saveGrapher({
                 onError: () => (this.grapher.isPublished = undefined),
             })
         }
@@ -292,7 +292,7 @@ export class ChartEditor {
                 : "Are you sure you want to unpublish this chart?"
         if (window.confirm(message)) {
             this.grapher.isPublished = undefined
-            this.saveGrapher({
+            void this.saveGrapher({
                 onError: () => (this.grapher.isPublished = true),
             })
         }

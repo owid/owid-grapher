@@ -431,7 +431,7 @@ describe("line chart to bar chart and bar chart race", () => {
     it("turns into a line chart race when playing a line chart that currently shows as a bar chart", () => {
         grapher.startHandleTimeBound = -Infinity
         grapher.endHandleTimeBound = -Infinity
-        grapher.timelineController.play(1)
+        void grapher.timelineController.play(1)
         expect(grapher.startHandleTimeBound).not.toEqual(
             grapher.endHandleTimeBound
         )

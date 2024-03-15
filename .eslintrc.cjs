@@ -51,8 +51,7 @@ module.exports = {
         "react/no-render-return-value": "warn",
         "react/no-unescaped-entities": ["warn", { forbid: [">", "}"] }],
         "react/prop-types": "warn",
-        // TODO: consider adding this and whitelisting all promises that don't need to be awaited with "void"
-        // "@typescript-eslint/no-floating-promises": "error",
+        "@typescript-eslint/no-floating-promises": "error",
     },
     settings: {
         "import/resolver": {

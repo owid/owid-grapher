@@ -114,7 +114,7 @@ export async function bakeGrapherToSvg(
     let svgCode = grapher.staticSVG
     if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
 
-    fs.writeFile(outPath, svgCode)
+    await fs.writeFile(outPath, svgCode)
     return svgCode
 }
 

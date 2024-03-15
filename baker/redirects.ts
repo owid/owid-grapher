@@ -125,7 +125,7 @@ export const resolveRedirectFromMap = async (
     const _resolveRedirectFromMap = async (url: Url): Promise<Url> => {
         ++recursionDepth
         if (recursionDepth > MAX_RECURSION_DEPTH) {
-            logErrorAndMaybeSendToBugsnag(
+            void logErrorAndMaybeSendToBugsnag(
                 new JsonError(
                     `A circular redirect (/a -> /b -> /a) has been detected for ${originalUrl.pathname} and is ignored.`
                 )
@@ -141,7 +141,7 @@ export const resolveRedirectFromMap = async (
         const targetUrl = Url.fromURL(target)
 
         if (targetUrl.pathname === url.pathname) {
-            logErrorAndMaybeSendToBugsnag(
+            void logErrorAndMaybeSendToBugsnag(
                 new JsonError(
                     `A self redirect (/a -> /a) has been detected for ${originalUrl.pathname} and is ignored.`
                 )

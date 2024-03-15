@@ -9,11 +9,13 @@ const main = async () => {
         })
         for (const dataset of datasets) {
             if (!dataset.isPrivate && !dataset.nonRedistributable)
-                syncDatasetToGitRepo(knex, dataset.id, { commitOnly: true })
+                await syncDatasetToGitRepo(knex, dataset.id, {
+                    commitOnly: true,
+                })
         }
     })
 
     await db.closeTypeOrmAndKnexConnections()
 }
 
-main()
+void main()

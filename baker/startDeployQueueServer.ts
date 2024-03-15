@@ -38,4 +38,4 @@ const main = async () => {
     await db.knexReadonlyTransaction(deployIfQueueIsNotEmpty)
 }
 
-main()
+void main()

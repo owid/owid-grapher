@@ -142,7 +142,7 @@ const getSlackMentionByEmail = async (
         const response = await slackClient.users.lookupByEmail({ email })
         return response.user?.id ? `<@${response.user.id}>` : undefined
     } catch (error) {
-        logErrorAndMaybeSendToBugsnag(error)
+        await logErrorAndMaybeSendToBugsnag(error)
     }
     return
 }

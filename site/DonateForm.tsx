@@ -482,7 +482,7 @@ export class DonateFormRunner {
     }
 }
 
-export function runDonateForm() {
+export async function runDonateForm() {
     const donateForm = new DonateFormRunner()
-    donateForm.run()
+    await donateForm.run()
 }

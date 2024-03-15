@@ -49,7 +49,7 @@ class DatasetRow extends React.Component<{
     }
 
     @action.bound onSaveTags(tags: DbChartTagJoin[]) {
-        this.saveTags(tags)
+        void this.saveTags(tags)
     }
 
     render() {
@@ -113,7 +113,7 @@ export class DatasetList extends React.Component<{
     }
 
     componentDidMount() {
-        this.getTags()
+        void this.getTags()
     }
 
     render() {

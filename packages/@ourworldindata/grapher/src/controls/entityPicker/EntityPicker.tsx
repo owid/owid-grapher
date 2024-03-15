@@ -435,7 +435,7 @@ export class EntityPicker extends React.Component<{
             () => this.focusOptionDirection(FocusDirection.first)
         )
 
-        this.populateLocalEntity()
+        void this.populateLocalEntity()
     }
 
     componentDidUpdate(): void {

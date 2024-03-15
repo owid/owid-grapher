@@ -144,4 +144,4 @@ process.on("unhandledRejection", (e) => {
     process.exit(1)
 })
 
-indexChartsToAlgolia()
+void indexChartsToAlgolia()

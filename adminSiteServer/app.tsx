@@ -263,7 +263,7 @@ export class OwidAdminApp {
 }
 
 if (!module.parent)
-    new OwidAdminApp({
+    void new OwidAdminApp({
         gitCmsDir: GIT_CMS_DIR,
         isDev: ENV === "development",
     }).startListening(ADMIN_SERVER_PORT, ADMIN_SERVER_HOST)

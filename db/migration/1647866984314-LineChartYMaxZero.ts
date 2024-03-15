@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class LineChartYMaxZero1647866984314 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`
+        await queryRunner.query(`
             UPDATE charts
             SET config = JSON_SET(config, "$.yAxis.max", 0)
             WHERE (

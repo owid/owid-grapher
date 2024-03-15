@@ -9,4 +9,4 @@ const main = async () => {
     await db.closeTypeOrmAndKnexConnections()
 }
 
-if (require.main === module) main()
+if (require.main === module) void main()

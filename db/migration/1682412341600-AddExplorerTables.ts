@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class AddExplorerTables1682412341600 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`
+        await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS explorers (
                 slug VARCHAR(150) PRIMARY KEY,
                 isPublished BOOLEAN NOT NULL,
@@ -12,7 +12,7 @@ export class AddExplorerTables1682412341600 implements MigrationInterface {
             )
         `)
 
-        queryRunner.query(`
+        await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS explorer_charts (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 explorerSlug VARCHAR(150) NOT NULL,
@@ -24,10 +24,10 @@ export class AddExplorerTables1682412341600 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`
+        await queryRunner.query(`
             DROP TABLE IF EXISTS explorer_charts;
         `)
-        queryRunner.query(`
+        await queryRunner.query(`
             DROP TABLE IF EXISTS explorers;
         `)
     }

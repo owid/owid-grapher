@@ -51,7 +51,7 @@ beforeAll(async () => {
 afterAll((done: any) => {
     // We leave the user in the database for other tests to use
     // For other cases it is good to drop any rows created in the test
-    Promise.allSettled([
+    void Promise.allSettled([
         typeOrmConnection?.destroy(),
         knexInstance?.destroy(),
     ]).then(() => done())
@@ -76,7 +76,7 @@ function sleep(time: number, value: any): Promise<any> {
 }
 
 test("timestamps are automatically created and updated", async () => {
-    knexReadWriteTransaction(async (trx) => {
+    await knexReadWriteTransaction(async (trx) => {
         const chart: DbInsertChart = {
             config: "{}",
             lastEditedAt: new Date(),
@@ -213,7 +213,7 @@ test("Transaction setup", async () => {
 })
 
 test("Write actions in read-only transactions fail", async () => {
-    expect(async () => {
+    await expect(async () => {
         return knexReadonlyTransaction(async (trx) => {
             await testRw(trx as KnexReadWriteTransaction) // The cast is necessary to not make TypeScript complain and catch this error :)
         }, knexInstance)

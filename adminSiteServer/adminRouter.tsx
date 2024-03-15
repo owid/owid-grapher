@@ -338,7 +338,7 @@ const gitCmsServer = new GitCmsServer({
     baseDir: GIT_CMS_DIR,
     shouldAutoPush: true,
 })
-gitCmsServer.createDirAndInitIfNeeded()
+void gitCmsServer.createDirAndInitIfNeeded()
 gitCmsServer.addToRouter(adminRouter)
 
 export { adminRouter }

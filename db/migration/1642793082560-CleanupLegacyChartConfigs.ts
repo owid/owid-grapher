@@ -222,7 +222,7 @@ where JSON_CONTAINS_PATH(${column}, 'one', '$."yAxis"."numDecimalPlaces"') = 1;`
                 delete (dimension as any).chartId
                 delete (dimension as any).numDecimalPlaces
             }
-            queryRunner.query(
+            await queryRunner.query(
                 `update ${table} set ${column} = ? where id = ?`,
                 [JSON.stringify(json), id]
             )

@@ -13,8 +13,8 @@ export const bakeAllPublishedExplorers = async (
     knex: db.KnexReadonlyTransaction
 ) => {
     // remove all existing explorers, since we're re-baking every single one anyway
-    fs.remove(outputFolder)
-    fs.mkdirp(outputFolder)
+    await fs.remove(outputFolder)
+    await fs.mkdirp(outputFolder)
 
     const published = await explorerAdminServer.getAllPublishedExplorers()
     await bakeExplorersToDir(outputFolder, published, knex)

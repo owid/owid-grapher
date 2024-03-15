@@ -108,7 +108,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             }
         }
         if (!originalGdoc) {
-            fetchGdocs()
+            void fetchGdocs()
         }
     }, [originalGdoc, fetchGdoc, handleError, admin])
 

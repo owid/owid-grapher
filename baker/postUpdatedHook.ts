@@ -215,7 +215,7 @@ const main = async (
         console.error(err)
         throw err
     }
-    exit()
+    await exit()
 }
 
-main(argv._[0], argv._[1], parseInt(argv._[2]), argv._[3])
+void main(argv._[0], argv._[1], parseInt(argv._[2]), argv._[3])
