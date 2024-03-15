@@ -54,7 +54,7 @@
         border-radius: 4px;
         background: white;
         box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
-        z-index: $zindex-controls-drawer;
+        z-index: $zindex-controls-popup;
 
         &:before {
             display: inline-block;
