@@ -1946,6 +1946,8 @@ export class Grapher
             // see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetParent
             if ((entry.target as HTMLElement).offsetParent === null) return
 
+            console.log("resizing..", Bounds.fromRect(entry.contentRect))
+
             const props: GrapherProgrammaticInterface = {
                 ...config,
                 bounds: Bounds.fromRect(entry.contentRect),
@@ -2072,6 +2074,13 @@ export class Grapher
         )
             return false
 
+        if (
+            this.entitySelectorElement &&
+            !this.showEntitySelectorElement &&
+            this.windowInnerWidth! >= 1260
+        )
+            return false
+
         return true
     }
 
@@ -2088,9 +2097,10 @@ export class Grapher
         const givenBounds = isInFullScreenMode
             ? { width: windowInnerWidth!, height: windowInnerHeight! }
             : bounds
+        const scalingFactor = isInFullScreenMode ? 0.95 : 1
         return Math.min(
-            (givenBounds.width * 0.95) / widthForDeviceOrientation,
-            (givenBounds.height * 0.95) / heightForDeviceOrientation
+            (givenBounds.width * scalingFactor) / widthForDeviceOrientation,
+            (givenBounds.height * scalingFactor) / heightForDeviceOrientation
         )
     }
 
@@ -2595,6 +2605,14 @@ export class Grapher
         return this.renderGrapherComponent()
     }
 
+    @computed get entitySelectorElement(): HTMLElement | null {
+        return document.getElementById("grapher-entity-selector")
+    }
+
+    @computed get showEntitySelectorElement(): boolean {
+        return this.isOnChartTab && this.windowInnerWidth! >= 1260
+    }
+
     private renderReady(): JSX.Element | null {
         if (!this.hasBeenVisible) return null
         if (this.renderToStatic) {
@@ -2612,6 +2630,30 @@ export class Grapher
                 {this.isDownloadModalOpen && <DownloadModal manager={this} />}
                 {this.isEmbedModalOpen && <EmbedModal manager={this} />}
                 {this.isSelectingData && <EntitySelectorModal manager={this} />}
+                {this.entitySelectorElement &&
+                    this.showEntitySelectorElement &&
+                    ReactDOM.createPortal(
+                        <div
+                            style={{
+                                width: Math.min(
+                                    this.windowInnerWidth! * (3 / 12),
+                                    1260 * (3 / 12)
+                                ),
+                                height: this.renderHeight,
+                                borderTop: "1px solid #f2f2f2",
+                                borderBottom: "1px solid #f2f2f2",
+                                borderRight: "1px solid #f2f2f2",
+                                background: "aliceblue",
+                            }}
+                        >
+                            <div>Entity selector</div>
+                            <input
+                                style={{ width: "100%" }}
+                                placeholder="Search..."
+                            />
+                        </div>,
+                        this.entitySelectorElement
+                    )}
             </>
         )
     }

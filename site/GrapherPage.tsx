@@ -121,15 +121,25 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
-                    <figure data-grapher-src={`/grapher/${grapher.slug}`}>
-                        <LoadingIndicator />
-                    </figure>
-                    <noscript id="fallback">
-                        <img
-                            src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${grapher.slug}.svg`}
-                        />
-                        <p>Interactive visualization requires JavaScript</p>
-                    </noscript>
+                    <div className="wrapper">
+                        <div className="grapher-and-controls">
+                            <figure
+                                data-grapher-src={`/grapher/${grapher.slug}`}
+                            >
+                                <LoadingIndicator />
+                            </figure>
+                            <noscript id="fallback">
+                                <img
+                                    src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${grapher.slug}.svg`}
+                                />
+                                <p>
+                                    Interactive visualization requires
+                                    JavaScript
+                                </p>
+                            </noscript>
+                            <nav id="grapher-entity-selector"></nav>
+                        </div>
+                    </div>
 
                     {((relatedArticles && relatedArticles.length !== 0) ||
                         (relatedCharts && relatedCharts.length !== 0)) && (

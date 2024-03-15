@@ -1,5 +1,5 @@
 import {
-    GRAPHER_PAGE_BODY_CLASS,
+    EXPLORER_PAGE_BODY_CLASS,
     LoadingIndicator,
 } from "@ourworldindata/grapher"
 import {
@@ -107,7 +107,7 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
             >
                 <IFrameDetector />
             </Head>
-            <body className={GRAPHER_PAGE_BODY_CLASS}>
+            <body className={EXPLORER_PAGE_BODY_CLASS}>
                 <SiteHeader
                     baseUrl={baseUrl}
                     hideAlertBanner={hideAlertBanner || false}

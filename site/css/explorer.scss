@@ -1,16 +1,21 @@
 @use "sass:math";
 
-.grapher-and-controls {
+.StandaloneExplorerPage main figure[data-grapher-src],
+#fallback {
     display: flex;
+    align-items: center;
     justify-content: center;
+    flex-direction: column;
+    margin: 0 auto;
+    width: 100%;
 
     // The landscape values
     $orientation-width: 680px;
     $orientation-height: 480px;
     $ideal-ratio: math.div($orientation-width, $orientation-height);
 
-    $max-width: 1260px; // The rough max-width across all pages on the site
-    $max-height: math.div((9/12) * $max-width, $ideal-ratio);
+    $max-width: 1250px; // The rough max-width across all pages on the site
+    $max-height: math.div($max-width, $ideal-ratio);
 
     // Charts shouldn't be below this height in any circumstance, whether mobile or not.
     // Except in iframes, where we override this.
@@ -19,18 +24,6 @@
     // On small viewports always use the full available height.
     // We only leave space for the mobile header and fill the rest.
     height: calc(100vh - $header-height-sm);
-
-    // use full width on mobile
-    margin-bottom: 32px;
-    margin-top: 0;
-    margin-left: (-$padding-x-sm);
-    margin-right: (-$padding-x-sm);
-
-    outline: 2px solid blue;
-
-    @media (min-width: 550px) {
-        margin: 32px auto;
-    }
 
     @include md-up {
         // On larger viewports, we want to leave more space at the bottom to make the entry link
@@ -44,38 +37,16 @@
         // We no longer use the full height
         max-height: #{math.div(1, $ideal-ratio) * 100}vw;
         min-height: $orientation-height; // overwrite the min-height set above
-        outline: 2px solid green;
     }
 
     @media (min-width: $max-width) {
         max-width: $max-width;
         max-height: $max-height;
-        outline: 2px solid orange;
     }
 
     // Needed so the absolutely-positioned <LoadingIndicator> on /grapher pages is centered
     // inside <figure>
     position: relative;
-}
-
-// width is set within grapher, respect it
-#grapher-entity-selector {
-    flex-shrink: 0;
-    flex-grow: 0;
-}
-
-.StandaloneGrapherPage main figure[data-grapher-src] {
-    width: 100%;
-    margin: 0;
-    min-width: 0;
-
-    // center vertically on small screens
-    display: flex;
-    align-items: center;
-
-    @media (min-width: 550px) {
-        display: block;
-    }
 }
 
 #fallback {
@@ -85,8 +56,7 @@
     max-width: none !important;
     max-height: none !important;
 
-    margin: 0;
-    min-width: 0;
+    margin-top: 25px;
 }
 
 #fallback > img {
@@ -94,13 +64,13 @@
     border: 1px solid #ccc;
 }
 
-.StandaloneGrapherPage .site-subnavigation {
+.StandaloneExplorerPage .site-subnavigation {
     padding-left: 1rem;
     margin: 0 auto;
     max-width: $max-width-data-explorer;
 }
 
-.StandaloneGrapherPage main {
+.StandaloneExplorerPage main {
     .related-research-data {
         @include block-spacing;
         margin-top: $vertical-spacing;
@@ -127,7 +97,7 @@
     }
 }
 
-html.IsInIframe .StandaloneGrapherPage {
+html.IsInIframe .StandaloneExplorerPage {
     background-color: inherit;
 
     > main {
