@@ -25,6 +25,7 @@
 
 .author-header__role {
     @include body-2-regular;
+    line-height: 1.25;
     color: $blue-40;
 }
 
@@ -111,15 +112,12 @@
 
     .author-header__role {
         margin-bottom: 8px;
-    }
-
-    .article-block__text {
         @include md-up {
             @include body-1-regular;
         }
     }
 
-    .author-header__role {
+    .article-block__text {
         @include md-up {
             @include body-1-regular;
         }
