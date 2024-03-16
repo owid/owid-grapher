@@ -1,12 +1,9 @@
 import {
     closeTypeOrmAndKnexConnections,
-    getConnection,
     knexReadonlyTransaction,
 } from "../../db/db.js"
 import { getPostRawBySlug } from "../../db/model/Post.js"
 import { enrichedBlocksToMarkdown } from "../../db/model/Gdoc/enrichedToMarkdown.js"
-import { GdocBase } from "../../db/model/Gdoc/GdocBase.js"
-import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 
 import fs from "fs-extra"
 

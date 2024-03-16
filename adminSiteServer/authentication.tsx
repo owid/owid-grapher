@@ -112,9 +112,11 @@ export async function authCloudflareSSOMiddleware(
 
 export async function logOut(req: express.Request, res: express.Response) {
     if (res.locals.user)
-        await db.queryMysql(`DELETE FROM sessions WHERE session_key = ?`, [
-            res.locals.session.id,
-        ])
+        await db.knexReadWriteTransaction((trx) =>
+            db.knexRaw(trx, `DELETE FROM sessions WHERE session_key = ?`, [
+                res.locals.session.id,
+            ])
+        )
 
     res.clearCookie("sessionid")
     res.clearCookie(CLOUDFLARE_COOKIE_NAME)
@@ -216,16 +218,18 @@ async function logInAsUser(user: DbPlainUser) {
     const now = new Date()
     const expiryDate = new Date(now.getTime() + 1000 * SESSION_COOKIE_AGE)
 
-    await db.execute(
-        `INSERT INTO sessions (session_key, session_data, expire_date) VALUES (?, ?, ?)`,
-        [sessionId, sessionData, expiryDate]
-    )
+    await db.knexReadWriteTransaction(async (trx) => {
+        await db.knexRaw(
+            trx,
+            `INSERT INTO sessions (session_key, session_data, expire_date) VALUES (?, ?, ?)`,
+            [sessionId, sessionData, expiryDate]
+        )
 
-    await db
-        .knexInstance()
-        .table("users")
-        .where({ id: user.id })
-        .update({ lastLogin: now })
+        await trx
+            .table("users")
+            .where({ id: user.id })
+            .update({ lastLogin: now })
+    })
 
     return { id: sessionId, expiryDate: expiryDate }
 }

@@ -64,7 +64,6 @@ export async function syncDatasetToGitRepo(
     knex: db.KnexReadonlyTransaction,
     datasetId: number,
     options: {
-        transaction?: db.TransactionContext
         oldDatasetName?: string
         commitName?: string
         commitEmail?: string

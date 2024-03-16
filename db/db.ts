@@ -66,9 +66,6 @@ export const queryMysql = async (
     return conn.query(params ? mysql.format(queryStr, params) : queryStr)
 }
 
-// For operations that modify data (TODO: handling to check query isn't used for this)
-export const execute = queryMysql
-
 // Return the first match from a mysql query
 export const mysqlFirst = async (
     queryStr: string,

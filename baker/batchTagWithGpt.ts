@@ -15,17 +15,7 @@ Usage:
 $ yarn batchTagWithGpt --help
 
 Example: yarn batchTagWithGpt --debug --limit 1
-
-Note: this script is not called automatically yet, and needs to be run manually.
 */
-export const batchTagWithGpt = async ({
-    debug,
-    limit,
-}: BatchTagWithGptArgs = {}) => {
-    await db.knexReadonlyTransaction((trx) =>
-        batchTagChartsWithGpt(trx, { debug, limit })
-    )
-}
 
 const batchTagChartsWithGpt = async (
     knex: db.KnexReadonlyTransaction,
