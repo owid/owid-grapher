@@ -480,7 +480,7 @@ export class InstantSearchContainer extends React.Component {
                         routeToState(routeState) {
                             const query = routeState.q
                             return {
-                                [SearchIndexName.Pages]: {
+                                [getIndexName(SearchIndexName.Pages)]: {
                                     query: query,
                                 },
                             }
