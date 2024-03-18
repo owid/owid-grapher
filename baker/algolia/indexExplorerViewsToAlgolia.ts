@@ -9,8 +9,11 @@ import {
 } from "../../explorer/ExplorerConstants.js"
 import { GridBoolean } from "../../gridLang/GridLangConstants.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
-import fs from "fs-extra"
 import { keyBy } from "lodash"
+import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
+import { getAlgoliaClient } from "./configureAlgolia.js"
+import { getIndexName } from "../../site/search/searchClient.js"
+import { SearchIndexName } from "../../site/search/searchTypes.js"
 
 interface ExplorerViewEntry {
     viewTitle: string
@@ -174,8 +177,6 @@ const getExplorerViewRecords = async (
 
     let records = [] as ExplorerViewEntryWithExplorerInfo[]
     for (const explorerInfo of publishedExplorers) {
-        // if (explorerInfo.slug !== "natural-disasters") continue
-
         const explorerViewRecords = await getExplorerViewRecordsForExplorerSlug(
             knex,
             explorerInfo.slug
@@ -207,16 +208,26 @@ const getExplorerViewRecords = async (
 }
 
 const indexExplorerViewsToAlgolia = async () => {
-    const knex = db.knexInstance()
-    const explorerViewRecords = await getExplorerViewRecords(knex)
+    if (!ALGOLIA_INDEXING) return
 
-    console.log(`Total: ${explorerViewRecords.length} views`)
+    const client = getAlgoliaClient()
+    if (!client) {
+        console.error(`Failed indexing charts (Algolia client not initialized)`)
+        return
+    }
 
-    await fs.writeJSON("./explorerViews.json", explorerViewRecords, {
-        spaces: 2,
-    })
+    const index = client.initIndex(getIndexName(SearchIndexName.ExplorerViews))
+
+    await db.getConnection()
+    const records = await getExplorerViewRecords(db.knexInstance())
+    await index.replaceAllObjects(records)
 
     await db.closeTypeOrmAndKnexConnections()
 }
+
+process.on("unhandledRejection", (e) => {
+    console.error(e)
+    process.exit(1)
+})
 
 indexExplorerViewsToAlgolia()
