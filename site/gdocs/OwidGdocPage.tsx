@@ -15,6 +15,7 @@ import { getCanonicalUrl, getPageTitle } from "@ourworldindata/components"
 import { DebugProvider } from "./DebugContext.js"
 import { match, P } from "ts-pattern"
 import { IMAGES_DIRECTORY } from "@ourworldindata/types"
+import { DATA_INSIGHT_ATOM_FEED_PROPS } from "./utils.js"
 
 declare global {
     interface Window {
@@ -79,6 +80,7 @@ export default function OwidGdocPage({
     const featuredImageFilename = getFeaturedImageFilename(gdoc)
     const canonicalUrl = getCanonicalUrl(baseUrl, gdoc)
     const pageTitle = getPageTitle(gdoc)
+    const isDataInsight = gdoc.content.type === OwidGdocType.DataInsight
 
     return (
         <html>
@@ -92,6 +94,7 @@ export default function OwidGdocPage({
                         ? `${baseUrl}${IMAGES_DIRECTORY}${featuredImageFilename}`
                         : undefined
                 }
+                atom={isDataInsight ? DATA_INSIGHT_ATOM_FEED_PROPS : undefined}
                 baseUrl={baseUrl}
             >
                 <CitationMeta

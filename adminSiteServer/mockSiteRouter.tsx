@@ -63,6 +63,7 @@ import {
     getPlainRouteWithROTransaction,
 } from "./plainRouterHelpers.js"
 import { DEFAULT_LOCAL_BAKE_DIR } from "../site/SiteConstants.js"
+import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
 
 require("express-async-errors")
 
@@ -91,6 +92,19 @@ getPlainRouteNonIdempotentWithRWTransaction(
         res.set("Content-Type", "application/xml")
         const atomFeedNoTopicPages = await makeAtomFeedNoTopicPages(trx)
         res.send(atomFeedNoTopicPages)
+    }
+)
+
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    `/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
+    async (_, res) => {
+        res.set("Content-Type", "application/xml")
+        const atomFeedDataInsights = await db.knexReadonlyTransaction((knex) =>
+            makeDataInsightsAtomFeed(knex)
+        )
+        res.send(atomFeedDataInsights)
     }
 )
 

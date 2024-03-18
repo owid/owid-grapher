@@ -103,6 +103,7 @@ import {
 import { getAllMinimalGdocBaseObjects } from "../db/model/Gdoc/GdocFactory.js"
 import { getBakePath } from "@ourworldindata/components"
 import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
+import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
 
 type PrefetchedAttachments = {
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
@@ -891,7 +892,7 @@ export class SiteBaker {
             await makeAtomFeedNoTopicPages(knex)
         )
         await this.stageWrite(
-            `${this.bakedSiteDir}/atom-data-insights.xml`,
+            `${this.bakedSiteDir}/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
             await makeDataInsightsAtomFeed(knex)
         )
         this.progressBar.tick({ name: "✅ baked rss" })
