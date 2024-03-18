@@ -102,9 +102,6 @@ const SocialSection = () => {
                             <span className="label">Threads</span>
                         </a>
                     </li>
-                </ul>
-                <h2 className="h2-semibold">RSS</h2>
-                <ul className="homepage-social-ribbon__social-list">
                     <li>
                         <a
                             href="/atom.xml"
@@ -117,7 +114,7 @@ const SocialSection = () => {
                                 <FontAwesomeIcon icon={faRss} />
                             </span>
                             <span className="label">
-                                Articles & Topic Pages
+                                Articles & Topic Pages RSS Feed
                             </span>
                         </a>
                     </li>
@@ -133,7 +130,9 @@ const SocialSection = () => {
                             <span className="icon">
                                 <FontAwesomeIcon icon={faRss} />
                             </span>
-                            <span className="label">Data Insights</span>
+                            <span className="label">
+                                Data Insights RSS Feed
+                            </span>
                         </a>
                     </li>
                 </ul>
