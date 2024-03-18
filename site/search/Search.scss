@@ -193,6 +193,7 @@
 
 .search-results__pages-list,
 .search-results__explorers-list,
+.search-results__explorer-views-list,
 .search-results__charts-list {
     gap: var(--grid-gap);
     @include sm-only {
@@ -227,7 +228,8 @@
     display: block;
 }
 
-.search-results__explorer-hit a {
+.search-results__explorer-hit a,
+.search-results__explorer-view-hit a {
     background-color: $blue-10;
     height: 100%;
     padding: 24px;
@@ -326,6 +328,7 @@
 
 .search-results__pages,
 .search-results__explorers,
+.search-results__explorer-views,
 .search-results__charts {
     display: none;
 }
@@ -333,6 +336,7 @@
 .search-results[data-active-filter="all"] {
     .search-results__pages,
     .search-results__explorers,
+    .search-results__explorer-views,
     .search-results__charts {
         // both needed for .search-results__show-more-container absolute-positioning
         display: inline-block;
@@ -377,10 +381,21 @@
     }
 }
 
-.search-results[data-active-filter="explorers"] .search-results__explorers {
+.search-results__explorer-view-hit {
+    display: none;
+
+    &:nth-child(-n + 4) {
+        display: inline;
+    }
+}
+
+.search-results[data-active-filter="explorers"] .search-results__explorers,
+.search-results[data-active-filter="explorers"]
+    .search-results__explorer-views {
     display: inline;
 
-    .search-results__explorer-hit {
+    .search-results__explorer-hit,
+    .search-results__explorer-view-hit {
         display: inline;
     }
 }
