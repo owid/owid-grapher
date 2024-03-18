@@ -59,10 +59,11 @@ import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
 import {
-    getHomepageId,
     knexRaw,
-    KnexReadonlyTransaction,
     KnexReadWriteTransaction,
+    KnexReadonlyTransaction,
+    getHomepageId,
+    getPublishedDataInsights,
 } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
@@ -371,7 +372,27 @@ export const renderNotFoundPage = () =>
 // TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function makeAtomFeed(knex: KnexReadWriteTransaction) {
     const posts = (await getBlogIndex(knex)).slice(0, 10)
-    return makeAtomFeedFromPosts(posts)
+    return makeAtomFeedFromPosts({ posts })
+}
+
+export async function makeDataInsightsAtomFeed(knex: KnexReadonlyTransaction) {
+    const dataInsights = await getPublishedDataInsights(knex).then((results) =>
+        results.map((di) => ({
+            authors: di.authors,
+            title: di.title,
+            date: new Date(di.publishedAt),
+            modifiedDate: new Date(di.updatedAt),
+            slug: di.slug,
+        }))
+    )
+    return makeAtomFeedFromPosts({
+        posts: dataInsights,
+        title: "Our World in Data - Data Insights",
+        htmlUrl: `${BAKED_BASE_URL}/data-insights`,
+        feedUrl: `${BAKED_BASE_URL}/atom-data-insights.xml`,
+        subtitle:
+            "Bite-sized insights on how the world is changing, written by our team",
+    })
 }
 
 // We don't want to include topic pages in the atom feed that is being consumed
@@ -383,17 +404,29 @@ export async function makeAtomFeedNoTopicPages(knex: KnexReadWriteTransaction) {
     const posts = (await getBlogIndex(knex))
         .filter((post: IndexPost) => post.type !== OwidGdocType.TopicPage)
         .slice(0, 10)
-    return makeAtomFeedFromPosts(posts)
+    return makeAtomFeedFromPosts({ posts })
 }
 
-export async function makeAtomFeedFromPosts(posts: IndexPost[]) {
+export async function makeAtomFeedFromPosts({
+    posts,
+    title = "Our World in Data",
+    subtitle = "Research and data to make progress against the world’s largest problems",
+    htmlUrl = BAKED_BASE_URL,
+    feedUrl = `${BAKED_BASE_URL}/atom.xml`,
+}: {
+    posts: IndexPost[]
+    title?: string
+    subtitle?: string
+    htmlUrl?: string
+    feedUrl?: string
+}) {
     const feed = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-<title>Our World in Data</title>
-<subtitle>Research and data to make progress against the world’s largest problems</subtitle>
-<id>${BAKED_BASE_URL}/</id>
-<link type="text/html" rel="alternate" href="${BAKED_BASE_URL}"/>
-<link type="application/atom+xml" rel="self" href="${BAKED_BASE_URL}/atom.xml"/>
+<title>${title}</title>
+<subtitle>${subtitle}</subtitle>
+<id>${htmlUrl}/</id>
+<link type="text/html" rel="alternate" href="${htmlUrl}"/>
+<link type="application/atom+xml" rel="self" href="${feedUrl}"/>
 <updated>${posts[0].date.toISOString()}</updated>
 ${posts
     .map((post) => {
@@ -403,6 +436,9 @@ ${posts
                   formatUrls(post.imageUrl)
               )}"/></a>`
             : ""
+        const summary = post.excerpt
+            ? `<summary><![CDATA[${post.excerpt}${image}]]></summary>`
+            : ``
 
         return `<entry>
             <title><![CDATA[${post.title}]]></title>
@@ -416,7 +452,7 @@ ${posts
                         `<author><name>${author}</name></author>`
                 )
                 .join("")}
-            <summary><![CDATA[${post.excerpt}${image}]]></summary>
+            ${summary}
             </entry>`
     })
     .join("\n")}
@@ -594,21 +630,17 @@ export const renderProminentLinks = async (
                     (!isCanonicalInternalUrl(resolvedUrl)
                         ? null // attempt fallback for internal urls only
                         : resolvedUrl.isExplorer
-                          ? await getExplorerTitleByUrl(knex, resolvedUrl)
-                          : resolvedUrl.isGrapher && resolvedUrl.slug
-                            ? (
-                                  await getChartConfigBySlug(
-                                      knex,
-                                      resolvedUrl.slug
-                                  )
-                              )?.config?.title // optim?
-                            : resolvedUrl.slug &&
-                              (
-                                  await getFullPostBySlugFromSnapshot(
-                                      knex,
-                                      resolvedUrl.slug
-                                  )
-                              ).title)
+                        ? await getExplorerTitleByUrl(knex, resolvedUrl)
+                        : resolvedUrl.isGrapher && resolvedUrl.slug
+                        ? (await getChartConfigBySlug(knex, resolvedUrl.slug))
+                              ?.config?.title // optim?
+                        : resolvedUrl.slug &&
+                          (
+                              await getFullPostBySlugFromSnapshot(
+                                  knex,
+                                  resolvedUrl.slug
+                              )
+                          ).title)
             } finally {
                 if (!title) {
                     void logErrorAndMaybeSendToBugsnag(
@@ -628,15 +660,12 @@ export const renderProminentLinks = async (
                 (!isCanonicalInternalUrl(resolvedUrl)
                     ? null
                     : resolvedUrl.isExplorer
-                      ? renderExplorerDefaultThumbnail()
-                      : resolvedUrl.isGrapher && resolvedUrl.slug
-                        ? renderGrapherThumbnailByResolvedChartSlug(
-                              resolvedUrl.slug
-                          )
-                        : await renderPostThumbnailBySlug(
-                              knex,
-                              resolvedUrl.slug
-                          ))
+                    ? renderExplorerDefaultThumbnail()
+                    : resolvedUrl.isGrapher && resolvedUrl.slug
+                    ? renderGrapherThumbnailByResolvedChartSlug(
+                          resolvedUrl.slug
+                      )
+                    : await renderPostThumbnailBySlug(knex, resolvedUrl.slug))
 
             const rendered = ReactDOMServer.renderToStaticMarkup(
                 <div className="block-wrapper">

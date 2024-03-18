@@ -20,6 +20,7 @@ import {
     renderTopChartsCollectionPage,
     renderDataInsightsIndexPage,
     renderThankYouPage,
+    makeDataInsightsAtomFeed,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -74,17 +75,6 @@ mockSiteRouter.use(express.json())
 // TODO: this transaction is only RW because somewhere inside it we fetch images
 getPlainRouteNonIdempotentWithRWTransaction(
     mockSiteRouter,
-    "/sitemap.xml",
-    async (req, res, trx) => {
-        res.set("Content-Type", "application/xml")
-        const sitemap = await makeSitemap(explorerAdminServer, trx)
-        res.send(sitemap)
-    }
-)
-
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
-    mockSiteRouter,
     "/atom.xml",
     async (req, res, trx) => {
         res.set("Content-Type", "application/xml")
@@ -101,6 +91,17 @@ getPlainRouteNonIdempotentWithRWTransaction(
         res.set("Content-Type", "application/xml")
         const atomFeedNoTopicPages = await makeAtomFeedNoTopicPages(trx)
         res.send(atomFeedNoTopicPages)
+    }
+)
+
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    "/sitemap.xml",
+    async (req, res, trx) => {
+        res.set("Content-Type", "application/xml")
+        const sitemap = await makeSitemap(explorerAdminServer, trx)
+        res.send(sitemap)
     }
 )
 

@@ -33,6 +33,7 @@ import {
     renderTopChartsCollectionPage,
     renderDataInsightsIndexPage,
     renderThankYouPage,
+    makeDataInsightsAtomFeed,
 } from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
@@ -888,6 +889,10 @@ export class SiteBaker {
         await this.stageWrite(
             `${this.bakedSiteDir}/atom-no-topic-pages.xml`,
             await makeAtomFeedNoTopicPages(knex)
+        )
+        await this.stageWrite(
+            `${this.bakedSiteDir}/atom-data-insights.xml`,
+            await makeDataInsightsAtomFeed(knex)
         )
         this.progressBar.tick({ name: "✅ baked rss" })
     }
