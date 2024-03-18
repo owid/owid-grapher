@@ -175,10 +175,18 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             </li>
                             <li>
                                 <a
-                                    href="/feed"
+                                    href="/atom.xml"
                                     data-track-note="footer_navigation"
                                 >
-                                    RSS Feed
+                                    Articles & Topic Pages RSS Feed
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="/atom-data-insights.xml"
+                                    data-track-note="footer_navigation"
+                                >
+                                    Data Insights RSS Feed
                                 </a>
                             </li>
                         </ul>
