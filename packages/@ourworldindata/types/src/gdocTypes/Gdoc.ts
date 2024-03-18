@@ -139,6 +139,7 @@ export type MinimalDataInsightInterface = Pick<
     publishedAt: string
     updatedAt: string
     slug: string
+    // Not used in any UI, only needed for the data insights atom feed
     authors: string[]
     // We select the 5 most recently published insights
     // We only display 4, but if you're on the DI page for one of them we hide it and show the next most recent
