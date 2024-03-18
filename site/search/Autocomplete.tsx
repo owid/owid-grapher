@@ -76,7 +76,12 @@ const getItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({ item }) =>
 const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
     const indexName = parseIndexName(item.__autocomplete_indexName as string)
     const subdirectory = indexNameToSubdirectoryMap[indexName]
-    return `${subdirectory}/${item.slug}`
+    switch (indexName) {
+        case SearchIndexName.ExplorerViews:
+            return `${subdirectory}/${item.explorerSlug}${item.viewQueryParams}`
+        default:
+            return `${subdirectory}/${item.slug}`
+    }
 }
 
 const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
@@ -142,6 +147,14 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     },
                 },
                 {
+                    indexName: getIndexName(SearchIndexName.ExplorerViews),
+                    query,
+                    params: {
+                        hitsPerPage: 1,
+                        distinct: true,
+                    },
+                },
+                {
                     indexName: getIndexName(SearchIndexName.Explorers),
                     query,
                     params: {
@@ -160,11 +173,20 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                 item.__autocomplete_indexName as string
             )
             const indexLabel =
-                index === SearchIndexName.Charts
-                    ? "Chart"
-                    : index === SearchIndexName.Explorers
-                      ? "Explorer"
-                      : pageTypeDisplayNames[item.type as PageType]
+                index === SearchIndexName.Charts ? (
+                    "Chart"
+                ) : index === SearchIndexName.Explorers ? (
+                    "Explorer"
+                ) : index === SearchIndexName.ExplorerViews ? (
+                    <>
+                        in <em>{item.explorerTitle} Data Explorer</em>
+                    </>
+                ) : (
+                    pageTypeDisplayNames[item.type as PageType]
+                )
+
+            const mainAttribute =
+                index === SearchIndexName.ExplorerViews ? "viewTitle" : "title"
 
             return (
                 <div
@@ -175,7 +197,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     <span>
                         <components.Highlight
                             hit={item}
-                            attribute="title"
+                            attribute={mainAttribute}
                             tagName="strong"
                         />
                     </span>
