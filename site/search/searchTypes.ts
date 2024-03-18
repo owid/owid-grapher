@@ -36,6 +36,14 @@ export interface PageRecord {
 
 export type IPageHit = PageRecord & Hit<BaseHit>
 
+export type IExplorerViewHit = Hit<BaseHit> & {
+    objectID: string
+    explorerSlug: string
+    viewTitle: string
+    explorerTitle: string
+    viewQueryParams: string
+}
+
 export type IExplorerHit = Hit<BaseHit> & {
     objectID: string
     slug: string
