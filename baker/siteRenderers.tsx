@@ -377,7 +377,7 @@ export async function makeAtomFeed(knex: KnexReadWriteTransaction) {
 
 export async function makeDataInsightsAtomFeed(knex: KnexReadonlyTransaction) {
     const dataInsights = await getPublishedDataInsights(knex).then((results) =>
-        results.map((di) => ({
+        results.slice(0, 10).map((di) => ({
             authors: di.authors,
             title: di.title,
             date: new Date(di.publishedAt),
