@@ -2,9 +2,12 @@ import cheerio from "cheerio"
 import { isArray } from "lodash"
 import { match } from "ts-pattern"
 import {
+    DbEnrichedChart,
+    DbRawChart,
     checkIsPlainObjectWithGuard,
     identity,
     keyBy,
+    parseChartsRow,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import * as db from "../../db/db.js"
@@ -12,8 +15,8 @@ import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
 import { chunkParagraphs } from "../chunk.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
-import { Chart } from "../../db/model/Chart.js"
 import { Knex } from "knex"
+import { getIndexName } from "../../site/search/searchClient.js"
 
 type ExplorerBlockColumns = {
     type: "columns"
@@ -47,7 +50,7 @@ type ExplorerRecord = {
 
 function extractTextFromExplorer(
     blocksString: string,
-    graphersUsedInExplorers: Record<number, Chart | null>
+    graphersUsedInExplorers: Record<number, DbEnrichedChart | null>
 ): string {
     const blockText = new Set<string>()
     const blocks = JSON.parse(blocksString)
@@ -119,17 +122,17 @@ const getExplorerRecords = async (
 
     // Fetch info about all charts used in explorers, as linked by the explorer_charts table
     const graphersUsedInExplorers = await db
-        .knexRaw<{ chartId: number }>(
+        .knexRaw<DbRawChart>(
             `
-        SELECT DISTINCT chartId
-        FROM explorer_charts
+        SELECT * FROM charts
+        INNER JOIN (
+            SELECT DISTINCT chartId AS id FROM explorer_charts
+        ) AS ec
+        USING (id)
         `,
             knex
         )
-        .then((results: { chartId: number }[]) =>
-            results.map(({ chartId }) => chartId)
-        )
-        .then((ids) => Promise.all(ids.map((id) => Chart.findOneBy({ id }))))
+        .then((charts) => charts.map((c) => parseChartsRow(c)))
         .then((charts) => keyBy(charts, "id"))
 
     const explorerRecords = await db
@@ -193,7 +196,7 @@ const indexExplorersToAlgolia = async () => {
     }
 
     try {
-        const index = client.initIndex(SearchIndexName.Explorers)
+        const index = client.initIndex(getIndexName(SearchIndexName.Explorers))
 
         const knex = db.knexInstance()
         const records = await getExplorerRecords(knex)

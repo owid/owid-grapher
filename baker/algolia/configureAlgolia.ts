@@ -11,8 +11,9 @@ import {
 } from "../../settings/serverSettings.js"
 import { countries } from "@ourworldindata/utils"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
+import { getIndexName } from "../../site/search/searchClient.js"
 
-export const CONTENT_GRAPH_ALGOLIA_INDEX = "graph"
+export const CONTENT_GRAPH_ALGOLIA_INDEX = getIndexName("graph")
 
 export const getAlgoliaClient = (): SearchClient | undefined => {
     if (!ALGOLIA_ID || !ALGOLIA_SECRET_KEY) {
@@ -58,7 +59,7 @@ export const configureAlgolia = async () => {
         unretrievableAttributes: ["views_7d", "score"],
     }
 
-    const chartsIndex = client.initIndex(SearchIndexName.Charts)
+    const chartsIndex = client.initIndex(getIndexName(SearchIndexName.Charts))
 
     await chartsIndex.setSettings({
         ...baseSettings,
@@ -89,7 +90,7 @@ export const configureAlgolia = async () => {
         optionalWords: ["vs"],
     })
 
-    const pagesIndex = client.initIndex(SearchIndexName.Pages)
+    const pagesIndex = client.initIndex(getIndexName(SearchIndexName.Pages))
 
     await pagesIndex.setSettings({
         ...baseSettings,
@@ -112,7 +113,9 @@ export const configureAlgolia = async () => {
         disableExactOnAttributes: ["tags"],
     })
 
-    const explorersIndex = client.initIndex(SearchIndexName.Explorers)
+    const explorersIndex = client.initIndex(
+        getIndexName(SearchIndexName.Explorers)
+    )
 
     await explorersIndex.setSettings({
         ...baseSettings,

@@ -18,7 +18,7 @@ ifneq (,$(wildcard ./.env))
 	export
 endif
 
-.PHONY: help up up.full down down.full refresh refresh.wp refresh.full migrate svgtest
+.PHONY: help up up.full down down.full refresh refresh.wp refresh.full migrate svgtest itsJustJavascript
 
 help:
 	@echo 'Available commands:'
@@ -39,6 +39,7 @@ help:
 	@echo '  make refresh.wp        download a new wordpress snapshot and update MySQL'
 	@echo '  make refresh.full      do a full MySQL update of both wordpress and grapher'
 	@echo '  make sync-images       sync all images from the remote master'
+	@echo '  make reindex			reindex (or initialise) search in Algolia'
 	@echo
 	@echo '  OPS (staff-only)'
 	@echo '  make deploy            Deploy your local site to production'
@@ -335,3 +336,23 @@ svgtest: ../owid-grapher-svgs
 ../owid-content:
 	@echo '==> Cloning owid-content to ../owid-content'
 	cd .. && git clone git@github.com:owid/owid-content
+
+node_modules: package.json yarn.lock yarn.config.cjs
+	@echo '==> Installing packages'
+	yarn install
+
+itsJustJavascript: node_modules
+	@echo '==> Compiling TS'
+	yarn lerna run build
+	yarn run tsc -b
+	touch $@
+
+reindex: itsJustJavascript
+	@echo '==> Reindexing search in Algolia'
+	node --enable-source-maps itsJustJavascript/baker/algolia/configureAlgolia.js
+	node --enable-source-maps itsJustJavascript/baker/algolia/indexToAlgolia.js
+	node --enable-source-maps itsJustJavascript/baker/algolia/indexChartsToAlgolia.js
+	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorersToAlgolia.js
+
+clean:
+	rm -rf node_modules itsJustJavascript
