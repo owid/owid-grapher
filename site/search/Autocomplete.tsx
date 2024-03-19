@@ -25,6 +25,7 @@ import {
     getIndexName,
     parseIndexName,
 } from "./searchClient.js"
+import { queryParamsToStr } from "@ourworldindata/utils"
 
 type BaseItem = Record<string, unknown>
 
@@ -35,7 +36,9 @@ const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
         return {
             ...source,
             onSelect({ item, navigator }) {
-                navigator.navigate({ itemUrl: `/search?q=${item.id}` } as any)
+                navigator.navigate({
+                    itemUrl: `/search${queryParamsToStr({ q: item.id })}`,
+                } as any)
             },
             templates: {
                 ...source.templates,
@@ -81,7 +84,7 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
         return ["CO2", "Energy", "Education", "Poverty", "Democracy"].map(
             (term) => ({
                 title: term,
-                slug: `/search?q=${term}`,
+                slug: `/search${queryParamsToStr({ q: term })}`,
             })
         )
     },
@@ -184,7 +187,7 @@ const AllResultsSource: AutocompleteSource<BaseItem> = {
     getItems({ query }) {
         return [
             {
-                slug: `/search?q=${encodeURI(query)}`,
+                slug: `/search${queryParamsToStr({ q: query })}`,
                 title: `All search results for "${query}"`,
             },
         ]
@@ -242,7 +245,7 @@ export function Autocomplete({
             onSubmit({ state, navigator }) {
                 if (!state.query) return
                 navigator.navigate({
-                    itemUrl: `/search?q=${state.query}`,
+                    itemUrl: `/search${queryParamsToStr({ q: state.query })}`,
                     // this method is incorrectly typed - `item` and `state` are optional
                 } as any)
             },
