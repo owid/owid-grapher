@@ -9,7 +9,7 @@ import {
     ALGOLIA_INDEXING,
     ALGOLIA_SECRET_KEY,
 } from "../../settings/serverSettings.js"
-import { countries, regions } from "@ourworldindata/utils"
+import { countries, regions, excludeUndefined } from "@ourworldindata/utils"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 
@@ -296,12 +296,6 @@ export const configureAlgolia = async () => {
         ["solar", "photovoltaic", "photovoltaics", "pv"],
     ]
 
-    // Send all our country variant names to algolia as synonyms
-    for (const country of countries) {
-        if (country.variantNames)
-            synonyms.push([country.name].concat(country.variantNames))
-    }
-
     const algoliaSynonyms = synonyms.map((s) => {
         return {
             objectID: s.join("-"),
@@ -309,6 +303,21 @@ export const configureAlgolia = async () => {
             synonyms: s,
         } as Synonym
     })
+
+    // Send all our country variant names to algolia as one-way synonyms
+    for (const country of countries) {
+        const alternatives = excludeUndefined([
+            country.shortName,
+            ...(country.variantNames ?? []),
+        ])
+        for (const alternative of alternatives)
+            algoliaSynonyms.push({
+                objectID: `${alternative}->${country.name}`,
+                type: "oneWaySynonym",
+                input: alternative,
+                synonyms: [country.name],
+            })
+    }
 
     await pagesIndex.saveSynonyms(algoliaSynonyms, {
         replaceExistingSynonyms: true,
