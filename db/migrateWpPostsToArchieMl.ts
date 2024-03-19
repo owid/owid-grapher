@@ -75,6 +75,7 @@ const entries = new Set([
     "water-access",
     "water-use-stress",
     "working-hours",
+    "trust",
 ])
 
 const migrate = async (): Promise<void> => {
