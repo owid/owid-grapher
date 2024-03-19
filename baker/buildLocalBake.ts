@@ -6,10 +6,11 @@ import { BakeStep, BakeStepConfig, bakeSteps, SiteBaker } from "./SiteBaker.js"
 import fs from "fs-extra"
 import { normalize } from "path"
 import * as db from "../db/db.js"
+import { DEFAULT_LOCAL_BAKE_DIR } from "../site/SiteConstants.js"
 
 const bakeDomainToFolder = async (
     baseUrl = "http://localhost:3000/",
-    dir = "localBake",
+    dir = DEFAULT_LOCAL_BAKE_DIR,
     bakeSteps?: BakeStepConfig
 ) => {
     dir = normalize(dir)
