@@ -9,6 +9,7 @@ import {
     reaction,
 } from "mobx"
 import { bind } from "decko"
+import a from "indefinite"
 import {
     uniqWith,
     isEqual,
@@ -198,6 +199,9 @@ import {
     type GrapherExport,
 } from "../captionedChart/StaticChartRasterizer.js"
 import { SlopeChartManager } from "../slopeCharts/SlopeChart"
+import { SidePanel } from "./SidePanel"
+import { EntitySelector } from "../entitySelector/EntitySelector"
+import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
 
 declare global {
     interface Window {
@@ -805,7 +809,8 @@ export class Grapher
 
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
     @observable isPlaying = false
-    @observable.ref isSelectingData = false
+
+    @observable.ref isEntitySelectorModalOrDrawerOpen = false
 
     @observable.ref isSourcesModalOpen = false
     @observable.ref isDownloadModalOpen = false
@@ -2006,14 +2011,14 @@ export class Grapher
         return isMobile()
     }
 
-    @computed private get bounds(): Bounds {
+    @computed private get externalBounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get isPortrait(): boolean {
         return (
-            this.bounds.width < this.bounds.height &&
-            this.bounds.width < DEFAULT_GRAPHER_WIDTH
+            this.externalBounds.width < this.externalBounds.height &&
+            this.externalBounds.width < DEFAULT_GRAPHER_WIDTH
         )
     }
 
@@ -2029,7 +2034,7 @@ export class Grapher
         const {
             isEditor,
             isExportingToSvgOrPng,
-            bounds,
+            externalBounds,
             widthForDeviceOrientation,
             heightForDeviceOrientation,
             isInIFrame,
@@ -2067,8 +2072,8 @@ export class Grapher
 
         // If the available space is very small, we use all of the space given to us
         if (
-            bounds.height < heightForDeviceOrientation ||
-            bounds.width < widthForDeviceOrientation
+            externalBounds.height < heightForDeviceOrientation ||
+            externalBounds.width < widthForDeviceOrientation
         )
             return false
 
@@ -2077,20 +2082,9 @@ export class Grapher
 
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
     @computed private get scaleToFitIdeal(): number {
-        const {
-            bounds,
-            isInFullScreenMode,
-            widthForDeviceOrientation,
-            heightForDeviceOrientation,
-            windowInnerWidth,
-            windowInnerHeight,
-        } = this
-        const givenBounds = isInFullScreenMode
-            ? { width: windowInnerWidth!, height: windowInnerHeight! }
-            : bounds
         return Math.min(
-            (givenBounds.width * 0.95) / widthForDeviceOrientation,
-            (givenBounds.height * 0.95) / heightForDeviceOrientation
+            (this.availableWidth * 0.95) / this.widthForDeviceOrientation,
+            (this.availableHeight * 0.95) / this.heightForDeviceOrientation
         )
     }
 
@@ -2100,53 +2094,80 @@ export class Grapher
         return windowInnerWidth < 940 ? 0 : 40
     }
 
-    // These are the final render dimensions
-    @computed private get renderWidth(): number {
+    @computed private get availableWidth(): number {
         const {
-            bounds,
+            externalBounds,
             isInFullScreenMode,
-            useIdealBounds,
-            widthForDeviceOrientation,
-            scaleToFitIdeal,
             windowInnerWidth,
             fullScreenPadding,
         } = this
 
-        if (useIdealBounds) {
-            return Math.floor(widthForDeviceOrientation * scaleToFitIdeal)
-        }
-
         return Math.floor(
             isInFullScreenMode
                 ? windowInnerWidth! - 2 * fullScreenPadding
-                : bounds.width
+                : externalBounds.width
         )
     }
 
-    @computed private get renderHeight(): number {
+    @computed private get availableHeight(): number {
         const {
-            bounds,
+            externalBounds,
             isInFullScreenMode,
-            useIdealBounds,
-            heightForDeviceOrientation,
-            scaleToFitIdeal,
             windowInnerHeight,
             fullScreenPadding,
         } = this
 
-        if (useIdealBounds) {
-            return Math.floor(heightForDeviceOrientation * scaleToFitIdeal)
-        }
-
         return Math.floor(
             isInFullScreenMode
                 ? windowInnerHeight! - 2 * fullScreenPadding
-                : bounds.height
+                : externalBounds.height
         )
     }
 
-    @computed get tabBounds(): Bounds {
-        return new Bounds(0, 0, this.renderWidth, this.renderHeight)
+    @computed get frameBounds(): Bounds {
+        const {
+            widthForDeviceOrientation,
+            heightForDeviceOrientation,
+            scaleToFitIdeal,
+        } = this
+
+        if (this.useIdealBounds) {
+            const idealWidth = Math.floor(
+                widthForDeviceOrientation * scaleToFitIdeal
+            )
+            const idealHeight = Math.floor(
+                heightForDeviceOrientation * scaleToFitIdeal
+            )
+            return new Bounds(0, 0, idealWidth, idealHeight)
+        }
+
+        return new Bounds(0, 0, this.availableWidth, this.availableHeight)
+    }
+
+    @computed get captionedChartBounds(): Bounds {
+        // if there's no panel, the chart takes up the whole frame
+        if (!this.isEntitySelectorPanelActive)
+            // || !this.showEntitySelector
+            return this.frameBounds
+
+        return new Bounds(
+            0,
+            0,
+            // the chart takes up 9 columns in 12-column grid
+            (9 / 12) * this.frameBounds.width,
+            this.frameBounds.height
+        )
+    }
+
+    @computed get sidePanelBounds(): Bounds | undefined {
+        if (!this.isEntitySelectorPanelActive) return // || !this.showEntitySelector
+
+        return new Bounds(
+            0, // not in use; intentionally set to zero
+            0, // not in use; intentionally set to zero
+            this.frameBounds.width - this.captionedChartBounds.width,
+            this.frameBounds.height - this.relatedQuestionHeight
+        )
     }
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -2464,7 +2485,7 @@ export class Grapher
     @action.bound dismissFullScreen(): void {
         // if a modal is open, dismiss it instead of exiting full-screen mode
         if (this.isModalOpen || this.isShareMenuActive) {
-            this.isSelectingData = false
+            this.isEntitySelectorModalOrDrawerOpen = false
             this.isSourcesModalOpen = false
             this.isEmbedModalOpen = false
             this.isDownloadModalOpen = false
@@ -2476,7 +2497,7 @@ export class Grapher
 
     @computed get isModalOpen(): boolean {
         return (
-            this.isSelectingData ||
+            this.isEntitySelectorModalOpen ||
             this.isSourcesModalOpen ||
             this.isEmbedModalOpen ||
             this.isDownloadModalOpen
@@ -2553,7 +2574,7 @@ export class Grapher
 
         const activeBounds = this.renderToStatic
             ? this.staticBounds
-            : this.tabBounds
+            : this.frameBounds
 
         const containerStyle = {
             width: activeBounds.width,
@@ -2597,21 +2618,46 @@ export class Grapher
 
     private renderReady(): JSX.Element | null {
         if (!this.hasBeenVisible) return null
+
         if (this.renderToStatic) {
             return <StaticCaptionedChart manager={this} />
         }
+
         return (
             <>
-                <CaptionedChart manager={this} />
-                <TooltipContainer
-                    containerWidth={this.renderWidth}
-                    containerHeight={this.renderHeight}
-                    tooltipProvider={this}
-                />
+                <div className="CaptionedChartAndSidePanel">
+                    <CaptionedChart manager={this} />
+                    {this.sidePanelBounds && (
+                        <SidePanel
+                            title={this.entitySelectorTitle}
+                            bounds={this.sidePanelBounds}
+                        >
+                            <EntitySelector manager={this} />
+                        </SidePanel>
+                    )}
+                </div>
                 {this.isSourcesModalOpen && <SourcesModal manager={this} />}
                 {this.isDownloadModalOpen && <DownloadModal manager={this} />}
                 {this.isEmbedModalOpen && <EmbedModal manager={this} />}
-                {this.isSelectingData && <EntitySelectorModal manager={this} />}
+                {this.isEntitySelectorModalOpen && (
+                    <EntitySelectorModal manager={this} />
+                )}
+                <SlideInDrawer
+                    title={this.entitySelectorTitle}
+                    active={this.isEntitySelectorDrawerOpen}
+                    toggle={() => {
+                        this.isEntitySelectorModalOrDrawerOpen =
+                            !this.isEntitySelectorModalOrDrawerOpen
+                    }}
+                >
+                    <EntitySelector manager={this} />
+                </SlideInDrawer>
+
+                <TooltipContainer
+                    containerWidth={this.captionedChartBounds.width}
+                    containerHeight={this.captionedChartBounds.height}
+                    tooltipProvider={this}
+                />
             </>
         )
     }
@@ -2668,7 +2714,9 @@ export class Grapher
     }
 
     @action.bound private setBaseFontSize(): void {
-        this.baseFontSize = this.computeBaseFontSizeFromWidth(this.tabBounds)
+        this.baseFontSize = this.computeBaseFontSizeFromWidth(
+            this.captionedChartBounds
+        )
     }
 
     @computed get fontSize(): number {
@@ -2685,27 +2733,27 @@ export class Grapher
 
     @computed get isNarrow(): boolean {
         if (this.isStatic) return false
-        return this.renderWidth <= 400
+        return this.frameBounds.width <= 400
     }
 
     // SemiNarrow charts shorten their button labels to fit within the controls row
     @computed get isSemiNarrow(): boolean {
         if (this.isStatic) return false
-        return this.renderWidth <= 550
+        return this.frameBounds.width <= 550
     }
 
     // Small charts are rendered into 6 or 7 columns in a 12-column grid layout
     // (e.g. side-by-side charts or charts in the All Charts block)
     @computed get isSmall(): boolean {
         if (this.isStatic) return false
-        return this.renderWidth <= 740
+        return this.frameBounds.width <= 740
     }
 
     // Medium charts are rendered into 8 columns in a 12-column grid layout
     // (e.g. stand-alone charts in the main text of an article)
     @computed get isMedium(): boolean {
         if (this.isStatic) return false
-        return this.renderWidth <= 845
+        return this.frameBounds.width <= 845
     }
 
     @computed get isStaticAndSmall(): boolean {
@@ -2844,6 +2892,19 @@ export class Grapher
             hasRelatedQuestion &&
             getWindowUrl().pathname !==
                 Url.fromURL(this.relatedQuestions[0]?.url).pathname
+        )
+    }
+
+    @computed get relatedQuestionHeight(): number {
+        if (!this.showRelatedQuestion) return 0
+        return this.isMedium ? 24 : 28
+    }
+
+    @computed get showRelatedQuestion(): boolean {
+        return (
+            !!this.relatedQuestions &&
+            !!this.hasRelatedQuestion &&
+            !!this.isRelatedQuestionTargetDifferentFromCurrentPage
         )
     }
 
@@ -3066,48 +3127,12 @@ export class Grapher
             : timeColumn.formatValue(value)
     }
 
-    @computed get hasChangeEntityButton(): boolean {
-        return this.canChangeEntity
-    }
-
-    @computed get showChangeEntityButton(): boolean {
-        return !this.hideEntityControls && this.hasChangeEntityButton
-    }
-
-    @computed get hasAddEntityButton(): boolean {
-        return (
-            this.canSelectMultipleEntities &&
-            (this.isLineChart ||
-                this.isStackedArea ||
-                this.isDiscreteBar ||
-                this.isStackedDiscreteBar)
-        )
-    }
-
-    @computed get showAddEntityButton(): boolean {
-        return !this.hideEntityControls && this.hasAddEntityButton
-    }
-
-    @computed get hasSelectEntitiesButton(): boolean {
-        return (
-            this.addCountryMode !== EntitySelectionMode.Disabled &&
-            this.numSelectableEntityNames > 1 &&
-            !this.showAddEntityButton &&
-            !this.showChangeEntityButton
-        )
-    }
-
-    @computed get showSelectEntitiesButton(): boolean {
-        return !this.hideEntityControls && this.hasSelectEntitiesButton
-    }
-
-    @computed get hasEntitySelectionToggle(): boolean {
-        return (
-            this.hasChartTab &&
-            (this.hasChangeEntityButton ||
-                this.hasAddEntityButton ||
-                this.hasSelectEntitiesButton)
-        )
+    @computed get entitySelectorTitle(): string {
+        return this.canHighlightEntities
+            ? `Select ${this.entityTypePlural}`
+            : this.canChangeEntity
+            ? `Change ${a(this.entityType)}`
+            : `Add/remove ${this.entityTypePlural}`
     }
 
     @computed get canSelectMultipleEntities(): boolean {
@@ -3123,6 +3148,92 @@ export class Grapher
         return false
     }
 
+    @computed get canChangeEntity(): boolean {
+        return (
+            this.hasChartTab &&
+            !this.isScatter &&
+            !this.canSelectMultipleEntities &&
+            this.addCountryMode === EntitySelectionMode.SingleEntity &&
+            this.numSelectableEntityNames > 1
+        )
+    }
+
+    @computed get canAddEntities(): boolean {
+        return (
+            this.hasChartTab &&
+            this.canSelectMultipleEntities &&
+            (this.isLineChart ||
+                this.isStackedArea ||
+                this.isDiscreteBar ||
+                this.isStackedDiscreteBar)
+        )
+    }
+
+    @computed get canHighlightEntities(): boolean {
+        return (
+            this.hasChartTab &&
+            this.addCountryMode !== EntitySelectionMode.Disabled &&
+            this.numSelectableEntityNames > 1 &&
+            !this.canAddEntities &&
+            !this.canChangeEntity
+        )
+    }
+
+    @computed get canChangeAddOrHighlightEntities(): boolean {
+        return (
+            this.canChangeEntity ||
+            this.canAddEntities ||
+            this.canHighlightEntities
+        )
+    }
+
+    @computed get showEntitySelectorAs(): "panel" | "modal" | "drawer" {
+        // TODO: id embedded in an owid page we might want to show a panel?
+        if (this.isInIFrame || this.isEmbeddedInAnOwidPage) return "modal"
+
+        // TODO: exact values
+        return this.availableWidth > DEFAULT_GRAPHER_WIDTH
+            ? "panel"
+            : this.availableWidth < 400
+            ? "modal"
+            : "drawer"
+    }
+
+    @computed get isEntitySelectorPanelActive(): boolean {
+        return (
+            // this.canChangeAddOrHighlightEntities &&
+            !this.hideEntityControls &&
+            this.canChangeAddOrHighlightEntities &&
+            this.isOnChartTab &&
+            this.showEntitySelectorAs === "panel"
+        )
+    }
+
+    @computed get showEntitySelectionToggle(): boolean {
+        return (
+            // this.canChangeAddOrHighlightEntities &&
+            !this.hideEntityControls &&
+            this.canChangeAddOrHighlightEntities &&
+            this.isOnChartTab &&
+            (this.showEntitySelectorAs === "modal" ||
+                this.showEntitySelectorAs === "drawer")
+        )
+    }
+
+    @computed get isEntitySelectorModalOpen(): boolean {
+        return (
+            this.isEntitySelectorModalOrDrawerOpen &&
+            this.showEntitySelectorAs === "modal"
+        )
+    }
+
+    @computed get isEntitySelectorDrawerOpen(): boolean {
+        return (
+            this.isEntitySelectorModalOrDrawerOpen &&
+            this.showEntitySelectorAs === "drawer"
+        )
+    }
+
     // This is just a helper method to return the correct table for providing entity choices. We want to
     // provide the root table, not the transformed table.
     // A user may have added time or other filters that would filter out all rows from certain entities, but
@@ -3132,21 +3243,8 @@ export class Grapher
         return this.selection.numAvailableEntityNames
     }
 
-    @computed get canChangeEntity(): boolean {
-        return (
-            !this.isScatter &&
-            !this.canSelectMultipleEntities &&
-            this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.numSelectableEntityNames > 1
-        )
-    }
-
     @computed get entitiesAreCountryLike(): boolean {
         return !!this.entityType.match(/\bcountry\b/i)
-    }
-
-    @computed get startSelectingWhenLineClicked(): boolean {
-        return this.showAddEntityButton && !this.isMobile
     }
 
     @observable hideTitle = false

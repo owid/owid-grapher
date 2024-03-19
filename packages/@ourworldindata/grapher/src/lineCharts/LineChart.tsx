@@ -625,10 +625,6 @@ export class LineChart
     defaultRightPadding = 1
 
     @observable hoveredSeriesName?: SeriesName
-    @action.bound onLineLegendClick(): void {
-        if (this.manager.startSelectingWhenLineClicked)
-            this.manager.isSelectingData = true
-    }
 
     @observable private hoverTimer?: NodeJS.Timeout
 

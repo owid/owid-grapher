@@ -61,7 +61,7 @@ export interface SettingsMenuManager
     type: ChartTypeName
     isRelativeMode?: boolean
     selection?: SelectionArray | EntityName[]
-    hasEntitySelectionToggle?: boolean
+    canChangeAddOrHighlightEntities?: boolean
     filledDimensions: ChartDimension[]
     xColumnSlug?: string
     xOverrideTime?: number
@@ -84,12 +84,13 @@ export class SettingsMenu extends React.Component<{
     manager: SettingsMenuManager
     top: number
     bottom: number
+    right: number
 }> {
     @observable.ref active: boolean = false
     contentRef: React.RefObject<HTMLDivElement> = React.createRef() // the menu contents & backdrop
 
     static shouldShow(manager: SettingsMenuManager): boolean {
-        const test = new SettingsMenu({ manager, top: 0, bottom: 0 })
+        const test = new SettingsMenu({ manager, top: 0, bottom: 0, right: 0 })
         return test.showSettingsMenuToggle
     }
 
@@ -184,10 +185,11 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get showTableFilterToggle(): boolean {
-        const { hideTableFilterToggle, hasEntitySelectionToggle } = this.manager
+        const { hideTableFilterToggle, canChangeAddOrHighlightEntities } =
+            this.manager
         return (
             this.selectionArray.hasSelection &&
-            !!hasEntitySelectionToggle &&
+            !!canChangeAddOrHighlightEntities &&
             !hideTableFilterToggle
         )
     }
@@ -253,10 +255,10 @@ export class SettingsMenu extends React.Component<{
         return makeSelectionArray(this.manager.selection)
     }
 
-    @computed get layout(): { maxHeight: string; top: number } {
-        const { top, bottom } = this.props,
+    @computed get layout(): { maxHeight: string; top: number; right: number } {
+        const { top, bottom, right } = this.props,
             maxHeight = `calc(100% - ${top + bottom}px)`
-        return { maxHeight, top }
+        return { maxHeight, top, right }
     }
 
     @computed get menu(): JSX.Element | void {

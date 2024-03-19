@@ -10,7 +10,7 @@ export interface EmbedModalManager {
     embedUrl?: string
     embedDialogAdditionalElements?: React.ReactElement
     isEmbedModalOpen?: boolean
-    tabBounds?: Bounds
+    frameBounds?: Bounds
 }
 
 interface EmbedModalProps {
@@ -19,14 +19,14 @@ interface EmbedModalProps {
 
 @observer
 export class EmbedModal extends React.Component<EmbedModalProps> {
-    @computed private get tabBounds(): Bounds {
-        return this.manager.tabBounds ?? DEFAULT_BOUNDS
+    @computed private get frameBounds(): Bounds {
+        return this.manager.frameBounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get modalBounds(): Bounds {
         const maxWidth = 940
-        const padWidth = Math.max(16, (this.tabBounds.width - maxWidth) / 2)
-        return this.tabBounds.padHeight(16).padWidth(padWidth)
+        const padWidth = Math.max(16, (this.frameBounds.width - maxWidth) / 2)
+        return this.frameBounds.padHeight(16).padWidth(padWidth)
     }
 
     @computed private get codeSnippet(): string {

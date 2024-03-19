@@ -68,7 +68,7 @@ export interface CaptionedChartManager
         MapProjectionMenuManager,
         SettingsMenuManager {
     containerElement?: HTMLDivElement
-    tabBounds?: Bounds
+    captionedChartBounds?: Bounds
     staticBounds?: Bounds
     staticBoundsWithDetails?: Bounds
     fontSize?: number
@@ -95,6 +95,10 @@ export interface CaptionedChartManager
     isMedium?: boolean
     framePaddingHorizontal?: number
     framePaddingVertical?: number
+    showEntitySelectionToggle?: boolean
+    sidePanelBounds?: Bounds
+    showRelatedQuestion?: boolean
+    relatedQuestionHeight?: number
 }
 
 interface CaptionedChartProps {
@@ -144,10 +148,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return this.manager.isMedium ? 8 : 16
     }
 
-    @computed protected get relatedQuestionHeight(): number {
-        return this.manager.isMedium ? 24 : 28
-    }
-
     @computed protected get header(): Header {
         return new Header({
             manager: this.manager,
@@ -181,7 +181,9 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
     @computed protected get bounds(): Bounds {
         const bounds =
-            this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
+            this.props.bounds ??
+            this.manager.captionedChartBounds ??
+            DEFAULT_BOUNDS
         // the padding ensures grapher's frame is not cut off
         return bounds.padRight(2).padBottom(2)
     }
@@ -259,15 +261,16 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed get showRelatedQuestion(): boolean {
-        return (
-            !!this.manager.relatedQuestions &&
-            !!this.manager.hasRelatedQuestion &&
-            !!this.manager.isRelatedQuestionTargetDifferentFromCurrentPage
-        )
+        return !!this.manager.showRelatedQuestion
+    }
+
+    @computed get relatedQuestionHeight(): number {
+        return this.manager.relatedQuestionHeight ?? 0
     }
 
     private renderControlsRow(): JSX.Element {
         const { showContentSwitchers } = this
+        const { showEntitySelectionToggle, sidePanelBounds } = this.manager
         return (
             <nav
                 className="controlsRow"
@@ -279,7 +282,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     )}
                 </div>
                 <div className="chart-controls">
-                    <EntitySelectionToggle manager={this.manager} />
+                    {showEntitySelectionToggle && (
+                        <EntitySelectionToggle manager={this.manager} />
+                    )}
+
                     <SettingsMenu
                         manager={this.manager}
                         top={
@@ -290,6 +296,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                             4 // margin between button and menu
                         }
                         bottom={this.framePaddingVertical}
+                        right={
+                            (sidePanelBounds?.width ?? 0) +
+                            this.framePaddingHorizontal
+                        }
                     />
                     <MapProjectionMenu manager={this.manager} />
                 </div>
@@ -433,7 +443,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         //    #5 Footer
         //    #6 [Related question]
         return (
-            <>
+            <div className="CaptionedChart">
                 {/* #1 Header */}
                 <Header manager={this.manager} maxWidth={this.maxWidth} />
                 <VerticalSpace height={this.verticalPadding} />
@@ -461,7 +471,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
                 {/* #6 [Related question] */}
                 {this.showRelatedQuestion && this.renderRelatedQuestion()}
-            </>
+            </div>
         )
     }
 

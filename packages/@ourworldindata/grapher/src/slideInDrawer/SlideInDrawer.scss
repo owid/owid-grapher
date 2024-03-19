@@ -1,0 +1,136 @@
+$light-stroke: #e7e7e7;
+
+$active-fill: #dbe5f0;
+$hover-fill: #f2f2f2;
+
+$medium: 400;
+$bold: 700;
+$lato: $sans-serif-font-stack;
+
+$indent: 15px;
+
+@at-root {
+    nav#grapher-drawer {
+        .grapher-drawer-contents {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            z-index: $zindex-controls-drawer;
+            overflow-y: scroll;
+            background: white;
+
+            .grapher-drawer-header {
+                position: static;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: white;
+                padding: 9px $indent 3px $indent;
+                position: sticky;
+                top: 0;
+                z-index: 1;
+
+                .grapher-drawer-title {
+                    text-transform: uppercase;
+                    letter-spacing: 0.1em;
+                    color: $light-text;
+                    font: $bold 12px/16px $lato;
+                }
+
+                button.close {
+                    position: relative;
+                    border-radius: 50%;
+                    height: 32px;
+                    width: 32px;
+                    text-align: center;
+                    justify-content: center;
+                    svg {
+                        height: 14px;
+                        width: 14px;
+                    }
+                }
+            }
+
+            button {
+                display: flex;
+                align-items: center;
+                color: $light-text;
+                background: white;
+                border: 1px solid $light-stroke;
+                font: $medium 13px/16px $lato;
+                letter-spacing: 0.01em;
+                border-radius: 4px;
+                padding: 7px;
+                height: 40px;
+
+                &:hover {
+                    background: $hover-fill;
+                    cursor: pointer;
+
+                    &:not(.active) {
+                        color: $dark-text;
+                    }
+                }
+
+                &.active,
+                &:active {
+                    background: $active-fill;
+                    border: 1px solid $active-fill;
+                }
+
+                &.active {
+                    cursor: default;
+                    color: $active-text;
+                }
+            }
+        }
+
+        .grapher-drawer-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: $zindex-controls-backdrop;
+        }
+    }
+}
+
+@keyframes grapher-drawer-backdrop-enter {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes grapher-drawer-backdrop-exit {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes grapher-drawer-contents-enter {
+    0% {
+        transform: translate(301px, 0);
+    }
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+@keyframes grapher-drawer-contents-exit {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(301px, 0);
+    }
+}
