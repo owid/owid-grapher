@@ -47,7 +47,7 @@ export default defineConfig({
         outDir: "dist",
         sourcemap: true,
         cssCodeSplit: true,
-        target: ["chrome66", "firefox61", "safari12"], // see docs/browser-support.md
+        target: ["chrome66", "firefox78", "safari12"], // see docs/browser-support.md
         rollupOptions: {
             cache: false, // https://github.com/vitejs/vite/issues/2433#issuecomment-1361094727
             input: {
