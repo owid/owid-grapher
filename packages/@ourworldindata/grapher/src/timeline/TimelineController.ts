@@ -33,14 +33,14 @@ export class TimelineController {
         return this.manager.times
     }
 
-    private get startTime(): number {
+    get startTime(): number {
         return findClosestTime(
             this.timesAsc,
             this.manager.startHandleTimeBound
         )!
     }
 
-    private get endTime(): number {
+    get endTime(): number {
         return findClosestTime(this.timesAsc, this.manager.endHandleTimeBound)!
     }
 
@@ -224,11 +224,11 @@ export class TimelineController {
         return constrainedHandle
     }
 
-    private updateStartTime(timeBound: TimeBound): void {
+    updateStartTime(timeBound: TimeBound): void {
         this.manager.startHandleTimeBound = timeBound
     }
 
-    private updateEndTime(timeBound: TimeBound): void {
+    updateEndTime(timeBound: TimeBound): void {
         this.manager.endHandleTimeBound = timeBound
     }
 
@@ -246,5 +246,13 @@ export class TimelineController {
 
     setEndToMin(): void {
         this.updateEndTime(TimeBoundValue.negativeInfinity)
+    }
+
+    setStartToEnd(): void {
+        this.updateStartTime(this.endTime)
+    }
+
+    setEndToStart(): void {
+        this.updateEndTime(this.startTime)
     }
 }

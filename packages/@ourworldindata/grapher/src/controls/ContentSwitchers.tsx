@@ -4,16 +4,30 @@ import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
-import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
+import {
+    ChartTypeName,
+    GrapherTabOption,
+    TimeBound,
+} from "@ourworldindata/types"
 import { chartIcons } from "./ChartIcons"
+import { TimelineController } from "../timeline/TimelineController"
 
 export interface ContentSwitchersManager {
     availableTabs?: GrapherTabOption[]
     tab?: GrapherTabOption
     isNarrow?: boolean
     type?: ChartTypeName
+    isLineChart?: boolean
     isLineChartThatTurnedIntoDiscreteBar?: boolean
+    timelineController?: TimelineController
 }
+
+enum DisplayOnlyTab {
+    line = "line",
+    bar = "bar",
+}
+
+type DisplayTab = GrapherTabOption | DisplayOnlyTab
 
 @observer
 export class ContentSwitchers extends React.Component<{
@@ -27,6 +41,20 @@ export class ContentSwitchers extends React.Component<{
         return this.manager.availableTabs || []
     }
 
+    @computed get displayedTabs(): DisplayTab[] {
+        if (
+            this.manager.isLineChart &&
+            this.availableTabs.includes(GrapherTabOption.chart)
+        ) {
+            const tabs: DisplayTab[] = this.availableTabs.filter(
+                (tab) => tab !== GrapherTabOption.chart
+            )
+            tabs.push(DisplayOnlyTab.line, DisplayOnlyTab.bar)
+            return tabs
+        }
+        return this.availableTabs
+    }
+
     @computed private get showTabLabels(): boolean {
         return !this.manager.isNarrow
     }
@@ -35,18 +63,24 @@ export class ContentSwitchers extends React.Component<{
         return this.manager.type ?? ChartTypeName.LineChart
     }
 
-    private tabIcon(tab: GrapherTabOption): JSX.Element {
+    private tabIcon(tab: DisplayTab): JSX.Element {
         const { manager } = this
         switch (tab) {
-            case GrapherTabOption.table:
+            case "table":
                 return <FontAwesomeIcon icon={faTable} />
-            case GrapherTabOption.map:
+            case "map":
                 return <FontAwesomeIcon icon={faEarthAmericas} />
-            case GrapherTabOption.chart:
+            case "chart":
                 const chartIcon = manager.isLineChartThatTurnedIntoDiscreteBar
                     ? chartIcons[ChartTypeName.DiscreteBar]
                     : chartIcons[this.chartType]
                 return chartIcon
+            case "line":
+                return chartIcons[ChartTypeName.LineChart]
+            case "bar":
+                return chartIcons[ChartTypeName.DiscreteBar]
+            default:
+                return <FontAwesomeIcon icon={faTable} />
         }
     }
 
@@ -59,14 +93,41 @@ export class ContentSwitchers extends React.Component<{
                     iconOnly: !this.showTabLabels,
                 })}
             >
-                {this.availableTabs.map((tab) => (
+                {this.displayedTabs.map((tab) => (
                     <Tab
                         key={tab}
                         tab={tab}
                         icon={this.tabIcon(tab)}
-                        isActive={tab === manager.tab}
+                        isActive={
+                            tab === manager.tab ||
+                            (tab === "line" &&
+                                manager.tab === GrapherTabOption.chart &&
+                                !manager.isLineChartThatTurnedIntoDiscreteBar) ||
+                            (tab === "bar" &&
+                                manager.isLineChartThatTurnedIntoDiscreteBar)
+                        }
                         onClick={(): void => {
-                            manager.tab = tab
+                            if (
+                                tab === GrapherTabOption.map ||
+                                tab === GrapherTabOption.table
+                            ) {
+                                manager.tab = tab
+                            } else {
+                                const { endTime } =
+                                    manager.timelineController ?? {}
+
+                                if (tab === "bar") {
+                                    if (endTime !== undefined) {
+                                        manager.timelineController?.updateStartTime(
+                                            endTime
+                                        )
+                                        manager.timelineController?.updateEndTime(
+                                            endTime
+                                        )
+                                    }
+                                }
+                                manager.tab = GrapherTabOption.chart
+                            }
                         }}
                         showLabel={this.showTabLabels}
                     />
@@ -77,7 +138,7 @@ export class ContentSwitchers extends React.Component<{
 }
 
 function Tab(props: {
-    tab: GrapherTabOption
+    tab: DisplayTab
     icon: JSX.Element
     isActive?: boolean
     onClick?: React.MouseEventHandler<HTMLButtonElement>
