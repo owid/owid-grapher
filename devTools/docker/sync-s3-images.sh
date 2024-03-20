@@ -20,4 +20,12 @@ if ! grep -q '[owid-r2]' ~/.config/rclone/rclone.conf; then
   exit 1
 fi
 
-rclone sync owid-r2:owid-image-upload/production/ owid-r2:$IMAGE_HOSTING_R2_BUCKET_PATH/ --verbose --transfers=32 --checkers=32 --fast-list
+if rclone lsd owid-r2:owid-image-upload/; then
+    PROD_BUCKET="owid-image-upload"
+else
+    # If access is denied, switch to the staging bucket
+    PROD_BUCKET="owid-image-upload-staging"
+    echo "Access Denied to owid-image-upload, fetching from owid-image-upload-staging..."
+fi
+
+rclone sync owid-r2:$PROD_BUCKET/production/ owid-r2:$IMAGE_HOSTING_R2_BUCKET_PATH/ --verbose --transfers=32 --checkers=32 --fast-list
