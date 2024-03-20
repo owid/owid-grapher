@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom"
-import React, { useCallback, useEffect } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import cx from "classnames"
 import {
     keyBy,
@@ -77,6 +77,8 @@ function PagesHit({ hit }: { hit: IPageHit }) {
 }
 
 function ChartHit({ hit }: { hit: IChartHit }) {
+    const [imgLoaded, setImgLoaded] = useState(false)
+
     return (
         <a
             href={`${BAKED_GRAPHER_URL}/${hit.slug}`}
@@ -86,8 +88,12 @@ function ChartHit({ hit }: { hit: IChartHit }) {
         >
             <div className="search-results__chart-hit-img-container">
                 <img
+                    className={cx({ loaded: imgLoaded })}
                     loading="lazy"
+                    width={850}
+                    height={600}
                     src={`${BAKED_GRAPHER_URL}/exports/${hit.slug}.svg`}
+                    onLoad={() => setImgLoaded(true)}
                 />
             </div>
             <Highlight
