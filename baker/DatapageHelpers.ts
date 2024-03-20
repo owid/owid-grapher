@@ -78,6 +78,7 @@ export const getDatapageDataV2 = async (
  * see https://github.com/owid/owid-grapher/issues/2121#issue-1676097164
  */
 export const getDatapageGdoc = async (
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     knex: KnexReadWriteTransaction,
     googleDocEditLinkOrId: string,
     isPreviewing: boolean

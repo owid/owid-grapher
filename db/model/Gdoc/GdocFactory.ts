@@ -256,6 +256,7 @@ export async function getGdocBaseObjectBySlug(
     return gdoc
 }
 
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function getAndLoadGdocBySlug(
     knex: KnexReadWriteTransaction,
     slug: string
@@ -269,6 +270,7 @@ export async function getAndLoadGdocBySlug(
     return loadGdocFromGdocBase(knex, base)
 }
 
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function getAndLoadGdocById(
     knex: KnexReadWriteTransaction,
     id: string,
@@ -282,6 +284,8 @@ export async function getAndLoadGdocById(
 
 // From an ID, get a Gdoc object with all its metadata and state loaded, in its correct subclass.
 // If contentSource is Gdocs, use live data from Google, otherwise use the data in the DB.
+
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function loadGdocFromGdocBase(
     knex: KnexReadWriteTransaction,
     base: OwidGdocBaseInterface,
@@ -324,6 +328,7 @@ export async function loadGdocFromGdocBase(
     return gdoc
 }
 
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function getAndLoadPublishedDataInsights(
     knex: KnexReadWriteTransaction,
     page?: number
@@ -369,6 +374,7 @@ export async function getAndLoadPublishedDataInsights(
     return gdocs as GdocDataInsight[]
 }
 
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function getAndLoadPublishedGdocPosts(
     knex: KnexReadWriteTransaction
 ): Promise<GdocPost[]> {
@@ -414,6 +420,7 @@ export async function getAndLoadPublishedGdocPosts(
     return gdocs as GdocPost[]
 }
 
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function loadPublishedGdocAuthors(
     knex: KnexReadWriteTransaction
 ): Promise<GdocAuthor[]> {
@@ -440,6 +447,7 @@ export async function loadPublishedGdocAuthors(
     return gdocs as GdocAuthor[]
 }
 
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function getAndLoadListedGdocPosts(
     knex: KnexReadWriteTransaction
 ): Promise<GdocPost[]> {

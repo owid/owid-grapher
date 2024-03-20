@@ -33,6 +33,8 @@ export const defaultCommitMessage = async (): Promise<string> => {
 /**
  * Initiate a deploy, without any checks. Throws error on failure.
  */
+
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 const triggerBakeAndDeploy = async (
     deployMetadata: DeployMetadata,
     knex: KnexReadWriteTransaction,
@@ -160,6 +162,7 @@ let deploying = false
  * If there are no changes in the queue, a deploy won't be initiated.
  */
 export const deployIfQueueIsNotEmpty = async (
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     knex: KnexReadWriteTransaction
 ) => {
     if (deploying) return

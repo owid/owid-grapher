@@ -236,6 +236,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         return parseDetails(gdoc.content.details)
     }
 
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     static async getPublishedGdocPosts(
         knex: KnexReadWriteTransaction
     ): Promise<GdocPost[]> {

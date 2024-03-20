@@ -15,6 +15,7 @@ import { getAndLoadGdocBySlug } from "../../db/model/Gdoc/GdocFactory.js"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
+        // TODO: this transaction is only RW because somewhere inside it we fetch images
         await knexReadWriteTransaction(async (trx) => {
             const gdoc = await getAndLoadGdocBySlug(trx, parsedArgs._[0])
             let archieMlContent: OwidEnrichedGdocBlock[] | null

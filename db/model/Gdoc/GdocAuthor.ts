@@ -40,12 +40,14 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         return blocks
     }
 
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     _loadSubclassAttachments = (
         knex: db.KnexReadWriteTransaction
     ): Promise<void> => {
         return this.loadLatestWorkImages(knex)
     }
 
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     loadLatestWorkImages = async (
         knex: db.KnexReadWriteTransaction
     ): Promise<void> => {
@@ -122,6 +124,7 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         return errors
     }
 
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     static async getPublishedAuthors(
         knex: db.KnexReadWriteTransaction
     ): Promise<GdocAuthor[]> {

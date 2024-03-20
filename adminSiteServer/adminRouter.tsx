@@ -317,7 +317,7 @@ getPlainRouteWithROTransaction(
         return res.send(explorerPage)
     }
 )
-
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 getPlainRouteNonIdempotentWithRWTransaction(
     adminRouter,
     "/datapage-preview/:id",
@@ -339,7 +339,7 @@ getPlainRouteNonIdempotentWithRWTransaction(
         )
     }
 )
-
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 getPlainRouteNonIdempotentWithRWTransaction(
     adminRouter,
     "/grapher/:slug",

@@ -17,6 +17,8 @@ const bakeDomainToFolder = async (
     await fs.mkdirp(dir)
     const baker = new SiteBaker(dir, baseUrl, bakeSteps)
     console.log(`Baking site locally with baseUrl '${baseUrl}' to dir '${dir}'`)
+
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     await db.knexReadWriteTransaction(
         (trx) => baker.bakeAll(trx),
         db.TransactionCloseMode.Close

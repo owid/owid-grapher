@@ -33,6 +33,7 @@ const main = async () => {
         setTimeout(deployIfQueueIsNotEmpty, 10 * 1000)
     })
 
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     await db.knexReadWriteTransaction(
         deployIfQueueIsNotEmpty,
         db.TransactionCloseMode.Close

@@ -262,6 +262,7 @@ export const getFullPost = async (
 const selectHomepagePosts: FilterFnPostRestApi = (post) =>
     post.meta?.owid_publication_context_meta_field?.homepage === true
 
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 export const getBlogIndex = memoize(
     async (knex: db.KnexReadWriteTransaction): Promise<IndexPost[]> => {
         const gdocPosts = await getAndLoadListedGdocPosts(knex)

@@ -58,6 +58,7 @@ export class GdocDataInsight
         this.latestDataInsights = await db.getPublishedDataInsights(knex, 5)
     }
 
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     static async getPublishedDataInsights(
         knex: db.KnexReadWriteTransaction,
         page?: number

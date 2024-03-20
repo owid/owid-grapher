@@ -90,6 +90,8 @@ const renderDatapageIfApplicable = async (
  *
  * Render a datapage if available, otherwise render a grapher page.
  */
+
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     knex: db.KnexReadWriteTransaction,
@@ -133,6 +135,8 @@ export async function renderDataPageV2(
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
     },
+
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     knex: db.KnexReadWriteTransaction
 ) {
     const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
@@ -174,7 +178,7 @@ export async function renderDataPageV2(
     )
     const imageMetadata: OwidGdocPostInterface["imageMetadata"] = merge(
         {},
-        // imageMetadataDictionary,
+        imageMetadataDictionary,
         ...compact(gdocs.map((gdoc) => gdoc?.imageMetadata))
     )
     const relatedCharts: OwidGdocPostInterface["relatedCharts"] = gdocs.flatMap(
@@ -317,6 +321,8 @@ export async function renderDataPageV2(
  */
 export const renderPreviewDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
+
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     knex: db.KnexReadWriteTransaction
 ) => {
     const datapage = await renderDatapageIfApplicable(grapher, true, knex)
@@ -453,6 +459,8 @@ export interface BakeSingleGrapherChartArguments {
 
 export const bakeSingleGrapherChart = async (
     args: BakeSingleGrapherChartArguments,
+
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     knex: db.KnexReadWriteTransaction
 ) => {
     const grapher: GrapherInterface = JSON.parse(args.config)
@@ -475,6 +483,7 @@ export const bakeSingleGrapherChart = async (
 }
 
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     async (bakedSiteDir: string, knex: db.KnexReadWriteTransaction) => {
         const chartsToBake: { id: number; config: string; slug: string }[] =
             await knexRaw(
