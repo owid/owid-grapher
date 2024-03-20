@@ -38,7 +38,7 @@ import {
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faSearch } from "@fortawesome/free-solid-svg-icons"
+import { faHeartBroken, faSearch } from "@fortawesome/free-solid-svg-icons"
 import {
     DEFAULT_SEARCH_PLACEHOLDER,
     getIndexName,
@@ -78,6 +78,7 @@ function PagesHit({ hit }: { hit: IPageHit }) {
 
 function ChartHit({ hit }: { hit: IChartHit }) {
     const [imgLoaded, setImgLoaded] = useState(false)
+    const [imgError, setImgError] = useState(false)
 
     return (
         <a
@@ -87,13 +88,20 @@ function ChartHit({ hit }: { hit: IChartHit }) {
             data-algolia-position={hit.__position}
         >
             <div className="search-results__chart-hit-img-container">
+                {imgError && (
+                    <div className="search-results__chart-hit-img-error">
+                        <FontAwesomeIcon icon={faHeartBroken} />
+                        <span>Chart preview not available</span>
+                    </div>
+                )}
                 <img
-                    className={cx({ loaded: imgLoaded })}
+                    className={cx({ loaded: imgLoaded, error: imgError })}
                     loading="lazy"
                     width={850}
                     height={600}
                     src={`${BAKED_GRAPHER_URL}/exports/${hit.slug}.svg`}
                     onLoad={() => setImgLoaded(true)}
+                    onError={() => setImgError(true)}
                 />
             </div>
             <Highlight

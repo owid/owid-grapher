@@ -271,12 +271,23 @@
     font-size: 0.9em;
 }
 
+@keyframes chartErrorFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
 .search-results__chart-hit-img-container {
     margin-bottom: 8px;
+    aspect-ratio: 850 / 600;
+    width: 100%;
+    background-color: $gray-10;
+
     img {
         display: block; // remove the space below the image
-        width: 100%;
-        background-color: $gray-10;
         transition: box-shadow 0.1s;
 
         &.loaded {
@@ -285,6 +296,27 @@
                 0px 6px 13px 0px rgba(49, 37, 2, 0.03),
                 0px 93px 37px 0px rgba(49, 37, 2, 0.01),
                 0px 145px 41px 0px rgba(49, 37, 2, 0);
+        }
+
+        &.error {
+            display: none;
+        }
+    }
+
+    .search-results__chart-hit-img-error {
+        display: flex;
+        height: 100%;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        color: $grey-text-color;
+        animation: chartErrorFadeIn 0.3s;
+
+        gap: 0.5em;
+
+        svg {
+            font-size: 1.75em;
         }
     }
 }
