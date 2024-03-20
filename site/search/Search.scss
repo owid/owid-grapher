@@ -282,7 +282,7 @@
 
 .search-results__chart-hit-img-container {
     margin-bottom: 8px;
-    aspect-ratio: 850 / 600;
+    aspect-ratio: calc($grapher-thumbnail-width / $grapher-thumbnail-height);
     width: 100%;
     background-color: $gray-10;
 

@@ -48,6 +48,12 @@ $article-cover-height: 224px;
 $article-page-top-offset: 88px;
 
 $search-cta-height: 40px;
+
+// Grapher sizing
+// Keep in sync with DEFAULT_GRAPHER_WIDTH, and the (dynamic/static) thumbnail generation code
+$grapher-thumbnail-width: 850px;
+$grapher-thumbnail-height: 600px;
+
 /*******************************************************************************
 * Breakpoints
 */

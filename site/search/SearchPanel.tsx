@@ -48,6 +48,10 @@ import {
     PreferenceType,
     getPreferenceValue,
 } from "../CookiePreferencesManager.js"
+import {
+    DEFAULT_GRAPHER_HEIGHT,
+    DEFAULT_GRAPHER_WIDTH,
+} from "@ourworldindata/grapher"
 
 function PagesHit({ hit }: { hit: IPageHit }) {
     return (
@@ -97,8 +101,8 @@ function ChartHit({ hit }: { hit: IChartHit }) {
                 <img
                     className={cx({ loaded: imgLoaded, error: imgError })}
                     loading="lazy"
-                    width={850}
-                    height={600}
+                    width={DEFAULT_GRAPHER_WIDTH}
+                    height={DEFAULT_GRAPHER_HEIGHT}
                     src={`${BAKED_GRAPHER_URL}/exports/${hit.slug}.svg`}
                     onLoad={() => setImgLoaded(true)}
                     onError={() => setImgError(true)}
