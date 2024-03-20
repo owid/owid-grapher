@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom"
-import React, { useCallback, useEffect } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import cx from "classnames"
 import {
     keyBy,
@@ -38,7 +38,7 @@ import {
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faSearch } from "@fortawesome/free-solid-svg-icons"
+import { faHeartBroken, faSearch } from "@fortawesome/free-solid-svg-icons"
 import {
     DEFAULT_SEARCH_PLACEHOLDER,
     getIndexName,
@@ -48,6 +48,10 @@ import {
     PreferenceType,
     getPreferenceValue,
 } from "../CookiePreferencesManager.js"
+import {
+    DEFAULT_GRAPHER_HEIGHT,
+    DEFAULT_GRAPHER_WIDTH,
+} from "@ourworldindata/grapher"
 
 function PagesHit({ hit }: { hit: IPageHit }) {
     return (
@@ -77,6 +81,9 @@ function PagesHit({ hit }: { hit: IPageHit }) {
 }
 
 function ChartHit({ hit }: { hit: IChartHit }) {
+    const [imgLoaded, setImgLoaded] = useState(false)
+    const [imgError, setImgError] = useState(false)
+
     return (
         <a
             href={`${BAKED_GRAPHER_URL}/${hit.slug}`}
@@ -85,9 +92,20 @@ function ChartHit({ hit }: { hit: IChartHit }) {
             data-algolia-position={hit.__position}
         >
             <div className="search-results__chart-hit-img-container">
+                {imgError && (
+                    <div className="search-results__chart-hit-img-error">
+                        <FontAwesomeIcon icon={faHeartBroken} />
+                        <span>Chart preview not available</span>
+                    </div>
+                )}
                 <img
+                    className={cx({ loaded: imgLoaded, error: imgError })}
                     loading="lazy"
+                    width={DEFAULT_GRAPHER_WIDTH}
+                    height={DEFAULT_GRAPHER_HEIGHT}
                     src={`${BAKED_GRAPHER_URL}/exports/${hit.slug}.svg`}
+                    onLoad={() => setImgLoaded(true)}
+                    onError={() => setImgError(true)}
                 />
             </div>
             <Highlight
