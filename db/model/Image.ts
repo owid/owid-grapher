@@ -22,10 +22,11 @@ import {
 } from "@ourworldindata/utils"
 import { OwidGoogleAuth } from "../OwidGoogleAuth.js"
 import {
-    IMAGE_HOSTING_SPACE_URL,
-    IMAGE_HOSTING_SPACE_ACCESS_KEY_ID,
-    IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY,
-    IMAGE_HOSTING_BUCKET_PATH,
+    IMAGE_HOSTING_R2_ENDPOINT,
+    IMAGE_HOSTING_R2_ACCESS_KEY_ID,
+    IMAGE_HOSTING_R2_SECRET_ACCESS_KEY,
+    IMAGE_HOSTING_R2_REGION,
+    IMAGE_HOSTING_R2_BUCKET_PATH,
     GDOCS_CLIENT_EMAIL,
     GDOCS_SHARED_DRIVE_ID,
 } from "../../settings/serverSettings.js"
@@ -125,13 +126,13 @@ class ImageStore {
 
 export const imageStore = new ImageStore()
 
-const s3Client = new S3Client({
-    endpoint: IMAGE_HOSTING_SPACE_URL,
+export const s3Client = new S3Client({
+    endpoint: IMAGE_HOSTING_R2_ENDPOINT,
     forcePathStyle: false,
-    region: "nyc3",
+    region: IMAGE_HOSTING_R2_REGION,
     credentials: {
-        accessKeyId: IMAGE_HOSTING_SPACE_ACCESS_KEY_ID,
-        secretAccessKey: IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY,
+        accessKeyId: IMAGE_HOSTING_R2_ACCESS_KEY_ID,
+        secretAccessKey: IMAGE_HOSTING_R2_SECRET_ACCESS_KEY,
     },
 })
 
@@ -237,9 +238,11 @@ export class Image extends BaseEntity implements ImageMetadata {
 
         const imageArrayBuffer = file.data as Buffer
 
-        const indexOfFirstSlash = IMAGE_HOSTING_BUCKET_PATH.indexOf("/")
-        const bucket = IMAGE_HOSTING_BUCKET_PATH.slice(0, indexOfFirstSlash)
-        const directory = IMAGE_HOSTING_BUCKET_PATH.slice(indexOfFirstSlash + 1)
+        const indexOfFirstSlash = IMAGE_HOSTING_R2_BUCKET_PATH.indexOf("/")
+        const bucket = IMAGE_HOSTING_R2_BUCKET_PATH.slice(0, indexOfFirstSlash)
+        const directory = IMAGE_HOSTING_R2_BUCKET_PATH.slice(
+            indexOfFirstSlash + 1
+        )
 
         const MIMEType = getFilenameMIMEType(this.filename)
 

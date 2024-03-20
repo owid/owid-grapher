@@ -4685,6 +4685,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/ini@npm:^4":
+  version: 4.1.0
+  resolution: "@types/ini@npm:4.1.0"
+  checksum: 43dc756f60a4b2e828371baa0c5db006f3d31a2d58877f88ff15a58815aa804a612eea35adfc2c0e99ba09632b7a96bdf4a55ccaf5f164598f9ee314ad1171a1
+  languageName: node
+  linkType: hard
+
 "@types/is-stream@npm:^1.1.0":
   version: 1.1.0
   resolution: "@types/is-stream@npm:1.1.0"
@@ -11058,6 +11065,7 @@ __metadata:
     "@types/hast": "npm:2"
     "@types/html-to-text": "npm:^8.1.1"
     "@types/indefinite": "npm:^2.3.2"
+    "@types/ini": "npm:^4"
     "@types/jest": "npm:^29.5.5"
     "@types/js-cookie": "npm:^3.0.2"
     "@types/js-yaml": "npm:^4.0.5"
@@ -11134,6 +11142,7 @@ __metadata:
     html-to-text: "npm:^8.2.0"
     http-server: "npm:^14.1.1"
     indefinite: "npm:^2.4.3"
+    ini: "npm:^4.1.2"
     instantsearch.js: "npm:^4.56.9"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
@@ -11858,6 +11867,13 @@ __metadata:
   version: 1.3.8
   resolution: "ini@npm:1.3.8"
   checksum: 314ae176e8d4deb3def56106da8002b462221c174ddb7ce0c49ee72c8cd1f9044f7b10cc555a7d8850982c3b9ca96fc212122749f5234bc2b6fb05fb942ed566
+  languageName: node
+  linkType: hard
+
+"ini@npm:^4.1.2":
+  version: 4.1.2
+  resolution: "ini@npm:4.1.2"
+  checksum: 383396e45965bdd32ac18d405db1726d51e43e5c792325b4247736c4a402cdc0b448cc9e85960f0c13f1ab603a14a11ed4c9c796a385aced6d9045756a19a469
   languageName: node
   linkType: hard
 

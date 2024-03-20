@@ -94,6 +94,9 @@ const getChangesSlackMentions = async (
 const getEmailSlackMentionsMap = async (
     queueItems: DeployChange[]
 ): Promise<Map<string, string>> => {
+    // SLACK_BOT_OAUTH_TOKEN is not available on staging environments
+    if (!SLACK_BOT_OAUTH_TOKEN) return new Map()
+
     const slackClient = new WebClient(SLACK_BOT_OAUTH_TOKEN)
 
     // Get unique author emails
