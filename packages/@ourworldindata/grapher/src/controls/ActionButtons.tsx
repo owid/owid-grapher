@@ -348,6 +348,7 @@ export function ActionButton(props: {
                     setShowTooltip(false)
                 }}
                 aria-label={props.label}
+                type="button"
             >
                 <FontAwesomeIcon icon={props.icon} />
                 {props.showLabel && (

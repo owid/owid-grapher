@@ -421,6 +421,7 @@ export class SettingsMenu extends React.Component<{
                     onClick={this.toggleVisibility}
                     data-track-note="chart_settings_menu_toggle"
                     title="Chart settings"
+                    type="button"
                     aria-label="Chart settings"
                 >
                     <FontAwesomeIcon icon={faGear} />

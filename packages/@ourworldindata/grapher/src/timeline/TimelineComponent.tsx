@@ -260,6 +260,7 @@ export class TimelineComponent extends React.Component<{
         return (
             <button
                 className="date clickable"
+                type="button"
                 onClick={(): void =>
                     markerType === "start"
                         ? controller.resetStartToMin()

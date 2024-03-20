@@ -90,6 +90,7 @@ function Tab(props: {
                 onClick={props.onClick}
                 data-track-note={"chart_click_" + props.tab}
                 aria-label={props.tab}
+                type="button"
             >
                 {props.icon}
                 {props.showLabel && <span className="label">{props.tab}</span>}
