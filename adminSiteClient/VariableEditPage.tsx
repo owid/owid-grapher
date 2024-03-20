@@ -510,7 +510,9 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
             await this.context.admin.rawRequest(
                 healthcheckUrl,
                 undefined,
-                "GET"
+                "GET",
+                undefined,
+                "include"
             )
             return true
         } catch (err) {
@@ -538,7 +540,9 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         const request = this.context.admin.rawRequest(
             url,
             JSON.stringify(data),
-            "PUT"
+            "PUT",
+            undefined,
+            "include"
         )
         let response: Response
         try {
