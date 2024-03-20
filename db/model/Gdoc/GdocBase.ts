@@ -86,7 +86,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     ) => Promise<OwidGdocErrorMessage[]> = async () => []
     _omittableFields: string[] = []
     _loadSubclassAttachments: (
-        knex: db.KnexReadonlyTransaction
+        knex: db.KnexReadWriteTransaction
     ) => Promise<void> = async () => undefined
 
     constructor(id?: string) {
@@ -674,7 +674,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async loadImageMetadata(
-        knex: db.KnexReadonlyTransaction,
+        knex: db.KnexReadWriteTransaction,
         filenames?: string[]
     ): Promise<void> {
         const imagesFilenames = filenames ?? this.linkedImageFilenames
@@ -815,7 +815,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         ]
     }
 
-    async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
+    async loadState(knex: db.KnexReadWriteTransaction): Promise<void> {
         await this.loadLinkedDocuments(knex)
         await this.loadImageMetadata(knex)
         await this.loadLinkedCharts(knex)

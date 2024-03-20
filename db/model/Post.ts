@@ -263,7 +263,7 @@ const selectHomepagePosts: FilterFnPostRestApi = (post) =>
     post.meta?.owid_publication_context_meta_field?.homepage === true
 
 export const getBlogIndex = memoize(
-    async (knex: db.KnexReadonlyTransaction): Promise<IndexPost[]> => {
+    async (knex: db.KnexReadWriteTransaction): Promise<IndexPost[]> => {
         const gdocPosts = await getAndLoadListedGdocPosts(knex)
         const wpPosts = await Promise.all(
             await getPostsFromSnapshots(

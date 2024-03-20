@@ -257,7 +257,7 @@ export async function getGdocBaseObjectBySlug(
 }
 
 export async function getAndLoadGdocBySlug(
-    knex: KnexReadonlyTransaction,
+    knex: KnexReadWriteTransaction,
     slug: string
 ): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
     const base = await getGdocBaseObjectBySlug(knex, slug, true)
@@ -270,7 +270,7 @@ export async function getAndLoadGdocBySlug(
 }
 
 export async function getAndLoadGdocById(
-    knex: KnexReadonlyTransaction,
+    knex: KnexReadWriteTransaction,
     id: string,
     contentSource?: GdocsContentSource
 ): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
@@ -283,7 +283,7 @@ export async function getAndLoadGdocById(
 // From an ID, get a Gdoc object with all its metadata and state loaded, in its correct subclass.
 // If contentSource is Gdocs, use live data from Google, otherwise use the data in the DB.
 export async function loadGdocFromGdocBase(
-    knex: KnexReadonlyTransaction,
+    knex: KnexReadWriteTransaction,
     base: OwidGdocBaseInterface,
     contentSource?: GdocsContentSource
 ): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
@@ -325,7 +325,7 @@ export async function loadGdocFromGdocBase(
 }
 
 export async function getAndLoadPublishedDataInsights(
-    knex: KnexReadonlyTransaction,
+    knex: KnexReadWriteTransaction,
     page?: number
 ): Promise<GdocDataInsight[]> {
     const limitOffsetClause =
@@ -370,7 +370,7 @@ export async function getAndLoadPublishedDataInsights(
 }
 
 export async function getAndLoadPublishedGdocPosts(
-    knex: KnexReadonlyTransaction
+    knex: KnexReadWriteTransaction
 ): Promise<GdocPost[]> {
     const rows = await knexRaw<DbRawPostGdoc>(
         knex,
@@ -415,7 +415,7 @@ export async function getAndLoadPublishedGdocPosts(
 }
 
 export async function loadPublishedGdocAuthors(
-    knex: KnexReadonlyTransaction
+    knex: KnexReadWriteTransaction
 ): Promise<GdocAuthor[]> {
     const rows = await knexRaw<DbRawPostGdoc>(
         knex,
@@ -441,7 +441,7 @@ export async function loadPublishedGdocAuthors(
 }
 
 export async function getAndLoadListedGdocPosts(
-    knex: KnexReadonlyTransaction
+    knex: KnexReadWriteTransaction
 ): Promise<GdocPost[]> {
     // TODO: Check if we shouldn't also restrict the types of gdocs here
     const rows = await knexRaw<DbRawPostGdoc>(

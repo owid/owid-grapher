@@ -66,7 +66,7 @@ import { getGdocBaseObjectBySlug } from "../db/model/Gdoc/GdocFactory.js"
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
     isPreviewing: boolean,
-    knex: db.KnexReadonlyTransaction,
+    knex: db.KnexReadWriteTransaction,
     imageMetadataDictionary?: Record<string, Image>
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
@@ -92,7 +92,7 @@ const renderDatapageIfApplicable = async (
  */
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
-    knex: db.KnexReadonlyTransaction,
+    knex: db.KnexReadWriteTransaction,
     imageMetadataDictionary?: Record<string, Image>
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(
@@ -133,7 +133,7 @@ export async function renderDataPageV2(
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
     },
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadWriteTransaction
 ) {
     const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
         variableId,
@@ -174,7 +174,7 @@ export async function renderDataPageV2(
     )
     const imageMetadata: OwidGdocPostInterface["imageMetadata"] = merge(
         {},
-        imageMetadataDictionary,
+        // imageMetadataDictionary,
         ...compact(gdocs.map((gdoc) => gdoc?.imageMetadata))
     )
     const relatedCharts: OwidGdocPostInterface["relatedCharts"] = gdocs.flatMap(
@@ -317,7 +317,7 @@ export async function renderDataPageV2(
  */
 export const renderPreviewDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadWriteTransaction
 ) => {
     const datapage = await renderDatapageIfApplicable(grapher, true, knex)
     if (datapage) return datapage
@@ -370,7 +370,7 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     bakedSiteDir: string,
     imageMetadataDictionary: Record<string, Image>,
     grapher: GrapherInterface,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadWriteTransaction
 ) => {
     const htmlPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     const isSameVersion = await chartIsSameVersion(htmlPath, grapher.version)
@@ -453,7 +453,7 @@ export interface BakeSingleGrapherChartArguments {
 
 export const bakeSingleGrapherChart = async (
     args: BakeSingleGrapherChartArguments,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadWriteTransaction
 ) => {
     const grapher: GrapherInterface = JSON.parse(args.config)
     grapher.id = args.id
@@ -475,7 +475,7 @@ export const bakeSingleGrapherChart = async (
 }
 
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
-    async (bakedSiteDir: string, knex: db.KnexReadonlyTransaction) => {
+    async (bakedSiteDir: string, knex: db.KnexReadWriteTransaction) => {
         const chartsToBake: { id: number; config: string; slug: string }[] =
             await knexRaw(
                 knex,

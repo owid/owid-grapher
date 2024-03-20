@@ -126,7 +126,7 @@ export class OwidAdminApp {
         // Public preview of a Gdoc document
         app.get("/gdocs/:id/preview", async (req, res) => {
             try {
-                await db.knexReadonlyTransaction(async (knex) => {
+                await db.knexReadWriteTransaction(async (knex) => {
                     const gdoc = await getAndLoadGdocById(
                         knex,
                         req.params.id,

@@ -1,4 +1,8 @@
-import { TransactionCloseMode, knexReadonlyTransaction } from "../../db/db.js"
+import {
+    TransactionCloseMode,
+    knexReadWriteTransaction,
+    knexReadonlyTransaction,
+} from "../../db/db.js"
 import { getPostRawBySlug } from "../../db/model/Post.js"
 import { enrichedBlocksToMarkdown } from "../../db/model/Gdoc/enrichedToMarkdown.js"
 
@@ -11,7 +15,7 @@ import { getAndLoadGdocBySlug } from "../../db/model/Gdoc/GdocFactory.js"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
-        await knexReadonlyTransaction(async (trx) => {
+        await knexReadWriteTransaction(async (trx) => {
             const gdoc = await getAndLoadGdocBySlug(trx, parsedArgs._[0])
             let archieMlContent: OwidEnrichedGdocBlock[] | null
             let contentToShowOnError: any

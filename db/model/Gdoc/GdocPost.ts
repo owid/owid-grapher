@@ -23,7 +23,11 @@ import { ADMIN_BASE_URL } from "../../../settings/clientSettings.js"
 import { parseDetails, parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
-import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
+import {
+    KnexReadWriteTransaction,
+    KnexReadonlyTransaction,
+    knexRaw,
+} from "../../db.js"
 import {
     getGdocBaseObjectById,
     getAndLoadPublishedGdocPosts,
@@ -233,7 +237,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     }
 
     static async getPublishedGdocPosts(
-        knex: KnexReadonlyTransaction
+        knex: KnexReadWriteTransaction
     ): Promise<GdocPost[]> {
         // #gdocsvalidation this cast means that we trust the admin code and
         // workflow to provide published articles that have all the required content

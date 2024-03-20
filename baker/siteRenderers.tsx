@@ -58,7 +58,12 @@ import {
 import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
-import { getHomepageId, knexRaw, KnexReadonlyTransaction } from "../db/db.js"
+import {
+    getHomepageId,
+    knexRaw,
+    KnexReadonlyTransaction,
+    KnexReadWriteTransaction,
+} from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import {
@@ -185,7 +190,7 @@ export function renderDynamicCollectionPage() {
 }
 
 export const renderGdocsPageBySlug = async (
-    knex: KnexReadonlyTransaction,
+    knex: KnexReadWriteTransaction,
     slug: string,
     isPreviewing: boolean = false
 ): Promise<string | undefined> => {
@@ -274,7 +279,7 @@ export const renderPost = async (
     )
 }
 
-export const renderFrontPage = async (knex: KnexReadonlyTransaction) => {
+export const renderFrontPage = async (knex: KnexReadWriteTransaction) => {
     const gdocHomepageId = await getHomepageId(knex)
 
     if (gdocHomepageId) {
@@ -291,7 +296,7 @@ export const renderFrontPage = async (knex: KnexReadonlyTransaction) => {
     }
 }
 
-export const renderDonatePage = async (knex: KnexReadonlyTransaction) => {
+export const renderDonatePage = async (knex: KnexReadWriteTransaction) => {
     const faqsGdoc = (await getAndLoadGdocById(
         knex,
         GDOCS_DONATE_FAQS_DOCUMENT_ID
@@ -333,7 +338,7 @@ export const renderDataInsightsIndexPage = (
 
 export const renderBlogByPageNum = async (
     pageNum: number,
-    knex: KnexReadonlyTransaction
+    knex: KnexReadWriteTransaction
 ) => {
     const allPosts = await getBlogIndex(knex)
 
@@ -359,7 +364,7 @@ export const renderSearchPage = () =>
 export const renderNotFoundPage = () =>
     renderToHtmlPage(<NotFoundPage baseUrl={BAKED_BASE_URL} />)
 
-export async function makeAtomFeed(knex: KnexReadonlyTransaction) {
+export async function makeAtomFeed(knex: KnexReadWriteTransaction) {
     const posts = (await getBlogIndex(knex)).slice(0, 10)
     return makeAtomFeedFromPosts(posts)
 }
@@ -367,7 +372,7 @@ export async function makeAtomFeed(knex: KnexReadonlyTransaction) {
 // We don't want to include topic pages in the atom feed that is being consumed
 // by Mailchimp for sending the "immediate update" newsletter. Instead topic
 // pages announcements are sent out manually.
-export async function makeAtomFeedNoTopicPages(knex: KnexReadonlyTransaction) {
+export async function makeAtomFeedNoTopicPages(knex: KnexReadWriteTransaction) {
     const posts = (await getBlogIndex(knex))
         .filter((post: IndexPost) => post.type !== OwidGdocType.TopicPage)
         .slice(0, 10)

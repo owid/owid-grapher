@@ -64,7 +64,7 @@ const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl[] => {
 
 export const makeSitemap = async (
     explorerAdminServer: ExplorerAdminServer,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadWriteTransaction
 ) => {
     const alreadyPublishedViaGdocsSlugsSet =
         await db.getSlugsWithPublishedGdocsSuccessors(knex)

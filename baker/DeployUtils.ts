@@ -11,7 +11,7 @@ import {
 import { SiteBaker } from "../baker/SiteBaker.js"
 import { WebClient } from "@slack/web-api"
 import { DeployChange, DeployMetadata } from "@ourworldindata/utils"
-import { KnexReadonlyTransaction } from "../db/db.js"
+import { KnexReadWriteTransaction } from "../db/db.js"
 
 const deployQueueServer = new DeployQueueServer()
 
@@ -35,7 +35,7 @@ export const defaultCommitMessage = async (): Promise<string> => {
  */
 const triggerBakeAndDeploy = async (
     deployMetadata: DeployMetadata,
-    knex: KnexReadonlyTransaction,
+    knex: KnexReadWriteTransaction,
     lightningQueue?: DeployChange[]
 ) => {
     // deploy to Buildkite if we're on master and BUILDKITE_API_ACCESS_TOKEN is set
@@ -160,7 +160,7 @@ let deploying = false
  * If there are no changes in the queue, a deploy won't be initiated.
  */
 export const deployIfQueueIsNotEmpty = async (
-    knex: KnexReadonlyTransaction
+    knex: KnexReadWriteTransaction
 ) => {
     if (deploying) return
     deploying = true

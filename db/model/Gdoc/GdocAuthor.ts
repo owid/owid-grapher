@@ -41,13 +41,13 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
     }
 
     _loadSubclassAttachments = (
-        knex: db.KnexReadonlyTransaction
+        knex: db.KnexReadWriteTransaction
     ): Promise<void> => {
         return this.loadLatestWorkImages(knex)
     }
 
     loadLatestWorkImages = async (
-        knex: db.KnexReadonlyTransaction
+        knex: db.KnexReadWriteTransaction
     ): Promise<void> => {
         if (!this.content.title) return
 
@@ -123,7 +123,7 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
     }
 
     static async getPublishedAuthors(
-        knex: db.KnexReadonlyTransaction
+        knex: db.KnexReadWriteTransaction
     ): Promise<GdocAuthor[]> {
         return loadPublishedGdocAuthors(knex)
     }

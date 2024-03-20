@@ -33,7 +33,7 @@ const main = async () => {
         setTimeout(deployIfQueueIsNotEmpty, 10 * 1000)
     })
 
-    await db.knexReadonlyTransaction(
+    await db.knexReadWriteTransaction(
         deployIfQueueIsNotEmpty,
         db.TransactionCloseMode.Close
     )

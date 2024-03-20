@@ -19,7 +19,7 @@ void yargs(hideBin(process.argv))
         async ({ slug }) => {
             const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
 
-            await db.knexReadonlyTransaction(
+            await db.knexReadWriteTransaction(
                 (trx) => baker.bakeGDocPosts(trx, [slug]),
                 db.TransactionCloseMode.Close
             )
