@@ -448,11 +448,11 @@ export async function getAndLoadListedGdocPosts(
         `-- sql
             SELECT *
             FROM posts_gdocs
-            WHERE published = 1
-            publicationContext: ${OwidGdocPublicationContext.listed}
+            WHERE published = 1 AND
+            publicationContext = :publicationContext AND
             publishedAt <= NOW()
             ORDER BY publishedAt DESC`,
-        {}
+        { publicationContext: OwidGdocPublicationContext.listed }
     )
     const ids = rows.map((row) => row.id)
     const tags = await knexRaw<DbPlainTag>(
