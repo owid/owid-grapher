@@ -172,7 +172,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 <form
                     onSubmit={(e) => {
                         e.preventDefault()
-                        // this.save()
+                        this.save()
                     }}
                 >
                     <div className="row">
@@ -226,7 +226,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     field="name"
                                     store={newVariable}
                                     label="Indicator Name"
-                                    disabled={isDisabled}
                                 />
                                 <BindString
                                     field="catalogPath"
@@ -238,7 +237,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     label="Display name"
                                     field="name"
                                     store={newVariable.display}
-                                    disabled={isDisabled}
                                 />
                                 <FieldsRow>
                                     <BindString
@@ -246,14 +244,12 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="unit"
                                         store={newVariable.display}
                                         placeholder={newVariable.unit}
-                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Short (axis) unit"
                                         field="shortUnit"
                                         store={newVariable.display}
                                         placeholder={newVariable.shortUnit}
-                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -262,14 +258,12 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="numDecimalPlaces"
                                         store={newVariable.display}
                                         helpText={`A negative number here will round integers`}
-                                        disabled={isDisabled}
                                     />
                                     <BindFloat
                                         label="Unit conversion factor"
                                         field="conversionFactor"
                                         store={newVariable.display}
                                         helpText={`Multiply all values by this amount`}
-                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -339,25 +333,21 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         label="Title public"
                                         field="titlePublic"
                                         store={newVariable.presentation}
-                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Title variant"
                                         field="titleVariant"
                                         store={newVariable.presentation}
-                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Attribution"
                                         field="attribution"
                                         store={newVariable.presentation}
-                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Attribution short"
                                         field="attributionShort"
                                         store={newVariable.presentation}
-                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -366,14 +356,12 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="descriptionShort"
                                         store={newVariable}
                                         textarea
-                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Description from producer"
                                         field="descriptionFromProducer"
                                         store={newVariable}
                                         textarea
-                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -395,7 +383,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="descriptionKey"
                                         store={newVariable}
                                         rows={8}
-                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -406,7 +393,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                             store={newVariable}
                                             textarea
                                             rows={8}
-                                            disabled={isDisabled}
                                         />
                                     </div>
                                     <div className="col">
@@ -424,13 +410,11 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                                     label: "Major",
                                                 },
                                             ]}
-                                            disabled={isDisabled}
                                         />
                                         <BindString
                                             label="Number of days between OWID updates"
                                             field="updatePeriodDays"
                                             store={newVariable}
-                                            disabled={isDisabled}
                                         />
                                     </div>
                                 </FieldsRow>
@@ -473,7 +457,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                 type="submit"
                                 className="btn btn-success"
                                 value="Update indicator"
-                                disabled={isDisabled}
                             />
                         </div>
                     </div>
