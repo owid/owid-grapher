@@ -65,9 +65,7 @@ const analyze = async (): Promise<void> => {
         for (const [tag, count] of sortedTagCount) {
             console.log(`${tag}: ${count}`)
         }
-    })
-
-    await db.closeTypeOrmAndKnexConnections()
+    }, db.TransactionCloseMode.Close)
 }
 
 void analyze()

@@ -234,12 +234,14 @@ const indexToAlgolia = async () => {
     }
     const index = client.initIndex(getIndexName(SearchIndexName.Pages))
 
-    const records = await db.knexReadonlyTransaction(getPagesRecords)
+    const records = await db.knexReadonlyTransaction(
+        getPagesRecords,
+        db.TransactionCloseMode.Close
+    )
 
     await index.replaceAllObjects(records)
 
     await wpdb.singleton.end()
-    await db.closeTypeOrmAndKnexConnections()
 }
 
 process.on("unhandledRejection", (e) => {

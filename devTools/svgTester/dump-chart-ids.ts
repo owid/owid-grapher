@@ -3,10 +3,7 @@
 import fs from "fs-extra"
 import parseArgs from "minimist"
 
-import {
-    closeTypeOrmAndKnexConnections,
-    knexReadonlyTransaction,
-} from "../../db/db.js"
+import { TransactionCloseMode, knexReadonlyTransaction } from "../../db/db.js"
 import { getMostViewedGrapherIdsByChartType } from "../../db/model/Chart.js"
 import { CHART_TYPES } from "./utils.js"
 
@@ -27,16 +24,14 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             )
             const chartIds = (await Promise.all(promises)).flatMap((ids) => ids)
             return chartIds
-        })
+        }, TransactionCloseMode.Close)
 
         console.log(`Writing ${chartIds.length} chart ids to ${outFile}`)
 
         fs.writeFileSync(outFile, chartIds.join("\n"))
 
-        await closeTypeOrmAndKnexConnections()
         process.exit(0)
     } catch (error) {
-        await closeTypeOrmAndKnexConnections()
         console.error("Encountered an error: ", error)
         process.exit(-1)
     }

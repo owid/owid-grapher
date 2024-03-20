@@ -70,11 +70,13 @@ async function downloadAndInsertCSV(
 
 const main = async (): Promise<void> => {
     try {
-        await db.knexReadWriteTransaction((trx) => downloadAndInsertCSV(trx))
+        await db.knexReadWriteTransaction(
+            (trx) => downloadAndInsertCSV(trx),
+            db.TransactionCloseMode.Close
+        )
     } catch (e) {
         console.error(e)
     } finally {
-        await db.closeTypeOrmAndKnexConnections()
     }
 }
 

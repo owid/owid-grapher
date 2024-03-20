@@ -740,13 +740,9 @@ export class GdocBase implements OwidGdocBaseInterface {
             []
         )
 
-        const { chartIdsBySlug, publishedExplorersBySlug } =
-            await db.knexReadonlyTransaction(async (trx) => {
-                const chartIdsBySlug = await mapSlugsToIds(trx)
-                const publishedExplorersBySlug =
-                    await db.getPublishedExplorersBySlug(trx)
-                return { chartIdsBySlug, publishedExplorersBySlug }
-            })
+        const chartIdsBySlug = await mapSlugsToIds(knex)
+        const publishedExplorersBySlug =
+            await db.getPublishedExplorersBySlug(knex)
 
         const linkErrors: OwidGdocErrorMessage[] = this.links.reduce(
             (errors: OwidGdocErrorMessage[], link): OwidGdocErrorMessage[] => {
