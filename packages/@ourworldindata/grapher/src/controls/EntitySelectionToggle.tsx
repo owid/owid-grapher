@@ -81,6 +81,7 @@ export class EntitySelectionToggle extends React.Component<{
                         this.props.manager.isSelectingData = !active
                         e.stopPropagation()
                     }}
+                    type="button"
                     data-track-note="chart_add_entity"
                     aria-label={`${label.action} ${label.entity}`}
                 >
