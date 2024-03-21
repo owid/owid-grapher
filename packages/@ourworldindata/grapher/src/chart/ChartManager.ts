@@ -34,8 +34,6 @@ export interface ChartManager {
     table: OwidTable
     transformedTable?: OwidTable
 
-    isSelectingData?: boolean
-    startSelectingWhenLineClicked?: boolean // used by lineLabels
     isExportingToSvgOrPng?: boolean
     isRelativeMode?: boolean
     comparisonLines?: ComparisonLineConfig[]
