@@ -284,9 +284,10 @@ const SearchResults = (props: SearchResultsProps) => {
                     const position = target.getAttribute(
                         "data-algolia-position"
                     )
-                    if (objectId && position) {
+                    const index = target.getAttribute("data-algolia-index")
+                    if (objectId && position && index) {
                         logSiteSearchClick({
-                            index: getIndexName(SearchIndexName.Charts),
+                            index,
                             queryID,
                             objectIDs: [objectId],
                             positions: [parseInt(position)],
@@ -429,11 +430,7 @@ export class InstantSearchContainer extends React.Component {
 
     constructor(props: Record<string, never>) {
         super(props)
-        this.searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY, {
-            queryParameters: {
-                clickAnalytics: "true",
-            },
-        })
+        this.searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
         this.categoryFilterContainerRef = React.createRef<HTMLUListElement>()
         this.handleCategoryFilterClick =
             this.handleCategoryFilterClick.bind(this)
