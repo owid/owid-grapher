@@ -719,8 +719,12 @@ class LabelledSlopes
     // Then, a special "foreground" set of entities is rendered over the background
     @computed private get isLayerMode() {
         return (
+            this.hoveredSeriesNames.length > 0 ||
             this.focusedSeriesNames.length > 0 ||
-            this.hoveredSeriesNames.length > 0
+            // if the user has selected entities that are not in the chart,
+            // we want to move all entities into the background
+            (this.props.focusKeys?.length > 0 &&
+                this.focusedSeriesNames.length === 0)
         )
     }
 
