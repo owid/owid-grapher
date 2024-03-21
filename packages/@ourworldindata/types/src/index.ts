@@ -110,6 +110,7 @@ export {
     GrapherStaticFormat,
     type ChartRedirect,
     type DetailsMarker,
+    GrapherWindowType,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {

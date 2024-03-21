@@ -48,7 +48,7 @@ export interface SourcesModalManager {
     columnsWithSourcesExtensive: CoreColumn[]
     showAdminControls?: boolean
     isSourcesModalOpen?: boolean
-    tabBounds?: Bounds
+    frameBounds?: Bounds
     isEmbeddedInADataPage?: boolean
     isNarrow?: boolean
     fontSize?: number
@@ -78,15 +78,15 @@ export class SourcesModal extends React.Component<
         return this.props.manager
     }
 
-    @computed private get tabBounds(): Bounds {
-        return this.manager.tabBounds ?? DEFAULT_BOUNDS
+    @computed private get frameBounds(): Bounds {
+        return this.manager.frameBounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get modalBounds(): Bounds {
         const maxWidth = MAX_CONTENT_WIDTH + 220
         // using 15px instead of 16px to make sure the modal fully covers the OWID logo in the header
-        const padWidth = Math.max(15, (this.tabBounds.width - maxWidth) / 2)
-        return this.tabBounds.padHeight(15).padWidth(padWidth)
+        const padWidth = Math.max(15, (this.frameBounds.width - maxWidth) / 2)
+        return this.frameBounds.padHeight(15).padWidth(padWidth)
     }
 
     @computed private get showStickyModalHeader(): boolean {
