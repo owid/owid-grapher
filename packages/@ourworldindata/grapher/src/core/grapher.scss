@@ -33,6 +33,7 @@ $zindex-modal: 30;
 $zindex-full-screen: 120;
 $zindex-controls-backdrop: 130;
 $zindex-controls-popup: 140;
+$zindex-controls-drawer: 150;
 
 // needed for .global-entity-control-container
 @mixin xxlg-down {
@@ -59,9 +60,9 @@ $zindex-controls-popup: 140;
     @import "../controls/ActionButtons.scss";
     @import "../controls/ShareMenu.scss";
     @import "../modal/Modal.scss";
-    @import "../modal/EntitySelectorModal.scss";
     @import "../modal/EmbedModal.scss";
     @import "../modal/DownloadModal.scss";
+    @import "../entitySelector/EntitySelector.scss";
     @import "../dataTable/DataTable.scss";
     @import "../modal/SourcesModal.scss";
     @import "../tooltip/Tooltip.scss";
@@ -73,6 +74,8 @@ $zindex-controls-popup: 140;
     @import "../modal/SourcesDescriptions.scss";
     @import "../tabs/Tabs.scss";
     @import "../tabs/ExpandableTabs.scss";
+    @import "../slideInDrawer/SlideInDrawer.scss";
+    @import "../sidePanel/SidePanel.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
@@ -152,6 +155,10 @@ $zindex-controls-popup: 140;
 
     .DataTableContainer {
         z-index: $zindex-table;
+    }
+
+    .CaptionedChartAndSidePanel {
+        display: flex;
     }
 
     // customize css of the <CodeSnippet> component

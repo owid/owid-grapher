@@ -1,6 +1,10 @@
 // keep in sync with constant values in CaptionedChart.tsx
 $controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
 
+.CaptionedChart {
+    width: 100%;
+}
+
 .HeaderHTML,
 .SourcesFooterHTML {
     font-family: $sans-serif-font-stack;
@@ -22,7 +26,6 @@ $controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
     align-items: center;
     border-top: 1px solid $frame-color;
     position: absolute;
-    width: 100%;
     bottom: 0;
     color: $dark-text;
     font-weight: 700;

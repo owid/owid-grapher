@@ -304,10 +304,6 @@ export class StackedAreaChart
     }
 
     @observable hoverSeriesName?: SeriesName
-    @action.bound onLineLegendClick(): void {
-        if (this.manager.startSelectingWhenLineClicked)
-            this.manager.isSelectingData = true
-    }
 
     @computed protected get paddingForLegend(): number {
         const { legendDimensions } = this
