@@ -50,6 +50,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faArrowRight,
     faHeartBroken,
+    faLocationDot,
     faSearch,
 } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -68,7 +69,10 @@ import {
 } from "@ourworldindata/grapher"
 import type { SearchResults as AlgoliaSearchResultsType } from "algoliasearch-helper"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import { extractRegionNamesFromSearchQuery } from "./SearchUtils.js"
+import {
+    extractRegionNamesFromSearchQuery,
+    pickEntitiesForChartHit,
+} from "./SearchUtils.js"
 
 const siteAnalytics = new SiteAnalytics()
 
@@ -119,9 +123,24 @@ function ChartHit({ hit }: { hit: IChartHit }) {
     const [imgLoaded, setImgLoaded] = useState(false)
     const [imgError, setImgError] = useState(false)
 
+    const entities = useMemo(
+        () => pickEntitiesForChartHit(hit),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [hit._highlightResult?.availableEntities]
+    )
+    const queryStr = useMemo(() => getEntityQueryStr(entities), [entities])
+    const previewUrl = queryStr
+        ? `/grapher/thumbnail/${hit.slug}${queryStr}`
+        : `${BAKED_GRAPHER_URL}/exports/${hit.slug}.svg`
+
+    useEffect(() => {
+        setImgLoaded(false)
+        setImgError(false)
+    }, [previewUrl])
+
     return (
         <a
-            href={`${BAKED_GRAPHER_URL}/${hit.slug}`}
+            href={`${BAKED_GRAPHER_URL}/${hit.slug}${queryStr}`}
             data-algolia-index={getIndexName(SearchIndexName.Charts)}
             data-algolia-object-id={hit.objectID}
             data-algolia-position={hit.__position}
@@ -134,11 +153,12 @@ function ChartHit({ hit }: { hit: IChartHit }) {
                     </div>
                 )}
                 <img
+                    key={previewUrl}
                     className={cx({ loaded: imgLoaded, error: imgError })}
                     loading="lazy"
                     width={DEFAULT_GRAPHER_WIDTH}
                     height={DEFAULT_GRAPHER_HEIGHT}
-                    src={`${BAKED_GRAPHER_URL}/exports/${hit.slug}.svg`}
+                    src={previewUrl}
                     onLoad={() => setImgLoaded(true)}
                     onError={() => setImgError(true)}
                 />
@@ -154,6 +174,16 @@ function ChartHit({ hit }: { hit: IChartHit }) {
                     {hit.variantName}
                 </span>
             </div>
+            {entities.length > 0 && (
+                <ul className="search-results__chart-hit-entities">
+                    {entities.map((entity) => (
+                        <li key={entity}>
+                            <FontAwesomeIcon icon={faLocationDot} />
+                            {entity}
+                        </li>
+                    ))}
+                </ul>
+            )}
         </a>
     )
 }

@@ -431,6 +431,25 @@ $reset-button-margin: 16px;
     }
 }
 
+.search-results__chart-hit-entities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    list-style: none;
+    font-size: 0.7em;
+
+    li {
+        background-color: $blue-10;
+        padding: 4px 8px;
+        border-radius: 12px;
+        color: $blue-90;
+
+        svg {
+            margin-right: 4px;
+        }
+    }
+}
+
 /*
 *  Tabs / Filtering
 **/
