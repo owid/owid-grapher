@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom"
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import cx from "classnames"
 import {
     keyBy,
@@ -7,6 +7,8 @@ import {
     get,
     mapValues,
     isElementHidden,
+    EntityName,
+    Url,
 } from "@ourworldindata/utils"
 import {
     InstantSearch,
@@ -39,7 +41,11 @@ import {
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faHeartBroken, faSearch } from "@fortawesome/free-solid-svg-icons"
+import {
+    faHeartBroken,
+    faLocationDot,
+    faSearch,
+} from "@fortawesome/free-solid-svg-icons"
 import {
     DEFAULT_SEARCH_PLACEHOLDER,
     getIndexName,
@@ -52,7 +58,9 @@ import {
 import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
+    setSelectedEntityNamesParam,
 } from "@ourworldindata/grapher"
+import { pickEntitiesForChartHit } from "./SearchUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 
 const siteAnalytics = new SiteAnalytics()
@@ -84,13 +92,43 @@ function PagesHit({ hit }: { hit: IPageHit }) {
     )
 }
 
+const getChartQueryStr = (slug: string, entities: EntityName[]) => {
+    if (entities.length === 0) return ""
+    else {
+        return setSelectedEntityNamesParam(
+            Url.fromQueryParams({
+                tab: "chart",
+            }),
+            entities
+        ).queryStr
+    }
+}
+
 function ChartHit({ hit }: { hit: IChartHit }) {
     const [imgLoaded, setImgLoaded] = useState(false)
     const [imgError, setImgError] = useState(false)
 
+    const entities = useMemo(
+        () => pickEntitiesForChartHit(hit),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [hit._highlightResult?.availableEntities]
+    )
+    const queryStr = useMemo(
+        () => getChartQueryStr(hit.slug, entities),
+        [hit.slug, entities]
+    )
+    const previewUrl = queryStr
+        ? `/grapher/thumbnail/${hit.slug}${queryStr}`
+        : `${BAKED_GRAPHER_URL}/exports/${hit.slug}.svg`
+
+    useEffect(() => {
+        setImgLoaded(false)
+        setImgError(false)
+    }, [previewUrl])
+
     return (
         <a
-            href={`${BAKED_GRAPHER_URL}/${hit.slug}`}
+            href={`${BAKED_GRAPHER_URL}/${hit.slug}${queryStr}`}
             data-algolia-index={getIndexName(SearchIndexName.Charts)}
             data-algolia-object-id={hit.objectID}
             data-algolia-position={hit.__position}
@@ -103,11 +141,12 @@ function ChartHit({ hit }: { hit: IChartHit }) {
                     </div>
                 )}
                 <img
+                    key={previewUrl}
                     className={cx({ loaded: imgLoaded, error: imgError })}
                     loading="lazy"
                     width={DEFAULT_GRAPHER_WIDTH}
                     height={DEFAULT_GRAPHER_HEIGHT}
-                    src={`${BAKED_GRAPHER_URL}/exports/${hit.slug}.svg`}
+                    src={previewUrl}
                     onLoad={() => setImgLoaded(true)}
                     onError={() => setImgError(true)}
                 />
@@ -121,6 +160,16 @@ function ChartHit({ hit }: { hit: IChartHit }) {
             <span className="search-results__chart-hit-variant">
                 {hit.variantName}
             </span>
+            {entities.length > 0 && (
+                <ul className="search-results__chart-hit-entities">
+                    {entities.map((entity) => (
+                        <li key={entity}>
+                            <FontAwesomeIcon icon={faLocationDot} />
+                            {entity}
+                        </li>
+                    ))}
+                </ul>
+            )}
         </a>
     )
 }
