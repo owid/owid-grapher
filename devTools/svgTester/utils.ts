@@ -405,7 +405,7 @@ export async function renderSvg(
         },
         queryStr
     )
-    const { width, height } = grapher.idealBounds
+    const { width, height } = grapher.defaultBounds
     const outFilename = buildSvgOutFilename(
         {
             slug: configAndData.config.slug!,

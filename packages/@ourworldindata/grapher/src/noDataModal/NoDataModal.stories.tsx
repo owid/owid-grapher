@@ -15,7 +15,7 @@ export const WithAddDataButtons = (): JSX.Element => {
                     manager={{
                         canChangeEntity: true,
                         canAddData: true,
-                        isSelectingData: false,
+                        isEntitySelectorModalOrDrawerOpen: false,
                         entityType: "Country",
                     }}
                 />

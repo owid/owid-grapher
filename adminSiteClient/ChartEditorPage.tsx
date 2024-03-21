@@ -249,7 +249,7 @@ export class ChartEditorPage
     @computed private get bounds(): Bounds {
         return this.isMobilePreview
             ? new Bounds(0, 0, 380, 525)
-            : this.grapher.idealBounds
+            : this.grapher.defaultBounds
     }
 
     @computed private get staticFormat(): GrapherStaticFormat {

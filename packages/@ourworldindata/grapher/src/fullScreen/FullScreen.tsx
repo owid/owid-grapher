@@ -2,6 +2,7 @@ import React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
+import { GRAPHER_DRAWER_ID } from "../core/GrapherConstants"
 
 @observer
 export class FullScreen extends React.Component<{
@@ -12,10 +13,13 @@ export class FullScreen extends React.Component<{
     content: React.RefObject<HTMLDivElement> = React.createRef()
 
     @action.bound onDocumentClick(e: React.MouseEvent): void {
+        const drawer = document.getElementById(GRAPHER_DRAWER_ID)
         if (
             this.content?.current &&
             // check if the click was outside of the modal
             !this.content.current.contains(e.target as Node) &&
+            // check if the click was outside of the drawer
+            (!drawer || !drawer.contains(e.target as Node)) &&
             // check that the target is still mounted to the document; we also get click events on nodes that have since been removed by React
             document.contains(e.target as Node)
         )

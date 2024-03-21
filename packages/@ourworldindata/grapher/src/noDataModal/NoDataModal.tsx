@@ -8,7 +8,7 @@ import { faPlus, faRightLeft } from "@fortawesome/free-solid-svg-icons"
 export interface NoDataModalManager {
     canChangeEntity?: boolean
     canAddData?: boolean
-    isSelectingData?: boolean
+    isEntitySelectorModalOrDrawerOpen?: boolean
     entityType?: string
 }
 
@@ -19,7 +19,7 @@ export class NoDataModal extends React.Component<{
     manager: NoDataModalManager
 }> {
     @action.bound private onDataSelect(): void {
-        this.props.manager.isSelectingData = true
+        this.props.manager.isEntitySelectorModalOrDrawerOpen = true
     }
 
     @computed private get bounds(): Bounds {

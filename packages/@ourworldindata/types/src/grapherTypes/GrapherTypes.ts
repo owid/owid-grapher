@@ -680,3 +680,9 @@ export enum GrapherStaticFormat {
     landscape = "landscape",
     square = "square",
 }
+
+export enum GrapherWindowType {
+    panel = "panel",
+    modal = "modal",
+    drawer = "drawer",
+}
