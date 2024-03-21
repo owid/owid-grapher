@@ -430,7 +430,13 @@ export class SlopeChart
 
     componentDidMount() {
         if (this.grapherElement) {
-            this.grapherElement.addEventListener("click", this.onGrapherClick)
+            // listening to "mousedown" instead of "click" fixes a bug
+            // where the current selection was incorrectly dismissed
+            // when the user drags the slider but releases the drag outside of the timeline
+            this.grapherElement.addEventListener(
+                "mousedown",
+                this.onGrapherClick
+            )
         }
         exposeInstanceOnWindow(this)
     }
@@ -438,7 +444,7 @@ export class SlopeChart
     componentWillUnmount(): void {
         if (this.grapherElement) {
             this.grapherElement.removeEventListener(
-                "click",
+                "mousedown",
                 this.onGrapherClick
             )
         }
