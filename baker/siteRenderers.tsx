@@ -405,6 +405,8 @@ export const entriesByYearPage = async (year?: number) => {
         "title" | "slug" | "published_at"
     >[]
 
+    // TODO: include topic pages here once knex refactor is done
+
     if (year !== undefined)
         return renderToHtmlPage(
             <EntriesForYearPage
