@@ -9,8 +9,7 @@ import {
     sum,
     getRelativeMouse,
     colorScaleConfigDefaults,
-    omit,
-    FontFamily,
+    dyFromAlign,
 } from "@ourworldindata/utils"
 import {
     VerticalAxisComponent,
@@ -39,7 +38,7 @@ import {
 } from "./AbstractStackedChart"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { VerticalAxis } from "../axis/Axis"
-import { ColorSchemeName } from "@ourworldindata/types"
+import { ColorSchemeName, VerticalAlign } from "@ourworldindata/types"
 import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
@@ -473,19 +472,20 @@ export class StackedBarChart
                 <g>
                     {ticks.map((tick, i) => {
                         return (
-                            <Text
+                            <text
                                 key={i}
                                 x={tick.bounds.x}
-                                y={tick.bounds.y}
+                                y={tick.bounds.y + 1}
                                 fill={GRAPHER_DARK_TEXT}
                                 fontSize={this.tickFontSize}
                                 onMouseOver={(): void => {
                                     this.onLabelMouseOver(tick)
                                 }}
                                 onMouseLeave={this.onLabelMouseLeave}
+                                dy={dyFromAlign(VerticalAlign.bottom)}
                             >
                                 {tick.text}
-                            </Text>
+                            </text>
                         )
                     })}
                 </g>
@@ -576,30 +576,6 @@ export class StackedBarChart
             withMissingValuesAsZeroes(this.unstackedSeries, {
                 enforceUniformSpacing,
             })
-        )
-    }
-}
-
-interface TextProps extends React.SVGProps<SVGTextElement> {
-    x: number
-    y: number
-    fontSize: number
-    fontFamily?: FontFamily
-    children: string
-}
-
-class Text extends React.Component<TextProps> {
-    render(): JSX.Element {
-        const bounds = Bounds.forText(this.props.children, {
-            fontSize: this.props.fontSize,
-            fontFamily: this.props.fontFamily,
-        })
-        const y = this.props.y + bounds.height - bounds.height * 0.2
-
-        return (
-            <text {...omit(this.props, ["children"])} y={y}>
-                {this.props.children}
-            </text>
         )
     }
 }
