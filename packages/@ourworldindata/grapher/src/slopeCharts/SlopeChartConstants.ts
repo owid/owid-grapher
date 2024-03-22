@@ -17,26 +17,27 @@ export interface SlopeChartSeries extends ChartSeries {
 
 export const DEFAULT_SLOPE_CHART_COLOR = "#ff7f0e"
 
-export interface SlopeProps extends ChartSeries {
+export interface SlopeEntryProps extends ChartSeries {
     isLayerMode: boolean
+    isMultiHoverMode: boolean
     x1: number
     y1: number
     x2: number
     y2: number
     size: number
+
     hasLeftLabel: boolean
+    leftEntityLabel: TextWrap
+    leftValueLabel: TextWrap
+    leftEntityLabelBounds: Bounds
+
     hasRightLabel: boolean
-    labelFontSize: number
-    leftLabelBounds: Bounds
-    rightLabelBounds: Bounds
-    leftValueStr: string
-    rightValueStr: string
-    leftLabel: TextWrap
-    rightLabel: TextWrap
+    rightEntityLabel: TextWrap
+    rightEntityLabelBounds: Bounds
+    rightValueLabel: TextWrap
+
     isFocused: boolean
     isHovered: boolean
-    leftValueWidth: number
-    rightValueWidth: number
 }
 
 export interface LabelledSlopesProps {
@@ -46,7 +47,7 @@ export interface LabelledSlopesProps {
     seriesArr: SlopeChartSeries[]
     focusKeys: string[]
     hoverKeys: string[]
-    onMouseOver: (slopeProps: SlopeProps) => void
+    onMouseOver: (slopeProps: SlopeEntryProps) => void
     onMouseLeave: () => void
     onClick: () => void
 }
