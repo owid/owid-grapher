@@ -8,7 +8,7 @@ jobs:
 
         steps:
             - name: Clone repository
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
 
             - uses: ./.github/actions/setup-node-yarn-deps
             - uses: ./.github/actions/build-tsc
@@ -37,7 +37,7 @@ jobs:
             # Checkout the owid-grapher-svgs repo into a subfolder. Use a Personal Access Token for checkout so the
             # action will have permission to push later on if required.
             - name: Clone svg tester repo
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
               with:
                   repository: "owid/owid-grapher-svgs"
                   path: owid-grapher-svgs
@@ -84,7 +84,7 @@ jobs:
             # The action fails if there were any errors.
             - name: Fail with error message if we had errors
               if: ${{ steps.run-verify-graphs.outputs.num_errors > 0 }}
-              uses: actions/github-script@v6
+              uses: actions/github-script@v7
               with:
                   script: |
                       core.setFailed('Errors were thrown during checking! Please check diffs at https://github.com/owid/owid-grapher-svgs/commits/${{ env.PUSH_BRANCH_NAME }}')
@@ -95,7 +95,7 @@ jobs:
             - name: Fail with error message if we had differences
               if: ${{ steps.run-verify-graphs.outputs.num_differences > 0 }}
               continue-on-error: ${{ env.ORIGINAL_BRANCH_NAME == 'master' }}
-              uses: actions/github-script@v6
+              uses: actions/github-script@v7
               with:
                   script: |
                       core.setFailed('SVGs were different from reference! Please check diffs at https://github.com/owid/owid-grapher-svgs/commits/${{ env.PUSH_BRANCH_NAME }}')
