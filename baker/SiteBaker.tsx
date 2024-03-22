@@ -828,7 +828,7 @@ export class SiteBaker {
     private async bakeGoogleScholar() {
         if (!this.bakeSteps.has("googleScholar")) return
         await this.stageWrite(
-            `${this.bakedSiteDir}/entries-by-year/index.html`,
+            `${this.bakedSiteDir}/entries-by-year.html`,
             await entriesByYearPage()
         )
 
