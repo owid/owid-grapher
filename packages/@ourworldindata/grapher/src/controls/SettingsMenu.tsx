@@ -225,7 +225,9 @@ export class SettingsMenu extends React.Component<{
 
     componentWillUnmount(): void {
         document.removeEventListener("keydown", this.onDocumentKeyDown)
-        document.removeEventListener("click", this.onDocumentClick)
+        document.removeEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
     }
 
     @action.bound onDocumentKeyDown(e: KeyboardEvent): void {
