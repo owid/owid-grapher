@@ -50,6 +50,7 @@ export interface LabelledSlopesProps {
     onMouseOver: (slopeProps: SlopeEntryProps) => void
     onMouseLeave: () => void
     onClick: () => void
+    isPortrait: boolean
 }
 
 export interface SlopeAxisProps {
