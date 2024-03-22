@@ -21,7 +21,7 @@ export default {
 const table = SynthesizeGDPTable({ entityCount: 5 })
 
 const manager: CaptionedChartManager = {
-    tabBounds: DEFAULT_BOUNDS,
+    captionedChartBounds: DEFAULT_BOUNDS,
     table,
     selection: table.availableEntityNames,
     currentTitle: "This is the Title",

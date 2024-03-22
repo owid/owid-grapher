@@ -1,0 +1,15 @@
+.SidePanel {
+    flex-grow: 0;
+    flex-shrink: 0;
+    border-left: 1px solid $frame-color;
+    overflow-y: auto;
+
+    .title {
+        text-transform: uppercase;
+        color: $light-text;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 1.2px;
+        margin: 16px;
+    }
+}

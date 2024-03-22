@@ -42,7 +42,7 @@ export async function bakeGraphersToPngs(
             .then(() => console.log(`${outPath}.svg`)),
         sharp(Buffer.from(grapher.staticSVG), { density: 144 })
             .png()
-            .resize(grapher.idealBounds.width, grapher.idealBounds.height)
+            .resize(grapher.defaultBounds.width, grapher.defaultBounds.height)
             .flatten({ background: "#ffffff" })
             .toFile(`${outPath}.png`),
     ])
@@ -93,7 +93,7 @@ export async function bakeGrapherToSvg(
     verbose = true
 ) {
     const grapher = initGrapherForSvgExport(jsonConfig, queryStr)
-    const { width, height } = grapher.idealBounds
+    const { width, height } = grapher.defaultBounds
     const outPath = buildSvgOutFilepath(
         outDir,
         {

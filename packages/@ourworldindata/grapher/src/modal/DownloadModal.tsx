@@ -34,7 +34,8 @@ export interface DownloadModalManager {
     shouldIncludeDetailsInStaticExport?: boolean
     detailsOrderedByReference?: string[]
     isDownloadModalOpen?: boolean
-    tabBounds?: Bounds
+    frameBounds?: Bounds
+    captionedChartBounds?: Bounds
     isOnChartOrMapTab?: boolean
     framePaddingVertical?: number
     showAdminControls?: boolean
@@ -46,12 +47,16 @@ interface DownloadModalProps {
 
 @observer
 export class DownloadModal extends React.Component<DownloadModalProps> {
+    @computed private get frameBounds(): Bounds {
+        return this.manager.frameBounds ?? DEFAULT_BOUNDS
+    }
+
     @computed private get staticBounds(): Bounds {
         return this.manager.staticBounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get tabBounds(): Bounds {
-        return this.manager.tabBounds ?? DEFAULT_BOUNDS
+    @computed private get captionedChartBounds(): Bounds {
+        return this.manager.captionedChartBounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get isExportingSquare(): boolean {
@@ -64,8 +69,8 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
 
     @computed private get modalBounds(): Bounds {
         const maxWidth = 640
-        const padWidth = Math.max(16, (this.tabBounds.width - maxWidth) / 2)
-        return this.tabBounds.padHeight(16).padWidth(padWidth)
+        const padWidth = Math.max(16, (this.frameBounds.width - maxWidth) / 2)
+        return this.frameBounds.padHeight(16).padWidth(padWidth)
     }
 
     @computed private get targetBounds(): Bounds {
@@ -213,18 +218,32 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     private renderReady(): JSX.Element {
-        const { manager, svgPreviewUrl, tabBounds, targetWidth, targetHeight } =
-            this
+        const {
+            manager,
+            svgPreviewUrl,
+            captionedChartBounds,
+            targetWidth,
+            targetHeight,
+        } = this
         const pngPreviewUrl = this.pngPreviewUrl || this.fallbackPngUrl
 
         let previewWidth: number
         let previewHeight: number
         const boundScalar = 0.17
-        if (tabBounds.width / tabBounds.height > targetWidth / targetHeight) {
-            previewHeight = Math.min(72, tabBounds.height * boundScalar)
+        if (
+            captionedChartBounds.width / captionedChartBounds.height >
+            targetWidth / targetHeight
+        ) {
+            previewHeight = Math.min(
+                72,
+                captionedChartBounds.height * boundScalar
+            )
             previewWidth = (targetWidth / targetHeight) * previewHeight
         } else {
-            previewWidth = Math.min(102, tabBounds.width * boundScalar)
+            previewWidth = Math.min(
+                102,
+                captionedChartBounds.width * boundScalar
+            )
             previewHeight = (targetHeight / targetWidth) * previewWidth
         }
 
