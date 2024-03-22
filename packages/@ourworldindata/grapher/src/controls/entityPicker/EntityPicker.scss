@@ -94,6 +94,10 @@ $zindex-dropdown: 100;
         z-index: 1;
     }
 
+    &.most-recently-selected {
+        z-index: 2;
+    }
+
     &.focused {
         background-color: $gray-10;
     }
