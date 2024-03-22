@@ -176,11 +176,13 @@ export async function renderDataPageV2(
         {},
         ...compact(gdocs.map((gdoc) => gdoc?.linkedDocuments))
     )
+    // TODO: this is the place to select the right images, but only once the DB knex refactor has been merged
     const imageMetadata: OwidGdocPostInterface["imageMetadata"] = merge(
         {},
         imageMetadataDictionary,
         ...compact(gdocs.map((gdoc) => gdoc?.imageMetadata))
     )
+
     const relatedCharts: OwidGdocPostInterface["relatedCharts"] = gdocs.flatMap(
         (gdoc) => gdoc?.relatedCharts ?? []
     )
