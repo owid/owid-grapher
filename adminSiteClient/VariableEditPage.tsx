@@ -523,6 +523,8 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     async save() {
         const { variable } = this.props
 
+        this.context.admin.loadingIndicatorSetting = "loading"
+
         const url = `${ETL_API_URL}/indicators`
 
         const indicatorDiff = getDifference(
@@ -547,6 +549,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         let response: Response
         try {
             response = await request
+            this.context.admin.loadingIndicatorSetting = "off"
         } catch (err) {
             const title = (await this.etlApiIsRunning())
                 ? `Internal error`
@@ -565,6 +568,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 ),
                 isFatal: true,
             })
+            this.context.admin.loadingIndicatorSetting = "off"
             throw err
         }
 
