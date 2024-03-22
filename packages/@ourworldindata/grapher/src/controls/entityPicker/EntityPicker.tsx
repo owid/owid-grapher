@@ -27,6 +27,9 @@ import {
     compact,
     CoreColumnDef,
     OwidTableSlugs,
+    difference,
+    union,
+    intersection,
 } from "@ourworldindata/utils"
 import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
 import { SortIcon } from "../../controls/SortIcon"
@@ -598,6 +601,7 @@ export class EntityPicker extends React.Component<{
                                     // We only want to animate when the selection changes, but not on changes due to
                                     // searching
                                     flipKey={selectedEntityNames.join(",")}
+                                    decisionData={selectedEntityNames}
                                 >
                                     {entities.map((option, index) => (
                                         <PickerOption
@@ -683,8 +687,32 @@ class PickerOption extends React.Component<PickerOptionProps> {
         const { entityName, plotValue, formattedValue } = optionWithMetricValue
         const metricValue = formattedValue === entityName ? "" : formattedValue // If the user has this entity selected, don't show the name twice.
 
+        const isFlipping = (selectedEntityNames?: {
+            previous?: string[]
+            current?: string[]
+        }): boolean => {
+            const { previous = [], current = [] } = selectedEntityNames ?? {}
+            const animatedEntityName = difference(
+                union(previous, current),
+                intersection(previous, current)
+            )[0]
+            return animatedEntityName === entityName
+        }
+
         return (
-            <Flipped flipId={entityName} translate opacity>
+            <Flipped
+                flipId={entityName}
+                translate
+                opacity
+                onStart={(element, decisionData) => {
+                    if (isFlipping(decisionData)) {
+                        element.classList.add("animating")
+                    }
+                }}
+                onComplete={(element) => {
+                    element.classList.remove("animating")
+                }}
+            >
                 <label
                     className={classnames(
                         "EntityPickerOption",
