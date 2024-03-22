@@ -17,6 +17,7 @@ import {
     PointVector,
     clamp,
     HorizontalAlign,
+    difference,
 } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import { observable, computed, action } from "mobx"
@@ -32,6 +33,7 @@ import {
     GRAPHER_DARK_TEXT,
     GRAPHER_FONT_SCALE_9_6,
     GRAPHER_FONT_SCALE_10_5,
+    GRAPHER_FONT_SCALE_11_2,
 } from "../core/GrapherConstants"
 import {
     ScaleType,
@@ -299,8 +301,9 @@ export class SlopeChart
             : this.bounds.width * 0.5
     }
 
-    @computed.struct private get sidebarWidth() {
-        return Math.min(this.legendWidth, this.maxLegendWidth)
+    @computed private get sidebarWidth(): number {
+        // the min width is set to prevent the "No data" title from line breaking
+        return clamp(this.legendWidth, 51, this.maxLegendWidth)
     }
 
     // correction is to account for the space taken by the legend
@@ -324,6 +327,76 @@ export class SlopeChart
         return legendBins.some((bin) => colorsInUse.includes(bin.color))
     }
 
+    @computed
+    private get selectedEntitiesWithoutData(): string[] {
+        return difference(
+            this.selectedEntityNames,
+            this.series.map((s) => s.seriesName)
+        )
+    }
+
+    @computed private get noDataSection(): JSX.Element {
+        const { selectedEntitiesWithoutData } = this
+
+        const displayedEntities = selectedEntitiesWithoutData.slice(0, 5)
+        const numRemainingEntities = Math.max(
+            0,
+            selectedEntitiesWithoutData.length - displayedEntities.length
+        )
+
+        const bounds = new Bounds(
+            this.legendX,
+            this.legendY + this.legendHeight,
+            this.sidebarWidth,
+            this.bounds.height - this.legendHeight
+        )
+
+        return (
+            <foreignObject
+                {...bounds.toProps()}
+                style={{
+                    color: GRAPHER_DARK_TEXT,
+                    fontSize: GRAPHER_FONT_SCALE_11_2 * this.fontSize,
+                }}
+            >
+                <div
+                    style={{
+                        textTransform: "uppercase",
+                        fontWeight: 700,
+                        marginTop: 12,
+                        marginBottom: 2,
+                        lineHeight: 1.15,
+                    }}
+                >
+                    No data
+                </div>
+                <ul>
+                    {displayedEntities.map((entityName) => (
+                        <li
+                            key={entityName}
+                            style={{
+                                fontStyle: "italic",
+                                lineHeight: 1.15,
+                                marginBottom: 2,
+                            }}
+                        >
+                            {entityName}
+                        </li>
+                    ))}
+                </ul>
+                {numRemainingEntities > 0 && (
+                    <div>
+                        &{" "}
+                        {numRemainingEntities === 1
+                            ? "one"
+                            : numRemainingEntities}{" "}
+                        more
+                    </div>
+                )}
+            </foreignObject>
+        )
+    }
+
     render() {
         if (this.failMessage)
             return (
@@ -342,6 +415,7 @@ export class SlopeChart
             innerBounds,
             showLegend,
             showHorizontalLegend,
+            selectedEntitiesWithoutData,
         } = this
 
         const legend = showHorizontalLegend ? (
@@ -365,6 +439,11 @@ export class SlopeChart
                     isPortrait={this.isPortrait}
                 />
                 {showLegend && legend}
+                {/* only show the "No data" section if there is space */}
+                {showLegend &&
+                    !showHorizontalLegend &&
+                    selectedEntitiesWithoutData.length > 0 &&
+                    this.noDataSection}
             </g>
         )
     }
