@@ -23,7 +23,7 @@ type ExplorerBlockColumns = {
     block: { name: string; additionalInfo?: string }[]
 }
 
-type ExplorerBlockGraphers = {
+export type ExplorerBlockGraphers = {
     type: "graphers"
     block: {
         title?: string

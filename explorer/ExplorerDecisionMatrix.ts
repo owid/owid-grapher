@@ -86,7 +86,7 @@ export class DecisionMatrix {
     table: CoreTable
     @observable currentParams: ExplorerChoiceParams = {}
     constructor(delimited: string, hash = "") {
-        this.choices = makeChoicesMap(delimited)
+        this.choiceNameToControlTypeMap = makeChoicesMap(delimited)
         this.table = new CoreTable(parseDelimited(dropColumnTypes(delimited)), [
             // todo: remove col def?
             {
@@ -141,7 +141,7 @@ export class DecisionMatrix {
         )
     }
 
-    private choices: Map<ChoiceName, ExplorerControlType>
+    choiceNameToControlTypeMap: Map<ChoiceName, ExplorerControlType>
     hash: string
 
     toConstrainedOptions(): ExplorerChoiceParams {
@@ -243,7 +243,7 @@ export class DecisionMatrix {
     }
 
     @computed private get choiceNames(): ChoiceName[] {
-        return Array.from(this.choices.keys())
+        return Array.from(this.choiceNameToControlTypeMap.keys())
     }
 
     @computed private get allChoiceOptions(): ChoiceMap {
@@ -256,7 +256,7 @@ export class DecisionMatrix {
         return choiceMap
     }
 
-    @computed private get availableChoiceOptions(): ChoiceMap {
+    @computed get availableChoiceOptions(): ChoiceMap {
         const result: ChoiceMap = {}
         this.choiceNames.forEach((choiceName) => {
             result[choiceName] = this.allChoiceOptions[choiceName].filter(
@@ -317,7 +317,7 @@ export class DecisionMatrix {
     }
 
     // The first row with defaultView column value of "true" determines the default view to use
-    private get defaultSettings() {
+    get defaultSettings() {
         const hits = this.rowsWith({
             [GrapherGrammar.defaultView.keyword]: "true",
         })
@@ -373,7 +373,7 @@ export class DecisionMatrix {
                     constrainedOptions
                 )
             )
-            const type = this.choices.get(title)!
+            const type = this.choiceNameToControlTypeMap.get(title)!
 
             return {
                 title,
