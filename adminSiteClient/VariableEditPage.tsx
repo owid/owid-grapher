@@ -143,7 +143,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     render() {
         const { variable } = this.props
         const { newVariable, isV2MetadataVariable } = this
-        const isDisabled = true
 
         const pathFragments = variable.catalogPath
             ? getETLPathComponents(variable.catalogPath)
@@ -277,7 +276,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                                 value)
                                         }
                                         label="Treat year column as day series"
-                                        disabled={isDisabled}
+                                        disabled
                                     />
                                     <BindString
                                         label="Zero Day as YYYY-MM-DD"
@@ -286,7 +285,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         // disabled={
                                         //     !newVariable.display.yearIsDay
                                         // }
-                                        disabled={isDisabled}
+                                        disabled
                                         placeholder={
                                             newVariable.display.yearIsDay
                                                 ? EPOCH_DATE
@@ -374,7 +373,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                                     .grapherConfigETL
                                             ),
                                         }}
-                                        disabled={isDisabled}
+                                        disabled
                                         textarea
                                         rows={8}
                                     />
@@ -431,7 +430,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                                 value)
                                         }
                                         label="Include in table"
-                                        disabled={isDisabled}
+                                        disabled
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -440,7 +439,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         store={newVariable}
                                         label="Description"
                                         textarea
-                                        disabled={isDisabled}
+                                        disabled
                                     />
                                     <BindString
                                         field="entityAnnotationsMap"
@@ -448,7 +447,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         store={newVariable.display}
                                         label="Entity annotations"
                                         textarea
-                                        disabled={isDisabled}
+                                        disabled
                                         helpText="Additional text to show next to entity labels. Each note should be in a separate line."
                                     />
                                 </FieldsRow>
