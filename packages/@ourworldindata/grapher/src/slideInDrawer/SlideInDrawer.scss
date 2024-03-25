@@ -9,8 +9,6 @@
         $bold: 700;
         $lato: $sans-serif-font-stack;
 
-        $indent: 15px;
-
         .grapher-drawer-contents {
             position: fixed;
             right: 0;
@@ -31,17 +29,21 @@
                 justify-content: space-between;
                 align-items: center;
                 background: white;
-                padding: 9px $indent 3px $indent;
+                padding: 16px;
                 position: sticky;
                 top: 0;
                 z-index: 1;
-                margin-bottom: 16px;
 
                 flex-shrink: 0; // necessary for scrolling
+
+                button {
+                    margin-left: 8px;
+                }
             }
 
             .grapher-drawer-scrollable {
                 overflow-y: auto;
+                flex-grow: 1;
             }
         }
 

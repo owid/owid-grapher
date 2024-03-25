@@ -1,7 +1,9 @@
 import React from "react"
+import cx from "classnames"
 import { observer } from "mobx-react"
 import { computed } from "mobx"
 import { Bounds } from "@ourworldindata/utils"
+import { GRAPHER_SCROLLABLE_CONTAINER_CLASS } from "../core/GrapherConstants"
 
 @observer
 export class SidePanel extends React.Component<{
@@ -25,7 +27,12 @@ export class SidePanel extends React.Component<{
                 <h3 className="side-panel__header grapher_h5-black-caps grapher_light">
                     {this.props.title}
                 </h3>
-                <div className="side-panel__scrollable">
+                <div
+                    className={cx(
+                        "side-panel__scrollable",
+                        GRAPHER_SCROLLABLE_CONTAINER_CLASS
+                    )}
+                >
                     {this.props.children}
                 </div>
             </div>

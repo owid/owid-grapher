@@ -83,6 +83,24 @@
     @include grapher_body-3-medium;
 }
 
+@mixin grapher_body-3-regular {
+    @include grapher_body-3-medium;
+    font-weight: 400;
+}
+
+.grapher_body-3-regular {
+    @include grapher_body-3-regular;
+}
+
+@mixin grapher_body-3-medium-italic {
+    @include grapher_body-3-medium;
+    font-style: italic;
+}
+
+.grapher_body-3-medium-italic {
+    @include grapher_body-3-medium-italic;
+}
+
 //
 // labels
 //
@@ -100,4 +118,19 @@
 
 .grapher_label-1-medium {
     @include grapher_label-1-medium;
+}
+
+@mixin grapher_label-2-regular {
+    display: block;
+    margin: 0;
+
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+}
+
+.grapher_label-2-regular {
+    @include grapher_label-2-regular;
 }

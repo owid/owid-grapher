@@ -4,10 +4,9 @@ export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
 export const GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR = "data-grapher-config"
 
 export const GRAPHER_PAGE_BODY_CLASS = "StandaloneGrapherOrExplorerPage"
-
-export const GRAPHER_DRAWER_ID = "grapher-drawer"
-
+export const GRAPHER_SCROLLABLE_CONTAINER_CLASS = "scrollable-container"
 export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
+export const GRAPHER_DRAWER_ID = "grapher-drawer"
 
 export const DEFAULT_GRAPHER_CONFIG_SCHEMA =
     "https://files.ourworldindata.org/schemas/grapher-schema.003.json"

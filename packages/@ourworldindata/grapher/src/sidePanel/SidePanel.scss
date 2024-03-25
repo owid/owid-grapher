@@ -2,7 +2,8 @@
     flex-grow: 0;
     flex-shrink: 0;
     border-left: 1px solid $frame-color;
-    overflow-y: auto;
+
+    position: relative;
 
     // necessary for scrolling
     display: flex;
@@ -14,6 +15,7 @@
     }
 
     .side-panel__scrollable {
+        flex-grow: 1;
         overflow-y: auto;
     }
 }

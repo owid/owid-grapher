@@ -1,5 +1,5 @@
-.checkbox {
-    $checkbox-size: 16px;
+.radio {
+    $radio-size: 16px;
 
     $light-stroke: #dadada;
     $hover-stroke: #a4b6ca;
@@ -14,51 +14,52 @@
         cursor: pointer;
     }
 
-    .custom {
+    .outer {
         position: absolute;
         left: 0;
         top: 0;
         content: " ";
-        width: $checkbox-size;
-        height: $checkbox-size;
+        width: $radio-size;
+        height: $radio-size;
 
         background: white;
         pointer-events: none;
-        border-radius: 2px;
-        border: 1px solid $light-stroke;
+        border-radius: 50%;
+        border: 1px solid #a4b6ca;
         color: $dark-text;
 
         display: flex;
         align-items: center;
         justify-content: center;
 
-        svg {
-            font-size: 10px;
-            padding-left: 0.75px;
-            color: $active-text;
+        .inner {
+            display: none;
+            width: $radio-size / 2;
+            height: $radio-size / 2;
+            background-color: #6e87a2;
+            border-radius: 50%;
         }
     }
 
-    input:focus-visible + .custom {
+    input:focus-visible + .outer {
         outline: 2px solid $controls-color;
     }
 
-    input:active + .custom {
-        background: $active-fill;
+    input:active + .outer > .inner {
+        display: block;
     }
 
-    input:checked + .custom {
-        background: $active-fill;
-        border-color: $active-fill;
+    input:checked + .outer > .inner {
+        display: block;
     }
 
-    input:checked:active + .custom {
-        background: white;
+    input:checked:active + .outer > .inner {
+        display: block;
     }
 
     .label {
         @include grapher_label-2-regular;
-        padding-left: $checkbox-size + 8px;
+        padding-left: $radio-size + 8px;
         cursor: pointer;
         user-select: none;
     }
