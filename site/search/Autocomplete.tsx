@@ -26,6 +26,10 @@ import {
     parseIndexName,
 } from "./searchClient.js"
 import { queryParamsToStr } from "@ourworldindata/utils"
+import {
+    PreferenceType,
+    getPreferenceValue,
+} from "../CookiePreferencesManager.js"
 
 type BaseItem = Record<string, unknown>
 
@@ -264,6 +268,7 @@ export function Autocomplete({
                 return sources
             },
             plugins: [recentSearchesPlugin],
+            insights: getPreferenceValue(PreferenceType.Analytics),
         })
 
         const container = document.querySelector(AUTOCOMPLETE_CONTAINER_ID)
