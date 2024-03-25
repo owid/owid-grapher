@@ -27,9 +27,6 @@ import {
     compact,
     CoreColumnDef,
     OwidTableSlugs,
-    difference,
-    union,
-    intersection,
 } from "@ourworldindata/utils"
 import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
 import { SortIcon } from "../../controls/SortIcon"
@@ -78,6 +75,8 @@ export class EntityPicker extends React.Component<{
 
     @observable private blockOptionHover = false
 
+    @observable private mostRecentlySelectedEntityName: string | null = null
+
     @observable
     private scrollContainerRef: React.RefObject<HTMLDivElement> =
         React.createRef()
@@ -95,12 +94,15 @@ export class EntityPicker extends React.Component<{
         checked?: boolean
     ): void {
         this.manager.selection.toggleSelection(name)
+
         // Clear search input
         this.searchInput = ""
         this.manager.analytics?.logEntityPickerEvent(
             checked ? "select" : "deselect",
             name
         )
+
+        this.mostRecentlySelectedEntityName = name
     }
 
     @computed private get manager(): EntityPickerManager {
@@ -601,7 +603,6 @@ export class EntityPicker extends React.Component<{
                                     // We only want to animate when the selection changes, but not on changes due to
                                     // searching
                                     flipKey={selectedEntityNames.join(",")}
-                                    decisionData={selectedEntityNames}
                                 >
                                     {entities.map((option, index) => (
                                         <PickerOption
@@ -625,6 +626,13 @@ export class EntityPicker extends React.Component<{
                                             innerRef={
                                                 this.focusIndex === index
                                                     ? this.focusRef
+                                                    : undefined
+                                            }
+                                            className={
+                                                this
+                                                    .mostRecentlySelectedEntityName ===
+                                                option.entityName
+                                                    ? "most-recently-selected"
                                                     : undefined
                                             }
                                         />
@@ -662,6 +670,7 @@ interface PickerOptionProps {
     isSelected?: boolean
     barScale?: ScaleLinear<number, number>
     hasDataForActiveMetric: boolean
+    className?: string
 }
 
 class PickerOption extends React.Component<PickerOptionProps> {
@@ -683,39 +692,17 @@ class PickerOption extends React.Component<PickerOptionProps> {
             isFocused,
             hasDataForActiveMetric,
             highlight,
+            className,
         } = this.props
         const { entityName, plotValue, formattedValue } = optionWithMetricValue
         const metricValue = formattedValue === entityName ? "" : formattedValue // If the user has this entity selected, don't show the name twice.
 
-        const isFlipping = (selectedEntityNames?: {
-            previous?: string[]
-            current?: string[]
-        }): boolean => {
-            const { previous = [], current = [] } = selectedEntityNames ?? {}
-            const animatedEntityName = difference(
-                union(previous, current),
-                intersection(previous, current)
-            )[0]
-            return animatedEntityName === entityName
-        }
-
         return (
-            <Flipped
-                flipId={entityName}
-                translate
-                opacity
-                onStart={(element, decisionData) => {
-                    if (isFlipping(decisionData)) {
-                        element.classList.add("animating")
-                    }
-                }}
-                onComplete={(element) => {
-                    element.classList.remove("animating")
-                }}
-            >
+            <Flipped flipId={entityName} translate opacity>
                 <label
                     className={classnames(
                         "EntityPickerOption",
+                        className,
                         {
                             selected: isSelected,
                             focused: isFocused,
