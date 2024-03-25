@@ -6,6 +6,7 @@ import {
     getRegionByNameOrVariantName,
     regions,
     escapeRegExp,
+    removeTrailingParenthetical,
 } from "@ourworldindata/utils"
 
 const allCountryNamesAndVariants = regions.flatMap((c) => [
@@ -40,9 +41,9 @@ export function pickEntitiesForChartHit(hit: IChartHit): EntityName[] {
             if (highlightEntry.matchLevel === "none") return false
 
             // Remove any trailing parentheses, e.g. "Africa (UN)" -> "Africa"
-            const withoutTrailingParens = removeHighlightTags(
-                highlightEntry.value
-            ).replace(/\s?\(.*\)$/, "")
+            const withoutTrailingParens = removeTrailingParenthetical(
+                removeHighlightTags(highlightEntry.value)
+            )
 
             const matchedWordsLowerCase = highlightEntry.matchedWords.map(
                 (mw) => mw.toLowerCase()
