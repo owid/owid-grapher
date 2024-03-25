@@ -5,6 +5,7 @@ import {
     Region,
     getRegionByNameOrVariantName,
     regions,
+    countries,
     escapeRegExp,
     removeTrailingParenthetical,
 } from "@ourworldindata/utils"
@@ -36,26 +37,38 @@ export function pickEntitiesForChartHit(hit: IChartHit): EntityName[] {
 
     const pickedEntities = availableEntitiesHighlighted
         ?.filter((highlightEntry) => {
-            // Keep the highlight if it is fully highlighted
-            if (highlightEntry.fullyHighlighted) return true
             if (highlightEntry.matchLevel === "none") return false
 
             // Remove any trailing parentheses, e.g. "Africa (UN)" -> "Africa"
-            const withoutTrailingParens = removeTrailingParenthetical(
+            const entityNameWithoutTrailingParens = removeTrailingParenthetical(
                 removeHighlightTags(highlightEntry.value)
             )
 
-            const matchedWordsLowerCase = highlightEntry.matchedWords.map(
-                (mw) => mw.toLowerCase()
-            )
-
-            // Keep the highlight if every word (except for trailing parens) is fully highlighted
-            // This will also highlight "Central African Republic" when searching for "african central republic",
-            // but that's probably okay
-            return withoutTrailingParens
+            // The sequence of words that Algolia matched; could be something like ["arab", "united", "republic"]
+            // which we want to check against the entity name
+            const matchedSequenceLowerCase = highlightEntry.matchedWords
+                .join(" ")
                 .toLowerCase()
-                .split(" ")
-                .every((w) => matchedWordsLowerCase.includes(w))
+
+            // Pick entity if the matched sequence contains the full entity name
+            if (
+                matchedSequenceLowerCase.includes(
+                    entityNameWithoutTrailingParens.toLowerCase()
+                )
+            )
+                return true
+
+            const country = countries.find(
+                (c) => c.name === entityNameWithoutTrailingParens
+            )
+            if (country?.variantNames) {
+                // Pick entity if the matched sequence contains any of the variant names
+                return country.variantNames.some((variant) =>
+                    matchedSequenceLowerCase.includes(variant.toLowerCase())
+                )
+            }
+
+            return false
         })
         .map((highlightEntry) => removeHighlightTags(highlightEntry.value))
 
