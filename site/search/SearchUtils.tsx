@@ -46,6 +46,7 @@ export function pickEntitiesForChartHit(hit: IChartHit): EntityName[] {
             return false
         })
         .map((highlightEntry) => removeHighlightTags(highlightEntry.value))
+        .sort()
 
     return pickedEntities ?? []
 }
