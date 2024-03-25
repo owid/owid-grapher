@@ -1,6 +1,7 @@
 import { HitAttributeHighlightResult } from "instantsearch.js/es/types/results.js"
 import { IChartHit } from "./searchTypes.js"
 import { EntityName } from "@ourworldindata/types"
+import { removeTrailingParenthetical } from "@ourworldindata/utils"
 
 const removeHighlightTags = (text: string) =>
     text.replace(/<\/?(mark|strong)>/g, "")
@@ -16,9 +17,9 @@ export function pickEntitiesForChartHit(hit: IChartHit): EntityName[] {
             if (highlightEntry.matchLevel === "none") return false
 
             // Remove any trailing parentheses, e.g. "Africa (UN)" -> "Africa"
-            const withoutTrailingParens = removeHighlightTags(
-                highlightEntry.value
-            ).replace(/\s?\(.*\)$/, "")
+            const withoutTrailingParens = removeTrailingParenthetical(
+                removeHighlightTags(highlightEntry.value)
+            )
 
             const matchedWordsLowerCase = highlightEntry.matchedWords.map(
                 (mw) => mw.toLowerCase()

@@ -8,6 +8,9 @@ import {
     OwidGdocLinkType,
     excludeNullish,
     isNil,
+    countries,
+    orderBy,
+    removeTrailingParenthetical,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
@@ -18,6 +21,33 @@ import { getPublishedLinksTo } from "../../db/model/Link.js"
 const computeScore = (record: Omit<ChartRecord, "score">): number => {
     const { numRelatedArticles, views_7d } = record
     return numRelatedArticles * 500 + views_7d
+}
+
+const processAvailableEntities = (availableEntities: string[] | null) => {
+    if (!availableEntities) return []
+
+    const countriesWithVariantNames = countries
+        .filter((country) => country.variantNames?.length || country.shortName)
+        .map((country) => country.name)
+
+    // Algolia is a bit weird with synonyms:
+    // If we have a synonym "USA" -> "United States", and we search for "USA",
+    // then it seems that Algolia can only find that within `availableEntities`
+    // if "USA" is within the first 100-or-so entries of the array.
+    // So, the easy solution is to sort the entities to ensure that countries
+    // with variant names are at the top.
+    // - @marcelgerber, 2024-03-25
+    return orderBy(
+        availableEntities,
+        [
+            (entityName) =>
+                countriesWithVariantNames.includes(
+                    removeTrailingParenthetical(entityName)
+                ),
+            (entityName) => entityName,
+        ],
+        ["desc", "asc"]
+    )
 }
 
 const getChartsRecords = async (
@@ -81,7 +111,7 @@ const getChartsRecords = async (
             if (c.entityNames.length < 12000)
                 c.entityNames = excludeNullish(
                     JSON.parse(c.entityNames as string) as (string | null)[]
-                )
+                ) as string[]
             else {
                 console.info(
                     `Chart ${c.id} has too many entities, skipping its entities`
@@ -89,6 +119,7 @@ const getChartsRecords = async (
                 c.entityNames = []
             }
         }
+        c.entityNames = processAvailableEntities(c.entityNames)
 
         c.tags = JSON.parse(c.tags)
         c.keyChartForTags = JSON.parse(c.keyChartForTags as string).filter(
