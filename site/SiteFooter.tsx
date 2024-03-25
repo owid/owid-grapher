@@ -178,7 +178,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                     href="/atom.xml"
                                     data-track-note="footer_navigation"
                                 >
-                                    Articles & Topic Pages RSS Feed
+                                    Research & Writing RSS Feed
                                 </a>
                             </li>
                             <li>

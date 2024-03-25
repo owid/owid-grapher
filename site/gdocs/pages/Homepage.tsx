@@ -114,7 +114,7 @@ const SocialSection = () => {
                                 <FontAwesomeIcon icon={faRss} />
                             </span>
                             <span className="label">
-                                Articles & Topic Pages RSS Feed
+                                Research & Writing RSS Feed
                             </span>
                         </a>
                     </li>
