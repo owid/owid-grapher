@@ -202,7 +202,10 @@ import {
 } from "../captionedChart/StaticChartRasterizer.js"
 import { SlopeChartManager } from "../slopeCharts/SlopeChart"
 import { SidePanel } from "../sidePanel/SidePanel"
-import { EntitySelector } from "../entitySelector/EntitySelector"
+import {
+    EntitySelector,
+    type EntitySelectorState,
+} from "../entitySelector/EntitySelector"
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
 
 declare global {
@@ -463,6 +466,8 @@ export class Grapher
     @observable.ref inputTable: OwidTable
 
     @observable.ref legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
+
+    @observable entitySelectorState: Partial<EntitySelectorState> = {}
 
     @computed get dataApiUrlForAdmin(): string | undefined {
         return this.props.dataApiUrlForAdmin
@@ -2151,7 +2156,7 @@ export class Grapher
             0,
             // the chart takes up 9 columns in 12-column grid
             (9 / 12) * this.frameBounds.width,
-            this.frameBounds.height
+            this.frameBounds.height - 2 // 2px accounts for the border
         )
     }
 
@@ -2162,7 +2167,7 @@ export class Grapher
             0, // not in use; intentionally set to zero
             0, // not in use; intentionally set to zero
             this.frameBounds.width - this.captionedChartBounds.width,
-            this.frameBounds.height
+            this.captionedChartBounds.height
         )
     }
 
@@ -2651,7 +2656,7 @@ export class Grapher
                             !this.isEntitySelectorModalOrDrawerOpen
                     }}
                 >
-                    <EntitySelector manager={this} />
+                    <EntitySelector manager={this} autoFocus={true} />
                 </SlideInDrawer>
 
                 {/* tooltip */}
@@ -3138,7 +3143,7 @@ export class Grapher
         return this.canHighlightEntities
             ? `Select ${this.entityTypePlural}`
             : this.canChangeEntity
-              ? `Change ${a(this.entityType)}`
+              ? `Choose ${a(this.entityType)}`
               : `Add/remove ${this.entityTypePlural}`
     }
 

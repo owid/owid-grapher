@@ -534,7 +534,8 @@ export class SlopeChart
         const target = e.target as HTMLElement
 
         // check if the target is an interactive element or contained within one
-        const selector = "a, button, input, .TimelineComponent"
+        const selector =
+            "a, button, input, .TimelineComponent, .entity-selector"
         const isTargetInteractive = target.closest(selector) !== null
 
         if (
