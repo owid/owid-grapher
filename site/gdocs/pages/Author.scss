@@ -1,14 +1,21 @@
 .author-header {
-    padding-bottom: 24px;
-    padding-top: 16px;
+    padding: 16px 0 32px;
     @include sm-up {
-        padding-top: 40px;
+        padding: 40px 0;
     }
     background-color: $blue-95;
 
     .article-block__text {
         @include body-2-regular;
         color: $white;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        a:visited {
+            color: $visited-light;
+        }
     }
 }
 
@@ -18,14 +25,20 @@
 
 .author-header__role {
     @include body-2-regular;
+    line-height: 1.25;
     color: $blue-40;
 }
 
 .author-header__portrait {
     margin-top: 0;
     margin-bottom: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: $blue-20;
+
     img {
-        border-radius: 50%;
+        display: block;
+        mix-blend-mode: luminosity;
     }
 }
 
@@ -97,14 +110,14 @@
         }
     }
 
-    .article-block__text {
-        margin-top: 8px;
+    .author-header__role {
+        margin-bottom: 8px;
         @include md-up {
             @include body-1-regular;
         }
     }
 
-    .author-header__role {
+    .article-block__text {
         @include md-up {
             @include body-1-regular;
         }
@@ -112,7 +125,8 @@
 
     .article-block__socials {
         margin-top: 24px;
-        margin-left: 24px;
+        padding-left: 24px;
+        border-left: 1px solid $blue-90;
 
         li {
             margin-bottom: 16px;
@@ -121,8 +135,4 @@
             }
         }
     }
-}
-
-.author-work {
-    background-color: $blue-5;
 }

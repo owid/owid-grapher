@@ -22,6 +22,10 @@ const AuthorHeader = (gdoc: OwidGdocAuthorInterface) => {
         socials,
     } = gdoc.content
 
+    // ✋ This component has two versions, one for small screens and one for
+    // medium and up. The medium version is hidden on small screens and vice
+    // versa. Please make sure to keep the two versions in sync when applicable.
+
     return (
         <div className="author-header grid grid-cols-12-full-width span-cols-14">
             <section className="author-header__sm grid grid-cols-12-full-width span-cols-14">
@@ -38,6 +42,7 @@ const AuthorHeader = (gdoc: OwidGdocAuthorInterface) => {
                                 "author-header__portrait",
                                 getLayout("image", "author-header")
                             )}
+                            shouldLightbox={false}
                             containerType="author-header"
                         />
                     </div>
@@ -71,6 +76,7 @@ const AuthorHeader = (gdoc: OwidGdocAuthorInterface) => {
                                 "author-header__portrait",
                                 getLayout("image", "author-header")
                             )}
+                            shouldLightbox={false}
                             containerType="author-header"
                         />
                     )}
