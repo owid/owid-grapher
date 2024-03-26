@@ -1462,7 +1462,7 @@ getRouteWithROTransaction(
                 v.display,
                 v.catalogPath
             FROM
-                VARIABLES AS v
+                variables AS v
             WHERE
                 v.datasetId = ?
     `,
@@ -1484,7 +1484,7 @@ getRouteWithROTransaction(
             FROM
                 origins_variables AS ov
                 JOIN origins AS o ON ov.originId = o.id
-                JOIN VARIABLES AS v ON ov.variableId = v.id
+                JOIN variables AS v ON ov.variableId = v.id
             WHERE
                 v.datasetId = ?
     `,
