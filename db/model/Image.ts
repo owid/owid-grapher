@@ -29,7 +29,7 @@ import {
     GDOCS_CLIENT_EMAIL,
     GDOCS_SHARED_DRIVE_ID,
 } from "../../settings/serverSettings.js"
-import { KnexReadonlyTransaction } from "../db.js"
+import { KnexReadWriteTransaction, KnexReadonlyTransaction } from "../db.js"
 
 class ImageStore {
     images: Record<string, ImageMetadata> | undefined
@@ -114,7 +114,7 @@ class ImageStore {
     }
 
     async syncImagesToS3(
-        knex: KnexReadonlyTransaction
+        knex: KnexReadWriteTransaction
     ): Promise<(Image | undefined)[]> {
         const images = this.images
         if (!images) return []
@@ -172,7 +172,7 @@ export class Image implements ImageMetadata {
     // If it is, upload it and update our record
     // If we're not aware of it, upload and record it
     static async syncImage(
-        knex: KnexReadonlyTransaction,
+        knex: KnexReadWriteTransaction,
         metadata: ImageMetadata
     ): Promise<Image | undefined> {
         const fresh = new Image(metadata)
@@ -276,7 +276,7 @@ export async function getAllImages(
 }
 
 export async function updateImage(
-    knex: KnexReadonlyTransaction,
+    knex: KnexReadWriteTransaction,
     id: number,
     updates: Partial<DbEnrichedImage>
 ): Promise<void> {
@@ -284,14 +284,14 @@ export async function updateImage(
 }
 
 export async function insertImageClass(
-    knex: KnexReadonlyTransaction,
+    knex: KnexReadWriteTransaction,
     image: Image
 ): Promise<number> {
     return insertImageObject(knex, serializeImageRow({ ...image }))
 }
 
 export async function insertImageObject(
-    knex: KnexReadonlyTransaction,
+    knex: KnexReadWriteTransaction,
     image: DbInsertImage
 ): Promise<number> {
     const [id] = await knex.table("images").insert(image)

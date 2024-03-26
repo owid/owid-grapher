@@ -194,8 +194,9 @@ function generateGdocRecords(
     return records
 }
 
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 // Generate records for countries, WP posts (not including posts that have been succeeded by Gdocs equivalents), and Gdocs
-const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
+const getPagesRecords = async (knex: db.KnexReadWriteTransaction) => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
     const gdocs = await GdocPost.getPublishedGdocPosts(knex)
     const publishedGdocsBySlug = keyBy(gdocs, "slug")
@@ -234,7 +235,8 @@ const indexToAlgolia = async () => {
     }
     const index = client.initIndex(getIndexName(SearchIndexName.Pages))
 
-    const records = await db.knexReadonlyTransaction(
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    const records = await db.knexReadWriteTransaction(
         getPagesRecords,
         db.TransactionCloseMode.Close
     )

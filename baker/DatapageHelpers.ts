@@ -16,7 +16,7 @@ import {
 } from "../db/model/Gdoc/GdocFactory.js"
 import { OwidGoogleAuth } from "../db/OwidGoogleAuth.js"
 import { GrapherInterface, OwidGdocBaseInterface } from "@ourworldindata/types"
-import { KnexReadonlyTransaction } from "../db/db.js"
+import { KnexReadWriteTransaction } from "../db/db.js"
 
 export const getDatapageDataV2 = async (
     variableMetadata: OwidVariableWithSource,
@@ -78,7 +78,8 @@ export const getDatapageDataV2 = async (
  * see https://github.com/owid/owid-grapher/issues/2121#issue-1676097164
  */
 export const getDatapageGdoc = async (
-    knex: KnexReadonlyTransaction,
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    knex: KnexReadWriteTransaction,
     googleDocEditLinkOrId: string,
     isPreviewing: boolean
 ): Promise<OwidGdocBaseInterface | null> => {

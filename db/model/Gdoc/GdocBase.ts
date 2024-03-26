@@ -85,8 +85,10 @@ export class GdocBase implements OwidGdocBaseInterface {
         gdoc: typeof this
     ) => Promise<OwidGdocErrorMessage[]> = async () => []
     _omittableFields: string[] = []
+
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     _loadSubclassAttachments: (
-        knex: db.KnexReadonlyTransaction
+        knex: db.KnexReadWriteTransaction
     ) => Promise<void> = async () => undefined
 
     constructor(id?: string) {
@@ -673,8 +675,9 @@ export class GdocBase implements OwidGdocBaseInterface {
         this.linkedDocuments = keyBy(linkedDocuments, "id")
     }
 
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     async loadImageMetadata(
-        knex: db.KnexReadonlyTransaction,
+        knex: db.KnexReadWriteTransaction,
         filenames?: string[]
     ): Promise<void> {
         const imagesFilenames = filenames ?? this.linkedImageFilenames
@@ -815,7 +818,8 @@ export class GdocBase implements OwidGdocBaseInterface {
         ]
     }
 
-    async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    async loadState(knex: db.KnexReadWriteTransaction): Promise<void> {
         await this.loadLinkedDocuments(knex)
         await this.loadImageMetadata(knex)
         await this.loadLinkedCharts(knex)

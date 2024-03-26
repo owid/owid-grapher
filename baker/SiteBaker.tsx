@@ -480,7 +480,9 @@ export class SiteBaker {
     }
 
     // Bake all GDoc posts, or a subset of them if slugs are provided
-    async bakeGDocPosts(knex: db.KnexReadonlyTransaction, slugs?: string[]) {
+
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    async bakeGDocPosts(knex: db.KnexReadWriteTransaction, slugs?: string[]) {
         if (!this.bakeSteps.has("gdocPosts")) return
         const publishedGdocs = await GdocPost.getPublishedGdocPosts(knex)
 
@@ -544,7 +546,9 @@ export class SiteBaker {
     }
 
     // Bake unique individual pages
-    private async bakeSpecialPages(knex: db.KnexReadonlyTransaction) {
+
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    private async bakeSpecialPages(knex: db.KnexReadWriteTransaction) {
         if (!this.bakeSteps.has("specialPages")) return
         await this.stageWrite(
             `${this.bakedSiteDir}/index.html`,
@@ -700,7 +704,8 @@ export class SiteBaker {
         }
     }
 
-    private async bakeDataInsights(knex: db.KnexReadonlyTransaction) {
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    private async bakeDataInsights(knex: db.KnexReadWriteTransaction) {
         if (!this.bakeSteps.has("dataInsights")) return
         const latestDataInsights = await db.getPublishedDataInsights(knex, 5)
         const publishedDataInsights =
@@ -768,7 +773,8 @@ export class SiteBaker {
         }
     }
 
-    private async bakeAuthors(knex: db.KnexReadonlyTransaction) {
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    private async bakeAuthors(knex: db.KnexReadWriteTransaction) {
         if (!this.bakeSteps.has("authors")) return
 
         const publishedAuthors = await GdocAuthor.getPublishedAuthors(knex)
@@ -855,7 +861,9 @@ export class SiteBaker {
     }
 
     // Bake the blog index
-    private async bakeBlogIndex(knex: db.KnexReadonlyTransaction) {
+
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    private async bakeBlogIndex(knex: db.KnexReadWriteTransaction) {
         if (!this.bakeSteps.has("blogIndex")) return
         const allPosts = await getBlogIndex(knex)
         const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
@@ -869,7 +877,9 @@ export class SiteBaker {
     }
 
     // Bake the RSS feed
-    private async bakeRSS(knex: db.KnexReadonlyTransaction) {
+
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    private async bakeRSS(knex: db.KnexReadWriteTransaction) {
         if (!this.bakeSteps.has("rss")) return
         await this.stageWrite(
             `${this.bakedSiteDir}/atom.xml`,
@@ -954,7 +964,8 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked redirects" })
     }
 
-    async bakeWordpressPages(knex: db.KnexReadonlyTransaction) {
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    async bakeWordpressPages(knex: db.KnexReadWriteTransaction) {
         await this.bakeRedirects(knex)
         await this.bakeEmbeds(knex)
         await this.bakeBlogIndex(knex)
@@ -964,7 +975,8 @@ export class SiteBaker {
         await this.bakePosts(knex)
     }
 
-    private async _bakeNonWordpressPages(knex: db.KnexReadonlyTransaction) {
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    private async _bakeNonWordpressPages(knex: db.KnexReadWriteTransaction) {
         if (this.bakeSteps.has("countries")) {
             await bakeCountries(this, knex)
         }
@@ -988,7 +1000,8 @@ export class SiteBaker {
         await this.bakeDriveImages(knex)
     }
 
-    async bakeNonWordpressPages(knex: db.KnexReadonlyTransaction) {
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    async bakeNonWordpressPages(knex: db.KnexReadWriteTransaction) {
         const progressBarTotal = nonWordpressSteps
             .map((step) => this.bakeSteps.has(step))
             .filter((hasStep) => hasStep).length
@@ -1001,7 +1014,8 @@ export class SiteBaker {
         await this._bakeNonWordpressPages(knex)
     }
 
-    async bakeAll(knex: db.KnexReadonlyTransaction) {
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    async bakeAll(knex: db.KnexReadWriteTransaction) {
         // Ensure caches are correctly initialized
         this.flushCache()
         await this.removeDeletedPosts(knex)

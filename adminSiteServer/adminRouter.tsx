@@ -45,7 +45,10 @@ import {
 import { getChartConfigBySlug } from "../db/model/Chart.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
 import { DbPlainDatasetFile, DbPlainDataset } from "@ourworldindata/types"
-import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
+import {
+    getPlainRouteNonIdempotentWithRWTransaction,
+    getPlainRouteWithROTransaction,
+} from "./plainRouterHelpers.js"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
@@ -314,8 +317,8 @@ getPlainRouteWithROTransaction(
         return res.send(explorerPage)
     }
 )
-
-getPlainRouteWithROTransaction(
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
     adminRouter,
     "/datapage-preview/:id",
     async (req, res, trx) => {
@@ -336,8 +339,8 @@ getPlainRouteWithROTransaction(
         )
     }
 )
-
-getPlainRouteWithROTransaction(
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
     adminRouter,
     "/grapher/:slug",
     async (req, res, trx) => {
