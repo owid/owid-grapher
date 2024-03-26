@@ -23,12 +23,14 @@ const computeScore = (record: Omit<ChartRecord, "score">): number => {
     return numRelatedArticles * 500 + views_7d
 }
 
-const processAvailableEntities = (availableEntities: string[] | null) => {
-    if (!availableEntities) return []
-
-    const countriesWithVariantNames = countries
+const countriesWithVariantNames = new Set(
+    countries
         .filter((country) => country.variantNames?.length || country.shortName)
         .map((country) => country.name)
+)
+
+const processAvailableEntities = (availableEntities: string[] | null) => {
+    if (!availableEntities) return []
 
     // Algolia is a bit weird with synonyms:
     // If we have a synonym "USA" -> "United States", and we search for "USA",
@@ -41,7 +43,7 @@ const processAvailableEntities = (availableEntities: string[] | null) => {
         availableEntities,
         [
             (entityName) =>
-                countriesWithVariantNames.includes(
+                countriesWithVariantNames.has(
                     removeTrailingParenthetical(entityName)
                 ),
             (entityName) => entityName,
