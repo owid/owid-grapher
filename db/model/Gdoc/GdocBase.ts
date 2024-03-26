@@ -45,7 +45,7 @@ import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
 import { Link } from "../Link.js"
 import { imageStore } from "../Image.js"
-import { Chart } from "../Chart.js"
+import { getChartConfigById, mapSlugsToIds } from "../Chart.js"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
@@ -619,36 +619,42 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
     }
 
     async loadLinkedCharts(): Promise<void> {
-        const slugToIdMap = await Chart.mapSlugsToIds()
-        const linkedGrapherCharts = await Promise.all(
-            [...this.linkedChartSlugs.grapher.values()].map(
-                async (originalSlug) => {
-                    const chartId = slugToIdMap[originalSlug]
-                    if (!chartId) return
-                    const chart = await Chart.findOneBy({ id: chartId })
-                    if (!chart) return
-                    const resolvedSlug = chart.config.slug ?? ""
-                    const resolvedTitle = chart.config.title ?? ""
-                    const tab = chart.config.tab ?? GrapherTabOption.chart
-                    const datapageIndicator =
-                        await getVariableOfDatapageIfApplicable(chart.config)
-                    const linkedChart: LinkedChart = {
-                        originalSlug,
-                        title: resolvedTitle,
-                        tab,
-                        resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
-                        thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
-                        tags: [],
-                        indicatorId: datapageIndicator?.id,
-                    }
-                    return linkedChart
-                }
-            )
-        ).then(excludeNullish)
+        const { linkedGrapherCharts, publishedExplorersBySlug } =
+            await db.knexReadonlyTransaction(async (trx) => {
+                const slugToIdMap = await mapSlugsToIds(trx)
+                const linkedGrapherCharts = await Promise.all(
+                    [...this.linkedChartSlugs.grapher.values()].map(
+                        async (originalSlug) => {
+                            const chartId = slugToIdMap[originalSlug]
+                            if (!chartId) return
+                            const chart = await getChartConfigById(trx, chartId)
+                            if (!chart) return
+                            const resolvedSlug = chart.config.slug ?? ""
+                            const resolvedTitle = chart.config.title ?? ""
+                            const tab =
+                                chart.config.tab ?? GrapherTabOption.chart
+                            const datapageIndicator =
+                                await getVariableOfDatapageIfApplicable(
+                                    chart.config
+                                )
+                            const linkedChart: LinkedChart = {
+                                originalSlug,
+                                title: resolvedTitle,
+                                tab,
+                                resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
+                                thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
+                                tags: [],
+                                indicatorId: datapageIndicator?.id,
+                            }
+                            return linkedChart
+                        }
+                    )
+                ).then(excludeNullish)
 
-        const publishedExplorersBySlug = await db.knexReadonlyTransaction(
-            (trx) => db.getPublishedExplorersBySlug(trx)
-        )
+                const publishedExplorersBySlug =
+                    await db.getPublishedExplorersBySlug(trx)
+                return { linkedGrapherCharts, publishedExplorersBySlug }
+            })
 
         const linkedExplorerCharts = await Promise.all(
             this.linkedChartSlugs.explorer.map((originalSlug) => {
@@ -772,10 +778,13 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
             []
         )
 
-        const chartIdsBySlug = await Chart.mapSlugsToIds()
-        const publishedExplorersBySlug = await db.knexReadonlyTransaction(
-            (trx) => db.getPublishedExplorersBySlug(trx)
-        )
+        const { chartIdsBySlug, publishedExplorersBySlug } =
+            await db.knexReadonlyTransaction(async (trx) => {
+                const chartIdsBySlug = await mapSlugsToIds(trx)
+                const publishedExplorersBySlug =
+                    await db.getPublishedExplorersBySlug(trx)
+                return { chartIdsBySlug, publishedExplorersBySlug }
+            })
 
         const linkErrors: OwidGdocErrorMessage[] = this.links.reduce(
             (errors: OwidGdocErrorMessage[], link): OwidGdocErrorMessage[] => {

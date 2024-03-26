@@ -25,6 +25,7 @@ import {
     Topic,
     GrapherInterface,
     GrapherStaticFormat,
+    ChartRedirect,
     DimensionProperty,
 } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
@@ -34,7 +35,6 @@ import {
     EditorDatabase,
     Log,
     References,
-    ChartRedirect,
     ChartEditorManager,
     Dataset,
     getFullReferencesCount,

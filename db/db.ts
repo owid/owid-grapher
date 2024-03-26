@@ -147,7 +147,7 @@ export const knexRaw = async <TRow = unknown>(
 ): Promise<TRow[]> => (await knex.raw(str, params ?? []))[0]
 
 export const knexRawFirst = async <TRow = unknown>(
-    knex: Knex<any, any[]>,
+    knex: KnexReadonlyTransaction,
     str: string,
     params?: any[]
 ): Promise<TRow | undefined> => {
@@ -155,6 +155,12 @@ export const knexRawFirst = async <TRow = unknown>(
     if (results.length === 0) return undefined
     return results[0]
 }
+
+export const knexRawInsert = async (
+    knex: KnexReadWriteTransaction,
+    str: string,
+    params?: any[]
+): Promise<{ insertId: number }> => await knex.raw(str, params ?? [])
 
 /**
  *  In the backporting workflow, the users create gdoc posts for posts. As long as these are not yet published,
@@ -236,12 +242,12 @@ export const getPublishedExplorersBySlug = async (
 }
 
 export const getPublishedDataInsights = (
-    knex: Knex<any, any[]>,
+    knex: KnexReadonlyTransaction,
     limit = Number.MAX_SAFE_INTEGER // default to no limit
 ): Promise<MinimalDataInsightInterface[]> => {
     return knexRaw(
         knex,
-        `
+        `-- sql
         SELECT
             content->>'$.title' AS title,
             publishedAt,
@@ -263,10 +269,12 @@ export const getPublishedDataInsights = (
     ) as Promise<MinimalDataInsightInterface[]>
 }
 
-export const getPublishedDataInsightCount = (): Promise<number> => {
+export const getPublishedDataInsightCount = (
+    knex: KnexReadonlyTransaction
+): Promise<number> => {
     return knexRawFirst<{ count: number }>(
-        knexInstance(),
-        `
+        knex,
+        `-- sql
         SELECT COUNT(*) AS count
         FROM posts_gdocs
         WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
@@ -275,19 +283,23 @@ export const getPublishedDataInsightCount = (): Promise<number> => {
     ).then((res) => res?.count ?? 0)
 }
 
-export const getTotalNumberOfCharts = (): Promise<number> => {
+export const getTotalNumberOfCharts = (
+    knex: KnexReadonlyTransaction
+): Promise<number> => {
     return knexRawFirst<{ count: number }>(
-        knexInstance(),
-        `
+        knex,
+        `-- sql
         SELECT COUNT(*) AS count
         FROM charts
         WHERE config->"$.isPublished" = TRUE`
     ).then((res) => res?.count ?? 0)
 }
 
-export const getTotalNumberOfInUseGrapherTags = (): Promise<number> => {
+export const getTotalNumberOfInUseGrapherTags = (
+    knex: KnexReadonlyTransaction
+): Promise<number> => {
     return knexRawFirst<{ count: number }>(
-        knexInstance(),
+        knex,
         `
         SELECT COUNT(DISTINCT(tagId)) AS count
         FROM chart_tags
@@ -302,7 +314,7 @@ export const getTotalNumberOfInUseGrapherTags = (): Promise<number> => {
  * For usage with GdocFactory.load, until we refactor Gdocs to be entirely Knex-based.
  */
 export const getHomepageId = (
-    knex: Knex<any, any[]>
+    knex: KnexReadonlyTransaction
 ): Promise<string | undefined> => {
     return knexRawFirst<{ id: string }>(
         knex,

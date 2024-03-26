@@ -60,7 +60,10 @@ const triggerBakeAndDeploy = async (
             if (!lightningQueue.every((change) => change.slug))
                 throw new Error("Lightning deploy is missing a slug")
 
-            await baker.bakeGDocPosts(lightningQueue.map((c) => c.slug!))
+            await baker.bakeGDocPosts(
+                knex,
+                lightningQueue.map((c) => c.slug!)
+            )
         } else {
             await baker.bakeAll(knex)
         }

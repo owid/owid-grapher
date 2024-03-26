@@ -11,6 +11,7 @@ import {
     type RawPageview,
     Topic,
     PostReference,
+    ChartRedirect,
     DimensionProperty,
 } from "@ourworldindata/utils"
 import { computed, observable, runInAction, when } from "mobx"
@@ -54,12 +55,6 @@ export const getFullReferencesCount = (references: References): number => {
         references.postsGdocs.length +
         references.explorers.length
     )
-}
-
-export interface ChartRedirect {
-    id: number
-    slug: string
-    chartId: number
 }
 
 export interface Namespace {

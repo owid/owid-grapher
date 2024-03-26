@@ -10,7 +10,7 @@ import { BAKED_SITE_EXPORTS_BASE_URL } from "../settings/clientSettings.js"
 import * as db from "../db/db.js"
 import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker.js"
 import { warn } from "../serverUtils/errorLog.js"
-import { Chart } from "../db/model/Chart.js"
+import { mapSlugsToIds } from "../db/model/Chart.js"
 import md5 from "md5"
 import { Url, Tag } from "@ourworldindata/utils"
 
@@ -52,9 +52,12 @@ export interface GrapherExports {
     get: (grapherUrl: string) => ChartExportMeta | undefined
 }
 
-export const bakeGrapherUrls = async (urls: string[]) => {
+export const bakeGrapherUrls = async (
+    knex: db.KnexReadonlyTransaction,
+    urls: string[]
+) => {
     const currentExports = await getGrapherExportsByUrl()
-    const slugToId = await Chart.mapSlugsToIds()
+    const slugToId = await mapSlugsToIds(knex)
     const toBake = []
 
     // Check that we need to bake this url, and don't already have an export
@@ -77,7 +80,8 @@ export const bakeGrapherUrls = async (urls: string[]) => {
             continue
         }
 
-        const rows = await db.queryMysql(
+        const rows = await db.knexRaw<{ version: number }>(
+            knex,
             `SELECT charts.config->>"$.version" AS version FROM charts WHERE charts.id=?`,
             [chartId]
         )

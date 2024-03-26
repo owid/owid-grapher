@@ -20,7 +20,9 @@ yargs(hideBin(process.argv))
             const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
 
             await db.getConnection()
-            await baker.bakeGDocPosts([slug])
+            await db.knexReadonlyTransaction((trx) =>
+                baker.bakeGDocPosts(trx, [slug])
+            )
             process.exit(0)
         }
     )

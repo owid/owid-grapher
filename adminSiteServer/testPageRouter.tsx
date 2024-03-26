@@ -4,7 +4,10 @@ import { Router } from "express"
 import React from "react"
 
 import { renderToHtmlPage, expectInt } from "../serverUtils/serverUtil.js"
-import { OldChart, Chart } from "../db/model/Chart.js"
+import {
+    getChartConfigBySlug,
+    getChartVariableData,
+} from "../db/model/Chart.js"
 import { Head } from "../site/Head.js"
 import * as db from "../db/db.js"
 import {
@@ -21,9 +24,12 @@ import {
 import { grapherToSVG } from "../baker/GrapherImageBaker.js"
 import {
     ChartTypeName,
+    ChartsTableName,
+    DbRawChart,
     EntitySelectionMode,
     GrapherTabOption,
     StackMode,
+    parseChartsRow,
 } from "@ourworldindata/types"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
@@ -110,6 +116,7 @@ interface ExplorerTestPageQueryParams {
 }
 
 async function propsFromQueryParams(
+    knex: db.KnexReadonlyTransaction,
     params: EmbedTestPageQueryParams
 ): Promise<EmbedTestPageProps> {
     const page = params.page
@@ -124,7 +131,8 @@ async function propsFromQueryParams(
         parseStringArrayOrUndefined(params.namespaces) ??
         (params.namespace ? [params.namespace] : [])
 
-    let query = Chart.createQueryBuilder("charts")
+    let query = knex
+        .table("charts")
         .where("publishedAt IS NOT NULL")
         .limit(perPage)
         .offset(perPage * (page - 1))
@@ -265,7 +273,7 @@ async function propsFromQueryParams(
         )
     }
 
-    const charts: ChartItem[] = (await query.getMany()).map((c) => ({
+    const charts: ChartItem[] = (await query).map((c) => ({
         id: c.id,
         slug: c.config.slug ?? "",
     }))
@@ -274,7 +282,7 @@ async function propsFromQueryParams(
         charts.forEach((c) => (c.slug += `?tab=${tab}`))
     }
 
-    const count = await query.getCount()
+    const count = await charts.length
     const numPages = Math.ceil(count / perPage)
 
     const originalUrl = Url.fromURL(params.originalUrl)
@@ -430,40 +438,46 @@ function EmbedTestPage(props: EmbedTestPageProps) {
 }
 
 testPageRouter.get("/embeds", async (req, res) => {
-    const props = await propsFromQueryParams({
-        ...req.query,
-        originalUrl: req.originalUrl,
-    })
+    const props = await db.knexReadonlyTransaction((trx) =>
+        propsFromQueryParams(trx, {
+            ...req.query,
+            originalUrl: req.originalUrl,
+        })
+    )
     res.send(renderToHtmlPage(<EmbedTestPage {...props} />))
 })
 
 testPageRouter.get("/embeds/:id", async (req, res) => {
     const id = req.params.id
-    const chart = await Chart.createQueryBuilder()
-        .where("id = :id", { id: id })
-        .getOne()
-    const viewProps = getViewPropsFromQueryParams(req.query)
-    if (chart) {
-        const charts = [
-            {
-                id: chart.id,
-                slug: `${chart.config.slug}${
-                    req.query.tab ? `?tab=${req.query.tab}` : ""
-                }`,
-            },
-        ]
-        res.send(
-            renderToHtmlPage(
-                <EmbedTestPage
-                    charts={charts}
-                    comparisonUrl={DEFAULT_COMPARISON_URL}
-                    hasComparisonView={viewProps.hasComparisonView}
-                />
+    await db.knexReadonlyTransaction(async (trx) => {
+        const chartRaw: DbRawChart = await trx
+            .table(ChartsTableName)
+            .where({ id: id })
+            .first()
+        const chartEnriched = parseChartsRow(chartRaw)
+        const viewProps = await getViewPropsFromQueryParams(req.query)
+        if (chartEnriched) {
+            const charts = [
+                {
+                    id: chartEnriched.id,
+                    slug: `${chartEnriched.config.slug}${
+                        req.query.tab ? `?tab=${req.query.tab}` : ""
+                    }`,
+                },
+            ]
+            res.send(
+                renderToHtmlPage(
+                    <EmbedTestPage
+                        charts={charts}
+                        comparisonUrl={DEFAULT_COMPARISON_URL}
+                        hasComparisonView={viewProps.hasComparisonView}
+                    />
+                )
             )
-        )
-    } else {
-        res.send("Could not find chart ID")
-    }
+        } else {
+            res.send("Could not find chart ID")
+        }
+    })
 })
 
 function PreviewTestPage(props: { charts: any[] }) {
@@ -627,9 +641,12 @@ testPageRouter.get("/embedVariants", async (req, res) => {
 })
 
 testPageRouter.get("/:slug.svg", async (req, res) => {
-    const grapher = await OldChart.getBySlug(req.params.slug)
-    const vardata = await grapher.getVariableData()
-    res.send(await grapherToSVG(grapher.config, vardata))
+    await db.knexReadonlyTransaction(async (trx) => {
+        const grapher = await getChartConfigBySlug(trx, req.params.slug)
+        const vardata = await getChartVariableData(grapher.config)
+        const svg = await grapherToSVG(grapher.config, vardata)
+        res.send(svg)
+    })
 })
 
 testPageRouter.get("/explorers", async (req, res) => {
