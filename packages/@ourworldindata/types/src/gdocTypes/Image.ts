@@ -16,7 +16,7 @@ export interface ImageMetadata {
     defaultAlt: string
     // MySQL Date objects round to the nearest second, whereas Google includes milliseconds
     // so we store as an epoch to avoid any conversion issues
-    updatedAt: number
-    originalWidth?: number
-    originalHeight?: number
+    updatedAt: number | null
+    originalWidth?: number | null
+    originalHeight?: number | null
 }

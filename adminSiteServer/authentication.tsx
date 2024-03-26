@@ -1,7 +1,6 @@
 import express from "express"
 import crypto from "crypto"
 import randomstring from "randomstring"
-import { User } from "../db/model/User.js"
 import * as db from "../db/db.js"
 import {
     CLOUDFLARE_AUD,
@@ -12,14 +11,12 @@ import {
 } from "../settings/serverSettings.js"
 import { BCryptHasher } from "../db/hashers.js"
 import { Secret, verify } from "jsonwebtoken"
-import { JsonError } from "@ourworldindata/utils"
-
-export type CurrentUser = User
+import { DbPlainSession, DbPlainUser, JsonError } from "@ourworldindata/utils"
 
 export type Request = express.Request
 
 export interface Response extends express.Response {
-    locals: { user: CurrentUser; session: Session }
+    locals: { user: DbPlainUser; session: Session }
 }
 
 interface Session {
@@ -84,7 +81,12 @@ export async function authCloudflareSSOMiddleware(
         return next()
     }
 
-    const user = await User.findOneBy({ email: payload.email })
+    // Here in the middleware we don't have access to the transaction yet so we get a knexinstance manually
+    const user = await db
+        .knexInstance()
+        .table("users")
+        .where({ email: payload.email })
+        .first()
     if (!user) return next("User not found. Please contact an administrator.")
 
     // Authenticate as the user stored in the token
@@ -124,36 +126,58 @@ export async function authMiddleware(
     res: express.Response,
     next: express.NextFunction
 ) {
-    let user: CurrentUser | null = null
+    let user: DbPlainUser | null = null
     let session: Session | undefined
 
     const sessionid = req.cookies["sessionid"]
     if (sessionid) {
-        // Expire old sessions
-        await db.execute("DELETE FROM sessions WHERE expire_date < NOW()")
+        const userAndSession = await db.knexReadWriteTransaction(
+            async (trx) => {
+                // Expire old sessions
+                await db.knexRaw(
+                    trx,
+                    "DELETE FROM sessions WHERE expire_date < NOW()"
+                )
 
-        const rows = await db.queryMysql(
-            `SELECT * FROM sessions WHERE session_key = ?`,
-            [sessionid]
+                const rows = await db.knexRaw<DbPlainSession>(
+                    trx,
+                    `SELECT * FROM sessions WHERE session_key = ?`,
+                    [sessionid]
+                )
+                if (rows.length) {
+                    const sessionData = Buffer.from(
+                        rows[0].session_data,
+                        "base64"
+                    ).toString("utf8")
+                    const sessionJson = JSON.parse(
+                        sessionData.split(":").slice(1).join(":")
+                    )
+
+                    const user = await trx
+                        .table("users")
+                        .where({ email: sessionJson.user_email })
+                        .first<DbPlainUser>()
+                    if (!user)
+                        throw new JsonError(
+                            "Invalid session (no such user)",
+                            500
+                        )
+                    const session = {
+                        id: sessionid,
+                        expiryDate: rows[0].expire_date,
+                    }
+
+                    await trx
+                        .table("users")
+                        .where({ id: user.id })
+                        .update({ lastSeen: new Date() })
+                    return { user, session }
+                }
+                return null
+            }
         )
-        if (rows.length) {
-            const sessionData = Buffer.from(
-                rows[0].session_data,
-                "base64"
-            ).toString("utf8")
-            const sessionJson = JSON.parse(
-                sessionData.split(":").slice(1).join(":")
-            )
-
-            user = await User.findOneBy({ email: sessionJson.user_email })
-            if (!user)
-                throw new JsonError("Invalid session (no such user)", 500)
-            session = { id: sessionid, expiryDate: rows[0].expiry_date }
-
-            // Don't await this
-            user.lastSeen = new Date()
-            user.save()
-        }
+        user = userAndSession?.user ?? null
+        session = userAndSession?.session
     }
 
     // Authed urls shouldn't be cached
@@ -175,7 +199,7 @@ function saltedHmac(salt: string, value: string): string {
     return hmac.digest("hex")
 }
 
-async function logInAsUser(user: User) {
+async function logInAsUser(user: DbPlainUser) {
     const sessionId = randomstring.generate()
 
     const sessionJson = JSON.stringify({
@@ -197,8 +221,11 @@ async function logInAsUser(user: User) {
         [sessionId, sessionData, expiryDate]
     )
 
-    user.lastLogin = now
-    await user.save()
+    await db
+        .knexInstance()
+        .table("users")
+        .where({ id: user.id })
+        .update({ lastLogin: now })
 
     return { id: sessionId, expiryDate: expiryDate }
 }
@@ -207,7 +234,9 @@ export async function logInWithCredentials(
     email: string,
     password: string
 ): Promise<Session> {
-    const user = await User.findOneBy({ email: email })
+    // Here in the middleware we don't have access to the transaction yet so we get a knexinstance manually
+    const user = await db.knexInstance().table("users").where({ email }).first()
+
     if (!user) throw new Error("No such user")
 
     const hasher = new BCryptHasher()

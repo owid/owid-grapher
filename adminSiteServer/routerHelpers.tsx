@@ -17,21 +17,25 @@ export function getRouteWithROTransaction<T>(
     })
 }
 
-// Might be needed in the future if we have get requests that e.g. write analytics data or stats to the DB
-// function getRouteWithRWTransaction<T>(
-//     targetPath: string,
-//     handler: (
-//         req: Request,
-//         res: Response,
-//         trx: db.KnexReadWriteTransaction
-//     ) => Promise<T>
-// ) {
-//     return apiRouter.get(targetPath, (req: Request, res: Response) => {
-//         return db.knexReadWriteTransaction((transaction) =>
-//             handler(req, res, transaction)
-//         )
-//     })
-// }
+/** Usually get routes should be idempotent (caching and retry reasons among others),
+    but for example the gdoc preview route is not because it updates the gdoc in the DB after
+    fetching it from the google API.
+ */
+export function getRouteNonIdempotentWithRWTransaction<T>(
+    router: FunctionalRouter,
+    targetPath: string,
+    handler: (
+        req: Request,
+        res: Response,
+        trx: db.KnexReadWriteTransaction
+    ) => Promise<T>
+) {
+    return router.get(targetPath, (req: Request, res: Response) => {
+        return db.knexReadWriteTransaction((transaction) =>
+            handler(req, res, transaction)
+        )
+    })
+}
 
 export function postRouteWithRWTransaction<T>(
     router: FunctionalRouter,

@@ -43,6 +43,7 @@ import {
     FaqEntryData,
     FaqDictionary,
     ImageMetadata,
+    OwidGdocBaseInterface,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -51,16 +52,16 @@ import {
     getVariableOfDatapageIfApplicable,
 } from "../db/model/Variable.js"
 import { getDatapageDataV2, getDatapageGdoc } from "./DatapageHelpers.js"
-import { Image } from "../db/model/Image.js"
+import { Image, getAllImages } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
-import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
 import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import pMap from "p-map"
+import { getGdocBaseObjectBySlug } from "../db/model/Gdoc/GdocFactory.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -150,13 +151,16 @@ export async function renderDataPageV2(
         uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
     )
     const gdocFetchPromises = faqDocs.map((gdocId) =>
-        getDatapageGdoc(gdocId, isPreviewing)
+        getDatapageGdoc(knex, gdocId, isPreviewing)
     )
     const gdocs = await Promise.all(gdocFetchPromises)
     const gdocIdToFragmentIdToBlock: Record<string, FaqDictionary> = {}
     gdocs.forEach((gdoc) => {
         if (!gdoc) return
-        const faqs = parseFaqs(gdoc.content.faqs, gdoc.id)
+        const faqs = parseFaqs(
+            ("faqs" in gdoc.content && gdoc.content?.faqs) ?? [],
+            gdoc.id
+        )
         gdocIdToFragmentIdToBlock[gdoc.id] = faqs.faqs
     })
 
@@ -250,14 +254,9 @@ export async function renderDataPageV2(
                 `Datapage with variableId "${variableId}" and title "${datapageData.title.title}" is using "${firstTopicTag}" as its primary tag, which we are unable to resolve to a tag in the grapher DB`
             )
         }
-        let gdoc: GdocPost | null = null
+        let gdoc: OwidGdocBaseInterface | undefined = undefined
         if (slug) {
-            gdoc = await GdocPost.findOne({
-                where: {
-                    slug,
-                },
-                relations: ["tags"],
-            })
+            gdoc = await getGdocBaseObjectBySlug(knex, slug, true)
         }
         if (gdoc) {
             const citation = getShortPageCitation(
@@ -495,8 +494,8 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         // Prefetch imageMetadata instead of each grapher page fetching
         // individually. imageMetadata is used by the google docs powering rich
         // text (including images) in data pages.
-        const imageMetadataDictionary = await Image.find().then((images) =>
-            keyBy(images, "filename")
+        const imageMetadataDictionary = await getAllImages(knex).then(
+            (images) => keyBy(images, "filename")
         )
 
         const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map(

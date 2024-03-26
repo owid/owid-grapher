@@ -95,7 +95,13 @@ export const denormalizeLatestCountryData = async (
         const existingVariableIds = (
             await db.knexRaw<{ variable_id: number }>(
                 trx,
-                `select variable_id from country_latest_data where variable_id in (?)`,
+                `-- sql
+                SELECT
+                    variable_id
+                FROM
+                    country_latest_data
+                WHERE
+                    variable_id IN (?)`,
                 [variableIds]
             )
         ).map((r) => r.variable_id)

@@ -1,22 +1,10 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    BaseEntity,
-    ManyToOne,
-    OneToMany,
-    type Relation,
-} from "typeorm"
 import * as lodash from "lodash"
 import * as db from "../db.js"
 import { getDataForMultipleVariables } from "./Variable.js"
-import { User } from "./User.js"
-import { ChartRevision } from "./ChartRevision.js"
 import {
     JsonError,
     KeyChartLevel,
     MultipleOwidVariableDataDimensionsMap,
-    Tag,
     DbChartTagJoin,
 } from "@ourworldindata/utils"
 import {
@@ -29,6 +17,7 @@ import {
     parseChartsRow,
     parseChartConfig,
     ChartRedirect,
+    DbPlainTag,
 } from "@ourworldindata/types"
 import { OpenAI } from "openai"
 import {
@@ -42,24 +31,6 @@ export const PUBLIC_TAG_PARENT_IDS = [
     1505, 1508, 1512, 1510, 1834, 1835,
 ]
 
-@Entity("charts")
-export class Chart extends BaseEntity {
-    @PrimaryGeneratedColumn() id!: number
-    @Column({ type: "json" }) config!: GrapherInterface
-    @Column() lastEditedAt!: Date
-    @Column() lastEditedByUserId!: number
-    @Column({ nullable: true }) publishedAt!: Date
-    @Column({ nullable: true }) publishedByUserId!: number
-    @Column() createdAt!: Date
-    @Column() updatedAt!: Date
-
-    @ManyToOne(() => User, (user) => user.lastEditedCharts)
-    lastEditedByUser!: Relation<User>
-    @ManyToOne(() => User, (user) => user.publishedCharts)
-    publishedByUser!: Relation<User>
-    @OneToMany(() => ChartRevision, (rev) => rev.chart)
-    logs!: Relation<ChartRevision[]>
-}
 // Only considers published charts, because only in that case the mapping slug -> id is unique
 export async function mapSlugsToIds(
     knex: db.KnexReadonlyTransaction
@@ -100,7 +71,7 @@ export async function mapSlugsToConfigs(
     return db
         .knexRaw<{ slug: string; config: string; id: number }>(
             knex,
-            `
+            `-- sql
 SELECT csr.slug AS slug, c.config AS config, c.id AS id
 FROM chart_slug_redirects csr
 JOIN charts c
@@ -133,10 +104,14 @@ export async function getEnrichedChartBySlug(
     if (!chart) {
         chart = await db.knexRawFirst<DbRawChart>(
             knex,
-            `select c.*
-            from chart_slug_redirects csr
-            join charts c on csr.chart_id = c.id
-            where csr.slug = ?`,
+            `-- sql
+            SELECT
+                c.*
+            FROM
+                chart_slug_redirects csr
+                JOIN charts c ON csr.chart_id = c.id
+            WHERE
+                csr.slug = ?`,
             [slug]
         )
     }
@@ -238,7 +213,13 @@ export async function setChartTags(
     const parentIds = tags.length
         ? await db.knexRaw<{ parentId: number }>(
               knex,
-              "select parentId from tags where id in (?)",
+              `-- sql
+                SELECT
+                    parentId
+                FROM
+                    tags
+                WHERE
+                    id IN (?)`,
               [tags.map((t) => t.id)]
           )
         : []
@@ -303,7 +284,7 @@ export async function assignTagsForCharts(
 export async function getGptTopicSuggestions(
     knex: db.KnexReadonlyTransaction,
     chartId: number
-): Promise<Pick<Tag, "id" | "name">[]> {
+): Promise<Pick<DbPlainTag, "id" | "name">[]> {
     if (!OPENAI_API_KEY) throw new JsonError("No OPENAI_API_KEY env found", 500)
 
     const chartConfigOnly: Pick<DbRawChart, "config"> | undefined = await knex
@@ -315,7 +296,7 @@ export async function getGptTopicSuggestions(
         throw new JsonError(`No chart found for id ${chartId}`, 404)
     const enrichedChartConfig = parseChartConfig(chartConfigOnly.config)
 
-    const topics: Pick<Tag, "id" | "name">[] = await db.knexRaw(
+    const topics: Pick<DbPlainTag, "id" | "name">[] = await db.knexRaw(
         knex,
         `-- sql
         SELECT t.id, t.name

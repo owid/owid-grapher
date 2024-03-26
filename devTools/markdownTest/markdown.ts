@@ -13,11 +13,12 @@ import fs from "fs-extra"
 import parseArgs from "minimist"
 import { OwidEnrichedGdocBlock } from "@ourworldindata/utils"
 import { parsePostArchieml } from "@ourworldindata/utils"
+import { getAndLoadGdocBySlug } from "../../db/model/Gdoc/GdocFactory.js"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
         await knexReadonlyTransaction(async (trx) => {
-            const gdoc = await GdocBase.findOneBy({ slug: parsedArgs._[0] })
+            const gdoc = await getAndLoadGdocBySlug(trx, parsedArgs._[0])
             let archieMlContent: OwidEnrichedGdocBlock[] | null
             let contentToShowOnError: any
             if (!gdoc) {

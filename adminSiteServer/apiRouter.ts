@@ -3,7 +3,6 @@
 import * as lodash from "lodash"
 import * as db from "../db/db.js"
 import { imageStore } from "../db/model/Image.js"
-import { GdocXImage } from "../db/model/GdocXImage.js"
 import { DEPRECATEDgetTopics } from "../db/DEPRECATEDwpdb.js"
 import {
     UNCATEGORIZED_TAG_ID,
@@ -23,7 +22,7 @@ import {
     oldChartFieldList,
     setChartTags,
 } from "../db/model/Chart.js"
-import { Request, CurrentUser } from "./authentication.js"
+import { Request } from "./authentication.js"
 import {
     getMergedGrapherConfigForVariable,
     fetchS3MetadataByPath,
@@ -54,7 +53,6 @@ import {
     DimensionProperty,
     TaggableType,
     DbChartTagJoin,
-    OwidGdoc,
     pick,
 } from "@ourworldindata/utils"
 import {
@@ -76,6 +74,10 @@ import {
     serializeChartConfig,
     DbRawOrigin,
     DbRawPostGdoc,
+    PostsGdocsXImagesTableName,
+    DbInsertPostGdocXImage,
+    PostsGdocsLinksTableName,
+    PostsGdocsTableName,
     DbPlainDataset,
 } from "@ourworldindata/types"
 import {
@@ -85,7 +87,6 @@ import {
 import { getDatasetById, setTagsForDataset } from "../db/model/Dataset.js"
 import { getUserById, insertUser, updateUser } from "../db/model/User.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
-import { GdocBase, Tag as TagEntity } from "../db/model/Gdoc/GdocBase.js"
 import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
@@ -111,22 +112,35 @@ import {
 } from "../adminSiteClient/gdocsDeploy.js"
 import { dataSource } from "../db/dataSource.js"
 import { createGdocAndInsertOwidGdocPostContent } from "../db/model/Gdoc/archieToGdoc.js"
-import { Link } from "../db/model/Link.js"
-import { In } from "typeorm"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 import {
     getRouteWithROTransaction,
     deleteRouteWithRWTransaction,
     putRouteWithRWTransaction,
     postRouteWithRWTransaction,
     patchRouteWithRWTransaction,
+    getRouteNonIdempotentWithRWTransaction,
 } from "./routerHelpers.js"
+import { getPublishedLinksTo } from "../db/model/Link.js"
+import {
+    GdocLinkUpdateMode,
+    createGdocAndInsertIntoDb,
+    gdocFromJSON,
+    getAllGdocIndexItemsOrderedByUpdatedAt,
+    getAndLoadGdocById,
+    getDbEnrichedGdocFromOwidGdoc,
+    getGdocBaseObjectById,
+    loadGdocFromGdocBase,
+    setLinksForGdoc,
+    setTagsForGdoc,
+    updateGdocContentOnly,
+    upsertGdoc,
+} from "../db/model/Gdoc/GdocFactory.js"
 
 const apiRouter = new FunctionalRouter()
 
 // Call this to trigger build and deployment of static charts on change
-const triggerStaticBuild = async (user: CurrentUser, commitMessage: string) => {
+const triggerStaticBuild = async (user: DbPlainUser, commitMessage: string) => {
     if (!BAKE_ON_CHANGE) {
         console.log(
             "Not triggering static build because BAKE_ON_CHANGE is false"
@@ -143,7 +157,7 @@ const triggerStaticBuild = async (user: CurrentUser, commitMessage: string) => {
 }
 
 const enqueueLightningChange = async (
-    user: CurrentUser,
+    user: DbPlainUser,
     commitMessage: string,
     slug: string
 ) => {
@@ -202,7 +216,12 @@ const getReferencesByChartId = async (
     )
     const postGdocsPromise = getGdocsPostReferencesByChartId(chartId, knex)
     const explorerSlugsPromise = db.queryMysql(
-        `select distinct explorerSlug from explorer_charts where chartId = ?`,
+        `SELECT DISTINCT
+            explorerSlug
+        FROM
+            explorer_charts
+        WHERE
+            chartId = ?`,
         [chartId]
     )
     const [postsWordpress, postsGdocs, explorerSlugs] = await Promise.all([
@@ -232,7 +251,7 @@ const expectChartById = async (
 
 const saveGrapher = async (
     knex: db.KnexReadWriteTransaction,
-    user: CurrentUser,
+    user: DbPlainUser,
     newConfig: GrapherInterface,
     existingConfig?: GrapherInterface,
     referencedVariablesMightChange = true // if the variables a chart uses can change then we need
@@ -541,7 +560,12 @@ getRouteWithROTransaction(
 
         const pageviewsByUrl = await db.knexRawFirst(
             trx,
-            "select * from analytics_pageviews where url = ?",
+            `-- sql
+            SELECT *
+            FROM
+                analytics_pageviews
+            WHERE
+                url = ?`,
             [`https://ourworldindata.org/grapher/${slug}`]
         )
 
@@ -690,9 +714,9 @@ deleteRouteWithRWTransaction(
     "/charts/:chartId",
     async (req, res, trx) => {
         const chart = await expectChartById(trx, req.params.chartId)
-        const links = await Link.getPublishedLinksTo([chart.slug!])
+        const links = await getPublishedLinksTo(trx, [chart.slug!])
         if (links.length) {
-            const sources = links.map((link) => link.source.slug).join(", ")
+            const sources = links.map((link) => link.sourceSlug).join(", ")
             throw new Error(
                 `Cannot delete chart in-use in the following published documents: ${sources}`
             )
@@ -1599,10 +1623,16 @@ apiRouter.patch("/variable-annotations", async (req) => {
 })
 
 apiRouter.get("/variables.usages.json", async (req) => {
-    const query = `SELECT variableId, COUNT(DISTINCT chartId) AS usageCount
-FROM chart_dimensions
-GROUP BY variableId
-ORDER BY usageCount DESC`
+    const query = `-- sql
+    SELECT
+        variableId,
+        COUNT(DISTINCT chartId) AS usageCount
+    FROM
+        chart_dimensions
+    GROUP BY
+        variableId
+    ORDER BY
+        usageCount DESC`
 
     const rows = await db.queryMysql(query)
 
@@ -1629,7 +1659,7 @@ getRouteWithROTransaction(
 
         const charts = await db.knexRaw<OldChartFieldList>(
             trx,
-            `
+            `-- sql
             SELECT ${oldChartFieldList}
             FROM charts
             JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
@@ -1682,7 +1712,7 @@ getRouteWithROTransaction(
     async (req, res, trx) => {
         const datasets = await db.knexRaw<Record<string, any>>(
             trx,
-            `
+            `-- sql
         WITH variable_counts AS (
             SELECT
                 v.datasetId,
@@ -1719,7 +1749,7 @@ getRouteWithROTransaction(
                 Pick<DbPlainDatasetTag, "datasetId">
         >(
             trx,
-            `
+            `-- sql
         SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
         JOIN tags t ON dt.tagId = t.id
     `
@@ -1745,7 +1775,7 @@ getRouteWithROTransaction(
 
         const dataset = await db.knexRawFirst<Record<string, any>>(
             trx,
-            `
+            `-- sql
         SELECT d.id,
             d.namespace,
             d.name,
@@ -1788,10 +1818,17 @@ getRouteWithROTransaction(
             >
         >(
             trx,
-            `
-        SELECT v.id, v.name, v.description, v.display, v.catalogPath
-        FROM variables AS v
-        WHERE v.datasetId = ?
+            `-- sql
+            SELECT
+                v.id,
+                v.name,
+                v.description,
+                v.display,
+                v.catalogPath
+            FROM
+                VARIABLES AS v
+            WHERE
+                v.datasetId = ?
     `,
             [datasetId]
         )
@@ -1805,13 +1842,15 @@ getRouteWithROTransaction(
         // add all origins
         const origins: DbRawOrigin[] = await db.knexRaw<DbRawOrigin>(
             trx,
-            `
-        select distinct
-            o.*
-        from origins_variables as ov
-        join origins as o on ov.originId = o.id
-        join variables as v on ov.variableId = v.id
-        where v.datasetId = ?
+            `-- sql
+            SELECT DISTINCT
+                o.*
+            FROM
+                origins_variables AS ov
+                JOIN origins AS o ON ov.originId = o.id
+                JOIN VARIABLES AS v ON ov.variableId = v.id
+            WHERE
+                v.datasetId = ?
     `,
             [datasetId]
         )
@@ -1846,7 +1885,7 @@ getRouteWithROTransaction(
 
         const charts = await db.knexRaw<OldChartFieldList>(
             trx,
-            `
+            `-- sql
         SELECT ${oldChartFieldList}
         FROM charts
         JOIN chart_dimensions AS cd ON cd.chartId = charts.id
@@ -2336,37 +2375,59 @@ deleteRouteWithRWTransaction(
 apiRouter.get("/posts.json", async (req) => {
     const raw_rows = await db.queryMysql(
         `-- sql
-        with posts_tags_aggregated as (
-            select post_id, if(count(tags.id) = 0, json_array(), json_arrayagg(json_object("id", tags.id, "name", tags.name))) as tags
-            from post_tags
-            left join tags on tags.id = post_tags.tag_id
-            group by post_id
-        ), post_gdoc_slug_successors as (
-            select posts.id, if (count(gdocSlugSuccessor.id) = 0, json_array(), json_arrayagg(json_object("id", gdocSlugSuccessor.id, "published", gdocSlugSuccessor.published ))) as gdocSlugSuccessors
-            from posts
-            left join posts_gdocs gdocSlugSuccessor on gdocSlugSuccessor.slug = posts.slug
-            group by posts.id
-        )
-        select
-             posts.id as id,
-             posts.title as title,
-             posts.type as type,
-             posts.slug as slug,
-             status,
-             updated_at_in_wordpress,
-             posts.authors,
-             posts_tags_aggregated.tags as tags,
-             gdocSuccessorId,
-             gdocSuccessor.published as isGdocSuccessorPublished,
-             -- posts can either have explict successors via the gdocSuccessorId column
-             -- or implicit successors if a gdoc has been created that uses the same slug
-             -- as a Wp post (the gdoc one wins once it is published)
-             post_gdoc_slug_successors.gdocSlugSuccessors as gdocSlugSuccessors
-         from posts
-         left join post_gdoc_slug_successors on post_gdoc_slug_successors.id = posts.id
-         left join posts_gdocs gdocSuccessor on gdocSuccessor.id = posts.gdocSuccessorId
-         left join posts_tags_aggregated on posts_tags_aggregated.post_id = posts.id
-         order by updated_at_in_wordpress desc`,
+        WITH
+            posts_tags_aggregated AS (
+                SELECT
+                    post_id,
+                    IF(
+                        COUNT(tags.id) = 0,
+                        JSON_ARRAY(),
+                        JSON_ARRAYAGG(JSON_OBJECT("id", tags.id, "name", tags.name))
+                    ) AS tags
+                FROM
+                    post_tags
+                    LEFT JOIN tags ON tags.id = post_tags.tag_id
+                GROUP BY
+                    post_id
+            ),
+            post_gdoc_slug_successors AS (
+                SELECT
+                    posts.id,
+                    IF(
+                        COUNT(gdocSlugSuccessor.id) = 0,
+                        JSON_ARRAY(),
+                        JSON_ARRAYAGG(
+                            JSON_OBJECT("id", gdocSlugSuccessor.id, "published", gdocSlugSuccessor.published)
+                        )
+                    ) AS gdocSlugSuccessors
+                FROM
+                    posts
+                    LEFT JOIN posts_gdocs gdocSlugSuccessor ON gdocSlugSuccessor.slug = posts.slug
+                GROUP BY
+                    posts.id
+            )
+            SELECT
+                posts.id AS id,
+                posts.title AS title,
+                posts.type AS TYPE,
+                posts.slug AS slug,
+                STATUS,
+                updated_at_in_wordpress,
+                posts.authors,
+                posts_tags_aggregated.tags AS tags,
+                gdocSuccessorId,
+                gdocSuccessor.published AS isGdocSuccessorPublished,
+                -- posts can either have explict successors via the gdocSuccessorId column
+                -- or implicit successors if a gdoc has been created that uses the same slug
+                -- as a Wp post (the gdoc one wins once it is published)
+                post_gdoc_slug_successors.gdocSlugSuccessors AS gdocSlugSuccessors
+            FROM
+                posts
+                LEFT JOIN post_gdoc_slug_successors ON post_gdoc_slug_successors.id = posts.id
+                LEFT JOIN posts_gdocs gdocSuccessor ON gdocSuccessor.id = posts.gdocSuccessorId
+                LEFT JOIN posts_tags_aggregated ON posts_tags_aggregated.post_id = posts.id
+            ORDER BY
+                updated_at_in_wordpress DESC`,
         []
     )
     const rows = raw_rows.map((row: any) => ({
@@ -2434,10 +2495,7 @@ postRouteWithRWTransaction(
                 500
             )
         const tagsByPostId = await getTagsByPostId(trx)
-        const tags =
-            tagsByPostId
-                .get(postId)
-                ?.map(({ id }) => TagEntity.create({ id })) || []
+        const tags = tagsByPostId.get(postId) || []
         const archieMl = JSON.parse(
             // Google Docs interprets &region in grapher URLS as ®ion
             // So we escape them here
@@ -2462,15 +2520,14 @@ postRouteWithRWTransaction(
 
             const gdoc = new GdocPost(gdocId)
             gdoc.slug = post.slug
-            gdoc.tags = tags
             gdoc.content.title = post.title
             gdoc.content.type = archieMl.content.type || OwidGdocType.Article
             gdoc.published = false
             gdoc.createdAt = new Date()
             gdoc.publishedAt = post.published_at
-            await dataSource.getRepository(GdocPost).save(gdoc)
+            await upsertGdoc(trx, gdoc)
+            await setTagsForGdoc(trx, gdocId, tags)
         }
-
         return { googleDocsId: gdocId }
     }
 )
@@ -2544,65 +2601,68 @@ apiRouter.put("/deploy", async (req, res) => {
     triggerStaticBuild(res.locals.user, "Manually triggered deploy")
 })
 
-apiRouter.get("/gdocs", async () => {
-    // orderBy was leading to a sort buffer overflow (ER_OUT_OF_SORTMEMORY) with MySQL's default sort_buffer_size
-    // when the posts_gdocs table got larger than 9MB, so we sort in memory
-    return GdocPost.find({ relations: ["tags"] }).then((gdocs) =>
-        gdocs.sort((a, b) => {
-            if (!a.updatedAt || !b.updatedAt) return 0
-            return b.updatedAt.getTime() - a.updatedAt.getTime()
-        })
-    )
+getRouteWithROTransaction(apiRouter, "/gdocs", (req, res, trx) => {
+    return getAllGdocIndexItemsOrderedByUpdatedAt(trx)
 })
 
-apiRouter.get("/gdocs/:id", async (req, res) => {
-    const id = req.params.id
-    const contentSource = req.query.contentSource as
-        | GdocsContentSource
-        | undefined
+getRouteNonIdempotentWithRWTransaction(
+    apiRouter,
+    "/gdocs/:id",
+    async (req, res, trx) => {
+        const id = req.params.id
+        const contentSource = req.query.contentSource as
+            | GdocsContentSource
+            | undefined
 
-    try {
-        const gdoc = await GdocFactory.load(id, contentSource)
+        try {
+            const gdoc = await getAndLoadGdocById(trx, id, contentSource)
 
-        if (!gdoc.published) {
-            await gdoc.save()
+            if (!gdoc.published) {
+                await updateGdocContentOnly(trx, id, gdoc)
+            }
+
+            res.set("Cache-Control", "no-store")
+            res.send(gdoc)
+        } catch (error) {
+            console.error("Error fetching gdoc", error)
+            res.status(500).json({
+                error: { message: String(error), status: 500 },
+            })
         }
-
-        res.set("Cache-Control", "no-store")
-        res.send(gdoc)
-    } catch (error) {
-        console.error("Error fetching gdoc", error)
-        res.status(500).json({ error: { message: String(error), status: 500 } })
     }
-})
+)
 
 /**
  * Only supports creating a new empty Gdoc or updating an existing one. Does not
  * support creating a new Gdoc from an existing one. Relevant updates will
  * trigger a deploy.
  */
-apiRouter.put("/gdocs/:id", async (req, res) => {
+putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     const { id } = req.params
     const nextGdocJSON: OwidGdocJSON = req.body
 
     if (isEmpty(nextGdocJSON)) {
         // Check to see if the gdoc already exists in the database
-        const existingGdoc = await GdocBase.findOneBy({ id })
+        const existingGdoc = await getGdocBaseObjectById(trx, id, false)
         if (existingGdoc) {
-            return GdocFactory.load(id, GdocsContentSource.Gdocs)
+            return loadGdocFromGdocBase(
+                trx,
+                existingGdoc,
+                GdocsContentSource.Gdocs
+            )
         } else {
-            return GdocFactory.create(id)
+            return createGdocAndInsertIntoDb(trx, id)
         }
     }
 
-    const prevGdoc = await GdocFactory.load(id)
+    const prevGdoc = await getAndLoadGdocById(trx, id)
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    const nextGdoc = GdocFactory.fromJSON(nextGdocJSON)
-    await nextGdoc.loadState()
+    const nextGdoc = gdocFromJSON(nextGdocJSON)
+    await nextGdoc.loadState(trx)
 
     // Deleting and recreating these is simpler than tracking orphans over the next code block
-    await GdocXImage.delete({ gdocId: id })
+    await trx.table(PostsGdocsXImagesTableName).where({ gdocId: id }).delete()
     const filenames = nextGdoc.filenames
 
     // The concept of a "published gdoc" is looser here than in
@@ -2612,32 +2672,36 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     // synced to S3 and ultimately baked in bakeDriveImages().
     if (filenames.length && nextGdoc.published) {
         await imageStore.fetchImageMetadata(filenames)
-        const images = await imageStore.syncImagesToS3()
+        const images = await imageStore.syncImagesToS3(trx)
+        const gdocXImagesToInsert: DbInsertPostGdocXImage[] = []
         for (const image of images) {
             if (image) {
-                try {
-                    await GdocXImage.save({
-                        gdocId: nextGdoc.id,
-                        imageId: image.id,
-                    })
-                } catch (e) {
-                    console.error(
-                        `Error tracking image reference ${image.filename} with Google ID ${nextGdoc.id}`,
-                        e
-                    )
-                }
+                gdocXImagesToInsert.push({
+                    gdocId: nextGdoc.id,
+                    imageId: image.id,
+                })
             }
+        }
+        try {
+            await trx
+                .table(PostsGdocsXImagesTableName)
+                .insert(gdocXImagesToInsert)
+        } catch (e) {
+            console.error(
+                `Error tracking image references with Google ID ${nextGdoc.id}`,
+                e
+            )
         }
     }
 
-    await Link.delete({
-        source: {
-            id: id,
-        },
-    })
-    if (nextGdoc.published) {
-        await dataSource.getRepository(Link).save(nextGdoc.links)
-    }
+    await setLinksForGdoc(
+        trx,
+        nextGdoc.id,
+        nextGdoc.links,
+        nextGdoc.published
+            ? GdocLinkUpdateMode.DeleteAndInsert
+            : GdocLinkUpdateMode.DeleteOnly
+    )
 
     //todo #gdocsvalidationserver: run validation before saving published
     //articles, in addition to the first pass performed in front-end code (see
@@ -2656,11 +2720,11 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     // enqueue), so I opted for the version that matches the closest the current
     // baking model, which is "bake what is persisted in the DB". Ultimately, a
     // full sucessful deploy would resolve the state discrepancy either way.
-    await nextGdoc.save()
+    await upsertGdoc(trx, nextGdoc)
 
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
-    const prevJson = prevGdoc.toJSON<OwidGdoc>()
-    const nextJson = nextGdoc.toJSON<OwidGdoc>()
+    const prevJson = prevGdoc.toJSON()
+    const nextJson = nextGdoc.toJSON()
     if (checkIsLightningUpdate(prevJson, nextJson, hasChanges)) {
         await enqueueLightningChange(
             res.locals.user,
@@ -2683,7 +2747,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
 deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     const { id } = req.params
 
-    const gdoc = await GdocPost.findOneBy({ id })
+    const gdoc = await getGdocBaseObjectById(trx, id, false)
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     await trx
@@ -2691,30 +2755,31 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
         .where({ gdocSuccessorId: gdoc.id })
         .update({ gdocSuccessorId: null })
 
-    await Link.delete({
-        source: {
-            id,
-        },
-    })
-    await GdocXImage.delete({ gdocId: id })
-    await GdocPost.delete({ id })
+    trx.table(PostsGdocsLinksTableName).where({ sourceId: id }).delete()
+    trx.table(PostsGdocsXImagesTableName).where({ gdocId: id }).delete()
+    trx.table(PostsGdocsTableName).where({ id }).delete()
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })
 
-apiRouter.post("/gdocs/:gdocId/setTags", async (req, res) => {
-    const { gdocId } = req.params
-    const { tagIds } = req.body
+postRouteWithRWTransaction(
+    apiRouter,
+    "/gdocs/:gdocId/setTags",
+    async (req, res, trx) => {
+        const { gdocId } = req.params
+        const { tagIds } = req.body
 
-    const gdoc = await GdocPost.findOneBy({ id: gdocId })
-    if (!gdoc) return Error(`Unable to find Gdoc with ID: ${gdocId}`)
-    const tags = await dataSource
-        .getRepository(TagEntity)
-        .findBy({ id: In(tagIds) })
-    gdoc.tags = tags
-    await gdoc.save()
-    return { success: true }
-})
+        await setTagsForGdoc(
+            trx,
+            gdocId,
+            tagIds.map((id: number) => {
+                id
+            })
+        )
+
+        return { success: true }
+    }
+)
 
 getRouteWithROTransaction(
     apiRouter,

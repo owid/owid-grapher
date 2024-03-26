@@ -86,7 +86,7 @@ export const GdocsBreadcrumbsInput = ({
             breadcrumbs[breadcrumbs.length - 1].href = undefined
         } else breadcrumbs = undefined
 
-        setCurrentGdoc({ ...gdoc, breadcrumbs })
+        setCurrentGdoc({ ...gdoc, breadcrumbs: breadcrumbs ?? null })
     }
 
     const setItemAtIndex = (item: BreadcrumbItem, i: number) => {

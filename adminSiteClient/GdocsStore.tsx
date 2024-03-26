@@ -3,11 +3,14 @@ import { action, observable } from "mobx"
 import {
     getOwidGdocFromJSON,
     OwidGdocJSON,
-    Tag,
+    DbChartTagJoin,
     OwidGdoc,
+    DbPlainTag,
+    OwidGdocIndexItem,
 } from "@ourworldindata/utils"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
+import { extractGdocIndexItem } from "@ourworldindata/types"
 
 /**
  * This was originally a MobX data domain store (see
@@ -17,8 +20,8 @@ import { Admin } from "./Admin.js"
  * Today, this store acts as CRUD proxy for requests to API endpoints.
  */
 export class GdocsStore {
-    @observable gdocs: OwidGdoc[] = []
-    @observable availableTags: Tag[] = []
+    @observable gdocs: OwidGdocIndexItem[] = []
+    @observable availableTags: DbChartTagJoin[] = []
     admin: Admin
 
     constructor(admin: Admin) {
@@ -32,9 +35,13 @@ export class GdocsStore {
 
     @action
     async update(gdoc: OwidGdoc): Promise<OwidGdoc> {
-        return this.admin
+        const item: OwidGdoc = await this.admin
             .requestJSON<OwidGdocJSON>(`/api/gdocs/${gdoc.id}`, gdoc, "PUT")
             .then(getOwidGdocFromJSON)
+        const indexItem = extractGdocIndexItem(gdoc)
+        const gdocToUpdateIndex = this.gdocs.findIndex((g) => g.id === gdoc.id)
+        if (gdocToUpdateIndex >= 0) this.gdocs[gdocToUpdateIndex] = indexItem
+        return item
     }
 
     @action
@@ -61,7 +68,9 @@ export class GdocsStore {
 
     @action
     async fetchGdocs() {
-        const gdocs = (await this.admin.getJSON("/api/gdocs")) as OwidGdoc[]
+        const gdocs = (await this.admin.getJSON(
+            "/api/gdocs"
+        )) as OwidGdocIndexItem[]
         this.gdocs = gdocs
     }
 
@@ -72,7 +81,7 @@ export class GdocsStore {
     }
 
     @action
-    async updateTags(gdoc: OwidGdoc, tags: Tag[]) {
+    async updateTags(gdoc: OwidGdocIndexItem, tags: DbPlainTag[]) {
         const json = await this.admin.requestJSON(
             `/api/gdocs/${gdoc.id}/setTags`,
             { tagIds: tags.map((t) => t.id) },

@@ -22,10 +22,11 @@ export interface DbInsertPostGdoc {
 export type DbRawPostGdoc = Required<DbInsertPostGdoc>
 export type DbEnrichedPostGdoc = Omit<
     DbRawPostGdoc,
-    "content" | "breadcrumbs"
+    "content" | "breadcrumbs" | "published"
 > & {
     content: OwidGdocContent
     breadcrumbs: BreadcrumbItem[] | null
+    published: boolean
 }
 
 export function parsePostGdocContent(content: JsonString): OwidGdocContent {
@@ -53,6 +54,7 @@ export function parsePostsGdocsRow(row: DbRawPostGdoc): DbEnrichedPostGdoc {
         ...row,
         content: parsePostGdocContent(row.content),
         breadcrumbs: parsePostsGdocsBreadcrumbs(row.breadcrumbs),
+        published: !!row.published,
     }
 }
 
@@ -61,5 +63,6 @@ export function serializePostsGdocsRow(row: DbEnrichedPostGdoc): DbRawPostGdoc {
         ...row,
         content: serializePostGdocContent(row.content),
         breadcrumbs: serializePostsGdocsBreadcrumbs(row.breadcrumbs),
+        published: row.published ? 1 : 0,
     }
 }

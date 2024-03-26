@@ -11,8 +11,8 @@ import {
     formatAuthors,
     MinimalDataInsightInterface,
     formatDate,
-    Tag,
     copyToClipboard,
+    DbPlainTag,
 } from "@ourworldindata/utils"
 import React, { useContext } from "react"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
@@ -79,7 +79,7 @@ const RelatedTopicsList = ({
     tags,
     className,
 }: {
-    tags?: Tag[]
+    tags?: DbPlainTag[]
     className?: string
 }) => {
     if (!tags?.length) return null
@@ -171,7 +171,7 @@ export const DataInsightBody = (
                 <div className="data-insight-blocks">
                     <ArticleBlocks blocks={props.content.body} />
                 </div>
-                <RelatedTopicsList tags={props.tags} />
+                <RelatedTopicsList tags={props.tags ?? undefined} />
             </div>
         </div>
     )
