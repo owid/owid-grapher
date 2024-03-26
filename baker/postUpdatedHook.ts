@@ -154,7 +154,7 @@ const syncPostToGrapher = async (
         else if (existsInGrapher)
             await knex
                 .table(postsTable)
-                .where("id", "=", rowForDb.id)
+                .where({ id: rowForDb.id })
                 .update(rowForDb)
     }
 

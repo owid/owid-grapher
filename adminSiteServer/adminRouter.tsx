@@ -312,7 +312,7 @@ getPlainRouteWithROTransaction(
         )
             return `File not found`
         const explorer = await explorerAdminServer.getExplorerFromFile(filename)
-        const explorerPage = renderExplorerPage(explorer, knex)
+        const explorerPage = await renderExplorerPage(explorer, knex)
 
         return res.send(explorerPage)
     }
@@ -327,7 +327,7 @@ getPlainRouteNonIdempotentWithRWTransaction(
         if (!variableMetadata) throw new JsonError("No such variable", 404)
 
         res.send(
-            renderDataPageV2(
+            await renderDataPageV2(
                 {
                     variableId,
                     variableMetadata,

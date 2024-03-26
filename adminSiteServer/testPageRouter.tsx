@@ -134,27 +134,29 @@ async function propsFromQueryParams(
 
     let query = knex
         .table("charts")
-        .where("publishedAt IS NOT NULL")
+        .select("id", "slug")
+        .whereRaw("publishedAt IS NOT NULL")
         .limit(perPage)
         .offset(perPage * (page - 1))
         .orderBy("id", "DESC")
+    console.error(query.toSQL())
 
     let tab = params.tab
 
     if (params.type) {
         if (params.type === ChartTypeName.WorldMap) {
-            query = query.andWhere(`config->>"$.hasMapTab" = "true"`)
+            query = query.andWhereRaw(`config->>"$.hasMapTab" = "true"`)
             tab = tab || GrapherTabOption.map
         } else {
             if (params.type === "LineChart") {
-                query = query.andWhere(
+                query = query.andWhereRaw(
                     `(
                         config->"$.type" = "LineChart"
                         OR config->"$.type" IS NULL
                     ) AND COALESCE(config->>"$.hasChartTab", "true") = "true"`
                 )
             } else {
-                query = query.andWhere(
+                query = query.andWhereRaw(
                     `config->"$.type" = :type AND COALESCE(config->>"$.hasChartTab", "true") = "true"`,
                     { type: params.type }
                 )
@@ -164,26 +166,28 @@ async function propsFromQueryParams(
     }
 
     if (params.logLinear) {
-        query = query.andWhere(
+        query = query.andWhereRaw(
             `config->>'$.yAxis.canChangeScaleType' = "true" OR config->>'$.xAxis.canChangeScaleType'  = "true"`
         )
         tab = GrapherTabOption.chart
     }
 
     if (params.comparisonLines) {
-        query = query.andWhere(`config->'$.comparisonLines[0].yEquals' != ''`)
+        query = query.andWhereRaw(
+            `config->'$.comparisonLines[0].yEquals' != ''`
+        )
         tab = GrapherTabOption.chart
     }
 
     if (params.stackMode) {
-        query = query.andWhere(`config->'$.stackMode' = :stackMode`, {
+        query = query.andWhereRaw(`config->'$.stackMode' = :stackMode`, {
             stackMode: params.stackMode,
         })
         tab = GrapherTabOption.chart
     }
 
     if (params.relativeToggle) {
-        query = query.andWhere(`config->>'$.hideRelativeToggle' = "false"`)
+        query = query.andWhereRaw(`config->>'$.hideRelativeToggle' = "false"`)
         tab = GrapherTabOption.chart
     }
 
@@ -191,14 +195,14 @@ async function propsFromQueryParams(
         // This is more of a heuristic, since this query can potentially include charts that don't
         // have a visible categorial legend, and can leave out some that have one.
         // But in practice it seems to work reasonably well.
-        query = query.andWhere(
+        query = query.andWhereRaw(
             `json_length(config->'$.map.colorScale.customCategoryColors') > 1`
         )
         tab = GrapherTabOption.map
     }
 
     if (params.mixedTimeTypes) {
-        query = query.andWhere(
+        query = query.andWhereRaw(
             `
             (
                 SELECT COUNT(DISTINCT CASE
@@ -217,34 +221,34 @@ async function propsFromQueryParams(
     if (params.addCountryMode) {
         const mode = params.addCountryMode
         if (mode === EntitySelectionMode.MultipleEntities) {
-            query = query.andWhere(
+            query = query.andWhereRaw(
                 `config->'$.addCountryMode' IS NULL OR config->'$.addCountryMode' = :mode`,
                 {
                     mode: EntitySelectionMode.MultipleEntities,
                 }
             )
         } else {
-            query = query.andWhere(`config->'$.addCountryMode' = :mode`, {
+            query = query.andWhereRaw(`config->'$.addCountryMode' = :mode`, {
                 mode,
             })
         }
     }
 
     if (ids.length > 0) {
-        query = query.andWhere(`charts.id IN (${params.ids})`)
+        query = query.andWhereRaw(`charts.id IN (${params.ids})`)
     }
 
     if (tab === GrapherTabOption.map) {
-        query = query.andWhere(`config->>"$.hasMapTab" = "true"`)
+        query = query.andWhereRaw(`config->>"$.hasMapTab" = "true"`)
     } else if (tab === GrapherTabOption.chart) {
-        query = query.andWhere(
+        query = query.andWhereRaw(
             `COALESCE(config->>"$.hasChartTab", "true") = "true"`
         )
     }
 
     if (datasetIds.length > 0) {
         const datasetIds = params.datasetIds
-        query = query.andWhere(
+        query = query.andWhereRaw(
             `
             EXISTS(
                 SELECT *
@@ -259,7 +263,7 @@ async function propsFromQueryParams(
     }
 
     if (namespaces.length > 0) {
-        query = query.andWhere(
+        query = query.andWhereRaw(
             `
             EXISTS(
                 SELECT *
@@ -274,9 +278,11 @@ async function propsFromQueryParams(
         )
     }
 
+    console.error(query.toSQL())
+
     const charts: ChartItem[] = (await query).map((c) => ({
         id: c.id,
-        slug: c.config.slug ?? "",
+        slug: c.slug ?? "",
     }))
 
     if (tab) {
