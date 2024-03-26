@@ -118,6 +118,9 @@ export {
     checkIsDataInsight,
     checkIsAuthor,
     cartesian,
+    makeGrapherDetailIdFromText,
+    makeMarkdownDetail,
+    splitLastParenthetical,
 } from "./Util.js"
 
 export {

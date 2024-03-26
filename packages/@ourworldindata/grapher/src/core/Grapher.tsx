@@ -66,6 +66,10 @@ import {
     getOriginAttributionFragments,
     sortBy,
     extractDetailsFromSyntax,
+    makeGrapherDetailIdFromText,
+    makeMarkdownDetail,
+    uniqBy,
+    splitLastParenthetical,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -1245,6 +1249,41 @@ export class Grapher
 
     @observable shouldIncludeDetailsInStaticExport = true
 
+    @computed get regionDetails(): { name: string; id: string }[] {
+        if (typeof window === "undefined") return []
+
+        function extractDetailFromEntityName(
+            entityName: string
+        ): { name: string; id: string } | undefined {
+            const { parenthetical } = splitLastParenthetical(entityName)
+            if (parenthetical === undefined) return
+            const maybeSource = parenthetical.slice(1, -1)
+            return {
+                name: maybeSource,
+                id: makeGrapherDetailIdFromText({
+                    text: maybeSource,
+                    type: "regions",
+                }),
+            }
+        }
+
+        const regionDetails = uniqBy(
+            excludeUndefined(
+                this.availableEntities.map((entity) =>
+                    extractDetailFromEntityName(entity.entityName)
+                )
+            ),
+            (detail) => detail.id
+        )
+
+        const validDetails = regionDetails.filter(({ id }) => {
+            const detail = window.details?.[id]
+            return detail !== undefined
+        })
+
+        return validDetails
+    }
+
     // Used for superscript numbers in static exports
     @computed get detailsOrderedByReference(): string[] {
         if (typeof window === "undefined") return []
@@ -1265,12 +1304,15 @@ export class Grapher
             this.xAxisConfig.label || ""
         )
 
+        const regionDetails = this.regionDetails.map((detail) => detail.id)
+
         // text fragments are ordered by appearance
         const uniqueDetails = uniq([
             ...subtitleDetails,
             ...yAxisDetails,
             ...xAxisDetails,
             ...noteDetails,
+            ...regionDetails,
         ])
 
         const validDetails = uniqueDetails.filter((detailId: string) => {
@@ -1413,6 +1455,29 @@ export class Grapher
             text = appendAnnotationField(text, this.timeTitleSuffix)
 
         return text.trim()
+    }
+
+    /**
+     * The authored note with region details appended.
+     */
+    @computed get currentNote(): string {
+        let note = this.note ?? ""
+        note = note.trim()
+
+        const noteDetails = extractDetailsFromSyntax(note)
+
+        // append region details that are not already in the note
+        for (const detail of this.regionDetails) {
+            if (!noteDetails.includes(detail.id)) {
+                const markdownDetail = makeMarkdownDetail({
+                    text: detail.name,
+                    id: detail.id,
+                })
+                note += ` Region DoD: ${markdownDetail}.`
+            }
+        }
+
+        return note
     }
 
     /**

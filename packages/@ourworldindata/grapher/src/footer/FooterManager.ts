@@ -4,7 +4,7 @@ import { ActionButtonsManager } from "../controls/ActionButtons"
 
 export interface FooterManager extends TooltipManager, ActionButtonsManager {
     sourcesLine?: string
-    note?: string
+    currentNote?: string
     hasOWIDLogo?: boolean
     originUrlWithProtocol?: string
     detailsOrderedByReference?: string[]
