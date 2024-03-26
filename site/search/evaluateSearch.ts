@@ -39,6 +39,8 @@ type SearchResults = {
     scope: "articles" | "charts" | "all"
     meanPrecision: number
     numQueries: number
+    algoliaApp: string
+    algoliaIndex: string
 }
 
 const QUERY_FILES = {
@@ -75,6 +77,8 @@ const evaluateArticleSearch = async (name: string): Promise<SearchResults> => {
         scope: "articles",
         meanPrecision: parseFloat(meanPrecision.toFixed(3)),
         numQueries: ds.queries.length,
+        algoliaApp: ALGOLIA_ID,
+        algoliaIndex: indexName,
     }
 }
 
