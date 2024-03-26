@@ -1286,8 +1286,8 @@ export class Grapher
         return !isStatic
             ? "underline"
             : shouldIncludeDetailsInStaticExport
-            ? "superscript"
-            : "none"
+              ? "superscript"
+              : "none"
     }
 
     // Used for static exports. Defined at this level because they need to

@@ -192,8 +192,8 @@ const getYearSuffixFromOrigin = (o: OwidOrigin): string => {
     const year = o.dateAccessed
         ? dayjs(o.dateAccessed, ["YYYY-MM-DD", "YYYY"]).year()
         : o.datePublished
-        ? dayjs(o.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
-        : undefined
+          ? dayjs(o.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
+          : undefined
     if (year) return ` (${year})`
     else return ""
 }
@@ -260,8 +260,8 @@ export const getCitationLong = (
         originsLong
             ? `${originsLong} [original data].`
             : source?.name
-            ? `${source?.name} [original data].`
-            : undefined,
+              ? `${source?.name} [original data].`
+              : undefined,
         canonicalUrl ? `Retrieved ${today} from ${canonicalUrl}` : undefined,
     ]).join(" ")
 }

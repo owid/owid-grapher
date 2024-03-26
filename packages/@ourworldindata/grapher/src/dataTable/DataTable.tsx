@@ -231,8 +231,8 @@ export class DataTable extends React.Component<{
             sort.dimIndex === dimIndex && sort.columnKey === columnKey
                 ? inverseSortOrder(sort.order)
                 : dimIndex === ENTITY_DIM_INDEX
-                ? SortOrder.asc
-                : SortOrder.desc
+                  ? SortOrder.asc
+                  : SortOrder.desc
 
         this.storedState.sort.dimIndex = dimIndex
         this.storedState.sort.columnKey = columnKey
@@ -1007,8 +1007,8 @@ function ColumnHeader(props: {
                 sortedCol
                     ? props.sortOrder
                     : isEntityColumn
-                    ? SortOrder.asc
-                    : SortOrder.desc
+                      ? SortOrder.asc
+                      : SortOrder.desc
             }
         />
     )

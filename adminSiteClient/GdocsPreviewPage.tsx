@@ -264,8 +264,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                     hasErrors
                                         ? OwidGdocErrorMessageType.Error
                                         : hasWarnings
-                                        ? OwidGdocErrorMessageType.Warning
-                                        : null
+                                          ? OwidGdocErrorMessageType.Warning
+                                          : null
                                 }
                             >
                                 <Button onClick={() => setSettingsOpen(true)}>

@@ -174,8 +174,8 @@ export const runLightbox = () => {
                 ? // getAttribute doesn't automatically URI encode values, img.src does
                   encodeURI(highResSrc)
                 : activeSourceImgUrl
-                ? activeSourceImgUrl
-                : img.src
+                  ? activeSourceImgUrl
+                  : img.src
 
             const imgAlt = img.alt
             if (imgSrc) {

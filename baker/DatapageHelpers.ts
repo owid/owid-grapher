@@ -89,8 +89,8 @@ export const getDatapageGdoc = async (
     const googleDocId = isPlainGoogleId
         ? googleDocEditLinkOrId
         : getLinkType(googleDocEditLinkOrId) === "gdoc"
-        ? getUrlTarget(googleDocEditLinkOrId)
-        : null
+          ? getUrlTarget(googleDocEditLinkOrId)
+          : null
 
     if (!googleDocId) return null
 

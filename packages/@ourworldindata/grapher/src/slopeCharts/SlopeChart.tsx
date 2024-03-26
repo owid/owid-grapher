@@ -1151,8 +1151,8 @@ class LabelledSlopes
                         mouse.x < startX
                             ? "left"
                             : mouse.x > endX
-                            ? "right"
-                            : "chart"
+                              ? "right"
+                              : "chart"
 
                     // don't track mouse movements when hovering over labels on the left
                     if (mousePosition === "left") {

@@ -450,8 +450,8 @@ export class SettingsMenu extends React.Component<{
         return isOnTableTab && showTableFilterToggle
             ? this.renderTableControls()
             : isOnChartTab && showSettingsMenuToggle
-            ? this.renderChartSettings()
-            : null
+              ? this.renderChartSettings()
+              : null
     }
 }
 
