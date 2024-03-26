@@ -82,11 +82,11 @@ if (require.main === module) {
             },
             async (argv) => {
                 try {
-                    await db.knexReadonlyTransaction((trx) =>
-                        batchTagChartsWithGpt(trx, argv)
+                    await db.knexReadonlyTransaction(
+                        (trx) => batchTagChartsWithGpt(trx, argv),
+                        db.TransactionCloseMode.Close
                     )
                 } finally {
-                    await db.closeTypeOrmAndKnexConnections()
                 }
             }
         )

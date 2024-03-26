@@ -200,8 +200,9 @@ const main = async (
 ) => {
     console.log(email, name, postId)
     try {
-        const slug = db.knexReadWriteTransaction((trx) =>
-            syncPostToGrapher(trx, postId)
+        const slug = db.knexReadWriteTransaction(
+            (trx) => syncPostToGrapher(trx, postId),
+            db.TransactionCloseMode.Close
         )
 
         if (BAKE_ON_CHANGE)

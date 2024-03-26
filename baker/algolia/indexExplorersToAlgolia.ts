@@ -196,10 +196,11 @@ const indexExplorersToAlgolia = async () => {
     try {
         const index = client.initIndex(getIndexName(SearchIndexName.Explorers))
 
-        const records = await db.knexReadonlyTransaction(getExplorerRecords)
+        const records = await db.knexReadonlyTransaction(
+            getExplorerRecords,
+            db.TransactionCloseMode.Close
+        )
         await index.replaceAllObjects(records)
-
-        await db.closeTypeOrmAndKnexConnections()
     } catch (e) {
         console.log("Error indexing explorers to Algolia: ", e)
     }

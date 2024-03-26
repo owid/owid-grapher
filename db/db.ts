@@ -76,10 +76,13 @@ export const mysqlFirst = async (
 
 export const closeTypeOrmAndKnexConnections = async (): Promise<void> => {
     if (typeormDataSource) await typeormDataSource.destroy()
-    if (_knexInstance) await _knexInstance.destroy()
+    if (_knexInstance) {
+        await _knexInstance.destroy()
+        _knexInstance = undefined
+    }
 }
 
-let _knexInstance: Knex
+let _knexInstance: Knex | undefined = undefined
 
 export const knexInstance = (): Knex<any, any[]> => {
     if (_knexInstance) return _knexInstance
@@ -119,23 +122,46 @@ export type KnexReadWriteTransaction = Knex.Transaction<any, any[]> & {
     readonly [__write_capability]: "write"
 }
 
+export enum TransactionCloseMode {
+    Close,
+    KeepOpen,
+}
+
+async function knexTransaction<T, KT>(
+    transactionFn: (trx: KT) => Promise<T>,
+    closeConnection: TransactionCloseMode,
+    readonly: boolean,
+    knex: Knex<any, any[]>
+): Promise<T> {
+    try {
+        const options = readonly ? { readOnly: true } : {}
+        const result = await knex.transaction(
+            async (trx) => transactionFn(trx as KT),
+            options
+        )
+        return result
+    } finally {
+        if (closeConnection === TransactionCloseMode.Close) {
+            await knex.destroy()
+            if (knex === _knexInstance) _knexInstance = undefined
+        }
+    }
+}
+
 export async function knexReadonlyTransaction<T>(
     transactionFn: (trx: KnexReadonlyTransaction) => Promise<T>,
+    closeConnection: TransactionCloseMode = TransactionCloseMode.KeepOpen,
     knex: Knex<any, any[]> = knexInstance()
 ): Promise<T> {
-    return knex.transaction(
-        async (trx) => transactionFn(trx as KnexReadonlyTransaction),
-        { readOnly: true }
-    )
+    return knexTransaction(transactionFn, closeConnection, true, knex)
 }
 
 export async function knexReadWriteTransaction<T>(
     transactionFn: (trx: KnexReadWriteTransaction) => Promise<T>,
+    closeConnection: TransactionCloseMode = TransactionCloseMode.KeepOpen,
     knex: Knex<any, any[]> = knexInstance()
 ): Promise<T> {
-    return knex.transaction(async (trx) =>
-        transactionFn(trx as KnexReadWriteTransaction)
-    )
+    return knexTransaction(transactionFn, closeConnection, false, knex)
 }
 export const knexRaw = async <TRow = unknown>(
     knex: Knex<any, any[]>,

@@ -132,10 +132,11 @@ const indexChartsToAlgolia = async () => {
 
     const index = client.initIndex(getIndexName(SearchIndexName.Charts))
 
-    const records = await db.knexReadonlyTransaction(getChartsRecords)
+    const records = await db.knexReadonlyTransaction(
+        getChartsRecords,
+        db.TransactionCloseMode.Close
+    )
     await index.replaceAllObjects(records)
-
-    await db.closeTypeOrmAndKnexConnections()
 }
 
 process.on("unhandledRejection", (e) => {

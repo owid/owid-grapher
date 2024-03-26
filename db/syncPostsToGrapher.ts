@@ -435,10 +435,12 @@ const syncPostsToGrapher = async (
 
 const main = async (): Promise<void> => {
     try {
-        await db.knexReadWriteTransaction((trx) => syncPostsToGrapher(trx))
+        await db.knexReadWriteTransaction(
+            (trx) => syncPostsToGrapher(trx),
+            db.TransactionCloseMode.Close
+        )
     } finally {
         await wpdb.singleton.end()
-        await db.closeTypeOrmAndKnexConnections()
     }
 }
 

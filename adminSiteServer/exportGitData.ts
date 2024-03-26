@@ -13,9 +13,7 @@ const main = async () => {
                     commitOnly: true,
                 })
         }
-    })
-
-    await db.closeTypeOrmAndKnexConnections()
+    }, db.TransactionCloseMode.Close)
 }
 
 void main()

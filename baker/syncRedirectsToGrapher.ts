@@ -67,10 +67,12 @@ export const syncRedirectsToGrapher = async (
 
 const main = async (): Promise<void> => {
     try {
-        await db.knexReadWriteTransaction((trx) => syncRedirectsToGrapher(trx))
+        await db.knexReadWriteTransaction(
+            (trx) => syncRedirectsToGrapher(trx),
+            db.TransactionCloseMode.Close
+        )
     } finally {
         await wpdb.singleton.end()
-        await db.closeTypeOrmAndKnexConnections()
     }
 }
 

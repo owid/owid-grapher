@@ -1,7 +1,4 @@
-import {
-    closeTypeOrmAndKnexConnections,
-    knexReadonlyTransaction,
-} from "../../db/db.js"
+import { TransactionCloseMode, knexReadonlyTransaction } from "../../db/db.js"
 import { getPostRawBySlug } from "../../db/model/Post.js"
 import { enrichedBlocksToMarkdown } from "../../db/model/Gdoc/enrichedToMarkdown.js"
 
@@ -47,10 +44,8 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
                 process.exit(-1)
             }
             console.log(markdown)
-        })
-        await closeTypeOrmAndKnexConnections()
+        }, TransactionCloseMode.Close)
     } catch (error) {
-        await closeTypeOrmAndKnexConnections()
         console.error("Encountered an error: ", error)
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.

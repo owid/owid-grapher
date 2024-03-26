@@ -276,7 +276,7 @@ const migrate = async (trx: db.KnexReadWriteTransaction): Promise<void> => {
             await db.knexRaw(trx, insertQuery, [
                 JSON.stringify(archieMlFieldContent, null, 2),
                 JSON.stringify(archieMlStatsContent, null, 2),
-                markdown,
+                markdown ?? null,
                 post.id,
             ])
             console.log("inserted", post.id)
@@ -315,8 +315,7 @@ const migrate = async (trx: db.KnexReadWriteTransaction): Promise<void> => {
 }
 
 async function runMigrate(): Promise<void> {
-    await db.knexReadWriteTransaction(migrate)
-    await db.closeTypeOrmAndKnexConnections()
+    await db.knexReadWriteTransaction(migrate, db.TransactionCloseMode.Close)
 }
 
 void runMigrate()
