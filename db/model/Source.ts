@@ -1,4 +1,3 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm"
 import {
     DbEnrichedSource,
     DbRawSource,
@@ -6,15 +5,6 @@ import {
     parseSourcesRow,
 } from "@ourworldindata/types"
 import { KnexReadonlyTransaction } from "../db.js"
-
-@Entity("sources")
-export class Source extends BaseEntity {
-    @PrimaryGeneratedColumn() id!: number
-    @Column() datasetId!: number
-    @Column() name!: string
-    @Column({ default: "{}", type: "json" }) description!: any
-}
-
 export async function getSourceById(
     knex: KnexReadonlyTransaction,
     sourceId: number
