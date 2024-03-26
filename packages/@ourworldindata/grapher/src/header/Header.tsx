@@ -107,10 +107,10 @@ export class Header<
         const initialFontSize = this.useBaseFontSize
             ? (22 / BASE_FONT_SIZE) * this.baseFontSize
             : this.manager.isNarrow
-            ? 18
-            : this.manager.isMedium
-            ? 20
-            : 24
+              ? 18
+              : this.manager.isMedium
+                ? 20
+                : 24
 
         let title = makeTitle(initialFontSize)
 

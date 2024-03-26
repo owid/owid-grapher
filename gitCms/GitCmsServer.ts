@@ -233,8 +233,8 @@ export class GitCmsServer {
                 const commitMsg = commitMessage
                     ? commitMessage
                     : fs.existsSync(absolutePath)
-                    ? `Updating ${filename}`
-                    : `Adding ${filename}`
+                      ? `Updating ${filename}`
+                      : `Adding ${filename}`
 
                 await this.commitFile(
                     filename,

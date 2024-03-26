@@ -311,9 +311,8 @@ export class ChartEditorPage
             (key: FieldWithDetailReferences) => {
                 const references = invalidDetailReferences[key]
                 if (references.length) {
-                    errorMessages[
-                        key
-                    ] = `Invalid detail(s) specified: ${references.join(", ")}`
+                    errorMessages[key] =
+                        `Invalid detail(s) specified: ${references.join(", ")}`
                 }
             }
         )

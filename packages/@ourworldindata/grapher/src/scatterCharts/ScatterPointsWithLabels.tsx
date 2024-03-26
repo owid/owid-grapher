@@ -451,10 +451,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                 (hideConnectedScatterLines
                     ? 3
                     : series.isHover
-                    ? 3
-                    : isSubtleForeground
-                    ? 1.5
-                    : 2) +
+                      ? 3
+                      : isSubtleForeground
+                        ? 1.5
+                        : 2) +
                 lastPoint.size / 2
 
             if (series.points.length === 1)

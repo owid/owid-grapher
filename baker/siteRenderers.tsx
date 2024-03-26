@@ -594,17 +594,21 @@ export const renderProminentLinks = async (
                     (!isCanonicalInternalUrl(resolvedUrl)
                         ? null // attempt fallback for internal urls only
                         : resolvedUrl.isExplorer
-                        ? await getExplorerTitleByUrl(knex, resolvedUrl)
-                        : resolvedUrl.isGrapher && resolvedUrl.slug
-                        ? (await getChartConfigBySlug(knex, resolvedUrl.slug))
-                              ?.config?.title // optim?
-                        : resolvedUrl.slug &&
-                          (
-                              await getFullPostBySlugFromSnapshot(
-                                  knex,
-                                  resolvedUrl.slug
-                              )
-                          ).title)
+                          ? await getExplorerTitleByUrl(knex, resolvedUrl)
+                          : resolvedUrl.isGrapher && resolvedUrl.slug
+                            ? (
+                                  await getChartConfigBySlug(
+                                      knex,
+                                      resolvedUrl.slug
+                                  )
+                              )?.config?.title // optim?
+                            : resolvedUrl.slug &&
+                              (
+                                  await getFullPostBySlugFromSnapshot(
+                                      knex,
+                                      resolvedUrl.slug
+                                  )
+                              ).title)
             } finally {
                 if (!title) {
                     void logErrorAndMaybeSendToBugsnag(
@@ -624,12 +628,15 @@ export const renderProminentLinks = async (
                 (!isCanonicalInternalUrl(resolvedUrl)
                     ? null
                     : resolvedUrl.isExplorer
-                    ? renderExplorerDefaultThumbnail()
-                    : resolvedUrl.isGrapher && resolvedUrl.slug
-                    ? renderGrapherThumbnailByResolvedChartSlug(
-                          resolvedUrl.slug
-                      )
-                    : await renderPostThumbnailBySlug(knex, resolvedUrl.slug))
+                      ? renderExplorerDefaultThumbnail()
+                      : resolvedUrl.isGrapher && resolvedUrl.slug
+                        ? renderGrapherThumbnailByResolvedChartSlug(
+                              resolvedUrl.slug
+                          )
+                        : await renderPostThumbnailBySlug(
+                              knex,
+                              resolvedUrl.slug
+                          ))
 
             const rendered = ReactDOMServer.renderToStaticMarkup(
                 <div className="block-wrapper">

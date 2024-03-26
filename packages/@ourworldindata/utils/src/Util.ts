@@ -1066,8 +1066,8 @@ export function getClosestTimePairs(
             sortedTimesB[closestIndexInB] < timeA
                 ? closestIndexInB
                 : closestIndexInB > indexB
-                ? closestIndexInB - 1
-                : undefined
+                  ? closestIndexInB - 1
+                  : undefined
 
         /**
          * the index that holds the value that is definitely equal to or greater than timeA, the candidate time
