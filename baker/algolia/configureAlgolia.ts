@@ -86,8 +86,14 @@ export const configureAlgolia = async () => {
         ],
         attributesToSnippet: ["subtitle:24"],
         attributeForDistinct: "id",
-        disableExactOnAttributes: ["tags"],
         optionalWords: ["vs"],
+
+        // These lines below essentially demote matches in the `subtitle` and `availableEntities` fields:
+        // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
+        // We also disable prefix matching and typo tolerance on these.
+        disableExactOnAttributes: ["tags", "subtitle", "availableEntities"],
+        disableTypoToleranceOnAttributes: ["subtitle", "availableEntities"],
+        disablePrefixOnAttributes: ["subtitle"],
     })
 
     const pagesIndex = client.initIndex(getIndexName(SearchIndexName.Pages))
