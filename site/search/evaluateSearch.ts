@@ -47,7 +47,7 @@ const QUERY_FILES = {
 }
 
 const main = async (): Promise<void> => {
-    await evaluateAndPrint(QUERY_FILES.single)
+    // only do the multi, since it contains the single-word set as well
     await evaluateAndPrint(QUERY_FILES.multi)
 }
 
