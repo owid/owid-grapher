@@ -13,7 +13,8 @@ import algoliasearch from "algoliasearch"
 /* eslint-disable no-console */
 
 // this many articles are displayed un-collapsed, only score this many results
-const N_ARTICLES_DISPLAYED = 4
+const N_ARTICLES_QUICK_RESULTS = 2
+const N_ARTICLES_LONG_RESULTS = 4
 
 const CONCURRENT_QUERIES = 10
 
@@ -21,6 +22,8 @@ type QueryDataset = {
     name: string
     queries: Query[]
 }
+
+type Scores = { [key: string]: number }
 
 type Query = {
     query: string
@@ -31,13 +34,13 @@ type ScoredQuery = {
     query: string
     expected: string[]
     actual: string[]
-    precision: number
+    scores: Scores
 }
 
 type SearchResults = {
     name: string
     scope: "articles" | "charts" | "all"
-    meanPrecision: number
+    scores: Scores
     numQueries: number
     algoliaApp: string
     algoliaIndex: string
@@ -68,14 +71,19 @@ const evaluateArticleSearch = async (name: string): Promise<SearchResults> => {
 
     // run the evaluation
     const results = await simulateQueries(index, ds.queries)
-    const meanPrecision =
-        results.map((r) => r.precision).reduce((a, b) => a + b) / results.length
+    const scores: Scores = {}
+    for (const scoreName of Object.keys(results[0].scores)) {
+        const mean =
+            results.map((r) => r.scores[scoreName]).reduce((a, b) => a + b) /
+            results.length
+        scores[scoreName] = parseFloat(mean.toFixed(3))
+    }
 
     // print the results to two decimal places
     return {
         name: ds.name,
         scope: "articles",
-        meanPrecision: parseFloat(meanPrecision.toFixed(3)),
+        scores: scores,
         numQueries: ds.queries.length,
         algoliaApp: ALGOLIA_ID,
         algoliaIndex: indexName,
@@ -100,18 +108,28 @@ const simulateQuery = async (
 ): Promise<ScoredQuery> => {
     const { hits } = await index.search(query.query)
     const actual = hits.map((h: any) => h.slug)
-    const precision = calculatePrecision(query.slugs, actual)
-    return { query: query.query, expected: query.slugs, actual, precision }
+    const scores = scoreResults(query.slugs, actual)
+    return { query: query.query, expected: query.slugs, actual, scores }
 }
 
-const calculatePrecision = (expected: string[], actual: string[]): number => {
-    const actualTruncated = actual.slice(0, N_ARTICLES_DISPLAYED)
-    const n = actualTruncated.length
-    if (n === 0) {
-        return 0
+const scoreResults = (relevant: string[], actual: string[]): Scores => {
+    const scores: Scores = {}
+
+    for (const k of [N_ARTICLES_QUICK_RESULTS, N_ARTICLES_LONG_RESULTS]) {
+        const key = `precision@${k}`
+        const actualTruncated = actual.slice(0, k)
+        const n = actualTruncated.length
+        if (n === 0) {
+            scores[key] = 0
+            continue
+        }
+
+        const correct = actualTruncated.filter((a) =>
+            relevant.includes(a)
+        ).length
+        scores[key] = correct / n
     }
-    const correct = actualTruncated.filter((a) => expected.includes(a)).length
-    return correct / n
+    return scores
 }
 
 const simulateQueries = async (
