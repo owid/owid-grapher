@@ -143,7 +143,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     render() {
         const { variable } = this.props
         const { newVariable, isV2MetadataVariable } = this
-        const isDisabled = true
 
         const pathFragments = variable.catalogPath
             ? getETLPathComponents(variable.catalogPath)
@@ -172,7 +171,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 <form
                     onSubmit={(e) => {
                         e.preventDefault()
-                        // this.save()
+                        this.save()
                     }}
                 >
                     <div className="row">
@@ -226,7 +225,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     field="name"
                                     store={newVariable}
                                     label="Indicator Name"
-                                    disabled={isDisabled}
                                 />
                                 <BindString
                                     field="catalogPath"
@@ -238,7 +236,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     label="Display name"
                                     field="name"
                                     store={newVariable.display}
-                                    disabled={isDisabled}
                                 />
                                 <FieldsRow>
                                     <BindString
@@ -246,14 +243,12 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="unit"
                                         store={newVariable.display}
                                         placeholder={newVariable.unit}
-                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Short (axis) unit"
                                         field="shortUnit"
                                         store={newVariable.display}
                                         placeholder={newVariable.shortUnit}
-                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -262,14 +257,12 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="numDecimalPlaces"
                                         store={newVariable.display}
                                         helpText={`A negative number here will round integers`}
-                                        disabled={isDisabled}
                                     />
                                     <BindFloat
                                         label="Unit conversion factor"
                                         field="conversionFactor"
                                         store={newVariable.display}
                                         helpText={`Multiply all values by this amount`}
-                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -283,7 +276,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                                 value)
                                         }
                                         label="Treat year column as day series"
-                                        disabled={isDisabled}
+                                        disabled
                                     />
                                     <BindString
                                         label="Zero Day as YYYY-MM-DD"
@@ -292,7 +285,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         // disabled={
                                         //     !newVariable.display.yearIsDay
                                         // }
-                                        disabled={isDisabled}
+                                        disabled
                                         placeholder={
                                             newVariable.display.yearIsDay
                                                 ? EPOCH_DATE
@@ -339,25 +332,21 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         label="Title public"
                                         field="titlePublic"
                                         store={newVariable.presentation}
-                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Title variant"
                                         field="titleVariant"
                                         store={newVariable.presentation}
-                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Attribution"
                                         field="attribution"
                                         store={newVariable.presentation}
-                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Attribution short"
                                         field="attributionShort"
                                         store={newVariable.presentation}
-                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -366,14 +355,12 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="descriptionShort"
                                         store={newVariable}
                                         textarea
-                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Description from producer"
                                         field="descriptionFromProducer"
                                         store={newVariable}
                                         textarea
-                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -386,7 +373,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                                     .grapherConfigETL
                                             ),
                                         }}
-                                        disabled={isDisabled}
+                                        disabled
                                         textarea
                                         rows={8}
                                     />
@@ -395,7 +382,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="descriptionKey"
                                         store={newVariable}
                                         rows={8}
-                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -406,7 +392,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                             store={newVariable}
                                             textarea
                                             rows={8}
-                                            disabled={isDisabled}
                                         />
                                     </div>
                                     <div className="col">
@@ -424,13 +409,11 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                                     label: "Major",
                                                 },
                                             ]}
-                                            disabled={isDisabled}
                                         />
                                         <BindString
                                             label="Number of days between OWID updates"
                                             field="updatePeriodDays"
                                             store={newVariable}
-                                            disabled={isDisabled}
                                         />
                                     </div>
                                 </FieldsRow>
@@ -447,7 +430,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                                 value)
                                         }
                                         label="Include in table"
-                                        disabled={isDisabled}
+                                        disabled
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -456,7 +439,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         store={newVariable}
                                         label="Description"
                                         textarea
-                                        disabled={isDisabled}
+                                        disabled
                                     />
                                     <BindString
                                         field="entityAnnotationsMap"
@@ -464,7 +447,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         store={newVariable.display}
                                         label="Entity annotations"
                                         textarea
-                                        disabled={isDisabled}
+                                        disabled
                                         helpText="Additional text to show next to entity labels. Each note should be in a separate line."
                                     />
                                 </FieldsRow>
@@ -473,7 +456,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                 type="submit"
                                 className="btn btn-success"
                                 value="Update indicator"
-                                disabled={isDisabled}
                             />
                         </div>
                     </div>
@@ -527,7 +509,9 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
             await this.context.admin.rawRequest(
                 healthcheckUrl,
                 undefined,
-                "GET"
+                "GET",
+                undefined,
+                "include"
             )
             return true
         } catch (err) {
@@ -537,6 +521,8 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
 
     async save() {
         const { variable } = this.props
+
+        this.context.admin.loadingIndicatorSetting = "loading"
 
         const url = `${ETL_API_URL}/indicators`
 
@@ -555,11 +541,14 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         const request = this.context.admin.rawRequest(
             url,
             JSON.stringify(data),
-            "PUT"
+            "PUT",
+            undefined,
+            "include"
         )
         let response: Response
         try {
             response = await request
+            this.context.admin.loadingIndicatorSetting = "off"
         } catch (err) {
             const title = (await this.etlApiIsRunning())
                 ? `Internal error`
@@ -578,6 +567,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 ),
                 isFatal: true,
             })
+            this.context.admin.loadingIndicatorSetting = "off"
             throw err
         }
 

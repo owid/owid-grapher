@@ -54,7 +54,11 @@ export class AdminLayout extends React.Component<{
         const { admin } = this.context
         if (admin.settings.ENV === "development") {
             return <span className="dev">dev</span>
-        } else if (window.location.origin === "https://owid.cloud") {
+        } else if (
+            ["https://owid.cloud", "https://admin.owid.io"].includes(
+                window.location.origin
+            )
+        ) {
             return <span className="live">live</span>
         } else {
             return <span className="test">test</span>
