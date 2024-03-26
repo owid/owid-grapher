@@ -115,17 +115,17 @@ export const knexTable = (table: string): Knex.QueryBuilder =>
     knexInstance().table(table)
 
 export const knexRaw = async <TRow = unknown>(
-    str: string,
     knex: Knex<any, any[]>,
+    str: string,
     params?: any[]
 ): Promise<TRow[]> => (await knex.raw(str, params ?? []))[0]
 
 export const knexRawFirst = async <TRow = unknown>(
-    str: string,
     knex: Knex<any, any[]>,
+    str: string,
     params?: any[]
 ): Promise<TRow | undefined> => {
-    const results = await knexRaw<TRow>(str, knex, params)
+    const results = await knexRaw<TRow>(knex, str, params)
     if (results.length === 0) return undefined
     return results[0]
 }
@@ -140,10 +140,10 @@ export const getSlugsWithPublishedGdocsSuccessors = async (
     knex: Knex<any, any[]>
 ): Promise<Set<string>> => {
     return knexRaw(
+        knex,
         `-- sql
             select slug from posts_with_gdoc_publish_status
-            where isGdocPublished = TRUE`,
-        knex
+            where isGdocPublished = TRUE`
     ).then((rows) => new Set(rows.map((row: any) => row.slug)))
 }
 
@@ -151,6 +151,7 @@ export const getExplorerTags = async (
     knex: Knex<any, any[]>
 ): Promise<{ slug: string; tags: DbChartTagJoin[] }[]> => {
     return knexRaw<{ slug: string; tags: string }>(
+        knex,
         `-- sql
         SELECT
         ext.explorerSlug as slug,
@@ -163,8 +164,7 @@ export const getExplorerTags = async (
         LEFT JOIN tags t ON
             ext.tagId = t.id
         GROUP BY
-            ext.explorerSlug`,
-        knex
+            ext.explorerSlug`
     ).then((rows) =>
         rows.map((row) => ({
             slug: row.slug,
@@ -186,6 +186,7 @@ export const getPublishedExplorersBySlug = async (
     const tags = await getExplorerTags(knex)
     const tagsBySlug = keyBy(tags, "slug")
     return knexRaw(
+        knex,
         `-- sql
         SELECT
             slug,
@@ -194,8 +195,7 @@ export const getPublishedExplorersBySlug = async (
         FROM
             explorers
         WHERE
-            isPublished = TRUE`,
-        knex
+            isPublished = TRUE`
     ).then((rows) => {
         const processed = rows.map((row: any) => {
             return {
@@ -214,6 +214,7 @@ export const getPublishedDataInsights = (
     limit = Number.MAX_SAFE_INTEGER // default to no limit
 ): Promise<MinimalDataInsightInterface[]> => {
     return knexRaw(
+        knex,
         `
         SELECT
             content->>'$.title' AS title,
@@ -227,7 +228,6 @@ export const getPublishedDataInsights = (
             AND publishedAt < NOW()
         ORDER BY publishedAt DESC
         LIMIT ?`,
-        knex,
         [limit]
     ).then((results) =>
         results.map((record: any) => ({
@@ -237,26 +237,38 @@ export const getPublishedDataInsights = (
     ) as Promise<MinimalDataInsightInterface[]>
 }
 
+export const getPublishedDataInsightCount = (): Promise<number> => {
+    return knexRawFirst<{ count: number }>(
+        knexInstance(),
+        `
+        SELECT COUNT(*) AS count
+        FROM posts_gdocs
+        WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
+            AND published = TRUE
+            AND publishedAt < NOW()`
+    ).then((res) => res?.count ?? 0)
+}
+
 export const getTotalNumberOfCharts = (): Promise<number> => {
     return knexRawFirst<{ count: number }>(
+        knexInstance(),
         `
         SELECT COUNT(*) AS count
         FROM charts
-        WHERE config->"$.isPublished" = TRUE`,
-        knexInstance()
+        WHERE config->"$.isPublished" = TRUE`
     ).then((res) => res?.count ?? 0)
 }
 
 export const getTotalNumberOfInUseGrapherTags = (): Promise<number> => {
     return knexRawFirst<{ count: number }>(
+        knexInstance(),
         `
         SELECT COUNT(DISTINCT(tagId)) AS count
         FROM chart_tags
         WHERE chartId IN (
         SELECT id
         FROM charts
-        WHERE publishedAt IS NOT NULL)`,
-        knexInstance()
+        WHERE publishedAt IS NOT NULL)`
     ).then((res) => res?.count ?? 0)
 }
 
@@ -267,6 +279,7 @@ export const getHomepageId = (
     knex: Knex<any, any[]>
 ): Promise<string | undefined> => {
     return knexRawFirst<{ id: string }>(
+        knex,
         `-- sql
         SELECT
             posts_gdocs.id
@@ -274,7 +287,6 @@ export const getHomepageId = (
             posts_gdocs
         WHERE
             content->>'$.type' = '${OwidGdocType.Homepage}'
-            AND published = TRUE`,
-        knex
+            AND published = TRUE`
     ).then((result) => result?.id)
 }
