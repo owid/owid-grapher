@@ -338,6 +338,12 @@ const saveGrapher = async (
             [newJsonConfig, now, now, now, user.id]
         )
         chartId = result.insertId
+        // The chart config itself has an id field that should store the id of the chart - update the chart now so this is true
+        newConfig.id = chartId
+        await db.knexRaw(knex, `UPDATE charts SET config=? WHERE id = ?`, [
+            JSON.stringify(newConfig),
+            chartId,
+        ])
     }
 
     // Record this change in version history
@@ -2378,8 +2384,8 @@ putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
             prevJson.published && nextJson.published
                 ? "Updating"
                 : !prevJson.published && nextJson.published
-                  ? "Publishing"
-                  : "Unpublishing"
+                ? "Publishing"
+                : "Unpublishing"
         await triggerStaticBuild(res.locals.user, `${action} ${nextJson.slug}`)
     }
 
