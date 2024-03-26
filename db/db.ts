@@ -135,7 +135,7 @@ export const knexRawInsert = async (
     knex: KnexReadWriteTransaction,
     str: string,
     params?: any[]
-): Promise<{ insertId: number }> => await knex.raw(str, params ?? [])
+): Promise<{ insertId: number }> => (await knex.raw(str, params ?? []))[0]
 
 /**
  *  In the backporting workflow, the users create gdoc posts for posts. As long as these are not yet published,
