@@ -189,7 +189,7 @@ export class TimelineComponent extends React.Component<{
     @action.bound onPlayTouchEnd(evt: Event): void {
         evt.preventDefault()
         evt.stopPropagation()
-        this.controller.togglePlay()
+        void this.controller.togglePlay()
     }
 
     @computed private get isPlayingOrDragging(): boolean {
@@ -277,7 +277,7 @@ export class TimelineComponent extends React.Component<{
     @observable private lastUpdatedTooltip?: "startMarker" | "endMarker"
 
     @action.bound private togglePlay(): void {
-        this.controller.togglePlay()
+        void this.controller.togglePlay()
     }
 
     @action.bound updateStartTimeOnKeyDown(key: string): void {

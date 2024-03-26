@@ -70,7 +70,7 @@ async function downloadAndInsertCSV(
 
 const main = async (): Promise<void> => {
     try {
-        db.knexReadWriteTransaction((trx) => downloadAndInsertCSV(trx))
+        await db.knexReadWriteTransaction((trx) => downloadAndInsertCSV(trx))
     } catch (e) {
         console.error(e)
     } finally {
@@ -78,4 +78,4 @@ const main = async (): Promise<void> => {
     }
 }
 
-main()
+void main()

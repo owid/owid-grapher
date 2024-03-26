@@ -298,7 +298,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         // Add the disposer to the list of things we need to clean up on unmount
         this.disposers.push(disposer)
 
-        this.getFieldDefinitions()
+        void this.getFieldDefinitions()
     }
 
     @action.bound private resetViewStateAfterFetch(): void {
@@ -435,7 +435,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     currentColumnFieldDescription.default !== undefined &&
                     currentColumnFieldDescription.default === prevVal,
             }
-            this.doAction({ patches: [patch] })
+            void this.doAction({ patches: [patch] })
         } else {
             setValueRecursiveInplace(grapher, pointer, prevVal)
         }
@@ -942,7 +942,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             }
         }
 
-        this.doAction({ patches })
+        void this.doAction({ patches })
     }
     validateCellChanges(
         changes: Handsontable.CellChange[] | null,
@@ -1084,7 +1084,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         }
         // Perform a do operation that will add this to the undo stack and immediately
         // post this as a PATCH request to the server
-        this.doAction({ patches })
+        void this.doAction({ patches })
     }
 
     async getFieldDefinitions() {

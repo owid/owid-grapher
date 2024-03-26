@@ -118,7 +118,7 @@ export const SiteNavigation = ({
             const json = await response.json()
             setCategorizedTopics(json.categories)
         }
-        fetchCategorizedTopics()
+        void fetchCategorizedTopics()
     }, [])
 
     useTriggerOnEscape(closeOverlay)

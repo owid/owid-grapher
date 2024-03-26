@@ -362,13 +362,13 @@ export class ChartEditorPage
     }
 
     @action.bound refresh(): void {
-        this.fetchGrapher()
-        this.fetchDetails()
-        this.fetchData()
-        this.fetchLogs()
-        this.fetchRefs()
-        this.fetchRedirects()
-        this.fetchPageviews()
+        void this.fetchGrapher()
+        void this.fetchDetails()
+        void this.fetchData()
+        void this.fetchLogs()
+        void this.fetchRefs()
+        void this.fetchRedirects()
+        void this.fetchPageviews()
 
         // (2024-02-15) Disabled due to slow query performance
         // https://github.com/owid/owid-grapher/issues/3198

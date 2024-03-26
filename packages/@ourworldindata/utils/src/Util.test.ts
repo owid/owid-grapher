@@ -213,21 +213,21 @@ describe(retryPromise, () => {
 
     it("resolves when promise succeeds first-time", async () => {
         const promiseGetter = resolveAfterNthRetry(0, "success")
-        expect(retryPromise(promiseGetter, { maxRetries: 1 })).resolves.toEqual(
-            "success"
-        )
+        return expect(
+            retryPromise(promiseGetter, { maxRetries: 1 })
+        ).resolves.toEqual("success")
     })
 
     it("resolves when promise succeeds before retry limit", async () => {
         const promiseGetter = resolveAfterNthRetry(2, "success")
-        expect(retryPromise(promiseGetter, { maxRetries: 3 })).resolves.toEqual(
-            "success"
-        )
+        return expect(
+            retryPromise(promiseGetter, { maxRetries: 3 })
+        ).resolves.toEqual("success")
     })
 
     it("rejects when promise doesn't succeed within retry limit", async () => {
         const promiseGetter = resolveAfterNthRetry(3, "success")
-        expect(
+        return expect(
             retryPromise(promiseGetter, { maxRetries: 3 })
         ).rejects.toBeUndefined()
     })

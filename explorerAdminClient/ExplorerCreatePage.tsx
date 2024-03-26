@@ -71,7 +71,7 @@ export class ExplorerCreatePage extends React.Component<{
 
         if (this.props.doNotFetch) return
 
-        this.fetchExplorerProgramOnLoad()
+        void this.fetchExplorerProgramOnLoad()
         this.startPollingLocalStorageForPreviewChanges()
     }
 
@@ -208,8 +208,8 @@ export class ExplorerCreatePage extends React.Component<{
     @observable gitCmsBranchName = this.props.gitCmsBranchName
 
     @action.bound private onSave() {
-        if (this.program.isNewFile) this.saveAs()
-        else if (this.isModified) this.save()
+        if (this.program.isNewFile) void this.saveAs()
+        else if (this.isModified) void this.save()
     }
 
     render() {
@@ -472,7 +472,7 @@ class TemplatesComponent extends React.Component<{
     @observable.ref templates: GitCmsFile[] = []
 
     componentDidMount() {
-        if (this.props.isNewFile) this.fetchTemplatesOnLoad()
+        if (this.props.isNewFile) void this.fetchTemplatesOnLoad()
     }
 
     private gitCmsClient = new GitCmsClient(GIT_CMS_BASE_ROUTE)

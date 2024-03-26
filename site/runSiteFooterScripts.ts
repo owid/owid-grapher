@@ -48,7 +48,7 @@ export const runSiteFooterScripts = (
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
             runSiteTools()
             runCookiePreferencesManager()
-            runDetailsOnDemand()
+            void runDetailsOnDemand()
             break
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
@@ -56,14 +56,14 @@ export const runSiteFooterScripts = (
             runAllGraphersLoadedListener()
             runSiteTools()
             runCookiePreferencesManager()
-            runDetailsOnDemand()
+            void runDetailsOnDemand()
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
             runAllGraphersLoadedListener()
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
             runFootnotes()
-            runDetailsOnDemand()
+            void runDetailsOnDemand()
             runLightbox()
             runSiteTools()
             runCookiePreferencesManager()
@@ -97,7 +97,7 @@ export const runSiteFooterScripts = (
             runFootnotes()
             runSiteTools()
             runCookiePreferencesManager()
-            runDetailsOnDemand()
+            void runDetailsOnDemand()
             break
     }
 }

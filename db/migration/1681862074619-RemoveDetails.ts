@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class RemoveDetails1681862074619 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`
+        await queryRunner.query(`
             DROP TABLE IF EXISTS details
         `)
     }

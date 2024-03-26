@@ -548,7 +548,7 @@ export class Grapher
         if (this.manuallyProvideData) {
         } else if (this.owidDataset) {
             this._receiveOwidDataAndApplySelection(this.owidDataset)
-        } else this.downloadLegacyDataFromOwidVariableIds()
+        } else void this.downloadLegacyDataFromOwidVariableIds()
     }
 
     @action.bound updateFromObject(obj?: GrapherProgrammaticInterface): void {
@@ -2181,7 +2181,7 @@ export class Grapher
     }
 
     @action.bound private togglePlayingCommand(): void {
-        this.timelineController.togglePlay()
+        void this.timelineController.togglePlay()
     }
 
     selection =

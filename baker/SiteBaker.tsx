@@ -536,7 +536,7 @@ export class SiteBaker {
             try {
                 await this.bakeOwidGdoc(publishedGdoc)
             } catch (e) {
-                logErrorAndMaybeSendToBugsnag(
+                await logErrorAndMaybeSendToBugsnag(
                     `Error baking gdoc post with id "${publishedGdoc.id}" and slug "${publishedGdoc.slug}": ${e}`
                 )
             }
@@ -662,7 +662,7 @@ export class SiteBaker {
             )
             for (const detailId of detailIds) {
                 if (!details[detailId]) {
-                    logErrorAndMaybeSendToBugsnag(
+                    await logErrorAndMaybeSendToBugsnag(
                         `Grapher with slug ${chart.slug} references dod "${detailId}" which does not exist`
                     )
                 }
@@ -684,7 +684,7 @@ export class SiteBaker {
         const { details, parseErrors } =
             await GdocPost.getDetailsOnDemandGdoc(knex)
         if (parseErrors.length) {
-            logErrorAndMaybeSendToBugsnag(
+            await logErrorAndMaybeSendToBugsnag(
                 `Error(s) baking details: ${parseErrors
                     .map((e) => e.message)
                     .join(", ")}`
@@ -740,7 +740,7 @@ export class SiteBaker {
             try {
                 await this.bakeOwidGdoc(dataInsight)
             } catch (e) {
-                logErrorAndMaybeSendToBugsnag(
+                await logErrorAndMaybeSendToBugsnag(
                     `Error baking gdoc post with id "${dataInsight.id}" and slug "${dataInsight.slug}": ${e}`
                 )
             }
@@ -817,7 +817,7 @@ export class SiteBaker {
             try {
                 await this.bakeOwidGdoc(publishedAuthor)
             } catch (e) {
-                logErrorAndMaybeSendToBugsnag(
+                await logErrorAndMaybeSendToBugsnag(
                     `Error baking author with id "${publishedAuthor.id}" and slug "${publishedAuthor.slug}": ${e}`
                 )
             }
@@ -902,7 +902,7 @@ export class SiteBaker {
         for (const icon of tagIcons) {
             const iconName = icon.split(".")[0]
             if (!tagNames.has(iconName)) {
-                logErrorAndMaybeSendToBugsnag(
+                await logErrorAndMaybeSendToBugsnag(
                     `Tag icon "${icon}" does not have a corresponding tag in the database.`
                 )
             }
@@ -1034,9 +1034,9 @@ export class SiteBaker {
         console.log(msg || outPath)
     }
 
-    endDbConnections() {
-        wpdb.singleton.end()
-        db.closeTypeOrmAndKnexConnections()
+    async endDbConnections() {
+        await wpdb.singleton.end()
+        await db.closeTypeOrmAndKnexConnections()
     }
 
     private flushCache() {

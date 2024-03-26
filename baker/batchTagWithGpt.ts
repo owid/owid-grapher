@@ -22,7 +22,7 @@ export const batchTagWithGpt = async ({
     debug,
     limit,
 }: BatchTagWithGptArgs = {}) => {
-    db.knexReadonlyTransaction((trx) =>
+    await db.knexReadonlyTransaction((trx) =>
         batchTagChartsWithGpt(trx, { debug, limit })
     )
 }
@@ -72,7 +72,7 @@ const batchTagChartsWithGpt = async (
 }
 
 if (require.main === module) {
-    yargs(hideBin(process.argv))
+    void yargs(hideBin(process.argv))
         .command<BatchTagWithGptArgs>(
             "$0",
             "Batch tag charts with GPT topics",

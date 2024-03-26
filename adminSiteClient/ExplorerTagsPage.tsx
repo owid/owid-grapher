@@ -29,7 +29,7 @@ export class ExplorerTagsPage extends React.Component {
     @observable newExplorerTags: DbChartTagJoin[] = []
 
     componentDidMount() {
-        this.getData()
+        void this.getData()
     }
 
     // Don't show explorers that already have tags
@@ -101,7 +101,7 @@ export class ExplorerTagsPage extends React.Component {
                                                 tags={explorer.tags}
                                                 suggestions={this.tags}
                                                 onSave={(tags) => {
-                                                    this.saveTags(
+                                                    void this.saveTags(
                                                         explorer.slug,
                                                         tags
                                                     )

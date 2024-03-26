@@ -38,7 +38,7 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
 
     @action.bound onSubmit(event: React.FormEvent) {
         event.preventDefault()
-        this.submit()
+        void this.submit()
     }
 
     render() {
@@ -212,6 +212,6 @@ export class UsersIndexPage extends React.Component {
     }
 
     componentDidMount() {
-        this.getData()
+        void this.getData()
     }
 }

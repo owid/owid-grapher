@@ -41,7 +41,7 @@ export class AddLegacySdgChartReferences1685706058408
     }
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`-- sql
+        await queryRunner.query(`-- sql
         CREATE TABLE IF NOT EXISTS legacy_sdg_chart_references (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 slug VARCHAR(255),
@@ -61,7 +61,7 @@ export class AddLegacySdgChartReferences1685706058408
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`-- sql
+        await queryRunner.query(`-- sql
             DROP TABLE IF EXISTS legacy_sdg_chart_references;
         `)
     }

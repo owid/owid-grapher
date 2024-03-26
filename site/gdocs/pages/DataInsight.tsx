@@ -128,7 +128,7 @@ const DataInsightMeta = (props: {
                     id="copy-link-button"
                     className="data-insight-meta__copy-link-button body-3-medium"
                     onClick={() => {
-                        copyToClipboard(
+                        void copyToClipboard(
                             `${BAKED_BASE_URL}/data-insights/${props.slug}`
                         )
                         setHasCopied(true)

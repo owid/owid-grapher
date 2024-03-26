@@ -72,7 +72,7 @@ export class SuggestedChartRevisionImportPage extends React.Component {
             suggestedConfigs: this.suggestedConfigs,
             suggestedReason: this.suggestedReason,
         }
-        this.context.admin
+        void this.context.admin
             .requestJSON("/api/suggested-chart-revisions", requestData, "POST")
             .then((json: any) => {
                 runInAction(() => {

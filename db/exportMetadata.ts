@@ -60,4 +60,4 @@ async function dataExport(): Promise<void> {
     await db.closeTypeOrmAndKnexConnections()
 }
 
-dataExport()
+void dataExport()

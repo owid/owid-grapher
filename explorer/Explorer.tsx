@@ -374,7 +374,7 @@ export class Explorer
                 this.updateGrapherFromExplorerUsingGrapherId()
                 break
             case ExplorerChartCreationMode.FromVariableIds:
-                this.updateGrapherFromExplorerUsingVariableIds()
+                void this.updateGrapherFromExplorerUsingVariableIds()
                 break
             case ExplorerChartCreationMode.FromExplorerTableColumnSlugs:
                 this.updateGrapherFromExplorerUsingColumnSlugs()
@@ -672,7 +672,7 @@ export class Explorer
         this.setGrapherTable(
             BlankOwidTable(tableSlug, `Loading table '${tableSlug}'`)
         )
-        this.futureGrapherTable.set(this.tableLoader.get(tableSlug))
+        void this.futureGrapherTable.set(this.tableLoader.get(tableSlug))
 
         if (this.downloadDataLink)
             grapher.externalCsvLink = this.downloadDataLink
@@ -996,7 +996,9 @@ export class Explorer
             : this.explorerProgram.grapherConfig.tableSlug
 
         this.entityPickerTableIsLoading = true
-        this.futureEntityPickerTable.set(this.tableLoader.get(tableSlugToLoad))
+        void this.futureEntityPickerTable.set(
+            this.tableLoader.get(tableSlugToLoad)
+        )
     }
 
     setEntityPicker({

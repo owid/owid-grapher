@@ -128,7 +128,6 @@ import {
     gdocFromJSON,
     getAllGdocIndexItemsOrderedByUpdatedAt,
     getAndLoadGdocById,
-    getDbEnrichedGdocFromOwidGdoc,
     getGdocBaseObjectById,
     loadGdocFromGdocBase,
     setLinksForGdoc,
@@ -148,7 +147,7 @@ const triggerStaticBuild = async (user: DbPlainUser, commitMessage: string) => {
         return
     }
 
-    new DeployQueueServer().enqueueChange({
+    return new DeployQueueServer().enqueueChange({
         timeISOString: new Date().toISOString(),
         authorName: user.fullName,
         authorEmail: user.email,
@@ -1980,7 +1979,7 @@ putRouteWithRWTransaction(
                 commitEmail: res.locals.user.email,
             })
         } catch (err) {
-            logErrorAndMaybeSendToBugsnag(err, req)
+            await logErrorAndMaybeSendToBugsnag(err, req)
             // Continue
         }
 
@@ -2046,7 +2045,7 @@ deleteRouteWithRWTransaction(
                 commitEmail: res.locals.user.email,
             })
         } catch (err: any) {
-            logErrorAndMaybeSendToBugsnag(err, req)
+            await logErrorAndMaybeSendToBugsnag(err, req)
             // Continue
         }
 
@@ -2598,7 +2597,7 @@ apiRouter.get("/deploys.json", async () => ({
 }))
 
 apiRouter.put("/deploy", async (req, res) => {
-    triggerStaticBuild(res.locals.user, "Manually triggered deploy")
+    return triggerStaticBuild(res.locals.user, "Manually triggered deploy")
 })
 
 getRouteWithROTransaction(apiRouter, "/gdocs", (req, res, trx) => {
@@ -2755,9 +2754,9 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
         .where({ gdocSuccessorId: gdoc.id })
         .update({ gdocSuccessorId: null })
 
-    trx.table(PostsGdocsLinksTableName).where({ sourceId: id }).delete()
-    trx.table(PostsGdocsXImagesTableName).where({ gdocId: id }).delete()
-    trx.table(PostsGdocsTableName).where({ id }).delete()
+    await trx.table(PostsGdocsLinksTableName).where({ sourceId: id }).delete()
+    await trx.table(PostsGdocsXImagesTableName).where({ gdocId: id }).delete()
+    await trx.table(PostsGdocsTableName).where({ id }).delete()
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })

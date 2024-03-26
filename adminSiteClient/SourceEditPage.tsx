@@ -98,7 +98,7 @@ class SourceEditor extends React.Component<{ source: SourcePageData }> {
                     <form
                         onSubmit={(e) => {
                             e.preventDefault()
-                            this.save()
+                            void this.save()
                         }}
                     >
                         {isBulkImport && (
@@ -189,6 +189,6 @@ export class SourceEditPage extends React.Component<{ sourceId: number }> {
         this.UNSAFE_componentWillReceiveProps()
     }
     UNSAFE_componentWillReceiveProps() {
-        this.getData()
+        void this.getData()
     }
 }

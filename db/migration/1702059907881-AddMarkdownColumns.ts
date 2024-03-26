@@ -33,15 +33,19 @@ export class AddMarkdownColumns1702059907881 implements MigrationInterface {
         //     from posts`
         // )
 
-        this.createAndStoreMarkdown("posts_gdocs", archieMlInGdocs, queryRunner)
+        await this.createAndStoreMarkdown(
+            "posts_gdocs",
+            archieMlInGdocs,
+            queryRunner
+        )
         // this.createAndStoreMarkdown("posts", archieMlInPosts, queryRunner)
     }
 
-    private createAndStoreMarkdown(
+    private async createAndStoreMarkdown(
         tableName: string,
         blocks: { id: string | number; content: string }[],
         queryRunner: QueryRunner
-    ): void {
+    ): Promise<void> {
         for (const row of blocks) {
             try {
                 const content: OwidGdocPostContent = JSON.parse(row.content)
@@ -68,7 +72,7 @@ export class AddMarkdownColumns1702059907881 implements MigrationInterface {
                 ]).flat()
 
                 const markdown = enrichedBlocksToMarkdown(blocks, true)
-                queryRunner.query(
+                await queryRunner.query(
                     `UPDATE ${tableName} SET markdown=? WHERE id=?`,
                     [markdown, row.id]
                 )

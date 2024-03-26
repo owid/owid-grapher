@@ -59,7 +59,7 @@ class AddTagModal extends React.Component<{
                 <form
                     onSubmit={(e) => {
                         e.preventDefault()
-                        this.submit()
+                        void this.submit()
                     }}
                 >
                     <div className="modal-header">
@@ -199,6 +199,6 @@ export class TagsIndexPage extends React.Component {
     }
 
     componentDidMount() {
-        this.getData()
+        void this.getData()
     }
 }

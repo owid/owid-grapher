@@ -267,7 +267,7 @@ export const renderFrontPage = async (knex: KnexReadonlyTransaction) => {
         await gdocHomepage.loadState(knex)
         return renderGdoc(gdocHomepage)
     } else {
-        logErrorAndMaybeSendToBugsnag(
+        await logErrorAndMaybeSendToBugsnag(
             new JsonError(
                 `Failed to find homepage Gdoc with type "${OwidGdocType.Homepage}"`
             )
@@ -580,7 +580,7 @@ export const renderProminentLinks = async (
                           ).title)
             } finally {
                 if (!title) {
-                    logErrorAndMaybeSendToBugsnag(
+                    void logErrorAndMaybeSendToBugsnag(
                         new JsonError(
                             `No fallback title found for prominent link ${resolvedUrlString} in ${formatWordpressEditLink(
                                 containerPostId
@@ -769,7 +769,7 @@ export const renderKeyInsights = async (
         const title = $block.find("> title").text()
         const slug = $block.find("> slug").text()
         if (!title || !slug) {
-            logErrorAndMaybeSendToBugsnag(
+            void logErrorAndMaybeSendToBugsnag(
                 new JsonError(
                     `Title or anchor missing for key insights block, content removed in ${formatWordpressEditLink(
                         containerPostId
@@ -782,7 +782,7 @@ export const renderKeyInsights = async (
 
         const keyInsights = extractKeyInsights($, $block, containerPostId)
         if (!keyInsights.length) {
-            logErrorAndMaybeSendToBugsnag(
+            void logErrorAndMaybeSendToBugsnag(
                 new JsonError(
                     `No valid key insights found within block, content removed in ${formatWordpressEditLink(
                         containerPostId
@@ -838,7 +838,7 @@ export const extractKeyInsights = (
         // both as an unexpected behaviour or a feature, depending on the stage
         // of work (published or WIP).
         if (!title || !slug || !content) {
-            logErrorAndMaybeSendToBugsnag(
+            void logErrorAndMaybeSendToBugsnag(
                 new JsonError(
                     `Missing title, slug or content for key insight ${
                         title || slug

@@ -215,12 +215,14 @@ export const formatWordpressPost = async (
         })
     }
 
+    const jsonErrors: JsonError[] = []
+
     html = html.replace(dataValueRegex, (_, dataValueConfigurationString) => {
         const dataValueProps: DataValueProps | undefined = dataValues.get(
             dataValueConfigurationString
         )
         if (!dataValueProps) {
-            logErrorAndMaybeSendToBugsnag(
+            jsonErrors.push(
                 new JsonError(
                     `Missing data value for {{DataValue ${dataValueConfigurationString}}}" in ${BAKED_BASE_URL}/${post.slug}`
                 )
@@ -233,6 +235,8 @@ export const formatWordpressPost = async (
             </span>
         )
     })
+
+    await Promise.allSettled(jsonErrors.map(logErrorAndMaybeSendToBugsnag))
 
     // Needs to be happen after DataValue replacements, as the DataToken regex
     // would otherwise capture DataValue tags

@@ -4,7 +4,7 @@ export class AddExplorerVariablesTable1689327366854
     implements MigrationInterface
 {
     public async up(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`-- sql
+        await queryRunner.query(`-- sql
           CREATE TABLE \`explorer_variables\` (
             \`id\` int NOT NULL AUTO_INCREMENT,
             \`explorerSlug\` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs NOT NULL,
@@ -18,6 +18,6 @@ export class AddExplorerVariablesTable1689327366854
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`DROP TABLE explorer_variables`)
+        await queryRunner.query(`DROP TABLE explorer_variables`)
     }
 }

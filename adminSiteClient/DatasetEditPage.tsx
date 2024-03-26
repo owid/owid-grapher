@@ -267,7 +267,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     <form
                         onSubmit={(e) => {
                             e.preventDefault()
-                            this.save()
+                            void this.save()
                         }}
                     >
                         <p>
@@ -422,6 +422,6 @@ export class DatasetEditPage extends React.Component<{ datasetId: number }> {
         this.UNSAFE_componentWillReceiveProps()
     }
     UNSAFE_componentWillReceiveProps() {
-        this.getData()
+        void this.getData()
     }
 }

@@ -237,7 +237,7 @@ const indexToAlgolia = async () => {
     await db.getConnection()
     const records = await db.knexReadonlyTransaction(getPagesRecords)
 
-    index.replaceAllObjects(records)
+    await index.replaceAllObjects(records)
 
     await wpdb.singleton.end()
     await db.closeTypeOrmAndKnexConnections()
@@ -248,4 +248,4 @@ process.on("unhandledRejection", (e) => {
     process.exit(1)
 })
 
-indexToAlgolia()
+void indexToAlgolia()

@@ -73,7 +73,7 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
         delete chartConfigObject.version
         delete chartConfigObject.isPublished
         const chartConfigAsYaml = dump(chartConfigObject)
-        copyToClipboard(chartConfigAsYaml)
+        void copyToClipboard(chartConfigAsYaml)
         notification["success"]({
             message: "Copied YAML to clipboard",
             description: "You can now paste this into the ETL",

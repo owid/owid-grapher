@@ -36,7 +36,7 @@ export class ChartRow extends React.Component<{
     }
 
     @action.bound onSaveTags(tags: DbChartTagJoin[]) {
-        this.saveTags(tags)
+        void this.saveTags(tags)
     }
 
     render() {

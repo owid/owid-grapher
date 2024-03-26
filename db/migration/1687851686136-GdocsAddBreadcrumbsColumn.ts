@@ -4,12 +4,12 @@ export class GdocsAddBreadcrumbsColumn1687851686136
     implements MigrationInterface
 {
     public async up(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`-- sql
+        await queryRunner.query(`-- sql
             ALTER TABLE posts_gdocs ADD COLUMN breadcrumbs JSON`)
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`-- sql
+        await queryRunner.query(`-- sql
             ALTER TABLE posts_gdocs DROP COLUMN breadcrumbs`)
     }
 }

@@ -115,6 +115,6 @@ export class RedirectsIndexPage extends React.Component {
     }
 
     componentDidMount() {
-        this.getData()
+        void this.getData()
     }
 }

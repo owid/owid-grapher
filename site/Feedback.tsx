@@ -143,7 +143,7 @@ export class FeedbackForm extends React.Component<{
         this.done = false
         this.error = undefined
         this.loading = true
-        this.submit()
+        void this.submit()
     }
 
     @action.bound onName(e: React.ChangeEvent<HTMLInputElement>) {

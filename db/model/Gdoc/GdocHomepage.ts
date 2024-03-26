@@ -35,10 +35,12 @@ export class GdocHomepage
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     homepageMetadata: OwidGdocHomepageMetadata = {}
 
-    _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
+    _validateSubclass = async (
+        knex: db.KnexReadonlyTransaction
+    ): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
         const otherPublishedHomepages = await db.knexRaw<{ id: string }>(
-            db.knexInstance(),
+            knex,
             `
             SELECT
                 id

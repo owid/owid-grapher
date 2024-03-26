@@ -67,4 +67,4 @@ const analyze = async (): Promise<void> => {
     await db.closeTypeOrmAndKnexConnections()
 }
 
-analyze()
+void analyze()

@@ -319,4 +319,4 @@ async function runMigrate(): Promise<void> {
     await db.closeTypeOrmAndKnexConnections()
 }
 
-runMigrate()
+void runMigrate()

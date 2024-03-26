@@ -9,7 +9,7 @@ import * as db from "../db/db.js"
  */
 
 const main = async (folder: string) => {
-    db.knexReadonlyTransaction((trx) =>
+    return db.knexReadonlyTransaction((trx) =>
         bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
             folder,
             trx
@@ -18,4 +18,4 @@ const main = async (folder: string) => {
 }
 
 const dir = process.argv.slice(2).join(" ")
-main(dir)
+void main(dir)
