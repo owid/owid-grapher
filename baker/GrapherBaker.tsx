@@ -294,7 +294,7 @@ export async function renderDataPageV2(
     )
 
     datapageData.relatedResearch =
-        await getRelatedResearchAndWritingForVariable(variableId)
+        await getRelatedResearchAndWritingForVariable(knex, variableId)
 
     const tagToSlugMap = await getTagToSlugMap()
 
