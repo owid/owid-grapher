@@ -23,7 +23,6 @@ import {
 } from "./model/PostLink.js"
 import { renderTablePress } from "../site/Tablepress.js"
 import pMap from "p-map"
-import { Knex } from "knex"
 
 const zeroDateString = "0000-00-00 00:00:00"
 
@@ -241,7 +240,9 @@ export function getLinksToAddAndRemoveForPost(
     return { linksToAdd, linksToDelete }
 }
 
-const syncPostsToGrapher = async (knex: Knex<any, any[]>): Promise<void> => {
+const syncPostsToGrapher = async (
+    knex: db.KnexReadWriteTransaction
+): Promise<void> => {
     const dereferenceReusableBlocksFn = await buildReusableBlocksResolver()
     const dereferenceTablePressFn = await buildTablePressResolver()
 
@@ -331,9 +332,7 @@ const syncPostsToGrapher = async (knex: Knex<any, any[]>): Promise<void> => {
     )
 
     const doesExistInWordpress = keyBy(rows, "ID")
-    const existsInGrapher = await select("id").from(
-        db.knexInstance().from(postsTable)
-    )
+    const existsInGrapher = await select("id").from(knex.from(postsTable))
     const doesExistInGrapher = keyBy(existsInGrapher, "id")
 
     const toDelete = existsInGrapher
@@ -406,20 +405,18 @@ const syncPostsToGrapher = async (knex: Knex<any, any[]>): Promise<void> => {
         linksToDelete.push(...linksToModify.linksToDelete)
     }
 
-    await db.knexInstance().transaction(async (t) => {
-        if (toDelete.length)
-            await t.whereIn("id", toDelete).delete().from(postsTable)
+    if (toDelete.length)
+        await knex.whereIn("id", toDelete).delete().from(postsTable)
 
-        for (const row of toInsert) {
-            const rowForDb = serializePostRow(row)
-            if (doesExistInGrapher[row.id])
-                await t
-                    .update(rowForDb)
-                    .where("id", "=", rowForDb.id)
-                    .into(postsTable)
-            else await t.insert(rowForDb).into(postsTable)
-        }
-    })
+    for (const row of toInsert) {
+        const rowForDb = serializePostRow(row)
+        if (doesExistInGrapher[row.id])
+            await knex
+                .update(rowForDb)
+                .where("id", "=", rowForDb.id)
+                .into(postsTable)
+        else await knex.insert(rowForDb).into(postsTable)
+    }
 
     // TODO: unify our DB access and then do everything in one transaction
     if (linksToAdd.length) {
@@ -439,8 +436,7 @@ const syncPostsToGrapher = async (knex: Knex<any, any[]>): Promise<void> => {
 const main = async (): Promise<void> => {
     try {
         await db.getConnection()
-        const knex = db.knexInstance()
-        await syncPostsToGrapher(knex)
+        db.knexReadWriteTransaction((trx) => syncPostsToGrapher(trx))
     } finally {
         await wpdb.singleton.end()
         await db.closeTypeOrmAndKnexConnections()

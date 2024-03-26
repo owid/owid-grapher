@@ -3,7 +3,14 @@ import sqlFixtures from "sql-fixtures"
 import { dbTestConfig } from "./dbTestConfig.js"
 import { dataSource } from "./dataSource.dbtests.js"
 import { knex, Knex } from "knex"
-import { getConnection, knexRaw } from "../db.js"
+import {
+    getConnection,
+    knexRaw,
+    knexReadWriteTransaction,
+    KnexReadonlyTransaction,
+    KnexReadWriteTransaction,
+    knexReadonlyTransaction,
+} from "../db.js"
 import { DataSource } from "typeorm"
 import { deleteUser, insertUser, updateUser, User } from "../model/User.js"
 import { Chart } from "../model/Chart.js"
@@ -93,7 +100,7 @@ test("knex interface", async () => {
     if (!knexInstance) throw new Error("Knex connection not initialized")
 
     // Create a transaction and run all tests inside it
-    await knexInstance.transaction(async (trx) => {
+    await knexReadWriteTransaction(async (trx) => {
         // Fetch all users into memory
         const users = await trx
             .from<DbPlainUser>(UsersTableName)
@@ -137,5 +144,46 @@ test("knex interface", async () => {
         )
         expect(usersFromRawQuery.length).toBe(2)
         await deleteUser(trx, 2)
-    })
+    }, knexInstance)
+})
+
+export async function testRo(
+    trx: KnexReadonlyTransaction
+): Promise<{ result: number }[]> {
+    return knexRaw<{ result: number }>(trx, "SELECT 1 + 1 as result")
+}
+
+export async function testGetNumUsers(
+    trx: KnexReadonlyTransaction
+): Promise<{ userCount: number }[]> {
+    return knexRaw<{ userCount: number }>(
+        trx,
+        "SELECT count(*) as userCount from users"
+    )
+}
+
+export async function testRw(trx: KnexReadWriteTransaction): Promise<void> {
+    await knexRaw(trx, "INSERT INTO users (email, fullName) VALUES (?, ?)", [
+        "test2@ourworldindata.org",
+        "Test User 2",
+    ])
+}
+test("Transaction setup", async () => {
+    const result = await knexReadWriteTransaction(async (trx) => {
+        const result = await testRo(trx)
+        expect(result.length).toBe(1)
+        expect(result[0].result).toBe(2)
+        await testRw(trx)
+        return await testGetNumUsers(trx)
+    }, knexInstance)
+    expect(result.length).toBe(1)
+    expect(result[0].userCount).toBe(2)
+})
+
+test("Write actions in read-only transactions fail", async () => {
+    expect(async () => {
+        return knexReadonlyTransaction(async (trx) => {
+            await testRw(trx as KnexReadWriteTransaction) // The cast is necessary to not make TypeScript complain and catch this error :)
+        }, knexInstance)
+    }).rejects.toThrow()
 })

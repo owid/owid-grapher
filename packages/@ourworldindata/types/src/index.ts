@@ -635,6 +635,8 @@ export {
 
 export { RedirectCode, type DbPlainRedirect } from "./dbTypes/Redirects.js"
 
+export type { Nominal } from "./NominalType.js"
+
 export {
     type DbRawLatestWork,
     type DbEnrichedLatestWork,

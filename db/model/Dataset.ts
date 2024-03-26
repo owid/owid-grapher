@@ -22,7 +22,6 @@ import {
     VariablesTableName,
     DbRawVariable,
 } from "@ourworldindata/types"
-import { Knex } from "knex"
 
 @Entity("datasets")
 @Unique(["name", "namespace"])
@@ -45,7 +44,7 @@ export class Dataset extends BaseEntity {
 }
 
 export async function getDatasetById(
-    knex: Knex<any, any[]>,
+    knex: db.KnexReadonlyTransaction,
     datasetId: number
 ): Promise<DbPlainDataset | undefined> {
     const dataset = await knex<DbPlainDataset>(DatasetsTableName)
@@ -62,7 +61,7 @@ export async function getDatasetById(
 
 // Export dataset variables to CSV (not including metadata)
 export async function writeDatasetCSV(
-    knex: Knex<any, any[]>,
+    knex: db.KnexReadonlyTransaction,
     datasetId: number,
     stream: Writable
 ): Promise<void> {
@@ -81,7 +80,7 @@ export async function writeDatasetCSV(
 }
 
 export async function datasetToCSV(
-    knex: Knex<any, any[]>,
+    knex: db.KnexReadonlyTransaction,
     datasetId: number
 ): Promise<string> {
     let csv = ""
@@ -93,34 +92,32 @@ export async function datasetToCSV(
 }
 
 export async function setTagsForDataset(
-    knex: Knex<any, any[]>,
+    trx: db.KnexReadWriteTransaction,
     datasetId: number,
     tagIds: number[]
 ): Promise<void> {
-    await knex.transaction(async (trx: Knex<any, any[]>) => {
-        const tagRows = tagIds.map((tagId) => [tagId, datasetId])
-        await db.knexRaw(trx, `DELETE FROM dataset_tags WHERE datasetId=?`, [
-            datasetId,
-        ])
-        if (tagRows.length)
-            await db.knexRaw(
-                trx,
-                `INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`,
+    const tagRows = tagIds.map((tagId) => [tagId, datasetId])
+    await db.knexRaw(trx, `DELETE FROM dataset_tags WHERE datasetId=?`, [
+        datasetId,
+    ])
+    if (tagRows.length)
+        await db.knexRaw(
+            trx,
+            `INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`,
 
-                [tagRows]
-            )
-    })
+            [tagRows]
+        )
 }
 
 // Return object representing datapackage.json for this dataset
 export async function datasetToDatapackage(
-    knex: Knex<any, any[]>,
+    knex: db.KnexReadonlyTransaction,
     datasetId: number
 ): Promise<any> {
     const datasetName = (await getDatasetById(knex, datasetId))?.name
     const sources = await getSourcesForDataset(knex, datasetId)
-    const variables = (await db
-        .knexTable(VariablesTableName)
+    const variables = (await knex
+        .table(VariablesTableName)
         .where({ datasetId })) as DbRawVariable[]
     const tags = await db.knexRaw<Pick<DbPlainTag, "id" | "name">>(
         knex,

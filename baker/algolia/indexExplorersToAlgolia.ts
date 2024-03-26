@@ -15,7 +15,6 @@ import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
 import { chunkParagraphs } from "../chunk.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
-import { Knex } from "knex"
 import { getIndexName } from "../../site/search/searchClient.js"
 
 type ExplorerBlockColumns = {
@@ -116,7 +115,7 @@ function getNullishJSONValueAsPlaintext(value: string): string {
 }
 
 const getExplorerRecords = async (
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<ExplorerRecord[]> => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
 
@@ -198,8 +197,7 @@ const indexExplorersToAlgolia = async () => {
     try {
         const index = client.initIndex(getIndexName(SearchIndexName.Explorers))
 
-        const knex = db.knexInstance()
-        const records = await getExplorerRecords(knex)
+        const records = await db.knexReadonlyTransaction(getExplorerRecords)
         await index.replaceAllObjects(records)
 
         await db.closeTypeOrmAndKnexConnections()

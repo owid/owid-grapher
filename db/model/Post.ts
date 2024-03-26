@@ -43,14 +43,21 @@ export const select = <K extends keyof DbRawPost>(
     from: (query) => query.select(...args) as any,
 })
 
-export const getTagsByPostId = async (): Promise<
-    Map<number, { id: number; name: string }[]>
-> => {
-    const postTags = await db.queryMysql(`
+export const getTagsByPostId = async (
+    knex: db.KnexReadonlyTransaction
+): Promise<Map<number, { id: number; name: string }[]>> => {
+    const postTags = await db.knexRaw<{
+        postId: number
+        tagId: number
+        tagName: string
+    }>(
+        knex,
+        `
             SELECT pt.post_id AS postId, pt.tag_id AS tagId, t.name as tagName FROM post_tags pt
             JOIN posts p ON p.id=pt.post_id
             JOIN tags t ON t.id=pt.tag_id
-        `)
+        `
+    )
 
     const tagsByPostId: Map<number, { id: number; name: string }[]> = new Map()
 
@@ -92,55 +99,61 @@ export const setTagsForPost = async (
     })
 
 export const getPostRawBySlug = async (
+    trx: db.KnexReadonlyTransaction,
     slug: string
 ): Promise<DbRawPost | undefined> =>
-    (await db.knexTable(postsTable).where({ slug }))[0]
+    (await trx.table(postsTable).where({ slug }))[0]
 
 export const getPostRawById = async (
+    trx: db.KnexReadonlyTransaction,
     id: number
 ): Promise<DbRawPost | undefined> =>
-    (await db.knexTable(postsTable).where({ id }))[0]
+    (await trx.table(postsTable).where({ id }))[0]
 
 export const getPostEnrichedBySlug = async (
+    trx: db.KnexReadonlyTransaction,
     slug: string
 ): Promise<DbEnrichedPost | undefined> => {
-    const post = await getPostRawBySlug(slug)
+    const post = await getPostRawBySlug(trx, slug)
     if (!post) return undefined
     return parsePostRow(post)
 }
 
 export const getPostEnrichedById = async (
+    trx: db.KnexReadonlyTransaction,
     id: number
 ): Promise<DbEnrichedPost | undefined> => {
-    const post = await getPostRawById(id)
+    const post = await getPostRawById(trx, id)
     if (!post) return undefined
     return parsePostRow(post)
 }
 
 export const getFullPostBySlugFromSnapshot = async (
+    trx: db.KnexReadonlyTransaction,
     slug: string
 ): Promise<FullPost> => {
-    const postEnriched = await getPostEnrichedBySlug(slug)
+    const postEnriched = await getPostEnrichedBySlug(trx, slug)
     if (
         !postEnriched?.wpApiSnapshot ||
         !snapshotIsPostRestApi(postEnriched.wpApiSnapshot)
     )
         throw new JsonError(`No page snapshot found by slug ${slug}`, 404)
 
-    return getFullPost(postEnriched.wpApiSnapshot)
+    return getFullPost(trx, postEnriched.wpApiSnapshot)
 }
 
 export const getFullPostByIdFromSnapshot = async (
+    trx: db.KnexReadonlyTransaction,
     id: number
 ): Promise<FullPost> => {
-    const postEnriched = await getPostEnrichedById(id)
+    const postEnriched = await getPostEnrichedById(trx, id)
     if (
         !postEnriched?.wpApiSnapshot ||
         !snapshotIsPostRestApi(postEnriched.wpApiSnapshot)
     )
         throw new JsonError(`No page snapshot found by id ${id}`, 404)
 
-    return getFullPost(postEnriched.wpApiSnapshot)
+    return getFullPost(trx, postEnriched.wpApiSnapshot)
 }
 
 export const isPostSlugCitable = (slug: string): boolean => {
@@ -160,7 +173,7 @@ export const isPostSlugCitable = (slug: string): boolean => {
 }
 
 export const getPostsFromSnapshots = async (
-    knex: Knex<any, any[]>,
+    knex: db.KnexReadonlyTransaction,
     postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
     filterFunc?: FilterFnPostRestApi
 ): Promise<PostRestApi[]> => {
@@ -194,9 +207,12 @@ export const getPostsFromSnapshots = async (
 }
 
 export const getPostRelatedCharts = async (
+    knex: db.KnexReadonlyTransaction,
     postId: number
 ): Promise<RelatedChart[]> =>
-    db.queryMysql(`
+    db.knexRaw<RelatedChart>(
+        knex,
+        `-- sql
         SELECT DISTINCT
             charts.config->>"$.slug" AS slug,
             charts.config->>"$.title" AS title,
@@ -208,9 +224,11 @@ export const getPostRelatedCharts = async (
         WHERE post_tags.post_id=${postId}
         AND charts.config->>"$.isPublished" = "true"
         ORDER BY title ASC
-    `)
+    `
+    )
 
 export const getFullPost = async (
+    knex: db.KnexReadonlyTransaction,
     postApi: PostRestApi,
     excludeContent?: boolean
 ): Promise<FullPost> => ({
@@ -233,7 +251,7 @@ export const getFullPost = async (
     imageId: postApi.featured_media,
     relatedCharts:
         postApi.type === "page"
-            ? await getPostRelatedCharts(postApi.id)
+            ? await getPostRelatedCharts(knex, postApi.id)
             : undefined,
 })
 
@@ -241,7 +259,7 @@ const selectHomepagePosts: FilterFnPostRestApi = (post) =>
     post.meta?.owid_publication_context_meta_field?.homepage === true
 
 export const getBlogIndex = memoize(
-    async (knex: Knex<any, any[]>): Promise<IndexPost[]> => {
+    async (knex: db.KnexReadonlyTransaction): Promise<IndexPost[]> => {
         await db.getConnection() // side effect: ensure connection is established
         const gdocPosts = await GdocPost.getListedGdocPosts()
         const wpPosts = await Promise.all(
@@ -249,7 +267,9 @@ export const getBlogIndex = memoize(
                 knex,
                 [WP_PostType.Post],
                 selectHomepagePosts
-            ).then((posts) => posts.map((post) => getFullPost(post, true)))
+            ).then((posts) =>
+                posts.map((post) => getFullPost(knex, post, true))
+            )
         )
 
         const gdocSlugs = new Set(gdocPosts.map(({ slug }) => slug))
@@ -289,9 +309,10 @@ export const postsFlushCache = (): void => {
 }
 
 export const getBlockContentFromSnapshot = async (
+    trx: db.KnexReadonlyTransaction,
     id: number
 ): Promise<string | undefined> => {
-    const enrichedBlock = await getPostEnrichedById(id)
+    const enrichedBlock = await getPostEnrichedById(trx, id)
     if (
         !enrichedBlock?.wpApiSnapshot ||
         !snapshotIsBlockGraphQlApi(enrichedBlock.wpApiSnapshot)
@@ -303,7 +324,7 @@ export const getBlockContentFromSnapshot = async (
 
 export const getWordpressPostReferencesByChartId = async (
     chartId: number,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<PostReference[]> => {
     const relatedWordpressPosts: PostReference[] = await db.knexRaw(
         knex,
@@ -351,7 +372,7 @@ export const getWordpressPostReferencesByChartId = async (
 
 export const getGdocsPostReferencesByChartId = async (
     chartId: number,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<PostReference[]> => {
     const relatedGdocsPosts: PostReference[] = await db.knexRaw(
         knex,
@@ -393,8 +414,8 @@ export const getGdocsPostReferencesByChartId = async (
  * Get all the gdocs and Wordpress posts mentioning a chart
  */
 export const getRelatedArticles = async (
-    chartId: number,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction,
+    chartId: number
 ): Promise<PostReference[] | undefined> => {
     const wordpressPosts = await getWordpressPostReferencesByChartId(
         chartId,
@@ -409,10 +430,11 @@ export const getRelatedArticles = async (
 }
 
 export const getPostTags = async (
+    trx: db.KnexReadonlyTransaction,
     postId: number
 ): Promise<Pick<Tag, "id" | "name">[]> => {
-    return await db
-        .knexTable("post_tags")
+    return await trx
+        .table("post_tags")
         .select("tags.id", "tags.name")
         .where({ post_id: postId })
         .join("tags", "tags.id", "=", "post_tags.tag_id")

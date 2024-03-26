@@ -46,7 +46,13 @@ describe("writeVariableCSV", () => {
                 callback(null)
             },
         })
-        await writeVariableCSV(variableIds, writeStream, db.knexInstance())
+
+        await writeVariableCSV(
+            variableIds,
+            writeStream,
+            {} as db.KnexReadonlyTransaction
+        )
+
         return out
     }
 
@@ -165,7 +171,7 @@ describe("_dataAsDFfromS3", () => {
             },
         }
         mockS3data(s3data)
-        const df = await _dataAsDFfromS3([1], db.knexInstance())
+        const df = await _dataAsDFfromS3([1], {} as db.KnexReadonlyTransaction)
         expect(df.toObject()).toEqual({
             entityCode: ["code", "code"],
             entityId: [1, 1],

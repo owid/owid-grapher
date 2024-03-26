@@ -8,11 +8,15 @@ import {
     getFullPostBySlugFromSnapshot,
     isPostSlugCitable,
 } from "../db/model/Post.js"
+import { KnexReadonlyTransaction } from "../db/db.js"
 
-export const getPostBySlugLogToSlackNoThrow = async (slug: string) => {
+export const getPostBySlugLogToSlackNoThrow = async (
+    knex: KnexReadonlyTransaction,
+    slug: string
+) => {
     let post
     try {
-        post = await getFullPostBySlugFromSnapshot(slug)
+        post = await getFullPostBySlugFromSnapshot(knex, slug)
     } catch (err) {
         logErrorAndMaybeSendToBugsnag(err)
     } finally {
@@ -21,6 +25,7 @@ export const getPostBySlugLogToSlackNoThrow = async (slug: string) => {
 }
 
 export const getLandingOnlyIfParent = async (
+    knex: KnexReadonlyTransaction,
     post: FullPost,
     formattingOptions: FormattingOptions
 ) => {
@@ -37,7 +42,7 @@ export const getLandingOnlyIfParent = async (
     // Using no-throw version to prevent throwing and stopping baking mid-way.
     // It is more desirable to temporarily deploy with citation overrides
     // absent, while fixing the issue.
-    const landing = await getPostBySlugLogToSlackNoThrow(landingSlug)
+    const landing = await getPostBySlugLogToSlackNoThrow(knex, landingSlug)
     if (!landing) {
         // todo: the concept of "citation overrides" does not belong to that
         // generic function. Logging this message should be the responsibility
@@ -58,10 +63,11 @@ export const getLandingOnlyIfParent = async (
 }
 
 export const getPageOverrides = async (
+    knex: KnexReadonlyTransaction,
     post: FullPost,
     formattingOptions: FormattingOptions
 ): Promise<PageOverrides | undefined> => {
-    const landing = await getLandingOnlyIfParent(post, formattingOptions)
+    const landing = await getLandingOnlyIfParent(knex, post, formattingOptions)
     if (!landing) return
 
     const isParentLandingCitable = isPostSlugCitable(landing.slug)

@@ -23,14 +23,13 @@ import {
     getPostLinksBySourceId,
     insertManyPostLinks,
 } from "../db/model/PostLink.js"
-import { Knex } from "knex"
 const argv = parseArgs(process.argv.slice(2))
 
 const zeroDateString = "0000-00-00 00:00:00"
 
 // Sync post from the wordpress database to OWID database
 const syncPostToGrapher = async (
-    knex: Knex<any, any[]>,
+    knex: db.KnexReadWriteTransaction,
     postId: number
 ): Promise<string | undefined> => {
     const rows = await wpdb.singleton.query(
@@ -103,7 +102,7 @@ const syncPostToGrapher = async (
     const dereferenceReusableBlocksFn = await buildReusableBlocksResolver()
     const dereferenceTablePressFn = await buildTablePressResolver()
 
-    const matchingRows = await db.knexTable(postsTable).where({ id: postId })
+    const matchingRows = await knex.table(postsTable).where({ id: postId })
     const existsInGrapher = !!matchingRows.length
 
     const wpPost = rows[0]
@@ -140,32 +139,27 @@ const syncPostToGrapher = async (
           } as DbEnrichedPost)
         : undefined
 
-    await db.knexInstance().transaction(async (transaction) => {
-        if (!postRow && existsInGrapher)
-            // Delete from grapher
-            await transaction.table(postsTable).where({ id: postId }).delete()
-        else if (postRow) {
-            const contentWithBlocksInlined = dereferenceTablePressFn(
-                dereferenceReusableBlocksFn(postRow.content)
-            )
-            postRow.content = contentWithBlocksInlined
+    if (!postRow && existsInGrapher)
+        // Delete from grapher
+        await knex.table(postsTable).where({ id: postId }).delete()
+    else if (postRow) {
+        const contentWithBlocksInlined = dereferenceTablePressFn(
+            dereferenceReusableBlocksFn(postRow.content)
+        )
+        postRow.content = contentWithBlocksInlined
 
-            const rowForDb = serializePostRow(postRow)
+        const rowForDb = serializePostRow(postRow)
 
-            if (!existsInGrapher)
-                await transaction.table(postsTable).insert(rowForDb)
-            else if (existsInGrapher)
-                await transaction
-                    .table(postsTable)
-                    .where("id", "=", rowForDb.id)
-                    .update(rowForDb)
-        }
-    })
+        if (!existsInGrapher) await knex.table(postsTable).insert(rowForDb)
+        else if (existsInGrapher)
+            await knex
+                .table(postsTable)
+                .where("id", "=", rowForDb.id)
+                .update(rowForDb)
+    }
 
     const newPost = (
-        await select("slug").from(
-            db.knexTable(postsTable).where({ id: postId })
-        )
+        await select("slug").from(knex.table(postsTable).where({ id: postId }))
     )[0]
 
     if (postRow) {
@@ -206,7 +200,9 @@ const main = async (
 ) => {
     console.log(email, name, postId)
     try {
-        const slug = await syncPostToGrapher(db.knexInstance(), postId)
+        const slug = db.knexReadWriteTransaction((trx) =>
+            syncPostToGrapher(trx, postId)
+        )
 
         if (BAKE_ON_CHANGE)
             await new DeployQueueServer().enqueueChange({

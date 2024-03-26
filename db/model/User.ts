@@ -15,7 +15,7 @@ import {
     DbInsertUser,
     UsersTableName,
 } from "@ourworldindata/types"
-import { Knex } from "knex"
+import { KnexReadWriteTransaction, KnexReadonlyTransaction } from "../db.js"
 
 @Entity("users")
 export class User extends BaseEntity {
@@ -44,7 +44,7 @@ export class User extends BaseEntity {
 }
 
 export async function setPassword(
-    knex: Knex<any, any[]>,
+    knex: KnexReadWriteTransaction,
     id: number,
     password: string
 ): Promise<void> {
@@ -54,21 +54,21 @@ export async function setPassword(
 }
 
 export async function getUserById(
-    knex: Knex<any, any[]>,
+    knex: KnexReadonlyTransaction,
     id: number
 ): Promise<DbPlainUser | undefined> {
     return knex<DbPlainUser>(UsersTableName).where({ id }).first()
 }
 
 export async function insertUser(
-    knex: Knex<any, any[]>,
+    knex: KnexReadWriteTransaction,
     user: DbInsertUser
 ): Promise<{ id: number }> {
     return knex(UsersTableName).returning("id").insert(user)
 }
 
 export async function updateUser(
-    knex: Knex<any, any[]>,
+    knex: KnexReadWriteTransaction,
     id: number,
     user: Partial<DbInsertUser>
 ): Promise<void> {
@@ -76,7 +76,7 @@ export async function updateUser(
 }
 
 export async function deleteUser(
-    knex: Knex<any, any[]>,
+    knex: KnexReadWriteTransaction,
     id: number
 ): Promise<void> {
     return knex(UsersTableName).where({ id }).delete()

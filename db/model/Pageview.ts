@@ -2,7 +2,6 @@ import { keyBy } from "lodash"
 import { Entity, Column, BaseEntity } from "typeorm"
 import { RawPageview } from "@ourworldindata/utils"
 import * as db from "../db.js"
-import { Knex } from "knex"
 import {
     DbPlainAnalyticsPageview,
     AnalyticsPageviewsTableName,
@@ -27,7 +26,7 @@ export class Pageview extends BaseEntity implements RawPageview {
 }
 
 export async function getAnalyticsPageviewsByUrlObj(
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<{
     [url: string]: DbPlainAnalyticsPageview
 }> {
