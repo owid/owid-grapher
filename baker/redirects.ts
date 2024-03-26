@@ -74,12 +74,19 @@ export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
 }
 
 export const getGrapherRedirectsMap = async (
+    knex: db.KnexReadonlyTransaction,
     urlPrefix: string = "/grapher/"
 ) => {
-    const chartRedirectRows = (await db.queryMysql(`-- sql
+    const chartRedirectRows = (await db.knexRaw<{
+        oldSlug: string
+        newSlug: string
+    }>(
+        knex,
+        `-- sql
         SELECT chart_slug_redirects.slug as oldSlug, charts.config ->> "$.slug" as newSlug
         FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
-    `)) as Array<{ oldSlug: string; newSlug: string }>
+    `
+    )) as Array<{ oldSlug: string; newSlug: string }>
 
     return new Map(
         chartRedirectRows
@@ -104,7 +111,7 @@ export const getGrapherAndWordpressRedirectsMap = memoize(
         // source: pathnames only (e.g. /transport)
         // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
 
-        const grapherRedirects = await getGrapherRedirectsMap()
+        const grapherRedirects = await getGrapherRedirectsMap(knex)
         const wordpressRedirects = await getWordpressRedirectsMap(knex)
 
         // The order the redirects are added to the map is important. Adding the

@@ -19,7 +19,6 @@ void yargs(hideBin(process.argv))
         async ({ slug }) => {
             const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
 
-            await db.getConnection()
             await db.knexReadonlyTransaction((trx) =>
                 baker.bakeGDocPosts(trx, [slug])
             )

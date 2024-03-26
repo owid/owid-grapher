@@ -9,9 +9,12 @@ function rejectAfterDelay(ms: number) {
 }
 
 publicApiRouter.router.get("/health", async (req: Request, res: Response) => {
-    const sqlPromise = db.mysqlFirst(`SELECT id FROM charts LIMIT 1`)
-    const timeoutPromise = rejectAfterDelay(1500) // Wait 1.5 seconds at most
     try {
+        const sqlPromise = db.knexRaw(
+            db.knexInstance() as db.KnexReadonlyTransaction,
+            `SELECT id FROM charts LIMIT 1`
+        )
+        const timeoutPromise = rejectAfterDelay(1500) // Wait 1.5 seconds at most
         await Promise.race([sqlPromise, timeoutPromise])
         res.status(200).end("OK")
     } catch (e) {

@@ -1,10 +1,8 @@
 #! /usr/bin/env jest
 import sqlFixtures from "sql-fixtures"
 import { dbTestConfig } from "./dbTestConfig.js"
-import { dataSource } from "./dataSource.dbtests.js"
 import { knex, Knex } from "knex"
 import {
-    getConnection,
     knexRaw,
     knexReadWriteTransaction,
     KnexReadonlyTransaction,
@@ -12,7 +10,6 @@ import {
     knexRawFirst,
     knexReadonlyTransaction,
 } from "../db.js"
-import { DataSource } from "typeorm"
 import { deleteUser, insertUser, updateUser } from "../model/User.js"
 import {
     ChartsTableName,
@@ -23,7 +20,6 @@ import {
 } from "@ourworldindata/types"
 
 let knexInstance: Knex<any, unknown[]> | undefined = undefined
-let typeOrmConnection: DataSource | undefined = undefined
 
 beforeAll(async () => {
     const dataSpec = {
@@ -40,21 +36,13 @@ beforeAll(async () => {
     knexInstance = knex(dbTestConfig)
 
     const fixturesCreator = new sqlFixtures(knexInstance)
-    fixturesCreator.create(dataSpec, function (err: any, _: any) {
-        if (err) console.error(err)
-        // In case you want to see results of fixture creation you can do it like below
-        // console.log(_.users[0].email)
-    })
-    typeOrmConnection = await getConnection(dataSource)
+    await fixturesCreator.create(dataSpec)
 })
 
 afterAll((done: any) => {
     // We leave the user in the database for other tests to use
     // For other cases it is good to drop any rows created in the test
-    void Promise.allSettled([
-        typeOrmConnection?.destroy(),
-        knexInstance?.destroy(),
-    ]).then(() => done())
+    void Promise.allSettled([knexInstance?.destroy()]).then(() => done())
 })
 
 test("it can query a user created in fixture via TypeORM", async () => {
@@ -63,6 +51,7 @@ test("it can query a user created in fixture via TypeORM", async () => {
         .table(UsersTableName)
         .where({ email: "admin@example.com" })
         .first<DbPlainUser>()
+    expect(user).toBeTruthy()
     expect(user.id).toBe(1)
     expect(user.email).toBe("admin@example.com")
 })
@@ -166,14 +155,22 @@ test("knex interface", async () => {
         expect(usersFromRawQuery.length).toBe(2)
 
         // Check if in queries work as expected
-        const usersFromRawQueryWithInClause: Pick<DbPlainUser, "email">[] =
+        const usersFromRawQueryWithInClauseAsObj: Pick<DbPlainUser, "email">[] =
             await knexRaw(trx, "select * from users where email in (:emails)", {
                 emails: [
                     usersFromRawQuery[0].email,
                     usersFromRawQuery[1].email,
                 ],
             })
-        expect(usersFromRawQueryWithInClause.length).toBe(2)
+        expect(usersFromRawQueryWithInClauseAsObj.length).toBe(2)
+
+        const usersFromRawQueryWithInClauseAsArray: Pick<
+            DbPlainUser,
+            "email"
+        >[] = await knexRaw(trx, "select * from users where email in (?)", [
+            [usersFromRawQuery[0].email, usersFromRawQuery[1].email],
+        ])
+        expect(usersFromRawQueryWithInClauseAsArray.length).toBe(2)
 
         await deleteUser(trx, 2)
     }, knexInstance)

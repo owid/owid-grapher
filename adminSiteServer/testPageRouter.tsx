@@ -34,6 +34,7 @@ import {
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerChartCreationMode } from "../explorer/ExplorerConstants.js"
+import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"
@@ -437,19 +438,23 @@ function EmbedTestPage(props: EmbedTestPageProps) {
     )
 }
 
-testPageRouter.get("/embeds", async (req, res) => {
-    const props = await db.knexReadonlyTransaction((trx) =>
-        propsFromQueryParams(trx, {
+getPlainRouteWithROTransaction(
+    testPageRouter,
+    "/embeds",
+    async (req, res, trx) => {
+        const props = await propsFromQueryParams(trx, {
             ...req.query,
             originalUrl: req.originalUrl,
         })
-    )
-    res.send(renderToHtmlPage(<EmbedTestPage {...props} />))
-})
+        res.send(renderToHtmlPage(<EmbedTestPage {...props} />))
+    }
+)
 
-testPageRouter.get("/embeds/:id", async (req, res) => {
-    const id = req.params.id
-    await db.knexReadonlyTransaction(async (trx) => {
+getPlainRouteWithROTransaction(
+    testPageRouter,
+    "/embeds/:id",
+    async (req, res, trx) => {
+        const id = req.params.id
         const chartRaw: DbRawChart = await trx
             .table(ChartsTableName)
             .where({ id: id })
@@ -477,8 +482,8 @@ testPageRouter.get("/embeds/:id", async (req, res) => {
         } else {
             res.send("Could not find chart ID")
         }
-    })
-})
+    }
+)
 
 function PreviewTestPage(props: { charts: any[] }) {
     const style = `
@@ -618,36 +623,52 @@ function EmbedVariantsTestPage(
     )
 }
 
-testPageRouter.get("/previews", async (req, res) => {
-    const rows = await db.queryMysql(`SELECT config FROM charts LIMIT 200`)
-    const charts = rows.map((row: any) => JSON.parse(row.config))
-
-    res.send(renderToHtmlPage(<PreviewTestPage charts={charts} />))
-})
-
-testPageRouter.get("/embedVariants", async (req, res) => {
-    const rows = await db.queryMysql(`SELECT config FROM charts WHERE id=64`)
-    const charts = rows.map((row: any) => JSON.parse(row.config))
-    const viewProps = getViewPropsFromQueryParams(req.query)
-
-    res.send(
-        renderToHtmlPage(
-            <EmbedVariantsTestPage
-                charts={charts}
-                hasComparisonView={viewProps.hasComparisonView}
-            />
+getPlainRouteWithROTransaction(
+    testPageRouter,
+    "/previews",
+    async (req, res, trx) => {
+        const rows = await db.knexRaw(
+            trx,
+            `SELECT config FROM charts LIMIT 200`
         )
-    )
-})
+        const charts = rows.map((row: any) => JSON.parse(row.config))
 
-testPageRouter.get("/:slug.svg", async (req, res) => {
-    await db.knexReadonlyTransaction(async (trx) => {
+        res.send(renderToHtmlPage(<PreviewTestPage charts={charts} />))
+    }
+)
+
+getPlainRouteWithROTransaction(
+    testPageRouter,
+    "/embedVariants",
+    async (req, res, trx) => {
+        const rows = await db.knexRaw(
+            trx,
+            `SELECT config FROM charts WHERE id=64`
+        )
+        const charts = rows.map((row: any) => JSON.parse(row.config))
+        const viewProps = getViewPropsFromQueryParams(req.query)
+
+        res.send(
+            renderToHtmlPage(
+                <EmbedVariantsTestPage
+                    charts={charts}
+                    hasComparisonView={viewProps.hasComparisonView}
+                />
+            )
+        )
+    }
+)
+
+getPlainRouteWithROTransaction(
+    testPageRouter,
+    "/:slug.svg",
+    async (req, res, trx) => {
         const grapher = await getChartConfigBySlug(trx, req.params.slug)
         const vardata = await getChartVariableData(grapher.config)
         const svg = await grapherToSVG(grapher.config, vardata)
         res.send(svg)
-    })
-})
+    }
+)
 
 testPageRouter.get("/explorers", async (req, res) => {
     let explorers = await explorerAdminServer.getAllPublishedExplorers()

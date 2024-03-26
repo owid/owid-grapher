@@ -234,7 +234,6 @@ const indexToAlgolia = async () => {
     }
     const index = client.initIndex(getIndexName(SearchIndexName.Pages))
 
-    await db.getConnection()
     const records = await db.knexReadonlyTransaction(getPagesRecords)
 
     await index.replaceAllObjects(records)

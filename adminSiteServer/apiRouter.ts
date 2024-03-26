@@ -120,7 +120,7 @@ import {
     postRouteWithRWTransaction,
     patchRouteWithRWTransaction,
     getRouteNonIdempotentWithRWTransaction,
-} from "./routerHelpers.js"
+} from "./functionalRouterHelpers.js"
 import { getPublishedLinksTo } from "../db/model/Link.js"
 import {
     GdocLinkUpdateMode,
@@ -214,7 +214,8 @@ const getReferencesByChartId = async (
         knex
     )
     const postGdocsPromise = getGdocsPostReferencesByChartId(chartId, knex)
-    const explorerSlugsPromise = db.queryMysql(
+    const explorerSlugsPromise = db.knexRaw<{ explorerSlug: string }>(
+        knex,
         `SELECT DISTINCT
             explorerSlug
         FROM
@@ -431,12 +432,13 @@ getRouteWithROTransaction(apiRouter, "/charts.json", async (req, res, trx) => {
     return { charts }
 })
 
-apiRouter.get("/charts.csv", async (req, res) => {
+getRouteWithROTransaction(apiRouter, "/charts.csv", async (req, res, trx) => {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
 
     // note: this query is extended from OldChart.listFields.
-    const charts = await db.queryMysql(
-        `
+    const charts = await db.knexRaw(
+        trx,
+        `-- sql
         SELECT
             charts.id,
             charts.config->>"$.version" AS version,
@@ -491,25 +493,34 @@ getRouteWithROTransaction(
     async (req, res, trx) => expectChartById(trx, req.params.chartId)
 )
 
-apiRouter.get("/editorData/namespaces.json", async (req, res) => {
-    const rows = (await db.queryMysql(
-        `SELECT DISTINCT
+getRouteWithROTransaction(
+    apiRouter,
+    "/editorData/namespaces.json",
+    async (req, res, trx) => {
+        const rows = await db.knexRaw<{
+            name: string
+            description?: string
+            isArchived: boolean
+        }>(
+            trx,
+            `SELECT DISTINCT
                 namespace AS name,
                 namespaces.description AS description,
                 namespaces.isArchived AS isArchived
             FROM active_datasets
             JOIN namespaces ON namespaces.name = active_datasets.namespace`
-    )) as { name: string; description?: string; isArchived: boolean }[]
+        )
 
-    return {
-        namespaces: lodash
-            .sortBy(rows, (row) => row.description)
-            .map((namespace) => ({
-                ...namespace,
-                isArchived: !!namespace.isArchived,
-            })),
+        return {
+            namespaces: lodash
+                .sortBy(rows, (row) => row.description)
+                .map((namespace) => ({
+                    ...namespace,
+                    isArchived: !!namespace.isArchived,
+                })),
+        }
     }
-})
+)
 
 getRouteWithROTransaction(
     apiRouter,
@@ -1385,17 +1396,19 @@ getRouteWithROTransaction(
     }
 )
 
-apiRouter.delete("/users/:userId", async (req, res) => {
-    if (!res.locals.user.isSuperuser)
-        throw new JsonError("Permission denied", 403)
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/users/:userId",
+    async (req, res, trx) => {
+        if (!res.locals.user.isSuperuser)
+            throw new JsonError("Permission denied", 403)
 
-    const userId = expectInt(req.params.userId)
-    await db.transaction(async (t) => {
-        await t.execute(`DELETE FROM users WHERE id=?`, [userId])
-    })
+        const userId = expectInt(req.params.userId)
+        await db.knexRaw(trx, `DELETE FROM users WHERE id=?`, [userId])
 
-    return { success: true }
-})
+        return { success: true }
+    }
+)
 
 putRouteWithRWTransaction(
     apiRouter,
@@ -1446,10 +1459,13 @@ getRouteWithROTransaction(
     }
 )
 
-apiRouter.get(
+getRouteWithROTransaction(
+    apiRouter,
     "/chart-bulk-update",
     async (
-        req
+        req,
+        res,
+        trx
     ): Promise<BulkGrapherConfigResponse<BulkChartEditResponseRow>> => {
         const context: OperationContext = {
             grapherConfigFieldName: "config",
@@ -1468,8 +1484,9 @@ apiRouter.get(
         // careful there to only allow carefully guarded vocabularies from being used, not
         // arbitrary user input
         const whereClause = filterSExpr?.toSql() ?? "true"
-        const resultsWithStringGrapherConfigs =
-            await db.queryMysql(`SELECT charts.id as id,
+        const resultsWithStringGrapherConfigs = await db.knexRaw(
+            trx,
+            `SELECT charts.id as id,
             charts.config as config,
             charts.createdAt as createdAt,
             charts.updatedAt as updatedAt,
@@ -1483,15 +1500,19 @@ LEFT JOIN users publishedByUser ON publishedByUser.id=charts.publishedByUserId
 WHERE ${whereClause}
 ORDER BY charts.id DESC
 LIMIT 50
-OFFSET ${offset.toString()}`)
+OFFSET ${offset.toString()}`
+        )
 
         const results = resultsWithStringGrapherConfigs.map((row: any) => ({
             ...row,
             config: lodash.isNil(row.config) ? null : JSON.parse(row.config),
         }))
-        const resultCount = await db.queryMysql(`SELECT count(*) as count
+        const resultCount = await db.knexRaw<{ count: number }>(
+            trx,
+            `SELECT count(*) as count
 FROM charts
-WHERE ${whereClause}`)
+WHERE ${whereClause}`
+        )
         return { rows: results, numTotalRows: resultCount[0].count }
     }
 )
@@ -1537,10 +1558,13 @@ patchRouteWithRWTransaction(
     }
 )
 
-apiRouter.get(
+getRouteWithROTransaction(
+    apiRouter,
     "/variable-annotations",
     async (
-        req
+        req,
+        res,
+        trx
     ): Promise<BulkGrapherConfigResponse<VariableAnnotationsResponseRow>> => {
         const context: OperationContext = {
             grapherConfigFieldName: "grapherConfigAdmin",
@@ -1559,8 +1583,9 @@ apiRouter.get(
         // careful there to only allow carefully guarded vocabularies from being used, not
         // arbitrary user input
         const whereClause = filterSExpr?.toSql() ?? "true"
-        const resultsWithStringGrapherConfigs =
-            await db.queryMysql(`SELECT variables.id as id,
+        const resultsWithStringGrapherConfigs = await db.knexRaw(
+            trx,
+            `SELECT variables.id as id,
             variables.name as name,
             variables.grapherConfigAdmin as config,
             d.name as datasetname,
@@ -1574,30 +1599,37 @@ LEFT JOIN namespaces on d.namespace = namespaces.name
 WHERE ${whereClause}
 ORDER BY variables.id DESC
 LIMIT 50
-OFFSET ${offset.toString()}`)
+OFFSET ${offset.toString()}`
+        )
 
         const results = resultsWithStringGrapherConfigs.map((row: any) => ({
             ...row,
             config: lodash.isNil(row.config) ? null : JSON.parse(row.config),
         }))
-        const resultCount = await db.queryMysql(`SELECT count(*) as count
+        const resultCount = await db.knexRaw<{ count: number }>(
+            trx,
+            `SELECT count(*) as count
 FROM variables
 LEFT JOIN active_datasets as d on variables.datasetId = d.id
 LEFT JOIN namespaces on d.namespace = namespaces.name
-WHERE ${whereClause}`)
+WHERE ${whereClause}`
+        )
         return { rows: results, numTotalRows: resultCount[0].count }
     }
 )
 
-apiRouter.patch("/variable-annotations", async (req) => {
-    const patchesList = req.body as GrapherConfigPatch[]
-    const variableIds = new Set(patchesList.map((patch) => patch.id))
+patchRouteWithRWTransaction(
+    apiRouter,
+    "/variable-annotations",
+    async (req, res, trx) => {
+        const patchesList = req.body as GrapherConfigPatch[]
+        const variableIds = new Set(patchesList.map((patch) => patch.id))
 
-    await db.transaction(async (manager) => {
-        const configsAndIds = await manager.query(
-            `SELECT id, grapherConfigAdmin FROM variables where id IN (?)`,
-            [[...variableIds.values()]]
-        )
+        const configsAndIds = await db.knexRaw<
+            Pick<DbRawVariable, "id" | "grapherConfigAdmin">
+        >(trx, `SELECT id, grapherConfigAdmin FROM variables where id IN (?)`, [
+            [...variableIds.values()],
+        ])
         const configMap = new Map(
             configsAndIds.map((item: any) => [
                 item.id,
@@ -1611,18 +1643,22 @@ apiRouter.patch("/variable-annotations", async (req) => {
         }
 
         for (const [variableId, newConfig] of configMap.entries()) {
-            await manager.execute(
+            await db.knexRaw(
+                trx,
                 `UPDATE variables SET grapherConfigAdmin = ? where id = ?`,
                 [JSON.stringify(newConfig), variableId]
             )
         }
-    })
 
-    return { success: true }
-})
+        return { success: true }
+    }
+)
 
-apiRouter.get("/variables.usages.json", async (req) => {
-    const query = `-- sql
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables.usages.json",
+    async (req, res, trx) => {
+        const query = `-- sql
     SELECT
         variableId,
         COUNT(DISTINCT chartId) AS usageCount
@@ -1633,10 +1669,11 @@ apiRouter.get("/variables.usages.json", async (req) => {
     ORDER BY
         usageCount DESC`
 
-    const rows = await db.queryMysql(query)
+        const rows = await db.knexRaw(trx, query)
 
-    return rows
-})
+        return rows
+    }
+)
 
 // Used in VariableEditPage
 getRouteWithROTransaction(
@@ -2089,12 +2126,19 @@ postRouteWithRWTransaction(
 )
 
 // Get a list of redirects that map old slugs to charts
-apiRouter.get("/redirects.json", async (req, res) => ({
-    redirects: await db.queryMysql(`
+getRouteWithROTransaction(
+    apiRouter,
+    "/redirects.json",
+    async (req, res, trx) => ({
+        redirects: await db.knexRaw(
+            trx,
+            `-- sql
         SELECT r.id, r.slug, r.chart_id as chartId, JSON_UNQUOTE(JSON_EXTRACT(charts.config, "$.slug")) AS chartSlug
         FROM chart_slug_redirects AS r JOIN charts ON charts.id = r.chart_id
-        ORDER BY r.id DESC`),
-}))
+        ORDER BY r.id DESC`
+        ),
+    })
+)
 
 getRouteWithROTransaction(
     apiRouter,
@@ -2371,8 +2415,9 @@ deleteRouteWithRWTransaction(
     }
 )
 
-apiRouter.get("/posts.json", async (req) => {
-    const raw_rows = await db.queryMysql(
+getRouteWithROTransaction(apiRouter, "/posts.json", async (req, res, trx) => {
+    const raw_rows = await db.knexRaw(
+        trx,
         `-- sql
         WITH
             posts_tags_aggregated AS (

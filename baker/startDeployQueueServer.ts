@@ -26,8 +26,6 @@ const main = async () => {
         })
     }
 
-    await db.getConnection()
-
     // Listen for file changes
     fs.watchFile(DEPLOY_QUEUE_FILE_PATH, () => {
         // Start deploy after 10 seconds in order to avoid the quick successive

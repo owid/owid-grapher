@@ -58,7 +58,7 @@ import {
 import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
-import { queryMysql, getHomepageId, KnexReadonlyTransaction } from "../db/db.js"
+import { getHomepageId, knexRaw, KnexReadonlyTransaction } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import {
@@ -101,11 +101,14 @@ export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
 export const renderChartsPage = async (
+    knex: KnexReadonlyTransaction,
     explorerAdminServer: ExplorerAdminServer
 ) => {
     const explorers = await explorerAdminServer.getAllPublishedExplorers()
 
-    const chartItems = (await queryMysql(`
+    const chartItems = await knexRaw<ChartIndexItem>(
+        knex,
+        `-- sql
         SELECT
             id,
             config->>"$.slug" AS slug,
@@ -116,13 +119,22 @@ export const renderChartsPage = async (
             is_indexable IS TRUE
             AND publishedAt IS NOT NULL
             AND config->>"$.isPublished" = "true"
-    `)) as ChartIndexItem[]
+    `
+    )
 
-    const chartTags = await queryMysql(`
+    const chartTags = await knexRaw<{
+        chartId: number
+        tagId: number
+        tagName: string
+        tagParentId: number
+    }>(
+        knex,
+        `-- sql
         SELECT ct.chartId, ct.tagId, t.name as tagName, t.parentId as tagParentId FROM chart_tags ct
         JOIN charts c ON c.id=ct.chartId
         JOIN tags t ON t.id=ct.tagId
-    `)
+    `
+    )
 
     for (const c of chartItems) {
         c.tags = []
@@ -144,9 +156,12 @@ export const renderChartsPage = async (
     )
 }
 
-export async function renderTopChartsCollectionPage() {
-    const charts: string[] = await queryMysql(
-        `
+export async function renderTopChartsCollectionPage(
+    knex: KnexReadonlyTransaction
+) {
+    const charts: string[] = await knexRaw<{ slug: string }>(
+        knex,
+        `-- sql
     SELECT SUBSTRING_INDEX(url, '/', -1) AS slug
     FROM analytics_pageviews
     WHERE url LIKE "%https://ourworldindata.org/grapher/%"
@@ -644,7 +659,8 @@ export const renderExplorerPage = async (
     type ChartRow = { id: number; config: string }
     let grapherConfigRows: ChartRow[] = []
     if (requiredGrapherIds.length)
-        grapherConfigRows = await queryMysql(
+        grapherConfigRows = await knexRaw(
+            knex,
             `SELECT id, config FROM charts WHERE id IN (?)`,
             [requiredGrapherIds]
         )
@@ -655,7 +671,8 @@ export const renderExplorerPage = async (
         grapherConfigETL: string | null
     }[] = []
     if (requiredVariableIds.length) {
-        partialGrapherConfigRows = await queryMysql(
+        partialGrapherConfigRows = await knexRaw(
+            knex,
             `SELECT id, grapherConfigETL, grapherConfigAdmin FROM variables WHERE id IN (?)`,
             [requiredVariableIds]
         )

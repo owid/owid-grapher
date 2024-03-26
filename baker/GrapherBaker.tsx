@@ -248,7 +248,7 @@ export async function renderDataPageV2(
     let slug = ""
     if (firstTopicTag) {
         try {
-            slug = await getSlugForTopicTag(firstTopicTag)
+            slug = await getSlugForTopicTag(knex, firstTopicTag)
         } catch (error) {
             await logErrorAndMaybeSendToBugsnag(
                 `Datapage with variableId "${variableId}" and title "${datapageData.title.title}" is using "${firstTopicTag}" as its primary tag, which we are unable to resolve to a tag in the grapher DB`
@@ -296,7 +296,7 @@ export async function renderDataPageV2(
     datapageData.relatedResearch =
         await getRelatedResearchAndWritingForVariable(knex, variableId)
 
-    const tagToSlugMap = await getTagToSlugMap()
+    const tagToSlugMap = await getTagToSlugMap(knex)
 
     return renderToHtmlPage(
         <DataPageV2
@@ -381,7 +381,6 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     // renderDataPageOrGrapherPage() too, but given that this render function is also used
     // for rendering a datapage preview in the admin where worker threads are
     // not used, lifting the connection set up here seems more appropriate.
-    await db.getConnection()
 
     // Always bake the html for every chart; it's cheap to do so
     const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
@@ -519,9 +518,9 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         await pMap(
             jobs,
             async (job) => {
-                await db.knexReadonlyTransaction((trx) =>
-                    bakeSingleGrapherChart(job, trx)
-                )
+                // TODO: not sure if the shared transaction will be an issue - I think it should be fine but just to put a flag here
+                // that this could be causing issues
+                await bakeSingleGrapherChart(job, knex)
                 progressBar.tick({ name: `slug ${job.slug}` })
             },
             { concurrency: 10 }

@@ -2,7 +2,10 @@
 
 import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker.js"
 
-import { closeTypeOrmAndKnexConnections } from "../../db/db.js"
+import {
+    closeTypeOrmAndKnexConnections,
+    knexReadonlyTransaction,
+} from "../../db/db.js"
 
 import fs from "fs-extra"
 
@@ -15,7 +18,11 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const outDir = parsedArgs["o"] ?? utils.DEFAULT_CONFIGS_DIR
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 
-        const { graphersBySlug } = await getPublishedGraphersBySlug()
+        const { graphersBySlug } = await knexReadonlyTransaction(
+            async (trx) => {
+                return getPublishedGraphersBySlug(trx)
+            }
+        )
         const allGraphers = [...graphersBySlug.values()]
         const saveJobs: utils.SaveGrapherSchemaAndDataJob[] = allGraphers.map(
             (grapher) => ({ config: grapher, outDir })

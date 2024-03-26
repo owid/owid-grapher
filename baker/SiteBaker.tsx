@@ -431,8 +431,6 @@ export class SiteBaker {
     private async removeDeletedPosts(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("removeDeletedPosts")) return
 
-        await db.getConnection()
-
         const postsApi = await getPostsFromSnapshots(knex)
 
         const postSlugs = []
@@ -574,7 +572,7 @@ export class SiteBaker {
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/collection/top-charts.html`,
-            await renderTopChartsCollectionPage()
+            await renderTopChartsCollectionPage(knex)
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/404.html`,
@@ -592,7 +590,7 @@ export class SiteBaker {
 
         await this.stageWrite(
             `${this.bakedSiteDir}/charts.html`,
-            await renderChartsPage(this.explorerAdminServer)
+            await renderChartsPage(knex, this.explorerAdminServer)
         )
         this.progressBar.tick({ name: "✅ baked special pages" })
     }
@@ -947,7 +945,7 @@ export class SiteBaker {
             redirects.join("\n")
         )
 
-        const grapherRedirects = await getGrapherRedirectsMap("")
+        const grapherRedirects = await getGrapherRedirectsMap(knex, "")
         await this.stageWrite(
             path.join(this.bakedSiteDir, `grapher/_grapherRedirects.json`),
             JSON.stringify(Object.fromEntries(grapherRedirects), null, 2)
@@ -991,7 +989,6 @@ export class SiteBaker {
     }
 
     async bakeNonWordpressPages(knex: db.KnexReadonlyTransaction) {
-        await db.getConnection()
         const progressBarTotal = nonWordpressSteps
             .map((step) => this.bakeSteps.has(step))
             .filter((hasStep) => hasStep).length

@@ -95,6 +95,7 @@ export const bakeGrapherUrls = async (
 
     if (toBake.length > 0) {
         await bakeGraphersToSvgs(
+            knex,
             toBake,
             `${BAKED_SITE_DIR}/exports`,
             OPTIMIZE_SVG_EXPORTS
@@ -141,12 +142,13 @@ export const getGrapherExportsByUrl = async (): Promise<GrapherExports> => {
  *   "Women's Rights" -> "womens-rights"
  *   123 -> "womens-rights"
  */
-export async function getTagToSlugMap(): Promise<
-    Record<string | number, string>
-> {
-    const tags = (await db.queryMysql(
+export async function getTagToSlugMap(
+    knex: db.KnexReadonlyTransaction
+): Promise<Record<string | number, string>> {
+    const tags = await db.knexRaw<Pick<DbPlainTag, "name" | "id" | "slug">>(
+        knex,
         `SELECT slug, name, id FROM tags WHERE slug IS NOT NULL`
-    )) as Pick<DbPlainTag, "name" | "id" | "slug">[]
+    )
     const tagsByIdAndName: Record<string | number, string> = {}
     for (const tag of tags) {
         if (tag.slug) {
@@ -163,10 +165,11 @@ export async function getTagToSlugMap(): Promise<
  * Throws an error if no slug is found so we can log it in Bugsnag
  */
 export async function getSlugForTopicTag(
+    knex: db.KnexReadonlyTransaction,
     identifier: string | number
 ): Promise<string> {
     const propertyToMatch = typeof identifier === "string" ? "slug" : "id"
-    const tagsByIdAndName = await getTagToSlugMap()
+    const tagsByIdAndName = await getTagToSlugMap(knex)
     const slug = tagsByIdAndName[identifier]
 
     if (!slug) {
