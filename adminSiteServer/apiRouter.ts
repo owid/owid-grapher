@@ -2384,8 +2384,8 @@ putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
             prevJson.published && nextJson.published
                 ? "Updating"
                 : !prevJson.published && nextJson.published
-                ? "Publishing"
-                : "Unpublishing"
+                  ? "Publishing"
+                  : "Unpublishing"
         await triggerStaticBuild(res.locals.user, `${action} ${nextJson.slug}`)
     }
 
