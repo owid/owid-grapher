@@ -334,8 +334,8 @@ const saveGrapher = async (
     else {
         const result = await db.knexRawInsert(
             knex,
-            `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId) VALUES (?)`,
-            [[newJsonConfig, now, now, now, user.id]]
+            `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId) VALUES (?, ?, ?, ?, ?)`,
+            [newJsonConfig, now, now, now, user.id]
         )
         chartId = result.insertId
     }
@@ -371,8 +371,8 @@ const saveGrapher = async (
     for (const [i, dim] of newDimensions.entries()) {
         await db.knexRaw(
             knex,
-            `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?)`,
-            [[chartId, dim.variableId, dim.property, i]]
+            `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?, ?, ?, ?)`,
+            [chartId, dim.variableId, dim.property, i]
         )
     }
 
@@ -1603,8 +1603,8 @@ putRouteWithRWTransaction(
         if (tagRows.length)
             await db.knexRaw(
                 trx,
-                `INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`,
-                [tagRows]
+                `INSERT INTO dataset_tags (tagId, datasetId) VALUES (?, ?)`,
+                tagRows
             )
 
         try {
