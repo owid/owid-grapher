@@ -226,7 +226,7 @@ export class OwidAdminApp {
 
     connectToDatabases = async () => {
         try {
-            await db.getConnection()
+            const _ = db.knexInstance()
         } catch (error) {
             // grapher database is in fact required, but we will not fail now in case it
             // comes online later

@@ -1,6 +1,3 @@
-import mysql from "mysql"
-import { DataSource, EntityManager } from "typeorm"
-import { dataSource } from "./dataSource.js"
 import { knex, Knex } from "knex"
 import {
     GRAPHER_DB_HOST,
@@ -16,66 +13,9 @@ import {
     MinimalDataInsightInterface,
     OwidGdocType,
 } from "@ourworldindata/types"
-let typeormDataSource: DataSource
-
-export const getConnection = async (
-    source: DataSource = dataSource
-): Promise<DataSource> => {
-    if (typeormDataSource) return typeormDataSource
-
-    typeormDataSource = await source.initialize()
-
-    registerExitHandler(async () => {
-        if (typeormDataSource) await typeormDataSource.destroy()
-    })
-
-    return typeormDataSource
-}
-
-export class TransactionContext {
-    manager: EntityManager
-    constructor(manager: EntityManager) {
-        this.manager = manager
-    }
-
-    execute(queryStr: string, params?: any[]): Promise<any> {
-        return this.manager.query(
-            params ? mysql.format(queryStr, params) : queryStr
-        )
-    }
-
-    query(queryStr: string, params?: any[]): Promise<any> {
-        return this.manager.query(
-            params ? mysql.format(queryStr, params) : queryStr
-        )
-    }
-}
-
-export const transaction = async <T>(
-    callback: (t: TransactionContext) => Promise<T>
-): Promise<T> =>
-    (await getConnection()).transaction(async (manager) =>
-        callback(new TransactionContext(manager))
-    )
-
-export const queryMysql = async (
-    queryStr: string,
-    params?: any[]
-): Promise<any> => {
-    const conn = await getConnection()
-    return conn.query(params ? mysql.format(queryStr, params) : queryStr)
-}
 
 // Return the first match from a mysql query
-export const mysqlFirst = async (
-    queryStr: string,
-    params?: any[]
-): Promise<any> => {
-    return (await queryMysql(queryStr, params))[0]
-}
-
 export const closeTypeOrmAndKnexConnections = async (): Promise<void> => {
-    if (typeormDataSource) await typeormDataSource.destroy()
     if (_knexInstance) {
         await _knexInstance.destroy()
         _knexInstance = undefined

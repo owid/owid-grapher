@@ -62,12 +62,10 @@ import {
     DbPlainUser,
     UsersTableName,
     DbPlainTag,
-    grapherKeysToSerialize,
     DbRawVariable,
     parseOriginsRow,
     PostsTableName,
     DbRawPost,
-    DbRawSuggestedChartRevision,
     DbPlainChartSlugRedirect,
     DbRawChart,
     DbInsertChartRevision,
@@ -91,12 +89,15 @@ import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
 } from "./gitDataExport.js"
-import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision.js"
+import {
+    getQueryEnrichedSuggestedChartRevision,
+    getQueryEnrichedSuggestedChartRevisions,
+    isValidStatus,
+} from "../db/model/SuggestedChartRevision.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
 import { References } from "../adminSiteClient/ChartEditor.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
-import { escape } from "mysql"
 import Papa from "papaparse"
 import {
     postsTable,
@@ -757,449 +758,98 @@ deleteRouteWithRWTransaction(
     }
 )
 
-apiRouter.get("/suggested-chart-revisions", async (req, res) => {
-    const isValidSortBy = (sortBy: string) => {
-        return [
-            "updatedAt",
-            "createdAt",
-            "suggestedReason",
-            "id",
-            "chartId",
-            "status",
-            "variableId",
-            "chartUpdatedAt",
-            "chartCreatedAt",
-        ].includes(sortBy)
-    }
-    const isValidSortOrder = (sortOrder: string) => {
-        return (
-            sortOrder !== undefined &&
-            sortOrder !== null &&
-            ["ASC", "DESC"].includes(sortOrder.toUpperCase())
+getRouteWithROTransaction(
+    apiRouter,
+    "/suggested-chart-revisions",
+    async (req, res, trx) => {
+        const isValidSortBy = (sortBy: string) => {
+            return [
+                "updatedAt",
+                "createdAt",
+                "suggestedReason",
+                "id",
+                "chartId",
+                "status",
+                "variableId",
+                "chartUpdatedAt",
+                "chartCreatedAt",
+            ].includes(sortBy)
+        }
+        const isValidSortOrder = (sortOrder: string) => {
+            return (
+                sortOrder !== undefined &&
+                sortOrder !== null &&
+                ["ASC", "DESC"].includes(sortOrder.toUpperCase())
+            )
+        }
+        const limit =
+            req.query.limit !== undefined ? expectInt(req.query.limit) : 10000
+        const offset =
+            req.query.offset !== undefined ? expectInt(req.query.offset) : 0
+        const sortBy = isValidSortBy(req.query.sortBy as string)
+            ? req.query.sortBy
+            : "updatedAt"
+        const sortOrder = isValidSortOrder(req.query.sortOrder as string)
+            ? (req.query.sortOrder as string).toUpperCase()
+            : "DESC"
+        const status: string | null = isValidStatus(
+            req.query.status as SuggestedChartRevisionStatus
         )
-    }
-    const limit =
-        req.query.limit !== undefined ? expectInt(req.query.limit) : 10000
-    const offset =
-        req.query.offset !== undefined ? expectInt(req.query.offset) : 0
-    const sortBy = isValidSortBy(req.query.sortBy as string)
-        ? req.query.sortBy
-        : "updatedAt"
-    const sortOrder = isValidSortOrder(req.query.sortOrder as string)
-        ? (req.query.sortOrder as string).toUpperCase()
-        : "DESC"
-    const status = SuggestedChartRevision.isValidStatus(
-        req.query.status as SuggestedChartRevisionStatus
-    )
-        ? req.query.status
-        : null
+            ? (req.query.status as string)
+            : null
 
-    let orderBy
-    if (sortBy === "variableId") {
-        orderBy =
-            "CAST(scr.suggestedConfig->>'$.dimensions[0].variableId' as SIGNED)"
-    } else if (sortBy === "chartUpdatedAt") {
-        orderBy = "c.updatedAt"
-    } else if (sortBy === "chartCreatedAt") {
-        orderBy = "c.createdAt"
-    } else {
-        orderBy = `scr.${sortBy}`
-    }
+        let orderBy
+        if (sortBy === "variableId") {
+            orderBy =
+                "CAST(scr.suggestedConfig->>'$.dimensions[0].variableId' as SIGNED)"
+        } else if (sortBy === "chartUpdatedAt") {
+            orderBy = "c.updatedAt"
+        } else if (sortBy === "chartCreatedAt") {
+            orderBy = "c.createdAt"
+        } else {
+            orderBy = `scr.${sortBy}`
+        }
 
-    const suggestedChartRevisions = await db.queryMysql(
-        `-- sql
-            SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt,
-                scr.suggestedReason, scr.decisionReason, scr.status,
-                scr.suggestedConfig, scr.originalConfig, scr.changesInDataSummary,
-                scr.experimental,
-                createdByUser.id as createdById,
-                updatedByUser.id as updatedById,
-                createdByUser.fullName as createdByFullName,
-                updatedByUser.fullName as updatedByFullName,
-                c.config as existingConfig, c.updatedAt as chartUpdatedAt,
-                c.createdAt as chartCreatedAt
-            FROM suggested_chart_revisions as scr
-            LEFT JOIN charts c on c.id = scr.chartId
-            LEFT JOIN users createdByUser on createdByUser.id = scr.createdBy
-            LEFT JOIN users updatedByUser on updatedByUser.id = scr.updatedBy
-            ${status ? "WHERE scr.status = ?" : ""}
-            ORDER BY ${orderBy} ${sortOrder}
-            LIMIT ? OFFSET ?
-        `,
-        status ? [status, limit, offset] : [limit, offset]
-    )
-
-    let numTotalRows = (
-        await db.queryMysql(
-            `
+        const numTotalRows = (
+            await db.knexRaw<{ count: number }>(
+                trx,
+                `
                 SELECT COUNT(*) as count
                 FROM suggested_chart_revisions
                 ${status ? "WHERE status = ?" : ""}
             `,
-            status ? [status] : []
-        )
-    )[0].count
-    numTotalRows = numTotalRows ? parseInt(numTotalRows) : numTotalRows
+                status ? [status] : []
+            )
+        )[0].count
 
-    suggestedChartRevisions.map(
-        (suggestedChartRevision: SuggestedChartRevision) => {
-            suggestedChartRevision.suggestedConfig = JSON.parse(
-                suggestedChartRevision.suggestedConfig
+        const enrichedSuggestedChartRevisions =
+            await getQueryEnrichedSuggestedChartRevisions(
+                trx,
+                orderBy,
+                sortOrder,
+                status,
+                limit,
+                offset
             )
-            suggestedChartRevision.existingConfig = JSON.parse(
-                suggestedChartRevision.existingConfig
-            )
-            suggestedChartRevision.originalConfig = JSON.parse(
-                suggestedChartRevision.originalConfig
-            )
-            suggestedChartRevision.experimental = JSON.parse(
-                suggestedChartRevision.experimental
-            )
-            suggestedChartRevision.canApprove =
-                SuggestedChartRevision.checkCanApprove(suggestedChartRevision)
-            suggestedChartRevision.canReject =
-                SuggestedChartRevision.checkCanReject(suggestedChartRevision)
-            suggestedChartRevision.canFlag =
-                SuggestedChartRevision.checkCanFlag(suggestedChartRevision)
-            suggestedChartRevision.canPending =
-                SuggestedChartRevision.checkCanPending(suggestedChartRevision)
+
+        return {
+            suggestedChartRevisions: enrichedSuggestedChartRevisions,
+            numTotalRows: numTotalRows,
         }
-    )
-
-    return {
-        suggestedChartRevisions: suggestedChartRevisions,
-        numTotalRows: numTotalRows,
     }
-})
+)
 
-apiRouter.post("/suggested-chart-revisions", async (req, res) => {
-    const messages: any[] = []
-    const status = SuggestedChartRevisionStatus.pending
-    const suggestedReason = req.body.suggestedReason
-        ? String(req.body.suggestedReason)
-        : null
-    const changesInDataSummary = req.body.changesInDataSummary
-        ? String(req.body.changesInDataSummary)
-        : null
-    const convertStringsToNull =
-        typeof req.body.convertStringsToNull === "boolean"
-            ? req.body.convertStringsToNull
-            : true
-    const suggestedConfigs = req.body.suggestedConfigs as any[]
-
-    // suggestedConfigs must be an array of length > 0
-    if (!(Array.isArray(suggestedConfigs) && suggestedConfigs.length > 0)) {
-        throw new JsonError(
-            "POST body must contain a `suggestedConfigs` property, which must be an Array with length > 0."
-        )
-    }
-
-    // tries to convert each config field to json (e.g. the `map` field
-    // should be converted to json if it is present).
-    suggestedConfigs.map((config) => {
-        Object.keys(config).map((k) => {
-            try {
-                const json = JSON.parse(config[k])
-                config[k] = json
-            } catch (error) {
-                // do nothing.
-            }
-        })
-    })
-
-    // checks for required keys
-    const requiredKeys = ["id", "version"]
-    suggestedConfigs.map((config) => {
-        requiredKeys.map((k) => {
-            if (!config.hasOwnProperty(k)) {
-                throw new JsonError(
-                    `The "${k}" field is required, but one or more chart configs in the POST body does not contain it.`
-                )
-            }
-        })
-    })
-
-    // safely sets types of keys that are used in db queries below.
-    const typeConversions = [
-        { key: "id", expectedType: "number", f: expectInt },
-        { key: "version", expectedType: "number", f: expectInt },
-    ]
-    suggestedConfigs.map((config) => {
-        typeConversions.map((obj) => {
-            config[obj.key] = obj.f(config[obj.key])
-            if (
-                config[obj.key] !== null &&
-                config[obj.key] !== undefined &&
-                typeof config[obj.key] !== obj.expectedType
-            ) {
-                throw new JsonError(
-                    `Expected all "${obj.key}" values to be non-null and of ` +
-                        `type "${obj.expectedType}", but one or more chart ` +
-                        `configs contains a "${obj.key}" value that does ` +
-                        `not meet this criteria.`
-                )
-            }
-        })
-    })
-
-    // checks for invalid keys
-    const uniqKeys = new Set()
-    suggestedConfigs.map((config) => {
-        Object.keys(config).forEach((item) => {
-            uniqKeys.add(item)
-        })
-    })
-    const invalidKeys = [...uniqKeys].filter(
-        (v) => !grapherKeysToSerialize.includes(v as string)
-    )
-    if (invalidKeys.length > 0) {
-        throw new JsonError(
-            `The following fields are not valid chart config fields: ${invalidKeys}`
-        )
-    }
-
-    // checks that no duplicate chart ids are present.
-    const chartIds = suggestedConfigs.map((config) => config.id)
-    if (new Set(chartIds).size !== chartIds.length) {
-        throw new JsonError(
-            `Found one or more duplicate chart ids in POST body.`
-        )
-    }
-
-    // converts some strings to null
-    if (convertStringsToNull) {
-        const isNullString = (value: string): boolean => {
-            const nullStrings = ["nan", "na"]
-            return nullStrings.includes(value.toLowerCase())
-        }
-        suggestedConfigs.map((config) => {
-            for (const key of Object.keys(config)) {
-                if (
-                    typeof config[key] === "string" &&
-                    isNullString(config[key])
-                ) {
-                    config[key] = null
-                }
-            }
-        })
-    }
-
-    // empty strings mean that the field should NOT be overwritten, so we
-    // remove key-value pairs where value === ""
-    suggestedConfigs.map((config) => {
-        for (const key of Object.keys(config)) {
-            if (config[key] === "") {
-                delete config[key]
-            }
-        }
-    })
-
-    await db.transaction(async (t) => {
-        const whereCond1 = suggestedConfigs
-            .map(
-                (config) =>
-                    `(id = ${escape(
-                        config.id
-                    )} AND config->"$.version" = ${escape(config.version)})`
-            )
-            .join(" OR ")
-        const whereCond2 = suggestedConfigs
-            .map(
-                (config) =>
-                    `(chartId = ${escape(
-                        config.id
-                    )} AND config->"$.version" = ${escape(config.version)})`
-            )
-            .join(" OR ")
-        // retrieves original chart configs
-        let rows: any[] = await t.query(
-            `
-                SELECT id, config, 1 as priority
-                FROM charts
-                WHERE ${whereCond1}
-
-                UNION
-
-                SELECT chartId as id, config, 2 as priority
-                FROM chart_revisions
-                WHERE ${whereCond2}
-
-                ORDER BY priority
-                `
-        )
-
-        rows.map((row) => {
-            row.config = JSON.parse(row.config)
-        })
-
-        // drops duplicate id-version rows (keeping the row from the
-        // `charts` table when available).
-        rows = rows.filter(
-            (v, i, a) =>
-                a.findIndex(
-                    (el) =>
-                        el.id === v.id && el.config.version === v.config.version
-                ) === i
-        )
-        if (rows.length < suggestedConfigs.length) {
-            // identifies which particular chartId-version combinations have
-            // not been found in the DB
-            const missingConfigs = suggestedConfigs.filter((config) => {
-                const i = rows.findIndex((row) => {
-                    return (
-                        row.id === config.id &&
-                        row.config.version === config.version
-                    )
-                })
-                return i === -1
-            })
-            throw new JsonError(
-                `Failed to retrieve the following chartId-version combinations:\n${missingConfigs
-                    .map((c) => {
-                        return JSON.stringify({
-                            id: c.id,
-                            version: c.version,
-                        })
-                    })
-                    .join(
-                        "\n"
-                    )}\nPlease check that each chartId and version exists.`
-            )
-        } else if (rows.length > suggestedConfigs.length) {
-            throw new JsonError(
-                "Retrieved more chart configs than expected. This may be due to a bug on the server."
-            )
-        }
-        const originalConfigs: Record<string, GrapherInterface> = rows.reduce(
-            (obj: any, row: any) => ({
-                ...obj,
-                [row.id]: row.config,
-            }),
-            {}
-        )
-
-        // some chart configs do not have an `id` field, so we check for it
-        // and insert the id here as needed. This is important for the
-        // lodash.isEqual condition later on.
-        for (const [id, config] of Object.entries(originalConfigs)) {
-            if (config.id === null || config.id === undefined) {
-                config.id = parseInt(id)
-            }
-        }
-
-        // sanity check that each original config also has the required keys.
-        Object.values(originalConfigs).map((config) => {
-            requiredKeys.map((k) => {
-                if (!config.hasOwnProperty(k)) {
-                    throw new JsonError(
-                        `The "${k}" field is required, but one or more ` +
-                            `chart configs in the database does not ` +
-                            `contain it. Please report this issue to a ` +
-                            `developer.`
-                    )
-                }
-            })
-        })
-
-        // if a field is null in the suggested config and the field does not
-        // exist in the original config, then we can delete the field from
-        // the suggested config b/c the non-existence of the field on the
-        // original config is equivalent to null.
-        suggestedConfigs.map((config: any) => {
-            const chartId = config.id as number
-            const originalConfig = originalConfigs[chartId]
-            for (const key of Object.keys(config)) {
-                if (
-                    config[key] === null &&
-                    !originalConfig.hasOwnProperty(key)
-                ) {
-                    delete config[key]
-                }
-            }
-        })
-
-        // constructs array of suggested chart revisions to insert.
-        const values: any[] = []
-        suggestedConfigs.map((config) => {
-            const chartId = config.id as number
-            const originalConfig = originalConfigs[chartId]
-            const suggestedConfig: GrapherInterface = Object.assign(
-                {},
-                JSON.parse(JSON.stringify(originalConfig)),
-                config
-            )
-            if (!lodash.isEqual(suggestedConfig, originalConfig)) {
-                if (suggestedConfig.version) {
-                    suggestedConfig.version += 1
-                }
-                values.push([
-                    chartId,
-                    JSON.stringify(suggestedConfig),
-                    JSON.stringify(originalConfig),
-                    suggestedReason,
-                    changesInDataSummary,
-                    status,
-                    res.locals.user.id,
-                    new Date(),
-                    new Date(),
-                ])
-            }
-        })
-
-        // inserts suggested chart revisions
-        const result = await t.execute(
-            `
-                INSERT INTO suggested_chart_revisions
-                (chartId, suggestedConfig, originalConfig, suggestedReason, changesInDataSummary, status, createdBy, createdAt, updatedAt)
-                VALUES
-                ?
-                `,
-            [values]
-        )
-        if (result.affectedRows > 0) {
-            messages.push({
-                type: "success",
-                text: `${result.affectedRows} chart revisions have been queued for approval.`,
-            })
-        }
-        if (suggestedConfigs.length - result.affectedRows > 0) {
-            messages.push({
-                type: "warning",
-                text: `${
-                    suggestedConfigs.length - result.affectedRows
-                } chart revisions have not been queued for approval (e.g. because the chart revision does not contain any changes).`,
-            })
-        }
-    })
-
-    return { success: true, messages }
-})
-
-apiRouter.get(
+getRouteWithROTransaction(
+    apiRouter,
     "/suggested-chart-revisions/:suggestedChartRevisionId",
-    async (req, res) => {
+    async (req, res, trx) => {
         const suggestedChartRevisionId = expectInt(
             req.params.suggestedChartRevisionId
         )
 
-        const suggestedChartRevision = await db.mysqlFirst(
-            `-- sql
-            SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt,
-                scr.suggestedReason, scr.decisionReason, scr.status,
-                scr.suggestedConfig, scr.changesInDataSummary, scr.originalConfig,
-                createdByUser.id as createdById,
-                updatedByUser.id as updatedById,
-                createdByUser.fullName as createdByFullName,
-                updatedByUser.fullName as updatedByFullName,
-                c.config as existingConfig, c.updatedAt as chartUpdatedAt,
-                c.createdAt as chartCreatedAt
-            FROM suggested_chart_revisions as scr
-            LEFT JOIN charts c on c.id = scr.chartId
-            LEFT JOIN users createdByUser on createdByUser.id = scr.createdBy
-            LEFT JOIN users updatedByUser on updatedByUser.id = scr.updatedBy
-            WHERE scr.id = ?
-        `,
-            [suggestedChartRevisionId]
+        const suggestedChartRevision = getQueryEnrichedSuggestedChartRevision(
+            trx,
+            suggestedChartRevisionId
         )
 
         if (!suggestedChartRevision) {
@@ -1208,25 +858,6 @@ apiRouter.get(
                 404
             )
         }
-
-        suggestedChartRevision.suggestedConfig = JSON.parse(
-            suggestedChartRevision.suggestedConfig
-        )
-        suggestedChartRevision.originalConfig = JSON.parse(
-            suggestedChartRevision.originalConfig
-        )
-        suggestedChartRevision.existingConfig = JSON.parse(
-            suggestedChartRevision.existingConfig
-        )
-        suggestedChartRevision.canApprove =
-            SuggestedChartRevision.checkCanApprove(suggestedChartRevision)
-        suggestedChartRevision.canReject =
-            SuggestedChartRevision.checkCanReject(suggestedChartRevision)
-        suggestedChartRevision.canFlag = SuggestedChartRevision.checkCanFlag(
-            suggestedChartRevision
-        )
-        suggestedChartRevision.canPending =
-            SuggestedChartRevision.checkCanPending(suggestedChartRevision)
 
         return {
             suggestedChartRevision: suggestedChartRevision,
@@ -1242,62 +873,31 @@ postRouteWithRWTransaction(
             req.params.suggestedChartRevisionId
         )
 
-        const { suggestedConfig, status, decisionReason } = req.body as {
-            suggestedConfig: GrapherInterface
+        // Note: there was a suggestedConfig here that was not used - might have been a
+        // mistake in a refactoring that wasn't found before?
+        const { status, decisionReason } = req.body as {
             status: string
             decisionReason: string
         }
 
-        // TODO: remove the :any type when the code below is refactored
-        const suggestedChartRevision: any = await db.knexRawFirst<
-            Pick<
-                DbRawSuggestedChartRevision,
-                "id" | "chartId" | "suggestedConfig" | "originalConfig"
-            >
-        >(
-            trx,
-            `SELECT id, chartId, suggestedConfig, originalConfig, status FROM suggested_chart_revisions WHERE id=?`,
-            [suggestedChartRevisionId]
-        )
+        const suggestedChartRevision =
+            await getQueryEnrichedSuggestedChartRevision(
+                trx,
+                suggestedChartRevisionId
+            )
+
         if (!suggestedChartRevision) {
             throw new JsonError(
                 `No suggested chart revision found for id '${suggestedChartRevisionId}'`,
                 404
             )
         }
-        if (suggestedConfig !== undefined && suggestedConfig !== null) {
-            suggestedChartRevision.suggestedConfig = suggestedConfig
-        } else {
-            suggestedChartRevision.suggestedConfig = JSON.parse(
-                suggestedChartRevision.suggestedConfig
-            )
-        }
-        suggestedChartRevision.originalConfig = JSON.parse(
-            suggestedChartRevision.originalConfig
-        )
-        suggestedChartRevision.existingConfig = await expectChartById(
-            trx,
-            suggestedChartRevision.chartId
-        )
-
-        const canApprove = SuggestedChartRevision.checkCanApprove(
-            suggestedChartRevision
-        )
-        const canReject = SuggestedChartRevision.checkCanReject(
-            suggestedChartRevision
-        )
-        const canFlag = SuggestedChartRevision.checkCanFlag(
-            suggestedChartRevision
-        )
-        const canPending = SuggestedChartRevision.checkCanPending(
-            suggestedChartRevision
-        )
 
         const canUpdate =
-            (status === "approved" && canApprove) ||
-            (status === "rejected" && canReject) ||
-            (status === "pending" && canPending) ||
-            (status === "flagged" && canFlag)
+            (status === "approved" && suggestedChartRevision.canApprove) ||
+            (status === "rejected" && suggestedChartRevision.canReject) ||
+            (status === "pending" && suggestedChartRevision.canPending) ||
+            (status === "flagged" && suggestedChartRevision.canFlag)
         if (!canUpdate) {
             throw new JsonError(
                 `Suggest chart revision ${suggestedChartRevisionId} cannot be ` +
@@ -1344,7 +944,7 @@ postRouteWithRWTransaction(
         // then canUpdate will be false (so an error would have been raised
         // above).
 
-        if (status === "approved" && canApprove) {
+        if (status === "approved" && suggestedChartRevision.canApprove) {
             await saveGrapher(
                 trx,
                 res.locals.user,
@@ -1353,7 +953,7 @@ postRouteWithRWTransaction(
             )
         } else if (
             status === "rejected" &&
-            canReject &&
+            suggestedChartRevision.canReject &&
             suggestedChartRevision.status === "approved"
         ) {
             await saveGrapher(
