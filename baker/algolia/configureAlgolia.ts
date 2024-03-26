@@ -157,6 +157,8 @@ export const configureAlgolia = async () => {
             "bip" /* polish */,
             "bnp" /* swedish, danish, norwegian */,
         ],
+        ["gdp per capita", "economic growth"],
+        ["per capita", "per person"],
         ["overpopulation", "population growth"],
         ["covid", "covid-19", "coronavirus", "corona"],
         ["flu", "influenza"],
@@ -260,6 +262,15 @@ export const configureAlgolia = async () => {
             "sustainable development goals",
             "sdg tracker",
         ],
+        [
+            "sexism",
+            "gender discrimination",
+            "gender gap",
+            "gender inequality",
+            "gender inequalities",
+        ],
+        ["child mortality", "infant mortality"],
+        ["depression", "depressive", "mental health"],
     ]
 
     // Send all our country variant names to algolia as synonyms
