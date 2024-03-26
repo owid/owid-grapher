@@ -14,6 +14,8 @@ export async function getPublishedLinksTo(
     ids: string[],
     linkType?: OwidGdocLinkType
 ): Promise<(DbPlainPostGdocLink & { sourceSlug: string })[]> {
+    const linkTypeClause = linkType ? "AND linkType = ?" : ""
+    const params = linkType ? [ids, linkType] : [ids]
     const rows = await knexRaw<DbPlainPostGdocLink & { sourceSlug: string }>(
         knex,
         `-- sql
@@ -25,10 +27,10 @@ export async function getPublishedLinksTo(
             JOIN posts_gdocs ON posts_gdocs_links.source = posts_gdocs.id
         WHERE
             target IN (?)
-            AND linkType = ?
+            ${linkTypeClause}
             AND published = TRUE
     `,
-        [ids, linkType]
+        params
     )
     return rows
 }
