@@ -351,15 +351,13 @@ const saveGrapher = async (
     } satisfies DbInsertChartRevision
     await db.knexRaw(
         knex,
-        `INSERT INTO chart_revisions (chartId, userId, config, createdAt, updatedAt) VALUES (?)`,
+        `INSERT INTO chart_revisions (chartId, userId, config, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)`,
         [
-            [
-                chartRevisionLog.chartId,
-                chartRevisionLog.userId,
-                chartRevisionLog.config,
-                chartRevisionLog.createdAt,
-                chartRevisionLog.updatedAt,
-            ],
+            chartRevisionLog.chartId,
+            chartRevisionLog.userId,
+            chartRevisionLog.config,
+            chartRevisionLog.createdAt,
+            chartRevisionLog.updatedAt,
         ]
     )
 
@@ -2380,8 +2378,8 @@ putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
             prevJson.published && nextJson.published
                 ? "Updating"
                 : !prevJson.published && nextJson.published
-                  ? "Publishing"
-                  : "Unpublishing"
+                ? "Publishing"
+                : "Unpublishing"
         await triggerStaticBuild(res.locals.user, `${action} ${nextJson.slug}`)
     }
 
