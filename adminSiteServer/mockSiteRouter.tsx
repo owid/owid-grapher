@@ -20,6 +20,7 @@ import {
     renderTopChartsCollectionPage,
     renderDataInsightsIndexPage,
     renderThankYouPage,
+    makeDataInsightsAtomFeed,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -62,6 +63,7 @@ import {
     getPlainRouteWithROTransaction,
 } from "./plainRouterHelpers.js"
 import { DEFAULT_LOCAL_BAKE_DIR } from "../site/SiteConstants.js"
+import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
 
 require("express-async-errors")
 
@@ -70,17 +72,6 @@ const mockSiteRouter = Router()
 
 mockSiteRouter.use(express.urlencoded({ extended: true }))
 mockSiteRouter.use(express.json())
-
-// TODO: this transaction is only RW because somewhere inside it we fetch images
-getPlainRouteNonIdempotentWithRWTransaction(
-    mockSiteRouter,
-    "/sitemap.xml",
-    async (req, res, trx) => {
-        res.set("Content-Type", "application/xml")
-        const sitemap = await makeSitemap(explorerAdminServer, trx)
-        res.send(sitemap)
-    }
-)
 
 // TODO: this transaction is only RW because somewhere inside it we fetch images
 getPlainRouteNonIdempotentWithRWTransaction(
@@ -101,6 +92,30 @@ getPlainRouteNonIdempotentWithRWTransaction(
         res.set("Content-Type", "application/xml")
         const atomFeedNoTopicPages = await makeAtomFeedNoTopicPages(trx)
         res.send(atomFeedNoTopicPages)
+    }
+)
+
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    `/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
+    async (_, res) => {
+        res.set("Content-Type", "application/xml")
+        const atomFeedDataInsights = await db.knexReadonlyTransaction((knex) =>
+            makeDataInsightsAtomFeed(knex)
+        )
+        res.send(atomFeedDataInsights)
+    }
+)
+
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    "/sitemap.xml",
+    async (req, res, trx) => {
+        res.set("Content-Type", "application/xml")
+        const sitemap = await makeSitemap(explorerAdminServer, trx)
+        res.send(sitemap)
     }
 )
 

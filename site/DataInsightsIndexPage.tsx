@@ -11,6 +11,7 @@ import {
     DataInsightsIndexPageContent,
     _OWID_DATA_INSIGHTS_INDEX_PAGE_DATA,
 } from "./DataInsightsIndexPageContent.js"
+import { DATA_INSIGHT_ATOM_FEED_PROPS } from "./gdocs/utils.js"
 
 export interface DataInsightsIndexPageProps {
     dataInsights: OwidGdocDataInsightInterface[]
@@ -30,6 +31,7 @@ export const DataInsightsIndexPage = (props: DataInsightsIndexPageProps) => {
                 baseUrl={baseUrl}
                 pageDesc="Bite-sized insights on how the world is changing, written by our team"
                 imageUrl={`${baseUrl}/data-insights-thumbnail.png`}
+                atom={DATA_INSIGHT_ATOM_FEED_PROPS}
             ></Head>
             <body>
                 <SiteHeader baseUrl={baseUrl} />

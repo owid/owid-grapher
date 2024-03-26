@@ -229,6 +229,7 @@ export const getPublishedDataInsights = (
         `-- sql
         SELECT
             content->>'$.title' AS title,
+            content->>'$.authors' AS authors,
             publishedAt,
             updatedAt,
             slug,
@@ -244,6 +245,7 @@ export const getPublishedDataInsights = (
         results.map((record: any) => ({
             ...record,
             index: Number(record.index),
+            authors: JSON.parse(record.authors),
         }))
     ) as Promise<MinimalDataInsightInterface[]>
 }

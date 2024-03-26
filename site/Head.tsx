@@ -40,6 +40,10 @@ export const Head = (props: {
     imageUrl?: string
     children?: any
     baseUrl: string
+    atom?: {
+        title: string
+        href: string
+    }
 }) => {
     const { canonicalUrl, hideCanonicalUrl, baseUrl } = props
     const pageTitle = props.pageTitle || `Our World in Data`
@@ -50,6 +54,10 @@ export const Head = (props: {
         props.pageDesc ||
         "Research and data to make progress against the world’s largest problems"
     const imageUrl = props.imageUrl || `${baseUrl}/default-thumbnail.jpg`
+    const atom = props.atom ?? {
+        title: "Atom feed for Our World in Data",
+        href: "/atom.xml",
+    }
 
     const stylesheets = viteAssets(VITE_ASSET_SITE_ENTRY).forHeader
 
@@ -65,7 +73,8 @@ export const Head = (props: {
             <link
                 rel="alternate"
                 type="application/atom+xml"
-                href="/atom.xml"
+                href={atom.href}
+                title={atom.title}
             />
             <link
                 rel="apple-touch-icon"
