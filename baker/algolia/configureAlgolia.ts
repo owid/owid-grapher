@@ -110,7 +110,13 @@ export const configureAlgolia = async () => {
             "afterDistinct(searchable(authors))",
             "afterDistinct(documentType)",
         ],
-        disableExactOnAttributes: ["tags"],
+
+        // These lines below essentially demote matches in the `content` (i.e. fulltext) field:
+        // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
+        // We also disable prefix matching and typo tolerance on `content`, so that "corn" doesn't match "corner", for example.
+        disableExactOnAttributes: ["tags", "content"],
+        disableTypoToleranceOnAttributes: ["content"],
+        disablePrefixOnAttributes: ["content"],
     })
 
     const explorersIndex = client.initIndex(
