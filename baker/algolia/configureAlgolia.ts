@@ -271,6 +271,7 @@ export const configureAlgolia = async () => {
         ],
         ["child mortality", "infant mortality"],
         ["depression", "depressive", "mental health"],
+        ["time use", "time spent", "time spend"],
     ]
 
     // Send all our country variant names to algolia as synonyms
