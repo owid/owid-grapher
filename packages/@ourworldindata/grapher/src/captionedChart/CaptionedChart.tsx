@@ -24,7 +24,7 @@ import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FacetChart } from "../facetChart/FacetChart"
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
+import { faEarthAmericas, faExternalLinkAlt, faMap } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     EntitySelectionToggle,
@@ -56,6 +56,7 @@ import {
     TIMELINE_HEIGHT,
 } from "../timeline/TimelineComponent"
 import { TimelineController } from "../timeline/TimelineController"
+import { LabeledSwitch } from "../controls/LabeledSwitch.js"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -67,6 +68,7 @@ export interface CaptionedChartManager
         EntitySelectionManager,
         MapProjectionMenuManager,
         SettingsMenuManager {
+    isGlobe: boolean
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
     staticBounds?: Bounds
@@ -291,6 +293,15 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                         }
                         bottom={this.framePaddingVertical}
                     />
+                    {this.manager.tab === GrapherTabOption.map && (
+                        <LabeledSwitch
+                            label="Globe view"
+                            value={this.manager.isGlobe}
+                            onToggle={() =>
+                                (this.manager.isGlobe = !this.manager.isGlobe)
+                            }
+                        />
+                    )}
                     <MapProjectionMenu manager={this.manager} />
                 </div>
             </nav>
@@ -359,6 +370,15 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             position: "relative",
             clear: "both",
             height: chartHeight,
+        }
+
+        const globeSwitcher: React.CSSProperties = {
+            height: "40px",
+            width: "fit-content",
+            margin: "10px",
+            display: "flex",
+            position: "absolute",
+            bottom: "0",
         }
 
         return (
