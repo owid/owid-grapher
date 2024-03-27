@@ -6,7 +6,7 @@ import {
     autocomplete,
     getAlgoliaResults,
 } from "@algolia/autocomplete-js"
-import algoliasearch, { SearchClient } from "algoliasearch"
+import algoliasearch from "algoliasearch"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import {
     PageType,
@@ -56,16 +56,6 @@ const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
 })
 
 const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
-
-declare global {
-    interface Window {
-        algoliasearch: SearchClient
-    }
-}
-
-if (typeof window !== "undefined") {
-    window.algoliasearch = searchClient
-}
 
 // This is the same simple function for the two non-Algolia sources
 const onSelect: AutocompleteSource<BaseItem>["onSelect"] = ({
