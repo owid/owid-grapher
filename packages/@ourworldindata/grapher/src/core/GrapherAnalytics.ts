@@ -20,6 +20,7 @@ export enum EventCategory {
     SiteClick = "owid.site_click",
     SiteError = "owid.site_error",
     SiteSearchClick = "owid.site_search_click",
+    SiteSearchFilterClick = "owid.site_search_filter_click",
 }
 
 enum EventAction {

@@ -45,4 +45,12 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventTarget: url,
         })
     }
+
+    logSearchFilterClick({ key }: { key: string }) {
+        this.logToGA({
+            event: EventCategory.SiteSearchFilterClick,
+            eventAction: "click",
+            eventContext: key,
+        })
+    }
 }

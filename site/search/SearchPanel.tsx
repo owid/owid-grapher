@@ -504,6 +504,7 @@ export class InstantSearchContainer extends React.Component {
                 behavior: "smooth",
             })
         }
+        siteAnalytics.logSearchFilterClick({ key })
         this.setActiveCategoryFilter(key)
     }
 
