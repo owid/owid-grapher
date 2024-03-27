@@ -182,9 +182,9 @@ function generateGdocRecords(
                 excerpt: gdoc.content.excerpt,
                 date: gdoc.publishedAt!.toISOString(),
                 modifiedDate: gdoc.updatedAt!.toISOString(),
-                tags: gdoc?.tags?.map((t) => t.name),
+                tags: gdoc.tags?.map((t) => t.name),
                 documentType: "gdoc" as const,
-                // authors: gdoc.content.byline, // different format
+                authors: gdoc.content.authors,
             }
             const score = computeScore(record)
             records.push({ ...record, score })
