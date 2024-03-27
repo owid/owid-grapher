@@ -15,6 +15,7 @@ import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
+import { DebugProvider } from "./gdocs/DebugContext.js"
 
 const Pagination = (props: { pageNumber: number; totalPageCount: number }) => {
     const { pageNumber, totalPageCount } = props
@@ -155,6 +156,11 @@ export function hydrateDataInsightsIndexPage() {
     )
 
     if (container && props) {
-        ReactDOM.hydrate(<DataInsightsIndexPageContent {...props} />, container)
+        ReactDOM.hydrate(
+            <DebugProvider>
+                <DataInsightsIndexPageContent {...props} />
+            </DebugProvider>,
+            container
+        )
     }
 }
