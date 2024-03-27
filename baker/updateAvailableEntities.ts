@@ -1,6 +1,7 @@
 import { Grapher } from "@ourworldindata/grapher"
 import { GrapherInterface, GrapherTabOption } from "@ourworldindata/types"
 import * as db from "../db/db.js"
+import pMap from "p-map"
 
 const obtainAvailableEntitiesForGrapherConfig = async (
     grapherConfig: GrapherInterface
@@ -29,21 +30,72 @@ const obtainAvailableEntitiesForGrapherConfig = async (
     } else return []
 }
 
+const obtainEntityNameToIdMap = async (trx: db.KnexReadonlyTransaction) => {
+    const entityNameToIdMap = new Map<string, number>()
+    const entities = await trx("entities").select("id", "name").stream()
+    for await (const entity of entities)
+        entityNameToIdMap.set(entity.name, entity.id)
+
+    return entityNameToIdMap
+}
+
+const obtainAvailableEntitiesForAllGraphers = async (
+    trx: db.KnexReadonlyTransaction
+) => {
+    const entityNameToIdMap = await obtainEntityNameToIdMap(trx)
+
+    const allPublishedGraphers = await trx
+        .select("id", "config")
+        .from("charts")
+        .whereRaw("config ->> '$.isPublished' = 'true'")
+
+    const availableEntitiesByChartId = new Map<number, number[]>()
+    await pMap(
+        allPublishedGraphers,
+        async (grapher) => {
+            const config = JSON.parse(grapher.config) as GrapherInterface
+            const availableEntities =
+                await obtainAvailableEntitiesForGrapherConfig(config)
+            const availableEntityIds = availableEntities.flatMap(
+                (entityName) => {
+                    const entityId = entityNameToIdMap.get(entityName)
+                    if (entityId === undefined) {
+                        console.error(
+                            `Entity not found for chart ${grapher.id}: "${entityName}"`
+                        )
+                        return []
+                    }
+                    return [entityId]
+                }
+            )
+            availableEntitiesByChartId.set(grapher.id, availableEntityIds)
+
+            console.log(grapher.id, config.slug)
+        },
+        { concurrency: 10 }
+    )
+
+    return availableEntitiesByChartId
+}
+
 const updateAvailableEntitiesForAllGraphers = async (
     trx: db.KnexReadWriteTransaction
 ) => {
-    const allGraphers = trx
-        .select("id", "config")
-        .from("charts")
-        // .limit(10)
-        .stream()
+    console.log(
+        "--- Obtaining available entity ids for all published graphers ---"
+    )
+    const availableEntitiesByChartId =
+        await obtainAvailableEntitiesForAllGraphers(trx)
 
-    for await (const grapher of allGraphers) {
-        const config = JSON.parse(grapher.config) as GrapherInterface
-        const availableEntities =
-            await obtainAvailableEntitiesForGrapherConfig(config)
+    console.log("--- Updating charts_x_entities ---")
 
-        console.log(grapher.id, config.slug)
+    await trx.delete().from("charts_x_entities") // clears out the WHOLE table
+    for (const [chartId, availableEntityIds] of availableEntitiesByChartId) {
+        const rows = availableEntityIds.map((entityId) => ({
+            chartId,
+            entityId,
+        }))
+        if (rows.length) await trx("charts_x_entities").insert(rows)
     }
 }
 
