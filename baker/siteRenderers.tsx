@@ -383,6 +383,7 @@ export async function makeDataInsightsAtomFeed(knex: KnexReadonlyTransaction) {
             date: new Date(di.publishedAt),
             modifiedDate: new Date(di.updatedAt),
             slug: di.slug,
+            type: OwidGdocType.DataInsight,
         }))
     )
     return makeAtomFeedFromPosts({
