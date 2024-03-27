@@ -46,6 +46,23 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
+    logInstantSearchClick({
+        query,
+        url,
+        position,
+    }: {
+        query: string
+        url: string
+        position: string
+    }) {
+        this.logToGA({
+            event: EventCategory.SiteInstantSearchClick,
+            eventAction: "click",
+            eventContext: { query, position },
+            eventTarget: url,
+        })
+    }
+
     logSearchFilterClick({ key }: { key: string }) {
         this.logToGA({
             event: EventCategory.SiteSearchFilterClick,
