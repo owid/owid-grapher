@@ -6,6 +6,7 @@ import {
     getWindowQueryParams,
     get,
     mapValues,
+    isElementHidden,
 } from "@ourworldindata/utils"
 import {
     InstantSearch,
@@ -52,6 +53,9 @@ import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
 } from "@ourworldindata/grapher"
+import { SiteAnalytics } from "../SiteAnalytics.js"
+
+const siteAnalytics = new SiteAnalytics()
 
 function PagesHit({ hit }: { hit: IPageHit }) {
     return (
@@ -281,22 +285,48 @@ const SearchResults = (props: SearchResultsProps) => {
                     const objectId = target.getAttribute(
                         "data-algolia-object-id"
                     )
-                    const position = target.getAttribute(
+
+                    const allVisibleHits = Array.from(
+                        document.querySelectorAll(
+                            ".search-results .ais-Hits-item a"
+                        )
+                    ).filter((e) => !isElementHidden(e))
+
+                    // starts from 1 at the top of the page
+                    const globalPosition = allVisibleHits.indexOf(target) + 1
+                    // starts from 1 in each section
+                    const positionInSection = target.getAttribute(
                         "data-algolia-position"
                     )
                     const index = target.getAttribute("data-algolia-index")
-                    if (objectId && position && index) {
+                    const href = target.getAttribute("href")
+                    const query = getWindowQueryParams().q
+
+                    if (
+                        objectId &&
+                        positionInSection &&
+                        index &&
+                        href &&
+                        query
+                    ) {
                         logSiteSearchClick({
                             index,
                             queryID,
                             objectIDs: [objectId],
-                            positions: [parseInt(position)],
+                            positions: [parseInt(positionInSection)],
+                        })
+                        siteAnalytics.logSearchClick({
+                            query,
+                            position: String(globalPosition),
+                            positionInSection,
+                            url: href,
+                            filter: activeCategoryFilter,
                         })
                     }
                 }
             }
         },
-        [queryID]
+        [queryID, activeCategoryFilter]
     )
     useEffect(() => {
         document.addEventListener("click", handleHitClick)
