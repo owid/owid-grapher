@@ -430,7 +430,9 @@ export async function makeAtomFeedFromPosts({
 <updated>${posts[0].date.toISOString()}</updated>
 ${posts
     .map((post) => {
-        const postUrl = `${BAKED_BASE_URL}/data-insights/${post.slug}`
+        const postUrl = post.type === OwidGdocType.DataInsight
+            ? `${BAKED_BASE_URL}/data-insights/${post.slug}`
+            : `${BAKED_BASE_URL}/${post.slug}`
         const image = post.imageUrl
             ? `<br><br><a href="${postUrl}" target="_blank"><img src="${encodeURI(
                   formatUrls(post.imageUrl)
