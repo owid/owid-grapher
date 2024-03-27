@@ -260,11 +260,6 @@
         "editor": "checkbox"
     },
     {
-        "type": "array",
-        "pointer": "/data/availableEntities",
-        "editor": "primitiveListEditor"
-    },
-    {
         "type": "boolean",
         "pointer": "/hideLegend",
         "default": false,
