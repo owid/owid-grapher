@@ -15,6 +15,8 @@ import * as db from "../db/db.js"
 import pMap from "p-map"
 import { getVariableData } from "../db/model/Variable.js"
 import { uniq } from "@ourworldindata/utils"
+import yargs from "yargs"
+import { hideBin } from "yargs/helpers"
 
 const FETCH_CONCURRENCY = 10
 const VARIABLES_TO_PREFETCH = 300
@@ -197,16 +199,42 @@ const updateAvailableEntitiesForAllGraphers = async (
     console.log("--- ✅ Done ---")
 }
 
-const main = async () => {
-    await db.knexReadWriteTransaction(
-        updateAvailableEntitiesForAllGraphers,
-        db.TransactionCloseMode.Close
-    )
-}
-
 process.on("unhandledRejection", (e) => {
     console.error(e)
     process.exit(1)
 })
 
-void main()
+if (require.main === module) {
+    void yargs(hideBin(process.argv))
+        .command(
+            "$0",
+            "Update charts_x_entities table",
+            (yargs) => {
+                yargs
+                    .option("all", {
+                        boolean: true,
+                        default: false,
+                        description:
+                            "Update available entities for all published charts",
+                    })
+                    .check(({ all }) => {
+                        if (!all) {
+                            console.error(
+                                "Please use --all. Currently, no other mode is supported."
+                            )
+                            return false
+                        }
+                        return true
+                    })
+            },
+            async ({ all }) => {
+                if (all)
+                    await db.knexReadWriteTransaction(
+                        updateAvailableEntitiesForAllGraphers,
+                        db.TransactionCloseMode.Close
+                    )
+            }
+        )
+        .help()
+        .strict().argv
+}
