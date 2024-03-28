@@ -3133,8 +3133,8 @@ export class Grapher
         return this.canHighlightEntities
             ? `Select ${this.entityTypePlural}`
             : this.canChangeEntity
-            ? `Change ${a(this.entityType)}`
-            : `Add/remove ${this.entityTypePlural}`
+              ? `Change ${a(this.entityType)}`
+              : `Add/remove ${this.entityTypePlural}`
     }
 
     @computed get canSelectMultipleEntities(): boolean {

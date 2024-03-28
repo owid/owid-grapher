@@ -1,0 +1,39 @@
+.close-button {
+    // keep in sync with CLOSE_BUTTON_SIZE in CloseButton.tsx
+    $size: 32px;
+
+    $light-stroke: #e7e7e7;
+
+    $active-fill: #dbe5f0;
+    $hover-fill: #f2f2f2;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: relative;
+    height: $size;
+    width: $size;
+    padding: 7px;
+
+    color: $light-text;
+    background: white;
+    border: 1px solid $light-stroke !important;
+    border-radius: 50%;
+
+    &:hover {
+        background: $hover-fill;
+        cursor: pointer;
+        color: $dark-text;
+    }
+
+    &:active {
+        background: $active-fill;
+        border: 1px solid $active-fill;
+    }
+
+    svg {
+        height: 14px;
+        width: 14px;
+    }
+}

@@ -3,12 +3,13 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faXmark, faGear } from "@fortawesome/free-solid-svg-icons"
+import { faGear } from "@fortawesome/free-solid-svg-icons"
 import { EntityName, ChartTypeName, FacetStrategy } from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartDimension } from "../chart/ChartDimension"
 import { makeSelectionArray } from "../chart/ChartUtils.js"
 import { AxisConfig } from "../axis/AxisConfig"
+import { CloseButton } from "../closeButton/CloseButton.js"
 
 import { AxisScaleToggle } from "./settings/AxisScaleToggle"
 import { AbsRelToggle, AbsRelToggleManager } from "./settings/AbsRelToggle"
@@ -309,68 +310,70 @@ export class SettingsMenu extends React.Component<{
                     onClick={this.toggleVisibility}
                 ></div>
                 <div
-                    className="settings-menu-controls"
+                    className="settings-menu-wrapper"
                     style={{
                         ...this.layout,
                     }}
                 >
-                    <div className="config-header">
-                        <div className="config-title">{menuTitle}</div>
-                        <button
-                            className="clickable close"
-                            onClick={this.toggleVisibility}
-                        >
-                            <FontAwesomeIcon icon={faXmark} />
-                        </button>
+                    <div className="settings-menu-header">
+                        <div className="settings-menu-title">{menuTitle}</div>
+                        <CloseButton onClick={() => this.toggleVisibility()} />
                     </div>
 
-                    <SettingsGroup
-                        title="Chart view"
-                        active={
-                            isOnChartTab &&
-                            (showAbsRelToggle ||
-                                showZoomToggle ||
-                                showNoDataAreaToggle ||
-                                showFacetControl ||
-                                showFacetYDomainToggle)
-                        }
-                    >
-                        {showFacetControl && (
-                            <FacetStrategySelector manager={manager} />
-                        )}
-                        {showFacetYDomainToggle && (
-                            <FacetYDomainToggle manager={manager} />
-                        )}
-                        {showAbsRelToggle && <AbsRelToggle manager={manager} />}
-                        {showNoDataAreaToggle && (
-                            <NoDataAreaToggle manager={manager} />
-                        )}
-                        {showZoomToggle && <ZoomToggle manager={manager} />}
-                    </SettingsGroup>
-                    <SettingsGroup
-                        title="Axis scale"
-                        active={
-                            isOnChartTab &&
-                            (showYScaleToggle || showXScaleToggle)
-                        }
-                    >
-                        {showYScaleToggle && (
-                            <AxisScaleToggle
-                                axis={yAxis!}
-                                subtitle={omitLoneAxisLabel ? "" : yLabel}
-                            />
-                        )}
-                        {showXScaleToggle && (
-                            <AxisScaleToggle axis={xAxis!} subtitle={xLabel} />
-                        )}
-                        <div className="config-subtitle">
-                            A linear scale evenly spaces values, where each
-                            increment represents a consistent change. A
-                            logarithmic scale uses multiples of the starting
-                            value, with each increment representing the same
-                            percentage increase.
-                        </div>
-                    </SettingsGroup>
+                    <div className="settings-menu-controls">
+                        <SettingsGroup
+                            title="Chart view"
+                            active={
+                                isOnChartTab &&
+                                (showAbsRelToggle ||
+                                    showZoomToggle ||
+                                    showNoDataAreaToggle ||
+                                    showFacetControl ||
+                                    showFacetYDomainToggle)
+                            }
+                        >
+                            {showFacetControl && (
+                                <FacetStrategySelector manager={manager} />
+                            )}
+                            {showFacetYDomainToggle && (
+                                <FacetYDomainToggle manager={manager} />
+                            )}
+                            {showAbsRelToggle && (
+                                <AbsRelToggle manager={manager} />
+                            )}
+                            {showNoDataAreaToggle && (
+                                <NoDataAreaToggle manager={manager} />
+                            )}
+                            {showZoomToggle && <ZoomToggle manager={manager} />}
+                        </SettingsGroup>
+                        <SettingsGroup
+                            title="Axis scale"
+                            active={
+                                isOnChartTab &&
+                                (showYScaleToggle || showXScaleToggle)
+                            }
+                        >
+                            {showYScaleToggle && (
+                                <AxisScaleToggle
+                                    axis={yAxis!}
+                                    subtitle={omitLoneAxisLabel ? "" : yLabel}
+                                />
+                            )}
+                            {showXScaleToggle && (
+                                <AxisScaleToggle
+                                    axis={xAxis!}
+                                    subtitle={xLabel}
+                                />
+                            )}
+                            <div className="config-subtitle">
+                                A linear scale evenly spaces values, where each
+                                increment represents a consistent change. A
+                                logarithmic scale uses multiples of the starting
+                                value, with each increment representing the same
+                                percentage increase.
+                            </div>
+                        </SettingsGroup>
+                    </div>
                 </div>
             </div>
         )
