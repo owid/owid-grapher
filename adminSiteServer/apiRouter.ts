@@ -2416,14 +2416,11 @@ postRouteWithRWTransaction(
     async (req, res, trx) => {
         const { gdocId } = req.params
         const { tagIds } = req.body
+        const tagIdsAsObjects: { id: number }[] = tagIds.map((id: number) => ({
+            id: id,
+        }))
 
-        await setTagsForGdoc(
-            trx,
-            gdocId,
-            tagIds.map((id: number) => {
-                id
-            })
-        )
+        await setTagsForGdoc(trx, gdocId, tagIdsAsObjects)
 
         return { success: true }
     }
