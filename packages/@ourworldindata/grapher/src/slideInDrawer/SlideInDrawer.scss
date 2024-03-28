@@ -39,52 +39,6 @@
                     color: $light-text;
                     font: $bold 12px/16px $lato;
                 }
-
-                button.close {
-                    position: relative;
-                    border-radius: 50%;
-                    height: 32px;
-                    width: 32px;
-                    text-align: center;
-                    justify-content: center;
-                    svg {
-                        height: 14px;
-                        width: 14px;
-                    }
-                }
-            }
-
-            button {
-                display: flex;
-                align-items: center;
-                color: $light-text;
-                background: white;
-                border: 1px solid $light-stroke;
-                font: $medium 13px/16px $lato;
-                letter-spacing: 0.01em;
-                border-radius: 4px;
-                padding: 7px;
-                height: 40px;
-
-                &:hover {
-                    background: $hover-fill;
-                    cursor: pointer;
-
-                    &:not(.active) {
-                        color: $dark-text;
-                    }
-                }
-
-                &.active,
-                &:active {
-                    background: $active-fill;
-                    border: 1px solid $active-fill;
-                }
-
-                &.active {
-                    cursor: default;
-                    color: $active-text;
-                }
             }
         }
 

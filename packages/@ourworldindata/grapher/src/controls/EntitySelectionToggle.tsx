@@ -55,18 +55,18 @@ export class EntitySelectionToggle extends React.Component<{
                   icon: <FontAwesomeIcon icon={faEye} />,
               }
             : canChangeEntity
-            ? {
-                  action: "Change",
-                  entity: entityType,
-                  icon: <FontAwesomeIcon icon={faRightLeft} />,
-              }
-            : canAddEntities
-            ? {
-                  action: "Edit",
-                  entity: entityTypePlural,
-                  icon: <FontAwesomeIcon icon={faPencilAlt} />,
-              }
-            : null
+              ? {
+                    action: "Change",
+                    entity: entityType,
+                    icon: <FontAwesomeIcon icon={faRightLeft} />,
+                }
+              : canAddEntities
+                ? {
+                      action: "Edit",
+                      entity: entityTypePlural,
+                      icon: <FontAwesomeIcon icon={faPencilAlt} />,
+                  }
+                : null
     }
 
     render(): JSX.Element | null {

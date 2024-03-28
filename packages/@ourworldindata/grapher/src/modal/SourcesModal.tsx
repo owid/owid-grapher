@@ -35,6 +35,7 @@ import { SourcesDescriptions } from "./SourcesDescriptions"
 import { Tabs } from "../tabs/Tabs"
 import { ExpandableTabs } from "../tabs/ExpandableTabs"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
+import { CLOSE_BUTTON_WIDTH } from "../closeButton/CloseButton"
 
 // keep in sync with variables in SourcesModal.scss
 const MAX_CONTENT_WIDTH = 640
@@ -91,8 +92,7 @@ export class SourcesModal extends React.Component<
 
     @computed private get showStickyModalHeader(): boolean {
         const modalWidth = this.modalBounds.width - 2 * this.modalPadding
-        const dismissButtonWidth = 32
-        return (modalWidth - MAX_CONTENT_WIDTH) / 2 < dismissButtonWidth
+        return (modalWidth - MAX_CONTENT_WIDTH) / 2 < CLOSE_BUTTON_WIDTH + 2
     }
 
     @computed private get modalPadding(): number {

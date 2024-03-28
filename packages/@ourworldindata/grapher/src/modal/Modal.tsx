@@ -2,9 +2,8 @@ import React from "react"
 import { observer } from "mobx-react"
 import { action, computed } from "mobx"
 import cx from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faTimes } from "@fortawesome/free-solid-svg-icons"
 import { Bounds } from "@ourworldindata/utils"
+import { CloseButton } from "../closeButton/CloseButton.js"
 
 @observer
 export class Modal extends React.Component<{
@@ -87,12 +86,6 @@ export class Modal extends React.Component<{
             contentStyle.transform = "translateY(-50%)"
         }
 
-        const dismissButton = (
-            <button className="modalDismiss" onClick={this.props.onDismiss}>
-                <FontAwesomeIcon icon={faTimes} />
-            </button>
-        )
-
         return (
             <div className="modalOverlay">
                 <div className="modalWrapper">
@@ -108,10 +101,13 @@ export class Modal extends React.Component<{
                                 })}
                             >
                                 <div className="modalTitle">{this.title}</div>
-                                {dismissButton}
+                                <CloseButton onClick={this.props.onDismiss} />
                             </div>
                         ) : (
-                            dismissButton
+                            <CloseButton
+                                className="close-button--top-right"
+                                onClick={this.props.onDismiss}
+                            />
                         )}
                         <div className="modalScrollable">
                             {this.props.children}
