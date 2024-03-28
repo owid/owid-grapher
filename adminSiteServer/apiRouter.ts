@@ -79,7 +79,6 @@ import {
     PostsGdocsLinksTableName,
     PostsGdocsTableName,
     DbPlainDataset,
-    OwidGdoc,
 } from "@ourworldindata/types"
 import {
     getVariableDataRoute,
@@ -2424,6 +2423,9 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     await trx.table(PostsGdocsLinksTableName).where({ sourceId: id }).delete()
     await trx.table(PostsGdocsXImagesTableName).where({ gdocId: id }).delete()
     await trx.table(PostsGdocsTableName).where({ id }).delete()
+    if (checkIsGdocPostExcludingFragments(gdoc)) {
+        await removeIndividualGdocPostFromIndex(gdoc)
+    }
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })
