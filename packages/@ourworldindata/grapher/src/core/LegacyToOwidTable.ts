@@ -145,6 +145,11 @@ export const legacyToOwidTableAndDimensions = (
             values = values.map((value) =>
                 isNumber(value) ? value * conversionFactor : value
             )
+
+            // If a conversion factor is applied to an integer column,
+            // we end up with a numeric column.
+            if (valueColumnDef.type === ColumnTypeNames.Integer)
+                valueColumnDef.type = ColumnTypeNames.Numeric
         }
 
         const columnStore: { [key: string]: any[] } = {
