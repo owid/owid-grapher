@@ -13,6 +13,7 @@ import {
 } from "@ourworldindata/types"
 import * as db from "../db/db.js"
 import pMap from "p-map"
+import { mapEntityNamesToEntityIds } from "../db/model/Entity.js"
 import { getVariableData } from "../db/model/Variable.js"
 import { uniq } from "@ourworldindata/utils"
 import yargs from "yargs"
@@ -110,21 +111,10 @@ const obtainAvailableEntitiesForGrapherConfig = async (
     } else return []
 }
 
-// The `entities` table has a 1-to-1 mapping between entity names and entity ids.
-// This function returns a map from entity names to entity ids, so we can easily convert name to ID.
-const obtainEntityNameToIdMap = async (trx: db.KnexReadonlyTransaction) => {
-    const entityNameToIdMap = new Map<string, number>()
-    const entities = await trx("entities").select("id", "name").stream()
-    for await (const entity of entities)
-        entityNameToIdMap.set(entity.name, entity.id)
-
-    return entityNameToIdMap
-}
-
 const obtainAvailableEntitiesForAllGraphers = async (
     trx: db.KnexReadonlyTransaction
 ) => {
-    const entityNameToIdMap = await obtainEntityNameToIdMap(trx)
+    const entityNameToIdMap = await mapEntityNamesToEntityIds(trx)
 
     const allPublishedGraphers = await trx
         .select("id", "config")
