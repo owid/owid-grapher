@@ -588,6 +588,18 @@ class BooleanColumn extends AbstractCoreColumn<boolean> {
     }
 }
 
+class OrdinalColumn extends CategoricalColumn {
+    @imemo get allowedValuesSorted(): string[] | undefined {
+        return this.def.sort
+    }
+
+    @imemo get sortedUniqNonEmptyStringVals(): string[] {
+        return this.allowedValuesSorted
+            ? this.allowedValuesSorted
+            : super.sortedUniqNonEmptyStringVals
+    }
+}
+
 abstract class AbstractColumnWithNumberFormatting<
     T extends PrimitiveType,
 > extends AbstractCoreColumn<T> {
@@ -882,6 +894,7 @@ export const ColumnTypeMap = {
     String: StringColumn,
     SeriesAnnotation: SeriesAnnotationColumn,
     Categorical: CategoricalColumn,
+    Ordinal: OrdinalColumn,
     Region: RegionColumn,
     Continent: ContinentColumn,
     NumberOrString: NumberOrStringColumn,
