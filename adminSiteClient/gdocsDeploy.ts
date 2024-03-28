@@ -188,3 +188,20 @@ export const checkHasChanges = (prevGdoc: OwidGdoc, nextGdoc: OwidGdoc) =>
             GDOC_DIFF_OMITTABLE_PROPERTIES
         )
     )
+
+export enum GdocPublishingAction {
+    Updating = "Updating",
+    Publishing = "Publishing",
+    Unpublishing = "Unpublishing",
+}
+
+export function getPublishingAction(
+    prevJson: OwidGdoc,
+    nextJson: OwidGdoc
+): GdocPublishingAction {
+    return prevJson.published && nextJson.published
+        ? GdocPublishingAction.Updating
+        : !prevJson.published && nextJson.published
+          ? GdocPublishingAction.Publishing
+          : GdocPublishingAction.Unpublishing
+}

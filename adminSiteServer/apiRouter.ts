@@ -79,6 +79,7 @@ import {
     PostsGdocsLinksTableName,
     PostsGdocsTableName,
     DbPlainDataset,
+    OwidGdoc,
 } from "@ourworldindata/types"
 import {
     getVariableDataRoute,
@@ -115,6 +116,8 @@ import {
     checkFullDeployFallback,
     checkHasChanges,
     checkIsLightningUpdate,
+    GdocPublishingAction,
+    getPublishingAction,
 } from "../adminSiteClient/gdocsDeploy.js"
 import { createGdocAndInsertOwidGdocPostContent } from "../db/model/Gdoc/archieToGdoc.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
@@ -2390,14 +2393,12 @@ putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
             nextJson.slug
         )
     } else if (checkFullDeployFallback(prevJson, nextJson, hasChanges)) {
-        const action =
-            prevJson.published && nextJson.published
-                ? "Updating"
-                : !prevJson.published && nextJson.published
-                  ? "Publishing"
-                  : "Unpublishing"
+        const action = getPublishingAction(prevJson, nextJson)
         if (checkIsGdocPost(nextJson)) {
-            if (action === "Updating" || action === "Publishing") {
+            if (
+                action === GdocPublishingAction.Updating ||
+                action === GdocPublishingAction.Publishing
+            ) {
                 await indexIndividualGdocPost(nextJson, trx, prevJson.slug)
             } else {
                 await removeIndividualGdocPostFromIndex(nextJson)
