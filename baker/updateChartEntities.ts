@@ -6,6 +6,9 @@
 
 import { Grapher } from "@ourworldindata/grapher"
 import {
+    ChartsTableName,
+    ChartsXEntitiesTableName,
+    DbRawChart,
     GrapherInterface,
     GrapherTabOption,
     MultipleOwidVariableDataDimensionsMap,
@@ -120,10 +123,13 @@ const obtainAvailableEntitiesForAllGraphers = async (
 ) => {
     const entityNameToIdMap = await mapEntityNamesToEntityIds(trx)
 
-    const allPublishedGraphers = await trx
+    const allPublishedGraphers = (await trx
         .select("id", "config")
-        .from("charts")
-        .whereRaw("config ->> '$.isPublished' = 'true'")
+        .from(ChartsTableName)
+        .whereRaw("config ->> '$.isPublished' = 'true'")) as Pick<
+        DbRawChart,
+        "id" | "config"
+    >[]
 
     const availableEntitiesByChartId = new Map<number, number[]>()
     await pMap(
@@ -181,13 +187,13 @@ const updateAvailableEntitiesForAllGraphers = async (
 
     console.log("--- Updating charts_x_entities ---")
 
-    await trx.delete().from("charts_x_entities") // clears out the WHOLE table
+    await trx.delete().from(ChartsXEntitiesTableName) // clears out the WHOLE table
     for (const [chartId, availableEntityIds] of availableEntitiesByChartId) {
         const rows = availableEntityIds.map((entityId) => ({
             chartId,
             entityId,
         }))
-        if (rows.length) await trx("charts_x_entities").insert(rows)
+        if (rows.length) await trx(ChartsXEntitiesTableName).insert(rows)
     }
 
     console.log("--- ✅ Done ---")

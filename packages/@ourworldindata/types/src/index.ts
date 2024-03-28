@@ -450,6 +450,11 @@ export {
     type DbChartTagJoin,
 } from "./dbTypes/ChartTags.js"
 export {
+    ChartsXEntitiesTableName,
+    type DbInsertChartXEntity,
+    type DbPlainChartXEntity,
+} from "./dbTypes/ChartsXEntities.js"
+export {
     type DbPlainCountryLatestData,
     type DbInsertCountryLatestData,
     CountryLatestDataTableName,
