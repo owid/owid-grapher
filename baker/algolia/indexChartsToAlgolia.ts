@@ -3,7 +3,12 @@ import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects.js"
 import { ChartRecord, SearchIndexName } from "../../site/search/searchTypes.js"
-import { KeyChartLevel, OwidGdocLinkType, isNil } from "@ourworldindata/utils"
+import {
+    KeyChartLevel,
+    OwidGdocLinkType,
+    excludeNullish,
+    isNil,
+} from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
 import { getRelatedArticles } from "../../db/model/Post.js"
@@ -24,47 +29,64 @@ const getChartsRecords = async (
         title: string
         variantName: string
         subtitle: string
-        availableEntities: string | string[] // initially this is a string but after parsing it is an array and the code below uses mutability
         numDimensions: string
         publishedAt: string
         updatedAt: string
+        entityNames: string | string[]
         tags: string
         keyChartForTags: string | string[]
     }>(
         knex,
         `-- sql
-    SELECT c.id,
-        config ->> "$.slug"                   AS slug,
-        config ->> "$.title"                  AS title,
-        config ->> "$.variantName"            AS variantName,
-        config ->> "$.subtitle"               AS subtitle,
-        config ->> "$.data.availableEntities" AS availableEntities,
-        JSON_LENGTH(config ->> "$.dimensions") AS numDimensions,
-        c.publishedAt,
-        c.updatedAt,
-        JSON_ARRAYAGG(t.name) AS tags,
-        JSON_ARRAYAGG(IF(ct.keyChartLevel = ${KeyChartLevel.Top} , t.name, NULL)) AS keyChartForTags -- this results in an array that contains null entries, will have to filter them out
-    FROM charts c
-        LEFT JOIN chart_tags ct ON c.id = ct.chartId
-        LEFT JOIN tags t on ct.tagId = t.id
-    WHERE config ->> "$.isPublished" = 'true'
-        AND is_indexable IS TRUE
-    GROUP BY c.id
-    HAVING COUNT(t.id) >= 1
+        WITH indexable_charts_with_entity_names AS (
+            SELECT c.id,
+                   config ->> "$.slug"                    AS slug,
+                   config ->> "$.title"                   AS title,
+                   config ->> "$.variantName"             AS variantName,
+                   config ->> "$.subtitle"                AS subtitle,
+                   JSON_LENGTH(config ->> "$.dimensions") AS numDimensions,
+                   c.publishedAt,
+                   c.updatedAt,
+                   JSON_ARRAYAGG(e.name)                  AS entityNames
+            FROM charts c
+                     LEFT JOIN charts_x_entities ce ON c.id = ce.chartId
+                     LEFT JOIN entities e ON ce.entityId = e.id
+            WHERE config ->> "$.isPublished" = 'true'
+              AND is_indexable IS TRUE
+            GROUP BY c.id
+        )
+        SELECT c.id,
+               c.slug,
+               c.title,
+               c.variantName,
+               c.subtitle,
+               c.numDimensions,
+               c.publishedAt,
+               c.updatedAt,
+               c.entityNames, -- this array may contain null values, will have to filter these out
+               JSON_ARRAYAGG(t.name) AS tags,
+               JSON_ARRAYAGG(IF(ct.keyChartLevel = ${KeyChartLevel.Top}, t.name, NULL)) AS keyChartForTags -- this results in an array that contains null entries, will have to filter them out
+        FROM indexable_charts_with_entity_names c
+                 LEFT JOIN chart_tags ct ON c.id = ct.chartId
+                 LEFT JOIN tags t on ct.tagId = t.id
+        GROUP BY c.id
+        HAVING COUNT(t.id) >= 1
     `
     )
 
     for (const c of chartsToIndex) {
-        if (c.availableEntities !== null) {
+        if (c.entityNames !== null) {
             // This is a very rough way to check for the Algolia record size limit, but it's better than the update failing
             // because we exceed the 20KB record size limit
-            if (c.availableEntities.length < 12000)
-                c.availableEntities = JSON.parse(c.availableEntities as string)
+            if (c.entityNames.length < 12000)
+                c.entityNames = excludeNullish(
+                    JSON.parse(c.entityNames as string) as (string | null)[]
+                )
             else {
                 console.info(
                     `Chart ${c.id} has too many entities, skipping its entities`
                 )
-                c.availableEntities = []
+                c.entityNames = []
             }
         }
 
@@ -103,7 +125,7 @@ const getChartsRecords = async (
             title: c.title,
             variantName: c.variantName,
             subtitle: plaintextSubtitle,
-            availableEntities: c.availableEntities as string[],
+            availableEntities: c.entityNames as string[],
             numDimensions: parseInt(c.numDimensions),
             publishedAt: c.publishedAt,
             updatedAt: c.updatedAt,
