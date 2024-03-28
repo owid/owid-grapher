@@ -135,7 +135,7 @@ up.full: require create-if-missing.env.full ../owid-content wordpress/.env tmp-d
 
 migrate:
 	@echo '==> Running DB migrations'
-	yarn && yarn buildTsc && yarn runDbMigrations
+	rm -rf itsJustJavascript && yarn && yarn buildLerna && yarn buildTsc && yarn runDbMigrations
 
 refresh.full: refresh refresh.wp sync-images
 
