@@ -24,7 +24,7 @@ export async function getPublishedLinksTo(
             posts_gdocs.slug AS sourceSlug
         FROM
             posts_gdocs_links
-            JOIN posts_gdocs ON posts_gdocs_links.source = posts_gdocs.id
+            JOIN posts_gdocs ON posts_gdocs_links.sourceId = posts_gdocs.id
         WHERE
             target IN (?)
             ${linkTypeClause}
