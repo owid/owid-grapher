@@ -494,9 +494,7 @@ export async function setTagsForGdoc(
     await knex.table(PostsGdocsXTagsTableName).where({ gdocId }).delete()
     const tagIdsForInsert = tagIds.map(({ id: tagId }) => ({ gdocId, tagId }))
     if (tagIdsForInsert.length)
-        await knex
-            .table(PostsGdocsXTagsTableName)
-            .insert(tagIdsForInsert)
+        await knex.table(PostsGdocsXTagsTableName).insert(tagIdsForInsert)
 }
 
 export enum GdocLinkUpdateMode {
