@@ -3,8 +3,7 @@ import { createPortal } from "react-dom"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { GRAPHER_DRAWER_ID } from "../core/GrapherConstants"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faXmark } from "@fortawesome/free-solid-svg-icons"
+import { CloseButton } from "../closeButton/CloseButton.js"
 
 @observer
 export class SlideInDrawer extends React.Component<{
@@ -88,12 +87,7 @@ export class SlideInDrawer extends React.Component<{
                         <div className="grapher-drawer-title">
                             {this.props.title}
                         </div>
-                        <button
-                            className="clickable close"
-                            onClick={this.toggleVisibility}
-                        >
-                            <FontAwesomeIcon icon={faXmark} />
-                        </button>
+                        <CloseButton onClick={() => this.toggleVisibility()} />
                     </div>
 
                     {this.props.children}

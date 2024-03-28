@@ -19,7 +19,7 @@ $control-row-height: 32px;
 
 nav.controlsRow .chart-controls .settings-menu {
     // the pop-up version of the settings menu
-    .settings-menu-controls {
+    .settings-menu-wrapper {
         position: absolute;
         width: 300px;
         right: $indent;
@@ -42,6 +42,27 @@ nav.controlsRow .chart-controls .settings-menu {
 }
 
 .settings-menu-contents {
+    //
+    // chart-type label
+    //
+    .settings-menu-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        padding: 9px $indent 3px $indent;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+
+        .settings-menu-title {
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: $light-text;
+            font: $bold 12px/16px $lato;
+        }
+    }
+
     .settings-menu-controls {
         //
         // shared button coloring & behaviors
@@ -76,40 +97,6 @@ nav.controlsRow .chart-controls .settings-menu {
             &.active {
                 cursor: default;
                 color: $active-text;
-            }
-        }
-
-        //
-        // chart-type label and close button
-        //
-        .config-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            padding: 9px $indent 3px $indent;
-            position: sticky;
-            top: 0;
-            z-index: 1;
-
-            .config-title {
-                text-transform: uppercase;
-                letter-spacing: 0.1em;
-                color: $light-text;
-                font: $bold 12px/16px $lato;
-            }
-
-            button.close {
-                position: relative;
-                border-radius: 50%;
-                height: 32px;
-                width: 32px;
-                text-align: center;
-                justify-content: center;
-                svg {
-                    height: 14px;
-                    width: 14px;
-                }
             }
         }
 

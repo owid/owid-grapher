@@ -31,37 +31,10 @@ $modal-padding: 1.5em;
             flex-direction: column;
         }
 
-        .modalDismiss {
-            $light-stroke: #e7e7e7;
-            $hover-fill: #f2f2f2;
-            $active-fill: #dbe5f0;
-
-            font-size: 13px;
-            color: $dark-text;
-            border: 1px solid $light-stroke;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            background-color: #fff;
-            z-index: 1;
-
-            // center icon
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
+        .close-button--top-right {
             position: absolute;
             top: $modal-padding;
             right: $modal-padding;
-
-            &:hover {
-                border-color: $hover-fill;
-                background: $hover-fill;
-                cursor: pointer;
-            }
-            &:active {
-                background-color: $active-fill;
-            }
         }
 
         .modalHeader {
@@ -82,10 +55,6 @@ $modal-padding: 1.5em;
                 font-weight: 900;
                 letter-spacing: 1.2px;
                 margin: 0;
-            }
-
-            .modalDismiss {
-                position: static;
             }
         }
 
