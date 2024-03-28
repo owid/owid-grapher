@@ -99,7 +99,11 @@ const obtainAvailableEntitiesForGrapherConfig = async (
         const canChangeEntities =
             grapher.canChangeEntity || grapher.canSelectMultipleEntities
 
-        if (canChangeEntities)
+        // In these chart types, an unselected entity is still shown
+        const chartTypeShowsUnselectedEntities =
+            grapher.isScatter || grapher.isSlopeChart || grapher.isMarimekko
+
+        if (canChangeEntities || chartTypeShowsUnselectedEntities)
             return grapher.tableForSelection.availableEntityNames as string[]
         else return grapher.selectedEntityNames
     } else if (grapher.hasMapTab) {
