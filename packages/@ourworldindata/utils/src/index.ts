@@ -115,6 +115,7 @@ export {
     mergePartialGrapherConfigs,
     copyToClipboard,
     checkIsGdocPost,
+    checkIsGdocPostExcludingFragments,
     checkIsDataInsight,
     checkIsAuthor,
     cartesian,

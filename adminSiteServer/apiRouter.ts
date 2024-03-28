@@ -55,7 +55,7 @@ import {
     DbChartTagJoin,
     pick,
     Json,
-    checkIsGdocPost,
+    checkIsGdocPostExcludingFragments,
 } from "@ourworldindata/utils"
 import {
     DbPlainDatasetTag,
@@ -2394,7 +2394,7 @@ putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
         )
     } else if (checkFullDeployFallback(prevJson, nextJson, hasChanges)) {
         const action = getPublishingAction(prevJson, nextJson)
-        if (checkIsGdocPost(nextJson)) {
+        if (checkIsGdocPostExcludingFragments(nextJson)) {
             if (
                 action === GdocPublishingAction.Updating ||
                 action === GdocPublishingAction.Publishing
