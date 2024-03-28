@@ -223,11 +223,6 @@ export class ChartEditor {
         if (!currentGrapherObject.slug)
             currentGrapherObject.slug = grapher.displaySlug
 
-        // We need to save availableEntities for Algolia search. Todo: remove.
-        const availableEntities = grapher.table.availableEntityNames
-        if (availableEntities.length)
-            (currentGrapherObject as any).data = { availableEntities }
-
         const targetUrl = isNewGrapher
             ? "/api/charts"
             : `/api/charts/${grapher.id}`
