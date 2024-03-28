@@ -55,6 +55,7 @@ import {
     DbChartTagJoin,
     pick,
     Json,
+    checkIsGdocPost,
 } from "@ourworldindata/utils"
 import {
     DbPlainDatasetTag,
@@ -96,6 +97,10 @@ import {
     isValidStatus,
 } from "../db/model/SuggestedChartRevision.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
+import {
+    indexIndividualGdocPost,
+    removeIndividualGdocPostFromIndex,
+} from "../baker/algolia/algoliaUtils.js"
 import { References } from "../adminSiteClient/ChartEditor.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
@@ -2391,6 +2396,13 @@ putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
                 : !prevJson.published && nextJson.published
                   ? "Publishing"
                   : "Unpublishing"
+        if (checkIsGdocPost(nextJson)) {
+            if (action === "Updating" || action === "Publishing") {
+                await indexIndividualGdocPost(nextJson, trx, prevJson.slug)
+            } else {
+                await removeIndividualGdocPostFromIndex(nextJson)
+            }
+        }
         await triggerStaticBuild(res.locals.user, `${action} ${nextJson.slug}`)
     }
 
