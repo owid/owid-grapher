@@ -611,8 +611,8 @@ const columnDefFromOwidVariable = (
     const type = isContinent
         ? ColumnTypeNames.Continent
         : variable.type
-        ? variableTypeToColumnType(variable.type)
-        : ColumnTypeNames.NumberOrString
+          ? variableTypeToColumnType(variable.type)
+          : ColumnTypeNames.NumberOrString
 
     // Sorted values for ordinal columns
     const sort =
