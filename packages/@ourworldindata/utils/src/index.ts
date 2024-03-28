@@ -118,6 +118,7 @@ export {
     checkIsDataInsight,
     checkIsAuthor,
     cartesian,
+    isElementHidden,
 } from "./Util.js"
 
 export {

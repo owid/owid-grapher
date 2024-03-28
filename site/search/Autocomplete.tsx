@@ -26,6 +26,9 @@ import {
     parseIndexName,
 } from "./searchClient.js"
 import { queryParamsToStr } from "@ourworldindata/utils"
+import { SiteAnalytics } from "../SiteAnalytics.js"
+
+const siteAnalytics = new SiteAnalytics()
 
 type BaseItem = Record<string, unknown>
 
@@ -107,6 +110,11 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
     sourceId: "autocomplete",
     onSelect({ navigator, item, state }) {
         const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
+        siteAnalytics.logInstantSearchClick({
+            query: state.query,
+            url: itemUrl,
+            position: String(state.activeItemId),
+        })
         navigator.navigate({ itemUrl, item, state })
     },
     getItemUrl({ item }) {
