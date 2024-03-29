@@ -152,10 +152,17 @@ export const configureAlgolia = async () => {
         searchableAttributes: [
             "unordered(viewTitle)",
             "unordered(viewSettings)",
+            "unordered(explorerTitle)",
         ],
-        customRanking: ["desc(score)", "asc(viewIndexWithinExplorer)"],
-        attributeForDistinct: "viewTitleAndExplorerSlug",
-        distinct: true,
+        customRanking: [
+            // For multiple explorer views with the same title, we want to avoid surfacing duplicates.
+            // So, rank a result with viewTitleIndexWithinExplorer=0 way more highly than one with 1, 2, etc.
+            "asc(viewTitleIndexWithinExplorer)",
+            "desc(score)",
+            "asc(viewIndexWithinExplorer)",
+        ],
+        attributeForDistinct: "explorerSlug",
+        distinct: 4,
         minWordSizefor1Typo: 6,
     })
 

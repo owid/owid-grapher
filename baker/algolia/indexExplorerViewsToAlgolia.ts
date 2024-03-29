@@ -64,10 +64,13 @@ const explorerChoiceToViewSettings = (
     })
 }
 
-const computeScore = (record: Partial<ExplorerViewEntryWithExplorerInfo>) =>
+const computeScore = (
+    record: Omit<ExplorerViewEntry, "viewTitleIndexWithinExplorer"> &
+        Partial<ExplorerViewEntryWithExplorerInfo>
+) =>
     (record.explorerViews_7d ?? 0) * 10 -
-    (record.numNonDefaultSettings ?? 0) * 50 -
-    (record.titleLength ?? 0)
+    record.numNonDefaultSettings * 50 -
+    record.titleLength
 
 const getExplorerViewRecordsForExplorerSlug = async (
     trx: db.KnexReadonlyTransaction,
