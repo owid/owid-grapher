@@ -232,19 +232,17 @@ export const getPagesRecords = async (knex: db.KnexReadWriteTransaction) => {
  * Index a single Gdoc post to Algolia
  * If it's a new post, new records will be created.
  * If it's an existing post:
- * - existing records will be updated if the new post get chunked into the same number of records
+ * - existing records will be overwritten if the new post gets chunked into the same number of records (i.e. they're approx. the same length)
  * - otherwise the old records will be deleted and new ones will be created
- * To delete old records, we need to know the slug of the post before it was updated
- * because objectID isn't a queryable field, so we have to use index.browseObject
- * whose `filter` parameter requires an exact match. Because our objectID format is `${postID}-c${chunkNumber}`
- * we can't filter them because we don't know in advance how many chunks were made
+ * To delete old records, we need to know the slug of the post before it was updated.
+ * - We can't search by objectID because it's not a queryable field
+ * - We can't filter by objectID because filters require exact matches and we can't know the objectIDs beforehand
+ *   - They're of the form `${gdoc.id}-c${chunkNumber}` but we don't know how many chunks exist
  */
 export async function indexIndividualGdocPost(
     gdoc: OwidGdocPostInterface,
     knex: db.KnexReadonlyTransaction,
-    // Defaults to the current slug if not provided
-    // for when the post might already be indexed and we need to update its content but the slug hasn't changed
-    previousSlug: string = gdoc.slug
+    indexedSlug: string
 ) {
     if (!ALGOLIA_INDEXING) return
     if (typeof gdoc.slug === "undefined") {
@@ -261,7 +259,7 @@ export async function indexIndividualGdocPost(
     }
     const index = client.initIndex(getIndexName(SearchIndexName.Pages))
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
-    const existingPageviews = pageviews[`/${previousSlug}`]
+    const existingPageviews = pageviews[`/${indexedSlug}`]
     const pageviewsForGdoc = {
         [gdoc.slug]: existingPageviews || {
             views_7d: 0,
@@ -276,7 +274,7 @@ export async function indexIndividualGdocPost(
     const existingRecordsForPost: ObjectWithObjectID[] = []
     await index.browseObjects({
         // IMPORTANT: requires `slug` to be set in the index's attributesForFaceting
-        filters: `slug:${previousSlug}`,
+        filters: `slug:${indexedSlug}`,
         attributesToRetrieve: ["ObjectID"],
         // This is the way you get results from browseObjects for some reason 🤷
         batch: (batch) => existingRecordsForPost.push(...batch),
