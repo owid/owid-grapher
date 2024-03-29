@@ -12,7 +12,7 @@ import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
-import { keyBy } from "lodash"
+import { groupBy, keyBy, orderBy } from "lodash"
 
 interface ExplorerViewEntry {
     viewTitle: string
@@ -21,6 +21,13 @@ interface ExplorerViewEntry {
     viewQueryParams: string
 
     viewGrapherId?: number
+
+    /**
+     * We often have several views with the same title within an explorer, e.g. "Population".
+     * In order to only display _one_ of these views in search results, we need a way to demote duplicates.
+     * This attribute is used for that: The highest-scored such view will be given a value of 0, the second-highest 1, etc.
+     */
+    viewTitleIndexWithinExplorer: number
 
     // Potential ranking criteria
     viewIndexWithinExplorer: number
@@ -34,6 +41,7 @@ interface ExplorerViewEntryWithExplorerInfo extends ExplorerViewEntry {
     explorerTitle: string
     explorerViews_7d: number
     viewTitleAndExplorerSlug: string // used for deduplication: `viewTitle | explorerSlug`
+    numViewsWithinExplorer: number
 
     score: number
 
@@ -55,6 +63,11 @@ const explorerChoiceToViewSettings = (
         else return choiceValue
     })
 }
+
+const computeScore = (record: Partial<ExplorerViewEntryWithExplorerInfo>) =>
+    (record.explorerViews_7d ?? 0) * 10 -
+    (record.numNonDefaultSettings ?? 0) * 50 -
+    (record.titleLength ?? 0)
 
 const getExplorerViewRecordsForExplorerSlug = async (
     trx: db.KnexReadonlyTransaction,
@@ -105,7 +118,10 @@ const getExplorerViewRecordsForExplorerSlug = async (
                 )
             })
 
-            const record: ExplorerViewEntry = {
+            const record: Omit<
+                ExplorerViewEntry,
+                "viewTitleIndexWithinExplorer"
+            > = {
                 viewTitle: explorerDecisionMatrix.selectedRow.title,
                 viewSubtitle: explorerDecisionMatrix.selectedRow.subtitle,
                 viewSettings: explorerChoiceToViewSettings(
@@ -158,9 +174,28 @@ const getExplorerViewRecordsForExplorerSlug = async (
         }
     }
 
+    // Compute viewTitleIndexWithinExplorer:
+    // First, sort by score descending (ignoring views_7d, which is not relevant _within_ an explorer).
+    // Then, group by viewTitle.
+    // Finally, ungroup again, and keep track of the index of each element within the group.
+    const recordsSortedByScore = orderBy(
+        records,
+        (record) => computeScore(record),
+        "desc"
+    )
+    const recordsGroupedByViewTitle = groupBy(recordsSortedByScore, "viewTitle")
+    const recordsWithIndexWithinExplorer = Object.values(
+        recordsGroupedByViewTitle
+    ).flatMap((recordsGroup) =>
+        recordsGroup.map((record, i) => ({
+            ...record,
+            viewTitleIndexWithinExplorer: i,
+        }))
+    )
+
     // TODO: Handle indicator-based explorers
 
-    return records
+    return recordsWithIndexWithinExplorer
 }
 
 const getExplorerViewRecords = async (
@@ -181,23 +216,23 @@ const getExplorerViewRecords = async (
 
         const explorerPageviews =
             pageviews[`/explorers/${explorerInfo.slug}`]?.views_7d ?? 0
-        records = records.concat(
-            explorerViewRecords.map(
-                (record, i): ExplorerViewEntryWithExplorerInfo => ({
-                    ...record,
-                    explorerSlug: explorerInfo.slug,
-                    explorerTitle: explorerInfo.title,
-                    explorerViews_7d: explorerPageviews,
-                    viewTitleAndExplorerSlug: `${record.viewTitle} | ${explorerInfo.slug}`,
-                    // Scoring function
-                    score:
-                        explorerPageviews * 10 -
-                        record.numNonDefaultSettings * 50 -
-                        record.titleLength,
+        const unscoredRecords = explorerViewRecords.map(
+            (record, i): Omit<ExplorerViewEntryWithExplorerInfo, "score"> => ({
+                ...record,
+                explorerSlug: explorerInfo.slug,
+                explorerTitle: explorerInfo.title,
+                explorerViews_7d: explorerPageviews,
+                viewTitleAndExplorerSlug: `${record.viewTitle} | ${explorerInfo.slug}`,
+                numViewsWithinExplorer: explorerViewRecords.length,
 
-                    objectID: `${explorerInfo.slug}-${i}`,
-                })
-            )
+                objectID: `${explorerInfo.slug}-${i}`,
+            })
+        )
+        records = records.concat(
+            unscoredRecords.map((record) => ({
+                ...record,
+                score: computeScore(record),
+            }))
         )
     }
 
