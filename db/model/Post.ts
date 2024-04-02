@@ -404,7 +404,7 @@ export const getGdocsPostReferencesByChartId = async (
                 AND pg.content ->> '$.type' NOT IN (
                     '${OwidGdocType.Fragment}',
                     '${OwidGdocType.AboutPage}',
-                    '${OwidGdocType.DataInsight}',
+                    '${OwidGdocType.DataInsight}'
                 )
                 AND pg.published = 1
             ORDER BY
