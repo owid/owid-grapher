@@ -44,7 +44,11 @@ import {
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faHeartBroken, faSearch } from "@fortawesome/free-solid-svg-icons"
+import {
+    faArrowRight,
+    faHeartBroken,
+    faSearch,
+} from "@fortawesome/free-solid-svg-icons"
 import {
     DEFAULT_SEARCH_PLACEHOLDER,
     getIndexName,
@@ -195,6 +199,7 @@ function ExplorerHit({ groupedHit }: { groupedHit: GroupedExplorerViews }) {
                             data-algolia-object-id={view.objectID}
                             data-algolia-position={view.__position}
                             href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${view.explorerSlug}${view.viewQueryParams}`}
+                            className="search-results__explorer-view-title-container"
                         >
                             <Highlight
                                 attribute="viewTitle"
@@ -202,10 +207,11 @@ function ExplorerHit({ groupedHit }: { groupedHit: GroupedExplorerViews }) {
                                 highlightedTagName="strong"
                                 className="search-results__explorer-view-title"
                             />
-                            <p className="body-3-medium-italic search-results__explorer-view-subtitle">
-                                {view.viewSubtitle}
-                            </p>
+                            <FontAwesomeIcon icon={faArrowRight} />
                         </a>
+                        <p className="body-3-medium-italic search-results__explorer-view-subtitle">
+                            {view.viewSubtitle}
+                        </p>
                     </li>
                 ))}
             </ul>
