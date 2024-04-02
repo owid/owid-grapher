@@ -392,7 +392,6 @@ export async function getAndLoadPublishedGdocPosts(
                 OwidGdocType.Article,
                 OwidGdocType.LinearTopicPage,
                 OwidGdocType.TopicPage,
-                OwidGdocType.Fragment,
                 OwidGdocType.AboutPage,
             ],
         }
