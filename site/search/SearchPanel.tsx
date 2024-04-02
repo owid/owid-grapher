@@ -43,7 +43,7 @@ import { faHeartBroken, faSearch } from "@fortawesome/free-solid-svg-icons"
 import {
     DEFAULT_SEARCH_PLACEHOLDER,
     getIndexName,
-    logSiteSearchClick,
+    logSiteSearchClickToAlgoliaInsights,
 } from "./searchClient.js"
 import {
     PreferenceType,
@@ -258,6 +258,7 @@ interface SearchResultsProps {
     activeCategoryFilter: SearchCategoryFilter
     isHidden: boolean
     handleCategoryFilterClick: (x: SearchCategoryFilter) => void
+    query: string
 }
 
 const SearchResults = (props: SearchResultsProps) => {
@@ -300,7 +301,7 @@ const SearchResults = (props: SearchResultsProps) => {
                     )
                     const index = target.getAttribute("data-algolia-index")
                     const href = target.getAttribute("href")
-                    const query = getWindowQueryParams().q
+                    const query = props.query
 
                     if (
                         objectId &&
@@ -309,7 +310,7 @@ const SearchResults = (props: SearchResultsProps) => {
                         href &&
                         query
                     ) {
-                        logSiteSearchClick({
+                        logSiteSearchClickToAlgoliaInsights({
                             index,
                             queryID,
                             objectIDs: [objectId],
@@ -326,7 +327,7 @@ const SearchResults = (props: SearchResultsProps) => {
                 }
             }
         },
-        [queryID, activeCategoryFilter]
+        [queryID, activeCategoryFilter, props.query]
     )
     useEffect(() => {
         document.addEventListener("click", handleHitClick)
@@ -555,6 +556,7 @@ export class InstantSearchContainer extends React.Component {
                     <SearchResults
                         isHidden={!this.inputValue}
                         activeCategoryFilter={this.activeCategoryFilter}
+                        query={this.inputValue}
                         handleCategoryFilterClick={
                             this.handleCategoryFilterClick
                         }
