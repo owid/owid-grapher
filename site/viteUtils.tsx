@@ -7,8 +7,9 @@ import {
     VITE_PREVIEW,
 } from "../settings/serverSettings.js"
 import { POLYFILL_URL } from "./SiteConstants.js"
-import type { Manifest } from "vite"
+import type { Manifest, ManifestChunk } from "vite"
 import { sortBy } from "@ourworldindata/utils"
+import path from "path"
 
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 
@@ -30,6 +31,10 @@ const polyfillPreload = (
 interface Assets {
     forHeader: JSX.Element[]
     forFooter: JSX.Element[]
+}
+
+interface ManifestChunkWithBasePath extends ManifestChunk {
+    basePath?: string
 }
 
 // in dev: we need to load several vite core scripts and plugins; other than that we only need to load the entry point, and vite will take care of the rest.
@@ -72,7 +77,7 @@ export const createTagsForManifestEntry = (
     assetBaseUrl: string
 ): Assets => {
     const createTags = (entry: string): JSX.Element[] => {
-        const manifestEntry =
+        const manifestEntry: ManifestChunkWithBasePath =
             Object.values(manifest).find((e) => e.file === entry) ??
             manifest[entry]
         let assets = [] as JSX.Element[]
@@ -80,7 +85,11 @@ export const createTagsForManifestEntry = (
         if (!manifestEntry)
             throw new Error(`Could not find manifest entry for ${entry}`)
 
-        const assetUrl = `${assetBaseUrl}${manifestEntry.file}`
+        const assetUrl = path.join(
+            assetBaseUrl,
+            manifestEntry.basePath ?? "",
+            manifestEntry.file
+        )
 
         if (entry.endsWith(".css")) {
             assets = [
@@ -134,20 +143,33 @@ export const createTagsForManifestEntry = (
 // this could be, for example: owid.mjs, common.mjs, owid.css, common.css. (plus Google Fonts and polyfills)
 const prodAssets = (entry: string, baseUrl: string): Assets => {
     const baseDir = findBaseDir(__dirname)
-    const manifestPath = `${baseDir}/dist/manifest.json`
-    let manifest
+    const manifestBasePath = `${baseDir}/dist/`
+    const manifestDirs = ["assets", "admin/assets"]
+    let mergedManifest
     try {
-        manifest = fs.readJSONSync(manifestPath) as Manifest
+        mergedManifest = manifestDirs.reduce((acc, path) => {
+            const manifestContent = fs.readJsonSync(
+                `${manifestBasePath}/${path}/manifest.json`
+            ) as Manifest
+            Object.values(manifestContent).forEach(
+                (value: ManifestChunkWithBasePath) => (value.basePath = path)
+            )
+            return { ...acc, ...manifestContent }
+        }, {})
     } catch (err) {
         throw new Error(
-            `Could not read build manifest ('${manifestPath}'), which is required for production.
+            `Could not read one of the build manifests ('${manifestDirs.map((dir) => `${dir}/manifest.json`)}'), which is required for production.
             If you're running in VITE_PREVIEW mode, wait for the build to finish and then reload this page.`,
             { cause: err }
         )
     }
 
     const assetBaseUrl = `${baseUrl}/`
-    const assets = createTagsForManifestEntry(manifest, entry, assetBaseUrl)
+    const assets = createTagsForManifestEntry(
+        mergedManifest,
+        entry,
+        assetBaseUrl
+    )
 
     return {
         // sort for some kind of consistency: first modulepreload, then preload, then stylesheet

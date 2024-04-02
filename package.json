@@ -16,7 +16,7 @@
         "buildLocalBake": "node --enable-source-maps ./itsJustJavascript/baker/buildLocalBake.js",
         "buildTsc": "tsc -b -verbose",
         "buildLerna": "lerna run build",
-        "buildVite": "vite build",
+        "buildVite": "vite build --config vite.config-site.mts && vite build --config vite.config-admin.mts",
         "buildWordpressPlugin": "cd ./wordpress/web/app/plugins/owid && yarn && yarn build",
         "bakeGdocPosts": "node --enable-source-maps ./itsJustJavascript/baker/bakeGdocPosts.js",
         "cleanTsc": "rm -rf itsJustJavascript && tsc -b -clean",
