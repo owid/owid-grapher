@@ -8,6 +8,8 @@ import {
     mapValues,
     isElementHidden,
     sortBy,
+    groupBy,
+    uniqBy,
 } from "@ourworldindata/utils"
 import {
     InstantSearch,
@@ -19,6 +21,7 @@ import {
     Snippet,
     useInstantSearch,
     PoweredBy,
+    useHits,
 } from "react-instantsearch"
 import algoliasearch, { SearchClient } from "algoliasearch"
 import {
@@ -128,6 +131,59 @@ function ChartHit({ hit }: { hit: IChartHit }) {
     )
 }
 
+function ExplorerViewHits() {
+    const { hits, results, sendEvent } = useHits<IExplorerViewHit>()
+
+    const groupedBySlug = groupBy(hits, "explorerSlug")
+    const grouped = Object.values(groupedBySlug).map((explorerViews) => {
+        const firstView = explorerViews[0]
+        return {
+            explorerSlug: firstView.explorerSlug,
+            explorerTitle: firstView.explorerTitle,
+            explorerSubtitle: firstView.explorerSubtitle,
+            numViewsWithinExplorer: firstView.numViewsWithinExplorer,
+            views: uniqBy(explorerViews, "viewTitle"),
+        }
+    })
+
+    return (
+        <div className="search-results__list-container">
+            <ol className="search-results__explorer-list grid grid-cols-2 grid-sm-cols-1">
+                {grouped.map((group) => (
+                    <div
+                        key={group.explorerSlug}
+                        className="search-results__explorer-hit"
+                    >
+                        <h3 className="h3-bold search-results__explorer-hit-title">
+                            {group.explorerTitle}
+                        </h3>
+                        <p className="body-3-medium-italic search-results__explorer-hit-subtitle">
+                            {group.explorerSubtitle}
+                        </p>
+                        <ul className="search-results__explorer-views-list">
+                            {group.views.map((hit) => (
+                                <li
+                                    key={hit.objectID}
+                                    className="search-results__explorer-view"
+                                >
+                                    <ExplorerViewHit hit={hit} />
+                                </li>
+                            ))}
+                        </ul>
+                        <a
+                            href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${group.explorerSlug}`}
+                            className="search-results__explorer-hit-link"
+                        >
+                            Explore all {group.numViewsWithinExplorer}{" "}
+                            indicators
+                        </a>
+                    </div>
+                ))}
+            </ol>
+        </div>
+    )
+}
+
 function ExplorerViewHit({ hit }: { hit: IExplorerViewHit }) {
     return (
         <a
@@ -136,11 +192,15 @@ function ExplorerViewHit({ hit }: { hit: IExplorerViewHit }) {
             data-algolia-position={hit.__position}
             href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${hit.explorerSlug}${hit.viewQueryParams}`}
         >
-            <h4 className="h3-bold">{hit.viewTitle}</h4>
-            <span>
-                in <em>{hit.explorerTitle} Data Explorer</em>
-            </span>
-            {/* Explorer subtitles are mostly useless at the moment, so we're only showing titles */}
+            <Highlight
+                attribute="viewTitle"
+                hit={hit}
+                highlightedTagName="strong"
+                className="search-results__explorer-view-title"
+            />
+            <p className="body-3-medium-italic search-results__explorer-view-subtitle">
+                {hit.viewSubtitle}
+            </p>
         </a>
     )
 }
@@ -358,6 +418,7 @@ const SearchResults = (props: SearchResultsProps) => {
     const hasClickAnalyticsConsent = getPreferenceValue(
         PreferenceType.Analytics
     )
+
     return (
         <div
             className="search-results"
@@ -400,46 +461,14 @@ const SearchResults = (props: SearchResultsProps) => {
                     />
                 </section>
             </NoResultsBoundary>
-            <Index indexName={getIndexName(SearchIndexName.Explorers)}>
+            <Index indexName={getIndexName(SearchIndexName.ExplorerViews)}>
                 <Configure
-                    hitsPerPage={10}
-                    distinct
+                    hitsPerPage={20}
+                    distinct={4}
                     clickAnalytics={hasClickAnalyticsConsent}
                     restrictSearchableAttributes={
                         "" as any
                     } /* Hack: This is the only way to _not_ send `restrictSearchableAttributes` along for this index */
-                />
-                <NoResultsBoundary>
-                    <section className="search-results__explorers">
-                        <header className="search-results__header">
-                            <h2 className="h2-bold search-results__section-title">
-                                Data Explorers
-                            </h2>
-                            <ShowMore
-                                category={SearchIndexName.Explorers}
-                                cutoffNumber={2}
-                                activeCategoryFilter={activeCategoryFilter}
-                                handleCategoryFilterClick={
-                                    handleCategoryFilterClick
-                                }
-                            />
-                        </header>
-                        <Hits
-                            classNames={{
-                                root: "search-results__list-container",
-                                list: "search-results__explorers-list grid grid-cols-2 grid-sm-cols-1",
-                                item: "search-results__explorer-hit",
-                            }}
-                            hitComponent={ExplorerHit}
-                        />
-                    </section>
-                </NoResultsBoundary>
-            </Index>
-            <Index indexName={getIndexName(SearchIndexName.ExplorerViews)}>
-                <Configure
-                    hitsPerPage={10}
-                    distinct
-                    clickAnalytics={hasClickAnalyticsConsent}
                 />
                 <NoResultsBoundary>
                     <section className="search-results__explorer-views">
@@ -449,21 +478,14 @@ const SearchResults = (props: SearchResultsProps) => {
                             </h2>
                             <ShowMore
                                 category={SearchIndexName.ExplorerViews}
-                                cutoffNumber={4}
+                                cutoffNumber={2}
                                 activeCategoryFilter={activeCategoryFilter}
                                 handleCategoryFilterClick={
                                     handleCategoryFilterClick
                                 }
                             />
                         </header>
-                        <Hits
-                            classNames={{
-                                root: "search-results__list-container",
-                                list: "search-results__explorer-views-list grid grid-cols-2 grid-sm-cols-1",
-                                item: "search-results__explorer-view-hit",
-                            }}
-                            hitComponent={ExplorerViewHit}
-                        />
+                        <ExplorerViewHits />
                     </section>
                 </NoResultsBoundary>
             </Index>
