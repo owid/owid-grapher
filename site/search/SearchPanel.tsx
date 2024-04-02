@@ -29,7 +29,6 @@ import {
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
-    IExplorerHit,
     IChartHit,
     SearchCategoryFilter,
     SearchIndexName,
@@ -143,20 +142,6 @@ function ExplorerViewHit({ hit }: { hit: IExplorerViewHit }) {
     )
 }
 
-function ExplorerHit({ hit }: { hit: IExplorerHit }) {
-    return (
-        <a
-            data-algolia-index={getIndexName(SearchIndexName.Explorers)}
-            data-algolia-object-id={hit.objectID}
-            data-algolia-position={hit.__position}
-            href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${hit.slug}`}
-        >
-            <h4 className="h3-bold">{hit.title}</h4>
-            {/* Explorer subtitles are mostly useless at the moment, so we're only showing titles */}
-        </a>
-    )
-}
-
 function ShowMore({
     category,
     cutoffNumber,
@@ -220,10 +205,6 @@ function Filters({
     hitsLengthByIndexName[getIndexName("all")] = Object.values(
         hitsLengthByIndexName
     ).reduce((a: number, b: number) => a + b, 0)
-
-    hitsLengthByIndexName[getIndexName(SearchIndexName.Explorers)] =
-        hitsLengthByIndexName[getIndexName(SearchIndexName.Explorers)] +
-        hitsLengthByIndexName[getIndexName(SearchIndexName.ExplorerViews)]
 
     return (
         <div className="search-filters">
@@ -397,38 +378,6 @@ const SearchResults = (props: SearchResultsProps) => {
                     />
                 </section>
             </NoResultsBoundary>
-            <Index indexName={getIndexName(SearchIndexName.Explorers)}>
-                <Configure
-                    hitsPerPage={10}
-                    distinct
-                    clickAnalytics={hasClickAnalyticsConsent}
-                />
-                <NoResultsBoundary>
-                    <section className="search-results__explorers">
-                        <header className="search-results__header">
-                            <h2 className="h2-bold search-results__section-title">
-                                Data Explorers
-                            </h2>
-                            <ShowMore
-                                category={SearchIndexName.Explorers}
-                                cutoffNumber={2}
-                                activeCategoryFilter={activeCategoryFilter}
-                                handleCategoryFilterClick={
-                                    handleCategoryFilterClick
-                                }
-                            />
-                        </header>
-                        <Hits
-                            classNames={{
-                                root: "search-results__list-container",
-                                list: "search-results__explorers-list grid grid-cols-2 grid-sm-cols-1",
-                                item: "search-results__explorer-hit",
-                            }}
-                            hitComponent={ExplorerHit}
-                        />
-                    </section>
-                </NoResultsBoundary>
-            </Index>
             <Index indexName={getIndexName(SearchIndexName.ExplorerViews)}>
                 <Configure
                     hitsPerPage={10}
@@ -439,7 +388,7 @@ const SearchResults = (props: SearchResultsProps) => {
                     <section className="search-results__explorer-views">
                         <header className="search-results__header">
                             <h2 className="h2-bold search-results__section-title">
-                                Data Explorer views
+                                Data Explorers
                             </h2>
                             <ShowMore
                                 category={SearchIndexName.ExplorerViews}
