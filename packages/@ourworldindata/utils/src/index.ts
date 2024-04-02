@@ -160,6 +160,7 @@ export {
     isBoolean,
     isEmpty,
     isEqual,
+    isInteger,
     isNil,
     isNull,
     isNumber,

@@ -22,6 +22,7 @@ import {
     getYearFromISOStringAndDayOffset,
     intersection,
     isNumber,
+    isInteger,
     makeAnnotationsSlug,
     trimObject,
     uniqBy,
@@ -146,9 +147,12 @@ export const legacyToOwidTableAndDimensions = (
                 isNumber(value) ? value * conversionFactor : value
             )
 
-            // If a conversion factor is applied to an integer column,
+            // If a non-int conversion factor is applied to an integer column,
             // we end up with a numeric column.
-            if (valueColumnDef.type === ColumnTypeNames.Integer)
+            if (
+                valueColumnDef.type === ColumnTypeNames.Integer &&
+                isInteger(conversionFactor)
+            )
                 valueColumnDef.type = ColumnTypeNames.Numeric
         }
 
