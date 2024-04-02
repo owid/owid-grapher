@@ -8,7 +8,7 @@ export const DataCitation = (props: {
     return (
         <div className="data-citation">
             {props.citationShort && (
-                <>
+                <div className="data-citation__item">
                     <p className="citation__paragraph">
                         <span className="citation__type">In-line citation</span>
                         If you have limited space (e.g. in data visualizations),
@@ -19,10 +19,10 @@ export const DataCitation = (props: {
                         theme="light"
                         useMarkdown={true}
                     />
-                </>
+                </div>
             )}
             {props.citationLong && (
-                <>
+                <div className="data-citation__item">
                     <p className="citation__paragraph">
                         <span className="citation__type">Full citation</span>
                     </p>
@@ -31,7 +31,7 @@ export const DataCitation = (props: {
                         theme="light"
                         useMarkdown={true}
                     />
-                </>
+                </div>
             )}
         </div>
     )
