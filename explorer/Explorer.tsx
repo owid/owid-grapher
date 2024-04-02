@@ -961,7 +961,7 @@ export class Explorer
 
     @computed get embedDialogAdditionalElements() {
         return (
-            <div style={{ marginTop: "1em" }}>
+            <div className="embed-additional-elements">
                 <Checkbox
                     label="Hide controls"
                     checked={this.embedDialogHideControls}

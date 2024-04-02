@@ -259,7 +259,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             <div className="grouped-menu">
                 {manager.isOnChartOrMapTab && (
                     <div className="grouped-menu-section">
-                        <h2>Visualization</h2>
+                        <h3 className="grapher_h3-semibold">Visualization</h3>
                         <div className="grouped-menu-list">
                             <DownloadButton
                                 title="Image (PNG)"
@@ -307,16 +307,16 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                     </div>
                 )}
                 <div className="grouped-menu-section grouped-menu-section-data">
-                    <h2>Data</h2>
+                    <h3 className="grapher_h3-semibold">Data</h3>
                     {this.nonRedistributable ? (
                         <div className="grouped-menu-callout">
                             <div className="grouped-menu-callout-content">
-                                <h3 className="title">
+                                <h4 className="title grapher_h4-semibold">
                                     <FontAwesomeIcon icon={faInfoCircle} />
                                     The data in this chart is not available to
                                     download
-                                </h3>
-                                <p>
+                                </h4>
+                                <p className="grapher_body-3-medium grapher_light">
                                     The data is published under a license that
                                     doesn't allow us to redistribute it.
                                     {this.nonRedistributableSourceLink && (
@@ -352,6 +352,10 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         )
     }
 
+    @action.bound private onDismiss(): void {
+        this.manager.isDownloadModalOpen = false
+    }
+
     componentDidMount(): void {
         this.export()
     }
@@ -360,12 +364,10 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return (
             <Modal
                 title="Download"
-                onDismiss={action(
-                    () => (this.manager.isDownloadModalOpen = false)
-                )}
                 bounds={this.modalBounds}
+                onDismiss={this.onDismiss}
             >
-                <div className="DownloadModalContent">
+                <div className="download-modal-content">
                     {this.isReady ? (
                         this.renderReady()
                     ) : (
@@ -399,8 +401,10 @@ function DownloadButton(props: DownloadButtonProps): JSX.Element {
                 </div>
             )}
             <div className="grouped-menu-content">
-                <h3 className="title">{props.title}</h3>
-                <p className="description">{props.description}</p>
+                <h4 className="grapher_body-2-semibold">{props.title}</h4>
+                <p className="grapher_label-1-medium grapher_light">
+                    {props.description}
+                </p>
             </div>
             <div className="grouped-menu-icon">
                 <span className="download-icon">

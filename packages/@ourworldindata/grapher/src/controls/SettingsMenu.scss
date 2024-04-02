@@ -54,13 +54,6 @@ nav.controlsRow .chart-controls .settings-menu {
         position: sticky;
         top: 0;
         z-index: 1;
-
-        .settings-menu-title {
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: $light-text;
-            font: $bold 12px/16px $lato;
-        }
     }
 
     .settings-menu-controls {

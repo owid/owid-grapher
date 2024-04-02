@@ -1,12 +1,12 @@
-.embedMenu {
-    text-align: left;
+.embed-modal-content {
     color: $dark-text;
-    margin-bottom: $modal-padding;
+    margin: 0 var(--modal-padding) var(--modal-padding);
 
     p {
-        margin-bottom: 1.15em;
-        margin-top: 0;
-        font-size: 0.875em;
-        font-weight: 500;
+        margin-bottom: 16px;
+    }
+
+    .embed-additional-elements {
+        margin-top: 16px;
     }
 }

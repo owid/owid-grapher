@@ -6,7 +6,7 @@ import { Bounds } from "@ourworldindata/utils"
 @observer
 export class SidePanel extends React.Component<{
     bounds: Bounds
-    title?: string
+    title: string
     children: React.ReactNode
 }> {
     @computed private get bounds(): Bounds {
@@ -16,16 +16,18 @@ export class SidePanel extends React.Component<{
     render(): JSX.Element {
         return (
             <div
-                className="SidePanel"
+                className="side-panel"
                 style={{
                     width: this.bounds.width,
                     height: this.bounds.height,
                 }}
             >
-                {this.props.title && (
-                    <h3 className="title">{this.props.title}</h3>
-                )}
-                {this.props.children}
+                <h3 className="side-panel__header grapher_h5-black-caps grapher_light">
+                    {this.props.title}
+                </h3>
+                <div className="side-panel__scrollable">
+                    {this.props.children}
+                </div>
             </div>
         )
     }
