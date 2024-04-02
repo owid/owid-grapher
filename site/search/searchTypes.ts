@@ -42,6 +42,7 @@ export type IExplorerViewHit = Hit<BaseHit> & {
     // Explorer-wide fields
     explorerSlug: string
     explorerTitle: string
+    explorerSubtitle: string
     numViewsWithinExplorer: number
 
     // View-specific fields
