@@ -39,6 +39,7 @@ interface ExplorerViewEntry {
 interface ExplorerViewEntryWithExplorerInfo extends ExplorerViewEntry {
     explorerSlug: string
     explorerTitle: string
+    explorerSubtitle: string
     explorerViews_7d: number
     viewTitleAndExplorerSlug: string // used for deduplication: `viewTitle | explorerSlug`
     numViewsWithinExplorer: number
@@ -224,6 +225,7 @@ const getExplorerViewRecords = async (
                 ...record,
                 explorerSlug: explorerInfo.slug,
                 explorerTitle: explorerInfo.title,
+                explorerSubtitle: explorerInfo.subtitle,
                 explorerViews_7d: explorerPageviews,
                 viewTitleAndExplorerSlug: `${record.viewTitle} | ${explorerInfo.slug}`,
                 numViewsWithinExplorer: explorerViewRecords.length,
