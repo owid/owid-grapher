@@ -192,7 +192,6 @@
 }
 
 .search-results__pages-list,
-.search-results__explorers-list,
 .search-results__explorer-views-list,
 .search-results__charts-list {
     gap: var(--grid-gap);
@@ -228,7 +227,6 @@
     display: block;
 }
 
-.search-results__explorer-hit a,
 .search-results__explorer-view-hit a {
     background-color: $blue-10;
     height: 100%;
@@ -327,7 +325,6 @@
 **/
 
 .search-results__pages,
-.search-results__explorers,
 .search-results__explorer-views,
 .search-results__charts {
     display: none;
@@ -335,7 +332,6 @@
 
 .search-results[data-active-filter="all"] {
     .search-results__pages,
-    .search-results__explorers,
     .search-results__explorer-views,
     .search-results__charts {
         // both needed for .search-results__show-more-container absolute-positioning
@@ -371,16 +367,6 @@
     }
 }
 
-.search-results__explorer-hit {
-    display: none;
-}
-
-.search-results__explorer-hit {
-    &:nth-child(-n + 2) {
-        display: inline;
-    }
-}
-
 .search-results__explorer-view-hit {
     display: none;
 
@@ -389,12 +375,8 @@
     }
 }
 
-.search-results[data-active-filter="explorers"] .search-results__explorers,
-.search-results[data-active-filter="explorers"]
-    .search-results__explorer-views {
-    display: inline;
-
-    .search-results__explorer-hit,
+.search-results[data-active-filter="explorer-views"] {
+    .search-results__explorer-views,
     .search-results__explorer-view-hit {
         display: inline;
     }
