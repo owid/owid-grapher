@@ -13,6 +13,7 @@ import { getAlgoliaClient } from "./configureAlgolia.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
 import { groupBy, keyBy, orderBy } from "lodash"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 
 interface ExplorerViewEntry {
     viewTitle: string
@@ -177,6 +178,16 @@ const getExplorerViewRecordsForExplorerSlug = async (
             }
         }
     }
+
+    // Remove Markdown from viewSubtitle; do this after fetching grapher info above, as it might also contain Markdown
+    records.forEach((record) => {
+        if (record.viewSubtitle) {
+            record.viewSubtitle = new MarkdownTextWrap({
+                text: record.viewSubtitle,
+                fontSize: 10, // doesn't matter, but is a mandatory field
+            }).plaintext
+        }
+    })
 
     // Compute viewTitleIndexWithinExplorer:
     // First, sort by score descending (ignoring views_7d, which is not relevant _within_ an explorer).
