@@ -19,6 +19,10 @@ interface EmbedModalProps {
 
 @observer
 export class EmbedModal extends React.Component<EmbedModalProps> {
+    @computed get manager(): EmbedModalManager {
+        return this.props.manager
+    }
+
     @computed private get frameBounds(): Bounds {
         return this.manager.frameBounds ?? DEFAULT_BOUNDS
     }
@@ -34,22 +38,22 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
         return `<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`
     }
 
-    @computed get manager(): EmbedModalManager {
-        return this.props.manager
+    @action.bound private onDismiss(): void {
+        this.manager.isEmbedModalOpen = false
     }
 
     render(): JSX.Element {
         return (
             <Modal
                 title="Embed"
-                onDismiss={action(
-                    () => (this.manager.isEmbedModalOpen = false)
-                )}
                 bounds={this.modalBounds}
                 alignVertical="bottom"
+                onDismiss={this.onDismiss}
             >
-                <div className="embedMenu">
-                    <p>Paste this into any HTML page:</p>
+                <div className="embed-modal-content">
+                    <p className="grapher_label-1-medium">
+                        Paste this into any HTML page:
+                    </p>
                     <CodeSnippet code={this.codeSnippet} />
                     {this.manager.embedDialogAdditionalElements}
                 </div>

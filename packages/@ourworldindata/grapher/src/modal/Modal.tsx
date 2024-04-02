@@ -1,7 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, computed } from "mobx"
-import cx from "classnames"
 import { Bounds } from "@ourworldindata/utils"
 import { CloseButton } from "../closeButton/CloseButton.js"
 
@@ -87,20 +86,18 @@ export class Modal extends React.Component<{
         }
 
         return (
-            <div className="modalOverlay">
-                <div className="modalWrapper">
+            <div className="modal-overlay">
+                <div className="modal-wrapper">
                     <div
-                        className="modalContent"
+                        className="modal-content"
                         style={contentStyle}
                         ref={this.contentRef}
                     >
                         {this.showStickyHeader ? (
-                            <div
-                                className={cx("modalHeader", {
-                                    modalHeader__empty: !this.title,
-                                })}
-                            >
-                                <div className="modalTitle">{this.title}</div>
+                            <div className="modal-header">
+                                <h2 className="grapher_h5-black-caps grapher_light">
+                                    {this.title}
+                                </h2>
                                 <CloseButton onClick={this.props.onDismiss} />
                             </div>
                         ) : (
@@ -109,7 +106,7 @@ export class Modal extends React.Component<{
                                 onClick={this.props.onDismiss}
                             />
                         )}
-                        <div className="modalScrollable">
+                        <div className="modal-scrollable">
                             {this.props.children}
                         </div>
                     </div>

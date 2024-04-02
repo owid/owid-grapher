@@ -1,20 +1,17 @@
-.DownloadModalContent {
+.download-modal-content {
     color: $dark-text;
-    padding-bottom: $modal-padding;
+    padding: 0 var(--modal-padding) var(--modal-padding);
+    min-height: 45px;
+    position: relative;
 
     .grouped-menu-section {
-        h2 {
-            color: $dark-text;
-            font-family: $serif-font-stack;
-            font-size: 1.125em;
-            font-weight: 600;
-            margin: 0;
+        h3 {
             margin-bottom: 16px;
         }
     }
 
     .grouped-menu-section + .grouped-menu-section {
-        margin-top: 1.5em;
+        margin-top: 24px;
     }
 
     .grouped-menu-item + .grouped-menu-item {
@@ -29,7 +26,7 @@
         background-color: #f7f7f7;
         position: relative;
         width: 100%;
-        padding: 1em;
+        padding: 16px;
         overflow: hidden;
         text-align: left;
 
@@ -51,27 +48,11 @@
             0px 93px 37px 0px rgba(49, 37, 2, 0.01),
             0px 145px 41px 0px rgba(49, 37, 2, 0);
         padding: 0;
-        margin: 0;
+        margin: 0 24px 0 0;
     }
 
     .grouped-menu-content {
         flex: 1;
-        padding: 0 1.5em;
-
-        .title {
-            margin: 0;
-            font-weight: 600;
-            font-size: 1em;
-            line-height: 1.5;
-        }
-
-        .description {
-            margin: 0;
-            color: $light-text;
-            font-size: 0.875em;
-            font-weight: 500;
-            line-height: 1.15;
-        }
     }
 
     .grouped-menu-section-data .grouped-menu-content {
@@ -79,8 +60,8 @@
     }
 
     .download-icon {
-        padding: 0 0.5em;
-        font-size: 1em;
+        padding: 0 8px 0 16px;
+        font-size: 16px;
     }
 
     .grouped-menu-item:hover .download-icon {
@@ -91,29 +72,20 @@
         border-radius: 8px;
         border: 1px solid #dadada;
         background: #f7f7f7;
-        padding: 1em;
+        padding: 16px;
 
         svg {
-            margin-right: 0.5em;
+            margin-right: 8px;
             color: $light-text;
         }
 
         .title {
-            margin: 0;
-            font-family: $serif-font-stack;
-            font-size: 1em;
-            font-weight: 600;
-            line-height: 1.5;
+            font-size: 1rem;
         }
 
         p {
-            font-size: 0.875em;
-            margin: 0.5em 0 0;
-            opacity: 0.9;
-            color: $light-text;
-            font-weight: 500;
-            line-height: 1.15;
-            letter-spacing: 0.14px;
+            margin: 8px 0 0;
+            font-size: 0.875rem;
         }
 
         a {
@@ -128,8 +100,8 @@
 }
 
 .static-exports-options {
-    margin: 1em 0 1.5em;
-    padding-bottom: 1.5em;
+    margin: 16px 0 24px;
+    padding-bottom: 24px;
     border-bottom: 1px solid #f2f2f2;
 
     > .checkbox + .checkbox {
@@ -137,9 +109,8 @@
     }
 }
 
-&.GrapherComponentNarrow .DownloadModalContent {
-    .grouped-menu-icon + .grouped-menu-content {
-        padding-left: 1em;
-        padding-right: 0.5em;
+&.GrapherComponentNarrow .download-modal-content {
+    .grouped-menu-icon img {
+        display: none;
     }
 }

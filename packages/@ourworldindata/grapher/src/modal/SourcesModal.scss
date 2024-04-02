@@ -1,15 +1,19 @@
-.SourcesModalContent {
+.sources-modal-content {
     // keep in sync with variables in SourcesModal.tsx
     $max-content-width: 640px;
     $tab-padding: 16px;
     $tab-font-size: 13px;
     $tab-gap: 8px;
 
-    padding-bottom: $modal-padding;
+    $border: #e7e7e7;
+
     max-width: $max-content-width;
     margin: 0 auto;
+    padding: 0 var(--modal-padding) var(--modal-padding);
 
-    $border: #e7e7e7;
+    &.sources-modal-content--pad-top {
+        margin-top: var(--modal-padding);
+    }
 
     .note-multiple-indicators {
         margin-top: 0;
@@ -26,6 +30,7 @@
             @include h1-semibold;
             margin-top: 0;
             margin-bottom: 8px;
+            margin-right: 8px;
             color: $dark-text;
 
             @include sm-up {
@@ -56,8 +61,8 @@
         .title-fragments {
             color: $light-text;
             font-size: 1.25rem;
-            margin-left: 8px;
         }
+
         a {
             color: inherit;
             text-decoration: underline;
@@ -153,8 +158,8 @@
             margin-right: $tab-gap;
         }
 
-        .data-citation .wp-code-snippet {
-            margin-bottom: 16px;
+        .data-citation__item:not(:first-of-type) {
+            margin-top: 16px;
         }
 
         .citation__paragraph {
@@ -188,7 +193,7 @@
     }
 }
 
-&.GrapherComponentSmall .SourcesModalContent {
+&.GrapherComponentSmall .sources-modal-content {
     .source {
         --text-small: 0.8125rem;
 

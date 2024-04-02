@@ -316,7 +316,9 @@ export class SettingsMenu extends React.Component<{
                     }}
                 >
                     <div className="settings-menu-header">
-                        <div className="settings-menu-title">{menuTitle}</div>
+                        <div className="grapher_h5-black-caps grapher_light">
+                            {menuTitle}
+                        </div>
                         <CloseButton onClick={() => this.toggleVisibility()} />
                     </div>
 

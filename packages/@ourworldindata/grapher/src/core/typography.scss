@@ -1,0 +1,103 @@
+//
+// headings
+//
+
+@mixin grapher_h3-semibold {
+    display: block;
+    margin: 0;
+
+    font-family: $serif-font-stack;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.1111;
+    letter-spacing: 0;
+}
+
+.grapher_h3-semibold {
+    @include grapher_h3-semibold;
+}
+
+@mixin grapher_h4-semibold {
+    display: block;
+    margin: 0;
+
+    font-family: $serif-font-stack;
+    font-size: 1.1rem;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: 0;
+}
+
+.grapher_h4-semibold {
+    @include grapher_h4-semibold;
+}
+
+@mixin grapher_h5-black-caps {
+    display: block;
+    margin: 0;
+
+    font-family: $sans-serif-font-stack;
+    font-size: 0.75rem;
+    font-weight: 900;
+    line-height: 1.3333;
+    letter-spacing: 0.1em;
+
+    text-transform: uppercase;
+}
+
+.grapher_h5-black-caps {
+    @include grapher_h5-black-caps;
+}
+
+//
+// body
+//
+
+@mixin grapher_body-2-semibold {
+    display: block;
+    margin: 0;
+
+    font-family: $sans-serif-font-stack;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: 0;
+}
+
+.grapher_body-2-semibold {
+    @include grapher_body-2-semibold;
+}
+
+@mixin grapher_body-3-medium {
+    display: block;
+    margin: 0;
+
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.3846;
+    letter-spacing: 0;
+}
+
+.grapher_body-3-medium {
+    @include grapher_body-3-medium;
+}
+
+//
+// labels
+//
+
+@mixin grapher_label-1-medium {
+    display: block;
+    margin: 0;
+
+    font-family: $sans-serif-font-stack;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0;
+}
+
+.grapher_label-1-medium {
+    @include grapher_label-1-medium;
+}
