@@ -1831,3 +1831,14 @@ export function cartesian<T>(matrix: T[][]): T[][] {
         [[]]
     )
 }
+
+export function isElementHidden(element: Element | null): boolean {
+    if (!element) return false
+    const computedStyle = window.getComputedStyle(element)
+    if (
+        computedStyle.display === "none" ||
+        computedStyle.visibility === "hidden"
+    )
+        return true
+    return isElementHidden(element.parentElement)
+}

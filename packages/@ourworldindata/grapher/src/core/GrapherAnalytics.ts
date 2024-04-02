@@ -19,6 +19,9 @@ export enum EventCategory {
     KeyboardShortcut = "owid.keyboard_shortcut",
     SiteClick = "owid.site_click",
     SiteError = "owid.site_error",
+    SiteSearchClick = "owid.site_search_click",
+    SiteSearchFilterClick = "owid.site_search_filter_click",
+    SiteInstantSearchClick = "owid.site_instantsearch_click",
 }
 
 enum EventAction {
@@ -38,7 +41,7 @@ type countrySelectorEvent =
 interface GAEvent {
     event: EventCategory
     eventAction?: string
-    eventContext?: string
+    eventContext?: string | Record<string, string>
     eventTarget?: string
     grapherPath?: string
 }

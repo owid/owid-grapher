@@ -6,6 +6,7 @@ import {
     getWindowQueryParams,
     get,
     mapValues,
+    isElementHidden,
 } from "@ourworldindata/utils"
 import {
     InstantSearch,
@@ -42,7 +43,7 @@ import { faHeartBroken, faSearch } from "@fortawesome/free-solid-svg-icons"
 import {
     DEFAULT_SEARCH_PLACEHOLDER,
     getIndexName,
-    logSiteSearchClick,
+    logSiteSearchClickToAlgoliaInsights,
 } from "./searchClient.js"
 import {
     PreferenceType,
@@ -52,6 +53,9 @@ import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
 } from "@ourworldindata/grapher"
+import { SiteAnalytics } from "../SiteAnalytics.js"
+
+const siteAnalytics = new SiteAnalytics()
 
 function PagesHit({ hit }: { hit: IPageHit }) {
     return (
@@ -254,6 +258,7 @@ interface SearchResultsProps {
     activeCategoryFilter: SearchCategoryFilter
     isHidden: boolean
     handleCategoryFilterClick: (x: SearchCategoryFilter) => void
+    query: string
 }
 
 const SearchResults = (props: SearchResultsProps) => {
@@ -281,22 +286,48 @@ const SearchResults = (props: SearchResultsProps) => {
                     const objectId = target.getAttribute(
                         "data-algolia-object-id"
                     )
-                    const position = target.getAttribute(
+
+                    const allVisibleHits = Array.from(
+                        document.querySelectorAll(
+                            ".search-results .ais-Hits-item a"
+                        )
+                    ).filter((e) => !isElementHidden(e))
+
+                    // starts from 1 at the top of the page
+                    const globalPosition = allVisibleHits.indexOf(target) + 1
+                    // starts from 1 in each section
+                    const positionInSection = target.getAttribute(
                         "data-algolia-position"
                     )
                     const index = target.getAttribute("data-algolia-index")
-                    if (objectId && position && index) {
-                        logSiteSearchClick({
+                    const href = target.getAttribute("href")
+                    const query = props.query
+
+                    if (
+                        objectId &&
+                        positionInSection &&
+                        index &&
+                        href &&
+                        query
+                    ) {
+                        logSiteSearchClickToAlgoliaInsights({
                             index,
                             queryID,
                             objectIDs: [objectId],
-                            positions: [parseInt(position)],
+                            positions: [parseInt(positionInSection)],
+                        })
+                        siteAnalytics.logSearchClick({
+                            query,
+                            position: String(globalPosition),
+                            positionInSection,
+                            url: href,
+                            filter: activeCategoryFilter,
                         })
                     }
                 }
             }
         },
-        [queryID]
+        [queryID, activeCategoryFilter, props.query]
     )
     useEffect(() => {
         document.addEventListener("click", handleHitClick)
@@ -474,6 +505,7 @@ export class InstantSearchContainer extends React.Component {
                 behavior: "smooth",
             })
         }
+        siteAnalytics.logSearchFilterClick({ key })
         this.setActiveCategoryFilter(key)
     }
 
@@ -524,6 +556,7 @@ export class InstantSearchContainer extends React.Component {
                     <SearchResults
                         isHidden={!this.inputValue}
                         activeCategoryFilter={this.activeCategoryFilter}
+                        query={this.inputValue}
                         handleCategoryFilterClick={
                             this.handleCategoryFilterClick
                         }
