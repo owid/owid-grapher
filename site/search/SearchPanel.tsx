@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom"
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import cx from "classnames"
 import {
     keyBy,
@@ -128,78 +128,91 @@ function ChartHit({ hit }: { hit: IChartHit }) {
     )
 }
 
-function ExplorerViewHits() {
-    const { hits, results, sendEvent } = useHits<IExplorerViewHit>()
+interface GroupedExplorerViews {
+    explorerSlug: string
+    explorerTitle: string
+    explorerSubtitle: string
+    numViewsWithinExplorer: number
+    views: IExplorerViewHit[]
+}
 
-    const groupedBySlug = groupBy(hits, "explorerSlug")
-    const grouped = Object.values(groupedBySlug).map((explorerViews) => {
-        const firstView = explorerViews[0]
-        return {
-            explorerSlug: firstView.explorerSlug,
-            explorerTitle: firstView.explorerTitle,
-            explorerSubtitle: firstView.explorerSubtitle,
-            numViewsWithinExplorer: firstView.numViewsWithinExplorer,
-            views: uniqBy(explorerViews, "viewTitle"),
-        }
-    })
+function ExplorerViewHits() {
+    const { hits } = useHits<IExplorerViewHit>()
+
+    const groupedHits = useMemo(() => {
+        const groupedBySlug = groupBy(hits, "explorerSlug")
+        return Object.values(groupedBySlug).map((explorerViews) => {
+            const firstView = explorerViews[0]
+            return {
+                explorerSlug: firstView.explorerSlug,
+                explorerTitle: firstView.explorerTitle,
+                explorerSubtitle: firstView.explorerSubtitle,
+                numViewsWithinExplorer: firstView.numViewsWithinExplorer,
+
+                // Run uniq, so if we end up in a situation where multiple views with the same title
+                // are returned, we only show the first of them
+                views: uniqBy(explorerViews, "viewTitle"),
+            }
+        })
+    }, [hits])
 
     return (
         <div className="search-results__list-container">
-            <ol className="search-results__explorer-list grid grid-cols-2 grid-sm-cols-1">
-                {grouped.map((group) => (
-                    <div
-                        key={group.explorerSlug}
-                        className="search-results__explorer-hit"
-                    >
-                        <h3 className="h3-bold search-results__explorer-hit-title">
-                            {group.explorerTitle}
-                        </h3>
-                        <p className="body-3-medium-italic search-results__explorer-hit-subtitle">
-                            {group.explorerSubtitle}
-                        </p>
-                        <ul className="search-results__explorer-views-list">
-                            {group.views.map((hit) => (
-                                <li
-                                    key={hit.objectID}
-                                    className="search-results__explorer-view"
-                                >
-                                    <ExplorerViewHit hit={hit} />
-                                </li>
-                            ))}
-                        </ul>
-                        <a
-                            href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${group.explorerSlug}`}
-                            className="search-results__explorer-hit-link"
-                        >
-                            Explore all {group.numViewsWithinExplorer}{" "}
-                            indicators
-                        </a>
-                    </div>
+            <div className="search-results__explorer-list grid grid-cols-2 grid-sm-cols-1">
+                {groupedHits.map((group) => (
+                    <ExplorerHit groupedHit={group} key={group.explorerSlug} />
                 ))}
-            </ol>
+            </div>
         </div>
     )
 }
 
-function ExplorerViewHit({ hit }: { hit: IExplorerViewHit }) {
+function ExplorerHit({ groupedHit }: { groupedHit: GroupedExplorerViews }) {
     return (
-        <a
-            data-algolia-index={getIndexName(SearchIndexName.ExplorerViews)}
-            data-algolia-object-id={hit.objectID}
-            data-algolia-position={hit.__position}
-            href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${hit.explorerSlug}${hit.viewQueryParams}`}
+        <div
+            key={groupedHit.explorerSlug}
+            className="search-results__explorer-hit"
         >
-            <Highlight
-                attribute="viewTitle"
-                hit={hit}
-                highlightedTagName="strong"
-                className="search-results__explorer-view-title"
-            />
-            <p className="body-3-medium-italic search-results__explorer-view-subtitle">
-                {hit.viewSubtitle}
+            <h3 className="h3-bold search-results__explorer-hit-title">
+                {groupedHit.explorerTitle}
+            </h3>
+            <p className="body-3-medium-italic search-results__explorer-hit-subtitle">
+                {groupedHit.explorerSubtitle}
             </p>
-            {/* Explorer subtitles are mostly useless at the moment, so we're only showing titles */}
-        </a>
+            <ul className="search-results__explorer-views-list">
+                {groupedHit.views.map((view) => (
+                    <li
+                        key={view.objectID}
+                        className="search-results__explorer-view"
+                    >
+                        <a
+                            data-algolia-index={getIndexName(
+                                SearchIndexName.ExplorerViews
+                            )}
+                            data-algolia-object-id={view.objectID}
+                            data-algolia-position={view.__position}
+                            href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${view.explorerSlug}${view.viewQueryParams}`}
+                        >
+                            <Highlight
+                                attribute="viewTitle"
+                                hit={view}
+                                highlightedTagName="strong"
+                                className="search-results__explorer-view-title"
+                            />
+                            <p className="body-3-medium-italic search-results__explorer-view-subtitle">
+                                {view.viewSubtitle}
+                            </p>
+                        </a>
+                    </li>
+                ))}
+            </ul>
+            <a
+                href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}`}
+                className="search-results__explorer-hit-link"
+            >
+                Explore all {groupedHit.numViewsWithinExplorer} indicators
+            </a>
+        </div>
     )
 }
 
