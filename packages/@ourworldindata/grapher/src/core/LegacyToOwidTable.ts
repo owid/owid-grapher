@@ -151,7 +151,7 @@ export const legacyToOwidTableAndDimensions = (
             // we end up with a numeric column.
             if (
                 valueColumnDef.type === ColumnTypeNames.Integer &&
-                isInteger(conversionFactor)
+                !isInteger(conversionFactor)
             )
                 valueColumnDef.type = ColumnTypeNames.Numeric
         }
