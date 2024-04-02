@@ -62,6 +62,7 @@ import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
 } from "@ourworldindata/grapher"
+import type { SearchResults as AlgoliaSearchResultsType } from "algoliasearch-helper"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { extractRegionNamesFromSearchQuery } from "./SearchUtils.js"
 
@@ -142,6 +143,9 @@ interface GroupedExplorerViews {
     numViewsWithinExplorer: number
     views: IExplorerViewHit[]
 }
+
+const getNumberOfExplorerHits = (rawHits: IExplorerViewHit[]) =>
+    uniqBy(rawHits, "explorerSlug").length
 
 function ExplorerViewHits() {
     const { hits } = useHits<IExplorerViewHit>()
@@ -230,11 +234,13 @@ function ShowMore({
     cutoffNumber,
     activeCategoryFilter,
     handleCategoryFilterClick,
+    getTotalNumberOfHits,
 }: {
     category: SearchIndexName
     cutoffNumber: number
     activeCategoryFilter: SearchCategoryFilter
     handleCategoryFilterClick: (x: SearchIndexName) => void
+    getTotalNumberOfHits?: (results: AlgoliaSearchResultsType) => number
 }) {
     const { results } = useInstantSearch()
     // Hide if we're on the same tab as the category this button is for
@@ -246,13 +252,16 @@ function ShowMore({
         handleCategoryFilterClick(category)
     }
 
-    const numberShowing = Math.min(cutoffNumber, results.hits.length)
-    const isShowingAllResults = numberShowing === results.hits.length
+    const totalNumberOfHits =
+        getTotalNumberOfHits?.(results) ?? results.hits.length
+
+    const numberShowing = Math.min(cutoffNumber, totalNumberOfHits)
+    const isShowingAllResults = numberShowing === totalNumberOfHits
     const message = isShowingAllResults
         ? numberShowing <= 2
             ? "Showing all results"
             : `Showing all ${numberShowing} results`
-        : `Showing ${numberShowing} of the top ${results.hits.length} results`
+        : `Showing ${numberShowing} of the top ${totalNumberOfHits} results`
 
     return (
         <div className="search-results__show-more-container">
@@ -284,6 +293,12 @@ function Filters({
     const hitsLengthByIndexName = mapValues(resultsByIndexName, (results) =>
         get(results, ["results", "hits", "length"], 0)
     )
+
+    hitsLengthByIndexName[getIndexName(SearchIndexName.ExplorerViews)] =
+        getNumberOfExplorerHits(
+            resultsByIndexName[getIndexName(SearchIndexName.ExplorerViews)]
+                ?.results?.hits ?? []
+        )
 
     hitsLengthByIndexName[getIndexName("all")] = Object.values(
         hitsLengthByIndexName
@@ -503,6 +518,9 @@ const SearchResults = (props: SearchResultsProps) => {
                                 handleCategoryFilterClick={
                                     handleCategoryFilterClick
                                 }
+                                getTotalNumberOfHits={(
+                                    results: AlgoliaSearchResultsType<IExplorerViewHit>
+                                ) => getNumberOfExplorerHits(results.hits)}
                             />
                         </header>
                         <ExplorerViewHits />
