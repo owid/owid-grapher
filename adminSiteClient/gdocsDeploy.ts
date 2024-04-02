@@ -11,6 +11,7 @@ import {
 } from "@ourworldindata/types"
 import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./GdocsDiff.js"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../settings/clientSettings.js"
+import { match } from "ts-pattern"
 
 export const checkFullDeployFallback = (
     prevGdoc: DbEnrichedPostGdoc,
@@ -199,9 +200,13 @@ export function getPublishingAction(
     prevJson: OwidGdoc,
     nextJson: OwidGdoc
 ): GdocPublishingAction {
-    return prevJson.published && nextJson.published
-        ? GdocPublishingAction.Updating
-        : !prevJson.published && nextJson.published
-          ? GdocPublishingAction.Publishing
-          : GdocPublishingAction.Unpublishing
+    return match([prevJson.published, nextJson.published])
+        .with([true, true], () => GdocPublishingAction.Updating)
+        .with([false, true], () => GdocPublishingAction.Publishing)
+        .with([true, false], () => GdocPublishingAction.Unpublishing)
+        .otherwise(() => {
+            throw new Error(
+                `Invalid combination of published states: ${prevJson.published} -> ${nextJson.published}`
+            )
+        })
 }
