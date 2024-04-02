@@ -330,6 +330,9 @@ export const configureAlgolia = async () => {
     await explorersIndex.saveSynonyms(algoliaSynonyms, {
         replaceExistingSynonyms: true,
     })
+    await explorerViewsIndex.saveSynonyms(algoliaSynonyms, {
+        replaceExistingSynonyms: true,
+    })
 
     if (TOPICS_CONTENT_GRAPH) {
         const graphIndex = client.initIndex(CONTENT_GRAPH_ALGOLIA_INDEX)
