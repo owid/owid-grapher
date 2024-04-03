@@ -2,7 +2,6 @@
 
 import * as lodash from "lodash"
 import * as db from "../db/db.js"
-import { imageStore } from "../db/model/Image.js"
 import { DEPRECATEDgetTopics } from "../db/DEPRECATEDwpdb.js"
 import {
     UNCATEGORIZED_TAG_ID,
@@ -40,7 +39,6 @@ import {
     isEmpty,
     JsonError,
     OperationContext,
-    OwidGdocJSON,
     OwidGdocPostInterface,
     parseIntOrUndefined,
     parseToOperation,
@@ -75,7 +73,6 @@ import {
     DbRawOrigin,
     DbRawPostGdoc,
     PostsGdocsXImagesTableName,
-    DbInsertPostGdocXImage,
     PostsGdocsLinksTableName,
     PostsGdocsTableName,
     DbPlainDataset,
@@ -131,20 +128,18 @@ import {
 import { getPublishedLinksTo } from "../db/model/Link.js"
 import {
     GdocLinkUpdateMode,
-    createGdocAndInsertIntoDb,
     createOrLoadGdocById,
     gdocFromJSON,
     getAllGdocIndexItemsOrderedByUpdatedAt,
     getAndLoadGdocById,
     getGdocBaseObjectById,
-    loadGdocFromGdocBase,
     setLinksForGdoc,
     setTagsForGdoc,
     syncImagesAndAddToContentGraph,
     updateGdocContentOnly,
     upsertGdoc,
 } from "../db/model/Gdoc/GdocFactory.js"
-import { P, match } from "ts-pattern"
+import { match } from "ts-pattern"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { GdocHomepage } from "../db/model/Gdoc/GdocHomepage.js"
 import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
