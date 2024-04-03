@@ -7,7 +7,7 @@ import {
     VITE_PREVIEW,
 } from "../settings/serverSettings.js"
 import { POLYFILL_URL } from "./SiteConstants.js"
-import type { Manifest, ManifestChunk } from "vite"
+import type { Manifest } from "vite"
 import { sortBy } from "@ourworldindata/utils"
 import urljoin from "url-join"
 
@@ -15,6 +15,24 @@ const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 
 export const VITE_ASSET_SITE_ENTRY = "site/owid.entry.ts"
 export const VITE_ASSET_ADMIN_ENTRY = "adminSiteClient/admin.entry.ts"
+
+export enum ViteEntryPoint {
+    Site = "site",
+    Admin = "admin",
+}
+
+export const VITE_ENTRYPOINT_INFO = {
+    [ViteEntryPoint.Site]: {
+        entryPointFile: VITE_ASSET_SITE_ENTRY,
+        outDir: "assets",
+        outName: "owid",
+    },
+    [ViteEntryPoint.Admin]: {
+        entryPointFile: VITE_ASSET_ADMIN_ENTRY,
+        outDir: "assets-admin",
+        outName: "admin",
+    },
+}
 
 // We ALWAYS load polyfills.
 
@@ -33,12 +51,8 @@ interface Assets {
     forFooter: JSX.Element[]
 }
 
-interface ManifestChunkWithBasePath extends ManifestChunk {
-    basePath?: string
-}
-
 // in dev: we need to load several vite core scripts and plugins; other than that we only need to load the entry point, and vite will take care of the rest.
-const devAssets = (entry: string, baseUrl: string): Assets => {
+const devAssets = (entrypoint: ViteEntryPoint, baseUrl: string): Assets => {
     return {
         forHeader: [polyfillPreload],
         forFooter: [
@@ -64,12 +78,16 @@ const devAssets = (entry: string, baseUrl: string): Assets => {
                 type="module"
                 src={`${baseUrl}/@vite/client`}
             />,
-            <script key={entry} type="module" src={`${baseUrl}/${entry}`} />,
+            <script
+                key={entrypoint}
+                type="module"
+                src={`${baseUrl}/${VITE_ENTRYPOINT_INFO[entrypoint].entryPointFile}`}
+            />,
         ],
     }
 }
 
-// Goes through the manifest.json file that vite creates, finds all the assets that are required for the entry point,
+// Goes through the manifest.json files that vite creates, finds all the assets that are required for the given entry point,
 // and creates the appropriate <link> and <script> tags for them.
 export const createTagsForManifestEntry = (
     manifest: Manifest,
@@ -77,7 +95,7 @@ export const createTagsForManifestEntry = (
     assetBaseUrl: string
 ): Assets => {
     const createTags = (entry: string): JSX.Element[] => {
-        const manifestEntry: ManifestChunkWithBasePath =
+        const manifestEntry =
             Object.values(manifest).find((e) => e.file === entry) ??
             manifest[entry]
         let assets = [] as JSX.Element[]
@@ -85,11 +103,7 @@ export const createTagsForManifestEntry = (
         if (!manifestEntry)
             throw new Error(`Could not find manifest entry for ${entry}`)
 
-        const assetUrl = urljoin(
-            assetBaseUrl,
-            manifestEntry.basePath ?? "",
-            manifestEntry.file
-        )
+        const assetUrl = urljoin(assetBaseUrl, manifestEntry.file)
 
         if (entry.endsWith(".css")) {
             assets = [
@@ -141,33 +155,25 @@ export const createTagsForManifestEntry = (
 
 // in prod: we need to make sure that we include <script> and <link> tags that are required for the entry point.
 // this could be, for example: owid.mjs, common.mjs, owid.css, common.css. (plus Google Fonts and polyfills)
-const prodAssets = (entry: string, baseUrl: string): Assets => {
+const prodAssets = (entrypoint: ViteEntryPoint, baseUrl: string): Assets => {
     const baseDir = findBaseDir(__dirname)
-    const manifestBasePath = `${baseDir}/dist/`
-    const manifestDirs = ["assets", "assets-admin"]
-    let mergedManifest
+    const entrypointInfo = VITE_ENTRYPOINT_INFO[entrypoint]
+    const manifestPath = `${baseDir}/dist/${entrypointInfo.outDir}/manifest.json`
+    let manifest
     try {
-        mergedManifest = manifestDirs.reduce((acc, path) => {
-            const manifestContent = fs.readJsonSync(
-                `${manifestBasePath}/${path}/manifest.json`
-            ) as Manifest
-            Object.values(manifestContent).forEach(
-                (value: ManifestChunkWithBasePath) => (value.basePath = path)
-            )
-            return { ...acc, ...manifestContent }
-        }, {})
+        manifest = fs.readJsonSync(manifestPath) as Manifest
     } catch (err) {
         throw new Error(
-            `Could not read one of the build manifests ('${manifestDirs.map((dir) => `${dir}/manifest.json`)}'), which is required for production.
+            `Could not read the build manifest ('${manifestPath}'), which is required for production.
             If you're running in VITE_PREVIEW mode, wait for the build to finish and then reload this page.`,
             { cause: err }
         )
     }
 
-    const assetBaseUrl = `${baseUrl}/`
+    const assetBaseUrl = `${baseUrl}/${entrypointInfo.outDir}/`
     const assets = createTagsForManifestEntry(
-        mergedManifest,
-        entry,
+        manifest,
+        entrypointInfo.entryPointFile,
         assetBaseUrl
     )
 
@@ -180,14 +186,17 @@ const prodAssets = (entry: string, baseUrl: string): Assets => {
 
 const useProductionAssets = ENV === "production" || VITE_PREVIEW
 
-export const viteAssets = (entry: string, prodBaseUrl?: string) =>
+const viteAssets = (entrypoint: ViteEntryPoint, prodBaseUrl?: string) =>
     useProductionAssets
-        ? prodAssets(entry, prodBaseUrl ?? "")
-        : devAssets(entry, VITE_DEV_URL)
+        ? prodAssets(entrypoint, prodBaseUrl ?? "")
+        : devAssets(entrypoint, VITE_DEV_URL)
+
+export const viteAssetsForAdmin = () => viteAssets(ViteEntryPoint.Admin)
+export const viteAssetsForSite = () => viteAssets(ViteEntryPoint.Site)
 
 export const generateEmbedSnippet = () => {
     // Make sure we're using an absolute URL here, since we don't know in what context the embed snippet is used.
-    const assets = viteAssets(VITE_ASSET_SITE_ENTRY, BAKED_BASE_URL)
+    const assets = viteAssets(ViteEntryPoint.Site, BAKED_BASE_URL)
 
     const serializedAssets = [...assets.forHeader, ...assets.forFooter].map(
         (el) => ({

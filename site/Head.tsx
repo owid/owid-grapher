@@ -1,5 +1,5 @@
 import React from "react"
-import { VITE_ASSET_SITE_ENTRY, viteAssets } from "./viteUtils.js"
+import { viteAssetsForSite } from "./viteUtils.js"
 import {
     GOOGLE_TAG_MANAGER_ID,
     BAKED_BASE_URL,
@@ -59,7 +59,7 @@ export const Head = (props: {
         href: "/atom.xml",
     }
 
-    const stylesheets = viteAssets(VITE_ASSET_SITE_ENTRY).forHeader
+    const stylesheets = viteAssetsForSite().forHeader
 
     return (
         <head>

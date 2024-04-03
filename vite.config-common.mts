@@ -3,15 +3,17 @@ import pluginReact from "@vitejs/plugin-react"
 import pluginChecker from "vite-plugin-checker"
 import { warmup as pluginWarmup } from "vite-plugin-warmup"
 import * as clientSettings from "./settings/clientSettings.js"
-import { VITE_ASSET_SITE_ENTRY } from "./site/viteUtils.js"
+import {
+    VITE_ASSET_SITE_ENTRY,
+    VITE_ENTRYPOINT_INFO,
+    ViteEntryPoint,
+} from "./site/viteUtils.js"
 
 // https://vitejs.dev/config/
-export const defineViteConfigForEntrypoint = (
-    entrypointName: string,
-    entrypointPath: string,
-    outDir?: string
-) =>
-    defineConfig({
+export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
+    const entrypointInfo = VITE_ENTRYPOINT_INFO[entrypoint]
+
+    return defineConfig({
         publicDir: false, // don't copy public folder to dist
         resolve: {
             alias: {
@@ -47,16 +49,16 @@ export const defineViteConfigForEntrypoint = (
         build: {
             manifest: true, // creates a manifest.json file, which we use to determine which files to load in prod
             emptyOutDir: true,
-            outDir: outDir ?? `dist/${entrypointName}`,
+            outDir: `dist/${entrypointInfo.outDir}`,
             sourcemap: true,
             target: ["chrome66", "firefox78", "safari12"], // see docs/browser-support.md
             rollupOptions: {
                 input: {
-                    [entrypointName]: entrypointPath,
+                    [entrypointInfo.outName]: entrypointInfo.entryPointFile,
                 },
                 output: {
-                    assetFileNames: `${entrypointName}.css`,
-                    entryFileNames: `${entrypointName}.mjs`,
+                    assetFileNames: `${entrypointInfo.outName}.css`,
+                    entryFileNames: `${entrypointInfo.outName}.mjs`,
                 },
             },
         },
@@ -83,3 +85,4 @@ export const defineViteConfigForEntrypoint = (
             port: 8090,
         },
     })
+}
