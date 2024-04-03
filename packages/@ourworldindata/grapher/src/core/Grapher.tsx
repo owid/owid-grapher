@@ -2072,8 +2072,8 @@ export class Grapher
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
     @computed private get scaleToFitIdeal(): number {
         return Math.min(
-            (this.availableWidth * 0.95) / this.widthForDeviceOrientation,
-            (this.availableHeight * 0.95) / this.heightForDeviceOrientation
+            this.availableWidth / this.widthForDeviceOrientation,
+            this.availableHeight / this.heightForDeviceOrientation
         )
     }
 

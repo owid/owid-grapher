@@ -1,5 +1,26 @@
 @use "sass:math";
 
+// The landscape values
+$orientation-width: 680px;
+$orientation-height: 480px;
+$ideal-ratio: math.div($orientation-width, $orientation-height);
+
+$max-width-grapher: 1260px; // The rough max-width across all pages on the site
+$max-height-grapher: math.div($max-width-grapher, $ideal-ratio);
+
+.StandaloneGrapherOrExplorerPage main .grapher-wrapper {
+    padding-top: 16px;
+
+    @media (max-width: #{$orientation-width - 1}) {
+        margin: 0;
+        padding: 0;
+    }
+
+    @media (max-height: $orientation-width) {
+        padding-top: 0;
+    }
+}
+
 .StandaloneGrapherOrExplorerPage main figure[data-grapher-src],
 #fallback {
     display: flex;
@@ -8,14 +29,6 @@
     flex-direction: column;
     margin: 0 auto;
     width: 100%;
-
-    // The landscape values
-    $orientation-width: 680px;
-    $orientation-height: 480px;
-    $ideal-ratio: math.div($orientation-width, $orientation-height);
-
-    $max-width: 1250px; // The rough max-width across all pages on the site
-    $max-height: math.div($max-width, $ideal-ratio);
 
     // Charts shouldn't be below this height in any circumstance, whether mobile or not.
     // Except in iframes, where we override this.
@@ -39,9 +52,9 @@
         min-height: $orientation-height; // overwrite the min-height set above
     }
 
-    @media (min-width: $max-width) {
-        max-width: $max-width;
-        max-height: $max-height;
+    @media (min-width: $max-width-grapher) {
+        max-width: $max-width-grapher;
+        max-height: $max-height-grapher;
     }
 
     // Needed so the absolutely-positioned <LoadingIndicator> on /grapher pages is centered

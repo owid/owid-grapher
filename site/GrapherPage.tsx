@@ -123,15 +123,17 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <nav id={GRAPHER_DRAWER_ID}></nav>
-                    <figure data-grapher-src={`/grapher/${grapher.slug}`}>
-                        <LoadingIndicator />
-                    </figure>
-                    <noscript id="fallback">
-                        <img
-                            src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${grapher.slug}.svg`}
-                        />
-                        <p>Interactive visualization requires JavaScript</p>
-                    </noscript>
+                    <div className="wrapper grapher-wrapper">
+                        <figure data-grapher-src={`/grapher/${grapher.slug}`}>
+                            <LoadingIndicator />
+                        </figure>
+                        <noscript id="fallback">
+                            <img
+                                src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${grapher.slug}.svg`}
+                            />
+                            <p>Interactive visualization requires JavaScript</p>
+                        </noscript>
+                    </div>
 
                     {((relatedArticles && relatedArticles.length !== 0) ||
                         (relatedCharts && relatedCharts.length !== 0)) && (
