@@ -1,4 +1,8 @@
-import { isEqual, omit } from "@ourworldindata/utils"
+import {
+    checkIsGdocPostExcludingFragments,
+    isEqual,
+    omit,
+} from "@ourworldindata/utils"
 import {
     OwidGdoc,
     OwidGdocBaseInterface,
@@ -6,20 +10,10 @@ import {
     OwidGdocDataInsightContent,
     OwidGdocType,
     OwidGdocHomepageContent,
-    DbEnrichedPostGdoc,
     OwidGdocAuthorContent,
 } from "@ourworldindata/types"
 import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./GdocsDiff.js"
-import { GDOCS_DETAILS_ON_DEMAND_ID } from "../settings/clientSettings.js"
 import { match } from "ts-pattern"
-
-export const checkFullDeployFallback = (
-    prevGdoc: DbEnrichedPostGdoc,
-    nextGdoc: DbEnrichedPostGdoc,
-    hasChanges: boolean
-) => {
-    return hasChanges && (prevGdoc.published || nextGdoc.published)
-}
 
 /**
  * This function checks if the article has changed in a way that is compatible
@@ -35,7 +29,7 @@ export const checkIsLightningUpdate = (
 ) => {
     if (
         prevGdoc.content.type !== nextGdoc.content.type ||
-        prevGdoc.id === GDOCS_DETAILS_ON_DEMAND_ID ||
+        !checkIsGdocPostExcludingFragments(nextGdoc) ||
         !hasChanges ||
         !prevGdoc.published ||
         !nextGdoc.published
@@ -194,6 +188,7 @@ export enum GdocPublishingAction {
     Updating = "Updating",
     Publishing = "Publishing",
     Unpublishing = "Unpublishing",
+    Saving = "Saving",
 }
 
 export function getPublishingAction(
@@ -204,9 +199,6 @@ export function getPublishingAction(
         .with([true, true], () => GdocPublishingAction.Updating)
         .with([false, true], () => GdocPublishingAction.Publishing)
         .with([true, false], () => GdocPublishingAction.Unpublishing)
-        .otherwise(() => {
-            throw new Error(
-                `Invalid combination of published states: ${prevJson.published} -> ${nextJson.published}`
-            )
-        })
+        .with([false, false], () => GdocPublishingAction.Saving)
+        .exhaustive()
 }

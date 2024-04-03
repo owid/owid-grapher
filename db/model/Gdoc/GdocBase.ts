@@ -838,6 +838,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             "_enrichSubclassContent",
             "_filenameProperties",
             "_getSubclassEnrichedBlocks",
+            "_loadSubclassAttachments",
             "_omittableFields",
             "_validateSubclass",
             ...this._omittableFields,

@@ -312,6 +312,7 @@ export async function indexIndividualGdocPost(
 export async function removeIndividualGdocPostFromIndex(
     gdoc: OwidGdocPostInterface
 ) {
+    if (!ALGOLIA_INDEXING) return
     const client = getAlgoliaClient()
     if (!client) {
         console.error(
