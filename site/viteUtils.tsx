@@ -9,7 +9,7 @@ import {
 import { POLYFILL_URL } from "./SiteConstants.js"
 import type { Manifest, ManifestChunk } from "vite"
 import { sortBy } from "@ourworldindata/utils"
-import path from "path"
+import urljoin from "url-join"
 
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 
@@ -85,7 +85,7 @@ export const createTagsForManifestEntry = (
         if (!manifestEntry)
             throw new Error(`Could not find manifest entry for ${entry}`)
 
-        const assetUrl = path.join(
+        const assetUrl = urljoin(
             assetBaseUrl,
             manifestEntry.basePath ?? "",
             manifestEntry.file
