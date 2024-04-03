@@ -18,7 +18,7 @@ import {
     Snippet,
     useInstantSearch,
     PoweredBy,
-} from "react-instantsearch-hooks-web"
+} from "react-instantsearch"
 import algoliasearch, { SearchClient } from "algoliasearch"
 import {
     ALGOLIA_ID,
