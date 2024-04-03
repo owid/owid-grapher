@@ -169,7 +169,7 @@ function ExplorerViewHits() {
 
     return (
         <div className="search-results__list-container">
-            <div className="search-results__explorer-list grid grid-cols-2 grid-sm-cols-1">
+            <div className="search-results__explorer-list grid grid-cols-1">
                 {groupedHits.map((group) => (
                     <ExplorerHit groupedHit={group} key={group.explorerSlug} />
                 ))}
@@ -184,13 +184,24 @@ function ExplorerHit({ groupedHit }: { groupedHit: GroupedExplorerViews }) {
             key={groupedHit.explorerSlug}
             className="search-results__explorer-hit"
         >
-            <h3 className="h3-bold search-results__explorer-hit-title">
-                {groupedHit.explorerTitle}
-            </h3>
-            <p className="body-3-medium-italic search-results__explorer-hit-subtitle">
-                {groupedHit.explorerSubtitle}
-            </p>
-            <ul className="search-results__explorer-views-list">
+            <div className="search-results__explorer-hit-header">
+                <div>
+                    <h3 className="h3-bold search-results__explorer-hit-title">
+                        {groupedHit.explorerTitle}
+                    </h3>
+                    <p className="body-3-medium-italic search-results__explorer-hit-subtitle">
+                        {groupedHit.explorerSubtitle}
+                    </p>
+                </div>
+
+                <a
+                    href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}`}
+                    className="search-results__explorer-hit-link"
+                >
+                    Explore all {groupedHit.numViewsWithinExplorer} indicators
+                </a>
+            </div>
+            <ul className="search-results__explorer-views-list grid grid-cols-2">
                 {groupedHit.views.map((view) => (
                     <li
                         key={view.objectID}
@@ -219,12 +230,6 @@ function ExplorerHit({ groupedHit }: { groupedHit: GroupedExplorerViews }) {
                     </li>
                 ))}
             </ul>
-            <a
-                href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}`}
-                className="search-results__explorer-hit-link"
-            >
-                Explore all {groupedHit.numViewsWithinExplorer} indicators
-            </a>
         </div>
     )
 }
@@ -506,14 +511,14 @@ const SearchResults = (props: SearchResultsProps) => {
                     } /* Hack: This is the only way to _not_ send `restrictSearchableAttributes` along for this index */
                 />
                 <NoResultsBoundary>
-                    <section className="search-results__explorer-views">
+                    <section className="search-results__explorers">
                         <header className="search-results__header">
                             <h2 className="h2-bold search-results__section-title">
                                 Data Explorers
                             </h2>
                             <ShowMore
                                 category={SearchIndexName.ExplorerViews}
-                                cutoffNumber={2}
+                                cutoffNumber={1}
                                 activeCategoryFilter={activeCategoryFilter}
                                 handleCategoryFilterClick={
                                     handleCategoryFilterClick

@@ -232,18 +232,6 @@
     height: 100%;
     padding: 24px;
     display: block;
-    transition: background-color 0.1s;
-
-    @supports (grid-template-rows: subgrid) {
-        display: grid;
-        grid-template-rows: subgrid;
-        grid-row: span 4;
-        gap: 0;
-    }
-
-    &:hover {
-        background-color: $blue-20;
-    }
 
     h4 {
         margin: 0;
@@ -251,49 +239,57 @@
     }
 
     p {
-        color: $blue-60;
+        color: $blue-50;
+        font-weight: 400;
     }
 
-    .search-results__explorer-hit-title {
-        display: inline;
-        color: $blue-90;
-        margin: 0 8px 0 0;
-    }
+    .search-results__explorer-hit-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
 
-    .search-results__explorer-hit-subtitle {
-        margin: 0 8px 0 0;
+        .search-results__explorer-hit-title {
+            display: inline;
+            color: $blue-90;
+            margin: 0 8px 0 0;
+        }
+
+        .search-results__explorer-hit-subtitle {
+            margin: 0 8px 0 0;
+        }
+
+        .search-results__explorer-hit-link {
+            @include owid-link-60;
+        }
     }
 
     .search-results__explorer-views-list {
         margin-left: 20px;
         margin-top: 5px;
         list-style: none;
+        gap: 10px 16px;
 
-        .search-results__explorer-view-title-container {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            color: $blue-90;
-            text-decoration: underline;
-            @include owid-link-90;
+        .search-results__explorer-view {
+            overflow: hidden;
 
-            svg {
-                font-size: 0.8em;
+            .search-results__explorer-view-title-container {
+                color: $blue-90;
+                text-decoration: underline;
+                @include owid-link-90;
+
+                svg {
+                    font-size: 0.75em;
+                    margin-left: 6px;
+                }
+            }
+
+            .search-results__explorer-view-subtitle {
+                margin-top: 0px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
             }
         }
-
-        .search-results__explorer-view-subtitle {
-            color: $blue-60;
-            margin-top: 0px;
-            // text-overflow: ellipsis;
-            // white-space: nowrap;
-            // overflow: hidden;
-            // max-width: 100%;
-        }
-    }
-
-    .search-results__explorer-hit-link {
-        @include owid-link-60;
     }
 }
 
@@ -374,14 +370,14 @@
 **/
 
 .search-results__pages,
-.search-results__explorer-views,
+.search-results__explorers,
 .search-results__charts {
     display: none;
 }
 
 .search-results[data-active-filter="all"] {
     .search-results__pages,
-    .search-results__explorer-views,
+    .search-results__explorers,
     .search-results__charts {
         // both needed for .search-results__show-more-container absolute-positioning
         display: inline-block;
@@ -416,17 +412,17 @@
     }
 }
 
-.search-results__explorer-view-hit {
+.search-results__explorer-hit {
     display: none;
 
-    &:nth-child(-n + 4) {
+    &:nth-child(-n + 1) {
         display: inline;
     }
 }
 
 .search-results[data-active-filter="explorer-views"] {
-    .search-results__explorer-views,
-    .search-results__explorer-view-hit {
+    .search-results__explorers,
+    .search-results__explorer-hit {
         display: inline;
     }
 }
