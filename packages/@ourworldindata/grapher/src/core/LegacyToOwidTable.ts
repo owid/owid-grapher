@@ -22,6 +22,7 @@ import {
     getYearFromISOStringAndDayOffset,
     intersection,
     isNumber,
+    isInteger,
     makeAnnotationsSlug,
     trimObject,
     uniqBy,
@@ -145,6 +146,14 @@ export const legacyToOwidTableAndDimensions = (
             values = values.map((value) =>
                 isNumber(value) ? value * conversionFactor : value
             )
+
+            // If a non-int conversion factor is applied to an integer column,
+            // we end up with a numeric column.
+            if (
+                valueColumnDef.type === ColumnTypeNames.Integer &&
+                !isInteger(conversionFactor)
+            )
+                valueColumnDef.type = ColumnTypeNames.Numeric
         }
 
         const columnStore: { [key: string]: any[] } = {
@@ -551,13 +560,13 @@ const variableTypeToColumnType = (type: OwidVariableType): ColumnTypeNames => {
     switch (type) {
         case "ordinal":
             return ColumnTypeNames.Ordinal
-        // TODO
-        // case "string":
-        //     return ColumnTypeNames.String
-        // case "float":
-        // case "int":
-        //     return ColumnTypeNames.Numeric
-        // case "mixed":
+        case "string":
+            return ColumnTypeNames.String
+        case "int":
+            return ColumnTypeNames.Integer
+        case "float":
+            return ColumnTypeNames.Numeric
+        case "mixed":
         default:
             return ColumnTypeNames.NumberOrString
     }
