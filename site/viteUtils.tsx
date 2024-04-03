@@ -144,7 +144,7 @@ export const createTagsForManifestEntry = (
 const prodAssets = (entry: string, baseUrl: string): Assets => {
     const baseDir = findBaseDir(__dirname)
     const manifestBasePath = `${baseDir}/dist/`
-    const manifestDirs = ["assets", "admin/assets"]
+    const manifestDirs = ["assets", "assets-admin"]
     let mergedManifest
     try {
         mergedManifest = manifestDirs.reduce((acc, path) => {

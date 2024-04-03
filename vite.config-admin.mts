@@ -4,5 +4,5 @@ import { defineViteConfigForEntrypoint } from "./vite.config-common.mts"
 export default defineViteConfigForEntrypoint(
     "admin",
     VITE_ASSET_ADMIN_ENTRY,
-    "dist/admin/assets"
+    "dist/assets-admin"
 )
