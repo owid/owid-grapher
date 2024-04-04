@@ -943,7 +943,23 @@ export class Explorer
     }
 
     @computed get canonicalUrl() {
-        return this.props.canonicalUrl ?? this.currentUrl.fullUrl
+        const { isPreview, canonicalUrl } = this.props
+        const { currentUrl, grapher } = this
+        if (isPreview) {
+            const yVariableIds = grapher?.dimensions
+                .filter((d) => d.property === DimensionProperty.y)
+                .map((d) => d.variableId)
+            if (yVariableIds && yVariableIds.length > 0) {
+                // If we are in preview and have a y variable, link to the datapage preview
+                // and attach all query params so the chart will look as similar as possible
+                const url = `${BAKED_BASE_URL}/admin/datapage-preview/${yVariableIds[0]}`
+                const urlWithParams = Url.fromURL(url).setQueryParams(
+                    this.queryParams
+                )
+                return urlWithParams.fullUrl
+            }
+        }
+        return canonicalUrl ?? currentUrl.fullUrl
     }
 
     @computed get embedDialogUrl() {
