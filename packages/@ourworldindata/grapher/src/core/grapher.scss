@@ -89,6 +89,7 @@ $zindex-controls-drawer: 150;
 @import "../../../components/src/Checkbox.scss";
 @import "../closeButton/CloseButton.scss";
 @import "../controls/RadioButton.scss";
+@import "../controls/Dropdown.scss";
 
 .grapher_dark {
     color: $dark-text;

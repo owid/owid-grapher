@@ -189,7 +189,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // Does a stable sort by time. You can refer to this table for fast time filtering.
-    @imemo private get sortedByTime(): this {
+    @imemo get sortedByTime(): this {
         if (this.timeColumn.isMissing) return this
         return this.sortBy([this.timeColumn.slug])
     }

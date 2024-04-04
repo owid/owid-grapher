@@ -2,7 +2,7 @@ import React from "react"
 
 export class RadioButton extends React.Component<{
     checked: boolean
-    onChange: React.ChangeEventHandler<HTMLInputElement>
+    onChange?: React.ChangeEventHandler<HTMLInputElement>
     label: React.ReactNode
     group?: string
 }> {

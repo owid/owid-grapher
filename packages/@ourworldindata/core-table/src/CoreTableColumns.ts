@@ -928,3 +928,7 @@ export const ColumnTypeMap = {
 const _ColumnTypeMap: {
     [key in ColumnTypeNames]: unknown
 } = ColumnTypeMap
+
+export function isColumnWithNumberFormatting(column: CoreColumn): boolean {
+    return column instanceof AbstractColumnWithNumberFormatting
+}
