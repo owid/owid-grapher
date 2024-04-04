@@ -9,7 +9,7 @@ import {
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     excludeNullish,
-    traverseEnrichedBlocks,
+    traverseEnrichedBlock,
     OwidEnrichedGdocBlock,
     Span,
     traverseEnrichedSpan,
@@ -137,7 +137,7 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         for (const enrichedBlockSource of this.enrichedBlockSources) {
             enrichedBlockSource.forEach((block) =>
-                traverseEnrichedBlocks(block, extractFilenamesFromBlock)
+                traverseEnrichedBlock(block, extractFilenamesFromBlock)
             )
         }
 
@@ -149,7 +149,7 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         for (const enrichedBlockSource of this.enrichedBlockSources) {
             enrichedBlockSource.forEach((block) =>
-                traverseEnrichedBlocks(
+                traverseEnrichedBlock(
                     block,
                     (x) => x,
                     (span) => {
@@ -182,7 +182,7 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         for (const enrichedBlockSource of this.enrichedBlockSources) {
             enrichedBlockSource.forEach((block) =>
-                traverseEnrichedBlocks(
+                traverseEnrichedBlock(
                     block,
                     (block) => {
                         const extractedLinks = this.extractLinksFromBlock(block)
@@ -223,7 +223,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         const slugs = new Set<string>()
         for (const enrichedBlockSource of this.enrichedBlockSources) {
             for (const block of enrichedBlockSource) {
-                traverseEnrichedBlocks(block, (block) => {
+                traverseEnrichedBlock(block, (block) => {
                     if (block.type === "key-indicator") {
                         slugs.add(urlToSlug(block.datapageUrl))
                     }
@@ -257,7 +257,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         for (const enrichedBlockSource of this.enrichedBlockSources) {
             for (const block of enrichedBlockSource) {
                 if (hasAllChartsBlock) break
-                traverseEnrichedBlocks(block, (block) => {
+                traverseEnrichedBlock(block, (block) => {
                     if (block.type === "all-charts") {
                         hasAllChartsBlock = true
                     }
@@ -400,7 +400,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             .with({ type: "key-insights" }, (block) => {
                 const links: DbInsertPostGdocLink[] = []
 
-                // insights content is traversed by traverseEnrichedBlocks
+                // insights content is traversed by traverseEnrichedBlock
                 block.insights.forEach((insight) => {
                     if (insight.url) {
                         const insightLink = createLinkFromUrl({
@@ -497,7 +497,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             .with(
                 {
                     // no urls directly on any of these blocks
-                    // their children may contain urls, but they'll be addressed by traverseEnrichedBlocks
+                    // their children may contain urls, but they'll be addressed by traverseEnrichedBlock
                     type: P.union(
                         "additional-charts",
                         "align",
@@ -755,7 +755,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         const contentErrors: OwidGdocErrorMessage[] = []
         for (const enrichedBlockSource of this.enrichedBlockSources) {
             enrichedBlockSource.forEach((block) =>
-                traverseEnrichedBlocks(block, (block) => {
+                traverseEnrichedBlock(block, (block) => {
                     if (block.type === "key-indicator" && block.datapageUrl) {
                         const slug = urlToSlug(block.datapageUrl)
                         const linkedChart = this.linkedCharts?.[slug]

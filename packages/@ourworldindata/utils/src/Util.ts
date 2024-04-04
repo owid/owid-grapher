@@ -1506,7 +1506,7 @@ export function traverseEnrichedSpan(
 // If your node has children that are Spans, the spanCallback will apply to them
 // If your node has children that aren't OwidEnrichedGdocBlocks or Spans, e.g. EnrichedBlockScroller & EnrichedScrollerItem
 // you'll have to handle those children yourself in your callback
-export function traverseEnrichedBlocks(
+export function traverseEnrichedBlock(
     node: OwidEnrichedGdocBlock,
     callback: (x: OwidEnrichedGdocBlock) => void,
     spanCallback?: (x: Span) => void
@@ -1517,24 +1517,24 @@ export function traverseEnrichedBlocks(
             (container) => {
                 callback(container)
                 container.left.forEach((leftNode) =>
-                    traverseEnrichedBlocks(leftNode, callback, spanCallback)
+                    traverseEnrichedBlock(leftNode, callback, spanCallback)
                 )
                 container.right.forEach((rightNode) =>
-                    traverseEnrichedBlocks(rightNode, callback, spanCallback)
+                    traverseEnrichedBlock(rightNode, callback, spanCallback)
                 )
             }
         )
         .with({ type: "gray-section" }, (graySection) => {
             callback(graySection)
             graySection.items.forEach((node) =>
-                traverseEnrichedBlocks(node, callback, spanCallback)
+                traverseEnrichedBlock(node, callback, spanCallback)
             )
         })
         .with({ type: "key-insights" }, (keyInsights) => {
             callback(keyInsights)
             keyInsights.insights.forEach((insight) =>
                 insight.content.forEach((node) =>
-                    traverseEnrichedBlocks(node, callback, spanCallback)
+                    traverseEnrichedBlock(node, callback, spanCallback)
                 )
             )
         })
@@ -1542,7 +1542,7 @@ export function traverseEnrichedBlocks(
             callback(callout)
             if (spanCallback) {
                 callout.text.forEach((textBlock) =>
-                    traverseEnrichedBlocks(textBlock, callback, spanCallback)
+                    traverseEnrichedBlock(textBlock, callback, spanCallback)
                 )
             }
         })
@@ -1558,7 +1558,7 @@ export function traverseEnrichedBlocks(
             callback(list)
             if (spanCallback) {
                 list.items.forEach((textBlock) =>
-                    traverseEnrichedBlocks(textBlock, callback, spanCallback)
+                    traverseEnrichedBlock(textBlock, callback, spanCallback)
                 )
             }
         })
@@ -1566,7 +1566,7 @@ export function traverseEnrichedBlocks(
             callback(numberedList)
             if (spanCallback) {
                 numberedList.items.forEach((textBlock) =>
-                    traverseEnrichedBlocks(textBlock, callback, spanCallback)
+                    traverseEnrichedBlock(textBlock, callback, spanCallback)
                 )
             }
         })
@@ -1604,13 +1604,13 @@ export function traverseEnrichedBlocks(
         .with({ type: "expandable-paragraph" }, (expandableParagraph) => {
             callback(expandableParagraph)
             expandableParagraph.items.forEach((textBlock) => {
-                traverseEnrichedBlocks(textBlock, callback, spanCallback)
+                traverseEnrichedBlock(textBlock, callback, spanCallback)
             })
         })
         .with({ type: "align" }, (align) => {
             callback(align)
             align.content.forEach((node) => {
-                traverseEnrichedBlocks(node, callback, spanCallback)
+                traverseEnrichedBlock(node, callback, spanCallback)
             })
         })
         .with({ type: "table" }, (table) => {
@@ -1618,7 +1618,7 @@ export function traverseEnrichedBlocks(
             table.rows.forEach((row) => {
                 row.cells.forEach((cell) => {
                     cell.content.forEach((node) => {
-                        traverseEnrichedBlocks(node, callback, spanCallback)
+                        traverseEnrichedBlock(node, callback, spanCallback)
                     })
                 })
             })
@@ -1626,7 +1626,7 @@ export function traverseEnrichedBlocks(
         .with({ type: "blockquote" }, (blockquote) => {
             callback(blockquote)
             blockquote.text.forEach((node) => {
-                traverseEnrichedBlocks(node, callback, spanCallback)
+                traverseEnrichedBlock(node, callback, spanCallback)
             })
         })
         .with(
@@ -1636,7 +1636,7 @@ export function traverseEnrichedBlocks(
             (keyIndicator) => {
                 callback(keyIndicator)
                 keyIndicator.text.forEach((node) => {
-                    traverseEnrichedBlocks(node, callback, spanCallback)
+                    traverseEnrichedBlock(node, callback, spanCallback)
                 })
             }
         )
@@ -1645,7 +1645,7 @@ export function traverseEnrichedBlocks(
             (keyIndicatorCollection) => {
                 callback(keyIndicatorCollection)
                 keyIndicatorCollection.blocks.forEach((node) =>
-                    traverseEnrichedBlocks(node, callback, spanCallback)
+                    traverseEnrichedBlock(node, callback, spanCallback)
                 )
             }
         )

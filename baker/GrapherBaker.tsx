@@ -13,7 +13,7 @@ import {
     compact,
     merge,
     partition,
-    traverseEnrichedBlocks,
+    traverseEnrichedBlock,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import * as lodash from "lodash"
@@ -313,7 +313,7 @@ export async function renderDataPageV2(
 
     const faqEntryFilenames: string[] = []
     faqEntries.faqs.forEach((f) => {
-        traverseEnrichedBlocks(f, (block) => {
+        traverseEnrichedBlock(f, (block) => {
             faqEntryFilenames.push(...extractFilenamesFromBlock(block))
         })
     })

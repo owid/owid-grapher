@@ -2,7 +2,7 @@
 Common utlities for deriving properties from image metadata.
 */
 
-import { traverseEnrichedBlocks } from "./Util.js"
+import { traverseEnrichedBlock } from "./Util.js"
 import { OwidGdoc, OwidGdocType, ImageMetadata } from "@ourworldindata/types"
 import { match, P } from "ts-pattern"
 
@@ -123,7 +123,7 @@ export function getFeaturedImageFilename(gdoc: OwidGdoc): string | undefined {
             // Use the first image in the document as the featured image
             let filename: string | undefined = undefined
             for (const block of gdoc.content.body) {
-                traverseEnrichedBlocks(block, (block) => {
+                traverseEnrichedBlock(block, (block) => {
                     if (!filename && block.type === "image") {
                         filename = block.smallFilename || block.filename
                     }

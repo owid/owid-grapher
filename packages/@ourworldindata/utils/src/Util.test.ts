@@ -27,7 +27,7 @@ import {
     slugifySameCase,
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
-    traverseEnrichedBlocks,
+    traverseEnrichedBlock,
     cartesian,
 } from "./Util.js"
 import {
@@ -569,7 +569,7 @@ describe(findGreatestCommonDivisorOfArray, () => {
     })
 })
 
-describe(traverseEnrichedBlocks, () => {
+describe(traverseEnrichedBlock, () => {
     const enrichedBlocks: OwidEnrichedGdocBlock[] = [
         {
             type: "prominent-link",
@@ -689,7 +689,7 @@ describe(traverseEnrichedBlocks, () => {
         const seen: string[] = []
 
         enrichedBlocks.forEach((block) => {
-            traverseEnrichedBlocks(block, (block) => {
+            traverseEnrichedBlock(block, (block) => {
                 seen.push(block.type)
             })
         })
@@ -712,7 +712,7 @@ describe(traverseEnrichedBlocks, () => {
         const seen: string[] = []
 
         enrichedBlocks.forEach((block) => {
-            traverseEnrichedBlocks(
+            traverseEnrichedBlock(
                 block,
                 (block) => {
                     seen.push(block.type)
