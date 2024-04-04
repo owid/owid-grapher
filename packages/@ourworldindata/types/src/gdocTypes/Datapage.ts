@@ -9,6 +9,7 @@ import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { Static, Type } from "@sinclair/typebox"
 import { OwidGdocPostInterface } from "./Gdoc.js"
 import { OwidEnrichedGdocBlock } from "./ArchieMlComponents.js"
+import { ImageMetadata } from "./Image.js"
 
 export interface FaqLink {
     gdocId: string
@@ -146,11 +147,7 @@ export type DataPageParseError = { message: string; path?: string }
 
 export type FaqEntryData = Pick<
     OwidGdocPostInterface,
-    | "linkedCharts"
-    | "linkedIndicators"
-    | "linkedDocuments"
-    | "relatedCharts"
-    | "imageMetadata"
+    "linkedCharts" | "linkedIndicators" | "linkedDocuments" | "relatedCharts"
 > & {
     faqs: OwidEnrichedGdocBlock[]
 }
@@ -162,6 +159,7 @@ export interface DataPageV2ContentFields {
     isPreviewing?: boolean
     canonicalUrl: string
     tagToSlugMap: Record<string, string>
+    imageMetadata: Record<string, ImageMetadata>
 }
 export interface DisplaySource {
     label: string

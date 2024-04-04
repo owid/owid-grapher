@@ -12,7 +12,6 @@ import {
     traverseEnrichedBlocks,
     OwidEnrichedGdocBlock,
     Span,
-    EnrichedBlockResearchAndWritingLink,
     traverseEnrichedSpan,
     uniq,
     identity,
@@ -42,6 +41,7 @@ import {
 import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
 import { match, P } from "ts-pattern"
 import {
+    extractFilenamesFromBlock,
     extractUrl,
     getAllLinksFromResearchAndWritingBlock,
     spansToSimpleString,
@@ -137,45 +137,7 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         for (const enrichedBlockSource of this.enrichedBlockSources) {
             enrichedBlockSource.forEach((block) =>
-                traverseEnrichedBlocks(block, (item) => {
-                    if ("type" in item) {
-                        if ("filename" in item && item.filename) {
-                            filenames.add(item.filename)
-                        }
-                        if (item.type === "image" && item.smallFilename) {
-                            filenames.add(item.smallFilename)
-                        }
-                        if (item.type === "prominent-link" && item.thumbnail) {
-                            filenames.add(item.thumbnail)
-                        }
-                        if (item.type === "research-and-writing") {
-                            const allLinks =
-                                getAllLinksFromResearchAndWritingBlock(item)
-                            allLinks.forEach(
-                                (link: EnrichedBlockResearchAndWritingLink) => {
-                                    if (link.value.filename) {
-                                        filenames.add(link.value.filename)
-                                    }
-                                }
-                            )
-                        }
-                        if (item.type === "key-insights") {
-                            item.insights.forEach((insight) => {
-                                if (insight.filename) {
-                                    filenames.add(insight.filename)
-                                }
-                            })
-                        }
-                        if (item.type === "homepage-intro") {
-                            item.featuredWork.forEach((featuredWork) => {
-                                if (featuredWork.filename) {
-                                    filenames.add(featuredWork.filename)
-                                }
-                            })
-                        }
-                    }
-                    return item
-                })
+                traverseEnrichedBlocks(block, extractFilenamesFromBlock)
             )
         }
 

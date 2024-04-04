@@ -14,6 +14,7 @@ import {
     FaqEntryData,
     pick,
     GrapherInterface,
+    ImageMetadata,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import React from "react"
@@ -40,6 +41,7 @@ export const DataPageV2 = (props: {
     baseGrapherUrl: string
     isPreviewing: boolean
     faqEntries?: FaqEntryData
+    imageMetadata: Record<string, ImageMetadata>
     tagToSlugMap: Record<string | number, string>
 }) => {
     const {
@@ -50,6 +52,7 @@ export const DataPageV2 = (props: {
         isPreviewing,
         faqEntries,
         tagToSlugMap,
+        imageMetadata,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title.title
     const canonicalUrl = grapher?.slug
@@ -149,6 +152,7 @@ export const DataPageV2 = (props: {
                                         faqEntries,
                                         canonicalUrl,
                                         tagToSlugMap: minimalTagToSlugMap,
+                                        imageMetadata,
                                     }
                                 )}`,
                             }}
@@ -158,6 +162,7 @@ export const DataPageV2 = (props: {
                                 <DataPageV2Content
                                     datapageData={datapageData}
                                     grapherConfig={grapherConfig}
+                                    imageMetadata={imageMetadata}
                                     isPreviewing={isPreviewing}
                                     faqEntries={faqEntries}
                                     canonicalUrl={canonicalUrl}

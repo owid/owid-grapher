@@ -13,6 +13,7 @@ import {
     compact,
     merge,
     partition,
+    traverseEnrichedBlocks,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import * as lodash from "lodash"
@@ -44,6 +45,7 @@ import {
     FaqDictionary,
     ImageMetadata,
     OwidGdocBaseInterface,
+    OwidGdocMinimalPostInterface,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -62,6 +64,7 @@ import { knexRaw } from "../db/db.js"
 import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import pMap from "p-map"
 import { getGdocBaseObjectBySlug } from "../db/model/Gdoc/GdocFactory.js"
+import { extractFilenamesFromBlock } from "../db/model/Gdoc/gdocUtils.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -72,6 +75,15 @@ const renderDatapageIfApplicable = async (
     const variable = await getVariableOfDatapageIfApplicable(grapher)
 
     if (!variable) return undefined
+
+    // When baking from `bakeSingleGrapherChart`, we cache imageMetadata to avoid fetching every image for every chart
+    // But when rendering a datapage from the mockSiteRouter we want to be able to fetch imageMetadata on the fly
+    // And this function is the point in the two paths where it makes sense to do so
+    if (!imageMetadataDictionary) {
+        imageMetadataDictionary = await getAllImages(knex).then((images) =>
+            keyBy(images, "filename")
+        )
+    }
 
     return await renderDataPageV2(
         {
@@ -172,15 +184,9 @@ export async function renderDataPageV2(
         {},
         ...compact(gdocs.map((gdoc) => gdoc?.linkedCharts))
     )
-    const linkedDocuments: OwidGdocPostInterface["linkedDocuments"] = merge(
+    const linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = merge(
         {},
         ...compact(gdocs.map((gdoc) => gdoc?.linkedDocuments))
-    )
-    // TODO: this is the place to select the right images, but only once the DB knex refactor has been merged
-    const imageMetadata: OwidGdocPostInterface["imageMetadata"] = merge(
-        {},
-        imageMetadataDictionary,
-        ...compact(gdocs.map((gdoc) => gdoc?.imageMetadata))
     )
 
     const relatedCharts: OwidGdocPostInterface["relatedCharts"] = gdocs.flatMap(
@@ -223,7 +229,6 @@ export async function renderDataPageV2(
     const faqEntries: FaqEntryData = {
         linkedCharts,
         linkedDocuments,
-        imageMetadata,
         relatedCharts,
         faqs: resolvedFaqs?.flatMap((faq) => faq.enrichedFaq.content) ?? [],
     }
@@ -302,6 +307,22 @@ export async function renderDataPageV2(
     datapageData.relatedResearch =
         await getRelatedResearchAndWritingForVariable(knex, variableId)
 
+    const relatedResearchFilenames = datapageData.relatedResearch
+        .map((r) => r.imageUrl)
+        .filter((f): f is string => !!f)
+
+    const faqEntryFilenames: string[] = []
+    faqEntries.faqs.forEach((f) => {
+        traverseEnrichedBlocks(f, (block) => {
+            faqEntryFilenames.push(...extractFilenamesFromBlock(block))
+        })
+    })
+
+    const imageMetadata = lodash.pick(
+        imageMetadataDictionary,
+        uniq([...relatedResearchFilenames, ...faqEntryFilenames])
+    )
+
     const tagToSlugMap = await getTagToSlugMap(knex)
 
     return renderToHtmlPage(
@@ -311,6 +332,7 @@ export async function renderDataPageV2(
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
             isPreviewing={isPreviewing}
+            imageMetadata={imageMetadata}
             faqEntries={faqEntries}
             tagToSlugMap={tagToSlugMap}
         />
@@ -494,6 +516,7 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
                 SELECT
                     id, config, config->>'$.slug' as slug
                 FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
+                AND slug = 'living-planet-index-by-region'
                 ORDER BY JSON_EXTRACT(config, "$.slug") ASC
                 `
             )
