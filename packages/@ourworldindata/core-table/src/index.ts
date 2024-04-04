@@ -14,6 +14,7 @@ export {
     ColumnTypeMap,
     AbstractCoreColumn,
     TimeColumn,
+    isColumnWithNumberFormatting,
 } from "./CoreTableColumns.js"
 
 export { OwidTable, BlankOwidTable } from "./OwidTable.js"

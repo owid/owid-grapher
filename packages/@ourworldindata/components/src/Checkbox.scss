@@ -3,7 +3,7 @@
 
     $light-stroke: #dadada;
     $hover-stroke: #a4b6ca;
-    $active-fill: #dbe5f0;
+    $active-fill: #a4b6ca;
 
     position: relative;
 
@@ -27,7 +27,7 @@
         pointer-events: none;
         border-radius: 2px;
         border: 1px solid $light-stroke;
-        color: $dark-text;
+        color: #fff;
 
         display: flex;
         align-items: center;
@@ -36,7 +36,6 @@
         svg {
             font-size: 10px;
             padding-left: 0.75px;
-            color: $active-text;
         }
     }
 
