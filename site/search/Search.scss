@@ -246,7 +246,10 @@
     .search-results__explorer-hit-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+
+        .search-results__explorer-hit-title-container {
+            min-width: 0;
+        }
 
         .search-results__explorer-hit-title {
             display: inline;
@@ -256,10 +259,15 @@
 
         .search-results__explorer-hit-subtitle {
             margin: 0 8px 0 0;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
         }
 
         .search-results__explorer-hit-link {
             @include owid-link-60;
+            flex: 1 0 auto;
+            text-align: right;
         }
     }
 
@@ -288,6 +296,19 @@
                 text-overflow: ellipsis;
                 white-space: nowrap;
                 overflow: hidden;
+            }
+
+            @include sm-only {
+                // *If on "All" tab on small screens*, only show the first two views on mobile, and hide view subtitles
+                @at-root .search-results[data-active-filter="all"] & {
+                    &:nth-child(n + 3) {
+                        display: none;
+                    }
+
+                    .search-results__explorer-view-subtitle {
+                        display: none;
+                    }
+                }
             }
         }
     }

@@ -185,7 +185,7 @@ function ExplorerHit({ groupedHit }: { groupedHit: GroupedExplorerViews }) {
             className="search-results__explorer-hit"
         >
             <div className="search-results__explorer-hit-header">
-                <div>
+                <div className="search-results__explorer-hit-title-container">
                     <h3 className="h3-bold search-results__explorer-hit-title">
                         {groupedHit.explorerTitle}
                     </h3>
@@ -201,7 +201,7 @@ function ExplorerHit({ groupedHit }: { groupedHit: GroupedExplorerViews }) {
                     Explore all {groupedHit.numViewsWithinExplorer} indicators
                 </a>
             </div>
-            <ul className="search-results__explorer-views-list grid grid-cols-2">
+            <ul className="search-results__explorer-views-list grid grid-cols-2 grid-sm-cols-1">
                 {groupedHit.views.map((view) => (
                     <li
                         key={view.objectID}
