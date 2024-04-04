@@ -243,6 +243,12 @@
         font-weight: 400;
     }
 
+    .search-results__explorer-hit-link-mobile {
+        @include owid-link-60;
+        margin-top: 16px;
+        display: block;
+    }
+
     .search-results__explorer-hit-header {
         display: flex;
         justify-content: space-between;
@@ -266,6 +272,7 @@
 
         .search-results__explorer-hit-link {
             @include owid-link-60;
+            margin-top: 0;
             flex: 1 0 auto;
             text-align: right;
         }
@@ -275,7 +282,7 @@
         margin-left: 20px;
         margin-top: 5px;
         list-style: none;
-        gap: 10px 16px;
+        gap: 16px;
 
         .search-results__explorer-view {
             overflow: hidden;

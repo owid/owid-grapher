@@ -193,7 +193,7 @@ function ExplorerHit({ groupedHit }: { groupedHit: GroupedExplorerViews }) {
 
                 <a
                     href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}`}
-                    className="search-results__explorer-hit-link"
+                    className="search-results__explorer-hit-link hide-sm-only"
                 >
                     Explore all {groupedHit.numViewsWithinExplorer} indicators
                 </a>
@@ -227,6 +227,12 @@ function ExplorerHit({ groupedHit }: { groupedHit: GroupedExplorerViews }) {
                     </li>
                 ))}
             </ul>
+            <a
+                href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}`}
+                className="search-results__explorer-hit-link-mobile hide-sm-up"
+            >
+                Explore all {groupedHit.numViewsWithinExplorer} indicators
+            </a>
         </div>
     )
 }
