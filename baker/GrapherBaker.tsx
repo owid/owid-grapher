@@ -180,19 +180,6 @@ export async function renderDataPageV2(
         gdocIdToFragmentIdToBlock[gdoc.id] = faqs.faqs
     })
 
-    const linkedCharts: OwidGdocPostInterface["linkedCharts"] = merge(
-        {},
-        ...compact(gdocs.map((gdoc) => gdoc?.linkedCharts))
-    )
-    const linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = merge(
-        {},
-        ...compact(gdocs.map((gdoc) => gdoc?.linkedDocuments))
-    )
-
-    const relatedCharts: OwidGdocPostInterface["relatedCharts"] = gdocs.flatMap(
-        (gdoc) => gdoc?.relatedCharts ?? []
-    )
-
     const resolvedFaqsResults: EnrichedFaqLookupResult[] = variableMetadata
         .presentation?.faqs
         ? variableMetadata.presentation.faqs.map((faq) => {
@@ -227,9 +214,6 @@ export async function renderDataPageV2(
     }
 
     const faqEntries: FaqEntryData = {
-        linkedCharts,
-        linkedDocuments,
-        relatedCharts,
         faqs: resolvedFaqs?.flatMap((faq) => faq.enrichedFaq.content) ?? [],
     }
 

@@ -145,10 +145,8 @@ export type DataPageJson = Static<typeof DataPageJsonTypeObject>
 
 export type DataPageParseError = { message: string; path?: string }
 
-export type FaqEntryData = Pick<
-    OwidGdocPostInterface,
-    "linkedCharts" | "linkedIndicators" | "linkedDocuments" | "relatedCharts"
-> & {
+// TODO: https://github.com/owid/owid-grapher/issues/3426
+export type FaqEntryData = {
     faqs: OwidEnrichedGdocBlock[]
 }
 
