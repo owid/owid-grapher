@@ -60,7 +60,7 @@ up: require create-if-missing.env ../owid-content tmp-downloads/owid_metadata.sq
 	@echo '==> Starting dev environment'
 	@mkdir -p logs
 	tmux new-session -s grapher \
-		-n docker 'docker-compose -f docker-compose.grapher.yml up' \; \
+		-n docker 'docker compose -f docker-compose.grapher.yml up' \; \
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
@@ -114,7 +114,7 @@ up.full: require create-if-missing.env.full ../owid-content wordpress/.env tmp-d
 
 	@echo '==> Starting dev environment'
 	tmux new-session -s grapher \
-		-n docker 'docker-compose -f docker-compose.full.yml up' \; \
+		-n docker 'docker compose -f docker-compose.full.yml up' \; \
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
@@ -178,15 +178,15 @@ sync-images.preflight-check:
 
 down:
 	@echo '==> Stopping services'
-	docker-compose -f docker-compose.grapher.yml down
+	docker compose -f docker-compose.grapher.yml down
 
 down.full:
 	@echo '==> Stopping services'
-	docker-compose -f docker-compose.full.yml down
+	docker compose -f docker-compose.full.yml down
 
 require:
 	@echo '==> Checking your local environment has the necessary commands...'
-	@which docker-compose >/dev/null 2>&1 || (echo "ERROR: docker-compose is required."; exit 1)
+	@which docker >/dev/null 2>&1 || (echo "ERROR: docker compose is required."; exit 1)
 	@which yarn >/dev/null 2>&1 || (echo "ERROR: yarn is required."; exit 1)
 	@which tmux >/dev/null 2>&1 || (echo "ERROR: tmux is required."; exit 1)
 	@which finger >/dev/null 2>&1 || (echo "ERROR: finger is required."; exit 1)
