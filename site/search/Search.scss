@@ -299,7 +299,8 @@
             }
 
             .search-results__explorer-view-subtitle {
-                margin-top: 0px;
+                margin-top: 0;
+                margin-bottom: 0;
                 text-overflow: ellipsis;
                 white-space: nowrap;
                 overflow: hidden;
