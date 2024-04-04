@@ -1820,6 +1820,7 @@ export function checkIsAuthor(x: unknown): x is OwidGdocAuthorInterface {
     const type = get(x, "content.type")
     return type === OwidGdocType.Author
 }
+
 /**
  * Returns the cartesian product of the given arrays.
  *
@@ -1843,4 +1844,8 @@ export function isElementHidden(element: Element | null): boolean {
     )
         return true
     return isElementHidden(element.parentElement)
+}
+
+export function isFiniteWithGuard(value: unknown): value is number {
+    return isFinite(value as any)
 }

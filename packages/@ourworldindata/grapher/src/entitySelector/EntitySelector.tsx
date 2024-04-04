@@ -5,9 +5,14 @@ import cx from "classnames"
 import a from "indefinite"
 import {
     isTouchDevice,
-    sortBy,
     partition,
     capitalize,
+    SortOrder,
+    orderBy,
+    keyBy,
+    isFiniteWithGuard,
+    CoreValueType,
+    clamp,
 } from "@ourworldindata/utils"
 import { Checkbox } from "@ourworldindata/components"
 import { FuzzySearch } from "../controls/FuzzySearch"
@@ -25,29 +30,57 @@ import {
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
     GRAPHER_SCROLLABLE_CONTAINER_CLASS,
 } from "../core/GrapherConstants"
+import {
+    CoreColumn,
+    OwidTable,
+    isColumnWithNumberFormatting,
+} from "@ourworldindata/core-table"
+import { SortIcon } from "../controls/SortIcon"
+import { Dropdown } from "../controls/Dropdown"
+import { scaleLinear, type ScaleLinear } from "d3-scale"
 
 export interface EntitySelectorState {
     searchInput: string
     mostRecentlySelectedEntityName?: string
+    sortConfig: SortConfig
+    previousSortConfig?: SortConfig
 }
 
 export interface EntitySelectorManager {
     entitySelectorState: Partial<EntitySelectorState>
+    tableForSelection: OwidTable
     selection: SelectionArray
     canChangeEntity: boolean
     entitiesAreCountryLike?: boolean
     entityType?: string
     entityTypePlural?: string
+    activeColumnSlugs?: string[]
 }
 
-interface SearchableEntity {
-    name: string
+type Slug = string
+
+interface SortConfig {
+    slug: Slug
+    order: SortOrder
 }
+
+type SearchableEntity = { name: string } & Record<
+    Slug,
+    CoreValueType | undefined
+>
 
 interface PartitionedEntities {
-    selected: string[]
-    unselected: string[]
+    selected: SearchableEntity[]
+    unselected: SearchableEntity[]
 }
+
+interface DropdownOption {
+    value: string
+    label: string
+}
+
+const RELEVANCE_OPTION = { value: "relevance", label: "Relevance" }
+const RELEVANCE = RELEVANCE_OPTION.value
 
 @observer
 export class EntitySelector extends React.Component<{
@@ -57,6 +90,11 @@ export class EntitySelector extends React.Component<{
 }> {
     container: React.RefObject<HTMLDivElement> = React.createRef()
     searchField: React.RefObject<HTMLInputElement> = React.createRef()
+
+    private defaultSortConfig = {
+        slug: this.table.entityNameSlug,
+        order: SortOrder.asc,
+    }
 
     componentDidMount(): void {
         if (this.props.autoFocus && !isTouchDevice())
@@ -75,15 +113,88 @@ export class EntitySelector extends React.Component<{
         )
     }
 
-    private set(state: Partial<EntitySelectorState>): void {
+    private set(newState: Partial<EntitySelectorState>): void {
+        const correctedState = { ...newState }
+
+        if (newState.searchInput !== undefined) {
+            // switch to relevance sorting when searching
+            if (newState.searchInput) {
+                correctedState.sortConfig = {
+                    slug: RELEVANCE,
+                    order: SortOrder.asc,
+                }
+            }
+
+            // switch back to previous sorting when clearing search
+            if (!newState.searchInput && this.isSortedByRelevance) {
+                correctedState.sortConfig =
+                    this.previousSortConfig ?? this.defaultSortConfig
+            }
+        }
+
+        if (newState.sortConfig !== undefined) {
+            const correctedSortConfig = { ...newState.sortConfig }
+
+            // sort names in ascending order by default
+            if (this.hasSlugName(newState.sortConfig) && !this.isSortedByName) {
+                correctedSortConfig.order = SortOrder.asc
+            }
+
+            // sort relevance in ascending order by default
+            if (
+                this.hasSlugRelevance(newState.sortConfig) &&
+                !this.isSortedByRelevance
+            ) {
+                correctedSortConfig.order = SortOrder.asc
+            }
+
+            // sort values in descending order by default
+            if (
+                !this.hasSlugName(newState.sortConfig) &&
+                !this.hasSlugRelevance(newState.sortConfig) &&
+                (this.isSortedByName || this.isSortedByRelevance)
+            ) {
+                correctedSortConfig.order = SortOrder.desc
+            }
+
+            correctedState.sortConfig = correctedSortConfig
+        }
+
+        // remember the previous sort config that was not relevance
+        if (correctedState.sortConfig && !this.isSortedByRelevance) {
+            correctedState.previousSortConfig = this.sortConfig
+        }
+
         this.manager.entitySelectorState = {
             ...this.manager.entitySelectorState,
-            ...state,
+            ...correctedState,
         }
     }
 
     private clearSearchInput(): void {
         this.set({ searchInput: "" })
+    }
+
+    private updateSortSlug(newSlug: Slug) {
+        this.set({
+            sortConfig: {
+                slug: newSlug,
+                order: this.sortConfig.order,
+            },
+        })
+    }
+
+    private toggleSortOrder() {
+        const newOrder =
+            this.sortConfig.order === SortOrder.asc
+                ? SortOrder.desc
+                : SortOrder.asc
+        this.set({
+            sortConfig: {
+                slug: this.sortConfig.slug,
+                order: newOrder,
+            },
+        })
     }
 
     @computed private get manager(): EntitySelectorManager {
@@ -96,6 +207,84 @@ export class EntitySelector extends React.Component<{
 
     @computed private get mostRecentlySelectedEntityName(): string | undefined {
         return this.manager.entitySelectorState.mostRecentlySelectedEntityName
+    }
+
+    @computed private get sortConfig(): SortConfig {
+        return (
+            this.manager.entitySelectorState.sortConfig ??
+            this.defaultSortConfig
+        )
+    }
+
+    @computed private get previousSortConfig(): SortConfig | undefined {
+        return this.manager.entitySelectorState.previousSortConfig
+    }
+
+    @computed private get table(): OwidTable {
+        return this.manager.tableForSelection
+    }
+
+    @computed private get sortColumns(): CoreColumn[] {
+        const activeSlugs = this.manager.activeColumnSlugs ?? []
+
+        const sortColumns = activeSlugs
+            .map((slug) => this.table.get(slug))
+            .filter((column) => isColumnWithNumberFormatting(column))
+
+        return [this.table.entityNameColumn, ...sortColumns]
+    }
+
+    @computed private get sortColumnsBySlug(): Record<Slug, CoreColumn> {
+        return keyBy(this.sortColumns, (column: CoreColumn) => column.slug)
+    }
+
+    @computed get sortOptions(): DropdownOption[] {
+        const options: DropdownOption[] = []
+
+        // use relevance sorting when searching
+        if (this.searchInput) {
+            options.push(RELEVANCE_OPTION)
+        }
+
+        const getDropdownLabel = (column: CoreColumn): string => {
+            if (column.slug === this.table.entityNameSlug) return "Name"
+            return column.displayName || column.nonEmptyName
+        }
+
+        options.push(
+            ...this.sortColumns.map((column) => {
+                return {
+                    value: column.slug,
+                    label: getDropdownLabel(column),
+                }
+            })
+        )
+
+        return options
+    }
+
+    @computed get sortValue(): DropdownOption | null {
+        return (
+            this.sortOptions.find(
+                (option) => option.value === this.sortConfig.slug
+            ) ?? null
+        )
+    }
+
+    private hasSlugName(sortConfig: SortConfig): boolean {
+        return sortConfig.slug === this.table.entityNameSlug
+    }
+
+    private hasSlugRelevance(sortConfig: SortConfig): boolean {
+        return sortConfig.slug === RELEVANCE
+    }
+
+    @computed private get isSortedByName(): boolean {
+        return this.hasSlugName(this.sortConfig)
+    }
+
+    @computed private get isSortedByRelevance(): boolean {
+        return this.hasSlugRelevance(this.sortConfig)
     }
 
     @computed private get entityType(): string {
@@ -112,12 +301,75 @@ export class EntitySelector extends React.Component<{
         return makeSelectionArray(this.manager.selection)
     }
 
-    @computed get sortedAvailableEntities(): string[] {
-        return sortBy(this.selectionArray.availableEntityNames)
+    @computed private get availableEntityNames(): string[] {
+        return this.table.availableEntityNames
     }
 
-    @computed private get searchableEntities(): SearchableEntity[] {
-        return this.sortedAvailableEntities.map((name) => ({ name }))
+    @computed private get availableEntities(): SearchableEntity[] {
+        return this.availableEntityNames.map((entityName) => {
+            const searchableEntity: SearchableEntity = { name: entityName }
+
+            for (const column of this.sortColumns) {
+                searchableEntity[column.slug] =
+                    this.table.getLatestValueForEntity(entityName, column.slug)
+            }
+
+            return searchableEntity
+        })
+    }
+
+    private sortEntities(entities: SearchableEntity[]): SearchableEntity[] {
+        const { sortConfig } = this
+
+        const shouldBeSortedByName =
+            sortConfig.slug === this.table.entityNameSlug
+        const shouldBeSortedByRelevance = sortConfig.slug === RELEVANCE
+
+        // search results are already sorted by relevance, but if
+        // the user toggles the sort order, we reverse the results
+        if (shouldBeSortedByRelevance) {
+            if (sortConfig.order === SortOrder.desc) {
+                const entitiesCopy = [...entities]
+                entitiesCopy.reverse()
+                return entitiesCopy
+            }
+            return entities
+        }
+
+        // sort by name
+        if (shouldBeSortedByName) {
+            return orderBy(
+                entities,
+                (entity: SearchableEntity) => entity.name,
+                sortConfig.order
+            )
+        }
+
+        // sort by number column, with missing values at the end
+
+        const [withValues, withoutValues] = partition(
+            entities,
+            (entity: SearchableEntity) =>
+                isFiniteWithGuard(entity[sortConfig.slug])
+        )
+
+        const sortedEntitiesWithValues = orderBy(
+            withValues,
+            (entity: SearchableEntity) => entity[sortConfig.slug],
+            sortConfig.order
+        )
+
+        const sortedEntitiesWithoutValues = orderBy(
+            withoutValues,
+            (entity: SearchableEntity) => entity.name,
+            SortOrder.asc
+        )
+
+        return [...sortedEntitiesWithValues, ...sortedEntitiesWithoutValues]
+    }
+
+    @computed private get sortedAvailableEntities(): SearchableEntity[] {
+        return this.sortEntities(this.availableEntities)
     }
 
     @computed get isMultiMode(): boolean {
@@ -125,13 +377,13 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed get fuzzy(): FuzzySearch<SearchableEntity> {
-        return new FuzzySearch(this.searchableEntities, "name")
+        return new FuzzySearch(this.sortedAvailableEntities, "name")
     }
 
     @computed get searchResults(): SearchableEntity[] | undefined {
-        return this.searchInput
-            ? this.fuzzy.search(this.searchInput)
-            : undefined
+        if (!this.searchInput) return undefined
+        const searchResults = this.fuzzy.search(this.searchInput)
+        return this.sortEntities(searchResults)
     }
 
     @computed get partitionedSearchResults(): PartitionedEntities | undefined {
@@ -140,20 +392,26 @@ export class EntitySelector extends React.Component<{
         if (!searchResults) return undefined
 
         const [selected, unselected] = partition(
-            searchResults.map((entity) => entity.name),
-            (name) => this.isEntitySelected(name)
+            searchResults,
+            (entity: SearchableEntity) => this.isEntitySelected(entity)
         )
 
-        return { selected, unselected }
+        return {
+            selected,
+            unselected,
+        }
     }
 
     @computed get partitionedEntities(): PartitionedEntities {
         const [selected, unselected] = partition(
             this.sortedAvailableEntities,
-            (name) => this.isEntitySelected(name)
+            (entity: SearchableEntity) => this.isEntitySelected(entity)
         )
 
-        return { selected, unselected }
+        return {
+            selected: this.sortEntities(selected),
+            unselected: this.sortEntities(unselected),
+        }
     }
 
     @computed get partitionedVisibleEntities(): PartitionedEntities {
@@ -181,7 +439,20 @@ export class EntitySelector extends React.Component<{
 
     @action.bound onClear(): void {
         const { partitionedVisibleEntities: visibleEntities } = this
-        this.selectionArray.deselectEntities(visibleEntities.selected)
+        this.selectionArray.deselectEntities(
+            visibleEntities.selected.map((entity) => entity.name)
+        )
+    }
+
+    @action.bound onChangeSortSlug(selected: unknown): void {
+        if (selected) {
+            const selectedOption = selected as DropdownOption
+            this.updateSortSlug(selectedOption.value)
+        }
+    }
+
+    @action.bound onChangeSortOrder(): void {
+        this.toggleSortOrder()
     }
 
     private renderSearchBar(): JSX.Element {
@@ -196,7 +467,9 @@ export class EntitySelector extends React.Component<{
                         ref={this.searchField}
                         type="search"
                         placeholder={`Search for ${a(this.entityType)}`}
-                        value={this.searchInput}
+                        value={
+                            this.manager.entitySelectorState.searchInput ?? ""
+                        }
                         onChange={action((e): void => {
                             this.set({
                                 searchInput: e.currentTarget.value,
@@ -222,6 +495,33 @@ export class EntitySelector extends React.Component<{
         )
     }
 
+    private renderSortBar(): JSX.Element {
+        return (
+            <div className="entity-selector__sort-bar">
+                <span className="label grapher_label-2-medium">Sort by</span>
+                <Dropdown
+                    options={this.sortOptions}
+                    onChange={this.onChangeSortSlug}
+                    value={this.sortValue}
+                />
+                <button
+                    type="button"
+                    className="sort"
+                    onClick={this.onChangeSortOrder}
+                >
+                    <SortIcon
+                        type={
+                            this.isSortedByName || this.isSortedByRelevance
+                                ? "text"
+                                : "numeric"
+                        }
+                        order={this.sortConfig.order}
+                    />
+                </button>
+            </div>
+        )
+    }
+
     private renderSearchResults(): JSX.Element {
         if (!this.searchResults || this.searchResults.length === 0) {
             return (
@@ -235,13 +535,14 @@ export class EntitySelector extends React.Component<{
 
         return (
             <ul className="entity-search-results">
-                {this.searchResults.map(({ name }) => (
-                    <li key={name}>
+                {this.searchResults.map((entity) => (
+                    <li key={entity.name}>
                         <SelectableEntity
-                            name={name}
+                            name={entity.name}
                             type={this.isMultiMode ? "checkbox" : "radio"}
-                            checked={this.isEntitySelected(name)}
-                            onChange={() => this.onChange(name)}
+                            checked={this.isEntitySelected(entity)}
+                            bar={this.getBarConfigForEntity(entity)}
+                            onChange={() => this.onChange(entity.name)}
                         />
                     </li>
                 ))}
@@ -252,13 +553,14 @@ export class EntitySelector extends React.Component<{
     private renderAllEntitiesInSingleMode(): JSX.Element {
         return (
             <ul>
-                {this.sortedAvailableEntities.map((name) => (
-                    <li key={name}>
+                {this.sortedAvailableEntities.map((entity) => (
+                    <li key={entity.name}>
                         <SelectableEntity
-                            name={name}
+                            name={entity.name}
                             type="radio"
-                            checked={this.isEntitySelected(name)}
-                            onChange={() => this.onChange(name)}
+                            checked={this.isEntitySelected(entity)}
+                            bar={this.getBarConfigForEntity(entity)}
+                            onChange={() => this.onChange(entity.name)}
                         />
                     </li>
                 ))}
@@ -266,8 +568,41 @@ export class EntitySelector extends React.Component<{
         )
     }
 
-    private isEntitySelected(name: string): boolean {
-        return this.selectionArray.selectedSet.has(name)
+    @computed private get displayColumn(): CoreColumn | undefined {
+        const sortConfig = this.isSortedByRelevance
+            ? this.previousSortConfig
+            : this.sortConfig
+
+        if (!sortConfig || this.hasSlugName(sortConfig)) return undefined
+
+        return this.sortColumnsBySlug[sortConfig.slug]
+    }
+
+    @computed private get barScale(): ScaleLinear<number, number> {
+        return scaleLinear()
+            .domain([0, this.displayColumn?.maxValue ?? 1])
+            .range([0, 1])
+    }
+
+    private getBarConfigForEntity(
+        entity: SearchableEntity
+    ): BarConfig | undefined {
+        const { displayColumn, barScale } = this
+
+        if (!displayColumn) return undefined
+
+        const value = entity[displayColumn.slug]
+
+        if (!isFiniteWithGuard(value)) return { formattedValue: "No data" }
+
+        return {
+            formattedValue: displayColumn.formatValueShort(value),
+            width: clamp(barScale(value), 0, 1),
+        }
+    }
+
+    private isEntitySelected(entity: SearchableEntity): boolean {
+        return this.selectionArray.selectedSet.has(entity.name)
     }
 
     private renderAllEntitiesInMultiMode(): JSX.Element {
@@ -281,62 +616,84 @@ export class EntitySelector extends React.Component<{
                 }}
                 flipKey={this.selectionArray.selectedEntityNames.join(",")}
             >
-                {selected.length > 0 && (
-                    <Flipped flipId="__selection" translate opacity>
-                        <div className="section-title grapher_body-3-medium-italic">
-                            Selection
-                        </div>
-                    </Flipped>
-                )}
-                <ul>
-                    {selected.map((name) => (
-                        <Flipped key={name} flipId={name} translate opacity>
-                            <li
-                                className={cx("animated-entity", {
-                                    "most-recently-selected":
-                                        this.mostRecentlySelectedEntityName ===
-                                        name,
-                                })}
-                            >
-                                <SelectableEntity
-                                    name={name}
-                                    type="checkbox"
-                                    checked={this.isEntitySelected(name)}
-                                    onChange={() => this.onChange(name)}
-                                />
-                            </li>
+                <div className="entity-section">
+                    {selected.length > 0 && (
+                        <Flipped flipId="__selection" translate opacity>
+                            <div className="entity-section__title grapher_body-3-medium-italic">
+                                Selection
+                            </div>
                         </Flipped>
-                    ))}
-                </ul>
-
-                {selected.length > 0 && unselected.length > 0 && (
-                    <Flipped flipId="__available" translate opacity>
-                        <div className="section-title grapher_body-3-medium-italic grapher_light">
-                            {capitalize(this.entityTypePlural)}
-                        </div>
-                    </Flipped>
-                )}
-
-                <ul>
-                    {unselected.map((name) => (
-                        <Flipped key={name} flipId={name} translate opacity>
-                            <li
-                                className={cx("animated-entity", {
-                                    "most-recently-selected":
-                                        this.mostRecentlySelectedEntityName ===
-                                        name,
-                                })}
+                    )}
+                    <ul>
+                        {selected.map((entity) => (
+                            <Flipped
+                                key={entity.name}
+                                flipId={entity.name}
+                                translate
+                                opacity
                             >
-                                <SelectableEntity
-                                    name={name}
-                                    type="checkbox"
-                                    checked={this.isEntitySelected(name)}
-                                    onChange={() => this.onChange(name)}
-                                />
-                            </li>
+                                <li
+                                    className={cx("animated-entity", {
+                                        "most-recently-selected":
+                                            this
+                                                .mostRecentlySelectedEntityName ===
+                                            entity.name,
+                                    })}
+                                >
+                                    <SelectableEntity
+                                        name={entity.name}
+                                        type="checkbox"
+                                        checked={this.isEntitySelected(entity)}
+                                        bar={this.getBarConfigForEntity(entity)}
+                                        onChange={() =>
+                                            this.onChange(entity.name)
+                                        }
+                                    />
+                                </li>
+                            </Flipped>
+                        ))}
+                    </ul>
+                </div>
+
+                <div className="entity-section">
+                    {selected.length > 0 && unselected.length > 0 && (
+                        <Flipped flipId="__available" translate opacity>
+                            <div className="entity-section__title grapher_body-3-medium-italic grapher_light">
+                                {capitalize(this.entityTypePlural)}
+                            </div>
                         </Flipped>
-                    ))}
-                </ul>
+                    )}
+
+                    <ul>
+                        {unselected.map((entity) => (
+                            <Flipped
+                                key={entity.name}
+                                flipId={entity.name}
+                                translate
+                                opacity
+                            >
+                                <li
+                                    className={cx("animated-entity", {
+                                        "most-recently-selected":
+                                            this
+                                                .mostRecentlySelectedEntityName ===
+                                            entity.name,
+                                    })}
+                                >
+                                    <SelectableEntity
+                                        name={entity.name}
+                                        type="checkbox"
+                                        checked={this.isEntitySelected(entity)}
+                                        bar={this.getBarConfigForEntity(entity)}
+                                        onChange={() =>
+                                            this.onChange(entity.name)
+                                        }
+                                    />
+                                </li>
+                            </Flipped>
+                        ))}
+                    </ul>
+                </div>
             </Flipper>
         )
     }
@@ -373,6 +730,8 @@ export class EntitySelector extends React.Component<{
             >
                 {this.renderSearchBar()}
 
+                {this.sortOptions.length > 1 && this.renderSortBar()}
+
                 <div className="entity-selector__content">
                     {this.searchInput
                         ? this.renderSearchResults()
@@ -387,15 +746,19 @@ export class EntitySelector extends React.Component<{
     }
 }
 
+type BarConfig = { formattedValue: string; width?: number }
+
 function SelectableEntity({
     name,
     checked,
     type,
+    bar,
     onChange,
 }: {
     name: React.ReactNode
     checked: boolean
     type: "checkbox" | "radio"
+    bar?: BarConfig
     onChange: () => void
 }) {
     const Input = {
@@ -412,7 +775,15 @@ function SelectableEntity({
                 onChange()
             }}
         >
+            {bar && bar.width !== undefined && (
+                <div className="bar" style={{ width: `${bar.width * 100}%` }} />
+            )}
             <Input label={name} checked={checked} onChange={onChange} />
+            {bar && (
+                <span className="value grapher_label-1-medium">
+                    {bar.formattedValue}
+                </span>
+            )}
         </div>
     )
 }

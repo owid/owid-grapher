@@ -134,3 +134,12 @@
 .grapher_label-2-regular {
     @include grapher_label-2-regular;
 }
+
+@mixin grapher_label-2-medium {
+    @include grapher_label-2-regular;
+    font-weight: 500;
+}
+
+.grapher_label-2-medium {
+    @include grapher_label-2-medium;
+}

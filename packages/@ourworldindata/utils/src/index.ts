@@ -119,6 +119,7 @@ export {
     checkIsAuthor,
     cartesian,
     isElementHidden,
+    isFiniteWithGuard,
 } from "./Util.js"
 
 export {
