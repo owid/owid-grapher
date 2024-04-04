@@ -11,9 +11,7 @@ import {
     keyBy,
     mergePartialGrapherConfigs,
     compact,
-    merge,
     partition,
-    traverseEnrichedBlock,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import * as lodash from "lodash"
@@ -39,13 +37,11 @@ import {
     DimensionProperty,
     OwidVariableWithSource,
     OwidChartDimensionInterface,
-    OwidGdocPostInterface,
     EnrichedFaq,
     FaqEntryData,
     FaqDictionary,
     ImageMetadata,
     OwidGdocBaseInterface,
-    OwidGdocMinimalPostInterface,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -64,7 +60,6 @@ import { knexRaw } from "../db/db.js"
 import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import pMap from "p-map"
 import { getGdocBaseObjectBySlug } from "../db/model/Gdoc/GdocFactory.js"
-import { extractFilenamesFromBlock } from "../db/model/Gdoc/gdocUtils.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -295,16 +290,9 @@ export async function renderDataPageV2(
         .map((r) => r.imageUrl)
         .filter((f): f is string => !!f)
 
-    const faqEntryFilenames: string[] = []
-    faqEntries.faqs.forEach((f) => {
-        traverseEnrichedBlock(f, (block) => {
-            faqEntryFilenames.push(...extractFilenamesFromBlock(block))
-        })
-    })
-
     const imageMetadata = lodash.pick(
         imageMetadataDictionary,
-        uniq([...relatedResearchFilenames, ...faqEntryFilenames])
+        uniq(relatedResearchFilenames)
     )
 
     const tagToSlugMap = await getTagToSlugMap(knex)
