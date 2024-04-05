@@ -179,6 +179,21 @@
                 background: #ebeef2;
                 z-index: -1;
             }
+
+            .label-with-location-icon {
+                display: flex;
+                align-items: center;
+
+                svg {
+                    margin-left: 8px;
+                    font-size: 0.9em;
+                    color: #a1a1a1;
+
+                    &:focus {
+                        outline: none;
+                    }
+                }
+            }
         }
 
         .animated-entity {
@@ -287,6 +302,18 @@
             margin: 0;
             padding: 0;
             list-style-type: none;
+        }
+    }
+
+    // the tooltip triggered by hovering the location icon
+    .tippy-box[data-theme="location-icon"] {
+        background: white;
+        color: $dark-text;
+        font: 400 14px/1.5 $sans-serif-font-stack;
+        box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
+
+        .tippy-arrow {
+            color: white;
         }
     }
 }
