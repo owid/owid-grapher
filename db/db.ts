@@ -35,6 +35,7 @@ export const knexInstance = (): Knex<any, any[]> => {
             password: GRAPHER_DB_PASS,
             database: GRAPHER_DB_NAME,
             port: GRAPHER_DB_PORT,
+            charset: "utf8mb4",
             typeCast: (field: any, next: any) => {
                 if (field.type === "TINY" && field.length === 1) {
                     return field.string() === "1" // 1 = true, 0 = false
