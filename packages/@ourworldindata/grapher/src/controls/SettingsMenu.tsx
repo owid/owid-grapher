@@ -134,6 +134,7 @@ export class SettingsMenu extends React.Component<{
     @computed get showNoDataAreaToggle(): boolean {
         return (
             !this.manager.hideNoDataAreaToggle &&
+            !!this.manager.showNoDataArea &&
             this.manager.type === Marimekko &&
             this.manager.xColumnSlug !== undefined
         )
