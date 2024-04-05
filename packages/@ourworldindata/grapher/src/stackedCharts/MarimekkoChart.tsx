@@ -310,11 +310,14 @@ export class MarimekkoChart
                 table = table.dropRowsWithErrorValuesForColumn(colorColumnSlug)
             }
         }
-        if (!manager.showNoDataArea)
+
+        const hideNoDataArea = !manager.showNoDataArea || !xColumnSlug
+        if (hideNoDataArea)
             table = table.dropRowsWithErrorValuesForAllColumns(yColumnSlugs)
 
         if (xColumnSlug)
             table = table.dropRowsWithErrorValuesForColumn(xColumnSlug)
+
         if (manager.isRelativeMode) {
             // TODO: this should not be necessary but we sometimes get NoMatchingValuesAfterJoin if both relative and showNoDataArea are set
             table = table.dropRowsWithErrorValuesForColumn(

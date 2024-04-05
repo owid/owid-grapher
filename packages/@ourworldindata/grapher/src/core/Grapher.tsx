@@ -701,7 +701,7 @@ export class Grapher
         // different; e.g. for scatterplots, the entity needs to (1) not be excluded and
         // (2) needs to have data for the x and y dimension.
         let table =
-            this.isScatter || this.isSlopeChart
+            this.isScatter || this.isMarimekko || this.isSlopeChart
                 ? this.tableAfterAuthorTimelineAndActiveChartTransform
                 : this.inputTable
 
