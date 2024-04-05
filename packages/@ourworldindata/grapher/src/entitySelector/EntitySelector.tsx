@@ -13,14 +13,17 @@ import {
     isFiniteWithGuard,
     CoreValueType,
     clamp,
-    sortBy,
     last,
+    getUserCountryInformation,
+    regions,
+    sortBy,
 } from "@ourworldindata/utils"
 import { Checkbox } from "@ourworldindata/components"
 import { FuzzySearch } from "../controls/FuzzySearch"
 import {
     faCircleXmark,
     faMagnifyingGlass,
+    faLocationArrow,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -44,6 +47,7 @@ import { scaleLinear, type ScaleLinear } from "d3-scale"
 export interface EntitySelectorState {
     searchInput: string
     sortConfig: SortConfig
+    localEntityNames?: string[]
     mostRecentlySelectedEntityName?: string
 }
 
@@ -65,7 +69,7 @@ interface SortConfig {
     order: SortOrder
 }
 
-type SearchableEntity = { name: string } & Record<
+type SearchableEntity = { name: string; local?: boolean } & Record<
     Slug,
     CoreValueType | undefined
 >
@@ -95,6 +99,8 @@ export class EntitySelector extends React.Component<{
     }
 
     componentDidMount(): void {
+        void this.populateLocalEntities()
+
         if (this.props.autoFocus && !isTouchDevice())
             this.searchField.current?.focus()
 
@@ -134,6 +140,34 @@ export class EntitySelector extends React.Component<{
             ...this.manager.entitySelectorState,
             ...correctedState,
         }
+    }
+
+    @action.bound async populateLocalEntities(): Promise<void> {
+        try {
+            const localCountryInfo = await getUserCountryInformation()
+            if (!localCountryInfo) return
+
+            const userEntityCodes = [
+                localCountryInfo.code,
+                ...(localCountryInfo.regions ?? []),
+            ]
+
+            const userRegions = regions.filter((region) =>
+                userEntityCodes.includes(region.code)
+            )
+
+            const sortedUserRegions = sortBy(userRegions, (region) =>
+                userEntityCodes.indexOf(region.code)
+            )
+
+            if (sortedUserRegions) {
+                this.set({
+                    localEntityNames: sortedUserRegions.map(
+                        (region) => region.name
+                    ),
+                })
+            }
+        } catch (err) {}
     }
 
     private clearSearchInput(): void {
@@ -179,6 +213,10 @@ export class EntitySelector extends React.Component<{
             this.manager.entitySelectorState.sortConfig ??
             this.defaultSortConfig
         )
+    }
+
+    @computed private get localEntityNames(): string[] | undefined {
+        return this.manager.entitySelectorState.localEntityNames
     }
 
     @computed private get table(): OwidTable {
@@ -257,6 +295,11 @@ export class EntitySelector extends React.Component<{
         return this.availableEntityNames.map((entityName) => {
             const searchableEntity: SearchableEntity = { name: entityName }
 
+            if (this.localEntityNames) {
+                searchableEntity.local =
+                    this.localEntityNames.includes(entityName)
+            }
+
             for (const column of this.sortColumns) {
                 const rows = column.owidRowsByEntityName.get(entityName) ?? []
                 const sortedRows = sortBy(rows, (row) => row.time)
@@ -267,18 +310,43 @@ export class EntitySelector extends React.Component<{
         })
     }
 
-    private sortEntities(entities: SearchableEntity[]): SearchableEntity[] {
+    private sortEntities(
+        entities: SearchableEntity[],
+        options: { sortLocalsToTop: boolean } = { sortLocalsToTop: true }
+    ): SearchableEntity[] {
         const { sortConfig } = this
 
         const shouldBeSortedByName = this.hasSlugName(sortConfig)
 
-        // sort by name
-        if (shouldBeSortedByName) {
+        // sort by name, ignoring local entities
+        if (shouldBeSortedByName && !options.sortLocalsToTop) {
             return orderBy(
                 entities,
                 (entity: SearchableEntity) => entity.name,
                 sortConfig.order
             )
+        }
+
+        // sort by name, with local entities at the top
+        if (shouldBeSortedByName && options.sortLocalsToTop) {
+            const [localEntities, otherEntities] = partition(
+                entities,
+                (entity: SearchableEntity) => entity.local
+            )
+
+            const sortedLocalEntities = sortBy(
+                localEntities,
+                (entity: SearchableEntity) =>
+                    this.localEntityNames?.indexOf(entity.name)
+            )
+
+            const sortedOtherEntities = orderBy(
+                otherEntities,
+                (entity: SearchableEntity) => entity.name,
+                sortConfig.order
+            )
+
+            return [...sortedLocalEntities, ...sortedOtherEntities]
         }
 
         // sort by number column, with missing values at the end
@@ -341,7 +409,7 @@ export class EntitySelector extends React.Component<{
         )
 
         return {
-            selected: this.sortEntities(selected),
+            selected: this.sortEntities(selected, { sortLocalsToTop: false }),
             unselected: this.sortEntities(unselected),
         }
     }
@@ -471,8 +539,9 @@ export class EntitySelector extends React.Component<{
                             name={entity.name}
                             type={this.isMultiMode ? "checkbox" : "radio"}
                             checked={this.isEntitySelected(entity)}
-                            bar={this.getBarConfigForEntity(entity)}
                             onChange={() => this.onChange(entity.name)}
+                            bar={this.getBarConfigForEntity(entity)}
+                            local={entity.local}
                         />
                     </li>
                 ))}
@@ -491,6 +560,7 @@ export class EntitySelector extends React.Component<{
                             checked={this.isEntitySelected(entity)}
                             bar={this.getBarConfigForEntity(entity)}
                             onChange={() => this.onChange(entity.name)}
+                            local={entity.local}
                         />
                     </li>
                 ))}
@@ -574,6 +644,7 @@ export class EntitySelector extends React.Component<{
                                         onChange={() =>
                                             this.onChange(entity.name)
                                         }
+                                        local={entity.local}
                                     />
                                 </li>
                             </Flipped>
@@ -614,6 +685,7 @@ export class EntitySelector extends React.Component<{
                                         onChange={() =>
                                             this.onChange(entity.name)
                                         }
+                                        local={entity.local}
                                     />
                                 </li>
                             </Flipped>
@@ -682,17 +754,28 @@ function SelectableEntity({
     type,
     bar,
     onChange,
+    local,
 }: {
     name: React.ReactNode
     checked: boolean
     type: "checkbox" | "radio"
     bar?: BarConfig
     onChange: () => void
+    local?: boolean
 }) {
     const Input = {
         checkbox: Checkbox,
         radio: RadioButton,
     }[type]
+
+    const label = local ? (
+        <span className="label-with-location-icon">
+            {name}
+            <FontAwesomeIcon icon={faLocationArrow} />
+        </span>
+    ) : (
+        name
+    )
 
     return (
         <div
@@ -706,7 +789,7 @@ function SelectableEntity({
             {bar && bar.width !== undefined && (
                 <div className="bar" style={{ width: `${bar.width * 100}%` }} />
             )}
-            <Input label={name} checked={checked} onChange={onChange} />
+            <Input label={label} checked={checked} onChange={onChange} />
             {bar && (
                 <span className="value grapher_label-1-medium">
                     {bar.formattedValue}

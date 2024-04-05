@@ -173,6 +173,17 @@
                 background: #ebeef2;
                 z-index: -1;
             }
+
+            .label-with-location-icon {
+                display: flex;
+                align-items: center;
+
+                svg {
+                    margin-left: 8px;
+                    font-size: 0.9em;
+                    color: #a1a1a1;
+                }
+            }
         }
 
         .animated-entity {
