@@ -188,7 +188,7 @@ export enum GdocPublishingAction {
     Updating = "Updating",
     Publishing = "Publishing",
     Unpublishing = "Unpublishing",
-    Saving = "Saving",
+    SavingDraft = "SavingDraft",
 }
 
 export function getPublishingAction(
@@ -199,6 +199,6 @@ export function getPublishingAction(
         .with([true, true], () => GdocPublishingAction.Updating)
         .with([false, true], () => GdocPublishingAction.Publishing)
         .with([true, false], () => GdocPublishingAction.Unpublishing)
-        .with([false, false], () => GdocPublishingAction.Saving)
+        .with([false, false], () => GdocPublishingAction.SavingDraft)
         .exhaustive()
 }

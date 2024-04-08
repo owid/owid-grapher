@@ -288,7 +288,7 @@ export async function indexIndividualGdocPost(
     const records = generateGdocRecords([gdoc], pageviewsForGdoc)
 
     const existingRecordsForPost: ObjectWithObjectID[] =
-        await getExistingRecordsForSlug(index, gdoc.slug)
+        await getExistingRecordsForSlug(index, indexedSlug)
 
     try {
         console.log("Updating Algolia index for Gdoc post", gdoc.slug)

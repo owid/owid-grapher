@@ -2295,7 +2295,7 @@ getRouteNonIdempotentWithRWTransaction(
 
 /**
  * Handles all four `GdocPublishingAction` cases
- * - Saving (no action)
+ * - SavingDraft (no action)
  * - Publishing (index and bake)
  * - Updating (index and bake (potentially via lightning deploy))
  * - Unpublishing (remove from index and bake)
@@ -2313,7 +2313,7 @@ async function indexAndBakeGdocIfNeccesary(
     const isGdocPost = checkIsGdocPostExcludingFragments(nextJson)
 
     await match(action)
-        .with(GdocPublishingAction.Saving, lodash.noop)
+        .with(GdocPublishingAction.SavingDraft, lodash.noop)
         .with(GdocPublishingAction.Publishing, async () => {
             if (isGdocPost) {
                 await indexIndividualGdocPost(nextJson, trx, prevGdoc.slug)
