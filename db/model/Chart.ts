@@ -151,7 +151,7 @@ export async function getChartSlugById(
 ): Promise<string | null> {
     const chart = await db.knexRawFirst<Pick<DbRawChart, "slug">>(
         knex,
-        `SELECT config ->> '$.slug' FROM charts WHERE id = ?`,
+        `SELECT config ->> '$.slug' AS slug FROM charts WHERE id = ?`,
         [id]
     )
     if (!chart) return null
