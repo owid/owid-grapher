@@ -105,6 +105,7 @@ export class OwidAdminApp {
         app.use("/fonts", express.static("public/fonts"))
 
         app.use("/api", publicApiRouter.router)
+        app.use("/assets-admin", express.static("dist/assets-admin"))
         app.use("/admin/api", apiRouter.router)
         app.use("/admin/test", testPageRouter)
         app.use("/admin/storybook", express.static(".storybook/build"))
