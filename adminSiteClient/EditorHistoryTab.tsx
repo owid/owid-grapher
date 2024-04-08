@@ -43,8 +43,8 @@ class LogRenderer extends React.Component<{
             >
                 <div style={{ overflowY: "auto", maxHeight: "50vh" }}>
                     <ReactDiffViewer
-                        oldValue={JSON.stringify(log.config, null, 2)}
-                        newValue={JSON.stringify(previousLog?.config, null, 2)}
+                        newValue={JSON.stringify(log.config, null, 2)}
+                        oldValue={JSON.stringify(previousLog?.config, null, 2)}
                         leftTitle={
                             previousLog ? this.titleForLog(previousLog) : ""
                         }
