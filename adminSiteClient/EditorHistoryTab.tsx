@@ -2,24 +2,21 @@ import React from "react"
 import { observer } from "mobx-react"
 import { ChartEditor, Log } from "./ChartEditor.js"
 import { Section, Timeago } from "./Forms.js"
-import { computed, action } from "mobx"
+import { computed, action, observable } from "mobx"
 import { copyToClipboard } from "@ourworldindata/utils"
 import { dump } from "js-yaml"
-import { notification } from "antd"
+import { notification, Modal } from "antd"
+import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
 
 @observer
 class LogRenderer extends React.Component<{
     log: Log
+    previousLog: Log | undefined
     applyConfig: (config: any) => void
 }> {
-    @computed get prettyConfig() {
-        const { log } = this.props
-        return JSON.stringify(JSON.parse(log.config), undefined, 2)
-    }
+    @observable isCompareModalOpen = false
 
-    @computed get title() {
-        const { log } = this.props
-
+    titleForLog(log: Log) {
         const user = log.userName || log.userId.toString()
         return (
             <>
@@ -28,19 +25,69 @@ class LogRenderer extends React.Component<{
         )
     }
 
+    @computed get title() {
+        return this.titleForLog(this.props.log)
+    }
+
+    @computed get compareModal() {
+        const { log, previousLog } = this.props
+
+        return (
+            <Modal
+                open={this.isCompareModalOpen}
+                centered
+                width="80vw"
+                onOk={() => (this.isCompareModalOpen = false)}
+                onCancel={() => (this.isCompareModalOpen = false)}
+                cancelButtonProps={{ style: { display: "none" } }}
+            >
+                <div style={{ overflowY: "auto", maxHeight: "50vh" }}>
+                    <ReactDiffViewer
+                        oldValue={JSON.stringify(log.config, null, 2)}
+                        newValue={JSON.stringify(previousLog?.config, null, 2)}
+                        leftTitle={
+                            previousLog ? this.titleForLog(previousLog) : ""
+                        }
+                        rightTitle={this.title}
+                        compareMethod={DiffMethod.WORDS}
+                        styles={{
+                            contentText: {
+                                wordBreak: "break-word",
+                            },
+                        }}
+                    />
+                </div>
+            </Modal>
+        )
+    }
+
     render() {
         const { log } = this.props
         const { title } = this
 
         return (
-            <li className="list-group-item d-flex justify-content-between">
+            <li
+                className="list-group-item d-flex justify-content-between"
+                style={{ alignItems: "center" }}
+            >
+                {this.compareModal}
                 <span>{title}</span>
-                <button
-                    className="align-self-end btn btn-danger"
-                    onClick={() => this.props.applyConfig(log.config)}
-                >
-                    Restore
-                </button>
+                <div className="d-flex" style={{ gap: 6 }}>
+                    {!!this.props.previousLog && (
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => (this.isCompareModalOpen = true)}
+                        >
+                            Compare <br /> to previous
+                        </button>
+                    )}
+                    <button
+                        className="btn btn-danger"
+                        onClick={() => this.props.applyConfig(log.config)}
+                    >
+                        Restore
+                    </button>
+                </div>
             </li>
         )
     }
@@ -94,6 +141,7 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
                     <ul key={i} className="list-group">
                         <LogRenderer
                             log={log}
+                            previousLog={this.logs[i + 1]} // Needed for comparison, might be undefined
                             applyConfig={this.applyConfig}
                         ></LogRenderer>
                     </ul>

@@ -13,6 +13,7 @@ import {
     PostReference,
     ChartRedirect,
     DimensionProperty,
+    Json,
 } from "@ourworldindata/utils"
 import { computed, observable, runInAction, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
@@ -39,7 +40,7 @@ export interface Dataset {
 export interface Log {
     userId: number
     userName: string
-    config: string
+    config: Json
     createdAt: string
 }
 
