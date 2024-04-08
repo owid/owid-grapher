@@ -803,7 +803,7 @@ export class EntitySelector extends React.Component<{
             >
                 {this.renderSearchBar()}
 
-                {this.sortOptions.length > 1 && this.renderSortBar()}
+                {!this.searchInput && this.sortOptions.length > 1 && this.renderSortBar()}
 
                 <div className="entity-selector__content">
                     {this.searchInput
