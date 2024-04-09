@@ -416,10 +416,10 @@
             width: 100%;
         }
 
-        // On the "All" tab, limit to the first 4 pages, 4 charts, and 1 explorer view
+        // On the "All" tab, limit to the first 4 pages, 4 charts, and 2 explorer views
         .search-results__page-hit:nth-child(n + 5),
         .search-results__chart-hit:nth-child(n + 5),
-        .search-results__explorer-hit:nth-child(n + 2) {
+        .search-results__explorer-hit:nth-child(n + 3) {
             display: none;
         }
     }

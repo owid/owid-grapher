@@ -559,7 +559,7 @@ const SearchResults = (props: SearchResultsProps) => {
                             </h2>
                             <ShowMore
                                 category={SearchIndexName.ExplorerViews}
-                                cutoffNumber={1}
+                                cutoffNumber={2}
                                 activeCategoryFilter={activeCategoryFilter}
                                 handleCategoryFilterClick={
                                     handleCategoryFilterClick
