@@ -150,9 +150,9 @@ export const configureAlgolia = async () => {
     await explorerViewsIndex.setSettings({
         ...baseSettings,
         searchableAttributes: [
+            "unordered(explorerTitle)",
             "unordered(viewTitle)",
             "unordered(viewSettings)",
-            "unordered(explorerTitle)",
         ],
         customRanking: [
             // For multiple explorer views with the same title, we want to avoid surfacing duplicates.
