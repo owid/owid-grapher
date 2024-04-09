@@ -144,6 +144,7 @@ export const configureAlgolia = async () => {
     })
 
     const synonyms = [
+        ["owid", "our world in data"],
         ["kids", "children"],
         ["pork", "pigmeat"],
         ["atomic", "nuclear"],
@@ -219,6 +220,7 @@ export const configureAlgolia = async () => {
             "machine learning",
             "neural network",
             "chatgpt", // added in 2023-03, we might want to remove this in the future
+            "chat gpt",
         ],
         ["hdi", "human development index", "idh" /* spanish, french */],
         ["drug", "drugs", "substance use"],
@@ -276,6 +278,10 @@ export const configureAlgolia = async () => {
         ["meter", "metre", "meters", "metres"],
         ["kilometer", "kilometre", "kilometers", "kilometres"],
         ["defense", "defence", "military"],
+        ["smog", "air pollution"],
+        ["gas", "natural gas"],
+        ["jail", "prison"],
+        ["funding", "funded"],
     ]
 
     // Send all our country variant names to algolia as synonyms
