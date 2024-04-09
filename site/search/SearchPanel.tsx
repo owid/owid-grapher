@@ -485,6 +485,38 @@ const SearchResults = (props: SearchResultsProps) => {
                     />
                 </section>
             </NoResultsBoundary>
+            <Index indexName={getIndexName(SearchIndexName.Charts)}>
+                <Configure
+                    hitsPerPage={40}
+                    distinct
+                    clickAnalytics={hasClickAnalyticsConsent}
+                />
+                <NoResultsBoundary>
+                    <section className="search-results__charts">
+                        <header className="search-results__header">
+                            <h2 className="h2-bold search-results__section-title">
+                                Charts
+                            </h2>
+                            <ShowMore
+                                category={SearchIndexName.Charts}
+                                cutoffNumber={4}
+                                activeCategoryFilter={activeCategoryFilter}
+                                handleCategoryFilterClick={
+                                    handleCategoryFilterClick
+                                }
+                            />
+                        </header>
+                        <Hits
+                            classNames={{
+                                root: "search-results__list-container",
+                                list: "search-results__charts-list grid grid-cols-4 grid-sm-cols-2",
+                                item: "search-results__chart-hit span-md-cols-2",
+                            }}
+                            hitComponent={ChartHit}
+                        />
+                    </section>
+                </NoResultsBoundary>
+            </Index>
             <Index indexName={getIndexName(SearchIndexName.ExplorerViews)}>
                 <Configure
                     hitsPerPage={20}
@@ -518,38 +550,6 @@ const SearchResults = (props: SearchResultsProps) => {
                             }}
                             hitComponent={ExplorerViewHit}
                         /> */}
-                    </section>
-                </NoResultsBoundary>
-            </Index>
-            <Index indexName={getIndexName(SearchIndexName.Charts)}>
-                <Configure
-                    hitsPerPage={40}
-                    distinct
-                    clickAnalytics={hasClickAnalyticsConsent}
-                />
-                <NoResultsBoundary>
-                    <section className="search-results__charts">
-                        <header className="search-results__header">
-                            <h2 className="h2-bold search-results__section-title">
-                                Charts
-                            </h2>
-                            <ShowMore
-                                category={SearchIndexName.Charts}
-                                cutoffNumber={40}
-                                activeCategoryFilter={activeCategoryFilter}
-                                handleCategoryFilterClick={
-                                    handleCategoryFilterClick
-                                }
-                            />
-                        </header>
-                        <Hits
-                            classNames={{
-                                root: "search-results__list-container",
-                                list: "search-results__charts-list grid grid-cols-4 grid-sm-cols-2",
-                                item: "search-results__chart-hit span-md-cols-2",
-                            }}
-                            hitComponent={ChartHit}
-                        />
                     </section>
                 </NoResultsBoundary>
             </Index>

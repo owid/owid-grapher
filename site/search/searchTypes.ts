@@ -94,8 +94,8 @@ export type SearchCategoryFilter = SearchIndexName | "all"
 export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
     ["All", "all"],
     ["Research & Writing", SearchIndexName.Pages],
-    ["Data Explorers", SearchIndexName.ExplorerViews],
     ["Charts", SearchIndexName.Charts],
+    ["Data Explorers", SearchIndexName.ExplorerViews],
 ]
 
 export const indexNameToSubdirectoryMap: Record<SearchIndexName, string> = {
