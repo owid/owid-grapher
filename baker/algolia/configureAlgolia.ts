@@ -41,7 +41,7 @@ export const configureAlgolia = async () => {
         indexLanguages: ["en"],
 
         // see https://www.algolia.com/doc/guides/managing-results/relevance-overview/in-depth/ranking-criteria/
-        ranking: ["typo", "words", "proximity", "attribute", "exact", "custom"],
+        ranking: ["typo", "words", "exact", "proximity", "attribute", "custom"],
         alternativesAsExact: [
             "ignorePlurals",
             "singleWordSynonym",
@@ -86,8 +86,14 @@ export const configureAlgolia = async () => {
         ],
         attributesToSnippet: ["subtitle:24"],
         attributeForDistinct: "id",
-        disableExactOnAttributes: ["tags"],
         optionalWords: ["vs"],
+
+        // These lines below essentially demote matches in the `subtitle` and `availableEntities` fields:
+        // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
+        // We also disable prefix matching and typo tolerance on these.
+        disableExactOnAttributes: ["tags", "subtitle", "availableEntities"],
+        disableTypoToleranceOnAttributes: ["subtitle", "availableEntities"],
+        disablePrefixOnAttributes: ["subtitle"],
     })
 
     const pagesIndex = client.initIndex(getIndexName(SearchIndexName.Pages))
@@ -110,7 +116,13 @@ export const configureAlgolia = async () => {
             "afterDistinct(searchable(authors))",
             "afterDistinct(documentType)",
         ],
-        disableExactOnAttributes: ["tags"],
+
+        // These lines below essentially demote matches in the `content` (i.e. fulltext) field:
+        // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
+        // We also disable prefix matching and typo tolerance on `content`, so that "corn" doesn't match "corner", for example.
+        disableExactOnAttributes: ["tags", "content"],
+        disableTypoToleranceOnAttributes: ["content"],
+        disablePrefixOnAttributes: ["content"],
     })
 
     const explorersIndex = client.initIndex(
@@ -145,6 +157,8 @@ export const configureAlgolia = async () => {
             "bip" /* polish */,
             "bnp" /* swedish, danish, norwegian */,
         ],
+        ["gdp per capita", "economic growth"],
+        ["per capita", "per person"],
         ["overpopulation", "population growth"],
         ["covid", "covid-19", "coronavirus", "corona"],
         ["flu", "influenza"],
@@ -248,6 +262,20 @@ export const configureAlgolia = async () => {
             "sustainable development goals",
             "sdg tracker",
         ],
+        [
+            "sexism",
+            "gender discrimination",
+            "gender gap",
+            "gender inequality",
+            "gender inequalities",
+        ],
+        ["child mortality", "infant mortality"],
+        ["depression", "depressive", "mental health"],
+        ["time use", "time spent", "time spend"],
+        ["enrollment", "enrolment", "enrolled"],
+        ["meter", "metre", "meters", "metres"],
+        ["kilometer", "kilometre", "kilometers", "kilometres"],
+        ["defense", "defence", "military"],
     ]
 
     // Send all our country variant names to algolia as synonyms
