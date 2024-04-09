@@ -41,7 +41,12 @@ export class SiteAnalytics extends GrapherAnalytics {
         this.logToGA({
             event: EventCategory.SiteSearchClick,
             eventAction: "click",
-            eventContext: { query, position, positionInSection, filter },
+            eventContext: JSON.stringify({
+                query,
+                position,
+                positionInSection,
+                filter,
+            }),
             eventTarget: url,
         })
     }
@@ -58,7 +63,7 @@ export class SiteAnalytics extends GrapherAnalytics {
         this.logToGA({
             event: EventCategory.SiteInstantSearchClick,
             eventAction: "click",
-            eventContext: { query, position },
+            eventContext: JSON.stringify({ query, position }),
             eventTarget: url,
         })
     }
