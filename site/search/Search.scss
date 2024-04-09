@@ -404,54 +404,35 @@
     display: none;
 }
 
-.search-results[data-active-filter="all"] {
-    .search-results__pages,
-    .search-results__explorers,
-    .search-results__charts {
-        // both needed for .search-results__show-more-container absolute-positioning
-        display: inline-block;
-        position: relative;
-        width: 100%;
+// Show results depending on active tab
+.search-results {
+    &[data-active-filter="all"] {
+        .search-results__pages,
+        .search-results__explorers,
+        .search-results__charts {
+            // both needed for .search-results__show-more-container absolute-positioning
+            display: inline-block;
+            position: relative;
+            width: 100%;
+        }
+
+        // On the "All" tab, limit to the first 4 pages, 4 charts, and 1 explorer view
+        .search-results__page-hit:nth-child(n + 5),
+        .search-results__chart-hit:nth-child(n + 5),
+        .search-results__explorer-hit:nth-child(n + 2) {
+            display: none;
+        }
     }
-}
 
-.search-results__page-hit {
-    display: none;
-}
-
-.search-results__page-hit {
-    &:nth-child(-n + 4) {
+    &[data-active-filter="pages"] .search-results__pages {
         display: inline;
     }
-}
 
-.search-results[data-active-filter="pages"] .search-results__pages {
-    display: inline;
-
-    .search-results__page-hit {
+    &[data-active-filter="charts"] .search-results__charts {
         display: inline;
     }
-}
 
-.search-results[data-active-filter="charts"] .search-results__charts {
-    display: inline;
-
-    .search-results__chart-hit {
-        display: inline;
-    }
-}
-
-.search-results__explorer-hit {
-    display: none;
-
-    &:nth-child(-n + 1) {
-        display: inline;
-    }
-}
-
-.search-results[data-active-filter="explorer-views"] {
-    .search-results__explorers,
-    .search-results__explorer-hit {
+    &[data-active-filter="explorer-views"] .search-results__explorers {
         display: inline;
     }
 }
