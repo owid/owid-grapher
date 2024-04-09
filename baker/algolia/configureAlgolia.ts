@@ -279,7 +279,6 @@ export const configureAlgolia = async () => {
         ["kilometer", "kilometre", "kilometers", "kilometres"],
         ["defense", "defence", "military"],
         ["smog", "air pollution"],
-        ["gas", "natural gas"],
         ["jail", "prison"],
         ["funding", "funded"],
     ]
