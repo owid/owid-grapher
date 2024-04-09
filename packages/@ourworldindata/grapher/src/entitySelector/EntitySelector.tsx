@@ -550,21 +550,57 @@ export class EntitySelector extends React.Component<{
     }
 
     private renderAllEntitiesInSingleMode(): JSX.Element {
+        const { selected, unselected } = this.partitionedEntities
+
         return (
-            <ul>
-                {this.sortedAvailableEntities.map((entity) => (
-                    <li key={entity.name}>
-                        <SelectableEntity
-                            name={entity.name}
-                            type="radio"
-                            checked={this.isEntitySelected(entity)}
-                            bar={this.getBarConfigForEntity(entity)}
-                            onChange={() => this.onChange(entity.name)}
-                            local={entity.local}
-                        />
-                    </li>
-                ))}
-            </ul>
+            <Flipper
+                spring={{
+                    stiffness: 300,
+                    damping: 33,
+                }}
+                flipKey={this.selectionArray.selectedEntityNames.join(",")}
+            >
+                <ul>
+                    {selected.map((entity) => (
+                        <Flipped
+                            key={entity.name}
+                            flipId={entity.name}
+                            translate
+                            opacity
+                        >
+                            <li key={entity.name}>
+                                <SelectableEntity
+                                    name={entity.name}
+                                    type="radio"
+                                    checked={this.isEntitySelected(entity)}
+                                    bar={this.getBarConfigForEntity(entity)}
+                                    onChange={() => this.onChange(entity.name)}
+                                    local={entity.local}
+                                />
+                            </li>
+                        </Flipped>
+                    ))}
+                    {unselected.map((entity) => (
+                        <Flipped
+                            key={entity.name}
+                            flipId={entity.name}
+                            translate
+                            opacity
+                        >
+                            <li key={entity.name}>
+                                <SelectableEntity
+                                    name={entity.name}
+                                    type="radio"
+                                    checked={this.isEntitySelected(entity)}
+                                    bar={this.getBarConfigForEntity(entity)}
+                                    onChange={() => this.onChange(entity.name)}
+                                    local={entity.local}
+                                />
+                            </li>
+                        </Flipped>
+                    ))}
+                </ul>
+            </Flipper>
         )
     }
 
