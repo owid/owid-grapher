@@ -70,9 +70,7 @@ const renderDatapageIfApplicable = async (
     imageMetadataDictionary?: Record<string, Image>
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
-
     if (!variable) return undefined
-
     return await renderDataPageV2(
         {
             variableId: variable.id,
@@ -97,13 +95,14 @@ export const renderDataPageOrGrapherPage = async (
     knex: db.KnexReadWriteTransaction,
     imageMetadataDictionary?: Record<string, Image>
 ): Promise<string> => {
-    const datapage = await renderDatapageIfApplicable(
-        grapher,
-        false,
-        knex,
-        imageMetadataDictionary
-    )
-    if (datapage) return datapage
+    // return ""
+    // const datapage = await renderDatapageIfApplicable(
+    //     grapher,
+    //     false,
+    //     knex,
+    //     imageMetadataDictionary
+    // )
+    // if (datapage) return datapage
     return renderGrapherPage(grapher, knex)
 }
 
@@ -336,15 +335,18 @@ const renderGrapherPage = async (
     knex: db.KnexReadonlyTransaction
 ) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
-    const post = postSlug
-        ? await getPostEnrichedBySlug(knex, postSlug)
-        : undefined
-    const relatedCharts = post
-        ? await getPostRelatedCharts(knex, post.id)
-        : undefined
-    const relatedArticles = grapher.id
-        ? await getRelatedArticles(knex, grapher.id)
-        : undefined
+    const post = undefined
+    // postSlug
+    //     ? await getPostEnrichedBySlug(knex, postSlug)
+    //     : undefined
+    const relatedCharts = undefined
+    // post
+    //     ? await getPostRelatedCharts(knex, post.id)
+    //     : undefined
+    const relatedArticles = undefined
+    // grapher.id
+    //     ? await getRelatedArticles(knex, grapher.id)
+    //     : undefined
 
     return renderToHtmlPage(
         <GrapherPage
@@ -493,6 +495,7 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
                     id, config, config->>'$.slug' as slug
                 FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
                 ORDER BY JSON_EXTRACT(config, "$.slug") ASC
+                LIMIT 1000
                 `
             )
 
@@ -524,15 +527,25 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             }
         )
 
+        const times: { slug: string; time: number }[] = []
         await pMap(
             jobs,
             async (job) => {
+                const start = performance.now()
                 // TODO: not sure if the shared transaction will be an issue - I think it should be fine but just to put a flag here
                 // that this could be causing issues
                 await bakeSingleGrapherChart(job, knex)
+                const end = performance.now()
+                const time = end - start
+                times.push({ slug: job.slug, time })
                 progressBar.tick({ name: `slug ${job.slug}` })
             },
             { concurrency: 10 }
+        )
+
+        await fs.writeFile(
+            `masterDatapageCommentedOutArticlesBack.json`,
+            JSON.stringify(times, null, 2)
         )
 
         await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
