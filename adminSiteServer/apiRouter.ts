@@ -54,6 +54,7 @@ import {
     TaggableType,
     DbChartTagJoin,
     pick,
+    Json,
 } from "@ourworldindata/utils"
 import {
     DbPlainDatasetTag,
@@ -183,7 +184,7 @@ async function getLogsByChartId(
 ): Promise<
     {
         userId: number
-        config: string
+        config: Json
         userName: string
         createdAt: Date
     }[]
@@ -203,7 +204,10 @@ async function getLogsByChartId(
         LIMIT 50`,
         [chartId]
     )
-    return logs
+    return logs.map((log) => ({
+        ...log,
+        config: JSON.parse(log.config),
+    }))
 }
 
 const getReferencesByChartId = async (
