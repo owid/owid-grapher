@@ -101,7 +101,6 @@ import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import Papa from "papaparse"
 import {
-    postsTable,
     setTagsForPost,
     getTagsByPostId,
     getWordpressPostReferencesByChartId,
@@ -112,7 +111,6 @@ import {
     checkHasChanges,
     checkIsLightningUpdate,
 } from "../adminSiteClient/gdocsDeploy.js"
-import { dataSource } from "../db/dataSource.js"
 import { createGdocAndInsertOwidGdocPostContent } from "../db/model/Gdoc/archieToGdoc.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import {
@@ -2166,7 +2164,7 @@ postRouteWithRWTransaction(
             // which means that we can't wrap this in a transaction. We should probably
             // move posts to use typeorm as well or at least have a typeorm alternative for it
             await trx
-                .table(postsTable)
+                .table(PostsTableName)
                 .where({ id: postId })
                 .update("gdocSuccessorId", gdocId)
 
@@ -2209,11 +2207,14 @@ postRouteWithRWTransaction(
         // which means that we can't wrap this in a transaction. We should probably
         // move posts to use typeorm as well or at least have a typeorm alternative for it
         await trx
-            .table(postsTable)
+            .table(PostsTableName)
             .where({ id: postId })
             .update("gdocSuccessorId", null)
 
-        await dataSource.getRepository(GdocPost).delete(existingGdocId)
+        await trx
+            .table(PostsGdocsTableName)
+            .where({ id: existingGdocId })
+            .delete()
 
         return { success: true }
     }
