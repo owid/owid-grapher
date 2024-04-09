@@ -41,7 +41,7 @@ type countrySelectorEvent =
 interface GAEvent {
     event: EventCategory
     eventAction?: string
-    eventContext?: string | Record<string, string>
+    eventContext?: string
     eventTarget?: string
     grapherPath?: string
 }
