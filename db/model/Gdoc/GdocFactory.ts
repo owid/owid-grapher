@@ -4,6 +4,7 @@ import {
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
     DbEnrichedPostGdoc,
     DbInsertPostGdocLink,
+    DbInsertPostGdocXImage,
     DbPlainTag,
     DbRawPostGdoc,
     GdocsContentSource,
@@ -15,6 +16,7 @@ import {
     OwidGdocType,
     PostsGdocsLinksTableName,
     PostsGdocsTableName,
+    PostsGdocsXImagesTableName,
     PostsGdocsXTagsTableName,
     checkIsOwidGdocType,
     extractGdocIndexItem,
@@ -35,6 +37,7 @@ import {
 } from "../../db.js"
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { GdocAuthor } from "./GdocAuthor.js"
+import { imageStore } from "../Image.js"
 
 export function gdocFromJSON(
     json: Record<string, any>
@@ -280,6 +283,20 @@ export async function getAndLoadGdocById(
     if (!base)
         throw new Error(`No Google Doc with id "${id}" found in the database`)
     return loadGdocFromGdocBase(knex, base, contentSource)
+}
+
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+export async function createOrLoadGdocById(
+    trx: KnexReadWriteTransaction,
+    id: string
+): Promise<OwidGdoc> {
+    // Check to see if the gdoc already exists in the database
+    const existingGdoc = await getGdocBaseObjectById(trx, id, false)
+    if (existingGdoc) {
+        return loadGdocFromGdocBase(trx, existingGdoc, GdocsContentSource.Gdocs)
+    } else {
+        return createGdocAndInsertIntoDb(trx, id)
+    }
 }
 
 // From an ID, get a Gdoc object with all its metadata and state loaded, in its correct subclass.
@@ -579,4 +596,40 @@ export async function getAllGdocIndexItemsOrderedByUpdatedAt(
             tags: groupedTags[gdoc.id] ? groupedTags[gdoc.id] : null,
         })
     )
+}
+
+export async function syncImagesAndAddToContentGraph(
+    trx: KnexReadWriteTransaction,
+    gdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor
+): Promise<void> {
+    const id = gdoc.id
+    // Deleting and recreating these is simpler than tracking orphans over the next code block
+    await trx.table(PostsGdocsXImagesTableName).where({ gdocId: id }).delete()
+    const filenames = gdoc.filenames
+
+    // Includes fragments so that images in data pages are
+    // synced to S3 and ultimately baked in bakeDriveImages().
+    if (filenames.length && gdoc.published) {
+        await imageStore.fetchImageMetadata(filenames)
+        const images = await imageStore.syncImagesToS3(trx)
+        const gdocXImagesToInsert: DbInsertPostGdocXImage[] = []
+        for (const image of images) {
+            if (image) {
+                gdocXImagesToInsert.push({
+                    gdocId: gdoc.id,
+                    imageId: image.id,
+                })
+            }
+        }
+        try {
+            await trx
+                .table(PostsGdocsXImagesTableName)
+                .insert(gdocXImagesToInsert)
+        } catch (e) {
+            console.error(
+                `Error tracking image references with Google ID ${gdoc.id}`,
+                e
+            )
+        }
+    }
 }

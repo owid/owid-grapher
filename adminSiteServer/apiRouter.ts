@@ -2,7 +2,6 @@
 
 import * as lodash from "lodash"
 import * as db from "../db/db.js"
-import { imageStore } from "../db/model/Image.js"
 import { DEPRECATEDgetTopics } from "../db/DEPRECATEDwpdb.js"
 import {
     UNCATEGORIZED_TAG_ID,
@@ -40,7 +39,6 @@ import {
     isEmpty,
     JsonError,
     OperationContext,
-    OwidGdocJSON,
     OwidGdocPostInterface,
     parseIntOrUndefined,
     parseToOperation,
@@ -55,6 +53,7 @@ import {
     DbChartTagJoin,
     pick,
     Json,
+    checkIsGdocPostExcludingFragments,
 } from "@ourworldindata/utils"
 import {
     DbPlainDatasetTag,
@@ -74,10 +73,10 @@ import {
     DbRawOrigin,
     DbRawPostGdoc,
     PostsGdocsXImagesTableName,
-    DbInsertPostGdocXImage,
     PostsGdocsLinksTableName,
     PostsGdocsTableName,
     DbPlainDataset,
+    DbInsertUser,
 } from "@ourworldindata/types"
 import {
     getVariableDataRoute,
@@ -96,6 +95,10 @@ import {
     isValidStatus,
 } from "../db/model/SuggestedChartRevision.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
+import {
+    indexIndividualGdocPost,
+    removeIndividualGdocPostFromIndex,
+} from "../baker/algolia/algoliaUtils.js"
 import { References } from "../adminSiteClient/ChartEditor.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
@@ -107,9 +110,10 @@ import {
     getGdocsPostReferencesByChartId,
 } from "../db/model/Post.js"
 import {
-    checkFullDeployFallback,
     checkHasChanges,
     checkIsLightningUpdate,
+    GdocPublishingAction,
+    getPublishingAction,
 } from "../adminSiteClient/gdocsDeploy.js"
 import { createGdocAndInsertOwidGdocPostContent } from "../db/model/Gdoc/archieToGdoc.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
@@ -124,17 +128,21 @@ import {
 import { getPublishedLinksTo } from "../db/model/Link.js"
 import {
     GdocLinkUpdateMode,
-    createGdocAndInsertIntoDb,
+    createOrLoadGdocById,
     gdocFromJSON,
     getAllGdocIndexItemsOrderedByUpdatedAt,
     getAndLoadGdocById,
     getGdocBaseObjectById,
-    loadGdocFromGdocBase,
     setLinksForGdoc,
     setTagsForGdoc,
+    syncImagesAndAddToContentGraph,
     updateGdocContentOnly,
     upsertGdoc,
 } from "../db/model/Gdoc/GdocFactory.js"
+import { match } from "ts-pattern"
+import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
+import { GdocHomepage } from "../db/model/Gdoc/GdocHomepage.js"
+import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -2286,66 +2294,74 @@ getRouteNonIdempotentWithRWTransaction(
 )
 
 /**
+ * Handles all four `GdocPublishingAction` cases
+ * - SavingDraft (no action)
+ * - Publishing (index and bake)
+ * - Updating (index and bake (potentially via lightning deploy))
+ * - Unpublishing (remove from index and bake)
+ */
+async function indexAndBakeGdocIfNeccesary(
+    trx: db.KnexReadWriteTransaction,
+    user: Required<DbInsertUser>,
+    prevGdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor,
+    nextGdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor
+) {
+    const prevJson = prevGdoc.toJSON()
+    const nextJson = nextGdoc.toJSON()
+    const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
+    const action = getPublishingAction(prevJson, nextJson)
+    const isGdocPost = checkIsGdocPostExcludingFragments(nextJson)
+
+    await match(action)
+        .with(GdocPublishingAction.SavingDraft, lodash.noop)
+        .with(GdocPublishingAction.Publishing, async () => {
+            if (isGdocPost) {
+                await indexIndividualGdocPost(nextJson, trx, prevGdoc.slug)
+            }
+            await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
+        })
+        .with(GdocPublishingAction.Updating, async () => {
+            if (isGdocPost) {
+                await indexIndividualGdocPost(nextJson, trx, prevGdoc.slug)
+            }
+            if (checkIsLightningUpdate(prevJson, nextJson, hasChanges)) {
+                await enqueueLightningChange(
+                    user,
+                    `Lightning update ${nextJson.slug}`,
+                    nextJson.slug
+                )
+            } else {
+                await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
+            }
+        })
+        .with(GdocPublishingAction.Unpublishing, async () => {
+            if (isGdocPost) {
+                await removeIndividualGdocPostFromIndex(nextJson)
+            }
+            await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
+        })
+        .exhaustive()
+}
+
+/**
  * Only supports creating a new empty Gdoc or updating an existing one. Does not
  * support creating a new Gdoc from an existing one. Relevant updates will
  * trigger a deploy.
  */
 putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     const { id } = req.params
-    const nextGdocJSON: OwidGdocJSON = req.body
 
-    if (isEmpty(nextGdocJSON)) {
-        // Check to see if the gdoc already exists in the database
-        const existingGdoc = await getGdocBaseObjectById(trx, id, false)
-        if (existingGdoc) {
-            return loadGdocFromGdocBase(
-                trx,
-                existingGdoc,
-                GdocsContentSource.Gdocs
-            )
-        } else {
-            return createGdocAndInsertIntoDb(trx, id)
-        }
+    if (isEmpty(req.body)) {
+        return createOrLoadGdocById(trx, id)
     }
 
     const prevGdoc = await getAndLoadGdocById(trx, id)
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    const nextGdoc = gdocFromJSON(nextGdocJSON)
+    const nextGdoc = gdocFromJSON(req.body)
     await nextGdoc.loadState(trx)
 
-    // Deleting and recreating these is simpler than tracking orphans over the next code block
-    await trx.table(PostsGdocsXImagesTableName).where({ gdocId: id }).delete()
-    const filenames = nextGdoc.filenames
-
-    // The concept of a "published gdoc" is looser here than in
-    // Gdoc.getPublishedGdocs(), where published gdoc fragments are filtered out.
-    // Here, published fragments are captured by nextGdoc.published, which
-    // allows images in published fragments (in particular data pages) to be
-    // synced to S3 and ultimately baked in bakeDriveImages().
-    if (filenames.length && nextGdoc.published) {
-        await imageStore.fetchImageMetadata(filenames)
-        const images = await imageStore.syncImagesToS3(trx)
-        const gdocXImagesToInsert: DbInsertPostGdocXImage[] = []
-        for (const image of images) {
-            if (image) {
-                gdocXImagesToInsert.push({
-                    gdocId: nextGdoc.id,
-                    imageId: image.id,
-                })
-            }
-        }
-        try {
-            await trx
-                .table(PostsGdocsXImagesTableName)
-                .insert(gdocXImagesToInsert)
-        } catch (e) {
-            console.error(
-                `Error tracking image references with Google ID ${nextGdoc.id}`,
-                e
-            )
-        }
-    }
+    await syncImagesAndAddToContentGraph(trx, nextGdoc)
 
     await setLinksForGdoc(
         trx,
@@ -2356,43 +2372,9 @@ putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
             : GdocLinkUpdateMode.DeleteOnly
     )
 
-    //todo #gdocsvalidationserver: run validation before saving published
-    //articles, in addition to the first pass performed in front-end code (see
-    //#gdocsvalidationclient)
-
-    // If the deploy fails, the article would still be considered "published".
-    // Saving the article after enqueueing the change for deploy wouldn't solve
-    // this issue since the deploy queue runs indenpendently. It would simply
-    // prevent the change to be saved in the DB in case the enqueueing fails,
-    // which is unlikely. On the other hand, reversing the order "save then
-    // enqueue" might run the risk of a race condition, by which the deploy
-    // queue picks up the deploy before the store is updated, thus re-publishing
-    // the current unmodified version.
-
-    // Neither of these scenarios is very likely (race condition or failure to
-    // enqueue), so I opted for the version that matches the closest the current
-    // baking model, which is "bake what is persisted in the DB". Ultimately, a
-    // full sucessful deploy would resolve the state discrepancy either way.
     await upsertGdoc(trx, nextGdoc)
 
-    const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
-    const prevJson = prevGdoc.toJSON()
-    const nextJson = nextGdoc.toJSON()
-    if (checkIsLightningUpdate(prevJson, nextJson, hasChanges)) {
-        await enqueueLightningChange(
-            res.locals.user,
-            `Lightning update ${nextJson.slug}`,
-            nextJson.slug
-        )
-    } else if (checkFullDeployFallback(prevJson, nextJson, hasChanges)) {
-        const action =
-            prevJson.published && nextJson.published
-                ? "Updating"
-                : !prevJson.published && nextJson.published
-                  ? "Publishing"
-                  : "Unpublishing"
-        await triggerStaticBuild(res.locals.user, `${action} ${nextJson.slug}`)
-    }
+    await indexAndBakeGdocIfNeccesary(trx, res.locals.user, prevGdoc, nextGdoc)
 
     return nextGdoc
 })
@@ -2411,6 +2393,9 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     await trx.table(PostsGdocsLinksTableName).where({ sourceId: id }).delete()
     await trx.table(PostsGdocsXImagesTableName).where({ gdocId: id }).delete()
     await trx.table(PostsGdocsTableName).where({ id }).delete()
+    if (checkIsGdocPostExcludingFragments(gdoc)) {
+        await removeIndividualGdocPostFromIndex(gdoc)
+    }
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })

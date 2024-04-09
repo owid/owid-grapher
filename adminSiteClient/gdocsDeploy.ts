@@ -1,4 +1,8 @@
-import { isEqual, omit } from "@ourworldindata/utils"
+import {
+    checkIsGdocPostExcludingFragments,
+    isEqual,
+    omit,
+} from "@ourworldindata/utils"
 import {
     OwidGdoc,
     OwidGdocBaseInterface,
@@ -6,19 +10,10 @@ import {
     OwidGdocDataInsightContent,
     OwidGdocType,
     OwidGdocHomepageContent,
-    DbEnrichedPostGdoc,
     OwidGdocAuthorContent,
 } from "@ourworldindata/types"
 import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./GdocsDiff.js"
-import { GDOCS_DETAILS_ON_DEMAND_ID } from "../settings/clientSettings.js"
-
-export const checkFullDeployFallback = (
-    prevGdoc: DbEnrichedPostGdoc,
-    nextGdoc: DbEnrichedPostGdoc,
-    hasChanges: boolean
-) => {
-    return hasChanges && (prevGdoc.published || nextGdoc.published)
-}
+import { match } from "ts-pattern"
 
 /**
  * This function checks if the article has changed in a way that is compatible
@@ -34,7 +29,7 @@ export const checkIsLightningUpdate = (
 ) => {
     if (
         prevGdoc.content.type !== nextGdoc.content.type ||
-        prevGdoc.id === GDOCS_DETAILS_ON_DEMAND_ID ||
+        !checkIsGdocPostExcludingFragments(nextGdoc) ||
         !hasChanges ||
         !prevGdoc.published ||
         !nextGdoc.published
@@ -188,3 +183,22 @@ export const checkHasChanges = (prevGdoc: OwidGdoc, nextGdoc: OwidGdoc) =>
             GDOC_DIFF_OMITTABLE_PROPERTIES
         )
     )
+
+export enum GdocPublishingAction {
+    Updating = "Updating",
+    Publishing = "Publishing",
+    Unpublishing = "Unpublishing",
+    SavingDraft = "SavingDraft",
+}
+
+export function getPublishingAction(
+    prevJson: OwidGdoc,
+    nextJson: OwidGdoc
+): GdocPublishingAction {
+    return match([prevJson.published, nextJson.published])
+        .with([true, true], () => GdocPublishingAction.Updating)
+        .with([false, true], () => GdocPublishingAction.Publishing)
+        .with([true, false], () => GdocPublishingAction.Unpublishing)
+        .with([false, false], () => GdocPublishingAction.SavingDraft)
+        .exhaustive()
+}

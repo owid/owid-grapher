@@ -1798,6 +1798,10 @@ export function extractDetailsFromSyntax(str: string): string[] {
     )
 }
 
+/**
+ * If you're using this type guard, make sure you're okay with Fragments
+ * See https://github.com/owid/owid-grapher/issues/3426
+ */
 export function checkIsGdocPost(x: unknown): x is OwidGdocPostInterface {
     const type = get(x, "content.type")
     return [
@@ -1805,6 +1809,24 @@ export function checkIsGdocPost(x: unknown): x is OwidGdocPostInterface {
         OwidGdocType.TopicPage,
         OwidGdocType.LinearTopicPage,
         OwidGdocType.Fragment,
+        OwidGdocType.AboutPage,
+    ].includes(type)
+}
+
+/**
+ * Fragments were developed before we had a robust gdoc type system in place
+ * Use this function when you want to be sure you're dealing with published editorial content
+ * and not just content that has the right shape
+ * See https://github.com/owid/owid-grapher/issues/3426
+ */
+export function checkIsGdocPostExcludingFragments(
+    x: unknown
+): x is OwidGdocPostInterface {
+    const type = get(x, "content.type")
+    return [
+        OwidGdocType.Article,
+        OwidGdocType.TopicPage,
+        OwidGdocType.LinearTopicPage,
         OwidGdocType.AboutPage,
     ].includes(type)
 }
