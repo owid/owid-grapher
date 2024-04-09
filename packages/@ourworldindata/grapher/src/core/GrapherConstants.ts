@@ -50,29 +50,11 @@ export const ThereWasAProblemLoadingThisChart = `There was a problem loading thi
 
 export const WorldEntityName = "World"
 
-export const getVariableDataRoute = (
-    dataApiUrl: string,
-    variableId: number
-): string => {
-    if (dataApiUrl.includes("v1/indicators/")) {
-        // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.data.json
-        return `${dataApiUrl}${variableId}.data.json`
-    } else {
-        throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
-    }
-}
-
-export const getVariableMetadataRoute = (
-    dataApiUrl: string,
-    variableId: number
-): string => {
-    if (dataApiUrl.includes("v1/indicators/")) {
-        // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.metadata.json
-        return `${dataApiUrl}${variableId}.metadata.json`
-    } else {
-        throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
-    }
-}
+export const isPopulationVariableId = (id: string): boolean =>
+    id === "525709" || // "Population (historical + projections), Gapminder, HYDE & UN"
+    id === "525711" || // "Population (historical estimates), Gapminder, HYDE & UN"
+    id === "597929" || // "Population (various sources, 2023.1)"
+    id === "597930" // "Population (various sources, 2023.1)"
 
 export enum Patterns {
     noDataPattern = "noDataPattern",

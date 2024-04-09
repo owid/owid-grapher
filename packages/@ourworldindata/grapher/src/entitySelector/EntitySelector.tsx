@@ -18,6 +18,7 @@ import {
     regions,
     sortBy,
     Tippy,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import { Checkbox } from "@ourworldindata/components"
 import { FuzzySearch } from "../controls/FuzzySearch"
@@ -35,6 +36,7 @@ import {
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
     GRAPHER_SCROLLABLE_CONTAINER_CLASS,
+    isPopulationVariableId,
 } from "../core/GrapherConstants"
 import {
     CoreColumn,
@@ -44,12 +46,19 @@ import {
 import { SortIcon } from "../controls/SortIcon"
 import { Dropdown } from "../controls/Dropdown"
 import { scaleLinear, type ScaleLinear } from "d3-scale"
+import { buildVariableTable } from "../core/LegacyToOwidTable"
+import { loadVariableDataAndMetadata } from "../core/loadVariable"
 
 export interface EntitySelectorState {
     searchInput: string
     sortConfig: SortConfig
     localEntityNames?: string[]
     mostRecentlySelectedEntityName?: string
+    isLoadingExternalSortColumn?: boolean
+
+    // external columns to sort by
+    populationColumn?: CoreColumn
+    gdpPerCapitaColumn?: CoreColumn
 }
 
 export interface EntitySelectorManager {
@@ -61,6 +70,7 @@ export interface EntitySelectorManager {
     entityType?: string
     entityTypePlural?: string
     activeColumnSlugs?: string[]
+    dataApiUrl: string
 }
 
 type Slug = string
@@ -84,6 +94,12 @@ interface DropdownOption {
     value: string
     label: string
 }
+
+const DEFAULT_POPULATION_INDICATOR_ID = 597930
+const DEFAULT_POPULATION_LABEL = "Population"
+
+const DEFAULT_GDP_PER_CAPITA_INDICATOR_ID = 735665
+const DEFAULT_GDP_PER_CAPITA_LABEL = "GDP per capita"
 
 @observer
 export class EntitySelector extends React.Component<{
@@ -220,18 +236,94 @@ export class EntitySelector extends React.Component<{
         return this.manager.entitySelectorState.localEntityNames
     }
 
+    @computed private get populationColumn(): CoreColumn | undefined {
+        return this.manager.entitySelectorState.populationColumn
+    }
+
+    @computed private get gdpPerCapitaColumn(): CoreColumn | undefined {
+        return this.manager.entitySelectorState.gdpPerCapitaColumn
+    }
+
+    @computed private get isLoadingExternalSortColumn(): boolean {
+        return (
+            this.manager.entitySelectorState.isLoadingExternalSortColumn ??
+            false
+        )
+    }
+
     @computed private get table(): OwidTable {
         return this.manager.tableForSelection
     }
 
-    @computed private get sortColumns(): CoreColumn[] {
+    @computed private get numericalChartColumns(): CoreColumn[] {
         const activeSlugs = this.manager.activeColumnSlugs ?? []
-
-        const sortColumns = activeSlugs
+        const activeColumns = activeSlugs
             .map((slug) => this.table.get(slug))
             .filter((column) => isColumnWithNumberFormatting(column))
+        return activeColumns
+    }
 
-        return [this.table.entityNameColumn, ...sortColumns]
+    @computed private get sortColumns(): CoreColumn[] {
+        return excludeUndefined([
+            this.table.entityNameColumn,
+            this.populationColumn,
+            this.gdpPerCapitaColumn,
+            ...this.numericalChartColumns,
+        ])
+    }
+
+    @computed private get populationColumnUsedInChart():
+        | CoreColumn
+        | undefined {
+        const activePopulationColumn = this.numericalChartColumns.find(
+            (column) =>
+                isPopulationVariableId(column.slug) ||
+                !!makeColumnLabel(column).match(/\bpopulation\b/i)
+        )
+        return activePopulationColumn
+    }
+
+    @computed private get populationIndicatorId(): number | undefined {
+        const { entitiesAreCountryLike } = this.manager
+
+        if (this.populationColumnUsedInChart)
+            return +this.populationColumnUsedInChart.slug
+
+        if (entitiesAreCountryLike) return DEFAULT_POPULATION_INDICATOR_ID
+
+        return undefined
+    }
+
+    @computed private get populationSlug(): Slug | undefined {
+        return this.populationIndicatorId !== undefined
+            ? this.populationIndicatorId.toString()
+            : undefined
+    }
+
+    @computed private get gdpPerCapitaColumnUsedInChart():
+        | CoreColumn
+        | undefined {
+        const activePopulationColumn = this.numericalChartColumns.find(
+            (column) => !!makeColumnLabel(column).match(/\bgdp\b/i)
+        )
+        return activePopulationColumn
+    }
+
+    @computed private get gdpPerCapitaIndicatorId(): number | undefined {
+        const { entitiesAreCountryLike } = this.manager
+
+        if (this.gdpPerCapitaColumnUsedInChart)
+            return +this.gdpPerCapitaColumnUsedInChart.slug
+
+        if (entitiesAreCountryLike) return DEFAULT_GDP_PER_CAPITA_INDICATOR_ID
+
+        return undefined
+    }
+
+    @computed private get gdpPerCapitaSlug(): Slug | undefined {
+        return this.gdpPerCapitaIndicatorId !== undefined
+            ? this.gdpPerCapitaIndicatorId.toString()
+            : undefined
     }
 
     @computed private get sortColumnsBySlug(): Record<Slug, CoreColumn> {
@@ -241,16 +333,42 @@ export class EntitySelector extends React.Component<{
     @computed get sortOptions(): DropdownOption[] {
         const options: DropdownOption[] = []
 
-        const getDropdownLabel = (column: CoreColumn): string => {
-            if (column.slug === this.table.entityNameSlug) return "Name"
-            return column.displayName || column.nonEmptyName
+        const [nameColumn, ...numericalColumns] = this.sortColumns
+
+        const chartColumns = numericalColumns.filter(
+            (column) =>
+                column.slug !== this.populationSlug &&
+                column.slug !== this.gdpPerCapitaSlug
+        )
+
+        options.push({
+            value: nameColumn.slug,
+            label: "Name",
+        })
+
+        if (this.populationSlug) {
+            options.push({
+                value: this.populationSlug,
+                label: this.populationColumnUsedInChart
+                    ? makeColumnLabel(this.populationColumnUsedInChart)
+                    : DEFAULT_POPULATION_LABEL,
+            })
+        }
+
+        if (this.gdpPerCapitaSlug) {
+            options.push({
+                value: this.gdpPerCapitaSlug,
+                label: this.gdpPerCapitaColumnUsedInChart
+                    ? makeColumnLabel(this.gdpPerCapitaColumnUsedInChart)
+                    : DEFAULT_GDP_PER_CAPITA_LABEL,
+            })
         }
 
         options.push(
-            ...this.sortColumns.map((column) => {
+            ...chartColumns.map((column) => {
                 return {
                     value: column.slug,
-                    label: getDropdownLabel(column),
+                    label: makeColumnLabel(column),
                 }
             })
         )
@@ -447,10 +565,69 @@ export class EntitySelector extends React.Component<{
         )
     }
 
-    @action.bound onChangeSortSlug(selected: unknown): void {
+    @action.bound async loadPopulationColumn(): Promise<void> {
+        if (this.populationColumn) return
+
+        if (this.populationColumnUsedInChart) {
+            this.set({ populationColumn: this.populationColumnUsedInChart })
+            return
+        }
+
+        if (this.populationIndicatorId === undefined) return
+
+        this.set({ isLoadingExternalSortColumn: true })
+
+        const variable = await loadVariableDataAndMetadata(
+            this.populationIndicatorId,
+            this.manager.dataApiUrl
+        )
+        const variableTable = buildVariableTable(variable)
+        if (variableTable) {
+            this.set({
+                populationColumn: variableTable.get(this.populationSlug),
+            })
+        }
+
+        this.set({ isLoadingExternalSortColumn: false })
+    }
+
+    @action.bound async loadGdpPerCapitaColumn(): Promise<void> {
+        if (this.gdpPerCapitaColumn) return
+
+        if (this.gdpPerCapitaColumnUsedInChart) {
+            this.set({ gdpPerCapitaColumn: this.gdpPerCapitaColumnUsedInChart })
+            return
+        }
+
+        if (this.gdpPerCapitaIndicatorId === undefined) return
+
+        this.set({ isLoadingExternalSortColumn: true })
+
+        const variable = await loadVariableDataAndMetadata(
+            this.gdpPerCapitaIndicatorId,
+            this.manager.dataApiUrl
+        )
+        const variableTable = buildVariableTable(variable)
+        if (variableTable) {
+            this.set({
+                gdpPerCapitaColumn: variableTable.get(this.gdpPerCapitaSlug),
+            })
+        }
+
+        this.set({ isLoadingExternalSortColumn: false })
+    }
+
+    @action.bound async onChangeSortSlug(selected: unknown): Promise<void> {
         if (selected) {
-            const selectedOption = selected as DropdownOption
-            this.updateSortSlug(selectedOption.value)
+            const { value } = selected as DropdownOption
+
+            if (value === this.populationSlug) {
+                await this.loadPopulationColumn()
+            } else if (value === this.gdpPerCapitaSlug) {
+                await this.loadGdpPerCapitaColumn()
+            }
+
+            this.updateSortSlug(value)
         }
     }
 
@@ -506,6 +683,7 @@ export class EntitySelector extends React.Component<{
                     options={this.sortOptions}
                     onChange={this.onChangeSortSlug}
                     value={this.sortValue}
+                    isLoading={this.isLoadingExternalSortColumn}
                 />
                 <button
                     type="button"
@@ -812,4 +990,8 @@ function SelectableEntity({
             )}
         </div>
     )
+}
+
+function makeColumnLabel(column: CoreColumn): string {
+    return column.displayName || column.nonEmptyName
 }

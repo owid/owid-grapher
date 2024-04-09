@@ -22,12 +22,14 @@ export {
     BASE_FONT_SIZE,
     ThereWasAProblemLoadingThisChart,
     WorldEntityName,
-    getVariableDataRoute,
-    getVariableMetadataRoute,
     Patterns,
     grapherInterfaceWithHiddenControlsOnly,
     grapherInterfaceWithHiddenTabsOnly,
 } from "./core/GrapherConstants"
+export {
+    getVariableDataRoute,
+    getVariableMetadataRoute,
+} from "./core/loadVariable"
 export { ColorScale } from "./color/ColorScale"
 export { ColorScaleConfig } from "./color/ColorScaleConfig"
 export { ColorScheme } from "./color/ColorScheme"

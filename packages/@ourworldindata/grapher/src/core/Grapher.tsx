@@ -118,8 +118,7 @@ import {
     DEFAULT_GRAPHER_CONFIG_SCHEMA,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
-    getVariableDataRoute,
-    getVariableMetadataRoute,
+    isPopulationVariableId,
     DEFAULT_GRAPHER_FRAME_PADDING,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
@@ -129,6 +128,7 @@ import {
     GRAPHER_LOADED_EVENT_NAME,
     GRAPHER_DRAWER_ID,
 } from "../core/GrapherConstants"
+import { loadVariableDataAndMetadata } from "./loadVariable"
 import Cookies from "js-cookie"
 import {
     ChartDimension,
@@ -253,21 +253,9 @@ async function loadVariablesDataSite(
     variableIds: number[],
     dataApiUrl: string
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
-    const loadVariableDataPromises = variableIds.map(async (variableId) => {
-        const dataPromise = fetch(getVariableDataRoute(dataApiUrl, variableId))
-        const metadataPromise = fetch(
-            getVariableMetadataRoute(dataApiUrl, variableId)
-        )
-        const [dataResponse, metadataResponse] = await Promise.all([
-            dataPromise,
-            metadataPromise,
-        ])
-        if (!dataResponse.ok) throw new Error(dataResponse.statusText)
-        if (!metadataResponse.ok) throw new Error(metadataResponse.statusText)
-        const data = await dataResponse.json()
-        const metadata = await metadataResponse.json()
-        return { data, metadata }
-    })
+    const loadVariableDataPromises = variableIds.map((variableId) =>
+        loadVariableDataAndMetadata(variableId, dataApiUrl)
+    )
     const variablesData: OwidVariableDataMetadataDimensions[] =
         await Promise.all(loadVariableDataPromises)
     const variablesDataMap = new Map(
@@ -1590,12 +1578,6 @@ export class Grapher
             !isContinentsVariableId(colorColumnSlug)
         )
             columnSlugs.push(colorColumnSlug)
-
-        const isPopulationVariableId = (id: string): boolean =>
-            id === "525709" || // "Population (historical + projections), Gapminder, HYDE & UN"
-            id === "525711" || // "Population (historical estimates), Gapminder, HYDE & UN"
-            id === "597929" || // "Population (various sources, 2023.1)"
-            id === "597930" // "Population (various sources, 2023.1)"
 
         if (xColumnSlug !== undefined) {
             // exclude population variable if it's used as the x dimension in a marimekko

@@ -9,6 +9,7 @@ import {
     OwidColumnDef,
     LegacyGrapherInterface,
     OwidVariableDimensions,
+    OwidVariableDataMetadataDimensions,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -737,4 +738,79 @@ const annotationsToMap = (annotations: string): Map<string, string> => {
         entityAnnotationsMap.set(key.trim(), words.join(delimiter).trim())
     })
     return entityAnnotationsMap
+}
+
+/**
+ * Loads a single variable into an OwidTable.
+ */
+export function buildVariableTable(
+    variable: OwidVariableDataMetadataDimensions
+): OwidTable {
+    const entityMeta = variable.metadata.dimensions.entities.values
+    const entityMetaById: OwidEntityKey = Object.fromEntries(
+        entityMeta.map((entity) => [entity.id.toString(), entity])
+    )
+
+    // Base column defs, present in all OwidTables
+    const baseColumnDefs: Map<ColumnSlug, CoreColumnDef> = new Map()
+    StandardOwidColumnDefs.forEach((def) => {
+        baseColumnDefs.set(def.slug, def)
+    })
+
+    const columnDefs = new Map(baseColumnDefs)
+
+    // Time column
+    const timeColumnDef = timeColumnDefFromOwidVariable(variable.metadata)
+    columnDefs.set(timeColumnDef.slug, timeColumnDef)
+
+    // Value column
+    const valueColumnDef = columnDefFromOwidVariable(variable.metadata)
+    // Because database columns can contain mixed types, we want to avoid
+    // parsing for Grapher data until we fix that.
+    valueColumnDef.skipParsing = true
+    columnDefs.set(valueColumnDef.slug, valueColumnDef)
+
+    // Column values
+
+    const times = timeColumnValuesFromOwidVariable(
+        variable.metadata,
+        variable.data
+    )
+    const entityIds = variable.data.entities ?? []
+    const entityNames = entityIds.map(
+        // if entityMetaById[id] does not exist, then we don't have entity
+        // from variable metadata in MySQL. This can happen because we take
+        // data from S3 and metadata from MySQL. After we unify it, it should
+        // no longer be a problem
+        (id) => entityMetaById[id]?.name ?? id.toString()
+    )
+    // see comment above about entityMetaById[id]
+    const entityCodes = entityIds.map((id) => entityMetaById[id]?.code)
+
+    // If there is a conversionFactor, apply it.
+    let values = variable.data.values || []
+    const conversionFactor = valueColumnDef.display?.conversionFactor
+    if (conversionFactor !== undefined) {
+        values = values.map((value) =>
+            isNumber(value) ? value * conversionFactor : value
+        )
+
+        // If a non-int conversion factor is applied to an integer column,
+        // we end up with a numeric column.
+        if (
+            valueColumnDef.type === ColumnTypeNames.Integer &&
+            !isInteger(conversionFactor)
+        )
+            valueColumnDef.type = ColumnTypeNames.Numeric
+    }
+
+    const columnStore: { [key: string]: any[] } = {
+        [OwidTableSlugs.entityId]: entityIds,
+        [OwidTableSlugs.entityCode]: entityCodes,
+        [OwidTableSlugs.entityName]: entityNames,
+        [timeColumnDef.slug]: times,
+        [valueColumnDef.slug]: values,
+    }
+
+    return new OwidTable(columnStore, Array.from(columnDefs.values()))
 }
