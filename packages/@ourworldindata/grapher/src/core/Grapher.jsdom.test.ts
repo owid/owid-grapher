@@ -465,6 +465,16 @@ describe("urls", () => {
         expect(grapher.canonicalUrl?.includes("country")).toBeFalsy()
     })
 
+    it("includes the tab param in embed url even if it's the default value", () => {
+        const grapher = new Grapher({
+            isPublished: true,
+            slug: "foo",
+            bakedGrapherURL: "/grapher",
+            tab: GrapherTabOption.map,
+        })
+        expect(grapher.embedUrl).toEqual("/grapher/foo?tab=map")
+    })
+
     it("can upgrade legacy urls", () => {
         expect(legacyToCurrentGrapherQueryParams("?year=2000")).toEqual({
             time: "2000",

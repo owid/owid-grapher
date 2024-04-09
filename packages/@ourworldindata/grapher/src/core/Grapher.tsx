@@ -2999,7 +2999,17 @@ export class Grapher
     }
 
     @computed get embedUrl(): string | undefined {
-        return this.manager?.embedDialogUrl ?? this.canonicalUrl
+        const url = this.manager?.embedDialogUrl ?? this.canonicalUrl
+        if (!url) return
+
+        // We want to preserve the tab in the embed URL so that if we change the
+        // default view of the chart, it won't change existing embeds.
+        // See https://github.com/owid/owid-grapher/issues/2805
+        let urlObj = Url.fromURL(url)
+        if (!urlObj.queryParams.tab) {
+            urlObj = urlObj.updateQueryParams({ tab: this.allParams.tab })
+        }
+        return urlObj.fullUrl
     }
 
     @computed get embedDialogAdditionalElements():
