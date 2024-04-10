@@ -64,45 +64,53 @@ describe("OwidAdminApp", () => {
     })
 
     it("should be able to fetch the version from the server", async () => {
-        const _ = await knexReadonlyTransaction(
+        const nodeVersion = await fetch(
+            "http://localhost:8765/admin/nodeVersion",
+            {
+                headers: { cookie: `sessionid=${cookieId}` },
+            }
+        )
+        expect(nodeVersion.status).toBe(200)
+        const text = await nodeVersion.text()
+        expect(text).toBe("v18.16.1")
+    })
+
+    it("should be able to add a new chart via the api", async () => {
+        await knexReadonlyTransaction(
             async (trx) => {
-                const nodeVersion = await fetch(
-                    "http://localhost:8765/admin/nodeVersion",
-                    {
-                        headers: { cookie: `sessionid=${cookieId}` },
-                    }
-                )
-                expect(nodeVersion.status).toBe(200)
-                const text = await nodeVersion.text()
-                expect(text).toBe("v18.16.1")
+                const chartCount = await trx.table("charts").count()
+                expect(chartCount[0]["count(*)"]).toBe(0)
             },
             TransactionCloseMode.KeepOpen,
             testKnexInstance
         )
-    })
-
-    it("should be able to add a new chart via the api", async () => {
-        const _ = await knexReadonlyTransaction(async (trx) => {
-            const response = await fetch(
-                "http://localhost:8765/admin/api/charts",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        cookie: `sessionid=${cookieId}`,
-                    },
-                    body: JSON.stringify({
-                        title: "Test chart",
-                        slug: "test-chart",
-                        config: {
-                            type: "LineChart",
-                        },
-                    }),
-                }
-            )
-            expect(response.status).toBe(200)
-            const text = await response.json()
-            expect(text.success).toBe(true)
+        const response = await fetch("http://localhost:8765/admin/api/charts", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                cookie: `sessionid=${cookieId}`,
+            },
+            body: JSON.stringify({
+                title: "Test chart",
+                slug: "test-chart",
+                config: {
+                    type: "LineChart",
+                },
+            }),
         })
+        expect(response.status).toBe(200)
+        const text = await response.json()
+        expect(text.success).toBe(true)
+
+        // It's important that we do this in a new transaction as the previous
+        // one would not see the new row yet :)
+        await knexReadonlyTransaction(
+            async (trx) => {
+                const chartCountAfter = await trx.table("charts").count()
+                expect(chartCountAfter[0]["count(*)"]).toBe(1)
+            },
+            TransactionCloseMode.KeepOpen,
+            testKnexInstance
+        )
     })
 })
