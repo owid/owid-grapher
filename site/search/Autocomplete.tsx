@@ -154,14 +154,6 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                         distinct: true,
                     },
                 },
-                {
-                    indexName: getIndexName(SearchIndexName.Explorers),
-                    query,
-                    params: {
-                        hitsPerPage: 1,
-                        distinct: true,
-                    },
-                },
             ],
         })
     },
@@ -175,8 +167,6 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
             const indexLabel =
                 index === SearchIndexName.Charts ? (
                     "Chart"
-                ) : index === SearchIndexName.Explorers ? (
-                    "Explorer"
                 ) : index === SearchIndexName.ExplorerViews ? (
                     <>
                         in <em>{item.explorerTitle} Data Explorer</em>
