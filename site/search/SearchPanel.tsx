@@ -50,7 +50,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faArrowRight,
     faHeartBroken,
-    faLocationDot,
     faSearch,
 } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -130,7 +129,7 @@ function ChartHit({ hit }: { hit: IChartHit }) {
     )
     const queryStr = useMemo(() => getEntityQueryStr(entities), [entities])
     const previewUrl = queryStr
-        ? `/grapher/thumbnail/${hit.slug}${queryStr}`
+        ? `/grapher/thumbnail/${hit.slug}${queryStr}` // TODO extract to .env
         : `${BAKED_GRAPHER_URL}/exports/${hit.slug}.svg`
 
     useEffect(() => {
@@ -177,10 +176,7 @@ function ChartHit({ hit }: { hit: IChartHit }) {
             {entities.length > 0 && (
                 <ul className="search-results__chart-hit-entities">
                     {entities.map((entity) => (
-                        <li key={entity}>
-                            <FontAwesomeIcon icon={faLocationDot} />
-                            {entity}
-                        </li>
+                        <li key={entity}>{entity}</li>
                     ))}
                 </ul>
             )}
