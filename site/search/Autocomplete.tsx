@@ -76,7 +76,12 @@ const getItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({ item }) =>
 const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
     const indexName = parseIndexName(item.__autocomplete_indexName as string)
     const subdirectory = indexNameToSubdirectoryMap[indexName]
-    return `${subdirectory}/${item.slug}`
+    switch (indexName) {
+        case SearchIndexName.ExplorerViews:
+            return `${subdirectory}/${item.explorerSlug}${item.viewQueryParams}`
+        default:
+            return `${subdirectory}/${item.slug}`
+    }
 }
 
 const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
@@ -142,7 +147,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     },
                 },
                 {
-                    indexName: getIndexName(SearchIndexName.Explorers),
+                    indexName: getIndexName(SearchIndexName.ExplorerViews),
                     query,
                     params: {
                         hitsPerPage: 1,
@@ -162,9 +167,12 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
             const indexLabel =
                 index === SearchIndexName.Charts
                     ? "Chart"
-                    : index === SearchIndexName.Explorers
+                    : index === SearchIndexName.ExplorerViews
                       ? "Explorer"
                       : pageTypeDisplayNames[item.type as PageType]
+
+            const mainAttribute =
+                index === SearchIndexName.ExplorerViews ? "viewTitle" : "title"
 
             return (
                 <div
@@ -175,7 +183,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     <span>
                         <components.Highlight
                             hit={item}
-                            attribute="title"
+                            attribute={mainAttribute}
                             tagName="strong"
                         />
                     </span>

@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom"
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import cx from "classnames"
 import {
     keyBy,
@@ -7,6 +7,8 @@ import {
     get,
     mapValues,
     isElementHidden,
+    groupBy,
+    uniqBy,
 } from "@ourworldindata/utils"
 import {
     InstantSearch,
@@ -18,6 +20,7 @@ import {
     Snippet,
     useInstantSearch,
     PoweredBy,
+    useHits,
 } from "react-instantsearch"
 import algoliasearch, { SearchClient } from "algoliasearch"
 import {
@@ -29,17 +32,21 @@ import {
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
-    IExplorerHit,
     IChartHit,
     SearchCategoryFilter,
     SearchIndexName,
     searchCategoryFilters,
     IPageHit,
     pageTypeDisplayNames,
+    IExplorerViewHit,
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faHeartBroken, faSearch } from "@fortawesome/free-solid-svg-icons"
+import {
+    faArrowRight,
+    faHeartBroken,
+    faSearch,
+} from "@fortawesome/free-solid-svg-icons"
 import {
     DEFAULT_SEARCH_PLACEHOLDER,
     getIndexName,
@@ -53,6 +60,7 @@ import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
 } from "@ourworldindata/grapher"
+import type { SearchResults as AlgoliaSearchResultsType } from "algoliasearch-helper"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 
 const siteAnalytics = new SiteAnalytics()
@@ -125,17 +133,152 @@ function ChartHit({ hit }: { hit: IChartHit }) {
     )
 }
 
-function ExplorerHit({ hit }: { hit: IExplorerHit }) {
+interface ExplorerViewHitWithPosition extends IExplorerViewHit {
+    // Analytics data
+    // Position of this hit in the search results: For example, if there is one card with 3 views, and a second card with 2 views, the first card will have hitPosition 0, 1, and 2, and the second card will have hitPosition 3 and 4.
+    hitPositionOverall: number
+    // Position of this hit within the card: For example, if there are 3 views in a card, they will have positions 0, 1, and 2.
+    hitPositionWithinCard: number
+}
+
+interface GroupedExplorerViews {
+    explorerSlug: string
+    explorerTitle: string
+    explorerSubtitle: string
+    numViewsWithinExplorer: number
+    views: ExplorerViewHitWithPosition[]
+}
+
+const getNumberOfExplorerHits = (rawHits: IExplorerViewHit[]) =>
+    uniqBy(rawHits, "explorerSlug").length
+
+function ExplorerViewHits() {
+    const { hits } = useHits<IExplorerViewHit>()
+
+    const groupedHits = useMemo(() => {
+        const groupedBySlug = groupBy(hits, "explorerSlug")
+        const arr = Object.values(groupedBySlug).map((explorerViews) => {
+            const firstView = explorerViews[0]
+            return {
+                explorerSlug: firstView.explorerSlug,
+                explorerTitle: firstView.explorerTitle,
+                explorerSubtitle: firstView.explorerSubtitle,
+                numViewsWithinExplorer: firstView.numViewsWithinExplorer,
+
+                // Run uniq, so if we end up in a situation where multiple views with the same title
+                // are returned, we only show the first of them
+                views: uniqBy(explorerViews, "viewTitle"),
+            }
+        })
+        let totalHits = 0
+        arr.forEach((group) => {
+            group.views = group.views.map((view, index) => ({
+                ...view,
+                hitPositionWithinCard: index,
+                hitPositionOverall: totalHits + index,
+            })) as ExplorerViewHitWithPosition[]
+            totalHits += group.views.length
+        })
+        return arr as GroupedExplorerViews[]
+    }, [hits])
+
     return (
-        <a
-            data-algolia-index={getIndexName(SearchIndexName.Explorers)}
-            data-algolia-object-id={hit.objectID}
-            data-algolia-position={hit.__position}
-            href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${hit.slug}`}
+        <div className="search-results__list-container">
+            <div className="search-results__explorer-list grid grid-cols-1">
+                {groupedHits.map((group, i) => (
+                    <ExplorerHit
+                        groupedHit={group}
+                        key={group.explorerSlug}
+                        cardPosition={i}
+                    />
+                ))}
+            </div>
+        </div>
+    )
+}
+
+function ExplorerHit({
+    groupedHit,
+    cardPosition,
+}: {
+    groupedHit: GroupedExplorerViews
+    cardPosition: number
+}) {
+    const firstHit = groupedHit.views[0]
+
+    const exploreAllProps = {
+        href: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}`,
+        "data-algolia-index": getIndexName(SearchIndexName.ExplorerViews),
+        "data-algolia-object-id": firstHit.objectID,
+        "data-algolia-position": firstHit.hitPositionOverall,
+        "data-algolia-card-position": cardPosition,
+        "data-algolia-position-within-card": 0,
+        "data-algolia-event-name": "click_explorer",
+    }
+
+    return (
+        <div
+            key={groupedHit.explorerSlug}
+            className="search-results__explorer-hit"
         >
-            <h4 className="h3-bold">{hit.title}</h4>
-            {/* Explorer subtitles are mostly useless at the moment, so we're only showing titles */}
-        </a>
+            <div className="search-results__explorer-hit-header">
+                <div className="search-results__explorer-hit-title-container">
+                    <h3 className="h3-bold search-results__explorer-hit-title">
+                        {groupedHit.explorerTitle}
+                    </h3>
+                    <p className="body-3-medium-italic search-results__explorer-hit-subtitle">
+                        {groupedHit.explorerSubtitle}
+                    </p>
+                </div>
+
+                <a
+                    className="search-results__explorer-hit-link hide-sm-only"
+                    {...exploreAllProps}
+                >
+                    Explore all {groupedHit.numViewsWithinExplorer} indicators
+                </a>
+            </div>
+            <ul className="search-results__explorer-views-list grid grid-cols-2 grid-sm-cols-1">
+                {groupedHit.views.map((view) => (
+                    <li
+                        key={view.objectID}
+                        className="ais-Hits-item search-results__explorer-view"
+                    >
+                        <a
+                            data-algolia-index={getIndexName(
+                                SearchIndexName.ExplorerViews
+                            )}
+                            data-algolia-object-id={view.objectID}
+                            data-algolia-position={view.hitPositionOverall + 1}
+                            data-algolia-card-position={cardPosition + 1}
+                            data-algolia-position-within-card={
+                                view.hitPositionWithinCard + 1
+                            }
+                            data-algolia-event-name="click_explorer_view"
+                            href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${view.explorerSlug}${view.viewQueryParams}`}
+                            className="search-results__explorer-view-title-container"
+                        >
+                            <Highlight
+                                attribute="viewTitle"
+                                hit={view}
+                                highlightedTagName="strong"
+                                className="search-results__explorer-view-title"
+                            />
+                            <FontAwesomeIcon icon={faArrowRight} />
+                        </a>
+                        <p className="body-3-medium-italic search-results__explorer-view-subtitle">
+                            {view.viewSubtitle}
+                        </p>
+                    </li>
+                ))}
+            </ul>
+            <a
+                className="search-results__explorer-hit-link-mobile hide-sm-up"
+                {...exploreAllProps}
+            >
+                Explore all {groupedHit.numViewsWithinExplorer} indicators
+            </a>
+        </div>
     )
 }
 
@@ -144,11 +287,13 @@ function ShowMore({
     cutoffNumber,
     activeCategoryFilter,
     handleCategoryFilterClick,
+    getTotalNumberOfHits,
 }: {
     category: SearchIndexName
     cutoffNumber: number
     activeCategoryFilter: SearchCategoryFilter
     handleCategoryFilterClick: (x: SearchIndexName) => void
+    getTotalNumberOfHits?: (results: AlgoliaSearchResultsType) => number
 }) {
     const { results } = useInstantSearch()
     // Hide if we're on the same tab as the category this button is for
@@ -160,13 +305,16 @@ function ShowMore({
         handleCategoryFilterClick(category)
     }
 
-    const numberShowing = Math.min(cutoffNumber, results.hits.length)
-    const isShowingAllResults = numberShowing === results.hits.length
+    const totalNumberOfHits =
+        getTotalNumberOfHits?.(results) ?? results.hits.length
+
+    const numberShowing = Math.min(cutoffNumber, totalNumberOfHits)
+    const isShowingAllResults = numberShowing === totalNumberOfHits
     const message = isShowingAllResults
         ? numberShowing <= 2
             ? "Showing all results"
             : `Showing all ${numberShowing} results`
-        : `Showing ${numberShowing} of the top ${results.hits.length} results`
+        : `Showing ${numberShowing} of the top ${totalNumberOfHits} results`
 
     return (
         <div className="search-results__show-more-container">
@@ -198,6 +346,13 @@ function Filters({
     const hitsLengthByIndexName = mapValues(resultsByIndexName, (results) =>
         get(results, ["results", "hits", "length"], 0)
     )
+
+    hitsLengthByIndexName[getIndexName(SearchIndexName.ExplorerViews)] =
+        getNumberOfExplorerHits(
+            resultsByIndexName[getIndexName(SearchIndexName.ExplorerViews)]
+                ?.results?.hits ?? []
+        )
+
     hitsLengthByIndexName[getIndexName("all")] = Object.values(
         hitsLengthByIndexName
     ).reduce((a: number, b: number) => a + b, 0)
@@ -286,6 +441,9 @@ const SearchResults = (props: SearchResultsProps) => {
                     const objectId = target.getAttribute(
                         "data-algolia-object-id"
                     )
+                    const eventName =
+                        target.getAttribute("data-algolia-event-name") ??
+                        undefined
 
                     const allVisibleHits = Array.from(
                         document.querySelectorAll(
@@ -299,6 +457,18 @@ const SearchResults = (props: SearchResultsProps) => {
                     const positionInSection = target.getAttribute(
                         "data-algolia-position"
                     )
+
+                    // Optional (only for explorers); Starts from 1
+                    const cardPosition =
+                        target.getAttribute("data-algolia-card-position") ??
+                        undefined
+
+                    // Optional (only for explorers); Starts from 1 in each card; or 0 for the full explorer link
+                    const positionWithinCard =
+                        target.getAttribute(
+                            "data-algolia-position-within-card"
+                        ) ?? undefined
+
                     const index = target.getAttribute("data-algolia-index")
                     const href = target.getAttribute("href")
                     const query = props.query
@@ -311,6 +481,7 @@ const SearchResults = (props: SearchResultsProps) => {
                         query
                     ) {
                         logSiteSearchClickToAlgoliaInsights({
+                            eventName,
                             index,
                             queryID,
                             objectIDs: [objectId],
@@ -320,6 +491,8 @@ const SearchResults = (props: SearchResultsProps) => {
                             query,
                             position: String(globalPosition),
                             positionInSection,
+                            cardPosition,
+                            positionWithinCard,
                             url: href,
                             filter: activeCategoryFilter,
                         })
@@ -338,6 +511,7 @@ const SearchResults = (props: SearchResultsProps) => {
     const hasClickAnalyticsConsent = getPreferenceValue(
         PreferenceType.Analytics
     )
+
     return (
         <div
             className="search-results"
@@ -374,38 +548,6 @@ const SearchResults = (props: SearchResultsProps) => {
                     />
                 </section>
             </NoResultsBoundary>
-            <Index indexName={getIndexName(SearchIndexName.Explorers)}>
-                <Configure
-                    hitsPerPage={10}
-                    distinct
-                    clickAnalytics={hasClickAnalyticsConsent}
-                />
-                <NoResultsBoundary>
-                    <section className="search-results__explorers">
-                        <header className="search-results__header">
-                            <h2 className="h2-bold search-results__section-title">
-                                Data Explorers
-                            </h2>
-                            <ShowMore
-                                category={SearchIndexName.Explorers}
-                                cutoffNumber={2}
-                                activeCategoryFilter={activeCategoryFilter}
-                                handleCategoryFilterClick={
-                                    handleCategoryFilterClick
-                                }
-                            />
-                        </header>
-                        <Hits
-                            classNames={{
-                                root: "search-results__list-container",
-                                list: "search-results__explorers-list grid grid-cols-2 grid-sm-cols-1",
-                                item: "search-results__explorer-hit",
-                            }}
-                            hitComponent={ExplorerHit}
-                        />
-                    </section>
-                </NoResultsBoundary>
-            </Index>
             <Index indexName={getIndexName(SearchIndexName.Charts)}>
                 <Configure
                     hitsPerPage={40}
@@ -420,7 +562,7 @@ const SearchResults = (props: SearchResultsProps) => {
                             </h2>
                             <ShowMore
                                 category={SearchIndexName.Charts}
-                                cutoffNumber={40}
+                                cutoffNumber={4}
                                 activeCategoryFilter={activeCategoryFilter}
                                 handleCategoryFilterClick={
                                     handleCategoryFilterClick
@@ -435,6 +577,34 @@ const SearchResults = (props: SearchResultsProps) => {
                             }}
                             hitComponent={ChartHit}
                         />
+                    </section>
+                </NoResultsBoundary>
+            </Index>
+            <Index indexName={getIndexName(SearchIndexName.ExplorerViews)}>
+                <Configure
+                    hitsPerPage={20}
+                    distinct={4}
+                    clickAnalytics={hasClickAnalyticsConsent}
+                />
+                <NoResultsBoundary>
+                    <section className="search-results__explorers">
+                        <header className="search-results__header">
+                            <h2 className="h2-bold search-results__section-title">
+                                Data Explorers
+                            </h2>
+                            <ShowMore
+                                category={SearchIndexName.ExplorerViews}
+                                cutoffNumber={2}
+                                activeCategoryFilter={activeCategoryFilter}
+                                handleCategoryFilterClick={
+                                    handleCategoryFilterClick
+                                }
+                                getTotalNumberOfHits={(
+                                    results: AlgoliaSearchResultsType<IExplorerViewHit>
+                                ) => getNumberOfExplorerHits(results.hits)}
+                            />
+                        </header>
+                        <ExplorerViewHits />
                     </section>
                 </NoResultsBoundary>
             </Index>
