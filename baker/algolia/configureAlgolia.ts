@@ -130,24 +130,6 @@ export const configureAlgolia = async () => {
         disablePrefixOnAttributes: ["content"],
     })
 
-    const explorersIndex = client.initIndex(
-        getIndexName(SearchIndexName.Explorers)
-    )
-
-    await explorersIndex.setSettings({
-        ...baseSettings,
-        searchableAttributes: [
-            "unordered(slug)",
-            "unordered(title)",
-            "unordered(subtitle)",
-            "unordered(text)",
-        ],
-        customRanking: ["desc(views_7d)"],
-        attributeForDistinct: "slug",
-        attributesForFaceting: [],
-        disableTypoToleranceOnAttributes: ["text"],
-    })
-
     const explorerViewsIndex = client.initIndex(
         getIndexName(SearchIndexName.ExplorerViews)
     )
@@ -332,9 +314,6 @@ export const configureAlgolia = async () => {
         replaceExistingSynonyms: true,
     })
     await chartsIndex.saveSynonyms(algoliaSynonyms, {
-        replaceExistingSynonyms: true,
-    })
-    await explorersIndex.saveSynonyms(algoliaSynonyms, {
         replaceExistingSynonyms: true,
     })
     await explorerViewsIndex.saveSynonyms(algoliaSynonyms, {

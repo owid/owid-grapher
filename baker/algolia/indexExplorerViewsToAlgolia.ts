@@ -1,5 +1,4 @@
 import * as db from "../../db/db.js"
-import { ExplorerBlockGraphers } from "./indexExplorersToAlgolia.js"
 import { DecisionMatrix } from "../../explorer/ExplorerDecisionMatrix.js"
 import { tsvFormat } from "d3-dsv"
 import {
@@ -14,6 +13,15 @@ import { getIndexName } from "../../site/search/searchClient.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
 import { groupBy, keyBy, orderBy } from "lodash"
 import { MarkdownTextWrap } from "@ourworldindata/components"
+
+export type ExplorerBlockGraphers = {
+    type: "graphers"
+    block: {
+        title?: string
+        subtitle?: string
+        grapherId?: number
+    }[]
+}
 
 interface ExplorerViewEntry {
     viewTitle: string
