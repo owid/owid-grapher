@@ -4,10 +4,10 @@
     "engines": {
         "node": ">=18.16"
     },
-    "packageManager": "yarn@4.0.0",
+    "packageManager": "yarn@4.1.1",
     "volta": {
         "node": "18.16.1",
-        "yarn": "3.3.0"
+        "yarn": "4.1.1"
     },
     "scripts": {
         "batchTagWithGpt": "node --enable-source-maps ./itsJustJavascript/baker/batchTagWithGpt.js",
