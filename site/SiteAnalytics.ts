@@ -30,11 +30,15 @@ export class SiteAnalytics extends GrapherAnalytics {
         position,
         url,
         positionInSection,
+        cardPosition,
+        positionWithinCard,
         filter,
     }: {
         query: string
         position: string
         positionInSection: string
+        cardPosition?: string
+        positionWithinCard?: string
         url: string
         filter: SearchCategoryFilter
     }) {
@@ -45,6 +49,8 @@ export class SiteAnalytics extends GrapherAnalytics {
                 query,
                 position,
                 positionInSection,
+                cardPosition,
+                positionWithinCard,
                 filter,
             }),
             eventTarget: url,
