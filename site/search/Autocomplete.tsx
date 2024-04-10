@@ -165,15 +165,11 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                 item.__autocomplete_indexName as string
             )
             const indexLabel =
-                index === SearchIndexName.Charts ? (
-                    "Chart"
-                ) : index === SearchIndexName.ExplorerViews ? (
-                    <>
-                        in <em>{item.explorerTitle} Data Explorer</em>
-                    </>
-                ) : (
-                    pageTypeDisplayNames[item.type as PageType]
-                )
+                index === SearchIndexName.Charts
+                    ? "Chart"
+                    : index === SearchIndexName.ExplorerViews
+                      ? "Explorer"
+                      : pageTypeDisplayNames[item.type as PageType]
 
             const mainAttribute =
                 index === SearchIndexName.ExplorerViews ? "viewTitle" : "title"

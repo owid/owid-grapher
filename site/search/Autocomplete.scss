@@ -215,9 +215,14 @@ section[data-autocomplete-source-id="recentSearchesPlugin"]
     }
 }
 
-section[data-autocomplete-source-id="autocomplete"]
+section[data-autocomplete-source-id="autocomplete"] {
+    .aa-ItemWrapper {
+        text-wrap: pretty;
+    }
+
     .aa-ItemWrapper__contentType {
-    color: $blue-50;
+        color: $blue-50;
+    }
 }
 
 section[data-autocomplete-source-id="runSearch"] {
