@@ -5,10 +5,6 @@
         "node": ">=18.16"
     },
     "packageManager": "yarn@4.1.1",
-    "volta": {
-        "node": "18.16.1",
-        "yarn": "4.1.1"
-    },
     "scripts": {
         "batchTagWithGpt": "node --enable-source-maps ./itsJustJavascript/baker/batchTagWithGpt.js",
         "buildAndDeploySite": "node --enable-source-maps ./itsJustJavascript/baker/buildAndDeploySite.js",
