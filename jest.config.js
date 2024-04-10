@@ -7,6 +7,7 @@ module.exports = {
             testPathIgnorePatterns: [
                 ".jsdom.test.",
                 "<rootDir>/itsJustJavascript/db/tests",
+                "<rootDir>/itsJustJavascript/adminSiteServer/app.test.(jsx|js)",
                 "<rootDir>/.nx/cache/",
             ],
             testMatch: ["**/*.test.(jsx|js)"],

@@ -18,6 +18,7 @@ import {
     DbRawChart,
     UsersTableName,
 } from "@ourworldindata/types"
+import { cleanTestDb, sleep } from "./testHelpers.js"
 
 let knexInstance: Knex<any, unknown[]> | undefined = undefined
 
@@ -34,6 +35,7 @@ beforeAll(async () => {
         ],
     }
     knexInstance = knex(dbTestConfig)
+    await cleanTestDb(knexInstance)
 
     for (const [tableName, tableData] of Object.entries(dataSpec)) {
         await knexInstance(tableName).insert(tableData)
@@ -53,17 +55,9 @@ test("it can query a user created in fixture via TypeORM", async () => {
         .where({ email: "admin@example.com" })
         .first<DbPlainUser>()
     expect(user).toBeTruthy()
-    expect(user.id).toBe(1)
+    expect(user.id).toBe(2)
     expect(user.email).toBe("admin@example.com")
 })
-
-function sleep(time: number, value: any): Promise<any> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            return resolve(value)
-        }, time)
-    })
-}
 
 test("timestamps are automatically created and updated", async () => {
     await knexReadWriteTransaction(
@@ -71,7 +65,7 @@ test("timestamps are automatically created and updated", async () => {
             const chart: DbInsertChart = {
                 config: "{}",
                 lastEditedAt: new Date(),
-                lastEditedByUserId: 1,
+                lastEditedByUserId: 2,
                 is_indexable: 0,
             }
             await trx.table(ChartsTableName).insert(chart)
@@ -144,7 +138,7 @@ test("knex interface", async () => {
             })
 
             // Use the update helper method
-            await updateUser(trx, 2, { isSuperuser: 1 })
+            await updateUser(trx, 3, { isSuperuser: 1 })
 
             // Check results after update and insert
             const afterUpdate = await trx
@@ -183,7 +177,7 @@ test("knex interface", async () => {
             ])
             expect(usersFromRawQueryWithInClauseAsArray.length).toBe(2)
 
-            await deleteUser(trx, 2)
+            await deleteUser(trx, 3)
         },
         TransactionCloseMode.KeepOpen,
         knexInstance
