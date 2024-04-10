@@ -1273,12 +1273,7 @@ export class Grapher
             ...noteDetails,
         ])
 
-        const validDetails = uniqueDetails.filter((detailId: string) => {
-            const detail = window.details?.[detailId]
-            return detail !== undefined
-        })
-
-        return validDetails
+        return uniqueDetails
     }
 
     @computed get detailsMarkerInSvg(): DetailsMarker {

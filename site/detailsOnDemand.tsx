@@ -17,20 +17,13 @@ declare global {
 }
 
 export async function runDetailsOnDemand() {
-    if (!window.details) {
-        const details: DetailDictionary = await fetch(
-            `${BAKED_BASE_URL}/dods.json`,
-            {
-                method: "GET",
-                credentials: "same-origin",
-                headers: {
-                    Accept: "application/json",
-                },
-            }
-        ).then((res) => res.json())
-
-        window.details = details
-    }
+    window.details = await fetch(`${BAKED_BASE_URL}/dods.json`, {
+        method: "GET",
+        credentials: "same-origin",
+        headers: {
+            Accept: "application/json",
+        },
+    }).then((res) => res.json())
 
     document.addEventListener("mouseover", handleEvent, { passive: true })
     document.addEventListener("touchstart", handleEvent, { passive: true })
