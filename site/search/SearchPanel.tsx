@@ -136,12 +136,20 @@ function ChartHit({ hit }: { hit: IChartHit }) {
     )
 }
 
+interface ExplorerViewHitWithPosition extends IExplorerViewHit {
+    // Analytics data
+    // Position of this hit in the search results: For example, if there is one card with 3 views, and a second card with 2 views, the first card will have hitPosition 0, 1, and 2, and the second card will have hitPosition 3 and 4.
+    hitPositionOverall: number
+    // Position of this hit within the card: For example, if there are 3 views in a card, they will have positions 0, 1, and 2.
+    hitPositionWithinCard: number
+}
+
 interface GroupedExplorerViews {
     explorerSlug: string
     explorerTitle: string
     explorerSubtitle: string
     numViewsWithinExplorer: number
-    views: IExplorerViewHit[]
+    views: ExplorerViewHitWithPosition[]
 }
 
 const getNumberOfExplorerHits = (rawHits: IExplorerViewHit[]) =>
@@ -152,7 +160,7 @@ function ExplorerViewHits() {
 
     const groupedHits = useMemo(() => {
         const groupedBySlug = groupBy(hits, "explorerSlug")
-        return Object.values(groupedBySlug).map((explorerViews) => {
+        const arr = Object.values(groupedBySlug).map((explorerViews) => {
             const firstView = explorerViews[0]
             return {
                 explorerSlug: firstView.explorerSlug,
@@ -165,20 +173,41 @@ function ExplorerViewHits() {
                 views: uniqBy(explorerViews, "viewTitle"),
             }
         })
+        let totalHits = 0
+        arr.forEach((group) => {
+            group.views = group.views.map((view, index) => ({
+                ...view,
+                hitPositionWithinCard: index,
+                hitPositionOverall: totalHits + index,
+            })) as ExplorerViewHitWithPosition[]
+            totalHits += group.views.length
+        })
+        return arr as GroupedExplorerViews[]
     }, [hits])
 
     return (
         <div className="search-results__list-container">
             <div className="search-results__explorer-list grid grid-cols-1">
-                {groupedHits.map((group) => (
-                    <ExplorerHit groupedHit={group} key={group.explorerSlug} />
+                {groupedHits.map((group, i) => (
+                    <ExplorerHit
+                        groupedHit={group}
+                        key={group.explorerSlug}
+                        cardPosition={i}
+                    />
                 ))}
             </div>
         </div>
     )
 }
 
-function ExplorerHit({ groupedHit }: { groupedHit: GroupedExplorerViews }) {
+function ExplorerHit({
+    groupedHit,
+    cardPosition,
+}: {
+    groupedHit: GroupedExplorerViews
+    cardPosition: number
+}) {
+    const firstHit = groupedHit.views[0]
     return (
         <div
             key={groupedHit.explorerSlug}
@@ -197,6 +226,14 @@ function ExplorerHit({ groupedHit }: { groupedHit: GroupedExplorerViews }) {
                 <a
                     href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}`}
                     className="search-results__explorer-hit-link hide-sm-only"
+                    data-algolia-index={getIndexName(
+                        SearchIndexName.ExplorerViews
+                    )}
+                    data-algolia-object-id={firstHit.objectID}
+                    data-algolia-position={firstHit.hitPositionOverall}
+                    data-algolia-card-position={cardPosition}
+                    data-algolia-position-within-card={0}
+                    data-algolia-event-name="click_explorer"
                 >
                     Explore all {groupedHit.numViewsWithinExplorer} indicators
                 </a>
@@ -205,14 +242,19 @@ function ExplorerHit({ groupedHit }: { groupedHit: GroupedExplorerViews }) {
                 {groupedHit.views.map((view) => (
                     <li
                         key={view.objectID}
-                        className="search-results__explorer-view"
+                        className="ais-Hits-item search-results__explorer-view"
                     >
                         <a
                             data-algolia-index={getIndexName(
                                 SearchIndexName.ExplorerViews
                             )}
                             data-algolia-object-id={view.objectID}
-                            data-algolia-position={view.__position}
+                            data-algolia-position={view.hitPositionOverall + 1}
+                            data-algolia-card-position={cardPosition + 1}
+                            data-algolia-position-within-card={
+                                view.hitPositionWithinCard + 1
+                            }
+                            data-algolia-event-name="click_explorer_view"
                             href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${view.explorerSlug}${view.viewQueryParams}`}
                             className="search-results__explorer-view-title-container"
                         >
@@ -406,6 +448,9 @@ const SearchResults = (props: SearchResultsProps) => {
                     const objectId = target.getAttribute(
                         "data-algolia-object-id"
                     )
+                    const eventName =
+                        target.getAttribute("data-algolia-event-name") ??
+                        undefined
 
                     const allVisibleHits = Array.from(
                         document.querySelectorAll(
@@ -419,6 +464,18 @@ const SearchResults = (props: SearchResultsProps) => {
                     const positionInSection = target.getAttribute(
                         "data-algolia-position"
                     )
+
+                    // Optional (only for explorers); Starts from 1
+                    const cardPosition =
+                        target.getAttribute("data-algolia-card-position") ??
+                        undefined
+
+                    // Optional (only for explorers); Starts from 1 in each card; or 0 for the full explorer link
+                    const positionWithinCard =
+                        target.getAttribute(
+                            "data-algolia-position-within-card"
+                        ) ?? undefined
+
                     const index = target.getAttribute("data-algolia-index")
                     const href = target.getAttribute("href")
                     const query = props.query
@@ -431,6 +488,7 @@ const SearchResults = (props: SearchResultsProps) => {
                         query
                     ) {
                         logSiteSearchClickToAlgoliaInsights({
+                            eventName,
                             index,
                             queryID,
                             objectIDs: [objectId],
@@ -440,6 +498,8 @@ const SearchResults = (props: SearchResultsProps) => {
                             query,
                             position: String(globalPosition),
                             positionInSection,
+                            cardPosition,
+                            positionWithinCard,
                             url: href,
                             filter: activeCategoryFilter,
                         })
