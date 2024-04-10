@@ -205,6 +205,17 @@ function ExplorerHit({
     cardPosition: number
 }) {
     const firstHit = groupedHit.views[0]
+
+    const exploreAllProps = {
+        href: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}`,
+        "data-algolia-index": getIndexName(SearchIndexName.ExplorerViews),
+        "data-algolia-object-id": firstHit.objectID,
+        "data-algolia-position": firstHit.hitPositionOverall,
+        "data-algolia-card-position": cardPosition,
+        "data-algolia-position-within-card": 0,
+        "data-algolia-event-name": "click_explorer",
+    }
+
     return (
         <div
             key={groupedHit.explorerSlug}
@@ -221,16 +232,8 @@ function ExplorerHit({
                 </div>
 
                 <a
-                    href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}`}
                     className="search-results__explorer-hit-link hide-sm-only"
-                    data-algolia-index={getIndexName(
-                        SearchIndexName.ExplorerViews
-                    )}
-                    data-algolia-object-id={firstHit.objectID}
-                    data-algolia-position={firstHit.hitPositionOverall}
-                    data-algolia-card-position={cardPosition}
-                    data-algolia-position-within-card={0}
-                    data-algolia-event-name="click_explorer"
+                    {...exploreAllProps}
                 >
                     Explore all {groupedHit.numViewsWithinExplorer} indicators
                 </a>
@@ -270,8 +273,8 @@ function ExplorerHit({
                 ))}
             </ul>
             <a
-                href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}`}
                 className="search-results__explorer-hit-link-mobile hide-sm-up"
+                {...exploreAllProps}
             >
                 Explore all {groupedHit.numViewsWithinExplorer} indicators
             </a>
