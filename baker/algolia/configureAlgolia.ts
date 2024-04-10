@@ -270,6 +270,7 @@ export const configureAlgolia = async () => {
             "gender gap",
             "gender inequality",
             "gender inequalities",
+            "inequality by gender",
         ],
         ["child mortality", "infant mortality"],
         ["depression", "depressive", "mental health"],
