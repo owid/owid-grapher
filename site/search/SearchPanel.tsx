@@ -41,11 +41,7 @@ import {
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import {
-    faHeartBroken,
-    faLocationDot,
-    faSearch,
-} from "@fortawesome/free-solid-svg-icons"
+import { faHeartBroken, faSearch } from "@fortawesome/free-solid-svg-icons"
 import {
     DEFAULT_SEARCH_PLACEHOLDER,
     getIndexName,
@@ -118,7 +114,7 @@ function ChartHit({ hit }: { hit: IChartHit }) {
         [hit.slug, entities]
     )
     const previewUrl = queryStr
-        ? `/grapher/thumbnail/${hit.slug}${queryStr}`
+        ? `/grapher/thumbnail/${hit.slug}${queryStr}` // TODO extract to .env
         : `${BAKED_GRAPHER_URL}/exports/${hit.slug}.svg`
 
     useEffect(() => {
@@ -163,10 +159,7 @@ function ChartHit({ hit }: { hit: IChartHit }) {
             {entities.length > 0 && (
                 <ul className="search-results__chart-hit-entities">
                     {entities.map((entity) => (
-                        <li key={entity}>
-                            <FontAwesomeIcon icon={faLocationDot} />
-                            {entity}
-                        </li>
+                        <li key={entity}>{entity}</li>
                     ))}
                 </ul>
             )}
