@@ -1,57 +1,52 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { computed, action, observable } from "mobx"
-import classnames from "classnames"
-import { isTouchDevice, sortBy, isCountryName } from "@ourworldindata/utils"
+import { computed, action, reaction } from "mobx"
+import cx from "classnames"
+import a from "indefinite"
+import {
+    isTouchDevice,
+    sortBy,
+    partition,
+    capitalize,
+} from "@ourworldindata/utils"
 import { Checkbox } from "@ourworldindata/components"
 import { FuzzySearch } from "../controls/FuzzySearch"
-import { faMagnifyingGlass, faCheck } from "@fortawesome/free-solid-svg-icons"
+import {
+    faCircleXmark,
+    faMagnifyingGlass,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SelectionArray } from "../selection/SelectionArray"
+import { Flipper, Flipped } from "react-flip-toolkit"
+import { RadioButton } from "../controls/RadioButton"
+import { makeSelectionArray } from "../chart/ChartUtils.js"
+import {
+    DEFAULT_GRAPHER_ENTITY_TYPE,
+    DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
+    GRAPHER_ENTITY_SELECTOR_CLASS,
+    GRAPHER_SCROLLABLE_CONTAINER_CLASS,
+} from "../core/GrapherConstants"
+
+export interface EntitySelectorState {
+    searchInput: string
+    mostRecentlySelectedEntityName?: string
+}
 
 export interface EntitySelectorManager {
+    entitySelectorState: Partial<EntitySelectorState>
     selection: SelectionArray
     canChangeEntity: boolean
-    entitiesAreCountryLike?: boolean
+    entityType?: string
+    entityTypePlural?: string
 }
 
 interface SearchableEntity {
     name: string
 }
 
-interface SearchResultProps {
-    result: SearchableEntity
-    isMulti: boolean
-    isChecked: boolean
-    onSelect: (entityName: string) => void
-}
-
-class EntitySearchResult extends React.PureComponent<SearchResultProps> {
-    render(): JSX.Element {
-        const { result, isMulti, isChecked, onSelect } = this.props
-
-        if (isMulti) {
-            return (
-                <li>
-                    <Checkbox
-                        label={result.name}
-                        checked={isChecked}
-                        onChange={(): void => onSelect(result.name)}
-                    />
-                </li>
-            )
-        } else {
-            return (
-                <li
-                    className={"clickable" + (isChecked ? " selected" : "")}
-                    onClick={(): void => onSelect(result.name)}
-                >
-                    {result.name}
-                    {isChecked && <FontAwesomeIcon icon={faCheck} />}
-                </li>
-            )
-        }
-    }
+interface PartitionedEntities {
+    selected: string[]
+    unselected: string[]
 }
 
 @observer
@@ -60,22 +55,72 @@ export class EntitySelector extends React.Component<{
     onDismiss?: () => void
     autoFocus?: boolean
 }> {
-    @observable searchInput: string = ""
-    searchField!: HTMLInputElement
+    container: React.RefObject<HTMLDivElement> = React.createRef()
+    searchField: React.RefObject<HTMLInputElement> = React.createRef()
+
+    componentDidMount(): void {
+        if (this.props.autoFocus && !isTouchDevice())
+            this.searchField.current?.focus()
+
+        const scrollableContainer = this.container.current?.closest(
+            `.${GRAPHER_SCROLLABLE_CONTAINER_CLASS}`
+        )
+
+        // scroll to the top when the search input changes
+        reaction(
+            () => this.searchInput,
+            () => {
+                if (scrollableContainer) scrollableContainer.scrollTop = 0
+            }
+        )
+    }
+
+    private set(state: Partial<EntitySelectorState>): void {
+        this.manager.entitySelectorState = {
+            ...this.manager.entitySelectorState,
+            ...state,
+        }
+    }
+
+    private clearSearchInput(): void {
+        this.set({ searchInput: "" })
+    }
 
     @computed private get manager(): EntitySelectorManager {
         return this.props.manager
     }
 
+    @computed private get searchInput(): string {
+        return this.manager.entitySelectorState.searchInput ?? ""
+    }
+
+    @computed private get mostRecentlySelectedEntityName(): string | undefined {
+        return this.manager.entitySelectorState.mostRecentlySelectedEntityName
+    }
+
+    @computed private get entityType(): string {
+        return this.manager.entityType || DEFAULT_GRAPHER_ENTITY_TYPE
+    }
+
+    @computed private get entityTypePlural(): string {
+        return (
+            this.manager.entityTypePlural || DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
+        )
+    }
+
     @computed private get selectionArray(): SelectionArray {
-        return this.manager.selection
+        return makeSelectionArray(this.manager.selection)
     }
 
     @computed get sortedAvailableEntities(): string[] {
         return sortBy(this.selectionArray.availableEntityNames)
     }
 
-    @computed get isMulti(): boolean {
+    @computed private get searchableEntities(): SearchableEntity[] {
+        return this.sortedAvailableEntities.map((name) => ({ name }))
+    }
+
+    @computed get isMultiMode(): boolean {
         return !this.manager.canChangeEntity
     }
 
@@ -83,139 +128,310 @@ export class EntitySelector extends React.Component<{
         return new FuzzySearch(this.searchableEntities, "name")
     }
 
-    @computed private get searchableEntities(): SearchableEntity[] {
-        return this.sortedAvailableEntities.map((name) => {
-            return { name } as SearchableEntity
-        })
-    }
-
-    @computed get searchResults(): SearchableEntity[] {
+    @computed get searchResults(): SearchableEntity[] | undefined {
         return this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : this.searchableEntities
+            : undefined
     }
 
-    @action.bound onSelect(entityName: string): void {
-        if (this.isMulti) {
+    @computed get partitionedSearchResults(): PartitionedEntities | undefined {
+        const { searchResults } = this
+
+        if (!searchResults) return undefined
+
+        const [selected, unselected] = partition(
+            searchResults.map((entity) => entity.name),
+            (name) => this.isEntitySelected(name)
+        )
+
+        return { selected, unselected }
+    }
+
+    @computed get partitionedAvailableEntities(): PartitionedEntities {
+        const [selected, unselected] = partition(
+            this.sortedAvailableEntities,
+            (name) => this.isEntitySelected(name)
+        )
+
+        return { selected, unselected }
+    }
+
+    @computed get partitionedVisibleEntities(): PartitionedEntities {
+        return (
+            this.partitionedSearchResults ?? this.partitionedAvailableEntities
+        )
+    }
+
+    @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLElement>): void {
+        const { searchResults } = this
+        if (e.key === "Enter" && searchResults && searchResults.length > 0) {
+            this.onChange(searchResults[0].name)
+            this.clearSearchInput()
+        }
+    }
+
+    @action.bound onChange(entityName: string): void {
+        if (this.isMultiMode) {
             this.selectionArray.toggleSelection(entityName)
         } else {
             this.selectionArray.setSelectedEntities([entityName])
             if (this.props.onDismiss) this.props.onDismiss()
         }
-    }
 
-    componentDidMount(): void {
-        if (this.props.autoFocus && !isTouchDevice()) this.searchField.focus()
-    }
+        this.set({ mostRecentlySelectedEntityName: entityName })
 
-    @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLElement>): void {
-        if (e.key === "Enter" && this.searchResults.length > 0) {
-            this.onSelect(this.searchResults[0].name)
-            this.searchInput = ""
-        }
+        this.clearSearchInput()
     }
 
     @action.bound onClear(): void {
-        this.selectionArray.clearSelection()
+        const { partitionedSearchResults: searchResults } = this
+        if (this.searchInput) {
+            this.selectionArray.deselectEntities(searchResults?.selected ?? [])
+        } else {
+            this.selectionArray.clearSelection()
+        }
     }
 
-    renderSelectedData(): React.ReactNode {
-        const selectedEntityNames = this.selectionArray.selectedEntityNames
-
-        // only render something in isMulti mode
-        if (this.isMulti) {
-            return (
-                <div className="selectedData">
-                    {selectedEntityNames.length > 0 && (
-                        <div className="selectedLabel">Selection</div>
-                    )}
-                    <ul>
-                        {selectedEntityNames.map((name) => {
-                            return (
-                                <li key={name}>
-                                    <Checkbox
-                                        label={name}
-                                        checked={true}
-                                        onChange={(): void => {
-                                            this.onSelect(name)
-                                        }}
-                                    />
-                                </li>
-                            )
-                        })}
-                    </ul>
-                </div>
-            )
-        } else return undefined
-    }
-
-    render(): JSX.Element {
-        const { selectionArray, searchResults, searchInput } = this
-
+    private renderSearchBar(): JSX.Element {
         return (
-            <div
-                className={classnames(
-                    "EntitySelector",
-                    this.isMulti
-                        ? "EntitySelectorMulti"
-                        : "EntitySelectorSingle"
-                )}
-            >
-                <div className="searchBar">
-                    <div className="searchInput">
-                        <input
-                            type="search"
-                            placeholder="Search..."
-                            value={searchInput}
-                            onChange={(e): void => {
-                                this.searchInput = e.currentTarget.value
-                            }}
-                            onKeyDown={this.onSearchKeyDown}
-                            ref={(e): HTMLInputElement =>
-                                (this.searchField = e as HTMLInputElement)
-                            }
-                        />
-                        <FontAwesomeIcon icon={faMagnifyingGlass} />
-                    </div>
-                    {this.isMulti &&
-                    selectionArray.selectedEntityNames.length > 0 ? (
+            <div className="entity-selector__search-bar">
+                <div
+                    className={cx("search-input", {
+                        "search-input--empty": !this.searchInput,
+                    })}
+                >
+                    <input
+                        ref={this.searchField}
+                        type="search"
+                        placeholder={`Search for ${a(this.entityType)}`}
+                        value={this.searchInput}
+                        onChange={action((e): void => {
+                            this.set({
+                                searchInput: e.currentTarget.value,
+                            })
+                        })}
+                        onKeyDown={this.onSearchKeyDown}
+                    />
+                    <FontAwesomeIcon
+                        className="search-icon"
+                        icon={faMagnifyingGlass}
+                    />
+                    {this.searchInput && (
                         <button
-                            className="clearSelection"
-                            onClick={this.onClear}
+                            type="button"
+                            className="clear"
+                            onClick={action(() => this.clearSearchInput())}
                         >
-                            Clear selection
+                            <FontAwesomeIcon icon={faCircleXmark} />
                         </button>
-                    ) : undefined}
-                </div>
-
-                <div className="entities">
-                    <div className="searchResults">
-                        {searchResults.length > 0 ? (
-                            <ul>
-                                {searchResults.map((result) => (
-                                    <EntitySearchResult
-                                        key={result.name}
-                                        result={result}
-                                        isMulti={this.isMulti}
-                                        isChecked={selectionArray.selectedSet.has(
-                                            result.name
-                                        )}
-                                        onSelect={this.onSelect}
-                                    />
-                                ))}
-                            </ul>
-                        ) : (
-                            <div className="empty">
-                                {this.manager.entitiesAreCountryLike &&
-                                isCountryName(this.searchInput)
-                                    ? "There is no data for the country, region or group you are looking for."
-                                    : "Nothing turned up. You may want to try using different keywords or checking for typos."}
-                            </div>
-                        )}
-                    </div>
-                    {this.renderSelectedData()}
+                    )}
                 </div>
             </div>
         )
     }
+
+    private renderSearchResults(): JSX.Element {
+        if (!this.searchResults || this.searchResults.length === 0) {
+            return (
+                <div className="entity-search-results grapher_body-3-regular">
+                    There is no data for the {this.entityType} you are looking
+                    for. You may want to try using different keywords or
+                    checking for typos.
+                </div>
+            )
+        }
+
+        return (
+            <ul className="entity-search-results">
+                {this.searchResults.map(({ name }) => (
+                    <li key={name}>
+                        <SelectableEntity
+                            name={name}
+                            type={this.isMultiMode ? "checkbox" : "radio"}
+                            checked={this.isEntitySelected(name)}
+                            onChange={() => this.onChange(name)}
+                        />
+                    </li>
+                ))}
+            </ul>
+        )
+    }
+
+    private renderAllEntitiesInSingleMode(): JSX.Element {
+        return (
+            <ul>
+                {this.sortedAvailableEntities.map((name) => (
+                    <li key={name}>
+                        <SelectableEntity
+                            name={name}
+                            type="radio"
+                            checked={this.isEntitySelected(name)}
+                            onChange={() => this.onChange(name)}
+                        />
+                    </li>
+                ))}
+            </ul>
+        )
+    }
+
+    private isEntitySelected(name: string): boolean {
+        return this.selectionArray.selectedSet.has(name)
+    }
+
+    private renderAllEntitiesInMultiMode(): JSX.Element {
+        const { selected, unselected } = this.partitionedAvailableEntities
+
+        return (
+            <Flipper
+                spring={{
+                    stiffness: 300,
+                    damping: 33,
+                }}
+                flipKey={this.selectionArray.selectedEntityNames.join(",")}
+            >
+                {selected.length > 0 && (
+                    <Flipped flipId="__selection" translate opacity>
+                        <div className="section-title grapher_body-3-medium-italic">
+                            Selection
+                        </div>
+                    </Flipped>
+                )}
+                <ul>
+                    {selected.map((name) => (
+                        <Flipped key={name} flipId={name} translate opacity>
+                            <li
+                                className={cx("animated-entity", {
+                                    "most-recently-selected":
+                                        this.mostRecentlySelectedEntityName ===
+                                        name,
+                                })}
+                            >
+                                <SelectableEntity
+                                    name={name}
+                                    type="checkbox"
+                                    checked={true}
+                                    onChange={() => this.onChange(name)}
+                                />
+                            </li>
+                        </Flipped>
+                    ))}
+                </ul>
+
+                {selected.length > 0 && unselected.length > 0 && (
+                    <Flipped flipId="__available" translate opacity>
+                        <div className="section-title grapher_body-3-medium-italic grapher_light">
+                            {capitalize(this.entityTypePlural)}
+                        </div>
+                    </Flipped>
+                )}
+
+                <ul>
+                    {unselected.map((name) => (
+                        <Flipped key={name} flipId={name} translate opacity>
+                            <li
+                                className={cx("animated-entity", {
+                                    "most-recently-selected":
+                                        this.mostRecentlySelectedEntityName ===
+                                        name,
+                                })}
+                            >
+                                <SelectableEntity
+                                    name={name}
+                                    type="checkbox"
+                                    checked={false}
+                                    onChange={() => this.onChange(name)}
+                                />
+                            </li>
+                        </Flipped>
+                    ))}
+                </ul>
+            </Flipper>
+        )
+    }
+
+    private renderFooter(): JSX.Element {
+        const { numSelectedEntities, selectedEntityNames } = this.selectionArray
+        const { partitionedVisibleEntities: visibleEntities } = this
+
+        return (
+            <div className="entity-selector__footer">
+                {this.isMultiMode ? (
+                    <>
+                        <div className="footer__selected">
+                            {numSelectedEntities > 0
+                                ? `${numSelectedEntities} selected`
+                                : "Empty selection"}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={this.onClear}
+                            disabled={visibleEntities.selected.length === 0}
+                        >
+                            Clear
+                        </button>
+                    </>
+                ) : (
+                    <div className="footer__selected footer__selected--no-wrap">
+                        {selectedEntityNames.length > 0
+                            ? `Current selection: ${selectedEntityNames[0]}`
+                            : "Empty selection"}
+                    </div>
+                )}
+            </div>
+        )
+    }
+
+    render(): JSX.Element {
+        return (
+            <div
+                ref={this.container}
+                className={cx(GRAPHER_ENTITY_SELECTOR_CLASS, {
+                    "entity-selector--single": !this.isMultiMode,
+                })}
+            >
+                {this.renderSearchBar()}
+
+                <div className="entity-selector__content">
+                    {this.searchInput
+                        ? this.renderSearchResults()
+                        : this.isMultiMode
+                          ? this.renderAllEntitiesInMultiMode()
+                          : this.renderAllEntitiesInSingleMode()}
+                </div>
+
+                {this.renderFooter()}
+            </div>
+        )
+    }
+}
+
+function SelectableEntity({
+    name,
+    checked,
+    type,
+    onChange,
+}: {
+    name: React.ReactNode
+    checked: boolean
+    type: "checkbox" | "radio"
+    onChange: () => void
+}) {
+    const Input = {
+        checkbox: Checkbox,
+        radio: RadioButton,
+    }[type]
+
+    return (
+        <div
+            className="selectable-entity"
+            // make the whole row clickable
+            onClickCapture={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                onChange()
+            }}
+        >
+            <Input label={name} checked={checked} onChange={onChange} />
+        </div>
+    )
 }

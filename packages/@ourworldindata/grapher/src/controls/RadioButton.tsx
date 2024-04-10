@@ -1,25 +1,25 @@
 import React from "react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faCheck } from "@fortawesome/free-solid-svg-icons"
 
-export class Checkbox extends React.Component<{
+export class RadioButton extends React.Component<{
     checked: boolean
     onChange: React.ChangeEventHandler<HTMLInputElement>
     label: React.ReactNode
+    group?: string
 }> {
     render(): JSX.Element {
-        const { checked, onChange, label } = this.props
+        const { checked, onChange, label, group } = this.props
 
         return (
-            <div className="checkbox">
+            <div className="radio">
                 <label>
                     <input
-                        type="checkbox"
+                        type="radio"
+                        name={group}
                         checked={checked}
                         onChange={onChange}
                     />
-                    <div className="custom">
-                        {checked && <FontAwesomeIcon icon={faCheck} />}
+                    <div className="outer">
+                        {checked && <div className="inner" />}
                     </div>
                     <div className="label">{label}</div>
                 </label>

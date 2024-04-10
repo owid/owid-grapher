@@ -1,0 +1,52 @@
+.radio {
+    $radio-size: 16px;
+
+    $light-stroke: #a4b6ca;
+    $active-fill: #6e87a2;
+
+    position: relative;
+
+    input {
+        position: absolute;
+        opacity: 0;
+        left: 0;
+        cursor: pointer;
+        pointer-events: none;
+    }
+
+    .outer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: $radio-size;
+        height: $radio-size;
+
+        background: white;
+        pointer-events: none;
+        border-radius: 50%;
+        border: 1px solid $light-stroke;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .inner {
+            width: $radio-size / 2;
+            height: $radio-size / 2;
+            background-color: $active-fill;
+            border-radius: 50%;
+        }
+    }
+
+    input:focus-visible + .outer {
+        outline: 2px solid $controls-color;
+    }
+
+    .label {
+        @include grapher_label-2-regular;
+        padding-left: $radio-size + 8px;
+        cursor: pointer;
+        user-select: none;
+        color: $dark-text;
+    }
+}

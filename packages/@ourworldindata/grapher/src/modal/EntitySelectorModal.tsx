@@ -27,7 +27,7 @@ export class EntitySelectorModal extends React.Component<{
     }
 
     @computed private get modalBounds(): Bounds {
-        const maxWidth = this.manager.canChangeEntity ? 640 : 740
+        const maxWidth = 366
         const padWidth = Math.max(16, (this.frameBounds.width - maxWidth) / 2)
         return this.frameBounds.padHeight(16).padWidth(padWidth)
     }
