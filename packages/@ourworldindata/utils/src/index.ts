@@ -119,6 +119,7 @@ export {
     checkIsDataInsight,
     checkIsAuthor,
     cartesian,
+    removeTrailingParenthetical,
     isElementHidden,
 } from "./Util.js"
 

@@ -394,6 +394,25 @@
     }
 }
 
+.search-results__chart-hit-entities {
+    gap: 3px;
+    list-style: none;
+    font-size: 0.8em;
+
+    li {
+        display: inline;
+        color: $blue-50;
+
+        &::after {
+            content: ", ";
+        }
+
+        &:last-child::after {
+            content: "";
+        }
+    }
+}
+
 /*
 *  Tabs / Filtering
 **/
