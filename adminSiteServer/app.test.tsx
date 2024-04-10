@@ -15,6 +15,7 @@ jest.setTimeout(10000) // wait for up to 10s for the app server to start
 let testKnexInstance: Knex<any, unknown[]> | undefined = undefined
 let serverKnexInstance: Knex<any, unknown[]> | undefined = undefined
 let app: OwidAdminApp | undefined = undefined
+let cookieId: string = ""
 
 beforeAll(async () => {
     const dataSpec = {
@@ -38,6 +39,12 @@ beforeAll(async () => {
 
     app = new OwidAdminApp({ isDev: true, gitCmsDir: "", quiet: true })
     await app.startListening(8765, "localhost")
+    cookieId = (
+        await logInAsUser({
+            email: "admin@example.com",
+            id: 1,
+        })
+    ).id
 })
 
 afterAll((done: any) => {
@@ -56,17 +63,13 @@ describe("OwidAdminApp", () => {
         expect(app!.server).toBeTruthy()
     })
 
-    it("should be able to start the app", async () => {
+    it("should be able to fetch the version from the server", async () => {
         const _ = await knexReadonlyTransaction(
             async (trx) => {
-                const cookieId = await logInAsUser({
-                    email: "admin@example.com",
-                    id: 1,
-                })
                 const nodeVersion = await fetch(
                     "http://localhost:8765/admin/nodeVersion",
                     {
-                        headers: { cookie: `sessionid=${cookieId.id}` },
+                        headers: { cookie: `sessionid=${cookieId}` },
                     }
                 )
                 expect(nodeVersion.status).toBe(200)
@@ -76,5 +79,30 @@ describe("OwidAdminApp", () => {
             TransactionCloseMode.KeepOpen,
             testKnexInstance
         )
+    })
+
+    it("should be able to add a new chart via the api", async () => {
+        const _ = await knexReadonlyTransaction(async (trx) => {
+            const response = await fetch(
+                "http://localhost:8765/admin/api/charts",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        cookie: `sessionid=${cookieId}`,
+                    },
+                    body: JSON.stringify({
+                        title: "Test chart",
+                        slug: "test-chart",
+                        config: {
+                            type: "LineChart",
+                        },
+                    }),
+                }
+            )
+            expect(response.status).toBe(200)
+            const text = await response.json()
+            expect(text.success).toBe(true)
+        })
     })
 })
