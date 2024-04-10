@@ -89,10 +89,10 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             </li>
                             <li>
                                 <a
-                                    href="/about/how-to-use-our-world-in-data"
+                                    href="/faqs"
                                     data-track-note="footer_navigation"
                                 >
-                                    How to use
+                                    FAQs
                                 </a>
                             </li>
                             <li>
