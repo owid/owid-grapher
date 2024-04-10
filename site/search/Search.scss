@@ -321,20 +321,20 @@
 }
 
 .search-results__chart-hit-entities {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
+    gap: 3px;
     list-style: none;
-    font-size: 0.7em;
+    font-size: 0.8em;
 
     li {
-        background-color: $blue-10;
-        padding: 4px 8px;
-        border-radius: 12px;
-        color: $blue-90;
+        display: inline;
+        color: $blue-50;
 
-        svg {
-            margin-right: 4px;
+        &::after {
+            content: ", ";
+        }
+
+        &:last-child::after {
+            content: "";
         }
     }
 }
