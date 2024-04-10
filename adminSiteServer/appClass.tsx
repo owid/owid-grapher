@@ -64,7 +64,6 @@ export class OwidAdminApp {
     }
 
     async startListening(adminServerPort: number, adminServerHost: string) {
-        console.error("preparing to listen")
         this.gitCmsBranchName = await this.getGitCmsBranchName()
         let bugsnagMiddleware
 
@@ -165,14 +164,11 @@ export class OwidAdminApp {
 
         await this.connectToDatabases()
 
-        console.error("setting up listening")
-
         this.server = await this.listenPromise(
             app,
             adminServerPort,
             adminServerHost
         )
-        console.error("listening")
         this.server.timeout = 5 * 60 * 1000 // Increase server timeout for long-running uploads
 
         if (!this.options.quiet)
@@ -227,9 +223,7 @@ export class OwidAdminApp {
 
     connectToDatabases = async () => {
         try {
-            console.error("connecting to db")
             const _ = db.knexInstance()
-            console.error("connected")
         } catch (error) {
             // grapher database is in fact required, but we will not fail now in case it
             // comes online later
