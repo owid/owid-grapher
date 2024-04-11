@@ -37,3 +37,37 @@
         }
     }
 }
+
+// Override for topic pill row on author page
+.author-work .article-block__pill-row {
+    background-color: $blue-95;
+
+    .article-block__pill-row-interior {
+        flex-direction: column;
+        padding: 0 0 24px;
+    }
+
+    p {
+        color: $blue-40;
+        line-height: normal;
+        margin-bottom: 16px;
+        white-space: normal; // reset default nowrap for heading (useful on mobile)
+    }
+
+    ul {
+        @include md-up {
+            flex-wrap: wrap;
+            row-gap: 8px;
+        }
+    }
+
+    .article-block__pill {
+        a {
+            color: $white;
+            background-color: $blue-65;
+            &:hover {
+                background-color: $blue-90;
+            }
+        }
+    }
+}
