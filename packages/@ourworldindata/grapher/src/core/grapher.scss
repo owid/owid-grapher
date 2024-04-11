@@ -204,6 +204,25 @@ $zindex-controls-drawer: 150;
     z-index: $zindex-Tooltip;
 }
 
+// white background tooltip for longer explanations
+// (the `--short` version has a little less padding)
+.tippy-box[data-theme="grapher-explanation"],
+.tippy-box[data-theme="grapher-explanation--short"] {
+    background: white;
+    color: $dark-text;
+    font: 400 14px/1.5 $sans-serif-font-stack;
+    box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
+
+    .tippy-arrow {
+        color: white;
+    }
+}
+.tippy-box[data-theme="grapher-explanation"] {
+    .tippy-content {
+        padding: 15px;
+    }
+}
+
 .markdown-text-wrap__line {
     display: block;
 }
