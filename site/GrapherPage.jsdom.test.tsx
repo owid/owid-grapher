@@ -4,7 +4,6 @@ import { GrapherInterface } from "@ourworldindata/types"
 import {
     DimensionProperty,
     KeyChartLevel,
-    DbEnrichedPost,
     RelatedChart,
 } from "@ourworldindata/utils"
 import React from "react"
@@ -30,21 +29,10 @@ const mockGrapher: GrapherInterface = {
 }
 
 let grapher: GrapherInterface
-let post: DbEnrichedPost
 let relatedCharts: RelatedChart[]
 
 beforeAll(() => {
     grapher = mockGrapher
-    post = {
-        id: 2681,
-        title: "Hunger and Undernourishment",
-        slug: "hunger-and-undernourishment",
-        published_at: "Tue Oct 08 2013 17:22:54 GMT+0000 (GMT)",
-        status: "publish",
-        type: "page",
-        updated_at: "Wed Mar 25 2020 14:11:30 GMT+0000 (GMT)",
-        content: "",
-    } as any
     relatedCharts = [
         {
             title: "Chart 1",
@@ -66,7 +54,6 @@ describe("when the page is rendered", () => {
         () =>
             (view = Enzyme.shallow(
                 <GrapherPage
-                    post={post}
                     grapher={grapher}
                     relatedCharts={relatedCharts}
                     baseGrapherUrl={"/grapher/"}

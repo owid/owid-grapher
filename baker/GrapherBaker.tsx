@@ -332,11 +332,10 @@ const renderGrapherPage = async (
     knex: db.KnexReadonlyTransaction
 ) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
-    const post = postSlug
-        ? await getPostEnrichedBySlug(knex, postSlug)
-        : undefined
-    const relatedCharts = post
-        ? await getPostRelatedCharts(knex, post.id)
+    // TODO: update this to use gdocs posts
+    const postId = await db.getPostIdFromSlug(knex, postSlug)
+    const relatedCharts = postId
+        ? await getPostRelatedCharts(knex, postId)
         : undefined
     const relatedArticles = grapher.id
         ? await getRelatedArticles(knex, grapher.id)
@@ -345,7 +344,6 @@ const renderGrapherPage = async (
     return renderToHtmlPage(
         <GrapherPage
             grapher={grapher}
-            post={post}
             relatedCharts={relatedCharts}
             relatedArticles={relatedArticles}
             baseUrl={BAKED_BASE_URL}
@@ -489,6 +487,7 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
                     id, config, config->>'$.slug' as slug
                 FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
                 ORDER BY JSON_EXTRACT(config, "$.slug") ASC
+                LIMIT 1000
                 `
             )
 

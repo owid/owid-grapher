@@ -401,7 +401,7 @@ export const getGdocsPostReferencesByChartId = async (
                 )
             WHERE
                 c.id = ?
-                AND pg.content ->> '$.type' NOT IN (
+                AND pg.type NOT IN (
                     '${OwidGdocType.Fragment}',
                     '${OwidGdocType.AboutPage}',
                     '${OwidGdocType.DataInsight}'
@@ -596,7 +596,7 @@ export const getLatestWorkByAuthor = async (
         WHERE
             pg.content ->> '$.authors' LIKE ?
             AND pg.published = TRUE
-            AND pg.content->>'$.type' = "${OwidGdocType.Article}"
+            AND pg.type = "${OwidGdocType.Article}"
         `,
         [`%${author}%`]
     )

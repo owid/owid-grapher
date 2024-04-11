@@ -243,7 +243,7 @@ export const getPublishedDataInsights = (
             slug,
             ROW_NUMBER() OVER (ORDER BY publishedAt DESC) - 1 AS \`index\`
         FROM posts_gdocs
-        WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
+        WHERE type = '${OwidGdocType.DataInsight}'
             AND published = TRUE
             AND publishedAt < NOW()
         ORDER BY publishedAt DESC
@@ -266,7 +266,7 @@ export const getPublishedDataInsightCount = (
         `
         SELECT COUNT(*) AS count
         FROM posts_gdocs
-        WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
+        WHERE type = '${OwidGdocType.DataInsight}'
             AND published = TRUE
             AND publishedAt < NOW()`
     ).then((res) => res?.count ?? 0)
@@ -313,7 +313,7 @@ export const getHomepageId = (
         FROM
             posts_gdocs
         WHERE
-            content->>'$.type' = '${OwidGdocType.Homepage}'
+            type = '${OwidGdocType.Homepage}'
             AND published = TRUE`
     ).then((result) => result?.id)
 }
@@ -447,4 +447,21 @@ export const getNonGrapherExplorerViewCount = (
             AND type = "graphers"
             AND grapherId IS NULL`
     ).then((res) => res?.count ?? 0)
+}
+
+export const getPostIdFromSlug = (
+    knex: KnexReadonlyTransaction,
+    slug: string
+): Promise<number | undefined> => {
+    return knexRawFirst<{ id: number }>(
+        knex,
+        `-- sql
+        SELECT
+            id
+        FROM
+            posts
+        WHERE
+            slug = ?`,
+        [slug]
+    ).then((result) => result?.id)
 }
