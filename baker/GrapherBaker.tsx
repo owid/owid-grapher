@@ -488,7 +488,6 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
                 SELECT
                     id, config, config->>'$.slug' as slug
                 FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
-                AND slug = 'living-planet-index-by-region'
                 ORDER BY JSON_EXTRACT(config, "$.slug") ASC
                 `
             )
