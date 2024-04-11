@@ -9,7 +9,7 @@ import {
     ALGOLIA_INDEXING,
     ALGOLIA_SECRET_KEY,
 } from "../../settings/serverSettings.js"
-import { countries, excludeUndefined } from "@ourworldindata/utils"
+import { countries, regions, excludeUndefined } from "@ourworldindata/utils"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 
@@ -24,6 +24,11 @@ export const getAlgoliaClient = (): SearchClient | undefined => {
     const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
     return client
 }
+
+const allCountryNamesAndVariants = regions.flatMap((country) => [
+    country.name,
+    ...(("variantNames" in country && country.variantNames) || []),
+])
 
 // This function initializes and applies settings to the Algolia search indices
 // Algolia settings should be configured here rather than in the Algolia dashboard UI, as then
@@ -164,6 +169,7 @@ export const configureAlgolia = async () => {
         attributeForDistinct: "explorerSlug",
         distinct: 4,
         minWordSizefor1Typo: 6,
+        optionalWords: allCountryNamesAndVariants,
     })
 
     const synonyms = [
