@@ -67,6 +67,18 @@ const countriesBySlug: Record<string, Country> = Object.fromEntries(
     countries.map((country) => [country.slug, country])
 )
 
+const regionsByNameOrVariantNameLowercase: Map<string, Region> = new Map(
+    regions.flatMap((region) => {
+        const names = [region.name.toLowerCase()]
+        if ("variantNames" in region && region.variantNames) {
+            names.push(
+                ...region.variantNames.map((variant) => variant.toLowerCase())
+            )
+        }
+        return names.map((name) => [name, region])
+    })
+)
+
 const currentAndHistoricalCountryNames = regions
     .filter(({ regionType }) => regionType === "country")
     .map(({ name }) => name.toLowerCase())
@@ -76,3 +88,8 @@ export const isCountryName = (name: string): boolean =>
 
 export const getCountryBySlug = (slug: string): Country | undefined =>
     countriesBySlug[slug]
+
+export const getRegionByNameOrVariantName = (
+    nameOrVariantName: string
+): Region | undefined =>
+    regionsByNameOrVariantNameLowercase.get(nameOrVariantName.toLowerCase())
