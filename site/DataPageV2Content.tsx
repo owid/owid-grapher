@@ -186,13 +186,6 @@ export const DataPageV2Content = ({
         canonicalUrl
     )
 
-    const {
-        linkedDocuments = {},
-        linkedCharts = {},
-        linkedIndicators = {},
-        relatedCharts = [],
-    } = faqEntries ?? {}
-
     const adaptedFrom =
         producers.length > 0 ? producers.join(", ") : datapageData.source?.name
 
@@ -249,11 +242,11 @@ export const DataPageV2Content = ({
     return (
         <AttachmentsContext.Provider
             value={{
-                linkedDocuments,
+                linkedDocuments: {},
                 imageMetadata,
-                linkedCharts,
-                linkedIndicators,
-                relatedCharts,
+                linkedCharts: {},
+                linkedIndicators: {},
+                relatedCharts: [],
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
