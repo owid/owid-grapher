@@ -321,19 +321,20 @@ export const configureAlgolia = async () => {
         } as Synonym
     })
 
-    // Send all our country variant names to algolia as one-way synonyms
+    // Add synonyms for all country names and their variants, e.g. "US" <-> "USA" <-> "United States"
     for (const country of countries) {
         const alternatives = excludeUndefined([
             country.shortName,
             ...(country.variantNames ?? []),
         ])
-        for (const alternative of alternatives)
+        if (alternatives.length) {
+            const synonyms = [country.name, ...alternatives]
             algoliaSynonyms.push({
-                objectID: `${alternative}->${country.name}`,
-                type: "oneWaySynonym",
-                input: alternative,
-                synonyms: [country.name],
+                objectID: synonyms.join("-"),
+                type: "synonym",
+                synonyms: synonyms,
             })
+        }
     }
 
     await pagesIndex.saveSynonyms(algoliaSynonyms, {
