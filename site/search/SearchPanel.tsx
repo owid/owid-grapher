@@ -12,6 +12,7 @@ import {
     EntityName,
     Url,
     Region,
+    sortBy,
 } from "@ourworldindata/utils"
 import {
     InstantSearch,
@@ -589,10 +590,11 @@ const SearchResults = (props: SearchResultsProps) => {
         return () => document.removeEventListener("click", handleHitClick)
     }, [queryID, handleHitClick])
 
-    const searchQueryRegionsMatches = useMemo(
-        () => extractCountryNamesFromSearchQuery(props.query) ?? undefined,
-        [props.query]
-    )
+    const searchQueryRegionsMatches = useMemo(() => {
+        const extractedRegions = extractCountryNamesFromSearchQuery(props.query)
+        if (!extractedRegions) return undefined
+        return sortBy(extractedRegions, (r) => r.name) // For some deterministic order
+    }, [props.query])
     if (isHidden) return null
 
     const hasClickAnalyticsConsent = getPreferenceValue(
