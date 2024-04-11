@@ -18,9 +18,10 @@
         flex-wrap: nowrap;
     }
     .article-block__pill {
-        &:not(:last-child) {
-            margin-right: 8px;
-        }
+        // margin-right is not visible on the last pill when overflowing, which
+        // causes the pill to be flush with the edge of the viewport.
+        // Using padding-right instead to work around this.
+        padding-right: 8px;
         a {
             color: $blue-100;
             background-color: #fff;
