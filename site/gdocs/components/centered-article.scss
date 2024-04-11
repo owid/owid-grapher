@@ -987,45 +987,6 @@ div.raw-html-table__container {
     }
 }
 
-.article-block__pill-row {
-    background-color: $blue-20;
-    scrollbar-width: none;
-    overflow-x: auto;
-    .article-block__pill-row-interior {
-        display: flex;
-        padding: 8px 0;
-    }
-    p {
-        color: $blue-60;
-        margin: 0 9px 0 0;
-        line-height: 32px;
-        white-space: nowrap;
-    }
-    ul {
-        list-style: none;
-        display: flex;
-        flex-wrap: nowrap;
-    }
-    .article-block__pill {
-        &:not(:last-child) {
-            margin-right: 8px;
-        }
-        a {
-            color: $blue-100;
-            background-color: #fff;
-            line-height: 2rem;
-            padding: 0 16px;
-            display: inline-block;
-            transition: background-color 250ms;
-            border-radius: 32px;
-            white-space: nowrap;
-            &:hover {
-                background-color: $blue-5;
-            }
-        }
-    }
-}
-
 .article-block__homepage-search {
     background-image: url("https://ourworldindata.org/images/world.svg");
     background-color: $blue-100;
