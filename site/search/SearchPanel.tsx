@@ -100,11 +100,15 @@ function PagesHit({ hit }: { hit: IPageHit }) {
     )
 }
 
-const getChartQueryStr = (slug: string, entities: EntityName[]) => {
-    if (entities.length === 0) return ""
+const getEntityQueryStr = (
+    entities: EntityName[] | null | undefined,
+    existingQueryStr: string = ""
+) => {
+    if (!entities?.length) return existingQueryStr
     else {
         return setSelectedEntityNamesParam(
-            Url.fromQueryParams({
+            // If we have any entities pre-selected, we want to show the chart tab
+            Url.fromQueryStr(existingQueryStr).updateQueryParams({
                 tab: "chart",
             }),
             entities
@@ -121,10 +125,7 @@ function ChartHit({ hit }: { hit: IChartHit }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [hit._highlightResult?.availableEntities]
     )
-    const queryStr = useMemo(
-        () => getChartQueryStr(hit.slug, entities),
-        [hit.slug, entities]
-    )
+    const queryStr = useMemo(() => getEntityQueryStr(entities), [entities])
     const previewUrl = queryStr
         ? `/grapher/thumbnail/${hit.slug}${queryStr}` // TODO extract to .env
         : `${BAKED_GRAPHER_URL}/exports/${hit.slug}.svg`
@@ -198,7 +199,11 @@ interface GroupedExplorerViews {
 const getNumberOfExplorerHits = (rawHits: IExplorerViewHit[]) =>
     uniqBy(rawHits, "explorerSlug").length
 
-function ExplorerViewHits() {
+function ExplorerViewHits({
+    entitiesToPreSelect,
+}: {
+    entitiesToPreSelect?: string[]
+}) {
     const { hits } = useHits<IExplorerViewHit>()
 
     const groupedHits = useMemo(() => {
@@ -236,6 +241,7 @@ function ExplorerViewHits() {
                         groupedHit={group}
                         key={group.explorerSlug}
                         cardPosition={i}
+                        entitiesToPreSelect={entitiesToPreSelect}
                     />
                 ))}
             </div>
@@ -246,14 +252,16 @@ function ExplorerViewHits() {
 function ExplorerHit({
     groupedHit,
     cardPosition,
+    entitiesToPreSelect,
 }: {
     groupedHit: GroupedExplorerViews
     cardPosition: number
+    entitiesToPreSelect?: string[]
 }) {
     const firstHit = groupedHit.views[0]
 
     const exploreAllProps = {
-        href: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}`,
+        href: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}${getEntityQueryStr(entitiesToPreSelect)}`,
         "data-algolia-index": getIndexName(SearchIndexName.ExplorerViews),
         "data-algolia-object-id": firstHit.objectID,
         "data-algolia-position": firstHit.hitPositionOverall,
@@ -301,7 +309,7 @@ function ExplorerHit({
                                 view.hitPositionWithinCard + 1
                             }
                             data-algolia-event-name="click_explorer_view"
-                            href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${view.explorerSlug}${view.viewQueryParams}`}
+                            href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${view.explorerSlug}${getEntityQueryStr(entitiesToPreSelect, view.viewQueryParams)}`}
                             className="search-results__explorer-view-title-container"
                         >
                             <Highlight
@@ -669,7 +677,11 @@ const SearchResults = (props: SearchResultsProps) => {
                                 ) => getNumberOfExplorerHits(results.hits)}
                             />
                         </header>
-                        <ExplorerViewHits />
+                        <ExplorerViewHits
+                            entitiesToPreSelect={searchQueryRegionsMatches?.map(
+                                (region) => region.code
+                            )}
+                        />
                     </section>
                 </NoResultsBoundary>
             </Index>
