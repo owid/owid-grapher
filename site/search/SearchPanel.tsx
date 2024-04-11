@@ -41,6 +41,7 @@ import {
     IPageHit,
     pageTypeDisplayNames,
     IExplorerViewHit,
+    PageRecord,
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -64,7 +65,10 @@ import {
     setSelectedEntityNamesParam,
 } from "@ourworldindata/grapher"
 import type { SearchResults as AlgoliaSearchResultsType } from "algoliasearch-helper"
-import { pickEntitiesForChartHit } from "./SearchUtils.js"
+import {
+    extractCountryNamesFromSearchQuery,
+    pickEntitiesForChartHit,
+} from "./SearchUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 
 const siteAnalytics = new SiteAnalytics()
@@ -458,6 +462,13 @@ interface SearchResultsProps {
     query: string
 }
 
+const PAGES_ATTRIBUTES_TO_SEARCH_NO_FULLTEXT: (keyof PageRecord)[] = [
+    "title",
+    "excerpt",
+    "tags",
+    "authors",
+] // Should be a subset of the `searchableAttributes` set up in `configureAlgolia` for the `pages` index; minus the "content" attribute
+
 const SearchResults = (props: SearchResultsProps) => {
     const {
         results: { queryID },
@@ -548,6 +559,11 @@ const SearchResults = (props: SearchResultsProps) => {
         document.addEventListener("click", handleHitClick)
         return () => document.removeEventListener("click", handleHitClick)
     }, [queryID, handleHitClick])
+
+    const searchQueryRegionsMatches = useMemo(
+        () => extractCountryNamesFromSearchQuery(props.query),
+        [props.query]
+    )
     if (isHidden) return null
 
     const hasClickAnalyticsConsent = getPreferenceValue(
@@ -559,37 +575,44 @@ const SearchResults = (props: SearchResultsProps) => {
             className="search-results"
             data-active-filter={activeCategoryFilter}
         >
-            {/* This is using the InstantSearch index specified in InstantSearchContainer */}
-            <Configure
-                hitsPerPage={40}
-                distinct
-                clickAnalytics={hasClickAnalyticsConsent}
-            />
-            <NoResultsBoundary>
-                <section className="search-results__pages">
-                    <header className="search-results__header">
-                        <h2 className="h2-bold search-results__section-title">
-                            Research & Writing
-                        </h2>
-                        <ShowMore
-                            category={SearchIndexName.Pages}
-                            cutoffNumber={4}
-                            activeCategoryFilter={activeCategoryFilter}
-                            handleCategoryFilterClick={
-                                handleCategoryFilterClick
-                            }
+            <Index indexName={getIndexName(SearchIndexName.Pages)}>
+                <Configure
+                    hitsPerPage={40}
+                    distinct
+                    clickAnalytics={hasClickAnalyticsConsent}
+                    // If we detect a country/region name in the query, we don't run a fulltext search
+                    restrictSearchableAttributes={
+                        searchQueryRegionsMatches
+                            ? PAGES_ATTRIBUTES_TO_SEARCH_NO_FULLTEXT
+                            : undefined
+                    }
+                />
+                <NoResultsBoundary>
+                    <section className="search-results__pages">
+                        <header className="search-results__header">
+                            <h2 className="h2-bold search-results__section-title">
+                                Research & Writing
+                            </h2>
+                            <ShowMore
+                                category={SearchIndexName.Pages}
+                                cutoffNumber={4}
+                                activeCategoryFilter={activeCategoryFilter}
+                                handleCategoryFilterClick={
+                                    handleCategoryFilterClick
+                                }
+                            />
+                        </header>
+                        <Hits
+                            classNames={{
+                                root: "search-results__list-container",
+                                list: "search-results__pages-list grid grid-cols-2 grid-sm-cols-1",
+                                item: "search-results__page-hit",
+                            }}
+                            hitComponent={PagesHit}
                         />
-                    </header>
-                    <Hits
-                        classNames={{
-                            root: "search-results__list-container",
-                            list: "search-results__pages-list grid grid-cols-2 grid-sm-cols-1",
-                            item: "search-results__page-hit",
-                        }}
-                        hitComponent={PagesHit}
-                    />
-                </section>
-            </NoResultsBoundary>
+                    </section>
+                </NoResultsBoundary>
+            </Index>
             <Index indexName={getIndexName(SearchIndexName.Charts)}>
                 <Configure
                     hitsPerPage={40}
