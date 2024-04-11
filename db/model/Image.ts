@@ -18,6 +18,9 @@ import {
     DbInsertImage,
     serializeImageRow,
     ImagesTableName,
+    merge,
+    pick,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import { OwidGoogleAuth } from "../OwidGoogleAuth.js"
 import {
@@ -30,87 +33,131 @@ import {
     GDOCS_SHARED_DRIVE_ID,
 } from "../../settings/serverSettings.js"
 import { KnexReadWriteTransaction, KnexReadonlyTransaction } from "../db.js"
+import { at } from "lodash"
 
 class ImageStore {
     images: Record<string, ImageMetadata> | undefined
+    hasInitialized: boolean = false
+    isFetchingFromGoogleDrive: boolean = false
 
-    async fetchImageMetadata(filenames: string[]): Promise<void> {
-        console.log(
-            `Fetching image metadata from Google Drive ${
-                filenames.length ? `for ${filenames.join(", ")}` : ""
-            }`
+    constructor() {
+        setInterval(
+            async () => {
+                await this.fetchImageMetadata([])
+            },
+            60 * 60 * 1000
         )
-        const driveClient = google.drive({
-            version: "v3",
-            auth: OwidGoogleAuth.getGoogleReadonlyAuth(),
-        })
-        // e.g. `and (name="example.png" or name="image.svg")`
-        // https://developers.google.com/drive/api/guides/search-files#examples
-        const filenamesFilter = filenames.length
-            ? `and (${filenames
-                  .map((filename) => `name='${filename}'`)
-                  .join(" or ")})`
-            : ""
+    }
 
-        const listParams: drive_v3.Params$Resource$Files$List = {
-            fields: "nextPageToken, files(id, name, description, modifiedTime, imageMediaMetadata, trashed)",
-            q: `'${GDOCS_CLIENT_EMAIL}' in readers and mimeType contains 'image/' ${filenamesFilter}`,
-            driveId: GDOCS_SHARED_DRIVE_ID,
-            corpora: "drive",
-            supportsAllDrives: true,
-            includeItemsFromAllDrives: true,
-            pageSize: 1000,
+    async init(): Promise<void> {
+        // only one init at a time
+        while (this.isFetchingFromGoogleDrive) {
+            await new Promise((resolve) => setTimeout(resolve, 100))
         }
-
-        let files: drive_v3.Schema$File[] = []
-        let nextPageToken: drive_v3.Schema$FileList["nextPageToken"] = undefined
-        let isInitialQuery = true
-
-        while (nextPageToken || isInitialQuery) {
-            await driveClient.files
-                .list({
-                    ...listParams,
-                    pageToken: nextPageToken,
-                })
-                // chaining this so that reassigning nextPageToken doesn't trip up TypeScript
-                .then((res) => {
-                    const nextFiles = res.data.files ?? []
-                    nextPageToken = res.data.nextPageToken
-                    files = [...files, ...nextFiles]
-                })
-            isInitialQuery = false
+        if (!this.hasInitialized) {
+            console.log("Initializing image store")
+            await this.fetchImageMetadata([])
+            this.hasInitialized = true
         }
+        return
+    }
 
-        function validateImage(
-            image: drive_v3.Schema$File
-        ): image is GDriveImageMetadata {
-            return Boolean(
-                image.id && image.name && image.modifiedTime && !image.trashed
+    async fetchImageMetadata(
+        filenames: string[]
+    ): Promise<Record<string, ImageMetadata | undefined>> {
+        this.isFetchingFromGoogleDrive = true
+        try {
+            console.log(
+                `Fetching image metadata from Google Drive ${
+                    filenames.length ? `for ${filenames.join(", ")}` : ""
+                }`
             )
-        }
+            const driveClient = google.drive({
+                version: "v3",
+                auth: OwidGoogleAuth.getGoogleReadonlyAuth(),
+            })
+            // e.g. `and (name="example.png" or name="image.svg")`
+            // https://developers.google.com/drive/api/guides/search-files#examples
+            const filenamesFilter = filenames.length
+                ? `and (${filenames
+                      .map((filename) => `name='${filename}'`)
+                      .join(" or ")})`
+                : ""
 
-        const images: ImageMetadata[] = files
-            .filter(validateImage)
-            .map((google: GDriveImageMetadata) => ({
-                googleId: google.id,
-                filename: google.name,
-                defaultAlt: google.description ?? "",
-                updatedAt: new Date(google.modifiedTime).getTime(),
-                originalWidth: google.imageMediaMetadata?.width,
-                originalHeight: google.imageMediaMetadata?.height,
-            }))
+            const listParams: drive_v3.Params$Resource$Files$List = {
+                fields: "nextPageToken, files(id, name, description, modifiedTime, imageMediaMetadata, trashed)",
+                q: `'${GDOCS_CLIENT_EMAIL}' in readers and mimeType contains 'image/' ${filenamesFilter}`,
+                driveId: GDOCS_SHARED_DRIVE_ID,
+                corpora: "drive",
+                supportsAllDrives: true,
+                includeItemsFromAllDrives: true,
+                pageSize: 1000,
+            }
 
-        const duplicateFilenames = findDuplicates(
-            images.map((image) => image.filename)
-        )
+            let files: drive_v3.Schema$File[] = []
+            let nextPageToken: drive_v3.Schema$FileList["nextPageToken"] =
+                undefined
+            let isInitialQuery = true
 
-        if (duplicateFilenames.length) {
-            throw new Error(
-                `Multiple images are named ${duplicateFilenames.join(", ")}`
+            while (nextPageToken || isInitialQuery) {
+                await driveClient.files
+                    .list({
+                        ...listParams,
+                        pageToken: nextPageToken,
+                    })
+                    // chaining this so that reassigning nextPageToken doesn't trip up TypeScript
+                    .then((res) => {
+                        const nextFiles = res.data.files ?? []
+                        nextPageToken = res.data.nextPageToken
+                        files = [...files, ...nextFiles]
+                    })
+                isInitialQuery = false
+            }
+
+            function validateImage(
+                image: drive_v3.Schema$File
+            ): image is GDriveImageMetadata {
+                return Boolean(
+                    image.id &&
+                        image.name &&
+                        image.modifiedTime &&
+                        !image.trashed
+                )
+            }
+
+            const images: ImageMetadata[] = files
+                .filter(validateImage)
+                .map((google: GDriveImageMetadata) => ({
+                    googleId: google.id,
+                    filename: google.name,
+                    defaultAlt: google.description ?? "",
+                    updatedAt: new Date(google.modifiedTime).getTime(),
+                    originalWidth: google.imageMediaMetadata?.width,
+                    originalHeight: google.imageMediaMetadata?.height,
+                }))
+
+            const duplicateFilenames = findDuplicates(
+                images.map((image) => image.filename)
             )
-        }
 
-        this.images = keyBy(images, "filename")
+            if (duplicateFilenames.length) {
+                this.isFetchingFromGoogleDrive = false
+                throw new Error(
+                    `Multiple images are named ${duplicateFilenames.join(", ")}`
+                )
+            }
+
+            this.images = merge(this.images, keyBy(images, "filename"))
+            console.log(
+                `Fetched ${images.length} images' metadata from Google Drive`
+            )
+            return this.images
+        } catch (error) {
+            console.error(`Error fetching image metadata`, error)
+            throw error
+        } finally {
+            this.isFetchingFromGoogleDrive = false
+        }
     }
 
     async syncImagesToS3(
@@ -128,6 +175,11 @@ class ImageStore {
 
 export const imageStore = new ImageStore()
 
+export async function getImageStore(): Promise<ImageStore> {
+    await imageStore.init()
+    return imageStore
+}
+
 export const s3Client = new S3Client({
     endpoint: IMAGE_HOSTING_R2_ENDPOINT,
     forcePathStyle: false,
@@ -137,6 +189,7 @@ export const s3Client = new S3Client({
         secretAccessKey: IMAGE_HOSTING_R2_SECRET_ACCESS_KEY,
     },
 })
+
 export class Image implements ImageMetadata {
     id!: number
     googleId!: string
@@ -296,4 +349,22 @@ export async function insertImageObject(
 ): Promise<number> {
     const [id] = await knex.table("images").insert(image)
     return id
+}
+
+export async function fetchImagesFromDriveAndSyncToS3(
+    knex: KnexReadWriteTransaction,
+    filenames: string[] = []
+): Promise<Image[]> {
+    if (!filenames.length) return []
+
+    const imageStore = await getImageStore()
+    await imageStore.fetchImageMetadata(filenames)
+    const images = at(imageStore.images, filenames).filter(Boolean)
+
+    return Promise.all(images.map((i) => Image.syncImage(knex, i)))
+        .then(excludeUndefined)
+        .catch((e) => {
+            console.error(`Error syncing images to S3`, e)
+            return []
+        })
 }

@@ -100,7 +100,10 @@ import {
     getVariableMetadata,
     getVariableOfDatapageIfApplicable,
 } from "../db/model/Variable.js"
-import { getAllMinimalGdocBaseObjects } from "../db/model/Gdoc/GdocFactory.js"
+import {
+    gdocFromJSON,
+    getAllMinimalGdocBaseObjects,
+} from "../db/model/Gdoc/GdocFactory.js"
 import { getBakePath } from "@ourworldindata/components"
 import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
 import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
@@ -486,7 +489,10 @@ export class SiteBaker {
     // TODO: this transaction is only RW because somewhere inside it we fetch images
     async bakeGDocPosts(knex: db.KnexReadWriteTransaction, slugs?: string[]) {
         if (!this.bakeSteps.has("gdocPosts")) return
-        const publishedGdocs = await GdocPost.getPublishedGdocPosts(knex)
+        // We don't need to load these as we prefetch all attachments
+        const publishedGdocs = await db
+            .getPublishedGdocPosts(knex)
+            .then((gdocs) => gdocs.map(gdocFromJSON))
 
         const gdocsToBake =
             slugs !== undefined
@@ -519,7 +525,9 @@ export class SiteBaker {
             publishedGdoc.linkedIndicators = attachments.linkedIndicators
 
             // this is a no-op if the gdoc doesn't have an all-chart block
-            await publishedGdoc.loadRelatedCharts(knex)
+            if ("loadRelatedCharts" in publishedGdoc) {
+                await publishedGdoc.loadRelatedCharts(knex)
+            }
 
             await publishedGdoc.validate(knex)
             if (

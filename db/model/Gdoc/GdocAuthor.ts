@@ -40,16 +40,14 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         return blocks
     }
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
     _loadSubclassAttachments = (
-        knex: db.KnexReadWriteTransaction
+        knex: db.KnexReadonlyTransaction
     ): Promise<void> => {
         return this.loadLatestWorkImages(knex)
     }
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
     loadLatestWorkImages = async (
-        knex: db.KnexReadWriteTransaction
+        knex: db.KnexReadonlyTransaction
     ): Promise<void> => {
         if (!this.content.title) return
 
@@ -74,7 +72,7 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         // Load the image metadata for the latest work images, including the
         // default featured image which is used as a fallback in the entire
         // research and writing block
-        return super.loadImageMetadata(knex, [
+        return super.loadImageMetadataFromDB(knex, [
             ...latestWorkImageFilenames,
             DEFAULT_GDOC_FEATURED_IMAGE,
         ])

@@ -1,3 +1,4 @@
+import fs from "fs"
 import * as db from "../../db"
 import { getUrlTarget } from "@ourworldindata/components"
 import {
@@ -32,7 +33,6 @@ import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { google } from "googleapis"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
-import { imageStore } from "../Image.js"
 import { getChartConfigById, mapSlugsToIds } from "../Chart.js"
 import {
     BAKED_BASE_URL,
@@ -86,9 +86,8 @@ export class GdocBase implements OwidGdocBaseInterface {
     ) => Promise<OwidGdocErrorMessage[]> = async () => []
     _omittableFields: string[] = []
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
     _loadSubclassAttachments: (
-        knex: db.KnexReadWriteTransaction
+        knex: db.KnexReadonlyTransaction
     ) => Promise<void> = async () => undefined
 
     constructor(id?: string) {
@@ -558,34 +557,37 @@ export class GdocBase implements OwidGdocBaseInterface {
         }
     }
 
-    async loadLinkedCharts(knex: db.KnexReadonlyTransaction): Promise<void> {
+    async loadLinkedCharts(knex: db.KnexReadonlyTransaction): Promise<{
+        timeToLoadGrapherCharts: number
+        timeToLoadExplorerCharts: number
+    }> {
         const slugToIdMap = await mapSlugsToIds(knex)
         // TODO: rewrite this as a single query instead of N queries
+        const start = performance.now()
         const linkedGrapherCharts = await Promise.all(
-            [...this.linkedChartSlugs.grapher.values()].map(
-                async (originalSlug) => {
-                    const chartId = slugToIdMap[originalSlug]
-                    if (!chartId) return
-                    const chart = await getChartConfigById(knex, chartId)
-                    if (!chart) return
-                    const resolvedSlug = chart.config.slug ?? ""
-                    const resolvedTitle = chart.config.title ?? ""
-                    const tab = chart.config.tab ?? GrapherTabOption.chart
-                    const datapageIndicator =
-                        await getVariableOfDatapageIfApplicable(chart.config)
-                    const linkedChart: LinkedChart = {
-                        originalSlug,
-                        title: resolvedTitle,
-                        tab,
-                        resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
-                        thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
-                        tags: [],
-                        indicatorId: datapageIndicator?.id,
-                    }
-                    return linkedChart
+            this.linkedChartSlugs.grapher.map(async (originalSlug) => {
+                const chartId = slugToIdMap[originalSlug]
+                if (!chartId) return
+                const chart = await getChartConfigById(knex, chartId)
+                if (!chart) return
+                const resolvedSlug = chart.config.slug ?? ""
+                const resolvedTitle = chart.config.title ?? ""
+                const tab = chart.config.tab ?? GrapherTabOption.chart
+                const datapageIndicator =
+                    await getVariableOfDatapageIfApplicable(chart.config)
+                const linkedChart: LinkedChart = {
+                    originalSlug,
+                    title: resolvedTitle,
+                    tab,
+                    resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
+                    thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
+                    tags: [],
+                    indicatorId: datapageIndicator?.id,
                 }
-            )
+                return linkedChart
+            })
         ).then(excludeNullish)
+        const timeToLoadGrapherCharts = performance.now() - start
 
         const publishedExplorersBySlug =
             await db.getPublishedExplorersBySlug(knex)
@@ -606,11 +608,14 @@ export class GdocBase implements OwidGdocBaseInterface {
                 return linkedChart
             })
         )
+        const timeToLoadExplorerCharts =
+            performance.now() - start - timeToLoadGrapherCharts
 
         this.linkedCharts = keyBy(
             [...linkedGrapherCharts, ...linkedExplorerCharts],
             "originalSlug"
         )
+        return { timeToLoadGrapherCharts, timeToLoadExplorerCharts }
     }
 
     async loadLinkedIndicators(): Promise<void> {
@@ -641,26 +646,25 @@ export class GdocBase implements OwidGdocBaseInterface {
         this.linkedDocuments = keyBy(linkedDocuments, "id")
     }
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    async loadImageMetadata(
-        knex: db.KnexReadWriteTransaction,
+    /**
+     * Load image metadata from the database. Does not check Google Drive or sync to S3
+     */
+    async loadImageMetadataFromDB(
+        knex: db.KnexReadonlyTransaction,
         filenames?: string[]
     ): Promise<void> {
         const imagesFilenames = filenames ?? this.linkedImageFilenames
 
         if (!imagesFilenames.length) return
 
-        await imageStore.fetchImageMetadata(imagesFilenames)
-        const images = await imageStore
-            .syncImagesToS3(knex)
-            .then(excludeUndefined)
+        const imageMetadata = await db.getImagesMetadataByFilenames(
+            knex,
+            imagesFilenames
+        )
 
-        // Merge the new image metadata with the existing image metadata. This
-        // is used by GdocAuthor to load additional image metadata from the
-        // latest work section.
         this.imageMetadata = {
             ...this.imageMetadata,
-            ...keyBy(images, "filename"),
+            ...keyBy(imageMetadata, "filename"),
         }
     }
 
@@ -784,14 +788,44 @@ export class GdocBase implements OwidGdocBaseInterface {
         ]
     }
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
-    async loadState(knex: db.KnexReadWriteTransaction): Promise<void> {
+    async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
+        const start = performance.now()
         await this.loadLinkedDocuments(knex)
-        await this.loadImageMetadata(knex)
-        await this.loadLinkedCharts(knex)
+        const linkedDocumentTime = performance.now() - start
+        await this.loadImageMetadataFromDB(knex)
+        const imageMetadataTime = performance.now() - start - linkedDocumentTime
+        const { timeToLoadGrapherCharts, timeToLoadExplorerCharts } =
+            await this.loadLinkedCharts(knex)
+        const linkedChartsTime = performance.now() - start - imageMetadataTime
         await this.loadLinkedIndicators() // depends on linked charts
+        const linkedIndicatorsTime =
+            performance.now() - start - linkedChartsTime
         await this._loadSubclassAttachments(knex)
+        const subclassAttachmentsTime =
+            performance.now() - start - linkedIndicatorsTime
         await this.validate(knex)
+        const validationTime =
+            performance.now() - start - subclassAttachmentsTime
+        // append to log
+        await fs.promises.appendFile(
+            "gdoc-load-times.log",
+            JSON.stringify(
+                {
+                    id: this.id,
+                    linkedDocumentTime,
+                    imageMetadataTime,
+                    linkedChartsTime,
+                    linkedIndicatorsTime,
+                    subclassAttachmentsTime,
+                    timeToLoadGrapherCharts,
+                    timeToLoadExplorerCharts,
+                    validationTime,
+                    linkedGrapherCount: this.linkedChartSlugs.grapher.length,
+                },
+                null,
+                2
+            )
+        )
     }
 
     toJSON(): OwidGdoc {

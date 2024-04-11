@@ -135,7 +135,7 @@ import {
     getGdocBaseObjectById,
     setLinksForGdoc,
     setTagsForGdoc,
-    syncImagesAndAddToContentGraph,
+    addImagesToContentGraph,
     updateGdocContentOnly,
     upsertGdoc,
 } from "../db/model/Gdoc/GdocFactory.js"
@@ -2367,7 +2367,7 @@ putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     const nextGdoc = gdocFromJSON(req.body)
     await nextGdoc.loadState(trx)
 
-    await syncImagesAndAddToContentGraph(trx, nextGdoc)
+    await addImagesToContentGraph(trx, nextGdoc)
 
     await setLinksForGdoc(
         trx,

@@ -1,13 +1,15 @@
-import { get, groupBy } from "lodash"
+import { get, groupBy, pick } from "lodash"
 import { match, P } from "ts-pattern"
 import {
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
+    DbEnrichedImage,
     DbEnrichedPostGdoc,
     DbInsertPostGdocLink,
     DbInsertPostGdocXImage,
     DbPlainTag,
     DbRawPostGdoc,
     GdocsContentSource,
+    ImageMetadata,
     OwidGdoc,
     OwidGdocBaseInterface,
     OwidGdocIndexItem,
@@ -34,10 +36,12 @@ import {
     KnexReadonlyTransaction,
     knexRaw,
     KnexReadWriteTransaction,
+    getImagesMetadataByFilenames,
+    getPublishedGdocPosts,
 } from "../../db.js"
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { GdocAuthor } from "./GdocAuthor.js"
-import { imageStore } from "../Image.js"
+import { fetchImagesFromDriveAndSyncToS3 } from "../Image.js"
 
 export function gdocFromJSON(
     json: Record<string, any>
@@ -338,9 +342,15 @@ export async function loadGdocFromGdocBase(
     if (contentSource === GdocsContentSource.Gdocs) {
         // TODO: if we get here via fromJSON then we have already done this - optimize that?
         await gdoc.fetchAndEnrichGdoc()
+        // If we're loading from Gdocs, now's also the time to fetch images from gdrive and sync them to S3
+        // In any other case, the images should already be in the DB and S3
+        await fetchImagesFromDriveAndSyncToS3(knex, gdoc.filenames)
     }
 
+    const start = Date.now()
     await gdoc.loadState(knex)
+    const end = Date.now()
+    console.log(`Loaded state for ${gdoc.id} in ${end - start}ms`)
 
     return gdoc
 }
@@ -395,24 +405,7 @@ export async function getAndLoadPublishedDataInsights(
 export async function getAndLoadPublishedGdocPosts(
     knex: KnexReadWriteTransaction
 ): Promise<GdocPost[]> {
-    const rows = await knexRaw<DbRawPostGdoc>(
-        knex,
-        `-- sql
-            SELECT *
-            FROM posts_gdocs
-            WHERE published = 1
-            AND content ->> '$.type' IN (:types)
-            AND publishedAt <= NOW()
-            ORDER BY publishedAt DESC`,
-        {
-            types: [
-                OwidGdocType.Article,
-                OwidGdocType.LinearTopicPage,
-                OwidGdocType.TopicPage,
-                OwidGdocType.AboutPage,
-            ],
-        }
-    )
+    const rows = await getPublishedGdocPosts(knex)
     const ids = rows.map((row) => row.id)
     const tags = await knexRaw<DbPlainTag>(
         knex,
@@ -426,13 +419,14 @@ export async function getAndLoadPublishedGdocPosts(
     const groupedTags = groupBy(tags, "gdocId")
     const enrichedRows = rows.map((row) => {
         return {
-            ...parsePostsGdocsRow(row),
+            ...row,
             tags: groupedTags[row.id] ? groupedTags[row.id] : null,
         } satisfies OwidGdocBaseInterface
     })
     const gdocs = await Promise.all(
         enrichedRows.map(async (row) => loadGdocFromGdocBase(knex, row))
     )
+    console.log("after all loaded")
     return gdocs as GdocPost[]
 }
 
@@ -598,7 +592,7 @@ export async function getAllGdocIndexItemsOrderedByUpdatedAt(
     )
 }
 
-export async function syncImagesAndAddToContentGraph(
+export async function addImagesToContentGraph(
     trx: KnexReadWriteTransaction,
     gdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor
 ): Promise<void> {
@@ -610,16 +604,14 @@ export async function syncImagesAndAddToContentGraph(
     // Includes fragments so that images in data pages are
     // synced to S3 and ultimately baked in bakeDriveImages().
     if (filenames.length && gdoc.published) {
-        await imageStore.fetchImageMetadata(filenames)
-        const images = await imageStore.syncImagesToS3(trx)
+        const images = await getImagesMetadataByFilenames(trx, filenames)
         const gdocXImagesToInsert: DbInsertPostGdocXImage[] = []
-        for (const image of images) {
-            if (image) {
-                gdocXImagesToInsert.push({
-                    gdocId: gdoc.id,
-                    imageId: image.id,
-                })
-            }
+        for (const filename in images) {
+            const image = images[filename] as DbEnrichedImage
+            gdocXImagesToInsert.push({
+                gdocId: gdoc.id,
+                imageId: image.id,
+            })
         }
         try {
             await trx

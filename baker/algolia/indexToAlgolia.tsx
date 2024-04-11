@@ -1,3 +1,4 @@
+import fs from "fs"
 import * as db from "../../db/db.js"
 import * as wpdb from "../../db/wpdb.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
@@ -22,7 +23,13 @@ const indexToAlgolia = async () => {
         db.TransactionCloseMode.Close
     )
 
-    await index.replaceAllObjects(records)
+    await fs.promises.writeFile(
+        "algolia-pages.json",
+        JSON.stringify(records, null, 2),
+        "utf8"
+    )
+
+    // await index.replaceAllObjects(records)
 
     await wpdb.singleton.end()
 }
