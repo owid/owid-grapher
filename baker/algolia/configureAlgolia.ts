@@ -185,7 +185,7 @@ export const configureAlgolia = async () => {
             "vacuna" /* spanish */,
         ],
         ["ghg", "greenhouse gas"],
-        ["rate", "share"],
+        ["rate", "share", "percentage", "percent"],
         [
             "hospital admission",
             "hospital admissions",
@@ -282,6 +282,7 @@ export const configureAlgolia = async () => {
         ["smog", "air pollution"],
         ["jail", "prison"],
         ["funding", "funded"],
+        ["solar", "photovoltaic", "photovoltaics", "pv"],
     ]
 
     // Send all our country variant names to algolia as synonyms
