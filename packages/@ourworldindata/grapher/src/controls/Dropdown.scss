@@ -1,0 +1,92 @@
+.grapher-dropdown {
+    $option-checkmark: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOSIgdmlld0JveD0iMCAwIDEyIDkiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xMS4wMTU2IDAuOTg0Mzc1QzExLjMyMDMgMS4yNjU2MiAxMS4zMjAzIDEuNzU3ODEgMTEuMDE1NiAyLjAzOTA2TDUuMDE1NjIgOC4wMzkwNkM0LjczNDM4IDguMzQzNzUgNC4yNDIxOSA4LjM0Mzc1IDMuOTYwOTQgOC4wMzkwNkwwLjk2MDkzOCA1LjAzOTA2QzAuNjU2MjUgNC43NTc4MSAwLjY1NjI1IDQuMjY1NjIgMC45NjA5MzggMy45ODQzOEMxLjI0MjE5IDMuNjc5NjkgMS43MzQzOCAzLjY3OTY5IDIuMDE1NjIgMy45ODQzOEw0LjQ3NjU2IDYuNDQ1MzFMOS45NjA5NCAwLjk4NDM3NUMxMC4yNDIyIDAuNjc5Njg4IDEwLjczNDQgMC42Nzk2ODggMTEuMDE1NiAwLjk4NDM3NVoiIGZpbGw9IiMxRDNENjMiLz4KPC9zdmc+";
+    $menu-caret-up: "data:image/svg+xml;base64, PHN2ZyB3aWR0aD0iOCIgaGVpZ2h0PSI1IiB2aWV3Qm94PSIwIDAgOCA1IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMC40NjA5MzggMy43MzQzOEwzLjQzNzUgMC43MzQzNzVDMy42MDE1NiAwLjU5Mzc1IDMuNzg5MDYgMC41IDQgMC41QzQuMTg3NSAwLjUgNC4zNzUgMC41OTM3NSA0LjUxNTYyIDAuNzM0Mzc1TDcuNDkyMTkgMy43MzQzOEM3LjcwMzEyIDMuOTQ1MzEgNy43NzM0NCA0LjI3MzQ0IDcuNjU2MjUgNC41NTQ2OUM3LjUzOTA2IDQuODM1OTQgNy4yODEyNSA1IDYuOTc2NTYgNUgxQzAuNjk1MzEyIDUgMC40MTQwNjIgNC44MzU5NCAwLjI5Njg3NSA0LjU1NDY5QzAuMTc5Njg4IDQuMjczNDQgMC4yNSAzLjk0NTMxIDAuNDYwOTM4IDMuNzM0MzhaIiBmaWxsPSIjNUI1QjVCIi8+Cjwvc3ZnPg==";
+    $menu-caret-down: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOCIgaGVpZ2h0PSI1IiB2aWV3Qm94PSIwIDAgOCA1IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNNy41MTU2MiAxLjI4OTA2TDQuNTM5MDYgNC4yODkwNkM0LjM3NSA0LjQyOTY5IDQuMTg3NSA0LjUgNCA0LjVDMy43ODkwNiA0LjUgMy42MDE1NiA0LjQyOTY5IDMuNDYwOTQgNC4yODkwNkwwLjQ4NDM3NSAxLjI4OTA2QzAuMjUgMS4wNzgxMiAwLjE3OTY4OCAwLjc1IDAuMjk2ODc1IDAuNDY4NzVDMC40MTQwNjIgMC4xODc1IDAuNjk1MzEyIDAgMSAwSDYuOTc2NTZDNy4yODEyNSAwIDcuNTM5MDYgMC4xODc1IDcuNjU2MjUgMC40Njg3NUM3Ljc3MzQ0IDAuNzUgNy43MjY1NiAxLjA3ODEyIDcuNTE1NjIgMS4yODkwNloiIGZpbGw9IiM1QjVCNUIiLz4KPC9zdmc+Cg==";
+
+    $medium: 400;
+    $lato: $sans-serif-font-stack;
+
+    $light-stroke: #e7e7e7;
+    $active-stroke: #a4b6ca;
+
+    $active-fill: #dbe5f0;
+    $hover-fill: #f2f2f2;
+    $selected-fill: #c7ced7;
+
+    $light-text: #858585;
+
+    font: $medium 13px/16px $lato;
+
+    // fixes a bug in Firefox where long labels would cause the dropdown to resize,
+    // see https://github.com/JedWatson/react-select/issues/5170
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+
+    .control {
+        min-height: auto;
+        font: $medium 13px/16px $lato;
+        letter-spacing: 0.01em;
+        display: flex;
+        align-items: center;
+        border: 1px solid $light-stroke;
+        border-radius: 4px;
+        padding: 7px;
+        color: $dark-text;
+
+        &:hover {
+            background: $hover-fill;
+            cursor: pointer;
+        }
+
+        &:after {
+            content: " ";
+            background: url($menu-caret-down) no-repeat center;
+            width: 16px;
+            height: 16px;
+        }
+
+        &.active {
+            border-color: $active-stroke;
+            &:after {
+                background: url($menu-caret-up) no-repeat center;
+            }
+        }
+    }
+
+    .menu {
+        margin-top: 3px;
+        border-radius: 4px;
+        background: white;
+        box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
+        z-index: $zindex-controls-popup;
+        color: $dark-text;
+
+        .option {
+            padding: 8px 18px;
+            &:hover {
+                cursor: pointer;
+                background: $hover-fill;
+            }
+            &:active,
+            &.active {
+                color: $active-text;
+                background: $active-fill;
+            }
+            &.active {
+                position: relative;
+                &:hover {
+                    background: $selected-fill;
+                }
+                &:after {
+                    content: " ";
+                    background: url($option-checkmark) no-repeat;
+                    width: 12px;
+                    height: 9px;
+                    position: absolute;
+                    right: 18px;
+                    bottom: 11px;
+                }
+            }
+        }
+    }
+}

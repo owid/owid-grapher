@@ -1,0 +1,12 @@
+.modal-header {
+    --padding: var(--modal-padding, 16px);
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--padding) var(--padding) 16px;
+
+    button {
+        margin-left: 8px;
+    }
+}

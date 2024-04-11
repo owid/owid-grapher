@@ -1847,6 +1847,7 @@ export function checkIsAuthor(x: unknown): x is OwidGdocAuthorInterface {
     const type = get(x, "content.type")
     return type === OwidGdocType.Author
 }
+
 /**
  * Returns the cartesian product of the given arrays.
  *
@@ -1880,4 +1881,8 @@ export function isElementHidden(element: Element | null): boolean {
 
 export function roundDownToNearestHundred(value: number): number {
     return Math.floor(value / 100) * 100
+}
+
+export function isFiniteWithGuard(value: unknown): value is number {
+    return isFinite(value as any)
 }

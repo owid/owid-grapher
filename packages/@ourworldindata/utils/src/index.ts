@@ -123,6 +123,7 @@ export {
     removeTrailingParenthetical,
     isElementHidden,
     roundDownToNearestHundred,
+    isFiniteWithGuard,
 } from "./Util.js"
 
 export {
