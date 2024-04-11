@@ -143,6 +143,29 @@ export const configureAlgolia = async () => {
         disableTypoToleranceOnAttributes: ["text"],
     })
 
+    const explorerViewsIndex = client.initIndex(
+        getIndexName(SearchIndexName.ExplorerViews)
+    )
+
+    await explorerViewsIndex.setSettings({
+        ...baseSettings,
+        searchableAttributes: [
+            "unordered(explorerTitle)",
+            "unordered(viewTitle)",
+            "unordered(viewSettings)",
+        ],
+        customRanking: [
+            // For multiple explorer views with the same title, we want to avoid surfacing duplicates.
+            // So, rank a result with viewTitleIndexWithinExplorer=0 way more highly than one with 1, 2, etc.
+            "asc(viewTitleIndexWithinExplorer)",
+            "desc(score)",
+            "asc(viewIndexWithinExplorer)",
+        ],
+        attributeForDistinct: "explorerSlug",
+        distinct: 4,
+        minWordSizefor1Typo: 6,
+    })
+
     const synonyms = [
         ["owid", "our world in data"],
         ["kids", "children"],
@@ -306,6 +329,9 @@ export const configureAlgolia = async () => {
         replaceExistingSynonyms: true,
     })
     await explorersIndex.saveSynonyms(algoliaSynonyms, {
+        replaceExistingSynonyms: true,
+    })
+    await explorerViewsIndex.saveSynonyms(algoliaSynonyms, {
         replaceExistingSynonyms: true,
     })
 
