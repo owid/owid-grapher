@@ -10,6 +10,9 @@ import {
     sortBy,
     groupBy,
     uniqBy,
+    EntityName,
+    Url,
+    Region,
 } from "@ourworldindata/utils"
 import {
     InstantSearch,
@@ -61,6 +64,7 @@ import {
 import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
+    setSelectedEntityNamesParam,
 } from "@ourworldindata/grapher"
 import type { SearchResults as AlgoliaSearchResultsType } from "algoliasearch-helper"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -93,6 +97,22 @@ function PagesHit({ hit }: { hit: IPageHit }) {
             />
         </a>
     )
+}
+
+const getEntityQueryStr = (
+    entities: EntityName[] | null | undefined,
+    existingQueryStr: string = ""
+) => {
+    if (!entities?.length) return existingQueryStr
+    else {
+        return setSelectedEntityNamesParam(
+            // If we have any entities pre-selected, we want to show the chart tab
+            Url.fromQueryStr(existingQueryStr).updateQueryParams({
+                tab: "chart",
+            }),
+            entities
+        ).queryStr
+    }
 }
 
 function ChartHit({ hit }: { hit: IChartHit }) {
@@ -155,7 +175,11 @@ interface GroupedExplorerViews {
 const getNumberOfExplorerHits = (rawHits: IExplorerViewHit[]) =>
     uniqBy(rawHits, "explorerSlug").length
 
-function ExplorerViewHits() {
+function ExplorerViewHits({
+    countriesRegionsToSelect,
+}: {
+    countriesRegionsToSelect?: Region[]
+}) {
     const { hits } = useHits<IExplorerViewHit>()
 
     const groupedHits = useMemo(() => {
@@ -193,6 +217,7 @@ function ExplorerViewHits() {
                         groupedHit={group}
                         key={group.explorerSlug}
                         cardPosition={i}
+                        countriesRegionsToSelect={countriesRegionsToSelect}
                     />
                 ))}
             </div>
@@ -203,14 +228,25 @@ function ExplorerViewHits() {
 function ExplorerHit({
     groupedHit,
     cardPosition,
+    countriesRegionsToSelect,
 }: {
     groupedHit: GroupedExplorerViews
     cardPosition: number
+    countriesRegionsToSelect?: Region[]
 }) {
     const firstHit = groupedHit.views[0]
 
+    // If the explorer title contains something like "Ukraine" already, don't bother selecting Ukraine in it
+    const entitiesToSelectExcludingExplorerTitle =
+        countriesRegionsToSelect?.filter(
+            (e) => !groupedHit.explorerTitle.includes(e.name)
+        )
+    const queryStr = getEntityQueryStr(
+        entitiesToSelectExcludingExplorerTitle?.map((e) => e.name)
+    )
+
     const exploreAllProps = {
-        href: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}`,
+        href: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}${queryStr}`,
         "data-algolia-index": getIndexName(SearchIndexName.ExplorerViews),
         "data-algolia-object-id": firstHit.objectID,
         "data-algolia-position": firstHit.hitPositionOverall,
@@ -242,38 +278,52 @@ function ExplorerHit({
                 </a>
             </div>
             <ul className="search-results__explorer-views-list grid grid-cols-2 grid-sm-cols-1">
-                {groupedHit.views.map((view) => (
-                    <li
-                        key={view.objectID}
-                        className="ais-Hits-item search-results__explorer-view"
-                    >
-                        <a
-                            data-algolia-index={getIndexName(
-                                SearchIndexName.ExplorerViews
-                            )}
-                            data-algolia-object-id={view.objectID}
-                            data-algolia-position={view.hitPositionOverall + 1}
-                            data-algolia-card-position={cardPosition + 1}
-                            data-algolia-position-within-card={
-                                view.hitPositionWithinCard + 1
-                            }
-                            data-algolia-event-name="click_explorer_view"
-                            href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${view.explorerSlug}${view.viewQueryParams}`}
-                            className="search-results__explorer-view-title-container"
+                {groupedHit.views.map((view) => {
+                    const entitiesToSelectExcludingViewTitle =
+                        entitiesToSelectExcludingExplorerTitle?.filter(
+                            (e) =>
+                                !view.viewTitle.includes(e.name) &&
+                                !view.explorerTitle.includes(e.name)
+                        )
+                    const queryStr = getEntityQueryStr(
+                        entitiesToSelectExcludingViewTitle?.map((e) => e.name),
+                        view.viewQueryParams
+                    )
+                    return (
+                        <li
+                            key={view.objectID}
+                            className="ais-Hits-item search-results__explorer-view"
                         >
-                            <Highlight
-                                attribute="viewTitle"
-                                hit={view}
-                                highlightedTagName="strong"
-                                className="search-results__explorer-view-title"
-                            />
-                            <FontAwesomeIcon icon={faArrowRight} />
-                        </a>
-                        <p className="body-3-medium-italic search-results__explorer-view-subtitle">
-                            {view.viewSubtitle}
-                        </p>
-                    </li>
-                ))}
+                            <a
+                                data-algolia-index={getIndexName(
+                                    SearchIndexName.ExplorerViews
+                                )}
+                                data-algolia-object-id={view.objectID}
+                                data-algolia-position={
+                                    view.hitPositionOverall + 1
+                                }
+                                data-algolia-card-position={cardPosition + 1}
+                                data-algolia-position-within-card={
+                                    view.hitPositionWithinCard + 1
+                                }
+                                data-algolia-event-name="click_explorer_view"
+                                href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${view.explorerSlug}${queryStr}`}
+                                className="search-results__explorer-view-title-container"
+                            >
+                                <Highlight
+                                    attribute="viewTitle"
+                                    hit={view}
+                                    highlightedTagName="strong"
+                                    className="search-results__explorer-view-title"
+                                />
+                                <FontAwesomeIcon icon={faArrowRight} />
+                            </a>
+                            <p className="body-3-medium-italic search-results__explorer-view-subtitle">
+                                {view.viewSubtitle}
+                            </p>
+                        </li>
+                    )
+                })}
             </ul>
             <a
                 className="search-results__explorer-hit-link-mobile hide-sm-up"
@@ -639,7 +689,9 @@ const SearchResults = (props: SearchResultsProps) => {
                                 ) => getNumberOfExplorerHits(results.hits)}
                             />
                         </header>
-                        <ExplorerViewHits />
+                        <ExplorerViewHits
+                            countriesRegionsToSelect={searchQueryRegionsMatches}
+                        />
                     </section>
                 </NoResultsBoundary>
             </Index>
