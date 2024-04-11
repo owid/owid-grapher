@@ -1,7 +1,31 @@
 import { HitAttributeHighlightResult } from "instantsearch.js/es/types/results.js"
 import { IChartHit } from "./searchTypes.js"
 import { EntityName } from "@ourworldindata/types"
-import { countries, removeTrailingParenthetical } from "@ourworldindata/utils"
+import {
+    Region,
+    countries,
+    getRegionByNameOrVariantName,
+    regions,
+    removeTrailingParenthetical,
+    escapeRegExp,
+} from "@ourworldindata/utils"
+
+const allCountryNamesAndVariants = regions.flatMap((c) => [
+    c.name,
+    ...(("variantNames" in c && c.variantNames) || []),
+])
+
+const regionNameRegex = new RegExp(
+    `\\b(${allCountryNamesAndVariants.map(escapeRegExp).join("|")})\\b`,
+    "gi"
+)
+
+export const extractCountryNamesFromSearchQuery = (query: string) => {
+    const matches = query.matchAll(regionNameRegex)
+    const countryNames = Array.from(matches, (match) => match[0])
+    if (countryNames.length === 0) return null
+    return countryNames.map(getRegionByNameOrVariantName) as Region[]
+}
 
 const removeHighlightTags = (text: string) =>
     text.replace(/<\/?(mark|strong)>/g, "")
