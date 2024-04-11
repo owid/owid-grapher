@@ -13,7 +13,12 @@ import {
     EntitySelectionMode,
     StackMode,
 } from "@ourworldindata/types"
-import { DimensionSlot, WorldEntityName } from "@ourworldindata/grapher"
+import {
+    DimensionSlot,
+    WorldEntityName,
+    CONTINENTS_INDICATOR_ID,
+    POPULATION_INDICATOR_ID_USED_IN_ADMIN,
+} from "@ourworldindata/grapher"
 import {
     DimensionProperty,
     moveArrayItemToIndex,
@@ -317,7 +322,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
             )
             if (!hasColor)
                 grapher.addDimension({
-                    variableId: 123, // "Countries Continents"
+                    variableId: CONTINENTS_INDICATOR_ID,
                     property: DimensionProperty.color,
                 })
         }
@@ -329,7 +334,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
             )
             if (!hasSize)
                 grapher.addDimension({
-                    variableId: 597929, // "Population (various sources, 2023.1)"
+                    variableId: POPULATION_INDICATOR_ID_USED_IN_ADMIN,
                     property: DimensionProperty.size,
                 })
         }

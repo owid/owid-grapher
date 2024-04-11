@@ -37,6 +37,7 @@ import { Tabs } from "../tabs/Tabs"
 import { ExpandableTabs } from "../tabs/ExpandableTabs"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { CLOSE_BUTTON_WIDTH } from "../closeButton/CloseButton"
+import { isContinentsVariableId } from "../core/GrapherConstants"
 
 // keep in sync with variables in SourcesModal.scss
 const MAX_CONTENT_WIDTH = 640
@@ -375,11 +376,12 @@ export class Source extends React.Component<{
     }
 
     @computed private get hideSourcesForDisplay(): boolean {
-        // the indicator with id = 123 is the "Continent" variable curated by OWID.
-        // it's used in many charts but doesn't come with useful source information.
-        // that's why we hide the sources section for this indicator for now,
-        // but we might decide to show it in the future
-        return this.def.owidVariableId === 123
+        // the "Continent" variable curated by OWID is used in many charts but doesn't come with useful source information.
+        // that's why we hide the sources section for this indicator for now, but we might decide to show it in the future.
+        return (
+            !!this.def.owidVariableId &&
+            isContinentsVariableId(this.def.owidVariableId)
+        )
     }
 
     @computed private get descriptionBelowTitle(): string | undefined {
