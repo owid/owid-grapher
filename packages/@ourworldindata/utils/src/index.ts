@@ -367,9 +367,12 @@ export { PromiseCache } from "./PromiseCache.js"
 export { PromiseSwitcher } from "./PromiseSwitcher.js"
 
 export {
+    THUMBNAIL_WIDTH,
     getSizes,
     generateSrcSet,
     getFilenameWithoutExtension,
+    getFilenameAsThumbnail,
+    getThumbnailPath,
     getFilenameAsPng,
     getFilenameExtension,
     getFilenameMIMEType,

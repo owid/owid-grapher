@@ -6,12 +6,14 @@ import { traverseEnrichedBlock } from "./Util.js"
 import { OwidGdoc, OwidGdocType, ImageMetadata } from "@ourworldindata/types"
 import { match, P } from "ts-pattern"
 
+export const THUMBNAIL_WIDTH = 100
+
 export function getSizes(
     originalWidth: ImageMetadata["originalWidth"]
 ): number[] {
     if (!originalWidth) return []
     // ensure a thumbnail is generated
-    const widths = [100]
+    const widths = [THUMBNAIL_WIDTH]
     // start at 350 and go up by 500 to a max of 1350 before we just show the original image
     let width = 350
     while (width < originalWidth && width <= 1350) {
@@ -50,6 +52,16 @@ export function getFilenameExtension(
 
 export function getFilenameAsPng(filename: ImageMetadata["filename"]): string {
     return `${getFilenameWithoutExtension(filename)}.png`
+}
+
+export function getFilenameAsThumbnail(
+    filename: ImageMetadata["filename"]
+): string {
+    return `${getFilenameWithoutExtension(filename)}_${THUMBNAIL_WIDTH}.png`
+}
+
+export function getThumbnailPath(filename: string): string {
+    return `/images/published/${getFilenameAsThumbnail(filename)}`
 }
 
 export function getFilenameMIMEType(filename: string): string | undefined {

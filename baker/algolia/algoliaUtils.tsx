@@ -12,6 +12,7 @@ import {
     PostRestApi,
     DbPlainTag,
     OwidGdocPostInterface,
+    getThumbnailPath,
 } from "@ourworldindata/utils"
 import { formatPost } from "../formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
@@ -63,6 +64,7 @@ function generateCountryRecords(
             content: `All available indicators for ${country.name}.`,
             views_7d: pageviews[`/country/${country.slug}`]?.views_7d ?? 0,
             documentType: "country-page" as const,
+            thumbnail: "/default-thumbnail.jpg",
         }
         const score = computeScore(record)
         return { ...record, score }
@@ -129,6 +131,7 @@ async function generateWordpressRecords(
                 modifiedDate: post.modifiedDate.toISOString(),
                 content: c,
                 tags: tags.map((t) => t.name),
+                thumbnail: post.thumbnailUrl ?? "/default-thumbnail.jpg",
                 views_7d: pageviews[`/${post.path}`]?.views_7d ?? 0,
                 documentType: "wordpress" as const,
             }
@@ -183,6 +186,10 @@ function generateGdocRecords(
         const postTypeAndImportance = getPostTypeAndImportance(gdoc)
         let i = 0
 
+        const thumbnail = gdoc.content["featured-image"]
+            ? getThumbnailPath(gdoc.content["featured-image"])
+            : "/default-thumbnail.jpg"
+
         for (const chunk of chunks) {
             const record = {
                 objectID: `${gdoc.id}-c${i}`,
@@ -197,6 +204,7 @@ function generateGdocRecords(
                 tags: gdoc.tags?.map((t) => t.name),
                 documentType: "gdoc" as const,
                 authors: gdoc.content.authors,
+                thumbnail,
             }
             const score = computeScore(record)
             records.push({ ...record, score })
