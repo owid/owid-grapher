@@ -279,6 +279,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
+    // Drop _all rows_ for an entity if there is any column that has no valid values for that entity.
     dropEntitiesThatHaveNoDataInSomeColumn(columnSlugs: ColumnSlug[]): this {
         const indexesByEntityName = this.rowIndicesByEntityName
 
