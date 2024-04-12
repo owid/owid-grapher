@@ -4,17 +4,14 @@ $rw-margin-bottom-grid-cell: 4px;
     margin-bottom: 40px;
 
     > h1 {
-        font-size: 32px;
         margin-bottom: 40px;
     }
 }
 
 // Override for author pages, where "Featured work" and "Latest work" should look the same.
 .author-work .article-block__research-and-writing > h1 {
-    @include h2-bold;
-    font-size: 1.5rem; // force the h2-bold desktop size on mobile
-    color: $blue-60;
     margin: 24px 0 16px;
+    color: $blue-60;
     @include sm-up {
         margin: 32px 0 24px;
     }
@@ -37,7 +34,6 @@ $rw-margin-bottom-grid-cell: 4px;
 
 .research-and-writing-row__heading--divider {
     margin: 32px - $rw-margin-bottom-grid-cell 0 16px;
-    font-size: 1.5rem; // force the h2-bold desktop size on mobile
     @include sm-up {
         margin: 40px - $rw-margin-bottom-grid-cell 0 24px;
         padding-top: 40px;
