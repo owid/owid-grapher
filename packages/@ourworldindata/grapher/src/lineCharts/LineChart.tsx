@@ -72,7 +72,6 @@ import {
     OwidTable,
     CoreColumn,
     isNotErrorValue,
-    BlankOwidTable,
 } from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
@@ -312,13 +311,9 @@ export class LineChart
                 this.yColumnSlugs
             )
 
-            const groupedByEntity = table
-                .groupBy(table.entityNameColumn.slug)
-                .filter((t) => !t.hasAnyColumnNoValidValue(this.yColumnSlugs))
-
-            if (groupedByEntity.length === 0) return BlankOwidTable()
-
-            table = groupedByEntity[0].concat(groupedByEntity.slice(1))
+            table = table.dropEntitiesThatHaveNoDataInSomeColumn(
+                this.yColumnSlugs
+            )
         }
 
         return table
