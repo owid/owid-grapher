@@ -70,6 +70,7 @@
 
     .author-header__name {
         @include h2-bold;
+        font-size: 1.5rem; // we want h2-bold desktop font-size on mobile
         margin-top: 8px;
         margin-bottom: 4px;
     }
