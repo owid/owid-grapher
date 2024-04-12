@@ -10,6 +10,7 @@ import {
     setKnexInstance,
 } from "../db/db.js"
 import { cleanTestDb } from "../db/tests/testHelpers.js"
+import { ChartsTableName } from "@ourworldindata/types"
 
 jest.setTimeout(10000) // wait for up to 10s for the app server to start
 let testKnexInstance: Knex<any, unknown[]> | undefined = undefined
@@ -57,6 +58,11 @@ afterAll((done: any) => {
     ]).then(() => done())
 })
 
+async function getCountForTable(tableName: string): Promise<number> {
+    const count = await testKnexInstance!.table(tableName).count()
+    return count[0]["count(*)"] as number
+}
+
 describe("OwidAdminApp", () => {
     it("should be able to create an app", () => {
         expect(app).toBeTruthy()
@@ -76,14 +82,8 @@ describe("OwidAdminApp", () => {
     })
 
     it("should be able to add a new chart via the api", async () => {
-        await knexReadonlyTransaction(
-            async (trx) => {
-                const chartCount = await trx.table("charts").count()
-                expect(chartCount[0]["count(*)"]).toBe(0)
-            },
-            TransactionCloseMode.KeepOpen,
-            testKnexInstance
-        )
+        const chartCount = await getCountForTable(ChartsTableName)
+        expect(chartCount).toBe(0)
         const response = await fetch("http://localhost:8765/admin/api/charts", {
             method: "POST",
             headers: {
@@ -91,9 +91,9 @@ describe("OwidAdminApp", () => {
                 cookie: `sessionid=${cookieId}`,
             },
             body: JSON.stringify({
-                title: "Test chart",
                 slug: "test-chart",
                 config: {
+                    title: "Test chart",
                     type: "LineChart",
                 },
             }),
@@ -102,15 +102,7 @@ describe("OwidAdminApp", () => {
         const text = await response.json()
         expect(text.success).toBe(true)
 
-        // It's important that we do this in a new transaction as the previous
-        // one would not see the new row yet :)
-        await knexReadonlyTransaction(
-            async (trx) => {
-                const chartCountAfter = await trx.table("charts").count()
-                expect(chartCountAfter[0]["count(*)"]).toBe(1)
-            },
-            TransactionCloseMode.KeepOpen,
-            testKnexInstance
-        )
+        const chartCountAfter = await getCountForTable(ChartsTableName)
+        expect(chartCountAfter).toBe(1)
     })
 })
