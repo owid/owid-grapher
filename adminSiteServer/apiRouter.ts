@@ -2316,7 +2316,13 @@ async function indexAndBakeGdocIfNeccesary(
         .with(GdocPublishingAction.SavingDraft, lodash.noop)
         .with(GdocPublishingAction.Publishing, async () => {
             if (isGdocPost) {
-                await indexIndividualGdocPost(nextJson, trx, prevGdoc.slug)
+                await indexIndividualGdocPost(
+                    nextJson,
+                    trx,
+                    // If the gdoc is being published for the first time, prevGdoc.slug will be undefined
+                    // In that case, we pass nextJson.slug to see if it has any page views (i.e. from WP)
+                    prevGdoc.slug || nextJson.slug
+                )
             }
             await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
         })
@@ -2393,7 +2399,7 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     await trx.table(PostsGdocsLinksTableName).where({ sourceId: id }).delete()
     await trx.table(PostsGdocsXImagesTableName).where({ gdocId: id }).delete()
     await trx.table(PostsGdocsTableName).where({ id }).delete()
-    if (checkIsGdocPostExcludingFragments(gdoc)) {
+    if (gdoc.published && checkIsGdocPostExcludingFragments(gdoc)) {
         await removeIndividualGdocPostFromIndex(gdoc)
     }
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)

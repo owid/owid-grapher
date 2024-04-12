@@ -291,18 +291,23 @@ export async function indexIndividualGdocPost(
         await getExistingRecordsForSlug(index, indexedSlug)
 
     try {
-        console.log("Updating Algolia index for Gdoc post", gdoc.slug)
-
-        if (existingRecordsForPost.length === records.length) {
-            // If the number of chunks is the same, we can just update the records
-            await index.saveObjects(records)
-        } else {
+        if (
+            existingRecordsForPost.length &&
+            existingRecordsForPost.length !== records.length
+        ) {
             // If the number of chunks has changed, we need to delete the old records first
+            console.log(
+                "Deleting Algolia index records for Gdoc post",
+                indexedSlug
+            )
             await index.deleteObjects(
                 existingRecordsForPost.map((r) => r.objectID)
             )
-            await index.saveObjects(records)
         }
+        console.log("Updating Algolia index for Gdoc post", gdoc.slug)
+        // If the number of records hasn't changed, the records' objectIDs will be the same
+        // so this will safely overwrite them or create new ones
+        await index.saveObjects(records)
         console.log("Updated Algolia index for Gdoc post", gdoc.slug)
     } catch (e) {
         console.error("Error indexing Gdoc post to Algolia: ", e)
