@@ -45,9 +45,14 @@
     .article-block__pill-row-interior {
         flex-direction: column;
         padding: 0 0 24px;
+        overflow-x: auto;
+        margin-right: calc(-1 * var(--grid-gap));
     }
 
     p {
+        position: sticky;
+        display: inline-block;
+        left: 0;
         color: $blue-40;
         line-height: normal;
         margin-bottom: 16px;
