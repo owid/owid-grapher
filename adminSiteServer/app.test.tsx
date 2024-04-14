@@ -105,4 +105,34 @@ describe("OwidAdminApp", () => {
         const chartCountAfter = await getCountForTable(ChartsTableName)
         expect(chartCountAfter).toBe(1)
     })
+
+    it("should be able to create a GDoc article", async () => {
+        const gdocId = "test-id" // replace with your test id
+        const response = await fetch(
+            `http://localhost:8765/admin/api/gdocs/${gdocId}`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    cookie: `sessionid=${cookieId}`,
+                },
+            }
+        )
+        expect(response.status).toBe(200)
+        const text = await response.json()
+        expect(text.success).toBe(true)
+
+        // Fetch the GDoc to verify it was created
+        const gdocResponse = await fetch(
+            `http://localhost:8765/admin/api/gdocs/${gdocId}`,
+            {
+                headers: { cookie: `sessionid=${cookieId}` },
+            }
+        )
+        expect(gdocResponse.status).toBe(200)
+        const gdoc = await gdocResponse.json()
+        expect(gdoc.id).toBe(gdocId)
+        expect(gdoc.title).toBe("Test GDoc")
+        expect(gdoc.content).toBe("This is a test GDoc")
+    })
 })
