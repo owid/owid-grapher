@@ -1,10 +1,9 @@
-import { getImageStore } from "../../db/model/Image.js"
+import { imageStore } from "../../db/model/Image.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
 import { exit } from "../../db/cleanup.js"
 
 async function updateImageHeights() {
-    const imageStore = await getImageStore()
     const transaction = await db.knexInstance().transaction()
     const filenames = await db
         .knexRaw<{ filename: string }>(
@@ -16,10 +15,10 @@ async function updateImageHeights() {
         .then((rows) => rows.map((row) => row.filename))
 
     console.log("Fetching image metadata...")
-    await imageStore.fetchImageMetadata([])
+    const images = await imageStore.fetchImageMetadata([])
     console.log("Fetching image metadata...done")
 
-    if (!imageStore.images) {
+    if (!images) {
         throw new Error("No images found")
     }
 
@@ -29,7 +28,7 @@ async function updateImageHeights() {
         for (const batch of lodash.chunk(filenames, 20)) {
             const promises = []
             for (const filename of batch) {
-                const image = imageStore.images[filename]
+                const image = images[filename]
                 if (image && image.originalHeight) {
                     promises.push(
                         db.knexRaw(

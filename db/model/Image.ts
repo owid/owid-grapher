@@ -33,43 +33,11 @@ import {
 } from "../../settings/serverSettings.js"
 import { KnexReadWriteTransaction, KnexReadonlyTransaction } from "../db.js"
 import { at } from "lodash"
-import { ENV } from "../../settings/clientSettings.js"
 
 class ImageStore {
-    images: Record<string, ImageMetadata> | undefined
-    hasInitialized: boolean = false
-    isFetchingFromGoogleDrive: boolean = false
-    lastFetchTime: number | undefined
-
-    async init(): Promise<void> {
-        // don't prefetch every image in development mode, wait for a specific request first
-        if (ENV === "development") return
-        // only one init at a time
-        while (this.isFetchingFromGoogleDrive) {
-            await new Promise((resolve) => setTimeout(resolve, 100))
-        }
-        if (!this.hasInitialized) {
-            console.log("Initializing image store")
-            await this.fetchImageMetadata([])
-            this.hasInitialized = true
-        }
-        return
-    }
-
     async fetchImageMetadata(
         filenames: string[]
     ): Promise<Record<string, ImageMetadata | undefined>> {
-        if (
-            this.images &&
-            this.lastFetchTime &&
-            Date.now() - this.lastFetchTime < 60 * 1000
-        ) {
-            console.log(
-                `Skipping image metadata refresh since last fetch was less than a minute ago`
-            )
-            return this.images
-        }
-        this.isFetchingFromGoogleDrive = true
         try {
             console.log(
                 `Fetching image metadata from Google Drive ${
@@ -145,30 +113,25 @@ class ImageStore {
             )
 
             if (duplicateFilenames.length) {
-                this.isFetchingFromGoogleDrive = false
                 throw new Error(
                     `Multiple images are named ${duplicateFilenames.join(", ")}`
                 )
             }
 
-            this.images = merge(this.images, keyBy(images, "filename"))
             console.log(
                 `Fetched ${images.length} images' metadata from Google Drive`
             )
-            return this.images
+            return keyBy(images, "filename")
         } catch (error) {
             console.error(`Error fetching image metadata`, error)
             throw error
-        } finally {
-            this.isFetchingFromGoogleDrive = false
-            this.lastFetchTime = Date.now()
         }
     }
 
     async syncImagesToS3(
-        knex: KnexReadWriteTransaction
+        knex: KnexReadWriteTransaction,
+        images: Record<string, ImageMetadata>
     ): Promise<(Image | undefined)[]> {
-        const images = this.images
         if (!images) return []
         return Promise.all(
             Object.keys(images).map((filename) =>
@@ -178,12 +141,7 @@ class ImageStore {
     }
 }
 
-const _imageStore = new ImageStore()
-
-export async function getImageStore(): Promise<ImageStore> {
-    await _imageStore.init()
-    return _imageStore
-}
+export const imageStore = new ImageStore()
 
 export const s3Client = new S3Client({
     endpoint: IMAGE_HOSTING_R2_ENDPOINT,
@@ -364,9 +322,10 @@ export async function fetchImagesFromDriveAndSyncToS3(
 ): Promise<Image[]> {
     if (!filenames.length) return []
 
-    const imageStore = await getImageStore()
-    await imageStore.fetchImageMetadata(filenames)
-    const images = at(imageStore.images, filenames).filter(Boolean)
+    const images = await imageStore
+        .fetchImageMetadata(filenames)
+        .then((obj) => Object.values(obj))
+        .then(excludeUndefined)
 
     return Promise.all(images.map((i) => Image.syncImage(knex, i)))
         .then(excludeUndefined)
