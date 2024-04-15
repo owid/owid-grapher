@@ -780,15 +780,13 @@ export class Grapher
                     table.get(this.mapColumnSlug).tolerance
             )
 
-        if (
-            this.isDiscreteBar ||
-            this.isLineChartThatTurnedIntoDiscreteBar ||
-            this.isMarimekko
-        )
+        if (this.isDiscreteBar || this.isLineChartThatTurnedIntoDiscreteBar)
             return table.filterByTargetTimes(
                 [endTime],
                 table.get(this.yColumnSlugs[0]).tolerance
             )
+
+        if (this.isMarimekko) return table.filterByTargetTimes([endTime])
 
         if (this.isSlopeChart)
             return table.filterByTargetTimes([startTime, endTime])
