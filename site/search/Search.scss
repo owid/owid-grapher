@@ -122,20 +122,30 @@
     }
 }
 
+.search-results__header-container {
+    margin-top: 24px;
+    margin-bottom: 24px;
+}
+
 .search-results__header {
     display: flex;
     align-items: baseline;
 }
 
 .search-results__section-title {
-    margin-top: 24px;
-    margin-bottom: 24px;
+    margin-top: 0;
+    margin-bottom: 0;
     margin-right: 16px;
     color: $blue-50;
 
     @include sm-only {
         color: $blue-90;
     }
+}
+
+.search-results__section-subtitle {
+    margin-top: 4px;
+    color: $blue-90;
 }
 
 .search-results__show-more-container {
