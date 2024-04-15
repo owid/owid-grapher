@@ -52,8 +52,10 @@ export function pickEntitiesForChartHit(hit: IChartHit): EntityName[] {
 
             // Pick entity if the matched sequence contains the full entity name
             if (
-                matchedSequenceLowerCase.includes(
-                    entityNameWithoutTrailingParens.toLowerCase()
+                matchedSequenceLowerCase.startsWith(
+                    entityNameWithoutTrailingParens
+                        .replaceAll("-", " ") // makes "high-income countries" into "high income countries", enabling a match
+                        .toLowerCase()
                 )
             )
                 return true
