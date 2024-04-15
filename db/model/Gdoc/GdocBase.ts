@@ -1,4 +1,3 @@
-import fs from "fs"
 import * as db from "../../db"
 import { getUrlTarget } from "@ourworldindata/components"
 import {
