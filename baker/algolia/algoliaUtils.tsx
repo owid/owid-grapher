@@ -23,7 +23,6 @@ import {
     SearchIndexName,
 } from "../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
-import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { ArticleBlocks } from "../../site/gdocs/components/ArticleBlocks.js"
 import React from "react"
 import {
@@ -35,6 +34,7 @@ import { getIndexName } from "../../site/search/searchClient.js"
 import { ObjectWithObjectID } from "@algolia/client-search"
 import { SearchIndex } from "algoliasearch"
 import { match, P } from "ts-pattern"
+import { gdocFromJSON } from "../../db/model/Gdoc/GdocFactory.js"
 
 interface TypeAndImportance {
     type: PageType
@@ -212,7 +212,7 @@ export const getPagesRecords = async (knex: db.KnexReadWriteTransaction) => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
     const gdocs = await db
         .getPublishedGdocPosts(knex)
-        .then((gdocs) => gdocs.map(GdocPost.create))
+        .then((gdocs) => gdocs.map(gdocFromJSON) as OwidGdocPostInterface[])
 
     const publishedGdocsBySlug = keyBy(gdocs, "slug")
     const slugsWithPublishedGdocsSuccessors =
