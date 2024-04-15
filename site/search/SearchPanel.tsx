@@ -608,18 +608,20 @@ const SearchResults = (props: SearchResultsProps) => {
             />
             <NoResultsBoundary>
                 <section className="search-results__pages">
-                    <header className="search-results__header">
-                        <h2 className="h2-bold search-results__section-title">
-                            Research & Writing
-                        </h2>
-                        <ShowMore
-                            category={SearchIndexName.Pages}
-                            cutoffNumber={4}
-                            activeCategoryFilter={activeCategoryFilter}
-                            handleCategoryFilterClick={
-                                handleCategoryFilterClick
-                            }
-                        />
+                    <header className="search-results__header-container">
+                        <div className="search-results__header">
+                            <h2 className="h2-bold search-results__section-title">
+                                Research & Writing
+                            </h2>
+                            <ShowMore
+                                category={SearchIndexName.Pages}
+                                cutoffNumber={4}
+                                activeCategoryFilter={activeCategoryFilter}
+                                handleCategoryFilterClick={
+                                    handleCategoryFilterClick
+                                }
+                            />
+                        </div>
                     </header>
                     <Hits
                         classNames={{
@@ -642,18 +644,20 @@ const SearchResults = (props: SearchResultsProps) => {
                 />
                 <NoResultsBoundary>
                     <section className="search-results__charts">
-                        <header className="search-results__header">
-                            <h2 className="h2-bold search-results__section-title">
-                                Charts
-                            </h2>
-                            <ShowMore
-                                category={SearchIndexName.Charts}
-                                cutoffNumber={4}
-                                activeCategoryFilter={activeCategoryFilter}
-                                handleCategoryFilterClick={
-                                    handleCategoryFilterClick
-                                }
-                            />
+                        <header className="search-results__header-container">
+                            <div className="search-results__header">
+                                <h2 className="h2-bold search-results__section-title">
+                                    Charts
+                                </h2>
+                                <ShowMore
+                                    category={SearchIndexName.Charts}
+                                    cutoffNumber={4}
+                                    activeCategoryFilter={activeCategoryFilter}
+                                    handleCategoryFilterClick={
+                                        handleCategoryFilterClick
+                                    }
+                                />
+                            </div>
                         </header>
                         <Hits
                             classNames={{
@@ -677,22 +681,29 @@ const SearchResults = (props: SearchResultsProps) => {
                 />
                 <NoResultsBoundary>
                     <section className="search-results__explorers">
-                        <header className="search-results__header">
-                            <h2 className="h2-bold search-results__section-title">
-                                Data Explorers
-                            </h2>
-                            <ShowMore
-                                category={SearchIndexName.ExplorerViews}
-                                cutoffNumber={2}
-                                activeCategoryFilter={activeCategoryFilter}
-                                handleCategoryFilterClick={
-                                    handleCategoryFilterClick
-                                }
-                                getTotalNumberOfHits={(
-                                    results: AlgoliaSearchResultsType<IExplorerViewHit>
-                                ) => getNumberOfExplorerHits(results.hits)}
-                            />
+                        <header className="search-results__header-container">
+                            <div className="search-results__header">
+                                <h2 className="h2-bold search-results__section-title">
+                                    Data Explorers
+                                </h2>
+                                <ShowMore
+                                    category={SearchIndexName.ExplorerViews}
+                                    cutoffNumber={2}
+                                    activeCategoryFilter={activeCategoryFilter}
+                                    handleCategoryFilterClick={
+                                        handleCategoryFilterClick
+                                    }
+                                    getTotalNumberOfHits={(
+                                        results: AlgoliaSearchResultsType<IExplorerViewHit>
+                                    ) => getNumberOfExplorerHits(results.hits)}
+                                />
+                            </div>
+                            <h3 className="body-2-regular search-results__section-subtitle">
+                                Interactive visualization tools to explore a
+                                wide range of related indicators.
+                            </h3>
                         </header>
+
                         <ExplorerViewHits
                             countriesRegionsToSelect={searchQueryRegionsMatches}
                         />
