@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom"
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import cx from "classnames"
 import {
     keyBy,
@@ -7,6 +7,7 @@ import {
     get,
     mapValues,
     isElementHidden,
+    sortBy,
 } from "@ourworldindata/utils"
 import {
     InstantSearch,
@@ -36,6 +37,7 @@ import {
     searchCategoryFilters,
     IPageHit,
     pageTypeDisplayNames,
+    PageRecord,
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -54,6 +56,7 @@ import {
     DEFAULT_GRAPHER_WIDTH,
 } from "@ourworldindata/grapher"
 import { SiteAnalytics } from "../SiteAnalytics.js"
+import { extractRegionNamesFromSearchQuery } from "./SearchUtils.js"
 
 const siteAnalytics = new SiteAnalytics()
 
@@ -261,6 +264,13 @@ interface SearchResultsProps {
     query: string
 }
 
+const PAGES_ATTRIBUTES_TO_SEARCH_NO_FULLTEXT: (keyof PageRecord)[] = [
+    "title",
+    "excerpt",
+    "tags",
+    "authors",
+] // Should be a subset of the `searchableAttributes` set up in `configureAlgolia` for the `pages` index; minus the "content" attribute
+
 const SearchResults = (props: SearchResultsProps) => {
     const {
         results: { queryID },
@@ -333,6 +343,12 @@ const SearchResults = (props: SearchResultsProps) => {
         document.addEventListener("click", handleHitClick)
         return () => document.removeEventListener("click", handleHitClick)
     }, [queryID, handleHitClick])
+
+    const searchQueryRegionsMatches = useMemo(() => {
+        const extractedRegions = extractRegionNamesFromSearchQuery(props.query)
+        if (!extractedRegions) return undefined
+        return sortBy(extractedRegions, (r) => r.name) // For some deterministic order
+    }, [props.query])
     if (isHidden) return null
 
     const hasClickAnalyticsConsent = getPreferenceValue(
@@ -348,6 +364,12 @@ const SearchResults = (props: SearchResultsProps) => {
                 hitsPerPage={40}
                 distinct
                 clickAnalytics={hasClickAnalyticsConsent}
+                // If we detect a country/region name in the query, we don't run a fulltext search
+                restrictSearchableAttributes={
+                    searchQueryRegionsMatches
+                        ? PAGES_ATTRIBUTES_TO_SEARCH_NO_FULLTEXT
+                        : undefined
+                }
             />
             <NoResultsBoundary>
                 <section className="search-results__pages">
@@ -379,6 +401,9 @@ const SearchResults = (props: SearchResultsProps) => {
                     hitsPerPage={10}
                     distinct
                     clickAnalytics={hasClickAnalyticsConsent}
+                    restrictSearchableAttributes={
+                        "" as any
+                    } /* Hack: This is the only way to _not_ send `restrictSearchableAttributes` along for this index */
                 />
                 <NoResultsBoundary>
                     <section className="search-results__explorers">
@@ -411,6 +436,9 @@ const SearchResults = (props: SearchResultsProps) => {
                     hitsPerPage={40}
                     distinct
                     clickAnalytics={hasClickAnalyticsConsent}
+                    restrictSearchableAttributes={
+                        "" as any
+                    } /* Hack: This is the only way to _not_ send `restrictSearchableAttributes` along for this index */
                 />
                 <NoResultsBoundary>
                     <section className="search-results__charts">
