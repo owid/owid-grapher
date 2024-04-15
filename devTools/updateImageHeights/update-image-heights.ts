@@ -1,9 +1,10 @@
-import { imageStore } from "../../db/model/Image.js"
+import { getImageStore } from "../../db/model/Image.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash"
 import { exit } from "../../db/cleanup.js"
 
 async function updateImageHeights() {
+    const imageStore = await getImageStore()
     const transaction = await db.knexInstance().transaction()
     const filenames = await db
         .knexRaw<{ filename: string }>(

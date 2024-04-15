@@ -657,7 +657,7 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         if (!imagesFilenames.length) return
 
-        const imageMetadata = await db.getImagesMetadataByFilenames(
+        const imageMetadata = await db.getImageMetadataByFilenames(
             knex,
             imagesFilenames
         )

@@ -164,17 +164,10 @@ function generateGdocRecords(
                     importance: 3,
                 })
             )
-            .with(OwidGdocType.Fragment, () => ({
+            .with(P.union(OwidGdocType.Fragment, undefined), () => ({
                 type: "other" as const,
                 importance: 0,
             }))
-            .with(undefined, () => {
-                console.error(
-                    `Failed indexing gdoc post ${gdoc.id} (No type)`,
-                    gdoc
-                )
-                return { type: "other" as const, importance: 0 }
-            })
             .exhaustive()
     }
 

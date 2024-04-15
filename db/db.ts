@@ -322,7 +322,7 @@ export const getHomepageId = (
     ).then((result) => result?.id)
 }
 
-export const getImagesMetadataByFilenames = async (
+export const getImageMetadataByFilenames = async (
     knex: KnexReadonlyTransaction,
     filenames: string[]
 ): Promise<Record<string, ImageMetadata>> => {

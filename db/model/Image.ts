@@ -19,7 +19,6 @@ import {
     serializeImageRow,
     ImagesTableName,
     merge,
-    pick,
     excludeUndefined,
 } from "@ourworldindata/utils"
 import { OwidGoogleAuth } from "../OwidGoogleAuth.js"
@@ -34,22 +33,17 @@ import {
 } from "../../settings/serverSettings.js"
 import { KnexReadWriteTransaction, KnexReadonlyTransaction } from "../db.js"
 import { at } from "lodash"
+import { ENV } from "../../settings/clientSettings.js"
 
 class ImageStore {
     images: Record<string, ImageMetadata> | undefined
     hasInitialized: boolean = false
     isFetchingFromGoogleDrive: boolean = false
-
-    constructor() {
-        setInterval(
-            async () => {
-                await this.fetchImageMetadata([])
-            },
-            60 * 60 * 1000
-        )
-    }
+    lastFetchTime: number | undefined
 
     async init(): Promise<void> {
+        // don't prefetch every image in development mode, wait for a specific request first
+        if (ENV === "development") return
         // only one init at a time
         while (this.isFetchingFromGoogleDrive) {
             await new Promise((resolve) => setTimeout(resolve, 100))
@@ -65,6 +59,16 @@ class ImageStore {
     async fetchImageMetadata(
         filenames: string[]
     ): Promise<Record<string, ImageMetadata | undefined>> {
+        if (
+            this.images &&
+            this.lastFetchTime &&
+            Date.now() - this.lastFetchTime < 60 * 1000
+        ) {
+            console.log(
+                `Skipping image metadata refresh since last fetch was less than a minute ago`
+            )
+            return this.images
+        }
         this.isFetchingFromGoogleDrive = true
         try {
             console.log(
@@ -157,6 +161,7 @@ class ImageStore {
             throw error
         } finally {
             this.isFetchingFromGoogleDrive = false
+            this.lastFetchTime = Date.now()
         }
     }
 
@@ -173,11 +178,11 @@ class ImageStore {
     }
 }
 
-export const imageStore = new ImageStore()
+const _imageStore = new ImageStore()
 
 export async function getImageStore(): Promise<ImageStore> {
-    await imageStore.init()
-    return imageStore
+    await _imageStore.init()
+    return _imageStore
 }
 
 export const s3Client = new S3Client({
@@ -236,12 +241,14 @@ export class Image implements ImageMetadata {
                 if (
                     stored.updatedAt !== fresh.updatedAt ||
                     stored.defaultAlt !== fresh.defaultAlt ||
-                    stored.originalWidth !== fresh.originalWidth
+                    stored.originalWidth !== fresh.originalWidth ||
+                    stored.originalHeight !== fresh.originalHeight
                 ) {
                     await fresh.fetchFromDriveAndUploadToS3()
                     stored.updatedAt = fresh.updatedAt
                     stored.defaultAlt = fresh.defaultAlt
                     stored.originalWidth = fresh.originalWidth
+                    stored.originalHeight = fresh.originalHeight
                     await updateImage(knex, stored.id, {
                         updatedAt: fresh.updatedAt,
                         defaultAlt: fresh.defaultAlt,

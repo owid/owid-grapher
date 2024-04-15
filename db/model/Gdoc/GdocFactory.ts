@@ -36,7 +36,7 @@ import {
     KnexReadonlyTransaction,
     knexRaw,
     KnexReadWriteTransaction,
-    getImagesMetadataByFilenames,
+    getImageMetadataByFilenames,
     getPublishedGdocPosts,
 } from "../../db.js"
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
@@ -347,10 +347,7 @@ export async function loadGdocFromGdocBase(
         await fetchImagesFromDriveAndSyncToS3(knex, gdoc.filenames)
     }
 
-    const start = Date.now()
     await gdoc.loadState(knex)
-    const end = Date.now()
-    console.log(`Loaded state for ${gdoc.id} in ${end - start}ms`)
 
     return gdoc
 }
@@ -604,7 +601,7 @@ export async function addImagesToContentGraph(
     // Includes fragments so that images in data pages are
     // synced to S3 and ultimately baked in bakeDriveImages().
     if (filenames.length && gdoc.published) {
-        const images = await getImagesMetadataByFilenames(trx, filenames)
+        const images = await getImageMetadataByFilenames(trx, filenames)
         const gdocXImagesToInsert: DbInsertPostGdocXImage[] = []
         for (const filename in images) {
             const image = images[filename] as DbEnrichedImage
