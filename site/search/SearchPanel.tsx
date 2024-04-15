@@ -316,7 +316,11 @@ function ExplorerHit({
                                     highlightedTagName="strong"
                                     className="search-results__explorer-view-title"
                                 />
-                                <FontAwesomeIcon icon={faArrowRight} />
+                                <span className="nowrap icon-container">
+                                    &zwj;
+                                    {/* Zero-width joiner to prevent line break between title and icon */}
+                                    <FontAwesomeIcon icon={faArrowRight} />
+                                </span>
                             </a>
                             <p className="body-3-medium-italic search-results__explorer-view-subtitle">
                                 {view.viewSubtitle}
