@@ -161,6 +161,10 @@
         cursor: pointer;
     }
 
+    &.show-more-btn-hidden button {
+        visibility: hidden; // Don't show the button, but keep the margin/padding for mobile layout
+    }
+
     @include sm-only {
         position: absolute;
         display: flex;

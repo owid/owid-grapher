@@ -374,13 +374,15 @@ function ShowMore({
         : `Showing ${numberShowing} of the top ${totalNumberOfHits} results`
 
     return (
-        <div className="search-results__show-more-container">
+        <div
+            className={cx("search-results__show-more-container", {
+                "show-more-btn-hidden": isShowingAllResults,
+            })}
+        >
             <em>{message}</em>
-            {!isShowingAllResults && (
-                <button aria-label="Show more results" onClick={handleClick}>
-                    Show more
-                </button>
-            )}
+            <button aria-label="Show more results" onClick={handleClick}>
+                Show more
+            </button>
         </div>
     )
 }
