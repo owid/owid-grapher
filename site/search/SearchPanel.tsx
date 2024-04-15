@@ -265,7 +265,7 @@ function ExplorerHit({
             <div className="search-results__explorer-hit-header">
                 <div className="search-results__explorer-hit-title-container">
                     <h3 className="h3-bold search-results__explorer-hit-title">
-                        {groupedHit.explorerTitle}
+                        {groupedHit.explorerTitle} Data Explorer
                     </h3>
                     <p className="body-3-medium-italic search-results__explorer-hit-subtitle">
                         {groupedHit.explorerSubtitle}
