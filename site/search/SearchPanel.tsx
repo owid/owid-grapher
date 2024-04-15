@@ -249,8 +249,8 @@ function ExplorerHit({
         href: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}${queryStr}`,
         "data-algolia-index": getIndexName(SearchIndexName.ExplorerViews),
         "data-algolia-object-id": firstHit.objectID,
-        "data-algolia-position": firstHit.hitPositionOverall,
-        "data-algolia-card-position": cardPosition,
+        "data-algolia-position": firstHit.hitPositionOverall + 1,
+        "data-algolia-card-position": cardPosition + 1,
         "data-algolia-position-within-card": 0,
         "data-algolia-event-name": "click_explorer",
     }
@@ -270,12 +270,12 @@ function ExplorerHit({
                     </p>
                 </div>
 
-                <a
-                    className="search-results__explorer-hit-link hide-sm-only"
-                    {...exploreAllProps}
-                >
-                    Explore all {groupedHit.numViewsWithinExplorer} indicators
-                </a>
+                <div className="search-results__explorer-hit-link hide-sm-only">
+                    <a {...exploreAllProps}>
+                        Explore all {groupedHit.numViewsWithinExplorer}{" "}
+                        indicators
+                    </a>
+                </div>
             </div>
             <ul className="search-results__explorer-views-list grid grid-cols-2 grid-sm-cols-1">
                 {groupedHit.views.map((view) => {

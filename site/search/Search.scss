@@ -258,6 +258,7 @@
     }
 
     .search-results__explorer-hit-link-mobile {
+        @include body-3-medium;
         @include owid-link-60;
         margin-top: 16px;
         display: block;
@@ -285,20 +286,24 @@
         }
 
         .search-results__explorer-hit-link {
-            @include owid-link-60;
             margin-top: 0;
-            flex: 1 0 auto;
+            flex: 0 0 auto;
             text-align: right;
+
+            a {
+                @include body-3-medium;
+                @include owid-link-60;
+            }
         }
     }
 
     .search-results__explorer-views-list {
-        margin-left: 20px;
-        margin-top: 5px;
+        margin-top: 16px;
         list-style: none;
         gap: 16px;
 
         .search-results__explorer-view {
+            margin-left: 24px;
             overflow: hidden;
 
             .search-results__explorer-view-title-container {
