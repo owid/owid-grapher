@@ -33,14 +33,14 @@ export class TimelineController {
         return this.manager.times
     }
 
-    private get startTime(): number {
+    get startTime(): number {
         return findClosestTime(
             this.timesAsc,
             this.manager.startHandleTimeBound
         )!
     }
 
-    private get endTime(): number {
+    get endTime(): number {
         return findClosestTime(this.timesAsc, this.manager.endHandleTimeBound)!
     }
 
