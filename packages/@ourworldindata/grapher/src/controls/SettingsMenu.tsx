@@ -9,7 +9,6 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { ChartDimension } from "../chart/ChartDimension"
 import { makeSelectionArray } from "../chart/ChartUtils.js"
 import { AxisConfig } from "../axis/AxisConfig"
-import { CloseButton } from "../closeButton/CloseButton.js"
 
 import { AxisScaleToggle } from "./settings/AxisScaleToggle"
 import { AbsRelToggle, AbsRelToggleManager } from "./settings/AbsRelToggle"
@@ -30,6 +29,7 @@ import {
     TableFilterToggle,
     TableFilterToggleManager,
 } from "./settings/TableFilterToggle"
+import { OverlayHeader } from "../core/OverlayHeader"
 
 const {
     LineChart,
@@ -315,12 +315,11 @@ export class SettingsMenu extends React.Component<{
                         ...this.layout,
                     }}
                 >
-                    <div className="settings-menu-header">
-                        <div className="grapher_h5-black-caps grapher_light">
-                            {menuTitle}
-                        </div>
-                        <CloseButton onClick={() => this.toggleVisibility()} />
-                    </div>
+                    <OverlayHeader
+                        className="settings-menu-header"
+                        title={menuTitle}
+                        onDismiss={this.toggleVisibility}
+                    />
 
                     <div className="settings-menu-controls">
                         <SettingsGroup

@@ -1,17 +1,15 @@
 import React from "react"
-import cx from "classnames"
 import { createPortal } from "react-dom"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import {
-    GRAPHER_DRAWER_ID,
-    GRAPHER_SCROLLABLE_CONTAINER_CLASS,
-} from "../core/GrapherConstants"
-import { CloseButton } from "../closeButton/CloseButton.js"
+import { GRAPHER_DRAWER_ID } from "../core/GrapherConstants"
+
+export const DrawerContext = React.createContext<{
+    toggleDrawerVisibility?: () => void
+}>({})
 
 @observer
 export class SlideInDrawer extends React.Component<{
-    title: string
     active: boolean
     toggle: () => void
     children: React.ReactNode
@@ -87,21 +85,13 @@ export class SlideInDrawer extends React.Component<{
                         ...this.animationFor("grapher-drawer-contents"),
                     }}
                 >
-                    <div className="grapher-drawer-header">
-                        <div className="grapher_h5-black-caps grapher_light">
-                            {this.props.title}
-                        </div>
-                        <CloseButton onClick={() => this.toggleVisibility()} />
-                    </div>
-
-                    <div
-                        className={cx(
-                            "grapher-drawer-scrollable",
-                            GRAPHER_SCROLLABLE_CONTAINER_CLASS
-                        )}
+                    <DrawerContext.Provider
+                        value={{
+                            toggleDrawerVisibility: this.toggleVisibility,
+                        }}
                     >
                         {this.props.children}
-                    </div>
+                    </DrawerContext.Provider>
                 </div>
             </div>
         )

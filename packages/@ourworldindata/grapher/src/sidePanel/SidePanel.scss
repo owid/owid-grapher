@@ -3,19 +3,8 @@
     flex-shrink: 0;
     border-left: 1px solid $frame-color;
 
-    position: relative;
-
-    // necessary for scrolling
-    display: flex;
-    flex-direction: column;
-
-    .side-panel__header {
-        margin: 16px;
-        flex-shrink: 0; // necessary for scrolling
-    }
-
-    .side-panel__scrollable {
-        flex-grow: 1;
-        overflow-y: auto;
+    // don't show close button in the side panel header
+    .overlay-header .close-button {
+        display: none;
     }
 }

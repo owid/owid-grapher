@@ -4,6 +4,7 @@ import { computed, action } from "mobx"
 import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { Modal } from "./Modal"
 import { CodeSnippet } from "@ourworldindata/components"
+import { OverlayHeader } from "../core/OverlayHeader.js"
 
 export interface EmbedModalManager {
     canonicalUrl?: string
@@ -45,17 +46,22 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
     render(): JSX.Element {
         return (
             <Modal
-                title="Embed"
                 bounds={this.modalBounds}
                 alignVertical="bottom"
                 onDismiss={this.onDismiss}
             >
-                <div className="embed-modal-content">
-                    <p className="grapher_label-1-medium">
-                        Paste this into any HTML page:
-                    </p>
-                    <CodeSnippet code={this.codeSnippet} />
-                    {this.manager.embedDialogAdditionalElements}
+                <div
+                    className="embed-modal-content"
+                    style={{ maxHeight: this.modalBounds.height }}
+                >
+                    <OverlayHeader title="Embed" onDismiss={this.onDismiss} />
+                    <div className="scrollable">
+                        <p className="grapher_label-1-medium">
+                            Paste this into any HTML page:
+                        </p>
+                        <CodeSnippet code={this.codeSnippet} />
+                        {this.manager.embedDialogAdditionalElements}
+                    </div>
                 </div>
             </Modal>
         )

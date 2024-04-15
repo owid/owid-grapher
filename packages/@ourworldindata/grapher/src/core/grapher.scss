@@ -89,6 +89,7 @@ $zindex-controls-drawer: 150;
 @import "../closeButton/CloseButton.scss";
 @import "../controls/RadioButton.scss";
 @import "../controls/Dropdown.scss";
+@import "../core/OverlayHeader.scss";
 
 .grapher_dark {
     color: $dark-text;

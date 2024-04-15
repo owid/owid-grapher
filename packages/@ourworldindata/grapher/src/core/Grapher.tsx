@@ -9,7 +9,6 @@ import {
     reaction,
 } from "mobx"
 import { bind } from "decko"
-import a from "indefinite"
 import {
     uniqWith,
     isEqual,
@@ -2606,10 +2605,7 @@ export class Grapher
                 <div className="CaptionedChartAndSidePanel">
                     <CaptionedChart manager={this} />
                     {this.sidePanelBounds && (
-                        <SidePanel
-                            title={this.entitySelectorTitle}
-                            bounds={this.sidePanelBounds}
-                        >
+                        <SidePanel bounds={this.sidePanelBounds}>
                             <EntitySelector manager={this} />
                         </SidePanel>
                     )}
@@ -2625,7 +2621,6 @@ export class Grapher
 
                 {/* entity selector in a slide-in drawer */}
                 <SlideInDrawer
-                    title={this.entitySelectorTitle}
                     active={this.isEntitySelectorDrawerOpen}
                     toggle={() => {
                         this.isEntitySelectorModalOrDrawerOpen =
@@ -3113,14 +3108,6 @@ export class Grapher
         return isMobile()
             ? timeColumn.formatValueForMobile(value)
             : timeColumn.formatValue(value)
-    }
-
-    @computed get entitySelectorTitle(): string {
-        return this.canHighlightEntities
-            ? `Select ${this.entityTypePlural}`
-            : this.canChangeEntity
-              ? `Choose ${a(this.entityType)}`
-              : `Add/remove ${this.entityTypePlural}`
     }
 
     @computed get canSelectMultipleEntities(): boolean {

@@ -20,6 +20,7 @@ import {
 } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
+import { OverlayHeader } from "../core/OverlayHeader.js"
 
 export interface DownloadModalManager {
     displaySlug: string
@@ -362,17 +363,22 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
 
     render(): JSX.Element {
         return (
-            <Modal
-                title="Download"
-                bounds={this.modalBounds}
-                onDismiss={this.onDismiss}
-            >
-                <div className="download-modal-content">
-                    {this.isReady ? (
-                        this.renderReady()
-                    ) : (
-                        <LoadingIndicator color="#000" />
-                    )}
+            <Modal bounds={this.modalBounds} onDismiss={this.onDismiss}>
+                <div
+                    className="download-modal-content"
+                    style={{ maxHeight: this.modalBounds.height }}
+                >
+                    <OverlayHeader
+                        title="Download"
+                        onDismiss={this.onDismiss}
+                    />
+                    <div className="scrollable">
+                        {this.isReady ? (
+                            this.renderReady()
+                        ) : (
+                            <LoadingIndicator color="#000" />
+                        )}
+                    </div>
                 </div>
             </Modal>
         )

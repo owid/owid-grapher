@@ -11,7 +11,6 @@ import {
 export interface EntitySelectorModalManager extends EntitySelectorManager {
     isEntitySelectorModalOrDrawerOpen?: boolean
     frameBounds?: Bounds
-    entitySelectorTitle?: string
 }
 
 @observer
@@ -39,7 +38,6 @@ export class EntitySelectorModal extends React.Component<{
     render(): JSX.Element {
         return (
             <Modal
-                title={this.manager.entitySelectorTitle}
                 onDismiss={this.onDismiss}
                 bounds={this.modalBounds}
                 isHeightFixed={true}
