@@ -422,7 +422,6 @@ export async function getAndLoadPublishedGdocPosts(
     const gdocs = await Promise.all(
         enrichedRows.map(async (row) => loadGdocFromGdocBase(knex, row))
     )
-    console.log("after all loaded")
     return gdocs as GdocPost[]
 }
 
