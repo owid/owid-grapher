@@ -31,7 +31,9 @@ import {
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
     BAKED_BASE_URL,
+    BAKED_GRAPHER_EXPORTS_BASE_URL,
     BAKED_GRAPHER_URL,
+    GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../../settings/clientSettings.js"
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -129,8 +131,8 @@ function ChartHit({ hit }: { hit: IChartHit }) {
     )
     const queryStr = useMemo(() => getEntityQueryStr(entities), [entities])
     const previewUrl = queryStr
-        ? `/grapher/thumbnail/${hit.slug}${queryStr}` // TODO extract to .env
-        : `${BAKED_GRAPHER_URL}/exports/${hit.slug}.svg`
+        ? `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}${queryStr}`
+        : `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${hit.slug}.svg`
 
     useEffect(() => {
         setImgLoaded(false)
