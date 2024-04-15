@@ -225,6 +225,11 @@ $reset-button-margin: 16px;
     }
 }
 
+// For charts, make it clearer that the title etc. belong to the chart above
+.search-results__charts-list {
+    row-gap: calc(2 * var(--grid-gap));
+}
+
 .search-results__page-hit {
     list-style: none;
 
