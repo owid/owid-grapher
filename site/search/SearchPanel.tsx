@@ -143,15 +143,17 @@ function ChartHit({ hit }: { hit: IChartHit }) {
                     onError={() => setImgError(true)}
                 />
             </div>
-            <Highlight
-                attribute="title"
-                highlightedTagName="strong"
-                className="search-results__chart-hit-highlight"
-                hit={hit}
-            />{" "}
-            <span className="search-results__chart-hit-variant">
-                {hit.variantName}
-            </span>
+            <div className="search-results__chart-hit-title-container">
+                <Highlight
+                    attribute="title"
+                    highlightedTagName="strong"
+                    className="search-results__chart-hit-highlight"
+                    hit={hit}
+                />{" "}
+                <span className="search-results__chart-hit-variant">
+                    {hit.variantName}
+                </span>
+            </div>
         </a>
     )
 }
