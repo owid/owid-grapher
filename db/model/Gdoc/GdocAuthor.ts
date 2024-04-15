@@ -8,6 +8,7 @@ import {
     DbEnrichedLatestWork,
     DEFAULT_GDOC_FEATURED_IMAGE,
     OwidGdocBaseInterface,
+    excludeNullish,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
@@ -29,7 +30,9 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         Object.assign(gdoc, obj)
         return gdoc
     }
-    _filenameProperties: string[] = ["featured-image"]
+    protected typeSpecificFilenames(): string[] {
+        return excludeNullish([this.content["featured-image"]])
+    }
 
     _getSubclassEnrichedBlocks = (gdoc: this): OwidEnrichedGdocBlock[] => {
         const blocks: OwidEnrichedGdocBlock[] = []
