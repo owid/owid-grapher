@@ -73,12 +73,6 @@ export enum TransactionCloseMode {
     KeepOpen,
 }
 
-export function checkIsReadWriteTransaction(
-    trx: Knex.Transaction<any, any[]>
-): trx is KnexReadWriteTransaction {
-    return __read_capability in trx && __write_capability in trx
-}
-
 async function knexTransaction<T, KT>(
     transactionFn: (trx: KT) => Promise<T>,
     closeConnection: TransactionCloseMode,
