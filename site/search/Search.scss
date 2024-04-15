@@ -1,3 +1,6 @@
+$reset-button-size: 24px;
+$reset-button-margin: 16px;
+
 .search-page-container {
     min-height: calc(100vh - $header-height-sm);
     @include sm-up {
@@ -32,8 +35,15 @@
     width: 100%;
     height: 56px;
     padding-left: 16px;
-    // To conceal the placeholder text underneath the svg buttons on mobile
-    padding-right: 100px;
+    // To give room to the "Clear" button to the right
+    padding-right: $reset-button-size + $reset-button-margin + 4px;
+
+    // If the placeholder is shown, then the Clear button is not shown
+    &:placeholder-shown {
+        padding-right: 16px;
+        text-overflow: ellipsis;
+    }
+
     border: none;
     outline: $blue-20 1px solid;
     outline-offset: 0px;
@@ -46,7 +56,7 @@
 .ais-SearchBox-reset {
     display: inline-block;
     position: absolute;
-    right: 16px;
+    right: $reset-button-margin;
     top: 30%;
     border: none;
     border-radius: 16px;
