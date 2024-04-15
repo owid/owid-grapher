@@ -334,7 +334,6 @@ export class SiteBaker {
             const publishedChartsRaw = await mapSlugsToConfigs(knex)
             const publishedCharts: LinkedChart[] = []
 
-            let i = 0
             for (const publishedChartsRawChunk of chunk(
                 publishedChartsRaw,
                 20
@@ -357,7 +356,6 @@ export class SiteBaker {
                         })
                     })
                 )
-                i++
             }
             const publishedChartsBySlug = keyBy(publishedCharts, "originalSlug")
 

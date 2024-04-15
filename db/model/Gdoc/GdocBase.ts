@@ -6,7 +6,6 @@ import {
     LinkedIndicator,
     keyBy,
     ImageMetadata,
-    excludeUndefined,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     excludeNullish,

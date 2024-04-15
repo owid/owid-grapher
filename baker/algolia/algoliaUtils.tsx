@@ -34,7 +34,6 @@ import {
 import { getIndexName } from "../../site/search/searchClient.js"
 import { ObjectWithObjectID } from "@algolia/client-search"
 import { SearchIndex } from "algoliasearch"
-import { gdocFromJSON } from "../../db/model/Gdoc/GdocFactory.js"
 import { match, P } from "ts-pattern"
 
 interface TypeAndImportance {

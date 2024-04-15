@@ -23,15 +23,8 @@ import { ADMIN_BASE_URL } from "../../../settings/clientSettings.js"
 import { parseDetails, parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
-import {
-    KnexReadWriteTransaction,
-    KnexReadonlyTransaction,
-    knexRaw,
-} from "../../db.js"
-import {
-    getGdocBaseObjectById,
-    getAndLoadPublishedGdocPosts,
-} from "./GdocFactory.js"
+import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
+import { getGdocBaseObjectById } from "./GdocFactory.js"
 
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     content!: OwidGdocPostContent

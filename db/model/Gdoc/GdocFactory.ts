@@ -1,4 +1,4 @@
-import { get, groupBy, pick } from "lodash"
+import { get, groupBy } from "lodash"
 import { match, P } from "ts-pattern"
 import {
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
@@ -9,7 +9,6 @@ import {
     DbPlainTag,
     DbRawPostGdoc,
     GdocsContentSource,
-    ImageMetadata,
     OwidGdoc,
     OwidGdocBaseInterface,
     OwidGdocIndexItem,

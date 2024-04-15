@@ -18,7 +18,6 @@ import {
     DbInsertImage,
     serializeImageRow,
     ImagesTableName,
-    merge,
     excludeUndefined,
 } from "@ourworldindata/utils"
 import { OwidGoogleAuth } from "../OwidGoogleAuth.js"
@@ -32,7 +31,6 @@ import {
     GDOCS_SHARED_DRIVE_ID,
 } from "../../settings/serverSettings.js"
 import { KnexReadWriteTransaction, KnexReadonlyTransaction } from "../db.js"
-import { at } from "lodash"
 
 class ImageStore {
     async fetchImageMetadata(
