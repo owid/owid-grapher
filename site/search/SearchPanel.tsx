@@ -427,16 +427,19 @@ const PAGES_ATTRIBUTES_TO_SEARCH_NO_FULLTEXT: (keyof PageRecord)[] = [
 ] // Should be a subset of the `searchableAttributes` set up in `configureAlgolia` for the `pages` index; minus the "content" attribute
 
 const SearchResults = (props: SearchResultsProps) => {
-    const {
-        results: { queryID },
-    } = useInstantSearch()
+    const { scopedResults } = useInstantSearch()
     const { activeCategoryFilter, isHidden, handleCategoryFilterClick } = props
+
+    const queryIdByIndexName = useMemo(
+        () =>
+            new Map(scopedResults.map((r) => [r.indexId, r.results?.queryID])),
+        [scopedResults]
+    )
 
     // Listen to all clicks, if user clicks on a hit (and has consented to analytics - grep "hasClickAnalyticsConsent"),
     // Extract the pertinent hit data from the HTML and log the click to Algolia
     const handleHitClick = useCallback(
         (event: MouseEvent) => {
-            if (!queryID) return
             let target = event.target as HTMLElement | null
             if (target) {
                 let isHit = false
@@ -482,9 +485,13 @@ const SearchResults = (props: SearchResultsProps) => {
                     const index = target.getAttribute("data-algolia-index")
                     const href = target.getAttribute("href")
                     const query = props.query
+                    const queryID = index
+                        ? queryIdByIndexName.get(index)
+                        : undefined
 
                     if (
                         objectId &&
+                        queryID &&
                         positionInSection &&
                         index &&
                         href &&
@@ -510,12 +517,12 @@ const SearchResults = (props: SearchResultsProps) => {
                 }
             }
         },
-        [queryID, activeCategoryFilter, props.query]
+        [activeCategoryFilter, props.query, queryIdByIndexName]
     )
     useEffect(() => {
         document.addEventListener("click", handleHitClick)
         return () => document.removeEventListener("click", handleHitClick)
-    }, [queryID, handleHitClick])
+    }, [handleHitClick])
 
     const searchQueryRegionsMatches = useMemo(() => {
         const extractedRegions = extractRegionNamesFromSearchQuery(props.query)
