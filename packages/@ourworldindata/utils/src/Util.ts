@@ -1856,6 +1856,12 @@ export function cartesian<T>(matrix: T[][]): T[][] {
     )
 }
 
+// Remove any parenthetical content from _the end_ of a string
+// E.g. "Africa (UN)" -> "Africa"
+export function removeTrailingParenthetical(str: string): string {
+    return str.replace(/\s*\(.*\)$/, "")
+}
+
 export function isElementHidden(element: Element | null): boolean {
     if (!element) return false
     const computedStyle = window.getComputedStyle(element)
