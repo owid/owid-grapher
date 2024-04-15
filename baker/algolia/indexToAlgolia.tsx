@@ -23,15 +23,11 @@ const indexToAlgolia = async () => {
         db.TransactionCloseMode.Close
     )
 
-    await fs.promises.writeFile(
-        "algolia-pages.json",
-        JSON.stringify(records, null, 2),
-        "utf8"
-    )
-
-    // await index.replaceAllObjects(records)
+    await index.replaceAllObjects(records)
 
     await wpdb.singleton.end()
+
+    process.exit(0)
 }
 
 process.on("unhandledRejection", (e) => {

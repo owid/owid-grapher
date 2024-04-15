@@ -1,7 +1,7 @@
 import fs from "fs-extra"
 import path from "path"
 import { glob } from "glob"
-import { keyBy, without, uniq, mapValues, pick } from "lodash"
+import { keyBy, without, uniq, mapValues, pick, chunk } from "lodash"
 import ProgressBar from "progress"
 import * as wpdb from "../db/wpdb.js"
 import * as db from "../db/db.js"
@@ -307,6 +307,7 @@ export class SiteBaker {
         picks?: [string[], string[], string[], string[]]
     ): Promise<PrefetchedAttachments> {
         if (!this._prefetchedAttachmentsCache) {
+            console.log("Prefetching attachments")
             const publishedGdocs = await getAllMinimalGdocBaseObjects(knex)
             const publishedGdocsDictionary = keyBy(publishedGdocs, "id")
 
@@ -331,23 +332,33 @@ export class SiteBaker {
 
             // Includes redirects
             const publishedChartsRaw = await mapSlugsToConfigs(knex)
-            const publishedCharts: LinkedChart[] = await Promise.all(
-                publishedChartsRaw.map(async (chart) => {
-                    const tab = chart.config.tab ?? GrapherTabOption.chart
-                    const datapageIndicator =
-                        await getVariableOfDatapageIfApplicable(chart.config)
-                    return {
-                        originalSlug: chart.slug,
-                        resolvedUrl: `${BAKED_GRAPHER_URL}/${chart.config.slug}`,
-                        tab,
-                        queryString: "",
-                        title: chart.config.title || "",
-                        thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart.config.slug}.svg`,
-                        indicatorId: datapageIndicator?.id,
-                        tags: [],
-                    }
-                })
-            )
+            const publishedCharts: LinkedChart[] = []
+
+            let i = 0
+            for (const publishedChartsRawChunk of chunk(
+                publishedChartsRaw,
+                20
+            )) {
+                await Promise.all(
+                    publishedChartsRawChunk.map(async (chart) => {
+                        const tab = chart.config.tab ?? GrapherTabOption.chart
+                        const datapageIndicator =
+                            await getVariableOfDatapageIfApplicable(
+                                chart.config
+                            )
+                        publishedCharts.push({
+                            originalSlug: chart.slug,
+                            resolvedUrl: `${BAKED_GRAPHER_URL}/${chart.config.slug}`,
+                            tab,
+                            title: chart.config.title || "",
+                            thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart.config.slug}.svg`,
+                            indicatorId: datapageIndicator?.id,
+                            tags: [],
+                        })
+                    })
+                )
+                i++
+            }
             const publishedChartsBySlug = keyBy(publishedCharts, "originalSlug")
 
             const publishedChartsWithIndicatorIds = publishedCharts.filter(
