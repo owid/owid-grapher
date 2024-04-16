@@ -23,6 +23,7 @@ import {
     ColumnSlug,
     imemo,
     ToleranceStrategy,
+    differenceOfSets,
 } from "@ourworldindata/utils"
 import {
     Integer,
@@ -312,15 +313,19 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             }
         }
 
-        // const entityNamesToDrop = differenceOfSets([
-        //     this.availableEntityNameSet,
-        //     entityNamesToKeep,
-        // ])
+        const entityNamesToDrop = differenceOfSets([
+            this.availableEntityNameSet,
+            entityNamesToKeep,
+        ])
+        const droppedEntitiesStr =
+            entityNamesToDrop.size > 0
+                ? [...entityNamesToDrop].join(", ")
+                : "(None)"
 
         return this.columnFilter(
             this.entityNameSlug,
             (rowEntityName) => entityNamesToKeep.has(rowEntityName as string),
-            `Drop entities that have no data in some column: ${columnSlugs.join(", ")}`
+            `Drop entities that have no data in some column: ${columnSlugs.join(", ")}.\nDropped entities: ${droppedEntitiesStr}`
         )
     }
 
