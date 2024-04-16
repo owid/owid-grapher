@@ -9,7 +9,7 @@ import {
     ALGOLIA_INDEXING,
     ALGOLIA_SECRET_KEY,
 } from "../../settings/serverSettings.js"
-import { countries } from "@ourworldindata/utils"
+import { countries, regions, excludeUndefined } from "@ourworldindata/utils"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 
@@ -24,6 +24,11 @@ export const getAlgoliaClient = (): SearchClient | undefined => {
     const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
     return client
 }
+
+const allCountryNamesAndVariants = regions.flatMap((region) => [
+    region.name,
+    ...(("variantNames" in region && region.variantNames) || []),
+])
 
 // This function initializes and applies settings to the Algolia search indices
 // Algolia settings should be configured here rather than in the Algolia dashboard UI, as then
@@ -125,24 +130,6 @@ export const configureAlgolia = async () => {
         disablePrefixOnAttributes: ["content"],
     })
 
-    const explorersIndex = client.initIndex(
-        getIndexName(SearchIndexName.Explorers)
-    )
-
-    await explorersIndex.setSettings({
-        ...baseSettings,
-        searchableAttributes: [
-            "unordered(slug)",
-            "unordered(title)",
-            "unordered(subtitle)",
-            "unordered(text)",
-        ],
-        customRanking: ["desc(views_7d)"],
-        attributeForDistinct: "slug",
-        attributesForFaceting: [],
-        disableTypoToleranceOnAttributes: ["text"],
-    })
-
     const explorerViewsIndex = client.initIndex(
         getIndexName(SearchIndexName.ExplorerViews)
     )
@@ -164,6 +151,7 @@ export const configureAlgolia = async () => {
         attributeForDistinct: "explorerSlug",
         distinct: 4,
         minWordSizefor1Typo: 6,
+        optionalWords: allCountryNamesAndVariants,
     })
 
     const synonyms = [
@@ -308,12 +296,6 @@ export const configureAlgolia = async () => {
         ["solar", "photovoltaic", "photovoltaics", "pv"],
     ]
 
-    // Send all our country variant names to algolia as synonyms
-    for (const country of countries) {
-        if (country.variantNames)
-            synonyms.push([country.name].concat(country.variantNames))
-    }
-
     const algoliaSynonyms = synonyms.map((s) => {
         return {
             objectID: s.join("-"),
@@ -322,13 +304,25 @@ export const configureAlgolia = async () => {
         } as Synonym
     })
 
+    // Send all our country variant names to algolia as one-way synonyms
+    for (const country of countries) {
+        const alternatives = excludeUndefined([
+            country.shortName,
+            ...(country.variantNames ?? []),
+        ])
+        for (const alternative of alternatives)
+            algoliaSynonyms.push({
+                objectID: `${alternative}->${country.name}`,
+                type: "oneWaySynonym",
+                input: alternative,
+                synonyms: [country.name],
+            })
+    }
+
     await pagesIndex.saveSynonyms(algoliaSynonyms, {
         replaceExistingSynonyms: true,
     })
     await chartsIndex.saveSynonyms(algoliaSynonyms, {
-        replaceExistingSynonyms: true,
-    })
-    await explorersIndex.saveSynonyms(algoliaSynonyms, {
         replaceExistingSynonyms: true,
     })
     await explorerViewsIndex.saveSynonyms(algoliaSynonyms, {

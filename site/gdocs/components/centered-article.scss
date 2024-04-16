@@ -1124,6 +1124,10 @@ div.raw-html-table__container {
         &::placeholder {
             color: $blue-40;
         }
+
+        &:placeholder-shown {
+            text-overflow: ellipsis;
+        }
     }
 
     .aa-InputWrapperPrefix {
