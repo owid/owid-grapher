@@ -27,7 +27,6 @@ import {
 import {
     OwidTable,
     CoreColumn,
-    BlankOwidTable,
     isNotErrorValueOrEmptyCell,
 } from "@ourworldindata/core-table"
 import {
@@ -103,15 +102,7 @@ export class AbstractStackedChart
                 })
             }
 
-            const groupedByEntity = table
-                .groupBy(table.entityNameColumn.slug)
-                .map((t: OwidTable) =>
-                    t.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
-                )
-
-            if (groupedByEntity.length === 0) return BlankOwidTable()
-
-            table = groupedByEntity[0].concat(groupedByEntity.slice(1))
+            table = table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
         }
 
         return table
