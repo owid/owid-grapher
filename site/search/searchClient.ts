@@ -42,10 +42,13 @@ export const parseIndexName = (index: string): SearchIndexName => {
 }
 
 export const logSiteSearchClickToAlgoliaInsights = (
-    event: Omit<InsightsSearchClickEvent, "eventName">
+    event: Omit<InsightsSearchClickEvent, "eventName"> & { eventName?: string }
 ) => {
     const client = getInsightsClient()
-    client("clickedObjectIDsAfterSearch", { ...event, eventName: "click" })
+    client("clickedObjectIDsAfterSearch", {
+        ...event,
+        eventName: event.eventName ?? "click",
+    })
 }
 
 export const DEFAULT_SEARCH_PLACEHOLDER =
