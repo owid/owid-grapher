@@ -844,6 +844,11 @@ export enum SocialLinkType {
     Instagram = "instagram",
     Youtube = "youtube",
     Linkedin = "linkedin",
+    Threads = "threads",
+    Mastodon = "mastodon",
+    Bluesky = "bluesky",
+    Email = "email",
+    Link = "link",
 }
 
 export type RawSocialLink = {
