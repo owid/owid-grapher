@@ -114,7 +114,12 @@ export const AdminSidebar = (): JSX.Element => (
             </li>
             <li>
                 <Link to="/redirects">
-                    <FontAwesomeIcon icon={faArrowRight} /> Redirects
+                    <FontAwesomeIcon icon={faArrowRight} /> Chart Redirects
+                </Link>
+            </li>
+            <li>
+                <Link to="/site-redirects">
+                    <FontAwesomeIcon icon={faArrowRight} /> Site Redirects
                 </Link>
             </li>
             <li>

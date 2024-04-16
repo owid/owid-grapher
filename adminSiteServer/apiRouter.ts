@@ -127,6 +127,12 @@ import {
 } from "./functionalRouterHelpers.js"
 import { getPublishedLinksTo } from "../db/model/Link.js"
 import {
+    getRedirectById,
+    getRedirects,
+    redirectWithSourceExists,
+    wouldCreateRedirectCycle,
+} from "../db/model/Redirect.js"
+import {
     GdocLinkUpdateMode,
     createOrLoadGdocById,
     gdocFromJSON,
@@ -1752,6 +1758,60 @@ getRouteWithROTransaction(
         ORDER BY r.id DESC`
         ),
     })
+)
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/site-redirects.json",
+    async (req, res, trx) => ({ redirects: await getRedirects(trx) })
+)
+
+postRouteWithRWTransaction(
+    apiRouter,
+    "/site-redirects/new",
+    async (req: Request, res, trx) => {
+        const { source, target } = req.body
+        if (await redirectWithSourceExists(trx, source)) {
+            throw new JsonError(
+                `Redirect with source ${source} already exists`,
+                400
+            )
+        }
+        if (await wouldCreateRedirectCycle(trx, source, target)) {
+            throw new JsonError(
+                "Creating this redirect would create a cycle",
+                400
+            )
+        }
+        const { insertId: id } = await db.knexRawInsert(
+            trx,
+            `INSERT INTO redirects (source, target) VALUES (?, ?)`,
+            [source, target]
+        )
+        await triggerStaticBuild(
+            res.locals.user,
+            `Creating redirect id=${id} source=${source} target=${target}`
+        )
+        return { success: true, redirect: { id, source, target } }
+    }
+)
+
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/site-redirects/:id",
+    async (req, res, trx) => {
+        const id = expectInt(req.params.id)
+        const redirect = await getRedirectById(trx, id)
+        if (!redirect) {
+            throw new JsonError(`No redirect found for id ${id}`, 404)
+        }
+        await db.knexRaw(trx, `DELETE FROM redirects WHERE id=?`, [id])
+        await triggerStaticBuild(
+            res.locals.user,
+            `Deleting redirect id=${id} source=${redirect.source} target=${redirect.target}`
+        )
+        return { success: true }
+    }
 )
 
 getRouteWithROTransaction(
