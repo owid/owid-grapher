@@ -278,11 +278,13 @@ export class SourcesModal extends React.Component<
                             "scrollable--pad-top": !this.showStickyHeader,
                         })}
                     >
-                        {this.manager.isReady ? (
-                            this.renderModalContent()
-                        ) : (
-                            <LoadingIndicator />
-                        )}
+                        <div className="centered">
+                            {this.manager.isReady ? (
+                                this.renderModalContent()
+                            ) : (
+                                <LoadingIndicator />
+                            )}
+                        </div>
                     </div>
                 </div>
             </Modal>
@@ -400,7 +402,7 @@ export class Source extends React.Component<{
     protected renderTitle(): JSX.Element {
         return (
             <h2>
-                {this.title.title}{" "}
+                <span className="title">{this.title.title}</span>{" "}
                 {(this.title.attributionShort || this.title.titleVariant) && (
                     <>
                         <span className="title-fragments">

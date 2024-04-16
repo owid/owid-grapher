@@ -7,6 +7,10 @@
 
     position: relative;
 
+    label {
+        margin: 0; // style leak in admin
+    }
+
     input {
         position: absolute;
         opacity: 0;

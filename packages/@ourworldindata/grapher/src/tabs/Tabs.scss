@@ -13,14 +13,13 @@
     }
 
     &__tab {
+        @include grapher_label-2-medium;
+        display: inline-block;
         margin: 0 8px 8px 0;
         padding: 8px 16px;
         border: 1px solid $blue-10;
         background: #fff;
         color: $light-text;
-        font-size: 0.8125rem;
-        font-weight: 500;
-        letter-spacing: 0.01em;
         white-space: nowrap;
 
         &:hover {

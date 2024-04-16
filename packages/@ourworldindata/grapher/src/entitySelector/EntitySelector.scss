@@ -1,6 +1,9 @@
 .entity-selector {
     --padding: var(--modal-padding, 16px);
 
+    $sort-button-size: 32px;
+    $sort-button-margin: 16px;
+
     color: $dark-text;
 
     // necessary for scrolling
@@ -114,22 +117,19 @@
         .label {
             flex-shrink: 0;
             margin-right: 8px;
-            color: $dark-text;
         }
 
         button.sort {
             flex-shrink: 0;
-            margin-left: 16px;
-
-            $size: 32px;
+            margin-left: $sort-button-margin;
 
             display: flex;
             align-items: center;
             justify-content: center;
 
             position: relative;
-            height: $size;
-            width: $size;
+            height: $sort-button-size;
+            width: $sort-button-size;
             padding: 7px;
 
             color: $dark-text;
@@ -185,10 +185,18 @@
             position: relative;
             cursor: pointer;
 
+            &.hovered {
+                background: rgba(219, 229, 240, 0.4);
+            }
+
+            &--with-bar.hovered {
+                background: rgba(219, 229, 240, 0.6);
+            }
+
             .value {
                 color: #a1a1a1;
                 white-space: nowrap;
-                margin-left: 8px;
+                margin-left: 12px;
             }
 
             .bar {
@@ -201,11 +209,12 @@
             }
 
             .label-with-location-icon {
-                display: flex;
-                align-items: center;
+                &--no-line-break {
+                    white-space: nowrap;
+                }
 
                 svg {
-                    margin-left: 8px;
+                    margin-left: 6px;
                     font-size: 0.9em;
                     color: #a1a1a1;
 
@@ -217,7 +226,7 @@
             }
         }
 
-        .animated-entity {
+        .flipped {
             position: relative;
             z-index: 0;
             background: #fff;
@@ -255,30 +264,38 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 16px var(--padding);
+        padding: 8px var(--padding);
         box-shadow: 0px -4px 8px 0px rgba(0, 0, 0, 0.04);
 
         .footer__selected {
-            font-size: 0.6875rem;
+            font-size: 11px;
             font-weight: 500;
             letter-spacing: 0.06em;
             text-transform: uppercase;
-
-            display: flex;
-            flex-wrap: wrap;
-            column-gap: 4px;
         }
 
         button {
             background: none;
             border: none;
             color: $dark-text;
-            font-size: 0.8125rem;
+            font-size: 13px;
             font-weight: 500;
             letter-spacing: 0.01em;
             text-decoration-line: underline;
             text-underline-offset: 3px;
             cursor: pointer;
+
+            padding: 8px;
+            margin-right: -8px;
+            border-radius: 4px;
+
+            &:hover {
+                text-decoration: none;
+            }
+
+            &:active {
+                background: #f7f7f7;
+            }
 
             &:disabled {
                 color: #c6c6c6;
@@ -286,5 +303,9 @@
                 cursor: default;
             }
         }
+    }
+
+    .grapher-dropdown .menu {
+        width: calc(100% + $sort-button-margin + $sort-button-size);
     }
 }

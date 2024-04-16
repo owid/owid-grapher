@@ -1527,8 +1527,14 @@ export class Grapher
         const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
             this
 
+        // sort y columns by their display name
+        const sortedYColumnSlugs = sortBy(
+            yColumnSlugs,
+            (slug) => this.inputTable.get(slug).titlePublicOrDisplayName.title
+        )
+
         return excludeUndefined([
-            ...yColumnSlugs,
+            ...sortedYColumnSlugs,
             xColumnSlug,
             sizeColumnSlug,
             colorColumnSlug,
@@ -1542,7 +1548,7 @@ export class Grapher
         // sort y-columns by their display name
         const sortedYColumnSlugs = sortBy(
             yColumnSlugs,
-            (slug) => this.inputTable.get(slug).titlePublicOrDisplayName
+            (slug) => this.inputTable.get(slug).titlePublicOrDisplayName.title
         )
 
         const columnSlugs = excludeUndefined([
@@ -2492,7 +2498,7 @@ export class Grapher
                     justifyContent: "center",
                     textAlign: "center",
                     lineHeight: 1.5,
-                    padding: "3rem",
+                    padding: "48px",
                 }}
             >
                 <p style={{ color: "#cc0000", fontWeight: 700 }}>

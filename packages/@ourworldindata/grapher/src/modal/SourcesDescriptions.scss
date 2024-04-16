@@ -8,6 +8,7 @@
 
         &__title {
             @include h2-semibold;
+            font-size: 20px;
             color: $dark-text;
             margin-top: 0;
             margin-bottom: 16px;
@@ -16,7 +17,7 @@
         &__content,
         &__content ul {
             @include body-2-regular;
-            font-size: 0.875rem;
+            font-size: 14px;
             font-weight: 500;
             color: $dark-text;
             margin: 0;

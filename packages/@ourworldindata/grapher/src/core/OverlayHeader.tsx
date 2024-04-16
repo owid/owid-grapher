@@ -4,16 +4,25 @@ import { CloseButton } from "../closeButton/CloseButton.js"
 
 export function OverlayHeader({
     title,
+    onTitleClick,
     onDismiss,
     className,
 }: {
     title: string
+    onTitleClick?: () => void
     onDismiss?: () => void
     className?: string
 }): JSX.Element {
     return (
         <div className={cx("overlay-header", className)}>
-            <h2 className="grapher_h5-black-caps grapher_light">{title}</h2>
+            <h2
+                className={cx("title", {
+                    clickable: !!onTitleClick,
+                })}
+                onClick={onTitleClick}
+            >
+                {title}
+            </h2>
             {onDismiss && <CloseButton onClick={onDismiss} />}
         </div>
     )

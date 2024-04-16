@@ -96,12 +96,12 @@
         }
 
         .title {
-            font-size: 1rem;
+            font-size: 16px;
         }
 
         p {
             margin: 8px 0 0;
-            font-size: 0.875rem;
+            font-size: 14px;
         }
 
         a {
@@ -122,6 +122,18 @@
 
     > .checkbox + .checkbox {
         margin-top: 8px;
+    }
+}
+
+&.GrapherComponentSmall .download-modal-content {
+    .grouped-menu-item h4,
+    .grouped-menu-callout h4 {
+        font-size: 14px;
+    }
+
+    .grouped-menu-item p,
+    .grouped-menu-callout p {
+        font-size: 13px;
     }
 }
 
