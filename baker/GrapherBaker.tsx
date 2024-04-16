@@ -11,7 +11,6 @@ import {
     keyBy,
     mergePartialGrapherConfigs,
     compact,
-    merge,
     partition,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
@@ -38,7 +37,6 @@ import {
     DimensionProperty,
     OwidVariableWithSource,
     OwidChartDimensionInterface,
-    OwidGdocPostInterface,
     EnrichedFaq,
     FaqEntryData,
     FaqDictionary,
@@ -72,6 +70,15 @@ const renderDatapageIfApplicable = async (
     const variable = await getVariableOfDatapageIfApplicable(grapher)
 
     if (!variable) return undefined
+
+    // When baking from `bakeSingleGrapherChart`, we cache imageMetadata to avoid fetching every image for every chart
+    // But when rendering a datapage from the mockSiteRouter we want to be able to fetch imageMetadata on the fly
+    // And this function is the point in the two paths where it makes sense to do so
+    if (!imageMetadataDictionary) {
+        imageMetadataDictionary = await getAllImages(knex).then((images) =>
+            keyBy(images, "filename")
+        )
+    }
 
     return await renderDataPageV2(
         {
@@ -168,23 +175,6 @@ export async function renderDataPageV2(
         gdocIdToFragmentIdToBlock[gdoc.id] = faqs.faqs
     })
 
-    const linkedCharts: OwidGdocPostInterface["linkedCharts"] = merge(
-        {},
-        ...compact(gdocs.map((gdoc) => gdoc?.linkedCharts))
-    )
-    const linkedDocuments: OwidGdocPostInterface["linkedDocuments"] = merge(
-        {},
-        ...compact(gdocs.map((gdoc) => gdoc?.linkedDocuments))
-    )
-    const imageMetadata: OwidGdocPostInterface["imageMetadata"] = merge(
-        {},
-        imageMetadataDictionary,
-        ...compact(gdocs.map((gdoc) => gdoc?.imageMetadata))
-    )
-    const relatedCharts: OwidGdocPostInterface["relatedCharts"] = gdocs.flatMap(
-        (gdoc) => gdoc?.relatedCharts ?? []
-    )
-
     const resolvedFaqsResults: EnrichedFaqLookupResult[] = variableMetadata
         .presentation?.faqs
         ? variableMetadata.presentation.faqs.map((faq) => {
@@ -219,10 +209,6 @@ export async function renderDataPageV2(
     }
 
     const faqEntries: FaqEntryData = {
-        linkedCharts,
-        linkedDocuments,
-        imageMetadata,
-        relatedCharts,
         faqs: resolvedFaqs?.flatMap((faq) => faq.enrichedFaq.content) ?? [],
     }
 
@@ -300,6 +286,15 @@ export async function renderDataPageV2(
     datapageData.relatedResearch =
         await getRelatedResearchAndWritingForVariable(knex, variableId)
 
+    const relatedResearchFilenames = datapageData.relatedResearch
+        .map((r) => r.imageUrl)
+        .filter((f): f is string => !!f)
+
+    const imageMetadata = lodash.pick(
+        imageMetadataDictionary,
+        uniq(relatedResearchFilenames)
+    )
+
     const tagToSlugMap = await getTagToSlugMap(knex)
 
     return renderToHtmlPage(
@@ -309,6 +304,7 @@ export async function renderDataPageV2(
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
             isPreviewing={isPreviewing}
+            imageMetadata={imageMetadata}
             faqEntries={faqEntries}
             tagToSlugMap={tagToSlugMap}
         />

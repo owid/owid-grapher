@@ -31,8 +31,6 @@ import {
     formatAuthors,
     intersection,
     prepareSourcesForDisplay,
-    DataPageRelatedResearch,
-    isEmpty,
     excludeUndefined,
     OwidOrigin,
     DataPageDataV2,
@@ -40,16 +38,15 @@ import {
     GrapherInterface,
     getCitationLong,
     joinTitleFragments,
+    ImageMetadata,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
 import cx from "classnames"
 import { DebugProvider } from "./gdocs/DebugContext.js"
 import dayjs from "dayjs"
-import {
-    BAKED_BASE_URL,
-    IMAGE_HOSTING_R2_CDN_URL,
-} from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import Image from "./gdocs/components/Image.js"
 declare global {
     interface Window {
         _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields
@@ -58,6 +55,34 @@ declare global {
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 
+// We still have topic pages on WordPress, whose featured images are specified as absolute URLs which this component handles
+// Once we've migrated all WP topic pages to gdocs, we'll be able to remove this component and just use <Image />
+const DatapageResearchThumbnail = ({
+    urlOrFilename,
+}: {
+    urlOrFilename: string | undefined | null
+}) => {
+    if (!urlOrFilename) {
+        urlOrFilename = `${BAKED_BASE_URL}/default-thumbnail.jpg`
+    }
+    if (urlOrFilename.startsWith("http")) {
+        return (
+            <img
+                src={urlOrFilename}
+                className="span-lg-cols-2 span-sm-cols-3"
+            />
+        )
+    }
+    return (
+        <Image
+            filename={urlOrFilename}
+            shouldLightbox={false}
+            containerType="thumbnail"
+            className="span-lg-cols-2 span-sm-cols-3"
+        />
+    )
+}
+
 export const DataPageV2Content = ({
     datapageData,
     grapherConfig,
@@ -65,8 +90,10 @@ export const DataPageV2Content = ({
     faqEntries,
     canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
     tagToSlugMap,
+    imageMetadata,
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
+    imageMetadata: Record<string, ImageMetadata>
 }) => {
     const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
 
@@ -159,14 +186,6 @@ export const DataPageV2Content = ({
         canonicalUrl
     )
 
-    const {
-        linkedDocuments = {},
-        imageMetadata = {},
-        linkedCharts = {},
-        linkedIndicators = {},
-        relatedCharts = [],
-    } = faqEntries ?? {}
-
     const adaptedFrom =
         producers.length > 0 ? producers.join(", ") : datapageData.source?.name
 
@@ -185,16 +204,6 @@ export const DataPageV2Content = ({
         adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
         `Retrieved from ${canonicalUrl} [online resource]`,
     ]).join(" ")
-
-    const getImageUrl = (research: DataPageRelatedResearch) => {
-        if (research.imageUrl && research.imageUrl.startsWith("http"))
-            return research.imageUrl
-        else if (!isEmpty(research.imageUrl))
-            return encodeURI(
-                `${IMAGE_HOSTING_R2_CDN_URL}/production/${research.imageUrl}`
-            )
-        return `${BAKED_BASE_URL}/default-thumbnail.jpg`
-    }
 
     const relatedResearchCandidates = datapageData.relatedResearch
     const relatedResearch =
@@ -233,11 +242,11 @@ export const DataPageV2Content = ({
     return (
         <AttachmentsContext.Provider
             value={{
-                linkedDocuments,
+                linkedDocuments: {},
                 imageMetadata,
-                linkedCharts,
-                linkedIndicators,
-                relatedCharts,
+                linkedCharts: {},
+                linkedIndicators: {},
+                relatedCharts: [],
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
@@ -421,24 +430,10 @@ export const DataPageV2Content = ({
                                             key={research.url}
                                             className="related-research__item grid grid-cols-4 grid-lg-cols-6 grid-sm-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12"
                                         >
-                                            {/* <figure>
-                                                        <Image
-                                                            filename={
-                                                                research.imageUrl
-                                                            }
-                                                            shouldLightbox={
-                                                                false
-                                                            }
-                                                            containerType={
-                                                                "thumbnail"
-                                                            }
-                                                        />
-                                                    </figure> */}
-                                            {/* // TODO: switch this to use the Image component and put the required information for the thumbnails into hte attachment context or similar */}
-                                            <img
-                                                src={getImageUrl(research)}
-                                                alt=""
-                                                className="span-lg-cols-2 span-sm-cols-3"
+                                            <DatapageResearchThumbnail
+                                                urlOrFilename={
+                                                    research.imageUrl
+                                                }
                                             />
                                             <div className="span-cols-3 span-lg-cols-4 span-sm-cols-9">
                                                 <h3 className="related-article__title">

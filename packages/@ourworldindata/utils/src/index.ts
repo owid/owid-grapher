@@ -101,7 +101,7 @@ export {
     isPositiveInfinity,
     imemo,
     recursivelyMapArticleContent,
-    traverseEnrichedBlocks,
+    traverseEnrichedBlock,
     checkNodeIsSpan,
     checkNodeIsSpanLink,
     spansToUnformattedPlainText,
