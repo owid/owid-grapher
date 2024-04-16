@@ -2276,6 +2276,7 @@ getRouteNonIdempotentWithRWTransaction(
             | undefined
 
         try {
+            // Beware: if contentSource=gdocs this will update images in the DB+S3 even if the gdoc is published
             const gdoc = await getAndLoadGdocById(trx, id, contentSource)
 
             if (!gdoc.published) {

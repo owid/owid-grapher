@@ -601,8 +601,7 @@ export async function addImagesToContentGraph(
     if (filenames.length && gdoc.published) {
         const images = await getImageMetadataByFilenames(trx, filenames)
         const gdocXImagesToInsert: DbInsertPostGdocXImage[] = []
-        for (const filename in images) {
-            const image = images[filename] as DbEnrichedImage
+        for (const image of Object.values(images)) {
             gdocXImagesToInsert.push({
                 gdocId: gdoc.id,
                 imageId: image.id,

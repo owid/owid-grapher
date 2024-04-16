@@ -18,7 +18,6 @@ import {
     DbInsertImage,
     serializeImageRow,
     ImagesTableName,
-    excludeUndefined,
 } from "@ourworldindata/utils"
 import { OwidGoogleAuth } from "../OwidGoogleAuth.js"
 import {
@@ -97,8 +96,8 @@ class ImageStore {
                 filename: google.name,
                 defaultAlt: google.description ?? "",
                 updatedAt: new Date(google.modifiedTime).getTime(),
-                originalWidth: google.imageMediaMetadata?.width,
-                originalHeight: google.imageMediaMetadata?.height,
+                originalWidth: google.imageMediaMetadata?.width ?? null,
+                originalHeight: google.imageMediaMetadata?.height ?? null,
             }))
 
         const duplicateFilenames = findDuplicates(
@@ -114,7 +113,14 @@ class ImageStore {
         console.log(
             `Fetched ${images.length} images' metadata from Google Drive`
         )
-        return keyBy(images, "filename")
+        const imageMetadata = keyBy(images, "filename")
+        // Only applies when we're fetching specific images i.e. `filenames` is not empty
+        for (const filename of filenames) {
+            if (!imageMetadata[filename]) {
+                throw Error(`Image ${filename} not found in Google Drive`)
+            }
+        }
+        return imageMetadata
     }
 
     async syncImagesToS3(
@@ -179,7 +185,7 @@ export class Image implements ImageMetadata {
     static async syncImage(
         knex: KnexReadWriteTransaction,
         metadata: ImageMetadata
-    ): Promise<Image | undefined> {
+    ): Promise<Image> {
         const fresh = new Image(metadata)
         const stored = await getImageByFilename(knex, metadata.filename)
 
@@ -211,9 +217,8 @@ export class Image implements ImageMetadata {
                 return fresh
             }
         } catch (e) {
-            console.error(`Error syncing ${fresh.filename}`, e)
+            throw new Error(`Error syncing image ${metadata.filename}: ${e}`)
         }
-        return
     }
 
     async fetchFromDriveAndUploadToS3(): Promise<void> {
@@ -311,15 +316,15 @@ export async function fetchImagesFromDriveAndSyncToS3(
 ): Promise<Image[]> {
     if (!filenames.length) return []
 
-    const images = await imageStore
-        .fetchImageMetadata(filenames)
-        .then((obj) => Object.values(obj))
-        .then(excludeUndefined)
+    try {
+        const imageMetadata = await imageStore.fetchImageMetadata(filenames)
 
-    return Promise.all(images.map((i) => Image.syncImage(knex, i)))
-        .then(excludeUndefined)
-        .catch((e) => {
-            console.error(`Error syncing images to S3`, e)
-            return []
-        })
+        const metadataArray = Object.values(imageMetadata) as ImageMetadata[]
+
+        return Promise.all(
+            metadataArray.map((metadata) => Image.syncImage(knex, metadata))
+        )
+    } catch (e) {
+        throw new Error(`Error fetching images from Drive: ${e}`)
+    }
 }

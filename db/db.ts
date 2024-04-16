@@ -319,9 +319,9 @@ export const getHomepageId = (
 export const getImageMetadataByFilenames = async (
     knex: KnexReadonlyTransaction,
     filenames: string[]
-): Promise<Record<string, ImageMetadata>> => {
+): Promise<Record<string, ImageMetadata & { id: number }>> => {
     if (filenames.length === 0) return {}
-    const rows = (await knexRaw(
+    const rows = await knexRaw<ImageMetadata & { id: number }>(
         knex,
         `-- sql
         SELECT
@@ -336,7 +336,7 @@ export const getImageMetadataByFilenames = async (
             images
         WHERE filename IN (?)`,
         [filenames]
-    )) as DbEnrichedImage[]
+    )
     return keyBy(rows, "filename")
 }
 
