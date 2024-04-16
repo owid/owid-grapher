@@ -38,6 +38,8 @@ const processAvailableEntities = (availableEntities: string[] | null) => {
     // if "USA" is within the first 100-or-so entries of the array.
     // So, the easy solution is to sort the entities to ensure that countries
     // with variant names are at the top.
+    // Also, entities containing a hyphen like "low-income countries" can also
+    // only be found if they're within the first 100-or-so entries.
     // - @marcelgerber, 2024-03-25
     return orderBy(
         availableEntities,
@@ -46,9 +48,10 @@ const processAvailableEntities = (availableEntities: string[] | null) => {
                 countriesWithVariantNames.has(
                     removeTrailingParenthetical(entityName)
                 ),
+            (entityName) => entityName.includes("-"),
             (entityName) => entityName,
         ],
-        ["desc", "asc"]
+        ["desc", "desc", "asc"]
     )
 }
 
