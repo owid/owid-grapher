@@ -36,6 +36,10 @@
     overflow: hidden;
     background-color: $blue-20;
 
+    @include sm-only {
+        margin-bottom: 24px;
+    }
+
     img {
         display: block;
         mix-blend-mode: luminosity;
@@ -83,10 +87,19 @@
         margin-bottom: 32px;
         ul {
             display: flex;
+            row-gap: 4px;
+            flex-wrap: wrap;
             li {
                 margin-right: 16px;
+
                 &:last-child {
                     margin-right: 0;
+                }
+                @include sm-only {
+                    a {
+                        text-decoration: underline;
+                        text-underline-offset: 4px;
+                    }
                 }
             }
         }
