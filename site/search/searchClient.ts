@@ -52,4 +52,4 @@ export const logSiteSearchClickToAlgoliaInsights = (
 }
 
 export const DEFAULT_SEARCH_PLACEHOLDER =
-    "Try “Life expectancy”, “Economic Growth”, “Homicide rate”, “Biodiversity”…"
+    "Try “Life expectancy”, “Poverty Nigeria Vietnam”, “CO2 France”…"

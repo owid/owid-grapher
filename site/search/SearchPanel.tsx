@@ -143,15 +143,17 @@ function ChartHit({ hit }: { hit: IChartHit }) {
                     onError={() => setImgError(true)}
                 />
             </div>
-            <Highlight
-                attribute="title"
-                highlightedTagName="strong"
-                className="search-results__chart-hit-highlight"
-                hit={hit}
-            />{" "}
-            <span className="search-results__chart-hit-variant">
-                {hit.variantName}
-            </span>
+            <div className="search-results__chart-hit-title-container">
+                <Highlight
+                    attribute="title"
+                    highlightedTagName="strong"
+                    className="search-results__chart-hit-highlight"
+                    hit={hit}
+                />{" "}
+                <span className="search-results__chart-hit-variant">
+                    {hit.variantName}
+                </span>
+            </div>
         </a>
     )
 }
@@ -249,8 +251,8 @@ function ExplorerHit({
         href: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${groupedHit.explorerSlug}${queryStr}`,
         "data-algolia-index": getIndexName(SearchIndexName.ExplorerViews),
         "data-algolia-object-id": firstHit.objectID,
-        "data-algolia-position": firstHit.hitPositionOverall,
-        "data-algolia-card-position": cardPosition,
+        "data-algolia-position": firstHit.hitPositionOverall + 1,
+        "data-algolia-card-position": cardPosition + 1,
         "data-algolia-position-within-card": 0,
         "data-algolia-event-name": "click_explorer",
     }
@@ -263,19 +265,19 @@ function ExplorerHit({
             <div className="search-results__explorer-hit-header">
                 <div className="search-results__explorer-hit-title-container">
                     <h3 className="h3-bold search-results__explorer-hit-title">
-                        {groupedHit.explorerTitle}
+                        {groupedHit.explorerTitle} Data Explorer
                     </h3>
                     <p className="body-3-medium-italic search-results__explorer-hit-subtitle">
                         {groupedHit.explorerSubtitle}
                     </p>
                 </div>
 
-                <a
-                    className="search-results__explorer-hit-link hide-sm-only"
-                    {...exploreAllProps}
-                >
-                    Explore all {groupedHit.numViewsWithinExplorer} indicators
-                </a>
+                <div className="search-results__explorer-hit-link hide-sm-only">
+                    <a {...exploreAllProps}>
+                        Explore all {groupedHit.numViewsWithinExplorer}{" "}
+                        indicators
+                    </a>
+                </div>
             </div>
             <ul className="search-results__explorer-views-list grid grid-cols-2 grid-sm-cols-1">
                 {groupedHit.views.map((view) => {
@@ -316,7 +318,11 @@ function ExplorerHit({
                                     highlightedTagName="strong"
                                     className="search-results__explorer-view-title"
                                 />
-                                <FontAwesomeIcon icon={faArrowRight} />
+                                <span className="nowrap icon-container">
+                                    &zwj;
+                                    {/* Zero-width joiner to prevent line break between title and icon */}
+                                    <FontAwesomeIcon icon={faArrowRight} />
+                                </span>
                             </a>
                             <p className="body-3-medium-italic search-results__explorer-view-subtitle">
                                 {view.viewSubtitle}
@@ -370,13 +376,15 @@ function ShowMore({
         : `Showing ${numberShowing} of the top ${totalNumberOfHits} results`
 
     return (
-        <div className="search-results__show-more-container">
+        <div
+            className={cx("search-results__show-more-container", {
+                "show-more-btn-hidden": isShowingAllResults,
+            })}
+        >
             <em>{message}</em>
-            {!isShowingAllResults && (
-                <button aria-label="Show more results" onClick={handleClick}>
-                    Show more
-                </button>
-            )}
+            <button aria-label="Show more results" onClick={handleClick}>
+                Show more
+            </button>
         </div>
     )
 }
@@ -604,18 +612,20 @@ const SearchResults = (props: SearchResultsProps) => {
             />
             <NoResultsBoundary>
                 <section className="search-results__pages">
-                    <header className="search-results__header">
-                        <h2 className="h2-bold search-results__section-title">
-                            Research & Writing
-                        </h2>
-                        <ShowMore
-                            category={SearchIndexName.Pages}
-                            cutoffNumber={4}
-                            activeCategoryFilter={activeCategoryFilter}
-                            handleCategoryFilterClick={
-                                handleCategoryFilterClick
-                            }
-                        />
+                    <header className="search-results__header-container">
+                        <div className="search-results__header">
+                            <h2 className="h2-bold search-results__section-title">
+                                Research & Writing
+                            </h2>
+                            <ShowMore
+                                category={SearchIndexName.Pages}
+                                cutoffNumber={4}
+                                activeCategoryFilter={activeCategoryFilter}
+                                handleCategoryFilterClick={
+                                    handleCategoryFilterClick
+                                }
+                            />
+                        </div>
                     </header>
                     <Hits
                         classNames={{
@@ -638,18 +648,20 @@ const SearchResults = (props: SearchResultsProps) => {
                 />
                 <NoResultsBoundary>
                     <section className="search-results__charts">
-                        <header className="search-results__header">
-                            <h2 className="h2-bold search-results__section-title">
-                                Charts
-                            </h2>
-                            <ShowMore
-                                category={SearchIndexName.Charts}
-                                cutoffNumber={4}
-                                activeCategoryFilter={activeCategoryFilter}
-                                handleCategoryFilterClick={
-                                    handleCategoryFilterClick
-                                }
-                            />
+                        <header className="search-results__header-container">
+                            <div className="search-results__header">
+                                <h2 className="h2-bold search-results__section-title">
+                                    Charts
+                                </h2>
+                                <ShowMore
+                                    category={SearchIndexName.Charts}
+                                    cutoffNumber={4}
+                                    activeCategoryFilter={activeCategoryFilter}
+                                    handleCategoryFilterClick={
+                                        handleCategoryFilterClick
+                                    }
+                                />
+                            </div>
                         </header>
                         <Hits
                             classNames={{
@@ -673,22 +685,29 @@ const SearchResults = (props: SearchResultsProps) => {
                 />
                 <NoResultsBoundary>
                     <section className="search-results__explorers">
-                        <header className="search-results__header">
-                            <h2 className="h2-bold search-results__section-title">
-                                Data Explorers
-                            </h2>
-                            <ShowMore
-                                category={SearchIndexName.ExplorerViews}
-                                cutoffNumber={2}
-                                activeCategoryFilter={activeCategoryFilter}
-                                handleCategoryFilterClick={
-                                    handleCategoryFilterClick
-                                }
-                                getTotalNumberOfHits={(
-                                    results: AlgoliaSearchResultsType<IExplorerViewHit>
-                                ) => getNumberOfExplorerHits(results.hits)}
-                            />
+                        <header className="search-results__header-container">
+                            <div className="search-results__header">
+                                <h2 className="h2-bold search-results__section-title">
+                                    Data Explorers
+                                </h2>
+                                <ShowMore
+                                    category={SearchIndexName.ExplorerViews}
+                                    cutoffNumber={2}
+                                    activeCategoryFilter={activeCategoryFilter}
+                                    handleCategoryFilterClick={
+                                        handleCategoryFilterClick
+                                    }
+                                    getTotalNumberOfHits={(
+                                        results: AlgoliaSearchResultsType<IExplorerViewHit>
+                                    ) => getNumberOfExplorerHits(results.hits)}
+                                />
+                            </div>
+                            <h3 className="body-2-regular search-results__section-subtitle">
+                                Interactive visualization tools to explore a
+                                wide range of related indicators.
+                            </h3>
                         </header>
+
                         <ExplorerViewHits
                             countriesRegionsToSelect={searchQueryRegionsMatches}
                         />

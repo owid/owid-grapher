@@ -1,3 +1,6 @@
+$reset-button-size: 24px;
+$reset-button-margin: 16px;
+
 .search-page-container {
     min-height: calc(100vh - $header-height-sm);
     @include sm-up {
@@ -29,11 +32,19 @@
 }
 
 .ais-SearchBox-input {
+    background-color: white;
     width: 100%;
     height: 56px;
     padding-left: 16px;
-    // To conceal the placeholder text underneath the svg buttons on mobile
-    padding-right: 100px;
+    // To give room to the "Clear" button to the right
+    padding-right: $reset-button-size + $reset-button-margin + 4px;
+
+    // If the placeholder is shown, then the Clear button is not shown
+    &:placeholder-shown {
+        padding-right: 16px;
+        text-overflow: ellipsis;
+    }
+
     border: none;
     outline: $blue-20 1px solid;
     outline-offset: 0px;
@@ -46,7 +57,7 @@
 .ais-SearchBox-reset {
     display: inline-block;
     position: absolute;
-    right: 16px;
+    right: $reset-button-margin;
     top: 30%;
     border: none;
     border-radius: 16px;
@@ -122,20 +133,30 @@
     }
 }
 
+.search-results__header-container {
+    margin-top: 24px;
+    margin-bottom: 24px;
+}
+
 .search-results__header {
     display: flex;
     align-items: baseline;
 }
 
 .search-results__section-title {
-    margin-top: 24px;
-    margin-bottom: 24px;
+    margin-top: 0;
+    margin-bottom: 0;
     margin-right: 16px;
     color: $blue-50;
 
     @include sm-only {
         color: $blue-90;
     }
+}
+
+.search-results__section-subtitle {
+    margin-top: 4px;
+    color: $blue-90;
 }
 
 .search-results__show-more-container {
@@ -149,6 +170,10 @@
         background: none;
         border: none;
         cursor: pointer;
+    }
+
+    &.show-more-btn-hidden button {
+        visibility: hidden; // Don't show the button, but keep the margin/padding for mobile layout
     }
 
     @include sm-only {
@@ -200,6 +225,11 @@
     }
 }
 
+// For charts, make it clearer that the title etc. belong to the chart above
+.search-results__charts-list {
+    row-gap: calc(2 * var(--grid-gap));
+}
+
 .search-results__page-hit {
     list-style: none;
 
@@ -244,6 +274,7 @@
     }
 
     .search-results__explorer-hit-link-mobile {
+        @include body-3-medium;
         @include owid-link-60;
         margin-top: 16px;
         display: block;
@@ -271,25 +302,28 @@
         }
 
         .search-results__explorer-hit-link {
-            @include owid-link-60;
             margin-top: 0;
-            flex: 1 0 auto;
+            flex: 0 0 auto;
             text-align: right;
+
+            a {
+                @include body-3-medium;
+                @include owid-link-60;
+            }
         }
     }
 
     .search-results__explorer-views-list {
-        margin-left: 20px;
-        margin-top: 5px;
+        margin-top: 16px;
         list-style: none;
         gap: 16px;
 
         .search-results__explorer-view {
+            margin-left: 24px;
             overflow: hidden;
 
             .search-results__explorer-view-title-container {
                 color: $blue-90;
-                text-decoration: underline;
                 @include owid-link-90;
 
                 svg {
@@ -334,14 +368,17 @@
     }
 }
 
-.search-results__chart-hit-highlight {
-    line-height: 21px;
-    color: $blue-90;
-}
+.search-results__chart-hit-title-container {
+    line-height: 20px;
 
-.search-results__chart-hit-variant {
-    color: $blue-60;
-    font-size: 0.9em;
+    .search-results__chart-hit-highlight {
+        color: $blue-90;
+    }
+
+    .search-results__chart-hit-variant {
+        color: $blue-60;
+        font-size: 0.9em;
+    }
 }
 
 @keyframes chartErrorFadeIn {
