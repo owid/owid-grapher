@@ -33,11 +33,12 @@ $rw-margin-bottom-grid-cell: 4px;
 }
 
 .research-and-writing-row__heading--divider {
-    margin: 32px - $rw-margin-bottom-grid-cell 0 16px;
+    margin: 24px - $rw-margin-bottom-grid-cell 0 16px;
+    padding-top: 24px;
+    border-top: 1px solid $blue-20;
     @include sm-up {
         margin: 40px - $rw-margin-bottom-grid-cell 0 24px;
         padding-top: 40px;
-        border-top: 1px solid $blue-20;
     }
 }
 
