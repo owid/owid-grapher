@@ -107,7 +107,7 @@ describe("OwidAdminApp", () => {
     })
 
     it("should be able to create a GDoc article", async () => {
-        const gdocId = "test-id" // replace with your test id
+        const gdocId = "1wwQxA5gmmP-sLy0LfV4EJ-pdrh7YYIAe8UTaj2uhIC0" // replace with your test id
         const response = await fetch(
             `http://localhost:8765/admin/api/gdocs/${gdocId}`,
             {

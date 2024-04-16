@@ -6,6 +6,7 @@ export async function cleanTestDb(
     await knexInstance.raw("DELETE FROM chart_dimensions")
     await knexInstance.raw("DELETE FROM chart_revisions")
     await knexInstance.raw("DELETE from charts")
+    await knexInstance.raw("DELETE FROM posts_gdocs")
     await knexInstance.raw("DELETE FROM users")
 }
 
