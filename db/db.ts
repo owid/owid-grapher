@@ -10,7 +10,6 @@ import { registerExitHandler } from "./cleanup.js"
 import { keyBy } from "@ourworldindata/utils"
 import {
     DbChartTagJoin,
-    DbEnrichedImage,
     DbEnrichedPostGdoc,
     DbRawPostGdoc,
     ImageMetadata,
