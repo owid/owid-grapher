@@ -63,8 +63,12 @@ export class GdocHomepage
     _loadSubclassAttachments = async (
         knex: db.KnexReadonlyTransaction
     ): Promise<void> => {
+        const grapherCount = await db.getTotalNumberOfCharts(knex)
+        const nonGrapherExplorerViewCount =
+            await db.getNonGrapherExplorerViewCount(knex)
+
         this.homepageMetadata = {
-            chartCount: await db.getTotalNumberOfCharts(knex),
+            chartCount: grapherCount + nonGrapherExplorerViewCount,
             topicCount: UNIQUE_TOPIC_COUNT,
         }
 
