@@ -137,7 +137,11 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         for (const enrichedBlockSource of this.enrichedBlockSources) {
             enrichedBlockSource.forEach((block) =>
-                traverseEnrichedBlock(block, extractFilenamesFromBlock)
+                traverseEnrichedBlock(block, (block) => {
+                    for (const filename of extractFilenamesFromBlock(block)) {
+                        filenames.add(filename)
+                    }
+                })
             )
         }
 
