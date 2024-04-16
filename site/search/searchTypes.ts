@@ -52,15 +52,6 @@ export type IExplorerViewHit = Hit<BaseHit> & {
     viewTitleIndexWithinExplorer: number
 }
 
-export type IExplorerHit = Hit<BaseHit> & {
-    objectID: string
-    slug: string
-    subtitle: string
-    text: string
-    title: string
-    views_7d: number
-}
-
 export interface ChartRecord {
     objectID: string
     chartId: number
@@ -83,7 +74,6 @@ export interface ChartRecord {
 export type IChartHit = Hit<BaseHit> & ChartRecord
 
 export enum SearchIndexName {
-    Explorers = "explorers",
     ExplorerViews = "explorer-views",
     Charts = "charts",
     Pages = "pages",
@@ -101,6 +91,5 @@ export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
 export const indexNameToSubdirectoryMap: Record<SearchIndexName, string> = {
     [SearchIndexName.Pages]: "",
     [SearchIndexName.Charts]: "/grapher",
-    [SearchIndexName.Explorers]: "/explorers",
     [SearchIndexName.ExplorerViews]: "/explorers",
 }
