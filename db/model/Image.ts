@@ -32,9 +32,9 @@ import {
 import { KnexReadWriteTransaction, KnexReadonlyTransaction } from "../db.js"
 
 class ImageStore {
-    images: Record<string, ImageMetadata> | undefined
-
-    async fetchImageMetadata(filenames: string[]): Promise<void> {
+    async fetchImageMetadata(
+        filenames: string[]
+    ): Promise<Record<string, ImageMetadata | undefined>> {
         console.log(
             `Fetching image metadata from Google Drive ${
                 filenames.length ? `for ${filenames.join(", ")}` : ""
@@ -96,8 +96,8 @@ class ImageStore {
                 filename: google.name,
                 defaultAlt: google.description ?? "",
                 updatedAt: new Date(google.modifiedTime).getTime(),
-                originalWidth: google.imageMediaMetadata?.width,
-                originalHeight: google.imageMediaMetadata?.height,
+                originalWidth: google.imageMediaMetadata?.width ?? null,
+                originalHeight: google.imageMediaMetadata?.height ?? null,
             }))
 
         const duplicateFilenames = findDuplicates(
@@ -110,13 +110,23 @@ class ImageStore {
             )
         }
 
-        this.images = keyBy(images, "filename")
+        console.log(
+            `Fetched ${images.length} images' metadata from Google Drive`
+        )
+        const imageMetadata = keyBy(images, "filename")
+        // Only applies when we're fetching specific images i.e. `filenames` is not empty
+        for (const filename of filenames) {
+            if (!imageMetadata[filename]) {
+                throw Error(`Image ${filename} not found in Google Drive`)
+            }
+        }
+        return imageMetadata
     }
 
     async syncImagesToS3(
-        knex: KnexReadWriteTransaction
+        knex: KnexReadWriteTransaction,
+        images: Record<string, ImageMetadata>
     ): Promise<(Image | undefined)[]> {
-        const images = this.images
         if (!images) return []
         return Promise.all(
             Object.keys(images).map((filename) =>
@@ -137,6 +147,7 @@ export const s3Client = new S3Client({
         secretAccessKey: IMAGE_HOSTING_R2_SECRET_ACCESS_KEY,
     },
 })
+
 export class Image implements ImageMetadata {
     id!: number
     googleId!: string
@@ -174,7 +185,7 @@ export class Image implements ImageMetadata {
     static async syncImage(
         knex: KnexReadWriteTransaction,
         metadata: ImageMetadata
-    ): Promise<Image | undefined> {
+    ): Promise<Image> {
         const fresh = new Image(metadata)
         const stored = await getImageByFilename(knex, metadata.filename)
 
@@ -183,12 +194,14 @@ export class Image implements ImageMetadata {
                 if (
                     stored.updatedAt !== fresh.updatedAt ||
                     stored.defaultAlt !== fresh.defaultAlt ||
-                    stored.originalWidth !== fresh.originalWidth
+                    stored.originalWidth !== fresh.originalWidth ||
+                    stored.originalHeight !== fresh.originalHeight
                 ) {
                     await fresh.fetchFromDriveAndUploadToS3()
                     stored.updatedAt = fresh.updatedAt
                     stored.defaultAlt = fresh.defaultAlt
                     stored.originalWidth = fresh.originalWidth
+                    stored.originalHeight = fresh.originalHeight
                     await updateImage(knex, stored.id, {
                         updatedAt: fresh.updatedAt,
                         defaultAlt: fresh.defaultAlt,
@@ -204,9 +217,8 @@ export class Image implements ImageMetadata {
                 return fresh
             }
         } catch (e) {
-            console.error(`Error syncing ${fresh.filename}`, e)
+            throw new Error(`Error syncing image ${metadata.filename}: ${e}`)
         }
-        return
     }
 
     async fetchFromDriveAndUploadToS3(): Promise<void> {
@@ -296,4 +308,23 @@ export async function insertImageObject(
 ): Promise<number> {
     const [id] = await knex.table("images").insert(image)
     return id
+}
+
+export async function fetchImagesFromDriveAndSyncToS3(
+    knex: KnexReadWriteTransaction,
+    filenames: string[] = []
+): Promise<Image[]> {
+    if (!filenames.length) return []
+
+    try {
+        const imageMetadata = await imageStore.fetchImageMetadata(filenames)
+
+        const metadataArray = Object.values(imageMetadata) as ImageMetadata[]
+
+        return Promise.all(
+            metadataArray.map((metadata) => Image.syncImage(knex, metadata))
+        )
+    } catch (e) {
+        throw new Error(`Error fetching images from Drive: ${e}`)
+    }
 }

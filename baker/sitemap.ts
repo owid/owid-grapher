@@ -15,7 +15,6 @@ import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getPostsFromSnapshots } from "../db/model/Post.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 
@@ -74,7 +73,7 @@ export const makeSitemap = async (
         undefined,
         (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
     )
-    const gdocPosts = await GdocPost.getPublishedGdocPosts(knex)
+    const gdocPosts = await db.getPublishedGdocPosts(knex)
 
     const publishedDataInsights = await db.getPublishedDataInsights(knex)
     const dataInsightFeedPageCount = calculateDataInsightIndexPageCount(

@@ -25,6 +25,8 @@ const indexToAlgolia = async () => {
     await index.replaceAllObjects(records)
 
     await wpdb.singleton.end()
+
+    process.exit(0)
 }
 
 process.on("unhandledRejection", (e) => {
