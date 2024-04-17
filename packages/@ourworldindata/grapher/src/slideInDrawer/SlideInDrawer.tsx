@@ -1,8 +1,7 @@
 import React from "react"
-import { createPortal } from "react-dom"
+import cx from "classnames"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { GRAPHER_DRAWER_ID } from "../core/GrapherConstants"
 
 export const DrawerContext = React.createContext<{
     toggleDrawerVisibility?: () => void
@@ -15,7 +14,7 @@ export class SlideInDrawer extends React.Component<{
     children: React.ReactNode
 }> {
     @observable.ref visible: boolean = this.props.active // true while the drawer is active and during enter/exit transitions
-    contentRef: React.RefObject<HTMLDivElement> = React.createRef()
+    drawerRef: React.RefObject<HTMLDivElement> = React.createRef()
 
     componentDidMount(): void {
         document.addEventListener("keydown", this.onDocumentKeyDown)
@@ -39,8 +38,8 @@ export class SlideInDrawer extends React.Component<{
     @action.bound onDocumentClick(e: MouseEvent): void {
         if (
             this.active &&
-            this.contentRef?.current &&
-            !this.contentRef.current.contains(e.target as Node) &&
+            this.drawerRef?.current &&
+            !this.drawerRef.current.contains(e.target as Node) &&
             document.contains(e.target as Node)
         )
             this.toggleVisibility()
@@ -49,7 +48,6 @@ export class SlideInDrawer extends React.Component<{
     @action.bound toggleVisibility(e?: React.MouseEvent): void {
         this.props.toggle()
         if (this.active) this.visible = true
-        this.drawer?.classList.toggle("active", this.active)
         e?.stopPropagation()
     }
 
@@ -61,47 +59,42 @@ export class SlideInDrawer extends React.Component<{
         return this.props.active
     }
 
-    @computed private get drawer(): Element | null {
-        return document.querySelector(`nav#${GRAPHER_DRAWER_ID}`)
-    }
-
     private animationFor(selector: string): { animation: string } {
         const phase = this.active ? "enter" : "exit"
         return { animation: `${selector}-${phase} 333ms` }
     }
 
-    @computed get drawerContents(): JSX.Element {
-        return (
-            <div ref={this.contentRef}>
+    render(): JSX.Element | null {
+        const { visible, active } = this
+
+        if (active || visible) {
+            return (
                 <div
-                    className="grapher-drawer-backdrop"
-                    onClick={this.toggleVisibility}
-                    style={this.animationFor("grapher-drawer-backdrop")}
-                    onAnimationEnd={this.onAnimationEnd} // triggers unmount
-                ></div>
-                <div
-                    className="grapher-drawer-contents"
-                    style={{
-                        ...this.animationFor("grapher-drawer-contents"),
-                    }}
+                    className={cx("drawer", { active: this.active })}
+                    ref={this.drawerRef}
                 >
-                    <DrawerContext.Provider
-                        value={{
-                            toggleDrawerVisibility: this.toggleVisibility,
+                    <div
+                        className="drawer-backdrop"
+                        onClick={this.toggleVisibility}
+                        style={this.animationFor("drawer-backdrop")}
+                        onAnimationEnd={this.onAnimationEnd} // triggers unmount
+                    ></div>
+                    <div
+                        className="drawer-contents"
+                        style={{
+                            ...this.animationFor("drawer-contents"),
                         }}
                     >
-                        {this.props.children}
-                    </DrawerContext.Provider>
+                        <DrawerContext.Provider
+                            value={{
+                                toggleDrawerVisibility: this.toggleVisibility,
+                            }}
+                        >
+                            {this.props.children}
+                        </DrawerContext.Provider>
+                    </div>
                 </div>
-            </div>
-        )
-    }
-
-    render(): JSX.Element | null {
-        const { visible, drawer, active } = this
-
-        if (drawer && (active || visible)) {
-            return createPortal(this.drawerContents, drawer)
+            )
         }
 
         return null

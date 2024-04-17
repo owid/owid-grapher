@@ -124,7 +124,6 @@ import {
     STATIC_EXPORT_DETAIL_SPACING,
     GRAPHER_LIGHT_TEXT,
     GRAPHER_LOADED_EVENT_NAME,
-    GRAPHER_DRAWER_ID,
     isContinentsVariableId,
     isPopulationVariableId,
 } from "../core/GrapherConstants"
@@ -3163,21 +3162,14 @@ export class Grapher
     }
 
     @computed get showEntitySelectorAs(): GrapherWindowType {
-        const isLarge = this.frameBounds.width > 940
-
-        // show the panel in full screen mode if the grapher is large enough
-        if (this.isInFullScreenMode && isLarge) return GrapherWindowType.panel
-
-        // don't use the panel or drawer if the grapher is embedded
-        if (this.isInIFrame || this.isEmbeddedInAnOwidPage)
-            return GrapherWindowType.modal
-
-        if (isLarge) return GrapherWindowType.panel
-
-        // if there is no empty drawer element on the page, use the modal
-        const hasDrawer =
-            document.querySelector(`nav#${GRAPHER_DRAWER_ID}`) !== null
-        if (!hasDrawer) return GrapherWindowType.modal
+        if (
+            this.frameBounds.width > 940 &&
+            // don't use the panel if the grapher is embedded
+            ((!this.isInIFrame && !this.isEmbeddedInAnOwidPage) ||
+                // unless we're in full-screen mode
+                this.isInFullScreenMode)
+        )
+            return GrapherWindowType.panel
 
         return this.isSemiNarrow
             ? GrapherWindowType.modal

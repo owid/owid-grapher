@@ -78,6 +78,10 @@ $zindex-controls-drawer: 150;
     @import "../tabs/ExpandableTabs.scss";
     @import "../slideInDrawer/SlideInDrawer.scss";
     @import "../sidePanel/SidePanel.scss";
+    @import "../closeButton/CloseButton.scss";
+    @import "../controls/RadioButton.scss";
+    @import "../controls/Dropdown.scss";
+    @import "../core/OverlayHeader.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
@@ -86,10 +90,6 @@ $zindex-controls-drawer: 150;
 @import "../controls/globalEntitySelector/GlobalEntitySelector.scss";
 @import "../fullScreen/FullScreen.scss";
 @import "../../../components/src/Checkbox.scss";
-@import "../closeButton/CloseButton.scss";
-@import "../controls/RadioButton.scss";
-@import "../controls/Dropdown.scss";
-@import "../core/OverlayHeader.scss";
 
 .grapher_dark {
     color: $dark-text;
@@ -122,6 +122,9 @@ $zindex-controls-drawer: 150;
 
     border: 1px solid $frame-color;
     z-index: $zindex-chart;
+
+    // important for the slide-in drawer
+    overflow-x: clip;
 
     * {
         box-sizing: border-box;
