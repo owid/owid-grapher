@@ -55,22 +55,70 @@ const processAvailableEntities = (availableEntities: string[] | null) => {
     )
 }
 
+interface RawChartRecordRow {
+    id: number
+    slug: string
+    title: string
+    variantName: string
+    subtitle: string
+    numDimensions: string
+    publishedAt: string
+    updatedAt: string
+    entityNames: string
+    tags: string
+    keyChartForTags: string
+}
+
+interface ParsedChartRecordRow {
+    id: number
+    slug: string
+    title: string
+    variantName: string
+    subtitle: string
+    numDimensions: string
+    publishedAt: string
+    updatedAt: string
+    entityNames: string[]
+    tags: string[]
+    keyChartForTags: string[]
+}
+
+const parseAndProcessChartRecords = (
+    rawRecord: RawChartRecordRow
+): ParsedChartRecordRow => {
+    let parsedEntities: string[] = []
+    if (rawRecord.entityNames !== null) {
+        // This is a very rough way to check for the Algolia record size limit, but it's better than the update failing
+        // because we exceed the 20KB record size limit
+        if (rawRecord.entityNames.length < 12000)
+            parsedEntities = excludeNullish(
+                JSON.parse(rawRecord.entityNames as string) as (string | null)[]
+            ) as string[]
+        else {
+            console.info(
+                `Chart ${rawRecord.id} has too many entities, skipping its entities`
+            )
+        }
+    }
+    const entityNames = processAvailableEntities(parsedEntities)
+
+    const tags = JSON.parse(rawRecord.tags)
+    const keyChartForTags = JSON.parse(
+        rawRecord.keyChartForTags as string
+    ).filter((t: string | null) => t)
+
+    return {
+        ...rawRecord,
+        entityNames,
+        tags,
+        keyChartForTags,
+    }
+}
+
 const getChartsRecords = async (
     knex: db.KnexReadonlyTransaction
 ): Promise<ChartRecord[]> => {
-    const chartsToIndex = await db.knexRaw<{
-        id: number
-        slug: string
-        title: string
-        variantName: string
-        subtitle: string
-        numDimensions: string
-        publishedAt: string
-        updatedAt: string
-        entityNames: string | string[]
-        tags: string
-        keyChartForTags: string | string[]
-    }>(
+    const chartsToIndex = await db.knexRaw<RawChartRecordRow>(
         knex,
         `-- sql
         WITH indexable_charts_with_entity_names AS (
@@ -109,33 +157,12 @@ const getChartsRecords = async (
     `
     )
 
-    for (const c of chartsToIndex) {
-        if (c.entityNames !== null) {
-            // This is a very rough way to check for the Algolia record size limit, but it's better than the update failing
-            // because we exceed the 20KB record size limit
-            if (c.entityNames.length < 12000)
-                c.entityNames = excludeNullish(
-                    JSON.parse(c.entityNames as string) as (string | null)[]
-                ) as string[]
-            else {
-                console.info(
-                    `Chart ${c.id} has too many entities, skipping its entities`
-                )
-                c.entityNames = []
-            }
-        }
-        c.entityNames = processAvailableEntities(c.entityNames)
-
-        c.tags = JSON.parse(c.tags)
-        c.keyChartForTags = JSON.parse(c.keyChartForTags as string).filter(
-            (t: string | null) => t
-        )
-    }
+    const parsedRows = chartsToIndex.map(parseAndProcessChartRecords)
 
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
 
     const records: ChartRecord[] = []
-    for (const c of chartsToIndex) {
+    for (const c of parsedRows) {
         // Our search currently cannot render explorers, so don't index them because
         // otherwise they will fail when rendered in the search results
         if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
@@ -161,7 +188,7 @@ const getChartsRecords = async (
             title: c.title,
             variantName: c.variantName,
             subtitle: plaintextSubtitle,
-            availableEntities: c.entityNames as string[],
+            availableEntities: c.entityNames,
             numDimensions: parseInt(c.numDimensions),
             publishedAt: c.publishedAt,
             updatedAt: c.updatedAt,
