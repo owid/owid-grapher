@@ -368,6 +368,7 @@ export { PromiseSwitcher } from "./PromiseSwitcher.js"
 
 export {
     THUMBNAIL_WIDTH,
+    LARGE_THUMBNAIL_WIDTH,
     getSizes,
     generateSrcSet,
     getFilenameWithoutExtension,

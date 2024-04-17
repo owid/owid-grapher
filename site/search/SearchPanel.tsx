@@ -84,22 +84,33 @@ function PagesHit({ hit }: { hit: IPageHit }) {
             data-algolia-index={getIndexName(SearchIndexName.Pages)}
             data-algolia-object-id={hit.objectID}
             data-algolia-position={hit.__position}
+            className="search-results__page-hit-container"
         >
-            {/* TODO: index featured images */}
-            <header className="page-hit__header">
-                <h4 className="h3-bold search-results__page-hit-title">
-                    {hit.title}
-                </h4>
-                <span className="body-3-medium search-results__page-hit-type">
-                    {pageTypeDisplayNames[hit.type]}
-                </span>
-            </header>
-            <Snippet
-                className="body-3-medium search-results__page-hit-snippet"
-                attribute="excerpt"
-                highlightedTagName="strong"
-                hit={hit}
-            />
+            {hit.thumbnail && (
+                <div className="search-results__page-hit-img-container">
+                    <img
+                        src={hit.thumbnail}
+                        role="presentation"
+                        className="search-results__page-hit-img"
+                    />
+                </div>
+            )}
+            <div className="search-results__page-hit-text-container">
+                <header className="page-hit__header">
+                    <h4 className="h3-bold search-results__page-hit-title">
+                        {hit.title}
+                    </h4>
+                    <span className="body-3-medium search-results__page-hit-type">
+                        {pageTypeDisplayNames[hit.type]}
+                    </span>
+                </header>
+                <Snippet
+                    className="body-3-medium search-results__page-hit-snippet"
+                    attribute="excerpt"
+                    highlightedTagName="strong"
+                    hit={hit}
+                />
+            </div>
         </a>
     )
 }

@@ -241,6 +241,20 @@ $reset-button-margin: 16px;
     }
 }
 
+.search-results__page-hit-container {
+    display: flex;
+}
+
+.search-results__page-hit-img-container {
+    margin-right: 16px;
+    @include sm-only {
+        display: none;
+    }
+}
+.search-results__page-hit-img {
+    max-width: 100px;
+}
+
 .search-results__page-hit-title {
     display: inline;
     color: $blue-90;
