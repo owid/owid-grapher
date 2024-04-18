@@ -35,7 +35,7 @@ import {
     knexRaw,
     KnexReadWriteTransaction,
     getImageMetadataByFilenames,
-    getPublishedGdocPosts,
+    getPublishedGdocPostsWithTags,
 } from "../../db.js"
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { GdocAuthor } from "./GdocAuthor.js"
@@ -400,26 +400,9 @@ export async function getAndLoadPublishedDataInsights(
 export async function getAndLoadPublishedGdocPosts(
     knex: KnexReadWriteTransaction
 ): Promise<GdocPost[]> {
-    const rows = await getPublishedGdocPosts(knex)
-    const ids = rows.map((row) => row.id)
-    const tags = await knexRaw<DbPlainTag>(
-        knex,
-        `-- sql
-                SELECT gt.gdocId as gdocId, tags.*
-                FROM tags
-                JOIN posts_gdocs_x_tags gt ON gt.tagId = tags.id
-                WHERE gt.gdocId in (:ids)`,
-        { ids: ids }
-    )
-    const groupedTags = groupBy(tags, "gdocId")
-    const enrichedRows = rows.map((row) => {
-        return {
-            ...row,
-            tags: groupedTags[row.id] ? groupedTags[row.id] : null,
-        } satisfies OwidGdocBaseInterface
-    })
+    const rows = await getPublishedGdocPostsWithTags(knex)
     const gdocs = await Promise.all(
-        enrichedRows.map(async (row) => loadGdocFromGdocBase(knex, row))
+        rows.map(async (row) => loadGdocFromGdocBase(knex, row))
     )
     return gdocs as GdocPost[]
 }

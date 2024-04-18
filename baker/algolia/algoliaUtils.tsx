@@ -211,7 +211,7 @@ function generateGdocRecords(
 export const getPagesRecords = async (knex: db.KnexReadWriteTransaction) => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
     const gdocs = await db
-        .getPublishedGdocPosts(knex)
+        .getPublishedGdocPostsWithTags(knex)
         .then((gdocs) => gdocs.map(gdocFromJSON) as OwidGdocPostInterface[])
 
     const publishedGdocsBySlug = keyBy(gdocs, "slug")

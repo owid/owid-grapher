@@ -10,11 +10,14 @@ import { registerExitHandler } from "./cleanup.js"
 import { keyBy } from "@ourworldindata/utils"
 import {
     DbChartTagJoin,
-    DbEnrichedPostGdoc,
-    DbRawPostGdoc,
     ImageMetadata,
     MinimalDataInsightInterface,
     OwidGdocType,
+    DBRawPostGdocWithTags,
+    parsePostsGdocsWithTagsRow,
+    DBEnrichedPostGdocWithTags,
+    DbEnrichedPostGdoc,
+    DbRawPostGdoc,
     parsePostsGdocsRow,
 } from "@ourworldindata/types"
 
@@ -345,12 +348,25 @@ export const getPublishedGdocPosts = async (
     return knexRaw<DbRawPostGdoc>(
         knex,
         `-- sql
-            SELECT *
-            FROM posts_gdocs
-            WHERE published = 1
-            AND content ->> '$.type' IN (:types)
-            AND publishedAt <= NOW()
-            ORDER BY publishedAt DESC`,
+        SELECT
+        g.breadcrumbs,
+        g.content,
+        g.createdAt,
+        g.id,
+        g.markdown,
+        g.publicationContext,
+        g.published,
+        g.publishedAt,
+        g.revisionId,
+        g.slug,
+        g.updatedAt
+    FROM
+        posts_gdocs g
+    WHERE
+        g.published = 1
+        AND g.content ->> '$.type' IN (:types)
+        AND g.publishedAt <= NOW()
+    ORDER BY g.publishedAt DESC`,
         {
             types: [
                 OwidGdocType.Article,
@@ -360,4 +376,51 @@ export const getPublishedGdocPosts = async (
             ],
         }
     ).then((rows) => rows.map(parsePostsGdocsRow))
+}
+
+export const getPublishedGdocPostsWithTags = async (
+    knex: KnexReadonlyTransaction
+): Promise<DBEnrichedPostGdocWithTags[]> => {
+    return knexRaw<DBRawPostGdocWithTags>(
+        knex,
+        `-- sql
+        SELECT
+        g.breadcrumbs,
+        g.content,
+        g.createdAt,
+        g.id,
+        g.markdown,
+        g.publicationContext,
+        g.published,
+        g.publishedAt,
+        g.revisionId,
+        g.slug,
+        g.updatedAt,
+        JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'id', t.id,
+            'name', t.name,
+            'slug', t.slug
+        )) AS tags
+    FROM
+        posts_gdocs g
+    JOIN posts_gdocs_x_tags gxt ON
+        g.id = gxt.gdocId 
+    JOIN tags t ON
+        gxt.tagId = t.id
+    WHERE
+        g.published = 1
+        AND g.content ->> '$.type' IN (:types)
+        AND g.publishedAt <= NOW()
+    GROUP BY g.id
+    ORDER BY g.publishedAt DESC`,
+        {
+            types: [
+                OwidGdocType.Article,
+                OwidGdocType.LinearTopicPage,
+                OwidGdocType.TopicPage,
+                OwidGdocType.AboutPage,
+            ],
+        }
+    ).then((rows) => rows.map(parsePostsGdocsWithTagsRow))
 }

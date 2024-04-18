@@ -317,9 +317,8 @@ export async function fetchImagesFromDriveAndSyncToS3(
     if (!filenames.length) return []
 
     try {
-        const imageMetadata = await imageStore.fetchImageMetadata(filenames)
-
-        const metadataArray = Object.values(imageMetadata) as ImageMetadata[]
+        const metadataObject = await imageStore.fetchImageMetadata(filenames)
+        const metadataArray = Object.values(metadataObject) as ImageMetadata[]
 
         return Promise.all(
             metadataArray.map((metadata) => Image.syncImage(knex, metadata))

@@ -4,6 +4,7 @@ import {
     OwidGdocContent,
     OwidGdocPublicationContext,
 } from "../gdocTypes/Gdoc.js"
+import { MinimalTag } from "./Tags.js"
 
 export const PostsGdocsTableName = "posts_gdocs"
 export interface DbInsertPostGdoc {
@@ -27,6 +28,14 @@ export type DbEnrichedPostGdoc = Omit<
     content: OwidGdocContent
     breadcrumbs: BreadcrumbItem[] | null
     published: boolean
+}
+
+export type DBRawPostGdocWithTags = DbRawPostGdoc & {
+    tags: MinimalTag[]
+}
+
+export type DBEnrichedPostGdocWithTags = DbEnrichedPostGdoc & {
+    tags: MinimalTag[]
 }
 
 export function parsePostGdocContent(content: JsonString): OwidGdocContent {
@@ -55,6 +64,15 @@ export function parsePostsGdocsRow(row: DbRawPostGdoc): DbEnrichedPostGdoc {
         content: parsePostGdocContent(row.content),
         breadcrumbs: parsePostsGdocsBreadcrumbs(row.breadcrumbs),
         published: !!row.published,
+    }
+}
+
+export function parsePostsGdocsWithTagsRow(
+    row: DBRawPostGdocWithTags
+): DBEnrichedPostGdocWithTags {
+    return {
+        ...parsePostsGdocsRow(row),
+        tags: row.tags,
     }
 }
 

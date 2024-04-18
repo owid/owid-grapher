@@ -12,7 +12,7 @@ import {
     MinimalDataInsightInterface,
     formatDate,
     copyToClipboard,
-    DbPlainTag,
+    MinimalTag,
 } from "@ourworldindata/utils"
 import React, { useContext } from "react"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
@@ -79,7 +79,7 @@ const RelatedTopicsList = ({
     tags,
     className,
 }: {
-    tags?: DbPlainTag[]
+    tags?: MinimalTag[]
     className?: string
 }) => {
     if (!tags?.length) return null
