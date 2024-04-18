@@ -2328,7 +2328,10 @@ export const parseSocials = (raw: RawBlockSocials): EnrichedBlockSocials => {
         }
 
         links.push({
-            url: link.url,
+            url:
+                link.type === "email" && !url.startsWith("mailto:")
+                    ? `mailto:${url}`
+                    : url,
             text: link.text,
             type: link.type,
         })
