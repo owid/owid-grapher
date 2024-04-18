@@ -2305,7 +2305,8 @@ export const parseSocials = (raw: RawBlockSocials): EnrichedBlockSocials => {
     const links: EnrichedSocialLink[] = []
 
     for (const link of raw.value) {
-        if (!link.url) {
+        const url = extractUrl(link.url)
+        if (!url) {
             return createError({
                 message: "Link is missing a url",
             })
