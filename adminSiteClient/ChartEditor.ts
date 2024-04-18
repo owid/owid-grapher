@@ -133,9 +133,9 @@ export class ChartEditor {
     constructor(props: { manager: ChartEditorManager }) {
         this.manager = props.manager
         this.previewMode =
-            localStorage.getItem("editorPreviewMode") === "desktop"
-                ? "desktop"
-                : "mobile"
+            localStorage.getItem("editorPreviewMode") === "mobile"
+                ? "mobile"
+                : "desktop"
         when(
             () => this.grapher.isReady,
             () => (this.savedGrapherJson = JSON.stringify(this.grapher.object))
