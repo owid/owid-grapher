@@ -28,22 +28,22 @@ Note: compatibility dates between local development, production and preview envi
 
 ## Testing on Fondation staging sites vs Cloudfare previews
 
-`yarn deployContentPreview` deploys the staging `bakedSite` to a Cloudflare preview at https://[PREVIEW_BRANCH].owid.pages.dev. This is the recommended way to test functions in a production-like environment. See [../ops/buildkite/deploy-content-preview](../ops/buildkite/deploy-content-preview) for more details.
+`yarn deployContentPreview` deploys the staging `bakedSite` to a Cloudflare preview at https://[PREVIEW_BRANCH].owid-staging.pages.dev. This is the recommended way to test functions in a production-like environment. See [../ops/buildkite/deploy-content-preview](../ops/buildkite/deploy-content-preview) for more details.
 
 ### Rationale
 
 A custom staging site is available at http://staging-site-[BRANCH] upon pushing your branch (see ops > templates > lxc-manager > staging-create). This site is served by `wrangler` (see ops > templates > owid-site-staging > grapher-refresh.sh). `wrangler` is helpful for testing the functions locally (and possibly for some debugging scenarios on staging servers), but is still not the closest match to the production Cloudflare environment.
 
-When it comes to testing functions in a production-like environment, Cloudlfare previews are recommended.
+When it comes to testing functions in a production-like environment, Cloudflare previews are recommended.
 
-Cloudflare previews are served by Cloudflare (as opposed to `wrangler` on staging sites) and are available at https://[RANDOM_ID].owid.pages.dev. Cloudflare previews do not rely on the `wrangler` CLI and its `.dev.vars` file. Instead, they use the [Cloudflare dashboard to configure environment variables](https://dash.cloudflare.com/078fcdfed9955087315dd86792e71a7e/pages/view/owid/settings/environment-variables), in the same way and place as the production site.
+Cloudflare previews are served by Cloudflare (as opposed to `wrangler` on staging sites) and are available at https://[RANDOM_ID].owid-staging.pages.dev. Cloudflare previews do not rely on the `wrangler` CLI and its `.dev.vars` file. Instead, they use the [Cloudflare dashboard to configure environment variables](https://dash.cloudflare.com/078fcdfed9955087315dd86792e71a7e/pages/view/owid/settings/environment-variables), in the same way and place as the production site.
 
 This proximity of configurations in the Cloudflare dashboard makes spotting differences between production and preview environments easier - and is one of the reason of using Cloudflare previews in the same project (owid) over using a new project specific to staging.
 
 Our workflow uses `wrangler pages deploy` to deploy the `bakedSite` to
 Cloudflare. Similarly, `yarn deployContentPreview` uses `wrangler pages deploy
 --branch=[PREVIEW_BRANCH]` to deploy the `bakedSite` to a Cloudflare preview at
-https://[PREVIEW_BRANCH].owid.pages.dev.
+https://[PREVIEW_BRANCH].owid-staging.pages.dev.
 
 # Our dynamic routes
 
