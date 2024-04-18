@@ -15,10 +15,10 @@ async function updateImageHeights() {
         .then((rows) => rows.map((row) => row.filename))
 
     console.log("Fetching image metadata...")
-    const images = await imageStore.fetchImageMetadata([])
+    await imageStore.fetchImageMetadata([])
     console.log("Fetching image metadata...done")
 
-    if (!images) {
+    if (!imageStore.images) {
         throw new Error("No images found")
     }
 
@@ -28,7 +28,7 @@ async function updateImageHeights() {
         for (const batch of lodash.chunk(filenames, 20)) {
             const promises = []
             for (const filename of batch) {
-                const image = images[filename]
+                const image = imageStore.images[filename]
                 if (image && image.originalHeight) {
                     promises.push(
                         db.knexRaw(

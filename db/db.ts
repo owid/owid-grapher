@@ -10,12 +10,8 @@ import { registerExitHandler } from "./cleanup.js"
 import { keyBy } from "@ourworldindata/utils"
 import {
     DbChartTagJoin,
-    DbEnrichedPostGdoc,
-    DbRawPostGdoc,
-    ImageMetadata,
     MinimalDataInsightInterface,
     OwidGdocType,
-    parsePostsGdocsRow,
 } from "@ourworldindata/types"
 
 // Return the first match from a mysql query
@@ -313,51 +309,4 @@ export const getHomepageId = (
             content->>'$.type' = '${OwidGdocType.Homepage}'
             AND published = TRUE`
     ).then((result) => result?.id)
-}
-
-export const getImageMetadataByFilenames = async (
-    knex: KnexReadonlyTransaction,
-    filenames: string[]
-): Promise<Record<string, ImageMetadata & { id: number }>> => {
-    if (filenames.length === 0) return {}
-    const rows = await knexRaw<ImageMetadata & { id: number }>(
-        knex,
-        `-- sql
-        SELECT
-            id,
-            googleId,
-            filename,
-            defaultAlt,
-            updatedAt,
-            originalWidth,
-            originalHeight
-        FROM
-            images
-        WHERE filename IN (?)`,
-        [filenames]
-    )
-    return keyBy(rows, "filename")
-}
-
-export const getPublishedGdocPosts = async (
-    knex: KnexReadonlyTransaction
-): Promise<DbEnrichedPostGdoc[]> => {
-    return knexRaw<DbRawPostGdoc>(
-        knex,
-        `-- sql
-            SELECT *
-            FROM posts_gdocs
-            WHERE published = 1
-            AND content ->> '$.type' IN (:types)
-            AND publishedAt <= NOW()
-            ORDER BY publishedAt DESC`,
-        {
-            types: [
-                OwidGdocType.Article,
-                OwidGdocType.LinearTopicPage,
-                OwidGdocType.TopicPage,
-                OwidGdocType.AboutPage,
-            ],
-        }
-    ).then((rows) => rows.map(parsePostsGdocsRow))
 }

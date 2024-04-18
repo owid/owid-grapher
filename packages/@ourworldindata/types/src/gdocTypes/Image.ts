@@ -1,5 +1,3 @@
-import { DbEnrichedImage } from "../dbTypes/Images.js"
-
 // This is the JSON we get from Google's API before remapping the keys to be consistent with the rest of our interfaces
 export interface GDriveImageMetadata {
     name: string // -> filename
@@ -12,14 +10,13 @@ export interface GDriveImageMetadata {
     }
 }
 
-// All the data we use in the client to render images
-// everything except the ID, effectively
-export type ImageMetadata = Pick<
-    DbEnrichedImage,
-    | "defaultAlt"
-    | "filename"
-    | "googleId"
-    | "originalHeight"
-    | "originalWidth"
-    | "updatedAt"
->
+export interface ImageMetadata {
+    googleId: string
+    filename: string
+    defaultAlt: string
+    // MySQL Date objects round to the nearest second, whereas Google includes milliseconds
+    // so we store as an epoch to avoid any conversion issues
+    updatedAt: number | null
+    originalWidth?: number | null
+    originalHeight?: number | null
+}

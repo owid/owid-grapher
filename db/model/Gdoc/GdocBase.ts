@@ -5,6 +5,7 @@ import {
     LinkedIndicator,
     keyBy,
     ImageMetadata,
+    excludeUndefined,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     excludeNullish,
@@ -31,6 +32,7 @@ import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { google } from "googleapis"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
+import { imageStore } from "../Image.js"
 import { getChartConfigById, mapSlugsToIds } from "../Chart.js"
 import {
     BAKED_BASE_URL,
@@ -84,8 +86,9 @@ export class GdocBase implements OwidGdocBaseInterface {
     ) => Promise<OwidGdocErrorMessage[]> = async () => []
     _omittableFields: string[] = []
 
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
     _loadSubclassAttachments: (
-        knex: db.KnexReadonlyTransaction
+        knex: db.KnexReadWriteTransaction
     ) => Promise<void> = async () => undefined
 
     constructor(id?: string) {
@@ -559,27 +562,29 @@ export class GdocBase implements OwidGdocBaseInterface {
         const slugToIdMap = await mapSlugsToIds(knex)
         // TODO: rewrite this as a single query instead of N queries
         const linkedGrapherCharts = await Promise.all(
-            this.linkedChartSlugs.grapher.map(async (originalSlug) => {
-                const chartId = slugToIdMap[originalSlug]
-                if (!chartId) return
-                const chart = await getChartConfigById(knex, chartId)
-                if (!chart) return
-                const resolvedSlug = chart.config.slug ?? ""
-                const resolvedTitle = chart.config.title ?? ""
-                const tab = chart.config.tab ?? GrapherTabOption.chart
-                const datapageIndicator =
-                    await getVariableOfDatapageIfApplicable(chart.config)
-                const linkedChart: LinkedChart = {
-                    originalSlug,
-                    title: resolvedTitle,
-                    tab,
-                    resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
-                    thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
-                    tags: [],
-                    indicatorId: datapageIndicator?.id,
+            [...this.linkedChartSlugs.grapher.values()].map(
+                async (originalSlug) => {
+                    const chartId = slugToIdMap[originalSlug]
+                    if (!chartId) return
+                    const chart = await getChartConfigById(knex, chartId)
+                    if (!chart) return
+                    const resolvedSlug = chart.config.slug ?? ""
+                    const resolvedTitle = chart.config.title ?? ""
+                    const tab = chart.config.tab ?? GrapherTabOption.chart
+                    const datapageIndicator =
+                        await getVariableOfDatapageIfApplicable(chart.config)
+                    const linkedChart: LinkedChart = {
+                        originalSlug,
+                        title: resolvedTitle,
+                        tab,
+                        resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
+                        thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
+                        tags: [],
+                        indicatorId: datapageIndicator?.id,
+                    }
+                    return linkedChart
                 }
-                return linkedChart
-            })
+            )
         ).then(excludeNullish)
 
         const publishedExplorersBySlug =
@@ -636,25 +641,26 @@ export class GdocBase implements OwidGdocBaseInterface {
         this.linkedDocuments = keyBy(linkedDocuments, "id")
     }
 
-    /**
-     * Load image metadata from the database. Does not check Google Drive or sync to S3
-     */
-    async loadImageMetadataFromDB(
-        knex: db.KnexReadonlyTransaction,
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    async loadImageMetadata(
+        knex: db.KnexReadWriteTransaction,
         filenames?: string[]
     ): Promise<void> {
         const imagesFilenames = filenames ?? this.linkedImageFilenames
 
         if (!imagesFilenames.length) return
 
-        const imageMetadata = await db.getImageMetadataByFilenames(
-            knex,
-            imagesFilenames
-        )
+        await imageStore.fetchImageMetadata(imagesFilenames)
+        const images = await imageStore
+            .syncImagesToS3(knex)
+            .then(excludeUndefined)
 
+        // Merge the new image metadata with the existing image metadata. This
+        // is used by GdocAuthor to load additional image metadata from the
+        // latest work section.
         this.imageMetadata = {
             ...this.imageMetadata,
-            ...keyBy(imageMetadata, "filename"),
+            ...keyBy(images, "filename"),
         }
     }
 
@@ -778,9 +784,10 @@ export class GdocBase implements OwidGdocBaseInterface {
         ]
     }
 
-    async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    async loadState(knex: db.KnexReadWriteTransaction): Promise<void> {
         await this.loadLinkedDocuments(knex)
-        await this.loadImageMetadataFromDB(knex)
+        await this.loadImageMetadata(knex)
         await this.loadLinkedCharts(knex)
         await this.loadLinkedIndicators() // depends on linked charts
         await this._loadSubclassAttachments(knex)
