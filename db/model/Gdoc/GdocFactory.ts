@@ -58,7 +58,6 @@ export function gdocFromJSON(
     json.createdAt = new Date(json.createdAt)
     json.publishedAt = json.publishedAt ? new Date(json.publishedAt) : null
     json.updatedAt = new Date(json.updatedAt)
-    json.tags = json.tags ? JSON.parse(json.tags) : []
 
     return match(type)
         .with(
