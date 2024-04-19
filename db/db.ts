@@ -424,3 +424,27 @@ export const getPublishedGdocPostsWithTags = async (
         }
     ).then((rows) => rows.map(parsePostsGdocsWithTagsRow))
 }
+
+export const getNonGrapherExplorerViewCount = (
+    knex: KnexReadonlyTransaction
+): Promise<number> => {
+    return knexRawFirst<{ count: number }>(
+        knex,
+        `-- sql
+        SELECT
+            COUNT(*) as count
+        FROM
+            explorers,
+            json_table(config, "$.blocks[*]"
+                COLUMNS (
+                    type TEXT PATH "$.type",
+                    NESTED PATH "$.block[*]"
+                        COLUMNS (grapherId INT PATH "$.grapherId")
+                    )
+            ) t1
+        WHERE
+            isPublished = 1
+            AND type = "graphers"
+            AND grapherId IS NULL`
+    ).then((res) => res?.count ?? 0)
+}

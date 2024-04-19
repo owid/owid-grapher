@@ -15,7 +15,11 @@ import {
     EnrichedBlockKeyIndicator,
     GrapherTabOption,
 } from "@ourworldindata/types"
-import { Url, urlToSlug } from "@ourworldindata/utils"
+import {
+    Url,
+    urlToSlug,
+    roundDownToNearestHundred,
+} from "@ourworldindata/utils"
 
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 import KeyIndicator from "./KeyIndicator.js"
@@ -56,7 +60,8 @@ export default function KeyIndicatorCollection({
                 {homepageMetadata?.chartCount ? (
                     <p className="body-2-regular">
                         Featured data from our collection of more than{" "}
-                        {homepageMetadata?.chartCount} interactive charts.
+                        {roundDownToNearestHundred(homepageMetadata.chartCount)}{" "}
+                        interactive charts.
                     </p>
                 ) : (
                     <p className="body-2-regular">

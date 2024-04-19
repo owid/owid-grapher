@@ -1877,3 +1877,7 @@ export function isElementHidden(element: Element | null): boolean {
         return true
     return isElementHidden(element.parentElement)
 }
+
+export function roundDownToNearestHundred(value: number): number {
+    return Math.floor(value / 100) * 100
+}

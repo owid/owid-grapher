@@ -122,6 +122,7 @@ export {
     cartesian,
     removeTrailingParenthetical,
     isElementHidden,
+    roundDownToNearestHundred,
 } from "./Util.js"
 
 export {

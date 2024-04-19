@@ -47,8 +47,10 @@
 }
 
 .aa-Input {
-    margin-left: 16px;
+    margin-left: 8px;
+    text-overflow: ellipsis;
     @include sm-up {
+        margin-left: 16px;
         font-size: 14px; // shouldn't be set for mobile (ios zooms in on focus when font-size is < 16px)
     }
     color: $blue-30;
@@ -59,9 +61,6 @@
 
 .aa-Input::placeholder {
     color: $blue-30;
-    @include lg-down {
-        color: transparent;
-    }
 }
 
 .aa-InputWrapperPrefix {
@@ -107,6 +106,9 @@
 
 .aa-DetachedCancelButton {
     color: $blue-90;
+    background: #fff;
+    // above the placeholder text on mobile
+    z-index: 1;
     border-radius: 0;
     border: none;
     padding: 8px;
