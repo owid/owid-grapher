@@ -117,6 +117,10 @@ export class ExplorerProgram extends GridProgram {
             : row + this.decisionMatrix.selectedRowIndex + 2
     }
 
+    get currentlySelectedGrapherRowContent() {
+        return this.decisionMatrix.selectedRow
+    }
+
     static fromMatrix(slug: string, matrix: CoreMatrix) {
         const str = matrix
             .map((row) =>

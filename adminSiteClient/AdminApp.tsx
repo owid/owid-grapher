@@ -163,8 +163,6 @@ export class AdminApp extends React.Component<{
                                     <AdminLayout title="Preview Explorer data page">
                                         <ExplorerDataPage
                                             slug={match.params.slug}
-                                            gitCmsBranchName={gitCmsBranchName}
-                                            manager={admin}
                                         />
                                     </AdminLayout>
                                 )}
