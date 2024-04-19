@@ -328,7 +328,8 @@ export class SiteBaker {
                     keyBy(images, "filename")
                 )
 
-            // This step usually runs so quickly that the progress bar doesn't log, but the step is still counted
+            // This step runs so quickly that the progress bar doesn't log, so we add a small delay
+            await new Promise((resolve) => setTimeout(resolve, 10))
             this.progressBar.tick({
                 name: `✅ Prefetched ${Object.values(imageMetadataDictionary).length} images`,
             })
@@ -386,13 +387,7 @@ export class SiteBaker {
             const publishedChartsWithIndicatorIds = publishedCharts.filter(
                 (chart) => chart.indicatorId
             )
-            console.log(
-                "publishedChartsWithIndicatorIds.length",
-                publishedChartsWithIndicatorIds.length
-            )
-            const datapageIndicators: LinkedIndicator[] = []
-
-            await Promise.all(
+            const datapageIndicators: LinkedIndicator[] = await Promise.all(
                 publishedChartsWithIndicatorIds.map(async (linkedChart) => {
                     const indicatorId = linkedChart.indicatorId as number
                     const metadata = await getVariableMetadata(indicatorId)
