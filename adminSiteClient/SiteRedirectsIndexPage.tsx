@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form"
 
 import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
+import { Link } from "./Link.js"
 
 const SOURCE_PATTERN = /^\/$|^\/.*[^\/]+$/
 const INVALID_SOURCE_MESSAGE =
@@ -124,7 +125,7 @@ export default function SiteRedirectsIndexPage() {
                             This page is used to create and delete redirects for
                             the site. Don't use this page to create redirects
                             for charts, use the{" "}
-                            <a href="/admin/redirects">chart redirects page</a>{" "}
+                            <Link to="/redirects">chart redirects page</Link>{" "}
                             instead.
                         </p>
                         <p>
