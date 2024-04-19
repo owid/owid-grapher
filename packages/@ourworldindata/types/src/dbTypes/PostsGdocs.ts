@@ -31,7 +31,7 @@ export type DbEnrichedPostGdoc = Omit<
 }
 
 export type DBRawPostGdocWithTags = DbRawPostGdoc & {
-    tags: MinimalTag[]
+    tags: string
 }
 
 export type DBEnrichedPostGdocWithTags = DbEnrichedPostGdoc & {
@@ -72,7 +72,7 @@ export function parsePostsGdocsWithTagsRow(
 ): DBEnrichedPostGdocWithTags {
     return {
         ...parsePostsGdocsRow(row),
-        tags: row.tags,
+        tags: JSON.parse(row.tags),
     }
 }
 
