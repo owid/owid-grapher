@@ -121,10 +121,27 @@ export default function SiteRedirectsIndexPage() {
                 <div className="row">
                     <div className="col-12 col-md-8">
                         <p>
-                            Source has to start with a slash and any query
-                            parameters (?a=b) or fragments (#c) will be
-                            stripped, if present. The target can contain a full
-                            URL or a relative URL starting with a slash and both
+                            This page is used to create and delete redirects for
+                            the site. Don't use this page to create redirects
+                            for charts, use the{" "}
+                            <a href="/admin/redirects">chart redirects page</a>{" "}
+                            instead.
+                        </p>
+                        <p>
+                            The source has to start with a slash and any query
+                            parameters (/war-and-peace
+                            <span className="redirect-emphasis">
+                                ?insight=insightid
+                            </span>
+                            ) or fragments (/war-and-peace
+                            <span className="redirect-emphasis">
+                                #all-charts
+                            </span>
+                            ) will be stripped, if present.
+                        </p>
+                        <p>
+                            The target can point to a full URL at another domain
+                            or a relative URL starting with a slash and both
                             query parameters and fragments are allowed.
                         </p>
                         <p>
@@ -141,6 +158,7 @@ export default function SiteRedirectsIndexPage() {
                                 className={cx("form-control", {
                                     "is-invalid": errors.source,
                                 })}
+                                placeholder="/fertility-can-decline-extremely-fast"
                                 {...register("source", {
                                     required: "Please provide a source.",
                                     pattern: {
@@ -159,6 +177,7 @@ export default function SiteRedirectsIndexPage() {
                                 className={cx("form-control", {
                                     "is-invalid": errors.target,
                                 })}
+                                placeholder="/fertility-rate"
                                 {...register("target", {
                                     required: "Please provide a target.",
                                     pattern: {
