@@ -1,10 +1,9 @@
 import React, { useContext } from "react"
 import cx from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { AttachmentsContext } from "../OwidGdoc.js"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { dataInsightIndexToIdMap } from "../pages/DataInsight.js"
 import { formatDate } from "@ourworldindata/utils"
+import { Button } from "@ourworldindata/components"
 
 export const LatestDataInsightsBlock = ({
     className,
@@ -22,12 +21,12 @@ export const LatestDataInsightsBlock = ({
                     Bite-sized insights on how the world is changing.
                 </p>
             </header>
-            <a
+            <Button
                 href="/data-insights"
                 className="latest-data-insights-block__see-all-data-insights-button body-3-medium span-cols-4 col-start-10 span-sm-cols-12 col-sm-start-2"
-            >
-                See all Data Insights <FontAwesomeIcon icon={faArrowRight} />
-            </a>
+                text="See all Data Insights"
+                theme="outline-vermillion"
+            />
             <div className="latest-data-insights-block__card-container span-cols-12 col-start-2">
                 {latestDataInsights.map((dataInsight, index) => (
                     <a

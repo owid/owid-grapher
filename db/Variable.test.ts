@@ -5,6 +5,7 @@ import * as Variable from "./model/Variable.js"
 import pl from "nodejs-polars"
 import { Writable } from "stream"
 import { OwidVariableId } from "@ourworldindata/utils"
+import * as db from "./db.js"
 
 import { jest } from "@jest/globals"
 
@@ -45,7 +46,13 @@ describe("writeVariableCSV", () => {
                 callback(null)
             },
         })
-        await writeVariableCSV(variableIds, writeStream)
+
+        await writeVariableCSV(
+            variableIds,
+            writeStream,
+            {} as db.KnexReadonlyTransaction
+        )
+
         return out
     }
 
@@ -164,7 +171,7 @@ describe("_dataAsDFfromS3", () => {
             },
         }
         mockS3data(s3data)
-        const df = await _dataAsDFfromS3([1])
+        const df = await _dataAsDFfromS3([1], {} as db.KnexReadonlyTransaction)
         expect(df.toObject()).toEqual({
             entityCode: ["code", "code"],
             entityId: [1, 1],

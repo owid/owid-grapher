@@ -20,7 +20,15 @@ import {
 } from "../../settings/clientSettings.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { DEFAULT_SEARCH_PLACEHOLDER } from "./searchClient.js"
+import {
+    DEFAULT_SEARCH_PLACEHOLDER,
+    getIndexName,
+    parseIndexName,
+} from "./searchClient.js"
+import { queryParamsToStr } from "@ourworldindata/utils"
+import { SiteAnalytics } from "../SiteAnalytics.js"
+
+const siteAnalytics = new SiteAnalytics()
 
 type BaseItem = Record<string, unknown>
 
@@ -31,7 +39,9 @@ const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
         return {
             ...source,
             onSelect({ item, navigator }) {
-                navigator.navigate({ itemUrl: `/search?q=${item.id}` } as any)
+                navigator.navigate({
+                    itemUrl: `/search${queryParamsToStr({ q: item.id })}`,
+                } as any)
             },
             templates: {
                 ...source.templates,
@@ -64,9 +74,14 @@ const getItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({ item }) =>
 // The slugs we index to Algolia don't include the /grapher/ or /explorers/ directories
 // Prepend them with this function when we need them
 const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
-    const indexName = item.__autocomplete_indexName as SearchIndexName
+    const indexName = parseIndexName(item.__autocomplete_indexName as string)
     const subdirectory = indexNameToSubdirectoryMap[indexName]
-    return `${subdirectory}/${item.slug}`
+    switch (indexName) {
+        case SearchIndexName.ExplorerViews:
+            return `${subdirectory}/${item.explorerSlug}${item.viewQueryParams}`
+        default:
+            return `${subdirectory}/${item.slug}`
+    }
 }
 
 const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
@@ -77,7 +92,7 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
         return ["CO2", "Energy", "Education", "Poverty", "Democracy"].map(
             (term) => ({
                 title: term,
-                slug: `/search?q=${term}`,
+                slug: `/search${queryParamsToStr({ q: term })}`,
             })
         )
     },
@@ -100,6 +115,11 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
     sourceId: "autocomplete",
     onSelect({ navigator, item, state }) {
         const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
+        siteAnalytics.logInstantSearchClick({
+            query: state.query,
+            url: itemUrl,
+            position: String(state.activeItemId),
+        })
         navigator.navigate({ itemUrl, item, state })
     },
     getItemUrl({ item }) {
@@ -111,7 +131,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
             searchClient,
             queries: [
                 {
-                    indexName: SearchIndexName.Pages,
+                    indexName: getIndexName(SearchIndexName.Pages),
                     query,
                     params: {
                         hitsPerPage: 2,
@@ -119,7 +139,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     },
                 },
                 {
-                    indexName: SearchIndexName.Charts,
+                    indexName: getIndexName(SearchIndexName.Charts),
                     query,
                     params: {
                         hitsPerPage: 2,
@@ -127,7 +147,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     },
                 },
                 {
-                    indexName: SearchIndexName.Explorers,
+                    indexName: getIndexName(SearchIndexName.ExplorerViews),
                     query,
                     params: {
                         hitsPerPage: 1,
@@ -141,13 +161,18 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
     templates: {
         header: () => <h5 className="overline-black-caps">Top Results</h5>,
         item: ({ item, components }) => {
-            const index = item.__autocomplete_indexName as SearchIndexName
+            const index = parseIndexName(
+                item.__autocomplete_indexName as string
+            )
             const indexLabel =
                 index === SearchIndexName.Charts
                     ? "Chart"
-                    : index === SearchIndexName.Explorers
-                    ? "Explorer"
-                    : pageTypeDisplayNames[item.type as PageType]
+                    : index === SearchIndexName.ExplorerViews
+                      ? "Explorer"
+                      : pageTypeDisplayNames[item.type as PageType]
+
+            const mainAttribute =
+                index === SearchIndexName.ExplorerViews ? "viewTitle" : "title"
 
             return (
                 <div
@@ -158,7 +183,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     <span>
                         <components.Highlight
                             hit={item}
-                            attribute="title"
+                            attribute={mainAttribute}
                             tagName="strong"
                         />
                     </span>
@@ -178,7 +203,7 @@ const AllResultsSource: AutocompleteSource<BaseItem> = {
     getItems({ query }) {
         return [
             {
-                slug: `/search?q=${encodeURI(query)}`,
+                slug: `/search${queryParamsToStr({ q: query })}`,
                 title: `All search results for "${query}"`,
             },
         ]
@@ -236,7 +261,7 @@ export function Autocomplete({
             onSubmit({ state, navigator }) {
                 if (!state.query) return
                 navigator.navigate({
-                    itemUrl: `/search?q=${state.query}`,
+                    itemUrl: `/search${queryParamsToStr({ q: state.query })}`,
                     // this method is incorrectly typed - `item` and `state` are optional
                 } as any)
             },

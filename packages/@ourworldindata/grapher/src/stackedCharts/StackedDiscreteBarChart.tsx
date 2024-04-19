@@ -62,6 +62,7 @@ import { easeQuadOut } from "d3-ease"
 import { bind } from "decko"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 import { getElementWithHalo } from "../scatterCharts/Halos.js"
+import { TextWrap } from "@ourworldindata/components"
 
 const labelToBarPadding = 5
 
@@ -71,7 +72,8 @@ export interface StackedDiscreteBarChartManager extends ChartManager {
 }
 
 interface Item {
-    label: string
+    entityName: string
+    label: TextWrap
     bars: Bar[]
     totalValue: number
 }
@@ -171,19 +173,18 @@ export class StackedDiscreteBarChart
         return !this.manager.hideLegend
     }
 
-    @computed private get boundsWithoutLegend(): Bounds {
-        return this.bounds.padTop(
-            this.showLegend && this.legend.height > 0
-                ? this.legend.height + this.legendPaddingTop
-                : 0
-        )
+    @computed private get barCount(): number {
+        return this.items.length
     }
 
     @computed private get labelFontSize(): number {
-        // can't use the computed property `barHeight` here as that would create a circular dependency
-        const barHeight =
-            (0.8 * this.boundsWithoutLegend.height) / this.items.length
-        return Math.min(GRAPHER_FONT_SCALE_12 * this.fontSize, 1.1 * barHeight)
+        // can't use `this.barHeight` due to a circular dependency
+        const barHeight = this.approximateBarHeight
+        return Math.min(
+            GRAPHER_FONT_SCALE_12 * this.fontSize,
+
+            1.1 * barHeight
+        )
     }
 
     @computed private get labelStyle(): {
@@ -208,9 +209,7 @@ export class StackedDiscreteBarChart
 
     // Account for the width of the legend
     @computed private get labelWidth(): number {
-        const labels = this.items.map((item) => item.label)
-        const longestLabel = maxBy(labels, (d) => d.length)
-        return Bounds.forText(longestLabel, this.labelStyle).width
+        return max(this.labelledItems.map((d) => d.label.width)) ?? 0
     }
 
     @computed get showTotalValueLabel(): boolean {
@@ -225,7 +224,7 @@ export class StackedDiscreteBarChart
     @computed private get totalValueLabelWidth(): number {
         if (!this.showTotalValueLabel) return 0
 
-        const labels = this.items.map((d) =>
+        const labels = this.labelledItems.map((d) =>
             this.formatValueForLabel(d.totalValue)
         )
         const longestLabel = maxBy(labels, (l) => l.length)
@@ -273,15 +272,18 @@ export class StackedDiscreteBarChart
         return axis
     }
 
+    @computed private get boundsWithoutLegend(): Bounds {
+        return this.bounds.padTop(
+            this.showLegend && this.legend.height > 0
+                ? this.legend.height + this.legendPaddingTop
+                : 0
+        )
+    }
+
     @computed private get innerBounds(): Bounds {
-        return this.bounds
+        return this.boundsWithoutLegend
             .padLeft(this.labelWidth)
             .padBottom(this.showHorizontalAxis ? this.yAxis.height : 0)
-            .padTop(
-                this.showLegend && this.legend.height > 0
-                    ? this.legend.height + this.legendPaddingTop
-                    : 0
-            )
             .padRight(this.totalValueLabelWidth)
     }
 
@@ -289,7 +291,7 @@ export class StackedDiscreteBarChart
         return makeSelectionArray(this.manager.selection)
     }
 
-    @computed private get items(): readonly Item[] {
+    @computed private get items(): readonly Omit<Item, "label">[] {
         const entityNames = this.selectionArray.selectedEntityNames
         const items = entityNames
             .map((entityName) => {
@@ -311,7 +313,7 @@ export class StackedDiscreteBarChart
                 )
 
                 return {
-                    label: entityName,
+                    entityName,
                     bars,
                     totalValue,
                 }
@@ -321,6 +323,30 @@ export class StackedDiscreteBarChart
         return items
     }
 
+    @computed get labelledItems(): readonly Item[] {
+        return this.items.map((item) => {
+            let label = new TextWrap({
+                text: item.entityName,
+                maxWidth: this.boundsWithoutLegend.width * 0.3,
+                ...this.labelStyle,
+            })
+
+            // can't use `this.barHeight` due to a circular dependency
+            const barHeight = this.approximateBarHeight
+
+            // prevent labels from being taller than the bar
+            while (label.height > barHeight && label.lines.length > 1) {
+                label = new TextWrap({
+                    text: item.entityName,
+                    maxWidth: label.maxWidth + 20,
+                    ...this.labelStyle,
+                })
+            }
+
+            return { ...item, label }
+        })
+    }
+
     @computed get sortedItems(): readonly Item[] {
         let sortByFunc: (item: Item) => number | string | undefined
         switch (this.sortConfig.sortBy) {
@@ -328,13 +354,13 @@ export class StackedDiscreteBarChart
                 sortByFunc = (): undefined => undefined
                 break
             case SortBy.entityName:
-                sortByFunc = (item: Item): string => item.label
+                sortByFunc = (item: Item): string => item.entityName
                 break
             case SortBy.column:
                 const owidRowsByEntityName =
                     this.sortColumn?.owidRowsByEntityName
                 sortByFunc = (item: Item): number => {
-                    const rows = owidRowsByEntityName?.get(item.label)
+                    const rows = owidRowsByEntityName?.get(item.entityName)
                     return rows?.[0]?.value ?? 0
                 }
                 break
@@ -346,7 +372,7 @@ export class StackedDiscreteBarChart
                     return lastPoint.valueOffset + lastPoint.value
                 }
         }
-        const sortedItems = sortBy(this.items, sortByFunc)
+        const sortedItems = sortBy(this.labelledItems, sortByFunc)
         const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
         if (sortOrder === SortOrder.desc) sortedItems.reverse()
 
@@ -364,12 +390,18 @@ export class StackedDiscreteBarChart
         }))
     }
 
+    // useful if `this.barHeight` can't be used due to a cyclic dependency
+    // keep in mind though that this is not exactly the same as `this.barHeight`
+    @computed private get approximateBarHeight(): number {
+        return (0.8 * this.boundsWithoutLegend.height) / this.barCount
+    }
+
     @computed private get barHeight(): number {
-        return (0.8 * this.innerBounds.height) / this.items.length
+        return (0.8 * this.innerBounds.height) / this.barCount
     }
 
     @computed private get barSpacing(): number {
-        return this.innerBounds.height / this.items.length - this.barHeight
+        return this.innerBounds.height / this.barCount - this.barHeight
     }
 
     // legend props
@@ -521,36 +553,35 @@ export class StackedDiscreteBarChart
             data: PlacedItem
             state: { translateY: number }
         }): JSX.Element => {
-            const { label, bars, totalValue } = data
+            const { entityName, label, bars, totalValue } = data
 
             const totalLabel = this.formatValueForLabel(totalValue)
             const showLabelInsideBar = bars.length > 1
 
             return (
                 <g
-                    key={label}
+                    key={entityName}
                     className="bar"
                     transform={`translate(0, ${state.translateY})`}
                 >
-                    <text
-                        transform={`translate(${
-                            yAxis.place(this.x0) - labelToBarPadding
-                        }, 0)`}
-                        fill="#555"
-                        dominantBaseline="middle"
-                        textAnchor="end"
-                        onMouseEnter={(): void =>
-                            this.onEntityMouseEnter(label)
+                    {label.render(
+                        yAxis.place(this.x0) - labelToBarPadding,
+                        -label.height / 2,
+                        {
+                            textProps: {
+                                textAnchor: "end",
+                                fill: "#555",
+                                onMouseEnter: (): void =>
+                                    this.onEntityMouseEnter(label.text),
+                                onMouseLeave: this.onEntityMouseLeave,
+                            },
                         }
-                        onMouseLeave={this.onEntityMouseLeave}
-                        {...this.labelStyle}
-                    >
-                        {label}
-                    </text>
+                    )}
+
                     {bars.map((bar) => (
                         <StackedDiscreteBarChart.Bar
                             key={bar.seriesName}
-                            entity={label}
+                            entity={entityName}
                             bar={bar}
                             chartContext={chartContext}
                             showLabelInsideBar={showLabelInsideBar}
@@ -560,7 +591,7 @@ export class StackedDiscreteBarChart
                     ))}
                     {this.showTotalValueLabel &&
                         getElementWithHalo(
-                            label + "-value-label",
+                            entityName + "-value-label",
                             <text
                                 transform={`translate(${
                                     yAxis.place(totalValue) + labelToBarPadding
@@ -612,7 +643,7 @@ export class StackedDiscreteBarChart
                 )}
                 <NodeGroup
                     data={this.placedItems}
-                    keyAccessor={(d: PlacedItem): string => d.label}
+                    keyAccessor={(d: PlacedItem): string => d.entityName}
                     start={handlePositionUpdate}
                     update={handlePositionUpdate}
                 >
@@ -681,8 +712,8 @@ export class StackedDiscreteBarChart
                         isHover
                             ? 1
                             : isFaint
-                            ? 0.1
-                            : GRAPHER_AREA_OPACITY_DEFAULT
+                              ? 0.1
+                              : GRAPHER_AREA_OPACITY_DEFAULT
                     }
                     style={{
                         transition: "height 200ms ease",
@@ -715,7 +746,7 @@ export class StackedDiscreteBarChart
                 inputTable: { timeColumn },
             } = this,
             item = this.placedItems.find(
-                ({ label }) => label === target?.entityName
+                ({ entityName }) => entityName === target?.entityName
             ),
             hasNotice = item?.bars.some(
                 ({ point }) => !point.fake && point.time !== targetTime

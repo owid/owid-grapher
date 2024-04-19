@@ -292,10 +292,7 @@ export class Footer<
             maxWidth: this.noteMaxWidth,
             fontSize,
             lineHeight,
-            detailsOrderedByReference:
-                manager.shouldIncludeDetailsInStaticExport
-                    ? manager.detailsOrderedByReference
-                    : new Set(),
+            detailsOrderedByReference: manager.detailsOrderedByReference,
         })
     }
 
@@ -333,8 +330,8 @@ export class Footer<
         const leftTextWidth = !useFullWidthSources
             ? sourcesWidth
             : showNote && !useFullWidthNote
-            ? noteWidth
-            : 0
+              ? noteWidth
+              : 0
         // text above the action buttons
         // (taken into account to ensure the action buttons are not too close to clickable text)
         const topTextWidth = useFullWidthSources
@@ -570,8 +567,8 @@ export class Footer<
                     {renderSources
                         ? this.renderSources()
                         : renderNote
-                        ? this.renderNote()
-                        : null}
+                          ? this.renderNote()
+                          : null}
                     {renderPadding && this.renderVerticalSpace()}
                     {renderLicense && this.renderLicense()}
                 </div>
@@ -678,10 +675,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     @computed protected get licenseAndOriginUrlText(): string {
         const { finalUrl, finalUrlText, licenseText, licenseUrl, textColor } =
             this
-        const textDecoration = this.manager.isStaticAndSmall
-            ? "none"
-            : "underline"
-        const linkStyle = `fill: ${textColor};  text-decoration: ${textDecoration};`
+        const linkStyle = `fill: ${textColor};`
         const licenseSvg = `<a target="_blank" style="${linkStyle}" href="${licenseUrl}">${licenseText}</a>`
         if (!finalUrlText) return licenseSvg
         const originUrlSvg = `<a target="_blank" style="${linkStyle}" href="${finalUrl}">${finalUrlText}</a>`
@@ -773,7 +767,8 @@ export class StaticFooter extends Footer<StaticFooterProps> {
                 {this.showNote &&
                     note.renderSVG(
                         targetX,
-                        targetY + sources.height + this.verticalPadding
+                        targetY + sources.height + this.verticalPadding,
+                        { detailsMarker: this.manager.detailsMarkerInSvg }
                     )}
                 {showLicenseNextToSources
                     ? licenseAndOriginUrl.render(

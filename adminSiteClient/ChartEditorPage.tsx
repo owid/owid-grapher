@@ -19,11 +19,14 @@ import {
     set,
     groupBy,
     extractDetailsFromSyntax,
+    getIndexableKeys,
 } from "@ourworldindata/utils"
 import {
     Topic,
     GrapherInterface,
     GrapherStaticFormat,
+    ChartRedirect,
+    DimensionProperty,
 } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
@@ -32,10 +35,11 @@ import {
     EditorDatabase,
     Log,
     References,
-    ChartRedirect,
     ChartEditorManager,
     Dataset,
     getFullReferencesCount,
+    DetailReferences,
+    FieldWithDetailReferences,
 } from "./ChartEditor.js"
 import { EditorBasicTab } from "./EditorBasicTab.js"
 import { EditorDataTab } from "./EditorDataTab.js"
@@ -256,10 +260,17 @@ export class ChartEditorPage
 
     // unvalidated terms extracted from the subtitle and note fields
     // these may point to non-existent details e.g. ["not_a_real_term", "pvotery"]
-    @computed get currentDetailReferences() {
+    @computed
+    get currentDetailReferences(): DetailReferences {
         return {
             subtitle: extractDetailsFromSyntax(this.grapher.currentSubtitle),
             note: extractDetailsFromSyntax(this.grapher.note),
+            axisLabelX: extractDetailsFromSyntax(
+                this.grapher.xAxisConfig.label ?? ""
+            ),
+            axisLabelY: extractDetailsFromSyntax(
+                this.grapher.yAxisConfig.label ?? ""
+            ),
         }
     }
 
@@ -278,12 +289,65 @@ export class ChartEditorPage
         return grapherConfigDetails
     }
 
-    @computed get invalidDetailReferences() {
-        const { subtitle, note } = this.currentDetailReferences
+    @computed
+    get invalidDetailReferences(): ChartEditorManager["invalidDetailReferences"] {
+        const { subtitle, note, axisLabelX, axisLabelY } =
+            this.currentDetailReferences
         return {
-            subtitle: subtitle.filter((key) => !this.details[key]),
-            note: note.filter((key) => !this.details[key]),
+            subtitle: subtitle.filter((term) => !this.details[term]),
+            note: note.filter((term) => !this.details[term]),
+            axisLabelX: axisLabelX.filter((term) => !this.details[term]),
+            axisLabelY: axisLabelY.filter((term) => !this.details[term]),
         }
+    }
+
+    @computed get errorMessages(): ChartEditorManager["errorMessages"] {
+        const { invalidDetailReferences } = this
+
+        const errorMessages: ChartEditorManager["errorMessages"] = {}
+
+        // add error messages for each field with invalid detail references
+        getIndexableKeys(invalidDetailReferences).forEach(
+            (key: FieldWithDetailReferences) => {
+                const references = invalidDetailReferences[key]
+                if (references.length) {
+                    errorMessages[key] =
+                        `Invalid detail(s) specified: ${references.join(", ")}`
+                }
+            }
+        )
+
+        return errorMessages
+    }
+
+    @computed
+    get errorMessagesForDimensions(): ChartEditorManager["errorMessagesForDimensions"] {
+        const errorMessages: ChartEditorManager["errorMessagesForDimensions"] =
+            {
+                [DimensionProperty.y]: [],
+                [DimensionProperty.x]: [],
+                [DimensionProperty.color]: [],
+                [DimensionProperty.size]: [],
+                [DimensionProperty.table]: [], // not used
+            }
+
+        this.grapher.dimensionSlots.forEach((slot) => {
+            slot.dimensions.forEach((dimension, dimensionIndex) => {
+                const details = extractDetailsFromSyntax(
+                    dimension.display.name ?? ""
+                )
+                const hasDetailsInDisplayName = details.length > 0
+
+                // add error message if details are referenced in the display name
+                if (hasDetailsInDisplayName) {
+                    errorMessages[slot.property][dimensionIndex] = {
+                        displayName: "Detail syntax is not supported",
+                    }
+                }
+            })
+        })
+
+        return errorMessages
     }
 
     @computed get admin(): Admin {
@@ -297,13 +361,13 @@ export class ChartEditorPage
     }
 
     @action.bound refresh(): void {
-        this.fetchGrapher()
-        this.fetchDetails()
-        this.fetchData()
-        this.fetchLogs()
-        this.fetchRefs()
-        this.fetchRedirects()
-        this.fetchPageviews()
+        void this.fetchGrapher()
+        void this.fetchDetails()
+        void this.fetchData()
+        void this.fetchLogs()
+        void this.fetchRefs()
+        void this.fetchRedirects()
+        void this.fetchPageviews()
 
         // (2024-02-15) Disabled due to slow query performance
         // https://github.com/owid/owid-grapher/issues/3198

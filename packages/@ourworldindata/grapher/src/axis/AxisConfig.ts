@@ -17,8 +17,9 @@ import {
     Tickmark,
 } from "@ourworldindata/types"
 
-export interface FontSizeManager {
+export interface AxisManager {
     fontSize: number
+    detailsOrderedByReference?: string[]
 }
 
 class AxisConfigDefaults implements AxisConfigInterface {
@@ -45,16 +46,13 @@ export class AxisConfig
     extends AxisConfigDefaults
     implements AxisConfigInterface, Persistable
 {
-    constructor(
-        props?: AxisConfigInterface,
-        fontSizeManager?: FontSizeManager
-    ) {
+    constructor(props?: AxisConfigInterface, axisManager?: AxisManager) {
         super()
         this.updateFromObject(props)
-        this.fontSizeManager = fontSizeManager
+        this.axisManager = axisManager
     }
 
-    fontSizeManager?: FontSizeManager
+    axisManager?: AxisManager
 
     // todo: test/refactor
     updateFromObject(props?: AxisConfigInterface): void {
@@ -88,7 +86,7 @@ export class AxisConfig
     }
 
     @computed get fontSize(): number {
-        return this.fontSizeManager?.fontSize || BASE_FONT_SIZE
+        return this.axisManager?.fontSize || BASE_FONT_SIZE
     }
 
     // A log scale domain cannot have values <= 0, so we double check here
@@ -119,10 +117,10 @@ export class AxisConfig
     // Convert axis configuration to a finalized axis spec by supplying
     // any needed information calculated from the data
     toHorizontalAxis(): HorizontalAxis {
-        return new HorizontalAxis(this)
+        return new HorizontalAxis(this, this.axisManager)
     }
 
     toVerticalAxis(): VerticalAxis {
-        return new VerticalAxis(this)
+        return new VerticalAxis(this, this.axisManager)
     }
 }

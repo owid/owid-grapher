@@ -72,6 +72,7 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<ChartTypeName, ViewMatrix> = {
     [ChartTypeName.SlopeChart]: {
         tab: ["chart"],
         time: timeSpan,
+        yScale: scaleTypeOptions,
     },
     [ChartTypeName.StackedArea]: {
         tab: ["chart"],

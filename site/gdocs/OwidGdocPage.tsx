@@ -9,10 +9,13 @@ import {
     OwidGdoc as OwidGdocUnionType,
     SiteFooterContext,
     OwidGdocType,
+    spansToUnformattedPlainText,
 } from "@ourworldindata/utils"
+import { getCanonicalUrl, getPageTitle } from "@ourworldindata/components"
 import { DebugProvider } from "./DebugContext.js"
 import { match, P } from "ts-pattern"
-import { IMAGES_DIRECTORY } from "@ourworldindata/types"
+import { EnrichedBlockText, IMAGES_DIRECTORY } from "@ourworldindata/types"
+import { DATA_INSIGHT_ATOM_FEED_PROPS } from "./utils.js"
 
 declare global {
     interface Window {
@@ -37,12 +40,24 @@ function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
                 return match.content.excerpt
             }
         )
-        .with({ content: { type: OwidGdocType.DataInsight } }, () => {
-            // TODO: what do we put here?
-            return undefined
+        .with({ content: { type: OwidGdocType.DataInsight } }, (match) => {
+            const firstParagraph = match.content.body.find(
+                (block) => block.type === "text"
+            ) as EnrichedBlockText | undefined
+            // different platforms truncate at different lengths, let's leave it up to them
+            return firstParagraph
+                ? spansToUnformattedPlainText(firstParagraph.value)
+                : undefined
         })
         .with({ content: { type: OwidGdocType.Homepage } }, () => {
             return "Research and data to make progress against the world’s largest problems"
+        })
+        .with({ content: { type: OwidGdocType.Author } }, (gdoc) => {
+            return gdoc.content.bio
+                ? spansToUnformattedPlainText(
+                      gdoc.content.bio.flatMap((block) => block.value)
+                  )
+                : undefined
         })
         .with(
             { content: { type: P.union(OwidGdocType.Fragment, undefined) } },
@@ -64,16 +79,18 @@ export default function OwidGdocPage({
     debug?: boolean
     isPreviewing?: boolean
 }) {
-    const { content, slug, createdAt, updatedAt } = gdoc
+    const { content, createdAt, updatedAt } = gdoc
 
     const pageDesc = getPageDesc(gdoc)
     const featuredImageFilename = getFeaturedImageFilename(gdoc)
-    const canonicalUrl = `${baseUrl}/${slug}`
+    const canonicalUrl = getCanonicalUrl(baseUrl, gdoc)
+    const pageTitle = getPageTitle(gdoc)
+    const isDataInsight = gdoc.content.type === OwidGdocType.DataInsight
 
     return (
         <html>
             <Head
-                pageTitle={content.title}
+                pageTitle={pageTitle}
                 pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
                 imageUrl={
@@ -82,6 +99,7 @@ export default function OwidGdocPage({
                         ? `${baseUrl}${IMAGES_DIRECTORY}${featuredImageFilename}`
                         : undefined
                 }
+                atom={isDataInsight ? DATA_INSIGHT_ATOM_FEED_PROPS : undefined}
                 baseUrl={baseUrl}
             >
                 <CitationMeta

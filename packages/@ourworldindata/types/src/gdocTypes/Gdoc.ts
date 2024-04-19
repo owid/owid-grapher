@@ -1,9 +1,9 @@
-import { Tag } from "../domainTypes/Tag.js"
 import { GrapherTabOption, RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
 import { TocHeadingWithTitleSupertitle } from "../domainTypes/Toc.js"
 import { ImageMetadata } from "./Image.js"
 import {
+    EnrichedBlockSocials,
     EnrichedBlockText,
     EnrichedBlockWithParseErrors,
     OwidEnrichedGdocBlock,
@@ -12,6 +12,8 @@ import {
     RefDictionary,
 } from "./ArchieMlComponents.js"
 import { DbChartTagJoin } from "../dbTypes/ChartTags.js"
+import { DbPlainTag } from "../dbTypes/Tags.js"
+import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -50,26 +52,29 @@ export enum OwidGdocType {
     DataInsight = "data-insight",
     Homepage = "homepage",
     AboutPage = "about-page",
+    Author = "author",
 }
 
 export interface OwidGdocBaseInterface {
     id: string
     slug: string
-    content: Record<string, any>
+    // TODO: should we type this as a union of the possible content types instead?
+    content: OwidGdocContent
     published: boolean
     createdAt: Date
     publishedAt: Date | null
     updatedAt: Date | null
     revisionId: string | null
     publicationContext: OwidGdocPublicationContext
-    breadcrumbs?: BreadcrumbItem[] | null
+    breadcrumbs: BreadcrumbItem[] | null
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     linkedCharts?: Record<string, LinkedChart>
     linkedIndicators?: Record<number, LinkedIndicator>
     imageMetadata?: Record<string, ImageMetadata>
     relatedCharts?: RelatedChart[]
-    tags?: Tag[]
+    tags?: DbPlainTag[] | null
     errors?: OwidGdocErrorMessage[]
+    markdown: string | null
 }
 
 export interface OwidGdocPostInterface extends OwidGdocBaseInterface {
@@ -82,12 +87,33 @@ export interface OwidGdocMinimalPostInterface {
     title: string // used in prominent links, topic-page-intro related topics, etc
     slug: string
     authors: string[] // used in research & writing block
-    publishedAt: string // used in research & writing block
+    publishedAt: string | null // used in research & writing block
     published: boolean // used in preview to validate whether or not the post will display
     subtitle: string // used in prominent links & research & writing block
     excerpt: string // used in prominent links
     type: OwidGdocType // used in useLinkedDocument to prepend /data-insights/ to the slug
     "featured-image"?: string // used in prominent links and research & writing block
+}
+
+export type OwidGdocIndexItem = Pick<
+    OwidGdocBaseInterface,
+    "id" | "slug" | "tags" | "published" | "publishedAt"
+> &
+    Pick<OwidGdocContent, "title" | "authors" | "type">
+
+export function extractGdocIndexItem(
+    gdoc: OwidGdocBaseInterface
+): OwidGdocIndexItem {
+    return {
+        id: gdoc.id,
+        slug: gdoc.slug,
+        tags: gdoc.tags ?? [],
+        published: gdoc.published,
+        publishedAt: gdoc.publishedAt,
+        title: gdoc.content.title ?? "",
+        authors: gdoc.content.authors,
+        type: gdoc.content.type,
+    }
 }
 
 export interface OwidGdocDataInsightContent {
@@ -104,7 +130,6 @@ export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     content: OwidGdocDataInsightContent
     latestDataInsights?: MinimalDataInsightInterface[]
-    tags?: Tag[]
 }
 
 export type MinimalDataInsightInterface = Pick<
@@ -112,6 +137,10 @@ export type MinimalDataInsightInterface = Pick<
     "title"
 > & {
     publishedAt: string
+    updatedAt: string
+    slug: string
+    // Not used in any UI, only needed for the data insights atom feed
+    authors: string[]
     // We select the 5 most recently published insights
     // We only display 4, but if you're on the DI page for one of them we hide it and show the next most recent
     index: 0 | 1 | 2 | 3 | 4
@@ -133,18 +162,35 @@ export interface OwidGdocHomepageInterface extends OwidGdocBaseInterface {
     content: OwidGdocHomepageContent
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     homepageMetadata?: OwidGdocHomepageMetadata
-    tags?: Tag[] // won't be used, but necessary in various validation steps
+}
+
+export interface OwidGdocAuthorContent {
+    type: OwidGdocType.Author
+    title?: string
+    role: string
+    bio?: EnrichedBlockText[]
+    socials?: EnrichedBlockSocials
+    "featured-image"?: string
+    authors: string[]
+    body: OwidEnrichedGdocBlock[]
+}
+
+export interface OwidGdocAuthorInterface extends OwidGdocBaseInterface {
+    content: OwidGdocAuthorContent
+    latestWorkLinks?: DbEnrichedLatestWork[]
 }
 
 export type OwidGdocContent =
     | OwidGdocPostContent
     | OwidGdocDataInsightContent
     | OwidGdocHomepageContent
+    | OwidGdocAuthorContent
 
 export type OwidGdoc =
     | OwidGdocPostInterface
     | OwidGdocDataInsightInterface
     | OwidGdocHomepageInterface
+    | OwidGdocAuthorInterface
 
 export enum OwidGdocErrorMessageType {
     Error = "error",
@@ -156,6 +202,9 @@ export type OwidGdocProperty =
     | keyof OwidGdocPostContent
     | keyof OwidGdocDataInsightInterface
     | keyof OwidGdocDataInsightContent
+    | keyof OwidGdocAuthorInterface
+    | keyof OwidGdocAuthorContent
+
 export type OwidGdocErrorMessageProperty =
     | OwidGdocProperty
     | `${OwidGdocProperty}${string}` // also allows for nesting, like `breadcrumbs[0].label`
@@ -184,7 +233,7 @@ export enum OwidGdocLinkType {
 }
 
 export interface OwidGdocLinkJSON {
-    source: Record<string, any>
+    // source: Record<string, any>
     linkType: OwidGdocLinkType
     target: string
     componentType: string
@@ -208,7 +257,7 @@ export interface OwidGdocPostContent {
         | OwidGdocType.AboutPage
         // TODO: Fragments need their own OwidGdocFragment interface and flow in the UI
         // Historically they were treated the same as GdocPosts but not baked
-        // In reality, they have multiple possible data structures in their content (details, faqs, frontPageConfig, etc)
+        // In reality, they have multiple possible data structures in their content (details, faqs, etc)
         // We should be able to render these in the preview before publishing
         // We're keeping them in this union until we have time to sort this out
         | OwidGdocType.Fragment

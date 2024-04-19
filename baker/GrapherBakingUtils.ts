@@ -10,9 +10,9 @@ import { BAKED_SITE_EXPORTS_BASE_URL } from "../settings/clientSettings.js"
 import * as db from "../db/db.js"
 import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker.js"
 import { warn } from "../serverUtils/errorLog.js"
-import { Chart } from "../db/model/Chart.js"
+import { mapSlugsToIds } from "../db/model/Chart.js"
 import md5 from "md5"
-import { Url, Tag } from "@ourworldindata/utils"
+import { DbPlainTag, Url } from "@ourworldindata/utils"
 
 interface ChartExportMeta {
     key: string
@@ -37,21 +37,27 @@ export const grapherUrlToSlugAndQueryStr = (grapherUrl: string) => {
 export const grapherSlugToExportFileKey = (
     slug: string,
     queryStr: string | undefined,
-    { shouldHashQueryStr = true }: { shouldHashQueryStr?: boolean } = {}
+    {
+        shouldHashQueryStr = true,
+        separator = "-",
+    }: { shouldHashQueryStr?: boolean; separator?: string } = {}
 ) => {
     const maybeHashedQueryStr = shouldHashQueryStr
         ? md5(queryStr ?? "")
         : queryStr
-    return `${slug}${queryStr ? `-${maybeHashedQueryStr}` : ""}`
+    return `${slug}${queryStr ? `${separator}${maybeHashedQueryStr}` : ""}`
 }
 
 export interface GrapherExports {
     get: (grapherUrl: string) => ChartExportMeta | undefined
 }
 
-export const bakeGrapherUrls = async (urls: string[]) => {
+export const bakeGrapherUrls = async (
+    knex: db.KnexReadonlyTransaction,
+    urls: string[]
+) => {
     const currentExports = await getGrapherExportsByUrl()
-    const slugToId = await Chart.mapSlugsToIds()
+    const slugToId = await mapSlugsToIds(knex)
     const toBake = []
 
     // Check that we need to bake this url, and don't already have an export
@@ -74,7 +80,8 @@ export const bakeGrapherUrls = async (urls: string[]) => {
             continue
         }
 
-        const rows = await db.queryMysql(
+        const rows = await db.knexRaw<{ version: number }>(
+            knex,
             `SELECT charts.config->>"$.version" AS version FROM charts WHERE charts.id=?`,
             [chartId]
         )
@@ -88,6 +95,7 @@ export const bakeGrapherUrls = async (urls: string[]) => {
 
     if (toBake.length > 0) {
         await bakeGraphersToSvgs(
+            knex,
             toBake,
             `${BAKED_SITE_DIR}/exports`,
             OPTIMIZE_SVG_EXPORTS
@@ -134,12 +142,13 @@ export const getGrapherExportsByUrl = async (): Promise<GrapherExports> => {
  *   "Women's Rights" -> "womens-rights"
  *   123 -> "womens-rights"
  */
-export async function getTagToSlugMap(): Promise<
-    Record<string | number, string>
-> {
-    const tags = (await db.queryMysql(
+export async function getTagToSlugMap(
+    knex: db.KnexReadonlyTransaction
+): Promise<Record<string | number, string>> {
+    const tags = await db.knexRaw<Pick<DbPlainTag, "name" | "id" | "slug">>(
+        knex,
         `SELECT slug, name, id FROM tags WHERE slug IS NOT NULL`
-    )) as Pick<Tag, "name" | "id" | "slug">[]
+    )
     const tagsByIdAndName: Record<string | number, string> = {}
     for (const tag of tags) {
         if (tag.slug) {
@@ -156,10 +165,11 @@ export async function getTagToSlugMap(): Promise<
  * Throws an error if no slug is found so we can log it in Bugsnag
  */
 export async function getSlugForTopicTag(
+    knex: db.KnexReadonlyTransaction,
     identifier: string | number
 ): Promise<string> {
     const propertyToMatch = typeof identifier === "string" ? "slug" : "id"
-    const tagsByIdAndName = await getTagToSlugMap()
+    const tagsByIdAndName = await getTagToSlugMap(knex)
     const slug = tagsByIdAndName[identifier]
 
     if (!slug) {

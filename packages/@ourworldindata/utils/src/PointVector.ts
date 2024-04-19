@@ -79,10 +79,10 @@ export class PointVector {
     }
 
     // From: http://stackoverflow.com/a/1501725/1983739
-    static distanceFromPointToLineSq(
+    static distanceFromPointToLineSegmentSq(
         p: PointVector,
-        v: PointVector,
-        w: PointVector
+        v: PointVector, // start of line segment
+        w: PointVector // end of line segment
     ): number {
         const l2 = PointVector.distanceSq(v, w)
         if (l2 === 0) return PointVector.distanceSq(p, v)

@@ -36,10 +36,10 @@ build_code () {
 
 
 update_env() {
-    echo '--- Copying live.owid.io:live-data/.env to owid-grapher/.env and updating it'
+    echo '--- Copying owid-admin-prod:owid-grapher/.env to owid-grapher/.env and updating it'
 
-    # copy .env from live server
-    rsync -av --rsh 'ssh -o StrictHostKeyChecking=no' owid@live.owid.io:live-data/.env owid-grapher/.env.template
+    # copy .env from admin server
+    rsync -av --rsh 'ssh -o StrictHostKeyChecking=no' owid@owid-admin-prod:owid-grapher/.env owid-grapher/.env.template
 
     # copy .env.template to .env
     cp owid-grapher/.env.template owid-grapher/.env

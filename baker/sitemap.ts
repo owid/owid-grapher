@@ -1,10 +1,14 @@
 import { encodeXML } from "entities"
-import { Chart } from "../db/model/Chart.js"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import { dayjs, countries, queryParamsToStr } from "@ourworldindata/utils"
+import {
+    dayjs,
+    countries,
+    queryParamsToStr,
+    ChartsTableName,
+} from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import urljoin from "url-join"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
@@ -13,7 +17,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getPostsFromSnapshots } from "../db/model/Post.js"
-import { Knex } from "knex"
+import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 
 interface SitemapUrl {
     loc: string
@@ -58,9 +62,10 @@ const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl[] => {
     }
 }
 
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 export const makeSitemap = async (
     explorerAdminServer: ExplorerAdminServer,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadWriteTransaction
 ) => {
     const alreadyPublishedViaGdocsSlugsSet =
         await db.getSlugsWithPublishedGdocsSuccessors(knex)
@@ -69,9 +74,15 @@ export const makeSitemap = async (
         undefined,
         (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
     )
-    const gdocPosts = await GdocPost.getPublishedGdocs()
-    const charts = (await db
-        .knexTable(Chart.table)
+    const gdocPosts = await GdocPost.getPublishedGdocPosts(knex)
+
+    const publishedDataInsights = await db.getPublishedDataInsights(knex)
+    const dataInsightFeedPageCount = calculateDataInsightIndexPageCount(
+        publishedDataInsights.length
+    )
+
+    const charts = (await knex
+        .table(ChartsTableName)
         .select(knex.raw(`updatedAt, config->>"$.slug" AS slug`))
         .whereRaw('config->"$.isPublished" = true')) as {
         updatedAt: Date
@@ -102,6 +113,25 @@ export const makeSitemap = async (
             gdocPosts.map((p) => ({
                 loc: urljoin(BAKED_BASE_URL, p.slug),
                 lastmod: dayjs(p.updatedAt).format("YYYY-MM-DD"),
+            }))
+        )
+        .concat(
+            publishedDataInsights.map((d) => ({
+                loc: urljoin(BAKED_BASE_URL, "data-insights", d.slug),
+                lastmod: dayjs(d.updatedAt).format("YYYY-MM-DD"),
+            }))
+        )
+        .concat(
+            // Data insight index pages: /data-insights, /data-insights/2, /data-insights/3, etc.
+            Array.from({ length: dataInsightFeedPageCount }, (_, i) => ({
+                loc: urljoin(
+                    BAKED_BASE_URL,
+                    "data-insights",
+                    i === 0 ? "" : `/${i + 1}`
+                ),
+                lastmod: dayjs(publishedDataInsights[0].updatedAt).format(
+                    "YYYY-MM-DD"
+                ),
             }))
         )
         .concat(

@@ -76,7 +76,8 @@ export class Admin {
         path: string,
         data: string | File | undefined,
         method: HTTPMethod,
-        abortController?: AbortController
+        abortController?: AbortController,
+        credentials: RequestCredentials = "same-origin"
     ): Promise<Response> {
         const headers: HeadersInit = {}
         const isFile = data instanceof File
@@ -89,7 +90,7 @@ export class Admin {
 
         return fetch(fetchUrl, {
             method: method,
-            credentials: "same-origin",
+            credentials: credentials,
             headers: headers,
             body: method !== "GET" ? data : undefined,
             signal: abortController?.signal,
@@ -162,6 +163,7 @@ export class Admin {
     }
 
     @action.bound private removeRequest(request: Promise<Response>): void {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.currentRequests = this.currentRequests.filter(
             (req) => req !== request
         )

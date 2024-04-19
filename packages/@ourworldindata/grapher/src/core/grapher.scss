@@ -79,7 +79,6 @@ $zindex-controls-drawer: 140;
 // so we can't scope them to be grapher-only
 @import "../controls/entityPicker/EntityPicker.scss";
 @import "../controls/globalEntitySelector/GlobalEntitySelector.scss";
-@import "../sparkBars/SparkBars.scss";
 @import "../fullScreen/FullScreen.scss";
 @import "../../../components/src/Checkbox.scss";
 
@@ -171,35 +170,6 @@ $zindex-controls-drawer: 140;
 
 .GrapherComponent.isExportingToSvgOrPng {
     padding: 0 !important;
-}
-
-// when optimized for horizontal space, grapher bleeds onto the edges horizontally
-// and the left and right borders are hidden. the top and bottom borders are visible,
-// but stretch across the entire page.
-.GrapherComponent.optimizeForHorizontalSpace {
-    border: none;
-
-    // adds top and bottom borders that stretch across the entire page.
-    // since we don't know the width of the page, we use a large number (200vw)
-    // and offset it by another large number (-50vw) to make sure the borders
-    // stretch across the entire page.
-    &::before,
-    &::after {
-        content: "";
-        position: absolute;
-        left: -50vw;
-        height: 1px;
-        width: 200vw;
-        background: $frame-color;
-    }
-
-    &::before {
-        top: 0;
-    }
-
-    &::after {
-        bottom: 0;
-    }
 }
 
 .Tooltip {

@@ -3,12 +3,12 @@
 import {} from "../site/blocks/ProminentLink.js"
 import { renderExplorerPage } from "./siteRenderers.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { Knex } from "knex"
+import { KnexReadonlyTransaction } from "../db/db.js"
 
 // Note: renderProminentLinks() tests are now e2e (see kitchenSink.js)
 
 it("renders an explorer page with title", async () => {
-    const knex: Knex = {} as Knex
+    const knex: KnexReadonlyTransaction = {} as KnexReadonlyTransaction
 
     expect(
         await renderExplorerPage(

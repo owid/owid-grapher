@@ -66,7 +66,6 @@ export const EMBEDDED_EXPLORER_PARTIAL_GRAPHER_CONFIGS =
     "\n//EMBEDDED_PARTIAL_EXPLORER_GRAPHER_CONFIGS\n"
 
 export const EXPLORER_EMBEDDED_FIGURE_SELECTOR = "data-explorer-src"
-export const EXPLORER_EMBEDDED_FIGURE_PROPS_ATTR = "data-explorer-props"
 
 export const ExplorerContainerId = "ExplorerContainer"
 

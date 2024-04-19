@@ -34,6 +34,10 @@ export const BAKED_GRAPHER_EXPORTS_BASE_URL: string =
 export const BAKED_SITE_EXPORTS_BASE_URL: string =
     process.env.BAKED_SITE_EXPORTS_BASE_URL ?? `${BAKED_BASE_URL}/exports`
 
+export const GRAPHER_DYNAMIC_THUMBNAIL_URL: string =
+    process.env.GRAPHER_DYNAMIC_THUMBNAIL_URL ??
+    `${BAKED_GRAPHER_URL}/thumbnail`
+
 export const ADMIN_BASE_URL: string =
     process.env.ADMIN_BASE_URL ??
     `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
@@ -44,6 +48,8 @@ export const WORDPRESS_URL: string = process.env.WORDPRESS_URL ?? ""
 
 export const ALGOLIA_ID: string = process.env.ALGOLIA_ID ?? ""
 export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY ?? ""
+export const ALGOLIA_INDEX_PREFIX: string =
+    process.env.ALGOLIA_INDEX_PREFIX ?? ""
 
 export const DONATE_API_URL: string =
     process.env.DONATE_API_URL ?? "http://localhost:8788/donation/donate"
@@ -62,20 +68,24 @@ export const GDOCS_CLIENT_EMAIL: string = process.env.GDOCS_CLIENT_EMAIL ?? ""
 export const GDOCS_BASIC_ARTICLE_TEMPLATE_URL: string =
     process.env.GDOCS_BASIC_ARTICLE_TEMPLATE_URL ?? ""
 
-export const IMAGE_HOSTING_SPACE_URL: string =
-    process.env.IMAGE_HOSTING_SPACE_URL || ""
-export const IMAGE_HOSTING_CDN_URL: string =
-    process.env.IMAGE_HOSTING_CDN_URL || ""
-// e.g. owid-image-hosting/development
-export const IMAGE_HOSTING_BUCKET_PATH: string =
-    process.env.IMAGE_HOSTING_BUCKET_PATH || ""
+export const IMAGE_HOSTING_R2_CDN_URL: string =
+    process.env.IMAGE_HOSTING_R2_CDN_URL || ""
+// e.g. owid-image-hosting-staging/development
+export const IMAGE_HOSTING_R2_BUCKET_PATH: string =
+    process.env.IMAGE_HOSTING_R2_BUCKET_PATH || ""
 // e.g. development
-export const IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH: string =
-    IMAGE_HOSTING_BUCKET_PATH.slice(IMAGE_HOSTING_BUCKET_PATH.indexOf("/") + 1)
+export const IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH: string =
+    IMAGE_HOSTING_R2_BUCKET_PATH.slice(
+        IMAGE_HOSTING_R2_BUCKET_PATH.indexOf("/") + 1
+    )
 
 // Link to production wizard.  You need Tailscale to access it in production.
 export const ETL_WIZARD_URL: string =
-    process.env.ETL_WIZARD_URL ?? "http://localhost:8053/"
+    process.env.ETL_WIZARD_URL ?? `http://${ADMIN_SERVER_HOST}:8053/`
+
+// Production ETL API runs on http://etl-prod-2:8083/v1 (you need Tailscale to access it)
+export const ETL_API_URL: string =
+    process.env.ETL_API_URL ?? `http://${ADMIN_SERVER_HOST}:8081/api/v1`
 
 export const GDOCS_DETAILS_ON_DEMAND_ID: string =
     process.env.GDOCS_DETAILS_ON_DEMAND_ID ?? ""

@@ -43,7 +43,7 @@ import {
     HorizontalAxisZeroLine,
 } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
@@ -102,7 +102,7 @@ export class DiscreteBarChart
         bounds?: Bounds
         manager: DiscreteBarChartManager
     }>
-    implements ChartInterface, FontSizeManager, ColorScaleManager
+    implements ChartInterface, AxisManager, ColorScaleManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 
@@ -165,7 +165,7 @@ export class DiscreteBarChart
 
     @computed private get boundsWithoutColorLegend(): Bounds {
         return this.bounds.padTop(
-            this.hasColorLegend ? this.legendHeight + LEGEND_PADDING : 0
+            this.showColorLegend ? this.legendHeight + LEGEND_PADDING : 0
         )
     }
 
@@ -236,13 +236,18 @@ export class DiscreteBarChart
     @computed private get leftValueLabelWidth(): number {
         if (!this.hasNegative) return 0
 
-        const longestNegativeLabel =
-            max(
-                this.series
-                    .filter((d) => d.value < 0)
-                    .map((d) => this.formatValue(d).width)
-            ) ?? 0
-        return longestNegativeLabel + labelToTextPadding
+        const labelAndValueWidths = this.series
+            .filter((d) => d.value < 0)
+            .map((d) => {
+                const labelWidth = Bounds.forText(
+                    d.seriesName,
+                    this.legendLabelStyle
+                ).width
+                const valueWidth = this.formatValue(d).width
+                return labelWidth + valueWidth + labelToTextPadding
+            })
+
+        return max(labelAndValueWidths) ?? 0
     }
 
     @computed private get x0(): number {
@@ -264,8 +269,7 @@ export class DiscreteBarChart
     @computed private get xRange(): [number, number] {
         return [
             this.boundsWithoutColorLegend.left +
-                this.seriesLegendWidth +
-                this.leftValueLabelWidth,
+                Math.max(this.seriesLegendWidth, this.leftValueLabelWidth),
             this.boundsWithoutColorLegend.right - this.rightValueLabelWidth,
         ]
     }
@@ -296,7 +300,7 @@ export class DiscreteBarChart
 
     @computed private get innerBounds(): Bounds {
         return this.boundsWithoutColorLegend
-            .padLeft(this.seriesLegendWidth + this.leftValueLabelWidth)
+            .padLeft(Math.max(this.seriesLegendWidth, this.leftValueLabelWidth))
             .padBottom(this.showHorizontalAxis ? this.yAxis.height : 0)
             .padRight(this.rightValueLabelWidth)
     }
@@ -652,10 +656,10 @@ export class DiscreteBarChart
             const color = hasColorScale
                 ? this.colorScale.getColor(colorValue)
                 : isColumnStrategy
-                ? col.def.color
-                : transformedTable.getColorForEntityName(
-                      entityNames[index] as string
-                  )
+                  ? col.def.color
+                  : transformedTable.getColorForEntityName(
+                        entityNames[index] as string
+                    )
             return {
                 yColumn: col,
                 seriesName,

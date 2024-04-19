@@ -32,8 +32,8 @@ export function Table(props: TableProps) {
                                 isFirstColumnHeader && columnIndex === 0
                                     ? "row"
                                     : isFirstRowHeader && rowIndex === 0
-                                    ? "col"
-                                    : undefined
+                                      ? "col"
+                                      : undefined
                             const tag = scope ? "th" : "td"
 
                             return (

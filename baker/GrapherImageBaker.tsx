@@ -1,4 +1,8 @@
-import { GrapherInterface } from "@ourworldindata/types"
+import {
+    DbPlainChartSlugRedirect,
+    DbRawChart,
+    GrapherInterface,
+} from "@ourworldindata/types"
 import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { MultipleOwidVariableDataDimensionsMap } from "@ourworldindata/utils"
 import fs from "fs-extra"
@@ -48,14 +52,17 @@ export async function bakeGraphersToPngs(
     ])
 }
 
-export async function getGraphersAndRedirectsBySlug() {
-    const { graphersBySlug, graphersById } = await getPublishedGraphersBySlug()
+export async function getGraphersAndRedirectsBySlug(
+    knex: db.KnexReadonlyTransaction
+) {
+    const { graphersBySlug, graphersById } =
+        await getPublishedGraphersBySlug(knex)
 
-    const redirectQuery = db.queryMysql(
-        `SELECT slug, chart_id FROM chart_slug_redirects`
-    )
+    const redirectQuery = await db.knexRaw<
+        Pick<DbPlainChartSlugRedirect, "slug" | "chart_id">
+    >(knex, `SELECT slug, chart_id FROM chart_slug_redirects`)
 
-    for (const row of await redirectQuery) {
+    for (const row of redirectQuery) {
         const grapher = graphersById.get(row.chart_id)
         if (grapher) {
             graphersBySlug.set(row.slug, grapher)
@@ -65,14 +72,16 @@ export async function getGraphersAndRedirectsBySlug() {
     return graphersBySlug
 }
 
-export async function getPublishedGraphersBySlug() {
+export async function getPublishedGraphersBySlug(
+    knex: db.KnexReadonlyTransaction
+) {
     const graphersBySlug: Map<string, GrapherInterface> = new Map()
     const graphersById: Map<number, GrapherInterface> = new Map()
 
     // Select all graphers that are published
     const sql = `SELECT id, config FROM charts WHERE config->>"$.isPublished" = "true"`
 
-    const query = db.queryMysql(sql)
+    const query = db.knexRaw<Pick<DbRawChart, "id" | "config">>(knex, sql)
     for (const row of await query) {
         const grapher = JSON.parse(row.config)
 
@@ -114,7 +123,7 @@ export async function bakeGrapherToSvg(
     let svgCode = grapher.staticSVG
     if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
 
-    fs.writeFile(outPath, svgCode)
+    await fs.writeFile(outPath, svgCode)
     return svgCode
 }
 
@@ -134,11 +143,15 @@ export function initGrapherForSvgExport(
 
 export function buildSvgOutFilename(
     fragments: SvgFilenameFragments,
-    { shouldHashQueryStr = true }: { shouldHashQueryStr?: boolean } = {}
+    {
+        shouldHashQueryStr = true,
+        separator = "-",
+    }: { shouldHashQueryStr?: boolean; separator?: string } = {}
 ): string {
     const { slug, version, width, height, queryStr = "" } = fragments
     const fileKey = grapherSlugToExportFileKey(slug, queryStr, {
         shouldHashQueryStr,
+        separator,
     })
     const outFilename = `${fileKey}_v${version}_${width}x${height}.svg`
     return outFilename
@@ -156,12 +169,13 @@ export function buildSvgOutFilepath(
 }
 
 export async function bakeGraphersToSvgs(
+    knex: db.KnexReadonlyTransaction,
     grapherUrls: string[],
     outDir: string,
     optimizeSvgs = false
 ) {
     await fs.mkdirp(outDir)
-    const graphersBySlug = await getGraphersAndRedirectsBySlug()
+    const graphersBySlug = await getGraphersAndRedirectsBySlug(knex)
 
     return pMap(
         grapherUrls,

@@ -159,8 +159,8 @@ class Areas extends React.Component<AreasProps> {
             const opacity = !hoveredAreaName
                 ? GRAPHER_AREA_OPACITY_DEFAULT // normal opacity
                 : hoveredAreaName === series.seriesName
-                ? GRAPHER_AREA_OPACITY_DEFAULT // hovered
-                : 0.2 // non-hovered
+                  ? GRAPHER_AREA_OPACITY_DEFAULT // hovered
+                  : 0.2 // non-hovered
 
             return (
                 <path
@@ -542,6 +542,7 @@ export class StackedAreaChart
                             ? GRAPHER_AXIS_LINE_WIDTH_THICK
                             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
                     }
+                    detailsMarker={manager.detailsMarkerInSvg}
                 />
                 <g clipPath={clipPath.id}>
                     {showLegend && <LineLegend manager={this} />}

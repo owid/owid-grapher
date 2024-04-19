@@ -10,6 +10,8 @@ import {
     RawBlockText,
     EnrichedBlockRecirc,
     EnrichedBlockTopicPageIntro,
+    EnrichedBlockSocials,
+    SocialLinkType,
 } from "@ourworldindata/utils"
 import { spansToHtmlString } from "./model/Gdoc/gdocUtils.js"
 import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
@@ -204,15 +206,15 @@ level: 2
                 text: Download all data on blah
                 url: https://github.com
             {}
-        
+
             [.related-topics]
                 text: Poverty
                 url: https://docs.google.com/d/1234
-        
+
                 text: GDP Growth
                 url: https://docs.google.com/d/abcd
             []
-        
+
             [+.content]
                 <b>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</b> Suspendisse dictum consectetur turpis sit amet vestibulum.
                 {.prominent-link}
@@ -270,6 +272,31 @@ level: 2
                 text: "Download all data on blah",
                 type: "topic-page-intro-download-button",
             },
+        }
+
+        expect(article?.body?.[0]).toEqual(expectedEnrichedBlock)
+    })
+
+    it("parses emails in socials block", () => {
+        const archieMLString = `
+            [.socials]
+                url: edouard@ourworldindata.org
+                text: Edouard's email
+                type: email
+            []
+        `
+        const doc = getArchieMLDocWithContent(archieMLString)
+        const article = archieToEnriched(doc)
+        const expectedEnrichedBlock: EnrichedBlockSocials = {
+            type: "socials",
+            links: [
+                {
+                    url: "mailto:edouard@ourworldindata.org",
+                    text: "Edouard's email",
+                    type: SocialLinkType.Email,
+                },
+            ],
+            parseErrors: [],
         }
 
         expect(article?.body?.[0]).toEqual(expectedEnrichedBlock)

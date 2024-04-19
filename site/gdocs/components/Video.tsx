@@ -4,8 +4,8 @@ import { IMAGES_DIRECTORY, Span } from "@ourworldindata/utils"
 import { renderSpans } from "../utils.js"
 import { DocumentContext } from "../OwidGdoc.js"
 import {
-    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
-    IMAGE_HOSTING_CDN_URL,
+    IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH,
+    IMAGE_HOSTING_R2_CDN_URL,
 } from "../../../settings/clientSettings.js"
 
 interface VideoProps {
@@ -22,7 +22,7 @@ export default function Video(props: VideoProps) {
         props
     const { isPreviewing } = useContext(DocumentContext)
     const posterSrc = isPreviewing
-        ? `${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${filename}`
+        ? `${IMAGE_HOSTING_R2_CDN_URL}/${IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH}/${filename}`
         : `${IMAGES_DIRECTORY}${filename}`
     return (
         <figure className={cx(className)}>

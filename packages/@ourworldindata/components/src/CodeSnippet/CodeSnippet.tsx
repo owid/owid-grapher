@@ -22,7 +22,7 @@ export const CodeSnippet = ({
     const [hasCopied, setHasCopied] = useState(false)
 
     useEffect(() => {
-        canWriteToClipboard().then(setCanCopy)
+        void canWriteToClipboard().then(setCanCopy)
     }, [])
 
     const copy = async () => {

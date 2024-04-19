@@ -6,6 +6,7 @@ export interface GDriveImageMetadata {
     description?: string // -> defaultAlt
     imageMediaMetadata?: {
         width?: number // -> originalWidth
+        height?: number // -> originalHeight
     }
 }
 
@@ -15,6 +16,7 @@ export interface ImageMetadata {
     defaultAlt: string
     // MySQL Date objects round to the nearest second, whereas Google includes milliseconds
     // so we store as an epoch to avoid any conversion issues
-    updatedAt: number
-    originalWidth?: number
+    updatedAt: number | null
+    originalWidth?: number | null
+    originalHeight?: number | null
 }

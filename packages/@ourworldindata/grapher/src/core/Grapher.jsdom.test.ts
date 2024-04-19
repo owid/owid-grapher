@@ -431,7 +431,7 @@ describe("line chart to bar chart and bar chart race", () => {
     it("turns into a line chart race when playing a line chart that currently shows as a bar chart", () => {
         grapher.startHandleTimeBound = -Infinity
         grapher.endHandleTimeBound = -Infinity
-        grapher.timelineController.play(1)
+        void grapher.timelineController.play(1)
         expect(grapher.startHandleTimeBound).not.toEqual(
             grapher.endHandleTimeBound
         )
@@ -463,6 +463,16 @@ describe("urls", () => {
         const grapher = new Grapher(legacyConfig)
         grapher.isPublished = true
         expect(grapher.canonicalUrl?.includes("country")).toBeFalsy()
+    })
+
+    it("includes the tab param in embed url even if it's the default value", () => {
+        const grapher = new Grapher({
+            isPublished: true,
+            slug: "foo",
+            bakedGrapherURL: "/grapher",
+            tab: GrapherTabOption.map,
+        })
+        expect(grapher.embedUrl).toEqual("/grapher/foo?tab=map")
     })
 
     it("can upgrade legacy urls", () => {

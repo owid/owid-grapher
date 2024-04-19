@@ -224,8 +224,10 @@ export class ScatterSizeLegend {
                     centerX,
                     targetY + this.legendSize + LEGEND_PADDING,
                     {
-                        fill: LABEL_COLOR,
-                        textAnchor: "middle",
+                        textProps: {
+                            fill: LABEL_COLOR,
+                            textAnchor: "middle",
+                        },
                     }
                 )}
                 {this.title.render(
@@ -236,8 +238,10 @@ export class ScatterSizeLegend {
                         this.label.height +
                         LABEL_PADDING,
                     {
-                        fill: TITLE_COLOR,
-                        textAnchor: "middle",
+                        textProps: {
+                            fill: TITLE_COLOR,
+                            textAnchor: "middle",
+                        },
                     }
                 )}
             </g>

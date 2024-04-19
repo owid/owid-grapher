@@ -1,0 +1,152 @@
+.author-header {
+    padding: 16px 0 32px;
+    @include sm-up {
+        padding: 40px 0;
+    }
+    background-color: $blue-95;
+
+    .article-block__text {
+        @include body-2-regular;
+        color: $white;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        a:visited {
+            color: $visited-light;
+        }
+    }
+}
+
+.author-header__name {
+    color: $amber;
+}
+
+.author-header__role {
+    @include body-2-regular;
+    line-height: 1.25;
+    color: $blue-40;
+}
+
+.author-header__portrait {
+    margin-top: 0;
+    margin-bottom: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: $blue-20;
+
+    @include sm-only {
+        margin-bottom: 24px;
+    }
+
+    img {
+        display: block;
+        mix-blend-mode: luminosity;
+    }
+}
+
+.article-block__socials {
+    @include body-3-medium;
+
+    ul {
+        list-style-type: none;
+        list-style-position: inside;
+    }
+
+    a {
+        color: $blue-20;
+        &:hover {
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+    }
+    svg {
+        margin-right: 8px;
+        color: $blue-50;
+    }
+}
+
+.author-header__sm {
+    @include sm-up {
+        display: none;
+    }
+
+    .author-header__name {
+        @include h2-bold;
+        font-size: 1.5rem; // we want h2-bold desktop font-size on mobile
+        margin-top: 8px;
+        margin-bottom: 4px;
+    }
+
+    .author-header__role {
+        margin-bottom: 24px;
+    }
+
+    .article-block__socials {
+        margin-bottom: 32px;
+        ul {
+            display: flex;
+            row-gap: 4px;
+            flex-wrap: wrap;
+            li {
+                margin-right: 16px;
+
+                &:last-child {
+                    margin-right: 0;
+                }
+                @include sm-only {
+                    a {
+                        text-decoration: underline;
+                        text-underline-offset: 4px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.author-header__md {
+    display: none;
+    @include sm-up {
+        display: grid;
+    }
+
+    .author-header__name {
+        @include display-2-semibold;
+        margin-top: 0;
+        margin-bottom: 4px;
+
+        @include md-up {
+            @include display-1-semibold;
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+    }
+
+    .author-header__role {
+        margin-bottom: 8px;
+        @include md-up {
+            @include body-1-regular;
+        }
+    }
+
+    .article-block__text {
+        @include md-up {
+            @include body-1-regular;
+        }
+    }
+
+    .article-block__socials {
+        margin-top: 24px;
+        padding-left: 24px;
+        border-left: 1px solid $blue-90;
+
+        li {
+            margin-bottom: 16px;
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+}

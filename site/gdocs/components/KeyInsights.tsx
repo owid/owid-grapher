@@ -43,7 +43,12 @@ export const KeyInsights = ({
             )
         }
         if (url) {
-            return <Chart d={{ url, type: "chart", parseErrors: [] }} />
+            return (
+                <Chart
+                    d={{ url, type: "chart", parseErrors: [] }}
+                    fullWidthOnMobile={true}
+                />
+            )
         }
 
         return null

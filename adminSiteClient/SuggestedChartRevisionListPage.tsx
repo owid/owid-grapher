@@ -96,16 +96,16 @@ export class SuggestedChartRevisionListPage extends React.Component {
 
     @action.bound onSortByChange(selected: any) {
         this.sortBy = selected.value
-        this.getData()
+        void this.getData()
     }
 
     @action.bound onSortOrderChange(value: SortOrder) {
         this.sortOrder = value
-        this.getData()
+        void this.getData()
     }
 
     componentDidMount() {
-        this.getData()
+        void this.getData()
     }
 
     render() {

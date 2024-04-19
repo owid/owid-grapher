@@ -41,6 +41,7 @@ import { PillRow } from "./PillRow.js"
 import { HomepageIntro } from "./HomepageIntro.js"
 import { HomepageSearch } from "./HomepageSearch.js"
 import { LatestDataInsightsBlock } from "./LatestDataInsights.js"
+import { Socials } from "./Socials.js"
 
 export type Container =
     | "default"
@@ -52,6 +53,7 @@ export type Container =
     | "summary"
     | "datapage"
     | "key-insight"
+    | "author-header"
 
 // Each container must have a default layout, usually just full-width
 type Layouts = { default: string; [key: string]: string }
@@ -109,6 +111,12 @@ const layouts: { [key in Container]: Layouts} = {
     ["datapage"]: {
         ["default"]: "col-start-2 span-cols-6 col-lg-start-2 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12",
         ["chart"]: "span-cols-8 span-lg-cols-9 span-md-cols-12",
+    },
+    ["author-header"]: {
+        ["default"]: "span-cols-8",
+        ["image"]: "span-cols-2 span-md-cols-3",
+        ["text"]: "span-cols-6 span-md-cols-8 col-sm-start-2 span-sm-cols-12",
+        ["socials"]: "span-cols-3 col-sm-start-2 span-sm-cols-12",
     },
     ["sticky-right-left-column"]: {
         ["chart"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
@@ -209,6 +217,7 @@ export default function ArticleBlock({
                 <Chart
                     className={getLayout(layoutSubtype, containerType)}
                     d={block}
+                    fullWidthOnMobile={true}
                 />
             )
         })
@@ -681,6 +690,12 @@ export default function ArticleBlock({
                 />
             )
         })
+        .with({ type: "socials" }, (block) => (
+            <Socials
+                className={getLayout("socials", containerType)}
+                {...block}
+            />
+        ))
         .exhaustive()
 
     return (

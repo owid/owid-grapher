@@ -5,6 +5,7 @@ import {
     EnrichedBlockHomepageIntroPost,
 } from "@ourworldindata/types"
 import { formatAuthors, groupBy } from "@ourworldindata/utils"
+import { Button } from "@ourworldindata/components"
 import { useLinkedDocument } from "../utils.js"
 import { DocumentContext } from "../OwidGdoc.js"
 import Image from "./Image.js"
@@ -32,7 +33,7 @@ function FeaturedWorkTile({
     const { isPreviewing } = useContext(DocumentContext)
     const linkedDocumentFeaturedImage = linkedDocument?.["featured-image"]
     const thumbnailFilename = filename ?? linkedDocumentFeaturedImage
-    const href = `/${linkedDocument?.slug}` || url
+    const href = linkedDocument ? `/${linkedDocument.slug}` : url
 
     if (isPreviewing) {
         if (errorMessage) {
@@ -131,12 +132,13 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                         Read about our mission{" "}
                         <FontAwesomeIcon icon={faArrowRight} />
                     </a>
-                    <a
+                    <Button
                         href="#subscribe"
                         className="homepage-intro__subscribe-button body-3-medium"
-                    >
-                        Subscribe to our newsletter
-                    </a>
+                        text="Subscribe to our newsletter"
+                        theme="outline-vermillion"
+                        icon={null}
+                    />
                 </div>
                 <div className="homepage-intro__mission-wrapper body-3-medium">
                     <p>
@@ -148,9 +150,13 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                         accessible to everyone. Consider supporting us if you
                         find our work valuable.
                     </p>
-                    <a className="homepage-intro__donate-button" href="/donate">
-                        Donate to support us
-                    </a>
+                    <Button
+                        className="homepage-intro__donate-button"
+                        href="/donate"
+                        text="Donate to support us"
+                        theme="solid-vermillion"
+                        icon={null}
+                    />
                 </div>
                 <div className="h6-black-caps">As seen on</div>
                 <img
@@ -159,6 +165,7 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                     alt="Logos of the publications that have used our content. From left to right: Science, Nature, PNAS, BBC, Financial Times, The New York Times, The Guardian, The Atlantic, and The Washington Post"
                     width={230}
                     height={75}
+                    loading="lazy"
                 />
             </section>
             <section className="grid grid-cols-9 span-cols-9 col-start-5 span-md-cols-12 col-md-start-2 homepage-intro__right-section">
@@ -187,23 +194,21 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                         ))}
                     </div>
                     <div className="span-cols-6 homepage-intro__see-all-work-button-container">
-                        <a
+                        <Button
                             href="/latest"
                             className="body-3-medium homepage-intro__see-all-work-button"
-                        >
-                            See all our latest work
-                            <FontAwesomeIcon icon={faArrowRight} />
-                        </a>
+                            text="See all our latest work"
+                            theme="outline-vermillion"
+                        />
                     </div>
                 </div>
                 <div className="span-cols-6 span-sm-cols-12">
-                    <a
+                    <Button
                         href="/latest"
                         className="body-3-medium homepage-intro__see-all-work-button homepage-intro__see-all-work-button--mobile"
-                    >
-                        See all our latest work
-                        <FontAwesomeIcon icon={faArrowRight} />
-                    </a>
+                        text="See all our latest work"
+                        theme="outline-vermillion"
+                    />
                 </div>
             </section>
         </section>

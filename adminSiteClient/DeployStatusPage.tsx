@@ -25,7 +25,7 @@ export class DeployStatusPage extends React.Component {
     refreshIntervalId?: number
 
     componentDidMount() {
-        this.getData()
+        void this.getData()
         document.addEventListener(
             "visibilitychange",
             this.handleVisibilityChange
@@ -120,7 +120,7 @@ export class DeployStatusPage extends React.Component {
     }
 
     @action.bound handleVisibilityChange = () => {
-        if (document.visibilityState === "visible") this.getData()
+        if (document.visibilityState === "visible") void this.getData()
     }
 
     @action.bound async triggerDeploy() {

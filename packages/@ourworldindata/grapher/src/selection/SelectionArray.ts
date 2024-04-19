@@ -1,5 +1,5 @@
 import { EntityCode, EntityId, EntityName } from "@ourworldindata/types"
-import { difference, mapBy } from "@ourworldindata/utils"
+import { difference } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 
 export interface Entity {
@@ -26,30 +26,6 @@ export class SelectionArray {
 
     @computed get availableEntityNameSet(): Set<string> {
         return new Set(this.availableEntityNames)
-    }
-
-    @computed get entityNameToIdMap(): Map<string, number | undefined> {
-        return mapBy(
-            this.availableEntities,
-            (e) => e.entityName,
-            (e) => e.entityId
-        )
-    }
-
-    @computed get entityCodeToNameMap(): Map<string | undefined, string> {
-        return mapBy(
-            this.availableEntities,
-            (e) => e.entityCode,
-            (e) => e.entityName
-        )
-    }
-
-    @computed get entityIdToNameMap(): Map<number | undefined, string> {
-        return mapBy(
-            this.availableEntities,
-            (e) => e.entityId,
-            (e) => e.entityName
-        )
     }
 
     @computed get hasSelection(): boolean {
@@ -82,19 +58,6 @@ export class SelectionArray {
     @action.bound addAvailableEntityNames(entities: Entity[]): this {
         this.availableEntities.push(...entities)
         return this
-    }
-
-    @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]): this {
-        const map = this.entityCodeToNameMap
-        const codesInData = entityCodes.filter((code) => map.has(code))
-        return this.setSelectedEntities(
-            codesInData.map((code) => map.get(code)!)
-        )
-    }
-
-    @action.bound setSelectedEntitiesByEntityId(entityIds: EntityId[]): this {
-        const map = this.entityIdToNameMap
-        return this.setSelectedEntities(entityIds.map((id) => map.get(id)!))
     }
 
     @action.bound selectAll(): this {

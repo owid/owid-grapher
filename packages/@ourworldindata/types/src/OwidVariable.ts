@@ -30,6 +30,7 @@ export interface OwidVariableWithSource {
     updatePeriodDays?: number
     datasetVersion?: string
     licenses?: OwidLicense[]
+    type?: OwidVariableType
 
     // omitted:
     // code
@@ -107,6 +108,7 @@ export interface OwidVariableDimension {
 export interface OwidVariableDimensions {
     years: OwidVariableDimension
     entities: OwidVariableDimension
+    values?: OwidVariableDimension
 }
 
 export type OwidVariableDataMetadataDimensions = {
@@ -129,3 +131,5 @@ export type OwidVariableDimensionValueFull =
 export interface OwidEntityKey {
     [id: string]: OwidVariableDimensionValuePartial
 }
+
+export type OwidVariableType = "string" | "float" | "int" | "mixed" | "ordinal"

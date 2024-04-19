@@ -798,8 +798,8 @@ export class CoreTable<
         return inputType === InputType.ColumnStore
             ? this.inputColumnStoreToRows
             : inputType === InputType.Matrix
-            ? rowsFromMatrix(this.originalInput as CoreMatrix)
-            : this.originalInput
+              ? rowsFromMatrix(this.originalInput as CoreMatrix)
+              : this.originalInput
     }
 
     @imemo private get explainColumns(): Record<string, unknown>[] {

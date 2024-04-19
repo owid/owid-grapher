@@ -1,43 +1,52 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    BaseEntity,
-    OneToMany,
-    type Relation,
-} from "typeorm"
-import { Chart } from "./Chart.js"
-import { Dataset } from "./Dataset.js"
-import { ChartRevision } from "./ChartRevision.js"
 import { BCryptHasher } from "../hashers.js"
+import {
+    DbPlainUser,
+    DbInsertUser,
+    UsersTableName,
+} from "@ourworldindata/types"
+import { KnexReadWriteTransaction, KnexReadonlyTransaction } from "../db.js"
+export async function setPassword(
+    knex: KnexReadWriteTransaction,
+    id: number,
+    password: string
+): Promise<void> {
+    const h = new BCryptHasher()
+    const encrypted = await h.encode(password)
+    await updateUser(knex, id, { password: encrypted })
+}
 
-@Entity("users")
-export class User extends BaseEntity {
-    @PrimaryGeneratedColumn() id!: number
-    @Column({ unique: true }) email!: string
-    @Column({ length: 128 }) password!: string
-    @Column({ default: "" }) fullName!: string
-    @Column({ default: true }) isActive!: boolean
-    @Column({ default: false }) isSuperuser!: boolean
-    @Column() createdAt!: Date
-    @Column() updatedAt!: Date
-    @Column() lastLogin!: Date
-    @Column() lastSeen!: Date
+export async function getUserById(
+    knex: KnexReadonlyTransaction,
+    id: number
+): Promise<DbPlainUser | undefined> {
+    return knex<DbPlainUser>(UsersTableName).where({ id }).first()
+}
 
-    @OneToMany(() => Chart, (chart) => chart.lastEditedByUser)
-    lastEditedCharts!: Relation<Chart[]>
+export async function getUserByEmail(
+    knex: KnexReadonlyTransaction,
+    email: string
+): Promise<DbPlainUser | undefined> {
+    return knex<DbPlainUser>(UsersTableName).where({ email }).first()
+}
 
-    @OneToMany(() => Chart, (chart) => chart.publishedByUser)
-    publishedCharts!: Relation<Chart[]>
+export async function insertUser(
+    knex: KnexReadWriteTransaction,
+    user: DbInsertUser
+): Promise<{ id: number }> {
+    return knex(UsersTableName).returning("id").insert(user)
+}
 
-    @OneToMany(() => ChartRevision, (rev) => rev.user)
-    editedCharts!: Relation<ChartRevision[]>
+export async function updateUser(
+    knex: KnexReadWriteTransaction,
+    id: number,
+    user: Partial<DbInsertUser>
+): Promise<void> {
+    return knex(UsersTableName).where({ id }).update(user)
+}
 
-    @OneToMany(() => Dataset, (dataset) => dataset.createdByUser)
-    createdDatasets!: Relation<Dataset[]>
-
-    async setPassword(password: string): Promise<void> {
-        const h = new BCryptHasher()
-        this.password = await h.encode(password)
-    }
+export async function deleteUser(
+    knex: KnexReadWriteTransaction,
+    id: number
+): Promise<void> {
+    return knex(UsersTableName).where({ id }).delete()
 }

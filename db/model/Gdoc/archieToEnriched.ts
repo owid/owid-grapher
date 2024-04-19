@@ -12,7 +12,7 @@ import {
     EnrichedBlockSimpleText,
     lowercaseObjectKeys,
     OwidEnrichedGdocBlock,
-    traverseEnrichedBlocks,
+    traverseEnrichedBlock,
     ALL_CHARTS_ID,
     KEY_INSIGHTS_ID,
     ENDNOTES_ID,
@@ -28,6 +28,7 @@ import { parseRawBlocksToEnrichedBlocks, parseRefs } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
 import { parseAuthors, spansToSimpleString } from "./gdocUtils.js"
 import { htmlToSimpleTextBlock } from "./htmlToEnriched.js"
+import { RESEARCH_AND_WRITING_DEFAULT_HEADING } from "@ourworldindata/types"
 
 // Topic page headings have predictable heading names which are used in the sticky nav.
 // If the user hasn't explicitly defined a sticky-nav in archie to map nav items to headings,
@@ -48,7 +49,7 @@ export function generateStickyNav(
         ["^country-profiles"]: "Country Profiles",
         // Assumes explorer headings are of the form "Explore data on [topic]" or "Explore our data on [topic]"
         ["^explore(-our)?-data"]: "Data Explorer",
-        [RESEARCH_AND_WRITING_ID]: "Research & Writing",
+        [RESEARCH_AND_WRITING_ID]: RESEARCH_AND_WRITING_DEFAULT_HEADING,
         [ALL_CHARTS_ID]: "Charts",
         [CITATION_ID]: "Cite This Work",
         [ENDNOTES_ID]: "Endnotes",
@@ -136,7 +137,7 @@ export function generateToc(
     const toc: TocHeadingWithTitleSupertitle[] = []
 
     body.forEach((block) =>
-        traverseEnrichedBlocks(block, (child) => {
+        traverseEnrichedBlock(block, (child) => {
             if (child.type === "heading") {
                 const { level, text, supertitle } = child
                 const titleString = spansToSimpleString(text)

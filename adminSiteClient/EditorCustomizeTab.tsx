@@ -448,6 +448,10 @@ class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
 export class EditorCustomizeTab extends React.Component<{
     editor: ChartEditor
 }> {
+    @computed get errorMessages() {
+        return this.props.editor.manager.errorMessages
+    }
+
     render() {
         const xAxisConfig = this.props.editor.grapher.xAxis
         const yAxisConfig = this.props.editor.grapher.yAxis
@@ -516,6 +520,7 @@ export class EditorCustomizeTab extends React.Component<{
                                 label="Label"
                                 field="label"
                                 store={yAxisConfig}
+                                errorMessage={this.errorMessages.axisLabelY}
                             />
                         )}
                     </Section>
@@ -579,6 +584,7 @@ export class EditorCustomizeTab extends React.Component<{
                                 label="Label"
                                 field="label"
                                 store={xAxisConfig}
+                                errorMessage={this.errorMessages.axisLabelX}
                             />
                         )}
                     </Section>

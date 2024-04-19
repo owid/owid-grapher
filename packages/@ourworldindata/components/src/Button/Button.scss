@@ -1,0 +1,41 @@
+.owid-btn {
+    @include body-3-medium;
+    padding: 8.5px 24px;
+    border: 1px solid transparent;
+    border-radius: 0;
+    text-align: center;
+    display: block;
+    cursor: pointer;
+
+    svg {
+        font-size: 0.75rem;
+    }
+}
+
+.owid-btn--solid-vermillion {
+    background-color: $vermillion;
+    color: #fff;
+
+    &:hover {
+        background-color: $accent-vermillion;
+    }
+}
+
+.owid-btn--outline-vermillion {
+    border-color: $vermillion;
+    color: $vermillion;
+
+    &:hover {
+        border-color: $accent-vermillion;
+        color: $accent-vermillion;
+    }
+}
+
+.owid-btn--solid-blue {
+    background-color: $blue-60;
+    color: #fff;
+
+    &:hover {
+        background-color: $blue-90;
+    }
+}

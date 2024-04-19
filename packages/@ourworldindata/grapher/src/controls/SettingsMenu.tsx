@@ -225,7 +225,9 @@ export class SettingsMenu extends React.Component<{
 
     componentWillUnmount(): void {
         document.removeEventListener("keydown", this.onDocumentKeyDown)
-        document.removeEventListener("click", this.onDocumentClick)
+        document.removeEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
     }
 
     @action.bound onDocumentKeyDown(e: KeyboardEvent): void {
@@ -421,6 +423,7 @@ export class SettingsMenu extends React.Component<{
                     onClick={this.toggleVisibility}
                     data-track-note="chart_settings_menu_toggle"
                     title="Chart settings"
+                    type="button"
                     aria-label="Chart settings"
                 >
                     <FontAwesomeIcon icon={faGear} />
@@ -447,8 +450,8 @@ export class SettingsMenu extends React.Component<{
         return isOnTableTab && showTableFilterToggle
             ? this.renderTableControls()
             : isOnChartTab && showSettingsMenuToggle
-            ? this.renderChartSettings()
-            : null
+              ? this.renderChartSettings()
+              : null
     }
 }
 

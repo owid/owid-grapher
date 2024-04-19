@@ -86,11 +86,8 @@ export class Header<
         return this.logo ? this.logo.height : 0
     }
 
-    @computed get titleFontSize(): number {
-        if (this.useBaseFontSize) {
-            return (22 / BASE_FONT_SIZE) * this.baseFontSize
-        }
-        return this.manager.isNarrow ? 18 : this.manager.isMedium ? 20 : 24
+    @computed get titleFontWeight(): number {
+        return 600
     }
 
     @computed get titleLineHeight(): number {
@@ -98,14 +95,45 @@ export class Header<
     }
 
     @computed get title(): TextWrap {
-        const { logoWidth } = this
-        return new TextWrap({
-            maxWidth: this.maxWidth - logoWidth - 24,
-            fontWeight: 600,
-            lineHeight: this.titleLineHeight,
-            fontSize: this.titleFontSize,
-            text: this.titleText,
-        })
+        const makeTitle = (fontSize: number): TextWrap =>
+            new TextWrap({
+                text: this.titleText,
+                maxWidth: this.maxWidth - this.logoWidth - 24,
+                fontWeight: this.titleFontWeight,
+                lineHeight: this.titleLineHeight,
+                fontSize,
+            })
+
+        const initialFontSize = this.useBaseFontSize
+            ? (22 / BASE_FONT_SIZE) * this.baseFontSize
+            : this.manager.isNarrow
+              ? 18
+              : this.manager.isMedium
+                ? 20
+                : 24
+
+        let title = makeTitle(initialFontSize)
+
+        // if the title is already a single line, no need to decrease font size
+        if (title.lines.length <= 1) return title
+
+        const originalLineCount = title.lines.length
+        // decrease the initial font size by no more than 15% using 0.5px steps
+        const potentialFontSizes = range(
+            initialFontSize,
+            initialFontSize * 0.85,
+            -0.5
+        )
+        // try to fit the title into a single line if possible-- but not if it would make the text too small
+        for (const fontSize of potentialFontSizes) {
+            title = makeTitle(fontSize)
+            const currentLineCount = title.lines.length
+            if (currentLineCount <= 1 || currentLineCount < originalLineCount)
+                break
+        }
+        // return the title at the new font size: either it now fits into a single line, or
+        // its size has been reduced so the multi-line title doesn't take up quite that much space
+        return title
     }
 
     @computed get subtitleMarginTop(): number {
@@ -136,10 +164,7 @@ export class Header<
             fontSize: this.subtitleFontSize,
             text: this.subtitleText,
             lineHeight: this.subtitleLineHeight,
-            detailsOrderedByReference: this.manager
-                .shouldIncludeDetailsInStaticExport
-                ? this.manager.detailsOrderedByReference
-                : new Set(),
+            detailsOrderedByReference: this.manager.detailsOrderedByReference,
         })
     }
 
@@ -238,43 +263,8 @@ interface StaticHeaderProps extends HeaderProps {
 
 @observer
 export class StaticHeader extends Header<StaticHeaderProps> {
-    @computed get title(): TextWrap {
-        const { logoWidth, titleText } = this
-
-        const makeTitle = (fontSize: number): TextWrap =>
-            new TextWrap({
-                text: titleText,
-                maxWidth: this.maxWidth - logoWidth - 24,
-                fontSize,
-                fontWeight: 500,
-                lineHeight: this.manager.isStaticAndSmall ? 1.1 : 1.2,
-            })
-
-        // try to fit the title into a single line if possible-- but not if it would make the text too small
-        const initialFontSize = this.useBaseFontSize
-            ? (22 / BASE_FONT_SIZE) * this.baseFontSize
-            : 24
-        let title = makeTitle(initialFontSize)
-
-        // if the title is already a single line, no need to decrease font size
-        if (title.lines.length <= 1) return title
-
-        const originalLineCount = title.lines.length
-        // decrease the initial font size by no more than 20% using 0.5px steps
-        const potentialFontSizes = range(
-            initialFontSize,
-            initialFontSize * 0.8,
-            -0.5
-        )
-        for (const fontSize of potentialFontSizes) {
-            title = makeTitle(fontSize)
-            const currentLineCount = title.lines.length
-            if (currentLineCount <= 1 || currentLineCount < originalLineCount)
-                break
-        }
-        // return the title at the new font size: either it now fits into a single line, or
-        // its size has been reduced so the multi-line title doesn't take up quite that much space
-        return title
+    @computed get titleLineHeight(): number {
+        return this.manager.isStaticAndSmall ? 1.1 : 1.2
     }
 
     @computed get subtitleLineHeight(): number {
@@ -300,7 +290,7 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                         rel="noopener"
                     >
                         {title.render(x, y, {
-                            fill: GRAPHER_DARK_TEXT,
+                            textProps: { fill: GRAPHER_DARK_TEXT },
                         })}
                     </a>
                 )}
@@ -312,7 +302,10 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                                 ? title.height + this.subtitleMarginTop
                                 : 0),
                         {
-                            fill: manager.secondaryColorInStaticCharts,
+                            textProps: {
+                                fill: manager.secondaryColorInStaticCharts,
+                            },
+                            detailsMarker: this.manager.detailsMarkerInSvg,
                         }
                     )}
             </g>

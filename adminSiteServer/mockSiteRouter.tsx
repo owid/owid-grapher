@@ -20,6 +20,7 @@ import {
     renderTopChartsCollectionPage,
     renderDataInsightsIndexPage,
     renderThankYouPage,
+    makeDataInsightsAtomFeed,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -34,7 +35,10 @@ import {
     countriesIndexPage,
 } from "../baker/countryProfiles.js"
 import { makeSitemap } from "../baker/sitemap.js"
-import { Chart, OldChart } from "../db/model/Chart.js"
+import {
+    getChartConfigBySlug,
+    getChartVariableData,
+} from "../db/model/Chart.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { grapherToSVG } from "../baker/GrapherImageBaker.js"
@@ -42,7 +46,6 @@ import { getVariableData, getVariableMetadata } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
 import { JsonError } from "@ourworldindata/utils"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
-import { isWordpressAPIEnabled } from "../db/wpdb.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects.js"
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
@@ -54,6 +57,13 @@ import {
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import * as db from "../db/db.js"
+import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
+import {
+    getPlainRouteNonIdempotentWithRWTransaction,
+    getPlainRouteWithROTransaction,
+} from "./plainRouterHelpers.js"
+import { DEFAULT_LOCAL_BAKE_DIR } from "../site/SiteConstants.js"
+import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
 
 require("express-async-errors")
 
@@ -63,36 +73,63 @@ const mockSiteRouter = Router()
 mockSiteRouter.use(express.urlencoded({ extended: true }))
 mockSiteRouter.use(express.json())
 
-mockSiteRouter.get("/sitemap.xml", async (req, res) => {
-    res.set("Content-Type", "application/xml")
-    const sitemap = await db
-        .knexInstance()
-        .transaction(async (knex) => makeSitemap(explorerAdminServer, knex))
-    res.send(sitemap)
-})
-
-mockSiteRouter.get("/atom.xml", async (req, res) => {
-    res.set("Content-Type", "application/xml")
-    const atomFeed = await db
-        .knexInstance()
-        .transaction(async (knex) => makeAtomFeed(knex))
-    res.send(atomFeed)
-})
-
-mockSiteRouter.get("/atom-no-topic-pages.xml", async (req, res) => {
-    res.set("Content-Type", "application/xml")
-    const atomFeedNoTopicPages = await db
-        .knexInstance()
-        .transaction(async (knex) => makeAtomFeedNoTopicPages(knex))
-    res.send(atomFeedNoTopicPages)
-})
-
-mockSiteRouter.get("/entries-by-year", async (req, res) =>
-    res.send(await entriesByYearPage())
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    "/atom.xml",
+    async (req, res, trx) => {
+        res.set("Content-Type", "application/xml")
+        const atomFeed = await makeAtomFeed(trx)
+        res.send(atomFeed)
+    }
 )
 
-mockSiteRouter.get(`/entries-by-year/:year`, async (req, res) =>
-    res.send(await entriesByYearPage(parseInt(req.params.year)))
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    "/atom-no-topic-pages.xml",
+    async (req, res, trx) => {
+        res.set("Content-Type", "application/xml")
+        const atomFeedNoTopicPages = await makeAtomFeedNoTopicPages(trx)
+        res.send(atomFeedNoTopicPages)
+    }
+)
+
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    `/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
+    async (_, res) => {
+        res.set("Content-Type", "application/xml")
+        const atomFeedDataInsights = await db.knexReadonlyTransaction((knex) =>
+            makeDataInsightsAtomFeed(knex)
+        )
+        res.send(atomFeedDataInsights)
+    }
+)
+
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    "/sitemap.xml",
+    async (req, res, trx) => {
+        res.set("Content-Type", "application/xml")
+        const sitemap = await makeSitemap(explorerAdminServer, trx)
+        res.send(sitemap)
+    }
+)
+
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/entries-by-year",
+    async (req, res, trx) => res.send(await entriesByYearPage(trx))
+)
+
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    `/entries-by-year/:year`,
+    async (req, res, trx) =>
+        res.send(await entriesByYearPage(trx, parseInt(req.params.year)))
 )
 
 mockSiteRouter.get(
@@ -114,182 +151,230 @@ mockSiteRouter.get(
     }
 )
 
-mockSiteRouter.get("/grapher/embedCharts.js", async (req, res) => {
+mockSiteRouter.get("/assets/embedCharts.js", async (req, res) => {
     res.contentType("text/javascript").send(generateEmbedSnippet())
 })
 
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
-mockSiteRouter.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
-    res.set("Access-Control-Allow-Origin", "*")
-    const explorers = await explorerAdminServer.getAllPublishedExplorers()
-    const explorerProgram = explorers.find(
-        (program) => program.slug === req.params.slug
-    )
-    if (explorerProgram) {
-        const explorerPage = await db
-            .knexInstance()
-            .transaction(async (knex) => {
-                return renderExplorerPage(explorerProgram, knex)
-            })
-
-        res.send(explorerPage)
-    } else
-        throw new JsonError(
-            "A published explorer with that slug was not found",
-            404
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    `/${EXPLORERS_ROUTE_FOLDER}/:slug`,
+    async (req, res, trx) => {
+        res.set("Access-Control-Allow-Origin", "*")
+        const explorers = await explorerAdminServer.getAllPublishedExplorers()
+        const explorerProgram = explorers.find(
+            (program) => program.slug === req.params.slug
         )
-})
-mockSiteRouter.get("/*", async (req, res, next) => {
-    const explorerRedirect = getExplorerRedirectForPath(req.path)
-    // If no explorer redirect exists, continue to next express handler
-    if (!explorerRedirect) return next()
+        if (explorerProgram) {
+            const explorerPage = await renderExplorerPage(explorerProgram, trx)
 
-    const { migrationId, baseQueryStr } = explorerRedirect
-    const { explorerSlug } = explorerUrlMigrationsById[migrationId]
-    const program = await explorerAdminServer.getExplorerFromSlug(explorerSlug)
-    const explorerPage = await db.knexInstance().transaction(async (knex) => {
-        return renderExplorerPage(program, knex, {
+            res.send(explorerPage)
+        } else
+            throw new JsonError(
+                "A published explorer with that slug was not found",
+                404
+            )
+    }
+)
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/*",
+    async (req, res, trx, next) => {
+        const explorerRedirect = getExplorerRedirectForPath(req.path)
+        // If no explorer redirect exists, continue to next express handler
+        if (!explorerRedirect) return next!()
+
+        const { migrationId, baseQueryStr } = explorerRedirect
+        const { explorerSlug } = explorerUrlMigrationsById[migrationId]
+        const program =
+            await explorerAdminServer.getExplorerFromSlug(explorerSlug)
+        const explorerPage = await renderExplorerPage(program, trx, {
             explorerUrlMigrationId: migrationId,
             baseQueryStr,
         })
-    })
-    res.send(explorerPage)
-})
+        res.send(explorerPage)
+    }
+)
 
-mockSiteRouter.get("/collection/top-charts", async (_, res) => {
-    return res.send(await renderTopChartsCollectionPage())
-})
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/collection/top-charts",
+    async (_, res, trx) => {
+        return res.send(await renderTopChartsCollectionPage(trx))
+    }
+)
 
 mockSiteRouter.get("/collection/custom", async (_, res) => {
     return res.send(await renderDynamicCollectionPage())
 })
 
-mockSiteRouter.get("/grapher/:slug", async (req, res) => {
-    const entity = await Chart.getBySlug(req.params.slug)
-    if (!entity) throw new JsonError("No such chart", 404)
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    "/grapher/:slug",
+    async (req, res, trx) => {
+        const entity = await getChartConfigBySlug(trx, req.params.slug)
+        if (!entity) throw new JsonError("No such chart", 404)
 
-    // XXX add dev-prod parity for this
-    res.set("Access-Control-Allow-Origin", "*")
-    const previewDataPageOrGrapherPage = await db
-        .knexInstance()
-        .transaction(async (knex) =>
-            renderPreviewDataPageOrGrapherPage(entity.config, knex)
-        )
-    res.send(previewDataPageOrGrapherPage)
-})
+        // XXX add dev-prod parity for this
+        res.set("Access-Control-Allow-Origin", "*")
 
-mockSiteRouter.get("/", async (req, res) => {
-    const frontPage = await db
-        .knexInstance()
-        .transaction(async (knex) => renderFrontPage(knex))
-    res.send(frontPage)
-})
+        const previewDataPageOrGrapherPage =
+            await renderPreviewDataPageOrGrapherPage(entity.config, trx)
+        res.send(previewDataPageOrGrapherPage)
+    }
+)
 
-mockSiteRouter.get("/donate", async (req, res) =>
-    res.send(await renderDonatePage())
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    "/",
+    async (req, res, trx) => {
+        const frontPage = await renderFrontPage(trx)
+        res.send(frontPage)
+    }
+)
+
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    "/donate",
+    async (req, res, trx) => res.send(await renderDonatePage(trx))
 )
 
 mockSiteRouter.get("/thank-you", async (req, res) =>
     res.send(await renderThankYouPage())
 )
 
-mockSiteRouter.get("/data-insights/:pageNumberOrSlug?", async (req, res) => {
-    async function renderIndexPage(pageNumber: number) {
-        const dataInsights =
-            await GdocDataInsight.getPublishedDataInsights(pageNumber)
-        // calling fetchImageMetadata 20 times makes me sad, would be nice if we could cache this
-        await Promise.all(dataInsights.map((insight) => insight.loadState()))
-        const totalPageCount = await GdocDataInsight.getTotalPageCount()
-        return renderDataInsightsIndexPage(
-            dataInsights,
-            pageNumber,
-            totalPageCount,
-            true
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    "/data-insights/:pageNumberOrSlug?",
+    async (req, res, trx) => {
+        const totalPageCount = calculateDataInsightIndexPageCount(
+            await db
+                .getPublishedDataInsights(trx)
+                .then((insights) => insights.length)
+        )
+        async function renderIndexPage(pageNumber: number) {
+            const dataInsights = await GdocDataInsight.getPublishedDataInsights(
+                trx,
+                pageNumber
+            )
+            // calling fetchImageMetadata 20 times makes me sad, would be nice if we could cache this
+            await Promise.all(
+                dataInsights.map((insight) => insight.loadState(trx))
+            )
+            return renderDataInsightsIndexPage(
+                dataInsights,
+                pageNumber,
+                totalPageCount,
+                true
+            )
+        }
+        const pageNumberOrSlug = req.params.pageNumberOrSlug
+        if (!pageNumberOrSlug) {
+            return res.send(await renderIndexPage(0))
+        }
+
+        // pageNumber is 1-indexed, but DB operations are 0-indexed
+        const pageNumber = parseInt(pageNumberOrSlug) - 1
+        if (!isNaN(pageNumber)) {
+            if (pageNumber <= 0 || pageNumber >= totalPageCount) {
+                return res.redirect("/data-insights")
+            }
+            return res.send(await renderIndexPage(pageNumber))
+        }
+
+        const slug = pageNumberOrSlug
+        try {
+            return res.send(await renderGdocsPageBySlug(trx, slug, true))
+        } catch (e) {
+            console.error(e)
+        }
+
+        return new JsonError(`Data insight with slug "${slug}" not found`, 404)
+    }
+)
+
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/charts",
+    async (req, res, trx) => {
+        const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+        res.send(await renderChartsPage(trx, explorerAdminServer))
+    }
+)
+
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    "/datapage-preview/:id",
+    async (req, res, trx) => {
+        const variableId = expectInt(req.params.id)
+        const variableMetadata = await getVariableMetadata(variableId)
+
+        res.send(
+            await renderDataPageV2(
+                {
+                    variableId,
+                    variableMetadata,
+                    isPreviewing: true,
+                    useIndicatorGrapherConfigs: true,
+                },
+                trx
+            )
         )
     }
-    const pageNumberOrSlug = req.params.pageNumberOrSlug
-    if (!pageNumberOrSlug) {
-        return res.send(await renderIndexPage(0))
-    }
-
-    // pageNumber is 1-indexed, but DB operations are 0-indexed
-    const pageNumber = parseInt(pageNumberOrSlug) - 1
-    if (!isNaN(pageNumber)) {
-        if (pageNumber <= 0) return res.redirect("/data-insights")
-        const totalPages = await GdocDataInsight.getTotalPageCount()
-        if (pageNumber >= totalPages) return res.redirect("/data-insights")
-        return res.send(await renderIndexPage(pageNumber))
-    }
-
-    const slug = pageNumberOrSlug
-    try {
-        return res.send(await renderGdocsPageBySlug(slug, true))
-    } catch (e) {
-        console.error(e)
-    }
-
-    return new JsonError(`Data insight with slug "${slug}" not found`, 404)
-})
-
-mockSiteRouter.get("/charts", async (req, res) => {
-    const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
-    res.send(await renderChartsPage(explorerAdminServer))
-})
-
-mockSiteRouter.get("/datapage-preview/:id", async (req, res) => {
-    const variableId = expectInt(req.params.id)
-    const variableMetadata = await getVariableMetadata(variableId)
-
-    res.send(
-        await renderDataPageV2({
-            variableId,
-            variableMetadata,
-            isPreviewing: true,
-            useIndicatorGrapherConfigs: true,
-        })
-    )
-})
+)
 
 countryProfileSpecs.forEach((spec) =>
-    mockSiteRouter.get(`/${spec.rootPath}/:countrySlug`, async (req, res) => {
-        const countryPage = await db
-            .knexInstance()
-            .transaction(async (knex) =>
-                countryProfileCountryPage(spec, req.params.countrySlug, knex)
+    getPlainRouteWithROTransaction(
+        mockSiteRouter,
+        `/${spec.rootPath}/:countrySlug`,
+        async (req, res, trx) => {
+            const countryPage = await countryProfileCountryPage(
+                spec,
+                req.params.countrySlug,
+                trx
             )
-        res.send(countryPage)
-    })
+            res.send(countryPage)
+        }
+    )
 )
 
 mockSiteRouter.get("/search", async (req, res) =>
     res.send(await renderSearchPage())
 )
 
-mockSiteRouter.get("/latest", async (req, res) => {
-    const latest = await db
-        .knexInstance()
-        .transaction(async (knex) => renderBlogByPageNum(1, knex))
-    res.send(latest)
-})
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    "/latest",
+    async (req, res, trx) => {
+        const latest = await renderBlogByPageNum(1, trx)
+        res.send(latest)
+    }
+)
 
-mockSiteRouter.get("/latest/page/:pageno", async (req, res) => {
-    const pagenum = parseInt(req.params.pageno, 10)
-    if (!isNaN(pagenum)) {
-        const latestPageNum = await db
-            .knexInstance()
-            .transaction(async (knex) =>
-                renderBlogByPageNum(isNaN(pagenum) ? 1 : pagenum, knex)
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    "/latest/page/:pageno",
+    async (req, res, trx) => {
+        const pagenum = parseInt(req.params.pageno, 10)
+        if (!isNaN(pagenum)) {
+            const latestPageNum = await renderBlogByPageNum(
+                isNaN(pagenum) ? 1 : pagenum,
+                trx
             )
-        res.send(latestPageNum)
-    } else throw new Error("invalid page number")
-})
+            res.send(latestPageNum)
+        } else throw new Error("invalid page number")
+    }
+)
 
 mockSiteRouter.get("/headerMenu.json", async (req, res) => {
-    if (!isWordpressAPIEnabled) {
-        res.status(404).send(await renderNotFoundPage())
-        return
-    }
     res.contentType("application/json")
     res.send(await renderMenuJson())
 })
@@ -305,18 +390,32 @@ mockSiteRouter.use(
 )
 
 mockSiteRouter.use(
+    "/images/published",
+    express.static(path.join(DEFAULT_LOCAL_BAKE_DIR, "images/published"), {
+        fallthrough: false,
+    })
+)
+
+mockSiteRouter.use(
     "/exports",
     express.static(path.join(BAKED_SITE_DIR, "exports"))
 )
 
 mockSiteRouter.use("/assets", express.static("dist/assets"))
 
-mockSiteRouter.use("/grapher/exports/:slug.svg", async (req, res) => {
-    const grapher = await OldChart.getBySlug(req.params.slug)
-    const vardata = await grapher.getVariableData()
-    res.setHeader("Content-Type", "image/svg+xml")
-    res.send(await grapherToSVG(grapher.config, vardata))
-})
+// TODO: this used to be a mockSiteRouter.use call but otherwise it looked like a route and
+// it didn't look like it was making use of any middleware - if this causese issues then
+// this has to be reverted to a use call
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/grapher/exports/:slug.svg",
+    async (req, res, trx) => {
+        const grapher = await getChartConfigBySlug(trx, req.params.slug)
+        const vardata = await getChartVariableData(grapher.config)
+        res.setHeader("Content-Type", "image/svg+xml")
+        res.send(await grapherToSVG(grapher.config, vardata))
+    }
+)
 
 mockSiteRouter.use(
     "/fonts",
@@ -333,8 +432,17 @@ mockSiteRouter.get("/countries", async (req, res) =>
     res.send(await countriesIndexPage(BAKED_BASE_URL))
 )
 
-mockSiteRouter.get("/country/:countrySlug", async (req, res) =>
-    res.send(await countryProfilePage(req.params.countrySlug, BAKED_BASE_URL))
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/country/:countrySlug",
+    async (req, res, trx) =>
+        res.send(
+            await countryProfilePage(
+                trx,
+                req.params.countrySlug,
+                BAKED_BASE_URL
+            )
+        )
 )
 
 mockSiteRouter.get("/feedback", async (req, res) =>
@@ -349,37 +457,47 @@ mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
     )
 )
 
-mockSiteRouter.get("/dods.json", async (_, res) => {
-    res.set("Access-Control-Allow-Origin", "*")
-    const { details, parseErrors } = await GdocPost.getDetailsOnDemandGdoc()
-    if (parseErrors.length) {
-        console.error(
-            `Error(s) parsing details: ${parseErrors
-                .map((e) => e.message)
-                .join(", ")}`
-        )
-    }
-    res.send(details)
-})
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/dods.json",
+    async (_, res, trx) => {
+        res.set("Access-Control-Allow-Origin", "*")
+        const { details, parseErrors } =
+            await GdocPost.getDetailsOnDemandGdoc(trx)
 
-mockSiteRouter.get("/*", async (req, res) => {
-    const slug = req.path.replace(/^\//, "")
-
-    try {
-        res.send(await renderGdocsPageBySlug(slug))
-    } catch (e) {
-        console.error(e)
+        if (parseErrors.length) {
+            console.error(
+                `Error(s) parsing details: ${parseErrors
+                    .map((e) => e.message)
+                    .join(", ")}`
+            )
+        }
+        res.send(details)
     }
+)
 
-    try {
-        const page = await db
-            .knexInstance()
-            .transaction(async (knex) => renderPageBySlug(slug, knex))
-        res.send(page)
-    } catch (e) {
-        console.error(e)
-        res.status(404).send(await renderNotFoundPage())
+// TODO: this transaction is only RW because somewhere inside it we fetch images
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    "/*",
+    async (req, res, trx) => {
+        const slug = req.path.replace(/^\//, "")
+
+        try {
+            const page = await renderGdocsPageBySlug(trx, slug)
+            res.send(page)
+        } catch (e) {
+            console.error(e)
+        }
+
+        try {
+            const page = await renderPageBySlug(slug, trx)
+            res.send(page)
+        } catch (e) {
+            console.error(e)
+            res.status(404).send(await renderNotFoundPage())
+        }
     }
-})
+)
 
 export { mockSiteRouter }

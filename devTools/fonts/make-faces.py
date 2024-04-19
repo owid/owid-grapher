@@ -96,9 +96,10 @@ def main_stylesheet(woff_files):
     fonts = sorted([inspect_font(f) for f in woff_files], key=itemgetter('weight', 'italic'))
     lato = [f for f in fonts if f['family']=='Lato' and not f['subset']]
     lato_latin = [f for f in fonts if f['family']=='Lato' and f['subset']]
-    playfair = [f for f in fonts if f['family']=='Playfair Display']
+    playfair = [f for f in fonts if f['family']=='Playfair Display' and not f['subset']]
+    playfair_latin = [f for f in fonts if f['family']=='Playfair Display' and f['subset']]
 
-    subset_for = lambda f: [s for s in lato_latin if s['weight']==f['weight'] and s['style']==f['style']][0]
+    subset_for = lambda f: [s for s in fonts if s['subset'] and s['family']==f['family'] and s['weight']==f['weight'] and s['style']==f['style']][0]
 
     faces = [
         "/* Lato: smaller, latin-only subset */",
@@ -107,9 +108,13 @@ def main_stylesheet(woff_files):
         "/* Lato: larger, full character set version */",
         *[make_face(f, subset_for(f)) for f in lato],
         *[make_face(f, subset_for(f), singleton=True) for f in lato],
-        "/* Playfair Display */",
-        *[make_face(f) for f in playfair],
-        *[make_face(f, singleton=True) for f in playfair],
+        "/* Playfair Display: smaller, latin-only subset */",
+        *[make_face(f) for f in playfair_latin],
+        *[make_face(f, singleton=True) for f in playfair_latin],
+        "/* Playfair Display: larger, full character set version */",
+        *[make_face(f, subset_for(f)) for f in playfair],
+        *[make_face(f, subset_for(f), singleton=True) for f in playfair],
+
     ]
     print("\n\n".join(faces))
 
@@ -139,7 +144,7 @@ def embedded_stylesheet(woff_files):
         'Lato-Regular',
         'Lato-Italic',
         'Lato-Bold',
-        'PlayfairDisplay-Medium',
+        'PlayfairDisplay-SemiBold',
     ]
 
     # use the latin subsets to keep the size down

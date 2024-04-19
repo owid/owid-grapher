@@ -17,9 +17,6 @@
             "path": "./explorer"
         },
         {
-            "path": "./datapage"
-        },
-        {
             "path": "./site"
         },
         {
@@ -30,6 +27,9 @@
         },
         {
             "path": "./adminSiteServer"
+        },
+        {
+            "path": "./devTools/updateImageHeights"
         },
         {
             "path": "./devTools/svgTester"

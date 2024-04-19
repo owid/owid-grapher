@@ -54,21 +54,10 @@
 }
 
 .latest-data-insights-block__see-all-data-insights-button {
-    color: $vermillion;
-    border: 1px solid $vermillion;
-    padding: 8.5px 24px;
     justify-self: end;
     align-self: center;
     // necessary to be centered with heading
     margin-bottom: 16px;
-    &:hover {
-        border-color: $accent-vermillion;
-        color: $accent-vermillion;
-    }
-
-    svg {
-        font-size: 0.75rem;
-    }
 
     @include sm-only {
         margin-top: 16px;

@@ -6,7 +6,7 @@ import { SiteBaker } from "./SiteBaker.js"
 import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 
-yargs(hideBin(process.argv))
+void yargs(hideBin(process.argv))
     .command<{ slugs: string[] }>(
         "$0 [slug]",
         "Bake multiple GDoc posts",
@@ -24,8 +24,11 @@ yargs(hideBin(process.argv))
         async ({ slugs }) => {
             const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
 
-            await db.getConnection()
-            await baker.bakeGDocPosts(slugs)
+            // TODO: this transaction is only RW because somewhere inside it we fetch images
+            await db.knexReadWriteTransaction(
+                (trx) => baker.bakeGDocPosts(trx, slugs),
+                db.TransactionCloseMode.Close
+            )
             process.exit(0)
         }
     )

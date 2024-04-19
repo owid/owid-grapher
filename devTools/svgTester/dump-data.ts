@@ -2,7 +2,7 @@
 
 import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker.js"
 
-import { closeTypeOrmAndKnexConnections } from "../../db/db.js"
+import { TransactionCloseMode, knexReadonlyTransaction } from "../../db/db.js"
 
 import fs from "fs-extra"
 
@@ -15,7 +15,12 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const outDir = parsedArgs["o"] ?? utils.DEFAULT_CONFIGS_DIR
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 
-        const { graphersBySlug } = await getPublishedGraphersBySlug()
+        const { graphersBySlug } = await knexReadonlyTransaction(
+            async (trx) => {
+                return getPublishedGraphersBySlug(trx)
+            },
+            TransactionCloseMode.Close
+        )
         const allGraphers = [...graphersBySlug.values()]
         const saveJobs: utils.SaveGrapherSchemaAndDataJob[] = allGraphers.map(
             (grapher) => ({ config: grapher, outDir })
@@ -24,10 +29,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         await pMap(saveJobs, utils.saveGrapherSchemaAndData, {
             concurrency: 32,
         })
-
-        await closeTypeOrmAndKnexConnections()
     } catch (error) {
-        await closeTypeOrmAndKnexConnections()
         console.error("Encountered an error: ", error)
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.

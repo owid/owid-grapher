@@ -9,14 +9,14 @@ import {
     sum,
     getRelativeMouse,
     colorScaleConfigDefaults,
+    dyFromAlign,
 } from "@ourworldindata/utils"
 import {
     VerticalAxisComponent,
-    AxisTickMarks,
+    HorizontalAxisTickMarks,
     VerticalAxisGridLines,
 } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { Text } from "../text/Text"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
@@ -38,7 +38,7 @@ import {
 } from "./AbstractStackedChart"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { VerticalAxis } from "../axis/Axis"
-import { ColorSchemeName } from "@ourworldindata/types"
+import { ColorSchemeName, VerticalAlign } from "@ourworldindata/types"
 import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
@@ -446,18 +446,21 @@ export class StackedBarChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                <VerticalAxisComponent
-                    bounds={bounds}
-                    verticalAxis={verticalAxis}
-                    labelColor={manager.secondaryColorInStaticCharts}
-                />
+                {!verticalAxis.hideAxis && (
+                    <VerticalAxisComponent
+                        bounds={bounds}
+                        verticalAxis={verticalAxis}
+                        labelColor={manager.secondaryColorInStaticCharts}
+                        detailsMarker={manager.detailsMarkerInSvg}
+                    />
+                )}
                 <VerticalAxisGridLines
                     verticalAxis={verticalAxis}
                     bounds={innerBounds}
                     strokeWidth={axisLineWidth}
                 />
 
-                <AxisTickMarks
+                <HorizontalAxisTickMarks
                     tickMarkTopPosition={innerBounds.bottom}
                     tickMarkXPositions={ticks.map(
                         (tick) => tick.bounds.centerX
@@ -469,19 +472,20 @@ export class StackedBarChart
                 <g>
                     {ticks.map((tick, i) => {
                         return (
-                            <Text
+                            <text
                                 key={i}
                                 x={tick.bounds.x}
-                                y={tick.bounds.y}
+                                y={tick.bounds.y + 1}
                                 fill={GRAPHER_DARK_TEXT}
                                 fontSize={this.tickFontSize}
                                 onMouseOver={(): void => {
                                     this.onLabelMouseOver(tick)
                                 }}
                                 onMouseLeave={this.onLabelMouseLeave}
+                                dy={dyFromAlign(VerticalAlign.bottom)}
                             >
                                 {tick.text}
-                            </Text>
+                            </text>
                         )
                     })}
                 </g>

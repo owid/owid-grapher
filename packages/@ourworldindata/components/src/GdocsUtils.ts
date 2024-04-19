@@ -1,4 +1,4 @@
-import { OwidGdocLinkType } from "@ourworldindata/types"
+import { OwidGdoc, OwidGdocLinkType, OwidGdocType } from "@ourworldindata/types"
 import {
     spansToUnformattedPlainText,
     gdocUrlRegex,
@@ -6,6 +6,7 @@ import {
     Url,
 } from "@ourworldindata/utils"
 import urlSlug from "url-slug"
+import { P, match } from "ts-pattern"
 
 export function getLinkType(urlString: string): OwidGdocLinkType {
     const url = Url.fromURL(urlString)
@@ -42,4 +43,92 @@ export function getUrlTarget(urlString: string): string {
 
 export function convertHeadingTextToId(headingText: Span[]): string {
     return urlSlug(spansToUnformattedPlainText(headingText))
+}
+
+function _getPrefixedPath(prefix: string, gdoc: OwidGdoc): string {
+    return match(gdoc)
+        .with(
+            {
+                content: { type: OwidGdocType.Homepage },
+            },
+            () => prefix
+        )
+        .with(
+            {
+                content: {
+                    type: P.union(
+                        OwidGdocType.Article,
+                        OwidGdocType.TopicPage,
+                        OwidGdocType.LinearTopicPage,
+                        OwidGdocType.AboutPage
+                    ),
+                },
+            },
+            () => `${prefix}/${gdoc.slug}`
+        )
+        .with(
+            {
+                content: { type: OwidGdocType.DataInsight },
+            },
+            () => `${prefix}/data-insights/${gdoc.slug}`
+        )
+        .with(
+            {
+                content: { type: OwidGdocType.Author },
+            },
+            () => `${prefix}/team/${gdoc.slug}`
+        )
+        .with(
+            {
+                content: { type: P.union(OwidGdocType.Fragment, undefined) },
+            },
+            () => ""
+        )
+        .exhaustive()
+}
+
+export const getBakePath = (bakedSiteDir: string, gdoc: OwidGdoc): string => {
+    return _getPrefixedPath(bakedSiteDir, gdoc)
+}
+
+export const getCanonicalUrl = (baseUrl: string, gdoc: OwidGdoc): string => {
+    return _getPrefixedPath(baseUrl, gdoc)
+}
+
+export function getPageTitle(gdoc: OwidGdoc) {
+    return match(gdoc)
+        .with(
+            {
+                content: {
+                    type: OwidGdocType.Homepage,
+                },
+            },
+            // <Head> uses the default title of "Our World in Data" when pageTitle is undefined
+            // Otherwise we'd get " - Our World in Data" appended to whatever title we return here
+            () => undefined
+        )
+        .with(
+            {
+                content: {
+                    type: P.union(
+                        OwidGdocType.Article,
+                        OwidGdocType.TopicPage,
+                        OwidGdocType.LinearTopicPage,
+                        OwidGdocType.AboutPage,
+                        OwidGdocType.DataInsight,
+                        OwidGdocType.Author
+                    ),
+                },
+            },
+            (match) => match.content.title
+        )
+        .with(
+            {
+                content: {
+                    type: P.union(OwidGdocType.Fragment, undefined),
+                },
+            },
+            () => undefined
+        )
+        .exhaustive()
 }

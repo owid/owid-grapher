@@ -65,6 +65,6 @@ export class UserEditPage extends React.Component<{ userId: number }> {
     }
 
     componentDidMount() {
-        this.getData()
+        void this.getData()
     }
 }

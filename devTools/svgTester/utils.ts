@@ -214,8 +214,8 @@ export async function findChartViewsToGenerate(
         const queryStrings = options.shouldTestAllViews
             ? queryStringsByChartType[chartType]
             : options.queryStr
-            ? [options.queryStr]
-            : [undefined]
+              ? [options.queryStr]
+              : [undefined]
 
         for (const queryStr of queryStrings) {
             chartsToProcess.push({
@@ -414,7 +414,7 @@ export async function renderSvg(
             height,
             queryStr,
         },
-        { shouldHashQueryStr: false }
+        { shouldHashQueryStr: false, separator: "?" }
     )
 
     grapher.receiveOwidData(configAndData.variableData)
@@ -733,8 +733,8 @@ export function parseArgAsOptionalNumber(
     return arg === true
         ? defaultIfFlagIsSpecified
         : arg
-        ? parseInt(arg as string)
-        : defaultIfFlagNotSpecified
+          ? parseInt(arg as string)
+          : defaultIfFlagNotSpecified
 }
 
 export function parseRandomCount(arg: unknown) {

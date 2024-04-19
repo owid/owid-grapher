@@ -2,13 +2,14 @@ import fs from "fs-extra"
 import path from "path"
 import * as db from "../db/db.js"
 import {
-    IMAGE_HOSTING_CDN_URL,
-    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
+    IMAGE_HOSTING_R2_CDN_URL,
+    IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH,
 } from "../settings/serverSettings.js"
 
 import {
-    ImageMetadata,
+    DbRawImage,
     getFilenameAsPng,
+    parseImageRow,
     retryPromise,
 } from "@ourworldindata/utils"
 import { Image } from "../db/model/Image.js"
@@ -16,25 +17,38 @@ import sharp from "sharp"
 import pMap from "p-map"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
-export const bakeDriveImages = async (bakedSiteDir: string) => {
+export const bakeDriveImages = async (
+    knex: db.KnexReadonlyTransaction,
+    bakedSiteDir: string
+) => {
     // Get all GDocs images, download locally and resize them
     const images: Image[] = await db
-        .queryMysql(
+        .knexRaw<DbRawImage>(
+            knex,
             `SELECT * FROM images WHERE id IN (SELECT DISTINCT imageId FROM posts_gdocs_x_images)`
         )
-        .then((results: ImageMetadata[]) =>
-            results.map((result) => Image.create<Image>(result))
+        .then((results) =>
+            results.map((result) => new Image(parseImageRow(result)))
         )
 
     const imagesDirectory = path.join(bakedSiteDir, "images", "published")
+
+    // TODO 2024-02-29: In the retrospective about a recent resized image bug in prod we
+    //                  discussed a few improvements to make to this code:
+    //                  - [ ] Add etags for all the resizes so that we are checking if all
+    //                        the sizes are up to date, not just the original image.
+    //                  - [ ] Clarify the filenames of the paths involved so that it is clear
+    //                        what refers to the original image, the local version, ...
+    //                  - [ ] Break this function into smaller functions to make it easier to
+    //                        understand and maintain.
 
     // If this causes timeout errors, try decreasing concurrency (2 should be safe)
     await pMap(
         images,
         async (image) => {
             const remoteFilePath = path.join(
-                IMAGE_HOSTING_CDN_URL,
-                IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
+                IMAGE_HOSTING_R2_CDN_URL,
+                IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH,
                 image.filename
             )
             const localImagePath = path.join(imagesDirectory, image.filename)
@@ -50,7 +64,8 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
                 () =>
                     fetch(remoteFilePath, {
                         headers: {
-                            "If-None-Match": existingEtag,
+                            // XXX hotfix: force png rebuild every time, to work around missing png size variants on prod
+                            // "If-None-Match": existingEtag,
                         },
                     }).then((response) => {
                         if (response.status === 304) {
@@ -73,24 +88,29 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
             )
 
             // Image has not been modified, skip
-            if (response.status === 304) {
-                return
-            }
+            // XXX hotfix: force png rebuild every time, to work around missing png size variants on prod
+            // if (response.status === 304) {
+            //     return
+            // }
 
             let buffer = Buffer.from(await response.arrayBuffer())
 
             if (!image.isSvg) {
+                // Save the original image
+                await fs.writeFile(
+                    path.join(imagesDirectory, image.filename),
+                    buffer
+                )
+                // Save resized versions
                 await Promise.all(
                     image.sizes!.map((width) => {
                         const localResizedFilepath = path.join(
                             imagesDirectory,
-                            `${image.filenameWithoutExtension}_${width}.webp`
+                            `${image.filenameWithoutExtension}_${width}.png`
                         )
                         return sharp(buffer)
                             .resize(width)
-                            .webp({
-                                lossless: true,
-                            })
+                            .png()
                             .toFile(localResizedFilepath)
                     })
                 )
@@ -110,12 +130,12 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
                         `$1<defs><style>@import url(${BAKED_BASE_URL}/fonts.css)</style></defs>`
                     )
                 buffer = Buffer.from(svg)
+                // Save the svg
+                await fs.writeFile(
+                    path.join(imagesDirectory, image.filename),
+                    buffer
+                )
             }
-            // For SVG, and a non-webp fallback copy of the image
-            await fs.writeFile(
-                path.join(imagesDirectory, image.filename),
-                buffer
-            )
 
             // Save the etag to a sidecar
             await fs.writeFile(

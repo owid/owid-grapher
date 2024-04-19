@@ -18,31 +18,33 @@ ifneq (,$(wildcard ./.env))
 	export
 endif
 
-.PHONY: help up up.full down down.full refresh refresh.wp refresh.full migrate svgtest
+.PHONY: help up up.full down down.full refresh refresh.wp refresh.full migrate svgtest itsJustJavascript
 
 help:
 	@echo 'Available commands:'
 	@echo
 	@echo '  GRAPHER ONLY'
-	@echo '  make up                start dev environment via docker-compose and tmux'
-	@echo '  make down              stop any services still running'
-	@echo '  make refresh           (while up) download a new grapher snapshot and update MySQL'
-	@echo '  make refresh.pageviews (while up) download and load pageviews from the private datasette instance'
-	@echo '  make migrate           (while up) run any outstanding db migrations'
-	@echo '  make test              run full suite (except db tests) of CI checks including unit tests'
-	@echo '  make dbtest            run db test suite that needs a running mysql db'
-	@echo '  make svgtest           compare current rendering against reference SVGs'
+	@echo '  make up                     start dev environment via docker-compose and tmux'
+	@echo '  make down                   stop any services still running'
+	@echo '  make refresh                (while up) download a new grapher snapshot and update MySQL'
+	@echo '  make refresh.pageviews      (while up) download and load pageviews from the private datasette instance'
+	@echo '  make migrate                (while up) run any outstanding db migrations'
+	@echo '  make test                   run full suite (except db tests) of CI checks including unit tests'
+	@echo '  make dbtest                 run db test suite that needs a running mysql db'
+	@echo '  make svgtest                compare current rendering against reference SVGs'
 	@echo
 	@echo '  GRAPHER + WORDPRESS (staff-only)'
-	@echo '  make up.full           start dev environment via docker-compose and tmux'
-	@echo '  make down.full         stop any services still running'
-	@echo '  make refresh.wp        download a new wordpress snapshot and update MySQL'
-	@echo '  make refresh.full      do a full MySQL update of both wordpress and grapher'
-	@echo '  make sync-images       sync all images from the remote master'
+	@echo '  make up.full                start dev environment via docker-compose and tmux'
+	@echo '  make down.full              stop any services still running'
+	@echo '  make refresh.wp             download a new wordpress snapshot and update MySQL'
+	@echo '  make refresh.full           do a full MySQL update of both wordpress and grapher'
+	@echo '  make sync-images            sync all images from the remote master'
+	@echo '  make update.chart-entities  update the charts_x_entities join table'
+	@echo '  make reindex                reindex (or initialise) search in Algolia'
 	@echo
 	@echo '  OPS (staff-only)'
-	@echo '  make deploy            Deploy your local site to production'
-	@echo '  make stage             Deploy your local site to staging'
+	@echo '  make deploy                 Deploy your local site to production'
+	@echo '  make stage                  Deploy your local site to staging'
 	@echo
 
 up: export DEBUG = 'knex:query'
@@ -58,7 +60,7 @@ up: require create-if-missing.env ../owid-content tmp-downloads/owid_metadata.sq
 	@echo '==> Starting dev environment'
 	@mkdir -p logs
 	tmux new-session -s grapher \
-		-n docker 'docker-compose -f docker-compose.grapher.yml up' \; \
+		-n docker 'docker compose -f docker-compose.grapher.yml up' \; \
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
@@ -112,7 +114,7 @@ up.full: require create-if-missing.env.full ../owid-content wordpress/.env tmp-d
 
 	@echo '==> Starting dev environment'
 	tmux new-session -s grapher \
-		-n docker 'docker-compose -f docker-compose.full.yml up' \; \
+		-n docker 'docker compose -f docker-compose.full.yml up' \; \
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
@@ -133,7 +135,7 @@ up.full: require create-if-missing.env.full ../owid-content wordpress/.env tmp-d
 
 migrate:
 	@echo '==> Running DB migrations'
-	yarn && yarn buildTsc && yarn runDbMigrations
+	rm -rf itsJustJavascript && yarn && yarn buildLerna && yarn buildTsc && yarn runDbMigrations
 
 refresh.full: refresh refresh.wp sync-images
 
@@ -164,27 +166,27 @@ refresh.wp:
 	@echo 'at https://staging.owid.cloud/wp/wp-admin/user-edit.php?user_id=35'
 
 sync-images: sync-images.preflight-check
-	@echo '==> Syncing S3 images'
+	@echo '==> Syncing images to R2'
 	@. ./.env && ./devTools/docker/sync-s3-images.sh
 
 sync-images.preflight-check:
-	@echo '==> Checking for aws cli'
-	@which aws >/dev/null 2>&1 || (echo "ERROR: please install aws cli -- e.g. brew install awscli"; exit 1)
-	@echo '==> Checking if aws cli is configured'
-	@test -f ~/.aws/config || (echo "ERROR: please configure aws cli -- e.g. aws configure"; exit 1)
+	@echo '==> Checking for rclone'
+	@which rclone >/dev/null 2>&1 || (echo "ERROR: please install rclone -- e.g. brew install rclone"; exit 1)
+	@echo '==> Checking if rclone is configured'
+	@test -f ~/.config/rclone/rclone.conf || (echo "ERROR: please configure rclone -- e.g. rclone configure"; exit 1)
 
 
 down:
 	@echo '==> Stopping services'
-	docker-compose -f docker-compose.grapher.yml down
+	docker compose -f docker-compose.grapher.yml down
 
 down.full:
 	@echo '==> Stopping services'
-	docker-compose -f docker-compose.full.yml down
+	docker compose -f docker-compose.full.yml down
 
 require:
 	@echo '==> Checking your local environment has the necessary commands...'
-	@which docker-compose >/dev/null 2>&1 || (echo "ERROR: docker-compose is required."; exit 1)
+	@which docker >/dev/null 2>&1 || (echo "ERROR: docker compose is required."; exit 1)
 	@which yarn >/dev/null 2>&1 || (echo "ERROR: yarn is required."; exit 1)
 	@which tmux >/dev/null 2>&1 || (echo "ERROR: tmux is required."; exit 1)
 	@which finger >/dev/null 2>&1 || (echo "ERROR: finger is required."; exit 1)
@@ -214,7 +216,7 @@ validate.env:
 create-if-missing.env.full:
 	@if test ! -f .env; then \
 		echo 'Copying .env.example-full --> .env'; \
-		sed "s/IMAGE_HOSTING_BUCKET_PATH=.*/IMAGE_HOSTING_BUCKET_PATH=owid-image-upload\/dev-$(USER)/g" <.env.example-full >.env; \
+		sed "s/IMAGE_HOSTING_R2_BUCKET_PATH=.*/IMAGE_HOSTING_R2_BUCKET_PATH=owid-image-upload-staging\/dev-$(USER)/g" <.env.example-full >.env; \
 	fi
 
 validate.env.full:
@@ -335,3 +337,27 @@ svgtest: ../owid-grapher-svgs
 ../owid-content:
 	@echo '==> Cloning owid-content to ../owid-content'
 	cd .. && git clone git@github.com:owid/owid-content
+
+node_modules: package.json yarn.lock yarn.config.cjs
+	@echo '==> Installing packages'
+	yarn install
+
+itsJustJavascript: node_modules
+	@echo '==> Compiling TS'
+	yarn lerna run build
+	yarn run tsc -b
+	touch $@
+
+update.chart-entities: itsJustJavascript
+	@echo '==> Updating chart entities table'
+	node --enable-source-maps itsJustJavascript/baker/updateChartEntities.js --all
+
+reindex: itsJustJavascript
+	@echo '==> Reindexing search in Algolia'
+	node --enable-source-maps itsJustJavascript/baker/algolia/configureAlgolia.js
+	node --enable-source-maps itsJustJavascript/baker/algolia/indexToAlgolia.js
+	node --enable-source-maps itsJustJavascript/baker/algolia/indexChartsToAlgolia.js
+	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorerViewsToAlgolia.js
+
+clean:
+	rm -rf node_modules itsJustJavascript

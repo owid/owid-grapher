@@ -168,7 +168,7 @@ export class GlobalEntitySelector extends React.Component<{
                 () => this.prepareOptionGroups()
             )
         )
-        this.populateLocalEntity()
+        void this.populateLocalEntity()
     }
 
     componentWillUnmount(): void {

@@ -52,8 +52,8 @@ export class FacetStrategySelector extends React.Component<{
                 byEntity && byMetric
                     ? `${this.metricName} or ${entityChoice}`
                     : byEntity
-                    ? this.entityName
-                    : this.metricName
+                      ? this.entityName
+                      : this.metricName
             return (
                 "Visualize the data all together in one chart or split it by " +
                 facet

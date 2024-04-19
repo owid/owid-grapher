@@ -1,3 +1,4 @@
+import { OwidVariableType } from "../OwidVariable.js"
 import { OwidVariableDisplayConfigInterface } from "../OwidVariableDisplayConfigInterface.js"
 import { JsonString } from "../domainTypes/Various.js"
 import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
@@ -37,7 +38,10 @@ export interface DbInsertVariable {
     titleVariant?: string | null
     unit: string
     updatedAt?: Date | null
+    type?: OwidVariableType | null
+    sort?: JsonString | null
 }
+
 export type DbRawVariable = Required<DbInsertVariable>
 
 export interface VariableDisplayDimension {
@@ -65,6 +69,7 @@ export type DbEnrichedVariable = Omit<
     | "grapherConfigAdmin"
     | "grapherConfigETL"
     | "processingLog"
+    | "sort"
 > & {
     display: OwidVariableDisplayConfigInterface
     license: License | null
@@ -75,6 +80,7 @@ export type DbEnrichedVariable = Omit<
     grapherConfigAdmin: GrapherInterface | null
     grapherConfigETL: GrapherInterface | null
     processingLog: unknown | null
+    sort: string[] | null
 }
 
 export function parseVariableDisplayConfig(
@@ -179,6 +185,16 @@ export function serializeVariableProcessingLog(
     return processingLog ? JSON.stringify(processingLog) : null
 }
 
+export function parseVariableSort(sort: JsonString | null): string[] | null {
+    return sort ? JSON.parse(sort) : null
+}
+
+export function serializeVariableSort(
+    sort: string[] | null
+): JsonString | null {
+    return sort ? JSON.stringify(sort) : null
+}
+
 export function parseVariablesRow(row: DbRawVariable): DbEnrichedVariable {
     return {
         ...row,
@@ -193,6 +209,7 @@ export function parseVariablesRow(row: DbRawVariable): DbEnrichedVariable {
         ),
         grapherConfigETL: parseVariableGrapherConfigETL(row.grapherConfigETL),
         processingLog: parseVariableProcessingLog(row.processingLog),
+        sort: parseVariableSort(row.sort),
     }
 }
 
@@ -214,5 +231,6 @@ export function serializeVariablesRow(row: DbEnrichedVariable): DbRawVariable {
             row.grapherConfigETL
         ),
         processingLog: serializeVariableProcessingLog(row.processingLog),
+        sort: serializeVariableSort(row.sort),
     }
 }

@@ -11,6 +11,7 @@ import {
     GdocPostSettings,
     GdocInsightSettings,
     GdocHomepageSettings,
+    GdocAuthorSettings,
 } from "./GdocsSettingsForms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
@@ -107,7 +108,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             }
         }
         if (!originalGdoc) {
-            fetchGdocs()
+            void fetchGdocs()
         }
     }, [originalGdoc, fetchGdoc, handleError, admin])
 
@@ -263,8 +264,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                     hasErrors
                                         ? OwidGdocErrorMessageType.Error
                                         : hasWarnings
-                                        ? OwidGdocErrorMessageType.Warning
-                                        : null
+                                          ? OwidGdocErrorMessageType.Warning
+                                          : null
                                 }
                             >
                                 <Button onClick={() => setSettingsOpen(true)}>
@@ -340,6 +341,22 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             (gdoc) => (
                                 <GdocHomepageSettings
                                     gdoc={gdoc}
+                                    errors={errors}
+                                />
+                            )
+                        )
+                        .with(
+                            {
+                                content: {
+                                    type: OwidGdocType.Author,
+                                },
+                            },
+                            (gdoc) => (
+                                <GdocAuthorSettings
+                                    gdoc={gdoc}
+                                    setCurrentGdoc={(updatedGdoc) =>
+                                        setCurrentGdoc(() => updatedGdoc)
+                                    }
                                     errors={errors}
                                 />
                             )

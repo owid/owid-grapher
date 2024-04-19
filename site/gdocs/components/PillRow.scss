@@ -1,0 +1,78 @@
+.article-block__pill-row {
+    background-color: $blue-20;
+    scrollbar-width: none;
+    overflow-x: auto;
+    .article-block__pill-row-interior {
+        display: flex;
+        padding: 8px 0;
+    }
+    p {
+        color: $blue-60;
+        margin: 0 9px 0 0;
+        line-height: 32px;
+        white-space: nowrap;
+    }
+    ul {
+        list-style: none;
+        display: flex;
+        flex-wrap: nowrap;
+    }
+    .article-block__pill {
+        // margin-right is not visible on the last pill when overflowing, which
+        // causes the pill to be flush with the edge of the viewport.
+        // Using padding-right instead to work around this.
+        padding-right: 8px;
+        a {
+            color: $blue-100;
+            background-color: #fff;
+            line-height: 2rem;
+            padding: 0 16px;
+            display: inline-block;
+            transition: background-color 250ms;
+            border-radius: 32px;
+            white-space: nowrap;
+            &:hover {
+                background-color: $blue-5;
+            }
+        }
+    }
+}
+
+// Override for topic pill row on author page
+.author-work .article-block__pill-row {
+    background-color: $blue-95;
+
+    .article-block__pill-row-interior {
+        flex-direction: column;
+        padding: 0 0 24px;
+        overflow-x: auto;
+        margin-right: calc(-1 * var(--grid-gap));
+    }
+
+    p {
+        position: sticky;
+        display: inline-block;
+        left: 0;
+        color: $blue-40;
+        line-height: normal;
+        margin-bottom: 16px;
+        white-space: normal; // reset default nowrap for heading (useful on mobile)
+    }
+
+    ul {
+        @include md-up {
+            flex-wrap: wrap;
+            row-gap: 8px;
+        }
+    }
+
+    .article-block__pill {
+        a {
+            color: $white;
+            background-color: $blue-65;
+            &:hover {
+                background-color: $blue-90;
+            }
+        }
+    }
+}

@@ -1,6 +1,3 @@
-import mysql from "mysql"
-import { DataSource, EntityManager } from "typeorm"
-import { dataSource } from "./dataSource.js"
 import { knex, Knex } from "knex"
 import {
     GRAPHER_DB_HOST,
@@ -16,73 +13,16 @@ import {
     MinimalDataInsightInterface,
     OwidGdocType,
 } from "@ourworldindata/types"
-let typeormDataSource: DataSource
-
-export const getConnection = async (
-    source: DataSource = dataSource
-): Promise<DataSource> => {
-    if (typeormDataSource) return typeormDataSource
-
-    typeormDataSource = await source.initialize()
-
-    registerExitHandler(async () => {
-        if (typeormDataSource) await typeormDataSource.destroy()
-    })
-
-    return typeormDataSource
-}
-
-export class TransactionContext {
-    manager: EntityManager
-    constructor(manager: EntityManager) {
-        this.manager = manager
-    }
-
-    execute(queryStr: string, params?: any[]): Promise<any> {
-        return this.manager.query(
-            params ? mysql.format(queryStr, params) : queryStr
-        )
-    }
-
-    query(queryStr: string, params?: any[]): Promise<any> {
-        return this.manager.query(
-            params ? mysql.format(queryStr, params) : queryStr
-        )
-    }
-}
-
-export const transaction = async <T>(
-    callback: (t: TransactionContext) => Promise<T>
-): Promise<T> =>
-    (await getConnection()).transaction(async (manager) =>
-        callback(new TransactionContext(manager))
-    )
-
-export const queryMysql = async (
-    queryStr: string,
-    params?: any[]
-): Promise<any> => {
-    const conn = await getConnection()
-    return conn.query(params ? mysql.format(queryStr, params) : queryStr)
-}
-
-// For operations that modify data (TODO: handling to check query isn't used for this)
-export const execute = queryMysql
 
 // Return the first match from a mysql query
-export const mysqlFirst = async (
-    queryStr: string,
-    params?: any[]
-): Promise<any> => {
-    return (await queryMysql(queryStr, params))[0]
-}
-
 export const closeTypeOrmAndKnexConnections = async (): Promise<void> => {
-    if (typeormDataSource) await typeormDataSource.destroy()
-    if (_knexInstance) await _knexInstance.destroy()
+    if (_knexInstance) {
+        await _knexInstance.destroy()
+        _knexInstance = undefined
+    }
 }
 
-let _knexInstance: Knex
+let _knexInstance: Knex | undefined = undefined
 
 export const knexInstance = (): Knex<any, any[]> => {
     if (_knexInstance) return _knexInstance
@@ -95,6 +35,7 @@ export const knexInstance = (): Knex<any, any[]> => {
             password: GRAPHER_DB_PASS,
             database: GRAPHER_DB_NAME,
             port: GRAPHER_DB_PORT,
+            charset: "utf8mb4",
             typeCast: (field: any, next: any) => {
                 if (field.type === "TINY" && field.length === 1) {
                     return field.string() === "1" // 1 = true, 0 = false
@@ -111,24 +52,91 @@ export const knexInstance = (): Knex<any, any[]> => {
     return _knexInstance
 }
 
-export const knexTable = (table: string): Knex.QueryBuilder =>
-    knexInstance().table(table)
+declare const __read_capability: unique symbol
+declare const __write_capability: unique symbol
+export type KnexReadonlyTransaction = Knex.Transaction<any, any[]> & {
+    readonly [__read_capability]: "read"
+}
 
+export type KnexReadWriteTransaction = Knex.Transaction<any, any[]> & {
+    readonly [__read_capability]: "read"
+    readonly [__write_capability]: "write"
+}
+
+export enum TransactionCloseMode {
+    Close,
+    KeepOpen,
+}
+
+async function knexTransaction<T, KT>(
+    transactionFn: (trx: KT) => Promise<T>,
+    closeConnection: TransactionCloseMode,
+    readonly: boolean,
+    knex: Knex<any, any[]>
+): Promise<T> {
+    try {
+        const options = readonly ? { readOnly: true } : {}
+        const result = await knex.transaction(
+            async (trx) => transactionFn(trx as KT),
+            options
+        )
+        return result
+    } finally {
+        if (closeConnection === TransactionCloseMode.Close) {
+            await knex.destroy()
+            if (knex === _knexInstance) _knexInstance = undefined
+        }
+    }
+}
+
+export async function knexReadonlyTransaction<T>(
+    transactionFn: (trx: KnexReadonlyTransaction) => Promise<T>,
+    closeConnection: TransactionCloseMode = TransactionCloseMode.KeepOpen,
+    knex: Knex<any, any[]> = knexInstance()
+): Promise<T> {
+    return knexTransaction(transactionFn, closeConnection, true, knex)
+}
+
+export async function knexReadWriteTransaction<T>(
+    transactionFn: (trx: KnexReadWriteTransaction) => Promise<T>,
+    closeConnection: TransactionCloseMode = TransactionCloseMode.KeepOpen,
+    knex: Knex<any, any[]> = knexInstance()
+): Promise<T> {
+    return knexTransaction(transactionFn, closeConnection, false, knex)
+}
 export const knexRaw = async <TRow = unknown>(
-    str: string,
     knex: Knex<any, any[]>,
-    params?: any[]
-): Promise<TRow[]> => (await knex.raw(str, params ?? []))[0]
+    str: string,
+    params?: any[] | Record<string, any>
+): Promise<TRow[]> => {
+    try {
+        const rawReturnConstruct = await knex.raw(str, params ?? [])
+        return rawReturnConstruct[0]
+    } catch (e) {
+        console.error("Exception when executing SQL statement!", {
+            sql: str,
+            params,
+            error: e,
+        })
+        throw e
+    }
+}
 
 export const knexRawFirst = async <TRow = unknown>(
+    knex: KnexReadonlyTransaction,
     str: string,
-    knex: Knex<any, any[]>,
-    params?: any[]
+    params?: any[] | Record<string, any>
 ): Promise<TRow | undefined> => {
-    const results = await knexRaw<TRow>(str, knex, params)
+    const results = await knexRaw<TRow>(knex, str, params)
     if (results.length === 0) return undefined
     return results[0]
 }
+
+export const knexRawInsert = async (
+    knex: KnexReadWriteTransaction,
+    str: string,
+    params?: any[]
+): Promise<{ insertId: number }> => (await knex.raw(str, params ?? []))[0]
 
 /**
  *  In the backporting workflow, the users create gdoc posts for posts. As long as these are not yet published,
@@ -137,20 +145,25 @@ export const knexRawFirst = async <TRow = unknown>(
  *  to help us exclude them from the baking process.
  */
 export const getSlugsWithPublishedGdocsSuccessors = async (
-    knex: Knex<any, any[]>
+    knex: KnexReadonlyTransaction
 ): Promise<Set<string>> => {
     return knexRaw(
+        knex,
         `-- sql
-            select slug from posts_with_gdoc_publish_status
-            where isGdocPublished = TRUE`,
-        knex
+            SELECT
+                slug
+            FROM
+                posts_with_gdoc_publish_status
+            WHERE
+                isGdocPublished = TRUE`
     ).then((rows) => new Set(rows.map((row: any) => row.slug)))
 }
 
 export const getExplorerTags = async (
-    knex: Knex<any, any[]>
+    knex: KnexReadonlyTransaction
 ): Promise<{ slug: string; tags: DbChartTagJoin[] }[]> => {
     return knexRaw<{ slug: string; tags: string }>(
+        knex,
         `-- sql
         SELECT
         ext.explorerSlug as slug,
@@ -163,8 +176,7 @@ export const getExplorerTags = async (
         LEFT JOIN tags t ON
             ext.tagId = t.id
         GROUP BY
-            ext.explorerSlug`,
-        knex
+            ext.explorerSlug`
     ).then((rows) =>
         rows.map((row) => ({
             slug: row.slug,
@@ -174,7 +186,7 @@ export const getExplorerTags = async (
 }
 
 export const getPublishedExplorersBySlug = async (
-    knex: Knex<any, any[]>
+    knex: KnexReadonlyTransaction
 ): Promise<{
     [slug: string]: {
         slug: string
@@ -186,6 +198,7 @@ export const getPublishedExplorersBySlug = async (
     const tags = await getExplorerTags(knex)
     const tagsBySlug = keyBy(tags, "slug")
     return knexRaw(
+        knex,
         `-- sql
         SELECT
             slug,
@@ -194,8 +207,7 @@ export const getPublishedExplorersBySlug = async (
         FROM
             explorers
         WHERE
-            isPublished = TRUE`,
-        knex
+            isPublished = TRUE`
     ).then((rows) => {
         const processed = rows.map((row: any) => {
             return {
@@ -209,63 +221,92 @@ export const getPublishedExplorersBySlug = async (
     })
 }
 
-export const getLatestDataInsights = (
-    limit = 5
+export const getPublishedDataInsights = (
+    knex: KnexReadonlyTransaction,
+    limit = Number.MAX_SAFE_INTEGER // default to no limit
 ): Promise<MinimalDataInsightInterface[]> => {
     return knexRaw(
-        `
+        knex,
+        `-- sql
         SELECT
             content->>'$.title' AS title,
+            content->>'$.authors' AS authors,
             publishedAt,
+            updatedAt,
+            slug,
             ROW_NUMBER() OVER (ORDER BY publishedAt DESC) - 1 AS \`index\`
         FROM posts_gdocs
         WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
             AND published = TRUE
             AND publishedAt < NOW()
         ORDER BY publishedAt DESC
-        LIMIT ?
-        `,
-        knexInstance(),
+        LIMIT ?`,
         [limit]
     ).then((results) =>
         results.map((record: any) => ({
             ...record,
             index: Number(record.index),
+            authors: JSON.parse(record.authors),
         }))
     ) as Promise<MinimalDataInsightInterface[]>
 }
 
-export const getPublishedDataInsightCount = (): Promise<number> => {
+export const getPublishedDataInsightCount = (
+    knex: KnexReadonlyTransaction
+): Promise<number> => {
     return knexRawFirst<{ count: number }>(
+        knex,
         `
         SELECT COUNT(*) AS count
         FROM posts_gdocs
         WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
             AND published = TRUE
-            AND publishedAt < NOW()`,
-        knexInstance()
+            AND publishedAt < NOW()`
     ).then((res) => res?.count ?? 0)
 }
 
-export const getTotalNumberOfCharts = (): Promise<number> => {
+export const getTotalNumberOfCharts = (
+    knex: KnexReadonlyTransaction
+): Promise<number> => {
     return knexRawFirst<{ count: number }>(
+        knex,
         `
         SELECT COUNT(*) AS count
         FROM charts
-        WHERE config->"$.isPublished" = TRUE`,
-        knexInstance()
+        WHERE config->"$.isPublished" = TRUE`
     ).then((res) => res?.count ?? 0)
 }
 
-export const getTotalNumberOfInUseGrapherTags = (): Promise<number> => {
+export const getTotalNumberOfInUseGrapherTags = (
+    knex: KnexReadonlyTransaction
+): Promise<number> => {
     return knexRawFirst<{ count: number }>(
+        knex,
         `
         SELECT COUNT(DISTINCT(tagId)) AS count
         FROM chart_tags
         WHERE chartId IN (
         SELECT id
         FROM charts
-        WHERE publishedAt IS NOT NULL)`,
-        knexInstance()
+        WHERE publishedAt IS NOT NULL)`
     ).then((res) => res?.count ?? 0)
+}
+
+/**
+ * For usage with GdocFactory.load, until we refactor Gdocs to be entirely Knex-based.
+ */
+export const getHomepageId = (
+    knex: KnexReadonlyTransaction
+): Promise<string | undefined> => {
+    return knexRawFirst<{ id: string }>(
+        knex,
+        `-- sql
+        SELECT
+            posts_gdocs.id
+        FROM
+            posts_gdocs
+        WHERE
+            content->>'$.type' = '${OwidGdocType.Homepage}'
+            AND published = TRUE`
+    ).then((result) => result?.id)
 }

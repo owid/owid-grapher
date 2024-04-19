@@ -55,18 +55,18 @@ export class EntitySelectionToggle extends React.Component<{
                   icon: <FontAwesomeIcon icon={faEye} />,
               }
             : showChangeEntityButton
-            ? {
-                  action: "Change",
-                  entity: entityType,
-                  icon: <FontAwesomeIcon icon={faRightLeft} />,
-              }
-            : showAddEntityButton
-            ? {
-                  action: "Edit",
-                  entity: entityTypePlural,
-                  icon: <FontAwesomeIcon icon={faPencilAlt} />,
-              }
-            : null
+              ? {
+                    action: "Change",
+                    entity: entityType,
+                    icon: <FontAwesomeIcon icon={faRightLeft} />,
+                }
+              : showAddEntityButton
+                ? {
+                      action: "Edit",
+                      entity: entityTypePlural,
+                      icon: <FontAwesomeIcon icon={faPencilAlt} />,
+                  }
+                : null
     }
 
     render(): JSX.Element | null {
@@ -81,6 +81,7 @@ export class EntitySelectionToggle extends React.Component<{
                         this.props.manager.isSelectingData = !active
                         e.stopPropagation()
                     }}
+                    type="button"
                     data-track-note="chart_add_entity"
                     aria-label={`${label.action} ${label.entity}`}
                 >

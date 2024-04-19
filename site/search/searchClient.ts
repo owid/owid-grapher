@@ -1,5 +1,6 @@
 import {
     ALGOLIA_ID,
+    ALGOLIA_INDEX_PREFIX,
     ALGOLIA_SEARCH_KEY,
 } from "../../settings/clientSettings.js"
 import insightsClient, { InsightsClient } from "search-insights"
@@ -8,6 +9,7 @@ import {
     getPreferenceValue,
     PreferenceType,
 } from "../CookiePreferencesManager.js"
+import { SearchIndexName } from "./searchTypes.js"
 
 let insightsInitialized = false
 const getInsightsClient = (): InsightsClient => {
@@ -22,12 +24,32 @@ const getInsightsClient = (): InsightsClient => {
     return insightsClient
 }
 
-export const logSiteSearchClick = (
-    event: Omit<InsightsSearchClickEvent, "eventName">
+export const getIndexName = (index: SearchIndexName | string): string => {
+    if (ALGOLIA_INDEX_PREFIX !== "") {
+        return `${ALGOLIA_INDEX_PREFIX}-${index}`
+    }
+    return index
+}
+
+export const parseIndexName = (index: string): SearchIndexName => {
+    if (ALGOLIA_INDEX_PREFIX !== "") {
+        return index.substring(
+            ALGOLIA_INDEX_PREFIX.length + 1
+        ) as SearchIndexName
+    } else {
+        return index as SearchIndexName
+    }
+}
+
+export const logSiteSearchClickToAlgoliaInsights = (
+    event: Omit<InsightsSearchClickEvent, "eventName"> & { eventName?: string }
 ) => {
     const client = getInsightsClient()
-    client("clickedObjectIDsAfterSearch", { ...event, eventName: "click" })
+    client("clickedObjectIDsAfterSearch", {
+        ...event,
+        eventName: event.eventName ?? "click",
+    })
 }
 
 export const DEFAULT_SEARCH_PLACEHOLDER =
-    "Try “Life expectancy”, “Economic Growth”, “Homicide rate”, “Biodiversity”…"
+    "Try “Life expectancy”, “Poverty Nigeria Vietnam”, “CO2 France”…"

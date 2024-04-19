@@ -13,6 +13,6 @@ describe(OwidAdminApp, () => {
     it("should be able to start the app", async () => {
         await app.startListening(8765, "localhost")
         expect(app.server).toBeTruthy()
-        app.stopListening()
+        await app.stopListening()
     })
 })

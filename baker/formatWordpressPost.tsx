@@ -59,7 +59,7 @@ import { renderKeyInsights, renderProminentLinks } from "./siteRenderers.js"
 import { KEY_INSIGHTS_CLASS_NAME } from "../site/blocks/KeyInsights.js"
 import { RELATED_CHARTS_CLASS_NAME } from "../site/blocks/RelatedCharts.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-import { Knex } from "knex"
+import { KnexReadonlyTransaction } from "../db/db.js"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -129,7 +129,7 @@ const formatLatex = async (
 export const formatWordpressPost = async (
     post: FullPost,
     formattingOptions: FormattingOptions,
-    knex: Knex<any, any[]>,
+    knex: KnexReadonlyTransaction,
     grapherExports?: GrapherExports
 ): Promise<FormattedPost> => {
     let html = post.content
@@ -183,18 +183,19 @@ export const formatWordpressPost = async (
         const { queryArgs, template } = dataValueConfiguration
         const { variableId, chartId } = queryArgs
         const { value, year, unit, entityName } =
-            (await getDataValue(queryArgs)) || {}
+            (await getDataValue(queryArgs, knex)) || {}
 
         if (!value || !year || !entityName || !template) continue
 
         let formattedValue
         if (variableId && chartId) {
             const legacyVariableDisplayConfig =
-                await getOwidVariableDisplayConfig(variableId)
+                await getOwidVariableDisplayConfig(variableId, knex)
             const legacyChartDimension =
                 await getOwidChartDimensionConfigForVariable(
                     variableId,
-                    chartId
+                    chartId,
+                    knex
                 )
             formattedValue = formatDataValue(
                 value,
@@ -214,12 +215,14 @@ export const formatWordpressPost = async (
         })
     }
 
+    const jsonErrors: JsonError[] = []
+
     html = html.replace(dataValueRegex, (_, dataValueConfigurationString) => {
         const dataValueProps: DataValueProps | undefined = dataValues.get(
             dataValueConfigurationString
         )
         if (!dataValueProps) {
-            logErrorAndMaybeSendToBugsnag(
+            jsonErrors.push(
                 new JsonError(
                     `Missing data value for {{DataValue ${dataValueConfigurationString}}}" in ${BAKED_BASE_URL}/${post.slug}`
                 )
@@ -232,6 +235,8 @@ export const formatWordpressPost = async (
             </span>
         )
     })
+
+    await Promise.allSettled(jsonErrors.map(logErrorAndMaybeSendToBugsnag))
 
     // Needs to be happen after DataValue replacements, as the DataToken regex
     // would otherwise capture DataValue tags
@@ -595,7 +600,7 @@ export const formatWordpressPost = async (
 export const formatPost = async (
     post: FullPost,
     formattingOptions: FormattingOptions,
-    knex: Knex<any, any[]>,
+    knex: KnexReadonlyTransaction,
     grapherExports?: GrapherExports
 ): Promise<FormattedPost> => {
     // No formatting applied, plain source HTML returned

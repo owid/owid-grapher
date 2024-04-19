@@ -163,28 +163,28 @@ export class EditorExportTab extends React.Component<EditorExportTabProps> {
     }
 
     @action.bound private onDownloadDesktopSVG() {
-        this.download(
+        void this.download(
             `${this.baseFilename}-desktop.svg`,
             GrapherStaticFormat.landscape
         )
     }
 
     @action.bound private onDownloadDesktopPNG() {
-        this.download(
+        void this.download(
             `${this.baseFilename}-desktop.png`,
             GrapherStaticFormat.landscape
         )
     }
 
     @action.bound private onDownloadMobileSVG() {
-        this.download(
+        void this.download(
             `${this.baseFilename}-mobile.svg`,
             GrapherStaticFormat.square
         )
     }
 
     @action.bound private onDownloadMobilePNG() {
-        this.download(
+        void this.download(
             `${this.baseFilename}-mobile.png`,
             GrapherStaticFormat.square
         )
@@ -291,7 +291,7 @@ export class EditorExportTab extends React.Component<EditorExportTabProps> {
                             }
                         />
                     )}
-                    {this.originalGrapher.detailsOrderedByReference.size >
+                    {this.originalGrapher.detailsOrderedByReference.length >
                         0 && (
                         <Toggle
                             label="Details on demand"

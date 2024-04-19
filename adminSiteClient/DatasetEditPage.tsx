@@ -212,7 +212,6 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
         const { dataset } = this.props
         const { newDataset } = this
         const isBulkImport = dataset.namespace !== "owid"
-        const isDisabled = true
 
         return (
             <main className="DatasetEditPage">
@@ -268,7 +267,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     <form
                         onSubmit={(e) => {
                             e.preventDefault()
-                            this.save()
+                            void this.save()
                         }}
                     >
                         <p>
@@ -282,7 +281,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     store={newDataset}
                                     label="Name"
                                     secondaryLabel="DB field: datasets.name"
-                                    disabled={isDisabled}
+                                    disabled
                                     helpText="Short name for this dataset, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"
                                 />
                                 <DatasetTagEditor
@@ -296,10 +295,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                         onValue={(v) =>
                                             (newDataset.isPrivate = !v)
                                         }
-                                        disabled={
-                                            isDisabled ||
-                                            newDataset.nonRedistributable
-                                        }
+                                        disabled={newDataset.nonRedistributable}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -309,7 +305,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                         onValue={(v) => {
                                             newDataset.nonRedistributable = v
                                         }}
-                                        disabled={isDisabled}
+                                        disabled
                                     />
                                 </FieldsRow>
                             </div>
@@ -318,7 +314,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     label="Number of days between OWID updates"
                                     field="updatePeriodDays"
                                     store={newDataset}
-                                    disabled={isDisabled}
+                                    disabled
                                     helpText="Date when this data was obtained by us. Date format should always be YYYY-MM-DD."
                                 />
                                 <BindString
@@ -327,7 +323,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     label="Internal notes"
                                     secondaryLabel="DB field: datasets.description"
                                     textarea
-                                    disabled={isDisabled}
+                                    disabled
                                 />
                             </div>
                         </div>
@@ -426,6 +422,6 @@ export class DatasetEditPage extends React.Component<{ datasetId: number }> {
         this.UNSAFE_componentWillReceiveProps()
     }
     UNSAFE_componentWillReceiveProps() {
-        this.getData()
+        void this.getData()
     }
 }

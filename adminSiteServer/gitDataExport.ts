@@ -1,7 +1,10 @@
 import path from "path"
 import fs from "fs-extra"
-import { Dataset } from "../db/model/Dataset.js"
-import { Source } from "../db/model/Source.js"
+import {
+    datasetToCSV,
+    datasetToDatapackage,
+    getDatasetById,
+} from "../db/model/Dataset.js"
 import {
     GIT_DATASETS_DIR,
     TMP_DIR,
@@ -12,10 +15,15 @@ import * as db from "../db/db.js"
 import filenamify from "filenamify"
 import { execFormatted } from "../db/execWrapper.js"
 import { JsonError } from "@ourworldindata/utils"
+import { DbPlainDataset } from "@ourworldindata/types"
+import { getSourcesForDataset } from "../db/model/Source.js"
 
-const datasetToReadme = async (dataset: Dataset): Promise<string> => {
+const datasetToReadme = async (
+    knex: db.KnexReadonlyTransaction,
+    dataset: DbPlainDataset
+): Promise<string> => {
     // TODO: add origins here
-    const source = await Source.findOneBy({ datasetId: dataset.id })
+    const source = (await getSourcesForDataset(knex, dataset.id))[0]
     return `# ${dataset.name}\n\n${
         (source && source.description && source.description.additionalInfo) ||
         ""
@@ -53,9 +61,9 @@ export async function removeDatasetFromGitRepo(
 }
 
 export async function syncDatasetToGitRepo(
+    knex: db.KnexReadonlyTransaction,
     datasetId: number,
     options: {
-        transaction?: db.TransactionContext
         oldDatasetName?: string
         commitName?: string
         commitEmail?: string
@@ -68,12 +76,11 @@ export async function syncDatasetToGitRepo(
         ? filenamify(oldDatasetName)
         : undefined
 
-    const datasetRepo = options.transaction
-        ? options.transaction.manager.getRepository(Dataset)
-        : Dataset.getRepository()
+    const dataset = await getDatasetById(knex, datasetId)
 
-    const dataset = await datasetRepo.findOneBy({ id: datasetId })
     if (!dataset) throw new JsonError(`No such dataset ${datasetId}`, 404)
+
+    const datasetFilename = filenamify(dataset.name)
 
     if (dataset.isPrivate || dataset.nonRedistributable)
         // Private dataset doesn't go in git repo
@@ -98,28 +105,32 @@ export async function syncDatasetToGitRepo(
     }
 
     // Output dataset to temporary directory
-    const tmpDatasetDir = path.join(TMP_DIR, dataset.filename)
+    const tmpDatasetDir = path.join(TMP_DIR, datasetFilename)
     await fs.mkdirp(tmpDatasetDir)
 
     await Promise.all([
         fs.writeFile(
-            path.join(tmpDatasetDir, `${dataset.filename}.csv`),
-            await dataset.toCSV()
+            path.join(tmpDatasetDir, `${datasetFilename}.csv`),
+            await datasetToCSV(knex, dataset.id)
         ),
         fs.writeFile(
             path.join(tmpDatasetDir, `datapackage.json`),
-            JSON.stringify(await dataset.toDatapackage(), null, 2)
+            JSON.stringify(
+                await datasetToDatapackage(knex, dataset.id),
+                null,
+                2
+            )
         ),
         fs.writeFile(
             path.join(tmpDatasetDir, `README.md`),
-            await datasetToReadme(dataset)
+            await datasetToReadme(knex, dataset)
         ),
     ])
 
     const datasetsDir = path.join(repoDir, "datasets")
     await fs.mkdirp(datasetsDir)
 
-    const finalDatasetDir = path.join(datasetsDir, dataset.filename)
+    const finalDatasetDir = path.join(datasetsDir, datasetFilename || "")
     const isNew = !fs.existsSync(finalDatasetDir)
     await execFormatted(`cd %s && rm -rf %s && mv %s %s && git add -A %s`, [
         repoDir,
@@ -129,7 +140,7 @@ export async function syncDatasetToGitRepo(
         finalDatasetDir,
     ])
 
-    if (oldDatasetFilename && oldDatasetFilename !== dataset.filename) {
+    if (oldDatasetFilename && oldDatasetFilename !== datasetFilename) {
         const oldDatasetDir = path.join(datasetsDir, oldDatasetFilename)
         await execFormatted(`cd %s && rm -rf %s && git add -A %s`, [
             repoDir,
@@ -139,8 +150,8 @@ export async function syncDatasetToGitRepo(
     }
 
     const commitMsg = isNew
-        ? `Adding ${dataset.filename}`
-        : `Updating ${dataset.filename}`
+        ? `Adding ${datasetFilename}`
+        : `Updating ${datasetFilename}`
     await execFormatted(
         `cd %s && (git diff-index --quiet HEAD || (git commit -m %s --quiet --author="${
             commitName || GIT_DEFAULT_USERNAME

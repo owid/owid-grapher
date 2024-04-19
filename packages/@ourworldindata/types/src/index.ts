@@ -49,7 +49,6 @@ export {
     DeployStatus,
     type DeployMetadata,
 } from "./domainTypes/DeployStatus.js"
-export { type Tag } from "./domainTypes/Tag.js"
 
 export {
     IDEAL_PLOT_ASPECT_RATIO,
@@ -109,6 +108,8 @@ export {
     type SeriesName,
     type LegacyGrapherQueryParams,
     GrapherStaticFormat,
+    type ChartRedirect,
+    type DetailsMarker,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {
@@ -180,6 +181,7 @@ export {
     type RawBlockRecirc,
     type RawBlockResearchAndWriting,
     type RawBlockResearchAndWritingLink,
+    type RawBlockLatestWork,
     type RawBlockScroller,
     type RawBlockSDGGrid,
     type RawBlockSDGToc,
@@ -231,6 +233,7 @@ export {
     type EnrichedBlockRecirc,
     type EnrichedBlockResearchAndWriting,
     type EnrichedBlockResearchAndWritingLink,
+    type EnrichedBlockLatestWork,
     type EnrichedBlockResearchAndWritingRow,
     type EnrichedBlockScroller,
     type EnrichedBlockSDGGrid,
@@ -259,6 +262,11 @@ export {
     type EnrichedBlockPillRow,
     type RawBlockHomepageSearch,
     type EnrichedBlockHomepageSearch,
+    type RawBlockSocials,
+    type EnrichedBlockSocials,
+    SocialLinkType,
+    type RawSocialLink,
+    type EnrichedSocialLink,
 } from "./gdocTypes/ArchieMlComponents.js"
 export {
     OwidGdocPublicationContext,
@@ -266,6 +274,8 @@ export {
     type OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     type OwidGdocLinkJSON,
+    type OwidGdocAuthorContent,
+    type OwidGdocAuthorInterface,
     type OwidGdocBaseInterface,
     type OwidGdocPostContent,
     type OwidGdocPostInterface,
@@ -292,6 +302,9 @@ export {
     OwidGdocLinkType,
     type LinkedIndicator,
     DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
+    type OwidGdocContent,
+    type OwidGdocIndexItem,
+    extractGdocIndexItem,
 } from "./gdocTypes/Gdoc.js"
 
 export {
@@ -333,9 +346,11 @@ export {
     ENDNOTES_ID,
     KEY_INSIGHTS_ID,
     RESEARCH_AND_WRITING_ID,
+    RESEARCH_AND_WRITING_DEFAULT_HEADING,
     IMAGES_DIRECTORY,
     gdocUrlRegex,
     gdocIdRegex,
+    DEFAULT_GDOC_FEATURED_IMAGE,
 } from "./gdocTypes/GdocConstants.js"
 export {
     type OwidVariableWithSource,
@@ -355,6 +370,7 @@ export {
     type OwidProcessingLevel,
     type IndicatorTitleWithFragments,
     joinTitleFragments,
+    type OwidVariableType,
 } from "./OwidVariable.js"
 
 export type { OwidSource } from "./OwidSource.js"
@@ -435,6 +451,11 @@ export {
     type DbChartTagJoin,
 } from "./dbTypes/ChartTags.js"
 export {
+    ChartsXEntitiesTableName,
+    type DbInsertChartXEntity,
+    type DbPlainChartXEntity,
+} from "./dbTypes/ChartsXEntities.js"
+export {
     type DbPlainCountryLatestData,
     type DbInsertCountryLatestData,
     CountryLatestDataTableName,
@@ -475,8 +496,13 @@ export {
     ExplorerVariablesTableName,
 } from "./dbTypes/ExplorerVariables.js"
 export {
-    type DbPlainImage,
+    type DbRawImage,
+    type DbEnrichedImage,
     type DbInsertImage,
+    parseImageRow,
+    parseImageUpdatedAt,
+    serializeImageRow,
+    serializeImageUpdatedAt,
     ImagesTableName,
 } from "./dbTypes/Images.js"
 export {
@@ -622,3 +648,11 @@ export {
 } from "./dbTypes/Variables.js"
 
 export { RedirectCode, type DbPlainRedirect } from "./dbTypes/Redirects.js"
+
+export type { Nominal } from "./NominalType.js"
+
+export {
+    type DbRawLatestWork,
+    type DbEnrichedLatestWork,
+    parseLatestWork,
+} from "./domainTypes/Author.js"

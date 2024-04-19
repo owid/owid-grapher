@@ -4,11 +4,12 @@ import {
     IMAGES_DIRECTORY,
     generateSourceProps,
     ImageMetadata,
+    getFilenameMIMEType,
 } from "@ourworldindata/utils"
 import { LIGHTBOX_IMAGE_CLASS } from "../../Lightbox.js"
 import {
-    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
-    IMAGE_HOSTING_CDN_URL,
+    IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH,
+    IMAGE_HOSTING_R2_CDN_URL,
 } from "../../../settings/clientSettings.js"
 import { DocumentContext } from "../OwidGdoc.js"
 import { Container } from "./ArticleBlock.js"
@@ -23,6 +24,7 @@ const generateResponsiveSizes = (numberOfColumns: number): string =>
         1280 * (numberOfColumns / 12)
     )}px`
 
+const gridSpan2 = generateResponsiveSizes(2)
 const gridSpan5 = generateResponsiveSizes(5)
 const gridSpan6 = generateResponsiveSizes(6)
 const gridSpan7 = generateResponsiveSizes(7)
@@ -42,6 +44,7 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["datapage"]: gridSpan6,
     ["full-width"]: "100vw",
     ["key-insight"]: gridSpan5,
+    ["author-header"]: gridSpan2,
 }
 
 export default function Image(props: {
@@ -92,7 +95,7 @@ export default function Image(props: {
 
     if (isPreviewing) {
         const makePreviewUrl = (f: string) =>
-            `${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${encodeURIComponent(
+            `${IMAGE_HOSTING_R2_CDN_URL}/${IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH}/${encodeURIComponent(
                 f
             )}`
 
@@ -104,7 +107,7 @@ export default function Image(props: {
                 <source
                     srcSet={`${makePreviewUrl(i.filename)} ${i.originalWidth}w`}
                     media={sm ? "(max-width: 768px)" : undefined}
-                    type="image/webp"
+                    type={getFilenameMIMEType(i.filename)}
                     sizes={
                         containerSizes[containerType] ?? containerSizes.default
                     }
@@ -119,6 +122,8 @@ export default function Image(props: {
                     src={makePreviewUrl(image.filename)}
                     alt={alt}
                     className={maybeLightboxClassName}
+                    width={image.originalWidth ?? undefined}
+                    height={image.originalHeight ?? undefined}
                 />
             </picture>
         )
@@ -133,6 +138,8 @@ export default function Image(props: {
                     src={imgSrc}
                     alt={alt}
                     className={maybeLightboxClassName}
+                    width={image.originalWidth ?? undefined}
+                    height={image.originalHeight ?? undefined}
                 />
                 {containerType !== "thumbnail" ? (
                     <a
@@ -156,7 +163,7 @@ export default function Image(props: {
                 <source
                     key={i}
                     {...props}
-                    type="image/webp"
+                    type="image/png"
                     sizes={
                         containerSizes[containerType] ?? containerSizes.default
                     }
@@ -167,6 +174,10 @@ export default function Image(props: {
                 alt={alt}
                 className={maybeLightboxClassName}
                 loading="lazy"
+                // There's no way of knowing in advance whether we'll be showing the image or smallImage - we just have to choose one
+                // I went with image, as we currently only use smallImage for data insights
+                width={image.originalWidth ?? undefined}
+                height={image.originalHeight ?? undefined}
             />
         </picture>
     )

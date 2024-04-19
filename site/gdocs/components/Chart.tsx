@@ -15,16 +15,15 @@ import {
 } from "@ourworldindata/utils"
 import { renderSpans, useLinkedChart } from "../utils.js"
 import cx from "classnames"
-import { ExplorerProps } from "../../../explorer/Explorer.js"
 
 export default function Chart({
     d,
     className,
-    shouldOptimizeForHorizontalSpace = true,
+    fullWidthOnMobile = false,
 }: {
     d: EnrichedBlockChart
     className?: string
-    shouldOptimizeForHorizontalSpace?: boolean
+    fullWidthOnMobile?: boolean
 }) {
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(0, refChartContainer)
@@ -41,18 +40,7 @@ export default function Chart({
     const resolvedUrl = linkedChart.resolvedUrl
     const isExplorer = url.isExplorer
     const hasControls = url.queryParams.hideControls !== "true"
-
-    // applies to both charts and explorers
-    const common = {
-        // On mobile, we optimize for horizontal space by having Grapher bleed onto the edges horizontally
-        shouldOptimizeForHorizontalSpace,
-    }
-
-    // props passed to explorers
-    const explorerProps: Pick<
-        ExplorerProps,
-        "shouldOptimizeForHorizontalSpace"
-    > = merge({}, common)
+    const isExplorerWithControls = isExplorer && hasControls
 
     // config passed to grapher charts
     let customizedChartConfig: GrapherProgrammaticInterface = {}
@@ -92,28 +80,26 @@ export default function Chart({
         }
     }
 
-    const chartConfig = merge({}, customizedChartConfig, common)
+    const chartConfig = customizedChartConfig
 
     return (
         <div
-            className={cx(d.position, className)}
+            className={cx(d.position, className, {
+                "full-width-on-mobile":
+                    !isExplorerWithControls && fullWidthOnMobile,
+            })}
             style={{ gridRow: d.row, gridColumn: d.column }}
             ref={refChartContainer}
         >
             <figure
                 // Use unique `key` to force React to re-render tree
                 key={resolvedUrl}
-                className={isExplorer && hasControls ? "explorer" : "chart"}
+                className={isExplorerWithControls ? "explorer" : "chart"}
                 data-grapher-src={isExplorer ? undefined : resolvedUrl}
                 data-grapher-config={
                     isExplorer ? undefined : JSON.stringify(chartConfig)
                 }
                 data-explorer-src={isExplorer ? resolvedUrl : undefined}
-                data-explorer-props={
-                    isExplorer && !hasControls
-                        ? JSON.stringify(explorerProps)
-                        : undefined
-                }
                 style={{
                     width: "100%",
                     border: "0px none",

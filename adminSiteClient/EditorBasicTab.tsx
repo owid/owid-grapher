@@ -25,7 +25,7 @@ import {
 } from "@ourworldindata/utils"
 import { FieldsRow, Section, SelectField, Toggle } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
-import { ChartEditor } from "./ChartEditor.js"
+import { ChartEditor, ChartEditorManager } from "./ChartEditor.js"
 import { DimensionCard } from "./DimensionCard.js"
 import {
     DragDropContext,
@@ -45,6 +45,11 @@ class DimensionSlotView extends React.Component<{
 
     private get grapher() {
         return this.props.editor.grapher
+    }
+
+    @computed
+    get errorMessages(): ChartEditorManager["errorMessagesForDimensions"] {
+        return this.props.editor.manager.errorMessagesForDimensions
     }
 
     @action.bound private onAddVariables(variableIds: OwidVariableId[]) {
@@ -229,6 +234,11 @@ class DimensionSlotView extends React.Component<{
                                                     isDndEnabled={
                                                         this.isDndEnabled
                                                     }
+                                                    errorMessage={
+                                                        this.errorMessages[
+                                                            slot.property
+                                                        ][index]
+                                                    }
                                                 />
                                             </div>
                                         )}
@@ -300,27 +310,29 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
             grapher.stackMode = StackMode.relative
         }
 
-        if (!grapher.isScatter && !grapher.isSlopeChart) return
+        // Give scatterplots and slope charts a default color dimension if they don't have one
+        if (grapher.isScatter || grapher.isSlopeChart) {
+            const hasColor = grapher.dimensions.find(
+                (d) => d.property === DimensionProperty.color
+            )
+            if (!hasColor)
+                grapher.addDimension({
+                    variableId: 123, // "Countries Continents"
+                    property: DimensionProperty.color,
+                })
+        }
 
-        // Give scatterplots and slope charts a default color and size dimension if they don't have one
-        const hasColor = grapher.dimensions.find(
-            (d) => d.property === DimensionProperty.color
-        )
-        const hasSize = grapher.dimensions.find(
-            (d) => d.property === DimensionProperty.size
-        )
-
-        if (!hasColor)
-            grapher.addDimension({
-                variableId: 123, // "Countries Continents"
-                property: DimensionProperty.color,
-            })
-
-        if (!hasSize)
-            grapher.addDimension({
-                variableId: 597929, // "Population (various sources, 2023.1)"
-                property: DimensionProperty.size,
-            })
+        // Give scatterplots a default size dimension if they don't have one
+        if (grapher.isScatter) {
+            const hasSize = grapher.dimensions.find(
+                (d) => d.property === DimensionProperty.size
+            )
+            if (!hasSize)
+                grapher.addDimension({
+                    variableId: 597929, // "Population (various sources, 2023.1)"
+                    property: DimensionProperty.size,
+                })
+        }
     }
 
     render() {

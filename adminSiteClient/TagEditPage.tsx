@@ -136,7 +136,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                     <form
                         onSubmit={(e) => {
                             e.preventDefault()
-                            this.save()
+                            void this.save()
                         }}
                     >
                         <BindString
@@ -249,9 +249,9 @@ export class TagEditPage extends React.Component<{ tagId: number }> {
     }
 
     componentDidMount() {
-        this.getData(this.props.tagId)
+        void this.getData(this.props.tagId)
     }
     UNSAFE_componentWillReceiveProps(nextProps: any) {
-        this.getData(nextProps.tagId)
+        void this.getData(nextProps.tagId)
     }
 }

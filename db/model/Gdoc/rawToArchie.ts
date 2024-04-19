@@ -42,6 +42,7 @@ import {
     RawBlockPillRow,
     RawBlockHomepageSearch,
     RawBlockLatestDataInsights,
+    RawBlockSocials,
 } from "@ourworldindata/types"
 import { isArray } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
@@ -483,7 +484,7 @@ function* rawKeyInsightsToArchieMLString(
 function* rawResearchAndWritingToArchieMLString(
     block: RawBlockResearchAndWriting
 ): Generator<string, void, undefined> {
-    const { primary, secondary, more, rows } = block.value
+    const { primary, secondary, more, latest, rows } = block.value
     function* rawLinkToArchie(
         link: RawBlockResearchAndWritingLink
     ): Generator<string, void, undefined> {
@@ -494,6 +495,8 @@ function* rawResearchAndWritingToArchieMLString(
         yield* propertyToArchieMLString("filename", link)
     }
     yield "{.research-and-writing}"
+    yield* propertyToArchieMLString("heading", block.value)
+    yield* propertyToArchieMLString("hide-authors", block.value)
     if (primary) {
         yield "[.primary]"
         if (isArray(primary)) {
@@ -526,6 +529,11 @@ function* rawResearchAndWritingToArchieMLString(
             }
             yield "[]"
         }
+        yield "{}"
+    }
+    if (latest) {
+        yield "{.latest}"
+        yield* propertyToArchieMLString("heading", latest)
         yield "{}"
     }
     if (rows) {
@@ -729,6 +737,20 @@ function* rawBlockHomepageIntroToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockSocialsToArchieMLString(
+    block: RawBlockSocials
+): Generator<string, void, undefined> {
+    yield "[.socials]"
+    if (typeof block.value !== "string") {
+        for (const link of block.value) {
+            yield* propertyToArchieMLString("text", link)
+            yield* propertyToArchieMLString("url", link)
+            yield* propertyToArchieMLString("type", link)
+        }
+    }
+    yield "[]"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock | RawBlockTableRow
 ): Generator<string, void, undefined> {
@@ -809,6 +831,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             rawBlockHomepageSearchToArchieMLString
         )
         .with({ type: "homepage-intro" }, rawBlockHomepageIntroToArchieMLString)
+        .with({ type: "socials" }, rawBlockSocialsToArchieMLString)
         .exhaustive()
     yield* content
 }

@@ -4,6 +4,9 @@
 import path from "path"
 import dotenv from "dotenv"
 import findBaseDir from "./findBaseDir.js"
+import fs from "fs"
+import ini from "ini"
+import os from "os"
 
 const baseDir = findBaseDir(__dirname)
 if (baseDir === undefined) throw new Error("could not locate base package.json")
@@ -141,9 +144,6 @@ export const GDOCS_BACKPORTING_TARGET_FOLDER: string =
 export const GDOCS_IMAGES_BACKPORTING_TARGET_FOLDER: string =
     serverSettings.GDOCS_IMAGES_BACKPORTING_TARGET_FOLDER ?? ""
 
-export const GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID: string =
-    serverSettings.GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID ??
-    "1LpZ5LFDTA6buEb_uL-IOWQC1YLAEbpj7odup-zgg1II"
 export const GDOCS_DONATE_FAQS_DOCUMENT_ID: string =
     serverSettings.GDOCS_DONATE_FAQS_DOCUMENT_ID ??
     "194PNSFjgSlt9Zm5xYuDOF0l_GLKZbVxH2co3zCok_cE"
@@ -153,20 +153,41 @@ export const GDOCS_SHARED_DRIVE_ID = serverSettings.GDOCS_SHARED_DRIVE_ID ?? ""
 export const GDOCS_DETAILS_ON_DEMAND_ID =
     serverSettings.GDOCS_DETAILS_ON_DEMAND_ID ?? ""
 
-export const IMAGE_HOSTING_SPACE_URL: string =
-    serverSettings.IMAGE_HOSTING_SPACE_URL || ""
-export const IMAGE_HOSTING_CDN_URL: string =
-    serverSettings.IMAGE_HOSTING_CDN_URL || ""
-// e.g. owid-image-hosting/development
-export const IMAGE_HOSTING_BUCKET_PATH: string =
-    serverSettings.IMAGE_HOSTING_BUCKET_PATH || ""
+// Load R2 credentials from rclone config
+let rcloneConfig: any = {}
+const rcloneConfigPath = path.join(os.homedir(), ".config/rclone/rclone.conf")
+if (fs.existsSync(rcloneConfigPath)) {
+    rcloneConfig = ini.parse(fs.readFileSync(rcloneConfigPath, "utf-8"))
+}
+
+// e.g. https://images-staging.owid.io/
+export const IMAGE_HOSTING_R2_CDN_URL: string =
+    serverSettings.IMAGE_HOSTING_R2_CDN_URL || ""
+// e.g. owid-image-hosting-staging/development
+export const IMAGE_HOSTING_R2_BUCKET_PATH: string =
+    serverSettings.IMAGE_HOSTING_R2_BUCKET_PATH || ""
 // e.g. development
-export const IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH: string =
-    IMAGE_HOSTING_BUCKET_PATH.slice(IMAGE_HOSTING_BUCKET_PATH.indexOf("/") + 1)
-export const IMAGE_HOSTING_SPACE_ACCESS_KEY_ID: string =
-    serverSettings.IMAGE_HOSTING_SPACE_ACCESS_KEY_ID || ""
-export const IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY: string =
-    serverSettings.IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY || ""
+export const IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH: string =
+    IMAGE_HOSTING_R2_BUCKET_PATH.slice(
+        IMAGE_HOSTING_R2_BUCKET_PATH.indexOf("/") + 1
+    )
+// extract R2 credentials from rclone config as defaults
+export const IMAGE_HOSTING_R2_ENDPOINT: string =
+    serverSettings.IMAGE_HOSTING_R2_ENDPOINT ||
+    rcloneConfig["owid-r2"]?.endpoint ||
+    "https://078fcdfed9955087315dd86792e71a7e.r2.cloudflarestorage.com"
+export const IMAGE_HOSTING_R2_ACCESS_KEY_ID: string =
+    serverSettings.IMAGE_HOSTING_R2_ACCESS_KEY_ID ||
+    rcloneConfig["owid-r2"]?.access_key_id ||
+    ""
+export const IMAGE_HOSTING_R2_SECRET_ACCESS_KEY: string =
+    serverSettings.IMAGE_HOSTING_R2_SECRET_ACCESS_KEY ||
+    rcloneConfig["owid-r2"]?.secret_access_key ||
+    ""
+export const IMAGE_HOSTING_R2_REGION: string =
+    serverSettings.IMAGE_HOSTING_R2_REGION ||
+    rcloneConfig["owid-r2"]?.region ||
+    "auto"
 
 export const DATA_API_URL: string = clientSettings.DATA_API_URL
 

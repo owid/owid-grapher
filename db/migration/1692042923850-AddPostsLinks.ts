@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class AddPostsLinks1692042923850 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`-- sql
+        await queryRunner.query(`-- sql
             CREATE TABLE posts_links (
                 id int NOT NULL AUTO_INCREMENT,
                 sourceId int NOT NULL,
@@ -19,7 +19,7 @@ export class AddPostsLinks1692042923850 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`-- sql
+        await queryRunner.query(`-- sql
             DROP TABLE IF EXISTS posts_links;
         `)
     }

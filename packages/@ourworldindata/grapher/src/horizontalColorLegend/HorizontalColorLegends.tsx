@@ -89,6 +89,9 @@ export interface HorizontalColorLegendManager {
     equalSizeBins?: boolean
     onLegendMouseLeave?: () => void
     onLegendMouseOver?: (d: ColorScaleBin) => void
+    onLegendClick?: (d: ColorScaleBin) => void
+    activeColors?: string[]
+    focusColors?: string[]
 }
 
 const DEFAULT_NUMERIC_BIN_SIZE = 10
@@ -626,7 +629,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                         height -
                         this.legendTitle.height +
                         this.legendTitleFontSize * 0.2,
-                    { fill: this.legendTextColor }
+                    { textProps: { fill: this.legendTextColor } }
                 )}
             </g>
         )
@@ -761,8 +764,8 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                 align === HorizontalAlign.center
                     ? (width - line.totalWidth) / 2
                     : align === HorizontalAlign.right
-                    ? width - line.totalWidth
-                    : 0
+                      ? width - line.totalWidth
+                      : 0
             line.marks.forEach((mark) => {
                 mark.x += xShift
                 mark.label.bounds = mark.label.bounds.set({
@@ -780,11 +783,19 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
 
     render(): JSX.Element {
         const { manager, marks } = this
+        const { activeColors, focusColors } = manager
 
         return (
             <g>
                 <g className="categoricalColorLegend">
                     {marks.map((mark, index) => {
+                        const isActive = activeColors?.includes(mark.bin.color)
+                        const isFocus = focusColors?.includes(mark.bin.color)
+
+                        const fill = mark.bin.patternRef
+                            ? `url(#${mark.bin.patternRef})`
+                            : mark.bin.color
+
                         return (
                             <g
                                 key={index}
@@ -798,22 +809,40 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                                         ? manager.onLegendMouseLeave()
                                         : undefined
                                 }
+                                onClick={(): void =>
+                                    manager.onLegendClick
+                                        ? manager.onLegendClick(mark.bin)
+                                        : undefined
+                                }
+                                style={{ cursor: "default" }}
                             >
+                                {/* for hover interaction */}
+                                <rect
+                                    x={this.legendX + mark.x}
+                                    y={this.categoryLegendY + mark.y}
+                                    height={mark.rectSize}
+                                    width={
+                                        mark.label.bounds.width +
+                                        mark.label.bounds.x -
+                                        mark.x
+                                    }
+                                    fill="#fff"
+                                    opacity={0}
+                                />
                                 <rect
                                     x={this.legendX + mark.x}
                                     y={this.categoryLegendY + mark.y}
                                     width={mark.rectSize}
                                     height={mark.rectSize}
                                     fill={
-                                        mark.bin.patternRef
-                                            ? `url(#${mark.bin.patternRef})`
-                                            : mark.bin.color
+                                        isActive || activeColors === undefined
+                                            ? fill
+                                            : "#ccc"
                                     }
                                     stroke={manager.categoricalBinStroke}
                                     strokeWidth={0.4}
                                     opacity={manager.legendOpacity} // defaults to undefined which removes the prop
                                 />
-                                ,
                                 <text
                                     x={this.legendX + mark.label.bounds.x}
                                     y={
@@ -825,6 +854,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                                     // do with some rough positioning.
                                     dy={dyFromAlign(VerticalAlign.middle)}
                                     fontSize={mark.label.fontSize}
+                                    fontWeight={isFocus ? "bold" : undefined}
                                 >
                                     {mark.label.text}
                                 </text>

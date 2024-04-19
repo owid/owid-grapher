@@ -1,5 +1,5 @@
 import * as db from "../db/db.js"
-import { Chart } from "../db/model/Chart.js"
+import { getGptTopicSuggestions } from "../db/model/Chart.js"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
@@ -15,24 +15,18 @@ Usage:
 $ yarn batchTagWithGpt --help
 
 Example: yarn batchTagWithGpt --debug --limit 1
-
-Note: this script is not called automatically yet, and needs to be run manually.
 */
-export const batchTagWithGpt = async ({
-    debug,
-    limit,
-}: BatchTagWithGptArgs = {}) => {
-    await batchTagChartsWithGpt({ debug, limit })
-}
 
-const batchTagChartsWithGpt = async ({
-    debug,
-    limit,
-}: BatchTagWithGptArgs = {}) => {
+const batchTagChartsWithGpt = async (
+    knex: db.KnexReadonlyTransaction,
+    { debug, limit }: BatchTagWithGptArgs = {}
+) => {
     // Identify all charts that need tagging. Get all charts that aren't tagged
     // with a topic tag or the "Unlisted" tag. This includes charts that have no
     // tags at all)
-    const chartsToTag = await db.queryMysql(`
+    const chartsToTag = await db.knexRaw<{ id: number }>(
+        knex,
+        `-- sql
     SELECT id
     FROM charts
     WHERE id
@@ -44,11 +38,12 @@ const batchTagChartsWithGpt = async ({
     )
     GROUP BY id
     ${limit ? `LIMIT ${limit}` : ""}
-    `)
+    `
+    )
 
     // Iterate through the charts and tag them with GPT-suggested topics
     for (const chart of chartsToTag) {
-        const gptTopicSuggestions = await Chart.getGptTopicSuggestions(chart.id)
+        const gptTopicSuggestions = await getGptTopicSuggestions(knex, chart.id)
 
         for (const tag of gptTopicSuggestions) {
             if (debug) console.log("Tagging chart", chart.id, "with", tag.id)
@@ -56,15 +51,18 @@ const batchTagChartsWithGpt = async ({
             // exist, giving priority to the existing tags. This is to make sure
             // already curated tags and their associated key chart levels and
             // validation statuses are preserved.
-            await db.queryMysql(`
+            await db.knexRaw(
+                knex,
+                `-- sql
             INSERT IGNORE into chart_tags (chartId, tagId) VALUES (${chart.id},${tag.id})
-        `)
+        `
+            )
         }
     }
 }
 
 if (require.main === module) {
-    yargs(hideBin(process.argv))
+    void yargs(hideBin(process.argv))
         .command<BatchTagWithGptArgs>(
             "$0",
             "Batch tag charts with GPT topics",
@@ -84,9 +82,11 @@ if (require.main === module) {
             },
             async (argv) => {
                 try {
-                    await batchTagChartsWithGpt(argv)
+                    await db.knexReadonlyTransaction(
+                        (trx) => batchTagChartsWithGpt(trx, argv),
+                        db.TransactionCloseMode.Close
+                    )
                 } finally {
-                    await db.closeTypeOrmAndKnexConnections()
                 }
             }
         )

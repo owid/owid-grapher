@@ -13,8 +13,11 @@ import {
     getRelativeMouse,
     domainExtent,
     minBy,
-    maxBy,
     exposeInstanceOnWindow,
+    PointVector,
+    clamp,
+    HorizontalAlign,
+    difference,
 } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import { observable, computed, action } from "mobx"
@@ -30,8 +33,7 @@ import {
     GRAPHER_DARK_TEXT,
     GRAPHER_FONT_SCALE_9_6,
     GRAPHER_FONT_SCALE_10_5,
-    GRAPHER_FONT_SCALE_12,
-    GRAPHER_FONT_SCALE_14,
+    GRAPHER_FONT_SCALE_11_2,
 } from "../core/GrapherConstants"
 import {
     ScaleType,
@@ -42,29 +44,48 @@ import {
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
-import { scaleLinear, scaleLog, ScaleLinear, ScaleLogarithmic } from "d3-scale"
-import { extent } from "d3-array"
+import { scaleLinear, ScaleLinear } from "d3-scale"
 import { select } from "d3-selection"
-import { Text } from "../text/Text"
 import {
     DEFAULT_SLOPE_CHART_COLOR,
     LabelledSlopesProps,
-    SlopeAxisProps,
     SlopeChartSeries,
     SlopeChartValue,
-    SlopeProps,
+    SlopeEntryProps,
 } from "./SlopeChartConstants"
-import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import { OwidTable } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { AxisConfig, AxisManager } from "../axis/AxisConfig"
+import { VerticalAxis } from "../axis/Axis"
+import { VerticalAxisComponent } from "../axis/AxisViews"
+import {
+    HorizontalCategoricalColorLegend,
+    HorizontalColorLegendManager,
+} from "../horizontalColorLegend/HorizontalColorLegends"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
+
+export interface SlopeChartManager extends ChartManager {
+    isModalOpen?: boolean
+    isSemiNarrow?: boolean
+}
+
+const LABEL_SLOPE_PADDING = 8
+const LABEL_LABEL_PADDING = 2
+
+const TOP_PADDING = 6
+const BOTTOM_PADDING = 20
 
 @observer
 export class SlopeChart
     extends React.Component<{
         bounds?: Bounds
-        manager: ChartManager
+        manager: SlopeChartManager
     }>
-    implements ChartInterface, VerticalColorLegendManager, ColorScaleManager
+    implements
+        ChartInterface,
+        VerticalColorLegendManager,
+        HorizontalColorLegendManager,
+        ColorScaleManager
 {
     // currently hovered individual series key
     @observable hoverKey?: string
@@ -94,6 +115,15 @@ export class SlopeChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
+    @computed private get isPortrait(): boolean {
+        return !!(this.manager.isNarrow || this.manager.isStaticAndSmall)
+    }
+
+    @computed private get showHorizontalLegend(): boolean {
+        return !!(this.manager.isSemiNarrow || this.manager.isStaticAndSmall)
+    }
+
+    // used by the <VerticalColorLegend /> component
     @computed get legendItems() {
         return this.colorScale.legendBins
             .filter((bin) => this.colorsInUse.includes(bin.color))
@@ -106,11 +136,19 @@ export class SlopeChart
             })
     }
 
-    @computed get maxLegendWidth() {
-        return this.sidebarMaxWidth
+    // used by the <HorizontalCategoricalColorLegend /> component
+    @computed get categoricalLegendData(): CategoricalBin[] {
+        return this.legendItems.map(
+            (legendItem, index) =>
+                new CategoricalBin({
+                    ...legendItem,
+                    index,
+                    value: legendItem.label,
+                })
+        )
     }
 
-    @action.bound onSlopeMouseOver(slopeProps: SlopeProps) {
+    @action.bound onSlopeMouseOver(slopeProps: SlopeEntryProps) {
         this.hoverKey = slopeProps.seriesName
     }
 
@@ -119,20 +157,20 @@ export class SlopeChart
     }
 
     @action.bound onSlopeClick() {
-        const { manager, hoverKey } = this
-        if (
-            manager.addCountryMode === EntitySelectionMode.Disabled ||
-            !manager.addCountryMode ||
-            hoverKey === undefined
-        ) {
+        const { hoverKey, isEntitySelectionEnabled } = this
+        if (!isEntitySelectionEnabled || hoverKey === undefined) {
             return
         }
 
         this.selectionArray.toggleSelection(hoverKey)
     }
 
-    @action.bound onLegendMouseOver(color: string) {
-        this.hoverColor = color
+    // Both legend managers accept a `onLegendMouseOver` property, but define different signatures.
+    // The <HorizontalCategoricalColorLegend /> component expects a string,
+    // the <VerticalColorLegend /> component expects a ColorScaleBin.
+    @action.bound onLegendMouseOver(binOrColor: string | ColorScaleBin) {
+        this.hoverColor =
+            typeof binOrColor === "string" ? binOrColor : binOrColor.color
     }
 
     @action.bound onLegendMouseLeave() {
@@ -147,15 +185,18 @@ export class SlopeChart
         return this.selectionArray.selectedEntityNames
     }
 
+    @computed get isEntitySelectionEnabled(): boolean {
+        const { manager } = this
+        return !!(
+            manager.addCountryMode !== EntitySelectionMode.Disabled &&
+            manager.addCountryMode
+        )
+    }
+
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick() {
-        const { manager, hoverColor } = this
-        if (
-            manager.addCountryMode === EntitySelectionMode.Disabled ||
-            !manager.addCountryMode ||
-            hoverColor === undefined
-        )
-            return
+        const { hoverColor, isEntitySelectionEnabled } = this
+        if (!isEntitySelectionEnabled || hoverColor === undefined) return
 
         const seriesNamesToToggle = this.series
             .filter((g) => g.color === hoverColor)
@@ -230,28 +271,51 @@ export class SlopeChart
         return uniq(this.series.map((series) => series.color))
     }
 
-    @computed private get sidebarMaxWidth() {
-        return this.bounds.width * 0.5
+    @computed get legendAlign(): HorizontalAlign {
+        return HorizontalAlign.left
     }
 
-    private sidebarMinWidth = 100
-
-    @computed private get legendWidth() {
-        return new VerticalColorLegend({ manager: this }).width
+    @computed get verticalColorLegend(): VerticalColorLegend {
+        return new VerticalColorLegend({ manager: this })
     }
 
-    @computed.struct private get sidebarWidth() {
-        const { sidebarMinWidth, sidebarMaxWidth, legendWidth } = this
-        return Math.max(Math.min(legendWidth, sidebarMaxWidth), sidebarMinWidth)
+    @computed get horizontalColorLegend(): HorizontalCategoricalColorLegend {
+        return new HorizontalCategoricalColorLegend({ manager: this })
+    }
+
+    @computed get legendHeight(): number {
+        return this.showHorizontalLegend
+            ? this.horizontalColorLegend.height
+            : this.verticalColorLegend.height
+    }
+
+    @computed get legendWidth(): number {
+        return this.showHorizontalLegend
+            ? this.bounds.width
+            : this.verticalColorLegend.width
+    }
+
+    @computed get maxLegendWidth(): number {
+        return this.showHorizontalLegend
+            ? this.bounds.width
+            : this.bounds.width * 0.5
+    }
+
+    @computed private get sidebarWidth(): number {
+        // the min width is set to prevent the "No data" title from line breaking
+        return clamp(this.legendWidth, 51, this.maxLegendWidth)
     }
 
     // correction is to account for the space taken by the legend
     @computed private get innerBounds() {
-        const { sidebarWidth, showLegend } = this
-
-        return showLegend
-            ? this.bounds.padRight(sidebarWidth + 20)
-            : this.bounds
+        const { sidebarWidth, showLegend, legendHeight } = this
+        let bounds = this.bounds
+        if (showLegend) {
+            bounds = this.showHorizontalLegend
+                ? bounds.padTop(legendHeight + 8)
+                : bounds.padRight(sidebarWidth + 16)
+        }
+        return bounds
     }
 
     // verify the validity of data used to show legend
@@ -261,6 +325,76 @@ export class SlopeChart
         const { colorsInUse } = this
         const { legendBins } = this.colorScale
         return legendBins.some((bin) => colorsInUse.includes(bin.color))
+    }
+
+    @computed
+    private get selectedEntitiesWithoutData(): string[] {
+        return difference(
+            this.selectedEntityNames,
+            this.series.map((s) => s.seriesName)
+        )
+    }
+
+    @computed private get noDataSection(): JSX.Element {
+        const { selectedEntitiesWithoutData } = this
+
+        const displayedEntities = selectedEntitiesWithoutData.slice(0, 5)
+        const numRemainingEntities = Math.max(
+            0,
+            selectedEntitiesWithoutData.length - displayedEntities.length
+        )
+
+        const bounds = new Bounds(
+            this.legendX,
+            this.legendY + this.legendHeight,
+            this.sidebarWidth,
+            this.bounds.height - this.legendHeight
+        )
+
+        return (
+            <foreignObject
+                {...bounds.toProps()}
+                style={{
+                    color: GRAPHER_DARK_TEXT,
+                    fontSize: GRAPHER_FONT_SCALE_11_2 * this.fontSize,
+                }}
+            >
+                <div
+                    style={{
+                        textTransform: "uppercase",
+                        fontWeight: 700,
+                        marginTop: 12,
+                        marginBottom: 2,
+                        lineHeight: 1.15,
+                    }}
+                >
+                    No data
+                </div>
+                <ul>
+                    {displayedEntities.map((entityName) => (
+                        <li
+                            key={entityName}
+                            style={{
+                                fontStyle: "italic",
+                                lineHeight: 1.15,
+                                marginBottom: 2,
+                            }}
+                        >
+                            {entityName}
+                        </li>
+                    ))}
+                </ul>
+                {numRemainingEntities > 0 && (
+                    <div>
+                        &{" "}
+                        {numRemainingEntities === 1
+                            ? "one"
+                            : numRemainingEntities}{" "}
+                        more
+                    </div>
+                )}
+            </foreignObject>
+        )
     }
 
     render() {
@@ -274,12 +408,20 @@ export class SlopeChart
             )
 
         const { manager } = this.props
-        const { series, focusKeys, hoverKeys, innerBounds, showLegend } = this
+        const {
+            series,
+            focusKeys,
+            hoverKeys,
+            innerBounds,
+            showLegend,
+            showHorizontalLegend,
+            selectedEntitiesWithoutData,
+        } = this
 
-        const legend = showLegend ? (
-            <VerticalColorLegend manager={this} />
+        const legend = showHorizontalLegend ? (
+            <HorizontalCategoricalColorLegend manager={this} />
         ) : (
-            <div></div>
+            <VerticalColorLegend manager={this} />
         )
 
         return (
@@ -294,8 +436,14 @@ export class SlopeChart
                     onMouseOver={this.onSlopeMouseOver}
                     onMouseLeave={this.onSlopeMouseLeave}
                     onClick={this.onSlopeClick}
+                    isPortrait={this.isPortrait}
                 />
-                {legend}
+                {showLegend && legend}
+                {/* only show the "No data" section if there is space */}
+                {showLegend &&
+                    !showHorizontalLegend &&
+                    selectedEntitiesWithoutData.length > 0 &&
+                    this.noDataSection}
             </g>
         )
     }
@@ -305,7 +453,9 @@ export class SlopeChart
     }
 
     @computed get legendX(): number {
-        return this.bounds.right - this.sidebarWidth
+        return this.showHorizontalLegend
+            ? this.bounds.left
+            : this.bounds.right - this.sidebarWidth
     }
 
     @computed get failMessage() {
@@ -379,37 +529,56 @@ export class SlopeChart
         return colorByEntity
     }
 
-    @computed private get sizeColumn() {
-        return this.transformedTable.get(this.manager.sizeColumnSlug)
+    // click anywhere inside the Grapher frame to dismiss the current selection
+    @action.bound onGrapherClick(e: Event): void {
+        const target = e.target as HTMLElement
+
+        // check if the target is an interactive element or contained within one
+        const selector = "a, button, input, .TimelineComponent"
+        const isTargetInteractive = target.closest(selector) !== null
+
+        if (
+            this.isEntitySelectionEnabled &&
+            !this.hoverKey &&
+            !this.hoverColor &&
+            !this.manager.isModalOpen &&
+            !isTargetInteractive
+        ) {
+            this.selectionArray.clearSelection()
+        }
     }
 
-    // helper method to directly get the associated size value given an Entity
-    // dimension data saves size a level deeper. eg: { Afghanistan => { 1990: 1, 2015: 10 }}
-    // this returns that data in the form { Afghanistan => 1 }
-    @computed private get sizeByEntity(): Map<string, any> {
-        const sizeCol = this.sizeColumn
-        const sizeByEntity = new Map<string, any>()
-
-        if (sizeCol)
-            sizeCol.valueByEntityNameAndOriginalTime.forEach(
-                (timeToSizeMap, entity) => {
-                    const values = Array.from(timeToSizeMap.values())
-                    sizeByEntity.set(entity, values[0]) // hack: default to the value associated with the first time
-                }
-            )
-
-        return sizeByEntity
+    @computed private get grapherElement() {
+        return this.manager.base?.current
     }
 
     componentDidMount() {
+        if (this.grapherElement) {
+            // listening to "mousedown" instead of "click" fixes a bug
+            // where the current selection was incorrectly dismissed
+            // when the user drags the slider but releases the drag outside of the timeline
+            this.grapherElement.addEventListener(
+                "mousedown",
+                this.onGrapherClick
+            )
+        }
         exposeInstanceOnWindow(this)
+    }
+
+    componentWillUnmount(): void {
+        if (this.grapherElement) {
+            this.grapherElement.removeEventListener(
+                "mousedown",
+                this.onGrapherClick
+            )
+        }
     }
 
     @computed get series() {
         const column = this.yColumn
         if (!column) return []
 
-        const { colorBySeriesName, sizeByEntity } = this
+        const { colorBySeriesName } = this
         const { minTime, maxTime } = column
 
         const table = this.inputTable
@@ -442,7 +611,6 @@ export class SlopeChart
                 return {
                     seriesName,
                     color,
-                    size: sizeByEntity.get(seriesName) || 1,
                     values: sortedValues,
                 } as SlopeChartSeries
             })
@@ -451,85 +619,7 @@ export class SlopeChart
 }
 
 @observer
-class SlopeChartAxis extends React.Component<SlopeAxisProps> {
-    static calculateBounds(
-        containerBounds: Bounds,
-        props: {
-            column: CoreColumn
-            orient: "left" | "right"
-            scale: ScaleLinear<number, number>
-        }
-    ) {
-        const { scale, column } = props
-        const longestTick = maxBy(
-            scale.ticks(6).map((tick) => column.formatValueShort(tick)),
-            (tick) => tick.length
-        )
-        const axisWidth = Bounds.forText(longestTick).width
-        return new Bounds(
-            containerBounds.x,
-            containerBounds.y,
-            axisWidth,
-            containerBounds.height
-        )
-    }
-
-    static getTicks(
-        scale: ScaleLinear<number, number> | ScaleLogarithmic<number, number>,
-        scaleType: ScaleType
-    ) {
-        if (scaleType === ScaleType.log) {
-            let minPower10 = Math.ceil(
-                Math.log(scale.domain()[0]) / Math.log(10)
-            )
-            if (!isFinite(minPower10)) minPower10 = 0
-            let maxPower10 = Math.floor(
-                Math.log(scale.domain()[1]) / Math.log(10)
-            )
-            if (maxPower10 <= minPower10) maxPower10 += 1
-
-            const tickValues = []
-            for (let i = minPower10; i <= maxPower10; i++) {
-                tickValues.push(Math.pow(10, i))
-            }
-            return tickValues
-        } else {
-            return scale.ticks(6)
-        }
-    }
-
-    @computed get ticks() {
-        return SlopeChartAxis.getTicks(this.props.scale, this.props.scaleType)
-    }
-
-    render() {
-        const { bounds, scale, orient, column, fontSize } = this.props
-        const { ticks } = this
-
-        return (
-            <g className="axis">
-                {ticks.map((tick, i) => {
-                    return (
-                        <text
-                            key={i}
-                            x={orient === "left" ? bounds.left : bounds.right}
-                            y={scale(tick)}
-                            fill={GRAPHER_DARK_TEXT}
-                            dominantBaseline="middle"
-                            textAnchor={orient === "left" ? "start" : "end"}
-                            fontSize={fontSize}
-                        >
-                            {column.formatValueShort(tick)}
-                        </text>
-                    )
-                })}
-            </g>
-        )
-    }
-}
-
-@observer
-class Slope extends React.Component<SlopeProps> {
+class SlopeEntry extends React.Component<SlopeEntryProps> {
     line: SVGElement | null = null
 
     @computed get isInBackground() {
@@ -547,69 +637,37 @@ class Slope extends React.Component<SlopeProps> {
             x2,
             y2,
             color,
-            size,
             hasLeftLabel,
             hasRightLabel,
-            leftValueStr,
-            rightValueStr,
-            leftLabel,
-            rightLabel,
-            labelFontSize,
-            leftLabelBounds,
-            rightLabelBounds,
+            leftValueLabel,
+            leftEntityLabel,
+            rightValueLabel,
+            rightEntityLabel,
+            leftEntityLabelBounds,
+            rightEntityLabelBounds,
             isFocused,
             isHovered,
+            isMultiHoverMode,
         } = this.props
         const { isInBackground } = this
 
-        const lineColor = isInBackground ? "#e2e2e2" : color //'#89C9CF'
-        const labelColor = isInBackground ? "#aaa" : "#333"
+        const lineColor = isInBackground ? "#e2e2e2" : color
+        const labelColor = isInBackground ? "#ccc" : GRAPHER_DARK_TEXT
         const opacity = isHovered ? 1 : isFocused ? 0.7 : 0.5
-        const lineStrokeWidth = isHovered
-            ? size * 2
-            : isFocused
-            ? 1.5 * size
-            : size
+        const lineStrokeWidth =
+            isHovered && !isMultiHoverMode ? 4 : isFocused ? 3 : 2
 
-        const leftValueLabelBounds = Bounds.forText(leftValueStr, {
-            fontSize: labelFontSize,
-        })
-        const rightValueLabelBounds = Bounds.forText(rightValueStr, {
-            fontSize: labelFontSize,
-        })
+        const showDots = isFocused || isHovered
+        const showValueLabels = isFocused || isHovered
+        const showLeftEntityLabel = isFocused || (isHovered && isMultiHoverMode)
+
+        const sharedLabelProps = {
+            fill: labelColor,
+            style: { cursor: "default" },
+        }
 
         return (
             <g className="slope">
-                {hasLeftLabel &&
-                    leftLabel.render(
-                        leftLabelBounds.x + leftLabelBounds.width,
-                        leftLabelBounds.y,
-                        {
-                            textAnchor: "end",
-                            fill: labelColor,
-                            fontWeight:
-                                isFocused || isHovered ? "bold" : undefined,
-                        }
-                    )}
-                {hasLeftLabel && (
-                    <Text
-                        x={x1 - 8}
-                        y={y1 - leftValueLabelBounds.height / 2}
-                        textAnchor="end"
-                        fontSize={labelFontSize}
-                        fill={labelColor}
-                        fontWeight={isFocused || isHovered ? "bold" : undefined}
-                    >
-                        {leftValueStr}
-                    </Text>
-                )}
-                <circle
-                    cx={x1}
-                    cy={y1}
-                    r={isFocused || isHovered ? 4 : 2}
-                    fill={lineColor}
-                    opacity={opacity}
-                />
                 <line
                     ref={(el) => (this.line = el)}
                     x1={x1}
@@ -620,29 +678,76 @@ class Slope extends React.Component<SlopeProps> {
                     strokeWidth={lineStrokeWidth}
                     opacity={opacity}
                 />
-                <circle
-                    cx={x2}
-                    cy={y2}
-                    r={isFocused || isHovered ? 4 : 2}
-                    fill={lineColor}
-                    opacity={opacity}
-                />
-                {hasRightLabel && (
-                    <Text
-                        x={x2 + 8}
-                        y={y2 - rightValueLabelBounds.height / 2}
-                        fontSize={labelFontSize}
-                        fill={labelColor}
-                        fontWeight={isFocused || isHovered ? "bold" : undefined}
-                    >
-                        {rightValueStr}
-                    </Text>
+                {showDots && (
+                    <>
+                        <circle
+                            cx={x1}
+                            cy={y1}
+                            r={4}
+                            fill={lineColor}
+                            opacity={opacity}
+                        />
+                        <circle
+                            cx={x2}
+                            cy={y2}
+                            r={4}
+                            fill={lineColor}
+                            opacity={opacity}
+                        />
+                    </>
                 )}
+                {/* value label on the left */}
+                {hasLeftLabel &&
+                    showValueLabels &&
+                    leftValueLabel.render(
+                        x1 - LABEL_SLOPE_PADDING,
+                        leftEntityLabelBounds.y,
+                        {
+                            textProps: {
+                                ...sharedLabelProps,
+                                textAnchor: "end",
+                            },
+                        }
+                    )}
+                {/* entity label on the left */}
+                {hasLeftLabel &&
+                    showLeftEntityLabel &&
+                    leftEntityLabel.render(
+                        // -2px is a minor visual correction
+                        leftEntityLabelBounds.x - 2,
+                        leftEntityLabelBounds.y,
+                        {
+                            textProps: {
+                                ...sharedLabelProps,
+                                textAnchor: "end",
+                            },
+                        }
+                    )}
+                {/* value label on the right */}
                 {hasRightLabel &&
-                    rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, {
-                        fill: labelColor,
-                        fontWeight: isFocused || isHovered ? "bold" : undefined,
-                    })}
+                    showValueLabels &&
+                    rightValueLabel.render(
+                        rightEntityLabelBounds.x +
+                            rightEntityLabel.width +
+                            LABEL_LABEL_PADDING,
+                        rightEntityLabelBounds.y,
+                        {
+                            textProps: sharedLabelProps,
+                        }
+                    )}
+                {/* entity label on the right */}
+                {hasRightLabel &&
+                    rightEntityLabel.render(
+                        rightEntityLabelBounds.x,
+                        rightEntityLabelBounds.y,
+                        {
+                            textProps: {
+                                ...sharedLabelProps,
+                                fontWeight:
+                                    isFocused || isHovered ? "bold" : undefined,
+                            },
+                        }
+                    )}
             </g>
         )
     }
@@ -651,7 +756,7 @@ class Slope extends React.Component<SlopeProps> {
 @observer
 class LabelledSlopes
     extends React.Component<LabelledSlopesProps>
-    implements FontSizeManager
+    implements AxisManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 
@@ -693,13 +798,21 @@ class LabelledSlopes
     // Then, a special "foreground" set of entities is rendered over the background
     @computed private get isLayerMode() {
         return (
+            this.hoveredSeriesNames.length > 0 ||
             this.focusedSeriesNames.length > 0 ||
-            this.hoveredSeriesNames.length > 0
+            // if the user has selected entities that are not in the chart,
+            // we want to move all entities into the background
+            (this.props.focusKeys?.length > 0 &&
+                this.focusedSeriesNames.length === 0)
         )
     }
 
-    @computed private get isPortrait() {
-        return this.manager.isNarrow || this.manager.isStaticAndSmall
+    @computed private get isMultiHoverMode() {
+        return this.hoveredSeriesNames.length > 1
+    }
+
+    @computed get isPortrait(): boolean {
+        return this.props.isPortrait
     }
 
     @computed private get allValues() {
@@ -715,6 +828,15 @@ class LabelledSlopes
 
     @computed private get yAxisConfig(): AxisConfig {
         return new AxisConfig(this.manager.yAxisConfig, this)
+    }
+
+    @computed get yAxis(): VerticalAxis {
+        const axis = this.yAxisConfig.toVerticalAxis()
+        axis.domain = this.yDomain
+        axis.range = this.yRange
+        axis.formatColumn = this.yColumn
+        axis.label = ""
+        return axis
     }
 
     @computed private get yScaleType() {
@@ -741,67 +863,125 @@ class LabelledSlopes
         ]
     }
 
-    @computed get sizeScale(): ScaleLinear<number, number> {
-        const factor = this.manager.isStaticAndSmall ? 1.2 : 1
-        return scaleLinear()
-            .domain(
-                extent(this.props.seriesArr.map((series) => series.size)) as [
-                    number,
-                    number,
-                ]
-            )
-            .range([factor, 4 * factor])
+    @computed get yRange(): [number, number] {
+        return this.bounds
+            .padTop(TOP_PADDING)
+            .padBottom(BOTTOM_PADDING)
+            .yRange()
     }
 
-    @computed get yScaleConstructor(): any {
-        return this.yScaleType === ScaleType.log ? scaleLog : scaleLinear
+    @computed get yAxisWidth(): number {
+        return this.yAxis.width + 5 // 5px account for the tick marks
     }
 
-    @computed private get yScale():
-        | ScaleLinear<number, number>
-        | ScaleLogarithmic<number, number> {
-        return (
-            this.yScaleConstructor()
-                .domain(this.yDomain)
-                // top padding leaves room for point labels
-                // bottom padding leaves room for y-axis labels
-                .range(this.props.bounds.padTop(6).padBottom(24).yRange())
-        )
+    @computed get xRange(): [number, number] {
+        // take into account the space taken by the yAxis and slope labels
+        const bounds = this.bounds
+            .padLeft(this.yAxisWidth + 4)
+            .padLeft(this.maxLabelWidth)
+            .padRight(this.maxLabelWidth)
+
+        // pick a reasonable width based on an ideal aspect ratio
+        const idealAspectRatio = 0.9
+        const availableWidth = bounds.width
+        const idealWidth = idealAspectRatio * bounds.height
+        const slopeWidth = this.isPortrait
+            ? availableWidth
+            : clamp(idealWidth, 220, availableWidth)
+
+        const leftRightPadding = (availableWidth - slopeWidth) / 2
+        return bounds
+            .padLeft(leftRightPadding)
+            .padRight(leftRightPadding)
+            .xRange()
     }
 
     @computed private get xScale(): ScaleLinear<number, number> {
-        const { bounds, isPortrait, xDomain, yScale, yColumn } = this
-        const padding = isPortrait
-            ? 0
-            : SlopeChartAxis.calculateBounds(bounds, {
-                  orient: "left",
-                  scale: yScale,
-                  column: yColumn,
-              }).width
-        return scaleLinear()
-            .domain(xDomain)
-            .range(bounds.padWidth(padding).xRange())
+        const { xDomain, xRange } = this
+        return scaleLinear().domain(xDomain).range(xRange)
     }
 
-    @computed get maxLabelWidth() {
-        return this.bounds.width / 5
+    @computed get maxLabelWidth(): number {
+        const { slopeLabels } = this
+        const maxLabelWidths = slopeLabels.map((slope) => {
+            const entityLabelWidth = slope.leftEntityLabel.width
+            const maxValueLabelWidth = Math.max(
+                slope.leftValueLabel.width,
+                slope.rightValueLabel.width
+            )
+            return (
+                entityLabelWidth +
+                maxValueLabelWidth +
+                LABEL_SLOPE_PADDING +
+                LABEL_LABEL_PADDING
+            )
+        })
+        return max(maxLabelWidths) ?? 0
+    }
+
+    @computed get allowedLabelWidth() {
+        return this.bounds.width * 0.2
+    }
+
+    @computed private get slopeLabels() {
+        const { isPortrait, yColumn, allowedLabelWidth: maxWidth } = this
+
+        return this.data.map((series) => {
+            const text = series.seriesName
+            const [v1, v2] = series.values
+            const fontSize =
+                (isPortrait
+                    ? GRAPHER_FONT_SCALE_9_6
+                    : GRAPHER_FONT_SCALE_10_5) * this.fontSize
+            const leftValueStr = yColumn.formatValueShort(v1.y)
+            const rightValueStr = yColumn.formatValueShort(v2.y)
+
+            // value labels
+            const valueLabelProps = {
+                maxWidth: Infinity, // no line break
+                fontSize,
+                lineHeight: 1,
+            }
+            const leftValueLabel = new TextWrap({
+                text: leftValueStr,
+                ...valueLabelProps,
+            })
+            const rightValueLabel = new TextWrap({
+                text: rightValueStr,
+                ...valueLabelProps,
+            })
+
+            // entity labels
+            const entityLabelProps = {
+                ...valueLabelProps,
+                maxWidth,
+                fontWeight: 700,
+            }
+            const leftEntityLabel = new TextWrap({
+                text,
+                ...entityLabelProps,
+            })
+            const rightEntityLabel = new TextWrap({
+                text,
+                ...entityLabelProps,
+            })
+
+            return {
+                seriesName: series.seriesName,
+                leftValueLabel,
+                leftEntityLabel,
+                rightValueLabel,
+                rightEntityLabel,
+            }
+        })
     }
 
     @computed private get initialSlopeData() {
-        const {
-            data,
-            isPortrait,
-            xScale,
-            yScale,
-            sizeScale,
-            yColumn,
-            maxLabelWidth: maxWidth,
-        } = this
+        const { data, slopeLabels, xScale, yAxis, yDomain } = this
 
-        const slopeData: SlopeProps[] = []
-        const yDomain = yScale.domain()
+        const slopeData: SlopeEntryProps[] = []
 
-        data.forEach((series) => {
+        data.forEach((series, i) => {
             // Ensure values fit inside the chart
             if (
                 !series.values.every(
@@ -810,94 +990,27 @@ class LabelledSlopes
             )
                 return
 
-            const text = series.seriesName
+            const labels = slopeLabels[i]
             const [v1, v2] = series.values
             const [x1, x2] = [xScale(v1.x), xScale(v2.x)]
-            const [y1, y2] = [yScale(v1.y), yScale(v2.y)]
-            const fontSize =
-                (isPortrait
-                    ? GRAPHER_FONT_SCALE_9_6
-                    : GRAPHER_FONT_SCALE_10_5) * this.fontSize
-            const leftValueStr = yColumn.formatValueShort(v1.y)
-            const rightValueStr = yColumn.formatValueShort(v2.y)
-            const leftValueWidth = Bounds.forText(leftValueStr, {
-                fontSize,
-            }).width
-            const rightValueWidth = Bounds.forText(rightValueStr, {
-                fontSize,
-            }).width
-            const leftLabel = new TextWrap({
-                maxWidth,
-                fontSize,
-                lineHeight: 1,
-                text,
-            })
-            const rightLabel = new TextWrap({
-                maxWidth,
-                fontSize,
-                lineHeight: 1,
-                text,
-            })
+            const [y1, y2] = [yAxis.place(v1.y), yAxis.place(v2.y)]
 
             slopeData.push({
+                ...labels,
                 x1,
                 y1,
                 x2,
                 y2,
                 color: series.color,
-                size: sizeScale(series.size) || 1,
-                leftValueStr,
-                rightValueStr,
-                leftValueWidth,
-                rightValueWidth,
-                leftLabel,
-                rightLabel,
-                labelFontSize: fontSize,
                 seriesName: series.seriesName,
                 isFocused: false,
                 isHovered: false,
                 hasLeftLabel: true,
                 hasRightLabel: true,
-            } as SlopeProps)
+            } as SlopeEntryProps)
         })
 
         return slopeData
-    }
-
-    @computed get maxValueWidth() {
-        return max(this.initialSlopeData.map((s) => s.leftValueWidth)) as number
-    }
-
-    @computed private get labelAccountedSlopeData() {
-        const { maxLabelWidth, maxValueWidth } = this
-
-        return this.initialSlopeData.map((slope) => {
-            // Squish slopes to make room for labels
-            const x1 = slope.x1 + maxLabelWidth + maxValueWidth + 8
-            const x2 = slope.x2 - maxLabelWidth - maxValueWidth - 8
-
-            // Position the labels
-            const leftLabelBounds = new Bounds(
-                x1 - slope.leftValueWidth - 12 - slope.leftLabel.width,
-                slope.y1 - slope.leftLabel.height / 2,
-                slope.leftLabel.width,
-                slope.leftLabel.height
-            )
-            const rightLabelBounds = new Bounds(
-                x2 + slope.rightValueWidth + 12,
-                slope.y2 - slope.rightLabel.height / 2,
-                slope.rightLabel.width,
-                slope.rightLabel.height
-            )
-
-            return {
-                ...slope,
-                x1: x1,
-                x2: x2,
-                leftLabelBounds: leftLabelBounds,
-                rightLabelBounds: rightLabelBounds,
-            }
-        })
     }
 
     @computed get backgroundGroups() {
@@ -913,20 +1026,46 @@ class LabelledSlopes
     }
 
     // Get the final slope data with hover focusing and collision detection
-    @computed get slopeData(): SlopeProps[] {
+    @computed get slopeData(): SlopeEntryProps[] {
         const { focusedSeriesNames, hoveredSeriesNames } = this
-        let slopeData = this.labelAccountedSlopeData
+
+        let slopeData = this.initialSlopeData
 
         slopeData = slopeData.map((slope) => {
+            // used for collision detection
+            const leftEntityLabelBounds = new Bounds(
+                // labels on the left are placed like this: <entity label> <value label> | <slope>
+                slope.x1 -
+                    LABEL_SLOPE_PADDING -
+                    slope.leftValueLabel.width -
+                    LABEL_LABEL_PADDING,
+                slope.y1 - slope.leftEntityLabel.lines[0].height / 2,
+                slope.leftEntityLabel.width,
+                slope.leftEntityLabel.height
+            )
+            const rightEntityLabelBounds = new Bounds(
+                // labels on the left are placed like this: <slope> | <entity label> <value label>
+                slope.x2 + LABEL_SLOPE_PADDING,
+                slope.y2 - slope.rightEntityLabel.height / 2,
+                slope.rightEntityLabel.width,
+                slope.rightEntityLabel.height
+            )
+
+            // used to determine priority for labelling conflicts
+            const isFocused = focusedSeriesNames.includes(slope.seriesName)
+            const isHovered = hoveredSeriesNames.includes(slope.seriesName)
+
             return {
                 ...slope,
-                isFocused: focusedSeriesNames.includes(slope.seriesName),
-                isHovered: hoveredSeriesNames.includes(slope.seriesName),
+                leftEntityLabelBounds,
+                rightEntityLabelBounds,
+                isFocused,
+                isHovered,
             }
         })
 
         // How to work out which of two slopes to prioritize for labelling conflicts
-        function chooseLabel(s1: SlopeProps, s2: SlopeProps) {
+        function chooseLabel(s1: SlopeEntryProps, s2: SlopeEntryProps) {
             if (s1.isHovered && !s2.isHovered)
                 // Hovered slopes always have priority
                 return s1
@@ -935,14 +1074,10 @@ class LabelledSlopes
                 // Focused slopes are next in priority
                 return s1
             else if (!s1.isFocused && s2.isFocused) return s2
-            else if (s1.hasLeftLabel && !s2.hasLeftLabel)
+            else if (s1.hasRightLabel && !s2.hasRightLabel)
                 // Slopes which already have one label are prioritized for the other side
                 return s1
-            else if (!s1.hasLeftLabel && s2.hasLeftLabel) return s2
-            else if (s1.size > s2.size)
-                // Larger sizes get the next priority
-                return s1
-            else if (s2.size > s1.size) return s2
+            else if (!s1.hasRightLabel && s2.hasRightLabel) return s2
             else return s1 // Equal priority, just do the first one
         }
 
@@ -951,12 +1086,16 @@ class LabelledSlopes
             slopeData.forEach((s2) => {
                 if (
                     s1 !== s2 &&
-                    s1.hasLeftLabel &&
-                    s2.hasLeftLabel &&
-                    s1.leftLabelBounds.intersects(s2.leftLabelBounds)
+                    s1.hasRightLabel &&
+                    s2.hasRightLabel &&
+                    // entity labels don't necessarily share the same x position.
+                    // that's why we check for vertical intersection only
+                    s1.rightEntityLabelBounds.hasVerticalOverlap(
+                        s2.rightEntityLabelBounds
+                    )
                 ) {
-                    if (chooseLabel(s1, s2) === s1) s2.hasLeftLabel = false
-                    else s1.hasLeftLabel = false
+                    if (chooseLabel(s1, s2) === s1) s2.hasRightLabel = false
+                    else s1.hasRightLabel = false
                 }
             })
         })
@@ -965,18 +1104,21 @@ class LabelledSlopes
             slopeData.forEach((s2) => {
                 if (
                     s1 !== s2 &&
-                    s1.hasRightLabel &&
-                    s2.hasRightLabel &&
-                    s1.rightLabelBounds.intersects(s2.rightLabelBounds)
+                    s1.hasLeftLabel &&
+                    s2.hasLeftLabel &&
+                    // entity labels don't necessarily share the same x position.
+                    // that's why we check for vertical intersection only
+                    s1.leftEntityLabelBounds.hasVerticalOverlap(
+                        s2.leftEntityLabelBounds
+                    )
                 ) {
-                    if (chooseLabel(s1, s2) === s1) s2.hasRightLabel = false
-                    else s1.hasRightLabel = false
+                    if (chooseLabel(s1, s2) === s1) s2.hasLeftLabel = false
+                    else s1.hasLeftLabel = false
                 }
             })
         })
 
-        // Order by focus/hover and size for draw order
-        slopeData = sortBy(slopeData, (slope) => slope.size)
+        // Order by focus/hover for draw order
         slopeData = sortBy(slopeData, (slope) =>
             slope.isFocused || slope.isHovered ? 1 : 0
         )
@@ -999,26 +1141,67 @@ class LabelledSlopes
 
             this.mouseFrame = requestAnimationFrame(() => {
                 if (this.props.bounds.contains(mouse)) {
-                    const distToSlope = new Map<SlopeProps, number>()
+                    if (this.slopeData.length === 0) return
+
+                    const { x1: startX, x2: endX } = this.slopeData[0]
+
+                    // whether the mouse is over the chart area,
+                    // the left label area, or the right label area
+                    const mousePosition =
+                        mouse.x < startX
+                            ? "left"
+                            : mouse.x > endX
+                              ? "right"
+                              : "chart"
+
+                    // don't track mouse movements when hovering over labels on the left
+                    if (mousePosition === "left") {
+                        this.props.onMouseLeave()
+                        return
+                    }
+
+                    const distToSlopeOrLabel = new Map<
+                        SlopeEntryProps,
+                        number
+                    >()
                     for (const s of this.slopeData) {
+                        // start and end point of a line
+                        let p1: PointVector
+                        let p2: PointVector
+
+                        if (mousePosition === "chart") {
+                            // points define the slope line
+                            p1 = new PointVector(s.x1, s.y1)
+                            p2 = new PointVector(s.x2, s.y2)
+                        } else {
+                            const labelBox = s.rightEntityLabelBounds.toProps()
+                            // points define a "strike-through" line that stretches from
+                            // the end point of the slopes to the right side of the right label
+                            const y = labelBox.y + labelBox.height / 2
+                            p1 = new PointVector(endX, y)
+                            p2 = new PointVector(labelBox.x + labelBox.width, y)
+                        }
+
+                        // calculate the distance to the slope or label
                         const dist =
-                            Math.abs(
-                                (s.y2 - s.y1) * mouse.x -
-                                    (s.x2 - s.x1) * mouse.y +
-                                    s.x2 * s.y1 -
-                                    s.y2 * s.x1
-                            ) /
-                            Math.sqrt((s.y2 - s.y1) ** 2 + (s.x2 - s.x1) ** 2)
-                        distToSlope.set(s, dist)
+                            PointVector.distanceFromPointToLineSegmentSq(
+                                mouse,
+                                p1,
+                                p2
+                            )
+                        distToSlopeOrLabel.set(s, dist)
                     }
 
                     const closestSlope = minBy(this.slopeData, (s) =>
-                        distToSlope.get(s)
+                        distToSlopeOrLabel.get(s)
                     )
+                    const distanceSq = distToSlopeOrLabel.get(closestSlope!)!
+                    const tolerance = mousePosition === "chart" ? 20 : 10
+                    const toleranceSq = tolerance * tolerance
 
                     if (
                         closestSlope &&
-                        (distToSlope.get(closestSlope) as number) < 20 &&
+                        distanceSq < toleranceSq &&
                         this.props.onMouseOver
                     ) {
                         this.props.onMouseOver(closestSlope)
@@ -1050,38 +1233,27 @@ class LabelledSlopes
             .attr("stroke-dashoffset", "0%")
     }
 
-    renderGroups(groups: SlopeProps[]) {
-        const { isLayerMode } = this
+    renderGroups(groups: SlopeEntryProps[]) {
+        const { isLayerMode, isMultiHoverMode } = this
 
         return groups.map((slope) => (
-            <Slope
+            <SlopeEntry
                 key={slope.seriesName}
                 {...slope}
                 isLayerMode={isLayerMode}
+                isMultiHoverMode={isMultiHoverMode}
             />
         ))
     }
 
     render() {
-        const {
-            fontSize,
-            yScaleType,
-            bounds,
-            slopeData,
-            isPortrait,
-            xDomain,
-            yScale,
-            onMouseMove,
-            yColumn,
-        } = this
+        const { bounds, slopeData, xDomain, yAxis, yRange, onMouseMove } = this
 
         if (isEmpty(slopeData))
             return <NoDataModal manager={this.props.manager} bounds={bounds} />
 
         const { x1, x2 } = slopeData[0]
-        const [y1, y2] = yScale.range()
-
-        const tickFontSize = GRAPHER_FONT_SCALE_12 * fontSize
+        const [y1, y2] = yRange
 
         return (
             <g
@@ -1102,62 +1274,58 @@ class LabelledSlopes
                     opacity={0}
                 />
                 <g className="gridlines">
-                    {SlopeChartAxis.getTicks(yScale, yScaleType).map(
-                        (tick, i) => {
-                            return (
+                    {this.yAxis.tickLabels.map((tick) => {
+                        const y = yAxis.place(tick.value)
+                        return (
+                            <g key={y.toString()}>
+                                {/* grid lines connecting the chart area to the axis */}
                                 <line
-                                    key={i}
-                                    x1={x1}
-                                    y1={yScale(tick)}
-                                    x2={x2}
-                                    y2={yScale(tick)}
+                                    x1={bounds.left + this.yAxis.width + 8}
+                                    y1={y}
+                                    x2={x1}
+                                    y2={y}
                                     stroke="#eee"
                                     strokeDasharray="3,2"
                                 />
-                            )
-                        }
-                    )}
+                                {/* grid lines within the chart area */}
+                                <line
+                                    x1={x1}
+                                    y1={y}
+                                    x2={x2}
+                                    y2={y}
+                                    stroke="#ddd"
+                                    strokeDasharray="3,2"
+                                />
+                            </g>
+                        )
+                    })}
                 </g>
-                {!isPortrait && (
-                    <SlopeChartAxis
-                        orient="left"
-                        column={yColumn}
-                        scale={yScale}
-                        scaleType={yScaleType}
-                        bounds={bounds}
-                        fontSize={tickFontSize}
-                    />
-                )}
-                {!isPortrait && (
-                    <SlopeChartAxis
-                        orient="right"
-                        column={yColumn}
-                        scale={yScale}
-                        scaleType={yScaleType}
-                        bounds={bounds}
-                        fontSize={tickFontSize}
-                    />
-                )}
-                <line x1={x1} y1={y1} x2={x1} y2={y2} stroke="#333" />
-                <line x1={x2} y1={y1} x2={x2} y2={y2} stroke="#333" />
-                <Text
+                <VerticalAxisComponent
+                    bounds={bounds}
+                    verticalAxis={this.yAxis}
+                    showTickMarks={true}
+                    labelColor={this.manager.secondaryColorInStaticCharts}
+                />
+                <line x1={x1} y1={y1} x2={x1} y2={y2} stroke="#999" />
+                <line x1={x2} y1={y1} x2={x2} y2={y2} stroke="#999" />
+                <text
                     x={x1}
-                    y={y1 + 10}
+                    y={y1 + BOTTOM_PADDING}
                     textAnchor="middle"
                     fill={GRAPHER_DARK_TEXT}
-                    fontSize={GRAPHER_FONT_SCALE_14 * fontSize}
+                    fontSize={this.yAxis.tickFontSize}
                 >
                     {xDomain[0].toString()}
-                </Text>
-                <Text
+                </text>
+                <text
                     x={x2}
-                    y={y1 + 10}
+                    y={y1 + BOTTOM_PADDING}
                     textAnchor="middle"
                     fill={GRAPHER_DARK_TEXT}
-                    fontSize={GRAPHER_FONT_SCALE_14 * fontSize}
+                    fontSize={this.yAxis.tickFontSize}
                 >
                     {xDomain[1].toString()}
-                </Text>
+                </text>
                 <g className="slopes">
                     {this.renderGroups(this.backgroundGroups)}
                     {this.renderGroups(this.foregroundGroups)}

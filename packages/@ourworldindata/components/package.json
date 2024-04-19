@@ -14,9 +14,9 @@
     "keywords": [],
     "author": "",
     "dependencies": {
-        "@fortawesome/fontawesome-svg-core": "^6.4.2",
-        "@fortawesome/free-brands-svg-icons": "^6.4.2",
-        "@fortawesome/free-solid-svg-icons": "^6.4.2",
+        "@fortawesome/fontawesome-svg-core": "^6.5.2",
+        "@fortawesome/free-brands-svg-icons": "^6.5.2",
+        "@fortawesome/free-solid-svg-icons": "^6.5.2",
         "@fortawesome/react-fontawesome": "^0.2.0",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
@@ -31,9 +31,9 @@
         "@types/react": "^17.0.69",
         "@types/react-dom": "^17.0.22",
         "esbuild-sass-plugin": "^2.16.0",
-        "eslint": "^8.53.0",
+        "eslint": "^8.57.0",
         "eslint-plugin-react-hooks": "^4.6.0",
-        "typescript": "~5.2.2"
+        "typescript": "~5.4.2"
     },
     "license": "MIT"
 }

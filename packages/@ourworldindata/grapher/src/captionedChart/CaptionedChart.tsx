@@ -556,7 +556,9 @@ export class StaticCaptionedChart extends CaptionedChart {
                     {this.manager.detailRenderers.map((detail, i) => {
                         previousOffset = yOffset
                         yOffset += detail.height + STATIC_EXPORT_DETAIL_SPACING
-                        return detail.renderSVG(0, previousOffset, { key: i })
+                        return detail.renderSVG(0, previousOffset, {
+                            textProps: { key: i },
+                        })
                     })}
                 </g>
             </>
@@ -608,7 +610,13 @@ export class StaticCaptionedChart extends CaptionedChart {
                     targetX={paddedBounds.x}
                     targetY={paddedBounds.y}
                 />
-                <g style={{ pointerEvents: "none" }}>{this.renderChart()}</g>
+                <g style={{ pointerEvents: "none" }}>
+                    {/*
+                     We cannot render a table to svg, but would rather display nothing at all to avoid issues.
+                     See https://github.com/owid/owid-grapher/issues/3283
+                    */}
+                    {this.manager.isOnTableTab ? undefined : this.renderChart()}
+                </g>
                 <StaticFooter
                     manager={manager}
                     maxWidth={maxWidth}

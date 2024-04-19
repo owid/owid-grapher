@@ -114,6 +114,12 @@ import {
     EnrichedBlockHomepageIntro,
     RawBlockHomepageIntro,
     EnrichedBlockHomepageIntroPost,
+    RawBlockSocials,
+    EnrichedBlockSocials,
+    EnrichedSocialLink,
+    SocialLinkType,
+    RawBlockLatestWork,
+    EnrichedBlockLatestWork,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -218,6 +224,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "pill-row" }, parsePillRow)
         .with({ type: "homepage-search" }, parseHomepageSearch)
         .with({ type: "homepage-intro" }, parseHomepageIntro)
+        .with({ type: "socials" }, parseSocials)
         .exhaustive()
 }
 
@@ -1516,12 +1523,11 @@ export function parseFaqs(
             id: faq.id,
             content: enrichedText,
             parseErrors: compact([
-                ...enrichedText.flatMap(
-                    (block) =>
-                        block?.parseErrors.map((parseError) => ({
-                            ...parseError,
-                            message: `Block parse error in faq with id "${faq.id}": ${parseError.message}`,
-                        }))
+                ...enrichedText.flatMap((block) =>
+                    block?.parseErrors.map((parseError) => ({
+                        ...parseError,
+                        message: `Block parse error in faq with id "${faq.id}": ${parseError.message}`,
+                    }))
                 ),
             ]),
         }
@@ -1632,6 +1638,8 @@ function parseResearchAndWritingBlock(
 ): EnrichedBlockResearchAndWriting {
     const createError = (
         error: ParseError,
+        heading = "",
+        hideAuthors = false,
         primary = [
             {
                 value: { url: "" },
@@ -1646,12 +1654,19 @@ function parseResearchAndWritingBlock(
             heading: "",
             articles: [],
         },
+        latest: EnrichedBlockResearchAndWritingRow = {
+            heading: "",
+            articles: [],
+        },
         rows: EnrichedBlockResearchAndWritingRow[] = []
     ): EnrichedBlockResearchAndWriting => ({
         type: "research-and-writing",
+        heading,
+        "hide-authors": hideAuthors,
         primary,
         secondary,
         more,
+        latest,
         rows,
         parseErrors: [error],
     })
@@ -1705,6 +1720,15 @@ function parseResearchAndWritingBlock(
         } else return createLinkError(`Malformed link data: ${typeof rawLink}`)
     }
 
+    if (
+        raw.value["hide-authors"] &&
+        !["true", "false"].includes(raw.value["hide-authors"])
+    ) {
+        parseErrors.push({
+            message: `"hide-authors" must be true or false if present`,
+        })
+    }
+
     if (!raw.value.primary)
         return createError({ message: "Missing primary link" })
     const primary: EnrichedBlockResearchAndWritingLink[] = []
@@ -1745,15 +1769,31 @@ function parseResearchAndWritingBlock(
         return { heading: "", articles: [] }
     }
 
+    const parseRowLatest = (
+        rawRow: RawBlockLatestWork
+    ): EnrichedBlockLatestWork | undefined => {
+        if (rawRow.heading && typeof rawRow.heading !== "string") {
+            parseErrors.push({ message: `"heading" must be a string` })
+            return
+        }
+        return { heading: rawRow.heading }
+    }
+
     const more = raw.value.more ? parseRow(raw.value.more, true) : undefined
     const rows = raw.value.rows?.map((row) => parseRow(row)) || []
+    const latest = raw.value.latest
+        ? parseRowLatest(raw.value.latest)
+        : undefined
 
     return {
         type: "research-and-writing",
+        heading: raw.value.heading,
+        "hide-authors": raw.value["hide-authors"] === "true",
         primary,
         secondary,
         more,
         rows,
+        latest,
         parseErrors,
     }
 }
@@ -2241,5 +2281,65 @@ function parseHomepageIntro(
         type: "homepage-intro",
         featuredWork: enrichedFeaturedWork,
         parseErrors,
+    }
+}
+
+export const parseSocials = (raw: RawBlockSocials): EnrichedBlockSocials => {
+    const createError = (error: ParseError): EnrichedBlockSocials => ({
+        type: "socials",
+        parseErrors: [error],
+        links: [],
+    })
+
+    if (typeof raw.value === "string")
+        return createError({
+            message: `Socials block must be written as an array ([socials] or [.socials] when used in [+body])`,
+        })
+
+    if (!raw.value.length) {
+        return createError({
+            message: "Socials block is empty",
+        })
+    }
+
+    const links: EnrichedSocialLink[] = []
+
+    for (const link of raw.value) {
+        const url = extractUrl(link.url)
+        if (!url) {
+            return createError({
+                message: "Link is missing a url",
+            })
+        }
+        if (!link.text) {
+            return createError({
+                message: "Link is missing text",
+            })
+        }
+        if (
+            link.type &&
+            Object.values(SocialLinkType).indexOf(link.type) === -1
+        ) {
+            return createError({
+                message: `Link type must be one of ${Object.values(
+                    SocialLinkType
+                ).join(", ")}`,
+            })
+        }
+
+        links.push({
+            url:
+                link.type === "email" && !url.startsWith("mailto:")
+                    ? `mailto:${url}`
+                    : url,
+            text: link.text,
+            type: link.type,
+        })
+    }
+
+    return {
+        type: "socials",
+        links,
+        parseErrors: [],
     }
 }

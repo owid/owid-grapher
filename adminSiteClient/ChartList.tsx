@@ -26,7 +26,6 @@ export interface ChartListItem {
     lastEditedBy: string
     publishedAt: string
     publishedBy: string
-    isExplorable: boolean
 
     tags: DbChartTagJoin[]
 }
@@ -96,7 +95,7 @@ export class ChartList extends React.Component<{
     }
 
     componentDidMount() {
-        this.getTags()
+        void this.getTags()
     }
 
     render() {

@@ -1,4 +1,8 @@
-import { isEqual, omit } from "@ourworldindata/utils"
+import {
+    checkIsGdocPostExcludingFragments,
+    isEqual,
+    omit,
+} from "@ourworldindata/utils"
 import {
     OwidGdoc,
     OwidGdocBaseInterface,
@@ -6,17 +10,10 @@ import {
     OwidGdocDataInsightContent,
     OwidGdocType,
     OwidGdocHomepageContent,
+    OwidGdocAuthorContent,
 } from "@ourworldindata/types"
 import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./GdocsDiff.js"
-import { GDOCS_DETAILS_ON_DEMAND_ID } from "../settings/clientSettings.js"
-
-export const checkFullDeployFallback = (
-    prevGdoc: OwidGdoc,
-    nextGdoc: OwidGdoc,
-    hasChanges: boolean
-) => {
-    return hasChanges && (prevGdoc.published || nextGdoc.published)
-}
+import { match } from "ts-pattern"
 
 /**
  * This function checks if the article has changed in a way that is compatible
@@ -32,7 +29,7 @@ export const checkIsLightningUpdate = (
 ) => {
     if (
         prevGdoc.content.type !== nextGdoc.content.type ||
-        prevGdoc.id === GDOCS_DETAILS_ON_DEMAND_ID ||
+        !checkIsGdocPostExcludingFragments(nextGdoc) ||
         !hasChanges ||
         !prevGdoc.published ||
         !nextGdoc.published
@@ -57,6 +54,7 @@ export const checkIsLightningUpdate = (
         relatedCharts: true,
         revisionId: true,
         updatedAt: true,
+        markdown: true,
         createdAt: false, // weird case - can't be updated
         id: false, // weird case - can't be updated
         tags: false, // could require updating datapages, though it's currently not possible to have a difference between prevGdoc.tags and nextGdoc.tags
@@ -116,6 +114,20 @@ export const checkIsLightningUpdate = (
         type: false, // should never be changed
     }
 
+    const authorLightningPropContentConfigMap: Record<
+        keyof OwidGdocAuthorContent,
+        boolean
+    > = {
+        type: false, // shouldn't change
+        title: false, // assumed to be used in "author cards" throughout the site
+        role: false, // assumed to be used in "author cards" throughout the site
+        bio: false, // assumed to be used in "author cards" throughout the site
+        "featured-image": false, // assumed to be used in "author cards" throughout the site
+        authors: true, // not used
+        socials: false, // assumed to be used in "author cards" throughout the site
+        body: true, // probably not used outside of the author page, if at all
+    }
+
     const contentPropsMap: Record<OwidGdocType, Record<string, boolean>> = {
         [OwidGdocType.Article]: postlightningPropContentConfigMap,
         [OwidGdocType.Fragment]: postlightningPropContentConfigMap,
@@ -124,6 +136,7 @@ export const checkIsLightningUpdate = (
         [OwidGdocType.DataInsight]: dataInsightLightningPropContentConfigMap,
         [OwidGdocType.Homepage]: homepageLightningPropContentConfigMap,
         [OwidGdocType.AboutPage]: postlightningPropContentConfigMap,
+        [OwidGdocType.Author]: authorLightningPropContentConfigMap,
     }
 
     const getLightningPropKeys = (configMap: Record<string, boolean>) =>
@@ -170,3 +183,22 @@ export const checkHasChanges = (prevGdoc: OwidGdoc, nextGdoc: OwidGdoc) =>
             GDOC_DIFF_OMITTABLE_PROPERTIES
         )
     )
+
+export enum GdocPublishingAction {
+    Updating = "Updating",
+    Publishing = "Publishing",
+    Unpublishing = "Unpublishing",
+    SavingDraft = "SavingDraft",
+}
+
+export function getPublishingAction(
+    prevJson: OwidGdoc,
+    nextJson: OwidGdoc
+): GdocPublishingAction {
+    return match([prevJson.published, nextJson.published])
+        .with([true, true], () => GdocPublishingAction.Updating)
+        .with([false, true], () => GdocPublishingAction.Publishing)
+        .with([true, false], () => GdocPublishingAction.Unpublishing)
+        .with([false, false], () => GdocPublishingAction.SavingDraft)
+        .exhaustive()
+}

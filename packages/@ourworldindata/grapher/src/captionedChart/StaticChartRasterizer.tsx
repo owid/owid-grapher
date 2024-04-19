@@ -57,7 +57,7 @@ export class StaticChartRasterizer {
         const faces = [
             { font: "40px Lato", offset: 17 },
             { font: "bold 40px Lato", offset: 17 },
-            { font: "75px 'Playfair Display'", offset: 27 },
+            { font: "600 75px 'Playfair Display'", offset: 27 },
         ]
 
         for (let retry = 0; retry < MAX_RETRIES; retry++) {

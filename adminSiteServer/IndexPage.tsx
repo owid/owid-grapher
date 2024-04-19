@@ -4,14 +4,14 @@ import {
     GITHUB_USERNAME,
     DATA_API_FOR_ADMIN_UI,
 } from "../settings/serverSettings.js"
-import { VITE_ASSET_ADMIN_ENTRY, viteAssets } from "../site/viteUtils.js"
+import { viteAssetsForAdmin } from "../site/viteUtils.js"
 
 export const IndexPage = (props: {
     username: string
     isSuperuser: boolean
     gitCmsBranchName: string
 }) => {
-    const assets = viteAssets(VITE_ASSET_ADMIN_ENTRY)
+    const assets = viteAssetsForAdmin()
     const script = `
         window.isEditor = true
         window.admin = new Admin({ username: "${

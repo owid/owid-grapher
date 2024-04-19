@@ -24,7 +24,7 @@ it("handles fulfilling single promise", async () => {
 it("selecting a new promise while one is pending discards the pending promise", async () => {
     const onResolve = jest.fn(() => undefined)
     const selector = new PromiseSwitcher({ onResolve })
-    selector.set(delayResolve("first"))
+    void selector.set(delayResolve("first"))
     await selector.set(Promise.resolve("second"))
     expect(onResolve).toHaveBeenCalledTimes(1)
     expect(onResolve).toHaveBeenCalledWith("second")
@@ -38,7 +38,7 @@ it("handles promise rejections", async () => {
     await selector.set(Promise.reject("error"))
     expect(onReject).toHaveBeenCalledWith("error")
 
-    selector.set(delayResolve("success"))
+    void selector.set(delayResolve("success"))
     await selector.set(Promise.reject("error 2"))
     expect(onResolve).not.toHaveBeenCalled()
     expect(onReject).toHaveBeenCalledTimes(2)
@@ -50,7 +50,7 @@ it("handles clearing pending promise", async () => {
     const selector = new PromiseSwitcher({ onResolve, onReject })
 
     const resolve = delayResolve("done")
-    selector.set(resolve)
+    void selector.set(resolve)
     selector.clear()
     await resolve
 
@@ -58,7 +58,7 @@ it("handles clearing pending promise", async () => {
     expect(onReject).not.toHaveBeenCalled()
 
     const reject = delayReject("error")
-    selector.set(reject)
+    void selector.set(reject)
     selector.clear()
     try {
         await reject

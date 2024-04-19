@@ -7,8 +7,8 @@ import {
 } from "../OwidVariable.js"
 import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { Static, Type } from "@sinclair/typebox"
-import { OwidGdocPostInterface } from "./Gdoc.js"
 import { OwidEnrichedGdocBlock } from "./ArchieMlComponents.js"
+import { ImageMetadata } from "./Image.js"
 
 export interface FaqLink {
     gdocId: string
@@ -144,14 +144,8 @@ export type DataPageJson = Static<typeof DataPageJsonTypeObject>
 
 export type DataPageParseError = { message: string; path?: string }
 
-export type FaqEntryData = Pick<
-    OwidGdocPostInterface,
-    | "linkedCharts"
-    | "linkedIndicators"
-    | "linkedDocuments"
-    | "relatedCharts"
-    | "imageMetadata"
-> & {
+// TODO: https://github.com/owid/owid-grapher/issues/3426
+export type FaqEntryData = {
     faqs: OwidEnrichedGdocBlock[]
 }
 
@@ -162,6 +156,7 @@ export interface DataPageV2ContentFields {
     isPreviewing?: boolean
     canonicalUrl: string
     tagToSlugMap: Record<string, string>
+    imageMetadata: Record<string, ImageMetadata>
 }
 export interface DisplaySource {
     label: string

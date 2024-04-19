@@ -10,6 +10,7 @@ import {
     MinimalDataInsightInterface,
     OwidGdocMinimalPostInterface,
     OwidGdocHomepageMetadata,
+    DbEnrichedLatestWork,
 } from "@ourworldindata/types"
 import { get, getOwidGdocFromJSON } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
@@ -18,6 +19,7 @@ import { GdocPost } from "./pages/GdocPost.js"
 import { DataInsightPage } from "./pages/DataInsight.js"
 import { Fragment } from "./pages/Fragment.js"
 import { Homepage } from "./pages/Homepage.js"
+import { Author } from "./pages/Author.js"
 
 export const AttachmentsContext = createContext<{
     linkedCharts: Record<string, LinkedChart>
@@ -27,6 +29,7 @@ export const AttachmentsContext = createContext<{
     relatedCharts: RelatedChart[]
     latestDataInsights?: MinimalDataInsightInterface[]
     homepageMetadata?: OwidGdocHomepageMetadata
+    latestWorkLinks?: DbEnrichedLatestWork[]
 }>({
     linkedDocuments: {},
     imageMetadata: {},
@@ -35,6 +38,7 @@ export const AttachmentsContext = createContext<{
     relatedCharts: [],
     latestDataInsights: [],
     homepageMetadata: {},
+    latestWorkLinks: [],
 })
 
 export const DocumentContext = createContext<{ isPreviewing: boolean }>({
@@ -83,6 +87,9 @@ export function OwidGdoc({
         .with({ content: { type: OwidGdocType.Homepage } }, (props) => (
             <Homepage {...props} />
         ))
+        .with({ content: { type: OwidGdocType.Author } }, (props) => (
+            <Author {...props} />
+        ))
         .with({ content: { type: OwidGdocType.Fragment } }, (props) => (
             <Fragment {...props} />
         ))
@@ -111,6 +118,7 @@ export function OwidGdoc({
                 relatedCharts: get(props, "relatedCharts", []),
                 latestDataInsights: get(props, "latestDataInsights", []),
                 homepageMetadata: get(props, "homepageMetadata", []),
+                latestWorkLinks: get(props, "latestWorkLinks", []),
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>

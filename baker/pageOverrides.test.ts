@@ -6,6 +6,7 @@ import {
 import * as pageOverrides from "./pageOverrides.js"
 
 import { jest } from "@jest/globals"
+import { KnexReadonlyTransaction } from "../db/db.js"
 
 const mockCreatePost = (slug: string): FullPost => {
     return {
@@ -27,7 +28,7 @@ const getPostBySlugLogToSlackNoThrow = jest.spyOn(
     pageOverrides,
     "getPostBySlugLogToSlackNoThrow"
 )
-getPostBySlugLogToSlackNoThrow.mockImplementation((landingSlug) =>
+getPostBySlugLogToSlackNoThrow.mockImplementation((knex, landingSlug) =>
     Promise.resolve(mockCreatePost(landingSlug))
 )
 
@@ -38,6 +39,7 @@ it("gets parent landing", async () => {
 
     await expect(
         pageOverrides.getLandingOnlyIfParent(
+            {} as KnexReadonlyTransaction,
             mockCreatePost("forest-area"),
             formattingOptions
         )
@@ -51,6 +53,7 @@ it("does not get parent landing (subnavId invalid)", async () => {
 
     await expect(
         pageOverrides.getLandingOnlyIfParent(
+            {} as KnexReadonlyTransaction,
             mockCreatePost("forest-area"),
             formattingOptions
         )
@@ -64,6 +67,7 @@ it("does not get parent landing (post is already a landing)", async () => {
 
     await expect(
         pageOverrides.getLandingOnlyIfParent(
+            {} as KnexReadonlyTransaction,
             mockCreatePost(forestLandingSlug),
             formattingOptions
         )
@@ -81,6 +85,7 @@ it("does not get parent landing and logs (landing post not found)", async () => 
 
     await expect(
         pageOverrides.getLandingOnlyIfParent(
+            {} as KnexReadonlyTransaction,
             mockCreatePost("forest-area"),
             formattingOptions
         )

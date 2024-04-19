@@ -65,7 +65,7 @@ class WPDB {
 
     async end(): Promise<void> {
         if (this.conn) this.conn.end()
-        this.destroyKnex()
+        await this.destroyKnex()
     }
 
     async query(queryStr: string, params?: any[]): Promise<any[]> {

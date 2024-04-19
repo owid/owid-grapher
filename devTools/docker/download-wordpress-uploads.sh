@@ -8,4 +8,4 @@ set -o nounset
 
 # Wordpress uploads
 echo "Downloading Wordress uploads"
-rsync -havz --delete --exclude=/.gitkeep --progress owid@live.owid.io:live-data/wordpress/uploads/ ./wordpress/web/app/uploads
+rsync -havz --delete --exclude=/.gitkeep --progress owid@owid-cloudflare-prod:wordpress/web/app/uploads/ ./wordpress/web/app/uploads/

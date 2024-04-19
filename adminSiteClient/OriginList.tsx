@@ -13,7 +13,6 @@ export class OriginList extends React.Component<{
 
     render() {
         const { origins } = this.props
-        const isDisabled = true
 
         return (
             <div>
@@ -25,25 +24,25 @@ export class OriginList extends React.Component<{
                                 label="Title"
                                 field="title"
                                 store={origin}
-                                disabled={isDisabled}
+                                disabled
                             />
                             <BindString
                                 label="Title Snapshot"
                                 field="titleSnapshot"
                                 store={origin}
-                                disabled={isDisabled}
+                                disabled
                             />
                             <BindString
                                 label="Attribution"
                                 field="attribution"
                                 store={origin}
-                                disabled={isDisabled}
+                                disabled
                             />
                             <BindString
                                 label="Attribution Short"
                                 field="attributionShort"
                                 store={origin}
-                                disabled={isDisabled}
+                                disabled
                             />
                         </FieldsRow>
                         <FieldsRow>
@@ -51,28 +50,28 @@ export class OriginList extends React.Component<{
                                 label="Description"
                                 field="description"
                                 store={origin}
-                                disabled={isDisabled}
+                                disabled
                                 textarea
                             />
                             <BindString
                                 label="Description Snapshot"
                                 field="descriptionSnapshot"
                                 store={origin}
-                                disabled={isDisabled}
+                                disabled
                                 textarea
                             />
                             <BindString
                                 label="Citation Full"
                                 field="citationFull"
                                 store={origin}
-                                disabled={isDisabled}
+                                disabled
                                 textarea
                             />
                             <BindString
                                 label="Producer"
                                 field="producer"
                                 store={origin}
-                                disabled={isDisabled}
+                                disabled
                             />
                         </FieldsRow>
                         <FieldsRow>
@@ -80,25 +79,25 @@ export class OriginList extends React.Component<{
                                 label="URL Main"
                                 field="urlMain"
                                 store={origin}
-                                disabled={isDisabled}
+                                disabled
                             />
                             <BindString
                                 label="URL Download"
                                 field="urlDownload"
                                 store={origin}
-                                disabled={isDisabled}
+                                disabled
                             />
                             <BindString
                                 label="Date Accessed"
                                 field="dateAccessed"
                                 store={origin}
-                                disabled={isDisabled}
+                                disabled
                             />
                             <BindString
                                 label="Date Published"
                                 field="datePublished"
                                 store={origin}
-                                disabled={isDisabled}
+                                disabled
                             />
                             {/* Missing origin license... is it worth adding it? */}
                         </FieldsRow>

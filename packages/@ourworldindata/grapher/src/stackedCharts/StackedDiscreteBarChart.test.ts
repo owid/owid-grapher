@@ -189,7 +189,7 @@ describe("sorting", () => {
 
     it("defaults to sorting by total value descending", () => {
         const chart = new StackedDiscreteBarChart({ manager: baseManager })
-        expect(chart.sortedItems.map((item) => item.label)).toEqual([
+        expect(chart.sortedItems.map((item) => item.entityName)).toEqual([
             "Spain",
             "France",
             "Germany",
@@ -207,7 +207,7 @@ describe("sorting", () => {
             },
         })
 
-        expect(chart.sortedItems.map((item) => item.label)).toEqual([
+        expect(chart.sortedItems.map((item) => item.entityName)).toEqual([
             "France",
             "Germany",
             "Spain",
@@ -225,7 +225,7 @@ describe("sorting", () => {
             },
         })
 
-        expect(chart.sortedItems.map((item) => item.label)).toEqual([
+        expect(chart.sortedItems.map((item) => item.entityName)).toEqual([
             "Spain",
             "France",
             "Germany",
@@ -245,7 +245,9 @@ describe("sorting", () => {
             },
         })
 
-        expect(chart.sortedItems.map((item) => item.label)).toEqual(selection)
+        expect(chart.sortedItems.map((item) => item.entityName)).toEqual(
+            selection
+        )
     })
 
     it("can sort by single dimension", () => {
@@ -260,7 +262,7 @@ describe("sorting", () => {
             },
         })
 
-        expect(chart.sortedItems.map((item) => item.label)).toEqual([
+        expect(chart.sortedItems.map((item) => item.entityName)).toEqual([
             "Spain",
             "Germany",
             "France",
@@ -289,7 +291,7 @@ describe("sorting", () => {
         })
 
         // Expected behavior: Belgium and Germany are sorted first because they have values.
-        expect(chart.sortedItems.map((item) => item.label)).toEqual([
+        expect(chart.sortedItems.map((item) => item.entityName)).toEqual([
             "Belgium",
             "Germany",
             "Spain",

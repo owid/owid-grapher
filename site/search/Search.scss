@@ -1,3 +1,6 @@
+$reset-button-size: 24px;
+$reset-button-margin: 16px;
+
 .search-page-container {
     min-height: calc(100vh - $header-height-sm);
     @include sm-up {
@@ -29,11 +32,19 @@
 }
 
 .ais-SearchBox-input {
+    background-color: white;
     width: 100%;
     height: 56px;
     padding-left: 16px;
-    // To conceal the placeholder text underneath the svg buttons on mobile
-    padding-right: 100px;
+    // To give room to the "Clear" button to the right
+    padding-right: $reset-button-size + $reset-button-margin + 4px;
+
+    // If the placeholder is shown, then the Clear button is not shown
+    &:placeholder-shown {
+        padding-right: 16px;
+        text-overflow: ellipsis;
+    }
+
     border: none;
     outline: $blue-20 1px solid;
     outline-offset: 0px;
@@ -46,7 +57,7 @@
 .ais-SearchBox-reset {
     display: inline-block;
     position: absolute;
-    right: 16px;
+    right: $reset-button-margin;
     top: 30%;
     border: none;
     border-radius: 16px;
@@ -117,10 +128,14 @@
 
 .search-results {
     @include lg-down {
-        padding-bottom: 32px;
         margin-left: 16px;
         margin-right: 16px;
     }
+}
+
+.search-results__header-container {
+    margin-top: 24px;
+    margin-bottom: 24px;
 }
 
 .search-results__header {
@@ -129,14 +144,19 @@
 }
 
 .search-results__section-title {
-    margin-top: 24px;
-    margin-bottom: 24px;
+    margin-top: 0;
+    margin-bottom: 0;
     margin-right: 16px;
     color: $blue-50;
 
     @include sm-only {
         color: $blue-90;
     }
+}
+
+.search-results__section-subtitle {
+    margin-top: 4px;
+    color: $blue-90;
 }
 
 .search-results__show-more-container {
@@ -150,6 +170,10 @@
         background: none;
         border: none;
         cursor: pointer;
+    }
+
+    &.show-more-btn-hidden button {
+        visibility: hidden; // Don't show the button, but keep the margin/padding for mobile layout
     }
 
     @include sm-only {
@@ -193,12 +217,17 @@
 }
 
 .search-results__pages-list,
-.search-results__explorers-list,
+.search-results__explorer-list,
 .search-results__charts-list {
     gap: var(--grid-gap);
     @include sm-only {
         padding-bottom: 24px;
     }
+}
+
+// For charts, make it clearer that the title etc. belong to the chart above
+.search-results__charts-list {
+    row-gap: calc(2 * var(--grid-gap));
 }
 
 .search-results__page-hit {
@@ -228,16 +257,11 @@
     display: block;
 }
 
-.search-results__explorer-hit a {
+.search-results__explorer-hit {
     background-color: $blue-10;
     height: 100%;
     padding: 24px;
     display: block;
-    transition: background-color 0.1s;
-
-    &:hover {
-        background-color: $blue-20;
-    }
 
     h4 {
         margin: 0;
@@ -245,7 +269,90 @@
     }
 
     p {
-        color: $blue-60;
+        color: $blue-50;
+        font-weight: 400;
+    }
+
+    .search-results__explorer-hit-link-mobile {
+        @include body-3-medium;
+        @include owid-link-60;
+        margin-top: 16px;
+        display: block;
+    }
+
+    .search-results__explorer-hit-header {
+        display: flex;
+        justify-content: space-between;
+
+        .search-results__explorer-hit-title-container {
+            min-width: 0;
+        }
+
+        .search-results__explorer-hit-title {
+            display: inline;
+            color: $blue-90;
+            margin: 0 8px 0 0;
+        }
+
+        .search-results__explorer-hit-subtitle {
+            margin: 0 8px 0 0;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .search-results__explorer-hit-link {
+            margin-top: 0;
+            flex: 0 0 auto;
+            text-align: right;
+
+            a {
+                @include body-3-medium;
+                @include owid-link-60;
+            }
+        }
+    }
+
+    .search-results__explorer-views-list {
+        margin-top: 16px;
+        list-style: none;
+        gap: 16px;
+
+        .search-results__explorer-view {
+            margin-left: 24px;
+            overflow: hidden;
+
+            .search-results__explorer-view-title-container {
+                color: $blue-90;
+                @include owid-link-90;
+
+                svg {
+                    font-size: 0.75em;
+                    margin-left: 6px;
+                }
+            }
+
+            .search-results__explorer-view-subtitle {
+                margin-top: 0;
+                margin-bottom: 0;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+            }
+
+            @include sm-only {
+                // *If on "All" tab on small screens*, only show the first two views on mobile, and hide view subtitles
+                @at-root .search-results[data-active-filter="all"] & {
+                    &:nth-child(n + 3) {
+                        display: none;
+                    }
+
+                    .search-results__explorer-view-subtitle {
+                        display: none;
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -255,32 +362,90 @@
         .search-results__chart-hit-highlight {
             text-decoration: underline;
         }
-        img {
+        .search-results__chart-hit-img-container img {
             box-shadow: none;
         }
     }
 }
 
-.search-results__chart-hit-highlight {
-    line-height: 21px;
-    color: $blue-90;
+.search-results__chart-hit-title-container {
+    line-height: 20px;
+
+    .search-results__chart-hit-highlight {
+        color: $blue-90;
+    }
+
+    .search-results__chart-hit-variant {
+        color: $blue-60;
+        font-size: 0.9em;
+    }
 }
 
-.search-results__chart-hit-variant {
-    color: $blue-60;
-    font-size: 0.9em;
+@keyframes chartErrorFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .search-results__chart-hit-img-container {
     margin-bottom: 8px;
+    aspect-ratio: calc($grapher-thumbnail-width / $grapher-thumbnail-height);
+    width: 100%;
+    background-color: $gray-10;
+
     img {
         display: block; // remove the space below the image
-        box-shadow:
-            0px 0px 0px 0px rgba(49, 37, 2, 0.03),
-            0px 6px 13px 0px rgba(49, 37, 2, 0.03),
-            0px 93px 37px 0px rgba(49, 37, 2, 0.01),
-            0px 145px 41px 0px rgba(49, 37, 2, 0);
         transition: box-shadow 0.1s;
+
+        &.loaded {
+            box-shadow:
+                0px 0px 0px 0px rgba(49, 37, 2, 0.03),
+                0px 6px 13px 0px rgba(49, 37, 2, 0.03),
+                0px 93px 37px 0px rgba(49, 37, 2, 0.01),
+                0px 145px 41px 0px rgba(49, 37, 2, 0);
+        }
+
+        &.error {
+            display: none;
+        }
+    }
+
+    .search-results__chart-hit-img-error {
+        display: flex;
+        height: 100%;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        color: $grey-text-color;
+        animation: chartErrorFadeIn 0.3s;
+
+        gap: 0.5em;
+
+        svg {
+            font-size: 1.75em;
+        }
+    }
+}
+
+.search-results__chart-hit-entities {
+    list-style: none;
+    font-size: 0.8em;
+
+    li {
+        display: inline;
+        color: $blue-50;
+
+        &::after {
+            content: ", ";
+        }
+
+        &:last-child::after {
+            content: "";
+        }
     }
 }
 
@@ -294,57 +459,35 @@
     display: none;
 }
 
-.search-results[data-active-filter="all"] {
-    .search-results__pages,
-    .search-results__explorers,
-    .search-results__charts {
-        // both needed for .search-results__show-more-container absolute-positioning
-        display: inline-block;
-        position: relative;
-        width: 100%;
+// Show results depending on active tab
+.search-results {
+    &[data-active-filter="all"] {
+        .search-results__pages,
+        .search-results__explorers,
+        .search-results__charts {
+            // both needed for .search-results__show-more-container absolute-positioning
+            display: inline-block;
+            position: relative;
+            width: 100%;
+        }
+
+        // On the "All" tab, limit to the first 4 pages, 4 charts, and 2 explorer views
+        .search-results__page-hit:nth-child(n + 5),
+        .search-results__chart-hit:nth-child(n + 5),
+        .search-results__explorer-hit:nth-child(n + 3) {
+            display: none;
+        }
     }
-}
 
-.search-results__page-hit {
-    display: none;
-}
-
-.search-results__page-hit {
-    &:nth-child(-n + 4) {
+    &[data-active-filter="pages"] .search-results__pages {
         display: inline;
     }
-}
 
-.search-results[data-active-filter="pages"] .search-results__pages {
-    display: inline;
-
-    .search-results__page-hit {
+    &[data-active-filter="charts"] .search-results__charts {
         display: inline;
     }
-}
 
-.search-results[data-active-filter="charts"] .search-results__charts {
-    display: inline;
-
-    .search-results__chart-hit {
-        display: inline;
-    }
-}
-
-.search-results__explorer-hit {
-    display: none;
-}
-
-.search-results__explorer-hit {
-    &:nth-child(-n + 2) {
-        display: inline;
-    }
-}
-
-.search-results[data-active-filter="explorers"] .search-results__explorers {
-    display: inline;
-
-    .search-results__explorer-hit {
+    &[data-active-filter="explorer-views"] .search-results__explorers {
         display: inline;
     }
 }
@@ -387,7 +530,7 @@ section[hidden]
     width: 200px;
     margin: 32px;
     margin-left: 0;
-    @include sm-only {
+    @include lg-down {
         margin-left: 16px;
     }
 }

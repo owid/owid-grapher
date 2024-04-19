@@ -70,7 +70,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
 
     componentDidMount(): void {
         document.addEventListener("click", this.onClickSomewhere)
-        canWriteToClipboard().then((canWriteToClipboard) =>
+        void canWriteToClipboard().then((canWriteToClipboard) =>
             this.setState({ canWriteToClipboard })
         )
     }

@@ -14,6 +14,9 @@ export {
     getUrlTarget,
     checkIsInternalLink,
     convertHeadingTextToId,
+    getBakePath,
+    getCanonicalUrl,
+    getPageTitle,
 } from "./GdocsUtils.js"
 
 export { ExpandableToggle } from "./ExpandableToggle/ExpandableToggle.js"
@@ -45,3 +48,5 @@ export {
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     REUSE_THIS_WORK_SECTION_ID,
 } from "./SharedDataPageConstants.js"
+
+export { Button } from "./Button/Button.js"

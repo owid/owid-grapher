@@ -30,7 +30,6 @@ import {
     EMBEDDED_EXPLORER_DELIMITER,
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EMBEDDED_EXPLORER_PARTIAL_GRAPHER_CONFIGS,
-    EXPLORER_EMBEDDED_FIGURE_PROPS_ATTR,
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
 } from "../../explorer/ExplorerConstants.js"
 import {
@@ -122,7 +121,7 @@ class MultiEmbedder {
     async onIntersecting(entries: IntersectionObserverEntry[]) {
         entries.forEach((entry) => {
             if (entry.isIntersecting) {
-                this.renderInteractiveFigure(entry.target)
+                void this.renderInteractiveFigure(entry.target)
             }
         })
     }
@@ -164,12 +163,6 @@ class MultiEmbedder {
         const html = await fetchText(fullUrl)
 
         if (isExplorer) {
-            const explorerPropsAttr = figure.getAttribute(
-                EXPLORER_EMBEDDED_FIGURE_PROPS_ATTR
-            )
-            const localProps = explorerPropsAttr
-                ? JSON.parse(explorerPropsAttr)
-                : {}
             let grapherConfigs = deserializeJSONFromHTML(
                 html,
                 EMBEDDED_EXPLORER_GRAPHER_CONFIGS
@@ -197,7 +190,6 @@ class MultiEmbedder {
             const props: ExplorerProps = {
                 ...common,
                 ...deserializeJSONFromHTML(html, EMBEDDED_EXPLORER_DELIMITER),
-                ...localProps,
                 grapherConfigs,
                 partialGrapherConfigs,
                 queryStr,

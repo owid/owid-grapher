@@ -528,6 +528,7 @@ export type RawBlockResearchAndWritingLink = {
     title?: string
     subtitle?: string
     filename?: string
+    date?: string
 }
 
 export type RawBlockResearchAndWritingRow = {
@@ -535,9 +536,15 @@ export type RawBlockResearchAndWritingRow = {
     articles?: RawBlockResearchAndWritingLink[]
 }
 
+export type RawBlockLatestWork = {
+    heading?: string
+}
+
 export type RawBlockResearchAndWriting = {
     type: "research-and-writing"
     value: {
+        heading?: string
+        "hide-authors"?: string
         // We're migrating these to be arrays, but have to support the old use-case until it's done
         primary?:
             | RawBlockResearchAndWritingLink
@@ -547,6 +554,7 @@ export type RawBlockResearchAndWriting = {
             | RawBlockResearchAndWritingLink[]
         more?: RawBlockResearchAndWritingRow
         rows?: RawBlockResearchAndWritingRow[]
+        latest?: RawBlockLatestWork
     }
 }
 
@@ -557,6 +565,7 @@ export type EnrichedBlockResearchAndWritingLink = {
         title?: string
         subtitle?: string
         filename?: string
+        date?: string
     }
 }
 
@@ -565,12 +574,20 @@ export type EnrichedBlockResearchAndWritingRow = {
     articles: EnrichedBlockResearchAndWritingLink[]
 }
 
+export type EnrichedBlockLatestWork = {
+    heading?: string
+    articles?: EnrichedBlockResearchAndWritingLink[]
+}
+
 export type EnrichedBlockResearchAndWriting = {
     type: "research-and-writing"
+    heading?: string
+    "hide-authors": boolean
     primary: EnrichedBlockResearchAndWritingLink[]
     secondary: EnrichedBlockResearchAndWritingLink[]
     more?: EnrichedBlockResearchAndWritingRow
     rows: EnrichedBlockResearchAndWritingRow[]
+    latest?: EnrichedBlockLatestWork
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockSDGToc = {
@@ -821,6 +838,37 @@ export type EnrichedBlockLatestDataInsights = {
     type: "latest-data-insights"
 } & EnrichedBlockWithParseErrors
 
+export enum SocialLinkType {
+    X = "x",
+    Facebook = "facebook",
+    Instagram = "instagram",
+    Youtube = "youtube",
+    Linkedin = "linkedin",
+    Threads = "threads",
+    Mastodon = "mastodon",
+    Bluesky = "bluesky",
+    Email = "email",
+    Link = "link",
+}
+
+export type RawSocialLink = {
+    text: string
+    url: string
+    type?: SocialLinkType
+}
+
+export type RawBlockSocials = {
+    type: "socials"
+    value: RawSocialLink[] | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedSocialLink = RawSocialLink
+
+export type EnrichedBlockSocials = {
+    type: "socials"
+    links: EnrichedSocialLink[]
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
@@ -864,6 +912,7 @@ export type OwidRawGdocBlock =
     | RawBlockHomepageSearch
     | RawBlockHomepageIntro
     | RawBlockLatestDataInsights
+    | RawBlockSocials
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -908,3 +957,4 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockHomepageSearch
     | EnrichedBlockHomepageIntro
     | EnrichedBlockLatestDataInsights
+    | EnrichedBlockSocials

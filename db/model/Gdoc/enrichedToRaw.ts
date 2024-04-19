@@ -43,6 +43,7 @@ import {
     RawBlockHomepageSearch,
     RawBlockHomepageIntro,
     RawBlockLatestDataInsights,
+    RawBlockSocials,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -370,6 +371,8 @@ export function enrichedBlockToRawBlock(
                 return {
                     type: b.type,
                     value: {
+                        heading: b.heading,
+                        "hide-authors": b["hide-authors"].toString(),
                         primary: b.primary.map((enriched) =>
                             enrichedLinkToRawLink(enriched)
                         ),
@@ -382,6 +385,11 @@ export function enrichedBlockToRawBlock(
                                   articles: b.more.articles.map(
                                       enrichedLinkToRawLink
                                   ),
+                              }
+                            : undefined,
+                        latest: b.latest
+                            ? {
+                                  heading: b.latest.heading,
                               }
                             : undefined,
                         rows: b.rows.map(({ heading, articles }) => ({
@@ -511,6 +519,12 @@ export function enrichedBlockToRawBlock(
                         })
                     ),
                 },
+            }
+        })
+        .with({ type: "socials" }, (b): RawBlockSocials => {
+            return {
+                type: "socials",
+                value: b.links,
             }
         })
         .exhaustive()

@@ -35,8 +35,8 @@ export class AbsRelToggle extends React.Component<{
         return type === ScatterPlot
             ? "Show the percentage change per year over the the selected time range."
             : type === LineChart
-            ? "Show proportional changes over time or actual values in their original units."
-            : "Show values as their share of the total or as actual values in their original units."
+              ? "Show proportional changes over time or actual values in their original units."
+              : "Show values as their share of the total or as actual values in their original units."
     }
 
     render(): JSX.Element {

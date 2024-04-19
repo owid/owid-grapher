@@ -13,7 +13,7 @@ import {
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
 import { GRAPHER_DARK_TEXT } from "../core/GrapherConstants"
-import { ScaleType } from "@ourworldindata/types"
+import { ScaleType, DetailsMarker } from "@ourworldindata/types"
 
 const dasharrayFromFontSize = (fontSize: number): string => {
     const dashLength = Math.round((fontSize / 16) * 3)
@@ -42,8 +42,8 @@ export class VerticalAxisGridLines extends React.Component<{
                     const color = t.faint
                         ? FAINT_TICK_COLOR
                         : t.solid
-                        ? SOLID_TICK_COLOR
-                        : TICK_COLOR
+                          ? SOLID_TICK_COLOR
+                          : TICK_COLOR
 
                     return (
                         <line
@@ -91,8 +91,8 @@ export class HorizontalAxisGridLines extends React.Component<{
                     const color = t.faint
                         ? FAINT_TICK_COLOR
                         : t.solid
-                        ? SOLID_TICK_COLOR
-                        : TICK_COLOR
+                          ? SOLID_TICK_COLOR
+                          : TICK_COLOR
 
                     return (
                         <line
@@ -157,13 +157,20 @@ interface DualAxisViewProps {
     labelColor?: string
     tickColor?: string
     lineWidth?: number
+    detailsMarker?: DetailsMarker
 }
 
 @observer
 export class DualAxisComponent extends React.Component<DualAxisViewProps> {
     render(): JSX.Element {
-        const { dualAxis, showTickMarks, labelColor, tickColor, lineWidth } =
-            this.props
+        const {
+            dualAxis,
+            showTickMarks,
+            labelColor,
+            tickColor,
+            lineWidth,
+            detailsMarker,
+        } = this.props
         const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
 
         const verticalGridlines = verticalAxis.hideGridlines ? null : (
@@ -188,6 +195,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 verticalAxis={verticalAxis}
                 labelColor={labelColor}
                 tickColor={tickColor}
+                detailsMarker={detailsMarker}
             />
         )
 
@@ -200,6 +208,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 labelColor={labelColor}
                 tickColor={tickColor}
                 tickMarkWidth={lineWidth}
+                detailsMarker={detailsMarker}
             />
         )
 
@@ -218,24 +227,47 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
 export class VerticalAxisComponent extends React.Component<{
     bounds: Bounds
     verticalAxis: VerticalAxis
+    showTickMarks?: boolean
     labelColor?: string
     tickColor?: string
+    detailsMarker?: DetailsMarker
 }> {
     render(): JSX.Element {
-        const { bounds, verticalAxis, labelColor, tickColor } = this.props
+        const {
+            bounds,
+            verticalAxis,
+            labelColor,
+            tickColor,
+            detailsMarker,
+            showTickMarks,
+        } = this.props
         const { tickLabels, labelTextWrap } = verticalAxis
+
+        const tickMarks = showTickMarks ? (
+            <VerticalAxisTickMarks
+                tickMarkYPositions={tickLabels.map((label) =>
+                    verticalAxis.place(label.value)
+                )}
+                tickMarkLeftPosition={bounds.left + verticalAxis.width}
+                color={SOLID_TICK_COLOR}
+            />
+        ) : undefined
 
         return (
             <g className="VerticalAxis">
                 {labelTextWrap &&
-                    labelTextWrap.render(
+                    labelTextWrap.renderSVG(
                         -verticalAxis.rangeCenter - labelTextWrap.width / 2,
                         bounds.left,
                         {
-                            transform: "rotate(-90)",
-                            fill: labelColor || GRAPHER_DARK_TEXT,
+                            textProps: {
+                                transform: "rotate(-90)",
+                                fill: labelColor || GRAPHER_DARK_TEXT,
+                            },
+                            detailsMarker,
                         }
                     )}
+                {tickMarks}
                 {tickLabels.map((label, i) => {
                     const { y, xAlign, yAlign, formattedValue } = label
                     return (
@@ -271,6 +303,7 @@ export class HorizontalAxisComponent extends React.Component<{
     labelColor?: string
     tickColor?: string
     tickMarkWidth?: number
+    detailsMarker?: DetailsMarker
 }> {
     @computed get scaleType(): ScaleType {
         return this.props.axis.scaleType
@@ -297,6 +330,7 @@ export class HorizontalAxisComponent extends React.Component<{
             labelColor,
             tickColor,
             tickMarkWidth,
+            detailsMarker,
         } = this.props
         const { tickLabels, labelTextWrap: label, labelOffset, orient } = axis
         const horizontalAxisLabelsOnTop = orient === Position.top
@@ -309,7 +343,7 @@ export class HorizontalAxisComponent extends React.Component<{
             : preferredAxisPosition ?? bounds.bottom
 
         const tickMarks = showTickMarks ? (
-            <AxisTickMarks
+            <HorizontalAxisTickMarks
                 tickMarkTopPosition={tickMarksYPosition}
                 tickMarkXPositions={tickLabels.map((label): number =>
                     axis.place(label.value)
@@ -325,10 +359,15 @@ export class HorizontalAxisComponent extends React.Component<{
         return (
             <g className="HorizontalAxis">
                 {label &&
-                    label.render(
+                    label.renderSVG(
                         axis.rangeCenter - label.width / 2,
                         labelYPosition,
-                        { fill: labelColor || GRAPHER_DARK_TEXT }
+                        {
+                            textProps: {
+                                fill: labelColor || GRAPHER_DARK_TEXT,
+                            },
+                            detailsMarker,
+                        }
                     )}
                 {tickMarks}
                 {tickLabels.map((label, i) => {
@@ -353,7 +392,7 @@ export class HorizontalAxisComponent extends React.Component<{
     }
 }
 
-export class AxisTickMarks extends React.Component<{
+export class HorizontalAxisTickMarks extends React.Component<{
     tickMarkTopPosition: number
     tickMarkXPositions: number[]
     color: string
@@ -372,6 +411,33 @@ export class AxisTickMarks extends React.Component<{
                     y1={tickMarkTopPosition}
                     x2={tickMarkPosition}
                     y2={tickBottom}
+                    stroke={color}
+                    strokeWidth={width}
+                />
+            )
+        })
+    }
+}
+
+export class VerticalAxisTickMarks extends React.Component<{
+    tickMarkLeftPosition: number
+    tickMarkYPositions: number[]
+    color: string
+    width?: number
+}> {
+    render(): JSX.Element[] {
+        const { tickMarkYPositions, tickMarkLeftPosition, color, width } =
+            this.props
+        const tickSize = 5
+        const tickRight = tickMarkLeftPosition + tickSize
+        return tickMarkYPositions.map((tickMarkPosition, index) => {
+            return (
+                <line
+                    key={index}
+                    x1={tickMarkLeftPosition}
+                    y1={tickMarkPosition}
+                    x2={tickRight}
+                    y2={tickMarkPosition}
                     stroke={color}
                     strokeWidth={width}
                 />

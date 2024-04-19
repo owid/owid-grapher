@@ -3,12 +3,11 @@ import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 
 import {
-    DbChartTagJoin,
-    Tag,
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
     SearchWord,
     uniq,
+    DbChartTagJoin,
 } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow, Timeago } from "./Forms.js"
@@ -52,7 +51,7 @@ enum GdocStatus {
 
 interface PostRowProps {
     post: PostIndexMeta
-    availableTags: Tag[]
+    availableTags: DbChartTagJoin[]
 }
 
 @observer
@@ -68,9 +67,9 @@ class PostRow extends React.Component<PostRowProps> {
         this.postGdocStatus = props.post.gdocSuccessorId
             ? GdocStatus.CONVERTED
             : props.post.gdocSlugSuccessors &&
-              props.post.gdocSlugSuccessors.length > 0
-            ? GdocStatus.MISSING_WITH_SLUG_SUCCESSOR
-            : GdocStatus.MISSING_NO_SLUG_SUCCESSOR
+                props.post.gdocSlugSuccessors.length > 0
+              ? GdocStatus.MISSING_WITH_SLUG_SUCCESSOR
+              : GdocStatus.MISSING_NO_SLUG_SUCCESSOR
     }
 
     async saveTags(tags: DbChartTagJoin[]) {
@@ -86,7 +85,7 @@ class PostRow extends React.Component<PostRowProps> {
     }
 
     @action.bound onSaveTags(tags: DbChartTagJoin[]) {
-        this.saveTags(tags)
+        void this.saveTags(tags)
     }
 
     @action.bound async onConvertGdoc(allowRecreate: boolean = false) {
@@ -107,7 +106,7 @@ class PostRow extends React.Component<PostRowProps> {
                 "This will overwrite the existing GDoc. Are you sure?"
             )
         ) {
-            this.onConvertGdoc(true)
+            void this.onConvertGdoc(true)
         }
     }
 
@@ -257,7 +256,7 @@ export class PostsIndexPage extends React.Component {
     @observable posts: PostIndexMeta[] = []
     @observable maxVisibleRows = 50
     @observable searchInput?: string
-    @observable availableTags: Tag[] = []
+    @observable availableTags: DbChartTagJoin[] = []
 
     @computed get searchWords(): SearchWord[] {
         const { searchInput } = this
@@ -377,7 +376,7 @@ export class PostsIndexPage extends React.Component {
     }
 
     componentDidMount() {
-        this.getData()
-        this.getTags()
+        void this.getData()
+        void this.getTags()
     }
 }

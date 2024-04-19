@@ -4,6 +4,7 @@ import {
     EnrichedBlockText,
     HorizontalAlign,
     OwidEnrichedGdocBlock,
+    SocialLinkType,
     Span,
     SpanSimpleText,
 } from "@ourworldindata/types"
@@ -364,6 +365,8 @@ export const enrichedBlockExamples: Record<
     "research-and-writing": {
         type: "research-and-writing",
         parseErrors: [],
+        heading: "Featured Work",
+        "hide-authors": true,
         primary: [
             {
                 value: {
@@ -408,6 +411,10 @@ export const enrichedBlockExamples: Record<
                     },
                 },
             ],
+        },
+        latest: {
+            heading: "Latest work",
+            // No support for manual articles, they are only being pulled dynamically
         },
         rows: [
             {
@@ -639,6 +646,27 @@ export const enrichedBlockExamples: Record<
     },
     "latest-data-insights": {
         type: "latest-data-insights",
+        parseErrors: [],
+    },
+    socials: {
+        type: "socials",
+        links: [
+            {
+                url: "https://twitter.com/OurWorldInData",
+                text: "@OurWorldInData",
+                type: SocialLinkType.X,
+            },
+            {
+                url: "https://facebook.com/OurWorldInData",
+                text: "OurWorldInData",
+                type: SocialLinkType.Facebook,
+            },
+            {
+                url: "https://ourworldindata.org",
+                text: "ourworldindata.org",
+            },
+        ],
+
         parseErrors: [],
     },
 }

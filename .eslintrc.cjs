@@ -1,3 +1,5 @@
+const path = require('node:path');
+
 module.exports = {
     extends: [
         "plugin:react/recommended",
@@ -12,7 +14,7 @@ module.exports = {
         ecmaFeatures: {
             jsx: true,
         },
-        project: "./tsconfig.eslint.json",
+        project: path.join(__dirname, "tsconfig.eslint.json"),
         ecmaVersion: "latest",
     },
     overrides: [
@@ -51,6 +53,7 @@ module.exports = {
         "react/no-render-return-value": "warn",
         "react/no-unescaped-entities": ["warn", { forbid: [">", "}"] }],
         "react/prop-types": "warn",
+        "@typescript-eslint/no-floating-promises": "error",
     },
     settings: {
         "import/resolver": {

@@ -17,18 +17,21 @@ import {
     snapshotIsPostRestApi,
     snapshotIsBlockGraphQlApi,
     PostReference,
-    Tag,
     DataPageRelatedResearch,
     OwidGdocType,
+    DbRawLatestWork,
+    DbEnrichedLatestWork,
+    parseLatestWork,
+    DbPlainTag,
 } from "@ourworldindata/types"
 import { uniqBy, sortBy, memoize, orderBy } from "@ourworldindata/utils"
 import { Knex } from "knex"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { BLOG_SLUG } from "../../settings/serverSettings.js"
-import { GdocPost } from "./Gdoc/GdocPost.js"
 import { SiteNavigationStatic } from "../../site/SiteNavigation.js"
 import { decodeHTML } from "entities"
 import { RelatedResearchQueryResult } from "../wpdb"
+import { getAndLoadListedGdocPosts } from "./Gdoc/GdocFactory.js"
 
 export const postsTable = "posts"
 
@@ -40,14 +43,21 @@ export const select = <K extends keyof DbRawPost>(
     from: (query) => query.select(...args) as any,
 })
 
-export const getTagsByPostId = async (): Promise<
-    Map<number, { id: number; name: string }[]>
-> => {
-    const postTags = await db.queryMysql(`
+export const getTagsByPostId = async (
+    knex: db.KnexReadonlyTransaction
+): Promise<Map<number, { id: number; name: string }[]>> => {
+    const postTags = await db.knexRaw<{
+        postId: number
+        tagId: number
+        tagName: string
+    }>(
+        knex,
+        `
             SELECT pt.post_id AS postId, pt.tag_id AS tagId, t.name as tagName FROM post_tags pt
             JOIN posts p ON p.id=pt.post_id
             JOIN tags t ON t.id=pt.tag_id
-        `)
+        `
+    )
 
     const tagsByPostId: Map<number, { id: number; name: string }[]> = new Map()
 
@@ -61,85 +71,95 @@ export const getTagsByPostId = async (): Promise<
 }
 
 export const setTags = async (
+    trx: db.KnexReadWriteTransaction,
     postId: number,
     tagIds: number[]
-): Promise<void> =>
-    await db.transaction(async (t) => {
-        const tagRows = tagIds.map((tagId) => [tagId, postId])
-        await t.execute(`DELETE FROM post_tags WHERE post_id=?`, [postId])
-        if (tagRows.length)
-            await t.execute(
-                `INSERT INTO post_tags (tag_id, post_id) VALUES ?`,
-                [tagRows]
-            )
-    })
+): Promise<void> => {
+    const tagRows = tagIds.map((tagId) => [tagId, postId])
+    await db.knexRaw(trx, `DELETE FROM post_tags WHERE post_id=?`, [postId])
+    if (tagRows.length)
+        await db.knexRaw(
+            trx,
+            `INSERT INTO post_tags (tag_id, post_id) VALUES ?`,
+            [tagRows]
+        )
+}
 
 export const setTagsForPost = async (
+    trx: db.KnexReadWriteTransaction,
     postId: number,
     tagIds: number[]
-): Promise<void> =>
-    await db.transaction(async (t) => {
-        const tagRows = tagIds.map((tagId) => [tagId, postId])
-        await t.execute(`DELETE FROM post_tags WHERE post_id=?`, [postId])
-        if (tagRows.length)
-            await t.execute(
-                `INSERT INTO post_tags (tag_id, post_id) VALUES ?`,
-                [tagRows]
-            )
-    })
+): Promise<void> => {
+    const tagRows = tagIds.map((tagId) => [tagId, postId])
+    await db.knexRaw(trx, `DELETE FROM post_tags WHERE post_id=?`, [postId])
+    if (tagRows.length)
+        await db.knexRaw(
+            trx,
+            `INSERT INTO post_tags (tag_id, post_id) VALUES ?`,
+            [tagRows]
+        )
+}
 
 export const getPostRawBySlug = async (
+    trx: db.KnexReadonlyTransaction,
     slug: string
 ): Promise<DbRawPost | undefined> =>
-    (await db.knexTable(postsTable).where({ slug }))[0]
+    (await trx.table(postsTable).where({ slug }))[0]
 
 export const getPostRawById = async (
+    trx: db.KnexReadonlyTransaction,
     id: number
 ): Promise<DbRawPost | undefined> =>
-    (await db.knexTable(postsTable).where({ id }))[0]
+    (await trx.table(postsTable).where({ id }))[0]
 
 export const getPostEnrichedBySlug = async (
+    trx: db.KnexReadonlyTransaction,
     slug: string
 ): Promise<DbEnrichedPost | undefined> => {
-    const post = await getPostRawBySlug(slug)
+    const post = await getPostRawBySlug(trx, slug)
     if (!post) return undefined
     return parsePostRow(post)
 }
 
 export const getPostEnrichedById = async (
+    trx: db.KnexReadonlyTransaction,
     id: number
 ): Promise<DbEnrichedPost | undefined> => {
-    const post = await getPostRawById(id)
+    const post = await getPostRawById(trx, id)
     if (!post) return undefined
     return parsePostRow(post)
 }
 
 export const getFullPostBySlugFromSnapshot = async (
+    trx: db.KnexReadonlyTransaction,
     slug: string
 ): Promise<FullPost> => {
-    const postEnriched = await getPostEnrichedBySlug(slug)
+    const postEnriched = await getPostEnrichedBySlug(trx, slug)
     if (
         !postEnriched?.wpApiSnapshot ||
         !snapshotIsPostRestApi(postEnriched.wpApiSnapshot)
     )
         throw new JsonError(`No page snapshot found by slug ${slug}`, 404)
 
-    return getFullPost(postEnriched.wpApiSnapshot)
+    return getFullPost(trx, postEnriched.wpApiSnapshot)
 }
 
 export const getFullPostByIdFromSnapshot = async (
+    trx: db.KnexReadonlyTransaction,
     id: number
 ): Promise<FullPost> => {
-    const postEnriched = await getPostEnrichedById(id)
+    const postEnriched = await getPostEnrichedById(trx, id)
     if (
         !postEnriched?.wpApiSnapshot ||
         !snapshotIsPostRestApi(postEnriched.wpApiSnapshot)
     )
         throw new JsonError(`No page snapshot found by id ${id}`, 404)
 
-    return getFullPost(postEnriched.wpApiSnapshot)
+    return getFullPost(trx, postEnriched.wpApiSnapshot)
 }
 
+// TODO: I suggest that in the place where we define SiteNavigationStatic we create a Set with all the leaves and
+//       then this one becomes a simple lookup in the set. Probably nicest to do the set creation as a memoized function.
 export const isPostSlugCitable = (slug: string): boolean => {
     const entries = SiteNavigationStatic.categories
     return entries.some((category) => {
@@ -157,11 +177,12 @@ export const isPostSlugCitable = (slug: string): boolean => {
 }
 
 export const getPostsFromSnapshots = async (
-    knex: Knex<any, any[]>,
+    knex: db.KnexReadonlyTransaction,
     postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
     filterFunc?: FilterFnPostRestApi
 ): Promise<PostRestApi[]> => {
     const rawPosts: Pick<DbRawPost, "wpApiSnapshot">[] = await db.knexRaw(
+        knex,
         `
                 SELECT wpApiSnapshot FROM ${postsTable}
                 WHERE wpApiSnapshot IS NOT NULL
@@ -169,7 +190,6 @@ export const getPostsFromSnapshots = async (
                 AND type IN (?)
                 ORDER BY wpApiSnapshot->>'$.date' DESC;
             `,
-        knex,
         [postTypes]
     )
 
@@ -191,9 +211,12 @@ export const getPostsFromSnapshots = async (
 }
 
 export const getPostRelatedCharts = async (
+    knex: db.KnexReadonlyTransaction,
     postId: number
 ): Promise<RelatedChart[]> =>
-    db.queryMysql(`
+    db.knexRaw<RelatedChart>(
+        knex,
+        `-- sql
         SELECT DISTINCT
             charts.config->>"$.slug" AS slug,
             charts.config->>"$.title" AS title,
@@ -205,9 +228,11 @@ export const getPostRelatedCharts = async (
         WHERE post_tags.post_id=${postId}
         AND charts.config->>"$.isPublished" = "true"
         ORDER BY title ASC
-    `)
+    `
+    )
 
 export const getFullPost = async (
+    knex: db.KnexReadonlyTransaction,
     postApi: PostRestApi,
     excludeContent?: boolean
 ): Promise<FullPost> => ({
@@ -230,23 +255,26 @@ export const getFullPost = async (
     imageId: postApi.featured_media,
     relatedCharts:
         postApi.type === "page"
-            ? await getPostRelatedCharts(postApi.id)
+            ? await getPostRelatedCharts(knex, postApi.id)
             : undefined,
 })
 
 const selectHomepagePosts: FilterFnPostRestApi = (post) =>
     post.meta?.owid_publication_context_meta_field?.homepage === true
 
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 export const getBlogIndex = memoize(
-    async (knex: Knex<any, any[]>): Promise<IndexPost[]> => {
-        await db.getConnection() // side effect: ensure connection is established
-        const gdocPosts = await GdocPost.getListedGdocs()
+    async (knex: db.KnexReadWriteTransaction): Promise<IndexPost[]> => {
+        const gdocPosts = await getAndLoadListedGdocPosts(knex)
         const wpPosts = await Promise.all(
             await getPostsFromSnapshots(
                 knex,
                 [WP_PostType.Post],
                 selectHomepagePosts
-            ).then((posts) => posts.map((post) => getFullPost(post, true)))
+                // TODO: consider doing this as a join instead of a 1+N query
+            ).then((posts) =>
+                posts.map((post) => getFullPost(knex, post, true))
+            )
         )
 
         const gdocSlugs = new Set(gdocPosts.map(({ slug }) => slug))
@@ -286,9 +314,10 @@ export const postsFlushCache = (): void => {
 }
 
 export const getBlockContentFromSnapshot = async (
+    trx: db.KnexReadonlyTransaction,
     id: number
 ): Promise<string | undefined> => {
-    const enrichedBlock = await getPostEnrichedById(id)
+    const enrichedBlock = await getPostEnrichedById(trx, id)
     if (
         !enrichedBlock?.wpApiSnapshot ||
         !snapshotIsBlockGraphQlApi(enrichedBlock.wpApiSnapshot)
@@ -300,10 +329,11 @@ export const getBlockContentFromSnapshot = async (
 
 export const getWordpressPostReferencesByChartId = async (
     chartId: number,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<PostReference[]> => {
     const relatedWordpressPosts: PostReference[] = await db.knexRaw(
-        `
+        knex,
+        `-- sql
             SELECT DISTINCT
                 p.title,
                 p.slug,
@@ -339,7 +369,6 @@ export const getWordpressPostReferencesByChartId = async (
             ORDER BY
                 p.title ASC
         `,
-        knex,
         [chartId]
     )
 
@@ -348,10 +377,11 @@ export const getWordpressPostReferencesByChartId = async (
 
 export const getGdocsPostReferencesByChartId = async (
     chartId: number,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<PostReference[]> => {
     const relatedGdocsPosts: PostReference[] = await db.knexRaw(
-        `
+        knex,
+        `-- sql
             SELECT DISTINCT
                 pg.content ->> '$.title' AS title,
                 pg.slug AS slug,
@@ -373,13 +403,13 @@ export const getGdocsPostReferencesByChartId = async (
                 c.id = ?
                 AND pg.content ->> '$.type' NOT IN (
                     '${OwidGdocType.Fragment}',
-                    '${OwidGdocType.AboutPage}'
+                    '${OwidGdocType.AboutPage}',
+                    '${OwidGdocType.DataInsight}'
                 )
                 AND pg.published = 1
             ORDER BY
                 pg.content ->> '$.title' ASC
         `,
-        knex,
         [chartId]
     )
 
@@ -390,8 +420,8 @@ export const getGdocsPostReferencesByChartId = async (
  * Get all the gdocs and Wordpress posts mentioning a chart
  */
 export const getRelatedArticles = async (
-    chartId: number,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction,
+    chartId: number
 ): Promise<PostReference[] | undefined> => {
     const wordpressPosts = await getWordpressPostReferencesByChartId(
         chartId,
@@ -406,122 +436,118 @@ export const getRelatedArticles = async (
 }
 
 export const getPostTags = async (
+    trx: db.KnexReadonlyTransaction,
     postId: number
-): Promise<Pick<Tag, "id" | "name">[]> => {
-    return await db
-        .knexTable("post_tags")
+): Promise<Pick<DbPlainTag, "id" | "name">[]> => {
+    return await trx
+        .table("post_tags")
         .select("tags.id", "tags.name")
         .where({ post_id: postId })
         .join("tags", "tags.id", "=", "post_tags.tag_id")
 }
 
 export const getRelatedResearchAndWritingForVariable = async (
+    knex: db.KnexReadonlyTransaction,
     variableId: number
 ): Promise<DataPageRelatedResearch[]> => {
-    const wp_posts: RelatedResearchQueryResult[] = await db.queryMysql(
+    const wp_posts: RelatedResearchQueryResult[] = await db.knexRaw(
+        knex,
         `-- sql
             -- What we want here is to get from the variable to the charts
             -- to the posts and collect different pieces of information along the way
             -- One important complication is that the slugs that are used in posts to
             -- embed charts can either be the current slugs or old slugs that are redirected
             -- now.
-            select
-                distinct
-                pl.target as linkTargetSlug,
-                pl.componentType as componentType,
-                coalesce(csr.slug, c.slug) as chartSlug,
-                p.title as title,
-                p.slug as postSlug,
-                coalesce(csr.chart_id, c.id) as chartId,
-                p.authors as authors,
-                p.featured_image as thumbnail,
-                coalesce(pv.views_365d, 0) as pageviews,
-                'wordpress' as post_source,
-                (select coalesce(JSON_ARRAYAGG(t.name), JSON_ARRAY())
-                    from post_tags pt
-                    join tags t on pt.tag_id = t.id
-                    where pt.post_id = p.id
-                ) as tags
-            from
+            SELECT DISTINCT
+                pl.target AS linkTargetSlug,
+                pl.componentType AS componentType,
+                COALESCE(csr.slug, c.slug) AS chartSlug,
+                p.title AS title,
+                p.slug AS postSlug,
+                COALESCE(csr.chart_id, c.id) AS chartId,
+                p.authors AS authors,
+                p.featured_image AS thumbnail,
+                COALESCE(pv.views_365d, 0) AS pageviews,
+                'wordpress' AS post_source,
+                (
+                    SELECT
+                        COALESCE(JSON_ARRAYAGG(t.name), JSON_ARRAY())
+                    FROM
+                        post_tags pt
+                        JOIN tags t ON pt.tag_id = t.id
+                    WHERE
+                        pt.post_id = p.id
+                ) AS tags
+            FROM
                 posts_links pl
-            join posts p on
-                pl.sourceId = p.id
-            left join charts c on
-                pl.target = c.slug
-            left join chart_slug_redirects csr on
-                pl.target = csr.slug
-            left join chart_dimensions cd on
-                cd.chartId = coalesce(csr.chart_id, c.id)
-            left join analytics_pageviews pv on
-                pv.url = concat('https://ourworldindata.org/', p.slug )
-            left join posts_gdocs pg on
-            	pg.id = p.gdocSuccessorId
-            left join posts_gdocs pgs on
-                pgs.slug = p.slug
-            left join post_tags pt on
-                pt.post_id = p.id
-            where
+                JOIN posts p ON pl.sourceId = p.id
+                LEFT JOIN charts c ON pl.target = c.slug
+                LEFT JOIN chart_slug_redirects csr ON pl.target = csr.slug
+                LEFT JOIN chart_dimensions cd ON cd.chartId = COALESCE(csr.chart_id, c.id)
+                LEFT JOIN analytics_pageviews pv ON pv.url = CONCAT('https://ourworldindata.org/', p.slug)
+                LEFT JOIN posts_gdocs pg ON pg.id = p.gdocSuccessorId
+                LEFT JOIN posts_gdocs pgs ON pgs.slug = p.slug
+                LEFT JOIN post_tags pt ON pt.post_id = p.id
+            WHERE
                 -- we want only urls that point to grapher charts
                 pl.linkType = 'grapher'
                 -- componentType src is for those links that matched the anySrcregex (not anyHrefRegex or prominentLinkRegex)
                 -- this means that only the links that are of the iframe kind will be kept - normal a href style links will
                 -- be disregarded
-                and componentType = 'src'
-                and cd.variableId = ?
-                and cd.property in ('x', 'y') -- ignore cases where the indicator is size, color etc
-                and p.status = 'publish' -- only use published wp posts
-                and p.type != 'wp_block'
-                and coalesce(pg.published, 0) = 0 -- ignore posts if the wp post has a published gdoc successor. The
-                                                  -- coalesce makes sure that if there is no gdoc successor then
-                                                  -- the filter keeps the post
-                and coalesce(pgs.published, 0) = 0 -- ignore posts if there is a gdoc post with the same slug that is published
-                      -- this case happens for example for topic pages that are newly created (successorId is null)
-                      -- but that replace an old wordpress page
+                AND componentType = 'src'
+                AND cd.variableId = ?
+                AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
+                AND p.status = 'publish' -- only use published wp posts
+                AND p.type != 'wp_block'
+                AND COALESCE(pg.published, 0) = 0 -- ignore posts if the wp post has a published gdoc successor. The
+                -- coalesce makes sure that if there is no gdoc successor then
+                -- the filter keeps the post
+                AND COALESCE(pgs.published, 0) = 0 -- ignore posts if there is a gdoc post with the same slug that is published
+                -- this case happens for example for topic pages that are newly created (successorId is null)
+                -- but that replace an old wordpress page
 
             `,
         [variableId]
     )
 
-    const gdocs_posts: RelatedResearchQueryResult[] = await db.queryMysql(
+    const gdocs_posts: RelatedResearchQueryResult[] = await db.knexRaw(
+        knex,
         `-- sql
-            select
-                distinct
-                pl.target as linkTargetSlug,
-                pl.componentType as componentType,
-                coalesce(csr.slug, c.slug) as chartSlug,
-                p.content ->> '$.title' as title,
-                p.slug as postSlug,
-                coalesce(csr.chart_id, c.id) as chartId,
-                p.content ->> '$.authors' as authors,
-                p.content ->> '$."featured-image"' as thumbnail,
-                coalesce(pv.views_365d, 0) as pageviews,
-                'gdocs' as post_source,
-                (select coalesce(JSON_ARRAYAGG(t.name), JSON_ARRAY())
-                    from posts_gdocs_x_tags pt
-                    join tags t on pt.tagId = t.id
-                    where pt.gdocId = p.id
-                ) as tags
-            from
-                posts_gdocs_links pl
-            join posts_gdocs p on
-                pl.sourceId = p.id
-            left join charts c on
-                pl.target = c.slug
-            left join chart_slug_redirects csr on
-                pl.target = csr.slug
-            join chart_dimensions cd on
-                cd.chartId = coalesce(csr.chart_id, c.id)
-            left join analytics_pageviews pv on
-                pv.url = concat('https://ourworldindata.org/', p.slug )
-            left join posts_gdocs_x_tags pt on
-                pt.gdocId = p.id
-            where
-                pl.linkType = 'grapher'
-                and componentType = 'chart' -- this filters out links in tags and keeps only embedded charts
-                and cd.variableId = ?
-                and cd.property in ('x', 'y') -- ignore cases where the indicator is size, color etc
-                and p.published = 1
-                and p.content ->> '$.type' != 'fragment'`,
+        SELECT DISTINCT
+            pl.target AS linkTargetSlug,
+            pl.componentType AS componentType,
+            COALESCE(csr.slug, c.slug) AS chartSlug,
+            p.content ->> '$.title' AS title,
+            p.slug AS postSlug,
+            COALESCE(csr.chart_id, c.id) AS chartId,
+            p.content ->> '$.authors' AS authors,
+            p.content ->> '$."featured-image"' AS thumbnail,
+            COALESCE(pv.views_365d, 0) AS pageviews,
+            'gdocs' AS post_source,
+            (
+                SELECT
+                    COALESCE(JSON_ARRAYAGG(t.name), JSON_ARRAY())
+                FROM
+                    posts_gdocs_x_tags pt
+                    JOIN tags t ON pt.tagId = t.id
+                WHERE
+                    pt.gdocId = p.id
+            ) AS tags
+        FROM
+            posts_gdocs_links pl
+            JOIN posts_gdocs p ON pl.sourceId = p.id
+            LEFT JOIN charts c ON pl.target = c.slug
+            LEFT JOIN chart_slug_redirects csr ON pl.target = csr.slug
+            JOIN chart_dimensions cd ON cd.chartId = COALESCE(csr.chart_id, c.id)
+            LEFT JOIN analytics_pageviews pv ON pv.url = CONCAT('https://ourworldindata.org/', p.slug)
+            LEFT JOIN posts_gdocs_x_tags pt ON pt.gdocId = p.id
+        WHERE
+            pl.linkType = 'grapher'
+            AND componentType = 'chart' -- this filters out links in tags and keeps only embedded charts
+            AND cd.variableId = ?
+            AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
+            AND p.published = 1
+            AND p.content ->> '$.type' != 'fragment'`,
         [variableId]
     )
 
@@ -548,4 +574,39 @@ export const getRelatedResearchAndWritingForVariable = async (
     // uses different charts that all use a single indicator we would get duplicates for the post to link to so
     // here we deduplicate by url. The first item is retained by uniqBy, latter ones are discarded.
     return uniqBy(allSortedRelatedResearch, "url")
+}
+
+export const getLatestWorkByAuthor = async (
+    knex: Knex<any, any[]>,
+    author: string
+): Promise<DbEnrichedLatestWork[]> => {
+    const rawLatestWorkLinks: DbRawLatestWork[] = await db.knexRaw(
+        knex,
+        `-- sql
+        SELECT
+            pg.id,
+            pg.slug,
+            pg.content->>'$.title' AS title,
+            pg.content->>'$.subtitle' AS subtitle,
+            pg.content->>'$.authors' AS authors,
+            pg.content->>'$."featured-image"' AS "featured-image",
+            pg.publishedAt
+        FROM
+            posts_gdocs pg
+        WHERE
+            pg.content ->> '$.authors' LIKE ?
+            AND pg.published = TRUE
+            AND pg.content->>'$.type' = "${OwidGdocType.Article}"
+        `,
+        [`%${author}%`]
+    )
+
+    // We're sorting in JS because of the "Out of sort memory, consider
+    // increasing server sort buffer size" error when using ORDER BY. Adding an
+    // index on the publishedAt column doesn't help.
+    return sortBy(
+        rawLatestWorkLinks.map((work) => parseLatestWork(work)),
+        // Sort by most recent first
+        (work) => -work.publishedAt! // "!" because we're only selecting published posts, so publishedAt can't be NULL
+    )
 }

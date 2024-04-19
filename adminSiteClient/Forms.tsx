@@ -772,6 +772,76 @@ export class BindString extends React.Component<{
 }
 
 @observer
+export class BindStringArray extends React.Component<{
+    field: string
+    store: Record<string, any>
+    label?: React.ReactNode
+    secondaryLabel?: string
+    placeholder?: string
+    helpText?: string
+    softCharacterLimit?: number
+    disabled?: boolean
+    rows?: number
+    errorMessage?: string
+    buttonContent?: React.ReactChild
+    onButtonClick?: () => void
+}> {
+    @action.bound onValue(value: string = "") {
+        this.props.store[this.props.field] = parseBulletList(value)
+    }
+
+    render() {
+        const { field, store, label, ...rest } = this.props
+        const values = store[field] as string[] | []
+        return (
+            <TextAreaField
+                label={label === undefined ? capitalize(field) : label}
+                secondaryLabel={this.props.secondaryLabel}
+                value={createBulletList(values || [])}
+                onValue={this.onValue}
+                {...rest}
+            />
+        )
+    }
+}
+
+@observer
+export class BindDropdown extends React.Component<{
+    field: string
+    store: Record<string, any>
+    label?: React.ReactNode
+    options: Array<{ value: string; label: string }>
+    disabled?: boolean
+}> {
+    @action.bound onChange(event: React.ChangeEvent<HTMLSelectElement>) {
+        const value = event.target.value
+        this.props.store[this.props.field] = value
+    }
+
+    render() {
+        const { field, store, label, options, disabled } = this.props
+        const value = store[field] || "" // Default to empty string if no value is set
+
+        return (
+            <div>
+                {label && <label>{label}</label>}{" "}
+                <select
+                    value={value}
+                    onChange={this.onChange}
+                    disabled={disabled}
+                >
+                    {options.map((option) => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+            </div>
+        )
+    }
+}
+
+@observer
 export class BindAutoString<
     T extends { [field: string]: any },
     K extends Extract<keyof T, string>,
@@ -781,6 +851,7 @@ export class BindAutoString<
     auto: string
     label?: string
     helpText?: string
+    errorMessage?: string
     softCharacterLimit?: number
     onBlur?: () => void
 }> {
@@ -1102,3 +1173,26 @@ export class Button extends React.Component<{
 export const Help = ({ children }: { children: React.ReactNode }) => (
     <small className="form-text text-muted mb-4">{children}</small>
 )
+
+const createBulletList = (items: string[]): string => {
+    return items.map((item) => `• ${item}`).join("\n")
+}
+
+const parseBulletList = (bulletedString: string): string[] => {
+    // Return an array with a single empty string if the input is empty
+    if (bulletedString === "") {
+        return [""]
+    }
+
+    const items = bulletedString
+        .split(/\n•\s?/)
+        .map((item) => item.replace(/^•\s?/, ""))
+
+    // Check if the input string ends with a newline. If it does, ensure the last item is an empty string.
+    if (bulletedString.endsWith("\n")) {
+        items[items.length - 1] = items[items.length - 1].trim()
+        items.push("")
+    }
+
+    return items
+}

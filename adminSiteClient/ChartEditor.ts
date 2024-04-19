@@ -11,6 +11,9 @@ import {
     type RawPageview,
     Topic,
     PostReference,
+    ChartRedirect,
+    DimensionProperty,
+    Json,
 } from "@ourworldindata/utils"
 import { computed, observable, runInAction, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
@@ -37,7 +40,7 @@ export interface Dataset {
 export interface Log {
     userId: number
     userName: string
-    config: string
+    config: Json
     createdAt: string
 }
 
@@ -53,12 +56,6 @@ export const getFullReferencesCount = (references: References): number => {
         references.postsGdocs.length +
         references.explorers.length
     )
-}
-
-export interface ChartRedirect {
-    id: number
-    slug: string
-    chartId: number
 }
 
 export interface Namespace {
@@ -84,6 +81,18 @@ export class EditorDatabase {
     }
 }
 
+export type FieldWithDetailReferences =
+    | "subtitle"
+    | "note"
+    | "axisLabelX"
+    | "axisLabelY"
+
+export type DetailReferences = Record<FieldWithDetailReferences, string[]>
+
+export interface DimensionErrorMessage {
+    displayName?: string
+}
+
 export interface ChartEditorManager {
     admin: Admin
     grapher: Grapher
@@ -94,7 +103,12 @@ export interface ChartEditorManager {
     pageviews?: RawPageview
     allTopics: Topic[]
     details: DetailDictionary
-    invalidDetailReferences: Record<"subtitle" | "note", string[]>
+    invalidDetailReferences: DetailReferences
+    errorMessages: Partial<Record<FieldWithDetailReferences, string>>
+    errorMessagesForDimensions: Record<
+        DimensionProperty,
+        DimensionErrorMessage[]
+    >
 }
 
 interface VariableIdUsageRecord {
@@ -119,9 +133,9 @@ export class ChartEditor {
     constructor(props: { manager: ChartEditorManager }) {
         this.manager = props.manager
         this.previewMode =
-            localStorage.getItem("editorPreviewMode") === "desktop"
-                ? "desktop"
-                : "mobile"
+            localStorage.getItem("editorPreviewMode") === "mobile"
+                ? "mobile"
+                : "desktop"
         when(
             () => this.grapher.isReady,
             () => (this.savedGrapherJson = JSON.stringify(this.grapher.object))
@@ -210,11 +224,6 @@ export class ChartEditor {
         if (!currentGrapherObject.slug)
             currentGrapherObject.slug = grapher.displaySlug
 
-        // We need to save availableEntities for Algolia search. Todo: remove.
-        const availableEntities = grapher.table.availableEntityNames
-        if (availableEntities.length)
-            (currentGrapherObject as any).data = { availableEntities }
-
         const targetUrl = isNewGrapher
             ? "/api/charts"
             : `/api/charts/${grapher.id}`
@@ -266,7 +275,7 @@ export class ChartEditor {
 
         if (window.confirm(`Publish chart at ${url}?`)) {
             this.grapher.isPublished = true
-            this.saveGrapher({
+            void this.saveGrapher({
                 onError: () => (this.grapher.isPublished = undefined),
             })
         }
@@ -279,7 +288,7 @@ export class ChartEditor {
                 : "Are you sure you want to unpublish this chart?"
         if (window.confirm(message)) {
             this.grapher.isPublished = undefined
-            this.saveGrapher({
+            void this.saveGrapher({
                 onError: () => (this.grapher.isPublished = true),
             })
         }

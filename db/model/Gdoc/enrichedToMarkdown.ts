@@ -1,4 +1,7 @@
-import { EnrichedBlockKeyIndicator } from "@ourworldindata/types"
+import {
+    EnrichedBlockKeyIndicator,
+    RESEARCH_AND_WRITING_DEFAULT_HEADING,
+} from "@ourworldindata/types"
 import { getLinkType } from "@ourworldindata/components"
 import {
     OwidEnrichedGdocBlock,
@@ -220,12 +223,12 @@ ${b.url}`
                 const imageOrChart = insight.filename
                     ? `![](${insight.filename})`
                     : insight.url
-                    ? markdownComponent(
-                          "Chart",
-                          { url: insight.url },
-                          exportComponents
-                      )
-                    : undefined
+                      ? markdownComponent(
+                            "Chart",
+                            { url: insight.url },
+                            exportComponents
+                        )
+                      : undefined
                 const content =
                     enrichedBlocksToMarkdown(
                         insight.content,
@@ -250,7 +253,7 @@ ${allInsights}`
                 ),
                 ...(b.more?.articles ?? []).map((item) => item.value.url),
             ].map((link) => `* ${link}\n`)
-            return `## Related research and writing
+            return `## ${b.heading || RESEARCH_AND_WRITING_DEFAULT_HEADING}
 ${links}`
         })
         .with({ type: "align" }, (b): string | undefined =>
@@ -313,6 +316,11 @@ ${links}`
                         : `- [${item.title}(${item.url})]`
                 )
                 .filter((item) => item !== "")
+                .join("\n")
+        })
+        .with({ type: "socials" }, (b): string | undefined => {
+            return b.links
+                .map((link) => `* [${link.text}](${link.url})`)
                 .join("\n")
         })
         .exhaustive()

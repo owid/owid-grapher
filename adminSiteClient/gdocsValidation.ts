@@ -5,12 +5,14 @@ import {
     OwidGdocErrorMessageType,
     OwidGdocType,
     checkIsOwidGdocType,
-    traverseEnrichedBlocks,
+    traverseEnrichedBlock,
     OwidGdocErrorMessageProperty,
     OwidGdoc,
     checkIsGdocPost,
     checkIsDataInsight,
     OwidGdocDataInsightInterface,
+    checkIsAuthor,
+    OwidGdocAuthorInterface,
 } from "@ourworldindata/utils"
 
 function validateTitle(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
@@ -56,7 +58,7 @@ function validateBody(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
         errors.push(getMissingContentPropertyError("body"))
     } else {
         for (const block of gdoc.content.body) {
-            traverseEnrichedBlocks(block, (block) => {
+            traverseEnrichedBlock(block, (block) => {
                 errors.push(
                     ...block.parseErrors.map((parseError) => ({
                         message: parseError.message,
@@ -84,7 +86,7 @@ function validateRefs(
         if (gdoc.content.refs.definitions) {
             Object.values(gdoc.content.refs.definitions).map((definition) => {
                 definition.content.map((block) => {
-                    traverseEnrichedBlocks(block, (node) => {
+                    traverseEnrichedBlock(block, (node) => {
                         if (node.parseErrors.length) {
                             for (const parseError of node.parseErrors) {
                                 errors.push({
@@ -111,11 +113,7 @@ function validateExcerpt(
     errors: OwidGdocErrorMessage[]
 ) {
     if (!gdoc.content.excerpt) {
-        errors.push({
-            property: "excerpt",
-            type: OwidGdocErrorMessageType.Warning,
-            message: `It is advised to add an excerpt before publishing.`,
-        })
+        errors.push(getMissingContentPropertyError("excerpt"))
     } else if (gdoc.content.excerpt.length > EXCERPT_MAX_LENGTH) {
         errors.push({
             property: "excerpt",
@@ -208,6 +206,25 @@ function validateAtomFields(
     }
 }
 
+function validateSocials(
+    gdoc: OwidGdocAuthorInterface,
+    errors: OwidGdocErrorMessage[]
+) {
+    const { socials } = gdoc.content
+
+    if (!socials?.parseErrors) return
+
+    errors.push(
+        ...socials.parseErrors.map((parseError) => ({
+            message: parseError.message,
+            type: parseError.isWarning
+                ? OwidGdocErrorMessageType.Warning
+                : OwidGdocErrorMessageType.Error,
+            property: "socials" as const,
+        }))
+    )
+}
+
 export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
     const errors: OwidGdocErrorMessage[] = []
 
@@ -225,11 +242,11 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
         validateExcerpt(gdoc, errors)
         validateBreadcrumbs(gdoc, errors)
         validateAtomFields(gdoc, errors)
-    }
-
-    if (checkIsDataInsight(gdoc)) {
+    } else if (checkIsDataInsight(gdoc)) {
         validateApprovedBy(gdoc, errors)
         validateGrapherUrl(gdoc, errors)
+    } else if (checkIsAuthor(gdoc)) {
+        validateSocials(gdoc, errors)
     }
 
     return errors

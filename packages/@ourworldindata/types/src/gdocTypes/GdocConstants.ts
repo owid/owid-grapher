@@ -7,6 +7,8 @@ export const CITATION_ID = "article-citation"
 export const ENDNOTES_ID = "article-endnotes"
 export const RESEARCH_AND_WRITING_ID = "research-writing"
 
+export const RESEARCH_AND_WRITING_DEFAULT_HEADING = "Research & Writing"
+
 export const IMAGES_DIRECTORY = "/images/published/"
 
 /** Works for:
@@ -23,3 +25,5 @@ export const gdocUrlRegex =
     /https:\/\/docs\.google\.com\/document(?:\/u\/\d)?\/d\/([\-\w]+)\/?(edit)?#?/
 
 export const gdocIdRegex = /^[0-9A-Za-z\-_]{44}$/
+
+export const DEFAULT_GDOC_FEATURED_IMAGE = "default-featured-image.png"
