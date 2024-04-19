@@ -541,13 +541,16 @@ export {
 export {
     type DbInsertPostGdoc,
     type DbRawPostGdoc,
+    type DBRawPostGdocWithTags,
     type DbEnrichedPostGdoc,
+    type DBEnrichedPostGdocWithTags,
     PostsGdocsTableName,
     parsePostGdocContent,
     serializePostGdocContent,
     parsePostsGdocsBreadcrumbs,
     serializePostsGdocsBreadcrumbs,
     parsePostsGdocsRow,
+    parsePostsGdocsWithTagsRow,
     serializePostsGdocsRow,
 } from "./dbTypes/PostsGdocs.js"
 export {
@@ -609,6 +612,7 @@ export {
 export {
     type DbInsertTag,
     type DbPlainTag,
+    type MinimalTag,
     TagsTableName,
 } from "./dbTypes/Tags.js"
 export {

@@ -23,7 +23,6 @@ import {
     SearchIndexName,
 } from "../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
-import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { ArticleBlocks } from "../../site/gdocs/components/ArticleBlocks.js"
 import React from "react"
 import {
@@ -34,6 +33,8 @@ import {
 import { getIndexName } from "../../site/search/searchClient.js"
 import { ObjectWithObjectID } from "@algolia/client-search"
 import { SearchIndex } from "algoliasearch"
+import { match, P } from "ts-pattern"
+import { gdocFromJSON } from "../../db/model/Gdoc/GdocFactory.js"
 
 interface TypeAndImportance {
     type: PageType
@@ -146,20 +147,27 @@ function generateGdocRecords(
     const getPostTypeAndImportance = (
         gdoc: OwidGdocPostInterface
     ): TypeAndImportance => {
-        switch (gdoc.content.type) {
-            case OwidGdocType.TopicPage:
-                return { type: "topic", importance: 3 }
-            case OwidGdocType.LinearTopicPage:
-                return { type: "topic", importance: 3 }
-            case OwidGdocType.Fragment:
-                // this should not happen because we filter out fragments; but we want to have an exhaustive switch/case so we include it
-                return { type: "other", importance: 0 }
-            case OwidGdocType.AboutPage:
-                return { type: "about", importance: 0 }
-            case OwidGdocType.Article:
-            case undefined:
-                return { type: "article", importance: 0 }
-        }
+        return match(gdoc.content.type)
+            .with(OwidGdocType.Article, () => ({
+                type: "article" as const,
+                importance: 0,
+            }))
+            .with(OwidGdocType.AboutPage, () => ({
+                type: "about" as const,
+                importance: 1,
+            }))
+            .with(
+                P.union(OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage),
+                () => ({
+                    type: "topic" as const,
+                    importance: 3,
+                })
+            )
+            .with(P.union(OwidGdocType.Fragment, undefined), () => ({
+                type: "other" as const,
+                importance: 0,
+            }))
+            .exhaustive()
     }
 
     const records: PageRecord[] = []
@@ -202,9 +210,11 @@ function generateGdocRecords(
 // Generate records for countries, WP posts (not including posts that have been succeeded by Gdocs equivalents), and Gdocs
 export const getPagesRecords = async (knex: db.KnexReadWriteTransaction) => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
-    const gdocs = await GdocPost.getPublishedGdocPosts(knex)
+    const gdocs = await db
+        .getPublishedGdocPostsWithTags(knex)
+        .then((gdocs) => gdocs.map(gdocFromJSON) as OwidGdocPostInterface[])
+
     const publishedGdocsBySlug = keyBy(gdocs, "slug")
-    // TODO: the knex instance should be handed down as a parameter
     const slugsWithPublishedGdocsSuccessors =
         await db.getSlugsWithPublishedGdocsSuccessors(knex)
     const postsApi = await getPostsFromSnapshots(knex, undefined, (post) => {

@@ -12,7 +12,7 @@ import {
     RefDictionary,
 } from "./ArchieMlComponents.js"
 import { DbChartTagJoin } from "../dbTypes/ChartTags.js"
-import { DbPlainTag } from "../dbTypes/Tags.js"
+import { MinimalTag } from "../dbTypes/Tags.js"
 import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 
 export enum OwidGdocPublicationContext {
@@ -72,7 +72,7 @@ export interface OwidGdocBaseInterface {
     linkedIndicators?: Record<number, LinkedIndicator>
     imageMetadata?: Record<string, ImageMetadata>
     relatedCharts?: RelatedChart[]
-    tags?: DbPlainTag[] | null
+    tags?: MinimalTag[] | null
     errors?: OwidGdocErrorMessage[]
     markdown: string | null
 }

@@ -34,10 +34,12 @@ import {
     KnexReadonlyTransaction,
     knexRaw,
     KnexReadWriteTransaction,
+    getImageMetadataByFilenames,
+    getPublishedGdocPostsWithTags,
 } from "../../db.js"
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { GdocAuthor } from "./GdocAuthor.js"
-import { imageStore } from "../Image.js"
+import { fetchImagesFromDriveAndSyncToS3 } from "../Image.js"
 
 export function gdocFromJSON(
     json: Record<string, any>
@@ -56,10 +58,7 @@ export function gdocFromJSON(
     json.createdAt = new Date(json.createdAt)
     json.publishedAt = json.publishedAt ? new Date(json.publishedAt) : null
     json.updatedAt = new Date(json.updatedAt)
-
-    // `tags` ordinarily gets populated via a join table in .load(), for our purposes we don't need it here
-    // except for the fact that loadRelatedCharts() assumes the array exists
-    json.tags = json.tags
+    json.tags = json.tags ? JSON.parse(json.tags) : []
 
     return match(type)
         .with(
@@ -338,6 +337,9 @@ export async function loadGdocFromGdocBase(
     if (contentSource === GdocsContentSource.Gdocs) {
         // TODO: if we get here via fromJSON then we have already done this - optimize that?
         await gdoc.fetchAndEnrichGdoc()
+        // If we're loading from Gdocs, now's also the time to fetch images from gdrive and sync them to S3
+        // In any other case, the images should already be in the DB and S3
+        await fetchImagesFromDriveAndSyncToS3(knex, gdoc.filenames)
     }
 
     await gdoc.loadState(knex)
@@ -395,43 +397,9 @@ export async function getAndLoadPublishedDataInsights(
 export async function getAndLoadPublishedGdocPosts(
     knex: KnexReadWriteTransaction
 ): Promise<GdocPost[]> {
-    const rows = await knexRaw<DbRawPostGdoc>(
-        knex,
-        `-- sql
-            SELECT *
-            FROM posts_gdocs
-            WHERE published = 1
-            AND content ->> '$.type' IN (:types)
-            AND publishedAt <= NOW()
-            ORDER BY publishedAt DESC`,
-        {
-            types: [
-                OwidGdocType.Article,
-                OwidGdocType.LinearTopicPage,
-                OwidGdocType.TopicPage,
-                OwidGdocType.AboutPage,
-            ],
-        }
-    )
-    const ids = rows.map((row) => row.id)
-    const tags = await knexRaw<DbPlainTag>(
-        knex,
-        `-- sql
-                SELECT gt.gdocId as gdocId, tags.*
-                FROM tags
-                JOIN posts_gdocs_x_tags gt ON gt.tagId = tags.id
-                WHERE gt.gdocId in (:ids)`,
-        { ids: ids }
-    )
-    const groupedTags = groupBy(tags, "gdocId")
-    const enrichedRows = rows.map((row) => {
-        return {
-            ...parsePostsGdocsRow(row),
-            tags: groupedTags[row.id] ? groupedTags[row.id] : null,
-        } satisfies OwidGdocBaseInterface
-    })
+    const rows = await getPublishedGdocPostsWithTags(knex)
     const gdocs = await Promise.all(
-        enrichedRows.map(async (row) => loadGdocFromGdocBase(knex, row))
+        rows.map(async (row) => loadGdocFromGdocBase(knex, row))
     )
     return gdocs as GdocPost[]
 }
@@ -598,7 +566,7 @@ export async function getAllGdocIndexItemsOrderedByUpdatedAt(
     )
 }
 
-export async function syncImagesAndAddToContentGraph(
+export async function addImagesToContentGraph(
     trx: KnexReadWriteTransaction,
     gdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor
 ): Promise<void> {
@@ -610,16 +578,13 @@ export async function syncImagesAndAddToContentGraph(
     // Includes fragments so that images in data pages are
     // synced to S3 and ultimately baked in bakeDriveImages().
     if (filenames.length && gdoc.published) {
-        await imageStore.fetchImageMetadata(filenames)
-        const images = await imageStore.syncImagesToS3(trx)
+        const images = await getImageMetadataByFilenames(trx, filenames)
         const gdocXImagesToInsert: DbInsertPostGdocXImage[] = []
-        for (const image of images) {
-            if (image) {
-                gdocXImagesToInsert.push({
-                    gdocId: gdoc.id,
-                    imageId: image.id,
-                })
-            }
+        for (const image of Object.values(images)) {
+            gdocXImagesToInsert.push({
+                gdocId: gdoc.id,
+                imageId: image.id,
+            })
         }
         try {
             await trx

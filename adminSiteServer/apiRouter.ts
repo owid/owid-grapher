@@ -141,7 +141,7 @@ import {
     getGdocBaseObjectById,
     setLinksForGdoc,
     setTagsForGdoc,
-    syncImagesAndAddToContentGraph,
+    addImagesToContentGraph,
     updateGdocContentOnly,
     upsertGdoc,
 } from "../db/model/Gdoc/GdocFactory.js"
@@ -2345,6 +2345,7 @@ getRouteNonIdempotentWithRWTransaction(
             | undefined
 
         try {
+            // Beware: if contentSource=gdocs this will update images in the DB+S3 even if the gdoc is published
             const gdoc = await getAndLoadGdocById(trx, id, contentSource)
 
             if (!gdoc.published) {
@@ -2436,7 +2437,7 @@ putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     const nextGdoc = gdocFromJSON(req.body)
     await nextGdoc.loadState(trx)
 
-    await syncImagesAndAddToContentGraph(trx, nextGdoc)
+    await addImagesToContentGraph(trx, nextGdoc)
 
     await setLinksForGdoc(
         trx,

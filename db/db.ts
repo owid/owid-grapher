@@ -10,8 +10,15 @@ import { registerExitHandler } from "./cleanup.js"
 import { keyBy } from "@ourworldindata/utils"
 import {
     DbChartTagJoin,
+    ImageMetadata,
     MinimalDataInsightInterface,
     OwidGdocType,
+    DBRawPostGdocWithTags,
+    parsePostsGdocsWithTagsRow,
+    DBEnrichedPostGdocWithTags,
+    DbEnrichedPostGdoc,
+    DbRawPostGdoc,
+    parsePostsGdocsRow,
 } from "@ourworldindata/types"
 
 // Return the first match from a mysql query
@@ -309,4 +316,111 @@ export const getHomepageId = (
             content->>'$.type' = '${OwidGdocType.Homepage}'
             AND published = TRUE`
     ).then((result) => result?.id)
+}
+
+export const getImageMetadataByFilenames = async (
+    knex: KnexReadonlyTransaction,
+    filenames: string[]
+): Promise<Record<string, ImageMetadata & { id: number }>> => {
+    if (filenames.length === 0) return {}
+    const rows = await knexRaw<ImageMetadata & { id: number }>(
+        knex,
+        `-- sql
+        SELECT
+            id,
+            googleId,
+            filename,
+            defaultAlt,
+            updatedAt,
+            originalWidth,
+            originalHeight
+        FROM
+            images
+        WHERE filename IN (?)`,
+        [filenames]
+    )
+    return keyBy(rows, "filename")
+}
+
+export const getPublishedGdocPosts = async (
+    knex: KnexReadonlyTransaction
+): Promise<DbEnrichedPostGdoc[]> => {
+    return knexRaw<DbRawPostGdoc>(
+        knex,
+        `-- sql
+        SELECT
+        g.breadcrumbs,
+        g.content,
+        g.createdAt,
+        g.id,
+        g.markdown,
+        g.publicationContext,
+        g.published,
+        g.publishedAt,
+        g.revisionId,
+        g.slug,
+        g.updatedAt
+    FROM
+        posts_gdocs g
+    WHERE
+        g.published = 1
+        AND g.content ->> '$.type' IN (:types)
+        AND g.publishedAt <= NOW()
+    ORDER BY g.publishedAt DESC`,
+        {
+            types: [
+                OwidGdocType.Article,
+                OwidGdocType.LinearTopicPage,
+                OwidGdocType.TopicPage,
+                OwidGdocType.AboutPage,
+            ],
+        }
+    ).then((rows) => rows.map(parsePostsGdocsRow))
+}
+
+export const getPublishedGdocPostsWithTags = async (
+    knex: KnexReadonlyTransaction
+): Promise<DBEnrichedPostGdocWithTags[]> => {
+    return knexRaw<DBRawPostGdocWithTags>(
+        knex,
+        `-- sql
+        SELECT
+        g.breadcrumbs,
+        g.content,
+        g.createdAt,
+        g.id,
+        g.markdown,
+        g.publicationContext,
+        g.published,
+        g.publishedAt,
+        g.revisionId,
+        g.slug,
+        g.updatedAt,
+        if( COUNT(t.id) = 0, JSON_ARRAY(), JSON_ARRAYAGG(
+            JSON_OBJECT(
+              'id', t.id,
+              'name', t.name,
+              'slug', t.slug
+          ))) AS tags
+    FROM
+        posts_gdocs g
+    LEFT JOIN posts_gdocs_x_tags gxt ON
+        g.id = gxt.gdocId 
+    LEFT JOIN tags t ON
+        gxt.tagId = t.id
+    WHERE
+        g.published = 1
+        AND g.content ->> '$.type' IN (:types)
+        AND g.publishedAt <= NOW()
+    GROUP BY g.id
+    ORDER BY g.publishedAt DESC`,
+        {
+            types: [
+                OwidGdocType.Article,
+                OwidGdocType.LinearTopicPage,
+                OwidGdocType.TopicPage,
+                OwidGdocType.AboutPage,
+            ],
+        }
+    ).then((rows) => rows.map(parsePostsGdocsWithTagsRow))
 }
