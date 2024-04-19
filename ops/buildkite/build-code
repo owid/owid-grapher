@@ -49,8 +49,6 @@ update_env() {
     sed -i "s|^BAKED_SITE_DIR=.*$|BAKED_SITE_DIR=/home/owid/live-data/bakedSite|" owid-grapher/.env
     # NOTE: this should be identical once we merge to master
     sed -i "s|^BAKED_BASE_URL=.*$|BAKED_BASE_URL=$BAKED_BASE_URL|" owid-grapher/.env
-    # replace wordpress directory
-    sed -i "s|^WORDPRESS_DIR=.*$|WORDPRESS_DIR=/home/owid/wordpress|" owid-grapher/.env
     # correct BAKED_SITE_DIR
     if ! grep -q "^BAKED_SITE_DIR=" owid-grapher/.env; then
         echo "BAKED_SITE_DIR=/home/owid/live-data/bakedSite" >> owid-grapher/.env
@@ -63,9 +61,6 @@ update_env() {
     fi
     if ! grep -q "^BAKED_SITE_EXPORTS_BASE_URL=" owid-grapher/.env; then
         echo "BAKED_SITE_EXPORTS_BASE_URL=https://assets.ourworldindata.org/exports" >> owid-grapher/.env
-    fi
-    if ! grep -q "^BAKED_WORDPRESS_UPLOADS_URL=" owid-grapher/.env; then
-        echo "BAKED_WORDPRESS_UPLOADS_URL=https://assets.ourworldindata.org/uploads" >> owid-grapher/.env
     fi
 }
 
@@ -95,7 +90,6 @@ build_grapher() {
         yarn buildVite
         yarn runDbMigrations
         node --enable-source-maps --unhandled-rejections=strict itsJustJavascript/baker/algolia/configureAlgolia.js
-        # yarn buildWordpressPlugin
     )
 }
 

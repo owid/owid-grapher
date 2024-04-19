@@ -41,9 +41,6 @@
             "path": "./devTools/schemaProcessor"
         },
         {
-            "path": "./devTools/uploadWordpressImagesToObjStorage"
-        },
-        {
             "path": "./devTools/markdownTest"
         },
         {

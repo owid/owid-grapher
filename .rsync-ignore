@@ -12,7 +12,6 @@ tmp
 *.test.tsx
 .queue
 .pending
-/wordpress
 .env
 clientSettings.json
 serverSettings.json

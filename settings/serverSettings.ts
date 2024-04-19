@@ -31,13 +31,9 @@ export const VITE_PREVIEW: boolean =
     serverSettings.VITE_PREVIEW === "true" ?? false
 
 export const ADMIN_BASE_URL: string = clientSettings.ADMIN_BASE_URL
-export const WORDPRESS_URL: string = clientSettings.WORDPRESS_URL
 
 export const BAKED_GRAPHER_URL: string =
     serverSettings.BAKED_GRAPHER_URL ?? `${BAKED_BASE_URL}/grapher`
-
-export const BAKED_WORDPRESS_UPLOADS_URL: string =
-    serverSettings.BAKED_WORDPRESS_UPLOADS_URL ?? `${BAKED_BASE_URL}/uploads`
 
 export const OPTIMIZE_SVG_EXPORTS: boolean =
     serverSettings.OPTIMIZE_SVG_EXPORTS === "true" ?? false
@@ -84,17 +80,6 @@ export const BAKED_SITE_DIR: string =
 export const SECRET_KEY: string =
     serverSettings.SECRET_KEY ??
     "fejwiaof jewiafo jeioa fjieowajf isa fjidosajfgj"
-export const WORDPRESS_DB_NAME: string = serverSettings.WORDPRESS_DB_NAME ?? ""
-export const WORDPRESS_DB_USER: string = serverSettings.WORDPRESS_DB_USER ?? ""
-export const WORDPRESS_DB_PASS: string = serverSettings.WORDPRESS_DB_PASS ?? ""
-export const WORDPRESS_DB_HOST: string = serverSettings.WORDPRESS_DB_HOST ?? ""
-export const WORDPRESS_DB_PORT: number | undefined = parseIntOrUndefined(
-    serverSettings.WORDPRESS_DB_PORT
-)
-export const WORDPRESS_API_USER: string =
-    serverSettings.WORDPRESS_API_USER ?? ""
-export const WORDPRESS_API_PASS: string =
-    serverSettings.WORDPRESS_API_PASS ?? ""
 export const SESSION_COOKIE_AGE: number =
     parseIntOrUndefined(serverSettings.SESSION_COOKIE_AGE) ?? 1209600
 export const ALGOLIA_SECRET_KEY: string =
@@ -103,7 +88,6 @@ export const ALGOLIA_INDEXING: boolean =
     serverSettings.ALGOLIA_INDEXING === "true" ?? false
 
 // Wordpress target setting
-export const WORDPRESS_DIR: string = serverSettings.WORDPRESS_DIR ?? "wordpress"
 export const HTTPS_ONLY: boolean = serverSettings.HTTPS_ONLY !== "false" ?? true
 
 export const GIT_DATASETS_DIR: string =

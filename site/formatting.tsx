@@ -1,6 +1,5 @@
 import cheerio from "cheerio"
 import React from "react"
-import * as lodash from "lodash"
 import ReactDOMServer from "react-dom/server.js"
 import {
     FormattedPost,
@@ -10,11 +9,7 @@ import {
     WP_PostType,
     formatDate,
 } from "@ourworldindata/utils"
-import {
-    BAKED_BASE_URL,
-    BAKED_WORDPRESS_UPLOADS_URL,
-    WORDPRESS_URL,
-} from "../settings/serverSettings.js"
+import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector.js"
 import {
     KEY_INSIGHTS_CLASS_NAME,
@@ -32,24 +27,10 @@ export const RESEARCH_AND_WRITING_CLASSNAME = "wp-block-research-and-writing"
 export const KEY_INSIGHTS_H2_CLASSNAME = "key-insights-heading"
 
 export const formatUrls = (html: string) => {
-    let formatted = html
+    const formatted = html
         .replace(new RegExp("https?://owid.cloud", "g"), BAKED_BASE_URL)
         .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
-    if (WORDPRESS_URL) {
-        formatted = formatted.replace(
-            new RegExp(WORDPRESS_URL, "g"),
-            BAKED_BASE_URL
-        )
-    }
 
-    // Replace all occurrences of the wordpress uploads directory (which comes from WP as /app/uploads) with the url to be used
-    formatted = formatted.replace(
-        new RegExp(
-            `${lodash.escapeRegExp(BAKED_BASE_URL)}(/app)?/uploads`,
-            "g"
-        ),
-        BAKED_WORDPRESS_UPLOADS_URL
-    )
     return formatted
 }
 

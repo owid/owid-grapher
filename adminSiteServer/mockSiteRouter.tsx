@@ -24,7 +24,6 @@ import {
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
-    WORDPRESS_DIR,
     BASE_DIR,
     BAKED_SITE_DIR,
 } from "../settings/serverSettings.js"
@@ -378,16 +377,6 @@ mockSiteRouter.get("/headerMenu.json", async (req, res) => {
     res.contentType("application/json")
     res.send(await renderMenuJson())
 })
-
-mockSiteRouter.use(
-    // Not all /app/uploads paths are going through formatting
-    // and being rewritten as /uploads. E.g. blog index images paths
-    // on front page.
-    ["/uploads", "/app/uploads"],
-    express.static(path.join(WORDPRESS_DIR, "web/app/uploads"), {
-        fallthrough: false,
-    })
-)
 
 mockSiteRouter.use(
     "/images/published",

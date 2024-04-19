@@ -30,7 +30,6 @@ import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { BLOG_SLUG } from "../../settings/serverSettings.js"
 import { SiteNavigationStatic } from "../../site/SiteNavigation.js"
 import { decodeHTML } from "entities"
-import { RelatedResearchQueryResult } from "../wpdb"
 import { getAndLoadListedGdocPosts } from "./Gdoc/GdocFactory.js"
 
 export const postsTable = "posts"
@@ -460,6 +459,20 @@ export const getPostTags = async (
         .select("tags.id", "tags.name")
         .where({ post_id: postId })
         .join("tags", "tags.id", "=", "post_tags.tag_id")
+}
+
+export interface RelatedResearchQueryResult {
+    linkTargetSlug: string
+    componentType: string
+    chartSlug: string
+    title: string
+    postSlug: string
+    chartId: number
+    authors: string
+    thumbnail: string
+    pageviews: number
+    post_source: string
+    tags: string
 }
 
 export const getRelatedResearchAndWritingForVariable = async (

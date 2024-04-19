@@ -10,6 +10,7 @@ import * as db from "../db/db.js"
 // by registering listeners on SIGINT.
 import "../db/cleanup.js"
 
+// TODO: I think we can delete this script but I'm not entirely sure.
 const main = async () => {
     if (!fs.existsSync(DEPLOY_QUEUE_FILE_PATH)) {
         console.error(

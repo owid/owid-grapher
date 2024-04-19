@@ -2,7 +2,6 @@
 
 import * as lodash from "lodash"
 import * as db from "../db/db.js"
-import { DEPRECATEDgetTopics } from "../db/DEPRECATEDwpdb.js"
 import {
     UNCATEGORIZED_TAG_ID,
     BAKE_ON_CHANGE,
@@ -77,6 +76,7 @@ import {
     PostsGdocsTableName,
     DbPlainDataset,
     DbInsertUser,
+    CategoryWithEntries,
 } from "@ourworldindata/types"
 import {
     getVariableDataRoute,
@@ -149,6 +149,7 @@ import { match } from "ts-pattern"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { GdocHomepage } from "../db/model/Gdoc/GdocHomepage.js"
 import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
+import { SiteNavigationStatic } from "../site/SiteNavigation.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -606,9 +607,25 @@ getRouteWithROTransaction(
     }
 )
 
+function* flattenSiteNavigation(
+    categories: CategoryWithEntries[]
+): Generator<{ title: string; slug: string }> {
+    for (const category of categories) {
+        if (category.subcategories) {
+            yield* flattenSiteNavigation(category.subcategories)
+        }
+        if (category.entries) {
+            for (const entry of category.entries) {
+                yield { title: entry.title, slug: entry.slug }
+            }
+        }
+    }
+}
+
 apiRouter.get("/topics.json", async (req, res) => ({
-    topics: await DEPRECATEDgetTopics(),
+    topics: flattenSiteNavigation(SiteNavigationStatic.categories),
 }))
+
 getRouteWithROTransaction(
     apiRouter,
     "/editorData/variables.json",

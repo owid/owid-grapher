@@ -1,8 +1,0 @@
-/**
-* These styles are shown if the user has toggled on "Use theme styles" in preferences.
-*/
-
-body {
-    font-family: system-ui;
-    line-height: 1.5;
-}

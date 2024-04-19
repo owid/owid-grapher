@@ -46,23 +46,13 @@ Each explorer can be configured via a [panel](explorerAdminServer/) in the admin
 
 -   A [server-side](adminSiteServer/) project that manages the MySQL database used by graphers.
 
-### [WordPress](wordpress/)
-
-The CMS we use to manage articles published on Our World in Data. It's a relatively stock setup, with a custom plugin to provide additional blocks for the Gutenberg editor.
-
-Our Wordpress content and configuration is stored in a MySQL database, which currently isn't shared publicly.
-
-We are currently in the process of migrating off of WordPress to a publishing flow based on [ArchieML](https://archieml.org) with Google Docs. See the [Site README](site/README.md) for more information.
-
 ### [Baker](baker/)
 
-A [PM2](https://github.com/Unitech/pm2) project that builds a static copy of the Our World in Data website by merging the content authored in Wordpress with the grapher charts created in Grapher Admin.
+A [PM2](https://github.com/Unitech/pm2) project that builds a static copy of the Our World in Data website by merging the content authored in Gdocs with the grapher charts created in Grapher Admin.
 
 ### [Site](site/)
 
 The React code for rendering our content in pages, used by the Grapher Admin and Baker.
-
-As of March 2023, code exists for rendering both WordPress posts and Google Docs as we work on the transition away from WordPress.
 
 ## Tooling
 

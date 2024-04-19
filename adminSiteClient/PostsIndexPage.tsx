@@ -13,7 +13,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow, Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { ADMIN_BASE_URL, WORDPRESS_URL } from "../settings/clientSettings.js"
+import { ADMIN_BASE_URL } from "../settings/clientSettings.js"
 import { match } from "ts-pattern"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -224,14 +224,6 @@ class PostRow extends React.Component<PostRowProps> {
                 </td>
                 <td>
                     <a
-                        href={`${WORDPRESS_URL}/wp/wp-admin/post.php?post=${post.id}&action=edit`}
-                        className="btn btn-primary"
-                    >
-                        Edit
-                    </a>
-                </td>
-                <td>
-                    <a
                         href={`/admin/posts/compare/${post.id}`}
                         target="_blank"
                         rel="noopener"
@@ -332,7 +324,6 @@ export class PostsIndexPage extends React.Component {
                                 <th>Slug</th>
                                 <th>Tags</th>
                                 <th>Last Updated</th>
-                                <th></th>
                                 <th>WP vs Archie compare view</th>
                                 <th>Gdoc</th>
                             </tr>

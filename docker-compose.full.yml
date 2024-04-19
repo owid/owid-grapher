@@ -1,8 +1,7 @@
 version: "3.7"
 
-# This docker-compose file creates a full local dev environment for both grapher and wordpress. It is meant for
-# OWID internal developers as the setup of wordpress requires a copy of the wordpress database that is not
-# publicly available.
+# This docker-compose file creates a full local dev environment for both grapher and cloudflare. It is meant for
+# OWID internal developers.
 
 # This setup assumes that work on the grapher happens outside any docker container - i.e. there is no Node 18
 # container included in this setup. The idea is that grapher development (as well as running vite and the
@@ -11,27 +10,10 @@ version: "3.7"
 # The mysql database server is exposed on the host at the default mysql port of 3306 so you can use DB admin
 # utilities on the host working against localhost:3306
 
-# Before the first run you should download the database dumps. The easiest way to do this is to run the
-# following 3 commands from a bash terminal with the root of the project as the working directory. Note that
-# for the wordpress related downloads you'll need a working ssh setup on your host to connect to prod-db.owid.io:
-# ./devTools/docker/download-grapher-metadata-mysql.sh
-# ./devTools/docker/download-wordpress-mysql.sh
-# and if you want the wordpress file uploads as well then:
-# ./devTools/docker/download-wordpress-uploads.sh
-
-# Run `docker-compose up -d` to run all these services in deamon mode. The first time it will take a few minutes
-# to build the containers and initialize and fill the database, afterwards it should be up in seconds.
-# On the host, make sure you have a .env file with the correct settings, then start `yarn startTmuxServer` or similar
-# and navigate to http://localhost:8080 to work with both the grapher admin and wordpress previews.
-
-# Wordpress development
-# The Wordpress admin is at http://localhost:8080/wp/wp-admin/
-# While working on the editor blocks of the OWID Wordpress plugin, run `yarn startWordpressPlugin`.
-# Alternatively, you can run `yarn buildWordpressPlugin` if you're working in Wordpress but not actively updating the editor.
-# Working on the PHP code doesn't require any further tooling command to run.
+# Check out the docs for more information about how this setup works.
 
 services:
-    # Stock mysql database. Used for both grapher and wordpress databases. Root password is hardcoded for now
+    # Stock mysql database. Used for grapher database. Root password is hardcoded for now
     db:
         image: mysql/mysql-server:latest
         command: --default-authentication-plugin=mysql_native_password
@@ -42,16 +24,14 @@ services:
             - ./logs:/var/log/mysql
         ports:
             # Exposing via the port specified for Grapher
-            # Should always be the same as the WordPress port, because we store both DBs on the same server
             - "${GRAPHER_DB_PORT}:3306"
         environment:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
             MYSQL_ROOT_HOST: "%"
 
     # mysql 8.0 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
-    # These init scripts check if the grapher and wordpress databases and users are missing, if so they create them
-    # and pull the data to have a working dev environment. As the wordpress donwload needs a working ssh access, it
-    # mounts the SSH agent and ~/.ssh directory into the container
+    # These init scripts check if the grapher database and users are missing, if so they create them
+    # and pull the data to have a working dev environment.
     db-load-data:
         build:
             context: ./devTools/docker/mysql-init-docker
@@ -79,42 +59,8 @@ services:
             - 8080:80
         volumes:
             - ./devTools/docker/vhosts.conf:/etc/nginx/conf.d/default.conf
-            - ./wordpress:/app
         depends_on:
             - fpm
-
-    # PHP cgi server that executes wordpress
-    fpm:
-        build:
-            context: ./devTools/docker/wordpress-php-docker
-        ports:
-            - 9000:9000
-        volumes:
-            - ./devTools/docker/php.ini:/usr/local/etc/php/php.ini
-            - ./wordpress:/app
-        depends_on:
-            - db
-
-    # Init container for the PHP codebase. This mounts the ./wordpress directory that is also
-    # used by the nginx and php container and executes the PHP package manager composer to
-    # make sure that all dependencies and plugins are installed that are not part of our source
-    # (i.e. ./wordpress/web/app/plugins/owid is already there because it is part of this git repo
-    # but all the other plugins will only be downloaded by running composer)
-    wordpress-install:
-        build:
-            context: ./devTools/docker/wordpress-php-docker
-        command: "composer install --no-interaction"
-        volumes:
-            - ./wordpress:/app
-
-    # Init container for the owid wordpress plugin. The Javascript part of this plugin need to
-    # be built in a node container once with the ./wordpress directory mounted into the container.
-    wordpress-owid-plugin-build:
-        image: node:18
-        command: "yarn build"
-        working_dir: /app/web/app/plugins/owid
-        volumes:
-            - ./wordpress:/app
 
 volumes:
     mysql_data:

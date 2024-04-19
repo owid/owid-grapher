@@ -1,8 +1,4 @@
-import {
-    formatWordpressEditLink,
-    LongFormPage,
-    PageOverrides,
-} from "../site/LongFormPage.js"
+import { LongFormPage, PageOverrides } from "../site/LongFormPage.js"
 import { BlogIndexPage } from "../site/BlogIndexPage.js"
 import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage.js"
 import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
@@ -653,9 +649,7 @@ export const renderProminentLinks = async (
                 if (!title) {
                     void logErrorAndMaybeSendToBugsnag(
                         new JsonError(
-                            `No fallback title found for prominent link ${resolvedUrlString} in ${formatWordpressEditLink(
-                                containerPostId
-                            )}. Block removed.`
+                            `No fallback title found for prominent link ${resolvedUrlString} in wordpress post with id ${containerPostId}. Block removed.`
                         )
                     )
                     $block.remove()
@@ -859,9 +853,7 @@ export const renderKeyInsights = async (
         if (!title || !slug) {
             void logErrorAndMaybeSendToBugsnag(
                 new JsonError(
-                    `Title or anchor missing for key insights block, content removed in ${formatWordpressEditLink(
-                        containerPostId
-                    )}.`
+                    `Title or anchor missing for key insights block, content removed in wordpress post with id ${containerPostId}.`
                 )
             )
             $block.remove()
@@ -872,9 +864,7 @@ export const renderKeyInsights = async (
         if (!keyInsights.length) {
             void logErrorAndMaybeSendToBugsnag(
                 new JsonError(
-                    `No valid key insights found within block, content removed in ${formatWordpressEditLink(
-                        containerPostId
-                    )}`
+                    `No valid key insights found within block, content removed in wordpress post with id ${containerPostId}`
                 )
             )
             $block.remove()
@@ -930,9 +920,7 @@ export const extractKeyInsights = (
                 new JsonError(
                     `Missing title, slug or content for key insight ${
                         title || slug
-                    }, content removed in ${formatWordpressEditLink(
-                        containerPostId
-                    )}.`
+                    }, content removed in wordpress post with id ${containerPostId}.`
                 )
             )
             continue
