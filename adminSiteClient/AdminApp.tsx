@@ -36,6 +36,7 @@ import { AdminAppContext } from "./AdminAppContext.js"
 import { Base64 } from "js-base64"
 import { ExplorerCreatePage } from "../explorerAdminClient/ExplorerCreatePage.js"
 import { ExplorersIndexPage } from "../explorerAdminClient/ExplorersListPage.js"
+import { ExplorerDataPage } from "../explorerAdminClient/ExplorerDataPage.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
@@ -154,6 +155,19 @@ export class AdminApp extends React.Component<{
                                 exact
                                 path="/charts"
                                 component={ChartIndexPage}
+                            />
+                            <Route
+                                exact
+                                path={`/${EXPLORERS_ROUTE_FOLDER}/datapage/:slug`}
+                                render={({ match }) => (
+                                    <AdminLayout title="Preview Explorer data page">
+                                        <ExplorerDataPage
+                                            slug={match.params.slug}
+                                            gitCmsBranchName={gitCmsBranchName}
+                                            manager={admin}
+                                        />
+                                    </AdminLayout>
+                                )}
                             />
                             <Route
                                 exact
