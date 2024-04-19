@@ -396,17 +396,17 @@ export const getPublishedGdocPostsWithTags = async (
         g.revisionId,
         g.slug,
         g.updatedAt,
-        JSON_ARRAYAGG(
-          JSON_OBJECT(
-            'id', t.id,
-            'name', t.name,
-            'slug', t.slug
-        )) AS tags
+        if( COUNT(t.id) = 0, JSON_ARRAY(), JSON_ARRAYAGG(
+            JSON_OBJECT(
+              'id', t.id,
+              'name', t.name,
+              'slug', t.slug
+          ))) AS tags
     FROM
         posts_gdocs g
-    JOIN posts_gdocs_x_tags gxt ON
+    LEFT JOIN posts_gdocs_x_tags gxt ON
         g.id = gxt.gdocId 
-    JOIN tags t ON
+    LEFT JOIN tags t ON
         gxt.tagId = t.id
     WHERE
         g.published = 1
