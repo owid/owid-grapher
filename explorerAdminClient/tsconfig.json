@@ -5,8 +5,17 @@
         "rootDir": "."
     },
     "references": [
-        { "path": "../explorer" },
-        { "path": "../gridLang" },
-        { "path": "../gitCms" }
+        {
+            "path": "../explorer"
+        },
+        {
+            "path": "../gridLang"
+        },
+        {
+            "path": "../gitCms"
+        },
+        {
+            "path": "../site"
+        }
     ]
 }

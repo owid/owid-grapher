@@ -42,6 +42,7 @@ import {
     FaqDictionary,
     ImageMetadata,
     OwidGdocBaseInterface,
+    FullDatapageData,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -126,26 +127,15 @@ type EnrichedFaqLookupSuccess = {
 
 type EnrichedFaqLookupResult = EnrichedFaqLookupError | EnrichedFaqLookupSuccess
 
-export async function renderDataPageV2(
-    {
-        variableId,
-        variableMetadata,
-        isPreviewing,
-        useIndicatorGrapherConfigs,
-        pageGrapher,
-        imageMetadataDictionary = {},
-    }: {
-        variableId: number
-        variableMetadata: OwidVariableWithSource
-        isPreviewing: boolean
-        useIndicatorGrapherConfigs: boolean
-        pageGrapher?: GrapherInterface
-        imageMetadataDictionary?: Record<string, ImageMetadata>
-    },
-
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
+export async function fetchDataPageV2Data(
+    variableId: number,
+    variableMetadata: OwidVariableWithSource,
+    isPreviewing: boolean,
+    useIndicatorGrapherConfigs: boolean,
+    pageGrapher: GrapherInterface | undefined,
+    imageMetadataDictionary = {},
     knex: db.KnexReadWriteTransaction
-) {
+): Promise<FullDatapageData> {
     const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
         variableId,
         knex
@@ -296,7 +286,44 @@ export async function renderDataPageV2(
     )
 
     const tagToSlugMap = await getTagToSlugMap(knex)
+    return {
+        grapher,
+        datapageData,
+        imageMetadata,
+        faqEntries,
+        tagToSlugMap,
+    }
+}
+export async function renderDataPageV2(
+    {
+        variableId,
+        variableMetadata,
+        isPreviewing,
+        useIndicatorGrapherConfigs,
+        pageGrapher,
+        imageMetadataDictionary = {},
+    }: {
+        variableId: number
+        variableMetadata: OwidVariableWithSource
+        isPreviewing: boolean
+        useIndicatorGrapherConfigs: boolean
+        pageGrapher?: GrapherInterface
+        imageMetadataDictionary?: Record<string, ImageMetadata>
+    },
 
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    knex: db.KnexReadWriteTransaction
+) {
+    const { grapher, datapageData, imageMetadata, faqEntries, tagToSlugMap } =
+        await fetchDataPageV2Data(
+            variableId,
+            variableMetadata,
+            isPreviewing,
+            useIndicatorGrapherConfigs,
+            pageGrapher,
+            imageMetadataDictionary,
+            knex
+        )
     return renderToHtmlPage(
         <DataPageV2
             grapher={grapher}

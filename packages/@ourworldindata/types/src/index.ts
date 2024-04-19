@@ -319,6 +319,7 @@ export {
     type FaqLink,
     type FaqEntryData,
     type DisplaySource,
+    type FullDatapageData,
 } from "./gdocTypes/Datapage.js"
 
 export {

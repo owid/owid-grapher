@@ -5,7 +5,7 @@ import {
     IndicatorTitleWithFragments,
     OwidProcessingLevel,
 } from "../OwidVariable.js"
-import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
+import { GrapherInterface, RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { Static, Type } from "@sinclair/typebox"
 import { OwidEnrichedGdocBlock } from "./ArchieMlComponents.js"
 import { ImageMetadata } from "./Image.js"
@@ -165,4 +165,12 @@ export interface DisplaySource {
     retrievedOn?: string
     retrievedFrom?: string
     citation?: string
+}
+
+export interface FullDatapageData {
+    grapher: GrapherInterface
+    datapageData: DataPageDataV2
+    imageMetadata: Record<string, ImageMetadata>
+    faqEntries: FaqEntryData
+    tagToSlugMap: Record<string, string>
 }

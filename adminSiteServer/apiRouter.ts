@@ -27,6 +27,7 @@ import {
     fetchS3MetadataByPath,
     fetchS3DataValuesByPath,
     searchVariables,
+    getVariableMetadata,
 } from "../db/model/Variable.js"
 import {
     applyPatch,
@@ -149,6 +150,7 @@ import { match } from "ts-pattern"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { GdocHomepage } from "../db/model/Gdoc/GdocHomepage.js"
 import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
+import { fetchDataPageV2Data } from "../baker/GrapherBaker.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -2544,6 +2546,26 @@ deleteRouteWithRWTransaction(
         const { slug } = req.params
         await trx.table("explorer_tags").where({ explorerSlug: slug }).delete()
         return { success: true }
+    }
+)
+
+getRouteNonIdempotentWithRWTransaction(
+    apiRouter,
+    "/explorer/datapagepreview/:indicatorId.json",
+    async (req, res, trx) => {
+        const indicatorId = expectInt(req.params.indicatorId)
+        const variableMetadata = await getVariableMetadata(indicatorId)
+        const datapageDataFull = await fetchDataPageV2Data(
+            indicatorId,
+            variableMetadata,
+            true,
+            true,
+            undefined,
+            undefined,
+            trx
+        )
+
+        return { datapageDataFull, success: true }
     }
 )
 

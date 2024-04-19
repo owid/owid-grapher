@@ -5,7 +5,10 @@ import { GitCmsClient } from "../gitCms/GitCmsClient.js"
 import { ExplorerControlPanel } from "../explorer/ExplorerControls.js"
 import { GIT_CMS_BASE_ROUTE } from "../gitCms/GitCmsConstants.js"
 import { observer } from "mobx-react"
-import { action, computed, observable } from "mobx"
+import { action, computed, observable, reaction } from "mobx"
+import { DebugProvider } from "../site/gdocs/DebugContext.js"
+import { DataPageV2Content } from "../site/DataPageV2Content.js"
+import { FullDatapageData } from "@ourworldindata/types"
 
 export interface ExplorerDataPageProps {
     slug: string
@@ -14,8 +17,9 @@ export interface ExplorerDataPageProps {
 @observer
 export class ExplorerDataPage extends React.Component<ExplorerDataPageProps> {
     @observable private explorer: ExplorerProgram | null = null
+    @observable private datapageDataFull: FullDatapageData | null = null
 
-    iframeRef = React.createRef<HTMLIFrameElement>()
+    // iframeRef = React.createRef<HTMLIFrameElement>()
 
     @computed private get slug() {
         return this.props.slug
@@ -47,8 +51,7 @@ export class ExplorerDataPage extends React.Component<ExplorerDataPageProps> {
             ? currentlySelectedYIndicatorIds[0]
             : null
     }
-
-    @action.bound private async fetchData() {
+    private async fetchData() {
         const { slug } = this
         const gitCmsClient = new GitCmsClient(GIT_CMS_BASE_ROUTE)
         const explorerContent = await gitCmsClient.readRemoteFile({
@@ -58,10 +61,21 @@ export class ExplorerDataPage extends React.Component<ExplorerDataPageProps> {
     }
     componentDidMount() {
         void this.fetchData()
+        reaction(
+            () => this.currentlySelectedYIndicatorId,
+            async (currentlySelectedYIndicatorId) => {
+                if (currentlySelectedYIndicatorId) {
+                    const response = await fetch(
+                        `/admin/api/explorer/datapagepreview/${currentlySelectedYIndicatorId}.json`
+                    ).then((res) => res.json())
+                    this.datapageDataFull = response.datapageDataFull
+                }
+            }
+        )
     }
 
     render() {
-        const { explorer, currentlySelectedYIndicatorId, iframeRef } = this
+        const { explorer, datapageDataFull } = this
         const panel = explorer
             ? explorer.decisionMatrix.choicesWithAvailability.map((choice) => (
                   <ExplorerControlPanel
@@ -80,13 +94,19 @@ export class ExplorerDataPage extends React.Component<ExplorerDataPageProps> {
         return (
             <>
                 {panel}
-                <iframe
-                    ref={iframeRef}
-                    src={`/admin/datapage-preview/${currentlySelectedYIndicatorId}?country=~OWID_WRL`}
-                    style={{ width: "100%", border: "none", height: "100%" }}
-                    // use `updatedAt` as a proxy for when database-level settings such as breadcrumbs have changed
-                    key={currentlySelectedYIndicatorId}
-                />
+                <DebugProvider debug={true}>
+                    {datapageDataFull && (
+                        <DataPageV2Content
+                            datapageData={datapageDataFull.datapageData}
+                            grapherConfig={{}}
+                            imageMetadata={datapageDataFull.imageMetadata}
+                            isPreviewing={true}
+                            faqEntries={datapageDataFull.faqEntries}
+                            canonicalUrl={"/"}
+                            tagToSlugMap={datapageDataFull.tagToSlugMap}
+                        />
+                    )}
+                </DebugProvider>
             </>
         )
     }
