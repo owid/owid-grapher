@@ -127,10 +127,10 @@ import {
 } from "./functionalRouterHelpers.js"
 import { getPublishedLinksTo } from "../db/model/Link.js"
 import {
+    getChainedRedirect,
     getRedirectById,
     getRedirects,
     redirectWithSourceExists,
-    wouldCreateRedirectCycle,
 } from "../db/model/Redirect.js"
 import {
     GdocLinkUpdateMode,
@@ -1777,9 +1777,18 @@ postRouteWithRWTransaction(
                 400
             )
         }
-        if (await wouldCreateRedirectCycle(trx, source, target)) {
+        const chainedRedirect = await getChainedRedirect(trx, source, target)
+        if (chainedRedirect) {
             throw new JsonError(
-                "Creating this redirect would create a cycle",
+                "Creating this redirect would create a chain, redirect from " +
+                    `${chainedRedirect.source} to ${chainedRedirect.target} ` +
+                    "already exists. " +
+                    (target === chainedRedirect.source
+                        ? `Please create the redirect from ${source} to ` +
+                          `${chainedRedirect.target} directly instead.`
+                        : `Please delete the existing redirect and create a ` +
+                          `new redirect from ${chainedRedirect.source} to ` +
+                          `${target} instead.`),
                 400
             )
         }

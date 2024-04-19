@@ -5,9 +5,12 @@ import { useForm } from "react-hook-form"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 
-const VALID_PATTERN = /^\/$|^.*[^\/]+$/
-const INVALID_PATTERN_MESSAGE =
-    "URL cannot end with a slash unless it's the root."
+const SOURCE_PATTERN = /^\/$|^\/.*[^\/]+$/
+const INVALID_SOURCE_MESSAGE =
+    "URL must start with a slash and cannot end with a slash, unless it's the root."
+const TARGET_PATTERN = /^\/$|^(https?:\/\/|\/).*[^\/]+$/
+const INVALID_TARGET_MESSAGE =
+    "URL must start with a slash or http(s):// and cannot end with a slash, unless it's the root."
 
 type Redirect = {
     id: number
@@ -55,6 +58,7 @@ export default function SiteRedirectsIndexPage() {
         register,
         formState: { errors, isSubmitting },
         handleSubmit,
+        setValue,
         watch,
     } = useForm<FormData>()
     const source = watch("source")
@@ -77,11 +81,14 @@ export default function SiteRedirectsIndexPage() {
         return undefined
     }
 
-    async function onSubmit(data: FormData) {
+    async function onSubmit({ source, target }: FormData) {
+        const sourceUrl = new URL(source, window.location.origin)
+        const sourcePath = sourceUrl.pathname
+        setValue("source", sourcePath)
         setError(null)
         const json = await admin.requestJSON(
             "/api/site-redirects/new",
-            data,
+            { source: sourcePath, target },
             "POST"
         )
         if (json.success) {
@@ -92,8 +99,9 @@ export default function SiteRedirectsIndexPage() {
     }
 
     async function handleDelete(redirect: Redirect) {
-        if (!window.confirm(`Delete the redirect from ${redirect.source}?`))
+        if (!window.confirm(`Delete the redirect from ${redirect.source}?`)) {
             return
+        }
         setError(null)
         const json = await admin.requestJSON(
             `/api/site-redirects/${redirect.id}`,
@@ -110,6 +118,21 @@ export default function SiteRedirectsIndexPage() {
     return (
         <AdminLayout title="Site Redirects">
             <main>
+                <div className="row">
+                    <div className="col-12 col-md-8">
+                        <p>
+                            Source has to start with a slash and any query
+                            parameters (?a=b) or fragments (#c) will be
+                            stripped, if present. The target can contain a full
+                            URL or a relative URL starting with a slash and both
+                            query parameters and fragments are allowed.
+                        </p>
+                        <p>
+                            To redirect to our homepage use a single slash as
+                            the target.
+                        </p>
+                    </div>
+                </div>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="form-row">
                         <div className="form-group col-12 col-md-4">
@@ -121,8 +144,8 @@ export default function SiteRedirectsIndexPage() {
                                 {...register("source", {
                                     required: "Please provide a source.",
                                     pattern: {
-                                        value: VALID_PATTERN,
-                                        message: INVALID_PATTERN_MESSAGE,
+                                        value: SOURCE_PATTERN,
+                                        message: INVALID_SOURCE_MESSAGE,
                                     },
                                 })}
                             />
@@ -139,8 +162,8 @@ export default function SiteRedirectsIndexPage() {
                                 {...register("target", {
                                     required: "Please provide a target.",
                                     pattern: {
-                                        value: VALID_PATTERN,
-                                        message: INVALID_PATTERN_MESSAGE,
+                                        value: TARGET_PATTERN,
+                                        message: INVALID_TARGET_MESSAGE,
                                     },
                                     validate: validateTarget,
                                 })}
