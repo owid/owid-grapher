@@ -926,6 +926,11 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     text-decoration: none;
 }
 
+.redirect-emphasis {
+    text-decoration: underline;
+    text-decoration-color: #ccc;
+}
+
 .add-redirect-form {
     display: flex;
     flex-direction: row;

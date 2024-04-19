@@ -77,7 +77,7 @@ export class RedirectsIndexPage extends React.Component {
         const { redirects } = this
 
         return (
-            <AdminLayout title="Redirects">
+            <AdminLayout title="Chart Redirects">
                 <main className="RedirectsIndexPage">
                     <FieldsRow>
                         <span>Showing {redirects.length} redirects</span>

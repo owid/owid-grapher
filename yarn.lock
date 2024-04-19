@@ -11195,6 +11195,7 @@ __metadata:
     react-dom: "npm:^17.0.2"
     react-error-boundary: "npm:^4.0.10"
     react-flip-toolkit: "npm:^7.0.9"
+    react-hook-form: "npm:^7.51.3"
     react-horizontal-scrolling-menu: "npm:^4.0.3"
     react-instantsearch: "npm:^7.7.1"
     react-intersection-observer: "npm:^9.4.0"
@@ -17500,6 +17501,15 @@ __metadata:
     react: 16.x
     react-dom: ">= 16.x"
   checksum: 10/2229e48ad0e67839222489b28aa9413ff49d7affcba78bee5b328f9c2cbc3ba99b5669a029a2aba8b732ed5cac8a8b11ccef78b5809ca96a1b39b5aa6308ffb5
+  languageName: node
+  linkType: hard
+
+"react-hook-form@npm:^7.51.3":
+  version: 7.51.3
+  resolution: "react-hook-form@npm:7.51.3"
+  peerDependencies:
+    react: ^16.8.0 || ^17 || ^18
+  checksum: 10/37f5d681b0f9d6a64b56e38c6ea98941c78d2634e175e7722e66a6bd72b4b22a73a5b912ada8cc010b5ec9e1019b8e2d4a6b0f38e87280600f8e921dee96aaca
   languageName: node
   linkType: hard
 

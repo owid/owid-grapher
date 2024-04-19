@@ -3,8 +3,13 @@ export enum RedirectCode {
     FOUND = 302,
 }
 
-export interface DbPlainRedirect {
+export interface DbInsertRedirect {
+    id: number
     source: string
     target: string
     code: RedirectCode
+    createdAt?: Date | null
+    updatedAt?: Date | null
 }
+
+export type DbPlainRedirect = Required<DbInsertRedirect>

@@ -127,6 +127,12 @@ import {
 } from "./functionalRouterHelpers.js"
 import { getPublishedLinksTo } from "../db/model/Link.js"
 import {
+    getChainedRedirect,
+    getRedirectById,
+    getRedirects,
+    redirectWithSourceExists,
+} from "../db/model/Redirect.js"
+import {
     GdocLinkUpdateMode,
     createOrLoadGdocById,
     gdocFromJSON,
@@ -1752,6 +1758,69 @@ getRouteWithROTransaction(
         ORDER BY r.id DESC`
         ),
     })
+)
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/site-redirects.json",
+    async (req, res, trx) => ({ redirects: await getRedirects(trx) })
+)
+
+postRouteWithRWTransaction(
+    apiRouter,
+    "/site-redirects/new",
+    async (req: Request, res, trx) => {
+        const { source, target } = req.body
+        if (await redirectWithSourceExists(trx, source)) {
+            throw new JsonError(
+                `Redirect with source ${source} already exists`,
+                400
+            )
+        }
+        const chainedRedirect = await getChainedRedirect(trx, source, target)
+        if (chainedRedirect) {
+            throw new JsonError(
+                "Creating this redirect would create a chain, redirect from " +
+                    `${chainedRedirect.source} to ${chainedRedirect.target} ` +
+                    "already exists. " +
+                    (target === chainedRedirect.source
+                        ? `Please create the redirect from ${source} to ` +
+                          `${chainedRedirect.target} directly instead.`
+                        : `Please delete the existing redirect and create a ` +
+                          `new redirect from ${chainedRedirect.source} to ` +
+                          `${target} instead.`),
+                400
+            )
+        }
+        const { insertId: id } = await db.knexRawInsert(
+            trx,
+            `INSERT INTO redirects (source, target) VALUES (?, ?)`,
+            [source, target]
+        )
+        await triggerStaticBuild(
+            res.locals.user,
+            `Creating redirect id=${id} source=${source} target=${target}`
+        )
+        return { success: true, redirect: { id, source, target } }
+    }
+)
+
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/site-redirects/:id",
+    async (req, res, trx) => {
+        const id = expectInt(req.params.id)
+        const redirect = await getRedirectById(trx, id)
+        if (!redirect) {
+            throw new JsonError(`No redirect found for id ${id}`, 404)
+        }
+        await db.knexRaw(trx, `DELETE FROM redirects WHERE id=?`, [id])
+        await triggerStaticBuild(
+            res.locals.user,
+            `Deleting redirect id=${id} source=${redirect.source} target=${redirect.target}`
+        )
+        return { success: true }
+    }
 )
 
 getRouteWithROTransaction(

@@ -13,6 +13,7 @@ import { DatasetEditPage } from "./DatasetEditPage.js"
 import { VariablesAnnotationPage } from "./VariablesAnnotationPage.js"
 import { SourceEditPage } from "./SourceEditPage.js"
 import { RedirectsIndexPage } from "./RedirectsIndexPage.js"
+import SiteRedirectsIndexPage from "./SiteRedirectsIndexPage"
 import { TagEditPage } from "./TagEditPage.js"
 import { TagsIndexPage } from "./TagsIndexPage.js"
 import { PostsIndexPage } from "./PostsIndexPage.js"
@@ -247,6 +248,11 @@ export class AdminApp extends React.Component<{
                                 exact
                                 path="/redirects"
                                 component={RedirectsIndexPage}
+                            />
+                            <Route
+                                exact
+                                path="/site-redirects"
+                                component={SiteRedirectsIndexPage}
                             />
                             <Route
                                 exact
