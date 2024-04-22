@@ -309,6 +309,7 @@ export const archieToEnriched = (
     for (const key of Object.keys(parsed)) {
         const value = parsed[key]
         if (typeof value === "string") {
+            // this is safe to call on everything because it falls back to `value` if it's not an <a> tag
             parsed[key] = extractUrl(value)
         }
     }
