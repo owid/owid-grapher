@@ -9,6 +9,7 @@ import {
     faDownload,
     faArrowRight,
     IconDefinition,
+    faArrowUpFromBracket,
 } from "@fortawesome/free-solid-svg-icons"
 import {
     ShareMenu,
@@ -16,7 +17,7 @@ import {
     shareUsingShareApi,
     shouldShareUsingShareApi,
 } from "./ShareMenu"
-import { DEFAULT_BOUNDS, Bounds } from "@ourworldindata/utils"
+import { DEFAULT_BOUNDS, Bounds, isIOS } from "@ourworldindata/utils"
 
 export interface ActionButtonsManager extends ShareMenuManager {
     isShareMenuActive?: boolean
@@ -223,6 +224,11 @@ export class ActionButtons extends React.Component<{
         return count
     }
 
+    @computed private get shareButtonIcon(): IconDefinition {
+        if (isIOS()) return faArrowUpFromBracket
+        else return faShareNodes
+    }
+
     private renderShareMenu(): JSX.Element {
         // distance between the right edge of the share button and the inner border of the frame
         let right = 0
@@ -241,7 +247,7 @@ export class ActionButtons extends React.Component<{
     }
 
     render(): JSX.Element {
-        const { manager } = this
+        const { manager, shareButtonIcon } = this
         const { isShareMenuActive } = manager
 
         return (
@@ -271,7 +277,7 @@ export class ActionButtons extends React.Component<{
                                 label="Share"
                                 dataTrackNote="chart_click_share"
                                 showLabel={this.showButtonLabels}
-                                icon={faShareNodes}
+                                icon={shareButtonIcon}
                                 onClick={(e): void => {
                                     this.toggleShareMenu()
                                     e.stopPropagation()
