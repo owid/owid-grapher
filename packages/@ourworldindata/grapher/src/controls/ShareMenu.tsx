@@ -9,7 +9,7 @@ import {
     faLink,
     faEdit,
 } from "@fortawesome/free-solid-svg-icons"
-import { canWriteToClipboard } from "@ourworldindata/utils"
+import { canWriteToClipboard, isAndroid, isIOS } from "@ourworldindata/utils"
 
 export interface ShareMenuManager {
     slug?: string
@@ -28,6 +28,39 @@ interface ShareMenuProps {
 interface ShareMenuState {
     canWriteToClipboard: boolean
     copied: boolean
+}
+
+// On mobile OSs, the system-level share API does a way better job of providing
+// relevant options to the user than our own <ShareMenu> does - for example,
+// quick access to messaging apps, the user's frequent contacts, etc.
+// So, on Android and iOS, we want to just show the system-level share dialog
+// immediately when the user clicks the share button, rather than showing our
+// own menu.
+// See https://github.com/owid/owid-grapher/issues/3446
+// -@marcelgerber, 2024-04-24
+export const shouldShareUsingShareApi = (): boolean => {
+    return (
+        (isAndroid() || isIOS()) &&
+        "share" in navigator &&
+        "canShare" in navigator
+    )
+}
+
+export const shareUsingShareApi = async (
+    manager: Pick<ShareMenuManager, "canonicalUrl" | "currentTitle">
+): Promise<void> => {
+    if (!manager.canonicalUrl || !navigator.share) return
+
+    const shareData = {
+        title: manager.currentTitle ?? "",
+        url: manager.canonicalUrl,
+    }
+
+    try {
+        await navigator.share(shareData)
+    } catch (err) {
+        console.error("couldn't share using navigator.share", err)
+    }
 }
 
 @observer
@@ -88,18 +121,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     @action.bound async onNavigatorShare(): Promise<void> {
-        if (!this.canonicalUrl || !navigator.share) return
-
-        const shareData = {
-            title: this.title,
-            url: this.canonicalUrl,
-        }
-
-        try {
-            await navigator.share(shareData)
-        } catch (err) {
-            console.error("couldn't share using navigator.share", err)
-        }
+        await shareUsingShareApi(this.manager)
     }
 
     @action.bound async onCopyUrl(): Promise<void> {
