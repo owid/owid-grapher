@@ -7,8 +7,15 @@ import {
     EXPLORERS_GIT_CMS_FOLDER,
     ExplorersRouteResponse,
 } from "../explorer/ExplorerConstants.js"
+import * as db from "../db/db.js"
 import { simpleGit, SimpleGit } from "simple-git"
-import { GitCommit, keyBy, sortBy } from "@ourworldindata/utils"
+import {
+    DbPlainExplorer,
+    GitCommit,
+    keyBy,
+    sortBy,
+} from "@ourworldindata/utils"
+import { uniq } from "lodash"
 
 export class ExplorerAdminServer {
     constructor(gitDir: string) {
@@ -60,20 +67,39 @@ export class ExplorerAdminServer {
         }
     }
 
-    // todo: make private? once we remove covid legacy stuff?
-    async getExplorerFromFile(filename: string) {
-        const fullPath = this.absoluteFolderPath + filename
-        const content = await fs.readFile(fullPath, "utf8")
-        const commits = await this.simpleGit.log({ file: fullPath, n: 1 })
-        return new ExplorerProgram(
-            filename.replace(EXPLORER_FILE_SUFFIX, ""),
-            content,
-            commits.latest as GitCommit
-        )
-    }
-
-    async getExplorerFromSlug(slug: string) {
-        return this.getExplorerFromFile(`${slug}${EXPLORER_FILE_SUFFIX}`)
+    async getExplorerFromSlug(knex: db.KnexReadonlyTransaction, slug: string) {
+        const explorerConfig = await db.knexRawFirst<
+            Pick<DbPlainExplorer, "config">
+        >(knex, `SELECT config FROM explorers WHERE slug = ?`, [slug])
+        if (!explorerConfig) {
+            throw new Error(`Explorer not found: ${slug}`)
+        }
+        const config = JSON.parse(explorerConfig.config)
+        const entries = Object.entries(config)
+        const out: string[][] = []
+        for (const [key, value] of entries) {
+            if (key === "blocks" || key === "_version") continue
+            if (typeof value === "string") {
+                out.push([key, value])
+            } else if (Array.isArray(value)) {
+                out.push([key, ...value])
+            }
+        }
+        for (const block of config.blocks) {
+            out.push([block.type, ...block.args])
+            if (block.block) {
+                const columns = uniq(
+                    block.block.flatMap((row: Record<string, string>) =>
+                        Object.keys(row)
+                    )
+                ) as string[]
+                out.push(["", ...columns])
+                for (const row of block.block) {
+                    out.push(["", ...columns.map((col) => row[col])])
+                }
+            }
+        }
+        return new ExplorerProgram(slug, config)
     }
 
     async getAllPublishedExplorers() {
