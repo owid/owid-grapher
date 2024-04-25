@@ -332,9 +332,11 @@ const renderGrapherPage = async (
     grapher: GrapherInterface,
     knex: db.KnexReadonlyTransaction
 ) => {
-    const postSlug = urlToSlug(grapher.originUrl || "")
+    const postSlug = urlToSlug(grapher.originUrl || "") as string | undefined
     // TODO: update this to use gdocs posts
-    const postId = await getPostIdFromSlug(knex, postSlug)
+    const postId = postSlug
+        ? await getPostIdFromSlug(knex, postSlug)
+        : undefined
     const relatedCharts = postId
         ? await getPostRelatedCharts(knex, postId)
         : undefined
