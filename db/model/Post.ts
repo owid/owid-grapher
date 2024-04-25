@@ -379,7 +379,7 @@ export const getWordpressPostReferencesByChartId = async (
                         slug from posts_gdocs pg
                     WHERE
                         pg.slug = p.slug
-                        AND pg.content ->> '$.type' <> 'fragment'
+                        AND pg.type != 'fragment'
                         AND pg.published = 1
                 )
             ORDER BY
@@ -563,7 +563,7 @@ export const getRelatedResearchAndWritingForVariable = async (
             AND cd.variableId = ?
             AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
             AND p.published = 1
-            AND p.content ->> '$.type' != 'fragment'`,
+            AND p.type != 'fragment'`,
         [variableId]
     )
 

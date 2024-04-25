@@ -199,7 +199,7 @@ export async function getAllMinimalGdocBaseObjects(
                 published,
                 content ->> '$.subtitle' as subtitle,
                 content ->> '$.excerpt' as excerpt,
-                content ->> '$.type' as type,
+                type,
                 content ->> '$."featured-image"' as "featured-image"
             FROM posts_gdocs
             WHERE published = 1
@@ -363,7 +363,7 @@ export async function getAndLoadPublishedDataInsights(
             SELECT *
             FROM posts_gdocs
             WHERE published = 1
-            AND content ->> '$.type' = ?
+            AND type = ?
             AND publishedAt <= NOW()
             ORDER BY publishedAt DESC
             ${limitOffsetClause}`,
@@ -413,7 +413,7 @@ export async function loadPublishedGdocAuthors(
             SELECT *
             FROM posts_gdocs
             WHERE published = 1
-            AND content ->> '$.type' IN (:types)`,
+            AND type IN (:types)`,
         {
             types: [OwidGdocType.Author],
         }

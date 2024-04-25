@@ -834,7 +834,7 @@ export async function getMinimalGdocPostsByIds(
                 published,
                 content ->> '$.subtitle' as subtitle,
                 content ->> '$.excerpt' as excerpt,
-                content ->> '$.type' as type,
+                type,
                 content ->> '$."featured-image"' as "featured-image"
             FROM posts_gdocs
             WHERE id in (:ids)`,
