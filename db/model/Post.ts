@@ -100,6 +100,22 @@ export const setTagsForPost = async (
         )
 }
 
+export const getPostIdFromSlug = (
+    knex: db.KnexReadonlyTransaction,
+    slug: string
+): Promise<number | undefined> => {
+    return db
+        .knexRawFirst<{ id: number }>(
+            knex,
+            `-- sql
+        SELECT id
+        FROM posts
+        WHERE slug = ?`,
+            [slug]
+        )
+        .then((result) => result?.id)
+}
+
 export const getPostRawBySlug = async (
     trx: db.KnexReadonlyTransaction,
     slug: string

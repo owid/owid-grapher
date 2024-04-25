@@ -26,6 +26,7 @@ import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import {
     getPostEnrichedBySlug,
+    getPostIdFromSlug,
     getPostRelatedCharts,
     getRelatedArticles,
     getRelatedResearchAndWritingForVariable,
@@ -333,7 +334,7 @@ const renderGrapherPage = async (
 ) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
     // TODO: update this to use gdocs posts
-    const postId = await db.getPostIdFromSlug(knex, postSlug)
+    const postId = await getPostIdFromSlug(knex, postSlug)
     const relatedCharts = postId
         ? await getPostRelatedCharts(knex, postId)
         : undefined
@@ -482,12 +483,11 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         const chartsToBake: { id: number; config: string; slug: string }[] =
             await knexRaw(
                 knex,
-                `
+                `-- sql
                 SELECT
                     id, config, config->>'$.slug' as slug
                 FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
                 ORDER BY JSON_EXTRACT(config, "$.slug") ASC
-                LIMIT 1000
                 `
             )
 

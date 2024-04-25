@@ -448,20 +448,3 @@ export const getNonGrapherExplorerViewCount = (
             AND grapherId IS NULL`
     ).then((res) => res?.count ?? 0)
 }
-
-export const getPostIdFromSlug = (
-    knex: KnexReadonlyTransaction,
-    slug: string
-): Promise<number | undefined> => {
-    return knexRawFirst<{ id: number }>(
-        knex,
-        `-- sql
-        SELECT
-            id
-        FROM
-            posts
-        WHERE
-            slug = ?`,
-        [slug]
-    ).then((result) => result?.id)
-}
