@@ -55,8 +55,7 @@ export interface EntitySelectorState {
     sortConfig: SortConfig
     localEntityNames?: string[]
     mostRecentlySelectedEntityName?: string
-    populationColumn?: CoreColumn
-    gdpPerCapitaColumn?: CoreColumn
+    externalSortColumnsByIndicatorId?: Record<number, CoreColumn>
     isLoadingExternalSortColumn?: boolean
 }
 
@@ -91,13 +90,33 @@ interface DropdownOption {
     label: string
 }
 
-const DEFAULT_POPULATION_INDICATOR_ID =
-    POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR
-const DEFAULT_POPULATION_LABEL = "Population"
+const EXTERNAL_SORT_INDICATORS = [
+    {
+        key: "population",
+        label: "Population",
+        indicatorId: POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
+        isMatch: (column: CoreColumn): boolean =>
+            isPopulationVariableId(column.slug),
+    },
+    {
+        key: "gdpPerCapita",
+        label: "GDP per capita",
+        indicatorId: GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
+        isMatch: (column: CoreColumn): boolean => {
+            const label = makeColumnLabel(column)
 
-const DEFAULT_GDP_PER_CAPITA_INDICATOR_ID =
-    GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR
-const DEFAULT_GDP_PER_CAPITA_LABEL = "GDP per capita"
+            // matches "gdp per capita" and content within parentheses
+            const potentialMatches =
+                label.match(/\(.*?\)|(\bgdp per capita\b)/gi) ?? []
+            // filter for "gdp per capita" matches that are not within parentheses
+            const matches = potentialMatches.filter(
+                (match) => !match.includes("(")
+            )
+
+            return matches.length > 0
+        },
+    },
+] as const
 
 @observer
 export class EntitySelector extends React.Component<{
@@ -235,12 +254,18 @@ export class EntitySelector extends React.Component<{
         return this.manager.entitySelectorState.localEntityNames
     }
 
-    @computed private get populationColumn(): CoreColumn | undefined {
-        return this.manager.entitySelectorState.populationColumn
+    @computed private get externalSortColumnsByIndicatorId(): Record<
+        number,
+        CoreColumn
+    > {
+        return (
+            this.manager.entitySelectorState.externalSortColumnsByIndicatorId ??
+            {}
+        )
     }
 
-    @computed private get gdpPerCapitaColumn(): CoreColumn | undefined {
-        return this.manager.entitySelectorState.gdpPerCapitaColumn
+    @computed private get externalSortColumns(): CoreColumn[] {
+        return Object.values(this.externalSortColumnsByIndicatorId)
     }
 
     @computed private get isLoadingExternalSortColumn(): boolean {
@@ -273,93 +298,53 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed
-    private get numericalChartColumnsWithoutPopulationAndGdpPerCapita(): CoreColumn[] {
+    private get numericalChartColumnsWithoutExternalSortColumns(): CoreColumn[] {
         return this.numericalChartColumns.filter(
-            (column) =>
-                column.slug !== this.populationSlug &&
-                column.slug !== this.gdpPerCapitaSlug
+            (column) => !this.externalSortIndicatorSlugs.includes(column.slug)
         )
     }
 
     @computed private get sortColumns(): CoreColumn[] {
         return excludeUndefined([
             this.table.entityNameColumn,
-            this.populationColumn,
-            this.gdpPerCapitaColumn,
-            ...this.numericalChartColumnsWithoutPopulationAndGdpPerCapita,
+            ...this.externalSortColumns,
+            ...this.numericalChartColumnsWithoutExternalSortColumns,
         ])
     }
 
-    @computed private get populationColumnUsedInChart():
-        | CoreColumn
-        | undefined {
-        const activePopulationColumn = this.numericalChartColumns.find(
-            (column) => isPopulationVariableId(column.slug)
-        )
-        return activePopulationColumn
-    }
+    @computed private get externalSortIndicators(): {
+        key: string
+        defaultLabel: string
+        indicatorId: number | undefined
+        slug: string | undefined
+        chartColumn?: CoreColumn
+    }[] {
+        return EXTERNAL_SORT_INDICATORS.map((externalSortIndicator) => {
+            const chartColumn = this.numericalChartColumns.find((column) =>
+                externalSortIndicator.isMatch(column)
+            )
 
-    /**
-     * Either the ID of a population indicator used in the chart,
-     * or the default population indicator ID (or undefined if we
-     * don't want to sort by population)
-     */
-    @computed private get populationIndicatorId(): number | undefined {
-        if (this.populationColumnUsedInChart)
-            return +this.populationColumnUsedInChart.slug
-
-        if (this.hasCountryOrRegionEntities)
-            return DEFAULT_POPULATION_INDICATOR_ID
-
-        return undefined
-    }
-
-    @computed private get populationSlug(): ColumnSlug | undefined {
-        return this.populationIndicatorId !== undefined
-            ? this.populationIndicatorId.toString()
-            : undefined
-    }
-
-    @computed private get gdpPerCapitaColumnUsedInChart():
-        | CoreColumn
-        | undefined {
-        const activeGdpPerCapitaColumn = this.numericalChartColumns.find(
-            (column) => {
-                const label = makeColumnLabel(column)
-
-                // matches "gdp per capita" and content within parentheses
-                const potentialMatches =
-                    label.match(/\(.*?\)|(\bgdp per capita\b)/gi) ?? []
-                // filter for "gdp per capita" matches that are not within parentheses
-                const matches = potentialMatches.filter(
-                    (match) => !match.includes("(")
-                )
-
-                return matches.length > 0
+            let indicatorId: number | undefined
+            if (chartColumn) {
+                indicatorId = +chartColumn.slug
+            } else if (this.hasCountryOrRegionEntities) {
+                indicatorId = externalSortIndicator.indicatorId
             }
-        )
-        return activeGdpPerCapitaColumn
+
+            return {
+                key: externalSortIndicator.key,
+                defaultLabel: externalSortIndicator.label,
+                indicatorId,
+                slug: indicatorId?.toString(),
+                chartColumn,
+            }
+        })
     }
 
-    /**
-     * Either the ID of a GDP per capita indicator used in the chart,
-     * or the default GDP per capita indicator ID (or undefined if we
-     * don't want to sort by GDP per capita)
-     */
-    @computed private get gdpPerCapitaIndicatorId(): number | undefined {
-        if (this.gdpPerCapitaColumnUsedInChart)
-            return +this.gdpPerCapitaColumnUsedInChart.slug
-
-        if (this.hasCountryOrRegionEntities)
-            return DEFAULT_GDP_PER_CAPITA_INDICATOR_ID
-
-        return undefined
-    }
-
-    @computed private get gdpPerCapitaSlug(): ColumnSlug | undefined {
-        return this.gdpPerCapitaIndicatorId !== undefined
-            ? this.gdpPerCapitaIndicatorId.toString()
-            : undefined
+    @computed private get externalSortIndicatorSlugs(): string[] {
+        return this.externalSortIndicators
+            .map(({ slug }) => slug)
+            .filter((slug): slug is string => slug !== undefined)
     }
 
     @computed private get sortColumnsBySlug(): Record<ColumnSlug, CoreColumn> {
@@ -375,29 +360,21 @@ export class EntitySelector extends React.Component<{
             label: "Name",
         })
 
-        // add population to the dropdown if applicable
-        if (this.populationSlug) {
-            options.push({
-                value: this.populationSlug,
-                label: this.populationColumnUsedInChart
-                    ? makeColumnLabel(this.populationColumnUsedInChart)
-                    : DEFAULT_POPULATION_LABEL,
-            })
-        }
-
-        // add GDP per capita to the dropdown if applicable
-        if (this.gdpPerCapitaSlug) {
-            options.push({
-                value: this.gdpPerCapitaSlug,
-                label: this.gdpPerCapitaColumnUsedInChart
-                    ? makeColumnLabel(this.gdpPerCapitaColumnUsedInChart)
-                    : DEFAULT_GDP_PER_CAPITA_LABEL,
-            })
-        }
+        // add external indicators to the dropdown if applicable
+        this.externalSortIndicators.forEach((external) => {
+            if (external.slug) {
+                options.push({
+                    value: external.slug,
+                    label: external.chartColumn
+                        ? makeColumnLabel(external.chartColumn)
+                        : external.defaultLabel,
+                })
+            }
+        })
 
         // add chart columns to the dropdown
         const chartColumns =
-            this.numericalChartColumnsWithoutPopulationAndGdpPerCapita
+            this.numericalChartColumnsWithoutExternalSortColumns
         options.push(
             ...chartColumns.map((column) => {
                 return {
@@ -602,67 +579,51 @@ export class EntitySelector extends React.Component<{
         }
     }
 
-    @action.bound async loadPopulationColumn(): Promise<void> {
-        if (this.populationColumn) return
+    @action.bound async loadExternalSortColumn(
+        indicatorId: number
+    ): Promise<void> {
+        if (this.externalSortColumnsByIndicatorId[indicatorId]) return
 
-        if (this.populationColumnUsedInChart) {
-            this.set({ populationColumn: this.populationColumnUsedInChart })
+        const externalSortIndicator = this.externalSortIndicators.find(
+            (external) => external.indicatorId === indicatorId
+        )
+
+        if (!externalSortIndicator) return undefined
+
+        if (externalSortIndicator.chartColumn) {
+            this.set({
+                externalSortColumnsByIndicatorId: {
+                    ...this.externalSortColumnsByIndicatorId,
+                    [externalSortIndicator.key]:
+                        externalSortIndicator.chartColumn,
+                },
+            })
             return
         }
 
-        if (this.populationIndicatorId === undefined) return
+        if (externalSortIndicator.indicatorId === undefined) return
 
         this.set({ isLoadingExternalSortColumn: true })
 
         try {
             const variable = await loadVariableDataAndMetadata(
-                this.populationIndicatorId,
-                this.manager.dataApiUrl
-            )
-
-            const variableTable = buildVariableTable(variable)
-            if (variableTable) {
-                this.set({
-                    populationColumn: variableTable.get(this.populationSlug),
-                })
-            }
-        } catch {
-            console.error(
-                `Failed to load variable with id ${this.populationIndicatorId}`
-            )
-        }
-
-        this.set({ isLoadingExternalSortColumn: false })
-    }
-
-    @action.bound async loadGdpPerCapitaColumn(): Promise<void> {
-        if (this.gdpPerCapitaColumn) return
-
-        if (this.gdpPerCapitaColumnUsedInChart) {
-            this.set({ gdpPerCapitaColumn: this.gdpPerCapitaColumnUsedInChart })
-            return
-        }
-
-        if (this.gdpPerCapitaIndicatorId === undefined) return
-
-        this.set({ isLoadingExternalSortColumn: true })
-
-        try {
-            const variable = await loadVariableDataAndMetadata(
-                this.gdpPerCapitaIndicatorId,
+                externalSortIndicator.indicatorId,
                 this.manager.dataApiUrl
             )
             const variableTable = buildVariableTable(variable)
             if (variableTable) {
                 this.set({
-                    gdpPerCapitaColumn: variableTable.get(
-                        this.gdpPerCapitaSlug
-                    ),
+                    externalSortColumnsByIndicatorId: {
+                        ...this.externalSortColumnsByIndicatorId,
+                        [externalSortIndicator.indicatorId]: variableTable.get(
+                            externalSortIndicator.slug
+                        ),
+                    },
                 })
             }
         } catch {
             console.error(
-                `Failed to load variable with id ${this.gdpPerCapitaIndicatorId}`
+                `Failed to load variable with id ${externalSortIndicator.indicatorId}`
             )
         }
 
@@ -673,12 +634,11 @@ export class EntitySelector extends React.Component<{
         if (selected) {
             const { value } = selected as DropdownOption
 
-            // if population or GDP per capita is selected, load the column
-            // (this is a no-op if the column is already loaded)
-            if (value === this.populationSlug) {
-                await this.loadPopulationColumn()
-            } else if (value === this.gdpPerCapitaSlug) {
-                await this.loadGdpPerCapitaColumn()
+            const isExternalIndicator =
+                this.externalSortIndicatorSlugs.includes(value)
+
+            if (isExternalIndicator) {
+                await this.loadExternalSortColumn(+value)
             }
 
             this.updateSortSlug(value)
