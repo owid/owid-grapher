@@ -1177,6 +1177,14 @@ export class CoreTable<
         )
     }
 
+    replaceNegativeCellsWithErrorValues(columnSlugs: ColumnSlug[] = []): this {
+        return this.replaceCells(columnSlugs, (val) =>
+            typeof val !== "number" || val < 0
+                ? ErrorValueTypes.InvalidNegativeValue
+                : val
+        )
+    }
+
     replaceNonNumericCellsWithErrorValues(columnSlugs: ColumnSlug[]): this {
         return this.replaceCells(columnSlugs, (val) =>
             !isNumber(val) ? ErrorValueTypes.NaNButShouldBeNumber : val

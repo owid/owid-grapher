@@ -124,6 +124,9 @@ export class StackedDiscreteBarChart
         // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
 
+        // stacked discrete bar charts don't support negative values
+        table = table.replaceNegativeCellsWithErrorValues(this.yColumnSlugs)
+
         table = table.dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
 
         this.yColumnSlugs.forEach((slug) => {
