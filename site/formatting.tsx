@@ -50,6 +50,14 @@ export const formatUrls = (html: string) => {
         ),
         BAKED_WORDPRESS_UPLOADS_URL
     )
+
+    formatted = formatted.replace(
+        new RegExp(
+            `${lodash.escapeRegExp(BAKED_WORDPRESS_UPLOADS_URL)}/(\\S+?)-(\\d+)x(\\d+)\\.(\\w+)`,
+            "g"
+        ),
+        "https://images-test.owid.io/uploads/$1.$4?width=$2&height=$3"
+    )
     return formatted
 }
 
