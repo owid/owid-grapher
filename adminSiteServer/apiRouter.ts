@@ -1622,11 +1622,13 @@ putRouteWithRWTransaction(
             datasetId,
         ])
         if (tagRows.length)
-            await db.knexRaw(
-                trx,
-                `INSERT INTO dataset_tags (tagId, datasetId) VALUES (?, ?)`,
-                tagRows
-            )
+            for (const tagRow of tagRows) {
+                await db.knexRaw(
+                    trx,
+                    `INSERT INTO dataset_tags (tagId, datasetId) VALUES (?, ?)`,
+                    tagRow
+                )
+            }
 
         try {
             await syncDatasetToGitRepo(trx, datasetId, {
