@@ -28,9 +28,9 @@ export function generateSrcSet(
 ): string {
     return sizes
         .map((size) => {
-            const path = `/images/published/${getFilenameWithoutExtension(
-                encodeURIComponent(filename)
-            )}_${size}.png`
+            const path = `https://images-test.owid.io/images/published/${encodeURIComponent(
+                filename
+            )}?width=${size}`
             return `${path} ${size}w`
         })
         .join(", ")
@@ -68,6 +68,7 @@ export function getFilenameMIMEType(filename: string): string | undefined {
 export type SourceProps = {
     media: string | undefined
     srcSet: string
+    highResFilename?: string
 }
 
 /**
@@ -86,12 +87,14 @@ export function generateSourceProps(
         props.push({
             media: "(max-width: 768px)",
             srcSet: generateSrcSet(smallSizes, smallImage.filename),
+            highResFilename: encodeURIComponent(smallImage.filename),
         })
     }
     const regularSizes = getSizes(regularImage.originalWidth)
     props.push({
         media: undefined,
         srcSet: generateSrcSet(regularSizes, regularImage.filename),
+        highResFilename: encodeURIComponent(regularImage.filename),
     })
     return props
 }

@@ -25,6 +25,9 @@ function getActiveSourceImgUrl(img: HTMLImageElement): string | undefined {
         const activeSource = Array.from(sources).find((s) =>
             s.media ? window.matchMedia(s.media).matches : true
         )
+        const highResSrc = activeSource?.getAttribute("data-high-res-src")
+        if (highResSrc) return highResSrc
+
         const sourceSrcset = activeSource?.getAttribute("srcset")
         // split sourceSrcset into [src, width] pairs
         const srcsetPairs = sourceSrcset

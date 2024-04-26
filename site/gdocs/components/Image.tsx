@@ -162,10 +162,16 @@ export default function Image(props: {
             {sourceProps.map((props, i) => (
                 <source
                     key={i}
-                    {...props}
+                    media={props.media}
+                    srcSet={props.srcSet}
                     type="image/png"
                     sizes={
                         containerSizes[containerType] ?? containerSizes.default
+                    }
+                    data-high-res-src={
+                        props.highResFilename
+                            ? `${IMAGES_DIRECTORY}${props.highResFilename}`
+                            : undefined
                     }
                 />
             ))}
