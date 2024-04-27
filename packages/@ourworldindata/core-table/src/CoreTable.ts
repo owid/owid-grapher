@@ -69,7 +69,6 @@ import {
     DroppedForTesting,
 } from "./ErrorValues.js"
 import { applyTransforms, extractTransformNameAndParams } from "./Transforms.js"
-import { isObservableArray } from "mobx"
 
 interface AdvancedOptions {
     tableDescription?: string
@@ -221,8 +220,11 @@ export class CoreTable<
         // See https://github.com/mobxjs/mobx/blob/mobx4and5/docs/best/pitfalls.md
         // Also, see https://github.com/owid/owid-grapher/issues/2948 for an issue caused by this problem.
         for (const [slug, values] of Object.entries(columnStore)) {
-            if (isObservableArray(values)) {
-                columnStore[slug] = values.slice()
+            const valuesThatMayBeMobxProxy = values as CoreValueType[] & {
+                toJS?: () => CoreValueType[]
+            }
+            if (typeof valuesThatMayBeMobxProxy.toJS === "function") {
+                columnStore[slug] = valuesThatMayBeMobxProxy.toJS()
             }
         }
 
