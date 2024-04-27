@@ -3644,6 +3644,7 @@ __metadata:
     d3: "npm:^6.1.1"
     dayjs: "npm:^1.11.5"
     eslint: "npm:^8.57.0"
+    mobx: "npm:^5.15.7"
     typescript: "npm:~5.4.2"
   languageName: unknown
   linkType: soft
