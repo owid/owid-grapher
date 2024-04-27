@@ -31,6 +31,10 @@ const ETL_REGIONS_URL =
         MKD: ["Macedonia"],
         SWZ: ["Swaziland"],
         USA: ["US", "USA"],
+        OWID_WB_LIC: ["Low-income"],
+        OWID_WB_LMC: ["Lower-middle income"],
+        OWID_WB_UMC: ["Upper-middle income"],
+        OWID_WB_HIC: ["High-income"],
     }
 
 interface Entity {

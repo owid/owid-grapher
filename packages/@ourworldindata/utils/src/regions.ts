@@ -5,6 +5,7 @@ export enum RegionType {
     Other = "other",
     Aggregate = "aggregate",
     Continent = "continent",
+    IncomeGroup = "income_group",
 }
 
 export interface Country {
@@ -27,6 +28,14 @@ export interface Aggregate {
     members: string[]
 }
 
+export interface IncomeGroup {
+    name: string
+    regionType: "income_group"
+    code: string
+    members: string[]
+    variantNames?: string[]
+}
+
 export interface Continent {
     name:
         | "Africa"
@@ -40,7 +49,7 @@ export interface Continent {
     members: string[]
 }
 
-export type Region = Country | Aggregate | Continent
+export type Region = Country | Aggregate | IncomeGroup | Continent
 
 export const regions: Region[] = entities as Region[]
 
@@ -58,6 +67,10 @@ export const others: Country[] = entities.filter(
 export const aggregates: Aggregate[] = entities.filter(
     (entity) => entity.regionType === "aggregate"
 ) as Aggregate[]
+
+export const IncomeGroups: IncomeGroup[] = entities.filter(
+    (entity) => entity.regionType === "income_group"
+) as IncomeGroup[]
 
 export const continents: Continent[] = entities.filter(
     (entity) => entity.regionType === "continent"
