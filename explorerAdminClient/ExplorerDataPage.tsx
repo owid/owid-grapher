@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from "react"
+import React from "react"
 import { ExplorerProgram, makeFullPath } from "../explorer/ExplorerProgram.js"
-import { AdminManager } from "./AdminManager.js"
 import { GitCmsClient } from "../gitCms/GitCmsClient.js"
 import { ExplorerControlPanel } from "../explorer/ExplorerControls.js"
 import { GIT_CMS_BASE_ROUTE } from "../gitCms/GitCmsConstants.js"
 import { observer } from "mobx-react"
 import { action, computed, observable, reaction } from "mobx"
 import { DebugProvider } from "../site/gdocs/DebugContext.js"
-import { DataPageV2Content } from "../site/DataPageV2Content.js"
-import { DataPageV2 } from "../site/DataPageV2.js"
+import { DataPageV2Body } from "../site/DataPageV2Body.js"
 import {
+    ChartTypeName,
     DimensionProperty,
     FullDatapageData,
     GrapherInterface,
@@ -50,6 +49,15 @@ export class ExplorerDataPage extends React.Component<ExplorerDataPageProps> {
         return yVariableIds
     }
 
+    @computed private get currentlySelectedChartType(): ChartTypeName {
+        const { explorer } = this
+        if (!explorer) return ChartTypeName.LineChart
+        return (
+            explorer.currentlySelectedGrapherRowContent.type ??
+            ChartTypeName.LineChart
+        )
+    }
+
     @computed private get currentlySelectedYIndicatorId(): number | null {
         const { currentlySelectedYIndicatorIds } = this
         return currentlySelectedYIndicatorIds.length > 0
@@ -73,23 +81,38 @@ export class ExplorerDataPage extends React.Component<ExplorerDataPageProps> {
                     const response = await fetch(
                         `/admin/api/explorer/datapagepreview/${currentlySelectedYIndicatorId}.json`
                     ).then((res) => res.json())
-                    this.datapageDataFull = response.datapageDataFull
+                    const datapageDataFull = response.datapageDataFull
+                    console.log("explorertitle", this.explorer?.explorerTitle)
+                    datapageDataFull.datapageData.title = {
+                        title:
+                            this.explorer?.explorerTitle ??
+                            datapageDataFull.datapageData.title,
+                    }
+                    this.datapageDataFull = datapageDataFull
                 }
             }
         )
     }
 
     @computed private get grapherConfig(): GrapherInterface | null {
-        const { datapageDataFull, currentlySelectedYIndicatorId } = this
-        if (!datapageDataFull || !currentlySelectedYIndicatorId) return null
+        const {
+            datapageDataFull,
+            currentlySelectedYIndicatorIds,
+            currentlySelectedChartType,
+        } = this
+        if (!datapageDataFull || !currentlySelectedYIndicatorIds) return null
         return {
             ...datapageDataFull.grapher,
-            dimensions: [
-                {
-                    property: DimensionProperty.y,
-                    variableId: currentlySelectedYIndicatorId,
-                },
-            ],
+            type: currentlySelectedChartType,
+            yAxis: {
+                ...datapageDataFull.grapher.yAxis,
+                min: 0,
+            },
+            selectedEntityNames: this.explorer?.selection ?? ["World"],
+            dimensions: currentlySelectedYIndicatorIds.map((indicatorId) => ({
+                property: DimensionProperty.y,
+                variableId: indicatorId,
+            })),
         }
     }
 
@@ -115,7 +138,8 @@ export class ExplorerDataPage extends React.Component<ExplorerDataPageProps> {
                 {panel}
                 <DebugProvider debug={true}>
                     {datapageDataFull && (
-                        <DataPageV2
+                        <DataPageV2Body
+                            key={this.currentlySelectedYIndicatorId}
                             datapageData={datapageDataFull.datapageData}
                             grapher={grapherConfig ?? undefined}
                             imageMetadata={datapageDataFull.imageMetadata}
@@ -123,8 +147,10 @@ export class ExplorerDataPage extends React.Component<ExplorerDataPageProps> {
                             faqEntries={datapageDataFull.faqEntries}
                             baseGrapherUrl="/grapher/"
                             baseUrl="/"
+                            canonicalUrl="/"
                             tagToSlugMap={datapageDataFull.tagToSlugMap}
                         />
+                        // <></>
                     )}
                 </DebugProvider>
             </>

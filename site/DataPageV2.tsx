@@ -1,38 +1,22 @@
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
-    GRAPHER_SETTINGS_DRAWER_ID,
-    GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
 import {
     uniq,
-    SiteFooterContext,
     DataPageDataV2,
-    serializeJSONForHTML,
-    mergePartialGrapherConfigs,
     compact,
     FaqEntryData,
-    pick,
     GrapherInterface,
     ImageMetadata,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import React from "react"
 import urljoin from "url-join"
-import {
-    ADMIN_BASE_URL,
-    BAKED_GRAPHER_URL,
-    DATA_API_URL,
-} from "../settings/clientSettings.js"
-import {
-    DataPageV2Content,
-    OWID_DATAPAGE_CONTENT_ROOT_ID,
-} from "./DataPageV2Content.js"
+import { DATA_API_URL } from "../settings/clientSettings.js"
 import { Head } from "./Head.js"
-import { SiteFooter } from "./SiteFooter.js"
-import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
-import { DebugProvider } from "./gdocs/DebugContext.js"
+import { DataPageV2Body } from "./DataPageV2Body.js"
 
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
@@ -84,29 +68,6 @@ export const DataPageV2 = (props: {
         compact(grapher?.dimensions?.map((d) => d.variableId))
     )
 
-    const mergedGrapherConfig = mergePartialGrapherConfigs(
-        datapageData.chartConfig as GrapherInterface,
-        grapher
-    )
-
-    // Note that we cannot set `bindUrlToWindow` and `isEmbeddedInADataPage` here,
-    // because this would then get serialized into the EMBEDDED_JSON object,
-    // and MultiEmbedder would then pick it up for other charts on the page
-    // _aside_ from the main one (e.g. the related charts block),
-    // which we don't want to happen.
-    const grapherConfig: GrapherProgrammaticInterface = {
-        ...mergedGrapherConfig,
-        bakedGrapherURL: BAKED_GRAPHER_URL,
-        adminBaseUrl: ADMIN_BASE_URL,
-        dataApiUrl: DATA_API_URL,
-    }
-
-    // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
-    const minimalTagToSlugMap = pick(
-        tagToSlugMap,
-        datapageData.topicTagsLinks || []
-    )
-
     return (
         <html>
             <Head
@@ -139,52 +100,7 @@ export const DataPageV2 = (props: {
                     ))
                 )}
             </Head>
-            <body className="DataPage">
-                <SiteHeader baseUrl={baseUrl} />
-                <main>
-                    <>
-                        <nav id={GRAPHER_SETTINGS_DRAWER_ID}></nav>
-                        <script
-                            dangerouslySetInnerHTML={{
-                                __html: `window._OWID_DATAPAGEV2_PROPS = ${JSON.stringify(
-                                    {
-                                        datapageData,
-                                        faqEntries,
-                                        canonicalUrl,
-                                        tagToSlugMap: minimalTagToSlugMap,
-                                        imageMetadata,
-                                    }
-                                )}`,
-                            }}
-                        />
-                        <div id={OWID_DATAPAGE_CONTENT_ROOT_ID}>
-                            <DebugProvider debug={isPreviewing}>
-                                <DataPageV2Content
-                                    datapageData={datapageData}
-                                    grapherConfig={grapherConfig}
-                                    imageMetadata={imageMetadata}
-                                    isPreviewing={isPreviewing}
-                                    faqEntries={faqEntries}
-                                    canonicalUrl={canonicalUrl}
-                                    tagToSlugMap={tagToSlugMap}
-                                />
-                            </DebugProvider>
-                        </div>
-                    </>
-                </main>
-                <SiteFooter
-                    baseUrl={baseUrl}
-                    context={SiteFooterContext.dataPageV2}
-                    isPreviewing={isPreviewing}
-                />
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `window._OWID_GRAPHER_CONFIG = ${serializeJSONForHTML(
-                            grapherConfig
-                        )}`,
-                    }}
-                />
-            </body>
+            <DataPageV2Body {...props} canonicalUrl={canonicalUrl} />
         </html>
     )
 }

@@ -150,7 +150,7 @@ import { match } from "ts-pattern"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { GdocHomepage } from "../db/model/Gdoc/GdocHomepage.js"
 import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
-import { fetchDataPageV2Data } from "../baker/GrapherBaker.js"
+import { fetchDataPageV2Data } from "../baker/DatapageTools.js"
 
 const apiRouter = new FunctionalRouter()
 

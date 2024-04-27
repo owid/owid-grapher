@@ -13,14 +13,6 @@
 
 @import "./GdocsIndexPage.scss";
 
-@import "../packages/@ourworldindata/components/src/styles/variables.scss";
-@import "../packages/@ourworldindata/components/src/styles/colors.scss";
-@import "../packages/@ourworldindata/components/src/styles/typography.scss";
-@import "../packages/@ourworldindata/components/src/styles/util.scss";
-@import "../packages/@ourworldindata/components/src/styles/mixins.scss";
-
-@import "../site/DataPageContent.scss";
-
 html {
     font-size: 14px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
