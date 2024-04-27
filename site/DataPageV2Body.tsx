@@ -38,6 +38,7 @@ export const DataPageV2Body = (props: {
     imageMetadata: Record<string, ImageMetadata>
     tagToSlugMap: Record<string | number, string>
     canonicalUrl: string
+    grapherKey?: string
 }) => {
     const {
         grapher,
@@ -49,6 +50,7 @@ export const DataPageV2Body = (props: {
         tagToSlugMap,
         imageMetadata,
         canonicalUrl,
+        grapherKey,
     } = props
     const mergedGrapherConfig = mergePartialGrapherConfigs(
         datapageData.chartConfig as GrapherInterface,
@@ -94,6 +96,7 @@ export const DataPageV2Body = (props: {
                     <div id={OWID_DATAPAGE_CONTENT_ROOT_ID}>
                         <DebugProvider debug={isPreviewing}>
                             <DataPageV2Content
+                                key={grapherKey}
                                 datapageData={datapageData}
                                 grapherConfig={grapherConfig}
                                 imageMetadata={imageMetadata}

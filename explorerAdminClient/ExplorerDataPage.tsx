@@ -139,7 +139,6 @@ export class ExplorerDataPage extends React.Component<ExplorerDataPageProps> {
                 <DebugProvider debug={true}>
                     {datapageDataFull && (
                         <DataPageV2Body
-                            key={this.currentlySelectedYIndicatorId}
                             datapageData={datapageDataFull.datapageData}
                             grapher={grapherConfig ?? undefined}
                             imageMetadata={datapageDataFull.imageMetadata}
@@ -149,6 +148,9 @@ export class ExplorerDataPage extends React.Component<ExplorerDataPageProps> {
                             baseUrl="/"
                             canonicalUrl="/"
                             tagToSlugMap={datapageDataFull.tagToSlugMap}
+                            grapherKey={this.currentlySelectedYIndicatorIds
+                                .map((i) => i.toString())
+                                .join("-")}
                         />
                         // <></>
                     )}

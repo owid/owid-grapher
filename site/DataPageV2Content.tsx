@@ -39,6 +39,7 @@ import {
     getCitationLong,
     joinTitleFragments,
     ImageMetadata,
+    grapherKeysToSerialize,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
