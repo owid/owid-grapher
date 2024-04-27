@@ -57,6 +57,12 @@ update_env() {
     else
         sed -i "s|^BAKED_SITE_DIR=.*$|BAKED_SITE_DIR=/home/owid/live-data/bakedSite|" owid-grapher/.env
     fi
+    # set GIT_REVISION based on current hash, used for Bugsnag
+    if ! grep -q "^GIT_REVISION=" owid-grapher/.env; then
+        echo "GIT_REVISION=$(git rev-parse HEAD)" >> owid-grapher/.env
+    else
+        sed -i "s|^GIT_REVISION=.*$|GIT_REVISION=$(git rev-parse HEAD)|" owid-grapher/.env
+    fi
     # redirect assets
     if ! grep -q "^BAKED_GRAPHER_EXPORTS_BASE_URL=" owid-grapher/.env; then
         echo "BAKED_GRAPHER_EXPORTS_BASE_URL=https://assets.ourworldindata.org/grapher/exports" >> owid-grapher/.env

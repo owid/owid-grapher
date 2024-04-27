@@ -1868,12 +1868,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bugsnag/browser-performance@npm:^2.4.1":
+  version: 2.4.1
+  resolution: "@bugsnag/browser-performance@npm:2.4.1"
+  dependencies:
+    "@bugsnag/core-performance": "npm:^2.4.1"
+    "@bugsnag/cuid": "npm:^3.1.0"
+    "@bugsnag/delivery-fetch-performance": "npm:^2.4.1"
+    "@bugsnag/request-tracker-performance": "npm:^2.4.1"
+  checksum: 10/4cfd123d7f769b051b3d249be1d4a183790dcb801961c365330e62e3985af6a63e129363528d4e85dbee6ca91ca7747e00db51ce1c436d024ada75eadd6c7f42
+  languageName: node
+  linkType: hard
+
 "@bugsnag/browser@npm:^7.20.2":
   version: 7.20.2
   resolution: "@bugsnag/browser@npm:7.20.2"
   dependencies:
     "@bugsnag/core": "npm:^7.19.0"
   checksum: 10/87805bc7b007446a61577d7c7218017dbda4b28c3f69091f1504057d3522c91d280888c6f11d2524e7423ee71ba7aebe8e28caee081e9f3ec2ab1cf47a1e9e39
+  languageName: node
+  linkType: hard
+
+"@bugsnag/core-performance@npm:^2.4.1":
+  version: 2.4.1
+  resolution: "@bugsnag/core-performance@npm:2.4.1"
+  dependencies:
+    "@bugsnag/cuid": "npm:^3.1.0"
+  checksum: 10/75bb2e23e0aae2623fff1aeee0e076d1c43ce4daf10df3c6f1a2ba60fb78bed5a1cd34273830828d77a7c2bf0d107202b1ecd98c7a49be78a146e9be2e7a5552
   languageName: node
   linkType: hard
 
@@ -1894,6 +1915,22 @@ __metadata:
   version: 3.0.2
   resolution: "@bugsnag/cuid@npm:3.0.2"
   checksum: 10/b0b45edd8c9c3d98c010ff38ccaba06466821bbda8467e1eb4dd30cd7733afbbf40c95264bd7086de60ed11953ef67dc24cda339a3d3d4f83f2643a0c1e8382e
+  languageName: node
+  linkType: hard
+
+"@bugsnag/cuid@npm:^3.1.0":
+  version: 3.1.1
+  resolution: "@bugsnag/cuid@npm:3.1.1"
+  checksum: 10/7a556bd8a166079e71872244c13f206a7d7e08b47ffa06bb712c04897144ab776ba25aaa63ea8b8e8cf7b3e973d41982bd6ac5d3544af9c988f4ef96bc86f6a3
+  languageName: node
+  linkType: hard
+
+"@bugsnag/delivery-fetch-performance@npm:^2.4.1":
+  version: 2.4.1
+  resolution: "@bugsnag/delivery-fetch-performance@npm:2.4.1"
+  dependencies:
+    "@bugsnag/core-performance": "npm:^2.4.1"
+  checksum: 10/bacb5fb19c4d674fb7bba5be072c75887febe89c74e5dcd6bd7beb80e80bece9ebb441ec5a8b240964ed6cd559743ca278b07e60abfbf138600a20e4368352f9
   languageName: node
   linkType: hard
 
@@ -1941,6 +1978,15 @@ __metadata:
     "@bugsnag/core":
       optional: true
   checksum: 10/5771221af57dfbe42c4e111af1effadce7b0551d94ac1c4063e15d8623c3c237a37e5de5316969799d8122d5a38f8c7595a49f2bafeec51a59ceabd80b1dd3aa
+  languageName: node
+  linkType: hard
+
+"@bugsnag/request-tracker-performance@npm:^2.4.1":
+  version: 2.4.1
+  resolution: "@bugsnag/request-tracker-performance@npm:2.4.1"
+  dependencies:
+    "@bugsnag/core-performance": "npm:^2.4.1"
+  checksum: 10/5bb56218a9fc548af166ed3814d5a212e10a7d5d00e84e28ee809b1bbeab03bda829882ad0aea64aa4e5861955c86aa0cf712e09775ea15f81086ee15c1e21f8
   languageName: node
   linkType: hard
 
@@ -11036,6 +11082,7 @@ __metadata:
     "@algolia/autocomplete-plugin-recent-searches": "npm:^1.17.0"
     "@algolia/autocomplete-theme-classic": "npm:^1.17.0"
     "@aws-sdk/client-s3": "npm:^3.352.0"
+    "@bugsnag/browser-performance": "npm:^2.4.1"
     "@bugsnag/core": "npm:^7.19.0"
     "@bugsnag/js": "npm:^7.20.0"
     "@bugsnag/plugin-express": "npm:^7.19.0"
