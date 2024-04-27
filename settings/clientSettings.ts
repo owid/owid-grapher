@@ -17,7 +17,7 @@ import { parseIntOrUndefined } from "@ourworldindata/utils"
 
 export const ENV: "development" | "production" =
     process.env.ENV === "production" ? "production" : "development"
-
+export const GIT_REVISION = process.env.GIT_REVISION ?? "unknown"
 export const BUGSNAG_API_KEY: string | undefined = process.env.BUGSNAG_API_KEY
 export const ADMIN_SERVER_PORT: number =
     parseIntOrUndefined(process.env.ADMIN_SERVER_PORT) ?? 3030
