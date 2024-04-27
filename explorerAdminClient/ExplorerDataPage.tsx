@@ -8,7 +8,12 @@ import { observer } from "mobx-react"
 import { action, computed, observable, reaction } from "mobx"
 import { DebugProvider } from "../site/gdocs/DebugContext.js"
 import { DataPageV2Content } from "../site/DataPageV2Content.js"
-import { FullDatapageData } from "@ourworldindata/types"
+import { DataPageV2 } from "../site/DataPageV2.js"
+import {
+    DimensionProperty,
+    FullDatapageData,
+    GrapherInterface,
+} from "@ourworldindata/types"
 
 export interface ExplorerDataPageProps {
     slug: string
@@ -74,8 +79,22 @@ export class ExplorerDataPage extends React.Component<ExplorerDataPageProps> {
         )
     }
 
+    @computed private get grapherConfig(): GrapherInterface | null {
+        const { datapageDataFull, currentlySelectedYIndicatorId } = this
+        if (!datapageDataFull || !currentlySelectedYIndicatorId) return null
+        return {
+            ...datapageDataFull.grapher,
+            dimensions: [
+                {
+                    property: DimensionProperty.y,
+                    variableId: currentlySelectedYIndicatorId,
+                },
+            ],
+        }
+    }
+
     render() {
-        const { explorer, datapageDataFull } = this
+        const { explorer, datapageDataFull, grapherConfig } = this
         const panel = explorer
             ? explorer.decisionMatrix.choicesWithAvailability.map((choice) => (
                   <ExplorerControlPanel
@@ -96,13 +115,14 @@ export class ExplorerDataPage extends React.Component<ExplorerDataPageProps> {
                 {panel}
                 <DebugProvider debug={true}>
                     {datapageDataFull && (
-                        <DataPageV2Content
+                        <DataPageV2
                             datapageData={datapageDataFull.datapageData}
-                            grapherConfig={{}}
+                            grapher={grapherConfig ?? undefined}
                             imageMetadata={datapageDataFull.imageMetadata}
                             isPreviewing={true}
                             faqEntries={datapageDataFull.faqEntries}
-                            canonicalUrl={"/"}
+                            baseGrapherUrl="/grapher/"
+                            baseUrl="/"
                             tagToSlugMap={datapageDataFull.tagToSlugMap}
                         />
                     )}
