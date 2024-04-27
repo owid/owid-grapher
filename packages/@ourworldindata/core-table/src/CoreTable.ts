@@ -219,10 +219,13 @@ export class CoreTable<
         // Otherwise, operations like `.concat()` will break in unexpected ways.
         // See https://github.com/mobxjs/mobx/blob/mobx4and5/docs/best/pitfalls.md
         // Also, see https://github.com/owid/owid-grapher/issues/2948 for an issue caused by this problem.
+        type CoreValueArrayThatMayBeMobxProxy = CoreValueType[] & {
+            toJS?: () => CoreValueType[]
+        }
+
         for (const [slug, values] of Object.entries(columnStore)) {
-            const valuesThatMayBeMobxProxy = values as CoreValueType[] & {
-                toJS?: () => CoreValueType[]
-            }
+            const valuesThatMayBeMobxProxy =
+                values as CoreValueArrayThatMayBeMobxProxy
             if (typeof valuesThatMayBeMobxProxy.toJS === "function") {
                 columnStore[slug] = valuesThatMayBeMobxProxy.toJS()
             }
