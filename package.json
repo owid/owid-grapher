@@ -247,8 +247,10 @@
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-react": "^7.34.0",
         "http-server": "^14.1.1",
+        "husky": "^9.0.11",
         "jest": "^29.7.0",
         "jest-environment-jsdom": "^29.7.0",
+        "lint-staged": "^15.2.2",
         "opener": "^1.5.2",
         "sass": "^1.69.5",
         "sql-fixtures": "^1.0.4",
@@ -263,6 +265,9 @@
     "prettier": {
         "trailingComma": "es5",
         "semi": false
+    },
+    "lint-staged": {
+        "*.{tsx,ts,jsx,js,json,md,html,css,scss,yml}": "yarn prettier --write"
     },
     "name": "grapher",
     "workspaces": [
