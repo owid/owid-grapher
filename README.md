@@ -70,6 +70,8 @@ Much of our code is based around [reactive programming](https://en.wikipedia.org
 
 All non-WordPress code is written in [TypeScript](https://www.typescriptlang.org/).
 
+If you want to enable pre-commit hooks, run `yarn husky`.
+
 [Visual Studio Code](https://code.visualstudio.com/) is recommended for autocompletion and other awesome editor analysis features enabled by static typing.
 
 ## Why did we start this project?
