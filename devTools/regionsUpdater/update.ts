@@ -32,6 +32,11 @@ const ETL_REGIONS_URL =
         SWZ: ["Swaziland"],
         USA: ["US", "USA"],
 
+        OWID_LIC: ["Low-income"],
+        OWID_LMC: ["Lower-middle income"],
+        OWID_UMC: ["Upper-middle income"],
+        OWID_HIC: ["High-income"],
+
         // "and" and "&" are interchangeable
         UNSD_AUS: ["Australia & New Zealand (UNSD)"],
         WB_EAP: ["East Asia & Pacific (WB)"],
@@ -39,9 +44,7 @@ const ETL_REGIONS_URL =
         WB_LAC: ["Latin America & Caribbean (WB)"],
         WB_MENA: ["Middle East & North Africa (WB)"],
     },
-    // we want to exclude income groups for now, until we can properly display the user's
-    // income group in the UI
-    REGIONS_TO_EXCLUDE = ["OWID_HIC", "OWID_UMC", "OWID_LMC", "OWID_LIC"]
+    REGIONS_TO_EXCLUDE: string[] = []
 
 interface Entity {
     code: string
