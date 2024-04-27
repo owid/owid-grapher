@@ -264,11 +264,6 @@
         "trailingComma": "es5",
         "semi": false
     },
-    "browserslist": [
-        ">0.5%",
-        "Firefox ESR",
-        "not dead"
-    ],
     "name": "grapher",
     "workspaces": [
         "functions",
