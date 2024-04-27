@@ -1634,6 +1634,11 @@ class FilterMask {
             if (this.mask[i]) keepIndexes.push(i)
         }
 
+        // Optimization: early return if we're keeping all rows
+        if (keepIndexes.length === this.numRows) {
+            return columnStore
+        }
+
         Object.keys(columnStore).forEach((slug) => {
             const originalColumn = columnStore[slug]
             const newColumn: CoreValueType[] = new Array(keepIndexes.length)
