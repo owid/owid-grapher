@@ -400,8 +400,8 @@ export async function renderSvg(
     const grapher = initGrapherForSvgExport(
         {
             ...configAndData.config,
-            adminBaseUrl: BAKED_BASE_URL,
-            bakedGrapherURL: BAKED_GRAPHER_URL,
+            adminBaseUrl: "http://localhost:3030",
+            bakedGrapherURL: "http://localhost:3030/grapher",
         },
         queryStr
     )
