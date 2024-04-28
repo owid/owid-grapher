@@ -18,10 +18,6 @@ import { getVariableData } from "../../db/model/Variable.js"
 import { GrapherInterface } from "@ourworldindata/types"
 import _ from "lodash"
 import util from "util"
-import {
-    BAKED_GRAPHER_URL,
-    BAKED_BASE_URL,
-} from "../../settings/serverSettings.js"
 import { getHeapStatistics } from "v8"
 import { queryStringsByChartType } from "./chart-configurations.js"
 import * as d3 from "d3"
@@ -400,8 +396,8 @@ export async function renderSvg(
     const grapher = initGrapherForSvgExport(
         {
             ...configAndData.config,
-            adminBaseUrl: BAKED_BASE_URL,
-            bakedGrapherURL: BAKED_GRAPHER_URL,
+            adminBaseUrl: "https://ourworldindata.org",
+            bakedGrapherURL: "https://ourworldindata.org/grapher",
         },
         queryStr
     )
