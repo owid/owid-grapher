@@ -93,6 +93,10 @@ class ExplorerRow extends React.Component<{
                     <a href={`/admin/${EXPLORERS_PREVIEW_ROUTE}/${slug}`}>
                         Preview
                     </a>
+                    {" - "}
+                    <a href={`/admin/explorers/datapage/${slug}`}>
+                        Datapage preview
+                    </a>
                 </td>
                 <td>
                     {searchHighlight
