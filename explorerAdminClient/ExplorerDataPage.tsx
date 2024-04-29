@@ -1,7 +1,10 @@
 import React from "react"
 import { ExplorerProgram, makeFullPath } from "../explorer/ExplorerProgram.js"
 import { GitCmsClient } from "../gitCms/GitCmsClient.js"
-import { ExplorerControlPanel } from "../explorer/ExplorerControls.js"
+import {
+    ExplorerControlBar,
+    ExplorerControlPanel,
+} from "../explorer/ExplorerControls.js"
 import { GIT_CMS_BASE_ROUTE } from "../gitCms/GitCmsConstants.js"
 import { observer } from "mobx-react"
 import { action, computed, observable, reaction } from "mobx"
@@ -118,7 +121,7 @@ export class ExplorerDataPage extends React.Component<ExplorerDataPageProps> {
 
     render() {
         const { explorer, datapageDataFull, grapherConfig } = this
-        const panel = explorer
+        const panels = explorer
             ? explorer.decisionMatrix.choicesWithAvailability.map((choice) => (
                   <ExplorerControlPanel
                       key={choice.title}
@@ -135,7 +138,10 @@ export class ExplorerDataPage extends React.Component<ExplorerDataPageProps> {
             : null
         return (
             <>
-                {panel}
+                <ExplorerControlBar isMobile={false} showControls={false}>
+                    {panels}
+                </ExplorerControlBar>
+
                 <DebugProvider debug={true}>
                     {datapageDataFull && (
                         <DataPageV2Body
