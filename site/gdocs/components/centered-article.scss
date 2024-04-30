@@ -31,124 +31,128 @@
         }
     }
 
-    .toc-wrapper {
-        position: sticky;
-        top: 0;
-        height: 0;
-        // Above explorer chrome
-        z-index: 3;
-        margin-top: -48px;
-        .entry-sidebar {
-            height: 100vh;
-            position: absolute;
-            transition: margin 300ms ease;
-            width: 400px;
-            margin-left: -400px;
-            box-shadow: none;
-            @include sm-only {
-                width: 100vw;
-                margin-left: -100vw;
-            }
-            @include sm-up {
-                ul {
-                    margin-left: 32px;
-                }
-            }
-
-            li {
-                &:first-child {
-                    margin-top: 36px;
-                }
-
-                &.section {
-                    margin-top: 20px;
-                }
-                &.subsection a {
-                    color: $blue-60;
-                    margin-left: 16px;
-                    line-height: 1.125em;
-                }
-                &.active a {
-                    border-left-color: $vermillion;
-                    background: unset;
-                    font-weight: bold;
-                    // Counteract the font-weight so that the text doesn't wrap when active
-                    letter-spacing: -0.09px;
-                }
-                a {
-                    padding-left: 16px;
-                    color: $blue-90;
-                    border-width: 4px;
-                    padding-right: 32px;
-                    margin-left: 0;
-                    font-weight: 400;
-
-                    &:hover {
-                        background: none;
-                        text-decoration: underline;
-                    }
-                }
-            }
-
-            .toggle-toc {
-                margin-left: 0;
-                transform: translateX(calc(100% + 16px));
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                right: 0;
-                padding: 16px 0;
-                pointer-events: none;
-                display: unset;
-                transition: transform 300ms ease;
-                button {
-                    @include popover-box-button;
-                    z-index: 20;
-                    position: sticky;
-                    top: 16px;
-                    pointer-events: auto;
-                    white-space: nowrap;
-                    box-shadow: none;
-                    background: #fff;
-                    border: 1px solid $blue-20;
-                    line-height: 1.25;
-                    padding: 6px;
-                    border-radius: 4px;
-
-                    &:hover {
-                        background: #fff;
-                        svg {
-                            color: $blue-100;
-                        }
-                    }
-                    svg {
-                        margin-right: 0;
-                        color: $blue-90;
-                        height: 12px;
-                    }
-
-                    span {
-                        color: $blue-90;
-                        margin-left: 5px;
-                        position: relative;
-                        top: 1px;
-                    }
-                }
-            }
-            &.entry-sidebar--is-open {
-                margin-left: 0;
-                .toggle-toc {
-                    transform: translateX(-16px);
-                    button {
-                        border: none;
-                        span {
-                            display: none;
-                        }
-                    }
-                }
-            }
-        }
+    [id] {
+        scroll-margin-top: 80px;
     }
+
+    //     .toc-wrapper {
+    //         position: sticky;
+    //         top: 0;
+    //         height: 0;
+    //         // Above explorer chrome
+    //         z-index: 3;
+    //         margin-top: -48px;
+    //         .entry-sidebar {
+    //             height: 100vh;
+    //             position: absolute;
+    //             transition: margin 300ms ease;
+    //             width: 400px;
+    //             margin-left: -400px;
+    //             box-shadow: none;
+    //             @include sm-only {
+    //                 width: 100vw;
+    //                 margin-left: -100vw;
+    //             }
+    //             @include sm-up {
+    //                 ul {
+    //                     margin-left: 32px;
+    //                 }
+    //             }
+
+    //             li {
+    //                 &:first-child {
+    //                     margin-top: 36px;
+    //                 }
+
+    //                 &.section {
+    //                     margin-top: 20px;
+    //                 }
+    //                 &.subsection a {
+    //                     color: $blue-60;
+    //                     margin-left: 16px;
+    //                     line-height: 1.125em;
+    //                 }
+    //                 &.active a {
+    //                     border-left-color: $vermillion;
+    //                     background: unset;
+    //                     font-weight: bold;
+    //                     // Counteract the font-weight so that the text doesn't wrap when active
+    //                     letter-spacing: -0.09px;
+    //                 }
+    //                 a {
+    //                     padding-left: 16px;
+    //                     color: $blue-90;
+    //                     border-width: 4px;
+    //                     padding-right: 32px;
+    //                     margin-left: 0;
+    //                     font-weight: 400;
+
+    //                     &:hover {
+    //                         background: none;
+    //                         text-decoration: underline;
+    //                     }
+    //                 }
+    //             }
+
+    //             .toggle-toc {
+    //                 margin-left: 0;
+    //                 transform: translateX(calc(100% + 16px));
+    //                 position: absolute;
+    //                 top: 0;
+    //                 bottom: 0;
+    //                 right: 0;
+    //                 padding: 16px 0;
+    //                 pointer-events: none;
+    //                 display: unset;
+    //                 transition: transform 300ms ease;
+    //                 button {
+    //                     @include popover-box-button;
+    //                     z-index: 20;
+    //                     position: sticky;
+    //                     top: 16px;
+    //                     pointer-events: auto;
+    //                     white-space: nowrap;
+    //                     box-shadow: none;
+    //                     background: #fff;
+    //                     border: 1px solid $blue-20;
+    //                     line-height: 1.25;
+    //                     padding: 6px;
+    //                     border-radius: 4px;
+
+    //                     &:hover {
+    //                         background: #fff;
+    //                         svg {
+    //                             color: $blue-100;
+    //                         }
+    //                     }
+    //                     svg {
+    //                         margin-right: 0;
+    //                         color: $blue-90;
+    //                         height: 12px;
+    //                     }
+
+    //                     span {
+    //                         color: $blue-90;
+    //                         margin-left: 5px;
+    //                         position: relative;
+    //                         top: 1px;
+    //                     }
+    //                 }
+    //             }
+    //             &.entry-sidebar--is-open {
+    //                 margin-left: 0;
+    //                 .toggle-toc {
+    //                     transform: translateX(-16px);
+    //                     button {
+    //                         border: none;
+    //                         span {
+    //                             display: none;
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
 }
 
 $banner-height: 200px;

@@ -87,7 +87,7 @@ export function GdocPost({
                 publishedAt={publishedAt}
                 breadcrumbs={breadcrumbs ?? undefined}
             />
-            {hasSidebarToc && content.toc ? (
+            {content.toc ? (
                 <TableOfContents
                     headings={content.toc}
                     headingLevels={{ primary: 1, secondary: 2 }}

@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef, useCallback } from "react"
 import ReactDOM from "react-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons"
-import { useTriggerWhenClickOutside } from "./hooks.js"
+import { faArrowUp, faBars, faTimes } from "@fortawesome/free-solid-svg-icons"
+import { useScrollDirection, useTriggerWhenClickOutside } from "./hooks.js"
 import { wrapInDiv, TocHeading } from "@ourworldindata/utils"
-import classNames from "classnames"
+import cx from "classnames"
 
 const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
 
@@ -46,22 +46,41 @@ export const TableOfContents = ({
     },
 }: TableOfContentsData) => {
     const [isOpen, setIsOpen] = useState(false)
-    const [activeHeading, setActiveHeading] = useState("")
+    const [activeHeading, setActiveHeading] = useState<TocHeading | null>(null)
     const { primary, secondary } = headingLevels
     const tocRef = useRef<HTMLElement>(null)
 
     const toggleIsOpen = () => {
         setIsOpen(!isOpen)
     }
+
+    const close = () => {
+        setIsOpen(false)
+    }
     // The Gdocs sidebar can't rely on the same CSS logic that old-style entries use, so we need to
     // explicitly trigger these toggles based on screen width
-    const toggleIsOpenOnMobile = () => {
-        if (window.innerWidth < 1536) {
-            toggleIsOpen()
-        }
-    }
+    // const toggleIsOpenOnMobile = () => {
+    //     if (window.innerWidth < 1536) {
+    //         toggleIsOpen()
+    //     }
+    // }
+
+    const setActiveHeadingFromSlug = useCallback(
+        (slug: string) => {
+            // Find the heading with the given slug
+            const heading = headings.find((h) => h.slug === slug)
+            if (!heading) {
+                setActiveHeading(null)
+                return
+            }
+            setActiveHeading(heading)
+        },
+        [headings]
+    )
 
     useTriggerWhenClickOutside(tocRef, isOpen, setIsOpen)
+
+    const scrollDirection = useScrollDirection()
 
     // Open the sidebar on desktop by default when mounting
     useEffect(() => {
@@ -94,7 +113,7 @@ export const TableOfContents = ({
                     )
 
                     if (currentHeadingRecord) {
-                        setActiveHeading(currentHeadingRecord.target.id)
+                        setActiveHeadingFromSlug(currentHeadingRecord.target.id)
                     } else {
                         // Target headings going up
                         nextHeadingRecord = records.find(
@@ -103,7 +122,7 @@ export const TableOfContents = ({
                                 record.intersectionRatio === 1
                         )
                         if (nextHeadingRecord) {
-                            setActiveHeading(
+                            setActiveHeadingFromSlug(
                                 getPreviousHeading(
                                     nextHeadingRecord,
                                     previousHeadings
@@ -116,7 +135,7 @@ export const TableOfContents = ({
                                     (record) =>
                                         record.boundingClientRect.top < 0
                                 )
-                            setActiveHeading(
+                            setActiveHeadingFromSlug(
                                 currentHeadingRecord?.target.id || ""
                             )
                         }
@@ -124,7 +143,7 @@ export const TableOfContents = ({
                     init = false
                 },
                 {
-                    rootMargin: "-10px", // 10px offset to trigger intersection when landing exactly at the border when clicking an anchor
+                    rootMargin: "-90px", // 10px offset to trigger intersection when landing exactly at the border when clicking an anchor
                     threshold: new Array(11).fill(0).map((v, i) => i / 10),
                 }
             )
@@ -149,61 +168,54 @@ export const TableOfContents = ({
             return () => observer.disconnect()
         }
         return
-    }, [headings, hideSubheadings, primary, secondary])
+    }, [
+        headings,
+        hideSubheadings,
+        setActiveHeadingFromSlug,
+        primary,
+        secondary,
+    ])
 
     return (
-        <div className={TOC_WRAPPER_CLASSNAME}>
+        <div
+            className={cx(
+                TOC_WRAPPER_CLASSNAME,
+                "grid span-cols-14 grid-cols-12-full-width",
+                {
+                    [`${TOC_WRAPPER_CLASSNAME}--sticky`]:
+                        (scrollDirection === "up" && activeHeading) || isOpen,
+                }
+            )}
+        >
             <aside
-                className={classNames("entry-sidebar", {
-                    "entry-sidebar--is-open": isOpen,
-                })}
+                className={cx(
+                    "table-of-contents",
+                    {
+                        "table-of-contents--open": isOpen,
+                    },
+                    "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2"
+                )}
                 ref={tocRef}
             >
-                <nav className="entry-toc">
-                    <ul>
-                        <li>
-                            <a
-                                onClick={() => {
-                                    toggleIsOpenOnMobile()
-                                    setActiveHeading("")
-                                }}
-                                href="#"
-                                data-track-note="toc_header"
-                            >
+                <div className="toc-header">
+                    {isOpen ? (
+                        <h3 className="toc-header__page-title">
+                            <a href="#" onClick={close}>
                                 {pageTitle}
                             </a>
-                        </li>
-                        {headings
-                            .filter((heading) =>
-                                hideSubheadings && heading.isSubheading
-                                    ? false
-                                    : true
-                            )
-                            .map((heading, i: number) => (
-                                <li
-                                    key={i}
-                                    className={
-                                        (heading.isSubheading
-                                            ? "subsection"
-                                            : "section") +
-                                        (heading.slug === activeHeading
-                                            ? " active"
-                                            : "")
-                                    }
-                                >
-                                    <a
-                                        onClick={toggleIsOpenOnMobile}
-                                        href={`#${heading.slug}`}
-                                        data-track-note="toc_link"
-                                    >
-                                        {heading.text}
-                                    </a>
-                                </li>
-                            ))}
-                    </ul>
-                </nav>
-                <div className="toggle-toc">
+                        </h3>
+                    ) : (
+                        <div className="toc-header__active-heading">
+                            {activeHeading && (
+                                <a href={`#${activeHeading.slug}`}>
+                                    {activeHeading.text}
+                                </a>
+                            )}
+                        </div>
+                    )}
+
                     <button
+                        className="toc-header-button toc-header-button--toggle"
                         data-track-note="page_toggle_toc"
                         aria-label={`${
                             isOpen ? "Close" : "Open"
@@ -211,11 +223,60 @@ export const TableOfContents = ({
                         onClick={toggleIsOpen}
                     >
                         <FontAwesomeIcon icon={isOpen ? faTimes : faBars} />
-                        <span className="label">
+                        <span
+                            className={cx("toc-header-button__label", {
+                                "toc-header-button__label--collapsed-sm":
+                                    activeHeading,
+                            })}
+                        >
                             {isOpen ? "Close" : "Contents"}
                         </span>
                     </button>
+                    {activeHeading && (
+                        <a
+                            className="toc-header-button"
+                            onClick={close}
+                            href="#"
+                        >
+                            <FontAwesomeIcon icon={faArrowUp} />
+                        </a>
+                    )}
                 </div>
+
+                {isOpen && (
+                    <nav className="toc-nav">
+                        <ul>
+                            {headings
+                                .filter((heading) =>
+                                    hideSubheadings && heading.isSubheading
+                                        ? false
+                                        : true
+                                )
+                                .map((heading, i: number) => (
+                                    <li
+                                        key={i}
+                                        className={
+                                            (heading.isSubheading
+                                                ? "subsection"
+                                                : "section") +
+                                            (activeHeading &&
+                                            heading.slug === activeHeading.slug
+                                                ? " active"
+                                                : "")
+                                        }
+                                    >
+                                        <a
+                                            onClick={close}
+                                            href={`#${heading.slug}`}
+                                            data-track-note="toc_link"
+                                        >
+                                            {heading.text}
+                                        </a>
+                                    </li>
+                                ))}
+                        </ul>
+                    </nav>
+                )}
             </aside>
         </div>
     )
