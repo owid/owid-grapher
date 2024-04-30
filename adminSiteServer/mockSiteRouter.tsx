@@ -486,6 +486,7 @@ getPlainRouteNonIdempotentWithRWTransaction(
         try {
             const page = await renderGdocsPageBySlug(trx, slug)
             res.send(page)
+            return
         } catch (e) {
             console.error(e)
         }
