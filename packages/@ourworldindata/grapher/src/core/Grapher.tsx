@@ -1383,7 +1383,8 @@ export class Grapher
     }
 
     @computed get currentTitle(): string {
-        let text = this.displayTitle.trim()
+        let text =
+            (this.id === 64 ? "(updated) " : "") + this.displayTitle.trim()
 
         // helper function to add an annotation fragment to the title
         // only adds a comma if the text does not end with a question mark
