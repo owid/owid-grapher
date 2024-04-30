@@ -184,6 +184,7 @@ export const TableOfContents = ({
                 {
                     [`${TOC_WRAPPER_CLASSNAME}--sticky`]:
                         (scrollDirection === "up" && activeHeading) || isOpen,
+                    [`${TOC_WRAPPER_CLASSNAME}--closed`]: !isOpen,
                 }
             )}
         >

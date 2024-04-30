@@ -2,24 +2,24 @@
 --------------------------------------------- */
 
 .toc-wrapper {
-    &.toc-wrapper--sticky {
-        position: sticky;
-    }
     top: 0;
     z-index: $zindex-sidebar;
+    background-color: $white;
 }
 
 .topic-page-header + .toc-wrapper {
-    margin-top: -48px;
-    margin-bottom: 48px;
-    background-color: $blue-10;
+    margin-top: -32px;
+    margin-bottom: 8px;
 }
 
 .centered-article-header + .toc-wrapper {
     margin-bottom: 8px;
-    background-color: $white;
-    &.toc-wrapper--sticky {
-        background-color: $blue-10;
+}
+
+.toc-wrapper--sticky {
+    position: sticky;
+    &.toc-wrapper--closed {
+        @include block-shadow;
     }
 }
 
