@@ -19,7 +19,7 @@ docker compose -f docker-compose.dbtests.yml up -d
 
 echo '==> Running migrations'
 
-yarn typeorm migration:run -d itsJustJavascript/db/tests/dataSource.dbtests.js
+yarn tsx node_modules/typeorm/cli.js migration:run -d db/tests/dataSource.dbtests.ts
 
 echo '==> Running tests'
 if ! yarn run jest --config=jest.db.config.js --runInBand # runInBand runs multiple test files serially - useful to avoid weird race conditions
