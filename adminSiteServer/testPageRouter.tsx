@@ -134,10 +134,7 @@ async function propsFromQueryParams(
 
     let query = knex
         .table("charts")
-        .select("id", "slug")
         .whereRaw("publishedAt IS NOT NULL")
-        .limit(perPage)
-        .offset(perPage * (page - 1))
         .orderBy("id", "DESC")
     console.error(query.toSQL())
 
@@ -278,9 +275,17 @@ async function propsFromQueryParams(
         )
     }
 
-    console.error(query.toSQL())
+    const chartsQuery = query
+        .clone()
+        .select("id", "slug")
+        .limit(perPage)
+        .offset(perPage * (page - 1))
 
-    const charts: ChartItem[] = (await query).map((c) => ({
+    const countQuery = query.clone().count({ count: "*" })
+
+    console.error(chartsQuery.toSQL())
+
+    const charts: ChartItem[] = (await chartsQuery).map((c) => ({
         id: c.id,
         slug: c.slug ?? "",
     }))
@@ -289,7 +294,8 @@ async function propsFromQueryParams(
         charts.forEach((c) => (c.slug += `?tab=${tab}`))
     }
 
-    const count = await charts.length
+    const countRes = (await countQuery) as { count: number }[]
+    const count = countRes[0]?.count as number
     const numPages = Math.ceil(count / perPage)
 
     const originalUrl = Url.fromURL(params.originalUrl)
