@@ -243,7 +243,7 @@ export const getPublishedDataInsights = (
             slug,
             ROW_NUMBER() OVER (ORDER BY publishedAt DESC) - 1 AS \`index\`
         FROM posts_gdocs
-        WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
+        WHERE type = '${OwidGdocType.DataInsight}'
             AND published = TRUE
             AND publishedAt < NOW()
         ORDER BY publishedAt DESC
@@ -266,7 +266,7 @@ export const getPublishedDataInsightCount = (
         `
         SELECT COUNT(*) AS count
         FROM posts_gdocs
-        WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
+        WHERE type = '${OwidGdocType.DataInsight}'
             AND published = TRUE
             AND publishedAt < NOW()`
     ).then((res) => res?.count ?? 0)
@@ -313,7 +313,7 @@ export const getHomepageId = (
         FROM
             posts_gdocs
         WHERE
-            content->>'$.type' = '${OwidGdocType.Homepage}'
+            type = '${OwidGdocType.Homepage}'
             AND published = TRUE`
     ).then((result) => result?.id)
 }
@@ -364,7 +364,7 @@ export const getPublishedGdocPosts = async (
         posts_gdocs g
     WHERE
         g.published = 1
-        AND g.content ->> '$.type' IN (:types)
+        AND g.type IN (:types)
         AND g.publishedAt <= NOW()
     ORDER BY g.publishedAt DESC`,
         {
@@ -410,7 +410,7 @@ export const getPublishedGdocPostsWithTags = async (
         gxt.tagId = t.id
     WHERE
         g.published = 1
-        AND g.content ->> '$.type' IN (:types)
+        AND g.type IN (:types)
         AND g.publishedAt <= NOW()
     GROUP BY g.id
     ORDER BY g.publishedAt DESC`,

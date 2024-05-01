@@ -45,7 +45,7 @@ export class GdocHomepage
             SELECT
                 id
             FROM posts_gdocs
-            WHERE content->>"$.type" = "${OwidGdocType.Homepage}"
+            WHERE type = "${OwidGdocType.Homepage}"
             AND published = TRUE
             AND id != ?`,
             [this.id]

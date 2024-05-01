@@ -26,6 +26,7 @@ import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import {
     getPostEnrichedBySlug,
+    getPostIdFromSlug,
     getPostRelatedCharts,
     getRelatedArticles,
     getRelatedResearchAndWritingForVariable,
@@ -331,12 +332,13 @@ const renderGrapherPage = async (
     grapher: GrapherInterface,
     knex: db.KnexReadonlyTransaction
 ) => {
-    const postSlug = urlToSlug(grapher.originUrl || "")
-    const post = postSlug
-        ? await getPostEnrichedBySlug(knex, postSlug)
+    const postSlug = urlToSlug(grapher.originUrl || "") as string | undefined
+    // TODO: update this to use gdocs posts
+    const postId = postSlug
+        ? await getPostIdFromSlug(knex, postSlug)
         : undefined
-    const relatedCharts = post
-        ? await getPostRelatedCharts(knex, post.id)
+    const relatedCharts = postId
+        ? await getPostRelatedCharts(knex, postId)
         : undefined
     const relatedArticles = grapher.id
         ? await getRelatedArticles(knex, grapher.id)
@@ -345,7 +347,6 @@ const renderGrapherPage = async (
     return renderToHtmlPage(
         <GrapherPage
             grapher={grapher}
-            post={post}
             relatedCharts={relatedCharts}
             relatedArticles={relatedArticles}
             baseUrl={BAKED_BASE_URL}
@@ -484,7 +485,7 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         const chartsToBake: { id: number; config: string; slug: string }[] =
             await knexRaw(
                 knex,
-                `
+                `-- sql
                 SELECT
                     id, config, config->>'$.slug' as slug
                 FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
