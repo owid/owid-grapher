@@ -16,11 +16,10 @@ import filenamify from "filenamify"
 import { execFormatted } from "../db/execWrapper.js"
 import { JsonError } from "@ourworldindata/utils"
 import { DbPlainDataset } from "@ourworldindata/types"
-import { Knex } from "knex"
 import { getSourcesForDataset } from "../db/model/Source.js"
 
 const datasetToReadme = async (
-    knex: Knex<any, any[]>,
+    knex: db.KnexReadonlyTransaction,
     dataset: DbPlainDataset
 ): Promise<string> => {
     // TODO: add origins here
@@ -62,10 +61,9 @@ export async function removeDatasetFromGitRepo(
 }
 
 export async function syncDatasetToGitRepo(
-    knex: Knex<any, any[]>,
+    knex: db.KnexReadonlyTransaction,
     datasetId: number,
     options: {
-        transaction?: db.TransactionContext
         oldDatasetName?: string
         commitName?: string
         commitEmail?: string

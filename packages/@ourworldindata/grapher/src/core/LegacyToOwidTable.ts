@@ -8,6 +8,7 @@ import {
     OwidTableSlugs,
     OwidColumnDef,
     LegacyGrapherInterface,
+    OwidVariableDimensions,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -21,6 +22,7 @@ import {
     getYearFromISOStringAndDayOffset,
     intersection,
     isNumber,
+    isInteger,
     makeAnnotationsSlug,
     trimObject,
     uniqBy,
@@ -33,6 +35,7 @@ import {
     ColumnSlug,
     EPOCH_DATE,
     OwidChartDimensionInterface,
+    OwidVariableType,
 } from "@ourworldindata/utils"
 
 export const legacyToOwidTableAndDimensions = (
@@ -143,6 +146,14 @@ export const legacyToOwidTableAndDimensions = (
             values = values.map((value) =>
                 isNumber(value) ? value * conversionFactor : value
             )
+
+            // If a non-int conversion factor is applied to an integer column,
+            // we end up with a numeric column.
+            if (
+                valueColumnDef.type === ColumnTypeNames.Integer &&
+                !isInteger(conversionFactor)
+            )
+                valueColumnDef.type = ColumnTypeNames.Numeric
         }
 
         const columnStore: { [key: string]: any[] } = {
@@ -545,6 +556,37 @@ const fullJoinTables = (
     )
 }
 
+const variableTypeToColumnType = (type: OwidVariableType): ColumnTypeNames => {
+    switch (type) {
+        case "ordinal":
+            return ColumnTypeNames.Ordinal
+        case "string":
+            return ColumnTypeNames.String
+        case "int":
+            return ColumnTypeNames.Integer
+        case "float":
+            return ColumnTypeNames.Numeric
+        case "mixed":
+        default:
+            return ColumnTypeNames.NumberOrString
+    }
+}
+
+const getSortFromDimensions = (
+    dimensions: OwidVariableDimensions
+): string[] | undefined => {
+    const values = dimensions.values?.values
+    if (!values) return
+
+    const sort = values
+        .map((value) => value.name)
+        .filter((name): name is string => name !== undefined)
+
+    if (sort.length === 0) return
+
+    return sort
+}
+
 const columnDefFromOwidVariable = (
     variable: OwidVariableWithSourceAndDimension
 ): OwidColumnDef => {
@@ -573,6 +615,19 @@ const columnDefFromOwidVariable = (
     // Without this the much used var 123 appears as "Countries Continent". We could rename in Grapher but not sure the effects of that.
     const isContinent = variable.id === 123
     const name = isContinent ? "Continent" : variable.name
+
+    // The column's type
+    const type = isContinent
+        ? ColumnTypeNames.Continent
+        : variable.type
+          ? variableTypeToColumnType(variable.type)
+          : ColumnTypeNames.NumberOrString
+
+    // Sorted values for ordinal columns
+    const sort =
+        type === ColumnTypeNames.Ordinal
+            ? getSortFromDimensions(variable.dimensions)
+            : undefined
 
     return {
         name,
@@ -604,9 +659,8 @@ const columnDefFromOwidVariable = (
         owidVariableId: variable.id,
         owidProcessingLevel: variable.processingLevel,
         owidSchemaVersion: variable.schemaVersion,
-        type: isContinent
-            ? ColumnTypeNames.Continent
-            : ColumnTypeNames.NumberOrString,
+        type,
+        sort,
     }
 }
 

@@ -48,14 +48,14 @@ const boundsFromLabelPlacement = (label: TickLabelPlacement): Bounds => {
         xAlign === HorizontalAlign.center
             ? -width / 2
             : xAlign === HorizontalAlign.right
-            ? -width
-            : 0
+              ? -width
+              : 0
     const yShift =
         yAlign === VerticalAlign.middle
             ? -height / 2
             : yAlign === VerticalAlign.bottom
-            ? -height
-            : 0
+              ? -height
+              : 0
     return new Bounds(x + xShift, y + yShift, width, height)
 }
 

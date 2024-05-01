@@ -388,7 +388,7 @@ export const LongFormPage = (props: {
                                                         </p>
                                                         <p>
                                                             All of{" "}
-                                                            <a href="/how-to-use-our-world-in-data#how-to-embed-interactive-charts-in-your-article">
+                                                            <a href="/faqs#how-can-i-embed-one-of-your-interactive-charts-in-my-website">
                                                                 our charts can
                                                                 be embedded
                                                             </a>{" "}

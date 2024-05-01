@@ -1,7 +1,6 @@
 import "dayjs"
 import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import {
-    OwidGdocPostInterface,
     GdocsContentSource,
     DataPageDataV2,
     OwidVariableWithSource,
@@ -11,10 +10,13 @@ import {
     getNextUpdateFromVariable,
     omitUndefinedValues,
 } from "@ourworldindata/utils"
-import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
-import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
+import {
+    getGdocBaseObjectById,
+    loadGdocFromGdocBase,
+} from "../db/model/Gdoc/GdocFactory.js"
 import { OwidGoogleAuth } from "../db/OwidGoogleAuth.js"
-import { GrapherInterface } from "@ourworldindata/types"
+import { GrapherInterface, OwidGdocBaseInterface } from "@ourworldindata/types"
+import { KnexReadWriteTransaction } from "../db/db.js"
 
 export const getDatapageDataV2 = async (
     variableMetadata: OwidVariableWithSource,
@@ -76,17 +78,19 @@ export const getDatapageDataV2 = async (
  * see https://github.com/owid/owid-grapher/issues/2121#issue-1676097164
  */
 export const getDatapageGdoc = async (
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    knex: KnexReadWriteTransaction,
     googleDocEditLinkOrId: string,
     isPreviewing: boolean
-): Promise<OwidGdocPostInterface | null> => {
+): Promise<OwidGdocBaseInterface | null> => {
     // Get the google doc id from the datapage JSON file and return early if
     // none found
     const isPlainGoogleId = gdocIdRegex.exec(googleDocEditLinkOrId)
     const googleDocId = isPlainGoogleId
         ? googleDocEditLinkOrId
         : getLinkType(googleDocEditLinkOrId) === "gdoc"
-        ? getUrlTarget(googleDocEditLinkOrId)
-        : null
+          ? getUrlTarget(googleDocEditLinkOrId)
+          : null
 
     if (!googleDocId) return null
 
@@ -97,13 +101,15 @@ export const getDatapageGdoc = async (
     // gdoc found in the database, if any. This use case doesn't currently
     // support images (imageMetadata won't be set).
 
-    const datapageGdoc =
-        isPreviewing && OwidGoogleAuth.areGdocAuthKeysSet()
-            ? ((await GdocFactory.load(
-                  googleDocId,
-                  GdocsContentSource.Gdocs
-              )) as GdocPost)
-            : await GdocPost.findOneBy({ id: googleDocId })
+    let datapageGdoc =
+        (await getGdocBaseObjectById(knex, googleDocId, true)) ?? null
+
+    if (datapageGdoc && isPreviewing && OwidGoogleAuth.areGdocAuthKeysSet())
+        datapageGdoc = await loadGdocFromGdocBase(
+            knex,
+            datapageGdoc,
+            GdocsContentSource.Gdocs
+        )
 
     return datapageGdoc
 }

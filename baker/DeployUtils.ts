@@ -11,7 +11,7 @@ import {
 import { SiteBaker } from "../baker/SiteBaker.js"
 import { WebClient } from "@slack/web-api"
 import { DeployChange, DeployMetadata } from "@ourworldindata/utils"
-import { Knex } from "knex"
+import { KnexReadWriteTransaction } from "../db/db.js"
 
 const deployQueueServer = new DeployQueueServer()
 
@@ -33,9 +33,11 @@ export const defaultCommitMessage = async (): Promise<string> => {
 /**
  * Initiate a deploy, without any checks. Throws error on failure.
  */
+
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 const triggerBakeAndDeploy = async (
     deployMetadata: DeployMetadata,
-    knex: Knex<any, any[]>,
+    knex: KnexReadWriteTransaction,
     lightningQueue?: DeployChange[]
 ) => {
     // deploy to Buildkite if we're on master and BUILDKITE_API_ACCESS_TOKEN is set
@@ -60,7 +62,10 @@ const triggerBakeAndDeploy = async (
             if (!lightningQueue.every((change) => change.slug))
                 throw new Error("Lightning deploy is missing a slug")
 
-            await baker.bakeGDocPosts(lightningQueue.map((c) => c.slug!))
+            await baker.bakeGDocPosts(
+                knex,
+                lightningQueue.map((c) => c.slug!)
+            )
         } else {
             await baker.bakeAll(knex)
         }
@@ -139,7 +144,7 @@ const getSlackMentionByEmail = async (
         const response = await slackClient.users.lookupByEmail({ email })
         return response.user?.id ? `<@${response.user.id}>` : undefined
     } catch (error) {
-        logErrorAndMaybeSendToBugsnag(error)
+        await logErrorAndMaybeSendToBugsnag(error)
     }
     return
 }
@@ -156,7 +161,10 @@ let deploying = false
  * the end of the current one, as long as there are changes in the queue.
  * If there are no changes in the queue, a deploy won't be initiated.
  */
-export const deployIfQueueIsNotEmpty = async (knex: Knex<any, any[]>) => {
+export const deployIfQueueIsNotEmpty = async (
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    knex: KnexReadWriteTransaction
+) => {
     if (deploying) return
     deploying = true
     let failures = 0

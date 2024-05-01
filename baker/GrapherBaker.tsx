@@ -11,7 +11,6 @@ import {
     keyBy,
     mergePartialGrapherConfigs,
     compact,
-    merge,
     partition,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
@@ -27,6 +26,7 @@ import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import {
     getPostEnrichedBySlug,
+    getPostIdFromSlug,
     getPostRelatedCharts,
     getRelatedArticles,
     getRelatedResearchAndWritingForVariable,
@@ -38,11 +38,11 @@ import {
     DimensionProperty,
     OwidVariableWithSource,
     OwidChartDimensionInterface,
-    OwidGdocPostInterface,
     EnrichedFaq,
     FaqEntryData,
     FaqDictionary,
     ImageMetadata,
+    OwidGdocBaseInterface,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -51,27 +51,35 @@ import {
     getVariableOfDatapageIfApplicable,
 } from "../db/model/Variable.js"
 import { getDatapageDataV2, getDatapageGdoc } from "./DatapageHelpers.js"
-import { Image } from "../db/model/Image.js"
+import { Image, getAllImages } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
-import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
-import { Knex } from "knex"
 import { knexRaw } from "../db/db.js"
 import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import pMap from "p-map"
+import { getGdocBaseObjectBySlug } from "../db/model/Gdoc/GdocFactory.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
     isPreviewing: boolean,
-    knex: Knex<any, any[]>,
+    knex: db.KnexReadWriteTransaction,
     imageMetadataDictionary?: Record<string, Image>
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
 
     if (!variable) return undefined
+
+    // When baking from `bakeSingleGrapherChart`, we cache imageMetadata to avoid fetching every image for every chart
+    // But when rendering a datapage from the mockSiteRouter we want to be able to fetch imageMetadata on the fly
+    // And this function is the point in the two paths where it makes sense to do so
+    if (!imageMetadataDictionary) {
+        imageMetadataDictionary = await getAllImages(knex).then((images) =>
+            keyBy(images, "filename")
+        )
+    }
 
     return await renderDataPageV2(
         {
@@ -90,9 +98,11 @@ const renderDatapageIfApplicable = async (
  *
  * Render a datapage if available, otherwise render a grapher page.
  */
+
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
-    knex: Knex<any, any[]>,
+    knex: db.KnexReadWriteTransaction,
     imageMetadataDictionary?: Record<string, Image>
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(
@@ -133,7 +143,9 @@ export async function renderDataPageV2(
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
     },
-    knex: Knex<any, any[]>
+
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    knex: db.KnexReadWriteTransaction
 ) {
     const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
         variableId,
@@ -151,32 +163,18 @@ export async function renderDataPageV2(
         uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
     )
     const gdocFetchPromises = faqDocs.map((gdocId) =>
-        getDatapageGdoc(gdocId, isPreviewing)
+        getDatapageGdoc(knex, gdocId, isPreviewing)
     )
     const gdocs = await Promise.all(gdocFetchPromises)
     const gdocIdToFragmentIdToBlock: Record<string, FaqDictionary> = {}
     gdocs.forEach((gdoc) => {
         if (!gdoc) return
-        const faqs = parseFaqs(gdoc.content.faqs, gdoc.id)
+        const faqs = parseFaqs(
+            ("faqs" in gdoc.content && gdoc.content?.faqs) ?? [],
+            gdoc.id
+        )
         gdocIdToFragmentIdToBlock[gdoc.id] = faqs.faqs
     })
-
-    const linkedCharts: OwidGdocPostInterface["linkedCharts"] = merge(
-        {},
-        ...compact(gdocs.map((gdoc) => gdoc?.linkedCharts))
-    )
-    const linkedDocuments: OwidGdocPostInterface["linkedDocuments"] = merge(
-        {},
-        ...compact(gdocs.map((gdoc) => gdoc?.linkedDocuments))
-    )
-    const imageMetadata: OwidGdocPostInterface["imageMetadata"] = merge(
-        {},
-        imageMetadataDictionary,
-        ...compact(gdocs.map((gdoc) => gdoc?.imageMetadata))
-    )
-    const relatedCharts: OwidGdocPostInterface["relatedCharts"] = gdocs.flatMap(
-        (gdoc) => gdoc?.relatedCharts ?? []
-    )
 
     const resolvedFaqsResults: EnrichedFaqLookupResult[] = variableMetadata
         .presentation?.faqs
@@ -203,7 +201,7 @@ export async function renderDataPageV2(
 
     if (faqResolveErrors.length > 0) {
         for (const error of faqResolveErrors) {
-            logErrorAndMaybeSendToBugsnag(
+            await logErrorAndMaybeSendToBugsnag(
                 new JsonError(
                     `Data page error in finding FAQs for variable ${variableId}: ${error.error}`
                 )
@@ -212,10 +210,6 @@ export async function renderDataPageV2(
     }
 
     const faqEntries: FaqEntryData = {
-        linkedCharts,
-        linkedDocuments,
-        imageMetadata,
-        relatedCharts,
         faqs: resolvedFaqs?.flatMap((faq) => faq.enrichedFaq.content) ?? [],
     }
 
@@ -245,20 +239,15 @@ export async function renderDataPageV2(
     let slug = ""
     if (firstTopicTag) {
         try {
-            slug = await getSlugForTopicTag(firstTopicTag)
+            slug = await getSlugForTopicTag(knex, firstTopicTag)
         } catch (error) {
-            logErrorAndMaybeSendToBugsnag(
+            await logErrorAndMaybeSendToBugsnag(
                 `Datapage with variableId "${variableId}" and title "${datapageData.title.title}" is using "${firstTopicTag}" as its primary tag, which we are unable to resolve to a tag in the grapher DB`
             )
         }
-        let gdoc: GdocPost | null = null
+        let gdoc: OwidGdocBaseInterface | undefined = undefined
         if (slug) {
-            gdoc = await GdocPost.findOne({
-                where: {
-                    slug,
-                },
-                relations: ["tags"],
-            })
+            gdoc = await getGdocBaseObjectBySlug(knex, slug, true)
         }
         if (gdoc) {
             const citation = getShortPageCitation(
@@ -271,7 +260,7 @@ export async function renderDataPageV2(
                 citation,
             }
         } else {
-            const post = await getPostEnrichedBySlug(slug)
+            const post = await getPostEnrichedBySlug(knex, slug)
             if (post) {
                 const authors = post.authors
                 const citation = getShortPageCitation(
@@ -290,14 +279,24 @@ export async function renderDataPageV2(
     // Get the charts this variable is being used in (aka "related charts")
     // and exclude the current chart to avoid duplicates
     datapageData.allCharts = await getRelatedChartsForVariable(
+        knex,
         variableId,
         grapher && "id" in grapher ? [grapher.id as number] : []
     )
 
     datapageData.relatedResearch =
-        await getRelatedResearchAndWritingForVariable(variableId)
+        await getRelatedResearchAndWritingForVariable(knex, variableId)
 
-    const tagToSlugMap = await getTagToSlugMap()
+    const relatedResearchFilenames = datapageData.relatedResearch
+        .map((r) => r.imageUrl)
+        .filter((f): f is string => !!f)
+
+    const imageMetadata = lodash.pick(
+        imageMetadataDictionary,
+        uniq(relatedResearchFilenames)
+    )
+
+    const tagToSlugMap = await getTagToSlugMap(knex)
 
     return renderToHtmlPage(
         <DataPageV2
@@ -306,6 +305,7 @@ export async function renderDataPageV2(
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
             isPreviewing={isPreviewing}
+            imageMetadata={imageMetadata}
             faqEntries={faqEntries}
             tagToSlugMap={tagToSlugMap}
         />
@@ -318,7 +318,9 @@ export async function renderDataPageV2(
  */
 export const renderPreviewDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
-    knex: Knex<any, any[]>
+
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    knex: db.KnexReadWriteTransaction
 ) => {
     const datapage = await renderDatapageIfApplicable(grapher, true, knex)
     if (datapage) return datapage
@@ -328,19 +330,23 @@ export const renderPreviewDataPageOrGrapherPage = async (
 
 const renderGrapherPage = async (
     grapher: GrapherInterface,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ) => {
-    const postSlug = urlToSlug(grapher.originUrl || "")
-    const post = postSlug ? await getPostEnrichedBySlug(postSlug) : undefined
-    const relatedCharts = post ? await getPostRelatedCharts(post.id) : undefined
+    const postSlug = urlToSlug(grapher.originUrl || "") as string | undefined
+    // TODO: update this to use gdocs posts
+    const postId = postSlug
+        ? await getPostIdFromSlug(knex, postSlug)
+        : undefined
+    const relatedCharts = postId
+        ? await getPostRelatedCharts(knex, postId)
+        : undefined
     const relatedArticles = grapher.id
-        ? await getRelatedArticles(grapher.id, knex)
+        ? await getRelatedArticles(knex, grapher.id)
         : undefined
 
     return renderToHtmlPage(
         <GrapherPage
             grapher={grapher}
-            post={post}
             relatedCharts={relatedCharts}
             relatedArticles={relatedArticles}
             baseUrl={BAKED_BASE_URL}
@@ -367,7 +373,7 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     bakedSiteDir: string,
     imageMetadataDictionary: Record<string, Image>,
     grapher: GrapherInterface,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadWriteTransaction
 ) => {
     const htmlPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     const isSameVersion = await chartIsSameVersion(htmlPath, grapher.version)
@@ -378,7 +384,6 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     // renderDataPageOrGrapherPage() too, but given that this render function is also used
     // for rendering a datapage preview in the admin where worker threads are
     // not used, lifting the connection set up here seems more appropriate.
-    await db.getConnection()
 
     // Always bake the html for every chart; it's cheap to do so
     const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
@@ -451,7 +456,9 @@ export interface BakeSingleGrapherChartArguments {
 
 export const bakeSingleGrapherChart = async (
     args: BakeSingleGrapherChartArguments,
-    knex: Knex<any, any[]> = db.knexInstance()
+
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    knex: db.KnexReadWriteTransaction
 ) => {
     const grapher: GrapherInterface = JSON.parse(args.config)
     grapher.id = args.id
@@ -473,16 +480,17 @@ export const bakeSingleGrapherChart = async (
 }
 
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
-    async (bakedSiteDir: string, knex: Knex<any, any[]>) => {
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    async (bakedSiteDir: string, knex: db.KnexReadWriteTransaction) => {
         const chartsToBake: { id: number; config: string; slug: string }[] =
             await knexRaw(
-                `
+                knex,
+                `-- sql
                 SELECT
                     id, config, config->>'$.slug' as slug
                 FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
                 ORDER BY JSON_EXTRACT(config, "$.slug") ASC
-                `,
-                knex
+                `
             )
 
         const newSlugs = chartsToBake.map((row) => row.slug)
@@ -491,8 +499,8 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         // Prefetch imageMetadata instead of each grapher page fetching
         // individually. imageMetadata is used by the google docs powering rich
         // text (including images) in data pages.
-        const imageMetadataDictionary = await Image.find().then((images) =>
-            keyBy(images, "filename")
+        const imageMetadataDictionary = await getAllImages(knex).then(
+            (images) => keyBy(images, "filename")
         )
 
         const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map(
@@ -516,7 +524,14 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         await pMap(
             jobs,
             async (job) => {
-                await bakeSingleGrapherChart(job, knex)
+                // We want to run this code on multiple threads, so we need to
+                // be able to use multiple transactions so that we can use
+                // multiple connections to the database.
+                // Read-write consistency is not a concern here, thankfully.
+                await db.knexReadWriteTransaction(
+                    async (knex) => await bakeSingleGrapherChart(job, knex),
+                    db.TransactionCloseMode.KeepOpen
+                )
                 progressBar.tick({ name: `slug ${job.slug}` })
             },
             { concurrency: 10 }

@@ -23,6 +23,7 @@ import {
     ColumnSlug,
     imemo,
     ToleranceStrategy,
+    differenceOfSets,
 } from "@ourworldindata/utils"
 import {
     Integer,
@@ -276,6 +277,55 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             `Drop rows with empty or ErrorValues in every column: ${slugs.join(
                 ", "
             )}`
+        )
+    }
+
+    // Drop _all rows_ for an entity if there is any column that has no valid values for that entity.
+    dropEntitiesThatHaveNoDataInSomeColumn(columnSlugs: ColumnSlug[]): this {
+        const indexesByEntityName = this.rowIndicesByEntityName
+
+        // Iterate over all entities, and remove them as we go if they have no data in some column
+        const entityNamesToKeep = new Set(indexesByEntityName.keys())
+
+        for (let i = 0; i <= columnSlugs.length; i++) {
+            const slug = columnSlugs[i]
+            const col = this.get(slug)
+
+            // Optimization, if there are no error values in this column, we can skip this column
+            if (col.numErrorValues === 0) continue
+
+            for (const entityName of entityNamesToKeep) {
+                const indicesForEntityName = indexesByEntityName.get(entityName)
+                if (!indicesForEntityName)
+                    throw new Error("Unexpected: entity not found in index map")
+
+                // Optimization: We don't care about the number of valid/error values, we just need
+                // to know if there is at least one valid value
+                const hasSomeValidValueForEntityInCol =
+                    indicesForEntityName.some((index) =>
+                        isNotErrorValue(col.valuesIncludingErrorValues[index])
+                    )
+
+                // Optimization: If we find a column that this entity has no data in we can remove
+                // it immediately, no need to iterate over other columns also
+                if (!hasSomeValidValueForEntityInCol)
+                    entityNamesToKeep.delete(entityName)
+            }
+        }
+
+        const entityNamesToDrop = differenceOfSets([
+            this.availableEntityNameSet,
+            entityNamesToKeep,
+        ])
+        const droppedEntitiesStr =
+            entityNamesToDrop.size > 0
+                ? [...entityNamesToDrop].join(", ")
+                : "(None)"
+
+        return this.columnFilter(
+            this.entityNameSlug,
+            (rowEntityName) => entityNamesToKeep.has(rowEntityName as string),
+            `Drop entities that have no data in some column: ${columnSlugs.join(", ")}.\nDropped entities: ${droppedEntitiesStr}`
         )
     }
 

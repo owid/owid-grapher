@@ -13,7 +13,7 @@ set -o nounset
 
 echo '==> Starting & initializing Mysql instance for testing'
 
-docker-compose -f docker-compose.dbtests.yml up -d
+docker compose -f docker-compose.dbtests.yml up -d
 
 ./devTools/docker/wait-for-tests-mysql.sh
 
@@ -26,11 +26,11 @@ if ! yarn run jest --config=jest.db.config.js --runInBand # runInBand runs multi
 then
     echo '💀 Tests failed'
     ./devTools/docker/mark-test-mysql-dirty.sh
-    docker-compose -f docker-compose.dbtests.yml stop
+    docker compose -f docker-compose.dbtests.yml stop
     exit 23
 else
     echo '✅ DB tests succeeded'
     ./devTools/docker/mark-test-mysql-dirty.sh
-    docker-compose -f docker-compose.dbtests.yml stop
+    docker compose -f docker-compose.dbtests.yml stop
     exit 0
 fi

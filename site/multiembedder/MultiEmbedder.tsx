@@ -121,7 +121,7 @@ class MultiEmbedder {
     async onIntersecting(entries: IntersectionObserverEntry[]) {
         entries.forEach((entry) => {
             if (entry.isIntersecting) {
-                this.renderInteractiveFigure(entry.target)
+                void this.renderInteractiveFigure(entry.target)
             }
         })
     }

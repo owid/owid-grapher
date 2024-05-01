@@ -146,9 +146,7 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                             We are a non-profit — all our work is free to use
                             and open source.
                         </strong>{" "}
-                        We believe the best research and data should be
-                        accessible to everyone. Consider supporting us if you
-                        find our work valuable.
+                        Consider supporting us if you find our work valuable.
                     </p>
                     <Button
                         className="homepage-intro__donate-button"

@@ -25,6 +25,7 @@ import {
     Topic,
     GrapherInterface,
     GrapherStaticFormat,
+    ChartRedirect,
     DimensionProperty,
 } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
@@ -34,7 +35,6 @@ import {
     EditorDatabase,
     Log,
     References,
-    ChartRedirect,
     ChartEditorManager,
     Dataset,
     getFullReferencesCount,
@@ -311,9 +311,8 @@ export class ChartEditorPage
             (key: FieldWithDetailReferences) => {
                 const references = invalidDetailReferences[key]
                 if (references.length) {
-                    errorMessages[
-                        key
-                    ] = `Invalid detail(s) specified: ${references.join(", ")}`
+                    errorMessages[key] =
+                        `Invalid detail(s) specified: ${references.join(", ")}`
                 }
             }
         )
@@ -362,13 +361,13 @@ export class ChartEditorPage
     }
 
     @action.bound refresh(): void {
-        this.fetchGrapher()
-        this.fetchDetails()
-        this.fetchData()
-        this.fetchLogs()
-        this.fetchRefs()
-        this.fetchRedirects()
-        this.fetchPageviews()
+        void this.fetchGrapher()
+        void this.fetchDetails()
+        void this.fetchData()
+        void this.fetchLogs()
+        void this.fetchRefs()
+        void this.fetchRedirects()
+        void this.fetchPageviews()
 
         // (2024-02-15) Disabled due to slow query performance
         // https://github.com/owid/owid-grapher/issues/3198

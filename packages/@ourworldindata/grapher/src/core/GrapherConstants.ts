@@ -9,7 +9,7 @@ export const GRAPHER_SETTINGS_DRAWER_ID = "grapher-settings-drawer"
 export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
 
 export const DEFAULT_GRAPHER_CONFIG_SCHEMA =
-    "https://files.ourworldindata.org/schemas/grapher-schema.003.json"
+    "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
 
 export const DEFAULT_GRAPHER_ENTITY_TYPE = "country or region"
 export const DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL = "countries and regions"

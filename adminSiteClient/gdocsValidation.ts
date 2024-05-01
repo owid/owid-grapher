@@ -5,7 +5,7 @@ import {
     OwidGdocErrorMessageType,
     OwidGdocType,
     checkIsOwidGdocType,
-    traverseEnrichedBlocks,
+    traverseEnrichedBlock,
     OwidGdocErrorMessageProperty,
     OwidGdoc,
     checkIsGdocPost,
@@ -58,7 +58,7 @@ function validateBody(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
         errors.push(getMissingContentPropertyError("body"))
     } else {
         for (const block of gdoc.content.body) {
-            traverseEnrichedBlocks(block, (block) => {
+            traverseEnrichedBlock(block, (block) => {
                 errors.push(
                     ...block.parseErrors.map((parseError) => ({
                         message: parseError.message,
@@ -86,7 +86,7 @@ function validateRefs(
         if (gdoc.content.refs.definitions) {
             Object.values(gdoc.content.refs.definitions).map((definition) => {
                 definition.content.map((block) => {
-                    traverseEnrichedBlocks(block, (node) => {
+                    traverseEnrichedBlock(block, (node) => {
                         if (node.parseErrors.length) {
                             for (const parseError of node.parseErrors) {
                                 errors.push({
@@ -113,11 +113,7 @@ function validateExcerpt(
     errors: OwidGdocErrorMessage[]
 ) {
     if (!gdoc.content.excerpt) {
-        errors.push({
-            property: "excerpt",
-            type: OwidGdocErrorMessageType.Warning,
-            message: `It is advised to add an excerpt before publishing.`,
-        })
+        errors.push(getMissingContentPropertyError("excerpt"))
     } else if (gdoc.content.excerpt.length > EXCERPT_MAX_LENGTH) {
         errors.push({
             property: "excerpt",

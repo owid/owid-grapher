@@ -20,7 +20,6 @@ interface TagPageData {
     charts: ChartListItem[]
     children: DbChartTagJoin[]
     possibleParents: DbChartTagJoin[]
-    isBulkImport: boolean
     slug: string | null
 }
 
@@ -136,71 +135,59 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                     <form
                         onSubmit={(e) => {
                             e.preventDefault()
-                            this.save()
+                            void this.save()
                         }}
                     >
                         <BindString
-                            disabled={tag.isBulkImport}
                             field="name"
                             store={newtag}
                             label="Name"
                             helpText="Category names should ideally be unique across the database and able to be understood without context"
                         />
-                        {!tag.isBulkImport && (
-                            <>
-                                <BindString
-                                    field="slug"
-                                    store={newtag}
-                                    label="Slug"
-                                    helpText="The slug for this tag's topic page, e.g. trade-and-globalization. If specified, we assume this tag is a topic."
-                                />
-                                <FieldsRow>
-                                    <NumericSelectField
-                                        label="Parent Category"
-                                        value={newtag.parentId || -1}
-                                        options={[
-                                            { value: -1, label: "None" },
-                                        ].concat(
-                                            tag.possibleParents.map((p) => ({
-                                                value: p.id as number,
-                                                label: p.name,
-                                            }))
-                                        )}
-                                        onValue={this.onChooseParent}
-                                    />
-                                    <div>
-                                        <br />
-                                        {this.parentTag && (
-                                            <TagBadge
-                                                tag={
-                                                    this
-                                                        .parentTag as DbChartTagJoin
-                                                }
-                                            />
-                                        )}
-                                    </div>
-                                </FieldsRow>
-                            </>
-                        )}
-                        {!tag.isBulkImport && (
+                        <BindString
+                            field="slug"
+                            store={newtag}
+                            label="Slug"
+                            helpText="The slug for this tag's topic page, e.g. trade-and-globalization. If specified, we assume this tag is a topic."
+                        />
+                        <FieldsRow>
+                            <NumericSelectField
+                                label="Parent Category"
+                                value={newtag.parentId || -1}
+                                options={[{ value: -1, label: "None" }].concat(
+                                    tag.possibleParents.map((p) => ({
+                                        value: p.id as number,
+                                        label: p.name,
+                                    }))
+                                )}
+                                onValue={this.onChooseParent}
+                            />
                             <div>
-                                <input
-                                    type="submit"
-                                    className="btn btn-success"
-                                    value="Update category"
-                                />{" "}
-                                {tag.datasets.length === 0 &&
-                                    tag.children.length === 0 &&
-                                    !tag.specialType && (
-                                        <button
-                                            className="btn btn-danger"
-                                            onClick={() => this.deleteTag()}
-                                        >
-                                            Delete category
-                                        </button>
-                                    )}
+                                <br />
+                                {this.parentTag && (
+                                    <TagBadge
+                                        tag={this.parentTag as DbChartTagJoin}
+                                    />
+                                )}
                             </div>
-                        )}
+                        </FieldsRow>
+                        <div>
+                            <input
+                                type="submit"
+                                className="btn btn-success"
+                                value="Update category"
+                            />{" "}
+                            {tag.datasets.length === 0 &&
+                                tag.children.length === 0 &&
+                                !tag.specialType && (
+                                    <button
+                                        className="btn btn-danger"
+                                        onClick={() => this.deleteTag()}
+                                    >
+                                        Delete category
+                                    </button>
+                                )}
+                        </div>
                     </form>
                 </section>
                 {tag.children.length > 0 && (
@@ -249,9 +236,9 @@ export class TagEditPage extends React.Component<{ tagId: number }> {
     }
 
     componentDidMount() {
-        this.getData(this.props.tagId)
+        void this.getData(this.props.tagId)
     }
     UNSAFE_componentWillReceiveProps(nextProps: any) {
-        this.getData(nextProps.tagId)
+        void this.getData(nextProps.tagId)
     }
 }

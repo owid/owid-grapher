@@ -10,9 +10,9 @@
 #  USAGE
 #
 #  - $ yarn deploy-content-preview (default, deploys to
-#    https://[YOUR_CURRENT_GIT_BRANCH].owid.pages.dev)
+#    https://[YOUR_CURRENT_GIT_BRANCH].owid-staging.pages.dev)
 #  - $ PREVIEW_BRANCH=[PREVIEW_BRANCH] yarn deploy-content-preview (deploys to
-#    https://[PREVIEW_BRANCH].owid.pages.dev)
+#    https://[PREVIEW_BRANCH].owid-staging.pages.dev)
 #
 #  This script is meant to be run manually and locally. It is not triggered
 #  automatically and run by an Buildkite agent, unlike its production
@@ -21,7 +21,7 @@
 #
 #  By default, running `yarn deploy-content-preview` will deploy to a preview
 #  URL prefixed with the current git branch name. For example, if you're on the
-#  `donate` branch, the preview URL will be https://donate.owid.pages.dev. This
+#  `donate` branch, the preview URL will be https://donate.owid-staging.pages.dev. This
 #  is mimicking the default Cloudflare Pages preview environment behavior, when
 #  production and preview deploys are triggered by a git push (as a side note,
 #  our setup doesn't use this git integration, and rather deploys manually
@@ -30,7 +30,7 @@
 #  Alternatively, you can pass a custom branch name to this script. This is
 #  useful for maintaining a stable review URL across time for a complex feature
 #  spread across multiple stacked PRs. For example, if you want to deploy to
-#  https://donate.owid.pages.dev, while on the `donate-2` branch you can run:
+#  https://donate.owid-staging.pages.dev, while on the `donate-2` branch you can run:
 #
 #  PREVIEW_BRANCH=donate yarn deploy-content-preview
 #
@@ -52,11 +52,11 @@
 #  http://staging-site-donate).
 #
 #  Before running this script, you need to rebake the content using the target
-#  preview BAKED_BASE_URL (e.g. https://donate.owid.pages.dev) to avoid CORS
+#  preview BAKED_BASE_URL (e.g. https://donate.owid-staging.pages.dev) to avoid CORS
 #  issues. This is done by running the following sequence on the staging server
 #  (not locally):
 #  - in ~/owid-grapher/.env, set BAKED_BASE_URL to
-#    https://[PREVIEW_BRANCH].owid.pages.dev
+#    https://[PREVIEW_BRANCH].owid-staging.pages.dev
 #  - `rm ~/.site-baked` (see ops > templates > lxc-manager > grapher-refresh)
 #  - locate the latest Buildkite job for your staging environment and click
 #    "Rebuild". This will run the full site baking sequence with the preview URL
@@ -105,7 +105,7 @@ as_owid() {
 }
 
 # Cloudflare Pages settings
-PROJECT_NAME=owid
+PROJECT_NAME=owid-staging
 
 # Set PREVIEW_BRANCH to the current git branch name if not set
 PREVIEW_BRANCH=${PREVIEW_BRANCH:-$GIT_BRANCH}

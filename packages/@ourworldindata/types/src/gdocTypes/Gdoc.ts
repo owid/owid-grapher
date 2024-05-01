@@ -1,4 +1,3 @@
-import { Tag } from "../domainTypes/Tag.js"
 import { GrapherTabOption, RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
 import { TocHeadingWithTitleSupertitle } from "../domainTypes/Toc.js"
@@ -13,6 +12,7 @@ import {
     RefDictionary,
 } from "./ArchieMlComponents.js"
 import { DbChartTagJoin } from "../dbTypes/ChartTags.js"
+import { MinimalTag } from "../dbTypes/Tags.js"
 import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 
 export enum OwidGdocPublicationContext {
@@ -58,21 +58,23 @@ export enum OwidGdocType {
 export interface OwidGdocBaseInterface {
     id: string
     slug: string
-    content: Record<string, any>
+    // TODO: should we type this as a union of the possible content types instead?
+    content: OwidGdocContent
     published: boolean
     createdAt: Date
     publishedAt: Date | null
     updatedAt: Date | null
     revisionId: string | null
     publicationContext: OwidGdocPublicationContext
-    breadcrumbs?: BreadcrumbItem[] | null
+    breadcrumbs: BreadcrumbItem[] | null
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     linkedCharts?: Record<string, LinkedChart>
     linkedIndicators?: Record<number, LinkedIndicator>
     imageMetadata?: Record<string, ImageMetadata>
     relatedCharts?: RelatedChart[]
-    tags?: Tag[]
+    tags?: MinimalTag[] | null
     errors?: OwidGdocErrorMessage[]
+    markdown: string | null
 }
 
 export interface OwidGdocPostInterface extends OwidGdocBaseInterface {
@@ -85,12 +87,33 @@ export interface OwidGdocMinimalPostInterface {
     title: string // used in prominent links, topic-page-intro related topics, etc
     slug: string
     authors: string[] // used in research & writing block
-    publishedAt: string // used in research & writing block
+    publishedAt: string | null // used in research & writing block
     published: boolean // used in preview to validate whether or not the post will display
     subtitle: string // used in prominent links & research & writing block
     excerpt: string // used in prominent links
     type: OwidGdocType // used in useLinkedDocument to prepend /data-insights/ to the slug
     "featured-image"?: string // used in prominent links and research & writing block
+}
+
+export type OwidGdocIndexItem = Pick<
+    OwidGdocBaseInterface,
+    "id" | "slug" | "tags" | "published" | "publishedAt"
+> &
+    Pick<OwidGdocContent, "title" | "authors" | "type">
+
+export function extractGdocIndexItem(
+    gdoc: OwidGdocBaseInterface
+): OwidGdocIndexItem {
+    return {
+        id: gdoc.id,
+        slug: gdoc.slug,
+        tags: gdoc.tags ?? [],
+        published: gdoc.published,
+        publishedAt: gdoc.publishedAt,
+        title: gdoc.content.title ?? "",
+        authors: gdoc.content.authors,
+        type: gdoc.content.type,
+    }
 }
 
 export interface OwidGdocDataInsightContent {
@@ -107,7 +130,6 @@ export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     content: OwidGdocDataInsightContent
     latestDataInsights?: MinimalDataInsightInterface[]
-    tags?: Tag[]
 }
 
 export type MinimalDataInsightInterface = Pick<
@@ -117,6 +139,8 @@ export type MinimalDataInsightInterface = Pick<
     publishedAt: string
     updatedAt: string
     slug: string
+    // Not used in any UI, only needed for the data insights atom feed
+    authors: string[]
     // We select the 5 most recently published insights
     // We only display 4, but if you're on the DI page for one of them we hide it and show the next most recent
     index: 0 | 1 | 2 | 3 | 4
@@ -138,7 +162,6 @@ export interface OwidGdocHomepageInterface extends OwidGdocBaseInterface {
     content: OwidGdocHomepageContent
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     homepageMetadata?: OwidGdocHomepageMetadata
-    tags?: Tag[] // won't be used, but necessary in various validation steps
 }
 
 export interface OwidGdocAuthorContent {
@@ -210,7 +233,7 @@ export enum OwidGdocLinkType {
 }
 
 export interface OwidGdocLinkJSON {
-    source: Record<string, any>
+    // source: Record<string, any>
     linkType: OwidGdocLinkType
     target: string
     componentType: string

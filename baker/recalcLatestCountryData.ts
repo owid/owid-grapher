@@ -5,8 +5,10 @@ import * as db from "../db/db.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
 
 const main = async () => {
-    await denormalizeLatestCountryData()
-    await db.closeTypeOrmAndKnexConnections()
+    await db.knexReadWriteTransaction(
+        denormalizeLatestCountryData,
+        db.TransactionCloseMode.Close
+    )
 }
 
-if (require.main === module) main()
+if (require.main === module) void main()

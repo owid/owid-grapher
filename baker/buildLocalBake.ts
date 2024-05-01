@@ -14,13 +14,18 @@ const bakeDomainToFolder = async (
     bakeSteps?: BakeStepConfig
 ) => {
     dir = normalize(dir)
-    fs.mkdirp(dir)
+    await fs.mkdirp(dir)
     const baker = new SiteBaker(dir, baseUrl, bakeSteps)
     console.log(`Baking site locally with baseUrl '${baseUrl}' to dir '${dir}'`)
-    await baker.bakeAll(db.knexInstance())
+
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    await db.knexReadWriteTransaction(
+        (trx) => baker.bakeAll(trx),
+        db.TransactionCloseMode.Close
+    )
 }
 
-yargs(hideBin(process.argv))
+void yargs(hideBin(process.argv))
     .command<{ baseUrl: string; dir: string; steps?: string[] }>(
         "$0 [baseUrl] [dir]",
         "Bake the site to a local folder",

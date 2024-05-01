@@ -330,8 +330,8 @@ export class Footer<
         const leftTextWidth = !useFullWidthSources
             ? sourcesWidth
             : showNote && !useFullWidthNote
-            ? noteWidth
-            : 0
+              ? noteWidth
+              : 0
         // text above the action buttons
         // (taken into account to ensure the action buttons are not too close to clickable text)
         const topTextWidth = useFullWidthSources
@@ -567,8 +567,8 @@ export class Footer<
                     {renderSources
                         ? this.renderSources()
                         : renderNote
-                        ? this.renderNote()
-                        : null}
+                          ? this.renderNote()
+                          : null}
                     {renderPadding && this.renderVerticalSpace()}
                     {renderLicense && this.renderLicense()}
                 </div>

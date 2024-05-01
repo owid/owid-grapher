@@ -24,27 +24,28 @@ help:
 	@echo 'Available commands:'
 	@echo
 	@echo '  GRAPHER ONLY'
-	@echo '  make up                start dev environment via docker-compose and tmux'
-	@echo '  make down              stop any services still running'
-	@echo '  make refresh           (while up) download a new grapher snapshot and update MySQL'
-	@echo '  make refresh.pageviews (while up) download and load pageviews from the private datasette instance'
-	@echo '  make migrate           (while up) run any outstanding db migrations'
-	@echo '  make test              run full suite (except db tests) of CI checks including unit tests'
-	@echo '  make dbtest            run db test suite that needs a running mysql db'
-	@echo '  make svgtest           compare current rendering against reference SVGs'
+	@echo '  make up                     start dev environment via docker-compose and tmux'
+	@echo '  make down                   stop any services still running'
+	@echo '  make refresh                (while up) download a new grapher snapshot and update MySQL'
+	@echo '  make refresh.pageviews      (while up) download and load pageviews from the private datasette instance'
+	@echo '  make migrate                (while up) run any outstanding db migrations'
+	@echo '  make test                   run full suite (except db tests) of CI checks including unit tests'
+	@echo '  make dbtest                 run db test suite that needs a running mysql db'
+	@echo '  make svgtest                compare current rendering against reference SVGs'
 	@echo
 	@echo '  GRAPHER + WORDPRESS (staff-only)'
-	@echo '  make up.full           start dev environment via docker-compose and tmux'
-	@echo '  make down.full         stop any services still running'
-	@echo '  make refresh.wp        download a new wordpress snapshot and update MySQL'
-	@echo '  make refresh.full      do a full MySQL update of both wordpress and grapher'
-	@echo '  make sync-images       sync all images from the remote master'
-	@echo '  make reindex			reindex (or initialise) search in Algolia'
-	@echo '  make bench.search      run search benchmarks'
+	@echo '  make up.full                start dev environment via docker-compose and tmux'
+	@echo '  make down.full              stop any services still running'
+	@echo '  make refresh.wp             download a new wordpress snapshot and update MySQL'
+	@echo '  make refresh.full           do a full MySQL update of both wordpress and grapher'
+	@echo '  make sync-images            sync all images from the remote master'
+	@echo '  make update.chart-entities  update the charts_x_entities join table'
+	@echo '  make reindex                reindex (or initialise) search in Algolia'
+  @echo '  make bench.search           run search benchmarks'
 	@echo
 	@echo '  OPS (staff-only)'
-	@echo '  make deploy            Deploy your local site to production'
-	@echo '  make stage             Deploy your local site to staging'
+	@echo '  make deploy                 Deploy your local site to production'
+	@echo '  make stage                  Deploy your local site to staging'
 	@echo
 
 up: export DEBUG = 'knex:query'
@@ -60,7 +61,7 @@ up: require create-if-missing.env ../owid-content tmp-downloads/owid_metadata.sq
 	@echo '==> Starting dev environment'
 	@mkdir -p logs
 	tmux new-session -s grapher \
-		-n docker 'docker-compose -f docker-compose.grapher.yml up' \; \
+		-n docker 'docker compose -f docker-compose.grapher.yml up' \; \
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
@@ -114,7 +115,7 @@ up.full: require create-if-missing.env.full ../owid-content wordpress/.env tmp-d
 
 	@echo '==> Starting dev environment'
 	tmux new-session -s grapher \
-		-n docker 'docker-compose -f docker-compose.full.yml up' \; \
+		-n docker 'docker compose -f docker-compose.full.yml up' \; \
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
@@ -135,7 +136,7 @@ up.full: require create-if-missing.env.full ../owid-content wordpress/.env tmp-d
 
 migrate:
 	@echo '==> Running DB migrations'
-	yarn && yarn buildTsc && yarn runDbMigrations
+	rm -rf itsJustJavascript && yarn && yarn buildLerna && yarn buildTsc && yarn runDbMigrations
 
 refresh.full: refresh refresh.wp sync-images
 
@@ -178,15 +179,15 @@ sync-images.preflight-check:
 
 down:
 	@echo '==> Stopping services'
-	docker-compose -f docker-compose.grapher.yml down
+	docker compose -f docker-compose.grapher.yml down
 
 down.full:
 	@echo '==> Stopping services'
-	docker-compose -f docker-compose.full.yml down
+	docker compose -f docker-compose.full.yml down
 
 require:
 	@echo '==> Checking your local environment has the necessary commands...'
-	@which docker-compose >/dev/null 2>&1 || (echo "ERROR: docker-compose is required."; exit 1)
+	@which docker >/dev/null 2>&1 || (echo "ERROR: docker compose is required."; exit 1)
 	@which yarn >/dev/null 2>&1 || (echo "ERROR: yarn is required."; exit 1)
 	@which tmux >/dev/null 2>&1 || (echo "ERROR: tmux is required."; exit 1)
 	@which finger >/dev/null 2>&1 || (echo "ERROR: finger is required."; exit 1)
@@ -348,12 +349,16 @@ itsJustJavascript: node_modules
 	yarn run tsc -b
 	touch $@
 
+update.chart-entities: itsJustJavascript
+	@echo '==> Updating chart entities table'
+	node --enable-source-maps itsJustJavascript/baker/updateChartEntities.js --all
+
 reindex: itsJustJavascript
 	@echo '==> Reindexing search in Algolia'
 	node --enable-source-maps itsJustJavascript/baker/algolia/configureAlgolia.js
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexToAlgolia.js
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexChartsToAlgolia.js
-	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorersToAlgolia.js
+	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorerViewsToAlgolia.js
 
 bench.search: itsJustJavascript
 	@echo '==> Running search benchmarks'

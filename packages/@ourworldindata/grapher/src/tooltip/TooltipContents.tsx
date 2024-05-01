@@ -70,10 +70,10 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
                 values.length < 2
                     ? null
                     : values[0] < values[1]
-                    ? this.arrowIcon("up")
-                    : values[0] > values[1]
-                    ? this.arrowIcon("down")
-                    : this.arrowIcon("right")
+                      ? this.arrowIcon("up")
+                      : values[0] > values[1]
+                        ? this.arrowIcon("down")
+                        : this.arrowIcon("right")
 
         return values.length ? (
             <Variable column={column} color={color} notice={notice}>

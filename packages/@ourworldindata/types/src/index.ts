@@ -49,7 +49,6 @@ export {
     DeployStatus,
     type DeployMetadata,
 } from "./domainTypes/DeployStatus.js"
-export { type Tag } from "./domainTypes/Tag.js"
 
 export {
     IDEAL_PLOT_ASPECT_RATIO,
@@ -109,6 +108,7 @@ export {
     type SeriesName,
     type LegacyGrapherQueryParams,
     GrapherStaticFormat,
+    type ChartRedirect,
     type DetailsMarker,
 } from "./grapherTypes/GrapherTypes.js"
 
@@ -302,6 +302,9 @@ export {
     OwidGdocLinkType,
     type LinkedIndicator,
     DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
+    type OwidGdocContent,
+    type OwidGdocIndexItem,
+    extractGdocIndexItem,
 } from "./gdocTypes/Gdoc.js"
 
 export {
@@ -367,6 +370,7 @@ export {
     type OwidProcessingLevel,
     type IndicatorTitleWithFragments,
     joinTitleFragments,
+    type OwidVariableType,
 } from "./OwidVariable.js"
 
 export type { OwidSource } from "./OwidSource.js"
@@ -447,6 +451,11 @@ export {
     type DbChartTagJoin,
 } from "./dbTypes/ChartTags.js"
 export {
+    ChartsXEntitiesTableName,
+    type DbInsertChartXEntity,
+    type DbPlainChartXEntity,
+} from "./dbTypes/ChartsXEntities.js"
+export {
     type DbPlainCountryLatestData,
     type DbInsertCountryLatestData,
     CountryLatestDataTableName,
@@ -487,8 +496,13 @@ export {
     ExplorerVariablesTableName,
 } from "./dbTypes/ExplorerVariables.js"
 export {
-    type DbPlainImage,
+    type DbRawImage,
+    type DbEnrichedImage,
     type DbInsertImage,
+    parseImageRow,
+    parseImageUpdatedAt,
+    serializeImageRow,
+    serializeImageUpdatedAt,
     ImagesTableName,
 } from "./dbTypes/Images.js"
 export {
@@ -527,13 +541,16 @@ export {
 export {
     type DbInsertPostGdoc,
     type DbRawPostGdoc,
+    type DBRawPostGdocWithTags,
     type DbEnrichedPostGdoc,
+    type DBEnrichedPostGdocWithTags,
     PostsGdocsTableName,
     parsePostGdocContent,
     serializePostGdocContent,
     parsePostsGdocsBreadcrumbs,
     serializePostsGdocsBreadcrumbs,
     parsePostsGdocsRow,
+    parsePostsGdocsWithTagsRow,
     serializePostsGdocsRow,
 } from "./dbTypes/PostsGdocs.js"
 export {
@@ -595,6 +612,7 @@ export {
 export {
     type DbInsertTag,
     type DbPlainTag,
+    type MinimalTag,
     TagsTableName,
 } from "./dbTypes/Tags.js"
 export {
@@ -634,6 +652,8 @@ export {
 } from "./dbTypes/Variables.js"
 
 export { RedirectCode, type DbPlainRedirect } from "./dbTypes/Redirects.js"
+
+export type { Nominal } from "./NominalType.js"
 
 export {
     type DbRawLatestWork,

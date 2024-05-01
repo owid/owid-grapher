@@ -4,9 +4,8 @@ import { isCanonicalInternalUrl } from "./formatting.js"
 import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
-import { Knex } from "knex"
 
-export const getRedirects = async (knex: Knex<any, any[]>) => {
+export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
     const staticRedirects = [
         // RSS feed
         "/feed /atom.xml 302",
@@ -75,12 +74,19 @@ export const getRedirects = async (knex: Knex<any, any[]>) => {
 }
 
 export const getGrapherRedirectsMap = async (
+    knex: db.KnexReadonlyTransaction,
     urlPrefix: string = "/grapher/"
 ) => {
-    const chartRedirectRows = (await db.queryMysql(`-- sql
+    const chartRedirectRows = (await db.knexRaw<{
+        oldSlug: string
+        newSlug: string
+    }>(
+        knex,
+        `-- sql
         SELECT chart_slug_redirects.slug as oldSlug, charts.config ->> "$.slug" as newSlug
         FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
-    `)) as Array<{ oldSlug: string; newSlug: string }>
+    `
+    )) as Array<{ oldSlug: string; newSlug: string }>
 
     return new Map(
         chartRedirectRows
@@ -92,18 +98,20 @@ export const getGrapherRedirectsMap = async (
     )
 }
 
-export const getWordpressRedirectsMap = async (knex: Knex<any, any[]>) => {
+export const getWordpressRedirectsMap = async (
+    knex: db.KnexReadonlyTransaction
+) => {
     const redirectsFromDb = await getRedirectsFromDb(knex)
 
     return new Map(redirectsFromDb.map((row) => [row.source, row.target]))
 }
 
 export const getGrapherAndWordpressRedirectsMap = memoize(
-    async (knex: Knex<any, any[]>): Promise<Map<string, string>> => {
+    async (knex: db.KnexReadonlyTransaction): Promise<Map<string, string>> => {
         // source: pathnames only (e.g. /transport)
         // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
 
-        const grapherRedirects = await getGrapherRedirectsMap()
+        const grapherRedirects = await getGrapherRedirectsMap(knex)
         const wordpressRedirects = await getWordpressRedirectsMap(knex)
 
         // The order the redirects are added to the map is important. Adding the
@@ -124,7 +132,7 @@ export const resolveRedirectFromMap = async (
     const _resolveRedirectFromMap = async (url: Url): Promise<Url> => {
         ++recursionDepth
         if (recursionDepth > MAX_RECURSION_DEPTH) {
-            logErrorAndMaybeSendToBugsnag(
+            void logErrorAndMaybeSendToBugsnag(
                 new JsonError(
                     `A circular redirect (/a -> /b -> /a) has been detected for ${originalUrl.pathname} and is ignored.`
                 )
@@ -140,7 +148,7 @@ export const resolveRedirectFromMap = async (
         const targetUrl = Url.fromURL(target)
 
         if (targetUrl.pathname === url.pathname) {
-            logErrorAndMaybeSendToBugsnag(
+            void logErrorAndMaybeSendToBugsnag(
                 new JsonError(
                     `A self redirect (/a -> /a) has been detected for ${originalUrl.pathname} and is ignored.`
                 )
@@ -161,7 +169,7 @@ export const resolveRedirectFromMap = async (
 
 export const resolveInternalRedirect = async (
     url: Url,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ): Promise<Url> => {
     if (!isCanonicalInternalUrl(url)) return url
 

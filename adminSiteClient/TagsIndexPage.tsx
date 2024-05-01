@@ -5,7 +5,7 @@ import * as lodash from "lodash"
 import { Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
 import { FieldsRow, Modal, TextField } from "./Forms.js"
-import { Tag, DbChartTagJoin } from "@ourworldindata/utils"
+import { DbChartTagJoin } from "@ourworldindata/utils"
 import { TagBadge } from "./TagBadge.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
@@ -59,7 +59,7 @@ class AddTagModal extends React.Component<{
                 <form
                     onSubmit={(e) => {
                         e.preventDefault()
-                        this.submit()
+                        void this.submit()
                     }}
                 >
                     <div className="modal-header">
@@ -166,7 +166,10 @@ export class TagsIndexPage extends React.Component {
                                     </p>
                                 )}
                                 {parent.children.map((tag) => (
-                                    <TagBadge key={tag.id} tag={tag as Tag} />
+                                    <TagBadge
+                                        key={tag.id}
+                                        tag={tag as DbChartTagJoin}
+                                    />
                                 ))}
                                 <button
                                     className="btn btn-default"
@@ -196,6 +199,6 @@ export class TagsIndexPage extends React.Component {
     }
 
     componentDidMount() {
-        this.getData()
+        void this.getData()
     }
 }

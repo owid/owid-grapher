@@ -4,7 +4,7 @@ export class RemoveLegacySdgChartReferences1689678362613
     implements MigrationInterface
 {
     public async up(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`-- sql
+        await queryRunner.query(`-- sql
             DROP TABLE IF EXISTS legacy_sdg_chart_references;
         `)
     }

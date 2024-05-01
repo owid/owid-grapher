@@ -1,19 +1,21 @@
 import { encodeXML } from "entities"
-import { Chart } from "../db/model/Chart.js"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import { dayjs, countries, queryParamsToStr } from "@ourworldindata/utils"
+import {
+    dayjs,
+    countries,
+    queryParamsToStr,
+    ChartsTableName,
+} from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import urljoin from "url-join"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getPostsFromSnapshots } from "../db/model/Post.js"
-import { Knex } from "knex"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 
 interface SitemapUrl {
@@ -59,9 +61,10 @@ const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl[] => {
     }
 }
 
+// TODO: this transaction is only RW because somewhere inside it we fetch images
 export const makeSitemap = async (
     explorerAdminServer: ExplorerAdminServer,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadWriteTransaction
 ) => {
     const alreadyPublishedViaGdocsSlugsSet =
         await db.getSlugsWithPublishedGdocsSuccessors(knex)
@@ -70,15 +73,15 @@ export const makeSitemap = async (
         undefined,
         (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
     )
-    const gdocPosts = await GdocPost.getPublishedGdocPosts()
+    const gdocPosts = await db.getPublishedGdocPosts(knex)
 
     const publishedDataInsights = await db.getPublishedDataInsights(knex)
     const dataInsightFeedPageCount = calculateDataInsightIndexPageCount(
         publishedDataInsights.length
     )
 
-    const charts = (await db
-        .knexTable(Chart.table)
+    const charts = (await knex
+        .table(ChartsTableName)
         .select(knex.raw(`updatedAt, config->>"$.slug" AS slug`))
         .whereRaw('config->"$.isPublished" = true')) as {
         updatedAt: Date

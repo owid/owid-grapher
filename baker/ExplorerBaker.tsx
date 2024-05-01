@@ -5,16 +5,16 @@ import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrl
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { explorerRedirectTable } from "../explorerAdminServer/ExplorerRedirects.js"
 import { renderExplorerPage } from "./siteRenderers.js"
-import { Knex } from "knex"
+import * as db from "../db/db.js"
 
 export const bakeAllPublishedExplorers = async (
     outputFolder: string,
     explorerAdminServer: ExplorerAdminServer,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ) => {
     // remove all existing explorers, since we're re-baking every single one anyway
-    fs.remove(outputFolder)
-    fs.mkdirp(outputFolder)
+    await fs.remove(outputFolder)
+    await fs.mkdirp(outputFolder)
 
     const published = await explorerAdminServer.getAllPublishedExplorers()
     await bakeExplorersToDir(outputFolder, published, knex)
@@ -23,7 +23,7 @@ export const bakeAllPublishedExplorers = async (
 const bakeExplorersToDir = async (
     directory: string,
     explorers: ExplorerProgram[] = [],
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ) => {
     for (const explorer of explorers) {
         await write(
@@ -36,7 +36,7 @@ const bakeExplorersToDir = async (
 export const bakeAllExplorerRedirects = async (
     outputFolder: string,
     explorerAdminServer: ExplorerAdminServer,
-    knex: Knex<any, any[]>
+    knex: db.KnexReadonlyTransaction
 ) => {
     const explorers = await explorerAdminServer.getAllExplorers()
     const redirects = explorerRedirectTable.rows

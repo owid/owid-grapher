@@ -130,7 +130,7 @@ export class VariablesIndexPage extends React.Component {
             () => this.searchInput || this.maxVisibleRows,
             lodash.debounce(() => this.getData(), 200)
         )
-        this.getData()
+        void this.getData()
     }
 
     componentWillUnmount() {

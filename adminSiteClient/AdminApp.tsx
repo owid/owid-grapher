@@ -13,6 +13,7 @@ import { DatasetEditPage } from "./DatasetEditPage.js"
 import { VariablesAnnotationPage } from "./VariablesAnnotationPage.js"
 import { SourceEditPage } from "./SourceEditPage.js"
 import { RedirectsIndexPage } from "./RedirectsIndexPage.js"
+import SiteRedirectsIndexPage from "./SiteRedirectsIndexPage"
 import { TagEditPage } from "./TagEditPage.js"
 import { TagsIndexPage } from "./TagsIndexPage.js"
 import { PostsIndexPage } from "./PostsIndexPage.js"
@@ -23,7 +24,6 @@ import { DeployStatusPage } from "./DeployStatusPage.js"
 import { ExplorerTagsPage } from "./ExplorerTagsPage.js"
 import { SuggestedChartRevisionApproverPage } from "./SuggestedChartRevisionApproverPage.js"
 import { SuggestedChartRevisionListPage } from "./SuggestedChartRevisionListPage.js"
-import { SuggestedChartRevisionImportPage } from "./SuggestedChartRevisionImportPage.js"
 import { BulkDownloadPage } from "./BulkDownloadPage.js"
 import {
     BrowserRouter as Router,
@@ -251,6 +251,11 @@ export class AdminApp extends React.Component<{
                             />
                             <Route
                                 exact
+                                path="/site-redirects"
+                                component={SiteRedirectsIndexPage}
+                            />
+                            <Route
+                                exact
                                 path="/tags/:tagId"
                                 render={({ match }) => (
                                     <TagEditPage
@@ -313,11 +318,6 @@ export class AdminApp extends React.Component<{
                                 exact
                                 path="/suggested-chart-revisions"
                                 component={SuggestedChartRevisionListPage}
-                            />
-                            <Route
-                                exact
-                                path="/suggested-chart-revisions/import"
-                                component={SuggestedChartRevisionImportPage}
                             />
                             <Route
                                 exact

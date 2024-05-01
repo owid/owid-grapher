@@ -1,5 +1,5 @@
 $schema: "http://json-schema.org/draft-07/schema#"
-$id: "https://files.ourworldindata.org/schemas/grapher-schema.003.json"
+$id: "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
 $defs:
     axis:
         type: object
@@ -201,7 +201,7 @@ properties:
         type: string
         description: Url of the concrete schema version to use to validate this document
         format: uri
-        default: "https://files.ourworldindata.org/schemas/grapher-schema.003.json"
+        default: "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
     id:
         type: integer
         description: Internal DB id. Useful internally for OWID but not required if just using grapher directly.
@@ -305,16 +305,6 @@ properties:
         type: boolean
         default: true
         description: Whether to show the (non-map) chart tab
-    data:
-        type: object
-        description: Obsolete name - used only to store the available entities
-        properties:
-            availableEntities:
-                type: array
-                description: List of available entities
-                items:
-                    type: string
-        additionalProperties: false
     hideLegend:
         type: boolean
         default: false

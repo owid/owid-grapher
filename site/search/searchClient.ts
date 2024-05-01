@@ -41,12 +41,15 @@ export const parseIndexName = (index: string): SearchIndexName => {
     }
 }
 
-export const logSiteSearchClick = (
-    event: Omit<InsightsSearchClickEvent, "eventName">
+export const logSiteSearchClickToAlgoliaInsights = (
+    event: Omit<InsightsSearchClickEvent, "eventName"> & { eventName?: string }
 ) => {
     const client = getInsightsClient()
-    client("clickedObjectIDsAfterSearch", { ...event, eventName: "click" })
+    client("clickedObjectIDsAfterSearch", {
+        ...event,
+        eventName: event.eventName ?? "click",
+    })
 }
 
 export const DEFAULT_SEARCH_PLACEHOLDER =
-    "Try “Life expectancy”, “Economic Growth”, “Homicide rate”, “Biodiversity”…"
+    "Try “Life expectancy”, “Poverty Nigeria Vietnam”, “CO2 France”…"

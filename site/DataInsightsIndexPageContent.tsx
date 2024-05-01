@@ -15,6 +15,7 @@ import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
+import { DebugProvider } from "./gdocs/DebugContext.js"
 
 const Pagination = (props: { pageNumber: number; totalPageCount: number }) => {
     const { pageNumber, totalPageCount } = props
@@ -116,7 +117,7 @@ export const DataInsightsIndexPageContent = (
             >
                 <header className="data-insights-index-page__header grid grid-cols-12-full-width span-cols-14">
                     <h2 className="span-cols-8 col-start-4 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12 display-2-semibold ">
-                        Data insights
+                        Data Insights
                     </h2>
                     <p className="span-cols-8 col-start-4 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12 body-1-regular">
                         Bite-sized insights on how the world is changing,
@@ -155,6 +156,11 @@ export function hydrateDataInsightsIndexPage() {
     )
 
     if (container && props) {
-        ReactDOM.hydrate(<DataInsightsIndexPageContent {...props} />, container)
+        ReactDOM.hydrate(
+            <DebugProvider>
+                <DataInsightsIndexPageContent {...props} />
+            </DebugProvider>,
+            container
+        )
     }
 }

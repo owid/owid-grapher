@@ -1,4 +1,5 @@
 import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
+import { SearchCategoryFilter } from "./search/searchTypes.js"
 
 export class SiteAnalytics extends GrapherAnalytics {
     logCountryProfileSearch(country: string) {
@@ -21,6 +22,63 @@ export class SiteAnalytics extends GrapherAnalytics {
             event: EventCategory.Filter,
             eventAction: "charts_page",
             eventContext: query,
+        })
+    }
+
+    logSearchClick({
+        query,
+        position,
+        url,
+        positionInSection,
+        cardPosition,
+        positionWithinCard,
+        filter,
+    }: {
+        query: string
+        position: string
+        positionInSection: string
+        cardPosition?: string
+        positionWithinCard?: string
+        url: string
+        filter: SearchCategoryFilter
+    }) {
+        this.logToGA({
+            event: EventCategory.SiteSearchClick,
+            eventAction: "click",
+            eventContext: JSON.stringify({
+                query,
+                position,
+                positionInSection,
+                cardPosition,
+                positionWithinCard,
+                filter,
+            }),
+            eventTarget: url,
+        })
+    }
+
+    logInstantSearchClick({
+        query,
+        url,
+        position,
+    }: {
+        query: string
+        url: string
+        position: string
+    }) {
+        this.logToGA({
+            event: EventCategory.SiteInstantSearchClick,
+            eventAction: "click",
+            eventContext: JSON.stringify({ query, position }),
+            eventTarget: url,
+        })
+    }
+
+    logSearchFilterClick({ key }: { key: string }) {
+        this.logToGA({
+            event: EventCategory.SiteSearchFilterClick,
+            eventAction: "click",
+            eventContext: key,
         })
     }
 }

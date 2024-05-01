@@ -9,7 +9,7 @@ export const RawHtml = ({ url }: { url: string }) => {
             if (!response.ok) return
             setHtml(await response.text())
         }
-        fetchHtml()
+        void fetchHtml()
     }, [url])
 
     return html && <div dangerouslySetInnerHTML={{ __html: html }}></div>

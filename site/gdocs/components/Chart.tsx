@@ -40,6 +40,7 @@ export default function Chart({
     const resolvedUrl = linkedChart.resolvedUrl
     const isExplorer = url.isExplorer
     const hasControls = url.queryParams.hideControls !== "true"
+    const isExplorerWithControls = isExplorer && hasControls
 
     // config passed to grapher charts
     let customizedChartConfig: GrapherProgrammaticInterface = {}
@@ -84,7 +85,8 @@ export default function Chart({
     return (
         <div
             className={cx(d.position, className, {
-                "full-width-on-mobile": fullWidthOnMobile,
+                "full-width-on-mobile":
+                    !isExplorerWithControls && fullWidthOnMobile,
             })}
             style={{ gridRow: d.row, gridColumn: d.column }}
             ref={refChartContainer}
@@ -92,7 +94,7 @@ export default function Chart({
             <figure
                 // Use unique `key` to force React to re-render tree
                 key={resolvedUrl}
-                className={isExplorer && hasControls ? "explorer" : "chart"}
+                className={isExplorerWithControls ? "explorer" : "chart"}
                 data-grapher-src={isExplorer ? undefined : resolvedUrl}
                 data-grapher-config={
                     isExplorer ? undefined : JSON.stringify(chartConfig)

@@ -1,50 +1,12 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    BaseEntity,
-    OneToMany,
-    type Relation,
-} from "typeorm"
-import { Chart } from "./Chart.js"
-import { Dataset } from "./Dataset.js"
-import { ChartRevision } from "./ChartRevision.js"
 import { BCryptHasher } from "../hashers.js"
 import {
     DbPlainUser,
     DbInsertUser,
     UsersTableName,
 } from "@ourworldindata/types"
-import { Knex } from "knex"
-
-@Entity("users")
-export class User extends BaseEntity {
-    @PrimaryGeneratedColumn() id!: number
-    @Column({ unique: true }) email!: string
-    @Column({ length: 128 }) password!: string
-    @Column({ default: "" }) fullName!: string
-    @Column({ default: true }) isActive!: boolean
-    @Column({ default: false }) isSuperuser!: boolean
-    @Column() createdAt!: Date
-    @Column() updatedAt!: Date
-    @Column() lastLogin!: Date
-    @Column() lastSeen!: Date
-
-    @OneToMany(() => Chart, (chart) => chart.lastEditedByUser)
-    lastEditedCharts!: Relation<Chart[]>
-
-    @OneToMany(() => Chart, (chart) => chart.publishedByUser)
-    publishedCharts!: Relation<Chart[]>
-
-    @OneToMany(() => ChartRevision, (rev) => rev.user)
-    editedCharts!: Relation<ChartRevision[]>
-
-    @OneToMany(() => Dataset, (dataset) => dataset.createdByUser)
-    createdDatasets!: Relation<Dataset[]>
-}
-
+import { KnexReadWriteTransaction, KnexReadonlyTransaction } from "../db.js"
 export async function setPassword(
-    knex: Knex<any, any[]>,
+    knex: KnexReadWriteTransaction,
     id: number,
     password: string
 ): Promise<void> {
@@ -54,21 +16,28 @@ export async function setPassword(
 }
 
 export async function getUserById(
-    knex: Knex<any, any[]>,
+    knex: KnexReadonlyTransaction,
     id: number
 ): Promise<DbPlainUser | undefined> {
     return knex<DbPlainUser>(UsersTableName).where({ id }).first()
 }
 
+export async function getUserByEmail(
+    knex: KnexReadonlyTransaction,
+    email: string
+): Promise<DbPlainUser | undefined> {
+    return knex<DbPlainUser>(UsersTableName).where({ email }).first()
+}
+
 export async function insertUser(
-    knex: Knex<any, any[]>,
+    knex: KnexReadWriteTransaction,
     user: DbInsertUser
 ): Promise<{ id: number }> {
     return knex(UsersTableName).returning("id").insert(user)
 }
 
 export async function updateUser(
-    knex: Knex<any, any[]>,
+    knex: KnexReadWriteTransaction,
     id: number,
     user: Partial<DbInsertUser>
 ): Promise<void> {
@@ -76,7 +45,7 @@ export async function updateUser(
 }
 
 export async function deleteUser(
-    knex: Knex<any, any[]>,
+    knex: KnexReadWriteTransaction,
     id: number
 ): Promise<void> {
     return knex(UsersTableName).where({ id }).delete()

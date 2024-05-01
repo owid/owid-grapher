@@ -132,7 +132,7 @@ if (args._[0]) {
         )
 } else {
     // fetch information for _all_ servers
-    fetchAll().then((commitInformation) => {
+    void fetchAll().then((commitInformation) => {
         const data = mapValues(
             keyBy(
                 commitInformation,

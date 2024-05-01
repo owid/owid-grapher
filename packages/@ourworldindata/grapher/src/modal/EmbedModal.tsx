@@ -30,7 +30,7 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
     }
 
     @computed private get codeSnippet(): string {
-        const url = this.manager.embedUrl ?? this.manager.canonicalUrl
+        const url = this.manager.embedUrl
         return `<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`
     }
 

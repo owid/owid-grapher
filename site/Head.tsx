@@ -1,9 +1,6 @@
 import React from "react"
-import { VITE_ASSET_SITE_ENTRY, viteAssets } from "./viteUtils.js"
-import {
-    GOOGLE_TAG_MANAGER_ID,
-    BAKED_BASE_URL,
-} from "../settings/clientSettings.js"
+import { viteAssetsForSite } from "./viteUtils.js"
+import { GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.js"
 
 export const GTMScriptTags = ({ gtmId }: { gtmId: string }) => {
     if (!gtmId || /["']/.test(gtmId)) return null
@@ -40,6 +37,10 @@ export const Head = (props: {
     imageUrl?: string
     children?: any
     baseUrl: string
+    atom?: {
+        title: string
+        href: string
+    }
 }) => {
     const { canonicalUrl, hideCanonicalUrl, baseUrl } = props
     const pageTitle = props.pageTitle || `Our World in Data`
@@ -50,8 +51,12 @@ export const Head = (props: {
         props.pageDesc ||
         "Research and data to make progress against the world’s largest problems"
     const imageUrl = props.imageUrl || `${baseUrl}/default-thumbnail.jpg`
+    const atom = props.atom ?? {
+        title: "Atom feed for Our World in Data",
+        href: "/atom.xml",
+    }
 
-    const stylesheets = viteAssets(VITE_ASSET_SITE_ENTRY).forHeader
+    const stylesheets = viteAssetsForSite().forHeader
 
     return (
         <head>
@@ -65,7 +70,8 @@ export const Head = (props: {
             <link
                 rel="alternate"
                 type="application/atom+xml"
-                href="/atom.xml"
+                href={atom.href}
+                title={atom.title}
             />
             <link
                 rel="apple-touch-icon"
@@ -92,29 +98,8 @@ export const Head = (props: {
             <meta name="twitter:description" content={pageDesc} />
             <meta name="twitter:image" content={encodeURI(imageUrl)} />
             {stylesheets}
-            <ScriptTagLoadingDetails />
             {props.children}
             <GTMScriptTags gtmId={GOOGLE_TAG_MANAGER_ID} />
         </head>
-    )
-}
-
-function ScriptTagLoadingDetails() {
-    return (
-        <script
-            dangerouslySetInnerHTML={{
-                __html: `fetch("${BAKED_BASE_URL}/dods.json", {
-                    method: "GET",
-                    credentials: "same-origin",
-                    headers: {
-                        Accept: "application/json",
-                    },
-                })
-                    .then((res) => res.json())
-                    .then((details) => {
-                        window.details = details
-                    })`,
-            }}
-        />
     )
 }

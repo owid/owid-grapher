@@ -1,12 +1,12 @@
 {
     "files": [
         {
-            "path": "./dist/assets/common.mjs",
-            "maxSize": "2.2MB"
+            "path": "./dist/assets/owid.mjs",
+            "maxSize": "2.4MB"
         },
         {
-            "path": "./dist/assets/owid.mjs",
-            "maxSize": "450KB"
+            "path": "./dist/assets/owid.css",
+            "maxSize": "430KB"
         }
     ],
     "defaultCompression": "none"

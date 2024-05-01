@@ -52,8 +52,8 @@ export const getProminentLinkTitleAndUrl = (node) => {
     const url = isAnchorNode(node)
         ? node.getAttribute("href")
         : isLink(textContent)
-        ? textContent
-        : ""
+          ? textContent
+          : ""
 
     const title = textContent !== url ? textContent : ""
 

@@ -12,7 +12,7 @@ import {
     EnrichedBlockSimpleText,
     lowercaseObjectKeys,
     OwidEnrichedGdocBlock,
-    traverseEnrichedBlocks,
+    traverseEnrichedBlock,
     ALL_CHARTS_ID,
     KEY_INSIGHTS_ID,
     ENDNOTES_ID,
@@ -137,7 +137,7 @@ export function generateToc(
     const toc: TocHeadingWithTitleSupertitle[] = []
 
     body.forEach((block) =>
-        traverseEnrichedBlocks(block, (child) => {
+        traverseEnrichedBlock(block, (child) => {
             if (child.type === "heading") {
                 const { level, text, supertitle } = child
                 const titleString = spansToSimpleString(text)

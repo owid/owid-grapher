@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class PostsGdocsXTags1680210665372 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`
+        await queryRunner.query(`
         CREATE TABLE posts_gdocs_x_tags (
             gdocId VARCHAR(255) NOT NULL,
             tagId INT NOT NULL,
@@ -14,7 +14,7 @@ export class PostsGdocsXTags1680210665372 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`
+        await queryRunner.query(`
             DROP TABLE IF EXISTS posts_gdocs_x_tags;
         `)
     }

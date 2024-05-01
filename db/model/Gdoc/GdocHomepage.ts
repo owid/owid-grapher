@@ -1,4 +1,3 @@
-import { Entity, Column } from "typeorm"
 import {
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
@@ -9,15 +8,15 @@ import {
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import * as db from "../../db.js"
-import { OwidGdocHomepageMetadata } from "@ourworldindata/types"
+import {
+    OwidGdocBaseInterface,
+    OwidGdocHomepageMetadata,
+} from "@ourworldindata/types"
 import { UNIQUE_TOPIC_COUNT } from "../../../site/SiteNavigation.js"
-
-@Entity("posts_gdocs")
 export class GdocHomepage
     extends GdocBase
     implements OwidGdocHomepageInterface
 {
-    @Column({ default: "{}", type: "json" })
     content!: OwidGdocHomepageContent
 
     constructor(id?: string) {
@@ -27,21 +26,28 @@ export class GdocHomepage
         }
     }
 
+    static create(obj: OwidGdocBaseInterface): GdocHomepage {
+        const gdoc = new GdocHomepage()
+        Object.assign(gdoc, obj)
+        return gdoc
+    }
+
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     homepageMetadata: OwidGdocHomepageMetadata = {}
-    _urlProperties: string[] = []
 
-    _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
+    _validateSubclass = async (
+        knex: db.KnexReadonlyTransaction
+    ): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
         const otherPublishedHomepages = await db.knexRaw<{ id: string }>(
+            knex,
             `
-            SELECT 
+            SELECT
                 id
             FROM posts_gdocs
-            WHERE content->>"$.type" = "${OwidGdocType.Homepage}"
+            WHERE type = "${OwidGdocType.Homepage}"
             AND published = TRUE
             AND id != ?`,
-            db.knexInstance(),
             [this.id]
         )
         if (otherPublishedHomepages.length > 0) {
@@ -54,16 +60,19 @@ export class GdocHomepage
         return errors
     }
 
-    _loadSubclassAttachments = async (): Promise<void> => {
+    _loadSubclassAttachments = async (
+        knex: db.KnexReadonlyTransaction
+    ): Promise<void> => {
+        const [grapherCount, nonGrapherExplorerViewCount] = await Promise.all([
+            db.getTotalNumberOfCharts(knex),
+            db.getNonGrapherExplorerViewCount(knex),
+        ])
+
         this.homepageMetadata = {
-            chartCount: await db.getTotalNumberOfCharts(),
+            chartCount: grapherCount + nonGrapherExplorerViewCount,
             topicCount: UNIQUE_TOPIC_COUNT,
         }
 
-        // TODO: refactor these classes to properly use knex - not going to start it now
-        this.latestDataInsights = await db.getPublishedDataInsights(
-            db.knexInstance(),
-            4
-        )
+        this.latestDataInsights = await db.getPublishedDataInsights(knex, 4)
     }
 }

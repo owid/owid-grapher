@@ -1523,12 +1523,11 @@ export function parseFaqs(
             id: faq.id,
             content: enrichedText,
             parseErrors: compact([
-                ...enrichedText.flatMap(
-                    (block) =>
-                        block?.parseErrors.map((parseError) => ({
-                            ...parseError,
-                            message: `Block parse error in faq with id "${faq.id}": ${parseError.message}`,
-                        }))
+                ...enrichedText.flatMap((block) =>
+                    block?.parseErrors.map((parseError) => ({
+                        ...parseError,
+                        message: `Block parse error in faq with id "${faq.id}": ${parseError.message}`,
+                    }))
                 ),
             ]),
         }
@@ -2306,7 +2305,8 @@ export const parseSocials = (raw: RawBlockSocials): EnrichedBlockSocials => {
     const links: EnrichedSocialLink[] = []
 
     for (const link of raw.value) {
-        if (!link.url) {
+        const url = extractUrl(link.url)
+        if (!url) {
             return createError({
                 message: "Link is missing a url",
             })
@@ -2328,7 +2328,10 @@ export const parseSocials = (raw: RawBlockSocials): EnrichedBlockSocials => {
         }
 
         links.push({
-            url: link.url,
+            url:
+                link.type === "email" && !url.startsWith("mailto:")
+                    ? `mailto:${url}`
+                    : url,
             text: link.text,
             type: link.type,
         })

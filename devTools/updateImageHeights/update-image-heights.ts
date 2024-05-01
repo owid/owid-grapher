@@ -7,18 +7,18 @@ async function updateImageHeights() {
     const transaction = await db.knexInstance().transaction()
     const filenames = await db
         .knexRaw<{ filename: string }>(
+            transaction,
             `SELECT DISTINCT filename
             FROM posts_gdocs_x_images pgxi
-            LEFT JOIN images i ON pgxi.imageId = i.id`,
-            transaction
+            LEFT JOIN images i ON pgxi.imageId = i.id`
         )
         .then((rows) => rows.map((row) => row.filename))
 
     console.log("Fetching image metadata...")
-    await imageStore.fetchImageMetadata([])
+    const images = await imageStore.fetchImageMetadata([])
     console.log("Fetching image metadata...done")
 
-    if (!imageStore.images) {
+    if (!images) {
         throw new Error("No images found")
     }
 
@@ -28,16 +28,16 @@ async function updateImageHeights() {
         for (const batch of lodash.chunk(filenames, 20)) {
             const promises = []
             for (const filename of batch) {
-                const image = imageStore.images[filename]
+                const image = images[filename]
                 if (image && image.originalHeight) {
                     promises.push(
                         db.knexRaw(
+                            transaction,
                             `
                             UPDATE images
                             SET originalHeight = ?
                             WHERE filename = ?
                         `,
-                            transaction,
                             [image.originalHeight, filename]
                         )
                     )

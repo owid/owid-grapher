@@ -26,8 +26,6 @@ const main = async () => {
         })
     }
 
-    await db.getConnection()
-
     // Listen for file changes
     fs.watchFile(DEPLOY_QUEUE_FILE_PATH, () => {
         // Start deploy after 10 seconds in order to avoid the quick successive
@@ -35,7 +33,11 @@ const main = async () => {
         setTimeout(deployIfQueueIsNotEmpty, 10 * 1000)
     })
 
-    deployIfQueueIsNotEmpty(db.knexInstance())
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    await db.knexReadWriteTransaction(
+        deployIfQueueIsNotEmpty,
+        db.TransactionCloseMode.Close
+    )
 }
 
-main()
+void main()

@@ -23,6 +23,7 @@ import {
     isBoolean,
     isEmpty,
     isEqual,
+    isInteger,
     isNil,
     isNull,
     isNumber,
@@ -94,6 +95,7 @@ export {
     isBoolean,
     isEmpty,
     isEqual,
+    isInteger,
     isNil,
     isNull,
     isNumber,
@@ -567,13 +569,18 @@ export const fetchText = async (url: string): Promise<string> => {
     })
 }
 
-export const getUserCountryInformation = async (): Promise<
+const _getUserCountryInformation = async (): Promise<
     UserCountryInformation | undefined
 > =>
     await fetch("/detect-country")
         .then((res) => res.json())
         .then((res) => res.country)
         .catch(() => undefined)
+
+// Memoized because this will pretty much never change during a session.
+// The memoization, however, also means that any failures will also be cached.
+// This is okay currently, because currently this information is very much an optional nice-to-have.
+export const getUserCountryInformation = memoize(_getUserCountryInformation)
 
 export const stripHTML = (html: string): string => striptags(html)
 
@@ -1066,8 +1073,8 @@ export function getClosestTimePairs(
             sortedTimesB[closestIndexInB] < timeA
                 ? closestIndexInB
                 : closestIndexInB > indexB
-                ? closestIndexInB - 1
-                : undefined
+                  ? closestIndexInB - 1
+                  : undefined
 
         /**
          * the index that holds the value that is definitely equal to or greater than timeA, the candidate time
@@ -1504,7 +1511,7 @@ export function traverseEnrichedSpan(
 // If your node has children that are Spans, the spanCallback will apply to them
 // If your node has children that aren't OwidEnrichedGdocBlocks or Spans, e.g. EnrichedBlockScroller & EnrichedScrollerItem
 // you'll have to handle those children yourself in your callback
-export function traverseEnrichedBlocks(
+export function traverseEnrichedBlock(
     node: OwidEnrichedGdocBlock,
     callback: (x: OwidEnrichedGdocBlock) => void,
     spanCallback?: (x: Span) => void
@@ -1515,24 +1522,24 @@ export function traverseEnrichedBlocks(
             (container) => {
                 callback(container)
                 container.left.forEach((leftNode) =>
-                    traverseEnrichedBlocks(leftNode, callback, spanCallback)
+                    traverseEnrichedBlock(leftNode, callback, spanCallback)
                 )
                 container.right.forEach((rightNode) =>
-                    traverseEnrichedBlocks(rightNode, callback, spanCallback)
+                    traverseEnrichedBlock(rightNode, callback, spanCallback)
                 )
             }
         )
         .with({ type: "gray-section" }, (graySection) => {
             callback(graySection)
             graySection.items.forEach((node) =>
-                traverseEnrichedBlocks(node, callback, spanCallback)
+                traverseEnrichedBlock(node, callback, spanCallback)
             )
         })
         .with({ type: "key-insights" }, (keyInsights) => {
             callback(keyInsights)
             keyInsights.insights.forEach((insight) =>
                 insight.content.forEach((node) =>
-                    traverseEnrichedBlocks(node, callback, spanCallback)
+                    traverseEnrichedBlock(node, callback, spanCallback)
                 )
             )
         })
@@ -1540,7 +1547,7 @@ export function traverseEnrichedBlocks(
             callback(callout)
             if (spanCallback) {
                 callout.text.forEach((textBlock) =>
-                    traverseEnrichedBlocks(textBlock, callback, spanCallback)
+                    traverseEnrichedBlock(textBlock, callback, spanCallback)
                 )
             }
         })
@@ -1556,7 +1563,7 @@ export function traverseEnrichedBlocks(
             callback(list)
             if (spanCallback) {
                 list.items.forEach((textBlock) =>
-                    traverseEnrichedBlocks(textBlock, callback, spanCallback)
+                    traverseEnrichedBlock(textBlock, callback, spanCallback)
                 )
             }
         })
@@ -1564,7 +1571,7 @@ export function traverseEnrichedBlocks(
             callback(numberedList)
             if (spanCallback) {
                 numberedList.items.forEach((textBlock) =>
-                    traverseEnrichedBlocks(textBlock, callback, spanCallback)
+                    traverseEnrichedBlock(textBlock, callback, spanCallback)
                 )
             }
         })
@@ -1602,13 +1609,13 @@ export function traverseEnrichedBlocks(
         .with({ type: "expandable-paragraph" }, (expandableParagraph) => {
             callback(expandableParagraph)
             expandableParagraph.items.forEach((textBlock) => {
-                traverseEnrichedBlocks(textBlock, callback, spanCallback)
+                traverseEnrichedBlock(textBlock, callback, spanCallback)
             })
         })
         .with({ type: "align" }, (align) => {
             callback(align)
             align.content.forEach((node) => {
-                traverseEnrichedBlocks(node, callback, spanCallback)
+                traverseEnrichedBlock(node, callback, spanCallback)
             })
         })
         .with({ type: "table" }, (table) => {
@@ -1616,7 +1623,7 @@ export function traverseEnrichedBlocks(
             table.rows.forEach((row) => {
                 row.cells.forEach((cell) => {
                     cell.content.forEach((node) => {
-                        traverseEnrichedBlocks(node, callback, spanCallback)
+                        traverseEnrichedBlock(node, callback, spanCallback)
                     })
                 })
             })
@@ -1624,7 +1631,7 @@ export function traverseEnrichedBlocks(
         .with({ type: "blockquote" }, (blockquote) => {
             callback(blockquote)
             blockquote.text.forEach((node) => {
-                traverseEnrichedBlocks(node, callback, spanCallback)
+                traverseEnrichedBlock(node, callback, spanCallback)
             })
         })
         .with(
@@ -1634,7 +1641,7 @@ export function traverseEnrichedBlocks(
             (keyIndicator) => {
                 callback(keyIndicator)
                 keyIndicator.text.forEach((node) => {
-                    traverseEnrichedBlocks(node, callback, spanCallback)
+                    traverseEnrichedBlock(node, callback, spanCallback)
                 })
             }
         )
@@ -1643,7 +1650,7 @@ export function traverseEnrichedBlocks(
             (keyIndicatorCollection) => {
                 callback(keyIndicatorCollection)
                 keyIndicatorCollection.blocks.forEach((node) =>
-                    traverseEnrichedBlocks(node, callback, spanCallback)
+                    traverseEnrichedBlock(node, callback, spanCallback)
                 )
             }
         )
@@ -1796,6 +1803,10 @@ export function extractDetailsFromSyntax(str: string): string[] {
     )
 }
 
+/**
+ * If you're using this type guard, make sure you're okay with Fragments
+ * See https://github.com/owid/owid-grapher/issues/3426
+ */
 export function checkIsGdocPost(x: unknown): x is OwidGdocPostInterface {
     const type = get(x, "content.type")
     return [
@@ -1803,6 +1814,24 @@ export function checkIsGdocPost(x: unknown): x is OwidGdocPostInterface {
         OwidGdocType.TopicPage,
         OwidGdocType.LinearTopicPage,
         OwidGdocType.Fragment,
+        OwidGdocType.AboutPage,
+    ].includes(type)
+}
+
+/**
+ * Fragments were developed before we had a robust gdoc type system in place
+ * Use this function when you want to be sure you're dealing with published editorial content
+ * and not just content that has the right shape
+ * See https://github.com/owid/owid-grapher/issues/3426
+ */
+export function checkIsGdocPostExcludingFragments(
+    x: unknown
+): x is OwidGdocPostInterface {
+    const type = get(x, "content.type")
+    return [
+        OwidGdocType.Article,
+        OwidGdocType.TopicPage,
+        OwidGdocType.LinearTopicPage,
         OwidGdocType.AboutPage,
     ].includes(type)
 }
@@ -1830,4 +1859,25 @@ export function cartesian<T>(matrix: T[][]): T[][] {
         (acc, curr) => acc.flatMap((i) => curr.map((j) => [...i, j])),
         [[]]
     )
+}
+
+// Remove any parenthetical content from _the end_ of a string
+// E.g. "Africa (UN)" -> "Africa"
+export function removeTrailingParenthetical(str: string): string {
+    return str.replace(/\s*\(.*\)$/, "")
+}
+
+export function isElementHidden(element: Element | null): boolean {
+    if (!element) return false
+    const computedStyle = window.getComputedStyle(element)
+    if (
+        computedStyle.display === "none" ||
+        computedStyle.visibility === "hidden"
+    )
+        return true
+    return isElementHidden(element.parentElement)
+}
+
+export function roundDownToNearestHundred(value: number): number {
+    return Math.floor(value / 100) * 100
 }

@@ -171,7 +171,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 <form
                     onSubmit={(e) => {
                         e.preventDefault()
-                        this.save()
+                        void this.save()
                     }}
                 >
                     <div className="row">
@@ -662,6 +662,6 @@ export class VariableEditPage extends React.Component<{ variableId: number }> {
         this.UNSAFE_componentWillReceiveProps()
     }
     UNSAFE_componentWillReceiveProps() {
-        this.getData()
+        void this.getData()
     }
 }

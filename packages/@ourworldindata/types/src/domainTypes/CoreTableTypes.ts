@@ -151,6 +151,7 @@ export enum ColumnTypeNames {
     Region = "Region",
     SeriesAnnotation = "SeriesAnnotation",
     Categorical = "Categorical",
+    Ordinal = "Ordinal",
     Continent = "Continent",
     EntityName = "EntityName",
     EntityId = "EntityId",
@@ -206,6 +207,9 @@ export interface CoreColumnDef extends ColumnColorScale {
     descriptionKey?: string[]
     descriptionFromProducer?: string
     note?: string // Any internal notes the author wants to record for display in admin interfaces
+
+    // Sorted values (in case of ordinal data)
+    sort?: string[]
 
     // Color
     color?: Color // A column can have a fixed color for use in charts where the columns are series

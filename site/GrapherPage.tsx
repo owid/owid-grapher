@@ -8,7 +8,6 @@ import {
 import {
     flatten,
     PostReference,
-    DbEnrichedPost,
     RelatedChart,
     serializeJSONForHTML,
     GrapherInterface,
@@ -34,7 +33,6 @@ import { SiteHeader } from "./SiteHeader.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
-    post?: DbEnrichedPost
     relatedCharts?: RelatedChart[]
     relatedArticles?: PostReference[]
     baseUrl: string

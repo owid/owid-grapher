@@ -1,4 +1,3 @@
-import { Entity, Column, Raw } from "typeorm"
 import {
     OwidGdocErrorMessage,
     OwidGdocAuthorInterface,
@@ -8,24 +7,32 @@ import {
     OwidGdocErrorMessageType,
     DbEnrichedLatestWork,
     DEFAULT_GDOC_FEATURED_IMAGE,
-    OwidGdocType,
+    OwidGdocBaseInterface,
+    excludeNullish,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { parseSocials } from "./rawToEnriched.js"
 import { getLatestWorkByAuthor } from "../Post.js"
 import * as db from "../../../db/db.js"
+import { loadPublishedGdocAuthors } from "./GdocFactory.js"
 
-@Entity("posts_gdocs")
 export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
-    @Column({ default: "{}", type: "json" })
     content!: OwidGdocAuthorContent
     latestWorkLinks?: DbEnrichedLatestWork[]
 
     constructor(id?: string) {
         super(id)
     }
-    _filenameProperties: string[] = ["featured-image"]
+
+    static create(obj: OwidGdocBaseInterface): GdocAuthor {
+        const gdoc = new GdocAuthor()
+        Object.assign(gdoc, obj)
+        return gdoc
+    }
+    protected typeSpecificFilenames(): string[] {
+        return excludeNullish([this.content["featured-image"]])
+    }
 
     _getSubclassEnrichedBlocks = (gdoc: this): OwidEnrichedGdocBlock[] => {
         const blocks: OwidEnrichedGdocBlock[] = []
@@ -36,13 +43,16 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         return blocks
     }
 
-    _loadSubclassAttachments = (): Promise<void> => {
-        return this.loadLatestWorkImages()
+    _loadSubclassAttachments = (
+        knex: db.KnexReadonlyTransaction
+    ): Promise<void> => {
+        return this.loadLatestWorkImages(knex)
     }
 
-    loadLatestWorkImages = async (): Promise<void> => {
+    loadLatestWorkImages = async (
+        knex: db.KnexReadonlyTransaction
+    ): Promise<void> => {
         if (!this.content.title) return
-        const knex = db.knexInstance()
 
         this.latestWorkLinks = await getLatestWorkByAuthor(
             knex,
@@ -65,7 +75,7 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         // Load the image metadata for the latest work images, including the
         // default featured image which is used as a fallback in the entire
         // research and writing block
-        return super.loadImageMetadata([
+        return super.loadImageMetadataFromDB(knex, [
             ...latestWorkImageFilenames,
             DEFAULT_GDOC_FEATURED_IMAGE,
         ])
@@ -115,15 +125,10 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         return errors
     }
 
-    static async getPublishedAuthors(): Promise<GdocAuthor[]> {
-        return GdocAuthor.find({
-            where: {
-                published: true,
-                content: Raw(
-                    (content) =>
-                        `${content}->"$.type" = '${OwidGdocType.Author}'`
-                ),
-            },
-        })
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    static async getPublishedAuthors(
+        knex: db.KnexReadWriteTransaction
+    ): Promise<GdocAuthor[]> {
+        return loadPublishedGdocAuthors(knex)
     }
 }

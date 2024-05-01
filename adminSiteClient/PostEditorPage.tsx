@@ -43,7 +43,7 @@ export class PostEditorPage extends React.Component<{ postId?: number }> {
     }
 
     componentDidMount() {
-        this.fetchPost()
+        void this.fetchPost()
     }
 
     render() {

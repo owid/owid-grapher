@@ -72,7 +72,6 @@ export {
     migrateSelectedEntityNamesParam,
     getSelectedEntityNamesParam,
 } from "./core/EntityUrlBuilder"
-export { SparkBars, type SparkBarsProps } from "./sparkBars/SparkBars"
 export {
     type SlideShowManager,
     SlideShowController,

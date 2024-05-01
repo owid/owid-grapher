@@ -7,7 +7,7 @@ import os from "os"
 import path from "path"
 import { DeployTarget } from "./DeployTarget.js"
 
-yargs(hideBin(process.argv))
+void yargs(hideBin(process.argv))
     .command<{
         target: DeployTarget
         skipChecks: boolean

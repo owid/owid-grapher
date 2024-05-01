@@ -90,7 +90,7 @@ An important note first: when using the VS Code Devcontainers extension, there i
 To check the status, make sure you run the following commands in a terminal **outside** your devcontainer, in the working directory root of this repository:
 
 ```bash
-docker-compose -f docker-compose.devcontainer.yml logs -f
+docker compose -f docker-compose.devcontainer.yml logs -f
 ```
 
 This will follow all log entries (i.e. it will print log statements while they happen) of all three containers: the app-1 container (your devcontainer with node, yarn etc), the db-1 container (MySQL), and the db-load-data container (that loads the data and then stops). On the first run of the devcontainer setup, this last container will download two gz files into the tmp-downloads folder and then ingest them into the MySQL database. This whole process can take between 5 and 20 minutes. When it is done you should see this message:

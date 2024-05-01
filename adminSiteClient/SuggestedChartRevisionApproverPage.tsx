@@ -211,7 +211,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         this.decisionReasonInput = this.currentSuggestedChartRevision
             ? this.currentSuggestedChartRevision.decisionReason ?? ""
             : ""
-        this.rerenderGraphers()
+        void this.rerenderGraphers()
         console.log("fetchGraphers 4")
     }
 
@@ -239,7 +239,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
 
     @action.bound onApproveSuggestedChartRevision() {
         console.log("WE GETTING CLOSER 0A")
-        this.updateSuggestedChartRevision(
+        void this.updateSuggestedChartRevision(
             SuggestedChartRevisionStatus.approved,
             this.decisionReasonInput
         )
@@ -247,7 +247,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
 
     @action.bound onRejectSuggestedChartRevision() {
         console.log("WE GETTING CLOSER 0R")
-        this.updateSuggestedChartRevision(
+        void this.updateSuggestedChartRevision(
             SuggestedChartRevisionStatus.rejected,
             this.decisionReasonInput
         )
@@ -255,7 +255,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
 
     @action.bound onFlagSuggestedChartRevision() {
         console.log("WE GETTING CLOSER 0F")
-        this.updateSuggestedChartRevision(
+        void this.updateSuggestedChartRevision(
             SuggestedChartRevisionStatus.flagged,
             this.decisionReasonInput
         )
@@ -282,7 +282,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         //     this.numTotalRows -= 1
         // }
         this.disableChatGPT()
-        this.refresh()
+        void this.refresh()
     }
 
     @action.bound updateChartConfigWithGPT() {
@@ -305,7 +305,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                 this.usingGPT = true
             }
         }
-        this.rerenderGraphers()
+        void this.rerenderGraphers()
     }
 
     @action.bound getGPTModelNameUsed(): string | undefined {
@@ -329,7 +329,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
 
     @action.bound resetChartConfigWithGPT() {
         this.disableChatGPT()
-        this.refresh()
+        void this.refresh()
     }
 
     @action.bound disableChatGPT() {
@@ -342,7 +342,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         if (!this.prevBtnIsDisabled) {
             this.disableChatGPT()
             this.rowNum = 1
-            this.refresh()
+            void this.refresh()
         }
     }
 
@@ -350,7 +350,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         if (!this.prevBtnIsDisabled) {
             this.disableChatGPT()
             this.rowNum = this.rowNumValid - 1
-            this.refresh()
+            void this.refresh()
         }
     }
 
@@ -358,7 +358,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         if (!this.nextBtnIsDisabled) {
             this.disableChatGPT()
             this.rowNum = this.rowNumValid + 1
-            this.refresh()
+            void this.refresh()
         }
     }
 
@@ -366,7 +366,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         if (!this.nextBtnIsDisabled) {
             this.disableChatGPT()
             this.rowNum = this.numAvailableRowsForSelectedUser
-            this.refresh()
+            void this.refresh()
         }
     }
 
@@ -376,7 +376,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
             this.rowNum = Math.floor(
                 Math.random() * this.numAvailableRowsForSelectedUser + 1
             )
-            this.refresh()
+            void this.refresh()
         }
     }
 
@@ -394,35 +394,35 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         }
         this.rowNum = input
         setTimeout(() => {
-            this.refresh()
+            void this.refresh()
         }, 100)
     }
 
     @action.bound onChangeDesktopPreviewSize(value: string) {
         console.log("onChangeDesktopPreviewSize")
         this.desktopPreviewSize = value
-        this.rerenderGraphers()
+        void this.rerenderGraphers()
     }
 
     @action.bound onChangePreviewSvgOrJson(value: string) {
         console.log("onChangePreviewSvgOrJson")
         this.previewSvgOrJson = value
-        this.rerenderGraphers()
+        void this.rerenderGraphers()
     }
 
     @action.bound onSortByChange(selected: any) {
         this.sortBy = selected.value
-        this.refresh()
+        void this.refresh()
     }
 
     @action.bound onSortOrderChange(value: SortOrder) {
         this.sortOrder = value
-        this.refresh()
+        void this.refresh()
     }
 
     @action.bound onToggleShowPendingOnly(value: boolean) {
         this.showPendingOnly = value
-        this.refresh()
+        void this.refresh()
     }
 
     @action.bound onToggleShowExistingChart(value: boolean) {
@@ -439,7 +439,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     }
 
     componentDidMount() {
-        this.refresh().then(() => {
+        void this.refresh().then(() => {
             this.admin.loadingIndicatorSetting = "off"
         })
     }
@@ -582,7 +582,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
             this.rowNum = 1
         })
 
-        this.refresh()
+        void this.refresh()
     }
 
     renderUserMenu() {
@@ -1462,7 +1462,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                     type="radio"
                                     onChange={action(() => {
                                         this.previewMode = "mobile"
-                                        this.rerenderGraphers()
+                                        void this.rerenderGraphers()
                                     })}
                                     name="previewSize"
                                     id="mobile"
@@ -1482,7 +1482,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                 <input
                                     onChange={action(() => {
                                         this.previewMode = "desktop"
-                                        this.rerenderGraphers()
+                                        void this.rerenderGraphers()
                                     })}
                                     type="radio"
                                     name="previewSize"

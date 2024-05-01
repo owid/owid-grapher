@@ -326,7 +326,7 @@ export class ExplorersIndexPage extends React.Component<{
             commitMessage: `Setting publish status of ${filename} to ${newVersion.isPublished}`,
         })
         this.resetLoadingModal()
-        this.fetchAllExplorers()
+        await this.fetchAllExplorers()
     }
 
     @action.bound async deleteFile(filename: string) {
@@ -337,7 +337,7 @@ export class ExplorersIndexPage extends React.Component<{
             filepath: `${EXPLORERS_GIT_CMS_FOLDER}/${filename}`,
         })
         this.resetLoadingModal()
-        this.fetchAllExplorers()
+        await this.fetchAllExplorers()
     }
 
     dispose!: IReactionDisposer
@@ -346,7 +346,7 @@ export class ExplorersIndexPage extends React.Component<{
             () => this.searchInput || this.maxVisibleRows,
             debounce(() => this.fetchAllExplorers(), 200)
         )
-        this.fetchAllExplorers()
+        void this.fetchAllExplorers()
     }
 
     componentWillUnmount() {

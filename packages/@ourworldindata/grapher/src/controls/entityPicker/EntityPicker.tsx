@@ -75,6 +75,8 @@ export class EntityPicker extends React.Component<{
 
     @observable private blockOptionHover = false
 
+    @observable private mostRecentlySelectedEntityName: string | null = null
+
     @observable
     private scrollContainerRef: React.RefObject<HTMLDivElement> =
         React.createRef()
@@ -92,12 +94,15 @@ export class EntityPicker extends React.Component<{
         checked?: boolean
     ): void {
         this.manager.selection.toggleSelection(name)
+
         // Clear search input
         this.searchInput = ""
         this.manager.analytics?.logEntityPickerEvent(
             checked ? "select" : "deselect",
             name
         )
+
+        this.mostRecentlySelectedEntityName = name
     }
 
     @computed private get manager(): EntityPickerManager {
@@ -435,7 +440,7 @@ export class EntityPicker extends React.Component<{
             () => this.focusOptionDirection(FocusDirection.first)
         )
 
-        this.populateLocalEntity()
+        void this.populateLocalEntity()
     }
 
     componentDidUpdate(): void {
@@ -623,6 +628,13 @@ export class EntityPicker extends React.Component<{
                                                     ? this.focusRef
                                                     : undefined
                                             }
+                                            className={
+                                                this
+                                                    .mostRecentlySelectedEntityName ===
+                                                option.entityName
+                                                    ? "most-recently-selected"
+                                                    : undefined
+                                            }
                                         />
                                     ))}
                                 </Flipper>
@@ -658,6 +670,7 @@ interface PickerOptionProps {
     isSelected?: boolean
     barScale?: ScaleLinear<number, number>
     hasDataForActiveMetric: boolean
+    className?: string
 }
 
 class PickerOption extends React.Component<PickerOptionProps> {
@@ -679,6 +692,7 @@ class PickerOption extends React.Component<PickerOptionProps> {
             isFocused,
             hasDataForActiveMetric,
             highlight,
+            className,
         } = this.props
         const { entityName, plotValue, formattedValue } = optionWithMetricValue
         const metricValue = formattedValue === entityName ? "" : formattedValue // If the user has this entity selected, don't show the name twice.
@@ -688,6 +702,7 @@ class PickerOption extends React.Component<PickerOptionProps> {
                 <label
                     className={classnames(
                         "EntityPickerOption",
+                        className,
                         {
                             selected: isSelected,
                             focused: isFocused,

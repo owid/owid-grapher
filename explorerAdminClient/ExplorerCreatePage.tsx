@@ -49,6 +49,8 @@ export class ExplorerCreatePage extends React.Component<{
 }> {
     disposers: Array<() => void> = []
 
+    @observable showPreview: boolean = true
+
     @computed private get manager() {
         return this.props.manager ?? {}
     }
@@ -71,7 +73,7 @@ export class ExplorerCreatePage extends React.Component<{
 
         if (this.props.doNotFetch) return
 
-        this.fetchExplorerProgramOnLoad()
+        void this.fetchExplorerProgramOnLoad()
         this.startPollingLocalStorageForPreviewChanges()
     }
 
@@ -208,8 +210,12 @@ export class ExplorerCreatePage extends React.Component<{
     @observable gitCmsBranchName = this.props.gitCmsBranchName
 
     @action.bound private onSave() {
-        if (this.program.isNewFile) this.saveAs()
-        else if (this.isModified) this.save()
+        if (this.program.isNewFile) void this.saveAs()
+        else if (this.isModified) void this.save()
+    }
+
+    @action.bound private onShowPreviewChanged() {
+        this.showPreview = !this.showPreview
     }
 
     render() {
@@ -265,6 +271,21 @@ export class ExplorerCreatePage extends React.Component<{
             ? "Are you sure you want to leave? You have unsaved changes."
             : "" // todo: provide an explanation of how many cells are modified.
 
+        const showPreviewCheckbox = (
+            <div className="form-check">
+                <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="showPreview"
+                    checked={this.showPreview}
+                    onChange={() => this.onShowPreviewChanged()}
+                ></input>
+                <label className="form-check-label" htmlFor="showPreview">
+                    Show Preview
+                </label>
+            </div>
+        )
+
         return (
             <>
                 <Prompt when={isModified} message={modifiedMessage} />
@@ -281,6 +302,7 @@ export class ExplorerCreatePage extends React.Component<{
                                 isNewFile={isNewFile}
                             />
                         </div>
+                        {showPreviewCheckbox}
                         <div style={{ textAlign: "right" }}>{buttons}</div>
                     </div>
                     <HotEditor
@@ -288,7 +310,9 @@ export class ExplorerCreatePage extends React.Component<{
                         program={program}
                         programOnDisk={this.programOnDisk}
                     />
-                    <PictureInPicture previewLink={previewLink} />
+                    {this.showPreview && (
+                        <PictureInPicture previewLink={previewLink} />
+                    )}
                     <a className="PreviewLink" href={previewLink}>
                         Visit preview
                     </a>
@@ -472,7 +496,7 @@ class TemplatesComponent extends React.Component<{
     @observable.ref templates: GitCmsFile[] = []
 
     componentDidMount() {
-        if (this.props.isNewFile) this.fetchTemplatesOnLoad()
+        if (this.props.isNewFile) void this.fetchTemplatesOnLoad()
     }
 
     private gitCmsClient = new GitCmsClient(GIT_CMS_BASE_ROUTE)

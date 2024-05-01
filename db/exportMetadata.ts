@@ -25,8 +25,6 @@ const filePath =
 const excludeTables = ["sessions", "dataset_files", "analytics_pageviews"]
 
 async function dataExport(): Promise<void> {
-    await db.getConnection()
-
     console.log(`Exporting database structure and metadata to ${filePath}...`)
 
     // Expose password to mysqldump
@@ -60,4 +58,4 @@ async function dataExport(): Promise<void> {
     await db.closeTypeOrmAndKnexConnections()
 }
 
-dataExport()
+void dataExport()

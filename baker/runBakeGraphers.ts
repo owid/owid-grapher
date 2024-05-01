@@ -9,11 +9,16 @@ import * as db from "../db/db.js"
  */
 
 const main = async (folder: string) => {
-    await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
-        folder,
-        db.knexInstance()
+    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    return db.knexReadWriteTransaction(
+        (trx) =>
+            bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
+                folder,
+                trx
+            ),
+        db.TransactionCloseMode.Close
     )
 }
 
 const dir = process.argv.slice(2).join(" ")
-main(dir)
+void main(dir)

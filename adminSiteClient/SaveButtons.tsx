@@ -7,11 +7,11 @@ import { isEmpty } from "@ourworldindata/utils"
 @observer
 export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
     @action.bound onSaveChart() {
-        this.props.editor.saveGrapher()
+        void this.props.editor.saveGrapher()
     }
 
     @action.bound onSaveAsNew() {
-        this.props.editor.saveAsNewGrapher()
+        void this.props.editor.saveAsNewGrapher()
     }
 
     @action.bound onPublishToggle() {
@@ -49,8 +49,8 @@ export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
                     {grapher.isPublished
                         ? "Update chart"
                         : grapher.id
-                        ? "Save draft"
-                        : "Create draft"}
+                          ? "Save draft"
+                          : "Create draft"}
                 </button>{" "}
                 <button
                     className="btn btn-secondary"

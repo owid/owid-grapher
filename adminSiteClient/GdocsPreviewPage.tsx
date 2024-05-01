@@ -108,7 +108,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             }
         }
         if (!originalGdoc) {
-            fetchGdocs()
+            void fetchGdocs()
         }
     }, [originalGdoc, fetchGdoc, handleError, admin])
 
@@ -264,8 +264,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                     hasErrors
                                         ? OwidGdocErrorMessageType.Error
                                         : hasWarnings
-                                        ? OwidGdocErrorMessageType.Warning
-                                        : null
+                                          ? OwidGdocErrorMessageType.Warning
+                                          : null
                                 }
                             >
                                 <Button onClick={() => setSettingsOpen(true)}>

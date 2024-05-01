@@ -10,10 +10,13 @@ import {
     faFacebook,
     faInstagram,
     faLinkedin,
+    faMastodon,
+    faThreads,
     faXTwitter,
     faYoutube,
+    faBluesky,
 } from "@fortawesome/free-brands-svg-icons"
-import { faGlobe } from "@fortawesome/free-solid-svg-icons"
+import { faEnvelope, faLink } from "@fortawesome/free-solid-svg-icons"
 
 function SocialLink({ url, text, type }: EnrichedSocialLink) {
     const typeToIcon: Record<SocialLinkType, IconDefinition> = {
@@ -22,11 +25,16 @@ function SocialLink({ url, text, type }: EnrichedSocialLink) {
         instagram: faInstagram,
         linkedin: faLinkedin,
         youtube: faYoutube,
+        threads: faThreads,
+        mastodon: faMastodon,
+        bluesky: faBluesky,
+        email: faEnvelope,
+        link: faLink,
     }
 
     return (
         <li className="article-block__social-link">
-            <FontAwesomeIcon icon={type ? typeToIcon[type] : faGlobe} />
+            <FontAwesomeIcon icon={type ? typeToIcon[type] : faLink} />
             <a key={url} href={url} target="_blank" rel="noopener noreferrer">
                 {text}
             </a>

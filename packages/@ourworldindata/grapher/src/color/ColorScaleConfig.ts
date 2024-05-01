@@ -160,8 +160,8 @@ export class ColorScaleConfig
         const binningStrategy = scale.colorScaleBinningStrategy
             ? (scale.colorScaleBinningStrategy as BinningStrategy)
             : scale.colorScaleNumericBins || scale.colorScaleCategoricalBins
-            ? BinningStrategy.manual
-            : undefined
+              ? BinningStrategy.manual
+              : undefined
 
         const equalSizeBins = scale.colorScaleEqualSizeBins
 

@@ -4,6 +4,7 @@ import {
     OwidGdocContent,
     OwidGdocPublicationContext,
 } from "../gdocTypes/Gdoc.js"
+import { MinimalTag } from "./Tags.js"
 
 export const PostsGdocsTableName = "posts_gdocs"
 export interface DbInsertPostGdoc {
@@ -22,10 +23,19 @@ export interface DbInsertPostGdoc {
 export type DbRawPostGdoc = Required<DbInsertPostGdoc>
 export type DbEnrichedPostGdoc = Omit<
     DbRawPostGdoc,
-    "content" | "breadcrumbs"
+    "content" | "breadcrumbs" | "published"
 > & {
     content: OwidGdocContent
     breadcrumbs: BreadcrumbItem[] | null
+    published: boolean
+}
+
+export type DBRawPostGdocWithTags = DbRawPostGdoc & {
+    tags: string
+}
+
+export type DBEnrichedPostGdocWithTags = DbEnrichedPostGdoc & {
+    tags: MinimalTag[]
 }
 
 export function parsePostGdocContent(content: JsonString): OwidGdocContent {
@@ -53,6 +63,16 @@ export function parsePostsGdocsRow(row: DbRawPostGdoc): DbEnrichedPostGdoc {
         ...row,
         content: parsePostGdocContent(row.content),
         breadcrumbs: parsePostsGdocsBreadcrumbs(row.breadcrumbs),
+        published: !!row.published,
+    }
+}
+
+export function parsePostsGdocsWithTagsRow(
+    row: DBRawPostGdocWithTags
+): DBEnrichedPostGdocWithTags {
+    return {
+        ...parsePostsGdocsRow(row),
+        tags: JSON.parse(row.tags),
     }
 }
 
@@ -61,5 +81,6 @@ export function serializePostsGdocsRow(row: DbEnrichedPostGdoc): DbRawPostGdoc {
         ...row,
         content: serializePostGdocContent(row.content),
         breadcrumbs: serializePostsGdocsBreadcrumbs(row.breadcrumbs),
+        published: row.published ? 1 : 0,
     }
 }

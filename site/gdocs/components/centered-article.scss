@@ -913,29 +913,37 @@ div.raw-html-table__container {
 }
 
 .article-block__prominent-link {
-    margin-bottom: 24px;
+    margin-bottom: 8px;
     color: $blue-90;
+    background-color: $blue-5;
+    padding: 16px;
 
     > .prominent-link__image {
         height: 100%;
         width: 100%;
     }
 
-    p,
-    h3 {
-        margin: 2px 0;
+    p {
+        margin: 0;
+        @include sm-only {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+        }
     }
 
     h3 {
         display: inline-block;
+        margin: 0 0 4px 0;
         &:hover {
             text-decoration: underline;
         }
     }
 
-    + .article-block__prominent-link {
-        padding-top: 24px;
-        border-top: 1px solid $blue-10;
+    // Last consecutive sibling.
+    &:has(+ :not(.article-block__prominent-link)) {
+        margin-bottom: 32px;
     }
 }
 
@@ -984,45 +992,6 @@ div.raw-html-table__container {
         border: 1px solid;
         text-align: left;
         padding: 6px;
-    }
-}
-
-.article-block__pill-row {
-    background-color: $blue-20;
-    scrollbar-width: none;
-    overflow-x: auto;
-    .article-block__pill-row-interior {
-        display: flex;
-        padding: 8px 0;
-    }
-    p {
-        color: $blue-60;
-        margin: 0 9px 0 0;
-        line-height: 32px;
-        white-space: nowrap;
-    }
-    ul {
-        list-style: none;
-        display: flex;
-        flex-wrap: nowrap;
-    }
-    .article-block__pill {
-        &:not(:last-child) {
-            margin-right: 8px;
-        }
-        a {
-            color: $blue-100;
-            background-color: #fff;
-            line-height: 2rem;
-            padding: 0 16px;
-            display: inline-block;
-            transition: background-color 250ms;
-            border-radius: 32px;
-            white-space: nowrap;
-            &:hover {
-                background-color: $blue-5;
-            }
-        }
     }
 }
 
@@ -1123,6 +1092,10 @@ div.raw-html-table__container {
         font-size: 1rem;
         &::placeholder {
             color: $blue-40;
+        }
+
+        &:placeholder-shown {
+            text-overflow: ellipsis;
         }
     }
 

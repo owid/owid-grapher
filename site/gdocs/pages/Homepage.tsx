@@ -18,6 +18,7 @@ import {
     OwidGdocHomepageContent,
 } from "@ourworldindata/types"
 import { SiteNavigationStatic } from "../../SiteNavigation.js"
+import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../utils.js"
 
 export interface HomepageProps {
     content: OwidGdocHomepageContent
@@ -103,7 +104,7 @@ const SocialSection = () => {
                     </li>
                     <li>
                         <a
-                            href="/feed"
+                            href="/atom.xml"
                             className="list-item"
                             title="RSS"
                             target="_blank"
@@ -112,7 +113,26 @@ const SocialSection = () => {
                             <span className="icon">
                                 <FontAwesomeIcon icon={faRss} />
                             </span>
-                            <span className="label">RSS Feed</span>
+                            <span className="label">
+                                Research & Writing RSS Feed
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            href={`/${DATA_INSIGHTS_ATOM_FEED_NAME}`}
+                            className="list-item"
+                            title="Data Insights RSS"
+                            target="_blank"
+                            data-track-note="homepage_follow_us"
+                            rel="noopener"
+                        >
+                            <span className="icon">
+                                <FontAwesomeIcon icon={faRss} />
+                            </span>
+                            <span className="label">
+                                Data Insights RSS Feed
+                            </span>
                         </a>
                     </li>
                 </ul>

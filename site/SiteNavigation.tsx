@@ -72,6 +72,8 @@ export const SiteNavigation = ({
         // Without this, the panel initially renders at the same width as the shrunk search input
         // Fortunately we only have to do this when it mounts - it takes care of resizes
         setTimeout(() => {
+            // Only run when screen size is large, .aa-DetachedContainer gets positioned correctly
+            if (window.innerWidth < 768) return
             const [panel, autocompleteContainer] = [
                 ".aa-Panel",
                 AUTOCOMPLETE_CONTAINER_ID,
@@ -118,7 +120,7 @@ export const SiteNavigation = ({
             const json = await response.json()
             setCategorizedTopics(json.categories)
         }
-        fetchCategorizedTopics()
+        void fetchCategorizedTopics()
     }, [])
 
     useTriggerOnEscape(closeOverlay)

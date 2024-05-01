@@ -1,10 +1,3 @@
-import {
-    Entity,
-    Column,
-    BaseEntity,
-    PrimaryGeneratedColumn,
-    ValueTransformer,
-} from "typeorm"
 import { drive_v3, google } from "googleapis"
 import {
     PutObjectCommand,
@@ -19,6 +12,12 @@ import {
     ImageMetadata,
     findDuplicates,
     getFilenameMIMEType,
+    DbRawImage,
+    DbEnrichedImage,
+    parseImageRow,
+    DbInsertImage,
+    serializeImageRow,
+    ImagesTableName,
 } from "@ourworldindata/utils"
 import { OwidGoogleAuth } from "../OwidGoogleAuth.js"
 import {
@@ -30,11 +29,12 @@ import {
     GDOCS_CLIENT_EMAIL,
     GDOCS_SHARED_DRIVE_ID,
 } from "../../settings/serverSettings.js"
+import { KnexReadWriteTransaction, KnexReadonlyTransaction } from "../db.js"
 
 class ImageStore {
-    images: Record<string, ImageMetadata> | undefined
-
-    async fetchImageMetadata(filenames: string[]): Promise<void> {
+    async fetchImageMetadata(
+        filenames: string[]
+    ): Promise<Record<string, ImageMetadata | undefined>> {
         console.log(
             `Fetching image metadata from Google Drive ${
                 filenames.length ? `for ${filenames.join(", ")}` : ""
@@ -96,8 +96,8 @@ class ImageStore {
                 filename: google.name,
                 defaultAlt: google.description ?? "",
                 updatedAt: new Date(google.modifiedTime).getTime(),
-                originalWidth: google.imageMediaMetadata?.width,
-                originalHeight: google.imageMediaMetadata?.height,
+                originalWidth: google.imageMediaMetadata?.width ?? null,
+                originalHeight: google.imageMediaMetadata?.height ?? null,
             }))
 
         const duplicateFilenames = findDuplicates(
@@ -110,15 +110,27 @@ class ImageStore {
             )
         }
 
-        this.images = keyBy(images, "filename")
+        console.log(
+            `Fetched ${images.length} images' metadata from Google Drive`
+        )
+        const imageMetadata = keyBy(images, "filename")
+        // Only applies when we're fetching specific images i.e. `filenames` is not empty
+        for (const filename of filenames) {
+            if (!imageMetadata[filename]) {
+                throw Error(`Image ${filename} not found in Google Drive`)
+            }
+        }
+        return imageMetadata
     }
 
-    async syncImagesToS3(): Promise<(Image | undefined)[]> {
-        const images = this.images
+    async syncImagesToS3(
+        knex: KnexReadWriteTransaction,
+        images: Record<string, ImageMetadata>
+    ): Promise<(Image | undefined)[]> {
         if (!images) return []
         return Promise.all(
             Object.keys(images).map((filename) =>
-                Image.syncImage(images[filename])
+                Image.syncImage(knex, images[filename])
             )
         )
     }
@@ -136,37 +148,14 @@ export const s3Client = new S3Client({
     },
 })
 
-// https://github.com/typeorm/typeorm/issues/873#issuecomment-424643086
-// otherwise epochs are retrieved as string instead of number
-export class ColumnNumericTransformer implements ValueTransformer {
-    to(data: number): number {
-        return data
-    }
-    from(data: string): number {
-        return parseFloat(data)
-    }
-}
-
-@Entity("images")
-export class Image extends BaseEntity implements ImageMetadata {
-    @PrimaryGeneratedColumn() id!: number
-    @Column() googleId!: string
-    @Column() filename!: string
-    @Column() defaultAlt!: string
-    @Column({
-        transformer: new ColumnNumericTransformer(),
-    })
-    updatedAt!: number
-    @Column({
-        transformer: new ColumnNumericTransformer(),
-        nullable: true,
-    })
-    originalWidth?: number
-    @Column({
-        transformer: new ColumnNumericTransformer(),
-        nullable: true,
-    })
-    originalHeight?: number
+export class Image implements ImageMetadata {
+    id!: number
+    googleId!: string
+    filename!: string
+    defaultAlt!: string
+    updatedAt!: number | null
+    originalWidth!: number | null
+    originalHeight!: number | null
 
     get isSvg(): boolean {
         return this.fileExtension === "svg"
@@ -185,39 +174,51 @@ export class Image extends BaseEntity implements ImageMetadata {
         return this.filename.slice(this.filename.indexOf(".") + 1)
     }
 
+    constructor(metadata: ImageMetadata) {
+        Object.assign(this, metadata)
+    }
+
     // Given a record from Drive, see if we're already aware of it
     // If we are, see if Drive's version is different from the one we have stored
     // If it is, upload it and update our record
     // If we're not aware of it, upload and record it
     static async syncImage(
+        knex: KnexReadWriteTransaction,
         metadata: ImageMetadata
-    ): Promise<Image | undefined> {
-        const fresh = Image.create<Image>(metadata)
-        const stored = await Image.findOneBy({ filename: metadata.filename })
+    ): Promise<Image> {
+        const fresh = new Image(metadata)
+        const stored = await getImageByFilename(knex, metadata.filename)
 
         try {
             if (stored) {
                 if (
                     stored.updatedAt !== fresh.updatedAt ||
                     stored.defaultAlt !== fresh.defaultAlt ||
-                    stored.originalWidth !== fresh.originalWidth
+                    stored.originalWidth !== fresh.originalWidth ||
+                    stored.originalHeight !== fresh.originalHeight
                 ) {
                     await fresh.fetchFromDriveAndUploadToS3()
                     stored.updatedAt = fresh.updatedAt
                     stored.defaultAlt = fresh.defaultAlt
                     stored.originalWidth = fresh.originalWidth
                     stored.originalHeight = fresh.originalHeight
-                    await stored.save()
+                    await updateImage(knex, stored.id, {
+                        updatedAt: fresh.updatedAt,
+                        defaultAlt: fresh.defaultAlt,
+                        originalWidth: fresh.originalWidth,
+                        originalHeight: fresh.originalHeight,
+                    })
                 }
                 return stored
             } else {
                 await fresh.fetchFromDriveAndUploadToS3()
-                return fresh.save()
+                const id = await insertImageClass(knex, fresh)
+                fresh.id = id
+                return fresh
             }
         } catch (e) {
-            console.error(`Error syncing ${fresh.filename}`, e)
+            throw new Error(`Error syncing image ${metadata.filename}: ${e}`)
         }
-        return
     }
 
     async fetchFromDriveAndUploadToS3(): Promise<void> {
@@ -263,5 +264,66 @@ export class Image extends BaseEntity implements ImageMetadata {
         console.log(
             `Successfully uploaded object: ${params.Bucket}/${params.Key}`
         )
+    }
+}
+
+export async function getImageByFilename(
+    knex: KnexReadonlyTransaction,
+    filename: string
+): Promise<Image | undefined> {
+    const image = await knex
+        .table(ImagesTableName)
+        .where({ filename })
+        .first<DbRawImage | undefined>()
+    if (!image) return undefined
+    const enrichedImage = parseImageRow(image)
+    return new Image(enrichedImage)
+}
+
+export async function getAllImages(
+    knex: KnexReadonlyTransaction
+): Promise<Image[]> {
+    const images = await knex.table("images").select<DbRawImage[]>()
+    return images.map(parseImageRow).map((row) => new Image(row))
+}
+
+export async function updateImage(
+    knex: KnexReadWriteTransaction,
+    id: number,
+    updates: Partial<DbEnrichedImage>
+): Promise<void> {
+    await knex.table("images").where({ id }).update(updates)
+}
+
+export async function insertImageClass(
+    knex: KnexReadWriteTransaction,
+    image: Image
+): Promise<number> {
+    return insertImageObject(knex, serializeImageRow({ ...image }))
+}
+
+export async function insertImageObject(
+    knex: KnexReadWriteTransaction,
+    image: DbInsertImage
+): Promise<number> {
+    const [id] = await knex.table("images").insert(image)
+    return id
+}
+
+export async function fetchImagesFromDriveAndSyncToS3(
+    knex: KnexReadWriteTransaction,
+    filenames: string[] = []
+): Promise<Image[]> {
+    if (!filenames.length) return []
+
+    try {
+        const metadataObject = await imageStore.fetchImageMetadata(filenames)
+        const metadataArray = Object.values(metadataObject) as ImageMetadata[]
+
+        return Promise.all(
+            metadataArray.map((metadata) => Image.syncImage(knex, metadata))
+        )
+    } catch (e) {
+        throw new Error(`Error fetching images from Drive: ${e}`)
     }
 }

@@ -388,7 +388,7 @@ export class TagTopicSlug1701450183524 implements MigrationInterface {
     public async down(queryRunner: QueryRunner): Promise<void> {
         // There is no need to revert isTopic changes
 
-        queryRunner.query(`
+        await queryRunner.query(`
             ALTER TABLE tags
             DROP COLUMN slug
         `)
