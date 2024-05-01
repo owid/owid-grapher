@@ -41,7 +41,7 @@ help:
 	@echo '  make sync-images            sync all images from the remote master'
 	@echo '  make update.chart-entities  update the charts_x_entities join table'
 	@echo '  make reindex                reindex (or initialise) search in Algolia'
-  @echo '  make bench.search           run search benchmarks'
+	@echo '  make bench.search           run search benchmarks'
 	@echo
 	@echo '  OPS (staff-only)'
 	@echo '  make deploy                 Deploy your local site to production'
