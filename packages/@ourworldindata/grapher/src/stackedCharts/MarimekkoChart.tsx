@@ -825,7 +825,7 @@ export class MarimekkoChart
     // legend props
 
     @computed get legendPaddingTop(): number {
-        return this.baseFontSize
+        return this.legend.height > 0 ? this.baseFontSize : 0
     }
 
     @computed get legendX(): number {
@@ -858,10 +858,11 @@ export class MarimekkoChart
 
     @computed get categoricalLegendData(): CategoricalBin[] {
         const { colorColumnSlug, colorScale, series } = this
-        const customHiddenCategories =
-            this.colorScaleConfig?.customHiddenCategories
-        if (colorColumnSlug) return colorScale.categoricalLegendBins
-        else
+        if (colorColumnSlug) {
+            return colorScale.categoricalLegendBins
+        } else if (series.length > 0) {
+            const customHiddenCategories =
+                this.colorScaleConfig?.customHiddenCategories
             return series.map((series, index) => {
                 return new CategoricalBin({
                     index,
@@ -871,6 +872,8 @@ export class MarimekkoChart
                     isHidden: !!customHiddenCategories?.[series.seriesName],
                 })
             })
+        }
+        return []
     }
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
