@@ -524,9 +524,14 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         await pMap(
             jobs,
             async (job) => {
-                // TODO: not sure if the shared transaction will be an issue - I think it should be fine but just to put a flag here
-                // that this could be causing issues
-                await bakeSingleGrapherChart(job, knex)
+                // We want to run this code on multiple threads, so we need to
+                // be able to use multiple transactions so that we can use
+                // multiple connections to the database.
+                // Read-write consistency is not a concern here, thankfully.
+                await db.knexReadWriteTransaction(
+                    async (knex) => await bakeSingleGrapherChart(job, knex),
+                    db.TransactionCloseMode.KeepOpen
+                )
                 progressBar.tick({ name: `slug ${job.slug}` })
             },
             { concurrency: 10 }
