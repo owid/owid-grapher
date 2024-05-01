@@ -33,6 +33,7 @@
         "startTmuxServer": "node_modules/tmex/tmex dev \"yarn startTscServer\" \"yarn startLernaWatcher\" \"yarn startAdminServer\" \"yarn startViteServer\"",
         "startTscServer": "tsc -b -verbose -watch",
         "startViteServer": "vite dev",
+        "startSiteFront": "./devTools/vite/startVite.sh",
         "startLocalBakeServer": "http-server ./localBake -p 3000",
         "testBundlewatch": "yarn buildViteSite && bundlewatch --config .bundlewatch.config.json",
         "testCypress": "yarn cypress open --project devTools --config-file cypress/cypress.json",
