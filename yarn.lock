@@ -5222,13 +5222,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/unidecode@npm:^0.1.1":
-  version: 0.1.1
-  resolution: "@types/unidecode@npm:0.1.1"
-  checksum: 10/33d1badc2f088d2d6411d8ba44ce2cb7eb4e2fdb65979c4f286db9e7836dcbb45c55159f1f67b19549452a8cad57e7480d97289591e4a34e7efae4f4c10f16a4
-  languageName: node
-  linkType: hard
-
 "@types/unist@npm:^2, @types/unist@npm:^2.0.0, @types/unist@npm:^2.0.2, @types/unist@npm:^2.0.3":
   version: 2.0.9
   resolution: "@types/unist@npm:2.0.9"
@@ -11135,7 +11128,6 @@ __metadata:
     "@types/string-pixel-width": "npm:^1.7.2"
     "@types/topojson-client": "npm:^3.1.1"
     "@types/topojson-server": "npm:^3.0.1"
-    "@types/unidecode": "npm:^0.1.1"
     "@types/url-join": "npm:^4.0.1"
     "@types/url-parse": "npm:^1.4.8"
     "@types/webfontloader": "npm:^1.6.34"
@@ -11264,7 +11256,6 @@ __metadata:
     tsc-watch: "npm:^6.0.4"
     typeorm: "npm:^0.3.20"
     typescript: "npm:~5.4.2"
-    unidecode: "npm:^0.1.8"
     unified: "npm:^9.0"
     unist-util-visit: "npm:^2.0.0"
     url-join: "npm:^4.0.0"
@@ -20517,13 +20508,6 @@ __metadata:
   dependencies:
     "@fastify/busboy": "npm:^2.0.0"
   checksum: 10/a666a9f5ac4270c659fafc33d78b6b5039a0adbae3e28f934774c85dcc66ea91da907896f12b414bd6f578508b44d5dc206fa636afa0e49a4e1c9e99831ff065
-  languageName: node
-  linkType: hard
-
-"unidecode@npm:^0.1.8":
-  version: 0.1.8
-  resolution: "unidecode@npm:0.1.8"
-  checksum: 10/6d880fbd96c74a6cec8ae111a0e1c5b10fbec28198fdc5d7f1d99937cf9748f16b786ce753fcfef149891c1c3b6c974d6cd32facb239c74319075021ae76b5f7
   languageName: node
   linkType: hard
 
