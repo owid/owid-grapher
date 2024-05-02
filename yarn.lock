@@ -11232,7 +11232,7 @@ __metadata:
     react-hook-form: "npm:^7.51.3"
     react-horizontal-scrolling-menu: "npm:^4.0.3"
     react-instantsearch: "npm:^7.7.3"
-    react-intersection-observer: "npm:^9.4.0"
+    react-intersection-observer: "npm:^9.10.1"
     react-move: "npm:^6.5.0"
     react-recaptcha: "npm:^2.3.10"
     react-remark: "npm:^2.1.0"
@@ -17631,12 +17631,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-intersection-observer@npm:^9.4.0":
-  version: 9.4.0
-  resolution: "react-intersection-observer@npm:9.4.0"
+"react-intersection-observer@npm:^9.10.1":
+  version: 9.10.1
+  resolution: "react-intersection-observer@npm:9.10.1"
   peerDependencies:
-    react: ^15.0.0 || ^16.0.0 || ^17.0.0|| ^18.0.0
-  checksum: 10/e68f7716a648d9d3d5505dc65380d7682896a761c425786a7eeb4dfe91bab0c8a603853c97787585411ba239b3042d8f32852b03a2ceeb1141ce2e5b64046037
+    react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+  checksum: 10/4dd8a1a73b40b2ae95c955a4fa6d5d7420885b7d6196c2ea53baf752fb6270adeb5777519785d34c9bf712d5da88e190f68d4fac1820a6b06135e79239e4a9dd
   languageName: node
   linkType: hard
 
