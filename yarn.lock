@@ -9881,7 +9881,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"express@npm:^4.18.1":
+"express@npm:^4.19.2":
   version: 4.19.2
   resolution: "express@npm:4.19.2"
   dependencies:
@@ -11171,7 +11171,7 @@ __metadata:
     eslint-plugin-react: "npm:^7.34.0"
     eslint-plugin-react-hooks: "npm:^4.6.0"
     expr-eval: "npm:^2.0.2"
-    express: "npm:^4.18.1"
+    express: "npm:^4.19.2"
     express-async-errors: "npm:^3.1.1"
     express-rate-limit: "npm:^5.1.3"
     filenamify: "npm:^4.1.0"
