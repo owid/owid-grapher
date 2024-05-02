@@ -1,4 +1,4 @@
-{{#*inline "dataPartial"}}
+{{#*inline "schemaPartial"}}
 {{#each tables as |table|}}
 {{#if comment}}
 
@@ -35,13 +35,13 @@ export enum {{convertedName}} {
 */
 type JsonString = string
 {{#if config.schemaAsNamespace}}
-{{#each grouped as |group key|}}
-export namespace {{key}} {
-  {{> dataPartial group}}
+{{#each database.schemas as |schema|}}
+export namespace {{schema.name}} {
+  {{> schemaPartial schema}}
 }
 {{/each}}
 {{else}}
-{{#each grouped as |group key|}}
-{{> dataPartial group }}
+{{#each database.schemas as |schema|}}
+{{> schemaPartial schema }}
 {{/each}}
 {{/if}}

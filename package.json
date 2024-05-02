@@ -229,7 +229,7 @@
     },
     "devDependencies": {
         "@cloudflare/workers-types": "^4.20240312.0",
-        "@rmp135/sql-ts": "^1.18.1",
+        "@rmp135/sql-ts": "^2.1.0",
         "@testing-library/jest-dom": "^6.1.3",
         "@testing-library/react": "^12.1.5",
         "@types/geojson": "^7946.0.10",
