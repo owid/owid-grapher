@@ -928,6 +928,9 @@ export class Explorer
                         enableKeyboardShortcuts={true}
                         manager={this}
                         ref={this.grapherRef}
+                        isEmbeddedInAnOwidPage={
+                            this.props.isEmbeddedInAnOwidPage
+                        }
                     />
                 </div>
             </div>
