@@ -11222,7 +11222,7 @@ __metadata:
     randomstring: "npm:^1.3.0"
     react: "npm:^17.0.2"
     react-animate-height: "npm:^3.1.1"
-    react-beautiful-dnd: "npm:^13.1.0"
+    react-beautiful-dnd: "npm:^13.1.1"
     react-codemirror2: "npm:^7.3.0"
     react-color: "npm:^2.18.1"
     react-diff-viewer: "npm:^3.1.1"
@@ -17484,9 +17484,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-beautiful-dnd@npm:^13.1.0":
-  version: 13.1.0
-  resolution: "react-beautiful-dnd@npm:13.1.0"
+"react-beautiful-dnd@npm:^13.1.1":
+  version: 13.1.1
+  resolution: "react-beautiful-dnd@npm:13.1.1"
   dependencies:
     "@babel/runtime": "npm:^7.9.2"
     css-box-model: "npm:^1.2.0"
@@ -17496,9 +17496,9 @@ __metadata:
     redux: "npm:^4.0.4"
     use-memo-one: "npm:^1.1.1"
   peerDependencies:
-    react: ^16.8.5 || ^17.0.0
-    react-dom: ^16.8.5 || ^17.0.0
-  checksum: 10/15060195e41f016b39d962adb523d979b8bb56f84674137a5a9724c126cc9ae2f85972fbee807e249ae6ade7cf8237cd0b6d1665c4c68f91000f57762164569a
+    react: ^16.8.5 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.5 || ^17.0.0 || ^18.0.0
+  checksum: 10/2de8162a74f7fc78294e5a928b92d3fff02c579d137a25d53b1ab4313abeb108709bb7281512f7f94d18257de3122b8c85cb5a8375113cb8657088b1a9bda65b
   languageName: node
   linkType: hard
 
