@@ -1,5 +1,4 @@
 #! /usr/bin/env jest
-import sqlFixtures from "sql-fixtures"
 import { dbTestConfig } from "./dbTestConfig.js"
 import { knex, Knex } from "knex"
 import {
@@ -36,8 +35,9 @@ beforeAll(async () => {
     }
     knexInstance = knex(dbTestConfig)
 
-    const fixturesCreator = new sqlFixtures(knexInstance)
-    await fixturesCreator.create(dataSpec)
+    for (const [tableName, tableData] of Object.entries(dataSpec)) {
+        await knexInstance(tableName).insert(tableData)
+    }
 })
 
 afterAll((done: any) => {

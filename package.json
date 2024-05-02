@@ -248,7 +248,6 @@
         "lint-staged": "^15.2.2",
         "opener": "^1.5.2",
         "sass": "^1.69.5",
-        "sql-fixtures": "^1.0.4",
         "tmex": "^1.0.8",
         "topojson-server": "^3.0.1",
         "tsc-watch": "^6.0.4",
