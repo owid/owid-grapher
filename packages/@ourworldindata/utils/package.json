@@ -23,7 +23,7 @@
     "mobx": "^5.15.7",
     "mobx-react": "5",
     "react": "^17.0.2",
-    "react-select": "^5.7.3",
+    "react-select": "^5.8.0",
     "react-tag-autocomplete": "^7.1.0",
     "s-expression": "^3.1.1",
     "string-pixel-width": "^1.10.0",

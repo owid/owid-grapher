@@ -46,7 +46,7 @@
     "react-dom": "^17.0.2",
     "react-flip-toolkit": "^7.0.9",
     "react-move": "^6.5.0",
-    "react-select": "^5.7.3",
+    "react-select": "^5.8.0",
     "simple-statistics": "^7.3.2",
     "topojson-client": "^3.1.0",
     "ts-pattern": "^5.0.5",
