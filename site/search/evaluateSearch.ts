@@ -168,4 +168,4 @@ const simulateQueries = async (
     return scores
 }
 
-main()
+void main()
