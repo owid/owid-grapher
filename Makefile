@@ -218,6 +218,10 @@ check-port-3306:
 		\nWe recommend using a different port (like 3307)";\
 	fi
 
+tmp-downloads/owid_metadata.sql.gz:
+	@echo '==> Downloading metadata'
+	./devTools/docker/download-grapher-metadata-mysql.sh
+
 deploy:
 	@echo '==> Starting from a clean slate...'
 	rm -rf itsJustJavascript
