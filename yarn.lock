@@ -3730,7 +3730,7 @@ __metadata:
     "@types/d3": "npm:^6"
     "@types/d3-format": "npm:^2"
     "@types/jest": "npm:^29.5.5"
-    "@types/lodash": "npm:^4.14.185"
+    "@types/lodash": "npm:^4.17.0"
     "@types/react": "npm:^17.0.69"
     "@types/react-tag-autocomplete": "npm:^6.1.1"
     "@types/string-pixel-width": "npm:^1.7.2"
@@ -3741,7 +3741,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^4.6.0"
     jest: "npm:^29.7.0"
     json8-pointer: "npm:^1.0.6"
-    lodash: "npm:^4.17.20"
+    lodash: "npm:^4.17.21"
     mobx: "npm:^5.15.7"
     mobx-react: "npm:5"
     react: "npm:^17.0.2"
@@ -4797,10 +4797,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:^4.14.185":
-  version: 4.14.185
-  resolution: "@types/lodash@npm:4.14.185"
-  checksum: 10/96d08f7c2bef4223d3a16e4f7511941918afe8fd3d6a4aabcbd13478c9ff2556ec4dba26efc1cf370318f575864fcc634a89538d6a747ee89d9d3d8b9b48fea2
+"@types/lodash@npm:^4.17.0":
+  version: 4.17.0
+  resolution: "@types/lodash@npm:4.17.0"
+  checksum: 10/2053203292b5af99352d108656ceb15d39da5922fc3fb8186e1552d65c82d6e545372cc97f36c95873aa7186404d59d9305e9d49254d4ae55e77df1e27ab7b5d
   languageName: node
   linkType: hard
 
@@ -11112,7 +11112,7 @@ __metadata:
     "@types/js-cookie": "npm:^3.0.2"
     "@types/js-yaml": "npm:^4.0.5"
     "@types/jsonwebtoken": "npm:^9.0.0"
-    "@types/lodash": "npm:^4.14.185"
+    "@types/lodash": "npm:^4.17.0"
     "@types/md5": "npm:^2.3.2"
     "@types/mdast": "npm:^3.0"
     "@types/minimist": "npm:^1.2.2"
@@ -11197,7 +11197,7 @@ __metadata:
     knex: "npm:^3.1.0"
     lerna: "npm:^7.4.2"
     lint-staged: "npm:^15.2.2"
-    lodash: "npm:^4.17.20"
+    lodash: "npm:^4.17.21"
     mathjax-full: "npm:^3.1.0"
     md5: "npm:^2.3.0"
     mdast-util-find-and-replace: "npm:1.1.1"
@@ -14105,7 +14105,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:^4.0.1, lodash@npm:^4.17.11, lodash@npm:^4.17.14, lodash@npm:^4.17.15, lodash@npm:^4.17.19, lodash@npm:^4.17.20, lodash@npm:^4.17.21":
+"lodash@npm:^4.0.1, lodash@npm:^4.17.11, lodash@npm:^4.17.14, lodash@npm:^4.17.15, lodash@npm:^4.17.19, lodash@npm:^4.17.21":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: 10/c08619c038846ea6ac754abd6dd29d2568aa705feb69339e836dfa8d8b09abbb2f859371e86863eda41848221f9af43714491467b5b0299122431e202bb0c532

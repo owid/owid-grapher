@@ -1808,14 +1808,14 @@ export function extractDetailsFromSyntax(str: string): string[] {
  * See https://github.com/owid/owid-grapher/issues/3426
  */
 export function checkIsGdocPost(x: unknown): x is OwidGdocPostInterface {
-    const type = get(x, "content.type")
+    const type = get(x, "content.type") as OwidGdocType | undefined
     return [
         OwidGdocType.Article,
         OwidGdocType.TopicPage,
         OwidGdocType.LinearTopicPage,
         OwidGdocType.Fragment,
         OwidGdocType.AboutPage,
-    ].includes(type)
+    ].includes(type as any)
 }
 
 /**
@@ -1827,13 +1827,13 @@ export function checkIsGdocPost(x: unknown): x is OwidGdocPostInterface {
 export function checkIsGdocPostExcludingFragments(
     x: unknown
 ): x is OwidGdocPostInterface {
-    const type = get(x, "content.type")
+    const type = get(x, "content.type") as OwidGdocType | undefined
     return [
         OwidGdocType.Article,
         OwidGdocType.TopicPage,
         OwidGdocType.LinearTopicPage,
         OwidGdocType.AboutPage,
-    ].includes(type)
+    ].includes(type as any)
 }
 
 export function checkIsDataInsight(
