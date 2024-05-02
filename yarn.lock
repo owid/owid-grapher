@@ -5973,13 +5973,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"array-uniq@npm:1.0.2":
-  version: 1.0.2
-  resolution: "array-uniq@npm:1.0.2"
-  checksum: 10/8c4beb94aa183791da1e155935aba4df3fe2eeb6f491c69e666ca7351f897b9b260fa04d016e0ce766ae8280129c16f11071e17359c81c01741289009bb5ac6d
-  languageName: node
-  linkType: hard
-
 "array-unique@npm:^0.3.2":
   version: 0.3.2
   resolution: "array-unique@npm:0.3.2"
@@ -11226,7 +11219,7 @@ __metadata:
     progress: "npm:^2.0.3"
     prompts: "npm:^2.4.0"
     prop-types: "npm:^15.7.2"
-    randomstring: "npm:^1.2.2"
+    randomstring: "npm:^1.3.0"
     react: "npm:^17.0.2"
     react-animate-height: "npm:^3.1.1"
     react-beautiful-dnd: "npm:^13.1.0"
@@ -16864,15 +16857,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"randomstring@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "randomstring@npm:1.2.2"
+"randomstring@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "randomstring@npm:1.3.0"
   dependencies:
-    array-uniq: "npm:1.0.2"
     randombytes: "npm:2.0.3"
   bin:
     randomstring: bin/randomstring
-  checksum: 10/130504a2000faf80a67be8c200ca8da8016b4da5f4fa298275db0071630326d8361f17361b35bf2a8de88f24663f572c6881f4d265cec7d417955d0a37a50f88
+  checksum: 10/6ecfee8fae44ca6fcf4be5dc739d86a2457ac3d6d3142ac65f5df72b57deddb897797659e2b339772380a941774e3d55d4988a64ae3f2f0588fdf5b55b56c901
   languageName: node
   linkType: hard
 

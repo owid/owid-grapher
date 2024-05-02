@@ -178,7 +178,7 @@
         "progress": "^2.0.3",
         "prompts": "^2.4.0",
         "prop-types": "^15.7.2",
-        "randomstring": "^1.2.2",
+        "randomstring": "^1.3.0",
         "react": "^17.0.2",
         "react-animate-height": "^3.1.1",
         "react-beautiful-dnd": "^13.1.0",
