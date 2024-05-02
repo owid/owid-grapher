@@ -35,7 +35,7 @@ export const knexInstance = (): Knex<any, any[]> => {
     if (_knexInstance) return _knexInstance
 
     _knexInstance = knex({
-        client: "mysql",
+        client: "mysql2",
         connection: {
             host: GRAPHER_DB_HOST,
             user: GRAPHER_DB_USER,
@@ -46,6 +46,12 @@ export const knexInstance = (): Knex<any, any[]> => {
             typeCast: (field: any, next: any) => {
                 if (field.type === "TINY" && field.length === 1) {
                     return field.string() === "1" // 1 = true, 0 = false
+                }
+
+                // mysql2 driver will return JSON objects, which is nice, but we have many code paths that expect JSON strings
+                // so we convert JSON objects to JSON strings here (for now)
+                if (field.type === "JSON") {
+                    return field.string("utf8")
                 }
                 return next()
             },

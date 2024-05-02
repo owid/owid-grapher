@@ -8,7 +8,7 @@ import {
 } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
-import { escape } from "mysql"
+import { escape } from "mysql2"
 import {
     OwidChartDimensionInterface,
     OwidVariableDisplayConfigInterface,
