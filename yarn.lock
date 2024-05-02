@@ -3642,7 +3642,7 @@ __metadata:
     "@ourworldindata/utils": "workspace:^"
     "@types/d3": "npm:^6"
     d3: "npm:^6.1.1"
-    dayjs: "npm:^1.11.5"
+    dayjs: "npm:^1.11.11"
     eslint: "npm:^8.57.0"
     typescript: "npm:~5.4.2"
   languageName: unknown
@@ -3736,7 +3736,7 @@ __metadata:
     "@types/string-pixel-width": "npm:^1.7.2"
     "@types/url-parse": "npm:^1.4.8"
     d3: "npm:^6.1.1"
-    dayjs: "npm:^1.11.5"
+    dayjs: "npm:^1.11.11"
     eslint: "npm:^8.57.0"
     eslint-plugin-react-hooks: "npm:^4.6.0"
     jest: "npm:^29.7.0"
@@ -8368,7 +8368,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:1.x, dayjs@npm:^1.10.4, dayjs@npm:^1.11.5, dayjs@npm:^1.11.9":
+"dayjs@npm:1.x, dayjs@npm:^1.10.4, dayjs@npm:^1.11.11, dayjs@npm:^1.11.9":
   version: 1.11.11
   resolution: "dayjs@npm:1.11.11"
   checksum: 10/f03948b172fbeed229837965988d1d5bac99c72a31c28731a457303259439f2f36289186489ae140adbeb10f591a926908c8de5d81eb449a2edbf5cbd6e9e30c
@@ -11159,7 +11159,7 @@ __metadata:
     cookie-parser: "npm:^1.4.4"
     cypress: "npm:9.3.1"
     d3: "npm:^6.1.1"
-    dayjs: "npm:^1.11.5"
+    dayjs: "npm:^1.11.11"
     decko: "npm:^1.2.0"
     dotenv: "npm:^16.0.1"
     entities: "npm:^4.4.0"

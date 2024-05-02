@@ -17,7 +17,7 @@
     "@ourworldindata/types": "workspace:^",
     "@ourworldindata/utils": "workspace:^",
     "d3": "^6.1.1",
-    "dayjs": "^1.11.5"
+    "dayjs": "^1.11.11"
   },
   "devDependencies": {
     "@types/d3": "^6",
