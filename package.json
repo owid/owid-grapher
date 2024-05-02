@@ -216,7 +216,7 @@
         "timezone-mock": "^1.0.18",
         "topojson-client": "^3.1.0",
         "ts-pattern": "^5.0.5",
-        "typeorm": "^0.3.14",
+        "typeorm": "^0.3.20",
         "typescript": "~5.4.2",
         "unidecode": "^0.1.8",
         "unified": "^9.0",
