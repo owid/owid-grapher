@@ -643,15 +643,6 @@ export async function renderAndVerifySvg({
     }
 }
 
-// no-op when not running inside GH Actions
-const setGhActionsOutput = (key: string, value: string | number) => {
-    const outPath = process.env.GITHUB_OUTPUT
-    if (outPath && fs.existsSync(outPath)) {
-        // this is not bulletproof and expects both to not contain special characters
-        fs.appendFileSync(outPath, `${key}=${value}`)
-    }
-}
-
 export function displayVerifyResultsAndGetExitCode(
     validationResults: VerifyResult[],
     verbose: boolean
@@ -682,7 +673,6 @@ export function displayVerifyResultsAndGetExitCode(
             for (const result of errorResults) {
                 console.log(result.graphId?.toString(), result.error) // write to stdout one grapher id per file for easy piping to other processes
             }
-            setGhActionsOutput("num_errors", errorResults.length)
         }
         if (differenceResults.length) {
             console.warn(
@@ -695,7 +685,6 @@ export function displayVerifyResultsAndGetExitCode(
             for (const result of differenceResults) {
                 console.log("", result.difference.chartId) // write to stdout one grapher id per file for easy piping to other processes
             }
-            setGhActionsOutput("num_differences", differenceResults.length)
         }
         returnCode = errorResults.length + differenceResults.length
     }
