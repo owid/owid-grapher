@@ -12,6 +12,7 @@
         opacity: 0;
         left: 0;
         cursor: pointer;
+        pointer-events: none;
     }
 
     .custom {
@@ -57,11 +58,11 @@
     }
 
     .label {
+        @include grapher_label-2-regular;
         padding-left: $checkbox-size + 8px;
         cursor: pointer;
-        font-size: 14px;
-        letter-spacing: 0.01em;
-        line-height: 1.15;
+        user-select: none;
+        color: $dark-text;
     }
 
     &:hover {

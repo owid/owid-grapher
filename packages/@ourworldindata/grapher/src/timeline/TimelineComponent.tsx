@@ -1,5 +1,6 @@
 import React from "react"
 import { select } from "d3-selection"
+import cx from "classnames"
 import {
     getRelativeMouse,
     isMobile,
@@ -11,10 +12,12 @@ import {
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
-import classNames from "classnames"
 import { TimelineController, TimelineManager } from "./TimelineController"
 import { ActionButton } from "../controls/ActionButtons"
-import { DEFAULT_GRAPHER_FRAME_PADDING } from "../core/GrapherConstants.js"
+import {
+    DEFAULT_GRAPHER_FRAME_PADDING,
+    GRAPHER_TIMELINE_CLASS,
+} from "../core/GrapherConstants.js"
 
 export const TIMELINE_HEIGHT = 32 // keep in sync with $timelineHeight in TimelineComponent.scss
 
@@ -330,10 +333,9 @@ export class TimelineComponent extends React.Component<{
         return (
             <div
                 ref={this.base}
-                className={
-                    "TimelineComponent" +
-                    (this.mouseHoveringOverTimeline ? " hover" : "")
-                }
+                className={cx(GRAPHER_TIMELINE_CLASS, {
+                    hover: this.mouseHoveringOverTimeline,
+                })}
                 style={{
                     padding: `0 ${this.framePaddingHorizontal}px`,
                 }}
@@ -459,7 +461,7 @@ const TimelineHandle = ({
         // @ts-expect-error aria-value* fields expect a number, but if we're dealing with daily data,
         // the numeric representation of a date is meaningless, so we pass the formatted date string instead.
         <div
-            className={classNames("handle", type)}
+            className={cx("handle", type)}
             style={{
                 left: `${offsetPercent}%`,
             }}

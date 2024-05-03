@@ -1,8 +1,10 @@
 import React from "react"
+import cx from "classnames"
 import { observer } from "mobx-react"
 import { action, computed } from "mobx"
 import { Bounds } from "@ourworldindata/utils"
 import { CloseButton } from "../closeButton/CloseButton.js"
+import { GRAPHER_SCROLLABLE_CONTAINER_CLASS } from "../core/GrapherConstants.js"
 
 @observer
 export class Modal extends React.Component<{
@@ -106,7 +108,12 @@ export class Modal extends React.Component<{
                                 onClick={this.props.onDismiss}
                             />
                         )}
-                        <div className="modal-scrollable">
+                        <div
+                            className={cx(
+                                "modal-scrollable",
+                                GRAPHER_SCROLLABLE_CONTAINER_CLASS
+                            )}
+                        >
                             {this.props.children}
                         </div>
                     </div>

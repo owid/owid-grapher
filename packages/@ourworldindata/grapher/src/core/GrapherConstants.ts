@@ -4,16 +4,18 @@ export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
 export const GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR = "data-grapher-config"
 
 export const GRAPHER_PAGE_BODY_CLASS = "StandaloneGrapherOrExplorerPage"
-
 export const GRAPHER_DRAWER_ID = "grapher-drawer"
-
 export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
+export const GRAPHER_SCROLLABLE_CONTAINER_CLASS = "scrollable-container"
+export const GRAPHER_TIMELINE_CLASS = "timeline-component"
+export const GRAPHER_ENTITY_SELECTOR_CLASS = "entity-selector"
 
 export const DEFAULT_GRAPHER_CONFIG_SCHEMA =
     "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
 
 export const DEFAULT_GRAPHER_ENTITY_TYPE = "country or region"
 export const DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL = "countries and regions"
+
 export const GRAPHER_MOUNTED_EVENT_NAME = "grapherMounted"
 export const GRAPHER_LOADED_EVENT_NAME = "grapherLoaded"
 

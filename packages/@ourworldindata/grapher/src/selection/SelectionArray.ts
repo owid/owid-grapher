@@ -84,17 +84,29 @@ export class SelectionArray {
         return this
     }
 
-    // Mainly for testing
-    @action.bound selectSample(howMany = 1): this {
-        return this.setSelectedEntities(
-            this.availableEntityNames.slice(0, howMany)
-        )
-    }
-
     @action.bound deselectEntity(entityName: EntityName): this {
         this.selectedEntityNames = this.selectedEntityNames.filter(
             (name) => name !== entityName
         )
         return this
+    }
+
+    @action.bound selectEntities(entityNames: EntityName[]): this {
+        entityNames.forEach((entityName) => this.selectEntity(entityName))
+        return this
+    }
+
+    @action.bound deselectEntities(entityNames: EntityName[]): this {
+        this.selectedEntityNames = this.selectedEntityNames.filter(
+            (name) => !entityNames.includes(name)
+        )
+        return this
+    }
+
+    // Mainly for testing
+    @action.bound selectSample(howMany = 1): this {
+        return this.setSelectedEntities(
+            this.availableEntityNames.slice(0, howMany)
+        )
     }
 }
