@@ -112,21 +112,6 @@ nav.controlsRow .chart-controls .settings-menu {
                     height: 13px;
                     padding: 0 0.333em;
                 }
-
-                // the tooltip triggered by hovering the circle-i
-                @at-root .tippy-box[data-theme="settings"] {
-                    background: white;
-                    color: $dark-text;
-                    font: 400 14px/1.5 $sans-serif-font-stack;
-                    box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
-
-                    .tippy-content {
-                        padding: $indent;
-                    }
-                    .tippy-arrow {
-                        color: white;
-                    }
-                }
             }
 
             .labeled-switch .labeled-switch-subtitle,

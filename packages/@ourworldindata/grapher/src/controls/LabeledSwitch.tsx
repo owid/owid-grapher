@@ -31,9 +31,8 @@ export class LabeledSwitch extends React.Component<{
                     {tooltip && (
                         <Tippy
                             content={tooltip}
-                            theme="settings"
+                            theme="grapher-explanation"
                             placement="top"
-                            // arrow={false}
                             maxWidth={338}
                         >
                             <FontAwesomeIcon icon={faInfoCircle} />
