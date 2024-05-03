@@ -18,11 +18,12 @@
 
     color: $light-text;
     background: white;
-    border: 1px solid $light-stroke !important;
+    border: 1px solid $light-stroke;
     border-radius: 50%;
 
     &:hover {
         background: $hover-fill;
+        border-color: $hover-fill;
         cursor: pointer;
         color: $dark-text;
     }

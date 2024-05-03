@@ -7,6 +7,7 @@
 
     .key-data {
         @include label-2-medium;
+        font-size: 13px;
 
         &__title {
             margin-bottom: 4px;

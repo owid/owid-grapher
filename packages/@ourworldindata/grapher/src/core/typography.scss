@@ -2,12 +2,34 @@
 // headings
 //
 
+@mixin grapher_h1-semibold {
+    display: block;
+    margin: 0;
+
+    font-family: $serif-font-stack;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.1667;
+    letter-spacing: 0;
+}
+
+@mixin grapher_h2-semibold {
+    display: block;
+    margin: 0;
+
+    font-family: $serif-font-stack;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0;
+}
+
 @mixin grapher_h3-semibold {
     display: block;
     margin: 0;
 
     font-family: $serif-font-stack;
-    font-size: 1.125rem;
+    font-size: 18px;
     font-weight: 600;
     line-height: 1.1111;
     letter-spacing: 0;
@@ -22,7 +44,7 @@
     margin: 0;
 
     font-family: $serif-font-stack;
-    font-size: 1.1rem;
+    font-size: 16px;
     font-weight: 600;
     line-height: 1.5;
     letter-spacing: 0;
@@ -37,7 +59,7 @@
     margin: 0;
 
     font-family: $sans-serif-font-stack;
-    font-size: 0.75rem;
+    font-size: 12px;
     font-weight: 900;
     line-height: 1.3333;
     letter-spacing: 0.1em;
@@ -58,7 +80,7 @@
     margin: 0;
 
     font-family: $sans-serif-font-stack;
-    font-size: 1rem;
+    font-size: 16px;
     font-weight: 600;
     line-height: 1.5;
     letter-spacing: 0;
@@ -73,7 +95,7 @@
     margin: 0;
 
     font-family: $sans-serif-font-stack;
-    font-size: 0.8125rem;
+    font-size: 13px;
     font-weight: 500;
     line-height: 1.3846;
     letter-spacing: 0;
@@ -110,7 +132,7 @@
     margin: 0;
 
     font-family: $sans-serif-font-stack;
-    font-size: 0.875rem;
+    font-size: 14px;
     font-weight: 500;
     line-height: 1.2;
     letter-spacing: 0;
@@ -125,7 +147,7 @@
     margin: 0;
 
     font-family: $sans-serif-font-stack;
-    font-size: 0.8125rem;
+    font-size: 13px;
     font-weight: 400;
     line-height: 1.2;
     letter-spacing: 0.01em;

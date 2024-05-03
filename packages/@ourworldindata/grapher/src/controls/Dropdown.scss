@@ -33,6 +33,11 @@
         padding: 7px;
         color: $dark-text;
 
+        &.focus {
+            outline: 1px solid #a4b6ca !important;
+            outline-offset: -1px;
+        }
+
         &:hover {
             background: $hover-fill;
             cursor: pointer;
@@ -63,7 +68,8 @@
 
         .option {
             padding: 8px 18px;
-            &:hover {
+            &:hover,
+            &.focus {
                 cursor: pointer;
                 background: $hover-fill;
             }

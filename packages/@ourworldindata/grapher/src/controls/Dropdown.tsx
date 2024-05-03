@@ -1,5 +1,6 @@
 import React from "react"
 import Select, { Props } from "react-select"
+import cx from "classnames"
 
 export function Dropdown(props: Props): React.JSX.Element {
     return (
@@ -14,10 +15,18 @@ export function Dropdown(props: Props): React.JSX.Element {
             unstyled={true}
             isMulti={false}
             classNames={{
-                control: (state) =>
-                    state.menuIsOpen ? "active control" : "control",
-                option: (state) =>
-                    state.isSelected ? "active option" : "option",
+                control: (state) => {
+                    return cx("control", {
+                        focus: state.isFocused,
+                        active: state.menuIsOpen,
+                    })
+                },
+                option: (state) => {
+                    return cx("option", {
+                        focus: state.isFocused,
+                        active: state.isSelected,
+                    })
+                },
                 menu: () => "menu",
             }}
             {...props}
