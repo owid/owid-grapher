@@ -2,7 +2,6 @@ import {
     getVariableDataRoute,
     getVariableMetadataRoute,
     GrapherProgrammaticInterface,
-    GRAPHER_DRAWER_ID,
 } from "@ourworldindata/grapher"
 import {
     uniq,
@@ -142,35 +141,32 @@ export const DataPageV2 = (props: {
             <body className="DataPage">
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
-                    <>
-                        <nav id={GRAPHER_DRAWER_ID}></nav>
-                        <script
-                            dangerouslySetInnerHTML={{
-                                __html: `window._OWID_DATAPAGEV2_PROPS = ${JSON.stringify(
-                                    {
-                                        datapageData,
-                                        faqEntries,
-                                        canonicalUrl,
-                                        tagToSlugMap: minimalTagToSlugMap,
-                                        imageMetadata,
-                                    }
-                                )}`,
-                            }}
-                        />
-                        <div id={OWID_DATAPAGE_CONTENT_ROOT_ID}>
-                            <DebugProvider debug={isPreviewing}>
-                                <DataPageV2Content
-                                    datapageData={datapageData}
-                                    grapherConfig={grapherConfig}
-                                    imageMetadata={imageMetadata}
-                                    isPreviewing={isPreviewing}
-                                    faqEntries={faqEntries}
-                                    canonicalUrl={canonicalUrl}
-                                    tagToSlugMap={tagToSlugMap}
-                                />
-                            </DebugProvider>
-                        </div>
-                    </>
+                    <script
+                        dangerouslySetInnerHTML={{
+                            __html: `window._OWID_DATAPAGEV2_PROPS = ${JSON.stringify(
+                                {
+                                    datapageData,
+                                    faqEntries,
+                                    canonicalUrl,
+                                    tagToSlugMap: minimalTagToSlugMap,
+                                    imageMetadata,
+                                }
+                            )}`,
+                        }}
+                    />
+                    <div id={OWID_DATAPAGE_CONTENT_ROOT_ID}>
+                        <DebugProvider debug={isPreviewing}>
+                            <DataPageV2Content
+                                datapageData={datapageData}
+                                grapherConfig={grapherConfig}
+                                imageMetadata={imageMetadata}
+                                isPreviewing={isPreviewing}
+                                faqEntries={faqEntries}
+                                canonicalUrl={canonicalUrl}
+                                tagToSlugMap={tagToSlugMap}
+                            />
+                        </DebugProvider>
+                    </div>
                 </main>
                 <SiteFooter
                     baseUrl={baseUrl}

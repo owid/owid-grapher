@@ -1,37 +1,26 @@
-@at-root {
-    nav#grapher-drawer {
-        $light-stroke: #e7e7e7;
+.drawer {
+    .drawer-contents {
+        position: fixed;
+        right: 0;
+        top: 0;
+        width: 300px;
+        height: 100%;
+        z-index: $zindex-controls-drawer;
+        background: white;
+    }
 
-        $active-fill: #dbe5f0;
-        $hover-fill: #f2f2f2;
-
-        $medium: 400;
-        $bold: 700;
-        $lato: $sans-serif-font-stack;
-
-        .grapher-drawer-contents {
-            position: fixed;
-            right: 0;
-            top: 0;
-            width: 300px;
-            height: 100vh;
-            z-index: $zindex-controls-drawer;
-            background: white;
-        }
-
-        .grapher-drawer-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.2);
-            z-index: $zindex-controls-backdrop;
-        }
+    .drawer-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.2);
+        z-index: $zindex-controls-backdrop;
     }
 }
 
-@keyframes grapher-drawer-backdrop-enter {
+@keyframes drawer-backdrop-enter {
     0% {
         opacity: 0;
     }
@@ -40,7 +29,7 @@
     }
 }
 
-@keyframes grapher-drawer-backdrop-exit {
+@keyframes drawer-backdrop-exit {
     0% {
         opacity: 1;
     }
@@ -49,7 +38,7 @@
     }
 }
 
-@keyframes grapher-drawer-contents-enter {
+@keyframes drawer-contents-enter {
     0% {
         transform: translate(301px, 0);
     }
@@ -58,7 +47,7 @@
     }
 }
 
-@keyframes grapher-drawer-contents-exit {
+@keyframes drawer-contents-exit {
     0% {
         transform: translate(0, 0);
     }

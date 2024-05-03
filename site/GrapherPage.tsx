@@ -3,7 +3,6 @@ import {
     getVariableMetadataRoute,
     GRAPHER_PAGE_BODY_CLASS,
     LoadingIndicator,
-    GRAPHER_DRAWER_ID,
 } from "@ourworldindata/grapher"
 import {
     flatten,
@@ -120,7 +119,6 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
-                    <nav id={GRAPHER_DRAWER_ID}></nav>
                     <figure data-grapher-src={`/grapher/${grapher.slug}`}>
                         <LoadingIndicator />
                     </figure>
