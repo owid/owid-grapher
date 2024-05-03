@@ -21,6 +21,10 @@
             overflow-y: scroll;
             background: white;
 
+            // necessary for scrolling
+            display: flex;
+            flex-direction: column;
+
             .grapher-drawer-header {
                 position: static;
                 display: flex;
@@ -33,12 +37,11 @@
                 z-index: 1;
                 margin-bottom: 16px;
 
-                .grapher-drawer-title {
-                    text-transform: uppercase;
-                    letter-spacing: 0.1em;
-                    color: $light-text;
-                    font: $bold 12px/16px $lato;
-                }
+                flex-shrink: 0; // necessary for scrolling
+            }
+
+            .grapher-drawer-scrollable {
+                overflow-y: auto;
             }
         }
 

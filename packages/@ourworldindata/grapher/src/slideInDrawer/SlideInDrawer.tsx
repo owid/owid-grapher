@@ -70,7 +70,7 @@ export class SlideInDrawer extends React.Component<{
 
     @computed get drawerContents(): JSX.Element {
         return (
-            <div className="SlideInDrawer" ref={this.contentRef}>
+            <div ref={this.contentRef}>
                 <div
                     className="grapher-drawer-backdrop"
                     onClick={this.toggleVisibility}
@@ -84,13 +84,15 @@ export class SlideInDrawer extends React.Component<{
                     }}
                 >
                     <div className="grapher-drawer-header">
-                        <div className="grapher-drawer-title">
+                        <div className="grapher_h5-black-caps grapher_light">
                             {this.props.title}
                         </div>
                         <CloseButton onClick={() => this.toggleVisibility()} />
                     </div>
 
-                    {this.props.children}
+                    <div className="grapher-drawer-scrollable">
+                        {this.props.children}
+                    </div>
                 </div>
             </div>
         )

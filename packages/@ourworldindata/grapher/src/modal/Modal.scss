@@ -1,65 +1,55 @@
-$modal-padding: 1.5em;
+.modal-overlay {
+    --modal-padding: 24px;
 
-// the base font size for modals is 16px and on
-// smaller devices scales down to 14px.
-// it is never scaled up though.
-
-.modalOverlay {
     position: absolute;
+
     // -1px to hide the frame border
     top: -1px;
     right: -1px;
     bottom: -1px;
     left: -1px;
+
     background-color: rgba(0, 0, 0, 0.4);
     z-index: $zindex-modal;
 
-    .modalWrapper {
+    .modal-wrapper {
         position: relative;
         height: 100%;
 
-        .modalContent {
+        .modal-content {
             position: absolute;
             border-radius: 4px;
             background: #fff;
             box-shadow: 0px 4px 30px 0px rgba(0, 0, 0, 0.15);
-            padding: $modal-padding;
-            padding-bottom: 0;
             min-height: 150px;
+
             // necessary to allow modal to scroll
             display: flex;
             flex-direction: column;
-        }
 
-        .close-button--top-right {
-            position: absolute;
-            top: $modal-padding;
-            right: $modal-padding;
-        }
-
-        .modalHeader {
-            flex-shrink: 0; // necessary to allow modal to scroll
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1em;
-
-            &__empty {
-                margin-bottom: 4px;
+            .close-button--top-right {
+                position: absolute;
+                top: 0;
+                right: 0;
+                margin: var(--modal-padding);
             }
 
-            .modalTitle {
-                text-transform: uppercase;
-                color: $light-text;
-                font-size: 0.75em;
-                font-weight: 900;
-                letter-spacing: 1.2px;
-                margin: 0;
-            }
-        }
+            .modal-header {
+                flex-shrink: 0; // necessary to allow modal to scroll
 
-        .modalScrollable {
-            overflow-y: auto;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: var(--modal-padding) var(--modal-padding) 16px;
+            }
+
+            .modal-scrollable {
+                overflow-y: auto;
+            }
         }
     }
+}
+
+&.GrapherComponentNarrow .modal-overlay {
+    --modal-padding: 16px;
 }

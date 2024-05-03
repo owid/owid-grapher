@@ -4,7 +4,7 @@
         $active-fill: #dbe5f0;
 
         text-align: left;
-        margin-bottom: 1.5em;
+        margin: 0 var(--modal-padding, 16px) var(--modal-padding, 16px);
 
         ul {
             margin: 0;
@@ -165,11 +165,5 @@
                 }
             }
         }
-    }
-
-    .SidePanel .EntitySelector,
-    .SlideInDrawer .EntitySelector {
-        margin-left: 16px;
-        margin-right: 16px;
     }
 }

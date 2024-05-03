@@ -23,6 +23,7 @@ import {
     DataCitation,
 } from "@ourworldindata/components"
 import React from "react"
+import cx from "classnames"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
@@ -250,17 +251,24 @@ export class SourcesModal extends React.Component<
             : this.renderMultipleSources()
     }
 
+    @action.bound private onDismiss(): void {
+        this.manager.isSourcesModalOpen = false
+    }
+
     render(): JSX.Element {
         return (
             <Modal
-                onDismiss={action(
-                    () => (this.manager.isSourcesModalOpen = false)
-                )}
                 bounds={this.modalBounds}
                 isHeightFixed={true}
+                onDismiss={this.onDismiss}
                 showStickyHeader={this.showStickyModalHeader}
             >
-                <div className="SourcesModalContent">
+                <div
+                    className={cx("sources-modal-content", {
+                        "sources-modal-content--pad-top":
+                            !this.showStickyModalHeader,
+                    })}
+                >
                     {this.manager.isReady ? (
                         this.renderModalContent()
                     ) : (

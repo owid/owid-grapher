@@ -10,6 +10,8 @@
 @import "../../../components/src/IndicatorSources/IndicatorSources.scss";
 @import "../../../components/src/IndicatorProcessing/IndicatorProcessing.scss";
 
+@import "./typography.scss";
+
 // grapher frame
 $frame-color: #f2f2f2;
 
@@ -85,6 +87,14 @@ $zindex-controls-drawer: 150;
 @import "../fullScreen/FullScreen.scss";
 @import "../../../components/src/Checkbox.scss";
 @import "../closeButton/CloseButton.scss";
+
+.grapher_dark {
+    color: $dark-text;
+}
+
+.grapher_light {
+    color: $light-text;
+}
 
 .GrapherComponent,
 .GrapherComponent h2,
@@ -169,6 +179,14 @@ $zindex-controls-drawer: 150;
         --code-snippet-button: #{$dark-text};
         --code-snippet-button-hover: #{$light-text};
         --code-snippet-button-active: #{$light-text};
+
+        margin-bottom: 0 !important;
+    }
+
+    &.GrapherComponentNarrow {
+        .wp-code-snippet {
+            padding: 16px;
+        }
     }
 }
 
