@@ -1,29 +1,20 @@
 import React from "react"
-import cx from "classnames"
 import { observer } from "mobx-react"
 import { action, computed } from "mobx"
 import { Bounds } from "@ourworldindata/utils"
-import { CloseButton } from "../closeButton/CloseButton.js"
-import { GRAPHER_SCROLLABLE_CONTAINER_CLASS } from "../core/GrapherConstants.js"
 
 @observer
 export class Modal extends React.Component<{
     bounds: Bounds
     onDismiss: () => void
-    title?: string
     children?: React.ReactNode
     isHeightFixed?: boolean // by default, the modal height is not fixed but fits to the content
     alignVertical?: "center" | "bottom"
-    showStickyHeader?: boolean
 }> {
     contentRef: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed private get bounds(): Bounds {
         return this.props.bounds
-    }
-
-    @computed private get title(): string | undefined {
-        return this.props.title
     }
 
     @computed private get isHeightFixed(): boolean {
@@ -32,10 +23,6 @@ export class Modal extends React.Component<{
 
     @computed private get alignVertical(): "center" | "bottom" {
         return this.props.alignVertical ?? "center"
-    }
-
-    @computed private get showStickyHeader(): boolean {
-        return this.props.showStickyHeader || !!this.title
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {
@@ -95,27 +82,7 @@ export class Modal extends React.Component<{
                         style={contentStyle}
                         ref={this.contentRef}
                     >
-                        {this.showStickyHeader ? (
-                            <div className="modal-header">
-                                <h2 className="grapher_h5-black-caps grapher_light">
-                                    {this.title}
-                                </h2>
-                                <CloseButton onClick={this.props.onDismiss} />
-                            </div>
-                        ) : (
-                            <CloseButton
-                                className="close-button--top-right"
-                                onClick={this.props.onDismiss}
-                            />
-                        )}
-                        <div
-                            className={cx(
-                                "modal-scrollable",
-                                GRAPHER_SCROLLABLE_CONTAINER_CLASS
-                            )}
-                        >
-                            {this.props.children}
-                        </div>
+                        {this.props.children}
                     </div>
                 </div>
             </div>

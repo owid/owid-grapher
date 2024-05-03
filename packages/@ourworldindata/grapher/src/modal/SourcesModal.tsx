@@ -36,8 +36,9 @@ import { SourcesDescriptions } from "./SourcesDescriptions"
 import { Tabs } from "../tabs/Tabs"
 import { ExpandableTabs } from "../tabs/ExpandableTabs"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
-import { CLOSE_BUTTON_WIDTH } from "../closeButton/CloseButton"
+import { CLOSE_BUTTON_WIDTH, CloseButton } from "../closeButton/CloseButton"
 import { isContinentsVariableId } from "../core/GrapherConstants"
+import { OverlayHeader } from "../core/OverlayHeader.js"
 
 // keep in sync with variables in SourcesModal.scss
 const MAX_CONTENT_WIDTH = 640
@@ -92,7 +93,7 @@ export class SourcesModal extends React.Component<
         return this.frameBounds.padHeight(15).padWidth(padWidth)
     }
 
-    @computed private get showStickyModalHeader(): boolean {
+    @computed private get showStickyHeader(): boolean {
         const modalWidth = this.modalBounds.width - 2 * this.modalPadding
         return (modalWidth - MAX_CONTENT_WIDTH) / 2 < CLOSE_BUTTON_WIDTH + 2
     }
@@ -262,19 +263,27 @@ export class SourcesModal extends React.Component<
                 bounds={this.modalBounds}
                 isHeightFixed={true}
                 onDismiss={this.onDismiss}
-                showStickyHeader={this.showStickyModalHeader}
             >
-                <div
-                    className={cx("sources-modal-content", {
-                        "sources-modal-content--pad-top":
-                            !this.showStickyModalHeader,
-                    })}
-                >
-                    {this.manager.isReady ? (
-                        this.renderModalContent()
+                <div className="sources-modal-content">
+                    {this.showStickyHeader ? (
+                        <OverlayHeader title="" onDismiss={this.onDismiss} />
                     ) : (
-                        <LoadingIndicator />
+                        <CloseButton
+                            className="close-button--top-right"
+                            onClick={this.onDismiss}
+                        />
                     )}
+                    <div
+                        className={cx("scrollable", {
+                            "scrollable--pad-top": !this.showStickyHeader,
+                        })}
+                    >
+                        {this.manager.isReady ? (
+                            this.renderModalContent()
+                        ) : (
+                            <LoadingIndicator />
+                        )}
+                    </div>
                 </div>
             </Modal>
         )

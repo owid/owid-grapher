@@ -16,35 +16,7 @@
             width: 300px;
             height: 100vh;
             z-index: $zindex-controls-drawer;
-            overflow-y: scroll;
             background: white;
-
-            // necessary for scrolling
-            display: flex;
-            flex-direction: column;
-
-            .grapher-drawer-header {
-                position: static;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                background: white;
-                padding: 16px;
-                position: sticky;
-                top: 0;
-                z-index: 1;
-
-                flex-shrink: 0; // necessary for scrolling
-
-                button {
-                    margin-left: 8px;
-                }
-            }
-
-            .grapher-drawer-scrollable {
-                overflow-y: auto;
-                flex-grow: 1;
-            }
         }
 
         .grapher-drawer-backdrop {

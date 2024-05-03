@@ -22,35 +22,6 @@
             background: #fff;
             box-shadow: 0px 4px 30px 0px rgba(0, 0, 0, 0.15);
             min-height: 150px;
-
-            // necessary to allow modal to scroll
-            display: flex;
-            flex-direction: column;
-
-            .close-button--top-right {
-                position: absolute;
-                top: 0;
-                right: 0;
-                margin: var(--modal-padding);
-            }
-
-            .modal-header {
-                flex-shrink: 0; // necessary to allow modal to scroll
-
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: var(--modal-padding) var(--modal-padding) 16px;
-
-                button {
-                    margin-left: 8px;
-                }
-            }
-
-            .modal-scrollable {
-                flex-grow: 1;
-                overflow-y: auto;
-            }
         }
     }
 }

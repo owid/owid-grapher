@@ -36,8 +36,6 @@ import { makeSelectionArray } from "../chart/ChartUtils.js"
 import {
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
-    GRAPHER_ENTITY_SELECTOR_CLASS,
-    GRAPHER_SCROLLABLE_CONTAINER_CLASS,
     POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
     GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
     isPopulationVariableId,
@@ -49,6 +47,8 @@ import { scaleLinear, type ScaleLinear } from "d3-scale"
 import { ColumnSlug } from "@ourworldindata/types"
 import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { loadVariableDataAndMetadata } from "../core/loadVariable"
+import { OverlayHeader } from "../core/OverlayHeader.js"
+import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
 
 export interface EntitySelectorState {
     searchInput: string
@@ -63,11 +63,13 @@ export interface EntitySelectorManager {
     entitySelectorState: Partial<EntitySelectorState>
     tableForSelection: OwidTable
     selection: SelectionArray
-    canChangeEntity: boolean
     entityType?: string
     entityTypePlural?: string
     activeColumnSlugs?: string[]
     dataApiUrl: string
+    isEntitySelectorModalOrDrawerOpen?: boolean
+    canChangeEntity?: boolean
+    canHighlightEntities?: boolean
 }
 
 interface SortConfig {
@@ -124,7 +126,9 @@ export class EntitySelector extends React.Component<{
     onDismiss?: () => void
     autoFocus?: boolean
 }> {
-    container: React.RefObject<HTMLDivElement> = React.createRef()
+    static contextType = DrawerContext
+
+    scrollableContainer: React.RefObject<HTMLDivElement> = React.createRef()
     searchField: React.RefObject<HTMLInputElement> = React.createRef()
 
     private defaultSortConfig = {
@@ -138,15 +142,12 @@ export class EntitySelector extends React.Component<{
         if (this.props.autoFocus && !isTouchDevice())
             this.searchField.current?.focus()
 
-        const scrollableContainer = this.container.current?.closest(
-            `.${GRAPHER_SCROLLABLE_CONTAINER_CLASS}`
-        )
-
         // scroll to the top when the search input changes
         reaction(
             () => this.searchInput,
             () => {
-                if (scrollableContainer) scrollableContainer.scrollTop = 0
+                if (this.scrollableContainer.current)
+                    this.scrollableContainer.current.scrollTop = 0
             }
         )
     }
@@ -233,6 +234,14 @@ export class EntitySelector extends React.Component<{
 
     @computed private get manager(): EntitySelectorManager {
         return this.props.manager
+    }
+
+    @computed private get title(): string {
+        return this.manager.canHighlightEntities
+            ? `Select ${this.entityTypePlural}`
+            : this.manager.canChangeEntity
+              ? `Choose ${a(this.entityType)}`
+              : `Add/remove ${this.entityTypePlural}`
     }
 
     @computed private get searchInput(): string {
@@ -649,6 +658,16 @@ export class EntitySelector extends React.Component<{
         this.toggleSortOrder()
     }
 
+    @action.bound private onDismiss(): void {
+        // if rendered into a drawer, we use a method provided by the
+        // `<SlideInDrawer />` component so that closing the drawer is animated
+        if (this.context.toggleDrawerVisibility) {
+            this.context.toggleDrawerVisibility()
+        } else {
+            this.manager.isEntitySelectorModalOrDrawerOpen = false
+        }
+    }
+
     private renderSearchBar(): JSX.Element {
         return (
             <div className="entity-selector__search-bar">
@@ -714,7 +733,7 @@ export class EntitySelector extends React.Component<{
     private renderSearchResults(): JSX.Element {
         if (!this.searchResults || this.searchResults.length === 0) {
             return (
-                <div className="entity-search-results grapher_body-3-regular">
+                <div className="entity-search-results grapher_body-3-regular grapher_light">
                     There is no data for the {this.entityType} you are looking
                     for. You may want to try using different keywords or
                     checking for typos.
@@ -806,7 +825,7 @@ export class EntitySelector extends React.Component<{
                 <div className="entity-section">
                     {selected.length > 0 && (
                         <Flipped flipId="__selection" translate opacity>
-                            <div className="entity-section__title grapher_body-3-medium-italic">
+                            <div className="entity-section__title grapher_body-3-medium-italic grapher_light">
                                 Selection
                             </div>
                         </Flipped>
@@ -909,10 +928,17 @@ export class EntitySelector extends React.Component<{
                         </button>
                     </>
                 ) : (
-                    <div className="footer__selected footer__selected--no-wrap">
-                        {selectedEntityNames.length > 0
-                            ? `Current selection: ${selectedEntityNames[0]}`
-                            : "Empty selection"}
+                    <div className="footer__selected">
+                        {selectedEntityNames.length > 0 ? (
+                            <>
+                                Current selection:
+                                <span className="entity-name">
+                                    {selectedEntityNames[0]}
+                                </span>
+                            </>
+                        ) : (
+                            "Empty selection"
+                        )}
                     </div>
                 )}
             </div>
@@ -921,24 +947,23 @@ export class EntitySelector extends React.Component<{
 
     render(): JSX.Element {
         return (
-            <div
-                ref={this.container}
-                className={cx(GRAPHER_ENTITY_SELECTOR_CLASS, {
-                    "entity-selector--single": !this.isMultiMode,
-                })}
-            >
+            <div className="entity-selector">
+                <OverlayHeader title={this.title} onDismiss={this.onDismiss} />
+
                 {this.renderSearchBar()}
 
-                {!this.searchInput &&
-                    this.sortOptions.length > 1 &&
-                    this.renderSortBar()}
+                <div ref={this.scrollableContainer} className="scrollable">
+                    {!this.searchInput &&
+                        this.sortOptions.length > 1 &&
+                        this.renderSortBar()}
 
-                <div className="entity-selector__content">
-                    {this.searchInput
-                        ? this.renderSearchResults()
-                        : this.isMultiMode
-                          ? this.renderAllEntitiesInMultiMode()
-                          : this.renderAllEntitiesInSingleMode()}
+                    <div className="entity-selector__content">
+                        {this.searchInput
+                            ? this.renderSearchResults()
+                            : this.isMultiMode
+                              ? this.renderAllEntitiesInMultiMode()
+                              : this.renderAllEntitiesInSingleMode()}
+                    </div>
                 </div>
 
                 {this.renderFooter()}
