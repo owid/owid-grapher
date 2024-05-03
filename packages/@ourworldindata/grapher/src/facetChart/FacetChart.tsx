@@ -700,6 +700,8 @@ export class FacetChart
                     index,
                 })
         )
+        if (this.facetStrategy === FacetStrategy.metric && newBins.length <= 1)
+            return []
         return newBins
     }
 
