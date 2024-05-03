@@ -22,12 +22,16 @@ export {
     BASE_FONT_SIZE,
     ThereWasAProblemLoadingThisChart,
     WorldEntityName,
-    getVariableDataRoute,
-    getVariableMetadataRoute,
     Patterns,
     grapherInterfaceWithHiddenControlsOnly,
     grapherInterfaceWithHiddenTabsOnly,
+    CONTINENTS_INDICATOR_ID,
+    POPULATION_INDICATOR_ID_USED_IN_ADMIN,
 } from "./core/GrapherConstants"
+export {
+    getVariableDataRoute,
+    getVariableMetadataRoute,
+} from "./core/loadVariable"
 export { ColorScale } from "./color/ColorScale"
 export { ColorScaleConfig } from "./color/ColorScaleConfig"
 export { ColorScheme } from "./color/ColorScheme"

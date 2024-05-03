@@ -53,28 +53,22 @@ export const ThereWasAProblemLoadingThisChart = `There was a problem loading thi
 
 export const WorldEntityName = "World"
 
-export const getVariableDataRoute = (
-    dataApiUrl: string,
-    variableId: number
-): string => {
-    if (dataApiUrl.includes("v1/indicators/")) {
-        // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.data.json
-        return `${dataApiUrl}${variableId}.data.json`
-    } else {
-        throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
-    }
-}
+export const CONTINENTS_INDICATOR_ID = 123 // "Countries Continent"
+export const POPULATION_INDICATOR_ID_USED_IN_ADMIN = 597929 // "Population (various sources, 2023.1)"
+export const POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR = 597930 // "Population (various sources, 2023.1)"
+export const GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR = 735665 // "World Development Indicators - World Bank (2023.05.11)"
 
-export const getVariableMetadataRoute = (
-    dataApiUrl: string,
-    variableId: number
-): string => {
-    if (dataApiUrl.includes("v1/indicators/")) {
-        // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.metadata.json
-        return `${dataApiUrl}${variableId}.metadata.json`
-    } else {
-        throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
-    }
+export const isContinentsVariableId = (id: string | number): boolean =>
+    id.toString() === CONTINENTS_INDICATOR_ID.toString()
+
+export const isPopulationVariableId = (id: string | number): boolean => {
+    const idString = id.toString()
+    return (
+        idString === "525709" || // "Population (historical + projections), Gapminder, HYDE & UN"
+        idString === "525711" || // "Population (historical estimates), Gapminder, HYDE & UN"
+        idString === "597929" || // "Population (various sources, 2023.1)"
+        idString === "597930" // "Population (various sources, 2023.1)"
+    )
 }
 
 export enum Patterns {
