@@ -1,10 +1,10 @@
 import React from "react"
-import Select from "react-select"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { MapProjectionName } from "@ourworldindata/types"
 import { MapProjectionLabels } from "../mapCharts/MapProjections"
+import { Dropdown } from "./Dropdown"
 
 export { AbsRelToggle } from "./settings/AbsRelToggle"
 export { FacetStrategySelector } from "./settings/FacetStrategySelector"
@@ -40,9 +40,10 @@ export class MapProjectionMenu extends React.Component<{
         return !hideMapProjectionMenu && !!(isOnMapTab && projection)
     }
 
-    @action.bound onChange(selected: MapProjectionMenuItem | null): void {
+    @action.bound onChange(selected: unknown): void {
         const { mapConfig } = this.props.manager
-        if (selected && mapConfig) mapConfig.projection = selected.value
+        if (selected && mapConfig)
+            mapConfig.projection = (selected as MapProjectionMenuItem).value
     }
 
     @computed get options(): MapProjectionMenuItem[] {
@@ -62,25 +63,10 @@ export class MapProjectionMenu extends React.Component<{
     render(): JSX.Element | null {
         return this.showMenu ? (
             <div className="map-projection-menu">
-                <Select
+                <Dropdown
                     options={this.options}
                     onChange={this.onChange}
                     value={this.value}
-                    menuPlacement="bottom"
-                    components={{
-                        IndicatorSeparator: null,
-                        DropdownIndicator: null,
-                    }}
-                    isSearchable={false}
-                    unstyled={true}
-                    isMulti={false}
-                    classNames={{
-                        control: (state) =>
-                            state.menuIsOpen ? "active control" : "control",
-                        option: (state) =>
-                            state.isSelected ? "active option" : "option",
-                        menu: () => "menu",
-                    }}
                 />
             </div>
         ) : null
