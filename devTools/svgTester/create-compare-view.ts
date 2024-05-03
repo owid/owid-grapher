@@ -9,14 +9,18 @@ import _ from "lodash"
 const DEFAULT_REPORT_FILENAME = "../owid-grapher-svgs/differences.html"
 
 const LIVE_GRAPHER_URL = "https://ourworldindata.org/grapher"
-const LOCAL_GRAPHER_URL = "http://localhost:3030/grapher"
 
-async function main(parsedArgs: parseArgs.ParsedArgs) {
+const LOCAL_URL = "http://localhost:3030"
+const LOCAL_GRAPHER_URL = LOCAL_URL + "/grapher"
+
+async function main(args: parseArgs.ParsedArgs) {
     // prepare and check arguments
-    const referenceDir: string = parsedArgs["r"] ?? utils.DEFAULT_REFERENCE_DIR
-    const differencesDir: string =
-        parsedArgs["d"] ?? utils.DEFAULT_DIFFERENCES_DIR
-    const outFile: string = parsedArgs["o"] ?? DEFAULT_REPORT_FILENAME
+    const referenceDir: string = args["r"] ?? utils.DEFAULT_REFERENCE_DIR
+    const differencesDir: string = args["d"] ?? utils.DEFAULT_DIFFERENCES_DIR
+    const outFile: string = args["o"] ?? DEFAULT_REPORT_FILENAME
+    const compareUrl: string = args["url"] ?? args["u"] ?? LOCAL_URL
+
+    const compareGrapherUrl = compareUrl + "/grapher"
 
     if (!fs.existsSync(referenceDir))
         throw `Reference directory does not exist ${referenceDir}`
@@ -46,7 +50,12 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 
     // prepare HTML report
     const sections = svgRecords.map((record) =>
-        createComparisonView(record, referenceDir, differencesDir)
+        createComparisonView(
+            record,
+            referenceDir,
+            differencesDir,
+            compareGrapherUrl
+        )
     )
     const summary = `<p class="summary">Number of differences: ${sections.length}</p>`
     const content = summary + sections.join("\n")
@@ -58,12 +67,15 @@ if (parsedArgs["h"] || parsedArgs["help"]) {
     console.log(`create-compare-views.js - utility to create a simple HTML view from a folder of svgs that have differences vs the reference ones
 
 Usage:
-    create-compare-views.js (-d DIR) (-r DIR) (-o FILE)
+    create-compare-views.js [-d] [-r] [-o] [-u | --url]
 
-Options:
+Inputs and outputs:
     -r DIR   Input directory containing the reference svg files [default: ${utils.DEFAULT_REFERENCE_DIR}]
     -d DIR   Input directory with the svgs that were found to be different [default: ${utils.DEFAULT_DIFFERENCES_DIR}]
     -o FILE  HTML Output filename to generate [default: ${DEFAULT_REPORT_FILENAME}]
+
+Options:
+    --url, -u   Base URL to compare against prod [default: ${LOCAL_URL}]
     `)
 } else {
     main(parsedArgs)
@@ -72,7 +84,8 @@ Options:
 function createComparisonView(
     svgRecord: utils.SvgRecord,
     referenceDir: string,
-    differencesDir: string
+    differencesDir: string,
+    compareGrapherUrl = LOCAL_GRAPHER_URL
 ) {
     const { svgFilename, slug } = svgRecord
 
@@ -87,7 +100,7 @@ function createComparisonView(
             <a href="${LIVE_GRAPHER_URL}/${slug}${queryStr}" target="_blank">
                 <img src="${referenceFilename}" loading="lazy">
             </a>
-            <a href="${LOCAL_GRAPHER_URL}/${slug}${queryStr}" target="_blank">
+            <a href="${compareGrapherUrl}/${slug}${queryStr}" target="_blank">
                 <img src="${differencesFilename}" loading="lazy">
             </a>
         </div>
