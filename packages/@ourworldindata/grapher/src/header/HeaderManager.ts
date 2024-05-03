@@ -8,7 +8,7 @@ export interface HeaderManager {
     shouldLinkToOwid?: boolean
     logo?: string
     canonicalUrl?: string
-    tabBounds?: Bounds
+    captionedChartBounds?: Bounds
     detailsOrderedByReference?: string[]
     shouldIncludeDetailsInStaticExport?: boolean
     isExportingToSvgOrPng?: boolean
