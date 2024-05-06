@@ -18,7 +18,7 @@ async function main(args: parseArgs.ParsedArgs) {
     const referenceDir: string = args["r"] ?? utils.DEFAULT_REFERENCE_DIR
     const differencesDir: string = args["d"] ?? utils.DEFAULT_DIFFERENCES_DIR
     const outFile: string = args["o"] ?? DEFAULT_REPORT_FILENAME
-    const compareUrl: string = args["url"] ?? args["u"] ?? LOCAL_URL
+    const compareUrl: string = args["compare-url"] ?? LOCAL_URL
 
     const compareGrapherUrl = compareUrl + "/grapher"
 
@@ -67,7 +67,7 @@ if (parsedArgs["h"] || parsedArgs["help"]) {
     console.log(`create-compare-views.js - utility to create a simple HTML view from a folder of svgs that have differences vs the reference ones
 
 Usage:
-    create-compare-views.js [-d] [-r] [-o] [-u | --url]
+    create-compare-views.js [-d] [-r] [-o] [-u | --compare-url]
 
 Inputs and outputs:
     -r DIR   Input directory containing the reference svg files [default: ${utils.DEFAULT_REFERENCE_DIR}]
@@ -75,7 +75,7 @@ Inputs and outputs:
     -o FILE  HTML Output filename to generate [default: ${DEFAULT_REPORT_FILENAME}]
 
 Options:
-    --url, -u   Base URL to compare against prod [default: ${LOCAL_URL}]
+    --compare-url   Base URL to compare against prod [default: ${LOCAL_URL}]
     `)
 } else {
     main(parsedArgs)
@@ -94,14 +94,16 @@ function createComparisonView(
 
     const queryStr = svgRecord.queryStr ? `?${svgRecord.queryStr}` : ""
 
+    const escapeQuestionMark = (str: string) => str.replace(/\?/g, "%3F")
+
     return `<section>
         <h2>${slug}${queryStr}</h2>
         <div class="side-by-side">
             <a href="${LIVE_GRAPHER_URL}/${slug}${queryStr}" target="_blank">
-                <img src="${referenceFilename}" loading="lazy">
+                <img src="${escapeQuestionMark(referenceFilename)}" loading="lazy">
             </a>
             <a href="${compareGrapherUrl}/${slug}${queryStr}" target="_blank">
-                <img src="${differencesFilename}" loading="lazy">
+                <img src="${escapeQuestionMark(differencesFilename)}" loading="lazy">
             </a>
         </div>
     </section>`
