@@ -151,6 +151,7 @@ export {
     compact,
     countBy,
     debounce,
+    defaults,
     difference,
     drop,
     dropRightWhile,
