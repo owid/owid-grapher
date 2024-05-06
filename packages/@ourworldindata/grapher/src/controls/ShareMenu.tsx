@@ -32,10 +32,14 @@ interface ShareMenuState {
 
 type ShareApiManager = Pick<ShareMenuManager, "canonicalUrl" | "currentTitle">
 
-const getShareData = (manager: ShareApiManager): ShareData => ({
-    title: manager.currentTitle ?? "",
-    url: manager.canonicalUrl,
-})
+const getShareData = (manager: ShareApiManager): ShareData | undefined => {
+    if (!manager.canonicalUrl) return undefined
+
+    return {
+        title: manager.currentTitle ?? "",
+        url: manager.canonicalUrl,
+    }
+}
 
 // On mobile OSs, the system-level share API does a way better job of providing
 // relevant options to the user than our own <ShareMenu> does - for example,
@@ -47,6 +51,8 @@ const getShareData = (manager: ShareApiManager): ShareData => ({
 // -@marcelgerber, 2024-04-24
 export const shouldShareUsingShareApi = (manager: ShareApiManager): boolean => {
     const shareData = getShareData(manager)
+    if (!shareData) return false
+
     return (
         (isAndroid() || isIOS()) &&
         "share" in navigator &&
@@ -58,9 +64,10 @@ export const shouldShareUsingShareApi = (manager: ShareApiManager): boolean => {
 export const shareUsingShareApi = async (
     manager: ShareApiManager
 ): Promise<void> => {
-    if (!manager.canonicalUrl || !navigator.share) return
+    if (!navigator.share) return
 
     const shareData = getShareData(manager)
+    if (!shareData) return
 
     try {
         await navigator.share(shareData)
