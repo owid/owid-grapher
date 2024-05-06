@@ -1219,16 +1219,28 @@ export class MarimekkoChart
     20 labels relatively evenly spaced (in x domain space) and this function gives us 20 groups that
     are roughly of equal size and then we can pick the largest of each group */
     private static splitIntoEqualDomainSizeChunks(
+        items: Item[],
         candidates: LabelCandidate[],
         numChunks: number
     ): LabelCandidate[][] {
+        // we'll use this to validate a candidate against it's chart appearance validity
+        const validItemNames: String[] = items.map(({ entityName }) => entityName)
+
+        // reduce the list of candidates down to just those that match the valid entities
+        // all further calculations are then done only with validCandidates
+        let validCandidates: LabelCandidate[] = []
+        for (const candidate of candidates) {
+            if (validItemNames.includes(candidate.item.entityName)) {
+                validCandidates.push(candidate)
+            }
+        }
         const chunks: LabelCandidate[][] = []
         let currentChunk: LabelCandidate[] = []
         let domainSizeOfChunk = 0
         const domainSizeThreshold = Math.ceil(
-            sumBy(candidates, (candidate) => candidate.item.xValue) / numChunks
+            sumBy(validCandidates, (candidate) => candidate.item.xValue) / numChunks
         )
-        for (const candidate of candidates) {
+        for (const candidate of validCandidates) {
             while (domainSizeOfChunk > domainSizeThreshold) {
                 chunks.push(currentChunk)
                 currentChunk = []
@@ -1250,6 +1262,7 @@ export class MarimekkoChart
             xRange,
             sortConfig,
             paddingInPixels,
+            items,
         } = this
 
         if (yColumnsAtLastTimePoint.length === 0) return []
@@ -1331,6 +1344,7 @@ export class MarimekkoChart
             Math.min(availablePixels / (labelHeight + paddingInPixels) / 3, 20) // factor 3 is arbitrary to taste
         )
         const chunks = MarimekkoChart.splitIntoEqualDomainSizeChunks(
+            items,
             labelCandidates,
             numLabelsToAdd
         )
