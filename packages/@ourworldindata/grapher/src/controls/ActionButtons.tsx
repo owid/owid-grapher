@@ -186,7 +186,7 @@ export class ActionButtons extends React.Component<{
     }
 
     @action.bound toggleShareMenu(): void {
-        if (shouldShareUsingShareApi()) {
+        if (shouldShareUsingShareApi(this.manager)) {
             void shareUsingShareApi(this.manager)
             return
         }

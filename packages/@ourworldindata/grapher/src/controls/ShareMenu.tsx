@@ -30,6 +30,13 @@ interface ShareMenuState {
     copied: boolean
 }
 
+type ShareApiManager = Pick<ShareMenuManager, "canonicalUrl" | "currentTitle">
+
+const getShareData = (manager: ShareApiManager): ShareData => ({
+    title: manager.currentTitle ?? "",
+    url: manager.canonicalUrl,
+})
+
 // On mobile OSs, the system-level share API does a way better job of providing
 // relevant options to the user than our own <ShareMenu> does - for example,
 // quick access to messaging apps, the user's frequent contacts, etc.
@@ -38,23 +45,22 @@ interface ShareMenuState {
 // own menu.
 // See https://github.com/owid/owid-grapher/issues/3446
 // -@marcelgerber, 2024-04-24
-export const shouldShareUsingShareApi = (): boolean => {
+export const shouldShareUsingShareApi = (manager: ShareApiManager): boolean => {
+    const shareData = getShareData(manager)
     return (
         (isAndroid() || isIOS()) &&
         "share" in navigator &&
-        "canShare" in navigator
+        "canShare" in navigator &&
+        navigator.canShare(shareData)
     )
 }
 
 export const shareUsingShareApi = async (
-    manager: Pick<ShareMenuManager, "canonicalUrl" | "currentTitle">
+    manager: ShareApiManager
 ): Promise<void> => {
     if (!manager.canonicalUrl || !navigator.share) return
 
-    const shareData = {
-        title: manager.currentTitle ?? "",
-        url: manager.canonicalUrl,
-    }
+    const shareData = getShareData(manager)
 
     try {
         await navigator.share(shareData)
