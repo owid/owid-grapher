@@ -93,11 +93,10 @@ export async function createGdocAndInsertIntoDb(
     knex: KnexReadWriteTransaction,
     id: string
 ): Promise<OwidGdoc> {
-    // Fetch the data from Google Docs and save it to the database
+    // Fetch the data from Google Docs.
     // We have to fetch it here because we need to know the type of the Gdoc in load()
     const base = new GdocBase(id)
     await base.fetchAndEnrichGdoc()
-    await upsertGdoc(knex, base)
 
     // Load its metadata and state so that subclass parsing & validation is also done.
     // This involves a second call to the DB and Google, which makes me sad, but it'll do for now.
@@ -106,9 +105,13 @@ export async function createGdocAndInsertIntoDb(
         base,
         GdocsContentSource.Gdocs
     )
-
-    // 2024-03-12 Daniel: We used to save here before the knex refactor but I think that was redundant?
-    // await gdoc.save()
+    // Save the enriched Gdoc to the database (including subclass-specific
+    // enrichments, cf. _enrichSubclassContent()). Otherwise subclass
+    // enrichments are not present on the Gdoc* subclass when loading from the
+    // DB (GdocsContentSource.Internal), since subclass enrichements are only
+    // done while fetching the live gdocs (GdocsContentSource.Gdocs) in
+    // loadFromGdocBase().
+    await upsertGdoc(knex, gdoc)
 
     return gdoc
 }
