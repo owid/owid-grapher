@@ -10,7 +10,12 @@ import {
     faArrowRight,
     IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
-import { ShareMenu, ShareMenuManager } from "./ShareMenu"
+import {
+    ShareMenu,
+    ShareMenuManager,
+    shareUsingShareApi,
+    shouldShareUsingShareApi,
+} from "./ShareMenu.js"
 import { DEFAULT_BOUNDS, Bounds } from "@ourworldindata/utils"
 
 export interface ActionButtonsManager extends ShareMenuManager {
@@ -181,6 +186,10 @@ export class ActionButtons extends React.Component<{
     }
 
     @action.bound toggleShareMenu(): void {
+        if (shouldShareUsingShareApi(this.manager)) {
+            void shareUsingShareApi(this.manager)
+            return
+        }
         this.manager.isShareMenuActive = !this.manager.isShareMenuActive
     }
 
