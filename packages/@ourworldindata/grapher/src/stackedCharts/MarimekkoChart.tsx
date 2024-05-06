@@ -79,6 +79,7 @@ import {
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
+const MAX_LABEL_COUNT: number = 20
 
 function MarimekkoBar({
     bar,
@@ -1341,7 +1342,7 @@ export class MarimekkoChart
         const labelHeight = labelCandidates[0].bounds.height
 
         const numLabelsToAdd = Math.floor(
-            Math.min(availablePixels / (labelHeight + paddingInPixels) / 3, 20) // factor 3 is arbitrary to taste
+            Math.min(availablePixels / (labelHeight + paddingInPixels) / 3, MAX_LABEL_COUNT) // factor 3 is arbitrary to taste
         )
         const chunks = MarimekkoChart.splitIntoEqualDomainSizeChunks(
             items,
