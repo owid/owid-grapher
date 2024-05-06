@@ -41,6 +41,17 @@ const getShareData = (manager: ShareApiManager): ShareData | undefined => {
     }
 }
 
+const canUseShareApi = (manager: ShareApiManager): boolean => {
+    const shareData = getShareData(manager)
+    if (!shareData) return false
+
+    return (
+        "share" in navigator &&
+        "canShare" in navigator &&
+        navigator.canShare(shareData)
+    )
+}
+
 // On mobile OSs, the system-level share API does a way better job of providing
 // relevant options to the user than our own <ShareMenu> does - for example,
 // quick access to messaging apps, the user's frequent contacts, etc.
@@ -49,17 +60,8 @@ const getShareData = (manager: ShareApiManager): ShareData | undefined => {
 // own menu.
 // See https://github.com/owid/owid-grapher/issues/3446
 // -@marcelgerber, 2024-04-24
-export const shouldShareUsingShareApi = (manager: ShareApiManager): boolean => {
-    const shareData = getShareData(manager)
-    if (!shareData) return false
-
-    return (
-        (isAndroid() || isIOS()) &&
-        "share" in navigator &&
-        "canShare" in navigator &&
-        navigator.canShare(shareData)
-    )
-}
+export const shouldShareUsingShareApi = (manager: ShareApiManager): boolean =>
+    (isAndroid() || isIOS()) && canUseShareApi(manager)
 
 export const shareUsingShareApi = async (
     manager: ShareApiManager
@@ -168,8 +170,18 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         return href
     }
 
+    @computed get canUseShareApi(): boolean {
+        return canUseShareApi(this.manager)
+    }
+
     render(): JSX.Element {
-        const { twitterHref, facebookHref, isDisabled, manager } = this
+        const {
+            twitterHref,
+            facebookHref,
+            isDisabled,
+            canUseShareApi,
+            manager,
+        } = this
         const { editUrl } = manager
 
         const width = 200
@@ -221,7 +233,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     </span>{" "}
                     Embed
                 </a>
-                {"share" in navigator && (
+                {canUseShareApi && (
                     <a
                         title="Share this visualization with an app on your device"
                         data-track-note="chart_share_navigator"
