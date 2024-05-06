@@ -36,7 +36,7 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
 
     @computed private get codeSnippet(): string {
         const url = this.manager.embedUrl
-        return `<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`
+        return `<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;" allow="web-share; clipboard-write"></iframe>`
     }
 
     @action.bound private onDismiss(): void {
