@@ -735,6 +735,18 @@ export const renderExplorerPage = async (
             `SELECT id, grapherConfigETL, grapherConfigAdmin FROM variables WHERE id IN (?)`,
             [requiredVariableIds]
         )
+
+        // check if all required variable IDs exist in the database
+        const missingIds = requiredVariableIds.filter(
+            (id) => !partialGrapherConfigRows.find((row) => row.id === id)
+        )
+        if (missingIds.length > 0) {
+            void logErrorAndMaybeSendToBugsnag(
+                new JsonError(
+                    `Referenced variable IDs do not exist in the database for explorer ${program.slug}: ${missingIds.join(", ")}.`
+                )
+            )
+        }
     }
 
     const parseGrapherConfigFromRow = (row: ChartRow): GrapherInterface => {
