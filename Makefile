@@ -152,7 +152,7 @@ refresh:
 
 refresh.pageviews:
 	@echo '==> Refreshing pageviews'
-	yarn && yarn buildTsc && yarn refreshPageviews
+	yarn && yarn buildLerna && yarn buildTsc && yarn refreshPageviews
 
 refresh.wp:
 	@echo '==> Downloading wordpress data'
