@@ -626,51 +626,53 @@ const SearchResults = (props: SearchResultsProps) => {
             className="search-results"
             data-active-filter={activeCategoryFilter}
         >
-            <Index indexName={getIndexName(SearchIndexName.Pages)}>
-                <Configure
-                    hitsPerPage={40}
-                    distinct
-                    clickAnalytics={hasClickAnalyticsConsent}
-                    // If we detect a country/region name in the query, we don't run a fulltext search
-                    restrictSearchableAttributes={
-                        searchQueryRegionsMatches
-                            ? PAGES_ATTRIBUTES_TO_SEARCH_NO_FULLTEXT
-                            : undefined
-                    }
-                />
-                <NoResultsBoundary>
-                    <section className="search-results__pages">
-                        <header className="search-results__header-container">
-                            <div className="search-results__header">
-                                <h2 className="h2-bold search-results__section-title">
-                                    Research & Writing
-                                </h2>
-                                <ShowMore
-                                    category={SearchIndexName.Pages}
-                                    cutoffNumber={4}
-                                    activeCategoryFilter={activeCategoryFilter}
-                                    handleCategoryFilterClick={
-                                        handleCategoryFilterClick
-                                    }
-                                />
-                            </div>
-                        </header>
-                        <Hits
-                            classNames={{
-                                root: "search-results__list-container",
-                                list: "search-results__pages-list grid grid-cols-2 grid-sm-cols-1",
-                                item: "search-results__page-hit",
-                            }}
-                            hitComponent={PagesHit}
-                        />
-                    </section>
-                </NoResultsBoundary>
-            </Index>
+            {/* This is using the InstantSearch index specified in InstantSearchContainer */}
+            <Configure
+                hitsPerPage={40}
+                distinct
+                clickAnalytics={hasClickAnalyticsConsent}
+                // If we detect a country/region name in the query, we don't run a fulltext search
+                restrictSearchableAttributes={
+                    searchQueryRegionsMatches
+                        ? PAGES_ATTRIBUTES_TO_SEARCH_NO_FULLTEXT
+                        : undefined
+                }
+            />
+            <NoResultsBoundary>
+                <section className="search-results__pages">
+                    <header className="search-results__header-container">
+                        <div className="search-results__header">
+                            <h2 className="h2-bold search-results__section-title">
+                                Research & Writing
+                            </h2>
+                            <ShowMore
+                                category={SearchIndexName.Pages}
+                                cutoffNumber={4}
+                                activeCategoryFilter={activeCategoryFilter}
+                                handleCategoryFilterClick={
+                                    handleCategoryFilterClick
+                                }
+                            />
+                        </div>
+                    </header>
+                    <Hits
+                        classNames={{
+                            root: "search-results__list-container",
+                            list: "search-results__pages-list grid grid-cols-2 grid-sm-cols-1",
+                            item: "search-results__page-hit",
+                        }}
+                        hitComponent={PagesHit}
+                    />
+                </section>
+            </NoResultsBoundary>
             <Index indexName={getIndexName(SearchIndexName.Charts)}>
                 <Configure
                     hitsPerPage={40}
                     distinct
                     clickAnalytics={hasClickAnalyticsConsent}
+                    restrictSearchableAttributes={
+                        "" as any
+                    } /* Hack: This is the only way to _not_ send `restrictSearchableAttributes` along for this index */
                 />
                 <NoResultsBoundary>
                     <section className="search-results__charts">
@@ -703,7 +705,11 @@ const SearchResults = (props: SearchResultsProps) => {
             <Index indexName={getIndexName(SearchIndexName.ExplorerViews)}>
                 <Configure
                     hitsPerPage={20}
+                    distinct={4}
                     clickAnalytics={hasClickAnalyticsConsent}
+                    restrictSearchableAttributes={
+                        "" as any
+                    } /* Hack: This is the only way to _not_ send `restrictSearchableAttributes` along for this index */
                 />
                 <NoResultsBoundary>
                     <section className="search-results__explorers">
@@ -815,7 +821,9 @@ export class InstantSearchContainer extends React.Component {
                     // we're customizing it here to remove any filter / facet information so that it's just ?q=some+query
                     stateMapping: {
                         stateToRoute(uiState) {
-                            const query = uiState[""].query
+                            const query =
+                                uiState[getIndexName(SearchIndexName.Pages)]
+                                    .query
                             return {
                                 q: query,
                             }
@@ -823,7 +831,7 @@ export class InstantSearchContainer extends React.Component {
                         routeToState(routeState) {
                             const query = routeState.q
                             return {
-                                "": {
+                                [getIndexName(SearchIndexName.Pages)]: {
                                     query: query,
                                 },
                             }
@@ -831,6 +839,7 @@ export class InstantSearchContainer extends React.Component {
                     },
                 }}
                 searchClient={this.searchClient}
+                indexName={getIndexName(SearchIndexName.Pages)}
             >
                 <div className="search-panel">
                     <SearchBox
