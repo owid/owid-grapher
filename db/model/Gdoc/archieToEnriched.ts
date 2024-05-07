@@ -26,7 +26,7 @@ import {
 import { convertHeadingTextToId } from "@ourworldindata/components"
 import { parseRawBlocksToEnrichedBlocks, parseRefs } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
-import { parseAuthors, spansToSimpleString } from "./gdocUtils.js"
+import { extractUrl, parseAuthors, spansToSimpleString } from "./gdocUtils.js"
 import { htmlToSimpleTextBlock } from "./htmlToEnriched.js"
 import { RESEARCH_AND_WRITING_DEFAULT_HEADING } from "@ourworldindata/types"
 
@@ -303,6 +303,15 @@ export const archieToEnriched = (
     for (const key of Object.keys(parsed)) {
         if (parsed[key] === "true") parsed[key] = true
         if (parsed[key] === "false") parsed[key] = false
+    }
+
+    // Convert URL front-matter properties to URLs
+    for (const key of Object.keys(parsed)) {
+        const value = parsed[key]
+        if (typeof value === "string") {
+            // this is safe to call on everything because it falls back to `value` if it's not an <a> tag
+            parsed[key] = extractUrl(value)
+        }
     }
 
     // Parse elements of the ArchieML into enrichedBlocks
