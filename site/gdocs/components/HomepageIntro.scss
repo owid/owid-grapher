@@ -184,7 +184,10 @@
         display: block;
 
         @include sm-only {
-            height: 172px;
+            // All our new featured images are published at 1200px x 630px
+            // Older featured images aren't published at this size, so we need to
+            // crop them to the correct aspect ratio so that they're all flush
+            aspect-ratio: 1200 / 630;
             width: 298px;
             object-fit: cover;
         }

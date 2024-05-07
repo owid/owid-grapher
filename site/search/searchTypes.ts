@@ -31,6 +31,10 @@ export interface PageRecord {
     date?: string
     modifiedDate?: string
     tags?: string[]
+    // Either a URL (for WP posts) or a filepath (for GDocs)
+    // WP example: https://ourworldindata.org/wp-content/uploads/2021/03/Biodiversity-thumbnail.png
+    // GDoc example: /images/published/artificial-intelligence-featured-image_100.png
+    thumbnailUrl: string
     documentType?: "wordpress" | "gdoc" | "country-page"
 }
 

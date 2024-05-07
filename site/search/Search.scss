@@ -241,6 +241,20 @@ $reset-button-margin: 16px;
     }
 }
 
+.search-results__page-hit-container {
+    display: flex;
+}
+
+.search-results__page-hit-img-container {
+    margin-right: 16px;
+    @include sm-only {
+        display: none;
+    }
+}
+.search-results__page-hit-img {
+    width: 100px;
+}
+
 .search-results__page-hit-title {
     display: inline;
     color: $blue-90;
@@ -252,7 +266,8 @@ $reset-button-margin: 16px;
 }
 
 .search-results__page-hit-snippet {
-    margin: 4px 0;
+    margin: 0;
+    margin-bottom: 4px;
     color: $blue-60;
     display: block;
 }

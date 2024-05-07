@@ -71,7 +71,11 @@ function FeaturedWorkTile({
             })}
         >
             {thumbnailFilename && (
-                <Image shouldLightbox={false} filename={thumbnailFilename} />
+                <Image
+                    shouldLightbox={false}
+                    filename={thumbnailFilename}
+                    containerType="thumbnail"
+                />
             )}
             {kicker && (
                 <span className="h6-black-caps homepage-intro__featured-work-kicker">
