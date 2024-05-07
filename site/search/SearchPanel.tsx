@@ -89,7 +89,7 @@ function PagesHit({ hit }: { hit: IPageHit }) {
             {hit.thumbnail && (
                 <div className="search-results__page-hit-img-container">
                     <img
-                        src={hit.thumbnail}
+                        src={hit.thumbnailUrl}
                         role="presentation"
                         className="search-results__page-hit-img"
                     />
