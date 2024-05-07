@@ -1636,40 +1636,6 @@ function parseExpandableParagraph(
 function parseResearchAndWritingBlock(
     raw: RawBlockResearchAndWriting
 ): EnrichedBlockResearchAndWriting {
-    const createError = (
-        error: ParseError,
-        heading = "",
-        hideAuthors = false,
-        primary = [
-            {
-                value: { url: "" },
-            },
-        ],
-        secondary = [
-            {
-                value: { url: "" },
-            },
-        ],
-        more: EnrichedBlockResearchAndWritingRow = {
-            heading: "",
-            articles: [],
-        },
-        latest: EnrichedBlockResearchAndWritingRow = {
-            heading: "",
-            articles: [],
-        },
-        rows: EnrichedBlockResearchAndWritingRow[] = []
-    ): EnrichedBlockResearchAndWriting => ({
-        type: "research-and-writing",
-        heading,
-        "hide-authors": hideAuthors,
-        primary,
-        secondary,
-        more,
-        latest,
-        rows,
-        parseErrors: [error],
-    })
     const parseErrors: ParseError[] = []
 
     function enrichLink(
@@ -1729,12 +1695,10 @@ function parseResearchAndWritingBlock(
         })
     }
 
-    if (!raw.value.primary)
-        return createError({ message: "Missing primary link" })
     const primary: EnrichedBlockResearchAndWritingLink[] = []
     if (isArray(raw.value.primary)) {
         primary.push(...raw.value.primary.map((link) => enrichLink(link)))
-    } else {
+    } else if (raw.value.primary) {
         primary.push(enrichLink(raw.value.primary))
     }
 
