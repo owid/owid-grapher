@@ -58,7 +58,7 @@ The React code for rendering our content in pages, used by the Grapher Admin and
 
 Much of our code is based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using [React](https://reactjs.org/) and [Mobx](http://github.com/mobxjs/mobx).
 
-All non-WordPress code is written in [TypeScript](https://www.typescriptlang.org/).
+All code is written in [TypeScript](https://www.typescriptlang.org/).
 
 If you want to enable pre-commit hooks, run `yarn husky`.
 

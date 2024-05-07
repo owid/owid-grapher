@@ -28,6 +28,7 @@ help:
 	@echo '  make down                   stop any services still running'
 	@echo '  make refresh                (while up) download a new grapher snapshot and update MySQL'
 	@echo '  make refresh.pageviews      (while up) download and load pageviews from the private datasette instance'
+	@echo '  make refresh.full           (while up) run refresh and refresh.pageviews and sync images from R2'
 	@echo '  make migrate                (while up) run any outstanding db migrations'
 	@echo '  make test                   run full suite (except db tests) of CI checks including unit tests'
 	@echo '  make dbtest                 run db test suite that needs a running mysql db'
@@ -112,7 +113,7 @@ up.full: require create-if-missing.env.full ../owid-content tmp-downloads/owid_m
 
 	@echo '==> Starting dev environment'
 	tmux new-session -s grapher \
-		-n docker 'docker compose -f docker-compose.full.yml up' \; \
+		-n docker 'docker compose -f docker-compose.grapher.yml up' \; \
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
@@ -152,6 +153,9 @@ refresh.pageviews:
 sync-images: sync-images.preflight-check
 	@echo '==> Syncing images to R2'
 	@. ./.env && ./devTools/docker/sync-s3-images.sh
+
+refresh.full: refresh refresh.pageviews sync-images
+	@echo '==> Full refresh completed'
 
 sync-images.preflight-check:
 	@echo '==> Checking for rclone'

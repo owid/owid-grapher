@@ -622,10 +622,6 @@ function* flattenSiteNavigation(
     }
 }
 
-apiRouter.get("/topics.json", async (req, res) => ({
-    topics: flattenSiteNavigation(SiteNavigationStatic.categories),
-}))
-
 getRouteWithROTransaction(
     apiRouter,
     "/editorData/variables.json",

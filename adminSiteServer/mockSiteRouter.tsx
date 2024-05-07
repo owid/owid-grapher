@@ -26,6 +26,7 @@ import {
     BAKED_BASE_URL,
     BASE_DIR,
     BAKED_SITE_DIR,
+    LEGACY_WORDPRESS_IMAGE_URL,
 } from "../settings/serverSettings.js"
 
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
@@ -385,6 +386,20 @@ mockSiteRouter.use(
     })
 )
 
+mockSiteRouter.use(
+    // Not all /app/uploads paths are going through formatting
+    // and being rewritten as /uploads. E.g. blog index images paths
+    // on front page.
+    ["/uploads", "/app/uploads"],
+    (req, res, next) => {
+        const assetPath = req.path.replace(/^\/(app\/)?uploads\//, "")
+        // Ensure no trailing slash on the base URL and manage the slash between URLs safely
+        const baseUrl = LEGACY_WORDPRESS_IMAGE_URL.replace(/\/+$/, "")
+        const path = assetPath.replace(/^\/+/, "")
+        const assetUrl = `${baseUrl}/${path}`
+        res.redirect(assetUrl)
+    }
+)
 mockSiteRouter.use(
     "/exports",
     express.static(path.join(BAKED_SITE_DIR, "exports"))

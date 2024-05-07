@@ -80,7 +80,6 @@ sync_baked_data_to_r2() {
     # NOTE: aws is about 3x faster than rclone
     sync_to_r2_aws grapher/exports  # 9203 files
     sync_to_r2_aws exports  # 3314 files
-    sync_to_r2_aws uploads  # 20609 files
 }
 
 deploy_to_cloudflare() {

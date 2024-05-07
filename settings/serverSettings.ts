@@ -190,6 +190,10 @@ export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY ?? ""
 export const SLACK_BOT_OAUTH_TOKEN: string =
     serverSettings.SLACK_BOT_OAUTH_TOKEN ?? ""
 
+export const LEGACY_WORDPRESS_IMAGE_URL: string =
+    serverSettings.LEGACY_WORDPRESS_IMAGE_URL ??
+    "https://assets.ourworldindata.org/uploads"
+
 // search evaluation
 export const SEARCH_EVAL_URL: string =
     "https://pub-ec761fe0df554b02bc605610f3296000.r2.dev"

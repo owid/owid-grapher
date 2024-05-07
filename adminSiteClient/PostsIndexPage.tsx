@@ -35,7 +35,7 @@ interface PostIndexMeta {
     status: string
     authors: string[] | null
     slug: string
-    updatedAtInWordpress: string | null
+    updated_at_in_wordpress: string | null
     tags: DbChartTagJoin[] | null
     gdocSuccessorId: string | undefined
     gdocSuccessorPublished: boolean
@@ -220,7 +220,7 @@ class PostRow extends React.Component<PostRowProps> {
                     />
                 </td>
                 <td>
-                    <Timeago time={post.updatedAtInWordpress} />
+                    <Timeago time={post.updated_at_in_wordpress} />
                 </td>
                 <td>
                     <a
