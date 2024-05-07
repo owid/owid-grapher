@@ -34,15 +34,7 @@ export interface ChartManager {
     table: OwidTable
     transformedTable?: OwidTable
 
-<<<<<<< HEAD
-||||||| parent of 4ee28c795 (Review markups)
-    isSelectingData?: boolean
-    startSelectingWhenLineClicked?: boolean // used by lineLabels
-=======
     isGlobe?: boolean
-    isSelectingData?: boolean
-    startSelectingWhenLineClicked?: boolean // used by lineLabels
->>>>>>> 4ee28c795 (Review markups)
     isExportingToSvgOrPng?: boolean
     isRelativeMode?: boolean
     comparisonLines?: ComparisonLineConfig[]
