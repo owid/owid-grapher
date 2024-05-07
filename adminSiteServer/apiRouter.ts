@@ -76,6 +76,7 @@ import {
     PostsGdocsTableName,
     DbPlainDataset,
     DbInsertUser,
+    OwidGdocContent,
 } from "@ourworldindata/types"
 import {
     getVariableDataRoute,
@@ -148,6 +149,7 @@ import { match } from "ts-pattern"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { GdocHomepage } from "../db/model/Gdoc/GdocHomepage.js"
 import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
+import path from "path"
 
 const apiRouter = new FunctionalRouter()
 
@@ -2542,5 +2544,96 @@ deleteRouteWithRWTransaction(
         return { success: true }
     }
 )
+
+// Get an ArchieML output of all the work produced by an author. This includes
+// gdoc articles, gdoc modular/linear topic pages and wordpress modular topic
+// pages. Data insights are excluded. This is used to manually populate the
+// [.secondary] section of the {.research-and-writing} block of author pages
+// using the alternate template, which highlights topics rather than articles.
+getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
+    type WordpressPageRecord = Record<
+        "slug" | "title" | "type" | "thumbnail" | "authors",
+        string
+    >
+    type GdocRecord = Pick<DbRawPostGdoc, "id"> &
+        Pick<OwidGdocContent, "title" | "type">
+
+    const author = req.query.author || "Max Roser"
+    const gdocs = await db.knexRaw<GdocRecord>(
+        trx,
+        `-- sql
+            SELECT id, content->>'$.title' as title, content->>'$.type'
+            FROM posts_gdocs
+            WHERE JSON_CONTAINS(content->'$.authors', '"${author}"')
+            AND type NOT IN ("data-insight", "article", "fragment")
+            AND published = 1
+            ORDER BY publishedAt DESC
+    `
+    )
+
+    // type: page
+    const wpModularTopicPages = await db.knexRaw<WordpressPageRecord>(
+        trx,
+        `-- sql
+        SELECT
+            wpApiSnapshot->>"$.slug" as slug,
+            wpApiSnapshot->>"$.title.rendered" as title,
+            wpApiSnapshot->>"$.type" as type,
+            wpApiSnapshot->>"$.authors_name" as authors,
+            wpApiSnapshot->>"$.featured_media_paths.medium_large" as thumbnail
+        FROM posts p
+        WHERE wpApiSnapshot->>"$.content" LIKE '%topic-page%'
+        AND JSON_CONTAINS(wpApiSnapshot->'$.authors_name', '"${author}"')
+        AND wpApiSnapshot->>"$.status" = 'publish'
+        AND NOT EXISTS (
+            SELECT 1 FROM posts_gdocs pg
+            WHERE pg.slug = p.slug
+            AND pg.content->>'$.type' LIKE '%topic-page'
+        )
+        ORDER BY wpApiSnapshot->>"$.date" DESC
+        `
+    )
+
+    const isWordpressPage = (
+        post: WordpressPageRecord | GdocRecord
+    ): post is WordpressPageRecord => post.type === "page"
+
+    function* generateProperty(key: string, value: string) {
+        yield `${key}: ${value}\n`
+    }
+
+    function* generateAllWorkArchieMl() {
+        for (const post of [...gdocs, ...wpModularTopicPages]) {
+            if (isWordpressPage(post)) {
+                yield* generateProperty("url", post.slug)
+                yield* generateProperty("title", post.title)
+                yield* generateProperty(
+                    "authors",
+                    JSON.parse(post.authors).join(", ")
+                )
+                const parsedPath = path.parse(post.thumbnail)
+                yield* generateProperty(
+                    "filename",
+                    // /app/uploads/2021/09/reducing-fertilizer-768x301.png -> reducing-fertilizer.png
+                    path.format({
+                        name: parsedPath.name.replace(/-\d+x\d+$/, ""),
+                        ext: parsedPath.ext,
+                    })
+                )
+                yield "\n"
+            } else {
+                // this is a gdoc
+                yield* generateProperty(
+                    "url",
+                    `https://docs.google.com/document/d/${post.id}/edit`
+                )
+                yield "\n"
+            }
+        }
+    }
+
+    res.type("text/plain")
+    res.send([...generateAllWorkArchieMl()].join(""))
+})
 
 export { apiRouter }
