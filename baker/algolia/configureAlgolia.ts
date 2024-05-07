@@ -83,6 +83,7 @@ export const configureAlgolia = async () => {
             "unordered(tags)",
             "unordered(availableEntities)",
         ],
+        ranking: ["typo", "words", "exact", "attribute", "custom", "proximity"],
         customRanking: [
             "desc(score)",
             "desc(numRelatedArticles)",
