@@ -117,7 +117,7 @@ export function OwidGdoc({
                 linkedIndicators: get(props, "linkedIndicators", {}),
                 relatedCharts: get(props, "relatedCharts", []),
                 latestDataInsights: get(props, "latestDataInsights", []),
-                homepageMetadata: get(props, "homepageMetadata", []),
+                homepageMetadata: get(props, "homepageMetadata", {}),
                 latestWorkLinks: get(props, "latestWorkLinks", []),
             }}
         >

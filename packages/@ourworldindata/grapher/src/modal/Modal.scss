@@ -1,96 +1,31 @@
-$modal-padding: 1.5em;
+.modal-overlay {
+    --modal-padding: 24px;
 
-// the base font size for modals is 16px and on
-// smaller devices scales down to 14px.
-// it is never scaled up though.
-
-.modalOverlay {
     position: absolute;
+
     // -1px to hide the frame border
     top: -1px;
     right: -1px;
     bottom: -1px;
     left: -1px;
+
     background-color: rgba(0, 0, 0, 0.4);
     z-index: $zindex-modal;
 
-    .modalWrapper {
+    .modal-wrapper {
         position: relative;
         height: 100%;
 
-        .modalContent {
+        .modal-content {
             position: absolute;
             border-radius: 4px;
             background: #fff;
             box-shadow: 0px 4px 30px 0px rgba(0, 0, 0, 0.15);
-            padding: $modal-padding;
-            padding-bottom: 0;
             min-height: 150px;
-            // necessary to allow modal to scroll
-            display: flex;
-            flex-direction: column;
-        }
-
-        .modalDismiss {
-            $light-stroke: #e7e7e7;
-            $hover-fill: #f2f2f2;
-            $active-fill: #dbe5f0;
-
-            font-size: 13px;
-            color: $dark-text;
-            border: 1px solid $light-stroke;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            background-color: #fff;
-            z-index: 1;
-
-            // center icon
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            position: absolute;
-            top: $modal-padding;
-            right: $modal-padding;
-
-            &:hover {
-                border-color: $hover-fill;
-                background: $hover-fill;
-                cursor: pointer;
-            }
-            &:active {
-                background-color: $active-fill;
-            }
-        }
-
-        .modalHeader {
-            flex-shrink: 0; // necessary to allow modal to scroll
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1em;
-
-            &__empty {
-                margin-bottom: 4px;
-            }
-
-            .modalTitle {
-                text-transform: uppercase;
-                color: $light-text;
-                font-size: 0.75em;
-                font-weight: 900;
-                letter-spacing: 1.2px;
-                margin: 0;
-            }
-
-            .modalDismiss {
-                position: static;
-            }
-        }
-
-        .modalScrollable {
-            overflow-y: auto;
         }
     }
+}
+
+&.GrapherComponentNarrow .modal-overlay {
+    --modal-padding: 16px;
 }

@@ -2,6 +2,7 @@ import cx from "classnames"
 import React, { useContext, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
@@ -26,11 +27,12 @@ function RedirectRow({
     redirect: Redirect
     onDelete: (redirect: Redirect) => void
 }) {
+    const targetUrl = new URL(redirect.target, BAKED_BASE_URL)
     return (
         <tr>
             <td className="text-break">{redirect.source}</td>
             <td className="text-break">
-                <a href={redirect.target} target="_blank" rel="noopener">
+                <a href={targetUrl.href} target="_blank" rel="noopener">
                     {redirect.target}
                 </a>
             </td>

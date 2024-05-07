@@ -3,15 +3,20 @@
 
     $light-stroke: #dadada;
     $hover-stroke: #a4b6ca;
-    $active-fill: #dbe5f0;
+    $active-fill: #a4b6ca;
 
     position: relative;
+
+    label {
+        margin: 0; // style leak in admin
+    }
 
     input {
         position: absolute;
         opacity: 0;
         left: 0;
         cursor: pointer;
+        pointer-events: none;
     }
 
     .custom {
@@ -26,7 +31,7 @@
         pointer-events: none;
         border-radius: 2px;
         border: 1px solid $light-stroke;
-        color: $dark-text;
+        color: #fff;
 
         display: flex;
         align-items: center;
@@ -35,7 +40,6 @@
         svg {
             font-size: 10px;
             padding-left: 0.75px;
-            color: $active-text;
         }
     }
 
@@ -57,11 +61,11 @@
     }
 
     .label {
+        @include grapher_label-2-regular;
         padding-left: $checkbox-size + 8px;
         cursor: pointer;
-        font-size: 14px;
-        letter-spacing: 0.01em;
-        line-height: 1.15;
+        user-select: none;
+        color: $dark-text;
     }
 
     &:hover {

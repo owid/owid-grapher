@@ -34,6 +34,8 @@ import {
     GRAPHER_FONT_SCALE_9_6,
     GRAPHER_FONT_SCALE_10_5,
     GRAPHER_FONT_SCALE_11_2,
+    GRAPHER_TIMELINE_CLASS,
+    GRAPHER_SIDE_PANEL_CLASS,
 } from "../core/GrapherConstants"
 import {
     ScaleType,
@@ -534,7 +536,7 @@ export class SlopeChart
         const target = e.target as HTMLElement
 
         // check if the target is an interactive element or contained within one
-        const selector = "a, button, input, .TimelineComponent"
+        const selector = `a, button, input, .${GRAPHER_TIMELINE_CLASS}, .${GRAPHER_SIDE_PANEL_CLASS}`
         const isTargetInteractive = target.closest(selector) !== null
 
         if (

@@ -1580,7 +1580,6 @@ getRouteWithROTransaction(
         SELECT t.id, t.name, p.name AS parentName
         FROM tags AS t
         JOIN tags AS p ON t.parentId=p.id
-        WHERE p.isBulkImport IS FALSE
     `
         )
         dataset.availableTags = availableTags
@@ -1623,11 +1622,13 @@ putRouteWithRWTransaction(
             datasetId,
         ])
         if (tagRows.length)
-            await db.knexRaw(
-                trx,
-                `INSERT INTO dataset_tags (tagId, datasetId) VALUES (?, ?)`,
-                tagRows
-            )
+            for (const tagRow of tagRows) {
+                await db.knexRaw(
+                    trx,
+                    `INSERT INTO dataset_tags (tagId, datasetId) VALUES (?, ?)`,
+                    tagRow
+                )
+            }
 
         try {
             await syncDatasetToGitRepo(trx, datasetId, {
@@ -1844,12 +1845,11 @@ getRouteWithROTransaction(
                 | "updatedAt"
                 | "parentId"
                 | "slug"
-                | "isBulkImport"
             >
         >(
             trx,
             `-- sql
-        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, t.slug, p.isBulkImport
+        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, t.slug
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
         WHERE t.id = ?
     `,
@@ -1958,7 +1958,7 @@ getRouteWithROTransaction(
             trx,
             `-- sql
         SELECT t.id, t.name FROM tags t
-        WHERE t.parentId IS NULL AND t.isBulkImport IS FALSE
+        WHERE t.parentId IS NULL
     `
         )
         tag.possibleParents = possibleParents
@@ -2028,7 +2028,6 @@ getRouteWithROTransaction(apiRouter, "/tags.json", async (req, res, trx) => {
         `-- sql
         SELECT t.id, t.name, t.parentId, t.specialType
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
-        WHERE t.isBulkImport IS FALSE AND (t.parentId IS NULL OR p.isBulkImport IS FALSE)
         ORDER BY t.name ASC
     `
     )

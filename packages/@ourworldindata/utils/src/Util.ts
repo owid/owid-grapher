@@ -1808,14 +1808,14 @@ export function extractDetailsFromSyntax(str: string): string[] {
  * See https://github.com/owid/owid-grapher/issues/3426
  */
 export function checkIsGdocPost(x: unknown): x is OwidGdocPostInterface {
-    const type = get(x, "content.type")
+    const type = get(x, "content.type") as OwidGdocType | undefined
     return [
         OwidGdocType.Article,
         OwidGdocType.TopicPage,
         OwidGdocType.LinearTopicPage,
         OwidGdocType.Fragment,
         OwidGdocType.AboutPage,
-    ].includes(type)
+    ].includes(type as any)
 }
 
 /**
@@ -1827,13 +1827,13 @@ export function checkIsGdocPost(x: unknown): x is OwidGdocPostInterface {
 export function checkIsGdocPostExcludingFragments(
     x: unknown
 ): x is OwidGdocPostInterface {
-    const type = get(x, "content.type")
+    const type = get(x, "content.type") as OwidGdocType | undefined
     return [
         OwidGdocType.Article,
         OwidGdocType.TopicPage,
         OwidGdocType.LinearTopicPage,
         OwidGdocType.AboutPage,
-    ].includes(type)
+    ].includes(type as any)
 }
 
 export function checkIsDataInsight(
@@ -1847,6 +1847,7 @@ export function checkIsAuthor(x: unknown): x is OwidGdocAuthorInterface {
     const type = get(x, "content.type")
     return type === OwidGdocType.Author
 }
+
 /**
  * Returns the cartesian product of the given arrays.
  *
@@ -1876,4 +1877,12 @@ export function isElementHidden(element: Element | null): boolean {
     )
         return true
     return isElementHidden(element.parentElement)
+}
+
+export function roundDownToNearestHundred(value: number): number {
+    return Math.floor(value / 100) * 100
+}
+
+export function isFiniteWithGuard(value: unknown): value is number {
+    return isFinite(value as any)
 }

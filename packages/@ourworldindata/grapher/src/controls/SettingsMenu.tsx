@@ -1,16 +1,14 @@
 import React from "react"
-import { createPortal } from "react-dom"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faXmark, faGear } from "@fortawesome/free-solid-svg-icons"
+import { faGear } from "@fortawesome/free-solid-svg-icons"
 import { EntityName, ChartTypeName, FacetStrategy } from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartDimension } from "../chart/ChartDimension"
 import { makeSelectionArray } from "../chart/ChartUtils.js"
 import { AxisConfig } from "../axis/AxisConfig"
-import { GRAPHER_SETTINGS_DRAWER_ID } from "../core/GrapherConstants"
 
 import { AxisScaleToggle } from "./settings/AxisScaleToggle"
 import { AbsRelToggle, AbsRelToggleManager } from "./settings/AbsRelToggle"
@@ -31,6 +29,7 @@ import {
     TableFilterToggle,
     TableFilterToggleManager,
 } from "./settings/TableFilterToggle"
+import { OverlayHeader } from "../core/OverlayHeader"
 
 const {
     LineChart,
@@ -48,10 +47,6 @@ export interface SettingsMenuManager
         ZoomToggleManager,
         TableFilterToggleManager,
         FacetStrategySelectionManager {
-    showConfigurationDrawer?: boolean
-    isInIFrame?: boolean
-    isEmbeddedInAnOwidPage?: boolean
-
     // ArchieML directives
     hideFacetControl?: boolean
     hideRelativeToggle?: boolean
@@ -67,7 +62,7 @@ export interface SettingsMenuManager
     type: ChartTypeName
     isRelativeMode?: boolean
     selection?: SelectionArray | EntityName[]
-    hasEntitySelectionToggle?: boolean
+    canChangeAddOrHighlightEntities?: boolean
     filledDimensions: ChartDimension[]
     xColumnSlug?: string
     xOverrideTime?: number
@@ -90,13 +85,13 @@ export class SettingsMenu extends React.Component<{
     manager: SettingsMenuManager
     top: number
     bottom: number
+    right: number
 }> {
-    @observable.ref active: boolean = false // set to true when the menu's display has been requested
-    @observable.ref visible: boolean = false // true while menu is active and during enter/exit transitions
+    @observable.ref active: boolean = false
     contentRef: React.RefObject<HTMLDivElement> = React.createRef() // the menu contents & backdrop
 
     static shouldShow(manager: SettingsMenuManager): boolean {
-        const test = new SettingsMenu({ manager, top: 0, bottom: 0 })
+        const test = new SettingsMenu({ manager, top: 0, bottom: 0, right: 0 })
         return test.showSettingsMenuToggle
     }
 
@@ -191,10 +186,11 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get showTableFilterToggle(): boolean {
-        const { hideTableFilterToggle, hasEntitySelectionToggle } = this.manager
+        const { hideTableFilterToggle, canChangeAddOrHighlightEntities } =
+            this.manager
         return (
             this.selectionArray.hasSelection &&
-            !!hasEntitySelectionToggle &&
+            !!canChangeAddOrHighlightEntities &&
             !hideTableFilterToggle
         )
     }
@@ -245,15 +241,8 @@ export class SettingsMenu extends React.Component<{
             this.toggleVisibility()
     }
 
-    @action.bound toggleVisibility(e?: React.MouseEvent): void {
+    @action.bound toggleVisibility(): void {
         this.active = !this.active
-        if (this.active) this.visible = true
-        this.drawer?.classList.toggle("active", this.active)
-        e?.stopPropagation()
-    }
-
-    @action.bound onAnimationEnd(): void {
-        if (!this.active) this.visible = false
     }
 
     @computed get manager(): SettingsMenuManager {
@@ -269,38 +258,15 @@ export class SettingsMenu extends React.Component<{
         return makeSelectionArray(this.manager.selection)
     }
 
-    @computed get drawer(): Element | null {
-        const { isInIFrame, isEmbeddedInAnOwidPage } = this.manager
-        // Use the drawer `<nav>` element if it exists in the page markup (as it does on grapher and data pages)
-        // unless this is an external embed or an internal one (e.g., in the data page's Related Charts block).
-        // Otherwise, render into a drop-down menu.
-        return isInIFrame || isEmbeddedInAnOwidPage
-            ? null
-            : document.querySelector(`nav#${GRAPHER_SETTINGS_DRAWER_ID}`)
-    }
-
-    @computed get layout(): { maxHeight: string; top: number } | void {
-        // constrain height only in the pop-up case (drawers are full-height)
-        if (!this.drawer) {
-            const { top, bottom } = this.props,
-                maxHeight = `calc(100% - ${top + bottom}px)`
-            return { maxHeight, top }
-        }
-    }
-
-    private animationFor(selector: string): { animation: string } {
-        const phase = this.active ? "enter" : "exit",
-            timing = this.drawer ? "333ms" : "0"
-        return { animation: `${selector}-${phase} ${timing}` }
+    @computed get layout(): { maxHeight: string; top: number; right: number } {
+        const { top, bottom, right } = this.props,
+            maxHeight = `calc(100% - ${top + bottom}px)`
+        return { maxHeight, top, right }
     }
 
     @computed get menu(): JSX.Element | void {
-        const { visible, drawer } = this
-
-        if (visible) {
-            return !drawer
-                ? this.menuContents
-                : createPortal(this.menuContents, drawer)
+        if (this.active) {
+            return this.menuContents
         }
     }
 
@@ -342,73 +308,73 @@ export class SettingsMenu extends React.Component<{
                 <div
                     className="settings-menu-backdrop"
                     onClick={this.toggleVisibility}
-                    style={this.animationFor("settings-menu-backdrop")}
-                    onAnimationEnd={this.onAnimationEnd} // triggers unmount
                 ></div>
                 <div
-                    className="settings-menu-controls"
+                    className="settings-menu-wrapper"
                     style={{
-                        ...this.animationFor("settings-menu-controls"),
                         ...this.layout,
                     }}
                 >
-                    <div className="config-header">
-                        <div className="config-title">{menuTitle}</div>
-                        <button
-                            className="clickable close"
-                            onClick={this.toggleVisibility}
-                        >
-                            <FontAwesomeIcon icon={faXmark} />
-                        </button>
-                    </div>
+                    <OverlayHeader
+                        className="settings-menu-header"
+                        title={menuTitle}
+                        onDismiss={this.toggleVisibility}
+                    />
 
-                    <SettingsGroup
-                        title="Chart view"
-                        active={
-                            isOnChartTab &&
-                            (showAbsRelToggle ||
-                                showZoomToggle ||
-                                showNoDataAreaToggle ||
-                                showFacetControl ||
-                                showFacetYDomainToggle)
-                        }
-                    >
-                        {showFacetControl && (
-                            <FacetStrategySelector manager={manager} />
-                        )}
-                        {showFacetYDomainToggle && (
-                            <FacetYDomainToggle manager={manager} />
-                        )}
-                        {showAbsRelToggle && <AbsRelToggle manager={manager} />}
-                        {showNoDataAreaToggle && (
-                            <NoDataAreaToggle manager={manager} />
-                        )}
-                        {showZoomToggle && <ZoomToggle manager={manager} />}
-                    </SettingsGroup>
-                    <SettingsGroup
-                        title="Axis scale"
-                        active={
-                            isOnChartTab &&
-                            (showYScaleToggle || showXScaleToggle)
-                        }
-                    >
-                        {showYScaleToggle && (
-                            <AxisScaleToggle
-                                axis={yAxis!}
-                                subtitle={omitLoneAxisLabel ? "" : yLabel}
-                            />
-                        )}
-                        {showXScaleToggle && (
-                            <AxisScaleToggle axis={xAxis!} subtitle={xLabel} />
-                        )}
-                        <div className="config-subtitle">
-                            A linear scale evenly spaces values, where each
-                            increment represents a consistent change. A
-                            logarithmic scale uses multiples of the starting
-                            value, with each increment representing the same
-                            percentage increase.
-                        </div>
-                    </SettingsGroup>
+                    <div className="settings-menu-controls">
+                        <SettingsGroup
+                            title="Chart view"
+                            active={
+                                isOnChartTab &&
+                                (showAbsRelToggle ||
+                                    showZoomToggle ||
+                                    showNoDataAreaToggle ||
+                                    showFacetControl ||
+                                    showFacetYDomainToggle)
+                            }
+                        >
+                            {showFacetControl && (
+                                <FacetStrategySelector manager={manager} />
+                            )}
+                            {showFacetYDomainToggle && (
+                                <FacetYDomainToggle manager={manager} />
+                            )}
+                            {showAbsRelToggle && (
+                                <AbsRelToggle manager={manager} />
+                            )}
+                            {showNoDataAreaToggle && (
+                                <NoDataAreaToggle manager={manager} />
+                            )}
+                            {showZoomToggle && <ZoomToggle manager={manager} />}
+                        </SettingsGroup>
+                        <SettingsGroup
+                            title="Axis scale"
+                            active={
+                                isOnChartTab &&
+                                (showYScaleToggle || showXScaleToggle)
+                            }
+                        >
+                            {showYScaleToggle && (
+                                <AxisScaleToggle
+                                    axis={yAxis!}
+                                    subtitle={omitLoneAxisLabel ? "" : yLabel}
+                                />
+                            )}
+                            {showXScaleToggle && (
+                                <AxisScaleToggle
+                                    axis={xAxis!}
+                                    subtitle={xLabel}
+                                />
+                            )}
+                            <div className="config-subtitle">
+                                A linear scale evenly spaces values, where each
+                                increment represents a consistent change. A
+                                logarithmic scale uses multiples of the starting
+                                value, with each increment representing the same
+                                percentage increase.
+                            </div>
+                        </SettingsGroup>
+                    </div>
                 </div>
             </div>
         )

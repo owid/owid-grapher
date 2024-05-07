@@ -100,6 +100,22 @@ export const setTagsForPost = async (
         )
 }
 
+export const getPostIdFromSlug = (
+    knex: db.KnexReadonlyTransaction,
+    slug: string
+): Promise<number | undefined> => {
+    return db
+        .knexRawFirst<{ id: number }>(
+            knex,
+            `-- sql
+        SELECT id
+        FROM posts
+        WHERE slug = ?`,
+            [slug]
+        )
+        .then((result) => result?.id)
+}
+
 export const getPostRawBySlug = async (
     trx: db.KnexReadonlyTransaction,
     slug: string
@@ -363,7 +379,7 @@ export const getWordpressPostReferencesByChartId = async (
                         slug from posts_gdocs pg
                     WHERE
                         pg.slug = p.slug
-                        AND pg.content ->> '$.type' <> 'fragment'
+                        AND pg.type != 'fragment'
                         AND pg.published = 1
                 )
             ORDER BY
@@ -401,7 +417,7 @@ export const getGdocsPostReferencesByChartId = async (
                 )
             WHERE
                 c.id = ?
-                AND pg.content ->> '$.type' NOT IN (
+                AND pg.type NOT IN (
                     '${OwidGdocType.Fragment}',
                     '${OwidGdocType.AboutPage}',
                     '${OwidGdocType.DataInsight}'
@@ -547,7 +563,7 @@ export const getRelatedResearchAndWritingForVariable = async (
             AND cd.variableId = ?
             AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
             AND p.published = 1
-            AND p.content ->> '$.type' != 'fragment'`,
+            AND p.type != 'fragment'`,
         [variableId]
     )
 
@@ -596,7 +612,7 @@ export const getLatestWorkByAuthor = async (
         WHERE
             pg.content ->> '$.authors' LIKE ?
             AND pg.published = TRUE
-            AND pg.content->>'$.type' = "${OwidGdocType.Article}"
+            AND pg.type = "${OwidGdocType.Article}"
         `,
         [`%${author}%`]
     )

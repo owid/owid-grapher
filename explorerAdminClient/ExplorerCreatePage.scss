@@ -1,7 +1,9 @@
 .ExplorerCreatePageHeader {
-    display: grid;
-    grid-template-columns: auto auto;
-    grid-template-rows: 50px;
+    display: flex;
+    height: 50px;
+    justify-content: flex-end;
+    align-content: center;
+    align-items: center;
 
     button {
         margin: 10px 5px;

@@ -45,7 +45,7 @@ export class GdocHomepage
             SELECT
                 id
             FROM posts_gdocs
-            WHERE content->>"$.type" = "${OwidGdocType.Homepage}"
+            WHERE type = "${OwidGdocType.Homepage}"
             AND published = TRUE
             AND id != ?`,
             [this.id]
@@ -63,12 +63,16 @@ export class GdocHomepage
     _loadSubclassAttachments = async (
         knex: db.KnexReadonlyTransaction
     ): Promise<void> => {
+        const [grapherCount, nonGrapherExplorerViewCount] = await Promise.all([
+            db.getTotalNumberOfCharts(knex),
+            db.getNonGrapherExplorerViewCount(knex),
+        ])
+
         this.homepageMetadata = {
-            chartCount: await db.getTotalNumberOfCharts(knex),
+            chartCount: grapherCount + nonGrapherExplorerViewCount,
             topicCount: UNIQUE_TOPIC_COUNT,
         }
 
-        // TODO: refactor these classes to properly use knex - not going to start it now
         this.latestDataInsights = await db.getPublishedDataInsights(knex, 4)
     }
 }

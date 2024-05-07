@@ -10,6 +10,8 @@
 @import "../../../components/src/IndicatorSources/IndicatorSources.scss";
 @import "../../../components/src/IndicatorProcessing/IndicatorProcessing.scss";
 
+@import "./typography.scss";
+
 // grapher frame
 $frame-color: #f2f2f2;
 
@@ -32,7 +34,8 @@ $zindex-modal: 30;
 
 $zindex-full-screen: 120;
 $zindex-controls-backdrop: 130;
-$zindex-controls-drawer: 140;
+$zindex-controls-popup: 140;
+$zindex-controls-drawer: 150;
 
 // needed for .global-entity-control-container
 @mixin xxlg-down {
@@ -59,9 +62,9 @@ $zindex-controls-drawer: 140;
     @import "../controls/ActionButtons.scss";
     @import "../controls/ShareMenu.scss";
     @import "../modal/Modal.scss";
-    @import "../modal/EntitySelectorModal.scss";
     @import "../modal/EmbedModal.scss";
     @import "../modal/DownloadModal.scss";
+    @import "../entitySelector/EntitySelector.scss";
     @import "../dataTable/DataTable.scss";
     @import "../modal/SourcesModal.scss";
     @import "../tooltip/Tooltip.scss";
@@ -73,6 +76,12 @@ $zindex-controls-drawer: 140;
     @import "../modal/SourcesDescriptions.scss";
     @import "../tabs/Tabs.scss";
     @import "../tabs/ExpandableTabs.scss";
+    @import "../slideInDrawer/SlideInDrawer.scss";
+    @import "../sidePanel/SidePanel.scss";
+    @import "../closeButton/CloseButton.scss";
+    @import "../controls/RadioButton.scss";
+    @import "../controls/Dropdown.scss";
+    @import "../core/OverlayHeader.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
@@ -81,6 +90,14 @@ $zindex-controls-drawer: 140;
 @import "../controls/globalEntitySelector/GlobalEntitySelector.scss";
 @import "../fullScreen/FullScreen.scss";
 @import "../../../components/src/Checkbox.scss";
+
+.grapher_dark {
+    color: $dark-text;
+}
+
+.grapher_light {
+    color: $light-text;
+}
 
 .GrapherComponent,
 .GrapherComponent h2,
@@ -105,6 +122,9 @@ $zindex-controls-drawer: 140;
 
     border: 1px solid $frame-color;
     z-index: $zindex-chart;
+
+    // important for the slide-in drawer
+    overflow-x: clip;
 
     * {
         box-sizing: border-box;
@@ -153,6 +173,10 @@ $zindex-controls-drawer: 140;
         z-index: $zindex-table;
     }
 
+    .CaptionedChartAndSidePanel {
+        display: flex;
+    }
+
     // customize css of the <CodeSnippet> component
     .wp-code-snippet {
         --code-snippet-border: #e7e7e7;
@@ -161,6 +185,14 @@ $zindex-controls-drawer: 140;
         --code-snippet-button: #{$dark-text};
         --code-snippet-button-hover: #{$light-text};
         --code-snippet-button-active: #{$light-text};
+
+        margin-bottom: 0 !important;
+    }
+
+    &.GrapherComponentNarrow {
+        .wp-code-snippet {
+            padding: 16px;
+        }
     }
 }
 
@@ -174,6 +206,25 @@ $zindex-controls-drawer: 140;
 
 .Tooltip {
     z-index: $zindex-Tooltip;
+}
+
+// white background tooltip for longer explanations
+// (the `--short` version has a little less padding)
+.tippy-box[data-theme="grapher-explanation"],
+.tippy-box[data-theme="grapher-explanation--short"] {
+    background: white;
+    color: $dark-text;
+    font: 400 14px/1.5 $sans-serif-font-stack;
+    box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
+
+    .tippy-arrow {
+        color: white;
+    }
+}
+.tippy-box[data-theme="grapher-explanation"] {
+    .tippy-content {
+        padding: 15px;
+    }
 }
 
 .markdown-text-wrap__line {

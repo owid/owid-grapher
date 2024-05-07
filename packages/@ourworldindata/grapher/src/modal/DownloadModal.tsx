@@ -20,6 +20,7 @@ import {
 } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
+import { OverlayHeader } from "../core/OverlayHeader.js"
 
 export interface DownloadModalManager {
     displaySlug: string
@@ -34,7 +35,8 @@ export interface DownloadModalManager {
     shouldIncludeDetailsInStaticExport?: boolean
     detailsOrderedByReference?: string[]
     isDownloadModalOpen?: boolean
-    tabBounds?: Bounds
+    frameBounds?: Bounds
+    captionedChartBounds?: Bounds
     isOnChartOrMapTab?: boolean
     framePaddingVertical?: number
     showAdminControls?: boolean
@@ -46,12 +48,16 @@ interface DownloadModalProps {
 
 @observer
 export class DownloadModal extends React.Component<DownloadModalProps> {
+    @computed private get frameBounds(): Bounds {
+        return this.manager.frameBounds ?? DEFAULT_BOUNDS
+    }
+
     @computed private get staticBounds(): Bounds {
         return this.manager.staticBounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get tabBounds(): Bounds {
-        return this.manager.tabBounds ?? DEFAULT_BOUNDS
+    @computed private get captionedChartBounds(): Bounds {
+        return this.manager.captionedChartBounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get isExportingSquare(): boolean {
@@ -64,8 +70,8 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
 
     @computed private get modalBounds(): Bounds {
         const maxWidth = 640
-        const padWidth = Math.max(16, (this.tabBounds.width - maxWidth) / 2)
-        return this.tabBounds.padHeight(16).padWidth(padWidth)
+        const padWidth = Math.max(16, (this.frameBounds.width - maxWidth) / 2)
+        return this.frameBounds.padHeight(16).padWidth(padWidth)
     }
 
     @computed private get targetBounds(): Bounds {
@@ -213,18 +219,32 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     private renderReady(): JSX.Element {
-        const { manager, svgPreviewUrl, tabBounds, targetWidth, targetHeight } =
-            this
+        const {
+            manager,
+            svgPreviewUrl,
+            captionedChartBounds,
+            targetWidth,
+            targetHeight,
+        } = this
         const pngPreviewUrl = this.pngPreviewUrl || this.fallbackPngUrl
 
         let previewWidth: number
         let previewHeight: number
         const boundScalar = 0.17
-        if (tabBounds.width / tabBounds.height > targetWidth / targetHeight) {
-            previewHeight = Math.min(72, tabBounds.height * boundScalar)
+        if (
+            captionedChartBounds.width / captionedChartBounds.height >
+            targetWidth / targetHeight
+        ) {
+            previewHeight = Math.min(
+                72,
+                captionedChartBounds.height * boundScalar
+            )
             previewWidth = (targetWidth / targetHeight) * previewHeight
         } else {
-            previewWidth = Math.min(102, tabBounds.width * boundScalar)
+            previewWidth = Math.min(
+                102,
+                captionedChartBounds.width * boundScalar
+            )
             previewHeight = (targetHeight / targetWidth) * previewWidth
         }
 
@@ -240,7 +260,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             <div className="grouped-menu">
                 {manager.isOnChartOrMapTab && (
                     <div className="grouped-menu-section">
-                        <h2>Visualization</h2>
+                        <h3 className="grapher_h3-semibold">Visualization</h3>
                         <div className="grouped-menu-list">
                             <DownloadButton
                                 title="Image (PNG)"
@@ -288,16 +308,16 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                     </div>
                 )}
                 <div className="grouped-menu-section grouped-menu-section-data">
-                    <h2>Data</h2>
+                    <h3 className="grapher_h3-semibold">Data</h3>
                     {this.nonRedistributable ? (
                         <div className="grouped-menu-callout">
                             <div className="grouped-menu-callout-content">
-                                <h3 className="title">
+                                <h4 className="title grapher_h4-semibold">
                                     <FontAwesomeIcon icon={faInfoCircle} />
                                     The data in this chart is not available to
                                     download
-                                </h3>
-                                <p>
+                                </h4>
+                                <p className="grapher_body-3-medium grapher_light">
                                     The data is published under a license that
                                     doesn't allow us to redistribute it.
                                     {this.nonRedistributableSourceLink && (
@@ -333,25 +353,32 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         )
     }
 
+    @action.bound private onDismiss(): void {
+        this.manager.isDownloadModalOpen = false
+    }
+
     componentDidMount(): void {
         this.export()
     }
 
     render(): JSX.Element {
         return (
-            <Modal
-                title="Download"
-                onDismiss={action(
-                    () => (this.manager.isDownloadModalOpen = false)
-                )}
-                bounds={this.modalBounds}
-            >
-                <div className="DownloadModalContent">
-                    {this.isReady ? (
-                        this.renderReady()
-                    ) : (
-                        <LoadingIndicator color="#000" />
-                    )}
+            <Modal bounds={this.modalBounds} onDismiss={this.onDismiss}>
+                <div
+                    className="download-modal-content"
+                    style={{ maxHeight: this.modalBounds.height }}
+                >
+                    <OverlayHeader
+                        title="Download"
+                        onDismiss={this.onDismiss}
+                    />
+                    <div className="scrollable">
+                        {this.isReady ? (
+                            this.renderReady()
+                        ) : (
+                            <LoadingIndicator color="#000" />
+                        )}
+                    </div>
                 </div>
             </Modal>
         )
@@ -380,8 +407,10 @@ function DownloadButton(props: DownloadButtonProps): JSX.Element {
                 </div>
             )}
             <div className="grouped-menu-content">
-                <h3 className="title">{props.title}</h3>
-                <p className="description">{props.description}</p>
+                <h4 className="grapher_body-2-semibold">{props.title}</h4>
+                <p className="grapher_label-1-medium grapher_light">
+                    {props.description}
+                </p>
             </div>
             <div className="grouped-menu-icon">
                 <span className="download-icon">

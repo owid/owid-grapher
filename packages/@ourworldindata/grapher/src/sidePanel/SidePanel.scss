@@ -1,0 +1,10 @@
+.side-panel {
+    flex-grow: 0;
+    flex-shrink: 0;
+    border-left: 1px solid $frame-color;
+
+    // don't show close button in the side panel header
+    .overlay-header .close-button {
+        display: none;
+    }
+}

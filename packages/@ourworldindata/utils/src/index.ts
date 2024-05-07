@@ -122,6 +122,8 @@ export {
     cartesian,
     removeTrailingParenthetical,
     isElementHidden,
+    roundDownToNearestHundred,
+    isFiniteWithGuard,
 } from "./Util.js"
 
 export {
@@ -403,3 +405,5 @@ export {
     MAX_DONATION_AMOUNT,
     PLEASE_TRY_AGAIN,
 } from "./DonateUtils.js"
+
+export { isAndroid, isIOS } from "./BrowserUtils.js"

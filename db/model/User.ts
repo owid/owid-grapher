@@ -32,8 +32,8 @@ export async function getUserByEmail(
 export async function insertUser(
     knex: KnexReadWriteTransaction,
     user: DbInsertUser
-): Promise<{ id: number }> {
-    return knex(UsersTableName).returning("id").insert(user)
+): Promise<void> {
+    return knex(UsersTableName).insert(user)
 }
 
 export async function updateUser(

@@ -58,8 +58,8 @@ export async function getPostLinksBySourceId(
 export async function insertPostLink(
     knex: KnexReadWriteTransaction,
     postLink: DbInsertPostLink
-): Promise<{ id: number }> {
-    return knex(PostsLinksTableName).returning("id").insert(postLink)
+): Promise<void> {
+    return knex(PostsLinksTableName).insert(postLink)
 }
 
 export async function insertManyPostLinks(

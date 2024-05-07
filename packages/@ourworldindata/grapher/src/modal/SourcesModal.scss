@@ -1,40 +1,114 @@
-.SourcesModalContent {
+.sources-modal-content {
     // keep in sync with variables in SourcesModal.tsx
     $max-content-width: 640px;
     $tab-padding: 16px;
     $tab-font-size: 13px;
     $tab-gap: 8px;
 
-    padding-bottom: $modal-padding;
-    max-width: $max-content-width;
-    margin: 0 auto;
-
     $border: #e7e7e7;
+
+    // necessary for scrolling
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    > * {
+        flex-shrink: 0;
+    }
+
+    .overlay-header {
+        padding-bottom: 6px;
+    }
+
+    .scrollable {
+        flex: 1 1 auto;
+        overflow-y: auto;
+
+        padding: 0 var(--modal-padding) var(--modal-padding);
+
+        &--pad-top {
+            padding-top: var(--modal-padding);
+        }
+    }
+
+    .scrollable .centered {
+        max-width: $max-content-width;
+        margin: 0 auto;
+        width: 100%;
+        height: 100%;
+
+        // needed for the loading indicator
+        position: relative;
+        min-height: 45px;
+    }
+
+    .scrollable .centered > .source {
+        padding-bottom: var(--modal-padding);
+    }
+
+    .close-button--top-right {
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin: var(--modal-padding);
+    }
 
     .note-multiple-indicators {
         margin-top: 0;
         color: $light-text;
-        font-size: 0.875rem;
+        font-size: 14px;
         font-style: italic;
         font-weight: 500;
+    }
+
+    .Tabs__tab {
+        font-size: $tab-font-size;
+        padding: 8px $tab-padding;
+        margin-right: $tab-gap;
     }
 
     .source {
         color: $light-text;
 
+        --indicator-sources-description-heading: #{$dark-text};
+        --indicator-sources-key-data-title: #{$dark-text};
+        --indicator-sources-content: #{$light-text};
+
+        --indicator-processing-content-size: 14px;
+        --indicator-processing-background: #{$gray-10};
+        --indicator-processing-title: #{$dark-text};
+        --indicator-processing-content: #{$light-text};
+
+        --data-processing-content-size: 14px;
+        --data-processing-content: #{$light-text};
+
+        --expandable-toggle-border: #{$border};
+        --expandable-toggle-title: #{$dark-text};
+        --expandable-toggle-content: #{$light-text};
+        --expandable-toggle-button: #{$dark-text};
+        --expandable-toggle-button-hover: #{$light-text};
+        --expandable-toggle-title-size: 16px;
+        --expandable-toggle-content-size: 14px;
+
+        --non-expandable-title: #{$dark-text};
+        --non-expandable-border: #{$border};
+        --non-expandable-title-size: 16px;
+        --non-expandable-content-size: 14px;
+
         h2 {
             @include h1-semibold;
+            font-size: 24px;
             margin-top: 0;
             margin-bottom: 8px;
             color: $dark-text;
 
             @include sm-up {
-                font-size: 1.5rem;
+                font-size: 24px;
             }
         }
 
         .description-below-title {
             @include body-3-medium;
+            font-size: 14px;
             color: $dark-text;
 
             p {
@@ -53,11 +127,15 @@
             }
         }
 
+        .title {
+            margin-right: 8px;
+        }
+
         .title-fragments {
             color: $light-text;
-            font-size: 1.25rem;
-            margin-left: 8px;
+            font-size: 20px;
         }
+
         a {
             color: inherit;
             text-decoration: underline;
@@ -73,6 +151,7 @@
 
         .heading {
             @include h2-semibold;
+            font-size: 20px;
             margin-top: 32px;
             margin-bottom: 16px;
             color: $dark-text;
@@ -83,10 +162,6 @@
         }
 
         .indicator-sources {
-            --indicator-sources-description-heading: #{$dark-text};
-            --indicator-sources-key-data-title: #{$dark-text};
-            --indicator-sources-content: #{$light-text};
-
             .ExpandableToggle:first-of-type,
             .NonExpandable:first-of-type {
                 border-top: none;
@@ -104,32 +179,17 @@
         }
 
         .data-processing {
-            --data-processing-content: #{$light-text};
-
             margin-top: 0;
             margin-bottom: 16px;
         }
 
         .indicator-processing-callout {
-            --indicator-processing-background: #{$gray-10};
-            --indicator-processing-title: #{$dark-text};
-            --indicator-processing-content: #{$light-text};
-
             margin-left: 0;
             margin-right: 0;
-        }
 
-        .ExpandableToggle {
-            --expandable-toggle-border: #{$border};
-            --expandable-toggle-title: #{$dark-text};
-            --expandable-toggle-content: #{$light-text};
-            --expandable-toggle-button: #{$dark-text};
-            --expandable-toggle-button-hover: #{$light-text};
-        }
-
-        .NonExpandable {
-            --non-expandable-title: #{$dark-text};
-            --non-expandable-border: #{$border};
+            &__title {
+                font-size: 12px;
+            }
         }
 
         .ExpandableToggle__content {
@@ -147,19 +207,13 @@
             }
         }
 
-        .Tabs__tab {
-            font-size: $tab-font-size;
-            padding: 8px $tab-padding;
-            margin-right: $tab-gap;
-        }
-
-        .data-citation .wp-code-snippet {
-            margin-bottom: 16px;
+        .data-citation__item:not(:first-of-type) {
+            margin-top: 16px;
         }
 
         .citation__paragraph {
             color: $light-text;
-            font-size: 0.875rem;
+            font-size: 14px;
         }
 
         .citation__type {
@@ -167,11 +221,12 @@
             line-height: 1.5;
             color: $dark-text;
             font-weight: 500;
-            font-size: 0.875rem;
+            font-size: 14px;
         }
 
         .indicator-processing .indicator-processing__link {
             @include body-3-medium;
+            font-size: 14px;
             display: inline-block;
             height: auto;
             padding: 0;
@@ -188,22 +243,19 @@
     }
 }
 
-&.GrapherComponentSmall .SourcesModalContent {
+&.GrapherComponentSmall .sources-modal-content {
     .source {
-        --text-small: 0.8125rem;
+        --text-small: 13px;
 
         --indicator-processing-content-size: var(--text-small);
         --data-processing-content-size: var(--text-small);
-        --expandable-toggle-title-size: 0.875rem;
+        --expandable-toggle-title-size: 14px;
         --expandable-toggle-content-size: var(--text-small);
-        --non-expandable-title-size: 0.875rem;
+        --non-expandable-title-size: 14px;
         --non-expandable-content-size: var(--text-small);
 
         h2 {
-            font-size: 1.25rem;
-            @include sm-up {
-                font-size: 1.25rem;
-            }
+            font-size: 20px;
         }
 
         h2 + p {
@@ -211,7 +263,7 @@
         }
 
         .heading {
-            font-size: 1.125rem;
+            font-size: 18px;
         }
 
         .indicator-descriptions .key-info {

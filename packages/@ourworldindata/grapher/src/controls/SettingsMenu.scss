@@ -19,14 +19,14 @@ $control-row-height: 32px;
 
 nav.controlsRow .chart-controls .settings-menu {
     // the pop-up version of the settings menu
-    .settings-menu-controls {
+    .settings-menu-wrapper {
         position: absolute;
         width: 300px;
         right: $indent;
         background: white;
         border-radius: 4px;
         box-shadow: 0px 4px 23px 4px #0000000f;
-        z-index: $zindex-controls-drawer;
+        z-index: $zindex-controls-popup;
         overflow-y: scroll;
     }
 
@@ -41,281 +41,167 @@ nav.controlsRow .chart-controls .settings-menu {
     }
 }
 
-@at-root {
-    // the drawer version of the settings menu (see GRAPHER_SETTINGS_DRAWER_ID)
-    nav#grapher-settings-drawer .settings-menu-contents {
-        .settings-menu-controls {
-            position: fixed;
-            right: 0;
-            top: 0;
-            width: 300px;
-            height: 100vh;
-            z-index: $zindex-controls-drawer;
-            overflow-y: scroll;
+.settings-menu-contents {
+    //
+    // chart-type label
+    //
+    .settings-menu-header {
+        background: white;
+        padding: 9px $indent 3px $indent;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .settings-menu-controls {
+        //
+        // shared button coloring & behaviors
+        //
+        button {
+            display: flex;
+            align-items: center;
+            color: $light-text;
             background: white;
-            padding-top: $indent;
+            border: 1px solid $light-stroke;
+            font: $medium 13px/16px $lato;
+            letter-spacing: 0.01em;
+            border-radius: 4px;
+            padding: 7px;
+            height: 40px;
 
-            .config-header {
-                position: static;
-            }
-        }
-        .settings-menu-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.2);
-            z-index: $zindex-controls-backdrop;
-        }
+            &:hover {
+                background: $hover-fill;
+                cursor: pointer;
 
-        .labeled-switch {
-            label > svg {
-                display: none;
+                &:not(.active) {
+                    color: $dark-text;
+                }
             }
 
-            .labeled-switch-subtitle {
+            &.active,
+            &:active {
+                background: $active-fill;
+                border: 1px solid $active-fill;
+            }
+
+            &.active {
+                cursor: default;
+                color: $active-text;
+            }
+        }
+
+        //
+        // each titled block of control widgets (with optional info-circle + tooltip)
+        //
+        section {
+            font: $medium 14px/1.2 $lato;
+            color: $light-text;
+            padding: 1em 0;
+            margin: 0 $indent;
+
+            .config-name {
+                font: $bold 14px/1.2 $lato;
+                color: $dark-text;
+                list-style: none;
+
+                svg {
+                    color: $info-icon;
+                    height: 13px;
+                    padding: 0 0.333em;
+                }
+            }
+
+            .labeled-switch .labeled-switch-subtitle,
+            .config-subtitle {
+                font-size: 13px;
+                margin: 5px 0;
+            }
+
+            .config-toggle {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                padding: 0.5em 0;
+            }
+
+            & + section {
+                border-top: 1px solid $light-stroke;
+            }
+        }
+
+        //
+        // resuable widgets
+        //
+        section {
+            // left/right pairs of options
+            .config-toggle {
+                label {
+                    flex-basis: 100%;
+                    color: $dark-text;
+                    margin-bottom: 0.5em;
+                }
+                button {
+                    width: calc(50% - 5px);
+                    padding: 7px 16px;
+                }
+            }
+
+            // on/off switch with label written to the right
+            .labeled-switch {
+                margin: 14px 0;
                 display: block;
             }
-        }
-    }
 
-    .settings-menu-contents {
-        .settings-menu-controls {
-            //
-            // shared button coloring & behaviors
-            //
-            button {
+            // vertical list of options (for selecting faceting mode)
+            .config-list {
                 display: flex;
-                align-items: center;
-                color: $light-text;
-                background: white;
-                border: 1px solid $light-stroke;
-                font: $medium 13px/16px $lato;
-                letter-spacing: 0.01em;
-                border-radius: 4px;
-                padding: 7px;
-                height: 40px;
+                flex-direction: column;
+                gap: 8px;
+                padding: 7px 0;
+                button {
+                    width: 100%;
 
-                &:hover {
-                    background: $hover-fill;
-                    cursor: pointer;
-
-                    &:not(.active) {
-                        color: $dark-text;
-                    }
-                }
-
-                &.active,
-                &:active {
-                    background: $active-fill;
-                    border: 1px solid $active-fill;
-                }
-
-                &.active {
-                    cursor: default;
-                    color: $active-text;
-                }
-            }
-
-            //
-            // chart-type label and close button
-            //
-            .config-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                background: white;
-                padding: 9px $indent 3px $indent;
-                position: sticky;
-                top: 0;
-                z-index: 1;
-
-                .config-title {
-                    text-transform: uppercase;
-                    letter-spacing: 0.1em;
-                    color: $light-text;
-                    font: $bold 12px/16px $lato;
-                }
-
-                button.close {
-                    position: relative;
-                    border-radius: 50%;
-                    height: 32px;
-                    width: 32px;
-                    text-align: center;
-                    justify-content: center;
-                    svg {
-                        height: 14px;
-                        width: 14px;
-                    }
-                }
-            }
-
-            //
-            // each titled block of control widgets (with optional info-circle + tooltip)
-            //
-            section {
-                font: $medium 14px/1.2 $lato;
-                color: $light-text;
-                padding: 1em 0;
-                margin: 0 $indent;
-
-                .config-name {
-                    font: $bold 14px/1.2 $lato;
-                    color: $dark-text;
-                    list-style: none;
-
-                    svg {
-                        color: $info-icon;
-                        height: 13px;
-                        padding: 0 0.333em;
-                    }
-
-                    // the tooltip triggered by hovering the circle-i
-                    @at-root .tippy-box[data-theme="settings"] {
-                        background: white;
-                        color: $dark-text;
-                        font: 400 14px/1.5 $sans-serif-font-stack;
-                        box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
-
-                        .tippy-content {
-                            padding: $indent;
-                        }
-                        .tippy-arrow {
-                            color: white;
+                    .faceting-icon {
+                        display: flex;
+                        flex-wrap: wrap;
+                        width: 34px;
+                        height: 24px;
+                        justify-content: space-between;
+                        margin-right: 8px;
+                        span {
+                            // the round-rects that make up the grid
+                            display: inline-block;
+                            width: 100%;
+                            height: 100%;
+                            border-radius: 2px;
+                            background: $light-stroke;
                         }
                     }
-                }
 
-                .labeled-switch .labeled-switch-subtitle,
-                .config-subtitle {
-                    font-size: 13px;
-                    margin: 5px 0;
-                }
-
-                .config-toggle {
-                    display: flex;
-                    flex-wrap: wrap;
-                    justify-content: space-between;
-                    padding: 0.5em 0;
-                }
-
-                & + section {
-                    border-top: 1px solid $light-stroke;
-                }
-            }
-
-            //
-            // resuable widgets
-            //
-            section {
-                // left/right pairs of options
-                .config-toggle {
-                    label {
-                        flex-basis: 100%;
-                        color: $dark-text;
-                        margin-bottom: 0.5em;
+                    &.entity span {
+                        width: 10px;
+                        height: 10px;
                     }
-                    button {
-                        width: calc(50% - 5px);
-                        padding: 7px 16px;
+
+                    &.metric span {
+                        width: 10px;
+                        height: 10px;
+                        border-radius: 5px;
                     }
-                }
 
-                // on/off switch with label written to the right
-                .labeled-switch {
-                    margin: 14px 0;
-                    display: block;
-                }
+                    &.active span {
+                        background: #a4b6ca;
+                    }
 
-                // vertical list of options (for selecting faceting mode)
-                .config-list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 8px;
-                    padding: 7px 0;
-                    button {
-                        width: 100%;
+                    &:hover:not(.active) span {
+                        background: $light-fill;
+                    }
 
-                        .faceting-icon {
-                            display: flex;
-                            flex-wrap: wrap;
-                            width: 34px;
-                            height: 24px;
-                            justify-content: space-between;
-                            margin-right: 8px;
-                            span {
-                                // the round-rects that make up the grid
-                                display: inline-block;
-                                width: 100%;
-                                height: 100%;
-                                border-radius: 2px;
-                                background: $light-stroke;
-                            }
-                        }
-
-                        &.entity span {
-                            width: 10px;
-                            height: 10px;
-                        }
-
-                        &.metric span {
-                            width: 10px;
-                            height: 10px;
-                            border-radius: 5px;
-                        }
-
-                        &.active span {
-                            background: #a4b6ca;
-                        }
-
-                        &:hover:not(.active) span {
-                            background: $light-fill;
-                        }
-
-                        &:active:not(.active) span {
-                            background: $light-text;
-                        }
+                    &:active:not(.active) span {
+                        background: $light-text;
                     }
                 }
             }
         }
-    }
-}
-
-@keyframes settings-menu-backdrop-enter {
-    0% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
-}
-
-@keyframes settings-menu-backdrop-exit {
-    0% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0;
-    }
-}
-
-@keyframes settings-menu-controls-enter {
-    0% {
-        transform: translate(301px, 0);
-    }
-    100% {
-        transform: translate(0, 0);
-    }
-}
-
-@keyframes settings-menu-controls-exit {
-    0% {
-        transform: translate(0, 0);
-    }
-    100% {
-        transform: translate(301px, 0);
     }
 }

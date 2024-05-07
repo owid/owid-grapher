@@ -215,6 +215,22 @@ export class CoreTable<
                 inputColumnsToParsedColumnStore
             )
 
+        // If we ever pass Mobx observable arrays, we need to convert them to regular arrays.
+        // Otherwise, operations like `.concat()` will break in unexpected ways.
+        // See https://github.com/mobxjs/mobx/blob/mobx4and5/docs/best/pitfalls.md
+        // Also, see https://github.com/owid/owid-grapher/issues/2948 for an issue caused by this problem.
+        type CoreValueArrayThatMayBeMobxProxy = CoreValueType[] & {
+            toJS?: () => CoreValueType[]
+        }
+
+        for (const [slug, values] of Object.entries(columnStore)) {
+            const valuesThatMayBeMobxProxy =
+                values as CoreValueArrayThatMayBeMobxProxy
+            if (typeof valuesThatMayBeMobxProxy.toJS === "function") {
+                columnStore[slug] = valuesThatMayBeMobxProxy.toJS()
+            }
+        }
+
         const columnsFromTransforms = inputColumnDefs.filter(
             (def) => def.transform && !def.transformHasRun
         ) // todo: sort by graph dependency order
@@ -1621,6 +1637,11 @@ class FilterMask {
         const keepIndexes: number[] = []
         for (let i = 0; i < this.numRows; i++) {
             if (this.mask[i]) keepIndexes.push(i)
+        }
+
+        // Optimization: early return if we're keeping all rows
+        if (keepIndexes.length === this.numRows) {
+            return columnStore
         }
 
         Object.keys(columnStore).forEach((slug) => {

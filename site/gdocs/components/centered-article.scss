@@ -913,29 +913,37 @@ div.raw-html-table__container {
 }
 
 .article-block__prominent-link {
-    margin-bottom: 24px;
+    margin-bottom: 8px;
     color: $blue-90;
+    background-color: $blue-5;
+    padding: 16px;
 
     > .prominent-link__image {
         height: 100%;
         width: 100%;
     }
 
-    p,
-    h3 {
-        margin: 2px 0;
+    p {
+        margin: 0;
+        @include sm-only {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+        }
     }
 
     h3 {
         display: inline-block;
+        margin: 0 0 4px 0;
         &:hover {
             text-decoration: underline;
         }
     }
 
-    + .article-block__prominent-link {
-        padding-top: 24px;
-        border-top: 1px solid $blue-10;
+    // Last consecutive sibling.
+    &:has(+ :not(.article-block__prominent-link)) {
+        margin-bottom: 32px;
     }
 }
 

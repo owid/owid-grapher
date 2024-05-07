@@ -43,8 +43,13 @@ module.exports = {
         "@typescript-eslint/prefer-for-of": "warn",
         "@typescript-eslint/restrict-plus-operands": "warn",
         eqeqeq: "warn",
+        // Turn off import rules covered by typescript-eslint.
+        // https://typescript-eslint.io/troubleshooting/performance-troubleshooting/#eslint-plugin-import
+        "import/named": "off",
         "import/namespace": "off",
-        "import/no-named-as-default-member": "off", // probably makes sense to enable this at some point
+        "import/default": "off",
+        "import/no-named-as-default-member": "off",
+        "import/no-unresolved": "off",
         "no-console": ["warn", { allow: ["warn", "error"] }],
         "prefer-const": ["warn", { destructuring: "all" }],
         "react/display-name": "warn",

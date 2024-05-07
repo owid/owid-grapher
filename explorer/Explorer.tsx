@@ -928,6 +928,9 @@ export class Explorer
                         enableKeyboardShortcuts={true}
                         manager={this}
                         ref={this.grapherRef}
+                        isEmbeddedInAnOwidPage={
+                            this.props.isEmbeddedInAnOwidPage
+                        }
                     />
                 </div>
             </div>
@@ -958,7 +961,7 @@ export class Explorer
 
     @computed get embedDialogAdditionalElements() {
         return (
-            <div style={{ marginTop: "1em" }}>
+            <div className="embed-additional-elements">
                 <Checkbox
                     label="Hide controls"
                     checked={this.embedDialogHideControls}

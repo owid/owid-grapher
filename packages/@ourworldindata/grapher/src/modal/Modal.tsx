@@ -1,29 +1,20 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, computed } from "mobx"
-import cx from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faTimes } from "@fortawesome/free-solid-svg-icons"
 import { Bounds } from "@ourworldindata/utils"
 
 @observer
 export class Modal extends React.Component<{
     bounds: Bounds
     onDismiss: () => void
-    title?: string
     children?: React.ReactNode
     isHeightFixed?: boolean // by default, the modal height is not fixed but fits to the content
     alignVertical?: "center" | "bottom"
-    showStickyHeader?: boolean
 }> {
     contentRef: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed private get bounds(): Bounds {
         return this.props.bounds
-    }
-
-    @computed private get title(): string | undefined {
-        return this.props.title
     }
 
     @computed private get isHeightFixed(): boolean {
@@ -32,10 +23,6 @@ export class Modal extends React.Component<{
 
     @computed private get alignVertical(): "center" | "bottom" {
         return this.props.alignVertical ?? "center"
-    }
-
-    @computed private get showStickyHeader(): boolean {
-        return this.props.showStickyHeader || !!this.title
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {
@@ -87,35 +74,15 @@ export class Modal extends React.Component<{
             contentStyle.transform = "translateY(-50%)"
         }
 
-        const dismissButton = (
-            <button className="modalDismiss" onClick={this.props.onDismiss}>
-                <FontAwesomeIcon icon={faTimes} />
-            </button>
-        )
-
         return (
-            <div className="modalOverlay">
-                <div className="modalWrapper">
+            <div className="modal-overlay">
+                <div className="modal-wrapper">
                     <div
-                        className="modalContent"
+                        className="modal-content"
                         style={contentStyle}
                         ref={this.contentRef}
                     >
-                        {this.showStickyHeader ? (
-                            <div
-                                className={cx("modalHeader", {
-                                    modalHeader__empty: !this.title,
-                                })}
-                            >
-                                <div className="modalTitle">{this.title}</div>
-                                {dismissButton}
-                            </div>
-                        ) : (
-                            dismissButton
-                        )}
-                        <div className="modalScrollable">
-                            {this.props.children}
-                        </div>
+                        {this.props.children}
                     </div>
                 </div>
             </div>

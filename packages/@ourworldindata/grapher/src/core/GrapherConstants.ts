@@ -4,15 +4,16 @@ export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
 export const GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR = "data-grapher-config"
 
 export const GRAPHER_PAGE_BODY_CLASS = "StandaloneGrapherOrExplorerPage"
-export const GRAPHER_SETTINGS_DRAWER_ID = "grapher-settings-drawer"
-
 export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
+export const GRAPHER_TIMELINE_CLASS = "timeline-component"
+export const GRAPHER_SIDE_PANEL_CLASS = "side-panel"
 
 export const DEFAULT_GRAPHER_CONFIG_SCHEMA =
     "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
 
 export const DEFAULT_GRAPHER_ENTITY_TYPE = "country or region"
 export const DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL = "countries and regions"
+
 export const GRAPHER_MOUNTED_EVENT_NAME = "grapherMounted"
 export const GRAPHER_LOADED_EVENT_NAME = "grapherLoaded"
 
@@ -50,28 +51,22 @@ export const ThereWasAProblemLoadingThisChart = `There was a problem loading thi
 
 export const WorldEntityName = "World"
 
-export const getVariableDataRoute = (
-    dataApiUrl: string,
-    variableId: number
-): string => {
-    if (dataApiUrl.includes("v1/indicators/")) {
-        // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.data.json
-        return `${dataApiUrl}${variableId}.data.json`
-    } else {
-        throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
-    }
-}
+export const CONTINENTS_INDICATOR_ID = 123 // "Countries Continent"
+export const POPULATION_INDICATOR_ID_USED_IN_ADMIN = 597929 // "Population (various sources, 2023.1)"
+export const POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR = 597930 // "Population (various sources, 2023.1)"
+export const GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR = 735665 // "World Development Indicators - World Bank (2023.05.11)"
 
-export const getVariableMetadataRoute = (
-    dataApiUrl: string,
-    variableId: number
-): string => {
-    if (dataApiUrl.includes("v1/indicators/")) {
-        // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.metadata.json
-        return `${dataApiUrl}${variableId}.metadata.json`
-    } else {
-        throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
-    }
+export const isContinentsVariableId = (id: string | number): boolean =>
+    id.toString() === CONTINENTS_INDICATOR_ID.toString()
+
+export const isPopulationVariableId = (id: string | number): boolean => {
+    const idString = id.toString()
+    return (
+        idString === "525709" || // "Population (historical + projections), Gapminder, HYDE & UN"
+        idString === "525711" || // "Population (historical estimates), Gapminder, HYDE & UN"
+        idString === "597929" || // "Population (various sources, 2023.1)"
+        idString === "597930" // "Population (various sources, 2023.1)"
+    )
 }
 
 export enum Patterns {

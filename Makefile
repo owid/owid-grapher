@@ -41,6 +41,7 @@ help:
 	@echo '  make sync-images            sync all images from the remote master'
 	@echo '  make update.chart-entities  update the charts_x_entities join table'
 	@echo '  make reindex                reindex (or initialise) search in Algolia'
+	@echo '  make bench.search           run search benchmarks'
 	@echo
 	@echo '  OPS (staff-only)'
 	@echo '  make deploy                 Deploy your local site to production'
@@ -151,7 +152,7 @@ refresh:
 
 refresh.pageviews:
 	@echo '==> Refreshing pageviews'
-	yarn && yarn buildTsc && yarn refreshPageviews
+	yarn && yarn buildLerna && yarn buildTsc && yarn refreshPageviews
 
 refresh.wp:
 	@echo '==> Downloading wordpress data'
@@ -358,6 +359,10 @@ reindex: itsJustJavascript
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexToAlgolia.js
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexChartsToAlgolia.js
 	node --enable-source-maps itsJustJavascript/baker/algolia/indexExplorerViewsToAlgolia.js
+
+bench.search: itsJustJavascript
+	@echo '==> Running search benchmarks'
+	@node --enable-source-maps itsJustJavascript/site/search/evaluateSearch.js
 
 clean:
 	rm -rf node_modules itsJustJavascript

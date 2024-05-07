@@ -2,13 +2,11 @@ import {
     getVariableDataRoute,
     getVariableMetadataRoute,
     GRAPHER_PAGE_BODY_CLASS,
-    GRAPHER_SETTINGS_DRAWER_ID,
     LoadingIndicator,
 } from "@ourworldindata/grapher"
 import {
     flatten,
     PostReference,
-    DbEnrichedPost,
     RelatedChart,
     serializeJSONForHTML,
     GrapherInterface,
@@ -34,7 +32,6 @@ import { SiteHeader } from "./SiteHeader.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
-    post?: DbEnrichedPost
     relatedCharts?: RelatedChart[]
     relatedArticles?: PostReference[]
     baseUrl: string
@@ -122,7 +119,6 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
-                    <nav id={GRAPHER_SETTINGS_DRAWER_ID}></nav>
                     <figure data-grapher-src={`/grapher/${grapher.slug}`}>
                         <LoadingIndicator />
                     </figure>

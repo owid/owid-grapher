@@ -58,7 +58,6 @@ export function gdocFromJSON(
     json.createdAt = new Date(json.createdAt)
     json.publishedAt = json.publishedAt ? new Date(json.publishedAt) : null
     json.updatedAt = new Date(json.updatedAt)
-    json.tags = json.tags ? JSON.parse(json.tags) : []
 
     return match(type)
         .with(
@@ -200,7 +199,7 @@ export async function getAllMinimalGdocBaseObjects(
                 published,
                 content ->> '$.subtitle' as subtitle,
                 content ->> '$.excerpt' as excerpt,
-                content ->> '$.type' as type,
+                type,
                 content ->> '$."featured-image"' as "featured-image"
             FROM posts_gdocs
             WHERE published = 1
@@ -364,7 +363,7 @@ export async function getAndLoadPublishedDataInsights(
             SELECT *
             FROM posts_gdocs
             WHERE published = 1
-            AND content ->> '$.type' = ?
+            AND type = ?
             AND publishedAt <= NOW()
             ORDER BY publishedAt DESC
             ${limitOffsetClause}`,
@@ -414,7 +413,7 @@ export async function loadPublishedGdocAuthors(
             SELECT *
             FROM posts_gdocs
             WHERE published = 1
-            AND content ->> '$.type' IN (:types)`,
+            AND type IN (:types)`,
         {
             types: [OwidGdocType.Author],
         }

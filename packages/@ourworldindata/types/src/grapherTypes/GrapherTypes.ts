@@ -686,3 +686,9 @@ export interface ChartRedirect {
     slug: string
     chartId: number
 }
+
+export enum GrapherWindowType {
+    panel = "panel",
+    modal = "modal",
+    drawer = "drawer",
+}

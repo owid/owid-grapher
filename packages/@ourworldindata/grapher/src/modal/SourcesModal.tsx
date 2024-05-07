@@ -23,6 +23,7 @@ import {
     DataCitation,
 } from "@ourworldindata/components"
 import React from "react"
+import cx from "classnames"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
@@ -35,6 +36,9 @@ import { SourcesDescriptions } from "./SourcesDescriptions"
 import { Tabs } from "../tabs/Tabs"
 import { ExpandableTabs } from "../tabs/ExpandableTabs"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
+import { CLOSE_BUTTON_WIDTH, CloseButton } from "../closeButton/CloseButton"
+import { isContinentsVariableId } from "../core/GrapherConstants"
+import { OverlayHeader } from "../core/OverlayHeader.js"
 
 // keep in sync with variables in SourcesModal.scss
 const MAX_CONTENT_WIDTH = 640
@@ -48,7 +52,7 @@ export interface SourcesModalManager {
     columnsWithSourcesExtensive: CoreColumn[]
     showAdminControls?: boolean
     isSourcesModalOpen?: boolean
-    tabBounds?: Bounds
+    frameBounds?: Bounds
     isEmbeddedInADataPage?: boolean
     isNarrow?: boolean
     fontSize?: number
@@ -78,21 +82,20 @@ export class SourcesModal extends React.Component<
         return this.props.manager
     }
 
-    @computed private get tabBounds(): Bounds {
-        return this.manager.tabBounds ?? DEFAULT_BOUNDS
+    @computed private get frameBounds(): Bounds {
+        return this.manager.frameBounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get modalBounds(): Bounds {
         const maxWidth = MAX_CONTENT_WIDTH + 220
         // using 15px instead of 16px to make sure the modal fully covers the OWID logo in the header
-        const padWidth = Math.max(15, (this.tabBounds.width - maxWidth) / 2)
-        return this.tabBounds.padHeight(15).padWidth(padWidth)
+        const padWidth = Math.max(15, (this.frameBounds.width - maxWidth) / 2)
+        return this.frameBounds.padHeight(15).padWidth(padWidth)
     }
 
-    @computed private get showStickyModalHeader(): boolean {
+    @computed private get showStickyHeader(): boolean {
         const modalWidth = this.modalBounds.width - 2 * this.modalPadding
-        const dismissButtonWidth = 32
-        return (modalWidth - MAX_CONTENT_WIDTH) / 2 < dismissButtonWidth
+        return (modalWidth - MAX_CONTENT_WIDTH) / 2 < CLOSE_BUTTON_WIDTH + 2
     }
 
     @computed private get modalPadding(): number {
@@ -250,22 +253,39 @@ export class SourcesModal extends React.Component<
             : this.renderMultipleSources()
     }
 
+    @action.bound private onDismiss(): void {
+        this.manager.isSourcesModalOpen = false
+    }
+
     render(): JSX.Element {
         return (
             <Modal
-                onDismiss={action(
-                    () => (this.manager.isSourcesModalOpen = false)
-                )}
                 bounds={this.modalBounds}
                 isHeightFixed={true}
-                showStickyHeader={this.showStickyModalHeader}
+                onDismiss={this.onDismiss}
             >
-                <div className="SourcesModalContent">
-                    {this.manager.isReady ? (
-                        this.renderModalContent()
+                <div className="sources-modal-content">
+                    {this.showStickyHeader ? (
+                        <OverlayHeader title="" onDismiss={this.onDismiss} />
                     ) : (
-                        <LoadingIndicator />
+                        <CloseButton
+                            className="close-button--top-right"
+                            onClick={this.onDismiss}
+                        />
                     )}
+                    <div
+                        className={cx("scrollable", {
+                            "scrollable--pad-top": !this.showStickyHeader,
+                        })}
+                    >
+                        <div className="centered">
+                            {this.manager.isReady ? (
+                                this.renderModalContent()
+                            ) : (
+                                <LoadingIndicator />
+                            )}
+                        </div>
+                    </div>
                 </div>
             </Modal>
         )
@@ -367,11 +387,12 @@ export class Source extends React.Component<{
     }
 
     @computed private get hideSourcesForDisplay(): boolean {
-        // the indicator with id = 123 is the "Continent" variable curated by OWID.
-        // it's used in many charts but doesn't come with useful source information.
-        // that's why we hide the sources section for this indicator for now,
-        // but we might decide to show it in the future
-        return this.def.owidVariableId === 123
+        // the "Continent" variable curated by OWID is used in many charts but doesn't come with useful source information.
+        // that's why we hide the sources section for this indicator for now, but we might decide to show it in the future.
+        return (
+            !!this.def.owidVariableId &&
+            isContinentsVariableId(this.def.owidVariableId)
+        )
     }
 
     @computed private get descriptionBelowTitle(): string | undefined {
@@ -381,7 +402,7 @@ export class Source extends React.Component<{
     protected renderTitle(): JSX.Element {
         return (
             <h2>
-                {this.title.title}{" "}
+                <span className="title">{this.title.title}</span>{" "}
                 {(this.title.attributionShort || this.title.titleVariant) && (
                     <>
                         <span className="title-fragments">

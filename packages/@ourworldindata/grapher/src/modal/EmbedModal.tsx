@@ -4,13 +4,14 @@ import { computed, action } from "mobx"
 import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { Modal } from "./Modal"
 import { CodeSnippet } from "@ourworldindata/components"
+import { OverlayHeader } from "../core/OverlayHeader.js"
 
 export interface EmbedModalManager {
     canonicalUrl?: string
     embedUrl?: string
     embedDialogAdditionalElements?: React.ReactElement
     isEmbedModalOpen?: boolean
-    tabBounds?: Bounds
+    frameBounds?: Bounds
 }
 
 interface EmbedModalProps {
@@ -19,39 +20,48 @@ interface EmbedModalProps {
 
 @observer
 export class EmbedModal extends React.Component<EmbedModalProps> {
-    @computed private get tabBounds(): Bounds {
-        return this.manager.tabBounds ?? DEFAULT_BOUNDS
+    @computed get manager(): EmbedModalManager {
+        return this.props.manager
+    }
+
+    @computed private get frameBounds(): Bounds {
+        return this.manager.frameBounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get modalBounds(): Bounds {
         const maxWidth = 940
-        const padWidth = Math.max(16, (this.tabBounds.width - maxWidth) / 2)
-        return this.tabBounds.padHeight(16).padWidth(padWidth)
+        const padWidth = Math.max(16, (this.frameBounds.width - maxWidth) / 2)
+        return this.frameBounds.padHeight(16).padWidth(padWidth)
     }
 
     @computed private get codeSnippet(): string {
         const url = this.manager.embedUrl
-        return `<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`
+        return `<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;" allow="web-share; clipboard-write"></iframe>`
     }
 
-    @computed get manager(): EmbedModalManager {
-        return this.props.manager
+    @action.bound private onDismiss(): void {
+        this.manager.isEmbedModalOpen = false
     }
 
     render(): JSX.Element {
         return (
             <Modal
-                title="Embed"
-                onDismiss={action(
-                    () => (this.manager.isEmbedModalOpen = false)
-                )}
                 bounds={this.modalBounds}
                 alignVertical="bottom"
+                onDismiss={this.onDismiss}
             >
-                <div className="embedMenu">
-                    <p>Paste this into any HTML page:</p>
-                    <CodeSnippet code={this.codeSnippet} />
-                    {this.manager.embedDialogAdditionalElements}
+                <div
+                    className="embed-modal-content"
+                    style={{ maxHeight: this.modalBounds.height }}
+                >
+                    <OverlayHeader title="Embed" onDismiss={this.onDismiss} />
+                    <div className="scrollable">
+                        <p className="grapher_label-1-medium">
+                            Paste this into any HTML page:
+                        </p>
+                        <CodeSnippet code={this.codeSnippet} />
+                        {this.manager.embedDialogAdditionalElements}
+                    </div>
                 </div>
             </Modal>
         )
