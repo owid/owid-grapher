@@ -1,5 +1,3 @@
-version: "3.7"
-
 services:
     # Stock mysql database. Root password is hardcoded for now
     db:
