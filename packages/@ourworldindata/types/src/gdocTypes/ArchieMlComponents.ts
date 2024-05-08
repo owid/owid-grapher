@@ -869,6 +869,30 @@ export type EnrichedBlockSocials = {
     links: EnrichedSocialLink[]
 } & EnrichedBlockWithParseErrors
 
+export type RawUpdateContent = {
+    publishDate?: string
+    publishTime?: string
+    title?: string
+    authors?: string
+    "grapher-url"?: string
+    content?: OwidRawGdocBlock[]
+}
+
+export type RawBlockUpdate = {
+    type: "update"
+    value: RawUpdateContent | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedBlockUpdate = {
+    type: "update"
+    publishDate: Date | undefined
+    publishTime: { hour: number; minute: number } | undefined
+    title: string
+    authors: string[]
+    grapherUrl: string | undefined
+    content: OwidEnrichedGdocBlock[]
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
@@ -913,6 +937,7 @@ export type OwidRawGdocBlock =
     | RawBlockHomepageIntro
     | RawBlockLatestDataInsights
     | RawBlockSocials
+    | RawBlockUpdate
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -958,3 +983,4 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockHomepageIntro
     | EnrichedBlockLatestDataInsights
     | EnrichedBlockSocials
+    | EnrichedBlockUpdate

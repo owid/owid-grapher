@@ -495,6 +495,15 @@ export class GdocBase implements OwidGdocBaseInterface {
                     })
                 )
             })
+            .with({ type: "update" }, (update) => {
+                if (update.grapherUrl)
+                    return createLinkFromUrl({
+                        url: update.grapherUrl,
+                        source: this,
+                        componentType: update.type,
+                        text: update.title,
+                    })
+            })
             .with(
                 {
                     // no urls directly on any of these blocks

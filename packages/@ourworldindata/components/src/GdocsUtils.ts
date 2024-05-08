@@ -60,7 +60,8 @@ function _getPrefixedPath(prefix: string, gdoc: OwidGdoc): string {
                         OwidGdocType.Article,
                         OwidGdocType.TopicPage,
                         OwidGdocType.LinearTopicPage,
-                        OwidGdocType.AboutPage
+                        OwidGdocType.AboutPage,
+                        OwidGdocType.Announcements
                     ),
                 },
             },
@@ -116,7 +117,8 @@ export function getPageTitle(gdoc: OwidGdoc) {
                         OwidGdocType.LinearTopicPage,
                         OwidGdocType.AboutPage,
                         OwidGdocType.DataInsight,
-                        OwidGdocType.Author
+                        OwidGdocType.Author,
+                        OwidGdocType.Announcements
                     ),
                 },
             },
