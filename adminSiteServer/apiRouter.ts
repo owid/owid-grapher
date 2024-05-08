@@ -76,7 +76,6 @@ import {
     PostsGdocsTableName,
     DbPlainDataset,
     DbInsertUser,
-    CategoryWithEntries,
 } from "@ourworldindata/types"
 import {
     getVariableDataRoute,
@@ -149,7 +148,6 @@ import { match } from "ts-pattern"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { GdocHomepage } from "../db/model/Gdoc/GdocHomepage.js"
 import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
-import { SiteNavigationStatic } from "../site/SiteNavigation.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -606,21 +604,6 @@ getRouteWithROTransaction(
         }
     }
 )
-
-function* flattenSiteNavigation(
-    categories: CategoryWithEntries[]
-): Generator<{ title: string; slug: string }> {
-    for (const category of categories) {
-        if (category.subcategories) {
-            yield* flattenSiteNavigation(category.subcategories)
-        }
-        if (category.entries) {
-            for (const entry of category.entries) {
-                yield { title: entry.title, slug: entry.slug }
-            }
-        }
-    }
-}
 
 getRouteWithROTransaction(
     apiRouter,

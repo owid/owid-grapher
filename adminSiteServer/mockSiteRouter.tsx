@@ -391,7 +391,7 @@ mockSiteRouter.use(
     // and being rewritten as /uploads. E.g. blog index images paths
     // on front page.
     ["/uploads", "/app/uploads"],
-    (req, res, next) => {
+    (req, res) => {
         const assetPath = req.path.replace(/^\/(app\/)?uploads\//, "")
         // Ensure no trailing slash on the base URL and manage the slash between URLs safely
         const baseUrl = LEGACY_WORDPRESS_IMAGE_URL.replace(/\/+$/, "")
