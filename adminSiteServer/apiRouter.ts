@@ -2552,7 +2552,13 @@ deleteRouteWithRWTransaction(
 // using the alternate template, which highlights topics rather than articles.
 getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
     type WordpressPageRecord = Record<
-        "slug" | "title" | "type" | "thumbnail" | "authors" | "publishedAt",
+        | "slug"
+        | "title"
+        | "subtitle"
+        | "type"
+        | "thumbnail"
+        | "authors"
+        | "publishedAt",
         string
     >
     type GdocRecord = Pick<DbRawPostGdoc, "id" | "publishedAt"> &
@@ -2577,6 +2583,7 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
         SELECT
             wpApiSnapshot->>"$.slug" as slug,
             wpApiSnapshot->>"$.title.rendered" as title,
+            wpApiSnapshot->>"$.excerpt.rendered" as subtitle,
             wpApiSnapshot->>"$.type" as type,
             wpApiSnapshot->>"$.authors_name" as authors,
             wpApiSnapshot->>"$.featured_media_paths.medium_large" as thumbnail,
@@ -2619,6 +2626,7 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
             if (isWordpressPage(post)) {
                 yield* generateProperty("url", post.slug)
                 yield* generateProperty("title", post.title)
+                yield* generateProperty("subtitle", post.subtitle)
                 yield* generateProperty(
                     "authors",
                     JSON.parse(post.authors).join(", ")
