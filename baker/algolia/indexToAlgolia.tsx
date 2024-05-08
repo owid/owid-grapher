@@ -1,5 +1,4 @@
 import * as db from "../../db/db.js"
-import * as wpdb from "../../db/wpdb.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
@@ -23,8 +22,6 @@ const indexToAlgolia = async () => {
     )
 
     await index.replaceAllObjects(records)
-
-    await wpdb.singleton.end()
 
     process.exit(0)
 }

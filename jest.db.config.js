@@ -5,7 +5,6 @@ module.exports = {
             displayName: { name: "db", color: "blue" },
             testEnvironment: "node",
             testMatch: ["<rootDir>/itsJustJavascript/db/tests/**/*.test.js"],
-            modulePathIgnorePatterns: ["<rootDir>/wordpress/"],
         },
     ],
 }

@@ -22,7 +22,9 @@
             "label": "startTscServer",
             "type": "shell",
             "command": "yarn startTscServer",
-            "problemMatcher": ["$tsc-watch"],
+            "problemMatcher": [
+                "$tsc-watch"
+            ],
             "isBackground": true,
             "presentation": {
                 "group": "watch"
@@ -39,7 +41,11 @@
         },
         {
             "label": "start (remote)",
-            "dependsOn": ["buildLerna", "startTscServer", "startSiteFront"],
+            "dependsOn": [
+                "buildLerna",
+                "startTscServer",
+                "startSiteFront"
+            ],
             "dependsOrder": "sequence",
             "problemMatcher": []
         },
@@ -52,32 +58,6 @@
                 "startSiteFront"
             ],
             "dependsOrder": "sequence",
-            "problemMatcher": []
-        },
-        {
-            "label": "download wordpress database",
-            "type": "shell",
-            "command": "./devTools/docker/download-wordpress-mysql.sh"
-        },
-        {
-            "label": "download wordpress uploads",
-            "type": "shell",
-            "command": "./devTools/docker/download-wordpress-uploads.sh"
-        },
-        {
-            // This tasks refreshes the wordpress DB as well as wordpress uploads.
-            // Common scenarios:
-            // option 1 (default): download new db dump and refresh local db. Download uploads.
-            // option 2: partial fast refresh (update DB only)
-            // - comment out "download wordpress uploads" below
-            "label": "refresh wordpress",
-            "type": "shell",
-            "command": "docker compose -f docker-compose.full.yml run --rm db-load-data /app/refresh-wordpress-data.sh",
-            "dependsOrder": "parallel",
-            "dependsOn": [
-                // "download wordpress database"
-                // "download wordpress uploads"
-            ],
             "problemMatcher": []
         },
         {

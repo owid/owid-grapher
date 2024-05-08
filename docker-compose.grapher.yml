@@ -24,8 +24,6 @@
 # and navigate to http://localhost:8080 to work with the grapher admin.
 #
 
-version: "3.7"
-
 services:
     # Stock mysql database. Root password is hardcoded for now
     db:

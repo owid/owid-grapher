@@ -3,12 +3,10 @@ import path from "path"
 import { glob } from "glob"
 import { keyBy, without, uniq, mapValues, pick, chunk } from "lodash"
 import ProgressBar from "progress"
-import * as wpdb from "../db/wpdb.js"
 import * as db from "../db/db.js"
 import {
     BLOG_POSTS_PER_PAGE,
     BASE_DIR,
-    WORDPRESS_DIR,
     GDOCS_DETAILS_ON_DEMAND_ID,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
@@ -975,10 +973,6 @@ export class SiteBaker {
         const excludes = "--exclude images/published"
 
         await execWrapper(
-            `rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${this.bakedSiteDir}/ ${excludes}`
-        )
-
-        await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/dist/assets ${this.bakedSiteDir}/assets`
         )
         await execWrapper(
@@ -1100,7 +1094,6 @@ export class SiteBaker {
     }
 
     async endDbConnections() {
-        await wpdb.singleton.end()
         await db.closeTypeOrmAndKnexConnections()
     }
 

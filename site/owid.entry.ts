@@ -94,13 +94,7 @@ try {
     // Cookie access can be restricted by iframe sandboxing, in which case the below code will throw an error
     // see https://github.com/owid/owid-grapher/pull/2452
 
-    if (
-        document.cookie.includes("wordpress") ||
-        document.cookie.includes("wp-settings") ||
-        document.cookie.includes(CookieKey.isAdmin)
-    ) {
-        const adminbar = document.getElementById("wpadminbar")
-        if (adminbar) adminbar.style.display = ""
+    if (document.cookie.includes(CookieKey.isAdmin)) {
         const gdocAdminBar = document.getElementById("gdoc-admin-bar")
         if (gdocAdminBar) {
             gdocAdminBar.style.display = "initial"

@@ -12,10 +12,6 @@ At a minimum, all of the options will transpile and serve the Grapher code, whic
 
 This needs a working MySQL database and gives you an interactive admin UI for visually editing our charts as well as all our ~4000 charts and their data.
 
-**Full WordPress setup** 🚀
-
-This version needs a copy of our wordpress content that is currently only available for Our World In Data team members. With this you can test all parts of the publishing flow including site baking, full page previews for all content etc.
-
 ---
 
 In increasing order of sophistication:
@@ -31,10 +27,6 @@ Here you don't need Docker and you just set up node and yarn. This only gives yo
 **[Local setup with MySQL and Grapher admin](docker-compose-mysql.md)** (🚜)
 
 Uses Docker to run the MySQL database alongside a local setup without MySQL. This setup the one used by a lot of the OWID staff and is recommended for bigger changes to Grapher.
-
-**[Full setup with WordPress](full-wordpress-setup.md)** (🚀)
-
-This setup requires a WordPress database dump which is only available for OWID team members. As the name implies this gives you the full wordpress setup and allows work on all parts of our site publishing locally.
 
 **GitPod** (🚜.)
 

@@ -2,7 +2,6 @@
 
 import * as lodash from "lodash"
 import * as db from "../db/db.js"
-import { DEPRECATEDgetTopics } from "../db/DEPRECATEDwpdb.js"
 import {
     UNCATEGORIZED_TAG_ID,
     BAKE_ON_CHANGE,
@@ -606,9 +605,6 @@ getRouteWithROTransaction(
     }
 )
 
-apiRouter.get("/topics.json", async (req, res) => ({
-    topics: await DEPRECATEDgetTopics(),
-}))
 getRouteWithROTransaction(
     apiRouter,
     "/editorData/variables.json",

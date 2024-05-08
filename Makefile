@@ -28,16 +28,15 @@ help:
 	@echo '  make down                   stop any services still running'
 	@echo '  make refresh                (while up) download a new grapher snapshot and update MySQL'
 	@echo '  make refresh.pageviews      (while up) download and load pageviews from the private datasette instance'
+	@echo '  make refresh.full           (while up) run refresh and refresh.pageviews and sync images from R2'
 	@echo '  make migrate                (while up) run any outstanding db migrations'
 	@echo '  make test                   run full suite (except db tests) of CI checks including unit tests'
 	@echo '  make dbtest                 run db test suite that needs a running mysql db'
 	@echo '  make svgtest                compare current rendering against reference SVGs'
 	@echo
-	@echo '  GRAPHER + WORDPRESS (staff-only)'
+	@echo '  GRAPHER + CLOUDFLARE (staff-only)'
 	@echo '  make up.full                start dev environment via docker-compose and tmux'
 	@echo '  make down.full              stop any services still running'
-	@echo '  make refresh.wp             download a new wordpress snapshot and update MySQL'
-	@echo '  make refresh.full           do a full MySQL update of both wordpress and grapher'
 	@echo '  make sync-images            sync all images from the remote master'
 	@echo '  make update.chart-entities  update the charts_x_entities join table'
 	@echo '  make reindex                reindex (or initialise) search in Algolia'
@@ -103,7 +102,7 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 
 up.full: export DEBUG = 'knex:query'
 
-up.full: require create-if-missing.env.full ../owid-content wordpress/.env tmp-downloads/owid_metadata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
+up.full: require create-if-missing.env.full ../owid-content tmp-downloads/owid_metadata.sql.gz
 	@make validate.env.full
 	@make check-port-3306
 
@@ -111,11 +110,10 @@ up.full: require create-if-missing.env.full ../owid-content wordpress/.env tmp-d
 	yarn install
 	yarn lerna run build
 	yarn run tsc -b
-	yarn buildWordpressPlugin
 
 	@echo '==> Starting dev environment'
 	tmux new-session -s grapher \
-		-n docker 'docker compose -f docker-compose.full.yml up' \; \
+		-n docker 'docker compose -f docker-compose.grapher.yml up' \; \
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
@@ -138,8 +136,6 @@ migrate:
 	@echo '==> Running DB migrations'
 	rm -rf itsJustJavascript && yarn && yarn buildLerna && yarn buildTsc && yarn runDbMigrations
 
-refresh.full: refresh refresh.wp sync-images
-
 refresh:
 	@echo '==> Downloading chart data'
 	./devTools/docker/download-grapher-metadata-mysql.sh
@@ -154,21 +150,12 @@ refresh.pageviews:
 	@echo '==> Refreshing pageviews'
 	yarn && yarn buildLerna && yarn buildTsc && yarn refreshPageviews
 
-refresh.wp:
-	@echo '==> Downloading wordpress data'
-	./devTools/docker/download-wordpress-mysql.sh
-
-	@echo '==> Updating wordpress data'
-	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-wordpress-data.sh
-
-	@echo '!!! WARNING !!!'
-	@echo 'If you run this for staging WP, you have to set !Account password! for'
-	@echo 'tech@ourworldindata.org user to the value from `.env:WORDPRESS_API_PASS`'
-	@echo 'at https://staging.owid.cloud/wp/wp-admin/user-edit.php?user_id=35'
-
 sync-images: sync-images.preflight-check
 	@echo '==> Syncing images to R2'
 	@. ./.env && ./devTools/docker/sync-s3-images.sh
+
+refresh.full: refresh refresh.pageviews sync-images
+	@echo '==> Full refresh completed'
 
 sync-images.preflight-check:
 	@echo '==> Checking for rclone'
@@ -238,18 +225,6 @@ check-port-3306:
 tmp-downloads/owid_metadata.sql.gz:
 	@echo '==> Downloading metadata'
 	./devTools/docker/download-grapher-metadata-mysql.sh
-
-tmp-downloads/live_wordpress.sql.gz:
-	@echo '==> Downloading wordpress data'
-	./devTools/docker/download-wordpress-mysql.sh
-
-wordpress/.env:
-	@echo 'Copying wordpress/.env.example --> wordpress/.env'
-	@cp -f wordpress/.env.example wordpress/.env
-
-wordpress/web/app/uploads/2022:
-	@echo '==> Downloading wordpress uploads'
-	./devTools/docker/download-wordpress-uploads.sh
 
 deploy:
 	@echo '==> Starting from a clean slate...'

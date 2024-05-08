@@ -1,4 +1,3 @@
-import { WORDPRESS_URL } from "../settings/serverSettings.js"
 import React from "react"
 import { Head } from "./Head.js"
 import { CitationMeta } from "./CitationMeta.js"
@@ -405,37 +404,6 @@ export const LongFormPage = (props: {
                         </div>
                     </article>
                 </main>
-                <div id="wpadminbar" style={{ display: "none" }}>
-                    <div
-                        className="quicklinks"
-                        id="wp-toolbar"
-                        role="navigation"
-                        aria-label="Toolbar"
-                    >
-                        <ul
-                            id="wp-admin-bar-root-default"
-                            className="ab-top-menu"
-                        >
-                            <li id="wp-admin-bar-site-name" className="menupop">
-                                <a
-                                    className="ab-item"
-                                    aria-haspopup="true"
-                                    href={`${WORDPRESS_URL}/wp/wp-admin`}
-                                >
-                                    Wordpress
-                                </a>
-                            </li>{" "}
-                            <li id="wp-admin-bar-edit">
-                                <a
-                                    className="ab-item"
-                                    href={formatWordpressEditLink(post.id)}
-                                >
-                                    Edit Page
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
                 <SiteFooter
                     hideDonate={formattingOptions.hideDonateFooter}
                     baseUrl={baseUrl}
@@ -461,8 +429,4 @@ export const LongFormPage = (props: {
             </body>
         </html>
     )
-}
-
-export const formatWordpressEditLink = (postId: number) => {
-    return `${WORDPRESS_URL}/wp/wp-admin/post.php?post=${postId}&action=edit`
 }

@@ -9,13 +9,11 @@ module.exports = {
                 "<rootDir>/itsJustJavascript/db/tests",
             ],
             testMatch: ["**/*.test.(jsx|js)"],
-            modulePathIgnorePatterns: ["<rootDir>/wordpress/"],
         },
         {
             displayName: { name: "jsdom", color: "cyan" },
             testEnvironment: "jsdom",
             testMatch: ["**/*.jsdom.test.(jsx|js)"],
-            // modulePathIgnorePatterns: ["<rootDir>/wordpress/"],
         },
     ],
 }
@@ -23,6 +21,5 @@ module.exports = {
 // special envs for tests
 process.env = Object.assign(process.env, {
     CATALOG_PATH: "https://owid-catalog.nyc3.digitaloceanspaces.com",
-    WORDPRESS_URL: "http://localhost:8080",
     BAKED_BASE_URL: "http://localhost:3030",
 })

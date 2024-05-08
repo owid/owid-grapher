@@ -24,9 +24,9 @@ import {
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
-    WORDPRESS_DIR,
     BASE_DIR,
     BAKED_SITE_DIR,
+    LEGACY_WORDPRESS_IMAGE_URL,
 } from "../settings/serverSettings.js"
 
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
@@ -380,22 +380,26 @@ mockSiteRouter.get("/headerMenu.json", async (req, res) => {
 })
 
 mockSiteRouter.use(
-    // Not all /app/uploads paths are going through formatting
-    // and being rewritten as /uploads. E.g. blog index images paths
-    // on front page.
-    ["/uploads", "/app/uploads"],
-    express.static(path.join(WORDPRESS_DIR, "web/app/uploads"), {
-        fallthrough: false,
-    })
-)
-
-mockSiteRouter.use(
     "/images/published",
     express.static(path.join(DEFAULT_LOCAL_BAKE_DIR, "images/published"), {
         fallthrough: false,
     })
 )
 
+mockSiteRouter.use(
+    // Not all /app/uploads paths are going through formatting
+    // and being rewritten as /uploads. E.g. blog index images paths
+    // on front page.
+    ["/uploads", "/app/uploads"],
+    (req, res) => {
+        const assetPath = req.path.replace(/^\/(app\/)?uploads\//, "")
+        // Ensure no trailing slash on the base URL and manage the slash between URLs safely
+        const baseUrl = LEGACY_WORDPRESS_IMAGE_URL.replace(/\/+$/, "")
+        const path = assetPath.replace(/^\/+/, "")
+        const assetUrl = `${baseUrl}/${path}`
+        res.redirect(assetUrl)
+    }
+)
 mockSiteRouter.use(
     "/exports",
     express.static(path.join(BAKED_SITE_DIR, "exports"))

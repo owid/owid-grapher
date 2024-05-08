@@ -33,7 +33,6 @@ deploy_content () {
         bake_gdoc_posts "$LIGHTNING_GDOC_SLUGS"
     else
         update_owid_content_repo
-        sync_wordpress_uploads
         bake_site
         sync_baked_data_to_r2
     fi
@@ -55,16 +54,6 @@ update_owid_content_repo() {
     )
 }
 
-sync_wordpress_uploads() {
-    echo '--- Syncing live-wordpress uploads from owid-live'
-
-    # see owid-grapher/.../download-wordpress-uploads.sh
-    # this takes about 3 minutes
-    rsync -havzq --delete \
-        --rsh 'ssh -o StrictHostKeyChecking=no' \
-        --exclude='/.gitkeep' \
-        owid@live.owid.io:live-data/wordpress/uploads/ wordpress/web/app/uploads
-}
 
 sync_to_r2_rclone() {
     local target=$1
@@ -91,7 +80,6 @@ sync_baked_data_to_r2() {
     # NOTE: aws is about 3x faster than rclone
     sync_to_r2_aws grapher/exports  # 9203 files
     sync_to_r2_aws exports  # 3314 files
-    sync_to_r2_aws uploads  # 20609 files
 }
 
 deploy_to_cloudflare() {

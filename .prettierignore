@@ -6,11 +6,6 @@ itsJustJavascript
 package.json
 /.storybook/build
 coverage
-/wordpress/vendor
-/wordpress/web/wp
-/wordpress/web/app/plugins/*
-!/wordpress/web/app/plugins/owid
-/wordpress/web/app/uploads
 packages/@ourworldindata/*/dist/
 dist/
 grapherData/

@@ -13,7 +13,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow, Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { ADMIN_BASE_URL, WORDPRESS_URL } from "../settings/clientSettings.js"
+import { ADMIN_BASE_URL } from "../settings/clientSettings.js"
 import { match } from "ts-pattern"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -35,7 +35,7 @@ interface PostIndexMeta {
     status: string
     authors: string[] | null
     slug: string
-    updatedAtInWordpress: string | null
+    updated_at_in_wordpress: string | null
     tags: DbChartTagJoin[] | null
     gdocSuccessorId: string | undefined
     gdocSuccessorPublished: boolean
@@ -220,15 +220,7 @@ class PostRow extends React.Component<PostRowProps> {
                     />
                 </td>
                 <td>
-                    <Timeago time={post.updatedAtInWordpress} />
-                </td>
-                <td>
-                    <a
-                        href={`${WORDPRESS_URL}/wp/wp-admin/post.php?post=${post.id}&action=edit`}
-                        className="btn btn-primary"
-                    >
-                        Edit
-                    </a>
+                    <Timeago time={post.updated_at_in_wordpress} />
                 </td>
                 <td>
                     <a
@@ -332,7 +324,6 @@ export class PostsIndexPage extends React.Component {
                                 <th>Slug</th>
                                 <th>Tags</th>
                                 <th>Last Updated</th>
-                                <th></th>
                                 <th>WP vs Archie compare view</th>
                                 <th>Gdoc</th>
                             </tr>

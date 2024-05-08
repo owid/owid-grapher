@@ -7,12 +7,6 @@ jest.config.js
 knexfile.ts
 ormconfig.js
 postcss.config.js
-wordpress/web/wp/wp-includes/**
-wordpress/web/wp/wp-admin/**
-wordpress/web/app/plugins/**
-wordpress/web/wp/wp-content/**
-!wordpress/web/app/plugins/owid/**/*.js
-wordpress/vendor/**
 packages/@ourworldindata/*/dist/
 dist/
 .vscode/
