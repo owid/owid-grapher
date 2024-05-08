@@ -2565,7 +2565,7 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
             SELECT id, content->>'$.title' as title, content->>'$.type'
             FROM posts_gdocs
             WHERE JSON_CONTAINS(content->'$.authors', '"${author}"')
-            AND type NOT IN ("data-insight", "article", "fragment")
+            AND type NOT IN ("data-insight", "fragment")
             AND published = 1
             ORDER BY publishedAt DESC
     `
