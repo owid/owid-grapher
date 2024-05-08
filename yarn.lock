@@ -11193,7 +11193,6 @@ __metadata:
     js-yaml: "npm:^4.1.0"
     json8-pointer: "npm:^1.0.6"
     jsonwebtoken: "npm:^9.0.0"
-    knex: "npm:^3.1.0"
     lerna: "npm:^7.4.2"
     lint-staged: "npm:^15.2.2"
     lodash: "npm:^4.17.21"
