@@ -86,7 +86,7 @@ function PagesHit({ hit }: { hit: IPageHit }) {
             data-algolia-position={hit.__position}
             className="search-results__page-hit-container"
         >
-            {hit.thumbnail && (
+            {hit.thumbnailUrl && (
                 <div className="search-results__page-hit-img-container">
                     <img
                         src={hit.thumbnailUrl}
