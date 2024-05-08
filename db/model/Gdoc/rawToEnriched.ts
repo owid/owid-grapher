@@ -120,6 +120,8 @@ import {
     SocialLinkType,
     RawBlockLatestWork,
     EnrichedBlockLatestWork,
+    RawBlockUpdate,
+    EnrichedBlockUpdate,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -133,6 +135,7 @@ import {
     isArray,
     partition,
     compact,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink, getLinkType } from "@ourworldindata/components"
 import {
@@ -225,6 +228,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "homepage-search" }, parseHomepageSearch)
         .with({ type: "homepage-intro" }, parseHomepageIntro)
         .with({ type: "socials" }, parseSocials)
+        .with({ type: "update" }, parseUpdate)
         .exhaustive()
 }
 
@@ -2262,6 +2266,92 @@ function parseHomepageIntro(
     }
 }
 
+export const parseUpdate = (raw: RawBlockUpdate): EnrichedBlockUpdate => {
+    const createError = (error: ParseError): EnrichedBlockUpdate => ({
+        type: "update",
+        parseErrors: [error],
+        publishDate: new Date(),
+        publishTime: undefined,
+        title: "",
+        content: [],
+        authors: [],
+        grapherUrl: undefined,
+    })
+
+    if (typeof raw.value === "string")
+        return createError({
+            message: `Update block must be written as an object with publishDate, title and content`,
+        })
+
+    if (!raw.value.content?.length) {
+        return createError({
+            message: "Update block is empty",
+        })
+    }
+
+    // Parse the date
+    let publishDate: Date
+    let publishTime: { hour: number; minute: number } | undefined = undefined
+    if (raw.value.publishDate) {
+        const date = new Date(Date.parse(raw.value.publishDate))
+        if (!date) {
+            return createError({
+                message: `Invalid date: ${raw.value.publishDate}`,
+            })
+        }
+        publishDate = date
+    } else {
+        return createError({
+            message: "Missing publishDate",
+        })
+    }
+
+    // Try to parse time string HH:MM into { hour: HH, minute: MM }
+    if (raw.value.publishTime) {
+        const timeMatch = raw.value.publishTime.match(/^(\d{2}):(\d{2})$/)
+        if (!timeMatch) {
+            return createError({
+                message: `Invalid time: ${raw.value.publishTime}`,
+            })
+        }
+        const hour = parseInt(timeMatch[1])
+        const minute = parseInt(timeMatch[2])
+        if (hour < 0 || hour >= 24 || minute < 0 || minute >= 60) {
+            return createError({
+                message: `Invalid time: ${raw.value.publishTime}`,
+            })
+        }
+        publishTime = { hour, minute }
+    }
+
+    // Parse the title
+    const title = raw.value.title
+    if (!title) {
+        return createError({
+            message: "Missing title",
+        })
+    }
+
+    // Parse the authors that are separated by a comma into an array. Authors are optional.
+    const authors = raw.value.authors ? parseAuthors(raw.value.authors) : []
+
+    const grapherUrl = raw.value["grapher-url"]
+
+    const content = excludeNullish(
+        raw.value.content.map(parseRawBlocksToEnrichedBlocks)
+    )
+
+    return {
+        type: "update",
+        parseErrors: [],
+        publishDate,
+        publishTime,
+        title,
+        content,
+        authors,
+        grapherUrl,
+    }
+}
 export const parseSocials = (raw: RawBlockSocials): EnrichedBlockSocials => {
     const createError = (error: ParseError): EnrichedBlockSocials => ({
         type: "socials",

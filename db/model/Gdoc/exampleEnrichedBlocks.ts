@@ -671,4 +671,14 @@ export const enrichedBlockExamples: Record<
 
         parseErrors: [],
     },
+    update: {
+        type: "update",
+        publishDate: new Date(),
+        publishTime: { hour: 10, minute: 30 },
+        title: "Example Update",
+        authors: ["Author 1", "Author 2"],
+        grapherUrl: "https://ourworldindata.org/grapher/example",
+        content: [enrichedBlockText, enrichedChart],
+        parseErrors: [],
+    },
 }

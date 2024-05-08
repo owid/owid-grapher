@@ -40,10 +40,9 @@ import {
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { GdocAuthor } from "./GdocAuthor.js"
 import { fetchImagesFromDriveAndSyncToS3 } from "../Image.js"
+import { GdocAnnouncements } from "./GdocAnnouncements.js"
 
-export function gdocFromJSON(
-    json: Record<string, any>
-): GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor {
+export function gdocFromJSON(json: Record<string, any>): OwidGdoc {
     if (typeof json.content === "string") {
         json.content = JSON.parse(json.content)
     }
@@ -85,6 +84,9 @@ export function gdocFromJSON(
             OwidGdocType.Author,
             // TODO: better validation here?
             () => GdocAuthor.create({ ...(json as any) })
+        )
+        .with(OwidGdocType.Announcements, () =>
+            GdocAnnouncements.create({ ...(json as any) })
         )
         .exhaustive()
 }
@@ -309,7 +311,7 @@ export async function loadGdocFromGdocBase(
     knex: KnexReadWriteTransaction,
     base: OwidGdocBaseInterface,
     contentSource?: GdocsContentSource
-): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
+): Promise<OwidGdoc> {
     const type = get(base, "content.type") as unknown
     if (!type)
         throw new Error(
@@ -335,6 +337,7 @@ export async function loadGdocFromGdocBase(
         .with(OwidGdocType.DataInsight, () => GdocDataInsight.create(base))
         .with(OwidGdocType.Homepage, () => GdocHomepage.create(base))
         .with(OwidGdocType.Author, () => GdocAuthor.create(base))
+        .with(OwidGdocType.Announcements, () => GdocAnnouncements.create(base))
         .exhaustive()
 
     if (contentSource === GdocsContentSource.Gdocs) {

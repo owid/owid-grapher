@@ -324,5 +324,9 @@ ${links}`
                 .map((link) => `* [${link.text}](${link.url})`)
                 .join("\n")
         })
+        .with({ type: "update" }, (b): string | undefined => {
+            return `## ${b.title}
+${enrichedBlocksToMarkdown(b.content, exportComponents)}`
+        })
         .exhaustive()
 }
