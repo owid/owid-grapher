@@ -852,8 +852,8 @@ export enum SocialLinkType {
 }
 
 export type RawSocialLink = {
-    text: string
-    url: string
+    text?: string
+    url?: string
     type?: SocialLinkType
 }
 
@@ -862,7 +862,11 @@ export type RawBlockSocials = {
     value: RawSocialLink[] | ArchieMLUnexpectedNonObjectValue
 }
 
-export type EnrichedSocialLink = RawSocialLink
+export type EnrichedSocialLink = {
+    text: string
+    url: string
+    type?: SocialLinkType
+}
 
 export type EnrichedBlockSocials = {
     type: "socials"
