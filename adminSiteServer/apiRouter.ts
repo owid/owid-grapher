@@ -2624,7 +2624,10 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
             sortByDateDesc
         )) {
             if (isWordpressPage(post)) {
-                yield* generateProperty("url", post.slug)
+                yield* generateProperty(
+                    "url",
+                    `https://ourworldindata.org/${post.slug}`
+                )
                 yield* generateProperty("title", post.title)
                 yield* generateProperty("subtitle", post.subtitle)
                 yield* generateProperty(
