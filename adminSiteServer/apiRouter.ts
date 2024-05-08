@@ -2552,22 +2552,21 @@ deleteRouteWithRWTransaction(
 // using the alternate template, which highlights topics rather than articles.
 getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
     type WordpressPageRecord = Record<
-        "slug" | "title" | "type" | "thumbnail" | "authors",
+        "slug" | "title" | "type" | "thumbnail" | "authors" | "publishedAt",
         string
     >
-    type GdocRecord = Pick<DbRawPostGdoc, "id"> &
+    type GdocRecord = Pick<DbRawPostGdoc, "id" | "publishedAt"> &
         Pick<OwidGdocContent, "title" | "type">
 
     const author = req.query.author || "Max Roser"
     const gdocs = await db.knexRaw<GdocRecord>(
         trx,
         `-- sql
-            SELECT id, content->>'$.title' as title, content->>'$.type'
+            SELECT id, content->>'$.title' as title, content->>'$.type', publishedAt
             FROM posts_gdocs
             WHERE JSON_CONTAINS(content->'$.authors', '"${author}"')
             AND type NOT IN ("data-insight", "fragment")
             AND published = 1
-            ORDER BY publishedAt DESC
     `
     )
 
@@ -2580,7 +2579,8 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
             wpApiSnapshot->>"$.title.rendered" as title,
             wpApiSnapshot->>"$.type" as type,
             wpApiSnapshot->>"$.authors_name" as authors,
-            wpApiSnapshot->>"$.featured_media_paths.medium_large" as thumbnail
+            wpApiSnapshot->>"$.featured_media_paths.medium_large" as thumbnail,
+            wpApiSnapshot->>"$.date" as publishedAt
         FROM posts p
         WHERE wpApiSnapshot->>"$.content" LIKE '%topic-page%'
         AND JSON_CONTAINS(wpApiSnapshot->'$.authors_name', '"${author}"')
@@ -2590,7 +2590,6 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
             WHERE pg.slug = p.slug
             AND pg.content->>'$.type' LIKE '%topic-page'
         )
-        ORDER BY wpApiSnapshot->>"$.date" DESC
         `
     )
 
@@ -2602,8 +2601,21 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
         yield `${key}: ${value}\n`
     }
 
+    const sortByDateDesc = (
+        a: GdocRecord | WordpressPageRecord,
+        b: GdocRecord | WordpressPageRecord
+    ): number => {
+        if (!a.publishedAt || !b.publishedAt) return 0
+        return (
+            new Date(b.publishedAt).getTime() -
+            new Date(a.publishedAt).getTime()
+        )
+    }
+
     function* generateAllWorkArchieMl() {
-        for (const post of [...gdocs, ...wpModularTopicPages]) {
+        for (const post of [...gdocs, ...wpModularTopicPages].sort(
+            sortByDateDesc
+        )) {
             if (isWordpressPage(post)) {
                 yield* generateProperty("url", post.slug)
                 yield* generateProperty("title", post.title)
