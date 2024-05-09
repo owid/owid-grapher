@@ -13,12 +13,12 @@ const UpdateMeta = (props: {
         : "Unpublished"
 
     return (
-        <div className="span-cols-2 col-start-2 span-md-cols-10 col-md-start-3 span-sm-cols-14 col-sm-start-1 data-insight-meta">
+        <div className="span-cols-2 col-start-2 span-md-cols-10 col-md-start-3 span-sm-cols-14 col-sm-start-1 update-meta">
             <div>
-                <span className="data-insight-meta__published-at h6-black-caps">
+                <span className="update-meta__published-at h6-black-caps">
                     {publishedAt}
                 </span>
-                <span className="data-insight-meta__authors body-3-medium">
+                <span className="update-meta__authors body-3-medium">
                     {formatAuthors({ authors: props.authors })}
                 </span>
             </div>
@@ -35,11 +35,11 @@ export const Update = (props: EnrichedBlockUpdate & { className: string }) => {
             />
             <div
                 className={cx(
-                    "span-cols-8 col-start-4 span-md-cols-10 col-md-start-3 span-sm-cols-14 col-sm-start-1 data-insight-body"
+                    "span-cols-8 col-start-4 span-md-cols-10 col-md-start-3 span-sm-cols-14 col-sm-start-1 update-body"
                 )}
             >
                 <h1 className="display-3-semibold">{props.title}</h1>
-                <div className="data-insight-blocks">
+                <div className="update-blocks">
                     <ArticleBlocks blocks={props.content} />
                 </div>
             </div>

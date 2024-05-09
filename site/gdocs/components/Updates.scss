@@ -1,0 +1,129 @@
+// Orders
+.update-breadcrumbs {
+    order: 0;
+}
+.update-meta {
+    order: 2;
+    @include md-down {
+        order: 3;
+    }
+}
+.update-body {
+    order: 3;
+    @include md-down {
+        order: 2;
+    }
+}
+
+.update-meta {
+    display: flex;
+    flex-direction: column;
+
+    div:nth-child(1) {
+        display: flex;
+        flex-direction: column;
+        .update-meta__published-at {
+            color: $blue-60;
+        }
+
+        .update-meta__authors {
+            color: $blue-60;
+        }
+    }
+
+    label {
+        display: none;
+        color: $blue-60;
+    }
+
+    @include md-down {
+        background-color: #fff;
+        padding: 16px;
+        margin-bottom: 32px;
+        flex-direction: row;
+        justify-content: space-between;
+
+        label {
+            display: block;
+        }
+        .update-meta__authors {
+            margin-top: 16px;
+        }
+    }
+}
+
+@include md-down {
+    // Add bottom border/padding to the insight body last child at mobile sizes if there are no tags
+    // to separate it from the meta
+    .update-meta + .update-body:not(.update-body--has-tags) > *:last-child {
+        padding-bottom: 24px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid $blue-10;
+    }
+}
+
+.update-body {
+    background-color: #fff;
+    padding: 24px;
+    margin-bottom: 48px;
+    h1 {
+        margin-top: 0;
+        margin-bottom: 24px;
+    }
+
+    // the tags block adds padding that we need to compensate for
+    &.update-body--has-tags {
+        padding-bottom: 8px;
+    }
+
+    .article-block__image {
+        outline: 1px solid $blue-10;
+        margin-top: 24px;
+    }
+
+    @include md-down {
+        padding: 16px;
+        margin-bottom: 0;
+        padding-bottom: 0;
+
+        h1 {
+            font-size: 1.625rem;
+            margin-bottom: 16px;
+        }
+
+        .article-block__image {
+            margin-top: 16px;
+            margin-bottom: 24px;
+        }
+
+        .article-block__text {
+            font-size: 1rem;
+        }
+    }
+}
+
+.update-blocks {
+    > *:first-child {
+        margin-top: 0;
+    }
+    > *:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.updates-index-page__header {
+    margin-bottom: 40px;
+    background-color: #fff;
+    @include md-down {
+        margin-bottom: 24px;
+    }
+
+    h2 {
+        margin: 0;
+        margin-top: 40px;
+    }
+    p {
+        margin: 0;
+        margin-bottom: 32px;
+    }
+}

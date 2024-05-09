@@ -2312,7 +2312,7 @@ export const parseUpdate = (raw: RawBlockUpdate): EnrichedBlockUpdate => {
     }
 
     // Parse the date
-    let publishDate: Date
+    let publishDate: Date | undefined = undefined
     let publishTime: { hour: number; minute: number } | undefined = undefined
     if (raw.value.publishDate) {
         const date = new Date(Date.parse(raw.value.publishDate))
@@ -2322,10 +2322,6 @@ export const parseUpdate = (raw: RawBlockUpdate): EnrichedBlockUpdate => {
             })
         }
         publishDate = date
-    } else {
-        return createError({
-            message: "Missing publishDate",
-        })
     }
 
     // Try to parse time string HH:MM into { hour: HH, minute: MM }
