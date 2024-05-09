@@ -38,6 +38,7 @@ export const Update = (props: EnrichedBlockUpdate & { className: string }) => {
                     "span-cols-8 col-start-4 span-md-cols-10 col-md-start-3 span-sm-cols-14 col-sm-start-1 update-body"
                 )}
             >
+                <p className="h6-black-caps">Announcement</p>
                 <h1 className="display-3-semibold">{props.title}</h1>
                 <div className="update-blocks">
                     <ArticleBlocks blocks={props.content} />

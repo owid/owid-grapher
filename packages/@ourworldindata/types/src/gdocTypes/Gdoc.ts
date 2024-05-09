@@ -126,6 +126,7 @@ export interface OwidGdocAnnouncementsContent {
     body: OwidEnrichedGdocBlock[]
     authors: string[]
     title?: string
+    subtitle?: string
 }
 
 export interface OwidGdocAnnouncementsInterface extends OwidGdocBaseInterface {

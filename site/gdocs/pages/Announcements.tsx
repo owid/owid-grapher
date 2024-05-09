@@ -14,6 +14,9 @@ export const AnnouncementsPage = (props: AnnouncementsProps): JSX.Element => {
                 <h2 className="span-cols-8 col-start-4 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12 display-2-semibold ">
                     {props.content.title}
                 </h2>
+                <p className="span-cols-8 col-start-4 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12 body-1-regular">
+                    {props.content.subtitle}
+                </p>
             </header>
 
             {content.body ? <ArticleBlocks blocks={content.body} /> : null}
