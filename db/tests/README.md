@@ -2,8 +2,6 @@ The tests here are supposed to be run via `make dbtest`. This will bootstrap an 
 
 The idea for these tests is to test the interaction with the database. This is slower than tests that just work within code so the logic that doesn't need to concern itself with the database and just needs a store for values and a way to retrieve them is probably better done another way. But code that includes some non-trivial work inside the database (with functions, triggers or complex views) should use tests here to validate that things work correctly.
 
-Fixtures are done using the library [sql-fixtures](http://city41.github.io/node-sql-fixtures/) - it has support for supplying fixtures both in JS code (as objects with some neat features for interlinking them where there are FK constraints), or via SQL. See the docs of the library for how to do either.
-
 It can be useful to fetch segments from the prod or a staging database for testing. The nicest way to do this is to write a where clause that selects the right rows from the table you are interested in and then run a mysqldump command to create insert statements for these rows, like so:
 
 ```bash
