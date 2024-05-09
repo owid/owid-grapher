@@ -63,11 +63,6 @@ export const TableOfContents = ({
 
     useTriggerWhenClickOutside(tocRef, isOpen, setIsOpen)
 
-    // Open the sidebar on desktop by default when mounting
-    useEffect(() => {
-        setIsOpen(window.innerWidth >= 1536)
-    }, [])
-
     useEffect(() => {
         if ("IntersectionObserver" in window) {
             const previousHeadings = headings.map((heading, i) => ({
