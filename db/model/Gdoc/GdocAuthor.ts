@@ -27,7 +27,7 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
     }
 
     static create(obj: OwidGdocBaseInterface): GdocAuthor {
-        const author = new GdocAuthor()
+        const gdoc = new GdocAuthor()
 
         // We need to prevent obj methods from overriding GdocAuthor methods.
         // This happens when createGdocAndInsertIntoDb() passes a GdocBase
@@ -50,9 +50,9 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         // that are not defined in the subclass. Note that methods are also
         // technically overriden if not defined on the subclass, although we can
         // ignore it as this is redundant with inheritance mechanisms.
-        defaults(author, obj)
+        defaults(gdoc, obj)
 
-        return author
+        return gdoc
     }
     protected typeSpecificFilenames(): string[] {
         return excludeNullish([this.content["featured-image"]])
