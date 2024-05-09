@@ -6,6 +6,7 @@ import {
     OwidGdoc,
     OwidGdocHomepageInterface,
     OwidGdocAuthorInterface,
+    OwidGdocAnnouncementsInterface,
 } from "@ourworldindata/utils"
 import { EXCERPT_MAX_LENGTH } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
@@ -201,6 +202,29 @@ export const GdocInsightSettings = ({
                     errors={errors}
                 />
             </div>
+        </form>
+    )
+}
+
+export const GdocAnnouncementsSettings = ({
+    gdoc,
+    setCurrentGdoc,
+    errors,
+}: {
+    gdoc: OwidGdocAnnouncementsInterface
+    setCurrentGdoc: (gdoc: OwidGdocAnnouncementsInterface) => void
+    errors?: OwidGdocErrorMessage[]
+}) => {
+    if (!gdoc || !errors) return null
+
+    return (
+        <form className="GdocsSettingsForm">
+            <GdocCommonErrors errors={errors} errorsToFilter={[]} />
+            <GdocCommonSettings
+                gdoc={gdoc}
+                setCurrentGdoc={setCurrentGdoc}
+                errors={errors}
+            />
         </form>
     )
 }
