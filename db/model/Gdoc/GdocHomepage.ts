@@ -5,6 +5,7 @@ import {
     OwidGdocHomepageInterface,
     OwidGdocMinimalPostInterface,
     OwidGdocType,
+    defaults,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import * as db from "../../db.js"
@@ -28,7 +29,7 @@ export class GdocHomepage
 
     static create(obj: OwidGdocBaseInterface): GdocHomepage {
         const gdoc = new GdocHomepage()
-        Object.assign(gdoc, obj)
+        defaults(gdoc, obj) // see GdocAuthor.ts for rationale
         return gdoc
     }
 
