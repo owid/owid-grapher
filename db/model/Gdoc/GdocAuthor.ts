@@ -9,7 +9,6 @@ import {
     DEFAULT_GDOC_FEATURED_IMAGE,
     OwidGdocBaseInterface,
     excludeNullish,
-    defaults,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
@@ -28,30 +27,7 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
 
     static create(obj: OwidGdocBaseInterface): GdocAuthor {
         const gdoc = new GdocAuthor()
-
-        // We need to prevent obj methods from overriding GdocAuthor methods.
-        // This happens when createGdocAndInsertIntoDb() passes a GdocBase
-        // instance to loadGdocFromGdocBase(), instead of a simple object. In
-        // this case, simply assigning obj to gdoc would override GdocAuthor
-        // methods with GdocBase methods, in particular the
-        // _enrichedSubclassContent. When creating a new author,
-        // _enrichedSubclassContent would run from the base GdocBase class
-        // instead of the GdocAuthor subclass, and the socials block would not
-        // be shaped as an ArchieML block, thus throwing an error.
-
-        // A first approach to avoid this would be to use Object.assign(), while
-        // omitting functions:
-        // Object.assign(gdoc, omitBy(obj, isFunction))
-
-        // However this approach still lets the parent class override properties
-        // of the subclass, which can be conceptually surprising.
-
-        // So instead, we choose to only override the properties and methods
-        // that are not defined in the subclass. Note that methods are also
-        // technically overriden if not defined on the subclass, although we can
-        // ignore it as this is redundant with inheritance mechanisms.
-        defaults(gdoc, obj)
-
+        Object.assign(gdoc, obj)
         return gdoc
     }
     protected typeSpecificFilenames(): string[] {

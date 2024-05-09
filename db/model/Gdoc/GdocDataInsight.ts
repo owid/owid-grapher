@@ -7,7 +7,6 @@ import {
     OwidGdocMinimalPostInterface,
     OwidGdocBaseInterface,
     excludeNullish,
-    defaults,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import * as db from "../../../db/db.js"
@@ -28,7 +27,7 @@ export class GdocDataInsight
 
     static create(obj: OwidGdocBaseInterface): GdocDataInsight {
         const gdoc = new GdocDataInsight()
-        defaults(gdoc, obj) // see GdocAuthor.ts for rationale
+        Object.assign(gdoc, obj)
         return gdoc
     }
 
