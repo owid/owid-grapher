@@ -137,6 +137,7 @@ export const checkIsLightningUpdate = (
         type: false, // shouldn't change
         title: true, // Should only influence the page itself
         authors: true, // not used
+        subtitle: true,
         body: true, // fine for lightning update
     }
 
