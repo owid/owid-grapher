@@ -65,6 +65,9 @@ jobs:
             - uses: ./.github/actions/setup-node-yarn-deps
             - uses: ./.github/actions/build-tsc
 
+            - name: Run vite build
+              run: yarn buildViteSite
+
             - name: Send bundle stats to RelativeCI
               uses: relative-ci/agent-action@v2
               with:
