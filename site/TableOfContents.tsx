@@ -153,6 +153,11 @@ export const TableOfContents = ({
 
     return (
         <div className={TOC_WRAPPER_CLASSNAME}>
+            <div
+                className={classNames({
+                    "entry-sidebar__overlay": isOpen,
+                })}
+            />
             <aside
                 className={classNames("entry-sidebar", {
                     "entry-sidebar--is-open": isOpen,

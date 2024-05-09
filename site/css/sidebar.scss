@@ -12,6 +12,11 @@
     @include xxlg-up {
         height: 100%;
     }
+
+    .entry-sidebar__overlay {
+        @include overlay;
+        z-index: $zindex-sidebar - 1;
+    }
 }
 
 .entry-sidebar {
