@@ -143,6 +143,7 @@ import {
     addImagesToContentGraph,
     updateGdocContentOnly,
     upsertGdoc,
+    GdocClass,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { match } from "ts-pattern"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
@@ -2368,8 +2369,8 @@ getRouteNonIdempotentWithRWTransaction(
 async function indexAndBakeGdocIfNeccesary(
     trx: db.KnexReadWriteTransaction,
     user: Required<DbInsertUser>,
-    prevGdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor,
-    nextGdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor
+    prevGdoc: GdocClass,
+    nextGdoc: GdocClass
 ) {
     const prevJson = prevGdoc.toJSON()
     const nextJson = nextGdoc.toJSON()
