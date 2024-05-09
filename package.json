@@ -247,6 +247,7 @@
         "jest-environment-jsdom": "^29.7.0",
         "lint-staged": "^15.2.2",
         "opener": "^1.5.2",
+        "rollup-plugin-webpack-stats": "^0.2.6",
         "sass": "^1.69.5",
         "tmex": "^1.0.8",
         "topojson-server": "^3.0.1",

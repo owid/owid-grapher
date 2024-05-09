@@ -1,4 +1,4 @@
-import { defineConfig } from "vite"
+import { PluginOption, defineConfig } from "vite"
 import pluginReact from "@vitejs/plugin-react"
 import pluginChecker from "vite-plugin-checker"
 import { warmup as pluginWarmup } from "vite-plugin-warmup"
@@ -10,7 +10,10 @@ import {
 } from "./site/viteUtils.js"
 
 // https://vitejs.dev/config/
-export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
+export const defineViteConfigForEntrypoint = (
+    entrypoint: ViteEntryPoint,
+    extraPlugins?: PluginOption[]
+) => {
     const entrypointInfo = VITE_ENTRYPOINT_INFO[entrypoint]
 
     return defineConfig({
@@ -77,6 +80,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 },
             }),
             pluginWarmup({ clientFiles: [VITE_ASSET_SITE_ENTRY] }),
+            ...(extraPlugins || []),
         ],
         server: {
             port: 8090,

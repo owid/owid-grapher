@@ -65,7 +65,9 @@ jobs:
             - uses: ./.github/actions/setup-node-yarn-deps
             - uses: ./.github/actions/build-tsc
 
-            - name: Run bundlewatch
-              run: yarn testBundlewatch
-              env:
-                  BUNDLEWATCH_GITHUB_TOKEN: "${{ secrets.BUNDLEWATCH_GITHUB_TOKEN }}"
+            - name: Send bundle stats to RelativeCI
+              uses: relative-ci/agent-action@v2
+              with:
+                  webpackStatsFile: ./dist/assets/webpack-stats.json
+                  key: ${{ secrets.RELATIVE_CI_KEY }}
+                  token: ${{ secrets.GITHUB_TOKEN }}
