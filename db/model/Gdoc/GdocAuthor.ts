@@ -38,6 +38,9 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         // _enrichedSubclassContent would run from the base GdocBase class
         // instead of the GdocAuthor subclass, and the socials block would not
         // be shaped as an ArchieML block, thus throwing an error.
+
+        // A first approach to avoid this would be to use Object.assign(), while
+        // omitting functions:
         // Object.assign(gdoc, omitBy(obj, isFunction))
 
         // However this approach still lets the parent class override properties
