@@ -12,6 +12,7 @@ import {
     OwidGdocMinimalPostInterface,
     OwidGdocBaseInterface,
     excludeNullish,
+    defaults,
 } from "@ourworldindata/utils"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 import {
@@ -37,7 +38,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     }
     static create(obj: OwidGdocBaseInterface): GdocPost {
         const gdoc = new GdocPost()
-        Object.assign(gdoc, obj)
+        defaults(gdoc, obj) // see GdocAuthor.ts for rationale
         return gdoc
     }
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
