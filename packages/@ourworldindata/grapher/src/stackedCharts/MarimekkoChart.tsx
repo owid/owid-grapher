@@ -79,6 +79,7 @@ import {
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
+const MAX_LABEL_COUNT: number = 20
 
 function MarimekkoBar({
     bar,
@@ -1219,16 +1220,28 @@ export class MarimekkoChart
     20 labels relatively evenly spaced (in x domain space) and this function gives us 20 groups that
     are roughly of equal size and then we can pick the largest of each group */
     private static splitIntoEqualDomainSizeChunks(
+        items: Item[],
         candidates: LabelCandidate[],
         numChunks: number
     ): LabelCandidate[][] {
+        // candidates contains all entities available in the chart for some time
+        // items is just the entities for the currently selected time, so can be a way smaller subset
+        const validItemNames = items.map(({ entityName }) => entityName)
+
+        // filter the list to remove any candidates that are not currently visible
+        // all further calculations are then done only with validCandidates
+        const validCandidates = candidates.filter((candidate) =>
+            validItemNames.includes(candidate.item.entityName)
+        )
+
         const chunks: LabelCandidate[][] = []
         let currentChunk: LabelCandidate[] = []
         let domainSizeOfChunk = 0
         const domainSizeThreshold = Math.ceil(
-            sumBy(candidates, (candidate) => candidate.item.xValue) / numChunks
+            sumBy(validCandidates, (candidate) => candidate.item.xValue) /
+                numChunks
         )
-        for (const candidate of candidates) {
+        for (const candidate of validCandidates) {
             while (domainSizeOfChunk > domainSizeThreshold) {
                 chunks.push(currentChunk)
                 currentChunk = []
@@ -1250,6 +1263,7 @@ export class MarimekkoChart
             xRange,
             sortConfig,
             paddingInPixels,
+            items,
         } = this
 
         if (yColumnsAtLastTimePoint.length === 0) return []
@@ -1268,6 +1282,10 @@ export class MarimekkoChart
                 row.value,
             ])
         )
+
+        // We want labels to be chosen according to the latest time point available in the chart.
+        // The reason for this is that it makes it so the labels are pretty consistent across time,
+        // and not very jumpy when the user drags across the timeline.
         const labelCandidateSource = xColumnAtLastTimePoint
             ? xColumnAtLastTimePoint
             : yColumnsAtLastTimePoint[0]
@@ -1328,9 +1346,13 @@ export class MarimekkoChart
         const labelHeight = labelCandidates[0].bounds.height
 
         const numLabelsToAdd = Math.floor(
-            Math.min(availablePixels / (labelHeight + paddingInPixels) / 3, 20) // factor 3 is arbitrary to taste
+            Math.min(
+                availablePixels / (labelHeight + paddingInPixels) / 3, // factor 3 is arbitrary to taste
+                MAX_LABEL_COUNT
+            )
         )
         const chunks = MarimekkoChart.splitIntoEqualDomainSizeChunks(
+            items,
             labelCandidates,
             numLabelsToAdd
         )
