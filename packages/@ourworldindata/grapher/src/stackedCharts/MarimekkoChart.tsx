@@ -1224,12 +1224,11 @@ export class MarimekkoChart
         candidates: LabelCandidate[],
         numChunks: number
     ): LabelCandidate[][] {
-        // candidates contains all valid entites across a set of N selectable charts (ie. years)
-        // items is just the valid entities for the currently selected member of the set
-        // validItemNames will enable us to filter correctly
+        // candidates contains all entities available in the chart for some time
+        // items is just the entities for the currently selected time, so can be a way smaller subset
         const validItemNames = items.map(({ entityName }) => entityName)
 
-        // filter the list to remove invalid candidates given validItemNames
+        // filter the list to remove any candidates that are not currently visible
         // all further calculations are then done only with validCandidates
         const validCandidates = candidates.filter((candidate) =>
             validItemNames.includes(candidate.item.entityName)
@@ -1239,7 +1238,8 @@ export class MarimekkoChart
         let currentChunk: LabelCandidate[] = []
         let domainSizeOfChunk = 0
         const domainSizeThreshold = Math.ceil(
-            sumBy(validCandidates, (candidate) => candidate.item.xValue) / numChunks
+            sumBy(validCandidates, (candidate) => candidate.item.xValue) /
+                numChunks
         )
         for (const candidate of validCandidates) {
             while (domainSizeOfChunk > domainSizeThreshold) {
@@ -1282,6 +1282,10 @@ export class MarimekkoChart
                 row.value,
             ])
         )
+
+        // We want labels to be chosen according to the latest time point available in the chart.
+        // The reason for this is that it makes it so the labels are pretty consistent across time,
+        // and not very jumpy when the user drags across the timeline.
         const labelCandidateSource = xColumnAtLastTimePoint
             ? xColumnAtLastTimePoint
             : yColumnsAtLastTimePoint[0]
@@ -1342,7 +1346,10 @@ export class MarimekkoChart
         const labelHeight = labelCandidates[0].bounds.height
 
         const numLabelsToAdd = Math.floor(
-            Math.min(availablePixels / (labelHeight + paddingInPixels) / 3, MAX_LABEL_COUNT) // factor 3 is arbitrary to taste
+            Math.min(
+                availablePixels / (labelHeight + paddingInPixels) / 3, // factor 3 is arbitrary to taste
+                MAX_LABEL_COUNT
+            )
         )
         const chunks = MarimekkoChart.splitIntoEqualDomainSizeChunks(
             items,
