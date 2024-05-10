@@ -111,8 +111,14 @@
     }
 
     &.large-banner {
+        .offset-subnavigation {
+            position: relative;
+            z-index: $zindex-extended-header;
+        }
         .offset-header {
             background-color: $blue-10;
+            position: relative;
+            z-index: $zindex-extended-header;
         }
 
         .article-header {
