@@ -300,10 +300,9 @@ getPlainRouteNonIdempotentWithRWTransaction(
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
-    "/charts",
-    async (req, res, trx) => {
-        const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
-        res.send(await renderChartsPage(trx, explorerAdminServer))
+    "/charts/*",
+    async (req, res) => {
+        res.send(await renderChartsPage())
     }
 )
 

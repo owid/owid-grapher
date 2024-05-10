@@ -146,6 +146,7 @@ class ChartFilter {
     }
 }
 
+// TODO: remove the rest of this legacy ChartsIndexPage code
 export function runChartsIndexPage() {
     const searcher = new ChartFilter()
     searcher.run()

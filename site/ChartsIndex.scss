@@ -1,0 +1,17 @@
+.charts-index-block {
+    padding: 24px;
+    margin: 16px 0;
+    background-color: $blue-10;
+    h3 {
+        margin: 0;
+    }
+
+    ol {
+        li {
+            list-style: none;
+            a {
+                @include owid-link-60;
+            }
+        }
+    }
+}
