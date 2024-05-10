@@ -1224,17 +1224,17 @@ export class MarimekkoChart
         candidates: LabelCandidate[],
         numChunks: number
     ): LabelCandidate[][] {
-        // we'll use this to validate a candidate against it's chart appearance validity
-        const validItemNames: String[] = items.map(({ entityName }) => entityName)
+        // candidates contains all valid entites across a set of N selectable charts (ie. years)
+        // items is just the valid entities for the currently selected member of the set
+        // validItemNames will enable us to filter correctly
+        const validItemNames = items.map(({ entityName }) => entityName)
 
-        // reduce the list of candidates down to just those that match the valid entities
+        // filter the list to remove invalid candidates given validItemNames
         // all further calculations are then done only with validCandidates
-        let validCandidates: LabelCandidate[] = []
-        for (const candidate of candidates) {
-            if (validItemNames.includes(candidate.item.entityName)) {
-                validCandidates.push(candidate)
-            }
-        }
+        const validCandidates = candidates.filter((candidate) =>
+            validItemNames.includes(candidate.item.entityName)
+        )
+
         const chunks: LabelCandidate[][] = []
         let currentChunk: LabelCandidate[] = []
         let domainSizeOfChunk = 0
