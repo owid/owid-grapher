@@ -19,10 +19,7 @@ export class GdocDataInsight
     content!: OwidGdocDataInsightContent
 
     constructor(id?: string) {
-        super()
-        if (id) {
-            this.id = id
-        }
+        super(id)
     }
 
     static create(obj: OwidGdocBaseInterface): GdocDataInsight {
