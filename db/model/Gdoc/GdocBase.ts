@@ -13,7 +13,6 @@ import {
     Span,
     traverseEnrichedSpan,
     uniq,
-    identity,
     OwidGdocBaseInterface,
     OwidGdocPublicationContext,
     BreadcrumbItem,
@@ -74,24 +73,38 @@ export class GdocBase implements OwidGdocBaseInterface {
     linkedIndicators: Record<number, LinkedIndicator> = {}
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     latestDataInsights: MinimalDataInsightInterface[] = []
-
-    _getSubclassEnrichedBlocks: (gdoc: typeof this) => OwidEnrichedGdocBlock[] =
-        () => []
-    _enrichSubclassContent: (content: Record<string, any>) => void = identity
-    _validateSubclass: (
-        knex: db.KnexReadonlyTransaction,
-        gdoc: typeof this
-    ) => Promise<OwidGdocErrorMessage[]> = async () => []
     _omittableFields: string[] = []
-
-    _loadSubclassAttachments: (
-        knex: db.KnexReadonlyTransaction
-    ) => Promise<void> = async () => undefined
 
     constructor(id?: string) {
         if (id) {
             this.id = id
         }
+    }
+
+    /******************************************************************
+     * !! Use methods instead of functions as enumerable properties   *
+     * (see GdocAuthor.ts for rationale)                              *
+     ******************************************************************/
+
+    _getSubclassEnrichedBlocks(_gdoc: typeof this): OwidEnrichedGdocBlock[] {
+        return []
+    }
+
+    _enrichSubclassContent(_content: Record<string, any>): void {
+        return
+    }
+
+    async _validateSubclass(
+        _knex: db.KnexReadonlyTransaction,
+        _gdoc: typeof this
+    ): Promise<OwidGdocErrorMessage[]> {
+        return []
+    }
+
+    async _loadSubclassAttachments(
+        _knex: db.KnexReadonlyTransaction
+    ): Promise<void> {
+        return
     }
 
     protected typeSpecificFilenames(): string[] {
