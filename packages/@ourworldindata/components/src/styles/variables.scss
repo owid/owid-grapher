@@ -153,8 +153,7 @@ $zindex-popover: 100;
 $zindex-search-overlay: 100;
 $zindex-cookie-notice: 110;
 $zindex-site-header: 120;
-// $zindex-extended-header ensures search overlays topic-page headers and ToC does not
-$zindex-extended-header: $zindex-site-header - 1;
+$zindex-extended-header: $zindex-site-header - 1; // $zindex-extended-header ensures search overlays topic-page headers and ToC does not
 $zindex-tooltip: 1070;
 $zindex-lightbox: 99998;
 $zindex-adminbar: 99999;
