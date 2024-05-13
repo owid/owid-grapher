@@ -232,3 +232,14 @@ $zindex-controls-drawer: 150;
 .dod-container {
     @include dod-container;
 }
+
+#notebook {
+    position: absolute;
+    top: 70px;
+    left: 50px;
+    right: 50px;
+    bottom: 50px;
+    background: white;
+    z-index: 100;
+    overflow-y: scroll;
+}
