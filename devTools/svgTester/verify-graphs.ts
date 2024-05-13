@@ -97,6 +97,7 @@ async function main(args: parseArgs.ParsedArgs) {
 
         const pool = workerpool.pool(__dirname + "/worker.js", {
             minWorkers: 2,
+            maxWorkers: 12,
         })
 
         // Parallelize the CPU heavy verification using the workerpool library
@@ -150,7 +151,7 @@ Charts to process:
 Chart configurations to test:
     --query-str, -q     Grapher query string to verify charts with a specific configuration, e.g. tab=chart&stackMode=relative
     --all-views         For each Grapher, verify SVGs for all possible chart configurations
-    
+
 Other options:
     --suffix, -s    Suffix for different SVG files to create <NAME><SUFFIX>.svg files - useful if you want to set output to the same as reference
     --rm-on-error   Remove output files where we encounter errors, so errors are apparent in diffs
