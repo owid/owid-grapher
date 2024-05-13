@@ -76,7 +76,6 @@ import {
     PostsGdocsTableName,
     DbPlainDataset,
     DbInsertUser,
-    OwidGdocContent,
 } from "@ourworldindata/types"
 import {
     getVariableDataRoute,
@@ -2551,24 +2550,19 @@ deleteRouteWithRWTransaction(
 // [.secondary] section of the {.research-and-writing} block of author pages
 // using the alternate template, which highlights topics rather than articles.
 getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
-    type WordpressPageRecord = Record<
-        | "slug"
-        | "title"
-        | "subtitle"
-        | "type"
-        | "thumbnail"
-        | "authors"
-        | "publishedAt",
+    type WordpressPageRecord = {
+        isWordpressPage: number
+    } & Record<
+        "slug" | "title" | "subtitle" | "thumbnail" | "authors" | "publishedAt",
         string
     >
-    type GdocRecord = Pick<DbRawPostGdoc, "id" | "publishedAt"> &
-        Pick<OwidGdocContent, "title" | "type">
+    type GdocRecord = Pick<DbRawPostGdoc, "id" | "publishedAt">
 
     const author = req.query.author || "Max Roser"
     const gdocs = await db.knexRaw<GdocRecord>(
         trx,
         `-- sql
-            SELECT id, content->>'$.title' as title, content->>'$.type', publishedAt
+            SELECT id, publishedAt
             FROM posts_gdocs
             WHERE JSON_CONTAINS(content->'$.authors', '"${author}"')
             AND type NOT IN ("data-insight", "fragment")
@@ -2584,7 +2578,7 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
             wpApiSnapshot->>"$.slug" as slug,
             wpApiSnapshot->>"$.title.rendered" as title,
             wpApiSnapshot->>"$.excerpt.rendered" as subtitle,
-            wpApiSnapshot->>"$.type" as type,
+            TRUE as isWordpressPage,
             wpApiSnapshot->>"$.authors_name" as authors,
             wpApiSnapshot->>"$.featured_media_paths.medium_large" as thumbnail,
             wpApiSnapshot->>"$.date" as publishedAt
@@ -2602,7 +2596,8 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
 
     const isWordpressPage = (
         post: WordpressPageRecord | GdocRecord
-    ): post is WordpressPageRecord => post.type === "page"
+    ): post is WordpressPageRecord =>
+        (post as WordpressPageRecord).isWordpressPage === 1
 
     function* generateProperty(key: string, value: string) {
         yield `${key}: ${value}\n`
