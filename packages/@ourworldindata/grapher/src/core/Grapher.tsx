@@ -210,7 +210,7 @@ import {
     type EntitySelectorState,
 } from "../entitySelector/EntitySelector"
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
-
+declare const StarboardEmbed: any // Inform TypeScript about StarboardEmbed
 declare global {
     interface Window {
         details?: DetailDictionary
@@ -2371,6 +2371,49 @@ export class Grapher
         void this.timelineController.togglePlay()
     }
 
+    @action.bound private async addNotebook() {
+        const notebookNode = document.createElement("div")
+        notebookNode.id = "notebook"
+        document.body.appendChild(notebookNode)
+        const packageUrl = "https://unpkg.com/starboard-wrap/dist/index.js"
+
+        const module = await import(packageUrl)
+
+        // Ensure the module is available and extract the necessary export
+        const { StarboardEmbed } = module
+
+        // Create a script tag to load the necessary library
+        const notebookContent = `# %% [markdown]
+# Setup code
+The code in the cell below provides the infrastructure to access our data. It is automatically run when the page is loaded.
+# %%--- [python]
+# properties:
+#   run_on_load: true
+# ---%%
+from pyodide.http import open_url
+import pandas as pd
+csv = open_url("${this.baseUrl}.csv")
+
+df = pd.read_csv(csv)
+
+# %% [markdown]
+Add your code below - the example shows the first few rows of the data. Refer to the pandas documentation of ask ChatGPT for help on how to manipulate pandas dataframes.
+# %%--- [python]
+# properties:
+#   run_on_load: true
+# ---%%
+df.head()
+`
+
+        const mount = document.querySelector("#notebook")
+        const el = new StarboardEmbed({
+            notebookContent: notebookContent,
+            src: "https://unpkg.com/starboard-notebook/dist/index.html",
+        })
+
+        mount!.appendChild(el)
+    }
+
     selection =
         this.manager?.selection ??
         new SelectionArray(
@@ -2471,6 +2514,14 @@ export class Grapher
                 fn: (): void => this.clearQueryParams(),
                 title: "Reset to original",
                 category: "Navigation",
+            },
+            {
+                combo: "ctrl+n",
+                fn: (): void => {
+                    void this.addNotebook()
+                },
+                title: "Open a notebook",
+                category: "Notebook",
             },
         ]
 
