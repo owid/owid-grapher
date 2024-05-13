@@ -1312,21 +1312,21 @@ class LabelledSlopes
                 <line x1={x2} y1={y1} x2={x2} y2={y2} stroke="#999" />
                 <text
                     x={x1}
-                    y={y1 + BOTTOM_PADDING}
+                    y={y1 + BOTTOM_PADDING - 2}
                     textAnchor="middle"
                     fill={GRAPHER_DARK_TEXT}
                     fontSize={this.yAxis.tickFontSize}
                 >
-                    {xDomain[0].toString()}
+                    {this.yColumn.formatTime(xDomain[0])}
                 </text>
                 <text
                     x={x2}
-                    y={y1 + BOTTOM_PADDING}
+                    y={y1 + BOTTOM_PADDING - 2}
                     textAnchor="middle"
                     fill={GRAPHER_DARK_TEXT}
                     fontSize={this.yAxis.tickFontSize}
                 >
-                    {xDomain[1].toString()}
+                    {this.yColumn.formatTime(xDomain[1])}
                 </text>
                 <g className="slopes">
                     {this.renderGroups(this.backgroundGroups)}
