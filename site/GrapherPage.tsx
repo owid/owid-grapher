@@ -31,16 +31,10 @@ import { SiteHeader } from "./SiteHeader.js"
 import GrapherImage from "./GrapherImage.js"
 
 const notebook = `
-\`\`\`python
-#
-#  internal.py
-#
-#  Internal APIs subject to change at any time.
-#
-
 import datetime as dt
 import json
 import re
+from pyodide.http import open_url
 from dataclasses import dataclass
 from typing import Dict, List, Literal, Optional
 
@@ -169,18 +163,18 @@ class _GrapherBundle:
         return f"GrapherBundle(config={self.config}, dimensions=..., origins=...)"
 
 
-def _fetch_grapher_config(slug):
-    resp = open_url(f"https://ourworldindata.org/grapher/{slug}")
-    if resp.status_code == 404:
-        raise ChartNotFoundError(slug)
+def fetch_json(url):
+    resp = open_url(url).getvalue()
+    return json.loads(resp)
 
-    resp.raise_for_status()
-    return json.loads(resp.content.decode("utf-8").split("//EMBEDDED_JSON")[1])
+def _fetch_grapher_config(slug):
+    response = open_url(f"https://ourworldindata.org/grapher/{slug}").getvalue()
+    return json.loads(response.split("//EMBEDDED_JSON")[1])
 
 
 def _fetch_dimension(id: int) -> _Indicator:
-    data = open_url(f"https://api.ourworldindata.org/v1/indicators/{id}.data.json").json()
-    metadata = open_url(f"https://api.ourworldindata.org/v1/indicators/{id}.metadata.json").json()
+    data = fetch_json(f"https://api.ourworldindata.org/v1/indicators/{id}.data.json")
+    metadata = fetch_json(f"https://api.ourworldindata.org/v1/indicators/{id}.metadata.json")
     return _Indicator(data, metadata)
 
 
@@ -198,7 +192,7 @@ def _fetch_bundle(slug: str) -> _GrapherBundle:
 
 
 def _list_charts() -> List[str]:
-    content = open_url("https://ourworldindata.org/charts").content.decode("utf-8")
+    content = open_url("https://ourworldindata.org/charts").getvalue()
     links = re.findall('"(/grapher/[^"]+)"', content)
     slugs = [link.strip('"').split("/")[-1] for link in links]
     return sorted(set(slugs))
@@ -251,18 +245,34 @@ def get_data(slug: str) -> pd.DataFrame:
     Fetch the data for a chart by its slug.
     """
     return Chart(slug).get_data()
-\`\`\`
 
 `
 
-const notebookScript = `import {StarboardEmbed} from "https://unpkg.com/starboard-wrap/dist/index.js"
+const getNotebookScript = (
+    slug: string
+) => `import {StarboardEmbed} from "https://unpkg.com/starboard-wrap/dist/index.js"
     const mount = document.querySelector("#notebook");
 
     const notebook = \`# %% [markdown]
-# Test
-Try editing this cell by clicking the pencil on the left!
-# %% [python]
-print("hello")\`
+# Plumbing code
+The code in the next cell should ideally live in a library or be hidden some other way. Further
+down you will find the code that you should be editing.
+# %%--- [python]
+# properties:
+#   collapsed: true
+#   run_on_load: true
+# ---%%
+${notebook}
+# %% [markdown]
+# Your code
+Add your code below - the example shows the first few rows of the data. Refer to the pandas documentation of ask ChatGPT for help on how to manipulate pandas dataframes.
+# %%--- [python]
+# properties:
+#   run_on_load: true
+# ---%%
+df = get_data("${slug}")
+df.head()
+\`
 
     const el = new StarboardEmbed({
         notebookContent: notebook,
@@ -417,7 +427,9 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 />
                 <script
                     type="module"
-                    dangerouslySetInnerHTML={{ __html: notebookScript }}
+                    dangerouslySetInnerHTML={{
+                        __html: getNotebookScript(grapher.slug!),
+                    }}
                 />
             </body>
         </html>
