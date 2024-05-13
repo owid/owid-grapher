@@ -248,15 +248,14 @@ def get_data(slug: str) -> pd.DataFrame:
 
 `
 
-const getNotebookScript = (
+export const getNotebookScript = (
     slug: string
 ) => `import {StarboardEmbed} from "https://unpkg.com/starboard-wrap/dist/index.js"
     const mount = document.querySelector("#notebook");
 
     const notebook = \`# %% [markdown]
-# Plumbing code
-The code in the next cell should ideally live in a library or be hidden some other way. Further
-down you will find the code that you should be editing.
+# Setup code
+The code in the collapsed cell below provides the infrastructure to access our data. It is automatically run when the page is loaded and not very interesting to look at.
 # %%--- [python]
 # properties:
 #   collapsed: true
@@ -264,7 +263,6 @@ down you will find the code that you should be editing.
 # ---%%
 ${notebook}
 # %% [markdown]
-# Your code
 Add your code below - the example shows the first few rows of the data. Refer to the pandas documentation of ask ChatGPT for help on how to manipulate pandas dataframes.
 # %%--- [python]
 # properties:
