@@ -10,6 +10,12 @@ import * as db from "../db/db.js"
 // by registering listeners on SIGINT.
 import "../db/cleanup.js"
 
+const runDeployIfQueueIsNotEmpty = async () =>
+    await db.knexReadWriteTransaction(
+        deployIfQueueIsNotEmpty,
+        db.TransactionCloseMode.KeepOpen
+    )
+
 // TODO: The deploy queue is largely obsolete with buildkite but it's not visible in the admin yet so for now this code is kept
 const main = async () => {
     if (!fs.existsSync(DEPLOY_QUEUE_FILE_PATH)) {
@@ -31,14 +37,11 @@ const main = async () => {
     fs.watchFile(DEPLOY_QUEUE_FILE_PATH, () => {
         // Start deploy after 10 seconds in order to avoid the quick successive
         // deploys triggered by Wordpress.
-        setTimeout(deployIfQueueIsNotEmpty, 10 * 1000)
+        setTimeout(runDeployIfQueueIsNotEmpty, 10 * 1000)
     })
 
     // TODO: this transaction is only RW because somewhere inside it we fetch images
-    await db.knexReadWriteTransaction(
-        deployIfQueueIsNotEmpty,
-        db.TransactionCloseMode.Close
-    )
+    void runDeployIfQueueIsNotEmpty()
 }
 
 void main()
