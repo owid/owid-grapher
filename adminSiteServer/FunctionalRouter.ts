@@ -1,4 +1,4 @@
-import express, { Router } from "express"
+import express, { NextFunction, Router } from "express"
 import { Request, Response } from "./authentication.js"
 
 // Little wrapper to automatically send returned objects as JSON, makes
@@ -13,13 +13,12 @@ export class FunctionalRouter {
     }
 
     wrap(callback: (req: Request, res: Response) => Promise<any>) {
-        return async (req: Request, res: Response) => {
+        return async (req: Request, res: Response, next: NextFunction) => {
             try {
                 res.send(await callback(req, res))
             } catch (e) {
-                // log errors to stderr and rethrow
                 console.error(e)
-                throw e
+                next(e)
             }
         }
     }
