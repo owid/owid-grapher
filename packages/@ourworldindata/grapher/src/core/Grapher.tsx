@@ -1361,6 +1361,8 @@ export class Grapher
             !this.forceHideAnnotationFieldsInTitle?.time &&
             this.isReady &&
             (showTimeAnnotation ||
+                !this.hasTimeline ||
+                this.hideTimeline ||
                 (this.hasTimeline &&
                     // chart types that refer to the current time only in the timeline
                     (this.isLineChartThatTurnedIntoDiscreteBar ||
