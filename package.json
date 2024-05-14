@@ -25,7 +25,6 @@
         "runDbMigrations": "tsx node_modules/typeorm/cli.js migration:run -d db/dataSource.ts",
         "refreshPageviews": "tsx --tsconfig tsconfig.tsx.json db/refreshPageviewsFromDatasette.ts",
         "revertLastDbMigration": "tsx node_modules/typeorm/cli.js migration:revert -d db/dataSource.ts",
-        "runPostUpdateHook": "tsx --tsconfig tsconfig.tsx.json baker/postUpdatedHook.ts",
         "startAdminServer": "node --enable-source-maps ./itsJustJavascript/adminSiteServer/app.js",
         "startAdminDevServer": "tsx watch --tsconfig tsconfig.tsx.json adminSiteServer/app.tsx",
         "startLocalCloudflareFunctions": "wrangler pages dev localBake --compatibility-date 2023-10-09",
