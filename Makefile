@@ -18,7 +18,7 @@ ifneq (,$(wildcard ./.env))
 	export
 endif
 
-.PHONY: help up up.full down down.full refresh refresh.wp refresh.full migrate svgtest itsJustJavascript
+.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest itsJustJavascript
 
 help:
 	@echo 'Available commands:'
@@ -36,7 +36,6 @@ help:
 	@echo
 	@echo '  GRAPHER + CLOUDFLARE (staff-only)'
 	@echo '  make up.full                start dev environment via docker-compose and tmux'
-	@echo '  make down.full              stop any services still running'
 	@echo '  make sync-images            sync all images from the remote master'
 	@echo '  make update.chart-entities  update the charts_x_entities join table'
 	@echo '  make reindex                reindex (or initialise) search in Algolia'
@@ -124,7 +123,7 @@ up.full: require create-if-missing.env.full ../owid-content tmp-downloads/owid_m
 		bind X kill-pane \; \
 		bind Q kill-server \; \
 		set -g mouse on \
-		|| make down.full
+		|| make down
 
 migrate: node_modules
 	@echo '==> Running DB migrations'
@@ -161,10 +160,6 @@ sync-images.preflight-check:
 down:
 	@echo '==> Stopping services'
 	docker compose -f docker-compose.grapher.yml down
-
-down.full:
-	@echo '==> Stopping services'
-	docker compose -f docker-compose.full.yml down
 
 require:
 	@echo '==> Checking your local environment has the necessary commands...'
