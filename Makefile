@@ -40,11 +40,6 @@ help:
 	@echo '  make update.chart-entities  update the charts_x_entities join table'
 	@echo '  make reindex                reindex (or initialise) search in Algolia'
 	@echo '  make bench.search           run search benchmarks'
-	@echo
-	@echo '  OPS (staff-only)'
-	@echo '  make deploy                 Deploy your local site to production'
-	@echo '  make stage                  Deploy your local site to staging'
-	@echo
 
 up: export DEBUG = 'knex:query'
 
@@ -214,34 +209,6 @@ check-port-3306:
 tmp-downloads/owid_metadata.sql.gz:
 	@echo '==> Downloading metadata'
 	./devTools/docker/download-grapher-metadata-mysql.sh
-
-deploy: node_modules
-	@echo '==> Starting from a clean slate...'
-	rm -rf itsJustJavascript
-
-	@echo '==> Building...'
-	yarn lerna run build --skip-nx-cache
-	yarn run tsc -b
-
-	@echo '==> Deploying...'
-	yarn buildAndDeploySite live
-
-stage: node_modules
-	@if [[ ! "$(STAGING)" ]]; then \
-		echo 'ERROR: must set the staging environment'; \
-		echo '       e.g. STAGING=halley make stage'; \
-		exit 1; \
-	fi
-	@echo '==> Preparing to deploy to $(STAGING)'
-	@echo '==> Starting from a clean slate...'
-	rm -rf itsJustJavascript
-
-	@echo '==> Building...'
-	yarn lerna run build
-	yarn run tsc -b
-
-	@echo '==> Deploying to $(STAGING)...'
-	yarn buildAndDeploySite $(STAGING)
 
 test: node_modules
 	@echo '==> Linting'
