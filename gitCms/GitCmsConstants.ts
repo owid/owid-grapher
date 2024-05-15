@@ -20,7 +20,8 @@ function findNearestGitRepo(startPath: string): string | null {
     return null
 }
 
-const repoPath = findNearestGitRepo(__dirname)
+const repoPath =
+    typeof __dirname !== "undefined" ? findNearestGitRepo(__dirname) : null
 
 // todo: refactor GitCmsServer to be a class, and pass this in as a top level param
 export const GIT_CMS_DIR = repoPath ? repoPath + "/../owid-content" : ""
