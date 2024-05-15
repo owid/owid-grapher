@@ -49,11 +49,10 @@ help:
 
 up: export DEBUG = 'knex:query'
 
-up: require create-if-missing.env ../owid-content tmp-downloads/owid_metadata.sql.gz
+up: require create-if-missing.env ../owid-content tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env
 	@make check-port-3306
 	@echo '==> Building grapher'
-	yarn install
 	yarn lerna run build
 
 	@echo '==> Starting dev environment'
@@ -76,11 +75,10 @@ up: require create-if-missing.env ../owid-content tmp-downloads/owid_metadata.sq
 		set -g mouse on \
 		|| make down
 
-up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.sql.gz
+up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env
 	@make check-port-3306
 	@echo '==> Building grapher'
-	yarn install
 	yarn lerna run build
 
 	@echo '==> Starting dev environment'
@@ -100,12 +98,11 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 
 up.full: export DEBUG = 'knex:query'
 
-up.full: require create-if-missing.env.full ../owid-content tmp-downloads/owid_metadata.sql.gz
+up.full: require create-if-missing.env.full ../owid-content tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env.full
 	@make check-port-3306
 
 	@echo '==> Building grapher'
-	yarn install
 	yarn lerna run build
 
 	@echo '==> Starting dev environment'
@@ -129,9 +126,9 @@ up.full: require create-if-missing.env.full ../owid-content tmp-downloads/owid_m
 		set -g mouse on \
 		|| make down.full
 
-migrate:
+migrate: node_modules
 	@echo '==> Running DB migrations'
-	yarn && yarn buildLerna && yarn runDbMigrations
+	yarn buildLerna && yarn runDbMigrations
 
 refresh:
 	@echo '==> Downloading chart data'
@@ -143,9 +140,9 @@ refresh:
 	@echo '!!! If you use ETL, wipe indicators from your R2 staging with `rclone delete r2:owid-api-staging/[yourname]/ ' \
 	'--fast-list --transfers 32 --checkers 32  --verbose`'
 
-refresh.pageviews:
+refresh.pageviews: node_modules
 	@echo '==> Refreshing pageviews'
-	yarn && yarn refreshPageviews
+	yarn refreshPageviews
 
 sync-images: sync-images.preflight-check
 	@echo '==> Syncing images to R2'
@@ -223,19 +220,18 @@ tmp-downloads/owid_metadata.sql.gz:
 	@echo '==> Downloading metadata'
 	./devTools/docker/download-grapher-metadata-mysql.sh
 
-deploy:
+deploy: node_modules
 	@echo '==> Starting from a clean slate...'
 	rm -rf itsJustJavascript
 
 	@echo '==> Building...'
-	yarn
 	yarn lerna run build --skip-nx-cache
 	yarn run tsc -b
 
 	@echo '==> Deploying...'
 	yarn buildAndDeploySite live
 
-stage:
+stage: node_modules
 	@if [[ ! "$(STAGING)" ]]; then \
 		echo 'ERROR: must set the staging environment'; \
 		echo '       e.g. STAGING=halley make stage'; \
@@ -246,16 +242,14 @@ stage:
 	rm -rf itsJustJavascript
 
 	@echo '==> Building...'
-	yarn
 	yarn lerna run build
 	yarn run tsc -b
 
 	@echo '==> Deploying to $(STAGING)...'
 	yarn buildAndDeploySite $(STAGING)
 
-test:
+test: node_modules
 	@echo '==> Linting'
-	yarn
 	yarn run eslint
 	yarn lerna run build
 	yarn lerna run buildTests
@@ -266,32 +260,27 @@ test:
 	@echo '==> Running tests'
 	yarn run jest
 
-dbtest:
+dbtest: node_modules
 	@echo '==> Building'
-	yarn
 	yarn buildTsc
 
 	@echo '==> Running db test script'
 	./db/tests/run-db-tests.sh
 
-lint:
+lint: node_modules
 	@echo '==> Linting'
-	yarn
 	yarn run eslint
 
-check-formatting:
+check-formatting: node_modules
 	@echo '==> Checking formatting'
-	yarn
 	yarn testPrettierAll
 
-format:
+format: node_modules
 	@echo '==> Fixing formatting'
-	yarn
 	yarn fixPrettierAll
 
-unittest:
+unittest: node_modules
 	@echo '==> Running tests'
-	yarn
 	yarn run jest --all
 
 ../owid-grapher-svgs:
