@@ -31,13 +31,12 @@ tasks:
           echo VITE_DEV_URL=$(gp url 8090) >> .env
           echo BAKED_BASE_URL=$(gp url 3030) >> .env
           echo ADMIN_BASE_URL=$(gp url 3030) >> .env
-          yarn startTscServer
     # wait for initial-setup (above) to finish and then start vite server
     - init: gp sync-await initial-setup
       command: yarn startViteServer
     # wait for initial-setup (above) to finish and then start admin server
     - init: gp sync-await initial-setup
-      command: yarn startAdminServer
+      command: yarn startAdminDevServer
 
 github:
     prebuilds:

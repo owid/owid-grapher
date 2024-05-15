@@ -1,0 +1,8 @@
+// The top-level config has empty "files", which doesn't work for tsx
+// (https://tsx.is/). Seems to be only a problem when using decorators in our
+// code:
+// https://github.com/privatenumber/tsx/issues/393
+{
+    "extends": "./tsconfig.json",
+    "include": ["**/*"]
+}

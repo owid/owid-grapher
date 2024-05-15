@@ -11,8 +11,8 @@ cp .env.example .env
 Then run the three development processes:
 
 ```sh
-yarn startTscServer
-yarn startAdminServer
+yarn startLernaWatcher
+yarn startAdminDevServer
 yarn startViteServer
 ```
 
