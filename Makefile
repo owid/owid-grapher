@@ -55,6 +55,7 @@ up: require create-if-missing.env ../owid-content tmp-downloads/owid_metadata.sq
 	@echo '==> Building grapher'
 	yarn install
 	yarn lerna run build
+	yarn run tsc -b
 
 	@echo '==> Starting dev environment'
 	@mkdir -p logs
@@ -63,7 +64,7 @@ up: require create-if-missing.env ../owid-content tmp-downloads/owid_metadata.sq
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
-			'devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer' \; \
+			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
 		new-window -n vite 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
@@ -82,12 +83,13 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 	@echo '==> Building grapher'
 	yarn install
 	yarn lerna run build
+	yarn run tsc -b
 
 	@echo '==> Starting dev environment'
 	@mkdir -p logs
 	tmux new-session -s grapher \
 		-n admin \
-			'devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer' \; \
+			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
 		new-window -n vite 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
@@ -107,6 +109,7 @@ up.full: require create-if-missing.env.full ../owid-content tmp-downloads/owid_m
 	@echo '==> Building grapher'
 	yarn install
 	yarn lerna run build
+	yarn run tsc -b
 
 	@echo '==> Starting dev environment'
 	tmux new-session -s grapher \
@@ -114,7 +117,7 @@ up.full: require create-if-missing.env.full ../owid-content tmp-downloads/owid_m
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
-			'devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer' \; \
+			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
 		new-window -n vite 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
@@ -131,7 +134,7 @@ up.full: require create-if-missing.env.full ../owid-content tmp-downloads/owid_m
 
 migrate:
 	@echo '==> Running DB migrations'
-	yarn && yarn buildLerna && yarn runDbMigrations
+	rm -rf itsJustJavascript && yarn && yarn buildLerna && yarn buildTsc && yarn runDbMigrations
 
 refresh:
 	@echo '==> Downloading chart data'
@@ -145,7 +148,7 @@ refresh:
 
 refresh.pageviews:
 	@echo '==> Refreshing pageviews'
-	yarn && yarn refreshPageviews
+	yarn && yarn buildLerna && yarn buildTsc && yarn refreshPageviews
 
 sync-images: sync-images.preflight-check
 	@echo '==> Syncing images to R2'
