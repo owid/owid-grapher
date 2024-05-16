@@ -12,6 +12,7 @@ import LatoMedium from "../_common/fonts/LatoLatin-Medium.ttf.bin"
 import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
 import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "../grapher/thumbnail/[slug].js"
+import { OwidTable } from "@ourworldindata/core-table"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -126,19 +127,20 @@ const extractOptions = (params: URLSearchParams): ImageOptions => {
     return options as ImageOptions
 }
 
-async function fetchAndRenderGrapherToSvg({
-    slug,
-    options,
-    searchParams,
-    env,
-}: {
-    slug: string
-    options: ImageOptions
-    searchParams: URLSearchParams
-    env: Env
-}) {
-    const grapherLogger = new TimeLogger("grapher")
-
+async function initGrapher(
+    {
+        slug,
+        options,
+        searchParams,
+        env,
+    }: {
+        slug: string
+        options: ImageOptions
+        searchParams: URLSearchParams
+        env: Env
+    },
+    grapherLogger: TimeLogger
+) {
     // Fetch grapher config and extract it from the HTML
     const grapherConfig: GrapherInterface = await env.ASSETS.fetch(
         new URL(`/grapher/${slug}`, env.url)
@@ -165,9 +167,46 @@ async function fetchAndRenderGrapherToSvg({
     grapher.shouldIncludeDetailsInStaticExport = options.details
 
     grapherLogger.log("grapherInit")
+    return grapher
+}
+
+export async function fetchCsvForGrapher(slug: string, env: Env) {
+    const grapherLogger = new TimeLogger("grapher")
+    const grapher = await initGrapher(
+        {
+            slug,
+            options: TWITTER_OPTIONS,
+            searchParams: new URLSearchParams(""),
+            env,
+        },
+        grapherLogger
+    )
+    await grapher.downloadLegacyDataFromOwidVariableIds()
+    return new Response(grapher.inputTable.toPrettyCsv(), {
+        headers: {
+            "Content-Type": "text/csv",
+        },
+    })
+}
+
+async function fetchAndRenderGrapherToSvg({
+    slug,
+    options,
+    searchParams,
+    env,
+}: {
+    slug: string
+    options: ImageOptions
+    searchParams: URLSearchParams
+    env: Env
+}) {
+    const grapherLogger = new TimeLogger("grapher")
+    const grapher = await initGrapher(
+        { slug, options, searchParams, env },
+        grapherLogger
+    )
     const promises = []
     promises.push(grapher.downloadLegacyDataFromOwidVariableIds())
-
     if (options.details && grapher.detailsOrderedByReference.length) {
         promises.push(
             await fetch("https://ourworldindata.org/dods.json")
