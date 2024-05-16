@@ -298,6 +298,7 @@ svgtest: ../owid-grapher-svgs
 node_modules: package.json yarn.lock yarn.config.cjs
 	@echo '==> Installing packages'
 	yarn install
+	touch -m $@
 
 itsJustJavascript: node_modules
 	@echo '==> Compiling TS'
