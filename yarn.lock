@@ -5185,15 +5185,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/opener@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "@types/opener@npm:1.4.0"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10/b764cf208335e19c1e48d98feeb6c9183d6fd334b2c90386eca3015556b88f721427a5cbaa3a8e65de3d2c6c39c60487328d49940e59096c63d023d6ee3528bf
-  languageName: node
-  linkType: hard
-
 "@types/papaparse@npm:^5.3.5":
   version: 5.3.5
   resolution: "@types/papaparse@npm:5.3.5"
@@ -11075,7 +11066,6 @@ __metadata:
     "@types/minimist": "npm:^1.2.2"
     "@types/mousetrap": "npm:^1.6.9"
     "@types/mysql": "npm:^2.15.21"
-    "@types/opener": "npm:^1.4.0"
     "@types/papaparse": "npm:^5.3.5"
     "@types/progress": "npm:^2.0.5"
     "@types/prompts": "npm:^2.0.14"
@@ -11168,7 +11158,6 @@ __metadata:
     nodejs-polars: "npm:^0.7.2"
     normalize.css: "npm:^8.0.1"
     openai: "npm:^4.6.0"
-    opener: "npm:^1.5.2"
     p-map: "npm:^4.0.0"
     papaparse: "npm:^5.3.1"
     prettier: "npm:^3.2.5"
@@ -15410,7 +15399,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"opener@npm:^1.5.1, opener@npm:^1.5.2":
+"opener@npm:^1.5.1":
   version: 1.5.2
   resolution: "opener@npm:1.5.2"
   bin:
