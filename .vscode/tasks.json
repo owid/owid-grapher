@@ -4,7 +4,7 @@
         {
             "label": "docker start (full)",
             "type": "shell",
-            "command": "docker compose -f docker-compose.full.yml up -d",
+            "command": "docker compose -f docker-compose.grapher.yml up -d",
             "presentation": {
                 "reveal": "silent"
             }

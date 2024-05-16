@@ -167,7 +167,7 @@ down:
 
 down.full:
 	@echo '==> Stopping services'
-	docker compose -f docker-compose.full.yml down
+	docker compose -f docker-compose.grapher.yml down
 
 require:
 	@echo '==> Checking your local environment has the necessary commands...'
