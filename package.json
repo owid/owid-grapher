@@ -248,7 +248,7 @@
         "vite": "^4.4.10",
         "vite-plugin-checker": "^0.6.4",
         "vite-plugin-warmup": "^0.1.0",
-        "wrangler": "^3.57.0"
+        "wrangler": "3.55.0"
     },
     "prettier": {
         "trailingComma": "es5",
