@@ -11136,7 +11136,6 @@ __metadata:
     react-select: "npm:^5.8.0"
     react-tag-autocomplete: "npm:^7.1.0"
     react-zoom-pan-pinch: "npm:^2.1.3"
-    reflect-metadata: "npm:^0.1.13"
     rxjs: "npm:6"
     s-expression: "npm:^3.1.1"
     safe-stable-stringify: "npm:^2.4.1"
@@ -17431,13 +17430,6 @@ __metadata:
   dependencies:
     "@babel/runtime": "npm:^7.9.2"
   checksum: 10/d3c586271732f0838f7439c1a914d01ca67b4e048a1568256194e324f8826e725938eadf63450953d553c13ec1b85fe5b13b6e7d34c375bba0bedd5a04389f94
-  languageName: node
-  linkType: hard
-
-"reflect-metadata@npm:^0.1.13":
-  version: 0.1.13
-  resolution: "reflect-metadata@npm:0.1.13"
-  checksum: 10/732570da35d2d96f8fdd5aac60fb263aa92f6512eaded5962b052bd9e90f22a9dec5aaf0d7ff4bfe97646c9530e8444e8435c2d80b24d0bdf938b5d47f6f5b83
   languageName: node
   linkType: hard
 
