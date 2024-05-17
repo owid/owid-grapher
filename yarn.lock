@@ -11158,7 +11158,6 @@ __metadata:
     tsx: "npm:^4.10.2"
     typeorm: "npm:^0.3.20"
     typescript: "npm:~5.4.2"
-    unified: "npm:^9.0"
     unist-util-visit: "npm:^2.0.0"
     url-join: "npm:^4.0.0"
     url-parse: "npm:^1.5.10"
@@ -19708,7 +19707,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unified@npm:^9.0, unified@npm:^9.0.0":
+"unified@npm:^9.0.0":
   version: 9.2.2
   resolution: "unified@npm:9.2.2"
   dependencies:
