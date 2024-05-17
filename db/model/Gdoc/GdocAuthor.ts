@@ -49,6 +49,11 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         // are ignored. Even after the assign, gdoc._enrichedSubclassContent()
         // will then still accurately target the GdocAuthor method, and not the
         // GdocBase method.
+
+        // see
+        // https://github.com/owid/owid-grapher/pull/3600#issuecomment-2116990248
+        // for a more detailed presentation on this topic
+
         Object.assign(gdoc, obj)
         return gdoc
     }

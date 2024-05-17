@@ -111,7 +111,7 @@ export async function createGdocAndInsertIntoDb(
     // enrichments are not present on the Gdoc subclass when loading from the DB
     // (GdocsContentSource.Internal), since subclass enrichements are only done
     // while fetching the live gdocs (GdocsContentSource.Gdocs) in
-    // loadFromGdocBase().
+    // loadGdocFromGdocBase().
     await upsertGdoc(knex, gdoc)
 
     return gdoc
