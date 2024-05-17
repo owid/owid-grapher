@@ -10981,8 +10981,6 @@ __metadata:
     "@bugsnag/js": "npm:^7.20.0"
     "@bugsnag/plugin-express": "npm:^7.19.0"
     "@bugsnag/plugin-react": "npm:^7.19.0"
-    "@cloudflare/pages-plugin-sentry": "npm:^1.1.1"
-    "@cloudflare/workers-types": "npm:^4.20240512.0"
     "@fortawesome/fontawesome-svg-core": "npm:^6.5.2"
     "@fortawesome/free-brands-svg-icons": "npm:^6.5.2"
     "@fortawesome/free-solid-svg-icons": "npm:^6.5.2"
@@ -11147,7 +11145,6 @@ __metadata:
     simple-git: "npm:^3.16.1"
     simple-statistics: "npm:^7.3.2"
     string-pixel-width: "npm:^1.10.0"
-    stripe: "npm:^14.20.0"
     striptags: "npm:^3.2.0"
     svgo: "npm:^3.0.2"
     timezone-mock: "npm:^1.0.18"
@@ -15403,10 +15400,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"owid-thumbnails@workspace:functions":
+"owid-functions@workspace:functions":
   version: 0.0.0-use.local
-  resolution: "owid-thumbnails@workspace:functions"
+  resolution: "owid-functions@workspace:functions"
   dependencies:
+    "@cloudflare/pages-plugin-sentry": "npm:^1.1.1"
+    "@cloudflare/workers-types": "npm:^4.20240512.0"
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     itty-router: "npm:^4.0.23"
