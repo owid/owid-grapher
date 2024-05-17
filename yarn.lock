@@ -6552,13 +6552,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base-64@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "base-64@npm:0.1.0"
-  checksum: 10/5a42938f82372ab5392cbacc85a5a78115cbbd9dbef9f7540fa47d78763a3a8bd7d598475f0d92341f66285afd377509851a9bb5c67bbecb89686e9255d5b3eb
-  languageName: node
-  linkType: hard
-
 "base64-js@npm:^1.3.0, base64-js@npm:^1.3.1":
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
@@ -8665,16 +8658,6 @@ __metadata:
   version: 4.0.2
   resolution: "diff@npm:4.0.2"
   checksum: 10/ec09ec2101934ca5966355a229d77afcad5911c92e2a77413efda5455636c4cf2ce84057e2d7715227a2eeeda04255b849bd3ae3a4dd22eb22e86e76456df069
-  languageName: node
-  linkType: hard
-
-"digest-fetch@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "digest-fetch@npm:1.3.0"
-  dependencies:
-    base-64: "npm:^0.1.0"
-    md5: "npm:^2.3.0"
-  checksum: 10/5a90f350ed19600aab44753ad19e8b2e5409b0a07a2a6949c9eed589bfc7a735308be020d63c6ddff97ad83d0b5d56405e0577ed4c291baccadec3e61ebca189
   languageName: node
   linkType: hard
 
@@ -11058,7 +11041,7 @@ __metadata:
     mysql: "npm:^2.18.1"
     nodejs-polars: "npm:^0.7.2"
     normalize.css: "npm:^8.0.1"
-    openai: "npm:^4.6.0"
+    openai: "npm:^4.47.1"
     p-map: "npm:^4.0.0"
     papaparse: "npm:^5.3.1"
     prettier: "npm:^3.2.5"
@@ -15282,21 +15265,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openai@npm:^4.6.0":
-  version: 4.6.0
-  resolution: "openai@npm:4.6.0"
+"openai@npm:^4.47.1":
+  version: 4.47.1
+  resolution: "openai@npm:4.47.1"
   dependencies:
     "@types/node": "npm:^18.11.18"
     "@types/node-fetch": "npm:^2.6.4"
     abort-controller: "npm:^3.0.0"
     agentkeepalive: "npm:^4.2.1"
-    digest-fetch: "npm:^1.3.0"
     form-data-encoder: "npm:1.7.2"
     formdata-node: "npm:^4.3.2"
     node-fetch: "npm:^2.6.7"
+    web-streams-polyfill: "npm:^3.2.1"
   bin:
     openai: bin/cli
-  checksum: 10/c5129acf51eb81c5641d9232797b748f45901b0ebe04652ac002c6a1220ae86ab84b15562b702109ec5fd853badf8ec933f139bb291764729967dd473306e6af
+  checksum: 10/9f33766c4c8042a17f4527eb3bb9cc72d5d7ad595da7f71d0cb7425bae59847242af6e0de55520708893c1a6fd35b24364b0ecc662f3cc3855e1dfef197c8845
   languageName: node
   linkType: hard
 
@@ -20286,6 +20269,13 @@ __metadata:
   version: 4.0.0-beta.3
   resolution: "web-streams-polyfill@npm:4.0.0-beta.3"
   checksum: 10/dcdef67de57d83008f9dc330662b65ba4497315555dd0e4e7bcacb132ffdf8a830eaab8f74ad40a4a44f542461f51223f406e2a446ece1cc29927859b1405853
+  languageName: node
+  linkType: hard
+
+"web-streams-polyfill@npm:^3.2.1":
+  version: 3.3.3
+  resolution: "web-streams-polyfill@npm:3.3.3"
+  checksum: 10/8e7e13501b3834094a50abe7c0b6456155a55d7571312b89570012ef47ec2a46d766934768c50aabad10a9c30dd764a407623e8bfcc74fcb58495c29130edea9
   languageName: node
   linkType: hard
 
