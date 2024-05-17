@@ -708,7 +708,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     errors.push({
                         property: "imageMetadata",
                         message: `${filename} is missing a default alt text`,
-                        type: OwidGdocErrorMessageType.Error,
+                        type: OwidGdocErrorMessageType.Warning,
                     })
                 }
                 return errors
