@@ -50,13 +50,21 @@ function ResearchAndWritingLink(
     const { linkedDocument, errorMessage } = useLinkedDocument(url)
     const { isPreviewing } = useContext(DocumentContext)
 
-    if (isPreviewing && errorMessage) {
-        return (
-            <div className={cx(className, "research-and-writing-link--error")}>
-                <p>{errorMessage}</p>
-                <p>This block won't render during baking</p>
-            </div>
-        )
+    if (errorMessage) {
+        if (isPreviewing) {
+            return (
+                <div
+                    className={cx(
+                        className,
+                        "research-and-writing-link--error"
+                    )}
+                >
+                    <p>{errorMessage}</p>
+                    <p>This block won't render during baking</p>
+                </div>
+            )
+        }
+        return null
     }
 
     if (linkedDocument) {
