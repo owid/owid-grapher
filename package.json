@@ -7,7 +7,6 @@
     "packageManager": "yarn@4.1.1",
     "scripts": {
         "batchTagWithGpt": "tsx --tsconfig tsconfig.tsx.json baker/batchTagWithGpt.ts",
-        "buildAndDeploySite": "tsx --tsconfig tsconfig.tsx.json baker/buildAndDeploySite.ts",
         "buildCoverage": "jest --coverage=true --coverageProvider=v8",
         "buildLocalBake": "tsx --tsconfig tsconfig.tsx.json baker/buildLocalBake.ts",
         "buildTsc": "tsc -b -verbose",
@@ -90,7 +89,6 @@
         "@types/mysql": "^2.15.21",
         "@types/papaparse": "^5.3.5",
         "@types/progress": "^2.0.5",
-        "@types/prompts": "^2.0.14",
         "@types/randomstring": "^1.1.8",
         "@types/react": "^17.0.69",
         "@types/react-beautiful-dnd": "^13.1.2",
@@ -171,7 +169,6 @@
         "papaparse": "^5.3.1",
         "prettier": "^3.2.5",
         "progress": "^2.0.3",
-        "prompts": "^2.4.0",
         "prop-types": "^15.7.2",
         "randomstring": "^1.3.0",
         "react": "^17.0.2",
