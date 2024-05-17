@@ -75,10 +75,21 @@ function generateCountryRecords(
 function generateChunksFromHtmlText(htmlString: string) {
     const renderedPostText = htmlToText(htmlString, {
         tables: true,
-        ignoreHref: true,
         wordwrap: false,
-        uppercaseHeadings: false,
-        ignoreImage: true,
+        selectors: [
+            // Ignore links, we only care about the text
+            { selector: "a", options: { ignoreHref: true } },
+
+            // Don't uppercase headings and table headers
+            ...["h1", "h2", "h3", "h4", "h5", "h6"].map((headingTag) => ({
+                selector: headingTag,
+                options: { uppercase: false },
+            })),
+            { selector: "table", options: { uppercaseHeaderCells: false } },
+
+            // Skip all images
+            { selector: "img", format: "skip" },
+        ],
     })
     return chunkParagraphs(renderedPostText, 1000)
 }
