@@ -1,3 +1,5 @@
+@use "sass:math";
+
 .radio {
     $radio-size: 16px;
 
@@ -35,8 +37,8 @@
         justify-content: center;
 
         .inner {
-            width: $radio-size / 2;
-            height: $radio-size / 2;
+            width: math.div($radio-size, 2);
+            height: math.div($radio-size, 2);
             background-color: $active-fill;
             border-radius: 50%;
         }
