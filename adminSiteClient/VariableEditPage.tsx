@@ -7,7 +7,7 @@ import {
     autorun,
     IReactionDisposer,
 } from "mobx"
-import { dump } from "js-yaml"
+import YAML from "yaml"
 import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
@@ -368,7 +368,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         label="Grapher Config ETL"
                                         field="v"
                                         store={{
-                                            v: dump(
+                                            v: YAML.stringify(
                                                 newVariable.presentation
                                                     .grapherConfigETL
                                             ),

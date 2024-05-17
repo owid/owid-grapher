@@ -5026,13 +5026,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/js-yaml@npm:^4.0.5":
-  version: 4.0.5
-  resolution: "@types/js-yaml@npm:4.0.5"
-  checksum: 10/6fff5f47d97070f1a01022517ce4bd81a0cfac7cd30f9dbc7222dc5f8db4bfe5f5c8cba3f4b02bdbd6f31f691050db97395b33c8df66d1e7c4f66096b41a3df6
-  languageName: node
-  linkType: hard
-
 "@types/jsdom@npm:^20.0.0":
   version: 20.0.0
   resolution: "@types/jsdom@npm:20.0.0"
@@ -11049,7 +11042,6 @@ __metadata:
     "@types/ini": "npm:^4"
     "@types/jest": "npm:^29.5.5"
     "@types/js-cookie": "npm:^3.0.2"
-    "@types/js-yaml": "npm:^4.0.5"
     "@types/jsonwebtoken": "npm:^9.0.0"
     "@types/lodash": "npm:^4.17.0"
     "@types/md5": "npm:^2.3.2"
@@ -11127,7 +11119,6 @@ __metadata:
     jest-environment-jsdom: "npm:^29.7.0"
     js-base64: "npm:^3.7.2"
     js-cookie: "npm:^3.0.1"
-    js-yaml: "npm:^4.1.0"
     json8-pointer: "npm:^1.0.6"
     jsonwebtoken: "npm:^9.0.0"
     knex: "npm:^3.1.0"
@@ -11208,6 +11199,7 @@ __metadata:
     webfontloader: "npm:^1.6.28"
     workerpool: "npm:^6.2.0"
     wrangler: "npm:3.55.0"
+    yaml: "npm:^2.4.2"
   languageName: unknown
   linkType: soft
 
@@ -20788,7 +20780,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:2.3.4, yaml@npm:^2.1.1":
+"yaml@npm:2.3.4":
   version: 2.3.4
   resolution: "yaml@npm:2.3.4"
   checksum: 10/f8207ce43065a22268a2806ea6a0fa3974c6fde92b4b2fa0082357e487bc333e85dc518910007e7ac001b532c7c84bd3eccb6c7757e94182b564028b0008f44b
@@ -20799,6 +20791,15 @@ __metadata:
   version: 1.10.2
   resolution: "yaml@npm:1.10.2"
   checksum: 10/e088b37b4d4885b70b50c9fa1b7e54bd2e27f5c87205f9deaffd1fb293ab263d9c964feadb9817a7b129a5bf30a06582cb08750f810568ecc14f3cdbabb79cb3
+  languageName: node
+  linkType: hard
+
+"yaml@npm:^2.1.1, yaml@npm:^2.4.2":
+  version: 2.4.2
+  resolution: "yaml@npm:2.4.2"
+  bin:
+    yaml: bin.mjs
+  checksum: 10/6eafbcd68dead734035f6f72af21bd820c29214caf7d8e40c595671a3c908535cef8092b9660a1c055c5833aa148aa640e0c5fa4adb5af2dacd6d28296ccd81c
   languageName: node
   linkType: hard
 

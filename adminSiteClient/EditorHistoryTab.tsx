@@ -4,7 +4,7 @@ import { ChartEditor, Log } from "./ChartEditor.js"
 import { Section, Timeago } from "./Forms.js"
 import { computed, action, observable } from "mobx"
 import { copyToClipboard } from "@ourworldindata/utils"
-import { dump } from "js-yaml"
+import YAML from "yaml"
 import { notification, Modal } from "antd"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
 
@@ -136,7 +136,7 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
         delete chartConfigObject.dimensions
         delete chartConfigObject.version
         delete chartConfigObject.isPublished
-        const chartConfigAsYaml = dump(chartConfigObject)
+        const chartConfigAsYaml = YAML.stringify(chartConfigObject)
         void copyToClipboard(chartConfigAsYaml)
         notification["success"]({
             message: "Copied YAML to clipboard",
