@@ -1,10 +1,14 @@
 {
-  "name": "owid-thumbnails",
+  "name": "owid-functions",
   "dependencies": {
+    "@cloudflare/pages-plugin-sentry": "^1.1.1",
     "@ourworldindata/grapher": "workspace:^",
     "@ourworldindata/utils": "workspace:^",
     "itty-router": "^4.0.23",
     "stripe": "^14.20.0",
     "svg2png-wasm": "^1.4.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240512.0"
   }
 }

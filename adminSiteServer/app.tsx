@@ -3,7 +3,6 @@ import { simpleGit } from "simple-git"
 import express, { NextFunction } from "express"
 require("express-async-errors") // todo: why the require?
 import cookieParser from "cookie-parser"
-import "reflect-metadata"
 import http from "http"
 import Bugsnag from "@bugsnag/js"
 import BugsnagPluginExpress from "@bugsnag/plugin-express"
