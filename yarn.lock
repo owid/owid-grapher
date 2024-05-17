@@ -4914,15 +4914,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/hast@npm:2":
-  version: 2.3.7
-  resolution: "@types/hast@npm:2.3.7"
-  dependencies:
-    "@types/unist": "npm:^2"
-  checksum: 10/3e63332825ed88117e7f355ba0cfd35367f1d951a1c381333b56188f7645947c3bbbe96abb4c8239324ba1317fd241d5afdb42e104a3654a424327340d49052c
-  languageName: node
-  linkType: hard
-
 "@types/history@npm:*":
   version: 4.7.2
   resolution: "@types/history@npm:4.7.2"
@@ -11015,17 +11006,14 @@ __metadata:
     "@types/colorbrewer": "npm:^1.0.29"
     "@types/cookie-parser": "npm:^1.4.3"
     "@types/d3": "npm:^6"
-    "@types/d3-format": "npm:^2"
     "@types/enzyme": "npm:^3.10.12"
     "@types/express": "npm:^4.17.14"
     "@types/express-rate-limit": "npm:^5.1.0"
     "@types/fs-extra": "npm:^11.0.1"
     "@types/geojson": "npm:^7946.0.10"
-    "@types/hast": "npm:2"
     "@types/html-to-text": "npm:^8.1.1"
     "@types/indefinite": "npm:^2.3.2"
     "@types/ini": "npm:^4"
-    "@types/jest": "npm:^29.5.5"
     "@types/js-cookie": "npm:^3.0.2"
     "@types/jsonwebtoken": "npm:^9.0.0"
     "@types/lodash": "npm:^4.17.0"
