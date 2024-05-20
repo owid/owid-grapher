@@ -17,6 +17,7 @@ export interface EntitySelectionManager {
     entityTypePlural?: string
     isEntitySelectorModalOrDrawerOpen?: boolean
     isOnChartTab?: boolean
+    hideEntityControls?: boolean
 }
 
 interface EntitySelectionLabel {
@@ -35,7 +36,8 @@ export class EntitySelectionToggle extends React.Component<{
     }
 
     @computed get showToggle(): boolean {
-        const { isOnChartTab } = this.props.manager
+        const { isOnChartTab, hideEntityControls } = this.props.manager
+        if (hideEntityControls) return false
         return !!(isOnChartTab && this.label)
     }
 
