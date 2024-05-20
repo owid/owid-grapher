@@ -8,7 +8,7 @@ import {
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "@ourworldindata/utils"
-import { Checkbox } from "@ourworldindata/components"
+import { Checkbox, CodeSnippet } from "@ourworldindata/components"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
@@ -40,6 +40,7 @@ export interface DownloadModalManager {
     isOnChartOrMapTab?: boolean
     framePaddingVertical?: number
     showAdminControls?: boolean
+    bakedGrapherURL?: string
 }
 
 interface DownloadModalProps {
@@ -256,6 +257,18 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             opacity: this.isReady ? 1 : 0,
         }
 
+        const csvUrl = `${manager.bakedGrapherURL || ""}/csv/${manager.displaySlug}`
+
+        const googleDocsCode = `=IMPORTDATA("${csvUrl}")`
+
+        const pandasCode = `# Install our python library with pip:
+# pip install owid-catalog
+
+from owid.catalog import charts
+
+# get the data for one chart by URL
+df = charts.get_data('${manager.bakedGrapherURL || ""}/grapher/${manager.displaySlug}')`
+
         return (
             <div className="grouped-menu">
                 {manager.isOnChartOrMapTab && (
@@ -339,14 +352,34 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                             </div>
                         </div>
                     ) : (
-                        <div className="grouped-menu-list">
-                            <DownloadButton
-                                title="Full data (CSV)"
-                                description="The full dataset used in this chart."
-                                onClick={this.onCsvDownload}
-                                tracking="chart_download_csv"
+                        <>
+                            <div className="grouped-menu-list">
+                                <DownloadButton
+                                    title="Full data (CSV)"
+                                    description="The full dataset used in this chart."
+                                    onClick={this.onCsvDownload}
+                                    tracking="chart_download_csv"
+                                />
+                            </div>
+                            <p>
+                                To see this data in google sheets, paste the
+                                following formula into a cell:
+                            </p>
+                            <CodeSnippet
+                                code={googleDocsCode}
+                                theme="light"
+                                useMarkdown={false}
                             />
-                        </div>
+                            <p>
+                                To load this data into a pandas dataframe, run
+                                the following code in a python environment:
+                            </p>
+                            <CodeSnippet
+                                code={pandasCode}
+                                theme="light"
+                                useMarkdown={false}
+                            />
+                        </>
                     )}
                 </div>
             </div>
