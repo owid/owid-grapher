@@ -19,6 +19,7 @@ import {
     Url,
     urlToSlug,
     roundDownToNearestHundred,
+    commafyNumber,
 } from "@ourworldindata/utils"
 
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
@@ -60,7 +61,11 @@ export default function KeyIndicatorCollection({
                 {homepageMetadata?.chartCount ? (
                     <p className="body-2-regular">
                         Featured data from our collection of more than{" "}
-                        {roundDownToNearestHundred(homepageMetadata.chartCount)}{" "}
+                        {commafyNumber(
+                            roundDownToNearestHundred(
+                                homepageMetadata.chartCount
+                            )
+                        )}{" "}
                         interactive charts.
                     </p>
                 ) : (

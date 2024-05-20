@@ -123,6 +123,7 @@ export {
     removeTrailingParenthetical,
     isElementHidden,
     roundDownToNearestHundred,
+    commafyNumber,
     isFiniteWithGuard,
 } from "./Util.js"
 

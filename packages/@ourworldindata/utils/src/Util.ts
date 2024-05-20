@@ -1883,6 +1883,13 @@ export function roundDownToNearestHundred(value: number): number {
     return Math.floor(value / 100) * 100
 }
 
+/**
+ * Example: 120000 -> "12,000"
+ */
+export function commafyNumber(value: number): string {
+    return value.toLocaleString("en-US")
+}
+
 export function isFiniteWithGuard(value: unknown): value is number {
     return isFinite(value as any)
 }
