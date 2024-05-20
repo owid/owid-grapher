@@ -1989,7 +1989,7 @@ putRouteWithRWTransaction(
                     FROM posts_gdocs_x_tags gt
                     WHERE pg.id = gt.gdocId AND gt.tagId = ?
             ) AND pg.published = TRUE`,
-                [tag.id]
+                [tagId]
             )
             if (!gdoc.length) {
                 return {
