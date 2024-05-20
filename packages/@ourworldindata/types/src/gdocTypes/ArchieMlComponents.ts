@@ -186,6 +186,7 @@ export type RawBlockImage = {
         alt?: string
         caption?: string
         size?: BlockImageSize
+        hasOutline?: string
     }
 }
 
@@ -197,6 +198,7 @@ export type EnrichedBlockImage = {
     caption?: Span[]
     originalWidth?: number
     size: BlockImageSize
+    hasOutline: boolean
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockVideo = {

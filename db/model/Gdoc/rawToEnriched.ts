@@ -629,6 +629,18 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         ? htmlToSpans(image.value.caption)
         : undefined
 
+    if (
+        image.value.hasOutline &&
+        image.value.hasOutline !== "true" &&
+        image.value.hasOutline !== "false"
+    ) {
+        return createError({
+            message:
+                "If set, image `hasOutline` property must be true or false",
+        })
+    }
+    const hasOutline = Boolean(image.value.hasOutline === "true")
+
     return {
         type: "image",
         filename,
@@ -636,6 +648,7 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         alt: image.value.alt,
         caption,
         size,
+        hasOutline,
         originalWidth: undefined,
         parseErrors: [],
     }

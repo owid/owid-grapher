@@ -254,6 +254,7 @@ export default function ArticleBlock({
                     filename={block.filename}
                     smallFilename={block.smallFilename}
                     alt={block.alt}
+                    hasOutline={block.hasOutline}
                     containerType={containerType}
                 />
                 {block.caption ? (
