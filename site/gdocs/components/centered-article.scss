@@ -306,6 +306,10 @@ h3.article-block__heading {
     }
 }
 
+.image--has-outline + .article-block__image-caption {
+    margin-top: 8px;
+}
+
 .article-block__image-caption {
     @include body-3-medium-italic;
     color: $blue-60;
