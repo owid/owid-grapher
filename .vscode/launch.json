@@ -86,14 +86,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
             "type": "node",
-            "args": [
-                "-g",
-                "367"
-            ]
             "args": [
                 "-g",
                 "367"
@@ -101,9 +94,44 @@
         },
         {
             "name": "Launch admin server",
-            "program": "${workspaceFolder}/itsJustJavascript/adminSiteServer/app.js",
+            "program": "${workspaceFolder}/adminSiteServer/app.tsx",
             "request": "launch",
             "type": "node",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "tsx",
+                "--tsconfig",
+                "tsconfig.tsx.json"
+            ],
+            // Files to exclude from debugger (e.g. call stack)
+            "skipFiles": [
+                // Node.js internal core modules
+                "<node_internals>/**",
+                // Ignore all dependencies (optional)
+                "${workspaceFolder}/node_modules/**",
+            ],
+        },
+        {
+            "name": "Launch admin server (via fnm)",
+            "program": "${workspaceFolder}/adminSiteServer/app.tsx",
+            "request": "launch",
+            "type": "node",
+            "runtimeExecutable": "fnm",
+            "runtimeArgs": [
+                "exec",
+                "--",
+                "yarn",
+                "tsx",
+                "--tsconfig",
+                "tsconfig.tsx.json"
+            ],
+            // Files to exclude from debugger (e.g. call stack)
+            "skipFiles": [
+                // Node.js internal core modules
+                "<node_internals>/**",
+                // Ignore all dependencies (optional)
+                "${workspaceFolder}/node_modules/**",
+            ],
         },
         {
             "name": "Attach to node",
