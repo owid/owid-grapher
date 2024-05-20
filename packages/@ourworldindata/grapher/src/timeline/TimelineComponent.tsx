@@ -6,7 +6,6 @@ import {
     isMobile,
     debounce,
     Bounds,
-    timeFromTimebounds,
     DEFAULT_BOUNDS,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
@@ -317,18 +316,19 @@ export class TimelineComponent extends React.Component<{
 
     render(): JSX.Element {
         const { manager, controller } = this
-        const { startTimeProgress, endTimeProgress, minTime, maxTime } =
-            controller
-        const { startHandleTimeBound, endHandleTimeBound } = manager
+        const {
+            startTimeProgress,
+            endTimeProgress,
+            minTime,
+            maxTime,
+            startTime,
+            endTime,
+        } = controller
 
         const formattedMinTime = this.formatTime(minTime)
         const formattedMaxTime = this.formatTime(maxTime)
-        const formattedStartTime = this.formatTime(
-            timeFromTimebounds(startHandleTimeBound, minTime, maxTime)
-        )
-        const formattedEndTime = this.formatTime(
-            timeFromTimebounds(endHandleTimeBound, minTime, maxTime)
-        )
+        const formattedStartTime = this.formatTime(startTime)
+        const formattedEndTime = this.formatTime(endTime)
 
         return (
             <div
