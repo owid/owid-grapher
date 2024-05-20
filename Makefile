@@ -51,6 +51,10 @@ up: require create-if-missing.env ../owid-content tmp-downloads/owid_metadata.sq
 
 	@echo '==> Starting dev environment'
 	@mkdir -p logs
+
+	@if tmux has-session; then \
+		tmux kill-session -t grapher; \
+	fi
 	tmux new-session -s grapher \
 		-n docker 'docker compose -f docker-compose.grapher.yml up' \; \
 			set remain-on-exit on \; \
@@ -77,6 +81,10 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 
 	@echo '==> Starting dev environment'
 	@mkdir -p logs
+
+	@if tmux has-session; then \
+		tmux kill-session -t grapher; \
+	fi
 	tmux new-session -s grapher \
 		-n admin \
 			'devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer' \; \
@@ -100,6 +108,10 @@ up.full: require create-if-missing.env.full ../owid-content tmp-downloads/owid_m
 	yarn lerna run build
 
 	@echo '==> Starting dev environment'
+
+	@if tmux has-session; then \
+		tmux kill-session -t grapher; \
+	fi
 	tmux new-session -s grapher \
 		-n docker 'docker compose -f docker-compose.grapher.yml up' \; \
 			set remain-on-exit on \; \
