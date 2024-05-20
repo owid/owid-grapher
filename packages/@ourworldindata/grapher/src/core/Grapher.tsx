@@ -1030,6 +1030,17 @@ export class Grapher
         )
     }
 
+    /**
+     * Plots time on the x-axis.
+     */
+    @computed private get hasTimeDimension(): boolean {
+        return this.isStackedBar || this.isStackedArea || this.isLineChart
+    }
+
+    @computed private get hasTimeDimensionButTimelineIsHidden(): boolean {
+        return this.hasTimeDimension && !!this.hideTimeline
+    }
+
     @computed get startHandleTimeBound(): TimeBound {
         if (this.onlySingleTimeSelectionPossible) return this.endHandleTimeBound
         return this.timelineHandleTimeBounds[0]
@@ -1178,6 +1189,19 @@ export class Grapher
             const time = maxTimeBoundFromJSONOrPositiveInfinity(this.map.time)
             return [time, time]
         }
+
+        // If the timeline is hidden on the chart tab but displayed on the table tab
+        // (which is the case for charts that plot time on the x-axis),
+        // we always want to use the authored `minTime` and `maxTime` for the chart,
+        // irrespective of the time range the user might have selected on the table tab
+        if (this.isOnChartTab && this.hasTimeDimensionButTimelineIsHidden) {
+            const { minTime, maxTime } = this.authorsVersion
+            return [
+                minTimeBoundFromJSONOrNegativeInfinity(minTime),
+                maxTimeBoundFromJSONOrPositiveInfinity(maxTime),
+            ]
+        }
+
         return [
             // Handle `undefined` values in minTime/maxTime
             minTimeBoundFromJSONOrNegativeInfinity(this.minTime),
@@ -1422,9 +1446,14 @@ export class Grapher
             case GrapherTabOption.map:
                 return !this.map.hideTimeline
 
-            // use the chart-level `hideTimeline` option for the table, too
-            case GrapherTabOption.table:
+            // use the chart-level `hideTimeline` option
             case GrapherTabOption.chart:
+                return !this.hideTimeline
+
+            // use the chart-level `hideTimeline` option for the table, with some exceptions
+            case GrapherTabOption.table:
+                // always show the timeline for charts that plot time on the x-axis
+                if (this.hasTimeDimension) return true
                 return !this.hideTimeline
 
             default:
@@ -1724,17 +1753,28 @@ export class Grapher
     @computed get isLineChartThatTurnedIntoDiscreteBar(): boolean {
         if (!this.isLineChart) return false
 
+        let { minTime, maxTime } = this
+
+        // if we have a time dimension but the timeline is hidden,
+        // we always want to use the authored `minTime` and `maxTime`,
+        // irrespective of the time range the user might have selected
+        // on the table tab
+        if (this.hasTimeDimensionButTimelineIsHidden) {
+            minTime = this.authorsVersion.minTime
+            maxTime = this.authorsVersion.maxTime
+        }
+
         // This is the easy case: minTime and maxTime are the same, no need to do
         // more fancy checks
-        if (this.minTime === this.maxTime) return true
+        if (minTime === maxTime) return true
 
         // We can have cases where minTime = Infinity and/or maxTime = -Infinity,
         // but still only a single year is selected.
         // To check for that we need to look at the times array.
         const times = this.tableAfterAuthorTimelineFilter.timeColumn.uniqValues
-        const minTime = findClosestTime(times, this.minTime ?? -Infinity)
-        const maxTime = findClosestTime(times, this.maxTime ?? Infinity)
-        return minTime !== undefined && minTime === maxTime
+        const closestMinTime = findClosestTime(times, minTime ?? -Infinity)
+        const closestMaxTime = findClosestTime(times, maxTime ?? Infinity)
+        return closestMinTime !== undefined && closestMinTime === closestMaxTime
     }
 
     @computed get supportsMultipleYColumns(): boolean {
