@@ -256,10 +256,10 @@ export const DataPageV2Content = ({
                         slug={grapherConfig.slug}
                     />
                 </div>
-                <div className="DataPageContent">
-                    <div className="bg-blue-10">
-                        <div className="header__wrapper wrapper grid grid-cols-12 ">
-                            <div className="header__left span-cols-8 span-sm-cols-12">
+                <div className="DataPageContent grid grid-cols-12-full-width">
+                    <div className="bg-blue-10 span-cols-14">
+                        <div className="header__wrapper grid grid-cols-12-full-width">
+                            <div className="header__left col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
                                 <div className="header__supertitle">Data</div>
                                 <h1 className="header__title">
                                     {datapageData.title.title}
@@ -269,7 +269,7 @@ export const DataPageV2Content = ({
                                 </div>
                             </div>
                             {!!datapageData.topicTagsLinks?.length && (
-                                <div className="header__right col-start-9 span-cols-4 span-sm-cols-12">
+                                <div className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12">
                                     <div className="topic-tags__label">
                                         See all data and research on:
                                     </div>
@@ -280,141 +280,161 @@ export const DataPageV2Content = ({
                             )}
                         </div>
                     </div>
-                    <nav className="sticky-nav sticky-nav--dark">
-                        <StickyNav links={stickyNavLinks} className="wrapper" />
-                    </nav>
-                    <div className="chart-key-info">
-                        <GrapherWithFallback
-                            grapher={grapher}
-                            slug={grapherConfig.slug} // TODO: On grapher pages,
-                            // there will always be a slug, but if we just show a data page preview for an indicator in the admin, there will be no slug
-                            // and then thumbnails will be broken for those. When we consider baking data pages for
-                            // non-grapher pages then we need to make sure that there are thunbnails that are generated for the these non-chart graphers and
-                            // then this piece will have to change anyhow and know how to provide the thumbnail.
-                            className="wrapper"
-                            id="explore-the-data"
+                    <nav className="sticky-nav sticky-nav--dark span-cols-14 grid grid-cols-12-full-width">
+                        <StickyNav
+                            className="span-cols-12 col-start-2"
+                            links={stickyNavLinks}
                         />
-                        <div className="wrapper wrapper-about-this-data grid grid-cols-12">
-                            {hasDescriptionKey ||
-                            datapageData.descriptionFromProducer ||
-                            datapageData.source?.additionalInfo ? (
-                                <>
-                                    <h2
-                                        id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
-                                        className="key-info__title span-cols-12"
-                                    >
-                                        What you should know about this
-                                        indicator
-                                    </h2>
-                                    <div className="col-start-1 span-cols-8 span-lg-cols-7 span-sm-cols-12">
-                                        <div className="key-info__content">
-                                            {hasDescriptionKey && (
-                                                <div className="key-info__key-description">
-                                                    {datapageData.descriptionKey
-                                                        .length === 1 ? (
-                                                        <SimpleMarkdownText
-                                                            text={datapageData.descriptionKey[0].trim()}
-                                                        />
-                                                    ) : (
-                                                        <ul>
-                                                            {datapageData.descriptionKey.map(
-                                                                (text, i) => (
-                                                                    <li key={i}>
-                                                                        <SimpleMarkdownText
-                                                                            text={text.trim()}
-                                                                            useParagraphs={
-                                                                                false
-                                                                            }
-                                                                        />
-                                                                    </li>
-                                                                )
-                                                            )}
-                                                        </ul>
-                                                    )}
-                                                    {!!faqEntries?.faqs
-                                                        .length && (
-                                                        <a
-                                                            className="key-info__learn-more"
-                                                            href="#faqs"
-                                                        >
-                                                            Learn more in the
-                                                            FAQs
-                                                            <FontAwesomeIcon
-                                                                icon={
-                                                                    faArrowDown
-                                                                }
+                    </nav>
+                    <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
+                        <div className="chart-key-info col-start-2 span-cols-12">
+                            <GrapherWithFallback
+                                grapher={grapher}
+                                slug={grapherConfig.slug} // TODO: On grapher pages,
+                                // there will always be a slug, but if we just show a data page preview for an indicator in the admin, there will be no slug
+                                // and then thumbnails will be broken for those. When we consider baking data pages for
+                                // non-grapher pages then we need to make sure that there are thunbnails that are generated for the these non-chart graphers and
+                                // then this piece will have to change anyhow and know how to provide the thumbnail.
+                                id="explore-the-data"
+                            />
+                            <div className="wrapper-about-this-data grid grid-cols-12">
+                                {hasDescriptionKey ||
+                                datapageData.descriptionFromProducer ||
+                                datapageData.source?.additionalInfo ? (
+                                    <>
+                                        <h2
+                                            id={
+                                                DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
+                                            }
+                                            className="key-info__title span-cols-12"
+                                        >
+                                            What you should know about this
+                                            indicator
+                                        </h2>
+                                        <div className="col-start-1 span-cols-8 span-lg-cols-7 span-sm-cols-12">
+                                            <div className="key-info__content">
+                                                {hasDescriptionKey && (
+                                                    <div className="key-info__key-description">
+                                                        {datapageData
+                                                            .descriptionKey
+                                                            .length === 1 ? (
+                                                            <SimpleMarkdownText
+                                                                text={datapageData.descriptionKey[0].trim()}
                                                             />
-                                                        </a>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            <div className="key-info__expandable-descriptions">
-                                                {datapageData.descriptionFromProducer && (
-                                                    <ExpandableToggle
-                                                        label={
-                                                            datapageData.attributionShort
-                                                                ? `How does the producer of this data - ${datapageData.attributionShort} - describe this data?`
-                                                                : "How does the producer of this data describe this data?"
-                                                        }
-                                                        content={
-                                                            <div className="article-block__text">
-                                                                <SimpleMarkdownText
-                                                                    text={
-                                                                        datapageData.descriptionFromProducer
+                                                        ) : (
+                                                            <ul>
+                                                                {datapageData.descriptionKey.map(
+                                                                    (
+                                                                        text,
+                                                                        i
+                                                                    ) => (
+                                                                        <li
+                                                                            key={
+                                                                                i
+                                                                            }
+                                                                        >
+                                                                            <SimpleMarkdownText
+                                                                                text={text.trim()}
+                                                                                useParagraphs={
+                                                                                    false
+                                                                                }
+                                                                            />
+                                                                        </li>
+                                                                    )
+                                                                )}
+                                                            </ul>
+                                                        )}
+                                                        {!!faqEntries?.faqs
+                                                            .length && (
+                                                            <a
+                                                                className="key-info__learn-more"
+                                                                href="#faqs"
+                                                            >
+                                                                Learn more in
+                                                                the FAQs
+                                                                <FontAwesomeIcon
+                                                                    icon={
+                                                                        faArrowDown
                                                                     }
                                                                 />
-                                                            </div>
-                                                        }
-                                                        isStacked={
-                                                            !!datapageData
-                                                                .source
-                                                                ?.additionalInfo
-                                                        }
-                                                    />
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                 )}
-                                                {datapageData.source
-                                                    ?.additionalInfo && (
-                                                    <ExpandableToggle
-                                                        label="Additional information about this data"
-                                                        content={
-                                                            <div className="expandable-info-blocks__content">
-                                                                <HtmlOrSimpleMarkdownText
-                                                                    text={datapageData.source?.additionalInfo.trim()}
-                                                                />
-                                                            </div>
-                                                        }
-                                                    />
-                                                )}
+
+                                                <div className="key-info__expandable-descriptions">
+                                                    {datapageData.descriptionFromProducer && (
+                                                        <ExpandableToggle
+                                                            label={
+                                                                datapageData.attributionShort
+                                                                    ? `How does the producer of this data - ${datapageData.attributionShort} - describe this data?`
+                                                                    : "How does the producer of this data describe this data?"
+                                                            }
+                                                            content={
+                                                                <div className="article-block__text">
+                                                                    <SimpleMarkdownText
+                                                                        text={
+                                                                            datapageData.descriptionFromProducer
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                            }
+                                                            isStacked={
+                                                                !!datapageData
+                                                                    .source
+                                                                    ?.additionalInfo
+                                                            }
+                                                        />
+                                                    )}
+                                                    {datapageData.source
+                                                        ?.additionalInfo && (
+                                                        <ExpandableToggle
+                                                            label="Additional information about this data"
+                                                            content={
+                                                                <div className="expandable-info-blocks__content">
+                                                                    <HtmlOrSimpleMarkdownText
+                                                                        text={datapageData.source?.additionalInfo.trim()}
+                                                                    />
+                                                                </div>
+                                                            }
+                                                        />
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="key-info__right span-cols-4 span-lg-cols-5 span-sm-cols-12">
-                                        <KeyDataTable
-                                            datapageData={datapageData}
-                                            attribution={attributionUnshortened}
-                                        />
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    <h2
-                                        className="about-this-data__title span-cols-3 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                                        id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
-                                    >
-                                        About this data
-                                    </h2>
-                                    <div className="col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                        <KeyDataTable
-                                            datapageData={datapageData}
-                                            attribution={attributionUnshortened}
-                                        />
-                                    </div>
-                                </>
-                            )}
+                                        <div className="key-info__right span-cols-4 span-lg-cols-5 span-sm-cols-12">
+                                            <KeyDataTable
+                                                datapageData={datapageData}
+                                                attribution={
+                                                    attributionUnshortened
+                                                }
+                                            />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <h2
+                                            className="about-this-data__title span-cols-3 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                                            id={
+                                                DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
+                                            }
+                                        >
+                                            About this data
+                                        </h2>
+                                        <div className="col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                            <KeyDataTable
+                                                datapageData={datapageData}
+                                                attribution={
+                                                    attributionUnshortened
+                                                }
+                                            />
+                                        </div>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
-                    <div className="wrapper">
+                    <div className="col-start-2 span-cols-12">
                         {relatedResearch && relatedResearch.length > 0 && (
                             <div className="section-wrapper grid">
                                 <h2
@@ -559,8 +579,8 @@ export const DataPageV2Content = ({
                             </div>
                         ) : null}
                     </div>
-                    <div className="bg-gray-10">
-                        <div className="wrapper">
+                    <div className="bg-gray-10 span-cols-14 grid grid-cols-12-full-width">
+                        <div className="col-start-2 span-cols-12">
                             {!!faqEntries?.faqs.length && (
                                 <div className="section-wrapper section-wrapper__faqs grid">
                                     <h2
