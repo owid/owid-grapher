@@ -20,7 +20,14 @@ export const GrapherWithFallback = ({
     id?: string
 }) => {
     return (
-        <div className={cx("GrapherWithFallback", className)} id={id}>
+        <div
+            className={cx(
+                "GrapherWithFallback",
+                "full-width-on-mobile",
+                className
+            )}
+            id={id}
+        >
             <>
                 {grapher ? (
                     <GrapherFigureView grapher={grapher} />
