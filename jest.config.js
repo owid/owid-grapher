@@ -7,6 +7,7 @@ module.exports = {
             testPathIgnorePatterns: [
                 ".jsdom.test.",
                 "<rootDir>/itsJustJavascript/db/tests",
+                "<rootDir>/.nx/cache/",
             ],
             testMatch: ["**/*.test.(jsx|js)"],
         },
@@ -14,6 +15,7 @@ module.exports = {
             displayName: { name: "jsdom", color: "cyan" },
             testEnvironment: "jsdom",
             testMatch: ["**/*.jsdom.test.(jsx|js)"],
+            testPathIgnorePatterns: ["<rootDir>/.nx/cache/"],
         },
     ],
 }
