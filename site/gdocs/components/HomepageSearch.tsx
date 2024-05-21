@@ -1,22 +1,21 @@
 import React, { useContext } from "react"
 import { Autocomplete } from "../../search/Autocomplete.js"
 import { AttachmentsContext } from "../OwidGdoc.js"
+import { commafyNumber } from "@ourworldindata/utils"
 
 export function HomepageSearch(props: { className?: string }) {
     const { homepageMetadata } = useContext(AttachmentsContext)
     const chartCount = homepageMetadata?.chartCount
     const topicCount = homepageMetadata?.topicCount
-    const formatter = new Intl.NumberFormat("en-GB")
     const message =
         chartCount && topicCount ? (
             <>
-                <a href="/charts">{formatter.format(chartCount)} charts</a>{" "}
-                across{" "}
+                <a href="/charts">{commafyNumber(chartCount)} charts</a> across{" "}
                 <a
                     href="#all-topics"
                     className="homepage-search__all-topics-link"
                 >
-                    {formatter.format(topicCount)} topics
+                    {commafyNumber(topicCount)} topics
                 </a>
                 <span className="homepage-search__open-source-notice">
                     All free: open access and open source

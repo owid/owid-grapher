@@ -6,6 +6,7 @@ import {
     ImageMetadata,
     getFilenameMIMEType,
 } from "@ourworldindata/utils"
+import cx from "classnames"
 import { LIGHTBOX_IMAGE_CLASS } from "../../Lightbox.js"
 import {
     IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH,
@@ -51,6 +52,7 @@ export default function Image(props: {
     filename: string
     smallFilename?: string
     alt?: string
+    hasOutline?: boolean
     className?: string
     containerType?: ImageParentContainer
     shouldLightbox?: boolean
@@ -58,10 +60,15 @@ export default function Image(props: {
     const {
         filename,
         smallFilename,
-        className = "",
+        hasOutline,
         containerType = "default",
         shouldLightbox = true,
     } = props
+
+    const className = cx(props.className, {
+        "image--has-outline": hasOutline,
+    })
+
     const { isPreviewing } = useContext(DocumentContext)
     const image = useImage(filename)
     const smallImage = useImage(smallFilename)

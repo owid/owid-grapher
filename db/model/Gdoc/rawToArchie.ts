@@ -172,6 +172,10 @@ function* rawBlockImageToArchieMLString(
     yield "{.image}"
     if (typeof block.value !== "string") {
         yield* propertyToArchieMLString("filename", block.value)
+        yield* propertyToArchieMLString("smallFilename", block.value)
+        yield* propertyToArchieMLString("caption", block.value)
+        yield* propertyToArchieMLString("size", block.value)
+        yield* propertyToArchieMLString("hasOutline", block.value)
         yield* propertyToArchieMLString("alt", block.value)
     }
     yield "{}"

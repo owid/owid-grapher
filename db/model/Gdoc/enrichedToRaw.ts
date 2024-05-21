@@ -155,7 +155,11 @@ export function enrichedBlockToRawBlock(
                 type: b.type,
                 value: {
                     filename: b.filename,
+                    smallFilename: b.smallFilename,
                     alt: b.alt,
+                    caption: b.caption && spansToHtmlText(b.caption),
+                    size: b.size,
+                    hasOutline: String(b.hasOutline),
                 },
             })
         )

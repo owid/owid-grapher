@@ -639,6 +639,7 @@ describe(traverseEnrichedBlock, () => {
                 {
                     type: "image",
                     filename: "logo.png",
+                    hasOutline: false,
                     size: BlockImageSize.Narrow,
                     parseErrors: [],
                 },

@@ -260,6 +260,10 @@ h3.article-block__heading {
     width: 100%;
     margin: 32px 0;
 
+    & .image--has-outline {
+        outline: 1px solid #f2f2f2;
+    }
+
     picture {
         // fixes strange extra height that is otherwise added to the element on firefox
         display: flex;
@@ -300,6 +304,10 @@ h3.article-block__heading {
             margin-top: 0;
         }
     }
+}
+
+.image--has-outline + .article-block__image-caption {
+    margin-top: 8px;
 }
 
 .article-block__image-caption {
