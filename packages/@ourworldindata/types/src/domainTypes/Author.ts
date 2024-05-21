@@ -1,10 +1,10 @@
 export interface DbRawAuthor {
-    id: string
+    slug: string
     title: string
 }
 
 export interface DbEnrichedAuthor {
-    id: string | null
+    slug: string | null
     title: string
 }
 

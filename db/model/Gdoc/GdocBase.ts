@@ -654,17 +654,8 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async loadLinkedDocuments(knex: db.KnexReadonlyTransaction): Promise<void> {
-        if (!this.authors.length) await this.loadAuthors(knex)
-
-        const authorIds = excludeNullish(
-            this.authors.map((author) => author.id)
-        )
-
         const linkedDocuments: OwidGdocMinimalPostInterface[] =
-            await getMinimalGdocPostsByIds(knex, [
-                ...this.linkedDocumentIds,
-                ...authorIds,
-            ])
+            await getMinimalGdocPostsByIds(knex, this.linkedDocumentIds)
 
         this.linkedDocuments = keyBy(linkedDocuments, "id")
     }
@@ -812,7 +803,6 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
-        // TODO explain why we're loading authors first
         await this.loadAuthors(knex)
         await this.loadLinkedDocuments(knex)
         await this.loadImageMetadataFromDB(knex)
@@ -900,7 +890,7 @@ export async function getMinimalAuthorByNames(
         knex,
         `-- sql
             SELECT
-                id,
+                slug,
                 content ->> '$.title' as title
             FROM posts_gdocs
             WHERE type = 'author'
@@ -909,11 +899,10 @@ export async function getMinimalAuthorByNames(
         { names }
     )
 
-    const rowsByName = keyBy(rows, "title")
-
     return names.map((name) => {
+        const row = rows.find((row) => row.title === name)
         return {
-            id: rowsByName[name]?.id || null,
+            slug: row?.slug || null,
             title: name,
         }
     })

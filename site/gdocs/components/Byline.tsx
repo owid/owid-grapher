@@ -1,6 +1,5 @@
 import { DbEnrichedAuthor } from "@ourworldindata/types"
 import React from "react"
-import { useLinkedDocument } from "../utils.js"
 
 export const Byline = ({ authors }: { authors: DbEnrichedAuthor[] }) => {
     return (
@@ -14,11 +13,8 @@ export const Byline = ({ authors }: { authors: DbEnrichedAuthor[] }) => {
 }
 
 const LinkedAuthor = ({ author }: { author: DbEnrichedAuthor }) => {
-    const gdocUrl = `https://docs.google.com/document/d/${author.id}`
-    const { linkedDocument } = useLinkedDocument(gdocUrl)
-
-    if (linkedDocument && linkedDocument.published && linkedDocument.slug) {
-        return <a href={`/${linkedDocument.slug}`}>{author.title}</a>
+    if (author.slug) {
+        return <a href={`/${author.slug}`}>{author.title}</a>
     }
     return <>{author.title}</>
 }
