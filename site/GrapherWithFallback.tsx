@@ -1,4 +1,4 @@
-import { Grapher } from "@ourworldindata/grapher"
+import { Grapher, GrapherManager } from "@ourworldindata/grapher"
 import React from "react"
 import { GrapherFigureView } from "./GrapherFigureView.js"
 import cx from "classnames"
@@ -7,14 +7,18 @@ import GrapherImage from "./GrapherImage.js"
 
 export const GrapherWithFallback = ({
     grapher,
+    manager,
     slug,
     className,
     id,
+    getGrapherInstance,
 }: {
     grapher?: Grapher | undefined
+    manager?: GrapherManager
     slug?: string
     className?: string
     id?: string
+    getGrapherInstance?: (grapher: Grapher) => void
 }) => {
     return (
         <div
@@ -27,7 +31,11 @@ export const GrapherWithFallback = ({
         >
             <>
                 {grapher ? (
-                    <GrapherFigureView grapher={grapher} />
+                    <GrapherFigureView
+                        grapher={grapher}
+                        manager={manager}
+                        getGrapherInstance={getGrapherInstance}
+                    />
                 ) : (
                     // Render fallback svg when javascript disabled or while
                     // grapher is loading

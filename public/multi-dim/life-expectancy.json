@@ -1,0 +1,193 @@
+{
+    "name": "Life expectancy",
+    "dimensions_title": "by age and sex",
+    "dimensions": [
+        {
+            "slug": "age",
+            "name": "Age",
+            "description": "The age at which the life expectancy is measured.",
+            "multi_select": true,
+            "choices": [
+                {
+                    "slug": "0",
+                    "name": "At birth"
+                },
+                {
+                    "slug": "15",
+                    "name": "At age 15",
+                    "description": "The expected age a 15-year-old would reach if current mortality rates continue."
+                }
+            ],
+            "_hidden_choices": [
+                {
+                    "slug": "65",
+                    "name": "At age 65",
+                    "description": "The expected age a 65-year-old would reach if current mortality rates continue."
+                },
+                {
+                    "slug": "80",
+                    "name": "At age 80",
+                    "description": "The expected age a 80-year-old would reach if current mortality rates continue. This number will always be higher than 80."
+                }
+            ]
+        },
+        {
+            "slug": "sex",
+            "name": "Sex",
+            "choices": [
+                {
+                    "slug": "both",
+                    "name": "Both sexes"
+                },
+                {
+                    "slug": "female",
+                    "name": "Female"
+                },
+                {
+                    "slug": "male",
+                    "name": "Male"
+                }
+            ]
+        },
+        {
+            "slug": "projection",
+            "name": "Projection",
+            "description": "The UNWPP projection scenario to use",
+            "choices": [
+                {
+                    "slug": "none",
+                    "name": "No projection (estimates only)",
+                    "description": "Only historical data, no projections into the future."
+                },
+                {
+                    "slug": "medium",
+                    "name": "Medium projection scenario",
+                    "description": "Projections into the future based on UNWPP's medium-fertility scenario."
+                }
+            ]
+        }
+    ],
+    "views": [
+        {
+            "dimensions": { "age": "0", "sex": "both", "projection": "none" },
+            "indicator_path": { "520369": "y" },
+            "config": {
+                "title": "Life expectancy at birth",
+                "hasMapTab": true
+            }
+        },
+        {
+            "dimensions": { "age": "0", "sex": "both", "projection": "medium" },
+            "indicator_path": { "520370": "y" },
+            "config": {
+                "title": "Life expectancy at birth, medium projection",
+                "hasMapTab": true
+            }
+        },
+
+        {
+            "dimensions": { "age": "0", "sex": "male", "projection": "none" },
+            "indicator_path": { "520349": "y" },
+            "config": {
+                "title": "Male life expectancy at birth",
+                "hasMapTab": true
+            }
+        },
+        {
+            "dimensions": { "age": "0", "sex": "male", "projection": "medium" },
+            "indicator_path": { "520350": "y" },
+            "config": {
+                "title": "Male life expectancy at birth, medium projection",
+                "hasMapTab": true
+            }
+        },
+
+        {
+            "dimensions": { "age": "0", "sex": "female", "projection": "none" },
+            "indicator_path": { "520329": "y" },
+            "config": {
+                "title": "Female life expectancy at birth",
+                "hasMapTab": true
+            }
+        },
+        {
+            "dimensions": {
+                "age": "0",
+                "sex": "female",
+                "projection": "medium"
+            },
+            "indicator_path": { "520330": "y" },
+            "config": {
+                "title": "Female life expectancy at birth, medium projection",
+                "hasMapTab": true
+            }
+        },
+
+        {
+            "dimensions": { "age": "15", "sex": "both", "projection": "none" },
+            "indicator_path": { "520379": "y" },
+            "config": {
+                "title": "Life expectancy at age 15",
+                "hasMapTab": true
+            }
+        },
+        {
+            "dimensions": {
+                "age": "15",
+                "sex": "both",
+                "projection": "medium"
+            },
+            "indicator_path": { "520380": "y" },
+            "config": {
+                "title": "Life expectancy at age 15, medium projection",
+                "hasMapTab": true
+            }
+        },
+
+        {
+            "dimensions": { "age": "15", "sex": "male", "projection": "none" },
+            "indicator_path": { "520359": "y" },
+            "config": {
+                "title": "Male life expectancy at age 15",
+                "hasMapTab": true
+            }
+        },
+        {
+            "dimensions": {
+                "age": "15",
+                "sex": "male",
+                "projection": "medium"
+            },
+            "indicator_path": { "520360": "y" },
+            "config": {
+                "title": "Male life expectancy at age 15, medium projection",
+                "hasMapTab": true
+            }
+        },
+
+        {
+            "dimensions": {
+                "age": "15",
+                "sex": "female",
+                "projection": "none"
+            },
+            "indicator_path": { "520338": "y" },
+            "config": {
+                "title": "Female life expectancy at age 15",
+                "hasMapTab": true
+            }
+        },
+        {
+            "dimensions": {
+                "age": "15",
+                "sex": "female",
+                "projection": "medium"
+            },
+            "indicator_path": { "520340": "y" },
+            "config": {
+                "title": "Female life expectancy at age 15, medium projection",
+                "hasMapTab": true
+            }
+        }
+    ]
+}
