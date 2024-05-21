@@ -607,6 +607,7 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         caption,
         size,
         originalWidth: undefined,
+        hasOutline: false,
         parseErrors: [error],
     })
 

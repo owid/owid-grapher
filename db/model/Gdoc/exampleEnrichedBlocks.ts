@@ -151,6 +151,7 @@ export const enrichedBlockExamples: Record<
     image: {
         type: "image",
         filename: "example.png",
+        hasOutline: true,
         alt: "",
         size: BlockImageSize.Wide,
         parseErrors: [],
