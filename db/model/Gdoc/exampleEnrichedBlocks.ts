@@ -153,6 +153,7 @@ export const enrichedBlockExamples: Record<
         filename: "example.png",
         hasOutline: true,
         alt: "",
+        caption: [spanSimpleText],
         size: BlockImageSize.Wide,
         parseErrors: [],
     },
