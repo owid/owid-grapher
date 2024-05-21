@@ -1,0 +1,95 @@
+{
+    "name": "Plastic",
+    "dimensions_title": "waste and pollution",
+    "dimensions": [
+        {
+            "slug": "metric",
+            "name": "Metric",
+            "multi_select": true,
+            "choices": [
+                {
+                    "slug": "waste_gen",
+                    "name": "Plastic waste generation",
+                    "description": "The amount of plastic waste generated. Prior to management, i.e. this also includes waste that is properly incinerated or recycled."
+                },
+                {
+                    "slug": "waste_mismanaged",
+                    "name": "Mismanaged waste",
+                    "description": "Mismanaged plastic waste includes materials burned in open pits, dumped into seas or open waters, or disposed of in unsanitary landfills and dumpsites."
+                },
+                {
+                    "slug": "emitted_to_ocean",
+                    "name": "Plastic emitted to ocean",
+                    "description": "This is an annual estimate of plastic emissions. A country's total does not include waste that is exported overseas, which may be at higher risk of entering the ocean."
+                },
+                {
+                    "slug": "trade_exports",
+                    "name": "Trade: exports",
+                    "description": "Plastic waste that is exported by all modes of transport in a given year."
+                },
+                {
+                    "slug": "trade_imports",
+                    "name": "Trade: imports",
+                    "description": "Plastic waste that is imported by all modes of transport in a given year."
+                },
+                {
+                    "slug": "trade_net_exports",
+                    "name": "Trade: net exports",
+                    "description": "Net exports of plastic waste are calculated as a country's plastic waste exports minus its imports."
+                }
+            ]
+        },
+        {
+            "slug": "measurement",
+            "name": "Measurement",
+            "choices": [
+                {
+                    "slug": "per_capita",
+                    "name": "Per capita",
+                    "description": "Per capita values are calculated by dividing the total amount by the population of the country."
+                },
+                {
+                    "slug": "total",
+                    "name": "Total"
+                },
+                {
+                    "slug": "share_of_world",
+                    "name": "Share of world total",
+                    "description": "The share of the world total is calculated by dividing the country's total by the global total."
+                }
+            ]
+        }
+    ],
+    "views": [
+        {
+            "dimensions": { "metric": "waste_gen", "measurement": "total" },
+            "indicator_path": { "97679": "y" },
+            "config": {
+                "title": "Plastic waste generation",
+                "subtitle": "This measures total plastic waste generation prior to management and therefore does not represent the quantity of plastic at risk of polluting waterways, rivers and the ocean environment."
+            }
+        },
+        {
+            "dimensions": {
+                "metric": "waste_gen",
+                "measurement": "per_capita"
+            },
+            "indicator_path": { "65358": "y" },
+            "config": {
+                "title": "Plastic waste generation per capita",
+                "subtitle": "This measures total plastic waste generation prior to management and therefore does not represent the quantity of plastic at risk of polluting waterways, rivers and the ocean environment."
+            }
+        },
+        {
+            "dimensions": {
+                "metric": "waste_gen",
+                "measurement": "share_of_world"
+            },
+            "indicator_path": { "146456": "y" },
+            "config": {
+                "title": "Plastic waste generation",
+                "subtitle": "This measures total plastic waste generation prior to management and therefore does not represent the quantity of plastic at risk of polluting waterways, rivers and the ocean environment."
+            }
+        }
+    ]
+}

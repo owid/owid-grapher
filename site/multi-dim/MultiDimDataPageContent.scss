@@ -1,0 +1,257 @@
+$light-stroke: #e7e7e7;
+$dark-stroke: #2d2d2d;
+$active-stroke: #a4b6ca;
+
+$light-fill: #dadada;
+$active-fill: #dbe5f0;
+$hover-fill: #f2f2f2;
+$selected-fill: #c7ced7;
+
+$info-icon: #a1a1a1;
+$active-switch: #6e87a2;
+
+$medium: 400;
+$bold: 700;
+$lato: $sans-serif-font-stack;
+
+$indent: 15px;
+$control-row-height: 32px;
+
+$light-text: #858585;
+$dark-text: #5b5b5b;
+$active-text: $blue-90;
+
+$zindex-controls-backdrop: 130;
+$zindex-controls-popup: 140;
+
+.MultiDimDataPageContent {
+    .settings-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-top: 20px;
+
+        > span {
+            color: $gray-70;
+            text-transform: uppercase;
+            font-weight: 700;
+            font-size: 0.9em;
+            margin-right: 10px;
+        }
+
+        button {
+            display: flex;
+            align-items: center;
+            color: $dark-text;
+            background: white;
+            border: 1px solid $light-stroke;
+            font: $medium 13px/16px $lato;
+            letter-spacing: 0.01em;
+            border-radius: 4px;
+            padding: 7px;
+            height: 40px;
+
+            svg {
+                margin-left: 5px;
+            }
+
+            &:hover {
+                background: $hover-fill;
+                cursor: pointer;
+
+                &:not(.active) {
+                    color: $dark-text;
+                }
+            }
+
+            &.active,
+            &:active {
+                background: $active-fill;
+                border: 1px solid $active-fill;
+            }
+
+            &.active {
+                cursor: default;
+                color: $active-text;
+
+                .setting-label {
+                    color: $dark-text;
+                }
+            }
+        }
+    }
+
+    .settings-dropdown {
+        position: relative;
+    }
+
+    .menu-wrapper {
+        position: absolute;
+        width: 400px;
+        left: 0;
+        top: 40px + 5px;
+        background: white;
+        border-radius: 4px;
+        box-shadow: 0px 4px 23px 4px #0000000f;
+        z-index: $zindex-controls-popup;
+        overflow-y: scroll;
+
+        h4 {
+            padding: 0 1em;
+            margin-bottom: 0;
+            color: $dark-text;
+        }
+
+        p {
+            padding: 0 1em;
+            color: $dark-text;
+            font-size: 0.8em;
+        }
+    }
+
+    // transparent mouse-event catcher while popup is visible
+    .menu-backdrop {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        z-index: $zindex-controls-backdrop;
+    }
+
+    .setting-label {
+        color: $light-text;
+        &::after {
+            content: ":";
+            margin-right: 3px;
+        }
+
+        .active & {
+            color: $dark-text;
+        }
+    }
+
+    .menu-group {
+        > label {
+            padding: 0 1em;
+            color: $light-text;
+            font-size: 14px;
+            // text-transform: uppercase;
+        }
+
+        &.is-group section {
+            padding-left: 0.75em;
+        }
+        padding-bottom: 0.25em;
+        margin-bottom: 0.25em;
+        border-bottom: 1px solid rgba($light-stroke, 0.3);
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    section {
+        font: $medium 14px/1.2 $lato;
+        color: $dark-text;
+        margin: 0 $indent;
+
+        .config-name {
+            font: $bold 14px/1.2 $lato;
+            color: $dark-text;
+            list-style: none;
+
+            svg {
+                color: $info-icon;
+                height: 13px;
+                padding: 0 0.333em;
+            }
+        }
+
+        .labeled-switch .labeled-switch-subtitle,
+        .config-subtitle {
+            font-size: 13px;
+            margin: 5px 0;
+        }
+
+        .config-toggle {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            padding: 0.5em 0;
+        }
+
+        &.active {
+            button {
+                background: $active-fill;
+                border: 1px solid $active-fill;
+                color: $active-text;
+
+                &:hover {
+                    background: darken($active-fill, 5%);
+                }
+
+                &:active {
+                    background: darken($active-fill, 10%);
+                }
+            }
+        }
+
+        .description {
+            font-size: 12px;
+            color: $gray-60;
+            margin: 0;
+            margin-bottom: 5px;
+        }
+    }
+
+    //
+    // resuable widgets
+    //
+    section {
+        // left/right pairs of options
+        .config-toggle {
+            label {
+                flex-basis: 100%;
+                color: $dark-text;
+                margin-bottom: 0.5em;
+            }
+            button {
+                width: calc(50% - 5px);
+                padding: 7px 16px;
+            }
+        }
+
+        // on/off switch with label written to the right
+        .labeled-switch {
+            margin: 14px 0;
+            display: block;
+        }
+
+        // vertical list of options (for selecting faceting mode)
+        .config-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 7px 0;
+            button {
+                width: 100%;
+
+                &.entity span {
+                    width: 10px;
+                    height: 10px;
+                }
+
+                &.metric span {
+                    width: 10px;
+                    height: 10px;
+                    border-radius: 5px;
+                }
+
+                &.active {
+                    background: #a4b6ca;
+                }
+            }
+        }
+    }
+}

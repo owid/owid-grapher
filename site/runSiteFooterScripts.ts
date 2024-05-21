@@ -20,6 +20,7 @@ import {
     hydrateDataInsightsIndexPage,
 } from "./DataInsightsIndexPageContent.js"
 import { runAllGraphersLoadedListener } from "./runAllGraphersLoadedListener.js"
+import { hydrateMultiDimDataPageContent } from "./multi-dim/MultiDimDataPageContent.js"
 
 export const runSiteFooterScripts = (
     args:
@@ -40,6 +41,15 @@ export const runSiteFooterScripts = (
     switch (context) {
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content(isPreviewing)
+            runAllGraphersLoadedListener()
+            runLightbox()
+            runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
+            runSiteTools()
+            runCookiePreferencesManager()
+            void runDetailsOnDemand()
+            break
+        case SiteFooterContext.multiDimDataPage:
+            hydrateMultiDimDataPageContent(isPreviewing)
             runAllGraphersLoadedListener()
             runLightbox()
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
