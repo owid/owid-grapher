@@ -1,3 +1,13 @@
+export interface DbRawAuthor {
+    id: string
+    title: string
+}
+
+export interface DbEnrichedAuthor {
+    id: string | null
+    title: string
+}
+
 export interface DbRawLatestWork {
     id: string
     slug: string

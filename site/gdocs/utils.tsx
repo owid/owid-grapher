@@ -69,6 +69,8 @@ export const useLinkedDocument = (
     } else if (!linkedDocument.published) {
         errorMessage = `Article with slug "${linkedDocument.slug}" isn't published.`
     }
+
+    //todo replace with getCanonicalUrl
     const subdirectory =
         linkedDocument.type === OwidGdocType.DataInsight ? "data-insights/" : ""
     return {

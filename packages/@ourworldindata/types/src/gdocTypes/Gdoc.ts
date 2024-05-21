@@ -13,7 +13,10 @@ import {
 } from "./ArchieMlComponents.js"
 import { DbChartTagJoin } from "../dbTypes/ChartTags.js"
 import { MinimalTag } from "../dbTypes/Tags.js"
-import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
+import {
+    DbEnrichedAuthor,
+    DbEnrichedLatestWork,
+} from "../domainTypes/Author.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -59,6 +62,7 @@ export interface OwidGdocBaseInterface {
     id: string
     slug: string
     // TODO: should we type this as a union of the possible content types instead?
+    authors: DbEnrichedAuthor[]
     content: OwidGdocContent
     published: boolean
     createdAt: Date
