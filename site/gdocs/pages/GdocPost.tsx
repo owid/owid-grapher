@@ -40,7 +40,6 @@ const citationDescriptionsByArticleType: Record<
 }
 
 export function GdocPost({
-    authors,
     content,
     publishedAt,
     slug,
@@ -84,7 +83,6 @@ export function GdocPost({
         >
             <OwidGdocHeader
                 content={content}
-                authors={authors}
                 publishedAt={publishedAt}
                 breadcrumbs={breadcrumbs ?? undefined}
             />

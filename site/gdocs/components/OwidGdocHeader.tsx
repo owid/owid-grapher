@@ -1,8 +1,7 @@
-import React from "react"
+import React, { useContext } from "react"
 import cx from "classnames"
 import {
     BreadcrumbItem,
-    DbEnrichedAuthor,
     OwidGdocPostContent,
     OwidGdocType,
     formatDate,
@@ -14,15 +13,14 @@ import Image from "./Image.js"
 import { Breadcrumbs } from "../../Breadcrumb/Breadcrumb.js"
 import { breadcrumbColorForCoverColor } from "../utils.js"
 import { Byline } from "./Byline.js"
+import { AttachmentsContext } from "../OwidGdoc.js"
 
 function OwidArticleHeader({
     content,
-    authors,
     publishedAt,
     breadcrumbs,
 }: {
     content: OwidGdocPostContent
-    authors: DbEnrichedAuthor[]
     publishedAt: Date | null
     breadcrumbs?: BreadcrumbItem[]
 }) {
@@ -31,6 +29,7 @@ function OwidArticleHeader({
         : undefined
 
     const breadcrumbColor = breadcrumbColorForCoverColor(content["cover-color"])
+    const { authors } = useContext(AttachmentsContext)
 
     return (
         <>
@@ -79,9 +78,11 @@ function OwidArticleHeader({
                 ) : null}
                 <div className="centered-article-header__meta-container col-start-2 span-cols-6 span-md-cols-10 col-md-start-2 grid grid-cols-2 ">
                     <div className="span-cols-1 span-sm-cols-2">
-                        <div className="centered-article-header__byline">
-                            <Byline authors={authors} />
-                        </div>
+                        {authors.length > 0 && (
+                            <div className="centered-article-header__byline">
+                                <Byline authors={authors} />
+                            </div>
+                        )}
                         <div className="centered-article-header__dateline body-3-medium-italic">
                             {content.dateline ||
                                 (publishedAt && formatDate(publishedAt))}
@@ -112,13 +113,8 @@ function OwidArticleHeader({
     )
 }
 
-function OwidTopicPageHeader({
-    content,
-    authors,
-}: {
-    content: OwidGdocPostContent
-    authors: DbEnrichedAuthor[]
-}) {
+function OwidTopicPageHeader({ content }: { content: OwidGdocPostContent }) {
+    const { authors } = useContext(AttachmentsContext)
     return (
         <header className="topic-page-header grid span-cols-14 grid-cols-12-full-width">
             <h1 className="display-1-semibold col-start-2 span-cols-8">
@@ -127,20 +123,21 @@ function OwidTopicPageHeader({
             <p className="topic-page-header__subtitle body-1-regular col-start-2 span-cols-8">
                 {content.subtitle}
             </p>
-            <p className="topic-page-header__byline col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
-                <Byline authors={authors} />
-            </p>
+            {authors.length > 0 && (
+                <p className="topic-page-header__byline col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
+                    <Byline authors={authors} />
+                </p>
+            )}
         </header>
     )
 }
 
 function OwidLinearTopicPageHeader({
     content,
-    authors,
 }: {
     content: OwidGdocPostContent
-    authors: DbEnrichedAuthor[]
 }) {
+    const { authors } = useContext(AttachmentsContext)
     return (
         <header className="topic-page-header grid span-cols-14 grid-cols-12-full-width">
             <h1 className="display-1-semibold col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
@@ -149,9 +146,11 @@ function OwidLinearTopicPageHeader({
             <p className="topic-page-header__subtitle body-1-regular col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
                 {content.subtitle}
             </p>
-            <p className="topic-page-header__byline col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
-                <Byline authors={authors} />
-            </p>
+            {authors.length > 0 && (
+                <p className="topic-page-header__byline col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
+                    <Byline authors={authors} />
+                </p>
+            )}
             <p className="topic-page-header__dateline body-3-medium-italic col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
                 {content.dateline}
             </p>
@@ -161,7 +160,6 @@ function OwidLinearTopicPageHeader({
 
 export function OwidGdocHeader(props: {
     content: OwidGdocPostContent
-    authors: DbEnrichedAuthor[]
     publishedAt: Date | null
     breadcrumbs?: BreadcrumbItem[]
 }) {

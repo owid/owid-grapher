@@ -1,4 +1,3 @@
-import { DbEnrichedAuthor } from "../domainTypes/Author.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
 import { JsonString } from "../domainTypes/Various.js"
 import {
@@ -26,7 +25,6 @@ export type DbEnrichedPostGdoc = Omit<
     DbRawPostGdoc,
     "content" | "breadcrumbs" | "published"
 > & {
-    authors: DbEnrichedAuthor[]
     content: OwidGdocContent
     breadcrumbs: BreadcrumbItem[] | null
     published: boolean
@@ -63,7 +61,6 @@ export function serializePostsGdocsBreadcrumbs(
 export function parsePostsGdocsRow(row: DbRawPostGdoc): DbEnrichedPostGdoc {
     return {
         ...row,
-        authors: [],
         content: parsePostGdocContent(row.content),
         breadcrumbs: parsePostsGdocsBreadcrumbs(row.breadcrumbs),
         published: !!row.published,
@@ -75,20 +72,15 @@ export function parsePostsGdocsWithTagsRow(
 ): DBEnrichedPostGdocWithTags {
     return {
         ...parsePostsGdocsRow(row),
-        authors: [],
         tags: JSON.parse(row.tags),
     }
 }
 
 export function serializePostsGdocsRow(row: DbEnrichedPostGdoc): DbRawPostGdoc {
-    const { authors: _authors, ...rowWithoutAuthors } = row
-
     return {
-        ...rowWithoutAuthors,
-        content: serializePostGdocContent(rowWithoutAuthors.content),
-        breadcrumbs: serializePostsGdocsBreadcrumbs(
-            rowWithoutAuthors.breadcrumbs
-        ),
-        published: rowWithoutAuthors.published ? 1 : 0,
+        ...row,
+        content: serializePostGdocContent(row.content),
+        breadcrumbs: serializePostsGdocsBreadcrumbs(row.breadcrumbs),
+        published: row.published ? 1 : 0,
     }
 }

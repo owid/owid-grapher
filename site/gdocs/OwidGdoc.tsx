@@ -11,6 +11,7 @@ import {
     OwidGdocMinimalPostInterface,
     OwidGdocHomepageMetadata,
     DbEnrichedLatestWork,
+    DbEnrichedAuthor,
 } from "@ourworldindata/types"
 import { get, getOwidGdocFromJSON } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
@@ -22,6 +23,7 @@ import { Homepage } from "./pages/Homepage.js"
 import { Author } from "./pages/Author.js"
 
 export const AttachmentsContext = createContext<{
+    authors: DbEnrichedAuthor[]
     linkedCharts: Record<string, LinkedChart>
     linkedIndicators: Record<number, LinkedIndicator>
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
@@ -31,6 +33,7 @@ export const AttachmentsContext = createContext<{
     homepageMetadata?: OwidGdocHomepageMetadata
     latestWorkLinks?: DbEnrichedLatestWork[]
 }>({
+    authors: [],
     linkedDocuments: {},
     imageMetadata: {},
     linkedCharts: {},
@@ -111,6 +114,7 @@ export function OwidGdoc({
     return (
         <AttachmentsContext.Provider
             value={{
+                authors: get(props, "authors", []),
                 linkedDocuments: get(props, "linkedDocuments", {}),
                 imageMetadata: get(props, "imageMetadata", {}),
                 linkedCharts: get(props, "linkedCharts", {}),

@@ -62,7 +62,7 @@ export interface OwidGdocBaseInterface {
     id: string
     slug: string
     // TODO: should we type this as a union of the possible content types instead?
-    authors: DbEnrichedAuthor[]
+    authors?: DbEnrichedAuthor[]
     content: OwidGdocContent
     published: boolean
     createdAt: Date
