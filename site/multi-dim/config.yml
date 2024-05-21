@@ -1,0 +1,58 @@
+name: CO₂ emissions
+dimensions_title: by fuel type and sector
+common_indicator_path_prefix: gcp/2024/co2_and_ghg_emissions/ # optional
+dimensions:
+    - slug: fuel_type
+      name: Fuel type
+      description: The fuel where these emissions stem from. # optional
+      multi_select: true # optional
+      choices:
+          - slug: gas
+            name: Natural gas
+            description: Natural gas, e.g. methane or propane.
+          - slug: cement
+            name: Cement
+            description: Emissions from the drying-out of cement.
+          - slug: all
+            name: All
+            description: Emissions from all fuel types.
+            multi_select: false
+    - slug: sector
+      name: Sector
+      description: The sector where these emissions stem from.
+      choices:
+          - slug: agriculture
+            name: Agriculture
+            description: Agricultural emissions, e.g. from land use change and emissions from livestock and harvesting.
+          - slug: transport
+            name: Transportation
+            description: Emissions from global transport, including cars, trucks, rail transport and global shipping.
+          - slug: industry
+            name: Industry
+            description: Emissions from the production of non-agricultural goods, e.g. steel and glass.
+          - slug: heating
+          - slug: electricity
+views:
+    - dimensions:
+          fuel_type: gas
+          sector: transport
+      indicator_path:
+          emissions__gas__transport: y
+      config:
+          title: Natural gas emissions in transport
+    - dimensions:
+          fuel_type: oil
+          sector: transport
+      indicator_path:
+          emissions__oil__transport: y
+      config:
+          title: Oil emissions in transport
+          subtitle: ...
+    - dimensions: # This dimension uses other fields; they probably are nicer to work with
+          fuel_type: solar
+          sector: electricity
+      indicator_path:
+          emissions__solar__transport: y
+      config:
+          title: ...
+          subtitle: ...

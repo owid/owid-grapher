@@ -20,6 +20,7 @@ import {
     renderDataInsightsIndexPage,
     renderThankYouPage,
     makeDataInsightsAtomFeed,
+    renderMultiDimDataPage,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,

@@ -1,0 +1,226 @@
+name: Poverty
+dimensions_title: by poverty line
+dimensions:
+    - slug: povertyLine
+      name: Poverty line
+      description: The poverty line to display, in 2017 international $
+      choices:
+          - slug: "2.15"
+            name: 2.15 int.$
+          - slug: "3.65"
+            name: 3.65 int.$
+          - slug: "6.85"
+            name: 6.85 int.$
+          - slug: "10"
+            name: 10 int.$
+          - slug: "20"
+            name: 20 int.$
+          - slug: "20"
+            name: 20 int.$
+          - slug: "30"
+            name: 30 int.$
+          - slug: "40"
+            name: 40 int.$
+          - slug: all
+            name: all
+            description: show all poverty lines at the same time
+    - slug: metric
+      name: Metric
+      choices:
+          - slug: absolute
+            name: Number of people
+          - slug: share
+            name: Share of population
+          - slug: shareVsGdp
+            name: Share of population VS GDP per capita
+views:
+    - dimensions:
+          povertyLine: "2.15"
+          metric: share
+      config:
+          hasMapTab: true
+      indicator_path:
+          819727: y
+    - dimensions:
+          povertyLine: "3.65"
+          metric: share
+      indicator_path:
+          819729: y
+      config:
+          hasMapTab: true
+    - dimensions:
+          povertyLine: "6.85"
+          metric: share
+      indicator_path:
+          819731: y
+      config:
+          hasMapTab: true
+    - dimensions:
+          povertyLine: "10"
+          metric: share
+      indicator_path:
+          819725: y
+      config:
+          hasMapTab: true
+    - dimensions:
+          povertyLine: "20"
+          metric: share
+      indicator_path:
+          819726: y
+      config:
+          hasMapTab: true
+    - dimensions:
+          povertyLine: "30"
+          metric: share
+      indicator_path:
+          819728: y
+      config:
+          hasMapTab: true
+    - dimensions:
+          povertyLine: "40"
+          metric: share
+      indicator_path:
+          819730: y
+      config:
+          hasMapTab: true
+    - dimensions:
+          povertyLine: "2.15"
+          metric: shareVsGdp
+      indicator_path:
+          819727: y
+          539760: x
+      config:
+          hasMapTab: true
+          type: ScatterPlot
+          xAxis:
+              scaleType: log
+    - dimensions:
+          povertyLine: "3.65"
+          metric: shareVsGdp
+      indicator_path:
+          819729: y
+          539760: x
+      config:
+          hasMapTab: true
+          type: ScatterPlot
+          xAxis:
+              scaleType: log
+    - dimensions:
+          povertyLine: "6.85"
+          metric: shareVsGdp
+      indicator_path:
+          819731: y
+          539760: x
+      config:
+          hasMapTab: true
+          type: ScatterPlot
+          xAxis:
+              scaleType: log
+    - dimensions:
+          povertyLine: "10"
+          metric: shareVsGdp
+      indicator_path:
+          819725: y
+          539760: x
+      config:
+          hasMapTab: true
+          type: ScatterPlot
+          xAxis:
+              scaleType: log
+    - dimensions:
+          povertyLine: "20"
+          metric: shareVsGdp
+      indicator_path:
+          819726: y
+          539760: x
+      config:
+          hasMapTab: true
+          type: ScatterPlot
+          xAxis:
+              scaleType: log
+    - dimensions:
+          povertyLine: "30"
+          metric: shareVsGdp
+      indicator_path:
+          819728: y
+          539760: x
+      config:
+          hasMapTab: true
+          type: ScatterPlot
+          xAxis:
+              scaleType: log
+    - dimensions:
+          povertyLine: "40"
+          metric: shareVsGdp
+      indicator_path:
+          819730: y
+          539760: x
+      config:
+          hasMapTab: true
+          type: ScatterPlot
+          xAxis:
+              scaleType: log
+    - dimensions:
+          povertyLine: "2.15"
+          metric: absolute
+      indicator_path:
+          819719: y
+      config:
+          hasMapTab: true
+    - dimensions:
+          povertyLine: "3.65"
+          metric: absolute
+      indicator_path:
+          819721: y
+      config:
+          hasMapTab: true
+    - dimensions:
+          povertyLine: "6.85"
+          metric: absolute
+      indicator_path:
+          819723: y
+      config:
+          hasMapTab: true
+    - dimensions:
+          povertyLine: "10"
+          metric: absolute
+      indicator_path:
+          819717: y
+      config:
+          hasMapTab: true
+    - dimensions:
+          povertyLine: "20"
+          metric: absolute
+      indicator_path:
+          819718: y
+      config:
+          hasMapTab: true
+    - dimensions:
+          povertyLine: "30"
+          metric: absolute
+      indicator_path:
+          819720: y
+      config:
+          hasMapTab: true
+    - dimensions:
+          povertyLine: "40"
+          metric: absolute
+      indicator_path:
+          819722: y
+      config:
+          hasMapTab: true
+    - dimensions:
+          povertyLine: all
+          metric: share
+      indicator_path:
+          - 819811: y
+          - 819826: y
+          - 819824: y
+          - 819822: y
+          - 819820: y
+          - 819818: y
+          - 819816: y
+          - 819815: y
+      config:
+          type: StackedArea
+          hasMapTab: true
