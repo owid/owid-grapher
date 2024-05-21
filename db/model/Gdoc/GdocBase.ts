@@ -50,12 +50,19 @@ import {
     getVariableOfDatapageIfApplicable,
 } from "../Variable.js"
 import { createLinkFromUrl } from "../Link.js"
-import { OwidGdoc, OwidGdocContent, OwidGdocType } from "@ourworldindata/types"
+import {
+    OwidGdoc,
+    OwidGdocContent,
+    OwidGdocType,
+    DbRawAuthor,
+    DbEnrichedAuthor,
+} from "@ourworldindata/types"
 import { KnexReadonlyTransaction } from "../../db"
 
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
     slug: string = ""
+    authors: DbEnrichedAuthor[] = []
     content!: OwidGdocContent
     published: boolean = false
     createdAt: Date = new Date()
@@ -176,6 +183,10 @@ export class GdocBase implements OwidGdocBaseInterface {
         }
 
         return [...details]
+    }
+
+    async loadAuthors(knex: db.KnexReadonlyTransaction): Promise<void> {
+        this.authors = await getMinimalAuthorByNames(knex, this.content.authors)
     }
 
     get links(): DbInsertPostGdocLink[] {
@@ -643,8 +654,17 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async loadLinkedDocuments(knex: db.KnexReadonlyTransaction): Promise<void> {
+        if (!this.authors.length) await this.loadAuthors(knex)
+
+        const authorIds = excludeNullish(
+            this.authors.map((author) => author.id)
+        )
+
         const linkedDocuments: OwidGdocMinimalPostInterface[] =
-            await getMinimalGdocPostsByIds(knex, this.linkedDocumentIds)
+            await getMinimalGdocPostsByIds(knex, [
+                ...this.linkedDocumentIds,
+                ...authorIds,
+            ])
 
         this.linkedDocuments = keyBy(linkedDocuments, "id")
     }
@@ -792,6 +812,8 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
+        // TODO explain why we're loading authors first
+        await this.loadAuthors(knex)
         await this.loadLinkedDocuments(knex)
         await this.loadImageMetadataFromDB(knex)
         await this.loadLinkedCharts(knex)
@@ -866,5 +888,33 @@ export async function getMinimalGdocPostsByIds(
             type: row.type as OwidGdocType,
             "featured-image": row["featured-image"],
         } satisfies OwidGdocMinimalPostInterface
+    })
+}
+
+export async function getMinimalAuthorByNames(
+    knex: KnexReadonlyTransaction,
+    names: string[]
+): Promise<DbEnrichedAuthor[]> {
+    if (names.length === 0) return []
+    const rows = await db.knexRaw<DbRawAuthor>(
+        knex,
+        `-- sql
+            SELECT
+                id,
+                content ->> '$.title' as title
+            FROM posts_gdocs
+            WHERE type = 'author'
+            AND content->>"$.title" in (:names)
+            AND published = 1`,
+        { names }
+    )
+
+    const rowsByName = keyBy(rows, "title")
+
+    return names.map((name) => {
+        return {
+            id: rowsByName[name]?.id || null,
+            title: name,
+        }
     })
 }

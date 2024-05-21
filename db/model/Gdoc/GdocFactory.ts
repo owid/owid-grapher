@@ -160,6 +160,7 @@ export async function getGdocBaseObjectById(
     const enrichedRow = parsePostsGdocsRow(row)
     const gdoc: OwidGdocBaseInterface = {
         ...enrichedRow,
+        authors: [],
         tags: null,
     } satisfies OwidGdocBaseInterface
     if (fetchLinkedTags) {
@@ -244,6 +245,7 @@ export async function getGdocBaseObjectBySlug(
     const enrichedRow = parsePostsGdocsRow(row)
     const gdoc: OwidGdocBaseInterface = {
         ...enrichedRow,
+        authors: [],
         tags: null,
     } satisfies OwidGdocBaseInterface
     if (fetchLinkedTags) {
@@ -387,6 +389,7 @@ export async function getAndLoadPublishedDataInsights(
     const enrichedRows = rows.map((row) => {
         return {
             ...parsePostsGdocsRow(row),
+            authors: [],
             tags: groupedTags[row.id] ? groupedTags[row.id] : null,
         } satisfies OwidGdocBaseInterface
     })
@@ -507,6 +510,7 @@ export function getDbEnrichedGdocFromOwidGdoc(
     gdoc: OwidGdoc | GdocBase
 ): DbEnrichedPostGdoc {
     const enrichedGdoc = {
+        authors: gdoc.authors,
         breadcrumbs: gdoc.breadcrumbs,
         content: gdoc.content,
         createdAt: gdoc.createdAt,

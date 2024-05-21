@@ -2,17 +2,18 @@ import React from "react"
 import cx from "classnames"
 import {
     BreadcrumbItem,
+    DbEnrichedAuthor,
     OwidGdocPostContent,
     OwidGdocType,
     formatDate,
 } from "@ourworldindata/utils"
-import { formatAuthors } from "../../clientFormatting.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBook } from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import Image from "./Image.js"
 import { Breadcrumbs } from "../../Breadcrumb/Breadcrumb.js"
 import { breadcrumbColorForCoverColor } from "../utils.js"
+import { Byline } from "./Byline.js"
 
 function OwidArticleHeader({
     content,
@@ -21,7 +22,7 @@ function OwidArticleHeader({
     breadcrumbs,
 }: {
     content: OwidGdocPostContent
-    authors: string[]
+    authors: DbEnrichedAuthor[]
     publishedAt: Date | null
     breadcrumbs?: BreadcrumbItem[]
 }) {
@@ -79,12 +80,7 @@ function OwidArticleHeader({
                 <div className="centered-article-header__meta-container col-start-2 span-cols-6 span-md-cols-10 col-md-start-2 grid grid-cols-2 ">
                     <div className="span-cols-1 span-sm-cols-2">
                         <div className="centered-article-header__byline">
-                            {"By: "}
-                            <a href="/team">
-                                {formatAuthors({
-                                    authors,
-                                })}
-                            </a>
+                            <Byline authors={authors} />
                         </div>
                         <div className="centered-article-header__dateline body-3-medium-italic">
                             {content.dateline ||
@@ -121,7 +117,7 @@ function OwidTopicPageHeader({
     authors,
 }: {
     content: OwidGdocPostContent
-    authors: string[]
+    authors: DbEnrichedAuthor[]
 }) {
     return (
         <header className="topic-page-header grid span-cols-14 grid-cols-12-full-width">
@@ -132,12 +128,7 @@ function OwidTopicPageHeader({
                 {content.subtitle}
             </p>
             <p className="topic-page-header__byline col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
-                {"By "}
-                <a href="/team">
-                    {formatAuthors({
-                        authors,
-                    })}
-                </a>
+                <Byline authors={authors} />
             </p>
         </header>
     )
@@ -148,7 +139,7 @@ function OwidLinearTopicPageHeader({
     authors,
 }: {
     content: OwidGdocPostContent
-    authors: string[]
+    authors: DbEnrichedAuthor[]
 }) {
     return (
         <header className="topic-page-header grid span-cols-14 grid-cols-12-full-width">
@@ -159,12 +150,7 @@ function OwidLinearTopicPageHeader({
                 {content.subtitle}
             </p>
             <p className="topic-page-header__byline col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
-                {"By "}
-                <a href="/team">
-                    {formatAuthors({
-                        authors,
-                    })}
-                </a>
+                <Byline authors={authors} />
             </p>
             <p className="topic-page-header__dateline body-3-medium-italic col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
                 {content.dateline}
@@ -175,7 +161,7 @@ function OwidLinearTopicPageHeader({
 
 export function OwidGdocHeader(props: {
     content: OwidGdocPostContent
-    authors: string[]
+    authors: DbEnrichedAuthor[]
     publishedAt: Date | null
     breadcrumbs?: BreadcrumbItem[]
 }) {
