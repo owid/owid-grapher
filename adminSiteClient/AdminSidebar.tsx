@@ -86,11 +86,6 @@ export const AdminSidebar = (): JSX.Element => (
                 </Link>
             </li>
             <li>
-                <Link to="/standardize">
-                    <FontAwesomeIcon icon={faGlobe} /> Country tool
-                </Link>
-            </li>
-            <li>
                 <Link to="/tags">
                     <FontAwesomeIcon icon={faTag} /> Tags
                 </Link>
