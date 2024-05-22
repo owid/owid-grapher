@@ -295,7 +295,7 @@ export class StackedAreaChart
     }
 
     @computed get legendDimensions(): LineLegend | undefined {
-        if (this.manager.hideLegend) return undefined
+        if (!this.manager.showLegend) return undefined
         return new LineLegend({ manager: this })
     }
 
@@ -515,7 +515,7 @@ export class StackedAreaChart
         const { manager, bounds, dualAxis, renderUid, series } = this
         const { target } = this.tooltipState
 
-        const showLegend = !this.manager.hideLegend
+        const showLegend = this.manager.showLegend
 
         const clipPath = makeClipPath(renderUid, {
             ...bounds,

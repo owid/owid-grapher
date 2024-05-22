@@ -37,7 +37,7 @@ export interface ChartManager {
     isExportingToSvgOrPng?: boolean
     isRelativeMode?: boolean
     comparisonLines?: ComparisonLineConfig[]
-    hideLegend?: boolean
+    showLegend?: boolean
     tooltips?: TooltipManager["tooltips"]
     baseColorScheme?: ColorSchemeName
     invertColorScheme?: boolean

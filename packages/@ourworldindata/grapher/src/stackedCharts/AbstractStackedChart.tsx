@@ -403,7 +403,7 @@ export class AbstractStackedChart
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
-        if (this.manager.hideLegend) {
+        if (!this.manager.showLegend) {
             const categoricalLegendData = this.series
                 .map(
                     (series, index) =>

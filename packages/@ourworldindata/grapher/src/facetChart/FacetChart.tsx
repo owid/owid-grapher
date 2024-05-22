@@ -286,7 +286,7 @@ export class FacetChart
 
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
-            const hideLegend = this.hideFacetLegends
+            const showLegend = !this.hideFacetLegends
             const hidePoints = true
 
             // NOTE: The order of overrides is important!
@@ -294,7 +294,7 @@ export class FacetChart
             const manager: ChartManager = {
                 table,
                 fontSize,
-                hideLegend,
+                showLegend,
                 hidePoints,
                 yColumnSlug,
                 xColumnSlug,

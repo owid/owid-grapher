@@ -174,7 +174,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get showLegend(): boolean {
-        return !this.manager.hideLegend
+        return !!this.manager.showLegend
     }
 
     @computed private get barCount(): number {

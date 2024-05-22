@@ -791,7 +791,7 @@ export class DiscreteBarChart
     }
 
     @computed get showColorLegend(): boolean {
-        return this.hasColorLegend && !this.manager.hideLegend
+        return this.hasColorLegend && !!this.manager.showLegend
     }
 
     @computed get legendX(): number {
@@ -857,7 +857,7 @@ export class DiscreteBarChart
     legendTickSize = 1
 
     @computed get numericLegend(): HorizontalNumericColorLegend | undefined {
-        return this.hasColorScale && !this.manager.hideLegend
+        return this.hasColorScale && this.manager.showLegend
             ? new HorizontalNumericColorLegend({ manager: this })
             : undefined
     }
