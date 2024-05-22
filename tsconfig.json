@@ -29,9 +29,6 @@
             "path": "./adminSiteServer"
         },
         {
-            "path": "./multi-dim"
-        },
-        {
             "path": "./devTools/updateImageHeights"
         },
         {
