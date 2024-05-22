@@ -14,12 +14,16 @@ export const getFontSize = (
     return minSize
 }
 
+export const getLabelPadding = (baseFontSize: number): number =>
+    0.5 * baseFontSize
+
 export const getChartPadding = (
-    count: number,
     baseFontSize: number
 ): { rowPadding: number; columnPadding: number; outerPadding: number } => {
+    const labelHeight = baseFontSize
+    const labelPadding = getLabelPadding(baseFontSize)
     return {
-        rowPadding: Math.round(baseFontSize * 3.5),
+        rowPadding: Math.round(labelHeight + labelPadding + baseFontSize),
         columnPadding: Math.round(baseFontSize),
         outerPadding: 0,
     }
