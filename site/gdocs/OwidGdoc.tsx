@@ -23,7 +23,7 @@ import { Homepage } from "./pages/Homepage.js"
 import { Author } from "./pages/Author.js"
 
 export const AttachmentsContext = createContext<{
-    linkedAuthors: DbEnrichedAuthor[]
+    linkedAuthors?: DbEnrichedAuthor[]
     linkedCharts: Record<string, LinkedChart>
     linkedIndicators: Record<number, LinkedIndicator>
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>

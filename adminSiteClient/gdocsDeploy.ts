@@ -48,6 +48,7 @@ export const checkIsLightningUpdate = (
     > = {
         breadcrumbs: true,
         errors: true,
+        linkedAuthors: false,
         linkedCharts: true,
         linkedIndicators: true,
         linkedDocuments: true,

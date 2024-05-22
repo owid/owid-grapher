@@ -778,7 +778,8 @@ export class SiteBaker {
                 dataInsight.linkedChartSlugs.grapher,
                 dataInsight.linkedChartSlugs.explorer,
             ])
-            dataInsight.linkedAuthors = attachments.linkedAuthors
+            // Not used just yet
+            // dataInsight.linkedAuthors = attachments.linkedAuthors
             dataInsight.linkedDocuments = attachments.linkedDocuments
             dataInsight.imageMetadata = attachments.imageMetadata
             dataInsight.linkedCharts = {

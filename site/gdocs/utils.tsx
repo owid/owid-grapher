@@ -47,7 +47,7 @@ export const breadcrumbColorForCoverColor = (
 
 export const useLinkedAuthor = (name: string): DbEnrichedAuthor => {
     const { linkedAuthors } = useContext(AttachmentsContext)
-    const author = linkedAuthors.find((author) => author.title === name)
+    const author = linkedAuthors?.find((author) => author.title === name)
     if (!author) return { title: name, slug: null }
     return author
 }
