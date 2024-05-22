@@ -92,6 +92,7 @@ export interface ChartManager {
 
     isNarrow?: boolean
     isStatic?: boolean
+    isSemiNarrow?: boolean
     isStaticAndSmall?: boolean
     secondaryColorInStaticCharts?: string
 
