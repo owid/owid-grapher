@@ -8,7 +8,6 @@ import {
     faSkullCrossbones,
     faPen,
     faDatabase,
-    faGlobe,
     faTag,
     faUser,
     faArrowRight,
