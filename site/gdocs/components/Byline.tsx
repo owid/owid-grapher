@@ -1,26 +1,28 @@
 import { getCanonicalUrl } from "@ourworldindata/components"
-import { DbEnrichedAuthor, OwidGdocType } from "@ourworldindata/types"
+import { OwidGdocType } from "@ourworldindata/types"
 import React from "react"
+import { useLinkedAuthor } from "../utils.js"
 
-export const Byline = ({ authors }: { authors: DbEnrichedAuthor[] }) => {
+export const Byline = ({ names }: { names: string[] }) => {
     return (
         <>
             By:{" "}
-            {authors.map((author, idx) => (
-                <>
-                    <LinkedAuthor key={author.title} author={author} />
-                    {idx === authors.length - 1
+            {names.map((name, idx) => (
+                <React.Fragment key={name}>
+                    <LinkedAuthor name={name} />
+                    {idx === names.length - 1
                         ? ""
-                        : idx === authors.length - 2
+                        : idx === names.length - 2
                           ? " and "
                           : ", "}
-                </>
+                </React.Fragment>
             ))}
         </>
     )
 }
 
-const LinkedAuthor = ({ author }: { author: DbEnrichedAuthor }) => {
+const LinkedAuthor = ({ name }: { name: string }) => {
+    const author = useLinkedAuthor(name)
     if (!author.slug) return <>{author.title}</>
 
     const path = getCanonicalUrl("", {

@@ -62,7 +62,6 @@ export interface OwidGdocBaseInterface {
     id: string
     slug: string
     // TODO: should we type this as a union of the possible content types instead?
-    authors?: DbEnrichedAuthor[]
     content: OwidGdocContent
     published: boolean
     createdAt: Date
@@ -71,6 +70,7 @@ export interface OwidGdocBaseInterface {
     revisionId: string | null
     publicationContext: OwidGdocPublicationContext
     breadcrumbs: BreadcrumbItem[] | null
+    linkedAuthors?: DbEnrichedAuthor[]
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     linkedCharts?: Record<string, LinkedChart>
     linkedIndicators?: Record<number, LinkedIndicator>

@@ -10,6 +10,7 @@ import {
     OwidGdocMinimalPostInterface,
     OwidGdocType,
     LinkedIndicator,
+    DbEnrichedAuthor,
 } from "@ourworldindata/types"
 import { formatAuthors, Url } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
@@ -42,6 +43,13 @@ export const breadcrumbColorForCoverColor = (
         case undefined: // default cover color: blue-10
             return "blue"
     }
+}
+
+export const useLinkedAuthor = (name: string): DbEnrichedAuthor => {
+    const { linkedAuthors } = useContext(AttachmentsContext)
+    const author = linkedAuthors.find((author) => author.title === name)
+    if (!author) return { title: name, slug: null }
+    return author
 }
 
 export const useLinkedDocument = (

@@ -55,6 +55,7 @@ import {
     excludeUndefined,
     grabMetadataForGdocLinkedIndicator,
     GrapherTabOption,
+    DbEnrichedAuthor,
 } from "@ourworldindata/utils"
 
 import { execWrapper } from "../db/execWrapper.js"
@@ -103,10 +104,11 @@ import {
     getAllMinimalGdocBaseObjects,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { getBakePath } from "@ourworldindata/components"
-import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
+import { GdocAuthor, getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
 import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
 
 type PrefetchedAttachments = {
+    linkedAuthors: DbEnrichedAuthor[]
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
     imageMetadata: Record<string, ImageMetadata>
     linkedCharts: {
@@ -169,7 +171,7 @@ function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
         bakeSteps.has("dataInsights") ||
         bakeSteps.has("authors")
     ) {
-        total += 6
+        total += 7
     }
     return total
 }
@@ -305,14 +307,14 @@ export class SiteBaker {
         return without(existingSlugs, ...postSlugsFromDb)
     }
 
-    // Prefetches all linkedDocuments, imageMetadata, linkedCharts, and linkedIndicators instead of having to fetch them
-    // for each individual gdoc. Optionally takes a tuple of string arrays to pick from the prefetched
-    // dictionaries.
-    // TODO:
+    // Prefetches all linkedAuthors, linkedDocuments, imageMetadata,
+    // linkedCharts, and linkedIndicators instead of having to fetch them for
+    // each individual gdoc. Optionally takes a tuple of string arrays to pick
+    // from the prefetched dictionaries.
     _prefetchedAttachmentsCache: PrefetchedAttachments | undefined = undefined
     private async getPrefetchedGdocAttachments(
         knex: db.KnexReadonlyTransaction,
-        picks?: [string[], string[], string[], string[]]
+        picks?: [string[], string[], string[], string[], string[]]
     ): Promise<PrefetchedAttachments> {
         if (!this._prefetchedAttachmentsCache) {
             console.log("Prefetching attachments...")
@@ -401,7 +403,14 @@ export class SiteBaker {
             })
             const datapageIndicatorsById = keyBy(datapageIndicators, "id")
 
+            const publishedAuthors = await getMinimalAuthors(knex)
+
+            this.progressBar.tick({
+                name: `✅ Prefetched ${publishedAuthors.length} authors`,
+            })
+
             const prefetchedAttachments = {
+                linkedAuthors: publishedAuthors,
                 linkedDocuments: publishedGdocsDictionary,
                 imageMetadata: imageMetadataDictionary,
                 linkedCharts: {
@@ -415,6 +424,7 @@ export class SiteBaker {
         }
         if (picks) {
             const [
+                authorNames,
                 linkedDocumentIds,
                 imageFilenames,
                 linkedGrapherSlugs,
@@ -462,6 +472,10 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedIndicators,
                     linkedIndicatorIds
                 ),
+                linkedAuthors:
+                    this._prefetchedAttachmentsCache.linkedAuthors.filter(
+                        (author) => authorNames.includes(author.title)
+                    ),
             }
         }
         return this._prefetchedAttachmentsCache
@@ -544,11 +558,13 @@ export class SiteBaker {
 
         for (const publishedGdoc of gdocsToBake) {
             const attachments = await this.getPrefetchedGdocAttachments(knex, [
+                publishedGdoc.content.authors,
                 publishedGdoc.linkedDocumentIds,
                 publishedGdoc.linkedImageFilenames,
                 publishedGdoc.linkedChartSlugs.grapher,
                 publishedGdoc.linkedChartSlugs.explorer,
             ])
+            publishedGdoc.linkedAuthors = attachments.linkedAuthors
             publishedGdoc.linkedDocuments = attachments.linkedDocuments
             publishedGdoc.imageMetadata = attachments.imageMetadata
             publishedGdoc.linkedCharts = {
@@ -756,11 +772,13 @@ export class SiteBaker {
 
         for (const dataInsight of publishedDataInsights) {
             const attachments = await this.getPrefetchedGdocAttachments(knex, [
+                dataInsight.content.authors,
                 dataInsight.linkedDocumentIds,
                 dataInsight.linkedImageFilenames,
                 dataInsight.linkedChartSlugs.grapher,
                 dataInsight.linkedChartSlugs.explorer,
             ])
+            dataInsight.linkedAuthors = attachments.linkedAuthors
             dataInsight.linkedDocuments = attachments.linkedDocuments
             dataInsight.imageMetadata = attachments.imageMetadata
             dataInsight.linkedCharts = {
@@ -824,6 +842,7 @@ export class SiteBaker {
 
         for (const publishedAuthor of publishedAuthors) {
             const attachments = await this.getPrefetchedGdocAttachments(knex, [
+                publishedAuthor.content.authors,
                 publishedAuthor.linkedDocumentIds,
                 publishedAuthor.linkedImageFilenames,
                 publishedAuthor.linkedChartSlugs.grapher,
@@ -837,6 +856,7 @@ export class SiteBaker {
             //     ...attachments.linkedCharts.graphers,
             //     ...attachments.linkedCharts.explorers,
             // }
+            // publishedAuthor.linkedAuthors = attachments.linkedAuthors
 
             // Attach documents metadata linked to in the "featured work" section
             publishedAuthor.linkedDocuments = attachments.linkedDocuments

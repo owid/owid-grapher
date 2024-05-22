@@ -9,6 +9,7 @@ import {
     DEFAULT_GDOC_FEATURED_IMAGE,
     OwidGdocBaseInterface,
     excludeNullish,
+    DbRawAuthor,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
@@ -158,4 +159,21 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
     ): Promise<GdocAuthor[]> {
         return loadPublishedGdocAuthors(knex)
     }
+}
+
+export async function getMinimalAuthors(
+    knex: db.KnexReadonlyTransaction
+): Promise<DbRawAuthor[]> {
+    const rows = await db.knexRaw<DbRawAuthor>(
+        knex,
+        `-- sql
+            SELECT
+                slug,
+                content ->> '$.title' as title
+            FROM posts_gdocs
+            WHERE type = 'author'
+            AND published = 1`
+    )
+
+    return rows
 }

@@ -62,7 +62,6 @@ import { KnexReadonlyTransaction } from "../../db"
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
     slug: string = ""
-    authors: DbEnrichedAuthor[] = []
     content!: OwidGdocContent
     published: boolean = false
     createdAt: Date = new Date()
@@ -76,6 +75,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     tags: DbPlainTag[] | null = null
     errors: OwidGdocErrorMessage[] = []
     imageMetadata: Record<string, ImageMetadata> = {}
+    linkedAuthors: DbEnrichedAuthor[] = []
     linkedCharts: Record<string, LinkedChart> = {}
     linkedIndicators: Record<number, LinkedIndicator> = {}
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
@@ -185,8 +185,11 @@ export class GdocBase implements OwidGdocBaseInterface {
         return [...details]
     }
 
-    async loadAuthors(knex: db.KnexReadonlyTransaction): Promise<void> {
-        this.authors = await getMinimalAuthorByNames(knex, this.content.authors)
+    async loadLinkedAuthors(knex: db.KnexReadonlyTransaction): Promise<void> {
+        this.linkedAuthors = await getMinimalAuthorsByNames(
+            knex,
+            this.content.authors
+        )
     }
 
     get links(): DbInsertPostGdocLink[] {
@@ -803,7 +806,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
-        await this.loadAuthors(knex)
+        await this.loadLinkedAuthors(knex)
         await this.loadLinkedDocuments(knex)
         await this.loadImageMetadataFromDB(knex)
         await this.loadLinkedCharts(knex)
@@ -881,10 +884,10 @@ export async function getMinimalGdocPostsByIds(
     })
 }
 
-export async function getMinimalAuthorByNames(
+export async function getMinimalAuthorsByNames(
     knex: KnexReadonlyTransaction,
     names: string[]
-): Promise<DbEnrichedAuthor[]> {
+): Promise<DbRawAuthor[]> {
     if (names.length === 0) return []
     const rows = await db.knexRaw<DbRawAuthor>(
         knex,
@@ -898,12 +901,5 @@ export async function getMinimalAuthorByNames(
             AND published = 1`,
         { names }
     )
-
-    return names.map((name) => {
-        const row = rows.find((row) => row.title === name)
-        return {
-            slug: row?.slug || null,
-            title: name,
-        }
-    })
+    return rows
 }
