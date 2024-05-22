@@ -1,4 +1,5 @@
-import { DbEnrichedAuthor } from "@ourworldindata/types"
+import { getCanonicalUrl } from "@ourworldindata/components"
+import { DbEnrichedAuthor, OwidGdocType } from "@ourworldindata/types"
 import React from "react"
 
 export const Byline = ({ authors }: { authors: DbEnrichedAuthor[] }) => {
@@ -20,8 +21,12 @@ export const Byline = ({ authors }: { authors: DbEnrichedAuthor[] }) => {
 }
 
 const LinkedAuthor = ({ author }: { author: DbEnrichedAuthor }) => {
-    if (author.slug) {
-        return <a href={`/${author.slug}`}>{author.title}</a>
-    }
-    return <>{author.title}</>
+    if (!author.slug) return <>{author.title}</>
+
+    const path = getCanonicalUrl("", {
+        slug: author.slug,
+        content: { type: OwidGdocType.Author },
+    })
+
+    return <a href={path}>{author.title}</a>
 }

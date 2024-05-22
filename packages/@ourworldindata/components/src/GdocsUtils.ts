@@ -45,7 +45,10 @@ export function convertHeadingTextToId(headingText: Span[]): string {
     return urlSlug(spansToUnformattedPlainText(headingText))
 }
 
-function _getPrefixedPath(prefix: string, gdoc: OwidGdoc): string {
+function _getPrefixedPath(
+    prefix: string,
+    gdoc: { slug: string; content: { type?: OwidGdocType } }
+): string {
     return match(gdoc)
         .with(
             {
@@ -87,11 +90,17 @@ function _getPrefixedPath(prefix: string, gdoc: OwidGdoc): string {
         .exhaustive()
 }
 
-export const getBakePath = (bakedSiteDir: string, gdoc: OwidGdoc): string => {
+export const getBakePath = (
+    bakedSiteDir: string,
+    gdoc: { slug: string; content: { type?: OwidGdocType } }
+): string => {
     return _getPrefixedPath(bakedSiteDir, gdoc)
 }
 
-export const getCanonicalUrl = (baseUrl: string, gdoc: OwidGdoc): string => {
+export const getCanonicalUrl = (
+    baseUrl: string,
+    gdoc: { slug: string; content: { type?: OwidGdocType } }
+): string => {
     return _getPrefixedPath(baseUrl, gdoc)
 }
 
