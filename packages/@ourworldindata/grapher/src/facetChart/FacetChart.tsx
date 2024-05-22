@@ -629,7 +629,7 @@ export class FacetChart
     }
 
     @computed get legendAlign(): HorizontalAlign {
-        return HorizontalAlign.center
+        return HorizontalAlign.left
     }
 
     @computed get legendTitle(): string | undefined {
