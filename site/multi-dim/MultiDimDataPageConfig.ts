@@ -68,9 +68,6 @@ export class MultiDimDataPageConfig {
     }
 }
 
-if (require.main === module) {
-    const CONFIG_PLAIN = fs.readFileSync(__dirname + "/config.yml", "utf-8")
-
-    const config = MultiDimDataPageConfig.fromYaml(CONFIG_PLAIN)
-    console.log(config.dimensions)
-}
+export const MULTI_DIM_DATA_PAGE_CONFIG = MultiDimDataPageConfig.fromYaml(
+    fs.readFileSync(__dirname + "/config.yml", "utf-8")
+)

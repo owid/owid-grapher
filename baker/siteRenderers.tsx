@@ -7,6 +7,7 @@ import { SearchPage } from "../site/search/SearchPage.js"
 import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
+import { MultiDimDataPage } from "../site/multi-dim/MultiDimDataPage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
@@ -98,6 +99,10 @@ import {
     getAndLoadGdocById,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { SiteNavigationStatic } from "../site/SiteNavigation.js"
+import {
+    MULTI_DIM_DATA_PAGE_CONFIG,
+    MultiDimDataPageConfig,
+} from "../site/multi-dim/MultiDimDataPageConfig.js"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
@@ -930,4 +935,13 @@ export const extractKeyInsights = (
     }
 
     return keyInsights
+}
+
+export const renderMultiDimDataPage = async () => {
+    return renderToHtmlPage(
+        <MultiDimDataPage
+            baseUrl={BAKED_BASE_URL}
+            config={MULTI_DIM_DATA_PAGE_CONFIG}
+        />
+    )
 }

@@ -21,6 +21,7 @@ import {
     renderDataInsightsIndexPage,
     renderThankYouPage,
     makeDataInsightsAtomFeed,
+    renderMultiDimDataPage,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -494,6 +495,16 @@ getPlainRouteNonIdempotentWithRWTransaction(
             console.error(e)
             res.status(404).send(renderNotFoundPage())
         }
+    }
+)
+
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    "/multi-dim",
+    async (_, res, trx) => {
+        const page = await renderMultiDimDataPage()
+        res.send(page)
+        return
     }
 )
 

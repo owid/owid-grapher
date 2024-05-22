@@ -27,6 +27,7 @@ export enum SiteFooterContext {
     gdocsDocument = "gdocsDocument", // the rendered version (on the site)
     grapherPage = "grapherPage",
     dataPageV2 = "dataPageV2",
+    multiDimDataPage = "multiDimDataPage",
     dynamicCollectionPage = "dynamicCollectionPage",
     explorerPage = "explorerPage",
     default = "default",
