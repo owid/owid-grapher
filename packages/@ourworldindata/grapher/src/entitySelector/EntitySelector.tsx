@@ -78,10 +78,11 @@ interface SortConfig {
     order: SortOrder
 }
 
-type SearchableEntity = { name: string; local?: boolean } & Record<
-    ColumnSlug,
-    CoreValueType | undefined
->
+type SearchableEntity = {
+    name: string
+    local?: boolean
+    isWorld?: boolean
+} & Record<ColumnSlug, CoreValueType | undefined>
 
 interface PartitionedEntities {
     selected: SearchableEntity[]
@@ -447,7 +448,10 @@ export class EntitySelector extends React.Component<{
 
     @computed private get availableEntities(): SearchableEntity[] {
         return this.availableEntityNames.map((entityName) => {
-            const searchableEntity: SearchableEntity = { name: entityName }
+            const searchableEntity: SearchableEntity = {
+                name: entityName,
+                isWorld: entityName === "World",
+            }
 
             if (this.localEntityNames) {
                 searchableEntity.local =
@@ -468,7 +472,9 @@ export class EntitySelector extends React.Component<{
 
     private sortEntities(
         entities: SearchableEntity[],
-        options: { sortLocalsToTop: boolean } = { sortLocalsToTop: true }
+        options: { sortLocalsAndWorldToTop: boolean } = {
+            sortLocalsAndWorldToTop: true,
+        }
     ): SearchableEntity[] {
         const { sortConfig } = this
 
@@ -476,7 +482,7 @@ export class EntitySelector extends React.Component<{
             sortConfig.slug === this.table.entityNameSlug
 
         // sort by name, ignoring local entities
-        if (shouldBeSortedByName && !options.sortLocalsToTop) {
+        if (shouldBeSortedByName && !options.sortLocalsAndWorldToTop) {
             return orderBy(
                 entities,
                 (entity: SearchableEntity) => entity.name,
@@ -485,9 +491,14 @@ export class EntitySelector extends React.Component<{
         }
 
         // sort by name, with local entities at the top
-        if (shouldBeSortedByName && options.sortLocalsToTop) {
-            const [localEntities, otherEntities] = partition(
+        if (shouldBeSortedByName && options.sortLocalsAndWorldToTop) {
+            const [[worldEntity], entitiesWithoutWorld] = partition(
                 entities,
+                (entity) => entity.isWorld
+            )
+
+            const [localEntities, otherEntities] = partition(
+                entitiesWithoutWorld,
                 (entity: SearchableEntity) => entity.local
             )
 
@@ -503,7 +514,11 @@ export class EntitySelector extends React.Component<{
                 sortConfig.order
             )
 
-            return [...sortedLocalEntities, ...sortedOtherEntities]
+            return excludeUndefined([
+                ...sortedLocalEntities,
+                worldEntity,
+                ...sortedOtherEntities,
+            ])
         }
 
         // sort by number column, with missing values at the end
@@ -563,7 +578,9 @@ export class EntitySelector extends React.Component<{
         )
 
         return {
-            selected: this.sortEntities(selected, { sortLocalsToTop: false }),
+            selected: this.sortEntities(selected, {
+                sortLocalsAndWorldToTop: false,
+            }),
             unselected: this.sortEntities(unselected),
         }
     }
