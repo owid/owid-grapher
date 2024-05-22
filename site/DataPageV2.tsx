@@ -14,6 +14,7 @@ import {
     pick,
     GrapherInterface,
     ImageMetadata,
+    Url,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import React from "react"
@@ -57,6 +58,7 @@ export const DataPageV2 = (props: {
     const canonicalUrl = grapher?.slug
         ? urljoin(baseGrapherUrl, grapher.slug as string)
         : ""
+    const dataApiOrigin = Url.fromURL(DATA_API_URL).origin
     let pageDesc: string
     if (grapher?.subtitle?.length) {
         // convert subtitle from markdown to plaintext
@@ -123,6 +125,7 @@ export const DataPageV2 = (props: {
                     figure[data-grapher-src] { display: none !important; }
                 `}</style>
                 </noscript>
+                <link rel="preconnect" href={dataApiOrigin} />
                 {variableIds.flatMap((variableId) =>
                     [
                         getVariableDataRoute(DATA_API_URL, variableId),
@@ -137,6 +140,13 @@ export const DataPageV2 = (props: {
                         />
                     ))
                 )}
+                <link
+                    rel="preload"
+                    href="/fonts/PlayfairDisplayLatin-SemiBold.woff2"
+                    as="font"
+                    type="font/woff2"
+                    crossOrigin="anonymous"
+                />
             </Head>
             <body className="DataPage">
                 <SiteHeader baseUrl={baseUrl} />
