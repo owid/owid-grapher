@@ -3,6 +3,7 @@ import {
     FacetAxisDomain,
     FacetStrategy,
     GrapherTabOption,
+    MissingDataStrategy,
     StackMode,
 } from "@ourworldindata/types"
 import { ColorSchemes } from "@ourworldindata/grapher"
@@ -257,5 +258,12 @@ export const GrapherGrammar: Grammar = {
         keyword: "mapTargetTime",
         description:
             "Set the 'target time' for the map chart. This is the year that will be shown by default in the map chart.",
+    },
+    missingDataStrategy: {
+        ...EnumCellDef,
+        keyword: "missingDataStrategy",
+        description:
+            "Hide or show entities for which one or more variables are missing",
+        terminalOptions: toTerminalOptions(Object.values(MissingDataStrategy)),
     },
 } as const
