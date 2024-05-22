@@ -1,10 +1,8 @@
 import cheerio from "cheerio"
 import { WP_ColumnStyle } from "@ourworldindata/utils"
-import {
-    GRAPHER_PREVIEW_CLASS,
-    splitContentIntoSectionsAndColumns,
-} from "./formatting.js"
+import { splitContentIntoSectionsAndColumns } from "./formatting.js"
 import { formatAuthors } from "./clientFormatting.js"
+import { GRAPHER_PREVIEW_CLASS } from "./SiteConstants.js"
 
 const paragraph = `<p>Some paragraph</p>`
 const chart = `<figure data-grapher-src="https://ourworldindata.org/grapher/pneumococcal-vaccination-averted-deaths" class="${GRAPHER_PREVIEW_CLASS}"></figure>`

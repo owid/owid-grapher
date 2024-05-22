@@ -1,7 +1,11 @@
+import cx from "classnames"
 import React from "react"
 import { Head } from "../Head.js"
+import { GRAPHER_PREVIEW_CLASS } from "../SiteConstants.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
+import InteractionNotice from "../InteractionNotice.js"
+import GrapherImage from "../GrapherImage.js"
 
 export interface StaticCollectionPageProps {
     title: string
@@ -35,13 +39,28 @@ export const StaticCollectionPage = (
                     </header>
                     <div className="grid span-cols-12 col-start-2">
                         <div className="grid span-cols-12">
-                            {charts.map((chartSlug) => (
-                                <figure
-                                    key={chartSlug}
-                                    data-grapher-src={`${baseUrl}/grapher/${chartSlug}`}
-                                    className="span-cols-6 span-md-cols-12"
-                                />
-                            ))}
+                            {charts.map((chartSlug) => {
+                                const grapherUrl = `${baseUrl}/grapher/${chartSlug}`
+                                return (
+                                    <figure
+                                        key={chartSlug}
+                                        className={cx(
+                                            GRAPHER_PREVIEW_CLASS,
+                                            "span-cols-6 span-md-cols-12"
+                                        )}
+                                        data-grapher-src={grapherUrl}
+                                    >
+                                        <a
+                                            href={grapherUrl}
+                                            target="_blank"
+                                            rel="noopener"
+                                        >
+                                            <GrapherImage slug={chartSlug} />
+                                            <InteractionNotice />
+                                        </a>
+                                    </figure>
+                                )
+                            })}
                         </div>
                     </div>
                 </main>

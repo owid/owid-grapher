@@ -19,8 +19,11 @@
 
     figure {
         width: 100%;
-        height: $grapher-height;
         margin: 0;
         margin-bottom: 48px;
+    }
+
+    figure:not(.grapherPreview) {
+        height: $grapher-height;
     }
 }

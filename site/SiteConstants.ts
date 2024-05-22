@@ -14,3 +14,5 @@ export const POLYFILL_URL: string = `https://cdnjs.cloudflare.com/polyfill/v3/po
 )}`
 
 export const DEFAULT_LOCAL_BAKE_DIR = "localBake"
+
+export const GRAPHER_PREVIEW_CLASS = "grapherPreview"

@@ -15,6 +15,9 @@ import {
 } from "@ourworldindata/utils"
 import { renderSpans, useLinkedChart } from "../utils.js"
 import cx from "classnames"
+import { GRAPHER_PREVIEW_CLASS } from "../../SiteConstants.js"
+import InteractionNotice from "../../InteractionNotice.js"
+import GrapherImage from "../../GrapherImage.js"
 
 export default function Chart({
     d,
@@ -94,7 +97,10 @@ export default function Chart({
             <figure
                 // Use unique `key` to force React to re-render tree
                 key={resolvedUrl}
-                className={isExplorerWithControls ? "explorer" : "chart"}
+                className={cx(
+                    { [GRAPHER_PREVIEW_CLASS]: !isExplorer },
+                    isExplorerWithControls ? "explorer" : "chart"
+                )}
                 data-grapher-src={isExplorer ? undefined : resolvedUrl}
                 data-grapher-config={
                     isExplorer ? undefined : JSON.stringify(chartConfig)
@@ -105,7 +111,22 @@ export default function Chart({
                     border: "0px none",
                     height: d.height,
                 }}
-            />
+            >
+                {isExplorer ? (
+                    <noscript>
+                        <p className="align-center">
+                            Interactive visualization requires JavaScript.
+                        </p>
+                    </noscript>
+                ) : (
+                    url.slug && (
+                        <a href={resolvedUrl} target="_blank" rel="noopener">
+                            <GrapherImage slug={url.slug} alt={d.title} />
+                            <InteractionNotice />
+                        </a>
+                    )
+                )}
+            </figure>
             {d.caption ? (
                 <figcaption>{renderSpans(d.caption)}</figcaption>
             ) : null}

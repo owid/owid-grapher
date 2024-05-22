@@ -52,9 +52,10 @@ import { renderExpandableParagraphs } from "../site/blocks/ExpandableParagraph.j
 import {
     formatUrls,
     getBodyHtml,
-    GRAPHER_PREVIEW_CLASS,
     SUMMARY_CLASSNAME,
 } from "../site/formatting.js"
+import { GRAPHER_PREVIEW_CLASS } from "../site/SiteConstants.js"
+import { INTERACTIVE_ICON_SVG } from "../site/InteractionNotice.js"
 import { renderKeyInsights, renderProminentLinks } from "./siteRenderers.js"
 import { KEY_INSIGHTS_CLASS_NAME } from "../site/blocks/KeyInsights.js"
 import { RELATED_CHARTS_CLASS_NAME } from "../site/blocks/RelatedCharts.js"
@@ -81,12 +82,6 @@ const initMathJax = () => {
 }
 
 const formatMathJax = initMathJax()
-
-// A modifed FontAwesome icon
-const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="hand-pointer" class="svg-inline--fa fa-hand-pointer fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 617">
-    <path fill="currentColor" d="M448,344.59v96a40.36,40.36,0,0,1-1.06,9.16l-32,136A40,40,0,0,1,376,616.59H168a40,40,0,0,1-32.35-16.47l-128-176a40,40,0,0,1,64.7-47.06L104,420.58v-276a40,40,0,0,1,80,0v200h8v-40a40,40,0,1,1,80,0v40h8v-24a40,40,0,1,1,80,0v24h8a40,40,0,1,1,80,0Zm-256,80h-8v96h8Zm88,0h-8v96h8Zm88,0h-8v96h8Z" transform="translate(0 -0.41)"/>
-    <path fill="currentColor" opacity="0.6" d="M239.76,234.78A27.5,27.5,0,0,1,217,192a87.76,87.76,0,1,0-145.9,0A27.5,27.5,0,1,1,25.37,222.6,142.17,142.17,0,0,1,1.24,143.17C1.24,64.45,65.28.41,144,.41s142.76,64,142.76,142.76a142.17,142.17,0,0,1-24.13,79.43A27.47,27.47,0,0,1,239.76,234.78Z" transform="translate(0 -0.41)"/>
-</svg>`
 
 const extractLatex = (html: string): [string, string[]] => {
     const latexBlocks: string[] = []
