@@ -518,6 +518,7 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             {
                 width: 20,
                 total: chartsToBake.length + 1,
+                renderThrottle: 0,
             }
         )
 
