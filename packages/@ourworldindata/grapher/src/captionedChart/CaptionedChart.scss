@@ -3,6 +3,7 @@ $controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
 
 .CaptionedChart {
     width: 100%;
+    background-color: $grapher-background-color;
 }
 
 .HeaderHTML,
