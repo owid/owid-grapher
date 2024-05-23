@@ -180,6 +180,21 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             .map(parseLatestWorkToResearchAndWritingLink)
     }
 
+    // If there are no primary links, we revert to scrolling through the
+    // secondary links. This is because the absence of primary links currently
+    // means that we are on a author page using the topics template, where all
+    // of the author's work is shown through secondary links. In this case,
+    // where nothing competes with the secondary links, we revert to a more
+    // natural scrolling behaviour.
+    //
+    // Using the presence of primary links as a proxy for this behaviour is
+    // bordering on a hack, and makes reasoning about the component slightly
+    // more difficult, but is considered acceptable for now.
+    //
+    // see https://owid.slack.com/archives/C06KFK86HST/p1716469728775129
+
+    const shouldPrimarySecondaryOverflow = primary.length > 0
+
     return (
         <div className={cx(className, "grid")}>
             <h1
@@ -190,7 +205,12 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                 <a className="deep-link" href={`#${slug}`} />
             </h1>
             <div className="span-cols-12 research-and-writing-row">
-                <div className="grid research-and-writing-row__links research-and-writing-row__links--overflow">
+                <div
+                    className={cx("grid research-and-writing-row__links", {
+                        "research-and-writing-row__links--overflow":
+                            shouldPrimarySecondaryOverflow,
+                    })}
+                >
                     {primary.map((link, i) => (
                         <ResearchAndWritingLink
                             className="span-cols-6 span-sm-cols-12"
