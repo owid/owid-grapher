@@ -21,12 +21,17 @@
         margin: 0;
     }
 
-    p.topic-page-header__byline,
-    .topic-page-header__byline a {
-        color: $blue-60;
+    p.topic-page-header__byline {
         margin-bottom: 0;
+        color: $blue-60;
         @include sm-only {
             font-size: 0.875rem;
+        }
+    }
+    .topic-page-header__byline a {
+        @include owid-link-60;
+        &:visited {
+            color: inherit;
         }
     }
 
@@ -36,10 +41,6 @@
         @include sm-only {
             margin-bottom: 16px;
         }
-    }
-
-    .topic-page-header__byline a:hover {
-        color: $vermillion;
     }
 
     + .sticky-nav {
