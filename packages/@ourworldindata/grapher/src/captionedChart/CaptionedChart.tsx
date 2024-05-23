@@ -20,6 +20,7 @@ import {
     Patterns,
     STATIC_EXPORT_DETAIL_SPACING,
     DEFAULT_GRAPHER_FRAME_PADDING,
+    GRAPHER_BACKGROUND_COLOR,
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
@@ -492,7 +493,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 fontFamily:
                     "Lato, 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif",
                 fontSize: this.manager.fontSize ?? BASE_FONT_SIZE,
-                backgroundColor: "white",
                 textRendering: "geometricPrecision",
                 WebkitFontSmoothing: "antialiased",
             },
@@ -621,7 +621,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                 {this.patterns}
                 <rect
                     className="background-fill"
-                    fill="white"
+                    fill={GRAPHER_BACKGROUND_COLOR}
                     width={width}
                     height={height}
                 />
