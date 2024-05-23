@@ -6,7 +6,7 @@ import { useLinkedAuthor } from "../utils.js"
 export const Byline = ({ names }: { names: string[] }) => {
     return (
         <>
-            By:{" "}
+            {"By: "}
             {names.map((name, idx) => (
                 <React.Fragment key={name}>
                     <LinkedAuthor name={name} />
@@ -23,7 +23,12 @@ export const Byline = ({ names }: { names: string[] }) => {
 
 const LinkedAuthor = ({ name }: { name: string }) => {
     const author = useLinkedAuthor(name)
-    if (!author.slug) return <>{author.title}</>
+    // Somehow, using a fragment here messes up the hydration process and causes
+    // some links to be applied to the wrong authors, but only if the first
+    // author is unlinked (which probably gets tangled with the "By: " text
+    // above). Additional markup, here in the form of a span, works more
+    // reliably.
+    if (!author.slug) return <span>{author.title}</span>
 
     const path = getCanonicalUrl("", {
         slug: author.slug,
