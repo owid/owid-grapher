@@ -707,6 +707,20 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async validate(knex: db.KnexReadonlyTransaction): Promise<void> {
+        const authorErrors = this.content.authors.reduce(
+            (errors: OwidGdocErrorMessage[], name): OwidGdocErrorMessage[] => {
+                if (!this.linkedAuthors.find((a) => a.title === name)) {
+                    errors.push({
+                        property: "linkedAuthors",
+                        message: `Author "${name}" does not exist or is not published`,
+                        type: OwidGdocErrorMessageType.Warning,
+                    })
+                }
+                return errors
+            },
+            []
+        )
+
         const filenameErrors: OwidGdocErrorMessage[] = this.filenames.reduce(
             (
                 errors: OwidGdocErrorMessage[],
@@ -798,6 +812,7 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         const subclassErrors = await this._validateSubclass(knex, this)
         this.errors = [
+            ...authorErrors,
             ...filenameErrors,
             ...linkErrors,
             ...contentErrors,
