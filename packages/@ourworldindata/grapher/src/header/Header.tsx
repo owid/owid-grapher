@@ -4,6 +4,7 @@ import {
     range,
     LogoOption,
     makeIdForHumanConsumption,
+    Bounds,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
@@ -141,13 +142,36 @@ export class Header<
         return title
     }
 
+    @computed get useFullWidthForSubtitle(): boolean {
+        const subtitleWidth = Bounds.forText(this.subtitleText, {
+            fontSize: this.subtitleFontSize,
+        }).width
+        const isSmall =
+            this.manager.isSemiNarrow || this.manager.isStaticAndSmall
+        return (
+            // if the subtitle is entirely below the logo, we can go underneath it
+            this.title.height > this.logoHeight ||
+            // on narrow screens, long subtitles should also go underneath the logo
+            !!(isSmall && subtitleWidth > 2 * this.maxWidth)
+        )
+    }
+
     @computed get subtitleMarginTop(): number {
-        return 4
+        let padding = 4
+
+        // make sure the subtitle doesn't overlap with the logo
+        if (
+            this.useFullWidthForSubtitle &&
+            this.logoHeight > this.title.height
+        ) {
+            padding += this.logoHeight - this.title.height
+        }
+
+        return padding
     }
 
     @computed get subtitleWidth(): number {
-        // If the subtitle is entirely below the logo, we can go underneath it
-        return this.title.height > this.logoHeight
+        return this.useFullWidthForSubtitle
             ? this.maxWidth
             : this.maxWidth - this.logoWidth - 12
     }
@@ -234,6 +258,7 @@ export class Header<
         const style = {
             ...this.subtitle.style,
             marginTop: this.subtitleMarginTop,
+            width: this.useFullWidthForSubtitle ? "100%" : undefined,
             // make sure there are no scrollbars on subtitle
             overflowY: "hidden",
         }
