@@ -5,6 +5,7 @@ import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons"
 import { EntityName, ChartTypeName, FacetStrategy } from "@ourworldindata/types"
+import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartDimension } from "../chart/ChartDimension"
 import { makeSelectionArray } from "../chart/ChartUtils.js"
@@ -30,6 +31,7 @@ import {
     TableFilterToggleManager,
 } from "./settings/TableFilterToggle"
 import { OverlayHeader } from "../core/OverlayHeader"
+import { DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL } from "../core/GrapherConstants"
 
 const {
     LineChart,
@@ -83,6 +85,7 @@ export interface SettingsMenuManager
 @observer
 export class SettingsMenu extends React.Component<{
     manager: SettingsMenuManager
+    maxWidth?: number
     top: number
     bottom: number
     right: number
@@ -93,6 +96,10 @@ export class SettingsMenu extends React.Component<{
     static shouldShow(manager: SettingsMenuManager): boolean {
         const test = new SettingsMenu({ manager, top: 0, bottom: 0, right: 0 })
         return test.showSettingsMenuToggle
+    }
+
+    @computed get maxWidth(): number {
+        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
     @computed get showYScaleToggle(): boolean | undefined {
@@ -258,22 +265,26 @@ export class SettingsMenu extends React.Component<{
         return makeSelectionArray(this.manager.selection)
     }
 
-    @computed get layout(): { maxHeight: string; top: number; right: number } {
+    @computed get shouldRenderTableControlsIntoPopup(): boolean {
+        const tableFilterToggleWidth = TableFilterToggle.width(this.manager)
+        return tableFilterToggleWidth > this.maxWidth
+    }
+
+    @computed get layout(): {
+        maxHeight: string
+        maxWidth: string
+        top: number
+        right: number
+    } {
         const { top, bottom, right } = this.props,
-            maxHeight = `calc(100% - ${top + bottom}px)`
-        return { maxHeight, top, right }
+            maxHeight = `calc(100% - ${top + bottom}px)`,
+            maxWidth = `calc(100% - ${2 * right}px)`
+        return { maxHeight, maxWidth, top, right }
     }
 
-    @computed get menu(): React.ReactElement | void {
-        if (this.active) {
-            return this.menuContents
-        }
-    }
-
-    @computed get menuContents(): React.ReactElement {
+    @computed get menuContentsChart(): React.ReactElement {
         const {
             manager,
-            chartType,
             showYScaleToggle,
             showXScaleToggle,
             showZoomToggle,
@@ -288,7 +299,6 @@ export class SettingsMenu extends React.Component<{
             xAxis,
             // compareEndPointsOnly,
             filledDimensions,
-            isOnTableTab,
             isOnChartTab,
         } = manager
 
@@ -300,6 +310,83 @@ export class SettingsMenu extends React.Component<{
                     ?.display.name ?? "X axis",
             omitLoneAxisLabel =
                 showYScaleToggle && !showXScaleToggle && yLabel === "Y axis"
+
+        return (
+            <>
+                <SettingsGroup
+                    title="Chart view"
+                    active={
+                        isOnChartTab &&
+                        (showAbsRelToggle ||
+                            showZoomToggle ||
+                            showNoDataAreaToggle ||
+                            showFacetControl ||
+                            showFacetYDomainToggle)
+                    }
+                >
+                    {showFacetControl && (
+                        <FacetStrategySelector manager={manager} />
+                    )}
+                    {showFacetYDomainToggle && (
+                        <FacetYDomainToggle manager={manager} />
+                    )}
+                    {showAbsRelToggle && <AbsRelToggle manager={manager} />}
+                    {showNoDataAreaToggle && (
+                        <NoDataAreaToggle manager={manager} />
+                    )}
+                    {showZoomToggle && <ZoomToggle manager={manager} />}
+                </SettingsGroup>
+                <SettingsGroup
+                    title="Axis scale"
+                    active={
+                        isOnChartTab && (showYScaleToggle || showXScaleToggle)
+                    }
+                >
+                    {showYScaleToggle && (
+                        <AxisScaleToggle
+                            axis={yAxis!}
+                            subtitle={omitLoneAxisLabel ? "" : yLabel}
+                        />
+                    )}
+                    {showXScaleToggle && (
+                        <AxisScaleToggle axis={xAxis!} subtitle={xLabel} />
+                    )}
+                    <div className="config-subtitle">
+                        A linear scale evenly spaces values, where each
+                        increment represents a consistent change. A logarithmic
+                        scale uses multiples of the starting value, with each
+                        increment representing the same percentage increase.
+                    </div>
+                </SettingsGroup>
+            </>
+        )
+    }
+
+    @computed get menuContentsTable(): JSX.Element {
+        const subtitle = `Only display table rows for ${
+            this.manager.entityTypePlural ?? DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
+        } selected within the chart`
+
+        return (
+            <SettingsGroup
+                title="Filter rows"
+                subtitle={subtitle}
+                active={true}
+            >
+                <TableFilterToggle manager={this.manager} />
+            </SettingsGroup>
+        )
+    }
+
+    @computed get menu(): JSX.Element | void {
+        if (this.active) {
+            return this.menuContents
+        }
+    }
+
+    @computed get menuContents(): JSX.Element {
+        const { manager, chartType } = this
+        const { isOnTableTab } = manager
 
         const menuTitle = `${isOnTableTab ? "Table" : chartType} settings`
 
@@ -320,67 +407,17 @@ export class SettingsMenu extends React.Component<{
                         title={menuTitle}
                         onDismiss={this.toggleVisibility}
                     />
-
                     <div className="settings-menu-controls">
-                        <SettingsGroup
-                            title="Chart view"
-                            active={
-                                isOnChartTab &&
-                                (showAbsRelToggle ||
-                                    showZoomToggle ||
-                                    showNoDataAreaToggle ||
-                                    showFacetControl ||
-                                    showFacetYDomainToggle)
-                            }
-                        >
-                            {showFacetControl && (
-                                <FacetStrategySelector manager={manager} />
-                            )}
-                            {showFacetYDomainToggle && (
-                                <FacetYDomainToggle manager={manager} />
-                            )}
-                            {showAbsRelToggle && (
-                                <AbsRelToggle manager={manager} />
-                            )}
-                            {showNoDataAreaToggle && (
-                                <NoDataAreaToggle manager={manager} />
-                            )}
-                            {showZoomToggle && <ZoomToggle manager={manager} />}
-                        </SettingsGroup>
-                        <SettingsGroup
-                            title="Axis scale"
-                            active={
-                                isOnChartTab &&
-                                (showYScaleToggle || showXScaleToggle)
-                            }
-                        >
-                            {showYScaleToggle && (
-                                <AxisScaleToggle
-                                    axis={yAxis!}
-                                    subtitle={omitLoneAxisLabel ? "" : yLabel}
-                                />
-                            )}
-                            {showXScaleToggle && (
-                                <AxisScaleToggle
-                                    axis={xAxis!}
-                                    subtitle={xLabel}
-                                />
-                            )}
-                            <div className="config-subtitle">
-                                A linear scale evenly spaces values, where each
-                                increment represents a consistent change. A
-                                logarithmic scale uses multiples of the starting
-                                value, with each increment representing the same
-                                percentage increase.
-                            </div>
-                        </SettingsGroup>
+                        {isOnTableTab
+                            ? this.menuContentsTable
+                            : this.menuContentsChart}
                     </div>
                 </div>
             </div>
         )
     }
 
-    renderChartSettings(): React.ReactElement {
+    renderSettingsButtonAndPopup(): JSX.Element {
         const { active } = this
         return (
             <div className="settings-menu">
@@ -403,7 +440,7 @@ export class SettingsMenu extends React.Component<{
     renderTableControls(): React.ReactElement {
         // Since tables only have a single control, display it inline rather than
         // placing it in the settings menu
-        return <TableFilterToggle manager={this.manager} />
+        return <TableFilterToggle manager={this.manager} showTooltip={true} />
     }
 
     render(): React.ReactElement | null {
@@ -413,11 +450,15 @@ export class SettingsMenu extends React.Component<{
             showTableFilterToggle,
         } = this
 
-        return isOnTableTab && showTableFilterToggle
-            ? this.renderTableControls()
-            : isOnChartTab && showSettingsMenuToggle
-              ? this.renderChartSettings()
-              : null
+        if (isOnTableTab && showTableFilterToggle) {
+            return this.shouldRenderTableControlsIntoPopup
+                ? this.renderSettingsButtonAndPopup()
+                : this.renderTableControls()
+        }
+
+        return isOnChartTab && showSettingsMenuToggle
+            ? this.renderSettingsButtonAndPopup()
+            : null
     }
 }
 

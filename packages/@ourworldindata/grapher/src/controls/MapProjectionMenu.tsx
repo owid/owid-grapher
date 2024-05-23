@@ -5,6 +5,7 @@ import { MapConfig } from "../mapCharts/MapConfig"
 import { MapProjectionName } from "@ourworldindata/types"
 import { MapProjectionLabels } from "../mapCharts/MapProjections"
 import { Dropdown } from "./Dropdown"
+import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
 
 export { AbsRelToggle } from "./settings/AbsRelToggle"
 export { FacetStrategySelector } from "./settings/FacetStrategySelector"
@@ -27,6 +28,7 @@ interface MapProjectionMenuItem {
 @observer
 export class MapProjectionMenu extends React.Component<{
     manager: MapProjectionMenuManager
+    maxWidth?: number
 }> {
     static shouldShow(manager: MapProjectionMenuManager): boolean {
         const menu = new MapProjectionMenu({ manager })
@@ -38,6 +40,10 @@ export class MapProjectionMenu extends React.Component<{
                 this.props.manager,
             { projection } = mapConfig ?? {}
         return !hideMapProjectionMenu && !!(isOnMapTab && projection)
+    }
+
+    @computed private get maxWidth(): number {
+        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
     @action.bound onChange(selected: unknown): void {
@@ -62,7 +68,10 @@ export class MapProjectionMenu extends React.Component<{
 
     render(): React.ReactElement | null {
         return this.showMenu ? (
-            <div className="map-projection-menu">
+            <div
+                className="map-projection-menu"
+                style={{ maxWidth: this.maxWidth }}
+            >
                 <Dropdown
                     options={this.options}
                     onChange={this.onChange}

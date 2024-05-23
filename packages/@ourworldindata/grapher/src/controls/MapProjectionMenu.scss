@@ -1,6 +1,9 @@
 .map-projection-menu {
-    .control {
+    width: 150px;
+
+    .menu {
         min-width: 150px;
+        right: 0;
     }
 
     .menu:before {
