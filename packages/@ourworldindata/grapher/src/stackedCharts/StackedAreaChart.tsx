@@ -307,7 +307,7 @@ export class StackedAreaChart
 
     @computed protected get paddingForLegend(): number {
         const { legendDimensions } = this
-        return legendDimensions ? legendDimensions.width : 20
+        return legendDimensions ? legendDimensions.width : 0
     }
 
     @action.bound onLineLegendMouseOver(seriesName: SeriesName): void {

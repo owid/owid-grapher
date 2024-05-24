@@ -36,7 +36,11 @@ import {
 } from "../chart/ChartTypeMap"
 import { ChartManager } from "../chart/ChartManager"
 import { ChartInterface } from "../chart/ChartInterface"
-import { getChartPadding, getFontSize } from "./FacetChartUtils"
+import {
+    getChartPadding,
+    getFontSize,
+    getLabelPadding,
+} from "./FacetChartUtils"
 import {
     FacetSeries,
     FacetChartProps,
@@ -149,12 +153,13 @@ export class FacetChart
     }
 
     @computed private get facetsContainerBounds(): Bounds {
-        const fontSize = this.facetFontSize
         const legendHeightWithPadding =
             this.showLegend && this.legend.height > 0
                 ? this.legend.height + this.legendPadding
                 : 0
-        return this.bounds.padTop(legendHeightWithPadding + 1.8 * fontSize)
+        return this.bounds.padTop(
+            legendHeightWithPadding + 1.2 * this.facetFontSize
+        )
     }
 
     @computed get fontSize(): number {
@@ -205,7 +210,7 @@ export class FacetChart
         columnPadding: number
         outerPadding: number
     } {
-        return getChartPadding(this.facetCount, this.facetFontSize)
+        return getChartPadding(this.facetFontSize)
     }
 
     @computed private get hideFacetLegends(): boolean {
@@ -773,7 +778,7 @@ export class FacetChart
                         ChartComponentClassMap.get(this.chartTypeName) ??
                         DefaultChartClass
                     const { bounds, contentBounds, seriesName } = facetChart
-                    const shiftTop = facetFontSize * 0.9
+                    const labelPadding = getLabelPadding(facetFontSize)
 
                     const { fontSize, shortenedLabel } =
                         this.shrinkAndShortenFacetLabel(
@@ -786,7 +791,7 @@ export class FacetChart
                         <React.Fragment key={index}>
                             <text
                                 x={contentBounds.x}
-                                y={contentBounds.top - shiftTop}
+                                y={contentBounds.top - labelPadding}
                                 fill={"#1d3d63"}
                                 fontSize={fontSize}
                                 style={{ fontWeight: 700 }}
