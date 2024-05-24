@@ -8,6 +8,7 @@ export interface DbInsertTag {
     slug?: string | null
     specialType?: string | null
     updatedAt?: Date | null
+    isArea?: boolean
 }
 export type DbPlainTag = Required<DbInsertTag>
 

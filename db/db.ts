@@ -19,7 +19,11 @@ import {
     DbEnrichedPostGdoc,
     DbRawPostGdoc,
     parsePostsGdocsRow,
+    TagGraphRoot,
+    TagGraphNode,
+    TagGraphRootName,
 } from "@ourworldindata/types"
+import { groupBy } from "lodash"
 
 // Return the first match from a mysql query
 export const closeTypeOrmAndKnexConnections = async (): Promise<void> => {
@@ -447,4 +451,96 @@ export const getNonGrapherExplorerViewCount = (
             AND type = "graphers"
             AND grapherId IS NULL`
     ).then((res) => res?.count ?? 0)
+}
+
+/**
+ * 1. Fetch all records in tags_graph, isTopic = true when there is a published TP/LTP/Article with the same slug as the tag
+ * 2. Fetch all records in tags, children of the root tag are assumed to be areas e.g. "Energy and Environment", "Health", etc.
+ * 3. Construct the tag graph:
+ *   a. Sort the tags_graph table by weight (tiebreak with name)
+ *   b. Group it by parentId
+ *   c. Select the root tag
+ *   d. Create a TagGraphRoot object
+ *   e. Set its children via the tags_graph parentId groupings
+ *   f. Recurse through each child, setting their children as well
+ */
+export async function getTagGraph(
+    knex: KnexReadonlyTransaction
+): Promise<TagGraphRoot> {
+    const tagGraphByParentId = await knexRaw<{
+        parentId: number
+        childId: number
+        weight: number
+        name: string
+        slug: string | null
+        isTopic: boolean
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            tg.parentId,
+            tg.childId,
+            tg.weight,
+            t.name,
+            t.slug,
+            IFNULL((p.type IN (:types) AND p.published = 1), FALSE) AS isTopic
+        FROM
+            tags_graph tg
+        LEFT JOIN tags t ON
+            tg.childId = t.id
+        LEFT JOIN posts_gdocs p on
+            t.slug = p.slug
+        -- order by weight, tiebreak by name
+        ORDER BY tg.weight, t.name`,
+        {
+            types: [
+                OwidGdocType.TopicPage,
+                OwidGdocType.LinearTopicPage,
+                // For sub-topics e.g. Nuclear Energy we use the article format
+                OwidGdocType.Article,
+            ],
+        }
+    ).then((rows) => groupBy(rows, "parentId"))
+
+    const tagGraphRootIdResult = await knexRawFirst<{
+        id: number
+    }>(
+        knex,
+        `-- sql 
+        SELECT id FROM tags WHERE name = "${TagGraphRootName}"`
+    )
+
+    if (!tagGraphRootIdResult) throw new Error("Tag graph root not found")
+
+    const tagGraph: TagGraphRoot = {
+        id: tagGraphRootIdResult.id,
+        name: TagGraphRootName,
+        slug: null,
+        isTopic: false,
+        path: [tagGraphRootIdResult.id],
+        weight: 0,
+        children: [],
+    }
+
+    function recursivelySetChildren(node: TagGraphNode): TagGraphNode {
+        const children = tagGraphByParentId[node.id]
+        if (!children) return node
+
+        for (const child of children) {
+            const childNode: TagGraphNode = {
+                id: child.childId,
+                path: [...node.path, child.childId],
+                name: child.name,
+                slug: child.slug,
+                isTopic: child.isTopic,
+                weight: child.weight,
+                children: [],
+            }
+
+            node.children.push(recursivelySetChildren(childNode))
+        }
+        return node
+    }
+
+    return recursivelySetChildren(tagGraph) as TagGraphRoot
 }

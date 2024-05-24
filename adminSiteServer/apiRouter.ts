@@ -2654,4 +2654,8 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
     res.send([...generateAllWorkArchieMl()].join(""))
 })
 
+getRouteWithROTransaction(apiRouter, "/tagGraph.json", (req, res, trx) => {
+    return db.getTagGraph(trx)
+})
+
 export { apiRouter }

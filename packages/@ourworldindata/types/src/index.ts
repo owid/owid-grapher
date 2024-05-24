@@ -126,6 +126,9 @@ export {
     type EntryMeta,
     type PostReference,
     type CategoryWithEntries,
+    type TagGraphNode,
+    type TagGraphRoot,
+    TagGraphRootName,
 } from "./domainTypes/ContentGraph.js"
 export {
     WP_BlockClass,
