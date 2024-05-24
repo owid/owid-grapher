@@ -19,6 +19,7 @@ import {
     HorizontalAlign,
     EntityName,
     getRelativeMouse,
+    makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -564,6 +565,7 @@ export class StackedDiscreteBarChart
             return (
                 <g
                     key={entityName}
+                    id={makeIdForHumanConsumption("bar", entityName)}
                     className="bar"
                     transform={`translate(0, ${state.translateY})`}
                 >
@@ -596,6 +598,10 @@ export class StackedDiscreteBarChart
                         getElementWithHalo(
                             entityName + "-value-label",
                             <text
+                                id={makeIdForHumanConsumption(
+                                    "total",
+                                    entityName
+                                )}
                                 transform={`translate(${
                                     yAxis.place(totalValue) + labelToBarPadding
                                 }, 0)`}
@@ -699,6 +705,7 @@ export class StackedDiscreteBarChart
 
         return (
             <g
+                id={makeIdForHumanConsumption("stacked-bar", bar.seriesName)}
                 onMouseEnter={(): void =>
                     props?.onMouseEnter(entity, bar.seriesName)
                 }

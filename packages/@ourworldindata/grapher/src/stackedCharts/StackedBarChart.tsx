@@ -10,10 +10,11 @@ import {
     getRelativeMouse,
     colorScaleConfigDefaults,
     dyFromAlign,
+    makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import {
     VerticalAxisComponent,
-    HorizontalAxisTickMarks,
+    HorizontalAxisTickMark,
     VerticalAxisGridLines,
 } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -460,20 +461,31 @@ export class StackedBarChart
                     strokeWidth={axisLineWidth}
                 />
 
-                <HorizontalAxisTickMarks
-                    tickMarkTopPosition={innerBounds.bottom}
-                    tickMarkXPositions={ticks.map(
-                        (tick) => tick.bounds.centerX
-                    )}
-                    color="#666"
-                    width={axisLineWidth}
-                />
+                <g id={makeIdForHumanConsumption("tick-marks")}>
+                    {ticks.map((tick, i) => (
+                        <HorizontalAxisTickMark
+                            key={i}
+                            id={makeIdForHumanConsumption(
+                                "tick-mark",
+                                tick.text
+                            )}
+                            tickMarkTopPosition={innerBounds.bottom}
+                            tickMarkXPosition={tick.bounds.centerX}
+                            color="#666"
+                            width={axisLineWidth}
+                        />
+                    ))}
+                </g>
 
-                <g>
+                <g id={makeIdForHumanConsumption("tick-labels")}>
                     {ticks.map((tick, i) => {
                         return (
                             <text
                                 key={i}
+                                id={makeIdForHumanConsumption(
+                                    "tick__label",
+                                    tick.text
+                                )}
                                 x={tick.bounds.x}
                                 y={tick.bounds.y + 1}
                                 fill={GRAPHER_DARK_TEXT}

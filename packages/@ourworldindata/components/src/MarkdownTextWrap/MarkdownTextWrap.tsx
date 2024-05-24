@@ -643,9 +643,11 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         {
             textProps,
             detailsMarker = "superscript",
+            id,
         }: {
             textProps?: React.SVGProps<SVGTextElement>
             detailsMarker?: DetailsMarker
+            id?: string
         } = {}
     ): JSX.Element | null {
         const { fontSize, lineHeight } = this
@@ -670,7 +672,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
             yOffset + lineHeight * fontSize * lineIndex
 
         return (
-            <g className="markdown-text-wrap">
+            <g id={id} className="markdown-text-wrap">
                 <text
                     x={x.toFixed(1)}
                     y={yOffset.toFixed(1)}

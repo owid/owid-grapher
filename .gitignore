@@ -41,3 +41,4 @@ dist/
 .wrangler/
 .nx/cache
 .dev.vars
+**/tsup.config.bundled*.mjs

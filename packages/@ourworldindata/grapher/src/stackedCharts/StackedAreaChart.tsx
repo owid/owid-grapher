@@ -12,6 +12,7 @@ import {
     isMobile,
     Time,
     lastOfNonEmptyArray,
+    makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { SeriesName } from "@ourworldindata/types"
@@ -164,6 +165,7 @@ class Areas extends React.Component<AreasProps> {
 
             return (
                 <path
+                    id={makeIdForHumanConsumption("area", series.seriesName)}
                     className={makeSafeForCSS(series.seriesName) + "-area"}
                     key={series.seriesName + "-area"}
                     strokeLinecap="round"
@@ -196,6 +198,10 @@ class Areas extends React.Component<AreasProps> {
 
             return (
                 <path
+                    id={makeIdForHumanConsumption(
+                        "border",
+                        placedSeries.seriesName
+                    )}
                     className={
                         makeSafeForCSS(placedSeries.seriesName) + "-border"
                     }
@@ -229,7 +235,10 @@ class Areas extends React.Component<AreasProps> {
         const { horizontalAxis, verticalAxis } = dualAxis
 
         return (
-            <g className="Areas">
+            <g
+                className="Areas"
+                id={makeIdForHumanConsumption("stacked-areas")}
+            >
                 <rect
                     x={horizontalAxis.range[0]}
                     y={verticalAxis.range[1]}
@@ -515,6 +524,7 @@ export class StackedAreaChart
         return (
             <g
                 ref={this.base}
+                id={makeIdForHumanConsumption("stacked-area-chart")}
                 className="StackedArea"
                 onMouseLeave={this.onCursorLeave}
                 onTouchEnd={this.onCursorLeave}

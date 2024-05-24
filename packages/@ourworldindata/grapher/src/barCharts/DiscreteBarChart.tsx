@@ -18,6 +18,7 @@ import {
     HorizontalAlign,
     AxisAlign,
     uniqBy,
+    makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -424,7 +425,11 @@ export class DiscreteBarChart
             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
 
         return (
-            <g ref={this.base} className="DiscreteBarChart">
+            <g
+                ref={this.base}
+                id={makeIdForHumanConsumption("discrete-bar-chart")}
+                className="DiscreteBarChart"
+            >
                 {this.hasProjectedData && (
                     <defs>
                         {/* passed to the legend as pattern for the
@@ -481,6 +486,10 @@ export class DiscreteBarChart
                     const result = (
                         <g
                             key={series.seriesName}
+                            id={makeIdForHumanConsumption(
+                                "bar",
+                                series.seriesName
+                            )}
                             className="bar"
                             transform={`translate(0, ${yOffset})`}
                         >

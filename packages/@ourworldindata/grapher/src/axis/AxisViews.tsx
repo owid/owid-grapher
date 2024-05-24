@@ -9,6 +9,7 @@ import {
     VerticalAlign,
     dyFromAlign,
     textAnchorFromAlign,
+    makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
@@ -37,7 +38,10 @@ export class VerticalAxisGridLines extends React.Component<{
         axis.range = bounds.yRange()
 
         return (
-            <g className={classNames("AxisGridLines", "horizontalLines")}>
+            <g
+                id={makeIdForHumanConsumption("horizontal-grid-lines")}
+                className={classNames("AxisGridLines", "horizontalLines")}
+            >
                 {axis.getTickValues().map((t, i) => {
                     const color = t.faint
                         ? FAINT_TICK_COLOR
@@ -47,6 +51,10 @@ export class VerticalAxisGridLines extends React.Component<{
 
                     return (
                         <line
+                            id={makeIdForHumanConsumption(
+                                "grid-line",
+                                t.value.toString()
+                            )}
                             key={i}
                             x1={bounds.left.toFixed(2)}
                             y1={axis.place(t.value)}
@@ -86,7 +94,10 @@ export class HorizontalAxisGridLines extends React.Component<{
         axis.range = bounds.xRange()
 
         return (
-            <g className={classNames("AxisGridLines", "verticalLines")}>
+            <g
+                id={makeIdForHumanConsumption("vertical-grid-lines")}
+                className={classNames("AxisGridLines", "verticalLines")}
+            >
                 {axis.getTickValues().map((t, i) => {
                     const color = t.faint
                         ? FAINT_TICK_COLOR
@@ -96,6 +107,10 @@ export class HorizontalAxisGridLines extends React.Component<{
 
                     return (
                         <line
+                            id={makeIdForHumanConsumption(
+                                "grid-line",
+                                t.value.toString()
+                            )}
                             key={i}
                             x1={axis.place(t.value)}
                             y1={bounds.bottom.toFixed(2)}
@@ -131,6 +146,7 @@ export class HorizontalAxisZeroLine extends React.Component<{
 
         return (
             <g
+                id={makeIdForHumanConsumption("vertical-zero-line")}
                 className={classNames(
                     "AxisGridLines",
                     "verticalLines",
@@ -213,7 +229,10 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
         )
 
         return (
-            <g className="DualAxisView">
+            <g
+                id={makeIdForHumanConsumption("dual-axis")}
+                className="DualAxisView"
+            >
                 {horizontalAxisComponent}
                 {verticalAxisComponent}
                 {verticalGridlines}
@@ -243,23 +262,19 @@ export class VerticalAxisComponent extends React.Component<{
         } = this.props
         const { tickLabels, labelTextWrap } = verticalAxis
 
-        const tickMarks = showTickMarks ? (
-            <VerticalAxisTickMarks
-                tickMarkYPositions={tickLabels.map((label) =>
-                    verticalAxis.place(label.value)
-                )}
-                tickMarkLeftPosition={bounds.left + verticalAxis.width}
-                color={SOLID_TICK_COLOR}
-            />
-        ) : undefined
-
         return (
-            <g className="VerticalAxis">
+            <g
+                id={makeIdForHumanConsumption("vertical-axis")}
+                className="VerticalAxis"
+            >
                 {labelTextWrap &&
                     labelTextWrap.renderSVG(
                         -verticalAxis.rangeCenter - labelTextWrap.width / 2,
                         bounds.left,
                         {
+                            id: makeIdForHumanConsumption(
+                                "vertical-axis-label"
+                            ),
                             textProps: {
                                 transform: "rotate(-90)",
                                 fill: labelColor || GRAPHER_DARK_TEXT,
@@ -267,29 +282,50 @@ export class VerticalAxisComponent extends React.Component<{
                             detailsMarker,
                         }
                     )}
-                {tickMarks}
-                {tickLabels.map((label, i) => {
-                    const { y, xAlign, yAlign, formattedValue } = label
-                    return (
-                        <text
-                            key={i}
-                            x={(
-                                bounds.left +
-                                verticalAxis.width -
-                                verticalAxis.labelPadding
-                            ).toFixed(2)}
-                            y={y}
-                            dy={dyFromAlign(yAlign ?? VerticalAlign.middle)}
-                            textAnchor={textAnchorFromAlign(
-                                xAlign ?? HorizontalAlign.right
-                            )}
-                            fill={tickColor || GRAPHER_DARK_TEXT}
-                            fontSize={verticalAxis.tickFontSize}
-                        >
-                            {formattedValue}
-                        </text>
-                    )
-                })}
+                {showTickMarks && (
+                    <g id={makeIdForHumanConsumption("tick-marks")}>
+                        {tickLabels.map((label, i) => (
+                            <VerticalAxisTickMark
+                                key={i}
+                                tickMarkYPosition={verticalAxis.place(
+                                    label.value
+                                )}
+                                tickMarkLeftPosition={
+                                    bounds.left + verticalAxis.width
+                                }
+                                color={SOLID_TICK_COLOR}
+                            />
+                        ))}
+                    </g>
+                )}
+                <g id={makeIdForHumanConsumption("tick-labels")}>
+                    {tickLabels.map((label, i) => {
+                        const { y, xAlign, yAlign, formattedValue } = label
+                        return (
+                            <text
+                                key={i}
+                                id={makeIdForHumanConsumption(
+                                    "tick-label",
+                                    formattedValue
+                                )}
+                                x={(
+                                    bounds.left +
+                                    verticalAxis.width -
+                                    verticalAxis.labelPadding
+                                ).toFixed(2)}
+                                y={y}
+                                dy={dyFromAlign(yAlign ?? VerticalAlign.middle)}
+                                textAnchor={textAnchorFromAlign(
+                                    xAlign ?? HorizontalAlign.right
+                                )}
+                                fill={tickColor || GRAPHER_DARK_TEXT}
+                                fontSize={verticalAxis.tickFontSize}
+                            >
+                                {formattedValue}
+                            </text>
+                        )
+                    })}
+                </g>
             </g>
         )
     }
@@ -329,10 +365,11 @@ export class HorizontalAxisComponent extends React.Component<{
             preferredAxisPosition,
             labelColor,
             tickColor,
-            tickMarkWidth,
+            tickMarkWidth = 1,
             detailsMarker,
         } = this.props
         const { tickLabels, labelTextWrap: label, labelOffset, orient } = axis
+        const tickSize = 5
         const horizontalAxisLabelsOnTop = orient === Position.top
         const labelYPosition = horizontalAxisLabelsOnTop
             ? bounds.top
@@ -342,49 +379,61 @@ export class HorizontalAxisComponent extends React.Component<{
             ? bounds.top + axis.height - 5
             : preferredAxisPosition ?? bounds.bottom
 
-        const tickMarks = showTickMarks ? (
-            <HorizontalAxisTickMarks
-                tickMarkTopPosition={tickMarksYPosition}
-                tickMarkXPositions={tickLabels.map((label): number =>
-                    axis.place(label.value)
-                )}
-                color={SOLID_TICK_COLOR}
-                width={tickMarkWidth}
-            />
-        ) : undefined
-
         const tickLabelYPlacement = horizontalAxisLabelsOnTop
             ? bounds.top + labelOffset + 10
             : bounds.bottom - labelOffset
+
         return (
-            <g className="HorizontalAxis">
+            <g
+                id={makeIdForHumanConsumption("horizontal-axis")}
+                className="HorizontalAxis"
+            >
                 {label &&
                     label.renderSVG(
                         axis.rangeCenter - label.width / 2,
                         labelYPosition,
                         {
+                            id: makeIdForHumanConsumption(
+                                "horizontal-axis-label"
+                            ),
                             textProps: {
                                 fill: labelColor || GRAPHER_DARK_TEXT,
                             },
                             detailsMarker,
                         }
                     )}
-                {tickMarks}
-                {tickLabels.map((label, i) => {
+                {tickLabels.map((label) => {
                     const { x, xAlign, formattedValue } = label
                     return (
-                        <text
-                            key={i}
-                            x={x}
-                            y={tickLabelYPlacement}
-                            fill={tickColor || GRAPHER_DARK_TEXT}
-                            textAnchor={textAnchorFromAlign(
-                                xAlign ?? HorizontalAlign.center
+                        <g
+                            id={makeIdForHumanConsumption(
+                                "tick",
+                                formattedValue
                             )}
-                            fontSize={axis.tickFontSize}
+                            key={formattedValue}
                         >
-                            {formattedValue}
-                        </text>
+                            {showTickMarks && (
+                                <line
+                                    x1={axis.place(label.value)}
+                                    y1={tickMarksYPosition - tickMarkWidth / 2}
+                                    x2={axis.place(label.value)}
+                                    y2={tickMarksYPosition + tickSize}
+                                    stroke={SOLID_TICK_COLOR}
+                                    strokeWidth={tickMarkWidth}
+                                />
+                            )}
+                            <text
+                                x={x}
+                                y={tickLabelYPlacement}
+                                fill={tickColor || GRAPHER_DARK_TEXT}
+                                textAnchor={textAnchorFromAlign(
+                                    xAlign ?? HorizontalAlign.center
+                                )}
+                                fontSize={axis.tickFontSize}
+                            >
+                                {formattedValue}
+                            </text>
+                        </g>
                     )
                 })}
             </g>
@@ -392,56 +441,54 @@ export class HorizontalAxisComponent extends React.Component<{
     }
 }
 
-export class HorizontalAxisTickMarks extends React.Component<{
+export class HorizontalAxisTickMark extends React.Component<{
     tickMarkTopPosition: number
-    tickMarkXPositions: number[]
+    tickMarkXPosition: number
     color: string
     width?: number
+    id?: string
 }> {
-    render(): JSX.Element[] {
-        const { tickMarkTopPosition, tickMarkXPositions, color, width } =
+    render(): JSX.Element {
+        const { tickMarkTopPosition, tickMarkXPosition, color, width, id } =
             this.props
         const tickSize = 5
         const tickBottom = tickMarkTopPosition + tickSize
-        return tickMarkXPositions.map((tickMarkPosition, index) => {
-            return (
-                <line
-                    key={index}
-                    x1={tickMarkPosition}
-                    y1={tickMarkTopPosition}
-                    x2={tickMarkPosition}
-                    y2={tickBottom}
-                    stroke={color}
-                    strokeWidth={width}
-                />
-            )
-        })
+        return (
+            <line
+                id={id}
+                x1={tickMarkXPosition}
+                y1={tickMarkTopPosition}
+                x2={tickMarkXPosition}
+                y2={tickBottom}
+                stroke={color}
+                strokeWidth={width}
+            />
+        )
     }
 }
 
-export class VerticalAxisTickMarks extends React.Component<{
+export class VerticalAxisTickMark extends React.Component<{
     tickMarkLeftPosition: number
-    tickMarkYPositions: number[]
+    tickMarkYPosition: number
     color: string
     width?: number
+    id?: string
 }> {
-    render(): JSX.Element[] {
-        const { tickMarkYPositions, tickMarkLeftPosition, color, width } =
+    render(): JSX.Element {
+        const { tickMarkYPosition, tickMarkLeftPosition, color, width, id } =
             this.props
         const tickSize = 5
         const tickRight = tickMarkLeftPosition + tickSize
-        return tickMarkYPositions.map((tickMarkPosition, index) => {
-            return (
-                <line
-                    key={index}
-                    x1={tickMarkLeftPosition}
-                    y1={tickMarkPosition}
-                    x2={tickRight}
-                    y2={tickMarkPosition}
-                    stroke={color}
-                    strokeWidth={width}
-                />
-            )
-        })
+        return (
+            <line
+                id={id}
+                x1={tickMarkLeftPosition}
+                y1={tickMarkYPosition}
+                x2={tickRight}
+                y2={tickMarkYPosition}
+                stroke={color}
+                strokeWidth={width}
+            />
+        )
     }
 }

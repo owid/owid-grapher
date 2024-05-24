@@ -257,7 +257,10 @@ export class TextWrap {
     render(
         x: number,
         y: number,
-        { textProps }: { textProps?: React.SVGProps<SVGTextElement> } = {}
+        {
+            textProps,
+            id,
+        }: { textProps?: React.SVGProps<SVGTextElement>; id?: string } = {}
     ): JSX.Element | null {
         const { props, lines, fontSize, fontWeight, lineHeight } = this
 
@@ -267,6 +270,7 @@ export class TextWrap {
 
         return (
             <text
+                id={id}
                 fontSize={fontSize.toFixed(2)}
                 fontWeight={fontWeight}
                 x={correctedX.toFixed(1)}

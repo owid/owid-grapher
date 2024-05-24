@@ -6,6 +6,7 @@ import {
     DEFAULT_BOUNDS,
     exposeInstanceOnWindow,
     isEmpty,
+    makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { Header, StaticHeader } from "../header/Header"
@@ -556,6 +557,7 @@ export class StaticCaptionedChart extends CaptionedChart {
         return (
             <>
                 <line
+                    id={makeIdForHumanConsumption("separator-line")}
                     x1={this.framePaddingHorizontal}
                     y1={this.bounds.height}
                     x2={
@@ -566,6 +568,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                     stroke="#e7e7e7"
                 ></line>
                 <g
+                    id={makeIdForHumanConsumption("details")}
                     transform={`translate(15, ${
                         // + padding below the grey line
                         this.bounds.height + this.framePaddingVertical
@@ -628,7 +631,10 @@ export class StaticCaptionedChart extends CaptionedChart {
                     targetX={paddedBounds.x}
                     targetY={paddedBounds.y}
                 />
-                <g style={{ pointerEvents: "none" }}>
+                <g
+                    id={makeIdForHumanConsumption("chart-area")}
+                    style={{ pointerEvents: "none" }}
+                >
                     {/*
                      We cannot render a table to svg, but would rather display nothing at all to avoid issues.
                      See https://github.com/owid/owid-grapher/issues/3283
