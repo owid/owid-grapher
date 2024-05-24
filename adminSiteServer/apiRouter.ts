@@ -2651,7 +2651,7 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
     }
 
     res.type("text/plain")
-    res.send([...generateAllWorkArchieMl()].join(""))
+    return [...generateAllWorkArchieMl()].join("")
 })
 
 export { apiRouter }
