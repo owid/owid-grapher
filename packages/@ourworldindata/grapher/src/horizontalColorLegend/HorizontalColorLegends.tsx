@@ -49,6 +49,7 @@ interface CategoricalMark {
     x: number
     y: number
     rectSize: number
+    width: number
     label: {
         text: string
         bounds: Bounds
@@ -730,6 +731,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
             marks.push({
                 x: markX,
                 y: markY,
+                width: markWidth,
                 rectSize,
                 label,
                 bin,
@@ -822,9 +824,8 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                                     y={this.categoryLegendY + mark.y}
                                     height={mark.rectSize}
                                     width={
-                                        mark.label.bounds.width +
-                                        mark.label.bounds.x -
-                                        mark.x
+                                        mark.width +
+                                        SPACE_BETWEEN_CATEGORICAL_BINS
                                     }
                                     fill="#fff"
                                     opacity={0}

@@ -237,6 +237,23 @@ export class TextWrap {
         )
     }
 
+    getPositionForSvgRendering(x: number, y: number): [number, number] {
+        const { lines, fontSize, lineHeight } = this
+
+        // Magic number set through experimentation.
+        // The HTML and SVG renderers need to position lines identically.
+        // This number was tweaked until the overlaid HTML and SVG outputs
+        // overlap (see storybook of this component).
+        const HEIGHT_CORRECTION_FACTOR = 0.74
+
+        const textHeight = (lines[0].height ?? 0) * HEIGHT_CORRECTION_FACTOR
+        const containerHeight = lineHeight * fontSize
+        const yOffset =
+            y + (containerHeight - (containerHeight - textHeight) / 2)
+
+        return [x, yOffset]
+    }
+
     render(
         x: number,
         y: number,
@@ -246,22 +263,14 @@ export class TextWrap {
 
         if (lines.length === 0) return null
 
-        // Magic number set through experimentation.
-        // The HTML and SVG renderers need to position lines identically.
-        // This number was tweaked until the overlaid HTML and SVG outputs
-        // overlap (see storybook of this component).
-        const HEIGHT_CORRECTION_FACTOR = 0.74
+        const [correctedX, correctedY] = this.getPositionForSvgRendering(x, y)
 
-        const textHeight = lines[0].height * HEIGHT_CORRECTION_FACTOR
-        const containerHeight = lineHeight * fontSize
-        const yOffset =
-            y + (containerHeight - (containerHeight - textHeight) / 2)
         return (
             <text
                 fontSize={fontSize.toFixed(2)}
                 fontWeight={fontWeight}
-                x={x.toFixed(1)}
-                y={yOffset.toFixed(1)}
+                x={correctedX.toFixed(1)}
+                y={correctedY.toFixed(1)}
                 {...textProps}
             >
                 {lines.map((line, i) => {
@@ -269,8 +278,8 @@ export class TextWrap {
                         return (
                             <tspan
                                 key={i}
-                                x={x}
-                                y={yOffset + lineHeight * fontSize * i}
+                                x={correctedX}
+                                y={correctedY + lineHeight * fontSize * i}
                                 dangerouslySetInnerHTML={{ __html: line.text }}
                             />
                         )
@@ -278,9 +287,9 @@ export class TextWrap {
                         return (
                             <tspan
                                 key={i}
-                                x={x}
+                                x={correctedX}
                                 y={
-                                    yOffset +
+                                    correctedY +
                                     (i === 0 ? 0 : lineHeight * fontSize * i)
                                 }
                             >
