@@ -195,6 +195,7 @@ export {
     sampleSize,
     set,
     sortBy,
+    sortedIndexBy,
     sortedUniqBy,
     startCase,
     sum,
