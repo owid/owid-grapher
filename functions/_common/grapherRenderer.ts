@@ -174,19 +174,27 @@ async function initGrapher(
     return grapher
 }
 
-export async function fetchCsvForGrapher(slug: string, env: Env) {
+export async function fetchCsvForGrapher(
+    slug: string,
+    env: Env,
+    searchParams?: URLSearchParams
+) {
     const grapherLogger = new TimeLogger("grapher")
     const grapher = await initGrapher(
         {
             slug,
             options: TWITTER_OPTIONS,
-            searchParams: new URLSearchParams(""),
+            searchParams: searchParams ?? new URLSearchParams(""),
             env,
         },
         grapherLogger
     )
     await grapher.downloadLegacyDataFromOwidVariableIds()
-    return new Response(grapher.inputTable.toPrettyCsv(), {
+    const table =
+        searchParams.get("csvType") === "filtered"
+            ? grapher.transformedTable
+            : grapher.inputTable
+    return new Response(table.toPrettyCsv(), {
         headers: {
             "Content-Type": "text/csv",
         },
