@@ -26,6 +26,7 @@ export interface ActionButtonsManager extends ShareMenuManager {
     canonicalUrl?: string
     isInFullScreenMode?: boolean
     isDownloadModalOpen?: boolean
+    hideFullScreenButton?: boolean
 }
 
 // keep in sync with sass variables in ActionButtons.scss
@@ -206,7 +207,7 @@ export class ActionButtons extends React.Component<{
     }
 
     @computed private get hasFullScreenButton(): boolean {
-        return !this.manager.isInIFrame
+        return !this.manager.hideFullScreenButton && !this.manager.isInIFrame
     }
 
     @computed private get hasExploreTheDataButton(): boolean {

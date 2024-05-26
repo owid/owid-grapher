@@ -2121,6 +2121,12 @@ export class Grapher
         return windowInnerWidth < 940 ? 0 : 40
     }
 
+    @computed get hideFullScreenButton(): boolean {
+        const { windowInnerHeight } = this
+        if (!windowInnerHeight) return true
+        return this.windowInnerHeight! < this.frameBounds.height
+    }
+
     @computed private get availableWidth(): number {
         const {
             externalBounds,
