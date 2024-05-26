@@ -5,6 +5,11 @@ export const onRequestGet: PagesFunction = async (context) => {
     // Makes it so that if there's an error, we will just deliver the original page before the HTML rewrite.
     // Only caveat is that redirects will not be taken into account for some reason; but on the other hand the worker is so simple that it's unlikely to fail.
     context.passThroughOnException()
+    console.log(
+        "prepping Handling",
+        context.request.url,
+        context.request.headers.get("User-Agent")
+    )
 
     // Redirects handling is performed by the worker, and is done by fetching the (baked) _grapherRedirects.json file.
     // That file is a mapping from old slug to new slug.
@@ -21,16 +26,18 @@ export const onRequestGet: PagesFunction = async (context) => {
         return redirects[slug]
     }
 
+    const { request, env, params } = context
+    const url = new URL(request.url)
+    const isCsvRequest = url.pathname.endsWith(".csv")
     const createRedirectResponse = (redirSlug: string, currentUrl: URL) =>
         new Response(null, {
             status: 302,
-            headers: { Location: `/grapher/${redirSlug}${currentUrl.search}` },
+            headers: {
+                Location: `/grapher/${redirSlug}${isCsvRequest ? ".csv" : ""}${currentUrl.search}`,
+            },
         })
 
-    const { request, env, params } = context
-
     const originalSlug = params.slug as string
-    const url = new URL(request.url)
 
     /**
      * REDIRECTS HANDLING:
@@ -59,7 +66,16 @@ export const onRequestGet: PagesFunction = async (context) => {
     //     { redirect: "manual" }
     // )
 
-    const grapherPageResp = await env.ASSETS.fetch(url, { redirect: "manual" })
+    const grapherUrl = new URL(request.url)
+    // if we have a csv url, then create a new url without the csv extension but keeping the query params
+    // this is to check if the page exists and to redirect to the correct page if it does
+    if (isCsvRequest) {
+        grapherUrl.pathname = url.pathname.replace(/\.csv$/, "")
+    }
+
+    const grapherPageResp = await env.ASSETS.fetch(grapherUrl, {
+        redirect: "manual",
+    })
 
     if (grapherPageResp.status === 404) {
         // If the request is a 404, we check if there's a redirect for it.
@@ -135,7 +151,7 @@ export const onRequestGet: PagesFunction = async (context) => {
         .get(
             "/grapher/:slug.csv",
             async ({ params: { slug } }, { searchParams }, env) =>
-                fetchCsvForGrapher(slug, env)
+                fetchCsvForGrapher(slug, env, searchParams) // pass undefined if we want the full csv
         )
         .get(
             "/grapher/:slug",
