@@ -12,6 +12,7 @@ export class SlideInDrawer extends React.Component<{
     active: boolean
     toggle: () => void
     children: React.ReactNode
+    grapherRef?: React.RefObject<HTMLDivElement>
 }> {
     @observable.ref visible: boolean = this.props.active // true while the drawer is active and during enter/exit transitions
     drawerRef: React.RefObject<HTMLDivElement> = React.createRef()
@@ -28,6 +29,14 @@ export class SlideInDrawer extends React.Component<{
         document.removeEventListener("click", this.onDocumentClick, {
             capture: true,
         })
+    }
+
+    componentDidUpdate(): void {
+        const grapherElement = this.props.grapherRef?.current
+        if (grapherElement) {
+            grapherElement.style.overflowX =
+                this.active || this.visible ? "clip" : "visible"
+        }
     }
 
     @action.bound onDocumentKeyDown(e: KeyboardEvent): void {
