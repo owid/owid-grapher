@@ -301,7 +301,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                 this.currentSuggestedChartRevision.suggestedConfig.subtitle =
                     subtitle
                 this.gptNumDisp = this.gptNum + 1
-                this.gptNum = this.gptNumDisp % suggestions?.length ?? 1
+                this.gptNum = this.gptNumDisp % suggestions?.length || 1
                 this.usingGPT = true
             }
         }

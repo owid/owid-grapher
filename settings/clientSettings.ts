@@ -61,7 +61,7 @@ export const GOOGLE_TAG_MANAGER_ID: string =
     process.env.GOOGLE_TAG_MANAGER_ID ?? ""
 
 export const TOPICS_CONTENT_GRAPH: boolean =
-    process.env.TOPICS_CONTENT_GRAPH === "true" ?? false
+    process.env.TOPICS_CONTENT_GRAPH === "true"
 
 export const GDOCS_CLIENT_EMAIL: string = process.env.GDOCS_CLIENT_EMAIL ?? ""
 export const GDOCS_BASIC_ARTICLE_TEMPLATE_URL: string =

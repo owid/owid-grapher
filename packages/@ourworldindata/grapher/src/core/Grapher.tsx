@@ -816,12 +816,12 @@ export class Grapher
     }
 
     private get isStaging(): boolean {
-        if (typeof location === undefined) return false
+        if (typeof location === "undefined") return false
         return location.host.includes("staging")
     }
 
     private get isLocalhost(): boolean {
-        if (typeof location === undefined) return false
+        if (typeof location === "undefined") return false
         return location.host.includes("localhost")
     }
 
