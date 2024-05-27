@@ -160,6 +160,15 @@ export class VerticalColorLegend extends React.Component<{
                             ? (): void => onLegendClick(series.color)
                             : undefined
 
+                        const textX = x + rectSize + rectPadding
+                        const textY = y + markOffset
+
+                        const renderedTextPosition =
+                            series.textWrap.getPositionForSvgRendering(
+                                textX,
+                                textY
+                            )
+
                         const result = (
                             <g
                                 key={index}
@@ -179,18 +188,14 @@ export class VerticalColorLegend extends React.Component<{
                                 />
                                 <rect
                                     x={x}
-                                    y={
-                                        y +
-                                        markOffset +
-                                        (series.height - rectSize) / 2
-                                    }
+                                    y={renderedTextPosition[1] - rectSize}
                                     width={rectSize}
                                     height={rectSize}
                                     fill={isActive ? series.color : undefined}
                                 />
                                 {series.textWrap.render(
-                                    x + rectSize + rectPadding,
-                                    y + markOffset,
+                                    textX,
+                                    textY,
                                     isFocus
                                         ? {
                                               textProps: {
