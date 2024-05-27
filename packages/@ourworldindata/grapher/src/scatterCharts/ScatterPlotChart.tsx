@@ -42,6 +42,7 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     isTouchDevice,
+    round,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -343,6 +344,17 @@ export class ScatterPlotChart
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
+    @computed private get innerBounds(): Bounds {
+        return (
+            this.bounds
+                .padRight(this.sidebarWidth + 20)
+                // top padding leaves room for tick labels
+                .padTop(6)
+                // bottom padding makes sure the x-axis label doesn't overflow
+                .padBottom(2)
+        )
+    }
+
     @computed private get canAddCountry(): boolean {
         const { addCountryMode } = this.manager
         return (addCountryMode &&
@@ -533,16 +545,10 @@ export class ScatterPlotChart
         )
     }
 
-    // todo: Refactor
     @computed get dualAxis(): DualAxis {
         const { horizontalAxisPart, verticalAxisPart } = this
         return new DualAxis({
-            bounds: this.bounds
-                .padRight(this.sidebarWidth + 20)
-                // top padding leaves room for tick labels
-                .padTop(6)
-                // bottom padding makes sure the x-axis label doesn't overflow
-                .padBottom(2),
+            bounds: this.innerBounds,
             horizontalAxis: horizontalAxisPart,
             verticalAxis: verticalAxisPart,
         })
@@ -701,34 +707,20 @@ export class ScatterPlotChart
     }
 
     @computed get sizeScale(): ScaleLinear<number, number> {
-        return scaleSqrt()
-            .domain(this.sizeDomain)
-            .range(
-                this.sizeColumn.isMissing
-                    ? // if the size column is missing, we want all points/lines to have the same width
-                      this.isConnected
-                        ? [
-                              SCATTER_LINE_DEFAULT_WIDTH,
-                              SCATTER_LINE_DEFAULT_WIDTH,
-                          ]
-                        : [
-                              SCATTER_POINT_DEFAULT_RADIUS,
-                              SCATTER_POINT_DEFAULT_RADIUS,
-                          ]
-                    : this.isConnected
-                      ? // Note that the scale starts at 0.
-                        // When using the scale to plot marks, we need to make sure the minimums
-                        // (e.g. `SCATTER_POINT_MIN_RADIUS`) are respected.
-                        [0, SCATTER_LINE_MAX_WIDTH]
-                      : [0, SCATTER_POINT_MAX_RADIUS]
-            )
+        return scaleSqrt().domain(this.sizeDomain).range(this.sizeRange)
     }
 
     @computed get fontScale(): ScaleLinear<number, number> {
         const defaultFontSize =
             SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR * this.fontSize
-        const minFontSize = SCATTER_LABEL_MIN_FONT_SIZE_FACTOR * this.fontSize
-        const maxFontSize = SCATTER_LABEL_MAX_FONT_SIZE_FACTOR * this.fontSize
+        const minFactor = this.manager.isNarrow
+            ? SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR
+            : SCATTER_LABEL_MIN_FONT_SIZE_FACTOR
+        const maxFactor = this.manager.isNarrow
+            ? SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR
+            : SCATTER_LABEL_MAX_FONT_SIZE_FACTOR
+        const minFontSize = minFactor * this.fontSize
+        const maxFontSize = maxFactor * this.fontSize
         return scaleSqrt()
             .domain(this.sizeDomain)
             .range(
@@ -801,6 +793,7 @@ export class ScatterPlotChart
                             key={i}
                             dualAxis={dualAxis}
                             comparisonLine={line}
+                            baseFontSize={this.fontSize}
                         />
                     ))}
                 {this.points}
@@ -971,11 +964,17 @@ export class ScatterPlotChart
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        return new AxisConfig(this.manager.yAxisConfig, this)
+        const { yAxisConfig = {} } = this.manager
+        const labelPadding = this.manager.isNarrow ? 2 : undefined
+        const config = { ...yAxisConfig, labelPadding }
+        return new AxisConfig(config, this)
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        return new AxisConfig(this.manager.xAxisConfig, this)
+        const { xAxisConfig = {} } = this.manager
+        const labelPadding = this.manager.isNarrow ? 2 : undefined
+        const config = { ...xAxisConfig, labelPadding }
+        return new AxisConfig(config, this)
     }
 
     @computed private get yColumnSlug(): string {
@@ -1123,6 +1122,32 @@ export class ScatterPlotChart
             .get(this.sizeColumn.slug)
             .values.filter(isNumber)
         return [0, max(sizeValues) ?? 1]
+    }
+
+    @computed private get sizeRange(): [number, number] {
+        if (this.sizeColumn.isMissing) {
+            // if the size column is missing, we want all points/lines to have the same width
+            return this.isConnected
+                ? [SCATTER_LINE_DEFAULT_WIDTH, SCATTER_LINE_DEFAULT_WIDTH]
+                : [SCATTER_POINT_DEFAULT_RADIUS, SCATTER_POINT_DEFAULT_RADIUS]
+        }
+
+        const maxLineWidth = SCATTER_LINE_MAX_WIDTH
+        const maxPointRadius = Math.min(
+            SCATTER_POINT_MAX_RADIUS,
+            round(
+                Math.min(this.innerBounds.width, this.innerBounds.height) *
+                    0.06,
+                1
+            )
+        )
+
+        return this.isConnected
+            ? // Note that the scale starts at 0.
+              // When using the scale to plot marks, we need to make sure the minimums
+              // (e.g. `SCATTER_POINT_MIN_RADIUS`) are respected.
+              [0, maxLineWidth]
+            : [0, maxPointRadius]
     }
 
     @computed private get yScaleType(): ScaleType {
