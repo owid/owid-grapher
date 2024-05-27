@@ -41,6 +41,7 @@ import {
     PointVector,
     Bounds,
     DEFAULT_BOUNDS,
+    isTouchDevice,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -385,20 +386,22 @@ export class ScatterPlotChart
     }
 
     @action.bound onLegendMouseOver(color: string): void {
+        if (isTouchDevice()) return
         this.hoverColor = color
     }
 
     @action.bound onLegendMouseLeave(): void {
+        if (isTouchDevice()) return
         this.hoverColor = undefined
     }
 
     // When the color legend is clicked, toggle selection fo all associated keys
-    @action.bound onLegendClick(): void {
-        const { hoverColor, selectionArray } = this
-        if (!this.canAddCountry || hoverColor === undefined) return
+    @action.bound onLegendClick(color: string): void {
+        const { selectionArray } = this
+        if (!this.canAddCountry) return
 
         const keysToToggle = this.series
-            .filter((g) => g.color === hoverColor)
+            .filter((g) => g.color === color)
             .map((g) => g.seriesName)
         const allKeysActive =
             intersection(keysToToggle, this.selectedEntityNames).length ===
