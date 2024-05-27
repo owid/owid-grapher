@@ -59,6 +59,7 @@ module.exports = {
         "react/no-unescaped-entities": ["warn", { forbid: [">", "}"] }],
         "react/prop-types": "warn",
         "@typescript-eslint/no-floating-promises": "error",
+        "no-constant-binary-expression": "error"
     },
     settings: {
         "import/resolver": {

@@ -138,7 +138,7 @@ export function fetchVariablesParametersFromQueryString(
         offset: Number.parseInt(params.offset ?? "0"),
         filterQuery: filterQuery ?? filterExpressionNoFilter,
         sortByColumn: params.sortByColumn ?? "id",
-        sortByAscending: params.sortByAscending === "true" ?? false,
+        sortByAscending: params.sortByAscending === "true",
     }
 }
 

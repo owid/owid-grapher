@@ -203,7 +203,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     title="Tweet a link"
                     data-track-note="chart_share_twitter"
                     href={twitterHref}
-                    rel="noopener"
+                    rel="noreferrer noopener"
                 >
                     <span className="icon">
                         <FontAwesomeIcon icon={faXTwitter} />
@@ -215,7 +215,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     title="Share on Facebook"
                     data-track-note="chart_share_facebook"
                     href={facebookHref}
-                    rel="noopener"
+                    rel="noreferrer noopener"
                 >
                     <span className="icon">
                         <FontAwesomeIcon icon={faFacebook} />
@@ -262,7 +262,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         target="_blank"
                         title="Edit chart"
                         href={editUrl}
-                        rel="noopener"
+                        rel="noreferrer noopener"
                     >
                         <span className="icon">
                             <FontAwesomeIcon icon={faEdit} />
