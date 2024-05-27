@@ -251,6 +251,39 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return `**Data source:** ${this.sourcesLine}`
     }
 
+    private renderSources(): React.ReactElement | null {
+        const sources = new MarkdownTextWrap({
+            text: `**Data source:** ${this.sourcesLine}`,
+            fontSize: 13,
+        })
+
+        return (
+            <p className="sources" style={sources.style}>
+                {sources.renderHTML()}
+                {" – "}
+                <a
+                    className="learn-more-about-data"
+                    data-track-note="chart_click_sources"
+                    onClick={action((e) => {
+                        e.stopPropagation()
+
+                        this.manager.isDownloadModalOpen = false
+                        this.manager.isSourcesModalOpen = true
+                    })}
+                >
+                    Learn more about this data and citations
+                </a>
+            </p>
+        )
+    }
+    @computed protected get sourcesLine(): string {
+        return this.manager.sourcesLine?.replace(/\r\n|\n|\r/g, "") ?? ""
+    }
+
+    @computed protected get sourcesText(): string {
+        return `**Data source:** ${this.sourcesLine}`
+    }
+
     @computed protected get csvFileUrl(): string {
         const baseUrl = `${this.manager.bakedGrapherURL || ""}/${this.manager.displaySlug}.csv`
         const searchParams = new URLSearchParams([
@@ -261,7 +294,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             ? `${baseUrl}?${searchParams}`
             : baseUrl
     }
-    private renderSources(): JSX.Element | null {
+    private renderSources(): React.ReactElement | null {
         const sources = new MarkdownTextWrap({
             text: `**Data source:** ${this.sourcesLine}`,
             fontSize: 13,
