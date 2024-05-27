@@ -2982,6 +2982,8 @@ export class Grapher
         this.relatedQuestions = grapher.relatedQuestions
         this.sourceDesc = grapher.sourceDesc
         this.missingDataStrategy = grapher.missingDataStrategy
+        this.minTime = grapher.minTime
+        this.maxTime = grapher.maxTime
     }
 
     debounceMode = false

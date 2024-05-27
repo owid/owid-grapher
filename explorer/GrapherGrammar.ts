@@ -266,4 +266,14 @@ export const GrapherGrammar: Grammar = {
             "Hide or show entities for which one or more variables are missing",
         terminalOptions: toTerminalOptions(Object.values(MissingDataStrategy)),
     },
+    minTime: {
+        ...IntegerCellDef,
+        keyword: "minTime",
+        description: "Start point of the initially selected time span",
+    },
+    maxTime: {
+        ...IntegerCellDef,
+        keyword: "maxTime",
+        description: "End point of the initially selected time span",
+    },
 } as const
