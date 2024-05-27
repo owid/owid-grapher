@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
@@ -94,10 +94,29 @@ const MultiDimSelectOption = (props: OptionProps<any>) => {
     )
 }
 
-const MultiDimSettingsPanel = ({}) => {
+const MultiDimSettingsPanel = (props: {
+    onChange?: (
+        slug: string,
+        value: string,
+        currentSettings: Record<string, string>
+    ) => void
+}) => {
     const config = MULTI_DIM_DATA_PAGE_CONFIG
 
     const { dimensions } = config
+
+    const initialSettings = useMemo(
+        () =>
+            Object.fromEntries(
+                Object.values(dimensions).map((dimension) => [
+                    dimension.slug,
+                    Object.values(dimension.choices)[0].slug,
+                ])
+            ),
+        [dimensions]
+    )
+
+    const [currentSettings, setCurrentSettings] = useState(initialSettings)
 
     const dimensionSettings = Object.values(dimensions).map((dimension) => ({
         slug: dimension.slug,
@@ -118,16 +137,28 @@ const MultiDimSettingsPanel = ({}) => {
                 <Select
                     options={setting.choices}
                     components={{ Option: MultiDimSelectOption }}
+                    value={setting.choices.find(
+                        (choice) =>
+                            choice.value === currentSettings[setting.slug]
+                    )}
+                    isMulti={false}
+                    onChange={(newValue) => {
+                        setCurrentSettings({
+                            ...currentSettings,
+                            [setting.slug]: newValue!.value,
+                        })
+                        props.onChange?.(
+                            setting.slug,
+                            newValue!.value,
+                            currentSettings
+                        )
+                    }}
                 />
             </div>
         )
     })
 
-    return (
-        <div>
-            <div>{settings}</div>
-        </div>
-    )
+    return <div>{settings}</div>
 }
 
 export const MultiDimDataPageContent = ({
@@ -142,7 +173,46 @@ export const MultiDimDataPageContent = ({
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
 }) => {
-    return <MultiDimSettingsPanel />
+    const titleFragments = joinTitleFragments(
+        datapageData.attributionShort,
+        datapageData.titleVariant
+    )
+
+    const topicTags = datapageData.topicTagsLinks
+        ?.map((name) => ({ name, slug: tagToSlugMap[name] }))
+        .filter((tag): tag is { name: string; slug: string } => !!tag.slug)
+        .map((tag) => (
+            <a href={`/${tag.slug}`} key={tag.slug}>
+                {tag.name}
+            </a>
+        ))
+
+    return (
+        <div className="DataPageContent">
+            <div className="bg-blue-10">
+                <div className="header__wrapper wrapper grid grid-cols-12 ">
+                    <div className="header__left span-cols-8 span-sm-cols-12">
+                        <div className="header__supertitle">Data</div>
+                        <h1 className="header__title">
+                            {datapageData.title.title}
+                        </h1>
+                        <div className="header__source">{titleFragments}</div>
+                    </div>
+                    {!!datapageData.topicTagsLinks?.length && (
+                        <div className="header__right col-start-9 span-cols-4 span-sm-cols-12">
+                            <div className="topic-tags__label">
+                                See all data and research on:
+                            </div>
+                            <div className="topic-tags">{topicTags}</div>
+                        </div>
+                    )}
+                </div>
+            </div>
+            <div className="wrapper">
+                <MultiDimSettingsPanel />
+            </div>
+        </div>
+    )
 }
 
 /*
@@ -773,6 +843,18 @@ export const MultiDimDataPageContent = ({
     )
 }
 */
+const datapageData: Partial<DataPageDataV2> = {
+    title: {
+        title: "CO₂ emissions",
+        titleVariant: "by source and sector",
+    },
+    titleVariant: "by source and sector",
+    topicTagsLinks: ["CO₂ and Greenhouse Gas Emissions"],
+}
+
+const tagToSlugMap = {
+    "CO₂ and Greenhouse Gas Emissions": "co2-and-greenhouse-gas-emissions",
+}
 
 export const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
@@ -783,6 +865,8 @@ export const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
         <DebugProvider debug={isPreviewing}>
             <MultiDimDataPageContent
                 {...props}
+                datapageData={datapageData as DataPageDataV2}
+                tagToSlugMap={tagToSlugMap}
                 grapherConfig={grapherConfig}
                 isPreviewing={isPreviewing}
             />
