@@ -2,7 +2,12 @@ import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import parseUrl from "url-parse"
-import { Bounds, DEFAULT_BOUNDS, getRelativeMouse } from "@ourworldindata/utils"
+import {
+    Bounds,
+    DEFAULT_BOUNDS,
+    getRelativeMouse,
+    makeIdForHumanConsumption,
+} from "@ourworldindata/utils"
 import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     MarkdownTextWrap,
@@ -758,22 +763,29 @@ export class StaticFooter extends Footer<StaticFooterProps> {
 
         return (
             <g
+                id={makeIdForHumanConsumption("footer")}
                 className="SourcesFooter"
                 style={{
                     fill: textColor,
                 }}
             >
-                {sources.renderSVG(targetX, targetY)}
+                {sources.renderSVG(targetX, targetY, {
+                    id: makeIdForHumanConsumption("sources"),
+                })}
                 {this.showNote &&
                     note.renderSVG(
                         targetX,
                         targetY + sources.height + this.verticalPadding,
-                        { detailsMarker: this.manager.detailsMarkerInSvg }
+                        {
+                            id: makeIdForHumanConsumption("note"),
+                            detailsMarker: this.manager.detailsMarkerInSvg,
+                        }
                     )}
                 {showLicenseNextToSources
                     ? licenseAndOriginUrl.render(
                           targetX + maxWidth - licenseAndOriginUrl.width,
-                          targetY
+                          targetY,
+                          { id: makeIdForHumanConsumption("origin-url") }
                       )
                     : licenseAndOriginUrl.render(
                           targetX,
@@ -782,7 +794,8 @@ export class StaticFooter extends Footer<StaticFooterProps> {
                               (this.showNote
                                   ? note.height + this.verticalPadding
                                   : 0) +
-                              this.verticalPadding
+                              this.verticalPadding,
+                          { id: makeIdForHumanConsumption("origin-url") }
                       )}
             </g>
         )

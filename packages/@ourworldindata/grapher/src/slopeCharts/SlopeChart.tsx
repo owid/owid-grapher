@@ -18,6 +18,7 @@ import {
     clamp,
     HorizontalAlign,
     difference,
+    makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import { observable, computed, action } from "mobx"
@@ -427,7 +428,10 @@ export class SlopeChart
         )
 
         return (
-            <g className="slopeChart">
+            <g
+                id={makeIdForHumanConsumption("slope-chart")}
+                className="slopeChart"
+            >
                 <LabelledSlopes
                     manager={manager}
                     bounds={innerBounds}
@@ -650,6 +654,7 @@ class SlopeEntry extends React.Component<SlopeEntryProps> {
             isFocused,
             isHovered,
             isMultiHoverMode,
+            seriesName,
         } = this.props
         const { isInBackground } = this
 
@@ -669,7 +674,10 @@ class SlopeEntry extends React.Component<SlopeEntryProps> {
         }
 
         return (
-            <g className="slope">
+            <g
+                id={makeIdForHumanConsumption("slope", seriesName)}
+                className="slope"
+            >
                 <line
                     ref={(el) => (this.line = el)}
                     x1={x1}
@@ -1275,11 +1283,20 @@ class LabelledSlopes
                     fill="rgba(255,255,255,0)"
                     opacity={0}
                 />
-                <g className="gridlines">
+                <g
+                    id={makeIdForHumanConsumption("grid-lines")}
+                    className="gridlines"
+                >
                     {this.yAxis.tickLabels.map((tick) => {
                         const y = yAxis.place(tick.value)
                         return (
-                            <g key={y.toString()}>
+                            <g
+                                id={makeIdForHumanConsumption(
+                                    "grid-line",
+                                    tick.value.toString()
+                                )}
+                                key={y.toString()}
+                            >
                                 {/* grid lines connecting the chart area to the axis */}
                                 <line
                                     x1={bounds.left + this.yAxis.width + 8}
@@ -1328,7 +1345,7 @@ class LabelledSlopes
                 >
                     {this.yColumn.formatTime(xDomain[1])}
                 </text>
-                <g className="slopes">
+                <g id={makeIdForHumanConsumption("slopes")} className="slopes">
                     {this.renderGroups(this.backgroundGroups)}
                     {this.renderGroups(this.foregroundGroups)}
                 </g>

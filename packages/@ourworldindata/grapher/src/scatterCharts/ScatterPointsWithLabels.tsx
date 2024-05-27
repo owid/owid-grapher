@@ -14,6 +14,7 @@ import {
     first,
     isEmpty,
     guid,
+    makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -421,6 +422,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             getElementWithHalo(
                                 series.displayKey + "-endLabel",
                                 <text
+                                    id={makeIdForHumanConsumption(
+                                        "scatter-label",
+                                        label.text
+                                    )}
                                     x={label.bounds.x.toFixed(2)}
                                     y={(
                                         label.bounds.y + label.bounds.height
@@ -478,7 +483,14 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
             )
             if (series.offsetVector.x < 0) rotation = -rotation
             return (
-                <g key={series.displayKey} className={series.displayKey}>
+                <g
+                    id={makeIdForHumanConsumption(
+                        "time-scatter",
+                        series.displayKey
+                    )}
+                    key={series.displayKey}
+                    className={series.displayKey}
+                >
                     {!hideConnectedScatterLines && (
                         <MultiColorPolyline
                             points={series.points.map((point) => ({
@@ -543,6 +555,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                     getElementWithHalo(
                         `${series.displayKey}-label-${index}`,
                         <text
+                            id={makeIdForHumanConsumption(
+                                "scatter-label",
+                                series.displayKey
+                            )}
                             x={label.bounds.x.toFixed(2)}
                             y={(label.bounds.y + label.bounds.height).toFixed(
                                 2
@@ -606,6 +622,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         return (
             <g
                 ref={this.base}
+                id={makeIdForHumanConsumption("scatter-points")}
                 className="PointsWithLabels clickable"
                 clipPath={`url(#scatterBounds-${renderUid})`}
                 onMouseMove={this.onMouseMove}

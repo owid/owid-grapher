@@ -7,6 +7,7 @@ import {
     SMALL_OWID_LOGO_SVG,
 } from "./LogosSVG"
 import { LogoOption } from "@ourworldindata/types"
+import { makeIdForHumanConsumption } from "@ourworldindata/utils"
 
 interface LogoAttributes {
     svg: string
@@ -92,6 +93,7 @@ export class Logo {
             (this.spec.svg.match(/<svg>(.*)<\/svg>/) || "")[1] || this.spec.svg
         return (
             <g
+                id={makeIdForHumanConsumption("logo")}
                 transform={`translate(${Math.round(
                     targetX
                 )}, ${targetY}) scale(${parseFloat(scale.toFixed(2))})`}

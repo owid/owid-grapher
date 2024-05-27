@@ -1,5 +1,5 @@
 import React from "react"
-import { sum, max } from "@ourworldindata/utils"
+import { sum, max, makeIdForHumanConsumption } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -145,6 +145,7 @@ export class VerticalColorLegend extends React.Component<{
                 {title &&
                     title.render(x, y, { textProps: { fontWeight: 700 } })}
                 <g
+                    id={makeIdForHumanConsumption("vertical-color-legend")}
                     className="ScatterColorLegend clickable"
                     style={{ cursor: "pointer" }}
                 >
@@ -172,6 +173,10 @@ export class VerticalColorLegend extends React.Component<{
                         const result = (
                             <g
                                 key={index}
+                                id={makeIdForHumanConsumption(
+                                    "mark",
+                                    series.textWrap.text
+                                )}
                                 className="legendMark"
                                 onMouseOver={mouseOver}
                                 onMouseLeave={mouseLeave}

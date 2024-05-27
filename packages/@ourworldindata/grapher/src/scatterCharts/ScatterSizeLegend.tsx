@@ -2,7 +2,7 @@ import React from "react"
 import { computed } from "mobx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { TextWrap } from "@ourworldindata/components"
-import { first, last } from "@ourworldindata/utils"
+import { first, last, makeIdForHumanConsumption } from "@ourworldindata/utils"
 import {
     BASE_FONT_SIZE,
     GRAPHER_DARK_TEXT,
@@ -218,7 +218,7 @@ export class ScatterSizeLegend {
     ): JSX.Element {
         const centerX = targetX + this.maxWidth / 2
         return (
-            <g {...renderOptions}>
+            <g id={makeIdForHumanConsumption("size-legend")} {...renderOptions}>
                 {this.renderLegend(targetX, targetY)}
                 {this.label.render(
                     centerX,

@@ -1,5 +1,10 @@
 import { line as d3_line, curveLinear } from "d3-shape"
-import { guid, Bounds, PointVector } from "@ourworldindata/utils"
+import {
+    guid,
+    Bounds,
+    PointVector,
+    makeIdForHumanConsumption,
+} from "@ourworldindata/utils"
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -78,7 +83,10 @@ export class ComparisonLine extends React.Component<{
         const { linePath, renderUid, placedLabel } = this
 
         return (
-            <g className="comparisonLine">
+            <g
+                id={makeIdForHumanConsumption("comparison-line")}
+                className="comparisonLine"
+            >
                 <defs>
                     <clipPath id={`axisBounds-${renderUid}`}>
                         <rect

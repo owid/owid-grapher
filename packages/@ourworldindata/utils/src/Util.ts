@@ -296,11 +296,28 @@ export const exposeInstanceOnWindow = (
 export const makeSafeForCSS = (name: string): string =>
     name.replace(/[^a-z0-9]/g, (str) => {
         const char = str.charCodeAt(0)
-        if (char === 32) return "-"
+        if (char === 32 || char === 45) return "-"
         if (char === 95) return "_"
         if (char >= 65 && char <= 90) return str
         return "__" + ("000" + char.toString(16)).slice(-4)
     })
+
+/**
+ * Make a human-readable string meant to be be used as the ID of a SVG chart
+ * element. This is useful when a static chart is manually edited in a SVG
+ * editor since SVG manipulation software like Figma often show the element's
+ * id as its title.
+ */
+export function makeIdForHumanConsumption(
+    name: string,
+    unsafeKey?: string
+): string {
+    let id = name
+    if (unsafeKey) {
+        id += "__" + makeSafeForCSS(unsafeKey)
+    }
+    return id
+}
 
 export function formatDay(
     dayAsYear: number,

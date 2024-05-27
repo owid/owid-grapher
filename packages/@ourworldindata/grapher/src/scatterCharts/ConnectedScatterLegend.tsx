@@ -3,6 +3,7 @@ import { computed } from "mobx"
 import { Triangle } from "./Triangle"
 import { TextWrap } from "@ourworldindata/components"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { makeIdForHumanConsumption } from "@ourworldindata/utils"
 
 export interface ConnectedScatterLegendManager {
     sidebarWidth: number
@@ -68,7 +69,11 @@ export class ConnectedScatterLegend {
         const lineY = targetY + this.height / 2 - 0.5
 
         return (
-            <g className="ConnectedScatterLegend" {...renderOptions}>
+            <g
+                id={makeIdForHumanConsumption("arrow-legend")}
+                className="ConnectedScatterLegend"
+                {...renderOptions}
+            >
                 <rect
                     x={targetX}
                     y={targetY}

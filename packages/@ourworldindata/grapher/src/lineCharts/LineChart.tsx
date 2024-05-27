@@ -25,6 +25,7 @@ import {
     Color,
     HorizontalAlign,
     PrimitiveType,
+    makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -170,12 +171,16 @@ class Lines extends React.Component<LinesProps> {
             const strokeDasharray = series.isProjection ? "2,3" : undefined
 
             return (
-                <g key={index}>
+                <g
+                    id={makeIdForHumanConsumption("line", series.seriesName)}
+                    key={index}
+                >
                     {/*
                         Create a white outline around the lines so they're
                         easier to follow when they overlap.
                     */}
                     <path
+                        id={makeIdForHumanConsumption("outline")}
                         fill="none"
                         strokeLinecap="butt"
                         strokeLinejoin="round"
@@ -192,13 +197,14 @@ class Lines extends React.Component<LinesProps> {
                         )}
                     />
                     <MultiColorPolyline
+                        id={makeIdForHumanConsumption("polyline")}
                         points={series.placedPoints}
                         strokeLinejoin="round"
                         strokeWidth={this.strokeWidth}
                         strokeDasharray={strokeDasharray}
                     />
                     {showMarkers && (
-                        <g>
+                        <g id={makeIdForHumanConsumption("markers")}>
                             {series.placedPoints.map((value, index) => (
                                 <circle
                                     key={index}
@@ -217,7 +223,10 @@ class Lines extends React.Component<LinesProps> {
 
     private renderBackgroundGroups(): JSX.Element[] {
         return this.backgroundLines.map((series, index) => (
-            <g key={index}>
+            <g
+                id={makeIdForHumanConsumption("line", series.seriesName)}
+                key={index}
+            >
                 <path
                     key={getSeriesKey(series, "line")}
                     strokeLinecap="round"
@@ -240,7 +249,7 @@ class Lines extends React.Component<LinesProps> {
         const { bounds } = this
 
         return (
-            <g className="Lines">
+            <g id={makeIdForHumanConsumption("lines")} className="Lines">
                 <rect
                     x={Math.round(bounds.x)}
                     y={Math.round(bounds.y)}
@@ -761,6 +770,7 @@ export class LineChart
         return (
             <g
                 ref={this.base}
+                id={makeIdForHumanConsumption("line-chart")}
                 className="LineChart"
                 onMouseLeave={this.onCursorLeave}
                 onTouchEnd={this.onCursorLeave}

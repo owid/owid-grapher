@@ -9,6 +9,7 @@ import {
     sortBy,
     sumBy,
     flatten,
+    makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
@@ -100,13 +101,17 @@ class Label extends React.Component<{
         const annotationColor = isFocus ? "#333" : "#ddd"
         return (
             <g
+                id={makeIdForHumanConsumption("mark", series.textWrap.text)}
                 className="legendMark"
                 onMouseOver={onMouseOver}
                 onMouseLeave={onMouseLeave}
                 onClick={onClick}
             >
                 {needsLines && (
-                    <g className="indicator">
+                    <g
+                        id={makeIdForHumanConsumption("connector")}
+                        className="indicator"
+                    >
                         <path
                             d={`M${markerX1},${series.origBounds.centerY} H${markerXMid} V${series.bounds.centerY} H${markerX2}`}
                             stroke={lineColor}
@@ -116,6 +121,7 @@ class Label extends React.Component<{
                     </g>
                 )}
                 <rect
+                    id={makeIdForHumanConsumption("background")}
                     x={x}
                     y={series.bounds.y}
                     width={series.bounds.width}
@@ -126,13 +132,17 @@ class Label extends React.Component<{
                 {series.textWrap.render(
                     needsLines ? markerX2 + MARKER_MARGIN : markerX1,
                     series.bounds.y,
-                    { textProps: { fill: textColor } }
+                    {
+                        id: makeIdForHumanConsumption("label"),
+                        textProps: { fill: textColor },
+                    }
                 )}
                 {series.annotationTextWrap &&
                     series.annotationTextWrap.render(
                         needsLines ? markerX2 + MARKER_MARGIN : markerX1,
                         series.bounds.y + series.textWrap.height,
                         {
+                            id: makeIdForHumanConsumption("annotation"),
                             textProps: {
                                 fill: annotationColor,
                                 className: "textAnnotation",
@@ -436,7 +446,10 @@ export class LineLegend extends React.Component<{
 
     render(): JSX.Element {
         return (
-            <g className="LineLabels">
+            <g
+                id={makeIdForHumanConsumption("line-labels")}
+                className="LineLabels"
+            >
                 {this.renderBackground()}
                 {this.renderFocus()}
             </g>

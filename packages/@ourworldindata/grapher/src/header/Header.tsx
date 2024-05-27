@@ -1,5 +1,10 @@
 import React from "react"
-import { DEFAULT_BOUNDS, range, LogoOption } from "@ourworldindata/utils"
+import {
+    DEFAULT_BOUNDS,
+    range,
+    LogoOption,
+    makeIdForHumanConsumption,
+} from "@ourworldindata/utils"
 import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -275,12 +280,13 @@ export class StaticHeader extends Header<StaticHeaderProps> {
         const { targetX: x, targetY: y } = this.props
         const { title, logo, subtitle, manager, maxWidth } = this
         return (
-            <g className="HeaderView">
+            <g id={makeIdForHumanConsumption("header")} className="HeaderView">
                 {logo &&
                     logo.height > 0 &&
                     logo.renderSVG(x + maxWidth - logo.width, y)}
                 {this.showTitle && (
                     <a
+                        id={makeIdForHumanConsumption("title")}
                         href={manager.canonicalUrl}
                         style={{
                             fontFamily:
@@ -302,6 +308,7 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                                 ? title.height + this.subtitleMarginTop
                                 : 0),
                         {
+                            id: makeIdForHumanConsumption("subtitle"),
                             textProps: {
                                 fill: manager.secondaryColorInStaticCharts,
                             },
