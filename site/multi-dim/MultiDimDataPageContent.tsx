@@ -100,6 +100,7 @@ const MultiDimSettingsPanel = (props: {
         value: string,
         currentSettings: Record<string, string>
     ) => void
+    updateSettings?: (currentSettings: Record<string, string>) => void
 }) => {
     const config = MULTI_DIM_DATA_PAGE_CONFIG
 
@@ -117,6 +118,11 @@ const MultiDimSettingsPanel = (props: {
     )
 
     const [currentSettings, setCurrentSettings] = useState(initialSettings)
+
+    useEffect(
+        () => props.updateSettings?.(currentSettings),
+        [props, currentSettings]
+    )
 
     const dimensionSettings = Object.values(dimensions).map((dimension) => ({
         slug: dimension.slug,
@@ -187,6 +193,13 @@ export const MultiDimDataPageContent = ({
             </a>
         ))
 
+    const [currentSettings, setCurrentSettings] = useState({})
+
+    const currentView = useMemo(() => {
+        if (Object.keys(currentSettings).length === 0) return {}
+        return MULTI_DIM_DATA_PAGE_CONFIG.findViewByDimensions(currentSettings)
+    }, [currentSettings])
+
     return (
         <div className="DataPageContent">
             <div className="bg-blue-10">
@@ -209,8 +222,10 @@ export const MultiDimDataPageContent = ({
                 </div>
             </div>
             <div className="wrapper">
-                <MultiDimSettingsPanel />
+                <MultiDimSettingsPanel updateSettings={setCurrentSettings} />
             </div>
+            <pre>{JSON.stringify(currentSettings, null, 4)}</pre>
+            <pre>{JSON.stringify(currentView, null, 4)}</pre>
         </div>
     )
 }
