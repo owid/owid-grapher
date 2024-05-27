@@ -1,13 +1,14 @@
 import React from "react"
-import { observable, computed, action } from "mobx"
-import { observer } from "mobx-react"
 import {
+    Url,
     Bounds,
     DEFAULT_BOUNDS,
     isEmpty,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "@ourworldindata/utils"
+import { observable, computed, action } from "mobx"
+import { observer } from "mobx-react"
 import {
     Checkbox,
     CodeSnippet,
@@ -24,6 +25,7 @@ import {
 } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
+import classnames from "classnames"
 
 export interface DownloadModalManager {
     displaySlug: string
@@ -48,6 +50,11 @@ export interface DownloadModalManager {
 
 interface DownloadModalProps {
     manager: DownloadModalManager
+}
+
+enum CsvFilterMode {
+    full,
+    visible,
 }
 
 @observer
@@ -102,6 +109,8 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
 
     @observable private isReady: boolean = false
 
+    @observable private csvFilterMode: CsvFilterMode = CsvFilterMode.full
+
     @action.bound private export(): void {
         // render the graphic then cache data-urls for display & blobs for downloads
         this.manager
@@ -139,6 +148,15 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
     @computed private get baseFilename(): string {
         return this.manager.displaySlug
+    }
+
+    @action.bound private onToggleCsvFilterMode(): () => void {
+        return (): void => {
+            this.csvFilterMode =
+                this.csvFilterMode === CsvFilterMode.full
+                    ? CsvFilterMode.visible
+                    : CsvFilterMode.full
+        }
     }
 
     @computed private get inputTable(): OwidTable {
@@ -260,18 +278,22 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             opacity: this.isReady ? 1 : 0,
         }
 
-        const csvUrl = `${manager.bakedGrapherURL || ""}/csv/${manager.displaySlug}`
+        const baseUrl = `${manager.bakedGrapherURL || ""}/${manager.displaySlug}.csv`
+        const searchParams = new URLSearchParams([
+            ...Object.entries({ csvType: "filtered" }),
+            ...Array.from(new URLSearchParams(this.manager.queryStr).entries()),
+        ]).toString()
 
+        const csvUrl =
+            this.csvFilterMode === CsvFilterMode.visible
+                ? `${baseUrl}?${searchParams}`
+                : baseUrl
         const googleDocsCode = `=IMPORTDATA("${csvUrl}")`
 
-        const pandasCode = `# Install our python library with pip:
-# pip install owid-catalog
+        const pandasCode = `import pandas as pd
+df = pd.read_csv("${csvUrl}")`
 
-from owid.catalog import charts
-
-# get the data for one chart by URL
-df = charts.get_data('${manager.bakedGrapherURL || ""}/grapher/${manager.displaySlug}')`
-
+        const rCode = `df <- read.csv("${csvUrl}")`
         return (
             <div className="grouped-menu">
                 {manager.isOnChartOrMapTab && (
@@ -356,29 +378,74 @@ df = charts.get_data('${manager.bakedGrapherURL || ""}/grapher/${manager.display
                         </div>
                     ) : (
                         <>
+                            <h4 className="grapher_h4-semibold">
+                                Download options
+                            </h4>
+                            <div className="grouped-menu-list">
+                                <button
+                                    title="Full data (CSV)"
+                                    className={classnames("grouped-menu-item", {
+                                        active:
+                                            this.csvFilterMode ===
+                                            CsvFilterMode.full,
+                                    })}
+                                    onClick={this.onToggleCsvFilterMode()}
+                                >
+                                    <div className="grouped-menu-content">
+                                        <p className="grapher_label-1-medium grapher_light">
+                                            Download the full dataset used in
+                                            this chart.
+                                        </p>
+                                    </div>
+                                </button>
+                                <button
+                                    title="Visible data (CSV)"
+                                    className={classnames("grouped-menu-item", {
+                                        active:
+                                            this.csvFilterMode ===
+                                            CsvFilterMode.visible,
+                                    })}
+                                    onClick={this.onToggleCsvFilterMode()}
+                                >
+                                    <div className="grouped-menu-content">
+                                        <p className="grapher_label-1-medium grapher_light">
+                                            Download only the currently selected
+                                            data visible in the chart
+                                        </p>
+                                    </div>
+                                </button>
+                            </div>
+                            <h4>Source</h4>
+                            <p>Source note goes here</p>
+                            <h4>Download</h4>
                             <div className="grouped-menu-list">
                                 <DownloadButton
-                                    title="Full data (CSV)"
-                                    description="The full dataset used in this chart."
+                                    title="Data as CSV"
+                                    description="Download the data in CSV format."
                                     onClick={this.onCsvDownload}
                                     tracking="chart_download_csv"
                                 />
                             </div>
+                            <h4>Code examples</h4>
                             <p>
-                                To see this data in google sheets, paste the
-                                following formula into a cell:
+                                Below are examples of how to load this data into
+                                different data analysis tools.
                             </p>
+                            <p>Excel/Google Sheets</p>
                             <CodeSnippet
                                 code={googleDocsCode}
                                 theme="light"
                                 useMarkdown={false}
                             />
-                            <p>
-                                To load this data into a pandas dataframe, run
-                                the following code in a python environment:
-                            </p>
+                            <p>Python with Pandas</p>
                             <CodeSnippet
                                 code={pandasCode}
+                                theme="light"
+                                useMarkdown={false}
+                            />
+                            <p>R</p>
+                            <CodeSnippet
+                                code={rCode}
                                 theme="light"
                                 useMarkdown={false}
                             />
