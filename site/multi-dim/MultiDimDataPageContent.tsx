@@ -39,6 +39,7 @@ import {
     getCitationLong,
     joinTitleFragments,
     ImageMetadata,
+    DimensionProperty,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "../gdocs/OwidGdoc.js"
 import StickyNav from "../blocks/StickyNav.js"
@@ -47,7 +48,10 @@ import { DebugProvider } from "../gdocs/DebugContext.js"
 import dayjs from "dayjs"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import Image from "../gdocs/components/Image.js"
-import { MULTI_DIM_DATA_PAGE_CONFIG } from "./MultiDimDataPageConfig.js"
+import {
+    MULTI_DIM_DATA_PAGE_CONFIG,
+    MultiDimDataPageConfig,
+} from "./MultiDimDataPageConfig.js"
 import Select, { OptionProps, components } from "react-select"
 declare global {
     interface Window {
@@ -159,6 +163,9 @@ const MultiDimSettingsPanel = (props: {
                             currentSettings
                         )
                     }}
+                    styles={{
+                        menu: (provided) => ({ ...provided, zIndex: 1000 }),
+                    }}
                 />
             </div>
         )
@@ -196,9 +203,39 @@ export const MultiDimDataPageContent = ({
     const [currentSettings, setCurrentSettings] = useState({})
 
     const currentView = useMemo(() => {
-        if (Object.keys(currentSettings).length === 0) return {}
+        if (Object.keys(currentSettings).length === 0) return undefined
         return MULTI_DIM_DATA_PAGE_CONFIG.findViewByDimensions(currentSettings)
     }, [currentSettings])
+
+    const dimensionsConfig = useMemo(() => {
+        const dimObj = MultiDimDataPageConfig.transformIndicatorPathObj(
+            currentView?.indicator_path ?? {}
+        )
+        return Object.entries(dimObj).flatMap(([property, variableIds]) =>
+            variableIds.flatMap((variableId) => ({
+                property: property as DimensionProperty,
+                variableId: parseInt(variableId),
+            }))
+        )
+    }, [currentView])
+
+    const grapherConfigComputed = useMemo(() => {
+        return {
+            ...currentView?.config,
+            dimensions: dimensionsConfig,
+            selectedEntityNames: [
+                "Spain",
+                "Zimbabwe",
+                "United Kingdom",
+                "World",
+            ],
+        }
+    }, [currentView, dimensionsConfig])
+
+    const grapher = useMemo(() => {
+        const grapher = new Grapher(grapherConfigComputed)
+        return grapher
+    }, [grapherConfigComputed])
 
     return (
         <div className="DataPageContent">
@@ -224,8 +261,13 @@ export const MultiDimDataPageContent = ({
             <div className="wrapper">
                 <MultiDimSettingsPanel updateSettings={setCurrentSettings} />
             </div>
-            <pre>{JSON.stringify(currentSettings, null, 4)}</pre>
-            <pre>{JSON.stringify(currentView, null, 4)}</pre>
+
+            <div className="wrapper" style={{ zIndex: -1 }}>
+                <GrapherWithFallback
+                    key={JSON.stringify(grapherConfigComputed)}
+                    grapher={grapher}
+                />
+            </div>
         </div>
     )
 }
@@ -864,11 +906,11 @@ const datapageData: Partial<DataPageDataV2> = {
         titleVariant: MULTI_DIM_DATA_PAGE_CONFIG.config.dimensions_title,
     },
     titleVariant: MULTI_DIM_DATA_PAGE_CONFIG.config.dimensions_title,
-    topicTagsLinks: ["CO₂ and Greenhouse Gas Emissions"],
+    topicTagsLinks: ["Plastic Pollution"],
 }
 
 const tagToSlugMap = {
-    "CO₂ and Greenhouse Gas Emissions": "co2-and-greenhouse-gas-emissions",
+    "Plastic Pollution": "plastic-pollution",
 }
 
 export const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
