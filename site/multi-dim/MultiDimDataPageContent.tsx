@@ -229,6 +229,7 @@ export const MultiDimDataPageContent = ({
                 "United Kingdom",
                 "World",
             ],
+            isEmbeddedInADataPage: true,
         }
     }, [currentView, dimensionsConfig])
 
@@ -262,10 +263,12 @@ export const MultiDimDataPageContent = ({
                 <MultiDimSettingsPanel updateSettings={setCurrentSettings} />
             </div>
 
-            <div className="wrapper" style={{ zIndex: -1 }}>
+            <div className="chart-key-info">
                 <GrapherWithFallback
                     key={JSON.stringify(grapherConfigComputed)}
                     grapher={grapher}
+                    className="wrapper"
+                    id="explore-the-data"
                 />
             </div>
         </div>
