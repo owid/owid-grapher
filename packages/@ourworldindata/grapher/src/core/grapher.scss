@@ -123,9 +123,6 @@ $zindex-controls-drawer: 150;
     border: 1px solid $frame-color;
     z-index: $zindex-chart;
 
-    // important for the slide-in drawer
-    overflow-x: clip;
-
     * {
         box-sizing: border-box;
     }

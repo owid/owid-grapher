@@ -2666,6 +2666,7 @@ export class Grapher
 
                 {/* entity selector in a slide-in drawer */}
                 <SlideInDrawer
+                    grapherRef={this.base}
                     active={this.isEntitySelectorDrawerOpen}
                     toggle={() => {
                         this.isEntitySelectorModalOrDrawerOpen =
