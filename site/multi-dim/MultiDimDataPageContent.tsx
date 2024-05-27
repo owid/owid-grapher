@@ -47,6 +47,8 @@ import { DebugProvider } from "../gdocs/DebugContext.js"
 import dayjs from "dayjs"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import Image from "../gdocs/components/Image.js"
+import { MULTI_DIM_DATA_PAGE_CONFIG } from "./MultiDimDataPageConfig.js"
+import Select, { OptionProps, components } from "react-select"
 declare global {
     interface Window {
         _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields
@@ -83,6 +85,67 @@ const DatapageResearchThumbnail = ({
     )
 }
 
+const MultiDimSelectOption = (props: OptionProps<any>) => {
+    return (
+        <components.Option {...props}>
+            <div>{props.data.label}</div>
+            <div style={{ fontSize: 12 }}>{props.data.description}</div>
+        </components.Option>
+    )
+}
+
+const MultiDimSettingsPanel = ({}) => {
+    const config = MULTI_DIM_DATA_PAGE_CONFIG
+
+    const { dimensions } = config
+
+    const dimensionSettings = Object.values(dimensions).map((dimension) => ({
+        slug: dimension.slug,
+        name: dimension.name,
+        description: dimension.description,
+        choices: Object.values(dimension.choices).map((choice) => ({
+            value: choice.slug,
+            label: choice.name,
+            description: choice.description,
+        })),
+    }))
+
+    const settings = dimensionSettings.map((setting) => {
+        return (
+            <div key={setting.slug}>
+                <h3>{setting.name}</h3>
+                <p>{setting.description}</p>
+                <Select
+                    options={setting.choices}
+                    components={{ Option: MultiDimSelectOption }}
+                />
+            </div>
+        )
+    })
+
+    return (
+        <div>
+            <div>{settings}</div>
+        </div>
+    )
+}
+
+export const MultiDimDataPageContent = ({
+    datapageData,
+    grapherConfig,
+    isPreviewing = false,
+    faqEntries,
+    canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
+    tagToSlugMap,
+    imageMetadata,
+}: DataPageV2ContentFields & {
+    grapherConfig: GrapherInterface
+    imageMetadata: Record<string, ImageMetadata>
+}) => {
+    return <MultiDimSettingsPanel />
+}
+
+/*
 export const MultiDimDataPageContent = ({
     datapageData,
     grapherConfig,
@@ -709,6 +772,7 @@ export const MultiDimDataPageContent = ({
         </AttachmentsContext.Provider>
     )
 }
+*/
 
 export const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
