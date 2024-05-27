@@ -860,10 +860,10 @@ export const MultiDimDataPageContent = ({
 */
 const datapageData: Partial<DataPageDataV2> = {
     title: {
-        title: "CO₂ emissions",
-        titleVariant: "by source and sector",
+        title: MULTI_DIM_DATA_PAGE_CONFIG.config.name,
+        titleVariant: MULTI_DIM_DATA_PAGE_CONFIG.config.dimensions_title,
     },
-    titleVariant: "by source and sector",
+    titleVariant: MULTI_DIM_DATA_PAGE_CONFIG.config.dimensions_title,
     topicTagsLinks: ["CO₂ and Greenhouse Gas Emissions"],
 }
 

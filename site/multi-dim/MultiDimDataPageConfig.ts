@@ -1,7 +1,7 @@
 import YAML from "yaml"
 import { MultiDimDataPageConfigType, View } from "./MultiDimDataPageTypes.js"
 import { DimensionProperty, keyBy } from "@ourworldindata/utils"
-import config from "./config.json"
+import plastic from "./plastic.json"
 
 export class MultiDimDataPageConfig {
     private constructor(public readonly config: MultiDimDataPageConfigType) {}
@@ -69,5 +69,5 @@ export class MultiDimDataPageConfig {
 }
 
 export const MULTI_DIM_DATA_PAGE_CONFIG = MultiDimDataPageConfig.fromObject(
-    config as any as MultiDimDataPageConfigType
+    plastic as any as MultiDimDataPageConfigType
 )
