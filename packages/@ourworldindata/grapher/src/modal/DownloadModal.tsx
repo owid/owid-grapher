@@ -13,6 +13,7 @@ import {
     Checkbox,
     CodeSnippet,
     OverlayHeader,
+    MarkdownTextWrap,
 } from "@ourworldindata/components"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -46,6 +47,8 @@ export interface DownloadModalManager {
     framePaddingVertical?: number
     showAdminControls?: boolean
     bakedGrapherURL?: string
+    sourcesLine?: string
+    isSourcesModalOpen?: boolean
 }
 
 interface DownloadModalProps {
@@ -240,6 +243,39 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.hasDetails || !!this.manager.showAdminControls
     }
 
+    @computed protected get sourcesLine(): string {
+        return this.manager.sourcesLine?.replace(/\r\n|\n|\r/g, "") ?? ""
+    }
+
+    @computed protected get sourcesText(): string {
+        return `**Data source:** ${this.sourcesLine}`
+    }
+
+    private renderSources(): JSX.Element | null {
+        const sources = new MarkdownTextWrap({
+            text: `**Data source:** ${this.sourcesLine}`,
+            fontSize: 13,
+        })
+
+        return (
+            <p className="sources" style={sources.style}>
+                {sources.renderHTML()}
+                {" – "}
+                <a
+                    className="learn-more-about-data"
+                    data-track-note="chart_click_sources"
+                    onClick={action((e) => {
+                        e.stopPropagation()
+
+                        this.manager.isDownloadModalOpen = false
+                        this.manager.isSourcesModalOpen = true
+                    })}
+                >
+                    Learn more about this data and citations
+                </a>
+            </p>
+        )
+    }
     private renderReady(): React.ReactElement {
         const {
             manager,
@@ -416,7 +452,7 @@ df = pd.read_csv("${csvUrl}")`
                                 </button>
                             </div>
                             <h4>Source</h4>
-                            <p>Source note goes here</p>
+                            <p>{this.renderSources()}</p>
                             <h4>Download</h4>
                             <div className="grouped-menu-list">
                                 <DownloadButton
