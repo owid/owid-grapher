@@ -220,7 +220,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         if (manager.externalCsvLink) {
             triggerDownloadFromUrl(filename, manager.externalCsvLink)
         } else {
-            triggerDownloadFromBlob(filename, this.csvBlob)
+            triggerDownloadFromUrl(filename, this.csvFileUrl)
         }
     }
 
@@ -251,6 +251,16 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return `**Data source:** ${this.sourcesLine}`
     }
 
+    @computed protected get csvFileUrl(): string {
+        const baseUrl = `${this.manager.bakedGrapherURL || ""}/${this.manager.displaySlug}.csv`
+        const searchParams = new URLSearchParams([
+            ...Object.entries({ csvType: "filtered" }),
+            ...Array.from(new URLSearchParams(this.manager.queryStr).entries()),
+        ]).toString()
+        return this.csvFilterMode === CsvFilterMode.visible
+            ? `${baseUrl}?${searchParams}`
+            : baseUrl
+    }
     private renderSources(): JSX.Element | null {
         const sources = new MarkdownTextWrap({
             text: `**Data source:** ${this.sourcesLine}`,
@@ -314,16 +324,8 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             opacity: this.isReady ? 1 : 0,
         }
 
-        const baseUrl = `${manager.bakedGrapherURL || ""}/${manager.displaySlug}.csv`
-        const searchParams = new URLSearchParams([
-            ...Object.entries({ csvType: "filtered" }),
-            ...Array.from(new URLSearchParams(this.manager.queryStr).entries()),
-        ]).toString()
+        const csvUrl = this.csvFileUrl
 
-        const csvUrl =
-            this.csvFilterMode === CsvFilterMode.visible
-                ? `${baseUrl}?${searchParams}`
-                : baseUrl
         const googleDocsCode = `=IMPORTDATA("${csvUrl}")`
 
         const pandasCode = `import pandas as pd
