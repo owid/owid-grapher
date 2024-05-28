@@ -13,6 +13,7 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import {
     renderExplorerPage,
     renderGdoc,
+    renderMultiDimDataPage,
     renderPreview,
 } from "../baker/siteRenderers.js"
 import { GitCmsServer } from "../gitCms/GitCmsServer.js"
@@ -349,6 +350,16 @@ getPlainRouteNonIdempotentWithRWTransaction(
         const previewDataPageOrGrapherPage =
             await renderPreviewDataPageOrGrapherPage(entity.config, trx)
         res.send(previewDataPageOrGrapherPage)
+    }
+)
+
+getPlainRouteNonIdempotentWithRWTransaction(
+    adminRouter,
+    "/multi-dim",
+    async (_, res, trx) => {
+        const page = await renderMultiDimDataPage()
+        res.send(page)
+        return
     }
 )
 
