@@ -41,6 +41,7 @@ export default function Chart({
 
     const url = Url.fromURL(d.url)
     const resolvedUrl = linkedChart.resolvedUrl
+    const resolvedSlug = Url.fromURL(resolvedUrl).slug
     const isExplorer = url.isExplorer
     const hasControls = url.queryParams.hideControls !== "true"
     const isExplorerWithControls = isExplorer && hasControls
@@ -119,9 +120,9 @@ export default function Chart({
                         </p>
                     </noscript>
                 ) : (
-                    url.slug && (
+                    resolvedSlug && (
                         <a href={resolvedUrl} target="_blank" rel="noopener">
-                            <GrapherImage slug={url.slug} alt={d.title} />
+                            <GrapherImage slug={resolvedSlug} alt={d.title} />
                             <InteractionNotice />
                         </a>
                     )
