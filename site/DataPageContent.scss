@@ -79,13 +79,16 @@
     .chart-key-info {
         display: flex;
         flex-direction: column;
-        border-bottom: 1px solid $blue-20;
         padding-top: 16px;
         padding-bottom: 48px;
         @include sm-up {
             padding-top: 24px;
             padding-bottom: 80px;
         }
+    }
+
+    .full-width--border {
+        border-bottom: 1px solid $blue-20;
     }
 
     .GrapherWithFallback {
