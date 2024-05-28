@@ -27,8 +27,17 @@ $zindex-controls-popup: 140;
 .MultiDimDataPageContent {
     .settings-row {
         display: flex;
-        gap: 10px;
+        align-items: center;
+        gap: 15px;
         margin-top: 20px;
+
+        > span {
+            color: $gray-70;
+            text-transform: uppercase;
+            font-weight: 700;
+            font-size: 0.9em;
+            margin-right: 10px;
+        }
 
         button {
             display: flex;

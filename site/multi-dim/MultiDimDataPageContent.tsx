@@ -223,7 +223,12 @@ const MultiDimSettingsPanel = (props: {
         />
     ))
 
-    return <div className="settings-row">{settings}</div>
+    return (
+        <div className="settings-row">
+            <span>Configure the data</span>
+            {settings}
+        </div>
+    )
 }
 
 // From DataPageUtils
