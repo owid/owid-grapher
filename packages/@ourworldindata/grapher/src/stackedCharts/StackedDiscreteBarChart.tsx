@@ -213,7 +213,7 @@ export class StackedDiscreteBarChart
 
     // Account for the width of the legend
     @computed private get labelWidth(): number {
-        return max(this.labelledItems.map((d) => d.label.width)) ?? 0
+        return max(this.sizedItems.map((d) => d.label.width)) ?? 0
     }
 
     @computed get showTotalValueLabel(): boolean {
@@ -228,7 +228,7 @@ export class StackedDiscreteBarChart
     @computed private get totalValueLabelWidth(): number {
         if (!this.showTotalValueLabel) return 0
 
-        const labels = this.labelledItems.map((d) =>
+        const labels = this.sizedItems.map((d) =>
             this.formatValueForLabel(d.totalValue)
         )
         const longestLabel = maxBy(labels, (l) => l.length)
@@ -327,16 +327,16 @@ export class StackedDiscreteBarChart
         return items
     }
 
-    @computed get labelledItems(): readonly Item[] {
+    @computed get sizedItems(): readonly Item[] {
+        // can't use `this.barHeight` due to a circular dependency
+        const barHeight = this.approximateBarHeight
+
         return this.items.map((item) => {
             let label = new TextWrap({
                 text: item.entityName,
                 maxWidth: this.boundsWithoutLegend.width * 0.3,
                 ...this.labelStyle,
             })
-
-            // can't use `this.barHeight` due to a circular dependency
-            const barHeight = this.approximateBarHeight
 
             // prevent labels from being taller than the bar
             while (label.height > barHeight && label.lines.length > 1) {
@@ -376,7 +376,7 @@ export class StackedDiscreteBarChart
                     return lastPoint.valueOffset + lastPoint.value
                 }
         }
-        const sortedItems = sortBy(this.labelledItems, sortByFunc)
+        const sortedItems = sortBy(this.sizedItems, sortByFunc)
         const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
         if (sortOrder === SortOrder.desc) sortedItems.reverse()
 
