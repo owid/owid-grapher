@@ -18,6 +18,8 @@ export default function GrapherImage({
     return (
         <img
             className="GrapherImage"
+            // TODO: use the CF worker to render these previews so that we can show non-default configurations of the chart
+            // https://github.com/owid/owid-grapher/issues/3661
             src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${slug}.svg`}
             alt={alt}
             width={DEFAULT_GRAPHER_WIDTH}

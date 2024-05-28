@@ -16,7 +16,6 @@ import {
     fetchText,
     getWindowUrl,
     isArray,
-    isMobile,
     isPresent,
     Url,
     GrapherTabOption,
@@ -53,13 +52,13 @@ const figuresFromDOM = (
 // Determine whether this device is powerful enough to handle
 // loading a bunch of inline interactive charts
 // 680px is also used in CSS – keep it in sync if you change this
-export const shouldProgressiveEmbed = () =>
-    !isMobile() ||
-    window.screen.width > 680 ||
-    pageContainsGlobalEntitySelector()
+export const shouldProgressiveEmbed = () => true
+// disabling this behaviour for now until we have a better way to detect low power devices
+// https://github.com/owid/owid-grapher/issues/3661
+// !isMobile() || window.screen.width > 680 || pageContainsGlobalEntitySelector()
 
-const pageContainsGlobalEntitySelector = () =>
-    globalEntitySelectorElement() !== null
+// const pageContainsGlobalEntitySelector = () =>
+//     globalEntitySelectorElement() !== null
 
 const globalEntitySelectorElement = () =>
     document.querySelector(GLOBAL_ENTITY_SELECTOR_ELEMENT)
