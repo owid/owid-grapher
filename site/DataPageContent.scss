@@ -96,7 +96,6 @@
         @include sm-up {
             margin-bottom: 40px;
         }
-        width: 100%;
         @include grid(12);
 
         figure[data-grapher-src] {
