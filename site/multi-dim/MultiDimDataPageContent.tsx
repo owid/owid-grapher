@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowDown, faCaretDown } from "@fortawesome/free-solid-svg-icons"
-import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
+import {
+    Grapher,
+    GrapherProgrammaticInterface,
+    getVariableMetadataRoute,
+} from "@ourworldindata/grapher"
 import {
     CodeSnippet,
     REUSE_THIS_WORK_SECTION_ID,
@@ -40,13 +44,18 @@ import {
     joinTitleFragments,
     ImageMetadata,
     DimensionProperty,
+    OwidVariableWithSource,
+    getLastUpdatedFromVariable,
+    getNextUpdateFromVariable,
+    omitUndefinedValues,
+    getAttributionFragmentsFromVariable,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "../gdocs/OwidGdoc.js"
 import StickyNav from "../blocks/StickyNav.js"
 import cx from "classnames"
 import { DebugProvider } from "../gdocs/DebugContext.js"
 import dayjs from "dayjs"
-import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
+import { BAKED_BASE_URL, DATA_API_URL } from "../../settings/clientSettings.js"
 import Image from "../gdocs/components/Image.js"
 import {
     MULTI_DIM_DATA_PAGE_CONFIG,
@@ -217,6 +226,57 @@ const MultiDimSettingsPanel = (props: {
     return <div className="settings-row">{settings}</div>
 }
 
+// From DataPageUtils
+const getDatapageDataV2 = async (
+    variableMetadata: OwidVariableWithSource,
+    partialGrapherConfig: GrapherInterface
+): Promise<DataPageDataV2> => {
+    {
+        const lastUpdated = getLastUpdatedFromVariable(variableMetadata) ?? ""
+        const nextUpdate = getNextUpdateFromVariable(variableMetadata)
+        const datapageJson: DataPageDataV2 = {
+            status: "draft",
+            title: variableMetadata.presentation?.titlePublic
+                ? omitUndefinedValues({
+                      title: variableMetadata.presentation?.titlePublic,
+                      attributionShort:
+                          variableMetadata.presentation?.attributionShort,
+                      titleVariant: variableMetadata.presentation?.titleVariant,
+                  })
+                : {
+                      title:
+                          partialGrapherConfig.title ??
+                          variableMetadata.display?.name ??
+                          variableMetadata.name ??
+                          "",
+                  },
+            description: variableMetadata.description,
+            descriptionShort: variableMetadata.descriptionShort,
+            descriptionFromProducer: variableMetadata.descriptionFromProducer,
+            attributionShort: variableMetadata.presentation?.attributionShort,
+            titleVariant: variableMetadata.presentation?.titleVariant,
+            topicTagsLinks: variableMetadata.presentation?.topicTagsLinks ?? [],
+            attributions: getAttributionFragmentsFromVariable(variableMetadata),
+            faqs: [],
+            descriptionKey: variableMetadata.descriptionKey ?? [],
+            descriptionProcessing: variableMetadata.descriptionProcessing,
+            owidProcessingLevel: variableMetadata.processingLevel,
+            dateRange: variableMetadata.timespan ?? "",
+            lastUpdated: lastUpdated,
+            nextUpdate: nextUpdate,
+            relatedData: [],
+            allCharts: [],
+            relatedResearch: [],
+            source: variableMetadata.source,
+            origins: variableMetadata.origins ?? [],
+            chartConfig: partialGrapherConfig as Record<string, unknown>,
+            unit: variableMetadata.display?.unit ?? variableMetadata.unit,
+            unitConversionFactor: variableMetadata.display?.conversionFactor,
+        }
+        return datapageJson
+    }
+}
+
 export const MultiDimDataPageContent = ({
     datapageData,
     grapherConfig,
@@ -262,6 +322,24 @@ export const MultiDimDataPageContent = ({
         )
     }, [currentView])
 
+    const [datapageDataFromVar, setDatapageDataFromVar] =
+        useState<DataPageDataV2 | null>(null)
+
+    useEffect(() => {
+        setDatapageDataFromVar(null)
+        const variableId = dimensionsConfig[0]?.variableId
+        if (!variableId) return
+        const variableMetadata = fetch(
+            getVariableMetadataRoute(DATA_API_URL, variableId)
+        )
+
+        variableMetadata
+            .then((resp) => resp.json())
+            .then((json) => getDatapageDataV2(json, grapherConfig))
+            .then(setDatapageDataFromVar)
+            .catch(console.error)
+    }, [dimensionsConfig, grapherConfig])
+
     const grapherConfigComputed = useMemo(() => {
         return {
             ...currentView?.config,
@@ -280,6 +358,11 @@ export const MultiDimDataPageContent = ({
         const grapher = new Grapher(grapherConfigComputed)
         return grapher
     }, [grapherConfigComputed])
+
+    const hasDescriptionKey = !!datapageDataFromVar?.descriptionKey?.length
+
+    const attributionFragments = datapageData?.attributions ?? []
+    const attributionUnshortened = attributionFragments.join("; ")
 
     return (
         <div className="DataPageContent MultiDimDataPageContent">
@@ -313,6 +396,128 @@ export const MultiDimDataPageContent = ({
                         grapher={grapher}
                         id="explore-the-data"
                     />
+                    {datapageDataFromVar && (
+                        <div className="wrapper-about-this-data grid grid-cols-12">
+                            {hasDescriptionKey ||
+                            datapageDataFromVar.descriptionFromProducer ||
+                            datapageDataFromVar.source?.additionalInfo ? (
+                                <>
+                                    <h2
+                                        id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
+                                        className="key-info__title span-cols-12"
+                                    >
+                                        What you should know about this
+                                        indicator
+                                    </h2>
+                                    <div className="col-start-1 span-cols-8 span-lg-cols-7 span-sm-cols-12">
+                                        <div className="key-info__content">
+                                            {hasDescriptionKey && (
+                                                <div className="key-info__key-description">
+                                                    {datapageDataFromVar
+                                                        .descriptionKey
+                                                        .length === 1 ? (
+                                                        <SimpleMarkdownText
+                                                            text={datapageDataFromVar.descriptionKey[0].trim()}
+                                                        />
+                                                    ) : (
+                                                        <ul>
+                                                            {datapageDataFromVar.descriptionKey.map(
+                                                                (text, i) => (
+                                                                    <li key={i}>
+                                                                        <SimpleMarkdownText
+                                                                            text={text.trim()}
+                                                                            useParagraphs={
+                                                                                false
+                                                                            }
+                                                                        />
+                                                                    </li>
+                                                                )
+                                                            )}
+                                                        </ul>
+                                                    )}
+                                                    {!!faqEntries?.faqs
+                                                        .length && (
+                                                        <a
+                                                            className="key-info__learn-more"
+                                                            href="#faqs"
+                                                        >
+                                                            Learn more in the
+                                                            FAQs
+                                                            <FontAwesomeIcon
+                                                                icon={
+                                                                    faArrowDown
+                                                                }
+                                                            />
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            <div className="key-info__expandable-descriptions">
+                                                {datapageDataFromVar.descriptionFromProducer && (
+                                                    <ExpandableToggle
+                                                        label={
+                                                            datapageDataFromVar.attributionShort
+                                                                ? `How does the producer of this data - ${datapageDataFromVar.attributionShort} - describe this data?`
+                                                                : "How does the producer of this data describe this data?"
+                                                        }
+                                                        content={
+                                                            <div className="article-block__text">
+                                                                <SimpleMarkdownText
+                                                                    text={
+                                                                        datapageDataFromVar.descriptionFromProducer
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        }
+                                                        isStacked={
+                                                            !!datapageDataFromVar
+                                                                .source
+                                                                ?.additionalInfo
+                                                        }
+                                                    />
+                                                )}
+                                                {datapageDataFromVar.source
+                                                    ?.additionalInfo && (
+                                                    <ExpandableToggle
+                                                        label="Additional information about this data"
+                                                        content={
+                                                            <div className="expandable-info-blocks__content">
+                                                                <HtmlOrSimpleMarkdownText
+                                                                    text={datapageDataFromVar.source?.additionalInfo.trim()}
+                                                                />
+                                                            </div>
+                                                        }
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="key-info__right span-cols-4 span-lg-cols-5 span-sm-cols-12">
+                                        <KeyDataTable
+                                            datapageData={datapageDataFromVar}
+                                            attribution={attributionUnshortened}
+                                        />
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <h2
+                                        className="about-this-data__title span-cols-3 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                                        id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
+                                    >
+                                        About this data
+                                    </h2>
+                                    <div className="col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                        <KeyDataTable
+                                            datapageData={datapageDataFromVar}
+                                            attribution={attributionUnshortened}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -953,11 +1158,11 @@ const datapageData: Partial<DataPageDataV2> = {
         titleVariant: MULTI_DIM_DATA_PAGE_CONFIG.config.dimensions_title,
     },
     titleVariant: MULTI_DIM_DATA_PAGE_CONFIG.config.dimensions_title,
-    topicTagsLinks: ["Plastic Pollution"],
+    topicTagsLinks: ["Life Expectancy"],
 }
 
 const tagToSlugMap = {
-    "Plastic Pollution": "plastic-pollution",
+    "Life Expectancy": "life-expectancy",
 }
 
 export const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
