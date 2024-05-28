@@ -95,6 +95,8 @@ export class SlopeChart
     // currently hovered legend color
     @observable hoverColor?: string
 
+    private hasInteractedWithChart = false
+
     transformTable(table: OwidTable) {
         if (!table.has(this.yColumnSlug)) return table
 
@@ -164,7 +166,7 @@ export class SlopeChart
         if (!isEntitySelectionEnabled || hoverKey === undefined) {
             return
         }
-
+        this.hasInteractedWithChart = true
         this.selectionArray.toggleSelection(hoverKey)
     }
 
@@ -200,6 +202,8 @@ export class SlopeChart
     @action.bound onLegendClick() {
         const { hoverColor, isEntitySelectionEnabled } = this
         if (!isEntitySelectionEnabled || hoverColor === undefined) return
+
+        this.hasInteractedWithChart = true
 
         const seriesNamesToToggle = this.series
             .filter((g) => g.color === hoverColor)
@@ -545,6 +549,7 @@ export class SlopeChart
 
         if (
             this.isEntitySelectionEnabled &&
+            this.hasInteractedWithChart &&
             !this.hoverKey &&
             !this.hoverColor &&
             !this.manager.isModalOpen &&
