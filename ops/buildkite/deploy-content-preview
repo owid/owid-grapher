@@ -67,7 +67,7 @@
 #  rather merely copied as-is to the `dist` folder to be executed on the server.
 #  When git pushing functions code, the regular staging job will automatically
 #  update them on the staging server. You then just need to run `yarn
-#  deploy-content-preview` to deploy the updated functions code to the preview
+#  deployContentPreview` to deploy the updated functions code to the preview
 #  URL.
 #
 #  ## CREATING CLOUDFLARE PAGES API TOKEN (optional)
