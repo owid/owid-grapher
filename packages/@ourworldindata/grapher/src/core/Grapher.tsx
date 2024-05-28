@@ -2277,10 +2277,10 @@ The code in the cell below provides the infrastructure to access our data. It is
 #   run_on_load: true
 # ---%%
 from pyodide.http import open_url
-from io import StringIO
-csv = open_url("${this.baseUrl}.csv").getValue()
+import pandas as pd
+csv = open_url("${this.baseUrl}.csv")
 
-df = pd.read_csv(StringIO(csv))
+df = pd.read_csv(csv)
 
 # %% [markdown]
 Add your code below - the example shows the first few rows of the data. Refer to the pandas documentation of ask ChatGPT for help on how to manipulate pandas dataframes.
