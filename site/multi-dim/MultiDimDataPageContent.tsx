@@ -306,13 +306,14 @@ export const MultiDimDataPageContent = ({
                 <MultiDimSettingsPanel updateSettings={setCurrentSettings} />
             </div>
 
-            <div className="chart-key-info">
-                <GrapherWithFallback
-                    key={JSON.stringify(grapherConfigComputed)}
-                    grapher={grapher}
-                    className="wrapper"
-                    id="explore-the-data"
-                />
+            <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
+                <div className="chart-key-info col-start-2 span-cols-12">
+                    <GrapherWithFallback
+                        key={JSON.stringify(grapherConfigComputed)}
+                        grapher={grapher}
+                        id="explore-the-data"
+                    />
+                </div>
             </div>
         </div>
     )
