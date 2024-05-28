@@ -83,7 +83,6 @@ export function GdocPost({
         >
             <OwidGdocHeader
                 content={content}
-                authors={content.authors}
                 publishedAt={publishedAt}
                 breadcrumbs={breadcrumbs ?? undefined}
             />

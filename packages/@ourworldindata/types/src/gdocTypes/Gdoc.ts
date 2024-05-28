@@ -13,7 +13,10 @@ import {
 } from "./ArchieMlComponents.js"
 import { DbChartTagJoin } from "../dbTypes/ChartTags.js"
 import { MinimalTag } from "../dbTypes/Tags.js"
-import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
+import {
+    DbEnrichedAuthor,
+    DbEnrichedLatestWork,
+} from "../domainTypes/Author.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -67,6 +70,7 @@ export interface OwidGdocBaseInterface {
     revisionId: string | null
     publicationContext: OwidGdocPublicationContext
     breadcrumbs: BreadcrumbItem[] | null
+    linkedAuthors?: DbEnrichedAuthor[]
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     linkedCharts?: Record<string, LinkedChart>
     linkedIndicators?: Record<number, LinkedIndicator>

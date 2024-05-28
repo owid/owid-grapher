@@ -10,6 +10,7 @@ import {
     OwidGdocMinimalPostInterface,
     OwidGdocType,
     LinkedIndicator,
+    DbEnrichedAuthor,
 } from "@ourworldindata/types"
 import { formatAuthors, Url } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
@@ -44,6 +45,13 @@ export const breadcrumbColorForCoverColor = (
     }
 }
 
+export const useLinkedAuthor = (name: string): DbEnrichedAuthor => {
+    const { linkedAuthors } = useContext(AttachmentsContext)
+    const author = linkedAuthors?.find((author) => author.title === name)
+    if (!author) return { title: name, slug: null }
+    return author
+}
+
 export const useLinkedDocument = (
     url: string
 ): { linkedDocument?: OwidGdocMinimalPostInterface; errorMessage?: string } => {
@@ -69,6 +77,8 @@ export const useLinkedDocument = (
     } else if (!linkedDocument.published) {
         errorMessage = `Article with slug "${linkedDocument.slug}" isn't published.`
     }
+
+    //todo replace with getCanonicalUrl
     const subdirectory =
         linkedDocument.type === OwidGdocType.DataInsight ? "data-insights/" : ""
     return {

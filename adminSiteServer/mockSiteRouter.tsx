@@ -480,6 +480,23 @@ getPlainRouteWithROTransaction(
     }
 )
 
+getPlainRouteNonIdempotentWithRWTransaction(
+    mockSiteRouter,
+    "/team/:authorSlug",
+    async (req, res, trx) => {
+        try {
+            // We assume here that author slugs are unique across all gdocs (not
+            // just author gdocs)
+            const page = await renderGdocsPageBySlug(trx, req.params.authorSlug)
+            res.send(page)
+            return
+        } catch (e) {
+            console.error(e)
+            res.status(404).send(renderNotFoundPage())
+        }
+    }
+)
+
 // TODO: this transaction is only RW because somewhere inside it we fetch images
 getPlainRouteNonIdempotentWithRWTransaction(
     mockSiteRouter,
@@ -500,7 +517,7 @@ getPlainRouteNonIdempotentWithRWTransaction(
             res.send(page)
         } catch (e) {
             console.error(e)
-            res.status(404).send(await renderNotFoundPage())
+            res.status(404).send(renderNotFoundPage())
         }
     }
 )

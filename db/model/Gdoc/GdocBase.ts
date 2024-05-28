@@ -50,7 +50,13 @@ import {
     getVariableOfDatapageIfApplicable,
 } from "../Variable.js"
 import { createLinkFromUrl } from "../Link.js"
-import { OwidGdoc, OwidGdocContent, OwidGdocType } from "@ourworldindata/types"
+import {
+    OwidGdoc,
+    OwidGdocContent,
+    OwidGdocType,
+    DbRawAuthor,
+    DbEnrichedAuthor,
+} from "@ourworldindata/types"
 import { KnexReadonlyTransaction } from "../../db"
 
 export class GdocBase implements OwidGdocBaseInterface {
@@ -69,6 +75,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     tags: DbPlainTag[] | null = null
     errors: OwidGdocErrorMessage[] = []
     imageMetadata: Record<string, ImageMetadata> = {}
+    linkedAuthors: DbEnrichedAuthor[] = []
     linkedCharts: Record<string, LinkedChart> = {}
     linkedIndicators: Record<number, LinkedIndicator> = {}
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
@@ -176,6 +183,13 @@ export class GdocBase implements OwidGdocBaseInterface {
         }
 
         return [...details]
+    }
+
+    async loadLinkedAuthors(knex: db.KnexReadonlyTransaction): Promise<void> {
+        this.linkedAuthors = await getMinimalAuthorsByNames(
+            knex,
+            this.content.authors
+        )
     }
 
     get links(): DbInsertPostGdocLink[] {
@@ -693,6 +707,20 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async validate(knex: db.KnexReadonlyTransaction): Promise<void> {
+        const authorErrors = this.content.authors.reduce(
+            (errors: OwidGdocErrorMessage[], name): OwidGdocErrorMessage[] => {
+                if (!this.linkedAuthors.find((a) => a.title === name)) {
+                    errors.push({
+                        property: "linkedAuthors",
+                        message: `Author "${name}" does not exist or is not published`,
+                        type: OwidGdocErrorMessageType.Warning,
+                    })
+                }
+                return errors
+            },
+            []
+        )
+
         const filenameErrors: OwidGdocErrorMessage[] = this.filenames.reduce(
             (
                 errors: OwidGdocErrorMessage[],
@@ -784,6 +812,7 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         const subclassErrors = await this._validateSubclass(knex, this)
         this.errors = [
+            ...authorErrors,
             ...filenameErrors,
             ...linkErrors,
             ...contentErrors,
@@ -792,6 +821,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
+        await this.loadLinkedAuthors(knex)
         await this.loadLinkedDocuments(knex)
         await this.loadImageMetadataFromDB(knex)
         await this.loadLinkedCharts(knex)
@@ -867,4 +897,24 @@ export async function getMinimalGdocPostsByIds(
             "featured-image": row["featured-image"],
         } satisfies OwidGdocMinimalPostInterface
     })
+}
+
+export async function getMinimalAuthorsByNames(
+    knex: KnexReadonlyTransaction,
+    names: string[]
+): Promise<DbRawAuthor[]> {
+    if (names.length === 0) return []
+    const rows = await db.knexRaw<DbRawAuthor>(
+        knex,
+        `-- sql
+            SELECT
+                slug,
+                content ->> '$.title' as title
+            FROM posts_gdocs
+            WHERE type = 'author'
+            AND content->>"$.title" in (:names)
+            AND published = 1`,
+        { names }
+    )
+    return rows
 }
