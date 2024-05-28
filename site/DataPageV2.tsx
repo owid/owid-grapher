@@ -33,7 +33,6 @@ import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugContext.js"
-import { getNotebookScript } from "./GrapherPage.js"
 
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
@@ -174,7 +173,6 @@ export const DataPageV2 = (props: {
                         </DebugProvider>
                     </div>
                 </main>
-                <div id="notebook" />
                 <SiteFooter
                     baseUrl={baseUrl}
                     context={SiteFooterContext.dataPageV2}
@@ -185,12 +183,6 @@ export const DataPageV2 = (props: {
                         __html: `window._OWID_GRAPHER_CONFIG = ${serializeJSONForHTML(
                             grapherConfig
                         )}`,
-                    }}
-                />
-                <script
-                    type="module"
-                    dangerouslySetInnerHTML={{
-                        __html: getNotebookScript(grapherConfig.slug!),
                     }}
                 />
             </body>
