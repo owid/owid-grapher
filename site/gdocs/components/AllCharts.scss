@@ -3,7 +3,7 @@
         margin-bottom: 40px;
     }
 
-    figure[data-grapher-src] {
+    figure[data-grapher-src]:not(.grapherPreview) {
         height: $grapher-height;
     }
 }

@@ -37,11 +37,6 @@
         border-bottom: none !important;
     }
 
-    > a > div {
-        display: inline-block;
-        position: relative;
-    }
-
     > a > div:hover {
         -webkit-box-shadow: 0px 0px 4px #000;
         -moz-box-shadow: 0px 0px 4px #000;
@@ -53,38 +48,6 @@
         padding: 0;
         width: 100%;
         max-width: $content-max-width;
-    }
-
-    .interactionNotice {
-        font-size: 14px;
-        font-weight: 400;
-        line-height: 1.2;
-        color: rgba(black, 0.4);
-        display: none;
-        background-color: rgba(black, 0.03);
-        padding: 12px 30px;
-        position: relative;
-        text-decoration: none;
-        color: $controls-color;
-
-        // Anything >680px will get the interactive graphics in-place.
-        // 680px is a breakpoint also used in the JavaScript code – keep it in sync.
-        @media screen and (max-device-width: 680px) {
-            display: block;
-        }
-
-        .icon {
-            font-size: 21px;
-            line-height: 28px;
-            margin-top: -15px;
-            position: absolute;
-            left: 10px;
-            top: 50%;
-        }
-
-        .label {
-            display: block;
-        }
     }
 }
 
@@ -98,6 +61,30 @@
 
 figure[data-explorer-src] {
     position: relative;
+}
+
+.interactionNotice {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.6;
+    display: none;
+    background-color: rgba(black, 0.03);
+    padding: 3px 0;
+    color: $controls-color;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    // Anything >680px will get the interactive graphics in-place.
+    // 680px is a breakpoint also used in the JavaScript code – keep it in sync.
+    @media screen and (max-device-width: 680px) {
+        display: flex;
+    }
+
+    .icon {
+        font-size: 21px;
+    }
 }
 
 /*******************************************************************************

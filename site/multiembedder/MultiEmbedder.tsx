@@ -32,6 +32,7 @@ import {
     EMBEDDED_EXPLORER_PARTIAL_GRAPHER_CONFIGS,
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
 } from "../../explorer/ExplorerConstants.js"
+import { GRAPHER_PREVIEW_CLASS } from "../SiteConstants.js"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
@@ -201,7 +202,7 @@ class MultiEmbedder {
                 this.graphersAndExplorersToUpdate.add(props.selection)
             ReactDOM.render(<Explorer {...props} />, figure)
         } else {
-            figure.classList.remove("grapherPreview")
+            figure.classList.remove(GRAPHER_PREVIEW_CLASS)
 
             const grapherPageConfig = deserializeJSONFromHTML(html)
 

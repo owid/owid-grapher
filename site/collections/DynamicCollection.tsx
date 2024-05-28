@@ -1,3 +1,4 @@
+import cx from "classnames"
 import React from "react"
 import ReactDOM from "react-dom"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
@@ -12,6 +13,9 @@ import {
 import { observer } from "mobx-react"
 import { WindowGraphers } from "./DynamicCollectionPage.js"
 import { Grapher } from "@ourworldindata/grapher"
+import { GRAPHER_PREVIEW_CLASS } from "../SiteConstants.js"
+import InteractionNotice from "../InteractionNotice.js"
+import GrapherImage from "../GrapherImage.js"
 
 interface DynamicCollectionProps {
     baseUrl: string
@@ -117,14 +121,29 @@ export class DynamicCollection extends React.Component<DynamicCollectionProps> {
             <div className="grid span-cols-12">
                 {this.initialDynamicCollection
                     .split(" ")
-                    .map((chartSlug, index) => (
-                        <figure
-                            key={index}
-                            data-grapher-src={`${this.props.baseUrl}/grapher/${chartSlug}`}
-                            data-grapher-index={index}
-                            className="span-cols-6 span-md-cols-12"
-                        />
-                    ))}
+                    .map((chartSlug, index) => {
+                        const grapherUrl = `${this.props.baseUrl}/grapher/${chartSlug}`
+                        return (
+                            <figure
+                                key={index}
+                                className={cx(
+                                    GRAPHER_PREVIEW_CLASS,
+                                    "span-cols-6 span-md-cols-12"
+                                )}
+                                data-grapher-src={grapherUrl}
+                                data-grapher-index={index}
+                            >
+                                <a
+                                    href={grapherUrl}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    <GrapherImage slug={chartSlug} />
+                                    <InteractionNotice />
+                                </a>
+                            </figure>
+                        )
+                    })}
             </div>
         )
     }

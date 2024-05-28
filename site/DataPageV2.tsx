@@ -120,11 +120,6 @@ export const DataPageV2 = (props: {
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
                 <IFrameDetector />
-                <noscript>
-                    <style>{`
-                    figure[data-grapher-src] { display: none !important; }
-                `}</style>
-                </noscript>
                 <link rel="preconnect" href={dataApiOrigin} />
                 {variableIds.flatMap((variableId) =>
                     [
