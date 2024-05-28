@@ -16,6 +16,11 @@ export interface Dimension {
     choices: Dimension[]
 }
 
+export interface DimensionWithChoicesKeyedBySlug
+    extends Omit<Dimension, "choices"> {
+    choices: Record<string, Choice>
+}
+
 export interface Choice {
     slug: string
     name: string

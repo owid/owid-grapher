@@ -53,7 +53,11 @@ import {
     MultiDimDataPageConfig,
 } from "./MultiDimDataPageConfig.js"
 import Select, { OptionProps, components } from "react-select"
-import { Choice, Dimension } from "./MultiDimDataPageTypes.js"
+import {
+    Choice,
+    Dimension,
+    DimensionWithChoicesKeyedBySlug,
+} from "./MultiDimDataPageTypes.js"
 declare global {
     interface Window {
         _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields
@@ -90,12 +94,18 @@ const DatapageResearchThumbnail = ({
     )
 }
 
-const DimensionDropdown = (props: { dimension: Dimension }) => {
+const DimensionDropdown = (props: {
+    dimension: DimensionWithChoicesKeyedBySlug
+    currentChoiceSlug: string
+    onChange?: (slug: string, valueSlug: string) => void
+}) => {
     const { dimension } = props
 
     const [active, setActive] = useState(false)
 
     const toggleVisibility = useCallback(() => setActive(!active), [active])
+
+    const currentChoice = dimension.choices[props.currentChoiceSlug]
 
     return (
         <div className="settings-dropdown">
@@ -105,7 +115,8 @@ const DimensionDropdown = (props: { dimension: Dimension }) => {
                 data-track-note="multi-dim-choice-dropdown"
                 type="button"
             >
-                <span className="label">{dimension.name}</span>
+                <span className="setting-label">{dimension.name}</span>
+                <span className="setting-choice">{currentChoice.name}</span>
                 <FontAwesomeIcon icon={faCaretDown} />
             </button>
             {active && (
@@ -124,21 +135,28 @@ const DimensionDropdown = (props: { dimension: Dimension }) => {
                             <div className="menu-options">
                                 {Object.values(dimension.choices).map(
                                     (choice) => (
-                                        <section key={choice.slug}>
+                                        <section
+                                            key={choice.slug}
+                                            className={cx({
+                                                active:
+                                                    choice.slug ===
+                                                    props.currentChoiceSlug,
+                                            })}
+                                        >
                                             <div className="config-list">
                                                 <button
-                                                    className={cx({
-                                                        // active: isLinear,
-                                                    })}
-                                                    onClick={
-                                                        (): void => void 0
-                                                        // this.setAxisScale(linear)
-                                                    }
+                                                    onClick={() => {
+                                                        props.onChange?.(
+                                                            dimension.slug,
+                                                            choice.slug
+                                                        )
+                                                        setActive(false)
+                                                    }}
                                                 >
                                                     {choice.name}
                                                 </button>
                                                 {choice.description && (
-                                                    <label>
+                                                    <label className="description">
                                                         {choice.description}
                                                     </label>
                                                 )}
@@ -152,15 +170,6 @@ const DimensionDropdown = (props: { dimension: Dimension }) => {
                 </div>
             )}
         </div>
-    )
-}
-
-const MultiDimSelectOption = (props: OptionProps<any>) => {
-    return (
-        <components.Option {...props}>
-            <div>{props.data.label}</div>
-            <div style={{ fontSize: 12 }}>{props.data.description}</div>
-        </components.Option>
     )
 }
 
@@ -194,19 +203,15 @@ const MultiDimSettingsPanel = (props: {
         [props, currentSettings]
     )
 
-    const dimensionSettings = Object.values(dimensions).map((dimension) => ({
-        slug: dimension.slug,
-        name: dimension.name,
-        description: dimension.description,
-        choices: Object.values(dimension.choices).map((choice) => ({
-            value: choice.slug,
-            label: choice.name,
-            description: choice.description,
-        })),
-    }))
-
     const settings = Object.values(dimensions).map((dim) => (
-        <DimensionDropdown key={dim.slug} dimension={dim} />
+        <DimensionDropdown
+            key={dim.slug}
+            dimension={dim}
+            currentChoiceSlug={currentSettings[dim.slug]}
+            onChange={(slug, value) =>
+                setCurrentSettings({ ...currentSettings, [slug]: value })
+            }
+        />
     ))
 
     return <div className="settings-row">{settings}</div>
