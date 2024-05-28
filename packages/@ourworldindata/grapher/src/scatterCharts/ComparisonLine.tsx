@@ -12,11 +12,13 @@ import { DualAxis } from "../axis/Axis"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 import { getElementWithHalo } from "./Halos"
 import { ComparisonLineConfig } from "@ourworldindata/types"
+import { GRAPHER_FONT_SCALE_10_5 } from "../core/GrapherConstants"
 
 @observer
 export class ComparisonLine extends React.Component<{
     dualAxis: DualAxis
     comparisonLine: ComparisonLineConfig
+    baseFontSize: number
 }> {
     private renderUid = guid()
 
@@ -111,7 +113,9 @@ export class ComparisonLine extends React.Component<{
                 {placedLabel && (
                     <text
                         style={{
-                            fontSize: "80%",
+                            fontSize:
+                                GRAPHER_FONT_SCALE_10_5 *
+                                this.props.baseFontSize,
                             opacity: 0.9,
                             textAnchor: "end",
                             fill: "#999",

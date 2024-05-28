@@ -805,6 +805,7 @@ export class LineChart
                             key={index}
                             dualAxis={dualAxis}
                             comparisonLine={line}
+                            baseFontSize={this.fontSize}
                         />
                     ))}
                     {showLegend && <LineLegend manager={this} />}
