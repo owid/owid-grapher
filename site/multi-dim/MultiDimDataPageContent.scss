@@ -92,6 +92,12 @@ $zindex-controls-popup: 140;
             margin-bottom: 0;
             color: $dark-text;
         }
+
+        p {
+            padding: 0 1em;
+            color: $dark-text;
+            font-size: 0.9em;
+        }
     }
 
     // transparent mouse-event catcher while popup is visible
