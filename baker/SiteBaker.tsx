@@ -194,6 +194,7 @@ export class SiteBaker {
             "--- BakeAll [:bar] :current/:total :elapseds :name\n",
             {
                 total: getProgressBarTotal(bakeSteps),
+                renderThrottle: 0,
             }
         )
         this.explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
@@ -326,8 +327,6 @@ export class SiteBaker {
                     keyBy(images, "filename")
                 )
 
-            // This step runs so quickly that the progress bar doesn't log, so we add a small delay
-            await new Promise((resolve) => setTimeout(resolve, 10))
             this.progressBar.tick({
                 name: `✅ Prefetched ${Object.values(imageMetadataDictionary).length} images`,
             })
@@ -1057,6 +1056,7 @@ export class SiteBaker {
             "--- BakeAll [:bar] :current/:total :elapseds :name\n",
             {
                 total: progressBarTotal,
+                renderThrottle: 0,
             }
         )
         await this._bakeNonWordpressPages(knex)
