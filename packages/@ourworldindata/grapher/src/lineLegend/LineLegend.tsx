@@ -110,6 +110,7 @@ class Label extends React.Component<{
                 onMouseOver={onMouseOver}
                 onMouseLeave={onMouseLeave}
                 onClick={onClick}
+                style={{ cursor: "default" }}
             >
                 {needsLines && (
                     <g
@@ -171,6 +172,7 @@ export interface LineLegendManager {
     onLineLegendMouseLeave?: () => void
     focusedSeriesNames: EntityName[]
     yAxis: VerticalAxis
+    lineLegendY?: [number, number]
     lineLegendX?: number
     // used to determine which series should be labelled when there is limited space
     seriesSortedByImportance?: EntityName[]
@@ -257,10 +259,17 @@ export class LineLegend extends React.Component<{
         return this.manager.lineLegendX ?? 0
     }
 
+    @computed get legendY(): [number, number] {
+        const range = this.manager.lineLegendY ?? this.manager.yAxis.range
+        return [Math.min(range[1], range[0]), Math.max(range[1], range[0])]
+    }
+
     // Naive initial placement of each mark at the target height, before collision detection
     @computed private get initialSeries(): PlacedSeries[] {
         const { yAxis } = this.manager
-        const { legendX } = this
+        const { legendX, legendY } = this
+
+        const [legendYMin, legendYMax] = legendY
 
         return this.sizedLabels.map((label) => {
             // place vertically centered at Y value
@@ -275,8 +284,8 @@ export class LineLegend extends React.Component<{
 
             // ensure label doesn't go beyond the top or bottom of the chart
             const y = Math.min(
-                Math.max(initialY, yAxis.rangeMin),
-                yAxis.rangeMax - label.height
+                Math.max(initialY, legendYMin),
+                legendYMax - label.height
             )
             const bounds = new Bounds(legendX, y, label.width, label.height)
 
@@ -298,7 +307,7 @@ export class LineLegend extends React.Component<{
     }
 
     @computed get placedSeries(): PlacedSeries[] {
-        const { yAxis } = this.manager
+        const [yLegendMin, yLegendMax] = this.legendY
 
         // ensure list is sorted by the visual position in ascending order
         const sortedSeries = sortBy(
@@ -333,9 +342,9 @@ export class LineLegend extends React.Component<{
                         overlapHeight *
                             (bottomGroup.length /
                                 (topGroup.length + bottomGroup.length))
-                    const overflowTop = Math.max(yAxis.rangeMin - targetY, 0)
+                    const overflowTop = Math.max(yLegendMin - targetY, 0)
                     const overflowBottom = Math.max(
-                        targetY + newHeight - yAxis.rangeMax,
+                        targetY + newHeight - yLegendMax,
                         0
                     )
                     const newY = targetY + overflowTop - overflowBottom
@@ -382,7 +391,8 @@ export class LineLegend extends React.Component<{
     }
 
     @computed get partialInitialSeries(): PlacedSeries[] {
-        const availableHeight = this.manager.yAxis.rangeSize
+        const { legendY } = this
+        const availableHeight = Math.abs(legendY[1] - legendY[0])
         const nonOverlappingMinHeight =
             sumBy(this.initialSeries, (series) => series.bounds.height) +
             this.initialSeries.length * LEGEND_ITEM_MIN_SPACING

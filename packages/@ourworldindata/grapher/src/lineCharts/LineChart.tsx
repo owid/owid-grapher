@@ -706,6 +706,13 @@ export class LineChart
         return this.bounds.right - (this.lineLegendDimensions?.width || 0)
     }
 
+    @computed get lineLegendY(): [number, number] {
+        return [
+            this.boundsWithoutColorLegend.top,
+            this.boundsWithoutColorLegend.bottom,
+        ]
+    }
+
     @computed get clipPathBounds(): Bounds {
         const { dualAxis, boundsWithoutColorLegend } = this
         return boundsWithoutColorLegend

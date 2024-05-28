@@ -624,6 +624,10 @@ export class StackedAreaChart
             : 0
     }
 
+    @computed get lineLegendY(): [number, number] {
+        return [this.bounds.top, this.bounds.bottom]
+    }
+
     @computed get series(): readonly StackedSeries<number>[] {
         return stackSeries(withMissingValuesAsZeroes(this.unstackedSeries))
     }
