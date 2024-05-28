@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
+import { faArrowDown, faCaretDown } from "@fortawesome/free-solid-svg-icons"
 import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import {
     CodeSnippet,
@@ -53,6 +53,7 @@ import {
     MultiDimDataPageConfig,
 } from "./MultiDimDataPageConfig.js"
 import Select, { OptionProps, components } from "react-select"
+import { Choice, Dimension } from "./MultiDimDataPageTypes.js"
 declare global {
     interface Window {
         _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields
@@ -86,6 +87,71 @@ const DatapageResearchThumbnail = ({
             containerType="thumbnail"
             className="span-lg-cols-2 span-sm-cols-3"
         />
+    )
+}
+
+const DimensionDropdown = (props: { dimension: Dimension }) => {
+    const { dimension } = props
+
+    const [active, setActive] = useState(false)
+
+    const toggleVisibility = useCallback(() => setActive(!active), [active])
+
+    return (
+        <div className="settings-dropdown">
+            <button
+                className={cx("menu-toggle", { active })}
+                onClick={toggleVisibility}
+                data-track-note="multi-dim-choice-dropdown"
+                type="button"
+            >
+                <span className="label">{dimension.name}</span>
+                <FontAwesomeIcon icon={faCaretDown} />
+            </button>
+            {active && (
+                <div className="menu">
+                    <div className="menu-contents">
+                        <div
+                            className="menu-backdrop"
+                            onClick={toggleVisibility}
+                        ></div>
+                        {/* <OverlayHeader /> */}
+                        <div className="menu-wrapper">
+                            <h4>{dimension.name}</h4>
+                            {dimension.description && (
+                                <p>{dimension.description}</p>
+                            )}
+                            <div className="menu-options">
+                                {Object.values(dimension.choices).map(
+                                    (choice) => (
+                                        <section key={choice.slug}>
+                                            <div className="config-list">
+                                                <button
+                                                    className={cx({
+                                                        // active: isLinear,
+                                                    })}
+                                                    onClick={
+                                                        (): void => void 0
+                                                        // this.setAxisScale(linear)
+                                                    }
+                                                >
+                                                    {choice.name}
+                                                </button>
+                                                {choice.description && (
+                                                    <label>
+                                                        {choice.description}
+                                                    </label>
+                                                )}
+                                            </div>
+                                        </section>
+                                    )
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
     )
 }
 
@@ -139,39 +205,11 @@ const MultiDimSettingsPanel = (props: {
         })),
     }))
 
-    const settings = dimensionSettings.map((setting) => {
-        return (
-            <div key={setting.slug}>
-                <h3>{setting.name}</h3>
-                <p>{setting.description}</p>
-                <Select
-                    options={setting.choices}
-                    components={{ Option: MultiDimSelectOption }}
-                    value={setting.choices.find(
-                        (choice) =>
-                            choice.value === currentSettings[setting.slug]
-                    )}
-                    isMulti={false}
-                    onChange={(newValue) => {
-                        setCurrentSettings({
-                            ...currentSettings,
-                            [setting.slug]: newValue!.value,
-                        })
-                        props.onChange?.(
-                            setting.slug,
-                            newValue!.value,
-                            currentSettings
-                        )
-                    }}
-                    styles={{
-                        menu: (provided) => ({ ...provided, zIndex: 1000 }),
-                    }}
-                />
-            </div>
-        )
-    })
+    const settings = Object.values(dimensions).map((dim) => (
+        <DimensionDropdown key={dim.slug} dimension={dim} />
+    ))
 
-    return <div>{settings}</div>
+    return <div className="settings-row">{settings}</div>
 }
 
 export const MultiDimDataPageContent = ({
@@ -239,7 +277,7 @@ export const MultiDimDataPageContent = ({
     }, [grapherConfigComputed])
 
     return (
-        <div className="DataPageContent">
+        <div className="DataPageContent MultiDimDataPageContent">
             <div className="bg-blue-10">
                 <div className="header__wrapper wrapper grid grid-cols-12 ">
                     <div className="header__left span-cols-8 span-sm-cols-12">
