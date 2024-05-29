@@ -1,0 +1,20 @@
+.TagsIndexPage {
+    .tag-box {
+        border: 1px solid black;
+        position: relative;
+        padding: 16px;
+        padding-right: 32px;
+        display: flex;
+        flex-wrap: wrap;
+        margin: 4px;
+    }
+    .tag-box__grip-button {
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        background-color: transparent;
+        padding: 0;
+        border: none;
+        line-height: 1;
+    }
+}
