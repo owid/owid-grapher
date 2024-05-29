@@ -811,7 +811,7 @@ export class Grapher
     @observable.ref isDownloadModalOpen = false
     @observable.ref isEmbedModalOpen = false
 
-    @computed private get isStatic(): boolean {
+    @computed get isStatic(): boolean {
         return this.renderToStatic || this.isExportingToSvgOrPng
     }
 

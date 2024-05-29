@@ -34,7 +34,6 @@ import {
     GRAPHER_DARK_TEXT,
     GRAPHER_FONT_SCALE_9_6,
     GRAPHER_FONT_SCALE_10_5,
-    GRAPHER_FONT_SCALE_11_2,
     GRAPHER_TIMELINE_CLASS,
     GRAPHER_SIDE_PANEL_CLASS,
 } from "../core/GrapherConstants"
@@ -66,6 +65,7 @@ import {
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
+import { NoDataSection } from "../scatterCharts/NoDataSection"
 
 export interface SlopeChartManager extends ChartManager {
     isModalOpen?: boolean
@@ -343,64 +343,18 @@ export class SlopeChart
     }
 
     @computed private get noDataSection(): JSX.Element {
-        const { selectedEntitiesWithoutData } = this
-
-        const displayedEntities = selectedEntitiesWithoutData.slice(0, 5)
-        const numRemainingEntities = Math.max(
-            0,
-            selectedEntitiesWithoutData.length - displayedEntities.length
-        )
-
         const bounds = new Bounds(
             this.legendX,
-            this.legendY + this.legendHeight,
+            this.legendY + this.legendHeight + 12,
             this.sidebarWidth,
-            this.bounds.height - this.legendHeight
+            this.bounds.height - this.legendHeight - 12
         )
-
         return (
-            <foreignObject
-                {...bounds.toProps()}
-                style={{
-                    color: GRAPHER_DARK_TEXT,
-                    fontSize: GRAPHER_FONT_SCALE_11_2 * this.fontSize,
-                }}
-            >
-                <div
-                    style={{
-                        textTransform: "uppercase",
-                        fontWeight: 700,
-                        marginTop: 12,
-                        marginBottom: 2,
-                        lineHeight: 1.15,
-                    }}
-                >
-                    No data
-                </div>
-                <ul>
-                    {displayedEntities.map((entityName) => (
-                        <li
-                            key={entityName}
-                            style={{
-                                fontStyle: "italic",
-                                lineHeight: 1.15,
-                                marginBottom: 2,
-                            }}
-                        >
-                            {entityName}
-                        </li>
-                    ))}
-                </ul>
-                {numRemainingEntities > 0 && (
-                    <div>
-                        &{" "}
-                        {numRemainingEntities === 1
-                            ? "one"
-                            : numRemainingEntities}{" "}
-                        more
-                    </div>
-                )}
-            </foreignObject>
+            <NoDataSection
+                entityNames={this.selectedEntitiesWithoutData}
+                bounds={bounds}
+                baseFontSize={this.fontSize}
+            />
         )
     }
 

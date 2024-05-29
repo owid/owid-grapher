@@ -76,7 +76,11 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     @computed private get isLayerMode(): boolean {
         return (
             this.focusedSeriesNames.length > 0 ||
-            this.hoveredSeriesNames.length > 0
+            this.hoveredSeriesNames.length > 0 ||
+            // if the user has selected entities that are not in the chart,
+            // we want to move all entities into the background
+            (this.props.focusedSeriesNames.length > 0 &&
+                this.focusedSeriesNames.length === 0)
         )
     }
 
