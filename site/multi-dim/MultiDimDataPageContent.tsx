@@ -52,6 +52,8 @@ import {
     OwidVariableDataMetadataDimensions,
     OwidVariableWithSourceAndDimension,
     memoize,
+    Url,
+    getWindowQueryParams,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "../gdocs/OwidGdoc.js"
 import StickyNav from "../blocks/StickyNav.js"
@@ -302,17 +304,31 @@ export const MultiDimDataPageContent = ({
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
 }) => {
-    const config = useMemo(
-        () => MultiDimDataPageConfig.fromObject(window._OWID_MULTI_DIM_CONFIG),
-        []
+    const [config, setConfig] = useState<MultiDimDataPageConfig | undefined>(
+        undefined
     )
+    useEffect(() => {
+        const params = getWindowQueryParams()
+        const fetchUrl = params["url"]
+        if (!fetchUrl) throw new Error("No fetch url provided")
+
+        fetch(fetchUrl)
+            .then((res) => res.text())
+            .then(MultiDimDataPageConfig.fromYaml)
+            .then(setConfig)
+            .catch(console.error)
+    }, [])
+    // const config = useMemo(
+    //     () => MultiDimDataPageConfig.fromObject(window._OWID_MULTI_DIM_CONFIG),
+    //     []
+    // )
 
     const datapageData: Partial<DataPageDataV2> = {
         title: {
-            title: config.config.name,
-            titleVariant: config.config.dimensions_title,
+            title: config?.config.name ?? "",
+            titleVariant: config?.config.dimensions_title,
         },
-        titleVariant: config.config.dimensions_title,
+        titleVariant: config?.config.dimensions_title,
     }
 
     const titleFragments = joinTitleFragments(
@@ -333,7 +349,7 @@ export const MultiDimDataPageContent = ({
 
     const currentView = useMemo(() => {
         if (Object.keys(currentSettings).length === 0) return undefined
-        return config.findViewByDimensions(currentSettings)
+        return config?.findViewByDimensions(currentSettings)
     }, [currentSettings, config])
 
     const dimensionsConfig = useMemo(() => {
@@ -410,10 +426,12 @@ export const MultiDimDataPageContent = ({
                 </div>
             </div>
             <div className="wrapper">
-                <MultiDimSettingsPanel
-                    config={config}
-                    updateSettings={setCurrentSettings}
-                />
+                {config && (
+                    <MultiDimSettingsPanel
+                        config={config}
+                        updateSettings={setCurrentSettings}
+                    />
+                )}
             </div>
 
             <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
