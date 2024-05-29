@@ -28,6 +28,7 @@ export function Dropdown(props: Props): React.ReactElement {
                     })
                 },
                 menu: () => "menu",
+                placeholder: () => "placeholder",
             }}
             {...props}
         />

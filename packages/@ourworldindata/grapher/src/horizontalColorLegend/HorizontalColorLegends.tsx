@@ -1,6 +1,7 @@
 import React from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
+import cx from "classnames"
 import {
     getRelativeMouse,
     sortBy,
@@ -28,6 +29,7 @@ import {
     GRAPHER_FONT_SCALE_12,
     GRAPHER_FONT_SCALE_12_8,
     GRAPHER_FONT_SCALE_14,
+    GRAPHER_LEGEND_CLASS,
 } from "../core/GrapherConstants"
 import { darkenColorForLine } from "../color/ColorUtils"
 
@@ -560,7 +562,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             <g
                 ref={this.base}
                 id={makeIdForHumanConsumption("numeric-color-legend")}
-                className="numericColorLegend"
+                className={cx(GRAPHER_LEGEND_CLASS, "numericColorLegend")}
             >
                 {numericLabels.map((label, index) => (
                     <line
@@ -608,6 +610,18 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                                         ? bin.props.isOpenRight
                                         : false
                                 }
+                                onClick={(): void =>
+                                    manager.onLegendClick
+                                        ? manager.onLegendClick(
+                                              positionedBin.bin
+                                          )
+                                        : undefined
+                                }
+                                style={{
+                                    cursor: manager.onLegendClick
+                                        ? "pointer"
+                                        : "default",
+                                }}
                             />
                         )
                     }),
@@ -795,7 +809,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return (
             <g
                 id={makeIdForHumanConsumption("categorical-color-legend")}
-                className="categoricalColorLegend"
+                className={cx(GRAPHER_LEGEND_CLASS, "categoricalColorLegend")}
             >
                 {marks.map((mark, index) => {
                     const isActive = activeColors?.includes(mark.bin.color)
@@ -827,7 +841,11 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                                     ? manager.onLegendClick(mark.bin)
                                     : undefined
                             }
-                            style={{ cursor: "default" }}
+                            style={{
+                                cursor: manager.onLegendClick
+                                    ? "pointer"
+                                    : "default",
+                            }}
                         >
                             {/* for hover interaction */}
                             <rect

@@ -94,4 +94,14 @@ export class PointVector {
             new PointVector(v.x + t * (w.x - v.x), v.y + t * (w.y - v.y))
         )
     }
+
+    static isPointInsideCircle(
+        p: PointVector,
+        circle: { center: PointVector; radius: number }
+    ): boolean {
+        return (
+            (p.x - circle.center.x) ** 2 + (p.y - circle.center.y) ** 2 <
+            circle.radius ** 2
+        )
+    }
 }

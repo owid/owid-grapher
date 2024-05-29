@@ -161,7 +161,10 @@ import { observer } from "mobx-react"
 import "d3-transition"
 import { SourcesModal, SourcesModalManager } from "../modal/SourcesModal"
 import { DataTableManager } from "../dataTable/DataTable"
-import { MapChartManager } from "../mapCharts/MapChartConstants"
+import {
+    DEFAULT_VIEWPORT,
+    MapChartManager,
+} from "../mapCharts/MapChartConstants"
 import { MapChart } from "../mapCharts/MapChart"
 import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "../controls/CommandPalette"
@@ -208,6 +211,7 @@ import {
 } from "../entitySelector/EntitySelector"
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
+import { GlobeController } from "../mapCharts/GlobeController"
 
 declare global {
     interface Window {
@@ -297,6 +301,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideYScaleToggle?: boolean
     hideMapProjectionMenu?: boolean
     hideTableFilterToggle?: boolean
+    hideGlobeToggle?: boolean
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     hasTableTab?: boolean
     hideShareButton?: boolean
@@ -650,6 +655,10 @@ export class Grapher
         if (params.showSelectionOnlyInTable) {
             this.showSelectionOnlyInDataTable =
                 params.showSelectionOnlyInTable === "1" ? true : undefined
+        }
+
+        if (params.globe) {
+            this.isGlobe = params.globe === "1"
         }
 
         if (params.showNoDataArea) {
@@ -2995,6 +3004,7 @@ export class Grapher
         this.showSelectionOnlyInDataTable =
             authorsVersion.showSelectionOnlyInDataTable
         this.showNoDataArea = authorsVersion.showNoDataArea
+        this.isGlobe = authorsVersion.isGlobe
         this.clearSelection()
     }
 
@@ -3036,7 +3046,7 @@ export class Grapher
 
     debounceMode = false
 
-    @computed.struct get allParams(): GrapherQueryParams {
+    @computed.struct get allQueryParams(): GrapherQueryParams {
         const params: GrapherQueryParams = {}
         params.tab = this.tab
         params.xScale = this.xAxis.scaleType
@@ -3053,6 +3063,7 @@ export class Grapher
             ? "1"
             : "0"
         params.showNoDataArea = this.showNoDataArea ? "1" : "0"
+        params.globe = this.isGlobe ? "1" : "0"
         return setSelectedEntityNamesParam(
             Url.fromQueryParams(params),
             this.selectedEntitiesIfDifferentThanAuthors
@@ -3086,7 +3097,10 @@ export class Grapher
     // Autocomputed url params to reflect difference between current grapher state
     // and original config state
     @computed.struct get changedParams(): Partial<GrapherQueryParams> {
-        return differenceObj(this.allParams, this.authorsVersion.allParams)
+        return differenceObj(
+            this.allQueryParams,
+            this.authorsVersion.allQueryParams
+        )
     }
 
     // If you want to compare current state against the published grapher.
@@ -3138,7 +3152,7 @@ export class Grapher
         // See https://github.com/owid/owid-grapher/issues/2805
         let urlObj = Url.fromURL(url)
         if (!urlObj.queryParams.tab) {
-            urlObj = urlObj.updateQueryParams({ tab: this.allParams.tab })
+            urlObj = urlObj.updateQueryParams({ tab: this.allQueryParams.tab })
         }
         return urlObj.fullUrl
     }
@@ -3186,6 +3200,9 @@ export class Grapher
     msPerTick = DEFAULT_MS_PER_TICK
 
     timelineController = new TimelineController(this)
+
+    @observable globeRotation = DEFAULT_VIEWPORT.rotation
+    globeController = new GlobeController(this)
 
     // todo: restore this behavior??
     onStartPlayOrDrag(): void {
@@ -3339,6 +3356,7 @@ export class Grapher
     @observable hideYScaleToggle = false
     @observable hideMapProjectionMenu = false
     @observable hideTableFilterToggle = false
+    @observable hideGlobeToggle = false
     // enforces hiding an annotation, even if that means that a crucial piece of information is missing from the chart title
     @observable forceHideAnnotationFieldsInTitle: AnnotationFieldsInTitle = {
         entity: false,

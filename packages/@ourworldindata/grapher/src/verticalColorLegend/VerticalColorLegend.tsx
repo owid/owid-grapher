@@ -1,4 +1,5 @@
 import React from "react"
+import cx from "classnames"
 import { sum, max, makeIdForHumanConsumption } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
@@ -6,6 +7,7 @@ import { observer } from "mobx-react"
 import {
     GRAPHER_FONT_SCALE_11_2,
     BASE_FONT_SIZE,
+    GRAPHER_LEGEND_CLASS,
 } from "../core/GrapherConstants"
 import { Color } from "@ourworldindata/types"
 
@@ -146,7 +148,11 @@ export class VerticalColorLegend extends React.Component<{
                     title.render(x, y, { textProps: { fontWeight: 700 } })}
                 <g
                     id={makeIdForHumanConsumption("vertical-color-legend")}
-                    className="ScatterColorLegend clickable"
+                    className={cx(
+                        GRAPHER_LEGEND_CLASS,
+                        "ScatterColorLegend",
+                        "clickable"
+                    )}
                     style={{ cursor: "pointer" }}
                 >
                     {series.map((series, index) => {

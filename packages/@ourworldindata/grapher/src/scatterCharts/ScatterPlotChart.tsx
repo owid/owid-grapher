@@ -45,14 +45,13 @@ import {
     round,
     difference,
 } from "@ourworldindata/utils"
+import { isElementInteractive } from "../core/GrapherUtils"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     BASE_FONT_SIZE,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
-    GRAPHER_SIDE_PANEL_CLASS,
-    GRAPHER_TIMELINE_CLASS,
 } from "../core/GrapherConstants"
 import {
     OwidTable,
@@ -761,16 +760,11 @@ export class ScatterPlotChart
     // click anywhere inside the Grapher frame to dismiss the current selection
     @action.bound onGrapherClick(e: Event): void {
         const target = e.target as HTMLElement
-
-        // check if the target is an interactive element or contained within one
-        const selector = `a, button, input, .${GRAPHER_TIMELINE_CLASS}, .${GRAPHER_SIDE_PANEL_CLASS}`
-        const isTargetInteractive = target.closest(selector) !== null
-
         if (
             this.canAddCountry &&
             !this.hoverColor &&
             !this.manager.isModalOpen &&
-            !isTargetInteractive &&
+            !isElementInteractive(target) &&
             this.hasInteractedWithChart
         ) {
             this.selectionArray.clearSelection()

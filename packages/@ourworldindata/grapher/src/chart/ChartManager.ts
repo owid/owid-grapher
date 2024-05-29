@@ -34,7 +34,6 @@ export interface ChartManager {
     table: OwidTable
     transformedTable?: OwidTable
 
-    isGlobe?: boolean
     isExportingToSvgOrPng?: boolean
     isRelativeMode?: boolean
     comparisonLines?: ComparisonLineConfig[]

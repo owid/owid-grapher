@@ -23,7 +23,7 @@ class MapConfigDefaults {
     @observable timeTolerance?: number
     @observable toleranceStrategy?: ToleranceStrategy
     @observable hideTimeline?: boolean
-    @observable projection = MapProjectionName.World
+    @observable projection? = MapProjectionName.World
 
     @observable colorScale = new ColorScaleConfig()
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value

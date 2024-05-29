@@ -30,6 +30,12 @@ import {
     TableFilterToggle,
     TableFilterToggleManager,
 } from "./settings/TableFilterToggle"
+import { GlobeToggle, GlobeToggleManager } from "./settings/GlobeToggle"
+import {
+    MapProjectionMenu,
+    MapProjectionMenuManager,
+} from "./MapProjectionMenu"
+
 import { OverlayHeader } from "../core/OverlayHeader"
 import { DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL } from "../core/GrapherConstants"
 
@@ -48,7 +54,9 @@ export interface SettingsMenuManager
         FacetYDomainToggleManager,
         ZoomToggleManager,
         TableFilterToggleManager,
-        FacetStrategySelectionManager {
+        FacetStrategySelectionManager,
+        GlobeToggleManager,
+        MapProjectionMenuManager {
     // ArchieML directives
     hideFacetControl?: boolean
     hideRelativeToggle?: boolean
@@ -59,6 +67,8 @@ export interface SettingsMenuManager
     hideXScaleToggle?: boolean
     hideYScaleToggle?: boolean
     hideTableFilterToggle?: boolean
+    hideMapProjectionMenu?: boolean
+    hideGlobeToggle?: boolean
 
     // chart state
     type: ChartTypeName
@@ -95,7 +105,7 @@ export class SettingsMenu extends React.Component<{
 
     static shouldShow(manager: SettingsMenuManager): boolean {
         const test = new SettingsMenu({ manager, top: 0, bottom: 0, right: 0 })
-        return test.showSettingsMenuToggle
+        return test.showSettings
     }
 
     @computed get maxWidth(): number {
@@ -202,9 +212,19 @@ export class SettingsMenu extends React.Component<{
         )
     }
 
-    @computed get showSettingsMenuToggle(): boolean {
-        if (this.manager.isOnMapTab) return false
+    @computed get showGlobeToggle(): boolean {
+        return !this.manager.hideGlobeToggle
+    }
+
+    @computed get showMapProjectionMenu(): boolean {
+        return !this.manager.hideMapProjectionMenu
+    }
+
+    @computed get showSettings(): boolean {
         if (this.manager.isOnTableTab) return this.showTableFilterToggle
+        if (this.manager.isOnMapTab) {
+            return this.showGlobeToggle || this.showMapProjectionMenu
+        }
 
         return !!(
             this.showYScaleToggle ||
@@ -265,11 +285,6 @@ export class SettingsMenu extends React.Component<{
         return makeSelectionArray(this.manager.selection)
     }
 
-    @computed get shouldRenderTableControlsIntoPopup(): boolean {
-        const tableFilterToggleWidth = TableFilterToggle.width(this.manager)
-        return tableFilterToggleWidth > this.maxWidth
-    }
-
     @computed get layout(): {
         maxHeight: string
         maxWidth: string
@@ -280,6 +295,11 @@ export class SettingsMenu extends React.Component<{
             maxHeight = `calc(100% - ${top + bottom}px)`,
             maxWidth = `calc(100% - ${2 * right}px)`
         return { maxHeight, maxWidth, top, right }
+    }
+
+    @computed private get shouldRenderTableToggleIntoPopup(): boolean {
+        const toggleWidth = TableFilterToggle.width(this.manager)
+        return toggleWidth > this.maxWidth
     }
 
     @computed get menuContentsChart(): React.ReactElement {
@@ -378,17 +398,23 @@ export class SettingsMenu extends React.Component<{
         )
     }
 
+    @computed get menuContentsMap(): JSX.Element {
+        return (
+            <SettingsGroup title="Projection" active={true}>
+                <GlobeToggle manager={this.manager} />
+            </SettingsGroup>
+        )
+    }
+
     @computed get menu(): JSX.Element | void {
-        if (this.active) {
-            return this.menuContents
-        }
+        if (this.active) return this.menuContents
     }
 
     @computed get menuContents(): JSX.Element {
         const { manager, chartType } = this
-        const { isOnTableTab } = manager
+        const { isOnTableTab, isOnMapTab } = manager
 
-        const menuTitle = `${isOnTableTab ? "Table" : chartType} settings`
+        const menuTitle = `${isOnTableTab ? "Table" : isOnMapTab ? "Map" : chartType} settings`
 
         return (
             <div className="settings-menu-contents" ref={this.contentRef}>
@@ -410,15 +436,31 @@ export class SettingsMenu extends React.Component<{
                     <div className="settings-menu-controls">
                         {isOnTableTab
                             ? this.menuContentsTable
-                            : this.menuContentsChart}
+                            : isOnMapTab
+                              ? this.menuContentsMap
+                              : this.menuContentsChart}
                     </div>
                 </div>
             </div>
         )
     }
 
-    renderSettingsButtonAndPopup(): JSX.Element {
-        const { active } = this
+    renderSettingsButtonAndPopup(): React.ReactElement | null {
+        const {
+            manager: { isOnTableTab, isOnMapTab },
+            active,
+            showSettings,
+            showGlobeToggle,
+            shouldRenderTableToggleIntoPopup,
+        } = this
+
+        if (
+            !showSettings ||
+            (isOnTableTab && !shouldRenderTableToggleIntoPopup) ||
+            (isOnMapTab && !showGlobeToggle)
+        )
+            return null
+
         return (
             <div className="settings-menu">
                 <button
@@ -437,28 +479,45 @@ export class SettingsMenu extends React.Component<{
         )
     }
 
-    renderTableControls(): React.ReactElement {
-        // Since tables only have a single control, display it inline rather than
-        // placing it in the settings menu
-        return <TableFilterToggle manager={this.manager} showTooltip={true} />
+    renderInlineSettings(): React.ReactElement | null {
+        const {
+            manager: { isOnTableTab, isOnMapTab },
+            showTableFilterToggle,
+            showMapProjectionMenu,
+            shouldRenderTableToggleIntoPopup,
+        } = this
+
+        if (
+            isOnTableTab &&
+            showTableFilterToggle &&
+            !shouldRenderTableToggleIntoPopup
+        ) {
+            return (
+                <TableFilterToggle manager={this.manager} showTooltip={true} />
+            )
+        }
+
+        if (isOnMapTab && showMapProjectionMenu) {
+            const settingsButtonWidth = 32
+            const dropdownMaxWidth = this.maxWidth - settingsButtonWidth - 8
+            return (
+                <MapProjectionMenu
+                    manager={this.manager}
+                    maxWidth={dropdownMaxWidth}
+                />
+            )
+        }
+
+        return null
     }
 
     render(): React.ReactElement | null {
-        const {
-            manager: { isOnChartTab, isOnTableTab },
-            showSettingsMenuToggle,
-            showTableFilterToggle,
-        } = this
-
-        if (isOnTableTab && showTableFilterToggle) {
-            return this.shouldRenderTableControlsIntoPopup
-                ? this.renderSettingsButtonAndPopup()
-                : this.renderTableControls()
-        }
-
-        return isOnChartTab && showSettingsMenuToggle
-            ? this.renderSettingsButtonAndPopup()
-            : null
+        return (
+            <>
+                {this.renderInlineSettings()}
+                {this.renderSettingsButtonAndPopup()}
+            </>
+        )
     }
 }
 

@@ -127,6 +127,7 @@ export {
     commafyNumber,
     isFiniteWithGuard,
     createTagGraph,
+    delay,
 } from "./Util.js"
 
 export {

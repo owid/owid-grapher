@@ -90,8 +90,9 @@ export class ContentSwitchers extends React.Component<{
         }
     }
 
-    render(): React.ReactElement {
+    render(): React.ReactElement | null {
         const { manager } = this
+        if (!this.showTabs) return null
         return (
             <ul
                 className={classnames({

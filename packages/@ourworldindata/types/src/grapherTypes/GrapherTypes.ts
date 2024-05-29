@@ -607,6 +607,7 @@ export interface GrapherQueryParams extends QueryParams {
     uniformYAxis?: string
     showSelectionOnlyInTable?: string
     showNoDataArea?: string
+    globe?: string
 }
 
 export interface LegacyGrapherQueryParams extends GrapherQueryParams {

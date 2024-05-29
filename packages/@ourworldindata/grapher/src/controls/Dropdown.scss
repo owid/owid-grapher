@@ -22,6 +22,10 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
 
+    .placeholder {
+        white-space: nowrap;
+    }
+
     .control {
         min-height: auto;
         font: $medium 13px/16px $lato;

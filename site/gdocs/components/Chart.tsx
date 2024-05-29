@@ -174,6 +174,9 @@ const mapKeywordToGrapherConfig = (
         case ChartControlKeyword.tableFilterToggle:
             return { hideTableFilterToggle: false }
 
+        case ChartControlKeyword.globeToggle:
+            return { hideGlobeToggle: false }
+
         // tabs
 
         case ChartTabKeyword.chart:

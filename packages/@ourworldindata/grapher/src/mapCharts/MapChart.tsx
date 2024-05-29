@@ -1,10 +1,10 @@
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     ColorSchemeName,
+    EntityName,
     GrapherTabOption,
     MapProjectionName,
     SeriesName,
-    EntityName,
 } from "@ourworldindata/types"
 import {
     Bounds,
@@ -14,16 +14,29 @@ import {
     PointVector,
     PrimitiveType,
     anyToString,
+    clamp,
     difference,
     exposeInstanceOnWindow,
     flatten,
     getRelativeMouse,
+    getUserCountryInformation,
     guid,
     isNumber,
     isPresent,
     sortBy,
 } from "@ourworldindata/utils"
-import { Quadtree, geoOrthographic, geoPath } from "d3"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
+import { isElementInteractive } from "../core/GrapherUtils"
+import {
+    Quadtree,
+    geoOrthographic,
+    geoPath,
+    geoCentroid,
+    GeoPath,
+    GeoPermissibleObjects,
+    geoGraticule,
+} from "d3"
 import { easeCubic } from "d3-ease"
 import { quadtree } from "d3-quadtree"
 import { select } from "d3-selection"
@@ -44,7 +57,11 @@ import {
     NumericBin,
 } from "../color/ColorScaleBin"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import { BASE_FONT_SIZE, Patterns } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    GRAPHER_FONT_SCALE_9_6,
+    Patterns,
+} from "../core/GrapherConstants"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
@@ -58,12 +75,16 @@ import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import {
     ChoroplethMapManager,
     ChoroplethSeries,
+    DEFAULT_ROTATIONS,
+    DEFAULT_VIEWPORT,
     GeoFeature,
     MAP_HOVER_TARGET_RANGE,
     MapBracket,
     MapChartManager,
     MapEntity,
     RenderFeature,
+    VIEWPORTS,
+    Viewport,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { MapProjectionGeos } from "./MapProjections"
@@ -73,6 +94,8 @@ import {
     WorldRegionName,
     WorldRegionToProjection,
 } from "./WorldRegionsToProjection"
+import { GlobeController } from "./GlobeController"
+
 const DEFAULT_STROKE_COLOR = "#333"
 const CHOROPLETH_MAP_CLASSNAME = "ChoroplethMap"
 
@@ -140,6 +163,19 @@ const geoBoundsFor = (projectionName: MapProjectionName): Bounds[] => {
     return geoBoundsCache.get(projectionName)!
 }
 
+let centroidCache: PointVector[] = []
+function centroids(): PointVector[] {
+    if (centroidCache.length > 0) return centroidCache
+
+    const centroids = GeoFeatures.map((geo) => {
+        const centroid = geoCentroid(geo)
+        return new PointVector(centroid[0], centroid[1])
+    })
+
+    centroidCache = centroids
+    return centroids
+}
+
 // Bundle GeoFeatures with the calculated info needed to render them
 const renderFeaturesCache = new Map<MapProjectionName, RenderFeature[]>()
 const renderFeaturesFor = (
@@ -149,9 +185,11 @@ const renderFeaturesFor = (
         return renderFeaturesCache.get(projectionName)!
     const geoBounds = geoBoundsFor(projectionName)
     const geoPaths = geoPathsFor(projectionName)
+    const unprojectedCentroids = centroids()
     const feats = GeoFeatures.map((geo, index) => ({
         id: geo.id as string,
         geo: geo,
+        geoCentroid: unprojectedCentroids[index],
         path: geoPaths[index],
         bounds: geoBounds[index],
         center: geoBounds[index].centerPos,
@@ -172,6 +210,8 @@ export class MapChart
         featureId: string
         clickable: boolean
     }>()
+
+    private persistFocusBracket = false
 
     transformTable(table: OwidTable): OwidTable {
         if (!table.has(this.mapColumnSlug)) return table
@@ -285,11 +325,8 @@ export class MapChart
         return makeSelectionArray(this.manager.selection)
     }
 
-    @action.bound onClick(
-        d: GeoFeature,
-        ev: React.MouseEvent<SVGElement>
-    ): void {
-        const entityName = d.id as any
+    @action.bound onClickFeature(d: GeoFeature, ev: SVGMouseEvent): void {
+        const entityName = d.id as EntityName
         if (!this.isEntityClickable(entityName)) return
 
         if (!ev.shiftKey) {
@@ -307,10 +344,25 @@ export class MapChart
     componentWillUnmount(): void {
         this.onMapMouseLeave()
         this.onLegendMouseLeave()
+
+        if (this.manager.base?.current) {
+            this.manager.base.current.removeEventListener(
+                "mousedown",
+                this.onGrapherClick
+            )
+        }
     }
 
     @computed get isGlobe(): boolean {
-        return this.manager.isGlobe ?? false
+        return !!this.manager.isGlobe
+    }
+
+    @computed get globeRotation(): [number, number] {
+        return this.manager.globeRotation ?? DEFAULT_VIEWPORT.rotation
+    }
+
+    @computed get globeController(): GlobeController {
+        return this.manager.globeController ?? new GlobeController(this)
     }
 
     @action.bound onLegendMouseOver(bracket: MapBracket): void {
@@ -318,7 +370,38 @@ export class MapChart
     }
 
     @action.bound onLegendMouseLeave(): void {
-        this.focusBracket = undefined
+        if (!this.persistFocusBracket) this.focusBracket = undefined
+    }
+
+    @action.bound onLegendClick(bracket: MapBracket): void {
+        if (!this.isGlobe) return
+        this.focusBracket = bracket
+        this.persistFocusBracket = true
+    }
+
+    @action.bound onGrapherClick(e: Event): void {
+        if (!this.isGlobe) return
+
+        const target = e.target as HTMLElement
+
+        let isWithinGlobe = false
+        if (this.base.current) {
+            const point = getRelativeMouse(this.base.current, e as MouseEvent)
+            const bounds = this.choroplethMapBounds
+            isWithinGlobe = PointVector.isPointInsideCircle(point, {
+                center: getGlobeCenter(bounds),
+                radius: getGlobeSize(bounds) / 2,
+            })
+        }
+
+        if (
+            !this.manager.isModalOpen &&
+            !isElementInteractive(target) &&
+            !isWithinGlobe
+        ) {
+            this.focusBracket = undefined
+            this.persistFocusBracket = false
+        }
     }
 
     @computed get mapConfig(): MapConfig {
@@ -327,6 +410,15 @@ export class MapChart
 
     @action.bound onProjectionChange(value: MapProjectionName): void {
         this.mapConfig.projection = value
+        void this.globeController.rotateToProjection(value)
+    }
+
+    @action.bound clearProjection(): void {
+        this.mapConfig.projection = undefined
+    }
+
+    @action.bound onGlobeRotationChange(rotate: [number, number]): void {
+        this.manager.globeRotation = rotate
     }
 
     @computed private get formatTooltipValue(): (d: PrimitiveType) => string {
@@ -411,6 +503,13 @@ export class MapChart
                     return (this as SVGPathElement).getAttribute("fill")
                 })
         }
+        if (this.manager.base?.current) {
+            this.manager.base.current.addEventListener(
+                "mousedown",
+                this.onGrapherClick,
+                { passive: true }
+            )
+        }
         exposeInstanceOnWindow(this)
     }
 
@@ -435,11 +534,13 @@ export class MapChart
     }
 
     @computed get choroplethMapBounds(): Bounds {
-        return this.bounds.padBottom(this.legendHeight + 4)
+        return this.bounds
+            .padTop(this.isGlobe ? 4 : 0)
+            .padBottom(this.legendHeight + 4)
     }
 
     @computed get projection(): MapProjectionName {
-        return this.mapConfig.projection
+        return this.mapConfig.projection ?? MapProjectionName.World
     }
 
     @computed get numericLegendData(): ColorScaleBin[] {
@@ -643,11 +744,13 @@ class ChoroplethMap extends React.Component<{
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    lastScreenX: number = 0
-    lastScreenY: number = 0
-    @observable
-    globeRotation: any
-    enableDragging: boolean = false
+    // If true selected countries will have an outline
+    @observable private showSelectedStyle = false
+
+    private isDragging: boolean = false
+
+    private previousScreenX: number | undefined = undefined
+    private previousScreenY: number | undefined = undefined
 
     @computed private get uid(): number {
         return guid()
@@ -704,78 +807,18 @@ class ChoroplethMap extends React.Component<{
         return this.choroplethData.get(id)!.isSelected
     }
 
-    // Viewport for each projection, defined by center and width+height in fractional coordinates
-    @computed private get viewport(): {
-        rotation: any
-        x: number
-        y: number
-        width: number
-        height: number
-    } {
-        const viewports = {
-            World: {
-                x: 0.565,
-                y: 0.5,
-                width: 1,
-                height: 1,
-                rotation: [30, 0],
-            },
-            Europe: {
-                x: 0.53,
-                y: 0.22,
-                width: 0.2,
-                height: 0.2,
-                rotation: [-30, -50],
-            },
-            Africa: {
-                x: 0.49,
-                y: 0.7,
-                width: 0.21,
-                height: 0.38,
-                rotation: [-30, 0],
-            },
-            NorthAmerica: {
-                x: 0.49,
-                y: 0.4,
-                width: 0.19,
-                height: 0.32,
-                rotation: [70, -50],
-            },
-            SouthAmerica: {
-                x: 0.52,
-                y: 0.815,
-                width: 0.1,
-                height: 0.26,
-                rotation: [70, 20],
-            },
-            Asia: {
-                x: 0.74,
-                y: 0.45,
-                width: 0.36,
-                height: 0.5,
-                rotation: [-80, -20],
-            },
-            Oceania: {
-                x: 0.51,
-                y: 0.75,
-                width: 0.1,
-                height: 0.2,
-                rotation: [-125, 30],
-            },
-        }
+    @computed get isWorldProjection(): boolean {
+        return this.manager.projection === MapProjectionName.World
+    }
 
-        return viewports[this.manager.projection]
+    @computed private get viewport(): Viewport {
+        return VIEWPORTS[this.manager.projection]
     }
 
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
     @computed private get viewportScale(): number {
         const { bounds, viewport, mapBounds } = this
-        if (this.manager.isGlobe) {
-            return Math.min(
-                bounds.width / mapBounds.width,
-                bounds.height / mapBounds.height
-            )
-        }
+        if (this.manager.isGlobe) return 1
         const viewportWidth = viewport.width * mapBounds.width
         const viewportHeight = viewport.height * mapBounds.height
         return Math.min(
@@ -784,47 +827,67 @@ class ChoroplethMap extends React.Component<{
         )
     }
 
-    @computed get globeWidth(): number {
-        return (this.bounds.width - 300) / 2
+    @computed private get globeSize(): number {
+        return getGlobeSize(this.bounds)
     }
 
-    @computed get globeHeight(): number {
-        return (this.bounds.height - 150) / 2
+    @computed private get globeCenter(): [number, number] {
+        const center = getGlobeCenter(this.bounds)
+        return [center.x, center.y]
     }
 
-    @computed get globeScale(): number {
-        if (this.bounds.height < this.bounds.width) {
-            return this.bounds.height / 2.3
-        } else {
-            return this.bounds.width / 2.3
-        }
+    @computed private get globeScale(): number {
+        const defaultScale = geoOrthographic().scale()
+        const defaultSize = 500
+        return defaultScale * (this.globeSize / defaultSize)
     }
 
-    @computed get globeProjection(): any {
-        const worldView = this.manager.projection === MapProjectionName.World
+    @computed private get globeRotation(): [number, number] {
+        return this.manager.globeRotation
+    }
 
-        const scale = worldView ? this.globeScale : this.globeScale * 1.8
+    @computed private get globeProjection(): any {
         return geoOrthographic()
-            ?.scale(scale)
-            .center([0, 0])
-            .rotate(
-                worldView
-                    ? this.globeRotation || [0, 0]
-                    : this.viewport.rotation
-            )
-            .translate([this.bounds.width / 2, this.bounds.height / 2])
+            .scale(this.globeScale)
+            .translate(this.globeCenter)
+            .rotate(this.globeRotation)
     }
 
-    getPath(feature: RenderFeature): string {
+    private globePathContext = new GeoPathRoundingContext()
+    @computed private get globePath(): GeoPath<any, GeoPermissibleObjects> {
+        return geoPath()
+            .projection(this.globeProjection)
+            .context(this.globePathContext)
+    }
+
+    private getPath(feature: RenderFeature): string {
         if (this.manager.isGlobe) {
-            return geoPath().projection(this.globeProjection)(feature.geo) ?? ""
+            this.globePathContext.beginPath()
+            this.globePath(feature.geo)
+            return this.globePathContext.result()
         } else {
             return feature.path
         }
     }
 
-    @computed private get matrixTransform(): string {
+    @computed private get globeEquator(): string {
+        const equator = geoGraticule().step([0, 360])()
+        this.globePathContext.beginPath()
+        this.globePath(equator)
+        return this.globePathContext.result()
+    }
+
+    @computed private get globeGraticule(): string {
+        const graticule = geoGraticule().step([10, 10])()
+        this.globePathContext.beginPath()
+        this.globePath(graticule)
+        return this.globePathContext.result()
+    }
+
+    @computed private get matrixTransform(): string | undefined {
         const { bounds, mapBounds, viewport, viewportScale } = this
+
+        if (this.manager.isGlobe) return undefined
 
         // Calculate our reference dimensions. These values are independent of the current
         // map translation and scaling.
@@ -844,9 +907,6 @@ class ChoroplethMap extends React.Component<{
         const newOffsetY = boundsCenterY - newCenterY
 
         const matrixStr = `matrix(${viewportScale},0,0,${viewportScale},${newOffsetX},${newOffsetY})`
-        if (this.manager.isGlobe) {
-            return ``
-        }
         return matrixStr
     }
 
@@ -861,7 +921,7 @@ class ChoroplethMap extends React.Component<{
     @computed private get featuresInProjection(): RenderFeature[] {
         const { projection } = this.manager
         const features = renderFeaturesFor(projection)
-        if (projection === MapProjectionName.World) return features
+        if (this.manager.isGlobe || this.isWorldProjection) return features
 
         return features.filter(
             (feature) =>
@@ -889,43 +949,107 @@ class ChoroplethMap extends React.Component<{
 
     @computed private get quadtree(): Quadtree<RenderFeature> {
         return quadtree<RenderFeature>()
-            .x(({ center }) => center.x)
-            .y(({ center }) => center.y)
+            .x(({ center, geoCentroid }) => {
+                const globeCenter = this.globeProjection([
+                    geoCentroid.x,
+                    geoCentroid.y,
+                ])
+                return this.manager.isGlobe ? globeCenter[0] : center.x
+            })
+            .y(({ center, geoCentroid }) => {
+                const globeCenter = this.globeProjection([
+                    geoCentroid.x,
+                    geoCentroid.y,
+                ])
+                return this.manager.isGlobe ? globeCenter[1] : center.y
+            })
             .addAll(this.featuresInProjection)
+    }
+
+    @action.bound private startDragging(): void {
+        this.isDragging = true
+        this.manager.clearProjection()
+        document.body.style.cursor = "pointer"
+    }
+
+    private stopDragTimerId: NodeJS.Timeout | undefined
+    @action.bound private stopDragging(): void {
+        if (this.stopDragTimerId) clearTimeout(this.stopDragTimerId)
+        // stop dragging after a short delay to silence click events
+        this.stopDragTimerId = setTimeout(() => {
+            this.isDragging = false
+            this.previousScreenX = undefined
+            this.previousScreenY = undefined
+        }, 100)
+        document.body.style.cursor = "default"
+    }
+
+    private rotateFrameId: number | undefined
+    @action.bound private rotateGlobe(
+        startCoords: [number, number],
+        endCoords: [number, number]
+    ): void {
+        if (this.rotateFrameId) cancelAnimationFrame(this.rotateFrameId)
+        this.rotateFrameId = requestAnimationFrame(() => {
+            const dx = endCoords[0] - startCoords[0]
+            const dy = endCoords[1] - startCoords[1]
+
+            const sensitivity = 0.7
+            const [rx, ry] = this.globeProjection.rotate()
+            this.manager.onGlobeRotationChange([
+                rx + dx * sensitivity,
+                clamp(ry - dy * sensitivity, -90, 90),
+            ])
+        })
+    }
+
+    @action.bound private onCursorDrag(event: MouseEvent | TouchEvent): void {
+        if (!this.manager.isGlobe) return
+
+        const { screenX, screenY } = getScreenCoords(event)
+
+        // start dragging if this is the first move event
+        if (
+            this.previousScreenX === undefined ||
+            this.previousScreenY === undefined
+        ) {
+            this.startDragging()
+
+            // init screen coords
+            this.previousScreenX = screenX
+            this.previousScreenY = screenY
+        }
+
+        // dismiss the currently hovered feature
+        if (this.hoverEnterFeature || this.hoverNearbyFeature) {
+            this.hoverEnterFeature = undefined
+            this.hoverNearbyFeature = undefined
+            this.manager.onMapMouseLeave()
+        }
+
+        // rotate globe from the previous screen coords to the current screen coords
+        this.rotateGlobe(
+            [this.previousScreenX, this.previousScreenY],
+            [screenX, screenY]
+        )
+
+        // update screen coords
+        this.previousScreenX = screenX
+        this.previousScreenY = screenY
     }
 
     @observable private hoverEnterFeature?: RenderFeature
     @observable private hoverNearbyFeature?: RenderFeature
-    @action.bound private onMouseMove(ev: React.MouseEvent<SVGGElement>): void {
-        if (this.enableDragging) {
-            requestAnimationFrame(() => {
-                const rotate = this.globeProjection.rotate()
-                const sensitivity = 0.8
-                const rotateX =
-                    rotate[0] + (ev.screenX - this.lastScreenX) * sensitivity
-                let rotateY =
-                    rotate[1] - (ev.screenY - this.lastScreenY) * sensitivity
-                // https://github.com/owid/owid-grapher/pull/3057#discussion_r1459309897
-                rotateY = Math.max(-90, Math.min(90, rotateY))
-
-                this.globeRotation = [rotateX, rotateY]
-                this.lastScreenX = ev.screenX
-                this.lastScreenY = ev.screenY
-            })
-        }
-
-        if (ev.shiftKey) this.showSelectedStyle = true // Turn on highlight selection. To turn off, user can switch tabs.
-        if (this.hoverEnterFeature) return
-
+    @action.bound private detectNearbyFeature(
+        event: MouseEvent | TouchEvent
+    ): void {
+        if (this.isDragging || this.hoverEnterFeature) return
         const subunits = this.base.current?.querySelector(".subunits")
         if (subunits) {
-            const { x, y } = getRelativeMouse(subunits, ev)
+            const { x, y } = getRelativeMouse(subunits, event)
             const distance = MAP_HOVER_TARGET_RANGE
-            let feature = null
-            if (!this.manager.isGlobe) {
-                feature = this.quadtree.find(x, y, distance)
-            }
-            if (!this.manager.isGlobe && feature) {
+            const feature = this.quadtree.find(x, y, distance)
+            if (feature) {
                 if (feature.id !== this.hoverNearbyFeature?.id) {
                     this.hoverNearbyFeature = feature
                     this.manager.onMapMouseOver(feature.geo)
@@ -937,12 +1061,76 @@ class ChoroplethMap extends React.Component<{
         } else console.error("subunits was falsy")
     }
 
-    @action.bound private onMouseEnter(feature: RenderFeature): void {
+    @action.bound private onMouseDown(event: MouseEvent): void {
+        if (this.manager.isGlobe) {
+            event.preventDefault() // prevent text selection
+
+            // register mousemove and mouseup events on the document
+            // so that dragging continues if the mouse leaves the map
+            document.addEventListener("mousemove", this.onCursorDrag, {
+                passive: true,
+            })
+            document.addEventListener("mouseup", this.onMouseUp, {
+                passive: true,
+            })
+        }
+    }
+
+    @action.bound private onMouseUp(): void {
+        this.stopDragging()
+
+        document.removeEventListener("mousemove", this.onCursorDrag)
+        document.removeEventListener("mouseup", this.onMouseUp)
+    }
+
+    @action.bound private onMouseMove(event: MouseEvent): void {
+        if (event.shiftKey) this.showSelectedStyle = true // Turn on highlight selection. To turn off, user can switch tabs.
+        this.detectNearbyFeature(event)
+    }
+
+    @action.bound private onTouchStart(event: TouchEvent): void {
+        this.detectNearbyFeature(event)
+
+        if (this.base.current) {
+            this.base.current.addEventListener("touchmove", this.onTouchMove, {
+                passive: false,
+            })
+            this.base.current.addEventListener("touchend", this.onTouchEnd, {
+                passive: true,
+            })
+            this.base.current.addEventListener("touchcancel", this.onTouchEnd, {
+                passive: true,
+            })
+        }
+    }
+
+    @action.bound private onTouchMove(event: TouchEvent): void {
+        event.preventDefault() // prevent scrolling
+        this.onCursorDrag(event)
+    }
+
+    @action.bound private onTouchEnd(): void {
+        this.stopDragging()
+
+        if (this.base.current) {
+            this.base.current.removeEventListener("touchmove", this.onTouchMove)
+            this.base.current.removeEventListener("touchend", this.onTouchEnd)
+            this.base.current.removeEventListener(
+                "touchcancel",
+                this.onTouchEnd
+            )
+        }
+    }
+
+    @action.bound private onMouseEnterFeature(feature: RenderFeature): void {
+        // don't show tooltips when dragging
+        if (this.isDragging) return
+
         this.hoverEnterFeature = feature
         this.manager.onMapMouseOver(feature.geo)
     }
 
-    @action.bound private onMouseLeave(): void {
+    @action.bound private onMouseLeaveFeature(): void {
         this.hoverEnterFeature = undefined
         this.manager.onMapMouseLeave()
     }
@@ -951,13 +1139,99 @@ class ChoroplethMap extends React.Component<{
         return this.hoverEnterFeature || this.hoverNearbyFeature
     }
 
-    @action.bound private onClick(ev: React.MouseEvent<SVGGElement>): void {
-        if (this.hoverFeature !== undefined)
-            this.manager.onClick(this.hoverFeature.geo, ev)
+    @computed private get isRotatedToLocalFeature(): boolean {
+        if (!this.localFeature) return false
+        return (
+            -this.localFeature.geoCentroid.x === this.globeRotation[0] &&
+            -this.localFeature.geoCentroid.y === this.globeRotation[1]
+        )
     }
 
-    // If true selected countries will have an outline
-    @observable private showSelectedStyle = false
+    @computed private get isRotatedToDefault(): boolean {
+        return Object.values(DEFAULT_ROTATIONS).some(
+            ([defaultX, defaultY]) =>
+                defaultX === this.globeRotation[0] &&
+                defaultY === this.globeRotation[1]
+        )
+    }
+
+    @observable private localFeature?: RenderFeature
+    private async populateLocalEntityName(): Promise<void> {
+        if (this.localFeature) return
+        try {
+            const localCountryInfo = await getUserCountryInformation()
+            if (localCountryInfo) {
+                const localFeature = this.featuresInProjection.find(
+                    (f) => f.id === localCountryInfo.name
+                )
+                if (localFeature) this.localFeature = localFeature
+            }
+        } catch (err) {}
+    }
+
+    async componentDidMount(): Promise<void> {
+        if (this.base.current) {
+            this.base.current.addEventListener("mousedown", this.onMouseDown, {
+                passive: false,
+            })
+            this.base.current.addEventListener("mousemove", this.onMouseMove, {
+                passive: true,
+            })
+            this.base.current.addEventListener(
+                "touchstart",
+                this.onTouchStart,
+                { passive: true }
+            )
+        }
+
+        if (
+            this.globeRotation[0] !== DEFAULT_VIEWPORT.rotation[0] ||
+            this.globeRotation[1] !== DEFAULT_VIEWPORT.rotation[1]
+        )
+            return
+
+        if (!this.isWorldProjection) {
+            this.manager.onGlobeRotationChange(this.viewport.rotation)
+        } else {
+            await this.populateLocalEntityName()
+            if (this.localFeature) {
+                const { geoCentroid } = this.localFeature
+                void this.manager.globeController.rotateTo([
+                    -geoCentroid.x,
+                    -geoCentroid.y,
+                ])
+            } else {
+                // if the user's country can't be detected,
+                // choose a default rotation based on the time of day
+                const date = new Date()
+                const hours = date.getUTCHours()
+                const minutes = date.getUTCMinutes()
+                let defaultRotation: [number, number]
+                if (hours <= 7 && minutes <= 59) {
+                    defaultRotation = DEFAULT_ROTATIONS.UTC_MORNING
+                } else if (hours <= 15 && minutes <= 59) {
+                    defaultRotation = DEFAULT_ROTATIONS.UTC_MIDDAY
+                } else {
+                    defaultRotation = DEFAULT_ROTATIONS.UTC_EVENING
+                }
+                void this.manager.globeController.rotateTo(defaultRotation)
+            }
+        }
+    }
+
+    componentWillUnmount(): void {
+        if (this.base.current) {
+            this.base.current.removeEventListener("mousedown", this.onMouseDown)
+            this.base.current.removeEventListener("mousemove", this.onMouseMove)
+            this.base.current.removeEventListener(
+                "touchstart",
+                this.onTouchStart
+            )
+        }
+
+        if (this.stopDragTimerId) clearTimeout(this.stopDragTimerId)
+        if (this.rotateFrameId) cancelAnimationFrame(this.rotateFrameId)
+    }
 
     // SVG layering is based on order of appearance in the element tree (later elements rendered on top)
     // The ordering here is quite careful
@@ -991,27 +1265,66 @@ class ChoroplethMap extends React.Component<{
                 ref={this.base}
                 className={CHOROPLETH_MAP_CLASSNAME}
                 clipPath={clipPath.id}
-                onMouseDown={(ev: SVGMouseEvent): void => {
-                    this.enableDragging = true
-                    this.lastScreenX = ev.screenX
-                    this.lastScreenY = ev.screenY
-                    ev.preventDefault() /* Without this, title may get selected while shift clicking */
+                style={{
+                    touchAction: this.manager.isGlobe
+                        ? "pinch-zoom"
+                        : undefined,
                 }}
-                onMouseMove={this.onMouseMove}
-                onMouseLeave={this.onMouseLeave}
-                onMouseUp={() => {
-                    this.enableDragging = false
-                }}
-                style={this.hoverFeature ? { cursor: "pointer" } : {}}
             >
-                <rect
-                    x={bounds.x}
-                    y={bounds.y}
-                    width={bounds.width}
-                    height={bounds.height}
-                    fill="rgba(255,255,255,0)"
-                    opacity={0}
-                />
+                {this.manager.isGlobe ? (
+                    <circle
+                        className="globe-sphere"
+                        cx={this.globeCenter[0]}
+                        cy={this.globeCenter[1]}
+                        r={this.globeSize / 2}
+                        fill="#fafafa"
+                    />
+                ) : (
+                    <rect
+                        x={bounds.x}
+                        y={bounds.y}
+                        width={bounds.width}
+                        height={bounds.height}
+                        fill="rgba(255,255,255,0)"
+                        opacity={0}
+                    />
+                )}
+                {this.manager.isGlobe && (
+                    <>
+                        <path
+                            className="globe-graticule"
+                            d={this.globeGraticule}
+                            stroke="#d2d2d2"
+                            strokeWidth={defaultStrokeWidth}
+                            fill="none"
+                            style={{ pointerEvents: "none" }}
+                        />
+                        <path
+                            className="globe-equator"
+                            d={this.globeEquator}
+                            stroke="#dadada"
+                            strokeWidth={defaultStrokeWidth}
+                            fill="none"
+                            style={{ pointerEvents: "none" }}
+                        />
+                    </>
+                )}
+                {this.manager.isGlobe &&
+                    (this.isRotatedToLocalFeature ||
+                        this.isRotatedToDefault) && (
+                        <GlobeLocationInfo
+                            bounds={this.bounds}
+                            label={
+                                this.localFeature
+                                    ? "Rotated to your current location"
+                                    : "Rotated to a default view chosen based on the time of day"
+                            }
+                            fontSize={
+                                GRAPHER_FONT_SCALE_9_6 *
+                                (this.manager.fontSize ?? 16)
+                            }
+                        />
+                    )}
                 {clipPath.element}
                 <g className="subunits" transform={matrixTransform}>
                     {featuresOutsideProjection.length > 0 && (
@@ -1049,6 +1362,7 @@ class ChoroplethMap extends React.Component<{
                                         1 / this.viewportScale
                                     })`} // <-- This scale here is crucial and map specific
                                 >
+                                    <rect width="4" height="4" fill="#fff" />
                                     <path
                                         d="M -1,2 l 6,0"
                                         stroke="#ccc"
@@ -1085,16 +1399,17 @@ class ChoroplethMap extends React.Component<{
                                         cursor="pointer"
                                         fill={`url(#${Patterns.noDataPatternForMapChart}-${this.manager.projection})`}
                                         fillOpacity={fillOpacity}
-                                        onClick={(ev: SVGMouseEvent): void =>
-                                            this.manager.onClick(
+                                        onClick={(ev: SVGMouseEvent): void => {
+                                            if (this.isDragging) return
+                                            this.manager.onClickFeature(
                                                 feature.geo,
                                                 ev
                                             )
-                                        }
+                                        }}
                                         onMouseEnter={(): void =>
-                                            this.onMouseEnter(feature)
+                                            this.onMouseEnterFeature(feature)
                                         }
-                                        onMouseLeave={this.onMouseLeave}
+                                        onMouseLeave={this.onMouseLeaveFeature}
                                     />
                                 )
                             })}
@@ -1141,13 +1456,17 @@ class ChoroplethMap extends React.Component<{
                                     cursor="pointer"
                                     fill={fill}
                                     fillOpacity={fillOpacity}
-                                    onClick={(ev: SVGMouseEvent): void =>
-                                        this.manager.onClick(feature.geo, ev)
-                                    }
+                                    onClick={(ev: SVGMouseEvent): void => {
+                                        if (this.isDragging) return
+                                        this.manager.onClickFeature(
+                                            feature.geo,
+                                            ev
+                                        )
+                                    }}
                                     onMouseEnter={(): void =>
-                                        this.onMouseEnter(feature)
+                                        this.onMouseEnterFeature(feature)
                                     }
-                                    onMouseLeave={this.onMouseLeave}
+                                    onMouseLeave={this.onMouseLeaveFeature}
                                 />
                             )
                         }),
@@ -1157,4 +1476,77 @@ class ChoroplethMap extends React.Component<{
             </g>
         )
     }
+}
+
+const getScreenCoords = (
+    event: MouseEvent | TouchEvent
+): { screenX: number; screenY: number } => {
+    return isTouchEvent(event)
+        ? event.touches[0]
+        : {
+              screenX: event.screenX,
+              screenY: event.screenY,
+          }
+}
+
+const isTouchEvent = (event: MouseEvent | TouchEvent): event is TouchEvent => {
+    return event.type.includes("touch")
+}
+
+const getGlobeSize = (bounds: Bounds): number => {
+    return Math.min(bounds.width, bounds.height)
+}
+
+const getGlobeCenter = (bounds: Bounds): PointVector => {
+    return new PointVector(
+        bounds.left + bounds.width / 2,
+        bounds.top + bounds.height / 2
+    )
+}
+
+function GlobeLocationInfo({
+    bounds,
+    label,
+    fontSize,
+}: {
+    bounds: Bounds
+    label: string
+    fontSize?: number
+}): React.ReactElement {
+    return (
+        <foreignObject
+            x={bounds.x}
+            y={bounds.y}
+            width={bounds.width}
+            height={bounds.height}
+            style={{
+                pointerEvents: "none",
+            }}
+        >
+            <div
+                style={{
+                    position: "absolute",
+                    right: 0,
+                    bottom: 0,
+                    fontSize: fontSize ?? 9,
+                    fontStyle: "italic",
+                    width: "25%",
+                    lineHeight: 1,
+                    color: "#858585",
+                    textAlign: "right",
+                }}
+            >
+                <FontAwesomeIcon
+                    icon={faLocationArrow}
+                    style={{
+                        marginRight: 6,
+                        fontSize: "0.8em",
+                        position: "relative",
+                        bottom: "0.5px",
+                    }}
+                />
+                {label}
+            </div>
+        </foreignObject>
+    )
 }

@@ -4,6 +4,7 @@ import {
     TimeBoundValue,
     findClosestTime,
     last,
+    delay,
 } from "@ourworldindata/utils"
 
 export interface TimelineManager {
@@ -17,9 +18,6 @@ export interface TimelineManager {
     msPerTick?: number
     onPlay?: () => void
 }
-
-const delay = (ms: number): Promise<void> =>
-    new Promise((resolve) => setTimeout(resolve, ms))
 
 export class TimelineController {
     manager: TimelineManager

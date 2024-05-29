@@ -9,17 +9,12 @@ import {
     EntitySelectionToggle,
     EntitySelectionManager,
 } from "../EntitySelectionToggle"
-import {
-    MapProjectionMenu,
-    MapProjectionMenuManager,
-} from "../MapProjectionMenu"
 import { SettingsMenu, SettingsMenuManager } from "../SettingsMenu"
 import { DEFAULT_GRAPHER_FRAME_PADDING } from "../../core/GrapherConstants"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
         EntitySelectionManager,
-        MapProjectionMenuManager,
         SettingsMenuManager {
     sidePanelBounds?: Bounds
     availableTabs?: GrapherTabOption[]
@@ -75,7 +70,6 @@ export class ControlsRow extends React.Component<{
         return (
             SettingsMenu.shouldShow(this.manager) ||
             EntitySelectionToggle.shouldShow(this.manager) ||
-            MapProjectionMenu.shouldShow(this.manager) ||
             ContentSwitchers.shouldShow(this.manager)
         )
     }
@@ -105,10 +99,6 @@ export class ControlsRow extends React.Component<{
                         right={
                             this.sidePanelWidth + this.framePaddingHorizontal
                         }
-                    />
-                    <MapProjectionMenu
-                        manager={this.manager}
-                        maxWidth={this.availableWidth}
                     />
                 </div>
             </nav>

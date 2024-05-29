@@ -11,6 +11,7 @@ import {
 import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
 import { ChartSeries } from "../chart/ChartInterface"
+import { GlobeController } from "./GlobeController"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = ColorScaleBin
@@ -40,15 +41,22 @@ export interface ChoroplethMapManager {
     noDataColor: string
     focusBracket?: MapBracket
     focusEntity?: MapEntity
-    onClick: (d: GeoFeature, ev: React.MouseEvent<SVGElement>) => void
+    onClickFeature: (d: GeoFeature, ev: React.MouseEvent<SVGElement>) => void
     onMapMouseOver: (d: GeoFeature) => void
     onMapMouseLeave: () => void
+    onProjectionChange: (projection: MapProjectionName) => void
+    clearProjection: () => void
     strokeWidth?: number
+    globeRotation: [number, number]
+    globeController: GlobeController
+    onGlobeRotationChange: (rotate: [number, number]) => void
+    fontSize?: number
 }
 
 export interface RenderFeature {
     id: string
     geo: GeoFeature
+    geoCentroid: PointVector // unprojected centroid
     path: string
     bounds: Bounds
     center: PointVector
@@ -66,4 +74,79 @@ export interface MapChartManager extends ChartManager {
     mapConfig?: MapConfig
     endTime?: Time
     title?: string
+    isModalOpen?: boolean
+    globeRotation?: [number, number]
+    globeController?: GlobeController
+}
+
+export interface Viewport {
+    x: number
+    y: number
+    width: number
+    height: number
+    rotation: [number, number]
+}
+
+// Viewport for each projection, defined by center and width+height in fractional coordinates
+export const VIEWPORTS: Record<MapProjectionName, Viewport> = {
+    World: {
+        x: 0.565,
+        y: 0.5,
+        width: 1,
+        height: 1,
+        rotation: [30, -20], // Atlantic ocean (i.e. Americas & Europe)
+    },
+    Europe: {
+        x: 0.53,
+        y: 0.22,
+        width: 0.2,
+        height: 0.2,
+        rotation: [-10, -50],
+    },
+    Africa: {
+        x: 0.49,
+        y: 0.7,
+        width: 0.21,
+        height: 0.38,
+        rotation: [-20, 0],
+    },
+    NorthAmerica: {
+        x: 0.49,
+        y: 0.4,
+        width: 0.19,
+        height: 0.32,
+        rotation: [110, -40],
+    },
+    SouthAmerica: {
+        x: 0.52,
+        y: 0.815,
+        width: 0.1,
+        height: 0.26,
+        rotation: [60, 20],
+    },
+    Asia: {
+        x: 0.74,
+        y: 0.45,
+        width: 0.36,
+        height: 0.5,
+        rotation: [-100, -35],
+    },
+    Oceania: {
+        x: 0.51,
+        y: 0.75,
+        width: 0.1,
+        height: 0.2,
+        rotation: [-140, 20],
+    },
+}
+
+export const DEFAULT_VIEWPORT = VIEWPORTS.World
+
+export const DEFAULT_ROTATIONS: Record<
+    "UTC_MORNING" | "UTC_MIDDAY" | "UTC_EVENING",
+    [number, number]
+> = {
+    UTC_MORNING: [-110, -15], // Asia & Oceania
+    UTC_MIDDAY: [-20, -20], // Europe & Africa
+    UTC_EVENING: [90, -15], // North & South America
 }

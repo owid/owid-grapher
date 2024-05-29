@@ -6,6 +6,7 @@ import { MapProjectionName } from "@ourworldindata/types"
 import { MapProjectionLabels } from "../mapCharts/MapProjections"
 import { Dropdown } from "./Dropdown"
 import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
+import { GlobeController } from "../mapCharts/GlobeController"
 
 export { AbsRelToggle } from "./settings/AbsRelToggle"
 export { FacetStrategySelector } from "./settings/FacetStrategySelector"
@@ -18,6 +19,8 @@ export interface MapProjectionMenuManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
     hideMapProjectionMenu?: boolean
+    globeController?: GlobeController
+    isGlobe?: boolean
 }
 
 interface MapProjectionMenuItem {
@@ -30,54 +33,61 @@ export class MapProjectionMenu extends React.Component<{
     manager: MapProjectionMenuManager
     maxWidth?: number
 }> {
-    static shouldShow(manager: MapProjectionMenuManager): boolean {
-        const menu = new MapProjectionMenu({ manager })
-        return menu.showMenu
-    }
-
-    @computed get showMenu(): boolean {
-        const { hideMapProjectionMenu, isOnMapTab, mapConfig } =
-                this.props.manager,
-            { projection } = mapConfig ?? {}
-        return !hideMapProjectionMenu && !!(isOnMapTab && projection)
-    }
-
     @computed private get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
     @action.bound onChange(selected: unknown): void {
         const { mapConfig } = this.props.manager
-        if (selected && mapConfig)
-            mapConfig.projection = (selected as MapProjectionMenuItem).value
+        if (selected && mapConfig) {
+            const projection = (selected as MapProjectionMenuItem).value
+            mapConfig.projection = projection
+
+            void this.props.manager.globeController?.rotateToProjection(
+                projection
+            )
+        }
     }
 
     @computed get options(): MapProjectionMenuItem[] {
-        return Object.values(MapProjectionName).map((projectName) => {
-            return {
-                value: projectName,
-                label: MapProjectionLabels[projectName],
-            }
-        })
+        return Object.values(MapProjectionName)
+            .filter((projectionName) =>
+                this.props.manager.isGlobe
+                    ? projectionName !== MapProjectionName.World
+                    : true
+            )
+            .map((projectionName) => {
+                return {
+                    value: projectionName,
+                    label: MapProjectionLabels[projectionName],
+                }
+            })
     }
 
     @computed get value(): MapProjectionMenuItem | null {
         const { projection } = this.props.manager.mapConfig ?? {}
-        return this.options.find((opt) => projection === opt.value) ?? null
+        const option =
+            this.options.find((opt) => projection === opt.value) ?? null
+        if (this.props.manager.isGlobe) return option
+        const world =
+            this.options.find((opt) => opt.value === MapProjectionName.World) ??
+            null
+        return option ?? world
     }
 
     render(): React.ReactElement | null {
-        return this.showMenu ? (
+        return (
             <div
                 className="map-projection-menu"
                 style={{ maxWidth: this.maxWidth }}
             >
                 <Dropdown
+                    placeholder="Select continent..."
                     options={this.options}
                     onChange={this.onChange}
                     value={this.value}
                 />
             </div>
-        ) : null
+        )
     }
 }

@@ -594,7 +594,7 @@ export const fetchText = async (url: string): Promise<string> => {
 const _getUserCountryInformation = async (): Promise<
     UserCountryInformation | undefined
 > =>
-    await fetch("/detect-country")
+    await fetch("https://detect-country.owid.io/")
         .then((res) => res.json())
         .then((res) => res.country)
         .catch(() => undefined)
@@ -1953,3 +1953,6 @@ export function createTagGraph(
 
     return recursivelySetChildren(tagGraph) as TagGraphRoot
 }
+
+export const delay = (ms: number): Promise<void> =>
+    new Promise((resolve) => setTimeout(resolve, ms))
