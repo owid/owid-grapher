@@ -25,9 +25,17 @@ export const legacyMapGrapher: GrapherProgrammaticInterface = {
             3512,
             {
                 data: {
-                    years: [...Array(300).fill(1).map((x,i) => 2000)],
-                    entities: Array(300).fill(1).map((x,i) => i),
-                    values: Array(300).fill(1).map((x,i) => Math.random() * 30),
+                    years: [
+                        ...Array(300)
+                            .fill(1)
+                            .map((x, i) => 2000),
+                    ],
+                    entities: Array(300)
+                        .fill(1)
+                        .map((x, i) => i),
+                    values: Array(300)
+                        .fill(1)
+                        .map((x, i) => Math.random() * 30),
                 },
                 metadata: {
                     id: 3512,
@@ -41,7 +49,11 @@ export const legacyMapGrapher: GrapherProgrammaticInterface = {
                                 { name: "Algeria", id: 3, code: "DZA" },
                                 { name: "Andorra", id: 4, code: "AND" },
                                 { name: "Angola", id: 5, code: "AGO" },
-                                { name: "Antigua and Barbuda", id: 6, code: "ATG" },
+                                {
+                                    name: "Antigua and Barbuda",
+                                    id: 6,
+                                    code: "ATG",
+                                },
                                 { name: "Brunei", id: 38, code: "BRN" },
                                 { name: "Bulgaria", id: 39, code: "BGR" },
                                 { name: "Burkina Faso", id: 40, code: "BFA" },
@@ -51,7 +63,11 @@ export const legacyMapGrapher: GrapherProgrammaticInterface = {
                                 { name: "Cameroon", id: 44, code: "CMR" },
                                 { name: "Canada", id: 45, code: "CAN" },
                                 { name: "Cayman Islands", id: 46, code: "CYM" },
-                                { name: "Central African Republic", id: 47, code: "CAF" },
+                                {
+                                    name: "Central African Republic",
+                                    id: 47,
+                                    code: "CAF",
+                                },
                                 { name: "Chad", id: 48, code: "TCD" },
                                 { name: "Chile", id: 49, code: "CHL" },
                                 { name: "China", id: 50, code: "CHN" },
@@ -67,7 +83,11 @@ export const legacyMapGrapher: GrapherProgrammaticInterface = {
                                 { name: "Czechia", id: 60, code: "CZE" },
                                 { name: "Zimbabwe", id: 243, code: "ZWE" },
                                 { name: "Åland Islands", id: 244, code: "ALA" },
-                                { name: "Saint Barthélemy", id: 245, code: "BLM" },
+                                {
+                                    name: "Saint Barthélemy",
+                                    id: 245,
+                                    code: "BLM",
+                                },
                                 { name: "Armenia", id: 18, code: "ARM" },
                                 { name: "Aruba", id: 19, code: "ABW" },
                                 { name: "Australia", id: 20, code: "AUS" },
@@ -85,7 +105,11 @@ export const legacyMapGrapher: GrapherProgrammaticInterface = {
                                 { name: "Bhutan", id: 32, code: "BTN" },
                                 { name: "Bolivia", id: 33, code: "BOL" },
                                 { name: "Bonaire", id: 34, code: "BES" },
-                                { name: "Bosnia and Herzegovina", id: 35, code: "BIH" },
+                                {
+                                    name: "Bosnia and Herzegovina",
+                                    id: 35,
+                                    code: "BIH",
+                                },
                                 { name: "Botswana", id: 36, code: "BWA" },
                                 { name: "Brazil", id: 37, code: "BRA" },
                                 { name: "Yemen", id: 179, code: "YEM" },
@@ -93,7 +117,11 @@ export const legacyMapGrapher: GrapherProgrammaticInterface = {
                                 { name: "Aland Islands", id: 246, code: "ALA" },
                                 { name: "Saint Helena", id: 247, code: "SHN" },
                                 { name: "Seychelles", id: 248, code: "SYC" },
-                                { name: "Solomon Islands", id: 249, code: "SLB" },
+                                {
+                                    name: "Solomon Islands",
+                                    id: 249,
+                                    code: "SLB",
+                                },
                                 { name: "Turkmenistan", id: 250, code: "TKM" },
                                 { name: "Russia", id: 61, code: "RUS" },
                                 { name: "Canada", id: 45, code: "CAN" },

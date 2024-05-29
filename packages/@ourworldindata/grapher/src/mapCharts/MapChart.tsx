@@ -4,7 +4,7 @@ import {
     GrapherTabOption,
     MapProjectionName,
     SeriesName,
-    EntityName
+    EntityName,
 } from "@ourworldindata/types"
 import {
     Bounds,
@@ -145,7 +145,6 @@ const renderFeaturesCache = new Map<MapProjectionName, RenderFeature[]>()
 const renderFeaturesFor = (
     projectionName: MapProjectionName
 ): RenderFeature[] => {
-
     if (renderFeaturesCache.has(projectionName))
         return renderFeaturesCache.get(projectionName)!
     const geoBounds = geoBoundsFor(projectionName)
