@@ -49,6 +49,9 @@ import {
     getNextUpdateFromVariable,
     omitUndefinedValues,
     getAttributionFragmentsFromVariable,
+    OwidVariableDataMetadataDimensions,
+    OwidVariableWithSourceAndDimension,
+    memoize,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "../gdocs/OwidGdoc.js"
 import StickyNav from "../blocks/StickyNav.js"
@@ -280,6 +283,13 @@ const getDatapageDataV2 = async (
     }
 }
 
+const cachedGetVariableMetadata = memoize(
+    (variableId: number): Promise<OwidVariableWithSourceAndDimension> =>
+        fetch(getVariableMetadataRoute(DATA_API_URL, variableId)).then((resp) =>
+            resp.json()
+        )
+)
+
 export const MultiDimDataPageContent = ({
     // _datapageData,
     grapherConfig,
@@ -342,17 +352,15 @@ export const MultiDimDataPageContent = ({
         useState<DataPageDataV2 | null>(null)
 
     useEffect(() => {
-        setDatapageDataFromVar(null)
+        const timer = window.setTimeout(() => setDatapageDataFromVar(null), 1)
         const variableId = dimensionsConfig[0]?.variableId
         if (!variableId) return
-        const variableMetadata = fetch(
-            getVariableMetadataRoute(DATA_API_URL, variableId)
-        )
+        const variableMetadata = cachedGetVariableMetadata(variableId)
 
         variableMetadata
-            .then((resp) => resp.json())
             .then((json) => getDatapageDataV2(json, grapherConfig))
             .then(setDatapageDataFromVar)
+            .then(() => window.clearTimeout(timer))
             .catch(console.error)
     }, [dimensionsConfig, grapherConfig])
 
