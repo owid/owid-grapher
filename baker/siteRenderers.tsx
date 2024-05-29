@@ -99,10 +99,7 @@ import {
     getAndLoadGdocById,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { SiteNavigationStatic } from "../site/SiteNavigation.js"
-import {
-    MULTI_DIM_DATA_PAGE_CONFIG,
-    MultiDimDataPageConfig,
-} from "../site/multi-dim/MultiDimDataPageConfig.js"
+import { MultiDimDataPageConfig } from "../site/multi-dim/MultiDimDataPageConfig.js"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
@@ -937,11 +934,10 @@ export const extractKeyInsights = (
     return keyInsights
 }
 
-export const renderMultiDimDataPage = async () => {
+export const renderMultiDimDataPage = async (
+    config: MultiDimDataPageConfig
+) => {
     return renderToHtmlPage(
-        <MultiDimDataPage
-            baseUrl={BAKED_BASE_URL}
-            config={MULTI_DIM_DATA_PAGE_CONFIG}
-        />
+        <MultiDimDataPage baseUrl={BAKED_BASE_URL} config={config} />
     )
 }

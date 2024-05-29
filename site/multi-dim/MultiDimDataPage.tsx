@@ -90,10 +90,9 @@ export const MultiDimDataPage = (props: {
                 />
                 <script
                     dangerouslySetInnerHTML={{
-                        __html: `window._OWID_GRAPHER_CONFIG = ${
-                            serializeJSONForHTML({})
-                            // grapherConfig
-                        }`,
+                        __html: `window._OWID_MULTI_DIM_CONFIG = ${serializeJSONForHTML(
+                            props.config.config
+                        )}`,
                     }}
                 />
             </body>

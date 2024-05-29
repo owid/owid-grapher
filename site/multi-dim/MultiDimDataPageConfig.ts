@@ -1,7 +1,6 @@
 import YAML from "yaml"
 import { MultiDimDataPageConfigType, View } from "./MultiDimDataPageTypes.js"
 import { DimensionProperty, keyBy } from "@ourworldindata/utils"
-import plastic from "./life-expectancy.json"
 
 export class MultiDimDataPageConfig {
     private constructor(public readonly config: MultiDimDataPageConfigType) {}
@@ -67,7 +66,3 @@ export class MultiDimDataPageConfig {
         )
     }
 }
-
-export const MULTI_DIM_DATA_PAGE_CONFIG = MultiDimDataPageConfig.fromObject(
-    plastic as any as MultiDimDataPageConfigType
-)

@@ -498,16 +498,6 @@ getPlainRouteNonIdempotentWithRWTransaction(
     }
 )
 
-getPlainRouteNonIdempotentWithRWTransaction(
-    mockSiteRouter,
-    "/multi-dim",
-    async (_, res, trx) => {
-        const page = await renderMultiDimDataPage()
-        res.send(page)
-        return
-    }
-)
-
 // TODO: this transaction is only RW because somewhere inside it we fetch images
 getPlainRouteNonIdempotentWithRWTransaction(
     mockSiteRouter,

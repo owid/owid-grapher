@@ -57,20 +57,17 @@ import { DebugProvider } from "../gdocs/DebugContext.js"
 import dayjs from "dayjs"
 import { BAKED_BASE_URL, DATA_API_URL } from "../../settings/clientSettings.js"
 import Image from "../gdocs/components/Image.js"
-import {
-    MULTI_DIM_DATA_PAGE_CONFIG,
-    MultiDimDataPageConfig,
-} from "./MultiDimDataPageConfig.js"
+import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
 import Select, { OptionProps, components } from "react-select"
 import {
     Choice,
     Dimension,
     DimensionWithChoicesKeyedBySlug,
+    MultiDimDataPageConfigType,
 } from "./MultiDimDataPageTypes.js"
 declare global {
     interface Window {
-        _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields
-        _OWID_GRAPHER_CONFIG: GrapherInterface
+        _OWID_MULTI_DIM_CONFIG: MultiDimDataPageConfigType
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
@@ -183,6 +180,7 @@ const DimensionDropdown = (props: {
 }
 
 const MultiDimSettingsPanel = (props: {
+    config: MultiDimDataPageConfig
     onChange?: (
         slug: string,
         value: string,
@@ -190,7 +188,7 @@ const MultiDimSettingsPanel = (props: {
     ) => void
     updateSettings?: (currentSettings: Record<string, string>) => void
 }) => {
-    const config = MULTI_DIM_DATA_PAGE_CONFIG
+    const { config } = props
 
     const { dimensions } = config
 
@@ -283,7 +281,7 @@ const getDatapageDataV2 = async (
 }
 
 export const MultiDimDataPageContent = ({
-    datapageData,
+    // _datapageData,
     grapherConfig,
     isPreviewing = false,
     faqEntries,
@@ -294,6 +292,19 @@ export const MultiDimDataPageContent = ({
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
 }) => {
+    const config = useMemo(
+        () => MultiDimDataPageConfig.fromObject(window._OWID_MULTI_DIM_CONFIG),
+        []
+    )
+
+    const datapageData: Partial<DataPageDataV2> = {
+        title: {
+            title: config.config.name,
+            titleVariant: config.config.dimensions_title,
+        },
+        titleVariant: config.config.dimensions_title,
+    }
+
     const titleFragments = joinTitleFragments(
         datapageData.attributionShort,
         datapageData.titleVariant
@@ -312,8 +323,8 @@ export const MultiDimDataPageContent = ({
 
     const currentView = useMemo(() => {
         if (Object.keys(currentSettings).length === 0) return undefined
-        return MULTI_DIM_DATA_PAGE_CONFIG.findViewByDimensions(currentSettings)
-    }, [currentSettings])
+        return config.findViewByDimensions(currentSettings)
+    }, [currentSettings, config])
 
     const dimensionsConfig = useMemo(() => {
         const dimObj = MultiDimDataPageConfig.transformIndicatorPathObj(
@@ -376,7 +387,7 @@ export const MultiDimDataPageContent = ({
                     <div className="header__left span-cols-8 span-sm-cols-12">
                         <div className="header__supertitle">Data</div>
                         <h1 className="header__title">
-                            {datapageData.title.title}
+                            {datapageData.title?.title}
                         </h1>
                         <div className="header__source">{titleFragments}</div>
                     </div>
@@ -391,7 +402,10 @@ export const MultiDimDataPageContent = ({
                 </div>
             </div>
             <div className="wrapper">
-                <MultiDimSettingsPanel updateSettings={setCurrentSettings} />
+                <MultiDimSettingsPanel
+                    config={config}
+                    updateSettings={setCurrentSettings}
+                />
             </div>
 
             <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
@@ -1157,18 +1171,6 @@ export const MultiDimDataPageContent = ({
     )
 }
 */
-const datapageData: Partial<DataPageDataV2> = {
-    title: {
-        title: MULTI_DIM_DATA_PAGE_CONFIG.config.name,
-        titleVariant: MULTI_DIM_DATA_PAGE_CONFIG.config.dimensions_title,
-    },
-    titleVariant: MULTI_DIM_DATA_PAGE_CONFIG.config.dimensions_title,
-    topicTagsLinks: ["Life Expectancy"],
-}
-
-const tagToSlugMap = {
-    "Life Expectancy": "life-expectancy",
-}
 
 export const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
@@ -1179,8 +1181,6 @@ export const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
         <DebugProvider debug={isPreviewing}>
             <MultiDimDataPageContent
                 {...props}
-                datapageData={datapageData as DataPageDataV2}
-                tagToSlugMap={tagToSlugMap}
                 grapherConfig={grapherConfig}
                 isPreviewing={isPreviewing}
             />

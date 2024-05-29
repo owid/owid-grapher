@@ -109,6 +109,8 @@ export class OwidAdminApp {
         app.use("/admin/storybook", express.static(".storybook/build"))
         app.use("/admin", adminRouter)
 
+        app.use("/multi-dim-assets", express.static("public/multi-dim"))
+
         // Default route: single page admin app
         app.get("/admin/*", async (req, res) => {
             res.send(
