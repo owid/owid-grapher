@@ -72,14 +72,16 @@
             "dimensions": { "age": "0", "sex": "both", "projection": "none" },
             "indicator_path": { "520369": "y" },
             "config": {
-                "title": "Life expectancy at birth"
+                "title": "Life expectancy at birth",
+                "hasMapTab": true
             }
         },
         {
             "dimensions": { "age": "0", "sex": "both", "projection": "medium" },
             "indicator_path": { "520370": "y" },
             "config": {
-                "title": "Life expectancy at birth, medium projection"
+                "title": "Life expectancy at birth, medium projection",
+                "hasMapTab": true
             }
         },
 
@@ -87,14 +89,16 @@
             "dimensions": { "age": "0", "sex": "male", "projection": "none" },
             "indicator_path": { "520349": "y" },
             "config": {
-                "title": "Male life expectancy at birth"
+                "title": "Male life expectancy at birth",
+                "hasMapTab": true
             }
         },
         {
             "dimensions": { "age": "0", "sex": "male", "projection": "medium" },
             "indicator_path": { "520350": "y" },
             "config": {
-                "title": "Male life expectancy at birth, medium projection"
+                "title": "Male life expectancy at birth, medium projection",
+                "hasMapTab": true
             }
         },
 
@@ -102,7 +106,8 @@
             "dimensions": { "age": "0", "sex": "female", "projection": "none" },
             "indicator_path": { "520329": "y" },
             "config": {
-                "title": "Female life expectancy at birth"
+                "title": "Female life expectancy at birth",
+                "hasMapTab": true
             }
         },
         {
@@ -113,7 +118,8 @@
             },
             "indicator_path": { "520330": "y" },
             "config": {
-                "title": "Female life expectancy at birth, medium projection"
+                "title": "Female life expectancy at birth, medium projection",
+                "hasMapTab": true
             }
         },
 
@@ -121,7 +127,8 @@
             "dimensions": { "age": "15", "sex": "both", "projection": "none" },
             "indicator_path": { "520379": "y" },
             "config": {
-                "title": "Life expectancy at age 15"
+                "title": "Life expectancy at age 15",
+                "hasMapTab": true
             }
         },
         {
@@ -132,7 +139,8 @@
             },
             "indicator_path": { "520380": "y" },
             "config": {
-                "title": "Life expectancy at age 15, medium projection"
+                "title": "Life expectancy at age 15, medium projection",
+                "hasMapTab": true
             }
         },
 
@@ -140,7 +148,8 @@
             "dimensions": { "age": "15", "sex": "male", "projection": "none" },
             "indicator_path": { "520359": "y" },
             "config": {
-                "title": "Male life expectancy at age 15"
+                "title": "Male life expectancy at age 15",
+                "hasMapTab": true
             }
         },
         {
@@ -151,7 +160,8 @@
             },
             "indicator_path": { "520360": "y" },
             "config": {
-                "title": "Male life expectancy at age 15, medium projection"
+                "title": "Male life expectancy at age 15, medium projection",
+                "hasMapTab": true
             }
         },
 
@@ -163,7 +173,8 @@
             },
             "indicator_path": { "520338": "y" },
             "config": {
-                "title": "Female life expectancy at age 15"
+                "title": "Female life expectancy at age 15",
+                "hasMapTab": true
             }
         },
         {
@@ -174,7 +185,8 @@
             },
             "indicator_path": { "520340": "y" },
             "config": {
-                "title": "Female life expectancy at age 15, medium projection"
+                "title": "Female life expectancy at age 15, medium projection",
+                "hasMapTab": true
             }
         }
     ]
