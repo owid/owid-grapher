@@ -91,6 +91,7 @@ export interface ChartManager {
     missingDataStrategy?: MissingDataStrategy
 
     isNarrow?: boolean
+    isStatic?: boolean
     isStaticAndSmall?: boolean
     secondaryColorInStaticCharts?: string
 

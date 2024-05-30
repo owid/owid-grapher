@@ -43,6 +43,7 @@ import {
     DEFAULT_BOUNDS,
     isTouchDevice,
     round,
+    difference,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -104,6 +105,7 @@ import {
     ScatterSizeLegendManager,
 } from "./ScatterSizeLegend"
 import { Tooltip, TooltipState, TooltipValueRange } from "../tooltip/Tooltip"
+import { NoDataSection } from "./NoDataSection"
 
 @observer
 export class ScatterPlotChart
@@ -741,6 +743,14 @@ export class ScatterPlotChart
         return new ScatterSizeLegend(this)
     }
 
+    @computed
+    private get selectedEntitiesWithoutData(): string[] {
+        return difference(
+            this.selectedEntityNames,
+            this.series.map((s) => s.seriesName)
+        )
+    }
+
     componentDidMount(): void {
         exposeInstanceOnWindow(this)
     }
@@ -766,13 +776,44 @@ export class ScatterPlotChart
             legendDimensions,
         } = this
 
-        let sizeLegendY = bounds.top
-        if (this.legendItems.length > 0) {
-            sizeLegendY = bounds.top + legendDimensions.height + 16
-        }
-        const arrowLegendY = sizeLegend
-            ? sizeLegendY + sizeLegend.height + 15
-            : sizeLegendY
+        const hasLegendItems = this.legendItems.length > 0
+        const verticalLegendHeight = hasLegendItems
+            ? legendDimensions.height
+            : 0
+        const sizeLegendHeight = sizeLegend?.height ?? 0
+        const arrowLegendHeight = arrowLegend?.height ?? 0
+
+        const legendPadding = 16
+        const ySizeLegend =
+            bounds.top +
+            verticalLegendHeight +
+            (verticalLegendHeight > 0 ? legendPadding : 0)
+        const yArrowLegend =
+            ySizeLegend +
+            sizeLegendHeight +
+            (sizeLegendHeight > 0 ? legendPadding : 0)
+        const yNoDataSection =
+            yArrowLegend +
+            arrowLegendHeight +
+            (arrowLegendHeight > 0 ? legendPadding : 0)
+
+        const noDataSectionBounds = new Bounds(
+            this.legendX,
+            yNoDataSection,
+            sidebarWidth,
+            bounds.height - yNoDataSection
+        )
+
+        const separatorLine = (y: number): JSX.Element | null =>
+            y > bounds.top ? (
+                <line
+                    x1={this.legendX}
+                    y1={y - 0.5 * legendPadding}
+                    x2={bounds.right}
+                    y2={y - 0.5 * legendPadding}
+                    stroke="#e7e7e7"
+                />
+            ) : null
 
         return (
             <g className="ScatterPlot" onMouseMove={this.onScatterMouseMove}>
@@ -800,36 +841,30 @@ export class ScatterPlotChart
                 <VerticalColorLegend manager={this} />
                 {sizeLegend && (
                     <>
-                        {this.legendItems.length > 0 && (
-                            <line
-                                x1={bounds.right - sidebarWidth}
-                                y1={sizeLegendY - 14}
-                                x2={bounds.right - 5}
-                                y2={sizeLegendY - 14}
-                                stroke="#ccc"
-                            />
-                        )}
-                        {sizeLegend.render(this.legendX, sizeLegendY)}
+                        {separatorLine(ySizeLegend)}
+                        {sizeLegend.render(this.legendX, ySizeLegend)}
                     </>
                 )}
                 {arrowLegend && (
                     <>
-                        <line
-                            x1={bounds.right - sidebarWidth}
-                            y1={arrowLegendY - 7}
-                            x2={bounds.right - 5}
-                            y2={arrowLegendY - 7}
-                            stroke="#ccc"
-                        />
+                        {separatorLine(yArrowLegend)}
                         <g
                             className="clickable"
                             onClick={this.onToggleEndpoints}
                         >
-                            {arrowLegend.render(
-                                bounds.right - sidebarWidth,
-                                arrowLegendY
-                            )}
+                            {arrowLegend.render(this.legendX, yArrowLegend)}
                         </g>
+                    </>
+                )}
+                {this.selectedEntitiesWithoutData.length > 0 && (
+                    <>
+                        {!this.manager.isStatic &&
+                            separatorLine(noDataSectionBounds.top)}
+                        <NoDataSection
+                            entityNames={this.selectedEntitiesWithoutData}
+                            bounds={noDataSectionBounds}
+                            baseFontSize={this.fontSize}
+                        />
                     </>
                 )}
                 {this.tooltip}
