@@ -8,7 +8,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { LoadingIndicator } from "@ourworldindata/grapher"
 import cx from "classnames"
-import React, { useRef, useState } from "react"
+import React, { useCallback, useRef, useState } from "react"
 import ReactDOM from "react-dom"
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch"
 import { useTriggerOnEscape } from "./hooks.js"
@@ -48,11 +48,11 @@ const Lightbox = ({
     const [isLoaded, setIsLoaded] = useState(false)
     const contentRef = useRef<HTMLDivElement>(null)
 
-    const close = () => {
+    const close = useCallback(() => {
         if (containerNode) {
             ReactDOM.unmountComponentAtNode(containerNode)
         }
-    }
+    }, [containerNode])
 
     useTriggerOnEscape(close)
 
