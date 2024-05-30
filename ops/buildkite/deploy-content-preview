@@ -57,10 +57,7 @@
 #  (not locally):
 #  - in ~/owid-grapher/.env, set BAKED_BASE_URL to
 #    https://[PREVIEW_BRANCH].owid-staging.pages.dev
-#  - `rm ~/.site-baked` (see ops > templates > lxc-manager > grapher-refresh)
-#  - locate the latest Buildkite job for your staging environment and click
-#    "Rebuild". This will run the full site baking sequence with the preview URL
-#    as BAKED_BASE_URL.
+#  - `yarn buildLocalBake https://[PREVIEW_BRANCH].owid-staging.pages.dev /home/owid/live-data/bakedSite`
 #
 #  You don't need to continuously rebake the site to test iterative changes to
 #  functions code in the preview environment. Functions are not baked, they are
