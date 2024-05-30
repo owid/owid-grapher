@@ -117,7 +117,7 @@ export class ChartEditorPage
     @observable allTopics: Topic[] = []
     @observable details: DetailDictionary = {}
 
-    @observable.ref grapherElement?: JSX.Element
+    @observable.ref grapherElement?: React.ReactElement
 
     static contextType = AdminAppContext
     context!: AdminAppContextType
@@ -405,7 +405,7 @@ export class ChartEditorPage
         this.disposers.forEach((dispose) => dispose())
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         return (
             <AdminLayout noSidebar>
                 <main className="ChartEditorPage">
@@ -417,7 +417,7 @@ export class ChartEditorPage
         )
     }
 
-    renderReady(editor: ChartEditor): JSX.Element {
+    renderReady(editor: ChartEditor): React.ReactElement {
         const { grapher, availableTabs } = editor
 
         return (

@@ -35,7 +35,7 @@ export class ContentSwitchers extends React.Component<{
         return this.manager.type ?? ChartTypeName.LineChart
     }
 
-    private tabIcon(tab: GrapherTabOption): JSX.Element {
+    private tabIcon(tab: GrapherTabOption): React.ReactElement {
         const { manager } = this
         switch (tab) {
             case GrapherTabOption.table:
@@ -50,7 +50,7 @@ export class ContentSwitchers extends React.Component<{
         }
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { manager } = this
         return (
             <ul
@@ -78,11 +78,11 @@ export class ContentSwitchers extends React.Component<{
 
 function Tab(props: {
     tab: GrapherTabOption
-    icon: JSX.Element
+    icon: React.ReactElement
     isActive?: boolean
     onClick?: React.MouseEventHandler<HTMLButtonElement>
     showLabel?: boolean
-}): JSX.Element {
+}): React.ReactElement {
     const className = "tab clickable" + (props.isActive ? " active" : "")
     return (
         <li key={props.tab} className={className}>

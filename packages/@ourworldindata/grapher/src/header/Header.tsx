@@ -189,7 +189,7 @@ export class Header<
         )
     }
 
-    private renderTitle(): JSX.Element {
+    private renderTitle(): React.ReactElement {
         const { manager } = this
 
         // avoid linking to a grapher/data page when we're already on it
@@ -230,7 +230,7 @@ export class Header<
         )
     }
 
-    private renderSubtitle(): JSX.Element {
+    private renderSubtitle(): React.ReactElement {
         const style = {
             ...this.subtitle.style,
             marginTop: this.subtitleMarginTop,
@@ -240,7 +240,7 @@ export class Header<
         return <p style={style}>{this.subtitle.renderHTML()}</p>
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         return (
             <div
                 className="HeaderHTML"
@@ -276,7 +276,7 @@ export class StaticHeader extends Header<StaticHeaderProps> {
         return 1.2
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { targetX: x, targetY: y } = this.props
         const { title, logo, subtitle, manager, maxWidth } = this
         return (

@@ -19,7 +19,7 @@ export class NoDataAreaToggle extends React.Component<{
         return this.props.manager
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         return (
             <LabeledSwitch
                 label={"Show \u2018no data\u2019 area"}

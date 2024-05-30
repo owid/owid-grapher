@@ -2,7 +2,7 @@ import React from "react"
 import Select, { Props } from "react-select"
 import cx from "classnames"
 
-export function Dropdown(props: Props): React.JSX.Element {
+export function Dropdown(props: Props): React.ReactElement {
     return (
         <Select
             className="grapher-dropdown"

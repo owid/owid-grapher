@@ -22,7 +22,7 @@ import {
 
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
 
-export const AdminSidebar = (): JSX.Element => (
+export const AdminSidebar = (): React.ReactElement => (
     <aside className="AdminSidebar">
         <ul className="sidebar-menu">
             <li className="header">SITE</li>

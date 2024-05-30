@@ -14,7 +14,7 @@ export const Tabs = ({
     setActiveIndex: (label: number) => void
     horizontalScroll?: boolean
     maxTabWidth?: number | null // if null, don't clip labels
-    slot?: JSX.Element
+    slot?: React.ReactElement
 }) => {
     const container = useRef<HTMLDivElement>(null)
 

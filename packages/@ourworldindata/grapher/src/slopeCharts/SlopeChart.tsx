@@ -342,7 +342,7 @@ export class SlopeChart
         )
     }
 
-    @computed private get noDataSection(): JSX.Element {
+    @computed private get noDataSection(): React.ReactElement {
         const bounds = new Bounds(
             this.legendX,
             this.legendY + this.legendHeight + 12,

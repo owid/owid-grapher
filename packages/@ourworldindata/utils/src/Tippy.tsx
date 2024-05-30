@@ -5,7 +5,7 @@ interface CustomTippyProps extends TippyProps {
     lazy?: boolean
 }
 
-export const Tippy = (props: CustomTippyProps): JSX.Element => {
+export const Tippy = (props: CustomTippyProps): React.ReactElement => {
     const { lazy, ...tippyProps } = props
 
     const TippyInstance = lazy ? LazyTippy : OriginalTippy
@@ -49,7 +49,7 @@ interface TippyIfInteractiveProps extends CustomTippyProps {
 // then it bypasses Tippy and just renders the children.
 export const TippyIfInteractive = (
     props: TippyIfInteractiveProps
-): JSX.Element => {
+): React.ReactElement => {
     const { isInteractive, ...tippyProps } = props
 
     if (isInteractive) return <Tippy {...tippyProps} />

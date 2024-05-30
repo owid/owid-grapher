@@ -29,7 +29,7 @@ export class FacetYDomainToggle extends React.Component<{
         return facetDomain === FacetAxisDomain.shared
     }
 
-    render(): JSX.Element | null {
+    render(): React.ReactElement | null {
         const { yAxis, facetStrategy } = this.props.manager
         if (!yAxis || facetStrategy === "none") return null
 

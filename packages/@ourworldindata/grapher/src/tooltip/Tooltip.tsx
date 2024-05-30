@@ -80,7 +80,7 @@ class TooltipCard extends React.Component<
         this.updateBounds()
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         let {
             id,
             title,
@@ -179,7 +179,7 @@ export class TooltipContainer extends React.Component<{
     containerWidth: number
     containerHeight: number
 }> {
-    @computed private get rendered(): JSX.Element | null {
+    @computed private get rendered(): React.ReactElement | null {
         const tooltipsMap = this.props.tooltipProvider.tooltips
         if (!tooltipsMap) return null
         const tooltips = Object.entries(tooltipsMap.toJSON())
@@ -197,7 +197,7 @@ export class TooltipContainer extends React.Component<{
         )
     }
 
-    render(): JSX.Element | null {
+    render(): React.ReactElement | null {
         return this.rendered
     }
 }

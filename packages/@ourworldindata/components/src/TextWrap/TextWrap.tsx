@@ -209,7 +209,7 @@ export class TextWrap {
         }
     }
 
-    renderHTML(): JSX.Element | null {
+    renderHTML(): React.ReactElement | null {
         const { props, lines } = this
 
         if (lines.length === 0) return null
@@ -261,7 +261,7 @@ export class TextWrap {
             textProps,
             id,
         }: { textProps?: React.SVGProps<SVGTextElement>; id?: string } = {}
-    ): JSX.Element | null {
+    ): React.ReactElement | null {
         const { props, lines, fontSize, fontWeight, lineHeight } = this
 
         if (lines.length === 0) return null

@@ -218,7 +218,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.hasDetails || !!this.manager.showAdminControls
     }
 
-    private renderReady(): JSX.Element {
+    private renderReady(): React.ReactElement {
         const {
             manager,
             svgPreviewUrl,
@@ -361,7 +361,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         this.export()
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         return (
             <Modal bounds={this.modalBounds} onDismiss={this.onDismiss}>
                 <div
@@ -394,7 +394,7 @@ interface DownloadButtonProps {
     tracking?: string
 }
 
-function DownloadButton(props: DownloadButtonProps): JSX.Element {
+function DownloadButton(props: DownloadButtonProps): React.ReactElement {
     return (
         <button
             className="grouped-menu-item"

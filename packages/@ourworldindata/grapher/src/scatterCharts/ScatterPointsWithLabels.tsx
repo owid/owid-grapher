@@ -395,7 +395,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         return this.renderSeries.filter((series) => !!series.isForeground)
     }
 
-    private renderBackgroundSeries(): JSX.Element[] {
+    private renderBackgroundSeries(): React.ReactElement[] {
         const { backgroundSeries, isLayerMode, hideConnectedScatterLines } =
             this
 
@@ -412,7 +412,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
               ))
     }
 
-    private renderBackgroundLabels(): JSX.Element {
+    private renderBackgroundLabels(): React.ReactElement {
         const { isLayerMode } = this
         return (
             <g
@@ -452,7 +452,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         return guid()
     }
 
-    private renderForegroundSeries(): JSX.Element[] {
+    private renderForegroundSeries(): React.ReactElement[] {
         const { isSubtleForeground, hideConnectedScatterLines } = this
         return this.foregroundSeries.map((series) => {
             const lastPoint = last(series.points)!
@@ -551,7 +551,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         })
     }
 
-    private renderForegroundLabels(): JSX.Element[][] {
+    private renderForegroundLabels(): React.ReactElement[][] {
         return this.foregroundSeries.map((series) => {
             return series.allLabels
                 .filter((label) => !label.isHidden)
@@ -611,7 +611,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         if (this.animSelection) this.animSelection.interrupt()
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { bounds, renderSeries, renderUid } = this
         const clipBounds = bounds.pad(-10)
 

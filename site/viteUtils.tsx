@@ -47,8 +47,8 @@ const polyfillPreload = (
 )
 
 interface Assets {
-    forHeader: JSX.Element[]
-    forFooter: JSX.Element[]
+    forHeader: React.ReactElement[]
+    forFooter: React.ReactElement[]
 }
 
 // in dev: we need to load several vite core scripts and plugins; other than that we only need to load the entry point, and vite will take care of the rest.
@@ -94,11 +94,11 @@ export const createTagsForManifestEntry = (
     entry: string,
     assetBaseUrl: string
 ): Assets => {
-    const createTags = (entry: string): JSX.Element[] => {
+    const createTags = (entry: string): React.ReactElement[] => {
         const manifestEntry =
             Object.values(manifest).find((e) => e.file === entry) ??
             manifest[entry]
-        let assets = [] as JSX.Element[]
+        let assets = [] as React.ReactElement[]
 
         if (!manifestEntry)
             throw new Error(`Could not find manifest entry for ${entry}`)

@@ -10,7 +10,7 @@ export default {
     component: DownloadModal,
 }
 
-export const Default = (): JSX.Element => {
+export const Default = (): React.ReactElement => {
     return (
         <DownloadModal
             manager={{

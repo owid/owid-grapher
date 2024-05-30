@@ -6,7 +6,7 @@ export class RadioButton extends React.Component<{
     label: React.ReactNode
     group?: string
 }> {
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { checked, onChange, label, group } = this.props
 
         return (

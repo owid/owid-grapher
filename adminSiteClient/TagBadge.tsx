@@ -14,7 +14,7 @@ export class TagBadge extends React.Component<{
     tag: DbChartTagJoin
     onToggleKey?: () => void
     onApprove?: () => void
-    searchHighlight?: (text: string) => string | JSX.Element
+    searchHighlight?: (text: string) => string | React.ReactElement
 }> {
     levelToDesc(level?: KeyChartLevel) {
         switch (level) {

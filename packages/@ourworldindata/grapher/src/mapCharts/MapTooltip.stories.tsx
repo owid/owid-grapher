@@ -9,6 +9,6 @@ export default {
 }
 
 // todo: refactor TooltipContainer stuff so we can decouple from Grapher
-export const WithSparkChart = (): JSX.Element => (
+export const WithSparkChart = (): React.ReactElement => (
     <Grapher {...legacyMapGrapher} />
 )

@@ -109,7 +109,7 @@ const translateNotice = (
     </a>
 )
 
-const topicNotices = new Map<SpecialFeedbackTopic, JSX.Element>([
+const topicNotices = new Map<SpecialFeedbackTopic, React.ReactElement>([
     [SpecialFeedbackTopic.Vaccination, vaccineNotice],
     [SpecialFeedbackTopic.Citation, citationNotice],
     [SpecialFeedbackTopic.Licensing, copyrightNotice],

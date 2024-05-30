@@ -161,7 +161,7 @@ class Lines extends React.Component<LinesProps> {
         return this.props.lineOutlineWidth ?? DEFAULT_LINE_OUTLINE_WIDTH
     }
 
-    private renderFocusGroups(): JSX.Element[] {
+    private renderFocusGroups(): React.ReactElement[] {
         return this.focusedLines.map((series, index) => {
             // If the series only contains one point, then we will always want to show a marker/circle
             // because we can't draw a line.
@@ -221,7 +221,7 @@ class Lines extends React.Component<LinesProps> {
         })
     }
 
-    private renderBackgroundGroups(): JSX.Element[] {
+    private renderBackgroundGroups(): React.ReactElement[] {
         return this.backgroundLines.map((series, index) => (
             <g
                 id={makeIdForHumanConsumption("line", series.seriesName)}
@@ -245,7 +245,7 @@ class Lines extends React.Component<LinesProps> {
         ))
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { bounds } = this
 
         return (
@@ -468,7 +468,7 @@ export class LineChart
         )
     }
 
-    @computed get activeXVerticalLine(): JSX.Element | undefined {
+    @computed get activeXVerticalLine(): React.ReactElement | undefined {
         const { activeX, dualAxis } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
@@ -513,7 +513,7 @@ export class LineChart
         )
     }
 
-    @computed private get tooltip(): JSX.Element | undefined {
+    @computed private get tooltip(): React.ReactElement | undefined {
         const { formatColumn, colorColumn, hasColorScale } = this
         const { target, position, fading } = this.tooltipState
 
@@ -713,7 +713,7 @@ export class LineChart
             .expand(10)
     }
 
-    @computed get clipPath(): { id: string; element: JSX.Element } {
+    @computed get clipPath(): { id: string; element: React.ReactElement } {
         return makeClipPath(this.renderUid, this.clipPathBounds)
     }
 
@@ -749,7 +749,7 @@ export class LineChart
         return strategies
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         if (this.failMessage)
             return (
                 <NoDataModal

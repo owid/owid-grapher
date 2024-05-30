@@ -15,7 +15,7 @@ export class AxisScaleToggle extends React.Component<{
         this.props.axis.scaleType = scale
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { linear, log } = ScaleType,
             { axis, prefix, subtitle } = this.props,
             isLinear = axis.scaleType === linear,

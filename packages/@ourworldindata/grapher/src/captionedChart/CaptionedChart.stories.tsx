@@ -32,9 +32,11 @@ const manager: CaptionedChartManager = {
     detailRenderers: [],
 }
 
-export const LineChart = (): JSX.Element => <CaptionedChart manager={manager} />
+export const LineChart = (): React.ReactElement => (
+    <CaptionedChart manager={manager} />
+)
 
-export const StaticLineChartForExport = (): JSX.Element => {
+export const StaticLineChartForExport = (): React.ReactElement => {
     return (
         <StaticCaptionedChart
             manager={{
@@ -45,10 +47,10 @@ export const StaticLineChartForExport = (): JSX.Element => {
     )
 }
 
-export const MapChart = (): JSX.Element => (
+export const MapChart = (): React.ReactElement => (
     <CaptionedChart manager={{ ...manager, tab: GrapherTabOption.map }} />
 )
-export const StackedArea = (): JSX.Element => (
+export const StackedArea = (): React.ReactElement => (
     <CaptionedChart
         manager={{
             ...manager,
@@ -57,7 +59,7 @@ export const StackedArea = (): JSX.Element => (
         }}
     />
 )
-export const Scatter = (): JSX.Element => (
+export const Scatter = (): React.ReactElement => (
     <CaptionedChart
         manager={{
             ...manager,

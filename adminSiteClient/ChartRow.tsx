@@ -16,7 +16,7 @@ import { TaggableType, DbChartTagJoin } from "@ourworldindata/utils"
 @observer
 export class ChartRow extends React.Component<{
     chart: ChartListItem
-    searchHighlight?: (text: string) => string | JSX.Element
+    searchHighlight?: (text: string) => string | React.ReactElement
     availableTags: DbChartTagJoin[]
     onDelete: (chart: ChartListItem) => void
 }> {

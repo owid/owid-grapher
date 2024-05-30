@@ -117,7 +117,7 @@ export class VerticalColorLegend extends React.Component<{
         )
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const {
             title,
             titleHeight,

@@ -91,7 +91,7 @@ function MarimekkoBar({
     entityColor,
     y0,
     dualAxis,
-}: MarimekkoBarProps): JSX.Element {
+}: MarimekkoBarProps): React.ReactElement {
     const { seriesName } = bar
     const isPlaceholder = bar.kind === BarShape.BarPlaceholder
     const barBaseColor =
@@ -172,7 +172,9 @@ interface MarimekkoBarsProps {
     dualAxis: DualAxis
 }
 
-function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
+function MarimekkoBarsForOneEntity(
+    props: MarimekkoBarsProps
+): React.ReactElement {
     7
     const {
         entityName,
@@ -932,7 +934,7 @@ export class MarimekkoChart
         )
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         if (this.failMessage)
             return (
                 <NoDataModal
@@ -1045,9 +1047,9 @@ export class MarimekkoChart
         )
     }
 
-    private renderBars(): JSX.Element[] {
-        const normalElements: JSX.Element[] = []
-        const highlightedElements: JSX.Element[] = [] // highlighted elements have a thicker stroke and should be drawn last to overlap others
+    private renderBars(): React.ReactElement[] {
+        const normalElements: React.ReactElement[] = []
+        const highlightedElements: React.ReactElement[] = [] // highlighted elements have a thicker stroke and should be drawn last to overlap others
         const {
             dualAxis,
             x0,
@@ -1195,7 +1197,7 @@ export class MarimekkoChart
             else normalElements.push(result)
         }
 
-        return ([] as JSX.Element[]).concat(
+        return ([] as React.ReactElement[]).concat(
             noDataAreaElement ? [noDataAreaElement] : [],
             normalElements,
             placedLabels,
@@ -1499,7 +1501,7 @@ export class MarimekkoChart
         return labelsWithPlacements
     }
 
-    @computed private get labelLines(): JSX.Element[] {
+    @computed private get labelLines(): React.ReactElement[] {
         const { labelsWithPlacementInfo, dualAxis, selectedItems } = this
         const shiftedGroups: LabelWithPlacement[][] = []
         const unshiftedElements: LabelWithPlacement[] = []
@@ -1532,7 +1534,7 @@ export class MarimekkoChart
         // then we could do this but this makes it jumpy over time
         // if (shiftedGroups.length === 0) return []
         // else {
-        const labelLines: JSX.Element[] = []
+        const labelLines: React.ReactElement[] = []
         for (const group of shiftedGroups) {
             let indexInGroup = 0
             for (const item of group) {
@@ -1600,7 +1602,7 @@ export class MarimekkoChart
         //}
     }
 
-    @computed private get placedLabels(): JSX.Element[] {
+    @computed private get placedLabels(): React.ReactElement[] {
         const labelOffset = MARKER_AREA_HEIGHT
         // old logic tried to hide labellines but that is too jumpy
         // labelLines.length

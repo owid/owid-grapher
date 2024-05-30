@@ -33,7 +33,9 @@ export const dataInsightIndexToIdMap: Record<number, string> = {
     4: FIFTH_MOST_RECENT_INSIGHT,
 }
 
-const DataInsightCard = (props: MinimalDataInsightInterface): JSX.Element => {
+const DataInsightCard = (
+    props: MinimalDataInsightInterface
+): React.ReactElement => {
     const publishedAt = props.publishedAt
         ? formatDate(new Date(props.publishedAt))
         : null
@@ -181,7 +183,9 @@ type DataInsightProps = {
     className?: string
 } & OwidGdocDataInsightInterface
 
-export const DataInsightPage = (props: DataInsightProps): JSX.Element => {
+export const DataInsightPage = (
+    props: DataInsightProps
+): React.ReactElement => {
     const attachments = useContext(AttachmentsContext)
     const latestDataInsights = attachments.latestDataInsights
         ?.filter((dataInsight) => dataInsight.title !== props.content.title)

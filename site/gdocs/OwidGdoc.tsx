@@ -69,7 +69,7 @@ type OwidGdocProps = OwidGdocInterface & {
 export function OwidGdoc({
     isPreviewing = false,
     ...props
-}: OwidGdocProps): JSX.Element {
+}: OwidGdocProps): React.ReactElement {
     const content = match(props)
         .with(
             {

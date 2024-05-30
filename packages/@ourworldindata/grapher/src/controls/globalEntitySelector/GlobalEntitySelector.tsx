@@ -55,7 +55,9 @@ const allEntities = sortBy(countries, (c) => c.name)
         },
     ])
 
-const Option = (props: OptionProps<DropdownEntity, true, any>): JSX.Element => {
+const Option = (
+    props: OptionProps<DropdownEntity, true, any>
+): React.ReactElement => {
     return (
         <div>
             <components.Option {...props}>
@@ -106,7 +108,7 @@ function SelectedItems(props: {
     emptyLabel: string
     canRemove?: boolean
     onRemove?: (item: EntityName) => void
-}): JSX.Element {
+}): React.ReactElement {
     const canRemove = (props.canRemove ?? true) && props.onRemove !== undefined
     const onRemove = props.onRemove || noop
     const isEmpty = props.selectedEntityNames.length === 0
@@ -309,7 +311,7 @@ export class GlobalEntitySelector extends React.Component<{
         return this.selection.selectedEntityNames.map(entityNameToOption)
     }
 
-    private renderNarrow(): JSX.Element {
+    private renderNarrow(): React.ReactElement {
         return (
             <>
                 <div
@@ -344,7 +346,7 @@ export class GlobalEntitySelector extends React.Component<{
                                               acc.length === 0
                                                   ? [item]
                                                   : [...acc, ", ", item],
-                                          [] as (JSX.Element | string)[]
+                                          [] as (React.ReactElement | string)[]
                                       )}
                         </div>
                     )}
@@ -366,7 +368,7 @@ export class GlobalEntitySelector extends React.Component<{
         )
     }
 
-    private renderWide(): JSX.Element {
+    private renderWide(): React.ReactElement {
         return (
             <>
                 <div className="select-dropdown-container">
@@ -388,7 +390,7 @@ export class GlobalEntitySelector extends React.Component<{
         )
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         return (
             <div
                 className={classnames("global-entity-control", {

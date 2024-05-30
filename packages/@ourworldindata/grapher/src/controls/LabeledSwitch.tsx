@@ -12,7 +12,7 @@ export class LabeledSwitch extends React.Component<{
     tracking?: string
     onToggle: () => any
 }> {
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { label, value, tooltip, tracking } = this.props
 
         return (

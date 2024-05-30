@@ -12,7 +12,7 @@ export function OverlayHeader({
     onTitleClick?: () => void
     onDismiss?: () => void
     className?: string
-}): JSX.Element {
+}): React.ReactElement {
     return (
         <div className={cx("overlay-header", className)}>
             <h2

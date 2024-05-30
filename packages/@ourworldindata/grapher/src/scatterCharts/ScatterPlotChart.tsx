@@ -668,7 +668,7 @@ export class ScatterPlotChart
             .addAll(nodes)
     }
 
-    @computed private get points(): JSX.Element {
+    @computed private get points(): React.ReactElement {
         return (
             <ScatterPointsWithLabels
                 noDataModalManager={this.manager}
@@ -802,7 +802,7 @@ export class ScatterPlotChart
             )
         }
     }
-    render(): JSX.Element {
+    render(): React.ReactElement {
         if (this.failMessage)
             return (
                 <NoDataModal
@@ -851,7 +851,7 @@ export class ScatterPlotChart
             bounds.height - yNoDataSection
         )
 
-        const separatorLine = (y: number): JSX.Element | null =>
+        const separatorLine = (y: number): React.ReactElement | null =>
             y > bounds.top ? (
                 <line
                     x1={this.legendX}
@@ -919,7 +919,7 @@ export class ScatterPlotChart
         )
     }
 
-    @computed get tooltip(): JSX.Element | null {
+    @computed get tooltip(): React.ReactElement | null {
         if (!this.tooltipState.target) return null
 
         const {

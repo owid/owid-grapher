@@ -768,7 +768,7 @@ export class FacetChart
         return { fontSize, shortenedLabel: label }
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { facetFontSize, LegendClass, showLegend } = this
         return (
             <React.Fragment>

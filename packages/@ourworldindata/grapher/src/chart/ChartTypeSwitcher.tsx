@@ -5,7 +5,7 @@ import { ChartTypeName } from "@ourworldindata/types"
 export class ChartTypeSwitcher extends React.Component<{
     onChange: (chartType: ChartTypeName) => void
 }> {
-    render(): JSX.Element {
+    render(): React.ReactElement {
         return (
             <select
                 onChange={(event): void =>

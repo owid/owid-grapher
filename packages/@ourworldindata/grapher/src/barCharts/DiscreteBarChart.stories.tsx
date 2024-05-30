@@ -12,7 +12,7 @@ export default {
     component: DiscreteBarChart,
 }
 
-export const EntitiesAsSeries = (): JSX.Element => {
+export const EntitiesAsSeries = (): React.ReactElement => {
     const table = SynthesizeGDPTable({
         timeRange: [2009, 2010],
         entityCount: 10,
@@ -31,7 +31,7 @@ export const EntitiesAsSeries = (): JSX.Element => {
     )
 }
 
-export const EntitiesAsSeriesWithTolerance = (): JSX.Element => {
+export const EntitiesAsSeriesWithTolerance = (): React.ReactElement => {
     const table = SynthesizeGDPTable({
         timeRange: [2009, 2011],
         entityCount: 10,
@@ -59,7 +59,7 @@ export const EntitiesAsSeriesWithTolerance = (): JSX.Element => {
     )
 }
 
-export const ColumnsAsSeries = (): JSX.Element => {
+export const ColumnsAsSeries = (): React.ReactElement => {
     const table = SynthesizeFruitTable({ entityCount: 1 })
     const manager: DiscreteBarChartManager = {
         table,

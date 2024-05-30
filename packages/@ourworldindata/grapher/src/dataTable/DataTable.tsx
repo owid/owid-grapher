@@ -251,7 +251,7 @@ export class DataTable extends React.Component<{
         return capitalize(this.entityType)
     }
 
-    private get entityHeader(): JSX.Element {
+    private get entityHeader(): React.ReactElement {
         const { sort } = this.tableState
         return (
             <ColumnHeader
@@ -327,7 +327,7 @@ export class DataTable extends React.Component<{
         return { minWidth, contentMaxWidth }
     }
 
-    private get dimensionHeaders(): JSX.Element[] | null {
+    private get dimensionHeaders(): React.ReactElement[] | null {
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) => {
             const { coreTableColumn, display } = dim
@@ -385,7 +385,7 @@ export class DataTable extends React.Component<{
             : dimension.coreTableColumn.formatTime(column.targetTime!)
     }
 
-    private get dimensionSubheaders(): JSX.Element[][] {
+    private get dimensionSubheaders(): React.ReactElement[][] {
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) =>
             dim.columns.map((column, i) => {
@@ -416,7 +416,7 @@ export class DataTable extends React.Component<{
         )
     }
 
-    private get headerRow(): JSX.Element {
+    private get headerRow(): React.ReactElement {
         const { hasDimensionHeaders, hasSubheaders } = this
         return hasDimensionHeaders && hasSubheaders ? (
             <>
@@ -445,7 +445,7 @@ export class DataTable extends React.Component<{
         dv: DimensionValue | undefined,
         sorted: boolean,
         actualColumn: CoreColumn
-    ): JSX.Element {
+    ): React.ReactElement {
         if (dv === undefined || !(column.key in dv))
             return (
                 <td
@@ -508,7 +508,7 @@ export class DataTable extends React.Component<{
     private renderEntityRow(
         row: DataTableRow,
         dimensions: DataTableDimension[]
-    ): JSX.Element {
+    ): React.ReactElement {
         const { sort } = this.tableState
         return (
             <tr key={row.entityName}>
@@ -539,13 +539,13 @@ export class DataTable extends React.Component<{
         )
     }
 
-    @computed private get valueEntityRows(): JSX.Element[] {
+    @computed private get valueEntityRows(): React.ReactElement[] {
         return this.sortedEntityRows.map((row) =>
             this.renderEntityRow(row, this.displayDimensions)
         )
     }
 
-    @computed private get valueAggregateRows(): JSX.Element[] {
+    @computed private get valueAggregateRows(): React.ReactElement[] {
         return this.sortedAggregateRows.map((row) =>
             this.renderEntityRow(row, this.displayDimensions)
         )
@@ -555,7 +555,7 @@ export class DataTable extends React.Component<{
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get titleForAggregateRows(): JSX.Element | null {
+    @computed private get titleForAggregateRows(): React.ReactElement | null {
         if (!this.showTitleForAggregateRows) return null
         return (
             <tr className="title">
@@ -574,7 +574,7 @@ export class DataTable extends React.Component<{
         )
     }
 
-    @computed private get tableCaption(): JSX.Element | null {
+    @computed private get tableCaption(): React.ReactElement | null {
         if (this.hasDimensionHeaders) return null
         const singleDimension = this.displayDimensions[0]
         const titleFragments = (singleDimension.display.columnName
@@ -607,7 +607,7 @@ export class DataTable extends React.Component<{
         ) : null
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         return (
             <div className="DataTable">
                 {this.tableCaption}
@@ -996,7 +996,7 @@ function ColumnHeader(props: {
     lastSubdimension?: boolean
     minWidth?: number
     contentMaxWidth?: number
-}): JSX.Element {
+}): React.ReactElement {
     const { sortable, sortedCol, colType, subdimensionType, lastSubdimension } =
         props
     const isEntityColumn = colType === "entity"
@@ -1042,7 +1042,7 @@ function ColumnHeader(props: {
 function CellContent(props: {
     maxWidth?: number
     children?: React.ReactNode
-}): JSX.Element {
+}): React.ReactElement {
     if (!props.maxWidth) return <>{props.children}</>
     return <div style={{ maxWidth: props.maxWidth }}>{props.children}</div>
 }
@@ -1050,7 +1050,7 @@ function CellContent(props: {
 function SortIcon(props: {
     isActiveIcon?: boolean
     order: SortOrder
-}): JSX.Element {
+}): React.ReactElement {
     const isActiveIcon = props.isActiveIcon ?? false
     const activeIcon =
         props.order === SortOrder.desc ? faArrowUpLong : faArrowDownLong
@@ -1077,7 +1077,7 @@ function SortIcon(props: {
 const makeClosestTimeNotice = (
     targetTime: string,
     closestTime: string
-): JSX.Element => (
+): React.ReactElement => (
     <Tippy
         content={
             <div className="closest-time-notice-tippy">

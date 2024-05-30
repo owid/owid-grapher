@@ -57,7 +57,7 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
         return undefined
     }
 
-    render(): JSX.Element | null {
+    render(): React.ReactElement | null {
         return (
             <Remark
                 rehypePlugins={[transformDodLinks]}
@@ -74,7 +74,7 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
 // etc have switched from HTML to markdown for their sources
 export const HtmlOrSimpleMarkdownText = (props: {
     text: string
-}): JSX.Element => {
+}): React.ReactElement => {
     // check the text for closing a, li or p tags. If
     // one is found, render using dangerouslySetInnerHTML,
     // otherwise use SimpleMarkdownText

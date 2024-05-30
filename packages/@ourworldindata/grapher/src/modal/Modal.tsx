@@ -54,7 +54,7 @@ export class Modal extends React.Component<{
         document.removeEventListener("keydown", this.onDocumentKeyDown)
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { bounds } = this
 
         const contentStyle: React.CSSProperties = {

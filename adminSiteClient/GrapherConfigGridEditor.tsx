@@ -154,7 +154,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     static contextType = AdminAppContext
 
     @observable.ref grapher = new Grapher() // the grapher instance we keep around and update
-    @observable.ref grapherElement?: JSX.Element // the JSX Element of the preview IF we want to display it currently
+    @observable.ref grapherElement?: React.ReactElement // the JSX Element of the preview IF we want to display it currently
     numTotalRows: number | undefined = undefined
     @observable selectedRow: number | undefined = undefined
     @observable selectionEndRow: number | undefined = undefined
@@ -448,7 +448,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         this.hasUncommitedRichEditorChanges = true
     }
 
-    @computed get editControl(): JSX.Element | undefined {
+    @computed get editControl(): React.ReactElement | undefined {
         const { currentColumnFieldDescription, grapher, selectedRowContent } =
             this
         if (
@@ -696,7 +696,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             .with(EditorOption.primitiveListEditor, () => "text")
             .exhaustive()
     }
-    static fieldDescriptionToColumn(desc: FieldDescription): JSX.Element {
+    static fieldDescriptionToColumn(
+        desc: FieldDescription
+    ): React.ReactElement {
         const name = desc.pointer //.substring(1)
         const type = GrapherConfigGridEditor.decideHotType(desc)
         if (desc.editor === EditorOption.colorEditor) {
@@ -778,7 +780,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         return columns
     }
 
-    @computed get hotColumns(): JSX.Element[] {
+    @computed get hotColumns(): React.ReactElement[] {
         const { columnDataSources } = this
 
         const columns = columnDataSources.map((columnDataSource) =>
@@ -1294,7 +1296,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             )
     }
 
-    renderEditorTab(): JSX.Element {
+    renderEditorTab(): React.ReactElement {
         const { editControl, hasUncommitedRichEditorChanges } = this
         return (
             <section>
@@ -1344,7 +1346,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         }
     }
 
-    renderPagination(): JSX.Element {
+    renderPagination(): React.ReactElement {
         const { numTotalRows, currentPagingOffset } = this
         const currentStartLabel = currentPagingOffset + 1
         const currentEndLabel = Math.min(
@@ -1386,7 +1388,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         )
     }
 
-    renderFilterTab(): JSX.Element {
+    renderFilterTab(): React.ReactElement {
         const { FilterPanelConfig, filterState } = this
         return (
             <section>
@@ -1523,7 +1525,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         }
     }
 
-    renderColumnsTab(): JSX.Element {
+    renderColumnsTab(): React.ReactElement {
         const { columnSelection, currentColumnSet, columnFilter } = this
         const columnSets = this.config.columnSet
         const filteredColumnSelection = columnFilter
@@ -1630,7 +1632,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         )
     }
 
-    renderPreviewArea(): JSX.Element {
+    renderPreviewArea(): React.ReactElement {
         const { grapherElement } = this
         return (
             <div className="preview">

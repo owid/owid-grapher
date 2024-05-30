@@ -117,7 +117,9 @@ export class SourcesModal extends React.Component<
         )
     }
 
-    private renderSource(column: CoreColumn | undefined): JSX.Element | null {
+    private renderSource(
+        column: CoreColumn | undefined
+    ): React.ReactElement | null {
         if (!column) return null
         return (
             <Source
@@ -130,7 +132,7 @@ export class SourcesModal extends React.Component<
         )
     }
 
-    private renderTabs(): JSX.Element {
+    private renderTabs(): React.ReactElement {
         const activeIndex = this.state.activeTabIndex
         const setActiveIndex = (index: number) =>
             this.setState({
@@ -234,7 +236,7 @@ export class SourcesModal extends React.Component<
         )
     }
 
-    private renderMultipleSources(): JSX.Element {
+    private renderMultipleSources(): React.ReactElement {
         return (
             <>
                 <p className="note-multiple-indicators">
@@ -247,7 +249,7 @@ export class SourcesModal extends React.Component<
         )
     }
 
-    private renderModalContent(): JSX.Element | null {
+    private renderModalContent(): React.ReactElement | null {
         return this.columns.length === 1
             ? this.renderSource(this.columns[0])
             : this.renderMultipleSources()
@@ -257,7 +259,7 @@ export class SourcesModal extends React.Component<
         this.manager.isSourcesModalOpen = false
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         return (
             <Modal
                 bounds={this.modalBounds}
@@ -399,7 +401,7 @@ export class Source extends React.Component<{
         return this.def.descriptionShort || this.def.description
     }
 
-    protected renderTitle(): JSX.Element {
+    protected renderTitle(): React.ReactElement {
         return (
             <h2>
                 <span className="title">{this.title.title}</span>{" "}
@@ -422,7 +424,7 @@ export class Source extends React.Component<{
         )
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         return (
             <div className="source">
                 {this.renderTitle()}

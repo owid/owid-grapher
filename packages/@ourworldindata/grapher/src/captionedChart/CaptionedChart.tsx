@@ -167,7 +167,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         })
     }
 
-    protected get patterns(): JSX.Element {
+    protected get patterns(): React.ReactElement {
         return (
             <defs>
                 <pattern
@@ -232,7 +232,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                   ChartTypeName.LineChart
     }
 
-    renderChart(): JSX.Element {
+    renderChart(): React.ReactElement {
         const { manager } = this
         const bounds = this.boundsForChartArea
         const ChartClass =
@@ -278,7 +278,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return this.manager.sidePanelBounds?.width ?? 0
     }
 
-    private renderControlsRow(): JSX.Element {
+    private renderControlsRow(): React.ReactElement {
         const { showEntitySelectionToggle } = this.manager
         return (
             <nav
@@ -315,7 +315,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    private renderRelatedQuestion(): JSX.Element {
+    private renderRelatedQuestion(): React.ReactElement {
         const { relatedQuestions } = this.manager
         return (
             <div
@@ -340,7 +340,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    private renderLoadingIndicator(): JSX.Element {
+    private renderLoadingIndicator(): React.ReactElement {
         return (
             <foreignObject {...this.boundsForChartArea.toProps()}>
                 <LoadingIndicator title={this.manager.whatAreWeWaitingFor} />
@@ -348,7 +348,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    private renderDataTable(): JSX.Element {
+    private renderDataTable(): React.ReactElement {
         const { boundsForChartArea } = this
         const containerStyle: React.CSSProperties = {
             position: "relative",
@@ -370,7 +370,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    private renderChartOrMap(): JSX.Element {
+    private renderChartOrMap(): React.ReactElement {
         const { bounds, chartHeight } = this
         const { width } = bounds
 
@@ -397,7 +397,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    private renderTimeline(): JSX.Element {
+    private renderTimeline(): React.ReactElement {
         return (
             <TimelineComponent
                 timelineController={this.manager.timelineController!}
@@ -436,7 +436,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     // make sure to keep this.chartHeight in sync if you edit the render function
-    render(): JSX.Element {
+    render(): React.ReactElement {
         // CaptionedChart renders at the very least a header, a chart, and a footer.
         // Interactive charts also have controls above the chart area and a timeline below it.
         // Some charts have a related question below the footer.
@@ -551,7 +551,7 @@ export class StaticCaptionedChart extends CaptionedChart {
             .padTop(this.manager.isOnMapTab ? 0 : this.verticalPadding)
     }
 
-    renderSVGDetails(): JSX.Element {
+    renderSVGDetails(): React.ReactElement {
         let yOffset = 0
         let previousOffset = 0
         return (
@@ -586,7 +586,7 @@ export class StaticCaptionedChart extends CaptionedChart {
         )
     }
 
-    @computed private get fonts(): JSX.Element {
+    @computed private get fonts(): React.ReactElement {
         let origin = ""
         try {
             origin = new URL(this.manager.bakedGrapherURL!).origin
@@ -599,7 +599,7 @@ export class StaticCaptionedChart extends CaptionedChart {
         )
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { paddedBounds, manager, maxWidth } = this
 
         const bounds = this.manager.staticBoundsWithDetails ?? this.bounds
@@ -656,7 +656,7 @@ export class StaticCaptionedChart extends CaptionedChart {
 // Although a bit unconventional, adding vertical space as a <div />
 // makes margin collapsing impossible and makes it easier to track the
 // space available for the chart area (see the CaptionedChart's `chartHeight` method)
-function VerticalSpace({ height }: { height: number }): JSX.Element {
+function VerticalSpace({ height }: { height: number }): React.ReactElement {
     return (
         <div
             className="VerticalSpace"

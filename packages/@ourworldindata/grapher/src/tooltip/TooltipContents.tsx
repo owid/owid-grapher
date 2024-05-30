@@ -14,7 +14,7 @@ import {
 export const NO_DATA_COLOR = "#999"
 
 export class TooltipValue extends React.Component<TooltipValueProps> {
-    render(): JSX.Element | null {
+    render(): React.ReactElement | null {
         const { column, value, color, notice } = this.props,
             displayValue = isNumber(value)
                 ? column.formatValueShort(value)
@@ -41,7 +41,7 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
         right: "m19.59198,6.82422L13.22803.46021c-.39105-.39099-1.02405-.39099-1.414,0-.39105.39001-.39105,1.02405,0,1.414l4.65698,4.65704H.5v2h15.97101l-4.65698,4.65698c-.39105.39001-.39105,1.02399,0,1.414.38995.39099,1.02295.39099,1.414,0l6.36395-6.36401c.39001-.39001.39001-1.02399,0-1.414Z",
     }
 
-    arrowIcon(direction: "up" | "right" | "down"): JSX.Element {
+    arrowIcon(direction: "up" | "right" | "down"): React.ReactElement {
         return (
             <svg
                 className={classnames("arrow", direction)}
@@ -53,7 +53,7 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
         )
     }
 
-    render(): JSX.Element | null {
+    render(): React.ReactElement | null {
         const { column, values, color, notice } = this.props,
             [firstValue, lastValue] = values.map((v) =>
                 column.formatValueShort(v)
@@ -93,7 +93,7 @@ class Variable extends React.Component<{
     notice?: (number | string | undefined)[]
     children?: React.ReactNode
 }> {
-    render(): JSX.Element | null {
+    render(): React.ReactElement | null {
         const { column, children, color, notice } = this.props
 
         if (column.isMissing || column.name === "time") return null
@@ -135,7 +135,7 @@ class Variable extends React.Component<{
 }
 
 export class TooltipTable extends React.Component<TooltipTableProps> {
-    render(): JSX.Element | null {
+    render(): React.ReactElement | null {
         const { columns, totals, rows } = this.props,
             focal = rows.some((row) => row.focused),
             swatched = rows.some((row) => row.swatch),

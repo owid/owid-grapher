@@ -255,7 +255,9 @@ export class TimelineComponent extends React.Component<{
             : time.toString()
     }
 
-    private timelineEdgeMarker(markerType: "start" | "end"): JSX.Element {
+    private timelineEdgeMarker(
+        markerType: "start" | "end"
+    ): React.ReactElement {
         const { controller } = this
         const time =
             markerType === "start" ? controller.minTime : controller.maxTime
@@ -314,7 +316,7 @@ export class TimelineComponent extends React.Component<{
         return time
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { manager, controller } = this
         const {
             startTimeProgress,
@@ -456,7 +458,7 @@ const TimelineHandle = ({
     onKeyDown?: React.KeyboardEventHandler<HTMLDivElement>
     onFocus?: React.FocusEventHandler<HTMLDivElement>
     onBlur?: React.FocusEventHandler<HTMLDivElement>
-}): JSX.Element => {
+}): React.ReactElement => {
     return (
         // @ts-expect-error aria-value* fields expect a number, but if we're dealing with daily data,
         // the numeric representation of a date is meaningless, so we pass the formatted date string instead.

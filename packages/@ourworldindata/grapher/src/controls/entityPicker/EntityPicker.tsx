@@ -391,7 +391,7 @@ export class EntityPicker extends React.Component<{
         this.focusSearch()
     }
 
-    @bind private highlightLabel(label: string): string | JSX.Element {
+    @bind private highlightLabel(label: string): string | React.ReactElement {
         if (!this.searchInput) return label
 
         const result = this.fuzzy.single(this.searchInput, label)
@@ -485,7 +485,7 @@ export class EntityPicker extends React.Component<{
         )
     }
 
-    private get pickerMenu(): JSX.Element | null {
+    private get pickerMenu(): React.ReactElement | null {
         if (this.isDropdownMenu) return null
         return (
             <div className="MetricSettings">
@@ -540,7 +540,7 @@ export class EntityPicker extends React.Component<{
         )
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { selection } = this
         const { entityType } = this.manager
         const entities = this.searchResults
@@ -662,7 +662,7 @@ export class EntityPicker extends React.Component<{
 
 interface PickerOptionProps {
     optionWithMetricValue: EntityOptionWithMetricValue
-    highlight: (label: string) => JSX.Element | string
+    highlight: (label: string) => React.ReactElement | string
     onChange: (name: string, checked: boolean) => void
     onHover?: () => void
     innerRef?: React.RefObject<HTMLLabelElement>
@@ -683,7 +683,7 @@ class PickerOption extends React.Component<PickerOptionProps> {
         )
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const {
             barScale,
             optionWithMetricValue,

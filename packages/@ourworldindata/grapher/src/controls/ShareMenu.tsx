@@ -174,7 +174,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         return canUseShareApi(this.manager)
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const {
             twitterHref,
             facebookHref,

@@ -207,7 +207,7 @@ const AllTopicsSection = () => {
     )
 }
 
-export const Homepage = (props: HomepageProps): JSX.Element => {
+export const Homepage = (props: HomepageProps): React.ReactElement => {
     const { content } = props
 
     return (

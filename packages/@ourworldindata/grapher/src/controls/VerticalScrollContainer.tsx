@@ -118,7 +118,7 @@ const ScrollingShadow = (props: {
     direction: "up" | "down"
     size: number
     opacity: number
-}): JSX.Element => {
+}): React.ReactElement => {
     // "Eased" gradient
     // https://larsenwork.com/easing-gradients/
     const background = `linear-gradient(

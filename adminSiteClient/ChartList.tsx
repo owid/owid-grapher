@@ -33,7 +33,7 @@ export interface ChartListItem {
 @observer
 export class ChartList extends React.Component<{
     charts: ChartListItem[]
-    searchHighlight?: (text: string) => string | JSX.Element
+    searchHighlight?: (text: string) => string | React.ReactElement
     onDelete?: (chart: ChartListItem) => void
 }> {
     static contextType = AdminAppContext

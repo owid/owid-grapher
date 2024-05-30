@@ -519,7 +519,7 @@ export class StackedDiscreteBarChart
         this.tooltipState.target = null
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         if (this.failMessage)
             return (
                 <NoDataModal
@@ -556,7 +556,7 @@ export class StackedDiscreteBarChart
         }: {
             data: PlacedItem
             state: { translateY: number }
-        }): JSX.Element => {
+        }): React.ReactElement => {
             const { entityName, label, bars, totalValue } = data
 
             const totalLabel = this.formatValueForLabel(totalValue)
@@ -656,7 +656,7 @@ export class StackedDiscreteBarChart
                     start={handlePositionUpdate}
                     update={handlePositionUpdate}
                 >
-                    {(nodes): JSX.Element => (
+                    {(nodes): React.ReactElement => (
                         <g>{nodes.map((node) => renderRow(node))}</g>
                     )}
                 </NodeGroup>
@@ -677,7 +677,7 @@ export class StackedDiscreteBarChart
         showLabelInsideBar: boolean
         onMouseEnter: (entityName: string, seriesName?: string) => void
         onMouseLeave: () => void
-    }): JSX.Element {
+    }): React.ReactElement {
         const { entity, bar, chartContext } = props
         const { yAxis, formatValueForLabel, focusSeriesName, barHeight } =
             chartContext
@@ -748,7 +748,7 @@ export class StackedDiscreteBarChart
         )
     }
 
-    @computed private get Tooltip(): JSX.Element | undefined {
+    @computed private get Tooltip(): React.ReactElement | undefined {
         const {
                 tooltipState: { target, position, fading },
                 formatColumn: { unit, shortUnit },

@@ -61,7 +61,7 @@ export class ConnectedScatterLegend {
         targetX: number,
         targetY: number,
         renderOptions: React.SVGAttributes<SVGGElement> = {}
-    ): JSX.Element {
+    ): React.ReactElement {
         const { manager, startLabel, endLabel, fontColor } = this
 
         const lineLeft = targetX + startLabel.width + 5

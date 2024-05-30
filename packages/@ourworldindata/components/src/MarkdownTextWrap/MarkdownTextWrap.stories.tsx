@@ -57,7 +57,7 @@ _THE END_
         return result
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const containerWidth =
             this.ref.current?.getBoundingClientRect().width || 1
         const svgContainerWidth = 800
@@ -119,7 +119,7 @@ _THE END_
     }
 }
 
-export const MarkdownPreview = (): JSX.Element => <MarkdownViewer />
+export const MarkdownPreview = (): React.ReactElement => <MarkdownViewer />
 
 const RED = "#f97272"
 const GREEN = "#008400"
@@ -136,7 +136,7 @@ const RenderCurrentAndLegacy = ({
     maxWidth?: number
     lineHeight?: number
     svg?: boolean
-}): JSX.Element => {
+}): React.ReactElement => {
     const props = {
         maxWidth,
         fontSize,
@@ -204,7 +204,7 @@ const RenderCurrentAndLegacy = ({
     )
 }
 
-export const CompareWithTextWrap = (): JSX.Element => (
+export const CompareWithTextWrap = (): React.ReactElement => (
     <div>
         <h2>HTML</h2>
         <RenderCurrentAndLegacy fontSize={12.4} maxWidth={170} />

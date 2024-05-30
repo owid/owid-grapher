@@ -7,6 +7,6 @@ export default {
     component: GlobalEntitySelector,
 }
 
-export const WithNoGraphers = (): JSX.Element => (
+export const WithNoGraphers = (): React.ReactElement => (
     <GlobalEntitySelector selection={new SelectionArray()} />
 )

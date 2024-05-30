@@ -54,26 +54,26 @@ class SingleYearManager extends TimelineManagerMock {
     @observable protected _endTime = 1950
 }
 
-export const Default = (): JSX.Element => {
+export const Default = (): React.ReactElement => {
     const manager = new TimelineManagerMock()
     manager.startHandleTimeBound = 1900
     const timelineController = new TimelineController(manager)
     return <TimelineComponent timelineController={timelineController} />
 }
 
-export const StartPartialRange = (): JSX.Element => (
+export const StartPartialRange = (): React.ReactElement => (
     <TimelineComponent
         timelineController={new TimelineController(new TimelineManagerMock())}
     />
 )
 
-export const OneYearAtATime = (): JSX.Element => (
+export const OneYearAtATime = (): React.ReactElement => (
     <TimelineComponent
         timelineController={new TimelineController(new SingleYearManager())}
     />
 )
 
-export const DisablePlayButton = (): JSX.Element => {
+export const DisablePlayButton = (): React.ReactElement => {
     const manager = new TimelineManagerMock()
     manager.disablePlay = true
     return (

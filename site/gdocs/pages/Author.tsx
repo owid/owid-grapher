@@ -100,7 +100,7 @@ export const AuthorWork = ({ blocks }: { blocks: OwidEnrichedGdocBlock[] }) => {
     )
 }
 
-export const Author = (gdoc: OwidGdocAuthorInterface): JSX.Element => {
+export const Author = (gdoc: OwidGdocAuthorInterface): React.ReactElement => {
     return (
         <>
             <AuthorHeader {...gdoc} />

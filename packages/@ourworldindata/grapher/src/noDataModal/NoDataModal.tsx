@@ -26,7 +26,7 @@ export class NoDataModal extends React.Component<{
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { message, manager } = this.props
         const entityType = manager.entityType
         const { bounds } = this

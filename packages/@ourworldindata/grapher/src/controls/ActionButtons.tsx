@@ -224,7 +224,7 @@ export class ActionButtons extends React.Component<{
         return count
     }
 
-    private renderShareMenu(): JSX.Element {
+    private renderShareMenu(): React.ReactElement {
         // distance between the right edge of the share button and the inner border of the frame
         let right = 0
         if (this.hasFullScreenButton)
@@ -241,7 +241,7 @@ export class ActionButtons extends React.Component<{
         )
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { manager } = this
         const { isShareMenuActive } = manager
 
@@ -335,7 +335,7 @@ export function ActionButton(props: {
     showLabel?: boolean
     isActive?: boolean
     style?: React.CSSProperties
-}): JSX.Element {
+}): React.ReactElement {
     const [showTooltip, setShowTooltip] = useState(false)
 
     return (
