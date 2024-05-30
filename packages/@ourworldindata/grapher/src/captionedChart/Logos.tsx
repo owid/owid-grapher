@@ -87,7 +87,7 @@ export class Logo {
         return this.spec.height * this.scale
     }
 
-    renderSVG(targetX: number, targetY: number): JSX.Element {
+    renderSVG(targetX: number, targetY: number): React.ReactElement {
         const { scale } = this
         const svg =
             (this.spec.svg.match(/<svg>(.*)<\/svg>/) || "")[1] || this.spec.svg
@@ -102,7 +102,7 @@ export class Logo {
         )
     }
 
-    renderHTML(): JSX.Element {
+    renderHTML(): React.ReactElement {
         const { spec } = this
         const props: React.HTMLAttributes<HTMLElement> = {
             className: "logo",

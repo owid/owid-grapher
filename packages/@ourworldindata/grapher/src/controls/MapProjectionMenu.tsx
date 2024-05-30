@@ -60,7 +60,7 @@ export class MapProjectionMenu extends React.Component<{
         return this.options.find((opt) => projection === opt.value) ?? null
     }
 
-    render(): JSX.Element | null {
+    render(): React.ReactElement | null {
         return this.showMenu ? (
             <div className="map-projection-menu">
                 <Dropdown

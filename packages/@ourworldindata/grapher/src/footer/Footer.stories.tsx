@@ -13,4 +13,4 @@ const manager: FooterManager = {
     sourcesLine: "These are my sources",
 }
 
-export const Default = (): JSX.Element => <Footer manager={manager} />
+export const Default = (): React.ReactElement => <Footer manager={manager} />

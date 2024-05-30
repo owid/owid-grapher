@@ -34,7 +34,7 @@ const makeTitleCaseAndStripDashes = (str: string) =>
         .map((str) => str[0].toUpperCase() + str.substring(1))
         .join(" ")
 
-export const Default = (): JSX.Element => {
+export const Default = (): React.ReactElement => {
     useEffect(() => {
         webfontloader.load({
             google: {

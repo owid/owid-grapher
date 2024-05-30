@@ -19,7 +19,7 @@ export class TableFilterToggle extends React.Component<{
             manager.showSelectionOnlyInDataTable ? undefined : true
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const tooltip = `Only display table rows for ${
             this.props.manager.entityTypePlural ??
             DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL

@@ -486,7 +486,7 @@ export class NumericSelectField extends React.Component<NumericSelectFieldProps>
 }
 
 interface ToggleProps {
-    label: string | JSX.Element
+    label: string | React.ReactElement
     value: boolean
     onValue: (value: boolean) => void
     disabled?: boolean
@@ -1144,7 +1144,7 @@ export class LoadingBlocker extends React.Component {
 @observer
 export class Timeago extends React.Component<{
     time: dayjs.ConfigType
-    by?: string | JSX.Element | null | undefined
+    by?: string | React.ReactElement | null | undefined
 }> {
     render() {
         return (

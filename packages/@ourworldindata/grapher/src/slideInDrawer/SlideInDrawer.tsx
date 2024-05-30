@@ -73,7 +73,7 @@ export class SlideInDrawer extends React.Component<{
         return { animation: `${selector}-${phase} 333ms` }
     }
 
-    render(): JSX.Element | null {
+    render(): React.ReactElement | null {
         const { visible, active } = this
 
         if (active || visible) {

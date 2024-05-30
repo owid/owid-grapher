@@ -33,7 +33,7 @@ export const GdocsSettingsContentField = ({
         name: string
         value: string
         errorType?: OwidGdocErrorMessageType
-    }) => JSX.Element
+    }) => React.ReactElement
     errors?: OwidGdocErrorMessage[]
     description?: string
 }) => {

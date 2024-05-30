@@ -19,7 +19,7 @@ export default CSF
 
 const bounds = new Bounds(0, 0, 1000, 500)
 
-export const OneMetricOneCountryPerChart = (): JSX.Element => {
+export const OneMetricOneCountryPerChart = (): React.ReactElement => {
     const table = SynthesizeGDPTable({
         entityCount: 4,
     })
@@ -41,7 +41,7 @@ export const OneMetricOneCountryPerChart = (): JSX.Element => {
     )
 }
 
-export const MultipleMetricsOneCountryPerChart = (): JSX.Element => {
+export const MultipleMetricsOneCountryPerChart = (): React.ReactElement => {
     const table = SynthesizeFruitTable({
         entityCount: 4,
     })
@@ -59,7 +59,7 @@ export const MultipleMetricsOneCountryPerChart = (): JSX.Element => {
     )
 }
 
-export const OneChartPerMetric = (): JSX.Element => {
+export const OneChartPerMetric = (): React.ReactElement => {
     const table = SynthesizeGDPTable({
         entityCount: 2,
     })

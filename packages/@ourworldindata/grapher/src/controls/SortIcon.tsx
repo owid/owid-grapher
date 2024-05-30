@@ -14,7 +14,7 @@ export function SortIcon(props: {
     type?: "text" | "numeric"
     isActiveIcon?: boolean
     order: SortOrder
-}): JSX.Element {
+}): React.ReactElement {
     const type = props.type ?? "numeric"
     const isActiveIcon = props.isActiveIcon ?? false
 

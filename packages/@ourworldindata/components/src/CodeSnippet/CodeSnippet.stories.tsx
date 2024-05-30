@@ -9,4 +9,4 @@ export default {
 const code = `Some very impressive code.
 It's even multiline!`
 
-export const Default = (): JSX.Element => <CodeSnippet code={code} />
+export const Default = (): React.ReactElement => <CodeSnippet code={code} />

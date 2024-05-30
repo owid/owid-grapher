@@ -28,7 +28,7 @@ export class CommandPalette extends React.Component<{
                 element.style.display === "none" ? "block" : "none"
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const style: any = {
             display: this.props.display,
         }

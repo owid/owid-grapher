@@ -63,7 +63,7 @@ export class FacetStrategySelector extends React.Component<{
         }
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         return (
             <>
                 <div className="config-subtitle">{this.subtitle}</div>

@@ -31,7 +31,7 @@ export interface DatasetListItem {
 class DatasetRow extends React.Component<{
     dataset: DatasetListItem
     availableTags: DbChartTagJoin[]
-    searchHighlight?: (text: string) => string | JSX.Element
+    searchHighlight?: (text: string) => string | React.ReactElement
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
@@ -100,7 +100,7 @@ class DatasetRow extends React.Component<{
 @observer
 export class DatasetList extends React.Component<{
     datasets: DatasetListItem[]
-    searchHighlight?: (text: string) => string | JSX.Element
+    searchHighlight?: (text: string) => string | React.ReactElement
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType

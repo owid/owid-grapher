@@ -2214,7 +2214,7 @@ export class Grapher
         this.uncaughtError = undefined
     }
 
-    private get commandPalette(): JSX.Element | null {
+    private get commandPalette(): React.ReactElement | null {
         return this.props.enableKeyboardShortcuts ? (
             <CommandPalette commands={this.keyboardShortcuts} display="none" />
         ) : null
@@ -2531,7 +2531,7 @@ export class Grapher
         )
     }
 
-    private renderError(): JSX.Element {
+    private renderError(): React.ReactElement {
         return (
             <div
                 title={this.uncaughtError?.message}
@@ -2587,7 +2587,7 @@ export class Grapher
         this.annotation = annotation
     }
 
-    private renderGrapherComponent(): JSX.Element {
+    private renderGrapherComponent(): React.ReactElement {
         const containerClasses = classnames({
             GrapherComponent: true,
             GrapherPortraitClass: this.isPortrait,
@@ -2624,7 +2624,7 @@ export class Grapher
         )
     }
 
-    render(): JSX.Element | undefined {
+    render(): React.ReactElement | undefined {
         // TODO how to handle errors in exports?
         // TODO remove this? should have a simple toStaticSVG for exporting
         if (this.isExportingToSvgOrPng) return <CaptionedChart manager={this} />
@@ -2643,7 +2643,7 @@ export class Grapher
         return this.renderGrapherComponent()
     }
 
-    private renderReady(): JSX.Element | null {
+    private renderReady(): React.ReactElement | null {
         if (!this.hasBeenVisible) return null
 
         if (this.renderToStatic) {

@@ -7,7 +7,7 @@ import React from "react"
  * When we get around to that, we should render them via the admin, because style bleed isn't so important and we don't
  * want to add extra JS/CSS to the common bundle
  */
-export function Fragment(props: OwidGdocPostInterface): JSX.Element {
+export function Fragment(props: OwidGdocPostInterface): React.ReactElement {
     return (
         <div className="grid grid-cols-12-full-width">
             <h5 className="h5-black-caps span-cols-12 col-start-2">Fragment</h5>

@@ -393,7 +393,7 @@ export class Footer<
         window.removeEventListener("mousemove", this.onMouseMove)
     }
 
-    private renderLicense(): JSX.Element {
+    private renderLicense(): React.ReactElement {
         return (
             <div className="license" style={this.licenseAndOriginUrl.htmlStyle}>
                 {this.finalUrlText && (
@@ -417,7 +417,7 @@ export class Footer<
         )
     }
 
-    private renderSources(): JSX.Element | null {
+    private renderSources(): React.ReactElement | null {
         const sources = new MarkdownTextWrap({
             text: `**Data source:** ${this.sourcesLine}`,
             maxWidth: this.sourcesMaxWidth,
@@ -470,7 +470,7 @@ export class Footer<
         )
     }
 
-    private renderNote(): JSX.Element {
+    private renderNote(): React.ReactElement {
         return (
             <p className="note" style={this.note.style}>
                 {this.note.renderHTML()}
@@ -478,7 +478,7 @@ export class Footer<
         )
     }
 
-    private renderVerticalSpace(): JSX.Element {
+    private renderVerticalSpace(): React.ReactElement {
         return (
             <div
                 style={{
@@ -507,7 +507,7 @@ export class Footer<
 
     // renders the content above the action buttons
     // make sure to keep this.topContentHeight in sync if you edit this method
-    private renderTopContent(): JSX.Element | null {
+    private renderTopContent(): React.ReactElement | null {
         const renderSources = this.useFullWidthSources
         const renderNote = this.showNote && this.useFullWidthNote
         const renderLicense = this.showLicenseNextToSources
@@ -549,7 +549,7 @@ export class Footer<
 
     // renders the action buttons and the content next to it
     // make sure to keep this.bottomContentHeight in sync if you edit this method
-    private renderBottomContent(): JSX.Element {
+    private renderBottomContent(): React.ReactElement {
         const renderSources = !this.useFullWidthSources
         const renderNote = this.showNote && !this.useFullWidthNote
         const renderLicense = !this.showLicenseNextToSources
@@ -585,7 +585,7 @@ export class Footer<
         )
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { tooltipTarget } = this
 
         return (
@@ -750,7 +750,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
         )
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const {
             sources,
             note,

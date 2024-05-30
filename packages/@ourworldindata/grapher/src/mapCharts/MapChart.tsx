@@ -581,7 +581,7 @@ export class MapChart
         return this.manager.isStaticAndSmall ? 2 : undefined
     }
 
-    renderMapLegend(): JSX.Element {
+    renderMapLegend(): React.ReactElement {
         const { numericLegend, categoryLegend } = this
 
         return (
@@ -596,7 +596,7 @@ export class MapChart
         )
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         if (this.failMessage)
             return (
                 <NoDataModal
@@ -841,7 +841,7 @@ class ChoroplethMap extends React.Component<{
 
     // SVG layering is based on order of appearance in the element tree (later elements rendered on top)
     // The ordering here is quite careful
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const {
             uid,
             bounds,

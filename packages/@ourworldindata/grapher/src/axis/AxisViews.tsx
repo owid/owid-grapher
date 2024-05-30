@@ -32,7 +32,7 @@ export class VerticalAxisGridLines extends React.Component<{
     bounds: Bounds
     strokeWidth?: number
 }> {
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { bounds, verticalAxis, strokeWidth } = this.props
         const axis = verticalAxis.clone()
         axis.range = bounds.yRange()
@@ -87,7 +87,7 @@ export class HorizontalAxisGridLines extends React.Component<{
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { horizontalAxis, strokeWidth } = this.props
         const { bounds } = this
         const axis = horizontalAxis.clone()
@@ -139,7 +139,7 @@ export class HorizontalAxisZeroLine extends React.Component<{
     bounds: Bounds
     strokeWidth?: number
 }> {
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { bounds, horizontalAxis, strokeWidth } = this.props
         const axis = horizontalAxis.clone()
         axis.range = bounds.xRange()
@@ -178,7 +178,7 @@ interface DualAxisViewProps {
 
 @observer
 export class DualAxisComponent extends React.Component<DualAxisViewProps> {
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const {
             dualAxis,
             showTickMarks,
@@ -251,7 +251,7 @@ export class VerticalAxisComponent extends React.Component<{
     tickColor?: string
     detailsMarker?: DetailsMarker
 }> {
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const {
             bounds,
             verticalAxis,
@@ -358,7 +358,7 @@ export class HorizontalAxisComponent extends React.Component<{
         else return new Bounds(bounds.right, bounds.bottom - 30, 100, 100)
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const {
             bounds,
             axis,
@@ -444,7 +444,7 @@ export class HorizontalAxisTickMark extends React.Component<{
     width?: number
     id?: string
 }> {
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { tickMarkTopPosition, tickMarkXPosition, color, width, id } =
             this.props
         const tickSize = 5
@@ -470,7 +470,7 @@ export class VerticalAxisTickMark extends React.Component<{
     width?: number
     id?: string
 }> {
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { tickMarkYPosition, tickMarkLeftPosition, color, width, id } =
             this.props
         const tickSize = 5

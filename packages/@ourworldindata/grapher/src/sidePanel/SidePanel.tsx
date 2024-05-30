@@ -13,7 +13,7 @@ export class SidePanel extends React.Component<{
         return this.props.bounds
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         return (
             <div
                 className={GRAPHER_SIDE_PANEL_CLASS}

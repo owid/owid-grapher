@@ -82,7 +82,7 @@ export interface LabelCandidate {
 }
 
 export interface LabelWithPlacement {
-    label: JSX.Element
+    label: React.ReactElement
     preferredPlacement: number
     correctedPlacement: number
     labelKey: string
@@ -90,7 +90,7 @@ export interface LabelWithPlacement {
 
 export interface LabelCandidateWithElement {
     candidate: LabelCandidate
-    labelElement: JSX.Element
+    labelElement: React.ReactElement
 }
 export interface MarimekkoBarProps {
     bar: BarOrPlaceholder

@@ -103,10 +103,10 @@ export function filterFunctionForSearchWords<TargetObject>(
 
 export function highlightFunctionForSearchWords(
     searchWords: SearchWord[]
-): (text: string | null | undefined) => JSX.Element | string {
+): (text: string | null | undefined) => React.ReactElement | string {
     return function Highlighted(
         text: string | null | undefined
-    ): JSX.Element | string {
+    ): React.ReactElement | string {
         if (text === undefined || text === null) return ""
         const includedSearchWords = searchWords.filter((w) => !w.exclude)
         if (includedSearchWords.length > 0) {
@@ -116,7 +116,7 @@ export function highlightFunctionForSearchWords(
                     matchLength: regex.word.length,
                 }))
                 .filter(({ matchStart }) => matchStart >= 0)
-            const fragments: JSX.Element[] = []
+            const fragments: React.ReactElement[] = []
             let lastIndex = 0
             if (firstMatches.length > 0) {
                 // sort descending by end position and then length

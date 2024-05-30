@@ -43,7 +43,7 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
         this.manager.isEmbedModalOpen = false
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         return (
             <Modal
                 bounds={this.modalBounds}

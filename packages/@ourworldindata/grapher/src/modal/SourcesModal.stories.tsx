@@ -7,13 +7,13 @@ export default {
     component: SourcesModal,
 }
 
-export const WithSources = (): JSX.Element => (
+export const WithSources = (): React.ReactElement => (
     <SourcesModal
         manager={{
             columnsWithSourcesExtensive: SynthesizeGDPTable().columnsAsArray,
         }}
     />
 )
-export const NoSources = (): JSX.Element => (
+export const NoSources = (): React.ReactElement => (
     <SourcesModal manager={{ columnsWithSourcesExtensive: [] }} />
 )

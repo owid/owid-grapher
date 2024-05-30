@@ -22,7 +22,7 @@ export class ScatterPoint extends React.Component<{
     onMouseEnter?: (seriesName: string) => void
     onMouseLeave?: () => void
 }> {
-    render(): JSX.Element | null {
+    render(): React.ReactElement | null {
         const { series, isLayerMode, onMouseEnter, onMouseLeave } = this.props
         const value = first(series.points)
         if (value === undefined) return null
@@ -81,7 +81,7 @@ export class ScatterLine extends React.Component<{
     onMouseEnter?: (seriesName: string) => void
     onMouseLeave?: () => void
 }> {
-    render(): JSX.Element | null {
+    render(): React.ReactElement | null {
         const { series, isLayerMode, onMouseEnter, onMouseLeave } = this.props
 
         if (series.points.length === 1)

@@ -264,13 +264,13 @@ export class SettingsMenu extends React.Component<{
         return { maxHeight, top, right }
     }
 
-    @computed get menu(): JSX.Element | void {
+    @computed get menu(): React.ReactElement | void {
         if (this.active) {
             return this.menuContents
         }
     }
 
-    @computed get menuContents(): JSX.Element {
+    @computed get menuContents(): React.ReactElement {
         const {
             manager,
             chartType,
@@ -380,7 +380,7 @@ export class SettingsMenu extends React.Component<{
         )
     }
 
-    renderChartSettings(): JSX.Element {
+    renderChartSettings(): React.ReactElement {
         const { active } = this
         return (
             <div className="settings-menu">
@@ -400,13 +400,13 @@ export class SettingsMenu extends React.Component<{
         )
     }
 
-    renderTableControls(): JSX.Element {
+    renderTableControls(): React.ReactElement {
         // Since tables only have a single control, display it inline rather than
         // placing it in the settings menu
         return <TableFilterToggle manager={this.manager} />
     }
 
-    render(): JSX.Element | null {
+    render(): React.ReactElement | null {
         const {
             manager: { isOnChartTab, isOnTableTab },
             showSettingsMenuToggle,
@@ -428,7 +428,7 @@ class SettingsGroup extends React.Component<{
     active?: boolean
     children?: React.ReactNode
 }> {
-    render(): JSX.Element | null {
+    render(): React.ReactElement | null {
         const { active, title, subtitle, children } = this.props
         if (!active) return null
 

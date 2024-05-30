@@ -708,7 +708,7 @@ export class EntitySelector extends React.Component<{
         }
     }
 
-    private renderSearchBar(): JSX.Element {
+    private renderSearchBar(): React.ReactElement {
         return (
             <div className="entity-selector__search-bar">
                 <div
@@ -746,7 +746,7 @@ export class EntitySelector extends React.Component<{
         )
     }
 
-    private renderSortBar(): JSX.Element {
+    private renderSortBar(): React.ReactElement {
         return (
             <div className="entity-selector__sort-bar">
                 <span className="label grapher_label-2-medium grapher_light">
@@ -772,7 +772,7 @@ export class EntitySelector extends React.Component<{
         )
     }
 
-    private renderSearchResults(): JSX.Element {
+    private renderSearchResults(): React.ReactElement {
         if (!this.searchResults || this.searchResults.length === 0) {
             return (
                 <div className="entity-search-results grapher_body-3-regular grapher_light">
@@ -801,7 +801,7 @@ export class EntitySelector extends React.Component<{
         )
     }
 
-    private renderAllEntitiesInSingleMode(): JSX.Element {
+    private renderAllEntitiesInSingleMode(): React.ReactElement {
         const { sortedAvailableEntities } = this
         const { selected, unselected } = this.partitionedAvailableEntities
 
@@ -909,7 +909,7 @@ export class EntitySelector extends React.Component<{
         return this.selectionArray.selectedSet.has(entity.name)
     }
 
-    private renderAllEntitiesInMultiMode(): JSX.Element {
+    private renderAllEntitiesInMultiMode(): React.ReactElement {
         const { selected, unselected } = this.partitionedAvailableEntities
 
         return (
@@ -986,7 +986,7 @@ export class EntitySelector extends React.Component<{
         )
     }
 
-    private renderFooter(): JSX.Element {
+    private renderFooter(): React.ReactElement {
         const { numSelectedEntities } = this.selectionArray
         const { partitionedVisibleEntities: visibleEntities } = this
 
@@ -1008,7 +1008,7 @@ export class EntitySelector extends React.Component<{
         )
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         return (
             <div className="entity-selector">
                 <OverlayHeader

@@ -39,7 +39,7 @@ export class AbsRelToggle extends React.Component<{
               : "Show values as their share of the total or as actual values in their original units."
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const label =
             this.manager.relativeToggleLabel ?? "Display relative values"
         return (

@@ -8,7 +8,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { ChartTypeName } from "@ourworldindata/types"
 
-export const chartIcons: Record<ChartTypeName, JSX.Element> = {
+export const chartIcons: Record<ChartTypeName, React.ReactElement> = {
     // line chart
     [ChartTypeName.LineChart]: <FontAwesomeIcon icon={faChartLine} />,
 

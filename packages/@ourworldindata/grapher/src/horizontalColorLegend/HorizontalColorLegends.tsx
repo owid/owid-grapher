@@ -542,7 +542,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         )
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const {
             manager,
             numericLabels,
@@ -788,7 +788,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return max(this.marks.map((mark) => mark.y + mark.rectSize)) ?? 0
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { manager, marks } = this
         const { activeColors, focusColors } = manager
 

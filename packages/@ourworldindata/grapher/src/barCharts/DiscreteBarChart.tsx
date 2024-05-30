@@ -401,7 +401,7 @@ export class DiscreteBarChart
         if (!this.manager.disableIntroAnimation) this.animateBarWidth()
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         if (this.failMessage)
             return (
                 <NoDataModal
@@ -932,7 +932,7 @@ function makeProjectedDataPatternId(color: string): string {
     return `DiscreteBarChart_stripes_${color}`
 }
 
-function makeProjectedDataPattern(color: string): JSX.Element {
+function makeProjectedDataPattern(color: string): React.ReactElement {
     const size = 7
     return (
         <pattern

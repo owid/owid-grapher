@@ -6,7 +6,7 @@ export default {
     component: ExpandableParagraph,
 }
 
-export const Default = (): JSX.Element => (
+export const Default = (): React.ReactElement => (
     <>
         <h2>Usage with children</h2>
         <ExpandableParagraph>

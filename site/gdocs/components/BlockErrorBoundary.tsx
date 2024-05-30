@@ -28,7 +28,7 @@ export const BlockErrorFallback = ({
     error: Error
     resetErrorBoundary?: VoidFunction
     className?: string
-}): JSX.Element => {
+}): React.ReactElement => {
     const debug = useDebug()
     return (
         <div

@@ -50,7 +50,7 @@ export class AdminLayout extends React.Component<{
             document.title = this.props.title + " - owid-admin"
     }
 
-    @computed get environmentSpan(): JSX.Element {
+    @computed get environmentSpan(): React.ReactElement {
         const { admin } = this.context
         if (admin.settings.ENV === "development") {
             return <span className="dev">dev</span>
@@ -65,7 +65,7 @@ export class AdminLayout extends React.Component<{
         }
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { admin } = this.context
         const { showFAQ: isFAQ, showSidebar, environmentSpan } = this
 

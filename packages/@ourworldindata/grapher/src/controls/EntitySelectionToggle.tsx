@@ -21,7 +21,7 @@ export interface EntitySelectionManager {
 }
 
 interface EntitySelectionLabel {
-    icon: JSX.Element
+    icon: React.ReactElement
     action: string
     entity: string
 }
@@ -71,7 +71,7 @@ export class EntitySelectionToggle extends React.Component<{
                 : null
     }
 
-    render(): JSX.Element | null {
+    render(): React.ReactElement | null {
         const { showToggle, label } = this
         const { isEntitySelectorModalOrDrawerOpen: active } = this.props.manager
 

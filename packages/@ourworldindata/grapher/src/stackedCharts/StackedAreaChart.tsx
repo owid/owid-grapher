@@ -134,7 +134,7 @@ class Areas extends React.Component<AreasProps> {
             }))
     }
 
-    @computed private get areas(): JSX.Element[] {
+    @computed private get areas(): React.ReactElement[] {
         const { placedSeriesArr } = this
         const { dualAxis, hoveredAreaName } = this.props
         const { verticalAxis } = dualAxis
@@ -184,7 +184,7 @@ class Areas extends React.Component<AreasProps> {
         })
     }
 
-    @computed private get borders(): JSX.Element[] {
+    @computed private get borders(): React.ReactElement[] {
         const { placedSeriesArr } = this
         const { hoveredAreaName } = this.props
 
@@ -230,7 +230,7 @@ class Areas extends React.Component<AreasProps> {
         })
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { dualAxis } = this.props
         const { horizontalAxis, verticalAxis } = dualAxis
 
@@ -402,7 +402,9 @@ export class StackedAreaChart
         this.tooltipState.target = null
     }
 
-    @computed private get activeXVerticalLine(): JSX.Element | undefined {
+    @computed private get activeXVerticalLine():
+        | React.ReactElement
+        | undefined {
         const { dualAxis, series } = this
         const { horizontalAxis, verticalAxis } = dualAxis
         const hoveredPointIndex = this.tooltipState.target?.index
@@ -443,7 +445,7 @@ export class StackedAreaChart
         )
     }
 
-    @computed private get tooltip(): JSX.Element | undefined {
+    @computed private get tooltip(): React.ReactElement | undefined {
         const { target, position, fading } = this.tooltipState
         if (!target) return undefined
 
@@ -500,7 +502,7 @@ export class StackedAreaChart
         )
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         if (this.failMessage)
             return (
                 <NoDataModal

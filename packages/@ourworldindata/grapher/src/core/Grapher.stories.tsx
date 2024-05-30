@@ -45,9 +45,9 @@ const basics: GrapherProgrammaticInterface = {
     ],
 }
 
-export const Line = (): JSX.Element => <Grapher {...basics} />
+export const Line = (): React.ReactElement => <Grapher {...basics} />
 
-export const SlopeChart = (): JSX.Element => {
+export const SlopeChart = (): React.ReactElement => {
     const model = {
         type: ChartTypeName.SlopeChart,
         ...basics,
@@ -55,7 +55,7 @@ export const SlopeChart = (): JSX.Element => {
     return <Grapher {...model} />
 }
 
-export const ScatterPlot = (): JSX.Element => {
+export const ScatterPlot = (): React.ReactElement => {
     const model = {
         type: ChartTypeName.ScatterPlot,
         ...basics,
@@ -63,7 +63,7 @@ export const ScatterPlot = (): JSX.Element => {
     return <Grapher {...model} />
 }
 
-export const DiscreteBar = (): JSX.Element => {
+export const DiscreteBar = (): React.ReactElement => {
     const model = {
         type: ChartTypeName.DiscreteBar,
         ...basics,
@@ -71,7 +71,7 @@ export const DiscreteBar = (): JSX.Element => {
     return <Grapher {...model} />
 }
 
-export const StackedBar = (): JSX.Element => {
+export const StackedBar = (): React.ReactElement => {
     const model = {
         type: ChartTypeName.StackedBar,
         ...basics,
@@ -79,7 +79,7 @@ export const StackedBar = (): JSX.Element => {
     return <Grapher {...model} />
 }
 
-export const StackedArea = (): JSX.Element => {
+export const StackedArea = (): React.ReactElement => {
     const model = {
         type: ChartTypeName.StackedArea,
         ...basics,
@@ -87,7 +87,7 @@ export const StackedArea = (): JSX.Element => {
     return <Grapher {...model} />
 }
 
-export const MapFirst = (): JSX.Element => {
+export const MapFirst = (): React.ReactElement => {
     const model = {
         ...basics,
         tab: GrapherTabOption.map,
@@ -95,7 +95,7 @@ export const MapFirst = (): JSX.Element => {
     return <Grapher {...model} />
 }
 
-export const BlankGrapher = (): JSX.Element => {
+export const BlankGrapher = (): React.ReactElement => {
     const model = {
         type: ChartTypeName.WorldMap,
         tab: GrapherTabOption.map,
@@ -105,7 +105,7 @@ export const BlankGrapher = (): JSX.Element => {
     return <Grapher {...model} />
 }
 
-export const NoMap = (): JSX.Element => {
+export const NoMap = (): React.ReactElement => {
     const model = {
         ...basics,
         hasMapTab: false,
@@ -113,7 +113,7 @@ export const NoMap = (): JSX.Element => {
     return <Grapher {...model} />
 }
 
-export const Faceting = (): JSX.Element => {
+export const Faceting = (): React.ReactElement => {
     const model = {
         type: ChartTypeName.StackedArea,
         facet: FacetStrategy.entity,
@@ -122,7 +122,7 @@ export const Faceting = (): JSX.Element => {
     return <Grapher {...model} />
 }
 
-export const WithAuthorTimeFilter = (): JSX.Element => {
+export const WithAuthorTimeFilter = (): React.ReactElement => {
     const model: GrapherProgrammaticInterface = {
         ...basics,
         timelineMinTime: 1993,
@@ -148,7 +148,7 @@ class PerfGrapher extends React.Component {
 
     @observable chartTypeName = ChartTypeName.LineChart
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const key = Math.random() // I do this hack to force a rerender until can re-add the grapher model/grapher view that we used to have. @breck 10/29/2020
         return (
             <div>
@@ -169,4 +169,4 @@ class PerfGrapher extends React.Component {
     }
 }
 
-export const Perf = (): JSX.Element => <PerfGrapher />
+export const Perf = (): React.ReactElement => <PerfGrapher />

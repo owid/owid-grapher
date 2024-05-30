@@ -97,7 +97,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
         this.props.onBarMouseLeave()
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { color, xOffset, barWidth } = this.props
         const { yPos, barHeight, trueOpacity } = this
 
@@ -241,7 +241,7 @@ export class StackedBarChart
         return new VerticalColorLegend({ manager: this })
     }
 
-    @computed get tooltip(): JSX.Element | undefined {
+    @computed get tooltip(): React.ReactElement | undefined {
         const {
             tooltipState: { target, position, fading },
             yColumns,
@@ -400,7 +400,7 @@ export class StackedBarChart
         this.tooltipState.target = null
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         if (this.failMessage)
             return (
                 <NoDataModal

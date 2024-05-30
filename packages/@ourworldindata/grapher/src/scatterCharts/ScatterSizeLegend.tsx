@@ -160,7 +160,7 @@ export class ScatterSizeLegend {
         return undefined
     }
 
-    private renderLegend(targetX: number, targetY: number): JSX.Element {
+    private renderLegend(targetX: number, targetY: number): React.ReactElement {
         const { highlight } = this
         const cx = targetX + this.maxWidth / 2
         return (
@@ -215,7 +215,7 @@ export class ScatterSizeLegend {
         targetX: number,
         targetY: number,
         renderOptions: React.SVGAttributes<SVGGElement> = {}
-    ): JSX.Element {
+    ): React.ReactElement {
         const centerX = targetX + this.maxWidth / 2
         return (
             <g id={makeIdForHumanConsumption("size-legend")} {...renderOptions}>
@@ -275,7 +275,7 @@ const LegendItem = ({
     labelFontSize: number
     labelFontWeight?: number
     outsideLabel?: boolean
-}): JSX.Element => {
+}): React.ReactElement => {
     const style: React.CSSProperties = {
         fontSize: labelFontSize,
         fontWeight: labelFontWeight,

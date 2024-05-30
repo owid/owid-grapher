@@ -63,7 +63,7 @@ export const autoDetectSeriesStrategy = (
 export const makeClipPath = (
     renderUid: number,
     box: Box
-): { id: string; element: JSX.Element } => {
+): { id: string; element: React.ReactElement } => {
     const id = `boundsClip-${renderUid}`
     return {
         id: `url(#${id})`,

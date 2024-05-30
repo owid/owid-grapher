@@ -141,7 +141,7 @@ export const useImage = (
     return metadata
 }
 
-const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
+const LinkedA = ({ span }: { span: SpanLink }): React.ReactElement => {
     const linkType = getLinkType(span.url)
     const { linkedDocument } = useLinkedDocument(span.url)
     const { linkedChart } = useLinkedChart(span.url)
@@ -177,7 +177,7 @@ const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
 export function renderSpan(
     span: Span,
     key: React.Key | null | undefined = undefined
-): JSX.Element {
+): React.ReactElement {
     return match(span)
         .with({ spanType: "span-simple-text" }, (span) => (
             <React.Fragment key={key}>{span.text}</React.Fragment>
@@ -224,7 +224,7 @@ export function renderSpan(
         .exhaustive()
 }
 
-export function renderSpans(spans: Span[]): JSX.Element[] {
+export function renderSpans(spans: Span[]): React.ReactElement[] {
     return spans.map(renderSpan)
 }
 

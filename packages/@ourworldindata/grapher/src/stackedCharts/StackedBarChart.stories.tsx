@@ -11,7 +11,7 @@ export default {
     component: StackedBarChart,
 }
 
-export const ColumnsAsSeries = (): JSX.Element => {
+export const ColumnsAsSeries = (): React.ReactElement => {
     const table = SynthesizeFruitTable()
 
     return (
@@ -23,7 +23,7 @@ export const ColumnsAsSeries = (): JSX.Element => {
     )
 }
 
-export const EntitiesAsSeries = (): JSX.Element => {
+export const EntitiesAsSeries = (): React.ReactElement => {
     const table = SynthesizeGDPTable({ entityCount: 5 })
     const manager = {
         table,
@@ -38,7 +38,7 @@ export const EntitiesAsSeries = (): JSX.Element => {
     )
 }
 
-export const EntitiesAsSeriesWithMissingRows = (): JSX.Element => {
+export const EntitiesAsSeriesWithMissingRows = (): React.ReactElement => {
     const table = SynthesizeGDPTable({ entityCount: 5 }).dropRandomRows(30)
     const manager = {
         table,

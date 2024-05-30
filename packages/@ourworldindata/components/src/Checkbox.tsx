@@ -7,7 +7,7 @@ export class Checkbox extends React.Component<{
     onChange: React.ChangeEventHandler<HTMLInputElement>
     label: React.ReactNode
 }> {
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { checked, onChange, label } = this.props
 
         return (

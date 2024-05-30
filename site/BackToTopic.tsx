@@ -8,7 +8,7 @@ export const BackToTopic = ({
     subnavId,
 }: {
     subnavId: SubNavId
-}): JSX.Element | null => {
+}): React.ReactElement | null => {
     const subnavItem = getSubnavItem(subnavId, subnavs[subnavId])
     if (!subnavItem) return null
 

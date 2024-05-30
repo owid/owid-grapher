@@ -19,7 +19,7 @@ const HTMLAndSVG = ({
     fontSize?: number
     maxWidth?: number
     lineHeight?: number
-}): JSX.Element => {
+}): React.ReactElement => {
     const textwrap = new TextWrap({
         maxWidth,
         fontSize,
@@ -56,7 +56,7 @@ const HTMLAndSVG = ({
     )
 }
 
-export const HTMLAndSVGComparison = (): JSX.Element => (
+export const HTMLAndSVGComparison = (): React.ReactElement => (
     <div>
         <HTMLAndSVG fontSize={12.4} maxWidth={120} lineHeight={1} />
         <br />

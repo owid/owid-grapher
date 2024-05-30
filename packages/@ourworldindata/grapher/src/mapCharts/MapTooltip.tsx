@@ -197,7 +197,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         })
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const { mapTable, datum, lineColorScale } = this
         const {
             targetTime,

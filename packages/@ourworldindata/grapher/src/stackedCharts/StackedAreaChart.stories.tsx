@@ -26,7 +26,7 @@ const entitiesChart: ChartManager = {
     yColumnSlugs: [SampleColumnSlugs.GDP],
 }
 
-export const EntitiesAsSeriesRelative = (): JSX.Element => (
+export const EntitiesAsSeriesRelative = (): React.ReactElement => (
     <svg width={600} height={600}>
         <StackedAreaChart
             manager={{ ...entitiesChart, isRelativeMode: true }}
@@ -34,7 +34,7 @@ export const EntitiesAsSeriesRelative = (): JSX.Element => (
     </svg>
 )
 
-export const EntitiesAsSeries = (): JSX.Element => (
+export const EntitiesAsSeries = (): React.ReactElement => (
     <svg width={600} height={600}>
         <StackedAreaChart
             manager={{ ...entitiesChart, isRelativeMode: false }}
@@ -43,7 +43,7 @@ export const EntitiesAsSeries = (): JSX.Element => (
 )
 
 export const EntitiesAsSeriesWithMissingRowsAndInterpolation =
-    (): JSX.Element => (
+    (): React.ReactElement => (
         <svg width={600} height={600}>
             <StackedAreaChart
                 manager={{
@@ -55,7 +55,7 @@ export const EntitiesAsSeriesWithMissingRowsAndInterpolation =
     )
 
 export const EntitiesAsSeriesWithMissingRowsNoInterpolation =
-    (): JSX.Element => (
+    (): React.ReactElement => (
         <svg width={600} height={600}>
             <StackedAreaChart
                 enableLinearInterpolation={false}
@@ -68,7 +68,7 @@ export const EntitiesAsSeriesWithMissingRowsNoInterpolation =
     )
 
 export const EntitiesAsSeriesWithMissingRowsAndInterpolationRelative =
-    (): JSX.Element => (
+    (): React.ReactElement => (
         <svg width={600} height={600}>
             <StackedAreaChart
                 manager={{
@@ -81,7 +81,7 @@ export const EntitiesAsSeriesWithMissingRowsAndInterpolationRelative =
     )
 
 export const EntitiesAsSeriesWithMissingRowsNoInterpolationRelative =
-    (): JSX.Element => (
+    (): React.ReactElement => (
         <svg width={600} height={600}>
             <StackedAreaChart
                 enableLinearInterpolation={false}
@@ -100,19 +100,19 @@ const columnsChart: ChartManager = {
     selection: colTable.sampleEntityName(1),
 }
 
-export const ColumnsAsSeries = (): JSX.Element => (
+export const ColumnsAsSeries = (): React.ReactElement => (
     <svg width={600} height={600}>
         <StackedAreaChart manager={columnsChart} />
     </svg>
 )
 
-export const ColumnsAsSeriesRelative = (): JSX.Element => (
+export const ColumnsAsSeriesRelative = (): React.ReactElement => (
     <svg width={600} height={600}>
         <StackedAreaChart manager={{ ...columnsChart, isRelativeMode: true }} />
     </svg>
 )
 
-export const ColumnsAsSeriesWithMissingCells = (): JSX.Element => {
+export const ColumnsAsSeriesWithMissingCells = (): React.ReactElement => {
     const table = SynthesizeFruitTable().replaceRandomCells(200, [
         SampleColumnSlugs.Fruit,
     ])
@@ -129,7 +129,7 @@ export const ColumnsAsSeriesWithMissingCells = (): JSX.Element => {
 }
 
 export const ColumnsAsSeriesWithMissingRowsAndInterpolationRelative =
-    (): JSX.Element => {
+    (): React.ReactElement => {
         let table = SynthesizeFruitTable().dropRandomRows(30, seed)
         const firstCol = table.columnsAsArray[0]
         const junkFoodColumn = {

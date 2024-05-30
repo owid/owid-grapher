@@ -33,7 +33,7 @@ export const KeyInsights = ({
     }: {
         filename?: string
         url?: string
-    }): JSX.Element | null {
+    }): React.ReactElement | null {
         if (filename) {
             return (
                 <Image

@@ -13,7 +13,7 @@ export function NoDataSection({
     entityNames: string[]
     bounds: Bounds
     baseFontSize?: number
-}): JSX.Element {
+}): React.ReactElement {
     {
         const displayedEntities = entityNames.slice(0, 5)
         const numRemainingEntities = Math.max(

@@ -81,7 +81,7 @@ class Label extends React.Component<{
     onClick: () => void
     onMouseLeave?: () => void
 }> {
-    render(): JSX.Element {
+    render(): React.ReactElement {
         const {
             series,
             manager,
@@ -411,7 +411,7 @@ export class LineLegend extends React.Component<{
         return this.placedSeries.some((series) => series.totalLevels > 1)
     }
 
-    private renderBackground(): JSX.Element[] {
+    private renderBackground(): React.ReactElement[] {
         return this.backgroundSeries.map((series, index) => (
             <Label
                 key={`background-${index}-` + series.seriesName}
@@ -425,7 +425,7 @@ export class LineLegend extends React.Component<{
     }
 
     // All labels are focused by default, moved to background when mouseover of other label
-    private renderFocus(): JSX.Element[] {
+    private renderFocus(): React.ReactElement[] {
         return this.focusedSeries.map((series, index) => (
             <Label
                 key={`focus-${index}-` + series.seriesName}
@@ -444,7 +444,7 @@ export class LineLegend extends React.Component<{
         return this.props.manager
     }
 
-    render(): JSX.Element {
+    render(): React.ReactElement {
         return (
             <g
                 id={makeIdForHumanConsumption("line-labels")}
