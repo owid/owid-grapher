@@ -111,6 +111,12 @@ PREVIEW_BRANCH=${PREVIEW_BRANCH:-$GIT_BRANCH}
 BAKED_BASE_URL="https://$PREVIEW_BRANCH.$PROJECT_NAME.pages.dev"
 
 deploy_site () {
+    # Do not deploy from branch "master"
+    if [ "$PREVIEW_BRANCH" = "master" ]; then
+        echo "Cannot deploy from branch 'master'"
+        exit 1
+    fi
+
     echo "--- Deploy site to $BAKED_BASE_URL from $HOST"
 
     create_dist
