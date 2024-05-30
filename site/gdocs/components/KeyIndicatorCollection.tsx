@@ -152,6 +152,12 @@ function AccordionItem({
     const headerId = `${id}_header`
     const contentId = `${id}_content`
 
+    // remove content from the tab sequence if it's not visible
+    useEffect(() => {
+        if (!contentRef.current) return
+        contentRef.current.inert = !isOpen
+    }, [isOpen, contentRef])
+
     return (
         <div
             ref={ref}
@@ -182,6 +188,10 @@ function AccordionItem({
                                         behavior: "smooth",
                                     })
                                 }
+
+                                if (contentRef.current) {
+                                    contentRef.current.focus()
+                                }
                             }, HEIGHT_ANIMATION_DURATION_IN_SECONDS * 1000)
                         }
                     }}
@@ -204,7 +214,13 @@ function AccordionItem({
                 role="region"
                 aria-labelledby={headerId}
             >
-                <div ref={contentRef}>{children}</div>
+                <div
+                    ref={contentRef}
+                    tabIndex={isOpen ? 0 : -1}
+                    aria-hidden={!isOpen}
+                >
+                    {children}
+                </div>
             </div>
         </div>
     )
