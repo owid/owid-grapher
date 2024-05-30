@@ -269,7 +269,7 @@ export class VerticalAxisComponent extends React.Component<{
             >
                 {labelTextWrap &&
                     labelTextWrap.renderSVG(
-                        -verticalAxis.rangeCenter - labelTextWrap.width / 2,
+                        -verticalAxis.rangeCenter,
                         bounds.left,
                         {
                             id: makeIdForHumanConsumption(
@@ -278,6 +278,7 @@ export class VerticalAxisComponent extends React.Component<{
                             textProps: {
                                 transform: "rotate(-90)",
                                 fill: labelColor || GRAPHER_DARK_TEXT,
+                                textAnchor: "middle",
                             },
                             detailsMarker,
                         }
@@ -389,19 +390,14 @@ export class HorizontalAxisComponent extends React.Component<{
                 className="HorizontalAxis"
             >
                 {label &&
-                    label.renderSVG(
-                        axis.rangeCenter - label.width / 2,
-                        labelYPosition,
-                        {
-                            id: makeIdForHumanConsumption(
-                                "horizontal-axis-label"
-                            ),
-                            textProps: {
-                                fill: labelColor || GRAPHER_DARK_TEXT,
-                            },
-                            detailsMarker,
-                        }
-                    )}
+                    label.renderSVG(axis.rangeCenter, labelYPosition, {
+                        id: makeIdForHumanConsumption("horizontal-axis-label"),
+                        textProps: {
+                            fill: labelColor || GRAPHER_DARK_TEXT,
+                            textAnchor: "middle",
+                        },
+                        detailsMarker,
+                    })}
                 {tickLabels.map((label) => {
                     const { x, xAlign, formattedValue } = label
                     return (
