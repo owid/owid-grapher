@@ -10,15 +10,20 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     DndContext,
     DragEndEvent,
-    closestCorners,
     pointerWithin,
     useDraggable,
     useDroppable,
 } from "@dnd-kit/core"
+import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGrip } from "@fortawesome/free-solid-svg-icons"
+import { Tag } from "antd"
 
-function Box(props: { id: string; children: React.ReactNode }) {
+function Box(props: {
+    id: string
+    children: React.ReactNode
+    className?: string
+}) {
     const drag = useDraggable({
         id: props.id,
     })
@@ -29,26 +34,27 @@ function Box(props: { id: string; children: React.ReactNode }) {
     })
     const isOver = drop.isOver
     const dropSetNodeRef = drop.setNodeRef
-    const style = {
-        transform: transform
-            ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
-            : "unset",
-        color: isOver ? "green" : undefined,
-    }
 
     return (
         <div
-            className="tag-box"
-            id={props.id}
-            style={style}
             {...attributes}
+            className={cx(props.className, {
+                [`${props.className}--dragging`]: !!transform,
+                [`${props.className}--hovering`]: !!isOver,
+            })}
+            id={props.id}
+            style={{
+                transform: transform
+                    ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+                    : "unset",
+            }}
             ref={(element: HTMLElement | null) => {
                 dragSetNodeRef(element)
                 dropSetNodeRef(element)
             }}
         >
             {props.children}
-            <button className="tag-box__grip-button" {...listeners}>
+            <button className="grip-button" {...listeners}>
                 <FontAwesomeIcon icon={faGrip} />
             </button>
         </div>
@@ -137,6 +143,81 @@ class AddTagModal extends React.Component<{
 }
 
 @observer
+class TagGraphNodeContainer extends React.Component<{
+    node: TagGraphNode
+    parentId: number
+    setWeight: (path: number[], weight: number) => void
+}> {
+    constructor(props: any) {
+        super(props)
+        this.updateWeight = this.updateWeight.bind(this)
+    }
+
+    updateWeight(e: React.ChangeEvent<HTMLInputElement>) {
+        const weight = Number(e.target.value)
+        this.props.setWeight(this.props.node.path.slice(1), weight)
+    }
+
+    render() {
+        const { id, name, path, children, weight } = this.props.node
+        const serializedPath = path.join("-")
+        return (
+            // IDs can't start with a number, so we prefix with "node-"
+            <Box key={id} id={`node-${serializedPath}`} className="tag-box">
+                <strong>{name}</strong>
+                <span className="tag-box__weight-control">
+                    <label htmlFor={`weight-${serializedPath}`}>Rank</label>
+                    <input
+                        id={`weight-${serializedPath}`}
+                        type="number"
+                        value={weight}
+                        onChange={this.updateWeight}
+                    />
+                </span>
+                {children.map((node) => (
+                    <TagGraphNodeContainer
+                        key={node.id}
+                        node={node}
+                        parentId={id}
+                        setWeight={this.props.setWeight}
+                    />
+                ))}
+            </Box>
+        )
+    }
+}
+
+function sortByWeightThenName(a: TagGraphNode, b: TagGraphNode) {
+    return b.weight - a.weight || a.name.localeCompare(b.name)
+}
+
+// "node-1-2-3" -> [2, 3]
+// the first ID is always the root node, so we drop it
+function getPathWithoutRootNode(elementId?: string): number[] {
+    if (!elementId) return []
+    return elementId.split("-").slice(2).map(Number)
+}
+
+function getNode(path: number[], node: TagGraphNode) {
+    if (path.length === 0) return node
+    const child = node.children.find((c) => c.id === path[0])
+    if (!child) return null
+    return getNode(path.slice(1), child)
+}
+
+function insertChildAndSort(
+    children: TagGraphNode[],
+    newNode: TagGraphNode
+): TagGraphNode[] {
+    return [...children, newNode].sort(sortByWeightThenName)
+}
+
+function updatePaths(node: TagGraphNode, path: number[]) {
+    node.path = [...path, node.id]
+    node.children.forEach((child) => updatePaths(child, node.path))
+}
+
+@observer
 export class TagsIndexPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
@@ -144,6 +225,7 @@ export class TagsIndexPage extends React.Component {
     constructor(props: Readonly<unknown>) {
         super(props)
         this.handleDragEnd = this.handleDragEnd.bind(this)
+        this.setWeight = this.setWeight.bind(this)
     }
 
     @observable isAddingTag: boolean = false
@@ -155,37 +237,19 @@ export class TagsIndexPage extends React.Component {
         this.isAddingTag = true
     }
 
+    @action.bound setWeight(path: number[], weight: number) {
+        const node = getNode(path, this.tagGraph!)
+        if (node) {
+            node.weight = weight
+        }
+        const parentNode = getNode(path.slice(0, -1), this.tagGraph!)
+        if (parentNode) {
+            parentNode.children = parentNode.children.sort(sortByWeightThenName)
+        }
+    }
+
     @action.bound handleDragEnd(event: DragEndEvent) {
         if (!this.tagGraph) return
-
-        // "node-1-2-3" -> [2, 3]
-        // the first ID is always the root node, so we drop it
-        function getPathWithoutRootNode(elementId?: string): number[] {
-            if (!elementId) return []
-            return elementId.split("-").slice(2).map(Number)
-        }
-
-        function getNode(path: number[], node: TagGraphNode) {
-            if (path.length === 0) return node
-            const child = node.children.find((c) => c.id === path[0])
-            if (!child) return null
-            return getNode(path.slice(1), child)
-        }
-
-        function insertChildAndSort(
-            children: TagGraphNode[],
-            newNode: TagGraphNode
-        ): TagGraphNode[] {
-            return [...children, newNode].sort((a, b) => {
-                // sort by weight, then by name
-                return a.weight - b.weight || a.name.localeCompare(b.name)
-            })
-        }
-
-        function updatePath(node: TagGraphNode, path: number[]) {
-            node.path = [...path, node.id]
-            node.children.forEach((child) => updatePath(child, node.path))
-        }
 
         const sourcePath = getPathWithoutRootNode(event.active.id as string)
         const targetPath = getPathWithoutRootNode(event.over?.id as string)
@@ -207,7 +271,7 @@ export class TagsIndexPage extends React.Component {
             (c) => c.id !== sourceNode.id
         )
         // Update the source node's children's paths
-        updatePath(sourceNode, targetNode.path)
+        updatePaths(sourceNode, targetNode.path)
         // Add the source node to the target node
         targetNode.children = insertChildAndSort(targetNode.children, {
             ...sourceNode,
@@ -217,23 +281,6 @@ export class TagsIndexPage extends React.Component {
     }
 
     render() {
-        const renderTagGraphNode = (
-            props: TagGraphNode & {
-                parentId: number
-            }
-        ) => {
-            return (
-                <Box key={props.id} id={`node-${props.path.join("-")}`}>
-                    <span>{props.name}</span>
-                    {props.children.map((node) =>
-                        renderTagGraphNode({
-                            ...node,
-                            parentId: props.id,
-                        })
-                    )}
-                </Box>
-            )
-        }
         return (
             <AdminLayout title="Categories">
                 <main className="TagsIndexPage">
@@ -243,10 +290,14 @@ export class TagsIndexPage extends React.Component {
                         collisionDetection={pointerWithin}
                     >
                         {this.tagGraph &&
-                            renderTagGraphNode({
-                                ...this.tagGraph,
-                                parentId: this.tagGraph.id,
-                            })}
+                            this.tagGraph.children.map((node) => (
+                                <TagGraphNodeContainer
+                                    key={node.id}
+                                    node={node}
+                                    parentId={this.tagGraph!.id}
+                                    setWeight={this.setWeight}
+                                />
+                            ))}
                     </DndContext>
                 </main>
             </AdminLayout>

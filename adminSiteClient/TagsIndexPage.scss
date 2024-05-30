@@ -1,20 +1,63 @@
 .TagsIndexPage {
     .tag-box {
-        border: 1px solid black;
         position: relative;
-        padding: 16px;
-        padding-right: 32px;
-        display: flex;
-        flex-wrap: wrap;
+        padding: 8px;
+        padding-right: 0;
+        background-color: #f0f0f0;
+        transition: box-shadow 0.2s;
+        border-radius: 3px;
+        border: 3px solid transparent;
+        cursor: default;
+        & .tag-box--dragging {
+            z-index: 2;
+            box-shadow: 4px 4px 8px 8px #bbb;
+        }
+
+        & .tag-box--hovering:not(.tag-box--dragging) {
+            border: 3px solid orange;
+        }
+
+        // 🤫
+        & > .tag-box {
+            background-color: #d0d0d0;
+            & > .tag-box {
+                background-color: #f0f0f0;
+                & > .tag-box {
+                    background-color: #d0d0d0;
+                    & > .tag-box {
+                        background-color: #f0f0f0;
+                        & > .tag-box {
+                            background-color: #d0d0d0;
+                            & > .tag-box {
+                                background-color: #f0f0f0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         margin: 4px;
+        .grip-button {
+            position: absolute;
+            right: 8px;
+            top: 6px;
+            background-color: transparent;
+            padding: 0;
+            border: none;
+            line-height: 1;
+            svg {
+                color: #666;
+            }
+        }
     }
-    .tag-box__grip-button {
-        position: absolute;
-        right: 16px;
-        top: 16px;
-        background-color: transparent;
-        padding: 0;
-        border: none;
-        line-height: 1;
+    .tag-box__weight-control {
+        width: 100%;
+        label {
+            margin: 0 8px;
+        }
+        input {
+            width: 50px;
+        }
     }
 }
