@@ -166,6 +166,14 @@ $zindex-controls-popup: 140;
                 background: $active-fill;
                 border: 1px solid $active-fill;
                 color: $active-text;
+
+                &:hover {
+                    background: darken($active-fill, 5%);
+                }
+
+                &:active {
+                    background: darken($active-fill, 10%);
+                }
             }
         }
 
@@ -222,14 +230,6 @@ $zindex-controls-popup: 140;
 
                 &.active {
                     background: #a4b6ca;
-                }
-
-                &:hover:not(.active) {
-                    background: $light-fill;
-                }
-
-                &:active:not(.active) {
-                    background: $dark-text;
                 }
             }
         }
