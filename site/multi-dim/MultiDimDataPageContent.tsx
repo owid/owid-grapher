@@ -246,9 +246,9 @@ const MultiDimSettingsPanel = (props: {
         const { dimensionsWithAvailableChoices, selectedChoices } =
             config.filterToAvailableChoices(currentSettings)
 
-        setAvailableSettings(dimensionsWithAvailableChoices)
         if (!isEqual(selectedChoices, currentSettings))
             setCurrentSettings(selectedChoices)
+        setAvailableSettings(dimensionsWithAvailableChoices)
     }, [currentSettings, config])
 
     useEffect(

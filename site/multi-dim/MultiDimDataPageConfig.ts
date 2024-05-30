@@ -71,9 +71,8 @@ export class MultiDimDataPageConfig {
                 updatedSelectedChoices
             )
             if (availableViewsAfterSelection.length === 0) {
-                updatedSelectedChoices[dimSlug] = Object.values(
-                    dim.choices
-                )[0].slug
+                updatedSelectedChoices[dimSlug] =
+                    availableViewsBeforeSelection[0].dimensions[dimSlug]
             }
 
             dim.choices = Object.fromEntries(
