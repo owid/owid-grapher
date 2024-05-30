@@ -54,6 +54,7 @@ import {
     memoize,
     Url,
     getWindowQueryParams,
+    isEqual,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "../gdocs/OwidGdoc.js"
 import StickyNav from "../blocks/StickyNav.js"
@@ -236,12 +237,26 @@ const MultiDimSettingsPanel = (props: {
 
     const [currentSettings, setCurrentSettings] = useState(initialSettings)
 
+    const [availableSettings, setAvailableSettings] = useState<
+        Record<string, DimensionWithChoicesKeyedBySlug>
+    >({})
+
+    useEffect(() => {
+        if (!config) return
+        const { dimensionsWithAvailableChoices, selectedChoices } =
+            config.filterToAvailableChoices(currentSettings)
+
+        setAvailableSettings(dimensionsWithAvailableChoices)
+        if (!isEqual(selectedChoices, currentSettings))
+            setCurrentSettings(selectedChoices)
+    }, [currentSettings, config])
+
     useEffect(
         () => props.updateSettings?.(currentSettings),
         [props, currentSettings]
     )
 
-    const settings = Object.values(dimensions).map((dim) => (
+    const settings = Object.values(availableSettings).map((dim) => (
         <DimensionDropdown
             key={dim.slug}
             dimension={dim}

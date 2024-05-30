@@ -47,6 +47,50 @@ export class MultiDimDataPageConfig {
         return matchingViews[0]
     }
 
+    filterToAvailableChoices(selectedChoices: Record<string, string>) {
+        const updatedSelectedChoices: Record<string, string> = {}
+        const dimensionsWithAvailableChoices = this.dimensions
+        for (const [dimSlug, dim] of Object.entries(
+            dimensionsWithAvailableChoices
+        )) {
+            const availableViewsBeforeSelection = this.filterViewsByDimensions(
+                updatedSelectedChoices
+            )
+            if (
+                selectedChoices[dimSlug] &&
+                dim.choices[selectedChoices[dimSlug]]
+            ) {
+                updatedSelectedChoices[dimSlug] = selectedChoices[dimSlug]
+            } else {
+                throw new Error(
+                    `Missing or invalid choice for dimension ${dimSlug}`
+                )
+            }
+
+            const availableViewsAfterSelection = this.filterViewsByDimensions(
+                updatedSelectedChoices
+            )
+            if (availableViewsAfterSelection.length === 0) {
+                updatedSelectedChoices[dimSlug] = Object.values(
+                    dim.choices
+                )[0].slug
+            }
+
+            dim.choices = Object.fromEntries(
+                Object.entries(dim.choices).filter(([slug, _]) =>
+                    availableViewsBeforeSelection.some(
+                        (view) => view.dimensions[dimSlug] === slug
+                    )
+                )
+            )
+        }
+
+        return {
+            selectedChoices: updatedSelectedChoices,
+            dimensionsWithAvailableChoices,
+        }
+    }
+
     static transformIndicatorPathObj(
         indicatorPathObj: Record<string, DimensionProperty>
     ): Record<DimensionProperty, string[]> {
