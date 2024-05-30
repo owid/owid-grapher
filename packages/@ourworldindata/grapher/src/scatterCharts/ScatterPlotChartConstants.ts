@@ -38,6 +38,7 @@ export interface ScatterPlotManager extends ChartManager {
     endTime?: Time
     hasTimeline?: boolean
     hideScatterLabels?: boolean
+    isModalOpen?: boolean
 }
 
 export interface ScatterSeries extends ChartSeries {
