@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowDown, faCaretDown } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -116,10 +116,36 @@ const DimensionDropdown = (props: {
 
     const toggleVisibility = useCallback(() => setActive(!active), [active])
 
+    const dropdownRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setActive(false)
+        }
+
+        document.addEventListener("keydown", handleEscape)
+        return () => document.removeEventListener("keydown", handleEscape)
+    }, [])
+
+    useEffect(() => {
+        const handleOutsideClick = (e: MouseEvent) => {
+            if (
+                active &&
+                dropdownRef.current &&
+                e.target instanceof Node &&
+                !dropdownRef.current.contains(e.target)
+            )
+                setActive(false)
+        }
+
+        document.addEventListener("click", handleOutsideClick)
+        return () => document.removeEventListener("click", handleOutsideClick)
+    }, [active])
+
     const currentChoice = dimension.choices[props.currentChoiceSlug]
 
     return (
-        <div className="settings-dropdown">
+        <div className="settings-dropdown" ref={dropdownRef}>
             <button
                 className={cx("menu-toggle", { active })}
                 onClick={toggleVisibility}
