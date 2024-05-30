@@ -1,6 +1,6 @@
 import React from "react"
 import { computed } from "mobx"
-import { Remark } from "react-remark"
+import { Remark, useRemarkSync, UseRemarkSyncOptions } from "react-remark"
 import { remarkPlainLinks } from "./markdown/remarkPlainLinks.js"
 import visit from "unist-util-visit"
 
@@ -35,6 +35,17 @@ function transformDodLinks() {
     }
 }
 
+function RemarkSync({
+    children,
+    ...props
+}: { children: string } & UseRemarkSyncOptions) {
+    return useRemarkSync(children, props)
+}
+
+// NOTE: We currently don't need to render markdown in React. We should be able
+// to render it only during baking/on the server and pass the HTML as string.
+// This way we could reduce the bundle size by not including a markdown library
+// and improve performance.
 export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps> {
     @computed get text(): string {
         return this.props.text
@@ -58,14 +69,16 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
     }
 
     render(): React.ReactElement | null {
-        return (
-            <Remark
-                rehypePlugins={[transformDodLinks]}
-                remarkPlugins={[remarkPlainLinks]}
-                rehypeReactOptions={this.rehypeReactOptions}
-            >
-                {this.text}
-            </Remark>
+        const isServer = typeof window === "undefined"
+        const options = {
+            rehypePlugins: [transformDodLinks],
+            remarkPlugins: [remarkPlainLinks],
+            rehypeReactOptions: this.rehypeReactOptions,
+        }
+        return isServer ? (
+            <RemarkSync {...options}>{this.text}</RemarkSync>
+        ) : (
+            <Remark {...options}>{this.text}</Remark>
         )
     }
 }
