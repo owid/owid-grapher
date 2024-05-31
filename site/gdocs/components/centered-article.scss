@@ -31,6 +31,21 @@
         }
     }
 
+    .ref + .ref {
+        margin-left: 4px;
+        position: relative;
+        ::before {
+            font-size: 0.75em;
+            position: absolute;
+            content: ",";
+            left: -0.25em;
+            top: -0.35em;
+            line-height: 1;
+            color: $blue-60;
+            pointer-events: none;
+        }
+    }
+
     .toc-wrapper {
         position: sticky;
         top: 0;
