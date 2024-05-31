@@ -180,7 +180,7 @@ export function renderSpan(
 ): React.ReactElement {
     return match(span)
         .with({ spanType: "span-simple-text" }, (span) => (
-            <React.Fragment key={key}>{span.text}</React.Fragment>
+            <span key={key}>{span.text}</span>
         ))
         .with({ spanType: "span-link" }, (span) => (
             <LinkedA span={span} key={key} />
@@ -217,9 +217,7 @@ export function renderSpan(
             <q key={key}>{renderSpans(span.children)}</q>
         ))
         .with({ spanType: "span-fallback" }, (span) => (
-            <React.Fragment key={key}>
-                {renderSpans(span.children)}
-            </React.Fragment>
+            <span key={key}>{renderSpans(span.children)}</span>
         ))
         .exhaustive()
 }
