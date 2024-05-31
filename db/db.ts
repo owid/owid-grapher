@@ -490,8 +490,8 @@ export async function getTagGraph(
             tg.childId = t.id
         LEFT JOIN posts_gdocs p on
             t.slug = p.slug
-        -- order by weight, tiebreak by name
-        ORDER BY tg.weight, t.name`,
+        -- order by descending weight, tiebreak by name
+        ORDER BY tg.weight DESC, t.name ASC`,
         {
             types: [
                 OwidGdocType.TopicPage,
