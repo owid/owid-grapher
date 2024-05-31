@@ -17,7 +17,7 @@ import {
 import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGrip } from "@fortawesome/free-solid-svg-icons"
-import { Tag } from "antd"
+import { AutoComplete, Button, Popconfirm, Tag } from "antd"
 
 function Box(props: {
     id: string
@@ -147,10 +147,16 @@ class TagGraphNodeContainer extends React.Component<{
     node: TagGraphNode
     parentId: number
     setWeight: (path: number[], weight: number) => void
+    setChild: (path: number[], child: TagGraphNode) => void
+    removeNode: (path: number[]) => void
+    tags: TagListItem[]
 }> {
+    @observable isAddingTag: boolean = false
+    @observable autocompleteValue: string = ""
     constructor(props: any) {
         super(props)
         this.updateWeight = this.updateWeight.bind(this)
+        this.setChild = this.setChild.bind(this)
     }
 
     updateWeight(e: React.ChangeEvent<HTMLInputElement>) {
@@ -158,11 +164,40 @@ class TagGraphNodeContainer extends React.Component<{
         this.props.setWeight(this.props.node.path.slice(1), weight)
     }
 
+    @action.bound setChild(childName: string) {
+        this.isAddingTag = false
+        const tag = this.addableTags.find((t) => t.name === childName)
+        if (!tag) return
+        const childPath = [...this.props.node.path, tag.id]
+
+        this.props.setChild(this.props.node.path.slice(1), {
+            id: tag.id,
+            name: childName,
+            path: childPath,
+            children: [],
+            weight: 1,
+            isTopic: false,
+            slug: "",
+        })
+
+        this.autocompleteValue = ""
+    }
+
+    get addableTags() {
+        // Exclude the current node and its children
+        return this.props.tags.filter(
+            (tag) =>
+                tag.id !== this.props.node.id &&
+                !this.props.node.children.find((c) => c.name === tag.name)
+        )
+    }
+
     render() {
         const { id, name, path, children, weight } = this.props.node
         const serializedPath = path.join("-")
         return (
             // IDs can't start with a number, so we prefix with "node-"
+            // Not using data- attributes because they don't work with DndContext
             <Box key={id} id={`node-${serializedPath}`} className="tag-box">
                 <strong>{name}</strong>
                 <span className="tag-box__weight-control">
@@ -174,12 +209,70 @@ class TagGraphNodeContainer extends React.Component<{
                         onChange={this.updateWeight}
                     />
                 </span>
+                {!this.isAddingTag ? (
+                    <Button
+                        onClick={() => (this.isAddingTag = true)}
+                        type="primary"
+                        className="tag-box__add-child-button"
+                    >
+                        Add child
+                    </Button>
+                ) : (
+                    <form className="tag-box__add-child-form">
+                        <AutoComplete
+                            className="tag-box__add-child-input"
+                            value={this.autocompleteValue}
+                            onChange={(value) =>
+                                (this.autocompleteValue = value)
+                            }
+                            options={this.addableTags.map((tag) => ({
+                                value: tag.name,
+                                label: tag.name,
+                            }))}
+                            filterOption={(inputValue, option) => {
+                                if (!option?.label) return false
+                                return option.label
+                                    .toLowerCase()
+                                    .startsWith(inputValue.toLowerCase())
+                            }}
+                        />
+                        <Button
+                            onClick={() =>
+                                this.setChild(this.autocompleteValue)
+                            }
+                            disabled={
+                                !this.addableTags
+                                    .map((t) => t.name)
+                                    .includes(this.autocompleteValue)
+                            }
+                        >
+                            Add
+                        </Button>
+                        <Button onClick={() => (this.isAddingTag = false)}>
+                            Cancel
+                        </Button>
+                    </form>
+                )}
+
+                <Popconfirm
+                    title="Are you sure you want to remove this tag?"
+                    onConfirm={() => this.props.removeNode(path.slice(1))}
+                    okText="Yes"
+                    cancelText="No"
+                >
+                    <Button danger className="tag-box__delete-tag-button">
+                        Remove
+                    </Button>
+                </Popconfirm>
                 {children.map((node) => (
                     <TagGraphNodeContainer
                         key={node.id}
                         node={node}
                         parentId={id}
+                        tags={this.props.tags}
                         setWeight={this.props.setWeight}
+                        removeNode={this.props.removeNode}
+                        setChild={this.props.setChild}
                     />
                 ))}
             </Box>
@@ -226,11 +319,14 @@ export class TagsIndexPage extends React.Component {
         super(props)
         this.handleDragEnd = this.handleDragEnd.bind(this)
         this.setWeight = this.setWeight.bind(this)
+        this.setChild = this.setChild.bind(this)
+        this.removeNode = this.removeNode.bind(this)
     }
 
     @observable isAddingTag: boolean = false
     @observable tagGraph: TagGraphRoot | null = null
     @observable addTagParentId?: number
+    @observable tags: TagListItem[] = []
 
     @action.bound onNewTag(parentId?: number) {
         this.addTagParentId = parentId
@@ -248,6 +344,19 @@ export class TagsIndexPage extends React.Component {
         }
     }
 
+    @action.bound setChild(path: number[], child: TagGraphNode) {
+        const parent = getNode(path, this.tagGraph!)
+        if (parent) {
+            parent.children = insertChildAndSort(parent.children, child)
+        }
+    }
+
+    @action.bound removeNode(path: number[]) {
+        const parent = getNode(path.slice(0, -1), this.tagGraph!)
+        if (!parent) return
+        parent.children = parent.children.filter((c) => c.id !== path.at(-1))
+    }
+
     @action.bound handleDragEnd(event: DragEndEvent) {
         if (!this.tagGraph) return
 
@@ -260,6 +369,11 @@ export class TagsIndexPage extends React.Component {
         const sourceId = sourcePath.at(-1) as number
         const isCycle = targetPath.includes(sourceId)
         if (isCycle) return
+        const isDuplicateSibling = getNode(
+            targetPath,
+            this.tagGraph
+        )?.children.some((c) => c.id === sourceId)
+        if (isDuplicateSibling) return
 
         const sourceNode = getNode(sourcePath, this.tagGraph)
         const sourceParent = getNode(sourcePath.slice(0, -1), this.tagGraph)
@@ -289,15 +403,17 @@ export class TagsIndexPage extends React.Component {
                         onDragEnd={this.handleDragEnd}
                         collisionDetection={pointerWithin}
                     >
-                        {this.tagGraph &&
-                            this.tagGraph.children.map((node) => (
-                                <TagGraphNodeContainer
-                                    key={node.id}
-                                    node={node}
-                                    parentId={this.tagGraph!.id}
-                                    setWeight={this.setWeight}
-                                />
-                            ))}
+                        {this.tagGraph?.children.map((node) => (
+                            <TagGraphNodeContainer
+                                key={node.id}
+                                node={node}
+                                tags={this.tags}
+                                parentId={this.tagGraph!.id}
+                                setWeight={this.setWeight}
+                                setChild={this.setChild}
+                                removeNode={this.removeNode}
+                            />
+                        ))}
                     </DndContext>
                 </main>
             </AdminLayout>
@@ -307,8 +423,13 @@ export class TagsIndexPage extends React.Component {
     async getData() {
         const tagGraph =
             await this.context.admin.getJSON<TagGraphRoot>("/api/tagGraph.json")
+        const tags = await this.context.admin
+            .getJSON<{ tags: TagListItem[] }>("/api/tags.json")
+            .then((data) => data.tags)
+
         runInAction(() => {
             this.tagGraph = tagGraph
+            this.tags = tags
         })
     }
 

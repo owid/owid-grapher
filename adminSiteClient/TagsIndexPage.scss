@@ -8,12 +8,12 @@
         border-radius: 3px;
         border: 3px solid transparent;
         cursor: default;
-        & .tag-box--dragging {
+        &.tag-box--dragging {
             z-index: 2;
             box-shadow: 4px 4px 8px 8px #bbb;
         }
 
-        & .tag-box--hovering:not(.tag-box--dragging) {
+        &.tag-box--hovering:not(.tag-box--dragging) {
             border: 3px solid orange;
         }
 
@@ -52,12 +52,33 @@
         }
     }
     .tag-box__weight-control {
-        width: 100%;
+        margin: 0 8px;
         label {
             margin: 0 8px;
         }
         input {
             width: 50px;
+            padding-left: 5px;
+            padding-right: 4px;
+            border: none;
+            background-color: transparent;
+            padding-top: 4px;
+            padding-bottom: 5px;
+            margin-right: 0;
         }
+    }
+    .tag-box__add-child-button {
+        margin-right: 8px;
+    }
+    .tag-box__add-child-form {
+        display: inline-block;
+        margin-right: 8px;
+    }
+    .tag-box__add-child-input {
+        width: 256px;
+        border-radius: 3px;
+    }
+
+    .tag-box__delete-tag-button {
     }
 }
