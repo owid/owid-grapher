@@ -4,7 +4,7 @@ import { observable, computed, action, runInAction } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 import { DbChartTagJoin } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
-import { BindString, NumericSelectField, FieldsRow, Timeago } from "./Forms.js"
+import { BindString, Timeago } from "./Forms.js"
 import { DatasetList, DatasetListItem } from "./DatasetList.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { TagBadge } from "./TagBadge.js"
@@ -12,20 +12,17 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 interface TagPageData {
     id: number
-    parentId?: number
     name: string
     specialType?: string
     updatedAt: string
     datasets: DatasetListItem[]
     charts: ChartListItem[]
     children: DbChartTagJoin[]
-    possibleParents: DbChartTagJoin[]
     slug: string | null
 }
 
 class TagEditable {
     @observable name: string = ""
-    @observable parentId?: number
     @observable slug: string | null = null
 
     constructor(json: TagPageData) {
@@ -100,21 +97,6 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
         }
     }
 
-    @action.bound onChooseParent(parentId: number) {
-        if (parentId === -1) {
-            this.newtag.parentId = undefined
-        } else {
-            this.newtag.parentId = parentId
-        }
-    }
-
-    @computed get parentTag() {
-        const { parentId } = this.props.tag
-        return parentId
-            ? this.props.tag.possibleParents.find((c) => c.id === parentId)
-            : undefined
-    }
-
     render() {
         const { tag } = this.props
         const { newtag } = this
@@ -150,27 +132,6 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                             label="Slug"
                             helpText="The slug for this tag's topic page, e.g. trade-and-globalization. If specified, we assume this tag is a topic."
                         />
-                        <FieldsRow>
-                            <NumericSelectField
-                                label="Parent Category"
-                                value={newtag.parentId || -1}
-                                options={[{ value: -1, label: "None" }].concat(
-                                    tag.possibleParents.map((p) => ({
-                                        value: p.id as number,
-                                        label: p.name,
-                                    }))
-                                )}
-                                onValue={this.onChooseParent}
-                            />
-                            <div>
-                                <br />
-                                {this.parentTag && (
-                                    <TagBadge
-                                        tag={this.parentTag as DbChartTagJoin}
-                                    />
-                                )}
-                            </div>
-                        </FieldsRow>
                         <div>
                             <input
                                 type="submit"

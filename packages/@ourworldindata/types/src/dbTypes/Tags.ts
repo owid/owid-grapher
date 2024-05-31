@@ -8,8 +8,8 @@ export interface DbInsertTag {
     slug?: string | null
     specialType?: string | null
     updatedAt?: Date | null
-    isArea?: boolean
 }
+
 export type DbPlainTag = Required<DbInsertTag>
 
 // For now, this is all the metadata we need for tags in the frontend
