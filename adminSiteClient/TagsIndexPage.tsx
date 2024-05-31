@@ -6,6 +6,7 @@ import { Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
 import { Modal, TextField } from "./Forms.js"
 import { TagGraphNode, TagGraphRoot } from "@ourworldindata/utils"
+import { TagBadge } from "./TagBadge.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     DndContext,
@@ -17,7 +18,7 @@ import {
 import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGrip } from "@fortawesome/free-solid-svg-icons"
-import { AutoComplete, Button, Popconfirm, Tag } from "antd"
+import { AutoComplete, Button, Popconfirm } from "antd"
 
 function Box(props: {
     id: string
@@ -199,9 +200,9 @@ class TagGraphNodeContainer extends React.Component<{
             // IDs can't start with a number, so we prefix with "node-"
             // Not using data- attributes because they don't work with DndContext
             <Box key={id} id={`node-${serializedPath}`} className="tag-box">
-                <strong>{name}</strong>
+                <TagBadge tag={{ id, name }} />
                 <span className="tag-box__weight-control">
-                    <label htmlFor={`weight-${serializedPath}`}>Rank</label>
+                    <label htmlFor={`weight-${serializedPath}`}>Weight</label>
                     <input
                         id={`weight-${serializedPath}`}
                         type="number"
