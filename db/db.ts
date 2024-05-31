@@ -544,3 +544,33 @@ export async function getTagGraph(
 
     return recursivelySetChildren(tagGraph) as TagGraphRoot
 }
+
+export async function updateTagGraph(
+    knex: KnexReadWriteTransaction,
+    tagGraph: TagGraphRoot
+): Promise<void> {
+    const tagGraphRows: {
+        parentId: number
+        childId: number
+        weight: number
+    }[] = []
+
+    function recursivelyGetTagGraphRows(
+        node: TagGraphNode,
+        parentId: number
+    ): void {
+        for (const child of node.children) {
+            tagGraphRows.push({
+                parentId,
+                childId: child.id,
+                weight: child.weight,
+            })
+            recursivelyGetTagGraphRows(child, child.id)
+        }
+    }
+
+    recursivelyGetTagGraphRows(tagGraph, tagGraph.id)
+
+    await knex("tags_graph").delete()
+    await knex("tags_graph").insert(tagGraphRows)
+}

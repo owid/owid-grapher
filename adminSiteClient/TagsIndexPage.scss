@@ -1,4 +1,8 @@
 .TagsIndexPage {
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+    }
     .tag-box {
         position: relative;
         padding: 8px;
@@ -40,21 +44,29 @@
         margin: 4px;
         .grip-button {
             position: absolute;
-            right: 8px;
-            top: 6px;
+            right: 4px;
+            top: 8px;
+            width: 32px;
+            height: 32px;
             background-color: transparent;
             padding: 0;
             border: none;
             line-height: 1;
-            svg {
-                color: #666;
+            transition: 0.2s;
+            color: #666;
+            &:hover {
+                color: #111;
             }
         }
+    }
+    .tag-box__controls-container {
+        margin-bottom: 8px;
     }
     .tag-box__weight-control {
         margin: 0 8px;
         label {
-            margin: 0 8px;
+            margin: 0;
+            margin-right: 8px;
         }
         input {
             width: 50px;
@@ -86,6 +98,9 @@
     }
 
     .TagBadge {
-        font-size: 1em;
+        font-size: 1.1em;
+        font-weight: 500;
+        background: none;
+        border: none;
     }
 }

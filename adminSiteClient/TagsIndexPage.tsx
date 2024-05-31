@@ -201,70 +201,74 @@ class TagGraphNodeContainer extends React.Component<{
             // Not using data- attributes because they don't work with DndContext
             <Box key={id} id={`node-${serializedPath}`} className="tag-box">
                 <TagBadge tag={{ id, name }} />
-                <span className="tag-box__weight-control">
-                    <label htmlFor={`weight-${serializedPath}`}>Weight</label>
-                    <input
-                        id={`weight-${serializedPath}`}
-                        type="number"
-                        value={weight}
-                        onChange={this.updateWeight}
-                    />
-                </span>
-                {!this.isAddingTag ? (
-                    <Button
-                        onClick={() => (this.isAddingTag = true)}
-                        type="primary"
-                        className="tag-box__add-child-button"
-                    >
-                        Add child
-                    </Button>
-                ) : (
-                    <form className="tag-box__add-child-form">
-                        <AutoComplete
-                            className="tag-box__add-child-input"
-                            value={this.autocompleteValue}
-                            onChange={(value) =>
-                                (this.autocompleteValue = value)
-                            }
-                            options={this.addableTags.map((tag) => ({
-                                value: tag.name,
-                                label: tag.name,
-                            }))}
-                            filterOption={(inputValue, option) => {
-                                if (!option?.label) return false
-                                return option.label
-                                    .toLowerCase()
-                                    .startsWith(inputValue.toLowerCase())
-                            }}
+                <div className="tag-box__controls-container">
+                    <span className="tag-box__weight-control">
+                        <label htmlFor={`weight-${serializedPath}`}>
+                            Weight
+                        </label>
+                        <input
+                            id={`weight-${serializedPath}`}
+                            type="number"
+                            value={weight}
+                            onChange={this.updateWeight}
                         />
+                    </span>
+                    {!this.isAddingTag ? (
                         <Button
-                            onClick={() =>
-                                this.setChild(this.autocompleteValue)
-                            }
-                            disabled={
-                                !this.addableTags
-                                    .map((t) => t.name)
-                                    .includes(this.autocompleteValue)
-                            }
+                            onClick={() => (this.isAddingTag = true)}
+                            type="primary"
+                            className="tag-box__add-child-button"
                         >
-                            Add
+                            Add child
                         </Button>
-                        <Button onClick={() => (this.isAddingTag = false)}>
-                            Cancel
-                        </Button>
-                    </form>
-                )}
+                    ) : (
+                        <form className="tag-box__add-child-form">
+                            <AutoComplete
+                                className="tag-box__add-child-input"
+                                value={this.autocompleteValue}
+                                onChange={(value) =>
+                                    (this.autocompleteValue = value)
+                                }
+                                options={this.addableTags.map((tag) => ({
+                                    value: tag.name,
+                                    label: tag.name,
+                                }))}
+                                filterOption={(inputValue, option) => {
+                                    if (!option?.label) return false
+                                    return option.label
+                                        .toLowerCase()
+                                        .startsWith(inputValue.toLowerCase())
+                                }}
+                            />
+                            <Button
+                                onClick={() =>
+                                    this.setChild(this.autocompleteValue)
+                                }
+                                disabled={
+                                    !this.addableTags
+                                        .map((t) => t.name)
+                                        .includes(this.autocompleteValue)
+                                }
+                            >
+                                Add
+                            </Button>
+                            <Button onClick={() => (this.isAddingTag = false)}>
+                                Cancel
+                            </Button>
+                        </form>
+                    )}
 
-                <Popconfirm
-                    title="Are you sure you want to remove this tag?"
-                    onConfirm={() => this.props.removeNode(path.slice(1))}
-                    okText="Yes"
-                    cancelText="No"
-                >
-                    <Button danger className="tag-box__delete-tag-button">
-                        Remove
-                    </Button>
-                </Popconfirm>
+                    <Popconfirm
+                        title="Are you sure you want to remove this tag?"
+                        onConfirm={() => this.props.removeNode(path.slice(1))}
+                        okText="Yes"
+                        cancelText="No"
+                    >
+                        <Button danger className="tag-box__delete-tag-button">
+                            Remove
+                        </Button>
+                    </Popconfirm>
+                </div>
                 {children.map((node) => (
                     <TagGraphNodeContainer
                         key={node.id}
@@ -395,11 +399,25 @@ export class TagsIndexPage extends React.Component {
         })
     }
 
+    @action.bound async saveTagGraph() {
+        if (!this.tagGraph) return
+        await this.context.admin.requestJSON(
+            "/api/tagGraph",
+            { tagGraph: toJS(this.tagGraph) },
+            "POST"
+        )
+    }
+
     render() {
         return (
             <AdminLayout title="Categories">
                 <main className="TagsIndexPage">
-                    <h2>Tag Graph</h2>
+                    <header className="page-header">
+                        <h2>Tag Graph</h2>
+                        <Button type="primary" onClick={this.saveTagGraph}>
+                            Save
+                        </Button>
+                    </header>
                     <DndContext
                         onDragEnd={this.handleDragEnd}
                         collisionDetection={pointerWithin}

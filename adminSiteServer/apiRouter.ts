@@ -76,6 +76,9 @@ import {
     PostsGdocsTableName,
     DbPlainDataset,
     DbInsertUser,
+    TagGraphNode,
+    TagGraphRoot,
+    TagGraphRootName,
 } from "@ourworldindata/types"
 import {
     getVariableDataRoute,
@@ -2656,6 +2659,37 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
 
 getRouteWithROTransaction(apiRouter, "/tagGraph.json", (req, res, trx) => {
     return db.getTagGraph(trx)
+})
+
+postRouteWithRWTransaction(apiRouter, "/tagGraph", async (req, res, trx) => {
+    const tagGraph = req.body?.tagGraph as unknown
+    if (!tagGraph) {
+        throw new JsonError("No tagGraph provided", 400)
+    }
+    function validateTagGraphNode(
+        node: Record<string, any>,
+        isRoot?: boolean
+    ): node is typeof isRoot extends true ? TagGraphRoot : TagGraphNode {
+        if (!lodash.isObject(node)) return false
+        if (!lodash.isString(node.name)) return false
+        if (!lodash.isNumber(node.id)) return false
+        if (!lodash.isArray(node.children)) return false
+        if (!lodash.isNumber(node.weight)) return false
+        if (!lodash.isNull(node.slug) && !lodash.isString(node.slug))
+            return false
+        if (isRoot && node.name !== TagGraphRootName) return false
+        const invalidChildren = node.children.some(
+            (child: any) => !validateTagGraphNode(child)
+        )
+        if (invalidChildren) return false
+        return true
+    }
+    const isValid = validateTagGraphNode(tagGraph, true)
+    if (!isValid) {
+        throw new JsonError("Invalid tagGraph provided", 400)
+    }
+    await db.updateTagGraph(trx, tagGraph as TagGraphRoot)
+    res.send({ success: true })
 })
 
 export { apiRouter }
