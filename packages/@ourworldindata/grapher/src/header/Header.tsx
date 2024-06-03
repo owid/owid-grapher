@@ -100,10 +100,16 @@ export class Header<
     }
 
     @computed get title(): TextWrap {
+        const logoPadding = this.manager.isNarrow
+            ? 12
+            : this.manager.isSmall
+              ? 16
+              : 24
+
         const makeTitle = (fontSize: number): TextWrap =>
             new TextWrap({
                 text: this.titleText,
-                maxWidth: this.maxWidth - this.logoWidth - 24,
+                maxWidth: this.maxWidth - this.logoWidth - logoPadding,
                 fontWeight: this.titleFontWeight,
                 lineHeight: this.titleLineHeight,
                 fontSize,
