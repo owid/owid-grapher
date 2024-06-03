@@ -5,6 +5,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { observable, runInAction } from "mobx"
 import { DbPlainTag } from "@ourworldindata/types"
 import { TagBadge } from "./TagBadge.js"
+import { Link } from "react-router-dom"
 
 @observer
 export class TagsIndexPage extends React.Component {
@@ -30,6 +31,12 @@ export class TagsIndexPage extends React.Component {
         return (
             <AdminLayout title="Categories">
                 <main className="TagsIndexPage">
+                    <h2>Tags</h2>
+                    <p>
+                        This is every single tag we have in the database. To
+                        organise them hierarchically, see the{" "}
+                        <Link to="tag-graph">tag graph</Link>
+                    </p>
                     {this.tags.map((tag) => (
                         <TagBadge
                             key={tag.id}

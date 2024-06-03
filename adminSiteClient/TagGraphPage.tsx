@@ -111,13 +111,21 @@ class TagGraphNodeContainer extends React.Component<{
     }
 
     render() {
-        const { id, name, path, children, weight } = this.props.node
+        const { id, name, path, children, weight, isTopic } = this.props.node
         const serializedPath = path.join("-")
         return (
             // IDs can't start with a number, so we prefix with "node-"
             // Not using data- attributes because they don't work with DndContext
             <Box key={id} id={`node-${serializedPath}`} className="tag-box">
                 <TagBadge tag={{ id, name }} />
+                {isTopic && (
+                    <span
+                        className="tag-box__is-topic"
+                        title="This tag has a topic page"
+                    >
+                        ⭐️
+                    </span>
+                )}
                 <div className="tag-box__controls-container">
                     <span className="tag-box__weight-control">
                         <label htmlFor={`weight-${serializedPath}`}>
@@ -309,6 +317,8 @@ export class TagGraphPage extends React.Component {
         // Update the source node's children's paths
         updatePaths(sourceNode, targetNode.path)
         // Add the source node to the target node
+        // TODO: don't only update this specific path - update all nodes that are affected by the move
+        // because the DB only cares about parentId, not path
         targetNode.children = insertChildAndSort(targetNode.children, {
             ...sourceNode,
             // here we need the full path again, not the one with the root ID stripped out

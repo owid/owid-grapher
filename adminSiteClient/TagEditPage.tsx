@@ -81,7 +81,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
 
         if (
             !window.confirm(
-                `Really delete the category ${tag.name}? This action cannot be undone!`
+                `Really delete the tag ${tag.name}? This action cannot be undone!`
             )
         )
             return
@@ -124,7 +124,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                             field="name"
                             store={newtag}
                             label="Name"
-                            helpText="Category names should ideally be unique across the database and able to be understood without context"
+                            helpText="Tag names should ideally be unique across the database and able to be understood without context"
                         />
                         <BindString
                             field="slug"
@@ -136,7 +136,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                             <input
                                 type="submit"
                                 className="btn btn-success"
-                                value="Update category"
+                                value="Update tag"
                             />{" "}
                             {tag.datasets.length === 0 &&
                                 tag.children.length === 0 &&
@@ -145,7 +145,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                                         className="btn btn-danger"
                                         onClick={() => this.deleteTag()}
                                     >
-                                        Delete category
+                                        Delete tag
                                     </button>
                                 )}
                         </div>
