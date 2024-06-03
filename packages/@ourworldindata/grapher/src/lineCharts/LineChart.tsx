@@ -370,9 +370,9 @@ export class LineChart
         x: number
     }>({ fade: "immediate" })
 
-    @action.bound private onCursorMove(
-        ev: React.MouseEvent | React.TouchEvent
-    ): void {
+    @action.bound private onCursorMove(ev: MouseEvent | TouchEvent): void {
+        ev.preventDefault() // prevent scrolling on touch devices
+
         const ref = this.base.current,
             parentRef = this.manager.base?.current
 
@@ -680,10 +680,68 @@ export class LineChart
             this.runFancyIntroAnimation()
         }
         exposeInstanceOnWindow(this)
+
+        if (this.base.current) {
+            this.base.current.addEventListener(
+                "mouseleave",
+                this.onCursorLeave,
+                {
+                    passive: true,
+                }
+            )
+            this.base.current.addEventListener("touchend", this.onCursorLeave, {
+                passive: true,
+            })
+            this.base.current.addEventListener(
+                "touchcancel",
+                this.onCursorLeave,
+                {
+                    passive: true,
+                }
+            )
+            this.base.current.addEventListener("mousemove", this.onCursorMove, {
+                passive: false,
+            })
+            this.base.current.addEventListener(
+                "touchstart",
+                this.onCursorMove,
+                { passive: false }
+            )
+            this.base.current.addEventListener("touchmove", this.onCursorMove, {
+                passive: false,
+            })
+        }
     }
 
     componentWillUnmount(): void {
         if (this.animSelection) this.animSelection.interrupt()
+
+        if (this.base.current) {
+            this.base.current.removeEventListener(
+                "mouseleave",
+                this.onCursorLeave
+            )
+            this.base.current.removeEventListener(
+                "touchend",
+                this.onCursorLeave
+            )
+            this.base.current.removeEventListener(
+                "touchcancel",
+                this.onCursorLeave
+            )
+            this.base.current.removeEventListener(
+                "mousemove",
+                this.onCursorMove
+            )
+            this.base.current.removeEventListener(
+                "touchstart",
+                this.onCursorMove
+            )
+            this.base.current.removeEventListener(
+                "touchmove",
+                this.onCursorMove
+            )
+        }
     }
 
     @computed get renderUid(): number {
@@ -777,12 +835,7 @@ export class LineChart
                 ref={this.base}
                 id={makeIdForHumanConsumption("line-chart")}
                 className="LineChart"
-                onMouseLeave={this.onCursorLeave}
-                onTouchEnd={this.onCursorLeave}
-                onTouchCancel={this.onCursorLeave}
-                onMouseMove={this.onCursorMove}
-                onTouchStart={this.onCursorMove}
-                onTouchMove={this.onCursorMove}
+                style={{ touchAction: "pinch-zoom" }}
             >
                 {clipPath.element}
                 <rect {...this.bounds.toProps()} fill="none">

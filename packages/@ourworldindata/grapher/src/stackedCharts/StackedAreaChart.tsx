@@ -403,9 +403,9 @@ export class StackedAreaChart
         )
     }
 
-    @action.bound private onCursorMove(
-        ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
-    ): void {
+    @action.bound private onCursorMove(ev: MouseEvent | TouchEvent): void {
+        ev.preventDefault() // prevent scrolling on touch devices
+
         const ref = this.base.current,
             parentRef = this.manager.base?.current
 
@@ -417,7 +417,7 @@ export class StackedAreaChart
         if (!ref) return undefined
 
         const { series } = this
-        const mouse = getRelativeMouse(ref, ev.nativeEvent)
+        const mouse = getRelativeMouse(ref, ev)
         const boxPadding = isMobile() ? 44 : 25
 
         // expand the box width, so it's easier to see the tooltip for the first & last timepoints
@@ -449,6 +449,68 @@ export class StackedAreaChart
     @action.bound private onCursorLeave(): void {
         this.hoverSeriesName = undefined
         this.tooltipState.target = null
+    }
+
+    componentDidMount(): void {
+        if (this.base.current) {
+            this.base.current.addEventListener(
+                "mouseleave",
+                this.onCursorLeave,
+                {
+                    passive: true,
+                }
+            )
+            this.base.current.addEventListener("touchend", this.onCursorLeave, {
+                passive: true,
+            })
+            this.base.current.addEventListener(
+                "touchcancel",
+                this.onCursorLeave,
+                {
+                    passive: true,
+                }
+            )
+            this.base.current.addEventListener("mousemove", this.onCursorMove, {
+                passive: false,
+            })
+            this.base.current.addEventListener(
+                "touchstart",
+                this.onCursorMove,
+                { passive: false }
+            )
+            this.base.current.addEventListener("touchmove", this.onCursorMove, {
+                passive: false,
+            })
+        }
+    }
+
+    componentWillUnmount(): void {
+        if (this.base.current) {
+            this.base.current.removeEventListener(
+                "mouseleave",
+                this.onCursorLeave
+            )
+            this.base.current.removeEventListener(
+                "touchend",
+                this.onCursorLeave
+            )
+            this.base.current.removeEventListener(
+                "touchcancel",
+                this.onCursorLeave
+            )
+            this.base.current.removeEventListener(
+                "mousemove",
+                this.onCursorMove
+            )
+            this.base.current.removeEventListener(
+                "touchstart",
+                this.onCursorMove
+            )
+            this.base.current.removeEventListener(
+                "touchmove",
+                this.onCursorMove
+            )
+        }
     }
 
     @computed private get activeXVerticalLine():
@@ -577,12 +639,7 @@ export class StackedAreaChart
                 ref={this.base}
                 id={makeIdForHumanConsumption("stacked-area-chart")}
                 className="StackedArea"
-                onMouseLeave={this.onCursorLeave}
-                onTouchEnd={this.onCursorLeave}
-                onTouchCancel={this.onCursorLeave}
-                onMouseMove={this.onCursorMove}
-                onTouchStart={this.onCursorMove}
-                onTouchMove={this.onCursorMove}
+                style={{ touchAction: "pinch-zoom" }}
             >
                 {clipPath.element}
                 <rect {...this.bounds.toProps()} fill="none">
