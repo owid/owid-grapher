@@ -103,6 +103,7 @@ import {
     DetailsMarker,
     DetailDictionary,
     GrapherWindowType,
+    GrapherTooltipAnchor,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -206,6 +207,7 @@ import {
     type EntitySelectorState,
 } from "../entitySelector/EntitySelector"
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
+import { BodyDiv } from "../bodyDiv/BodyDiv"
 
 declare global {
     interface Window {
@@ -2702,11 +2704,20 @@ export class Grapher
                 </SlideInDrawer>
 
                 {/* tooltip */}
-                <TooltipContainer
-                    containerWidth={this.captionedChartBounds.width}
-                    containerHeight={this.captionedChartBounds.height}
-                    tooltipProvider={this}
-                />
+                {this.isTooltipFixedToBottom ? (
+                    <BodyDiv>
+                        <TooltipContainer
+                            tooltipProvider={this}
+                            anchor={GrapherTooltipAnchor.bottom}
+                        />
+                    </BodyDiv>
+                ) : (
+                    <TooltipContainer
+                        tooltipProvider={this}
+                        containerWidth={this.captionedChartBounds.width}
+                        containerHeight={this.captionedChartBounds.height}
+                    />
+                )}
             </>
         )
     }
@@ -2714,14 +2725,21 @@ export class Grapher
     // Chart should only render SVG when it's on the screen
     @action.bound private setUpIntersectionObserver(): void {
         if (typeof window !== "undefined" && "IntersectionObserver" in window) {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        this.hasBeenVisible = true
-                        observer.disconnect()
-                    }
-                })
-            })
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            this.hasBeenVisible = true
+                        } else {
+                            this.tooltips?.forEach((tooltip) => {
+                                tooltip.dismiss?.()
+                            })
+                        }
+                    })
+                },
+                // without this, the intersection observer doesn't fire in Safari on iOS
+                { threshold: 0.1 }
+            )
             observer.observe(this.containerElement!)
             this.disposers.push(() => observer.disconnect())
         } else {
@@ -2782,7 +2800,7 @@ export class Grapher
 
     @computed get isNarrow(): boolean {
         if (this.isStatic) return false
-        return this.frameBounds.width <= 400
+        return this.frameBounds.width <= 420
     }
 
     // SemiNarrow charts shorten their button labels to fit within the controls row
@@ -2819,6 +2837,10 @@ export class Grapher
 
     @computed get secondaryColorInStaticCharts(): string {
         return this.isStaticAndSmall ? GRAPHER_LIGHT_TEXT : GRAPHER_DARK_TEXT
+    }
+
+    @computed get isTooltipFixedToBottom(): boolean {
+        return this.isNarrow
     }
 
     // Binds chart properties to global window title and URL. This should only

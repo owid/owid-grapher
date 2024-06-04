@@ -4,8 +4,17 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
-import { Bounds, PointVector } from "@ourworldindata/utils"
-import { TooltipProps, TooltipManager, TooltipFadeMode } from "./TooltipProps"
+import {
+    Bounds,
+    PointVector,
+    GrapherTooltipAnchor,
+} from "@ourworldindata/utils"
+import {
+    TooltipProps,
+    TooltipManager,
+    TooltipFadeMode,
+    TooltipContext,
+} from "./TooltipProps"
 export * from "./TooltipContents.js"
 
 export const TOOLTIP_FADE_DURATION = 400 // $fade-time + $fade-delay in scss
@@ -59,11 +68,13 @@ export class TooltipState<T> {
 @observer
 class TooltipCard extends React.Component<
     TooltipProps & {
-        containerWidth: number
-        containerHeight: number
         bounds?: Bounds
+        containerWidth?: number
+        containerHeight?: number
     }
 > {
+    static contextType = TooltipContext
+
     private base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @observable.struct private bounds?: Bounds
@@ -94,32 +105,38 @@ class TooltipCard extends React.Component<
             offsetY = 0,
         } = this.props
 
-        if (this.props.offsetYDirection === "upward") {
-            offsetY = -offsetY - (this.bounds?.height ?? 0)
-        }
+        let style: React.CSSProperties = { ...this.props.style }
+        if (this.props.containerWidth && this.props.containerHeight) {
+            if (this.props.offsetYDirection === "upward") {
+                offsetY = -offsetY - (this.bounds?.height ?? 0)
+            }
 
-        if (
-            this.props.offsetXDirection === "left" &&
-            this.props.x > (this.bounds?.width ?? 0)
-        ) {
-            offsetX = -offsetX - (this.bounds?.width ?? 0)
-        }
+            if (
+                this.props.offsetXDirection === "left" &&
+                this.props.x > (this.bounds?.width ?? 0)
+            ) {
+                offsetX = -offsetX - (this.bounds?.width ?? 0)
+            }
 
-        // Ensure tooltip remains inside chart
-        let left = this.props.x + offsetX
-        let top = this.props.y + offsetY
-        if (this.bounds) {
-            if (left + this.bounds.width > this.props.containerWidth)
-                left -= this.bounds.width + 2 * offsetX // flip left
-            if (top + this.bounds.height * 0.75 > this.props.containerHeight)
-                top -= this.bounds.height + 2 * offsetY // flip upwards eventually...
-            if (top + this.bounds.height > this.props.containerHeight)
-                top = this.props.containerHeight - this.bounds.height // ...but first pin at bottom
+            // Ensure tooltip remains inside chart
+            let left = this.props.x + offsetX
+            let top = this.props.y + offsetY
+            if (this.bounds) {
+                if (left + this.bounds.width > this.props.containerWidth)
+                    left -= this.bounds.width + 2 * offsetX // flip left
+                if (
+                    top + this.bounds.height * 0.75 >
+                    this.props.containerHeight
+                )
+                    top -= this.bounds.height + 2 * offsetY // flip upwards eventually...
+                if (top + this.bounds.height > this.props.containerHeight)
+                    top = this.props.containerHeight - this.bounds.height // ...but first pin at bottom
 
-            if (left < 0) left = 0 // pin on left
-            if (top < 0) top = 0 // pin at top
+                if (left < 0) left = 0 // pin on left
+                if (top < 0) top = 0 // pin at top
+            }
+            style = { ...style, position: "absolute", left, top }
         }
-        const style = { left, top, ...this.props.style }
 
         // add a preposition to unit-based subtitles
         const hasHeader = title !== undefined || subtitle !== undefined
@@ -138,6 +155,14 @@ class TooltipCard extends React.Component<
 
         // skip transition delay if requested
         const immediate = dissolve === "immediate"
+
+        // ignore the given width and max-width if the tooltip is fixed
+        // since we want to use the full width of the screen in that case
+        const isFixedToBottom =
+            this.context.anchor === GrapherTooltipAnchor.bottom
+        if (isFixedToBottom && (style.width || style.maxWidth)) {
+            style.width = style.maxWidth = undefined
+        }
 
         return (
             <div
@@ -176,24 +201,61 @@ class TooltipCard extends React.Component<
 @observer
 export class TooltipContainer extends React.Component<{
     tooltipProvider: TooltipManager
-    containerWidth: number
-    containerHeight: number
+    anchor?: GrapherTooltipAnchor
+    containerWidth?: number // only relevant for tooltips anchored to the mouse
+    containerHeight?: number // only relevant for tooltips anchored to the mouse
 }> {
+    @action.bound private onDocumentClick(e: MouseEvent): void {
+        const { tooltips } = this.props.tooltipProvider
+        if (!tooltips || tooltips.size === 0) return
+        tooltips.forEach((tooltip) => {
+            if (tooltip.dismissOnDocumentClick) tooltip.dismiss?.()
+        })
+        e.stopPropagation()
+    }
+
+    componentDidMount(): void {
+        document.addEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
+    }
+
+    componentWillUnmount(): void {
+        document.removeEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
+    }
+
+    @computed private get anchor(): GrapherTooltipAnchor {
+        return this.props.anchor ?? GrapherTooltipAnchor.mouse
+    }
+
     @computed private get rendered(): React.ReactElement | null {
         const tooltipsMap = this.props.tooltipProvider.tooltips
-        if (!tooltipsMap) return null
+        if (!tooltipsMap || tooltipsMap.size === 0) return null
         const tooltips = Object.entries(tooltipsMap.toJSON())
         return (
-            <div className="tooltip-container">
-                {tooltips.map(([id, tooltip]) => (
-                    <TooltipCard
-                        {...tooltip}
-                        key={id}
-                        containerWidth={this.props.containerWidth}
-                        containerHeight={this.props.containerHeight}
-                    />
-                ))}
-            </div>
+            <TooltipContext.Provider
+                value={{
+                    anchor: this.anchor,
+                }}
+            >
+                <div
+                    className={classnames("tooltip-container", {
+                        "fixed-bottom":
+                            this.anchor === GrapherTooltipAnchor.bottom,
+                    })}
+                >
+                    {tooltips.map(([id, tooltip]) => (
+                        <TooltipCard
+                            key={id}
+                            {...tooltip}
+                            containerWidth={this.props.containerWidth}
+                            containerHeight={this.props.containerHeight}
+                        />
+                    ))}
+                </div>
+            </TooltipContext.Provider>
         )
     }
 

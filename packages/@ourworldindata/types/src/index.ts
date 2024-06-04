@@ -111,6 +111,7 @@ export {
     type ChartRedirect,
     type DetailsMarker,
     GrapherWindowType,
+    GrapherTooltipAnchor,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {

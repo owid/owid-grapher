@@ -4,11 +4,18 @@ import { CoreColumn } from "@ourworldindata/core-table"
 import { NO_DATA_LABEL } from "../color/ColorScale.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
-import { sum, zip, uniq, isNumber } from "@ourworldindata/utils"
+import {
+    sum,
+    zip,
+    uniq,
+    isNumber,
+    GrapherTooltipAnchor,
+} from "@ourworldindata/utils"
 import {
     TooltipTableProps,
     TooltipValueProps,
     TooltipValueRangeProps,
+    TooltipContext,
 } from "./TooltipProps"
 
 export const NO_DATA_COLOR = "#999"
@@ -135,6 +142,8 @@ class Variable extends React.Component<{
 }
 
 export class TooltipTable extends React.Component<TooltipTableProps> {
+    static contextType = TooltipContext
+
     render(): React.ReactElement | null {
         const { columns, totals, rows } = this.props,
             focal = rows.some((row) => row.focused),
@@ -150,6 +159,19 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                 ([column, total]) =>
                     !!column?.formatValueShort(total).match(/^100(\.0+)?%/)
             )
+
+        const showTotals = totals && !(tooEmpty || tooTrivial)
+        const totalsPosition =
+            this.context?.anchor === GrapherTooltipAnchor.bottom
+                ? "top"
+                : "bottom"
+        const totalsCells = zip(columns, totals!).map(([column, total]) => (
+            <td key={column?.slug} className="series-value">
+                {column && total !== undefined
+                    ? column.formatValueShort(total, format)
+                    : null}
+            </td>
+        ))
 
         return (
             <table className={classnames("series-list", { focal, swatched })}>
@@ -167,6 +189,16 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                     </thead>
                 )}
                 <tbody>
+                    {showTotals && totalsPosition === "top" && (
+                        <>
+                            <tr className="total--top">
+                                <td className="series-color"></td>
+                                <td className="series-name">Total</td>
+                                {totalsCells}
+                            </tr>
+                            <tr className="spacer"></tr>
+                        </>
+                    )}
                     {rows.map((row) => {
                         const {
                             name,
@@ -236,25 +268,13 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                             </tr>
                         )
                     })}
-                    {totals && !(tooEmpty || tooTrivial) && (
+                    {showTotals && totalsPosition === "bottom" && (
                         <>
                             <tr className="spacer"></tr>
                             <tr className="total">
                                 <td className="series-color"></td>
                                 <td className="series-name">Total</td>
-                                {zip(columns, totals).map(([column, total]) => (
-                                    <td
-                                        key={column?.slug}
-                                        className="series-value"
-                                    >
-                                        {column && total !== undefined
-                                            ? column.formatValueShort(
-                                                  total,
-                                                  format
-                                              )
-                                            : null}
-                                    </td>
-                                ))}
+                                {totalsCells}
                             </tr>
                         </>
                     )}

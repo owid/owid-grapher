@@ -29,10 +29,13 @@ interface MapTooltipProps {
     formatValue: (d: PrimitiveType) => string
     timeSeriesTable: OwidTable
     targetTime?: Time
+    sparklineWidth?: number
+    sparklineHeight?: number
 }
 
-const SPARKLINE_WIDTH = 250
-const SPARKLINE_HEIGHT = 87
+const DEFAULT_SPARKLINE_WIDTH = 250
+const DEFAULT_SPARKLINE_HEIGHT = 87
+
 const SPARKLINE_PADDING = 15
 const SPARKLINE_NUDGE = 3 // step away from the axis
 
@@ -179,10 +182,18 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         }
     }
 
+    @computed private get sparklineWidth(): number {
+        return this.props.sparklineWidth ?? DEFAULT_SPARKLINE_WIDTH
+    }
+
+    @computed private get sparklineHeight(): number {
+        return this.props.sparklineHeight ?? DEFAULT_SPARKLINE_HEIGHT
+    }
+
     @computed private get sparklineBounds(): Bounds {
         // Add padding so that the edges of the plot doesn't get clipped.
         // The plot can go out of boundaries due to line stroke thickness & labels.
-        return new Bounds(0, 0, SPARKLINE_WIDTH, SPARKLINE_HEIGHT).pad({
+        return new Bounds(0, 0, this.sparklineWidth, this.sparklineHeight).pad({
             top: 9,
             left: SPARKLINE_PADDING,
             right: SPARKLINE_PADDING,
@@ -261,6 +272,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 footer={notice}
                 footerFormat="notice"
                 dissolve={fading}
+                dismiss={() => (this.props.tooltipState.target = null)}
             >
                 <TooltipValue
                     column={yColumn}
@@ -275,8 +287,8 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                     >
                         <svg
                             className="plot"
-                            width={SPARKLINE_WIDTH}
-                            height={SPARKLINE_HEIGHT}
+                            width={this.sparklineWidth}
+                            height={this.sparklineHeight}
                         >
                             <line
                                 className="max-line"

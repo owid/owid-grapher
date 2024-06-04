@@ -95,6 +95,7 @@ export interface ChartManager {
     isSemiNarrow?: boolean
     isStaticAndSmall?: boolean
     secondaryColorInStaticCharts?: string
+    isTooltipFixedToBottom?: boolean
 
     detailsOrderedByReference?: string[]
     detailsMarkerInSvg?: DetailsMarker

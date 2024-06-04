@@ -789,6 +789,7 @@ export class StackedDiscreteBarChart
                     footer={notice}
                     footerFormat="notice"
                     dissolve={fading}
+                    dismiss={() => (this.tooltipState.target = null)}
                 >
                     <TooltipTable
                         columns={[this.formatColumn]}

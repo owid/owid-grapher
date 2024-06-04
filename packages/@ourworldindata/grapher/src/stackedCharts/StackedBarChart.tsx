@@ -334,6 +334,7 @@ export class StackedBarChart
                 subtitle={unit !== shortUnit ? unit : undefined}
                 subtitleFormat="unit"
                 dissolve={fading}
+                dismiss={() => (this.tooltipState.target = null)}
             >
                 <TooltipTable
                     columns={[yColumn]}

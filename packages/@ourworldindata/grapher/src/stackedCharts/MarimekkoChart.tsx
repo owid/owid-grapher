@@ -1029,6 +1029,7 @@ export class MarimekkoChart
                         footer={notice}
                         footerFormat="notice"
                         dissolve={fading}
+                        dismiss={() => (this.tooltipState.target = null)}
                     >
                         {yValues.map(({ name, value, notice }) => (
                             <TooltipValue

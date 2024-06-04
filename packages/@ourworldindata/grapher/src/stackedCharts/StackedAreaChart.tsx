@@ -446,9 +446,15 @@ export class StackedAreaChart
                   }
     }
 
-    @action.bound private onCursorLeave(): void {
-        this.hoverSeriesName = undefined
+    @action.bound private dismissTooltip(): void {
         this.tooltipState.target = null
+    }
+
+    @action.bound private onCursorLeave(): void {
+        if (!this.manager.isTooltipFixedToBottom) {
+            this.dismissTooltip()
+        }
+        this.hoverSeriesName = undefined
     }
 
     componentDidMount(): void {
@@ -586,6 +592,8 @@ export class StackedAreaChart
                 subtitle={unit !== shortUnit ? unit : undefined}
                 subtitleFormat="unit"
                 dissolve={fading}
+                dismiss={this.dismissTooltip}
+                dismissOnDocumentClick={true}
             >
                 <TooltipTable
                     columns={[yColumn]}

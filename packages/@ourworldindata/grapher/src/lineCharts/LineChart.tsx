@@ -357,8 +357,14 @@ export class LineChart
         return table
     }
 
-    @action.bound private onCursorLeave(): void {
+    @action.bound private dismissTooltip(): void {
         this.tooltipState.target = null
+    }
+
+    @action.bound private onCursorLeave(): void {
+        if (!this.manager.isTooltipFixedToBottom) {
+            this.dismissTooltip()
+        }
         this.clearHighlightedSeries()
     }
 
@@ -584,6 +590,8 @@ export class LineChart
                 footer={footer}
                 footerFormat="stripes"
                 dissolve={fading}
+                dismiss={this.dismissTooltip}
+                dismissOnDocumentClick={true}
             >
                 <TooltipTable
                     columns={columns}

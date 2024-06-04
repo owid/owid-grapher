@@ -985,6 +985,7 @@ export class ScatterPlotChart
                 dissolve={fading}
                 footer={targetNotice}
                 footerFormat="notice"
+                dismiss={() => (this.tooltipState.target = null)}
             >
                 <TooltipValueRange
                     column={xColumn}
