@@ -172,6 +172,9 @@ import {
     UserCountryInformation,
     Time,
     TimeBound,
+    TagGraphRoot,
+    TagGraphRootName,
+    TagGraphNode,
 } from "@ourworldindata/types"
 import { PointVector } from "./PointVector.js"
 import React from "react"
@@ -1893,4 +1896,41 @@ export function commafyNumber(value: number): string {
 
 export function isFiniteWithGuard(value: unknown): value is number {
     return isFinite(value as any)
+}
+
+export function createTagGraph(
+    tagGraphByParentId: Record<number, any>,
+    rootId: number
+): TagGraphRoot {
+    const tagGraph: TagGraphRoot = {
+        id: rootId,
+        name: TagGraphRootName,
+        slug: null,
+        isTopic: false,
+        path: [rootId],
+        weight: 0,
+        children: [],
+    }
+
+    function recursivelySetChildren(node: TagGraphNode): TagGraphNode {
+        const children = tagGraphByParentId[node.id]
+        if (!children) return node
+
+        for (const child of children) {
+            const childNode: TagGraphNode = {
+                id: child.childId,
+                path: [...node.path, child.childId],
+                name: child.name,
+                slug: child.slug,
+                isTopic: child.isTopic,
+                weight: child.weight,
+                children: [],
+            }
+
+            node.children.push(recursivelySetChildren(childNode))
+        }
+        return node
+    }
+
+    return recursivelySetChildren(tagGraph) as TagGraphRoot
 }

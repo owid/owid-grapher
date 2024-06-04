@@ -1,9 +1,14 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, action, runInAction, toJS } from "mobx"
+import { observable, action, runInAction, toJS, computed } from "mobx"
 import * as lodash from "lodash"
 import { AdminLayout } from "./AdminLayout.js"
-import { DbPlainTag, TagGraphNode, TagGraphRoot } from "@ourworldindata/utils"
+import {
+    DbPlainTag,
+    TagGraphNode,
+    TagGraphRoot,
+    createTagGraph,
+} from "@ourworldindata/utils"
 import { TagBadge } from "./TagBadge.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
@@ -17,6 +22,7 @@ import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGrip } from "@fortawesome/free-solid-svg-icons"
 import { AutoComplete, Button, Popconfirm } from "antd"
+import { FlatTagGraph, FlatTagGraphNode } from "@ourworldindata/types"
 
 function Box(props: {
     id: string
@@ -64,8 +70,8 @@ function Box(props: {
 class TagGraphNodeContainer extends React.Component<{
     node: TagGraphNode
     parentId: number
-    setWeight: (path: number[], weight: number) => void
-    setChild: (path: number[], child: TagGraphNode) => void
+    setWeight: (parentId: number, childId: number, weight: number) => void
+    setChild: (path: number[], child: FlatTagGraphNode) => void
     removeNode: (path: number[]) => void
     tags: DbPlainTag[]
 }> {
@@ -79,20 +85,21 @@ class TagGraphNodeContainer extends React.Component<{
 
     updateWeight(e: React.ChangeEvent<HTMLInputElement>) {
         const weight = Number(e.target.value)
-        this.props.setWeight(this.props.node.path.slice(1), weight)
+        const parentId = this.props.node.path.at(-2)
+        if (!parentId) return
+        const childId = this.props.node.id
+        this.props.setWeight(parentId, childId, weight)
     }
 
     @action.bound setChild(childName: string) {
         this.isAddingTag = false
         const tag = this.addableTags.find((t) => t.name === childName)
         if (!tag) return
-        const childPath = [...this.props.node.path, tag.id]
 
         this.props.setChild(this.props.node.path.slice(1), {
-            id: tag.id,
+            childId: tag.id,
+            parentId: this.props.node.id,
             name: childName,
-            path: childPath,
-            children: [],
             weight: 1,
             isTopic: false,
             slug: "",
@@ -118,14 +125,14 @@ class TagGraphNodeContainer extends React.Component<{
             // Not using data- attributes because they don't work with DndContext
             <Box key={id} id={`node-${serializedPath}`} className="tag-box">
                 <TagBadge tag={{ id, name }} />
-                {isTopic && (
+                {isTopic ? (
                     <span
                         className="tag-box__is-topic"
                         title="This tag has a topic page"
                     >
                         ⭐️
                     </span>
-                )}
+                ) : null}
                 <div className="tag-box__controls-container">
                     <span className="tag-box__weight-control">
                         <label htmlFor={`weight-${serializedPath}`}>
@@ -210,34 +217,21 @@ class TagGraphNodeContainer extends React.Component<{
     }
 }
 
-function sortByWeightThenName(a: TagGraphNode, b: TagGraphNode) {
+function sortByWeightThenName(a: FlatTagGraphNode, b: FlatTagGraphNode) {
     return b.weight - a.weight || a.name.localeCompare(b.name)
 }
 
-// "node-1-2-3" -> [2, 3]
-// the first ID is always the root node, so we drop it
-function getPathWithoutRootNode(elementId?: string): number[] {
+// "node-1-2-3" -> [1, 2, 3]
+function getPath(elementId?: string): number[] {
     if (!elementId) return []
-    return elementId.split("-").slice(2).map(Number)
-}
-
-function getNode(path: number[], node: TagGraphNode) {
-    if (path.length === 0) return node
-    const child = node.children.find((c) => c.id === path[0])
-    if (!child) return null
-    return getNode(path.slice(1), child)
+    return elementId.split("-").slice(1).map(Number)
 }
 
 function insertChildAndSort(
-    children: TagGraphNode[],
-    newNode: TagGraphNode
-): TagGraphNode[] {
+    children: FlatTagGraphNode[],
+    newNode: FlatTagGraphNode
+): FlatTagGraphNode[] {
     return [...children, newNode].sort(sortByWeightThenName)
-}
-
-function updatePaths(node: TagGraphNode, path: number[]) {
-    node.path = [...path, node.id]
-    node.children.forEach((child) => updatePaths(child, node.path))
 }
 
 @observer
@@ -254,83 +248,99 @@ export class TagGraphPage extends React.Component {
     }
 
     @observable isAddingTag: boolean = false
-    @observable tagGraph: TagGraphRoot | null = null
+    @observable flatTagGraph: FlatTagGraph = {}
+    @observable rootId: number | null = null
     @observable addTagParentId?: number
-    @observable tags: TagListItem[] = []
+    @observable tags: DbPlainTag[] = []
 
-    @action.bound onNewTag(parentId?: number) {
-        this.addTagParentId = parentId
-        this.isAddingTag = true
+    @computed get tagGraph(): TagGraphRoot | null {
+        if (!this.rootId) return null
+        return createTagGraph(this.flatTagGraph, this.rootId)
     }
 
-    @action.bound setWeight(path: number[], weight: number) {
-        const node = getNode(path, this.tagGraph!)
-        if (node) {
-            node.weight = weight
-        }
-        const parentNode = getNode(path.slice(0, -1), this.tagGraph!)
-        if (parentNode) {
-            parentNode.children = parentNode.children.sort(sortByWeightThenName)
-        }
+    @action.bound setWeight(parentId: number, childId: number, weight: number) {
+        const parent = this.flatTagGraph[parentId]
+        if (!parent) return
+        const child = parent.find((node) => node.childId === childId)
+        if (!child) return
+        child.weight = weight
+        this.flatTagGraph[parentId] = parent.sort(sortByWeightThenName)
     }
 
-    @action.bound setChild(path: number[], child: TagGraphNode) {
-        const parent = getNode(path, this.tagGraph!)
+    @action.bound setChild(path: number[], child: FlatTagGraphNode) {
+        const parentId = path.at(-1)
+        if (!parentId) return
+        const parent = this.flatTagGraph[parentId]
         if (parent) {
-            parent.children = insertChildAndSort(parent.children, child)
+            this.flatTagGraph[parentId] = insertChildAndSort(parent, child)
         }
     }
 
     @action.bound removeNode(path: number[]) {
-        const parent = getNode(path.slice(0, -1), this.tagGraph!)
+        const parentId = path.at(-2)
+        if (!parentId) return
+        const parent = this.flatTagGraph[parentId]
         if (!parent) return
-        parent.children = parent.children.filter((c) => c.id !== path.at(-1))
+        this.flatTagGraph[parentId] = parent.filter(
+            (node) => node.childId !== path.at(-1)
+        )
     }
 
     @action.bound handleDragEnd(event: DragEndEvent) {
         if (!this.tagGraph) return
 
-        const sourcePath = getPathWithoutRootNode(event.active.id as string)
-        const targetPath = getPathWithoutRootNode(event.over?.id as string)
-        if (!sourcePath || !targetPath) return
+        const activeHtmlId = event.active.id as string
+        const overHtmlId = event.over?.id as string
+        if (!activeHtmlId || !overHtmlId) return
 
-        const isNoop = lodash.isEqual(sourcePath, targetPath)
-        if (isNoop) return
-        const sourceId = sourcePath.at(-1) as number
-        const isCycle = targetPath.includes(sourceId)
-        if (isCycle) return
-        const isDuplicateSibling = getNode(
-            targetPath,
-            this.tagGraph
-        )?.children.some((c) => c.id === sourceId)
-        if (isDuplicateSibling) return
+        const childPath = getPath(activeHtmlId)
+        const childId = childPath.at(-1)
+        const previousParentPath = childPath.slice(0, -1)
+        const previousParentId = childPath.at(-2)
+        const newParentPath = getPath(overHtmlId)
+        const newParentId = newParentPath.at(-1)
+        if (!childId || !previousParentId || !newParentId) return
 
-        const sourceNode = getNode(sourcePath, this.tagGraph)
-        const sourceParent = getNode(sourcePath.slice(0, -1), this.tagGraph)
-        const targetNode = getNode(targetPath, this.tagGraph)
-        if (!sourceNode || !sourceParent || !targetNode) return
+        function validateOperation(
+            childPath: number[],
+            newParentPath: number[]
+        ) {
+            const isNoop = lodash.isEqual(previousParentPath, newParentPath)
+            if (isNoop) return false
 
-        // Remove the source node from its parent
-        sourceParent.children = sourceParent.children.filter(
-            (c) => c.id !== sourceNode.id
+            const isCyclical = newParentPath.includes(childPath.at(-1)!)
+            if (isCyclical) return false
+
+            return true
+        }
+
+        const isValid = validateOperation(childPath, newParentPath)
+        if (!isValid) return
+
+        const childNode = this.flatTagGraph[previousParentId].find(
+            (node) => node.childId === childId
         )
-        // Update the source node's children's paths
-        updatePaths(sourceNode, targetNode.path)
-        // Add the source node to the target node
-        // TODO: don't only update this specific path - update all nodes that are affected by the move
-        // because the DB only cares about parentId, not path
-        targetNode.children = insertChildAndSort(targetNode.children, {
-            ...sourceNode,
-            // here we need the full path again, not the one with the root ID stripped out
-            path: [...targetNode.path, sourceNode.id],
-        })
+        if (!childNode) return
+
+        childNode.parentId = newParentId
+
+        // Add child to new parent
+        this.flatTagGraph[newParentId] = insertChildAndSort(
+            this.flatTagGraph[newParentId],
+            childNode
+        )
+
+        // Remove child from previous parent
+        this.flatTagGraph[previousParentId] = this.flatTagGraph[
+            previousParentId
+        ].filter((node) => node.childId !== childId)
     }
 
     @action.bound async saveTagGraph() {
         if (!this.tagGraph) return
         await this.context.admin.requestJSON(
             "/api/tagGraph",
-            { tagGraph: toJS(this.tagGraph) },
+            { tagGraph: toJS(this.flatTagGraph) },
             "POST"
         )
     }
@@ -372,14 +382,20 @@ export class TagGraphPage extends React.Component {
     }
 
     async getData() {
-        const tagGraph =
-            await this.context.admin.getJSON<TagGraphRoot>("/api/tagGraph.json")
+        const flatTagGraph = await this.context.admin.getJSON<
+            FlatTagGraph & {
+                __rootId: number
+            }
+        >("/api/flatTagGraph.json")
+
         const tags = await this.context.admin
             .getJSON<{ tags: DbPlainTag[] }>("/api/tags.json")
             .then((data) => data.tags)
 
         runInAction(() => {
-            this.tagGraph = tagGraph
+            const { __rootId, ...rest } = flatTagGraph
+            this.rootId = __rootId
+            this.flatTagGraph = rest
             this.tags = tags
         })
     }

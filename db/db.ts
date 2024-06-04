@@ -22,6 +22,8 @@ import {
     TagGraphRoot,
     TagGraphNode,
     TagGraphRootName,
+    FlatTagGraph,
+    FlatTagGraphNode,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash"
 
@@ -464,17 +466,12 @@ export const getNonGrapherExplorerViewCount = (
  *   e. Set its children via the tags_graph parentId groupings
  *   f. Recurse through each child, setting their children as well
  */
-export async function getTagGraph(
-    knex: KnexReadonlyTransaction
-): Promise<TagGraphRoot> {
-    const tagGraphByParentId = await knexRaw<{
-        parentId: number
-        childId: number
-        weight: number
-        name: string
-        slug: string | null
-        isTopic: boolean
-    }>(
+export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
+    FlatTagGraph & {
+        __rootId: number
+    }
+> {
+    const tagGraphByParentId = await knexRaw<FlatTagGraphNode>(
         knex,
         `-- sql
         SELECT
@@ -506,48 +503,17 @@ export async function getTagGraph(
         id: number
     }>(
         knex,
-        `-- sql 
+        `-- sql
         SELECT id FROM tags WHERE name = "${TagGraphRootName}"`
     )
-
     if (!tagGraphRootIdResult) throw new Error("Tag graph root not found")
 
-    const tagGraph: TagGraphRoot = {
-        id: tagGraphRootIdResult.id,
-        name: TagGraphRootName,
-        slug: null,
-        isTopic: false,
-        path: [tagGraphRootIdResult.id],
-        weight: 0,
-        children: [],
-    }
-
-    function recursivelySetChildren(node: TagGraphNode): TagGraphNode {
-        const children = tagGraphByParentId[node.id]
-        if (!children) return node
-
-        for (const child of children) {
-            const childNode: TagGraphNode = {
-                id: child.childId,
-                path: [...node.path, child.childId],
-                name: child.name,
-                slug: child.slug,
-                isTopic: child.isTopic,
-                weight: child.weight,
-                children: [],
-            }
-
-            node.children.push(recursivelySetChildren(childNode))
-        }
-        return node
-    }
-
-    return recursivelySetChildren(tagGraph) as TagGraphRoot
+    return { ...tagGraphByParentId, __rootId: tagGraphRootIdResult.id }
 }
 
 export async function updateTagGraph(
     knex: KnexReadWriteTransaction,
-    tagGraph: TagGraphRoot
+    tagGraph: FlatTagGraph
 ): Promise<void> {
     const tagGraphRows: {
         parentId: number
@@ -555,21 +521,17 @@ export async function updateTagGraph(
         weight: number
     }[] = []
 
-    function recursivelyGetTagGraphRows(
-        node: TagGraphNode,
-        parentId: number
-    ): void {
-        for (const child of node.children) {
+    for (const children of Object.values(tagGraph)) {
+        for (const child of children) {
             tagGraphRows.push({
-                parentId,
-                childId: child.id,
+                parentId: child.parentId,
+                childId: child.childId,
                 weight: child.weight,
             })
-            recursivelyGetTagGraphRows(child, child.id)
         }
     }
 
-    recursivelyGetTagGraphRows(tagGraph, tagGraph.id)
+    console.log("tagGraphRows", tagGraphRows)
 
     await knex("tags_graph").delete()
     await knex("tags_graph").insert(tagGraphRows)

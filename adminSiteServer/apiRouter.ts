@@ -53,6 +53,7 @@ import {
     pick,
     Json,
     checkIsGdocPostExcludingFragments,
+    checkIsPlainObjectWithGuard,
 } from "@ourworldindata/utils"
 import {
     DbPlainDatasetTag,
@@ -80,6 +81,7 @@ import {
     TagGraphRoot,
     TagGraphRootName,
     DbPlainTagWithIsTopic,
+    FlatTagGraph,
 } from "@ourworldindata/types"
 import {
     getVariableDataRoute,
@@ -2670,38 +2672,54 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
     res.send([...generateAllWorkArchieMl()].join(""))
 })
 
-getRouteWithROTransaction(apiRouter, "/tagGraph.json", (req, res, trx) => {
-    return db.getTagGraph(trx)
-})
+getRouteWithROTransaction(
+    apiRouter,
+    "/flatTagGraph.json",
+    async (_, res, trx) => {
+        const flatTagGraph = await db.getFlatTagGraph(trx)
+        res.send(flatTagGraph)
+    }
+)
 
 postRouteWithRWTransaction(apiRouter, "/tagGraph", async (req, res, trx) => {
     const tagGraph = req.body?.tagGraph as unknown
     if (!tagGraph) {
         throw new JsonError("No tagGraph provided", 400)
     }
-    function validateTagGraphNode(
-        node: Record<string, any>,
-        isRoot?: boolean
-    ): node is typeof isRoot extends true ? TagGraphRoot : TagGraphNode {
-        if (!lodash.isObject(node)) return false
-        if (!lodash.isString(node.name)) return false
-        if (!lodash.isNumber(node.id)) return false
-        if (!lodash.isArray(node.children)) return false
-        if (!lodash.isNumber(node.weight)) return false
-        if (!lodash.isNull(node.slug) && !lodash.isString(node.slug))
-            return false
-        if (isRoot && node.name !== TagGraphRootName) return false
-        const invalidChildren = node.children.some(
-            (child: any) => !validateTagGraphNode(child)
-        )
-        if (invalidChildren) return false
+
+    function validateFlatTagGraph(
+        tagGraph: Record<any, any>
+    ): tagGraph is FlatTagGraph {
+        if (lodash.isObject(tagGraph)) {
+            for (const [key, value] of Object.entries(tagGraph)) {
+                if (!lodash.isString(key) && isNaN(Number(key))) {
+                    return false
+                }
+                if (!lodash.isArray(value)) {
+                    return false
+                }
+                for (const tag of value) {
+                    if (
+                        !(
+                            checkIsPlainObjectWithGuard(tag) &&
+                            lodash.isNumber(tag.weight) &&
+                            lodash.isNumber(tag.parentId) &&
+                            lodash.isNumber(tag.childId)
+                        )
+                    ) {
+                        return false
+                    }
+                }
+            }
+        }
+
         return true
     }
-    const isValid = validateTagGraphNode(tagGraph, true)
+    const isValid = validateFlatTagGraph(tagGraph)
     if (!isValid) {
-        throw new JsonError("Invalid tagGraph provided", 400)
+        throw new JsonError("Invalid tag graph provided", 400)
     }
-    await db.updateTagGraph(trx, tagGraph as TagGraphRoot)
+    await db.updateTagGraph(trx, tagGraph)
     res.send({ success: true })
 })
 

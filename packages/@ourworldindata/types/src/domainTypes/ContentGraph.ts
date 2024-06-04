@@ -1,3 +1,5 @@
+import { DbPlainTag } from "../dbTypes/Tags.js"
+
 export interface EntryMeta {
     slug: string
     title: string
@@ -11,6 +13,15 @@ export interface CategoryWithEntries {
 }
 
 export const TagGraphRootName = "tag-graph-root" as const
+
+export type FlatTagGraphNode = Pick<DbPlainTag, "name" | "slug"> & {
+    weight: number
+    isTopic: boolean
+    parentId: number
+    childId: number
+}
+
+export type FlatTagGraph = Record<number, FlatTagGraphNode[]>
 
 export interface TagGraphNode {
     children: TagGraphNode[]
