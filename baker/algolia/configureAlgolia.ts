@@ -295,6 +295,8 @@ export const configureAlgolia = async () => {
         ["jail", "prison"],
         ["funding", "funded"],
         ["solar", "photovoltaic", "photovoltaics", "pv"],
+        ["tb", "tuberculosis"],
+        ["ntd", "neglected tropical diseases", "neglected tropical disease"],
     ]
 
     const algoliaSynonyms = synonyms.map((s) => {
