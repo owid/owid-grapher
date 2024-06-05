@@ -1,9 +1,9 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddTagsGraph1716401298509 implements MigrationInterface {
+export class AddTagGraph1716401298509 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
-            CREATE TABLE tags_graph (
+            CREATE TABLE tag_graph (
                 parentId INT NOT NULL,
                 childId INT NOT NULL,
                 weight INT NOT NULL DEFAULT 1,
@@ -18,16 +18,16 @@ export class AddTagsGraph1716401298509 implements MigrationInterface {
         await queryRunner.query(`-- sql
             INSERT INTO tags (name) VALUES ("tag-graph-root")`)
 
-        // populate tags_graph with the existing relationships from the tags table
+        // populate tag_graph with the existing relationships from the tags table
         await queryRunner.query(`-- sql
-            INSERT INTO tags_graph (parentId, childId)
+            INSERT INTO tag_graph (parentId, childId)
             SELECT parentId, id
             FROM tags
             WHERE parentId IS NOT NULL`)
 
         // insert edges between the 10 top level tags and the root tag
         await queryRunner.query(`-- sql
-          INSERT INTO tags_graph (parentId, childId)
+          INSERT INTO tag_graph (parentId, childId)
             SELECT 
                 (SELECT id FROM tags WHERE name = 'tag-graph-root'),
                 id
@@ -48,7 +48,7 @@ export class AddTagsGraph1716401298509 implements MigrationInterface {
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
-            DROP TABLE tags_graph`)
+            DROP TABLE tag_graph`)
         await queryRunner.query(`-- sql
             DELETE FROM tags WHERE name = "tag-graph-root"`)
     }

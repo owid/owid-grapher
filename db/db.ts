@@ -454,15 +454,9 @@ export const getNonGrapherExplorerViewCount = (
 }
 
 /**
- * 1. Fetch all records in tags_graph, isTopic = true when there is a published TP/LTP/Article with the same slug as the tag
- * 2. Fetch all records in tags, children of the root tag are assumed to be areas e.g. "Energy and Environment", "Health", etc.
- * 3. Construct the tag graph:
- *   a. Sort the tags_graph table by weight (tiebreak with name)
- *   b. Group it by parentId
- *   c. Select the root tag
- *   d. Create a TagGraphRoot object
- *   e. Set its children via the tags_graph parentId groupings
- *   f. Recurse through each child, setting their children as well
+ * 1. Fetch all records in tag_graph, isTopic = true when there is a published TP/LTP/Article with the same slug as the tag
+ * 2. Group tags by their parentId
+ * 3. Return the flat tag graph along with a __rootId property so that the UI knows which record is the root node
  */
 export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
     FlatTagGraph & {
@@ -480,7 +474,7 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
             t.slug,
             IFNULL((p.type IN (:types) AND p.published = 1), FALSE) AS isTopic
         FROM
-            tags_graph tg
+            tag_graph tg
         LEFT JOIN tags t ON
             tg.childId = t.id
         LEFT JOIN posts_gdocs p on
@@ -529,6 +523,6 @@ export async function updateTagGraph(
         }
     }
 
-    await knex("tags_graph").delete()
-    await knex("tags_graph").insert(tagGraphRows)
+    await knex("tag_graph").delete()
+    await knex("tag_graph").insert(tagGraphRows)
 }
