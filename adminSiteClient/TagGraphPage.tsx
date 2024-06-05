@@ -23,6 +23,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGrip } from "@fortawesome/free-solid-svg-icons"
 import { AutoComplete, Button, Popconfirm } from "antd"
 import { FlatTagGraph, FlatTagGraphNode } from "@ourworldindata/types"
+import { Link } from "react-router-dom"
 
 function DraggableDroppable(props: {
     id: string
@@ -402,7 +403,8 @@ export class TagGraphPage extends React.Component {
                     <p>
                         Drag and drop tags according to their hierarchy. Top
                         level tags should be areas. Tags are ordered by weight
-                        (higher weights first) and then by name.
+                        (higher weights first) and then by name. To add a new
+                        tag, visit the <Link to="/tags">tags page</Link>.
                     </p>
                     <DndContext
                         onDragEnd={this.handleDragEnd}

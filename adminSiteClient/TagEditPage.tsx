@@ -135,6 +135,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                         <div>
                             <input
                                 type="submit"
+                                disabled={!this.isModified || !newtag.name}
                                 className="btn btn-success"
                                 value="Update tag"
                             />{" "}
@@ -143,6 +144,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                                 !tag.specialType && (
                                     <button
                                         className="btn btn-danger"
+                                        type="button"
                                         onClick={() => this.deleteTag()}
                                     >
                                         Delete tag

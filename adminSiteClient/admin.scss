@@ -1381,3 +1381,20 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         margin: 1px;
     }
 }
+
+.TagsIndexPage__description {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    p {
+        line-height: 32px;
+        margin: 0;
+    }
+}
+
+.TagsIndexPage__add-tag-modal {
+    input {
+        margin-bottom: 1rem;
+        display: block;
+    }
+}

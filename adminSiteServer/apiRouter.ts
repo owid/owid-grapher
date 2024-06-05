@@ -1977,8 +1977,8 @@ putRouteWithRWTransaction(
         const tag = (req.body as { tag: any }).tag
         await db.knexRaw(
             trx,
-            `UPDATE tags SET name=?, updatedAt=?, parentId=?, slug=? WHERE id=?`,
-            [tag.name, new Date(), tag.parentId, tag.slug, tagId]
+            `UPDATE tags SET name=?, updatedAt=?, slug=? WHERE id=?`,
+            [tag.name, new Date(), tag.slug, tagId]
         )
         if (tag.slug) {
             // See if there's a published gdoc with a matching slug.
@@ -1986,13 +1986,14 @@ putRouteWithRWTransaction(
             // where the page for the topic is just an article.
             const gdoc = await db.knexRaw<Pick<DbRawPostGdoc, "slug">>(
                 trx,
-                `SELECT slug FROM posts_gdocs pg
-             WHERE EXISTS (
-                    SELECT 1
-                    FROM posts_gdocs_x_tags gt
-                    WHERE pg.id = gt.gdocId AND gt.tagId = ?
-            ) AND pg.published = TRUE`,
-                [tagId]
+                `-- sql
+                SELECT slug FROM posts_gdocs pg
+                WHERE EXISTS (
+                        SELECT 1
+                        FROM posts_gdocs_x_tags gt
+                        WHERE pg.id = gt.gdocId AND gt.tagId = ?
+                ) AND pg.published = TRUE AND pg.slug = ?`,
+                [tagId, tag.slug]
             )
             if (!gdoc.length) {
                 return {
@@ -2011,12 +2012,40 @@ postRouteWithRWTransaction(
     apiRouter,
     "/tags/new",
     async (req: Request, res, trx) => {
-        const tag = (req.body as { tag: any }).tag
+        const tag = req.body
+        function validateTag(
+            tag: unknown
+        ): tag is { name: string; slug: string | null } {
+            return (
+                checkIsPlainObjectWithGuard(tag) &&
+                typeof tag.name === "string" &&
+                (tag.slug === null || typeof tag.slug === "string")
+            )
+        }
+        if (!validateTag(tag)) throw new JsonError("Invalid tag", 400)
+
+        const conflictingTag = await db.knexRawFirst<{
+            name: string
+            slug: string | null
+        }>(
+            trx,
+            `SELECT name, slug FROM tags WHERE name = ? OR (slug IS NOT NULL AND slug = ?)`,
+            [tag.name, tag.slug]
+        )
+        if (conflictingTag)
+            throw new JsonError(
+                conflictingTag.name === tag.name
+                    ? `Tag with name ${tag.name} already exists`
+                    : `Tag with slug ${tag.slug} already exists`,
+                400
+            )
+
         const now = new Date()
         const result = await db.knexRawInsert(
             trx,
-            `INSERT INTO tags (parentId, name, createdAt, updatedAt) VALUES (?, ?, ?, ?)`,
-            [tag.parentId, tag.name, now, now]
+            `INSERT INTO tags (name, slug, createdAt, updatedAt) VALUES (?, ?, ?, ?)`,
+            // parentId will be deprecated soon once we migrate fully to the tag graph
+            [tag.name, tag.slug, now, now]
         )
         return { success: true, tagId: result.insertId }
     }
