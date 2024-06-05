@@ -20,20 +20,27 @@ _mysql() {
 }
 
 import_db() {
-    cat $1 | gunzip | sed s/.\*DEFINER\=\`.\*// | _mysql $GRAPHER_DB_NAME
+    cat $1 | gunzip | sed s/.\*DEFINER\=\`.\*// | _mysql $2
 }
 
 fillGrapherDb() {
     echo "==> Refreshing grapher database"
-    _mysql --database="" -e "DROP DATABASE IF EXISTS $GRAPHER_DB_NAME;CREATE DATABASE $GRAPHER_DB_NAME;ALTER DATABASE $GRAPHER_DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs;"
+
+    TEMP_DB_NAME="${GRAPHER_DB_NAME}_temp"
+
+    # Create a temporary database
+    _mysql --database="" -e "DROP DATABASE IF EXISTS $TEMP_DB_NAME; CREATE DATABASE $TEMP_DB_NAME; ALTER DATABASE $TEMP_DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs;"
 
     if [ -f "${DATA_FOLDER}/owid_metadata.sql.gz" ]; then
-        echo "Importing live Grapher metadata database (owid_metadata)"
-        import_db $DATA_FOLDER/owid_metadata.sql.gz
+        echo "Importing live Grapher metadata database into temporary database (owid_metadata)"
+        import_db $DATA_FOLDER/owid_metadata.sql.gz $TEMP_DB_NAME
     else
-        echo "owid_metata.sql.gz missing in ${DATA_FOLDER}. Refresh aborted."
+        echo "owid_metadata.sql.gz missing in ${DATA_FOLDER}. Refresh aborted."
         return 1
     fi
+
+    # Drop the original database and rename the temporary database to the original name
+    _mysql --database="" -e "DROP DATABASE IF EXISTS $GRAPHER_DB_NAME; RENAME DATABASE $TEMP_DB_NAME TO $GRAPHER_DB_NAME;"
 
     echo "==> ✅ Grapher DB refresh complete"
 }
