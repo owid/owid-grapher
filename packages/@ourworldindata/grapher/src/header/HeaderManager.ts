@@ -15,6 +15,7 @@ export interface HeaderManager {
     isNarrow?: boolean
     isSmall?: boolean
     isMedium?: boolean
+    isSemiNarrow?: boolean
     framePaddingHorizontal?: number
     framePaddingVertical?: number
     isOnCanonicalUrl?: boolean
