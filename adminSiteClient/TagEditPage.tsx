@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action, runInAction } from "mobx"
+import { observable, computed, runInAction } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 import { DbChartTagJoin } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"

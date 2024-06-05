@@ -19,8 +19,6 @@ import {
     DbEnrichedPostGdoc,
     DbRawPostGdoc,
     parsePostsGdocsRow,
-    TagGraphRoot,
-    TagGraphNode,
     TagGraphRootName,
     FlatTagGraph,
     FlatTagGraphNode,

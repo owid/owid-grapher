@@ -303,6 +303,18 @@ export class TagGraphPage extends React.Component {
         return parentsById
     }
 
+    getAllChildrenOfNode(childId: number): FlatTagGraphNode[] {
+        const allChildren: FlatTagGraphNode[] = this.flatTagGraph[childId] || []
+
+        for (const child of allChildren) {
+            if (this.flatTagGraph[child.childId]) {
+                allChildren.push(...this.flatTagGraph[child.childId])
+            }
+        }
+
+        return allChildren
+    }
+
     @action.bound setWeight(parentId: number, childId: number, weight: number) {
         const parent = this.flatTagGraph[parentId]
         if (!parent) return
@@ -337,39 +349,63 @@ export class TagGraphPage extends React.Component {
         if (!activeHtmlId || !overHtmlId) return
 
         const childPath = getPath(activeHtmlId)
-        const childId = childPath.at(-1)
-        const previousParentId = childPath.at(-2)
         const newParentPath = getPath(overHtmlId)
+        const previousParentPath = childPath.slice(0, -1)
+        if (!childPath || !newParentPath || !previousParentPath) return
+
+        const childId = childPath.at(-1)
         const newParentId = newParentPath.at(-1)
+        const previousParentId = previousParentPath.at(-1)
         if (!childId || !previousParentId || !newParentId) return
-
-        const validateOperation = () => {
-            const previousParentPath = childPath.slice(0, -1)
-            const isNoop = lodash.isEqual(previousParentPath, newParentPath)
-            if (isNoop) return false
-
-            const isCyclical = newParentPath.includes(childId)
-            if (isCyclical) return false
-
-            const isSibling = this.flatTagGraph[newParentId]?.find(
-                (node) => node.childId === childId
-            )
-            if (isSibling) return false
-
-            return true
-        }
-
-        const isValid = validateOperation()
-        if (!isValid) return
 
         const childNode = this.flatTagGraph[previousParentId].find(
             (node) => node.childId === childId
         )
         if (!childNode) return
 
-        childNode.parentId = newParentId
+        const validateOperation = (): {
+            isValid: boolean
+            explanation?: string
+        } => {
+            const isNoop = lodash.isEqual(previousParentPath, newParentPath)
+            if (isNoop) return { isValid: false }
+
+            // Prevents these two structures:
+            // (Brackets indicate the subgraph that was dagged)
+            // Energy -> (Energy)
+            // Nuclear Energy -> (Energy -> Nuclear Energy)
+            const allChildrenOfChild = this.getAllChildrenOfNode(childId)
+            const isCyclical = [childNode, ...allChildrenOfChild].find(
+                (child) => newParentPath.includes(child.childId)
+            )
+            if (isCyclical)
+                return {
+                    isValid: false,
+                    explanation: "This operation would create a cycle",
+                }
+
+            const isSibling = this.flatTagGraph[newParentId]?.find(
+                (node) => node.childId === childId
+            )
+            if (isSibling)
+                return {
+                    isValid: false,
+                    explanation: "This parent already has this child",
+                }
+
+            return { isValid: true }
+        }
+
+        const { isValid, explanation } = validateOperation()
+        if (!isValid) {
+            if (explanation) {
+                alert(explanation)
+            }
+            return
+        }
 
         // Add child to new parent
+        childNode.parentId = newParentId
         this.flatTagGraph[newParentId] = insertChildAndSort(
             this.flatTagGraph[newParentId],
             childNode

@@ -6,7 +6,7 @@ import { observable, runInAction } from "mobx"
 import { DbPlainTag } from "@ourworldindata/types"
 import { TagBadge } from "./TagBadge.js"
 import { Link } from "react-router-dom"
-import { Button, Modal, Col, Row } from "antd"
+import { Button, Modal } from "antd"
 
 @observer
 export class TagsIndexPage extends React.Component {
