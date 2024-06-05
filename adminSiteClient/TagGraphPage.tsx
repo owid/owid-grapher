@@ -4,7 +4,7 @@ import { observable, action, runInAction, toJS, computed } from "mobx"
 import * as lodash from "lodash"
 import { AdminLayout } from "./AdminLayout.js"
 import {
-    DbPlainTag,
+    MinimalTagWithIsTopic,
     TagGraphNode,
     TagGraphRoot,
     createTagGraph,
@@ -24,7 +24,7 @@ import { faGrip } from "@fortawesome/free-solid-svg-icons"
 import { AutoComplete, Button, Popconfirm } from "antd"
 import { FlatTagGraph, FlatTagGraphNode } from "@ourworldindata/types"
 
-function Box(props: {
+function DraggableDroppable(props: {
     id: string
     children: React.ReactNode
     className?: string
@@ -71,9 +71,10 @@ class TagGraphNodeContainer extends React.Component<{
     node: TagGraphNode
     parentId: number
     setWeight: (parentId: number, childId: number, weight: number) => void
-    setChild: (path: number[], child: FlatTagGraphNode) => void
-    removeNode: (path: number[]) => void
-    tags: DbPlainTag[]
+    setChild: (parentId: number, child: FlatTagGraphNode) => void
+    removeNode: (parentId: number, childId: number) => void
+    tags: MinimalTagWithIsTopic[]
+    parentsById: Record<string, MinimalTagWithIsTopic[]>
 }> {
     @observable isAddingTag: boolean = false
     @observable autocompleteValue: string = ""
@@ -91,17 +92,24 @@ class TagGraphNodeContainer extends React.Component<{
         this.props.setWeight(parentId, childId, weight)
     }
 
+    @computed get coparents() {
+        return (this.props.parentsById[this.props.node.id] || []).filter(
+            (tag) => tag.id !== this.props.parentId
+        )
+    }
+
     @action.bound setChild(childName: string) {
         this.isAddingTag = false
         const tag = this.addableTags.find((t) => t.name === childName)
         if (!tag) return
 
-        this.props.setChild(this.props.node.path.slice(1), {
+        this.props.setChild(this.props.node.id, {
             childId: tag.id,
             parentId: this.props.node.id,
             name: childName,
             weight: 1,
-            isTopic: false,
+            isTopic:
+                this.props.tags.find((t) => t.id === tag.id)?.isTopic || false,
             slug: "",
         })
 
@@ -109,12 +117,15 @@ class TagGraphNodeContainer extends React.Component<{
     }
 
     get addableTags() {
-        // Exclude the current node and its children
-        return this.props.tags.filter(
-            (tag) =>
-                tag.id !== this.props.node.id &&
-                !this.props.node.children.find((c) => c.name === tag.name)
-        )
+        return this.props.tags.filter((tag) => {
+            const isDuplicate = tag.id === this.props.node.id
+            const isParent = this.props.node.path.includes(tag.id)
+            const isChild = this.props.node.children.find(
+                (c) => c.name === tag.name
+            )
+            const isCoparent = this.coparents.find((t) => t.id === tag.id)
+            return !isDuplicate && !isParent && !isChild && !isCoparent
+        })
     }
 
     render() {
@@ -123,7 +134,11 @@ class TagGraphNodeContainer extends React.Component<{
         return (
             // IDs can't start with a number, so we prefix with "node-"
             // Not using data- attributes because they don't work with DndContext
-            <Box key={id} id={`node-${serializedPath}`} className="tag-box">
+            <DraggableDroppable
+                key={id}
+                id={`node-${serializedPath}`}
+                className="tag-box"
+            >
                 <TagBadge tag={{ id, name }} />
                 {isTopic ? (
                     <span
@@ -132,6 +147,12 @@ class TagGraphNodeContainer extends React.Component<{
                     >
                         ⭐️
                     </span>
+                ) : null}
+                {this.coparents.length > 0 ? (
+                    <p>
+                        This tag is also a child of:{" "}
+                        {this.coparents.map((tag) => tag.name).join(", ")}
+                    </p>
                 ) : null}
                 <div className="tag-box__controls-container">
                     <span className="tag-box__weight-control">
@@ -192,7 +213,9 @@ class TagGraphNodeContainer extends React.Component<{
 
                     <Popconfirm
                         title="Are you sure you want to remove this tag?"
-                        onConfirm={() => this.props.removeNode(path.slice(1))}
+                        onConfirm={() =>
+                            this.props.removeNode(path.at(-2)!, id)
+                        }
                         okText="Yes"
                         cancelText="No"
                     >
@@ -205,14 +228,15 @@ class TagGraphNodeContainer extends React.Component<{
                     <TagGraphNodeContainer
                         key={node.id}
                         node={node}
-                        parentId={id}
                         tags={this.props.tags}
+                        parentId={id}
+                        parentsById={this.props.parentsById}
                         setWeight={this.props.setWeight}
                         removeNode={this.props.removeNode}
                         setChild={this.props.setChild}
                     />
                 ))}
-            </Box>
+            </DraggableDroppable>
         )
     }
 }
@@ -228,7 +252,7 @@ function getPath(elementId?: string): number[] {
 }
 
 function insertChildAndSort(
-    children: FlatTagGraphNode[],
+    children: FlatTagGraphNode[] = [],
     newNode: FlatTagGraphNode
 ): FlatTagGraphNode[] {
     return [...children, newNode].sort(sortByWeightThenName)
@@ -251,11 +275,31 @@ export class TagGraphPage extends React.Component {
     @observable flatTagGraph: FlatTagGraph = {}
     @observable rootId: number | null = null
     @observable addTagParentId?: number
-    @observable tags: DbPlainTag[] = []
+    @observable tags: MinimalTagWithIsTopic[] = []
 
     @computed get tagGraph(): TagGraphRoot | null {
         if (!this.rootId) return null
         return createTagGraph(this.flatTagGraph, this.rootId)
+    }
+
+    @computed get parentsById(): Record<string, MinimalTagWithIsTopic[]> {
+        if (!this.tagGraph) return {}
+        const parentsById: Record<string, MinimalTagWithIsTopic[]> = {}
+        for (const [parentId, children] of Object.entries(this.flatTagGraph)) {
+            for (const child of children) {
+                const parent = this.tags.find(
+                    (tag) => tag.id === Number(parentId)
+                )
+                if (parent) {
+                    if (!parentsById[child.childId]) {
+                        parentsById[child.childId] = [parent]
+                    } else {
+                        parentsById[child.childId].push(parent)
+                    }
+                }
+            }
+        }
+        return parentsById
     }
 
     @action.bound setWeight(parentId: number, childId: number, weight: number) {
@@ -267,22 +311,20 @@ export class TagGraphPage extends React.Component {
         this.flatTagGraph[parentId] = parent.sort(sortByWeightThenName)
     }
 
-    @action.bound setChild(path: number[], child: FlatTagGraphNode) {
-        const parentId = path.at(-1)
-        if (!parentId) return
-        const parent = this.flatTagGraph[parentId]
-        if (parent) {
-            this.flatTagGraph[parentId] = insertChildAndSort(parent, child)
+    @action.bound setChild(parentId: number, child: FlatTagGraphNode) {
+        const siblings = this.flatTagGraph[parentId]
+        if (siblings) {
+            this.flatTagGraph[parentId] = insertChildAndSort(siblings, child)
+        } else {
+            this.flatTagGraph[parentId] = [child]
         }
     }
 
-    @action.bound removeNode(path: number[]) {
-        const parentId = path.at(-2)
-        if (!parentId) return
+    @action.bound removeNode(parentId: number, childId: number) {
         const parent = this.flatTagGraph[parentId]
         if (!parent) return
         this.flatTagGraph[parentId] = parent.filter(
-            (node) => node.childId !== path.at(-1)
+            (node) => node.childId !== childId
         )
     }
 
@@ -295,26 +337,28 @@ export class TagGraphPage extends React.Component {
 
         const childPath = getPath(activeHtmlId)
         const childId = childPath.at(-1)
-        const previousParentPath = childPath.slice(0, -1)
         const previousParentId = childPath.at(-2)
         const newParentPath = getPath(overHtmlId)
         const newParentId = newParentPath.at(-1)
         if (!childId || !previousParentId || !newParentId) return
 
-        function validateOperation(
-            childPath: number[],
-            newParentPath: number[]
-        ) {
+        const validateOperation = () => {
+            const previousParentPath = childPath.slice(0, -1)
             const isNoop = lodash.isEqual(previousParentPath, newParentPath)
             if (isNoop) return false
 
-            const isCyclical = newParentPath.includes(childPath.at(-1)!)
+            const isCyclical = newParentPath.includes(childId)
             if (isCyclical) return false
+
+            const isSibling = this.flatTagGraph[newParentId]?.find(
+                (node) => node.childId === childId
+            )
+            if (isSibling) return false
 
             return true
         }
 
-        const isValid = validateOperation(childPath, newParentPath)
+        const isValid = validateOperation()
         if (!isValid) return
 
         const childNode = this.flatTagGraph[previousParentId].find(
@@ -356,25 +400,31 @@ export class TagGraphPage extends React.Component {
                         </Button>
                     </header>
                     <p>
-                        Drag and drop tags according to their hierarchy. Tags
-                        are ordered by weight (higher weights first) and then by
-                        name.
+                        Drag and drop tags according to their hierarchy. Top
+                        level tags should be areas. Tags are ordered by weight
+                        (higher weights first) and then by name.
                     </p>
                     <DndContext
                         onDragEnd={this.handleDragEnd}
                         collisionDetection={pointerWithin}
                     >
-                        {this.tagGraph?.children.map((node) => (
-                            <TagGraphNodeContainer
-                                key={node.id}
-                                node={node}
-                                tags={this.tags}
-                                parentId={this.tagGraph!.id}
-                                setWeight={this.setWeight}
-                                setChild={this.setChild}
-                                removeNode={this.removeNode}
-                            />
-                        ))}
+                        <DraggableDroppable
+                            id={`node-${this.rootId}`}
+                            className="root-tag-box"
+                        >
+                            {this.tagGraph?.children.map((node) => (
+                                <TagGraphNodeContainer
+                                    key={node.id}
+                                    node={node}
+                                    tags={this.tags}
+                                    parentsById={this.parentsById}
+                                    parentId={this.tagGraph!.id}
+                                    setWeight={this.setWeight}
+                                    setChild={this.setChild}
+                                    removeNode={this.removeNode}
+                                />
+                            ))}
+                        </DraggableDroppable>
                     </DndContext>
                 </main>
             </AdminLayout>
@@ -389,7 +439,7 @@ export class TagGraphPage extends React.Component {
         >("/api/flatTagGraph.json")
 
         const tags = await this.context.admin
-            .getJSON<{ tags: DbPlainTag[] }>("/api/tags.json")
+            .getJSON<{ tags: MinimalTagWithIsTopic[] }>("/api/tags.json")
             .then((data) => data.tags)
 
         runInAction(() => {

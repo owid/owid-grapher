@@ -77,10 +77,7 @@ import {
     PostsGdocsTableName,
     DbPlainDataset,
     DbInsertUser,
-    TagGraphNode,
-    TagGraphRoot,
-    TagGraphRootName,
-    DbPlainTagWithIsTopic,
+    MinimalTagWithIsTopic,
     FlatTagGraph,
 } from "@ourworldindata/types"
 import {
@@ -2026,12 +2023,10 @@ postRouteWithRWTransaction(
 )
 
 getRouteWithROTransaction(apiRouter, "/tags.json", async (req, res, trx) => {
-    const tags = await db.knexRaw<
-        Pick<DbPlainTagWithIsTopic, "id" | "name" | "isTopic">
-    >(
+    const tags = await db.knexRaw<MinimalTagWithIsTopic>(
         trx,
         `-- sql
-        SELECT t.id, t.name, MAX(IF(pg.type IN (:types), TRUE, FALSE)) AS isTopic
+        SELECT t.id, t.name, t.id, MAX(IF(pg.type IN (:types), TRUE, FALSE)) AS isTopic
         FROM tags t
         LEFT JOIN posts_gdocs_x_tags gt ON t.id = gt.tagId
         LEFT JOIN posts_gdocs pg ON gt.gdocId = pg.id
@@ -2675,9 +2670,9 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
 getRouteWithROTransaction(
     apiRouter,
     "/flatTagGraph.json",
-    async (_, res, trx) => {
+    async (_, __, trx) => {
         const flatTagGraph = await db.getFlatTagGraph(trx)
-        res.send(flatTagGraph)
+        return flatTagGraph
     }
 )
 

@@ -531,8 +531,6 @@ export async function updateTagGraph(
         }
     }
 
-    console.log("tagGraphRows", tagGraphRows)
-
     await knex("tags_graph").delete()
     await knex("tags_graph").insert(tagGraphRows)
 }

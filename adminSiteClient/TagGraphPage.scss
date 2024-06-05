@@ -59,6 +59,13 @@
             }
         }
     }
+    .root-tag-box {
+        padding: 24px 0;
+        cursor: default;
+        > .grip-button {
+            display: none;
+        }
+    }
     .tag-box__controls-container {
         margin-bottom: 8px;
     }

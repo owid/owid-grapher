@@ -14,4 +14,7 @@ export type DbPlainTag = Required<DbInsertTag>
 // For now, this is all the metadata we need for tags in the frontend
 export type MinimalTag = Pick<DbPlainTag, "id" | "name" | "slug">
 
-export type DbPlainTagWithIsTopic = DbPlainTag & { isTopic: boolean }
+// Used in the tag graph
+export type MinimalTagWithIsTopic = MinimalTag & {
+    isTopic: boolean
+}
