@@ -158,7 +158,7 @@ export class FacetChart
                 ? this.legend.height + this.legendPadding
                 : 0
         return this.bounds.padTop(
-            legendHeightWithPadding + 1.2 * this.facetFontSize
+            legendHeightWithPadding + 1.25 * this.facetFontSize
         )
     }
 
