@@ -60,8 +60,8 @@ export const SourcesDescriptions = (props: SourcesDescriptionsProps) => {
                     <ExpandableToggle
                         label={
                             props.attributionShort
-                                ? `How does the producer of this data - ${props.attributionShort} - describe this data?`
-                                : "How does the producer of this data describe this data?"
+                                ? `How is this data described by its producer - ${props.attributionShort}?`
+                                : "How is this data described by its producer?"
                         }
                         content={
                             <SimpleMarkdownText
