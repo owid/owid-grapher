@@ -1,6 +1,10 @@
 import YAML from "yaml"
-import { MultiDimDataPageConfigType, View } from "./MultiDimDataPageTypes.js"
-import { DimensionProperty, keyBy } from "@ourworldindata/utils"
+import {
+    Dimension,
+    MultiDimDataPageConfigType,
+    View,
+} from "./MultiDimDataPageTypes.js"
+import { DimensionProperty, groupBy, keyBy } from "@ourworldindata/utils"
 
 export class MultiDimDataPageConfig {
     private constructor(public readonly config: MultiDimDataPageConfigType) {}
@@ -13,14 +17,20 @@ export class MultiDimDataPageConfig {
         return new MultiDimDataPageConfig(obj)
     }
 
+    static getChoicesFields(choices: Dimension[]) {
+        return {
+            choices,
+            choicesBySlug: keyBy(choices, "slug"),
+            choicesByGroup: groupBy(choices, "group"),
+        }
+    }
+
     get dimensions() {
-        const dimensionsWithChoicesBySlug = this.config.dimensions.map(
-            (dimension) => ({
-                ...dimension,
-                choices: keyBy(dimension.choices, "slug"),
-            })
-        )
-        return keyBy(dimensionsWithChoicesBySlug, "slug")
+        const dimensionsEnriched = this.config.dimensions.map((dimension) => ({
+            ...dimension,
+            ...MultiDimDataPageConfig.getChoicesFields(dimension.choices),
+        }))
+        return keyBy(dimensionsEnriched, "slug")
     }
 
     filterViewsByDimensions(dimensions: Record<string, string>): View[] {
@@ -58,7 +68,7 @@ export class MultiDimDataPageConfig {
             )
             if (
                 selectedChoices[dimSlug] &&
-                dim.choices[selectedChoices[dimSlug]]
+                dim.choicesBySlug[selectedChoices[dimSlug]]
             ) {
                 updatedSelectedChoices[dimSlug] = selectedChoices[dimSlug]
             } else {
@@ -75,13 +85,16 @@ export class MultiDimDataPageConfig {
                     availableViewsBeforeSelection[0].dimensions[dimSlug]
             }
 
-            dim.choices = Object.fromEntries(
-                Object.entries(dim.choices).filter(([slug, _]) =>
-                    availableViewsBeforeSelection.some(
-                        (view) => view.dimensions[dimSlug] === slug
-                    )
+            const choices = Object.values(dim.choices).filter((choice) =>
+                availableViewsBeforeSelection.some(
+                    (view) => view.dimensions[dimSlug] === choice.slug
                 )
             )
+
+            dimensionsWithAvailableChoices[dimSlug] = {
+                ...dim,
+                ...MultiDimDataPageConfig.getChoicesFields(choices),
+            }
         }
 
         return {

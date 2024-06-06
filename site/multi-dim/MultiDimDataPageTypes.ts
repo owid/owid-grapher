@@ -11,14 +11,15 @@ export interface MultiDimDataPageConfigType {
 export interface Dimension {
     slug: string
     name: string
+    group?: string
     description?: string
     multi_select?: boolean
     choices: Dimension[]
 }
 
-export interface DimensionWithChoicesKeyedBySlug
-    extends Omit<Dimension, "choices"> {
-    choices: Record<string, Choice>
+export interface DimensionEnriched extends Dimension {
+    choicesBySlug: Record<string, Choice>
+    choicesByGroup: Record<string, Choice[]>
 }
 
 export interface Choice {

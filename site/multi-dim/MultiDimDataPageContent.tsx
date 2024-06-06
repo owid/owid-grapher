@@ -68,7 +68,7 @@ import Select, { OptionProps, components } from "react-select"
 import {
     Choice,
     Dimension,
-    DimensionWithChoicesKeyedBySlug,
+    DimensionEnriched,
     MultiDimDataPageConfigType,
 } from "./MultiDimDataPageTypes.js"
 declare global {
@@ -107,7 +107,7 @@ const DatapageResearchThumbnail = ({
 }
 
 const DimensionDropdown = (props: {
-    dimension: DimensionWithChoicesKeyedBySlug
+    dimension: DimensionEnriched
     currentChoiceSlug: string
     onChange?: (slug: string, valueSlug: string) => void
 }) => {
@@ -143,7 +143,7 @@ const DimensionDropdown = (props: {
         return () => document.removeEventListener("click", handleOutsideClick)
     }, [active])
 
-    const currentChoice = dimension.choices[props.currentChoiceSlug]
+    const currentChoice = dimension.choicesBySlug[props.currentChoiceSlug]
 
     return (
         <div className="settings-dropdown" ref={dropdownRef}>
@@ -238,7 +238,7 @@ const MultiDimSettingsPanel = (props: {
     const [currentSettings, setCurrentSettings] = useState(initialSettings)
 
     const [availableSettings, setAvailableSettings] = useState<
-        Record<string, DimensionWithChoicesKeyedBySlug>
+        Record<string, DimensionEnriched>
     >({})
 
     useEffect(() => {
