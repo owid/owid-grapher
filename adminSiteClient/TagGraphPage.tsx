@@ -250,7 +250,7 @@ class TagGraphNodeContainer extends React.Component<{
                         setWeight={this.props.setWeight}
                         removeNode={this.props.removeNode}
                         setChild={this.props.setChild}
-                        disableDroppable={this.disableDroppable}
+                        disableDroppable={this.props.disableDroppable}
                     />
                 ))}
             </DraggableDroppable>
@@ -351,12 +351,32 @@ export class TagGraphPage extends React.Component {
     }
 
     @action.bound removeNode(parentId: number, childId: number) {
-        const parent = this.flatTagGraph[parentId]
-        if (!parent) return
-        this.flatTagGraph[parentId] = parent.filter(
+        const children = this.flatTagGraph[parentId]
+        if (!children) return
+
+        // Remove the child from its parent. If there are no other children, delete the record
+        const remainingChildren = this.flatTagGraph[parentId].filter(
             (node) => node.childId !== childId
         )
-        this.flatTagGraph[childId] = []
+        if (remainingChildren.length) {
+            this.flatTagGraph[parentId] = remainingChildren
+        } else {
+            delete this.flatTagGraph[parentId]
+        }
+
+        // See if the child had any children
+        const grandchildren = this.flatTagGraph[childId]
+        if (!grandchildren) return
+
+        // If the child had no other parents, delete its grandchildren also
+        // i.e. if you delete the "Health" area, the subgraph (Diseases -> Cardiovascular Disease, Cancer) will also be deleted,
+        // but the subgraph (Air Pollution -> Indoor Air Pollution, Outdoor Air Pollution) won't be, because it's still a child of "Energy and Environment"
+        const hasMultipleParents = this.parentsById[childId]
+        if (!hasMultipleParents) {
+            for (const grandchild of grandchildren) {
+                this.removeNode(childId, grandchild.childId)
+            }
+        }
     }
 
     @action.bound handleDragEnd(event: DragEndEvent) {
