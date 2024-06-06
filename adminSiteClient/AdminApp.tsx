@@ -15,6 +15,7 @@ import { SourceEditPage } from "./SourceEditPage.js"
 import { RedirectsIndexPage } from "./RedirectsIndexPage.js"
 import SiteRedirectsIndexPage from "./SiteRedirectsIndexPage"
 import { TagEditPage } from "./TagEditPage.js"
+import { TagsIndexPage } from "./TagsIndexPage.js"
 import { TagGraphPage } from "./TagGraphPage.js"
 import { PostsIndexPage } from "./PostsIndexPage.js"
 import { TestIndexPage } from "./TestIndexPage.js"
@@ -42,7 +43,6 @@ import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
 import { GdocsIndexPage, GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsStoreProvider } from "./GdocsStore.js"
-import { TagsIndexPage } from "./TagsIndexPage.js"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {

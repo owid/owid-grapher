@@ -2051,7 +2051,7 @@ postRouteWithRWTransaction(
     }
 )
 
-getRouteWithROTransaction(apiRouter, "/tags.json", async (_, __, trx) => {
+getRouteWithROTransaction(apiRouter, "/tags.json", async (req, res, trx) => {
     return { tags: await db.getMinimalTagsWithIsTopic(trx) }
 })
 
@@ -2678,7 +2678,7 @@ getRouteWithROTransaction(apiRouter, "/all-work", async (req, res, trx) => {
 getRouteWithROTransaction(
     apiRouter,
     "/flatTagGraph.json",
-    async (_, __, trx) => {
+    async (req, res, trx) => {
         const flatTagGraph = await db.getFlatTagGraph(trx)
         return flatTagGraph
     }

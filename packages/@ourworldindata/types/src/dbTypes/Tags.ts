@@ -3,6 +3,7 @@ export const TagsTableName = "tags"
 export interface DbInsertTag {
     createdAt?: Date
     id?: number
+    parentId?: number | null
     name: string
     slug?: string | null
     specialType?: string | null

@@ -473,7 +473,6 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
             tg.weight,
             t.name,
             t.slug,
-            -- TODO: fix empty slug tricking this into thinking it's a topic
             IFNULL((p.type IN (:types) AND p.published = 1 AND t.slug IS NOT NULL), FALSE) AS isTopic
         FROM
             tag_graph tg

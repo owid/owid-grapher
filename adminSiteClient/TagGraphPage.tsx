@@ -439,44 +439,26 @@ export class TagGraphPage extends React.Component {
         )
         if (!childNode) return
 
-        const validateOperation = (): {
-            isValid: boolean
-            explanation?: string
-        } => {
-            const isNoop = lodash.isEqual(previousParentPath, newParentPath)
-            if (isNoop) return { isValid: false }
+        const isNoop = lodash.isEqual(previousParentPath, newParentPath)
+        if (isNoop) return
 
-            // Prevents these two structures:
-            // (Brackets indicate the subgraph that was dagged)
-            // Energy -> (Energy)
-            // Nuclear Energy -> (Energy -> Nuclear Energy)
-            const allChildrenOfChild = this.getAllChildrenOfNode(childId)
-            const isCyclical = [childNode, ...allChildrenOfChild].find(
-                (child) => newParentPath.includes(child.childId)
-            )
-            if (isCyclical)
-                return {
-                    isValid: false,
-                    explanation: "This operation would create a cycle",
-                }
-
-            const isSibling = this.flatTagGraph[newParentId]?.find(
-                (node) => node.childId === childId
-            )
-            if (isSibling)
-                return {
-                    isValid: false,
-                    explanation: "This parent already has this child",
-                }
-
-            return { isValid: true }
+        // Prevents these two structures:
+        // Parantheses indicate the subgraph that was dagged
+        // Energy -> (Energy)
+        // Nuclear Energy -> (Energy -> Nuclear Energy)
+        const allChildrenOfChild = this.getAllChildrenOfNode(childId)
+        const isCyclical = [childNode, ...allChildrenOfChild].find((child) =>
+            newParentPath.includes(child.childId)
+        )
+        if (isCyclical) {
+            alert("This operation would create a cycle")
+            return
         }
-
-        const { isValid, explanation } = validateOperation()
-        if (!isValid) {
-            if (explanation) {
-                alert(explanation)
-            }
+        const isSibling = this.flatTagGraph[newParentId].find(
+            (node) => node.childId === childId
+        )
+        if (isSibling) {
+            alert("This parent already has this child")
             return
         }
 
