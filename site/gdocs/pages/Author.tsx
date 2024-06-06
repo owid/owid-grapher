@@ -55,11 +55,9 @@ const AuthorHeader = (gdoc: OwidGdocAuthorInterface) => {
                 )}
             </section>
             <section className="author-header__md grid grid-cols-12-full-width span-cols-14">
-                <div className="grid grid-cols-8 span-cols-8 col-start-2 span-md-cols-7 col-md-start-2">
-                    <h1 className="author-header__name span-cols-8">{title}</h1>
-                    <div className="author-header__role span-cols-8">
-                        {role}
-                    </div>
+                <div className="span-cols-8 col-start-2 span-md-cols-7 col-md-start-2">
+                    <h1 className="author-header__name">{title}</h1>
+                    <div className="author-header__role">{role}</div>
                     {bio?.length && (
                         <ArticleBlocks
                             blocks={bio}
