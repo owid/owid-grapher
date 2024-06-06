@@ -29,6 +29,7 @@ function DraggableDroppable(props: {
     id: string
     children: React.ReactNode
     className?: string
+    disableDroppable?: boolean
 }) {
     const drag = useDraggable({
         id: props.id,
@@ -37,6 +38,7 @@ function DraggableDroppable(props: {
     const dragSetNodeRef = drag.setNodeRef
     const drop = useDroppable({
         id: props.id,
+        disabled: !!transform || props.disableDroppable,
     })
     const isOver = drop.isOver
     const dropSetNodeRef = drop.setNodeRef
@@ -59,7 +61,18 @@ function DraggableDroppable(props: {
                 dropSetNodeRef(element)
             }}
         >
-            {props.children}
+            {React.Children.map(props.children, (child) => {
+                if (React.isValidElement(child)) {
+                    if (child.type === TagGraphNodeContainer) {
+                        return React.cloneElement(child, {
+                            ...child.props,
+                            disableDroppable:
+                                !!transform || props.disableDroppable,
+                        })
+                    }
+                }
+                return child
+            })}
             <button className="grip-button" {...listeners}>
                 <FontAwesomeIcon icon={faGrip} />
             </button>
@@ -76,6 +89,7 @@ class TagGraphNodeContainer extends React.Component<{
     removeNode: (parentId: number, childId: number) => void
     tags: MinimalTagWithIsTopic[]
     parentsById: Record<string, MinimalTagWithIsTopic[]>
+    disableDroppable?: boolean
 }> {
     @observable isAddingTag: boolean = false
     @observable autocompleteValue: string = ""
@@ -139,6 +153,7 @@ class TagGraphNodeContainer extends React.Component<{
                 key={id}
                 id={`node-${serializedPath}`}
                 className="tag-box"
+                disableDroppable={this.props.disableDroppable}
             >
                 <TagBadge tag={{ id, name }} />
                 {isTopic ? (
@@ -235,6 +250,7 @@ class TagGraphNodeContainer extends React.Component<{
                         setWeight={this.props.setWeight}
                         removeNode={this.props.removeNode}
                         setChild={this.props.setChild}
+                        disableDroppable={this.disableDroppable}
                     />
                 ))}
             </DraggableDroppable>
@@ -304,7 +320,8 @@ export class TagGraphPage extends React.Component {
     }
 
     getAllChildrenOfNode(childId: number): FlatTagGraphNode[] {
-        const allChildren: FlatTagGraphNode[] = this.flatTagGraph[childId] || []
+        const allChildren: FlatTagGraphNode[] =
+            toJS(this.flatTagGraph[childId]) || []
 
         for (const child of allChildren) {
             if (this.flatTagGraph[child.childId]) {
@@ -339,6 +356,7 @@ export class TagGraphPage extends React.Component {
         this.flatTagGraph[parentId] = parent.filter(
             (node) => node.childId !== childId
         )
+        this.flatTagGraph[childId] = []
     }
 
     @action.bound handleDragEnd(event: DragEndEvent) {
