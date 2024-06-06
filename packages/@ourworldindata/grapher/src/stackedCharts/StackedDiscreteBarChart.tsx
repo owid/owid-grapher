@@ -332,19 +332,28 @@ export class StackedDiscreteBarChart
         const barHeight = this.approximateBarHeight
 
         return this.items.map((item) => {
+            // make sure we're dealing with a single-line text fragment
+            const entityName = item.entityName.replace(/\n/g, " ").trim()
+
             let label = new TextWrap({
-                text: item.entityName,
+                text: entityName,
                 maxWidth: this.boundsWithoutLegend.width * 0.3,
                 ...this.labelStyle,
             })
 
             // prevent labels from being taller than the bar
-            while (label.height > barHeight && label.lines.length > 1) {
+            let step = 0
+            while (
+                label.height > barHeight &&
+                label.lines.length > 1 &&
+                step < 10 // safety net
+            ) {
                 label = new TextWrap({
-                    text: item.entityName,
+                    text: entityName,
                     maxWidth: label.maxWidth + 20,
                     ...this.labelStyle,
                 })
+                step += 1
             }
 
             return { ...item, label }

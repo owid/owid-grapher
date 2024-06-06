@@ -905,19 +905,28 @@ export class DiscreteBarChart
         const barHeight = this.approximateBarHeight
 
         return this.series.map((series) => {
+            // make sure we're dealing with a single-line text fragment
+            const seriesName = series.seriesName.replace(/\n/g, " ").trim()
+
             let label = new TextWrap({
-                text: series.seriesName,
+                text: seriesName,
                 maxWidth: this.boundsWithoutColorLegend.width * 0.3,
                 ...this.legendLabelStyle,
             })
 
             // prevent labels from being taller than the bar
-            while (label.height > barHeight && label.lines.length > 1) {
+            let step = 0
+            while (
+                label.height > barHeight &&
+                label.lines.length > 1 &&
+                step < 10 // safety net
+            ) {
                 label = new TextWrap({
-                    text: series.seriesName,
+                    text: seriesName,
                     maxWidth: label.maxWidth + 20,
                     ...this.legendLabelStyle,
                 })
+                step += 1
             }
 
             return { ...series, label }
