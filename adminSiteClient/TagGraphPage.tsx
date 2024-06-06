@@ -454,7 +454,7 @@ export class TagGraphPage extends React.Component {
             alert("This operation would create a cycle")
             return
         }
-        const isSibling = this.flatTagGraph[newParentId].find(
+        const isSibling = this.flatTagGraph[newParentId]?.find(
             (node) => node.childId === childId
         )
         if (isSibling) {
