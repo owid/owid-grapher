@@ -402,18 +402,17 @@ export class TagGraphPage extends React.Component {
             delete this.flatTagGraph[parentId]
         }
 
-        // See if the child had any children
-        const grandchildren = this.flatTagGraph[childId]
-        if (!grandchildren) return
-
         // If the child had no other parents, delete its grandchildren also
         // i.e. if you delete the "Health" area, the subgraph (Diseases -> Cardiovascular Disease, Cancer) will also be deleted,
         // but the subgraph (Air Pollution -> Indoor Air Pollution, Outdoor Air Pollution) won't be, because it's still a child of "Energy and Environment"
         const hasMultipleParents = this.parentsById[childId]
-        if (!hasMultipleParents) {
-            for (const grandchild of grandchildren) {
-                this.removeNode(childId, grandchild.childId)
-            }
+        if (!hasMultipleParents) return
+
+        const grandchildren = this.flatTagGraph[childId]
+        if (!grandchildren) return
+
+        for (const grandchild of grandchildren) {
+            this.removeNode(childId, grandchild.childId)
         }
     }
 
