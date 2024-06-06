@@ -35,10 +35,11 @@ function DraggableDroppable(props: {
         id: props.id,
     })
     const { attributes, listeners, transform } = drag
+    const shouldDisableDroppable = !!transform || props.disableDroppable
     const dragSetNodeRef = drag.setNodeRef
     const drop = useDroppable({
         id: props.id,
-        disabled: !!transform || props.disableDroppable,
+        disabled: shouldDisableDroppable,
     })
     const isOver = drop.isOver
     const dropSetNodeRef = drop.setNodeRef
@@ -66,8 +67,8 @@ function DraggableDroppable(props: {
                     if (child.type === TagGraphNodeContainer) {
                         return React.cloneElement(child, {
                             ...child.props,
-                            disableDroppable:
-                                !!transform || props.disableDroppable,
+                            // If this node is being dragged, prevent all its children from being valid drop targets
+                            disableDroppable: shouldDisableDroppable,
                         })
                     }
                 }
@@ -81,54 +82,103 @@ function DraggableDroppable(props: {
 }
 
 @observer
+class AddChildForm extends React.Component<{
+    tags: MinimalTagWithIsTopic[]
+    label: string
+    setChild: (parentId: number, childId: number) => void
+    parentId: number
+}> {
+    @observable isAddingTag: boolean = false
+    @observable autocompleteValue: string = ""
+
+    render() {
+        if (!this.isAddingTag) {
+            return (
+                <Button
+                    onClick={() => (this.isAddingTag = true)}
+                    type="primary"
+                    className="add-tag-button"
+                >
+                    {this.props.label}
+                </Button>
+            )
+        }
+        return (
+            <form className="add-tag-form">
+                <AutoComplete
+                    autoFocus
+                    className="add-tag-input"
+                    value={this.autocompleteValue}
+                    onChange={(value) => (this.autocompleteValue = value)}
+                    options={this.props.tags.map((tag) => ({
+                        value: tag.name,
+                        label: tag.name,
+                    }))}
+                    filterOption={(inputValue, option) => {
+                        if (!option?.label) return false
+                        return option.label
+                            .toLowerCase()
+                            .startsWith(inputValue.toLowerCase())
+                    }}
+                />
+                <Button
+                    onClick={() => {
+                        const tag = this.props.tags.find(
+                            (t) => t.name === this.autocompleteValue
+                        )
+                        if (!tag) return
+                        this.props.setChild(this.props.parentId, tag.id)
+                        this.isAddingTag = false
+                        this.autocompleteValue = ""
+                    }}
+                    disabled={
+                        !this.props.tags
+                            .map((t) => t.name)
+                            .includes(this.autocompleteValue)
+                    }
+                >
+                    Add
+                </Button>
+                <Button onClick={() => (this.isAddingTag = false)}>
+                    Cancel
+                </Button>
+            </form>
+        )
+    }
+}
+
+@observer
 class TagGraphNodeContainer extends React.Component<{
     node: TagGraphNode
     parentId: number
     setWeight: (parentId: number, childId: number, weight: number) => void
-    setChild: (parentId: number, child: FlatTagGraphNode) => void
+    setChild: (parentId: number, childId: number) => void
     removeNode: (parentId: number, childId: number) => void
     tags: MinimalTagWithIsTopic[]
     parentsById: Record<string, MinimalTagWithIsTopic[]>
     disableDroppable?: boolean
 }> {
-    @observable isAddingTag: boolean = false
-    @observable autocompleteValue: string = ""
     constructor(props: any) {
         super(props)
-        this.updateWeight = this.updateWeight.bind(this)
-        this.setChild = this.setChild.bind(this)
+        this.handleUpdateWeight = this.handleUpdateWeight.bind(this)
     }
 
-    updateWeight(e: React.ChangeEvent<HTMLInputElement>) {
+    handleUpdateWeight(e: React.ChangeEvent<HTMLInputElement>) {
         const weight = Number(e.target.value)
-        const parentId = this.props.node.path.at(-2)
-        if (!parentId) return
+        const parentId = this.props.parentId
         const childId = this.props.node.id
         this.props.setWeight(parentId, childId, weight)
     }
 
+    // Coparents are the other parents of this node
+    // e.g.
+    //  Health -> Obesity
+    //  Food and Agriculture -> Diet -> Obesity
+    //  If we're on the Health -> Obesity node, coparents = [Diet]
     @computed get coparents() {
         return (this.props.parentsById[this.props.node.id] || []).filter(
             (tag) => tag.id !== this.props.parentId
         )
-    }
-
-    @action.bound setChild(childName: string) {
-        this.isAddingTag = false
-        const tag = this.addableTags.find((t) => t.name === childName)
-        if (!tag) return
-
-        this.props.setChild(this.props.node.id, {
-            childId: tag.id,
-            parentId: this.props.node.id,
-            name: childName,
-            weight: 1,
-            isTopic:
-                this.props.tags.find((t) => t.id === tag.id)?.isTopic || false,
-            slug: "",
-        })
-
-        this.autocompleteValue = ""
     }
 
     get addableTags() {
@@ -179,56 +229,27 @@ class TagGraphNodeContainer extends React.Component<{
                             id={`weight-${serializedPath}`}
                             type="number"
                             value={weight}
-                            onChange={this.updateWeight}
+                            onChange={this.handleUpdateWeight}
                         />
                     </span>
-                    {!this.isAddingTag ? (
-                        <Button
-                            onClick={() => (this.isAddingTag = true)}
-                            type="primary"
-                            className="tag-box__add-child-button"
-                        >
-                            Add child
-                        </Button>
-                    ) : (
-                        <form className="tag-box__add-child-form">
-                            <AutoComplete
-                                className="tag-box__add-child-input"
-                                value={this.autocompleteValue}
-                                onChange={(value) =>
-                                    (this.autocompleteValue = value)
-                                }
-                                options={this.addableTags.map((tag) => ({
-                                    value: tag.name,
-                                    label: tag.name,
-                                }))}
-                                filterOption={(inputValue, option) => {
-                                    if (!option?.label) return false
-                                    return option.label
-                                        .toLowerCase()
-                                        .startsWith(inputValue.toLowerCase())
-                                }}
-                            />
-                            <Button
-                                onClick={() =>
-                                    this.setChild(this.autocompleteValue)
-                                }
-                                disabled={
-                                    !this.addableTags
-                                        .map((t) => t.name)
-                                        .includes(this.autocompleteValue)
-                                }
-                            >
-                                Add
-                            </Button>
-                            <Button onClick={() => (this.isAddingTag = false)}>
-                                Cancel
-                            </Button>
-                        </form>
-                    )}
-
+                    <AddChildForm
+                        label="Add child"
+                        parentId={id}
+                        setChild={this.props.setChild}
+                        tags={this.addableTags}
+                    />
                     <Popconfirm
-                        title="Are you sure you want to remove this tag?"
+                        title={
+                            <div>
+                                <strong>
+                                    Are you sure you want to remove this tag?
+                                </strong>
+                                <div>
+                                    Subgraphs that aren't children of other
+                                    parents will also be removed.
+                                </div>
+                            </div>
+                        }
                         onConfirm={() =>
                             this.props.removeNode(path.at(-2)!, id)
                         }
@@ -288,7 +309,6 @@ export class TagGraphPage extends React.Component {
         this.removeNode = this.removeNode.bind(this)
     }
 
-    @observable isAddingTag: boolean = false
     @observable flatTagGraph: FlatTagGraph = {}
     @observable rootId: number | null = null
     @observable addTagParentId?: number
@@ -319,6 +339,13 @@ export class TagGraphPage extends React.Component {
         return parentsById
     }
 
+    @computed get nonAreaTags() {
+        if (!this.rootId) return []
+        const areaTags = this.flatTagGraph[this.rootId]
+        const areaTagIds = areaTags?.map((tag) => tag.childId) || []
+        return this.tags.filter((tag) => !areaTagIds.includes(tag.id))
+    }
+
     getAllChildrenOfNode(childId: number): FlatTagGraphNode[] {
         const allChildren: FlatTagGraphNode[] =
             toJS(this.flatTagGraph[childId]) || []
@@ -341,8 +368,18 @@ export class TagGraphPage extends React.Component {
         this.flatTagGraph[parentId] = parent.sort(sortByWeightThenName)
     }
 
-    @action.bound setChild(parentId: number, child: FlatTagGraphNode) {
+    @action.bound setChild(parentId: number, childId: number) {
         const siblings = this.flatTagGraph[parentId]
+        const tag = this.tags.find((tag) => tag.id === childId)
+        if (!tag) return
+        const child: FlatTagGraphNode = {
+            childId: tag.id,
+            parentId: parentId,
+            name: tag.name,
+            weight: 1,
+            slug: tag.slug,
+            isTopic: tag.isTopic,
+        }
         if (siblings) {
             this.flatTagGraph[parentId] = insertChildAndSort(siblings, child)
         } else {
@@ -470,9 +507,17 @@ export class TagGraphPage extends React.Component {
                 <main className="TagGraphPage">
                     <header className="page-header">
                         <h2>Tag Graph</h2>
-                        <Button type="primary" onClick={this.saveTagGraph}>
-                            Save
-                        </Button>
+                        <div>
+                            <AddChildForm
+                                tags={this.nonAreaTags}
+                                parentId={this.rootId!}
+                                setChild={this.setChild}
+                                label="Add area"
+                            />
+                            <Button type="primary" onClick={this.saveTagGraph}>
+                                Save
+                            </Button>
+                        </div>
                     </header>
                     <p>
                         Drag and drop tags according to their hierarchy. Top
