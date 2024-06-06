@@ -77,7 +77,6 @@ import {
     PostsGdocsTableName,
     DbPlainDataset,
     DbInsertUser,
-    MinimalTagWithIsTopic,
     FlatTagGraph,
 } from "@ourworldindata/types"
 import {
