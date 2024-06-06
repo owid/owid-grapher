@@ -367,8 +367,8 @@ export const DataPageV2Content = ({
                                                         <ExpandableToggle
                                                             label={
                                                                 datapageData.attributionShort
-                                                                    ? `How does the producer of this data - ${datapageData.attributionShort} - describe this data?`
-                                                                    : "How does the producer of this data describe this data?"
+                                                                    ? `How is this data described by its producer - ${datapageData.attributionShort}?`
+                                                                    : "How is this data described by its producer?"
                                                             }
                                                             content={
                                                                 <div className="article-block__text">
