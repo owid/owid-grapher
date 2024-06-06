@@ -131,6 +131,26 @@ $zindex-controls-popup: 140;
         }
     }
 
+    .menu-group {
+        > label {
+            padding: 0 1em;
+            color: $light-text;
+            font-size: 14px;
+            // text-transform: uppercase;
+        }
+
+        &.is-group section {
+            padding-left: 0.75em;
+        }
+        padding-bottom: 0.25em;
+        margin-bottom: 0.25em;
+        border-bottom: 1px solid rgba($light-stroke, 0.3);
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
     section {
         font: $medium 14px/1.2 $lato;
         color: $dark-text;

@@ -171,35 +171,50 @@ const DimensionDropdown = (props: {
                                 <p>{dimension.description}</p>
                             )}
                             <div className="menu-options">
-                                {Object.values(dimension.choices).map(
-                                    (choice) => (
-                                        <section
-                                            key={choice.slug}
-                                            className={cx({
-                                                active:
-                                                    choice.slug ===
-                                                    props.currentChoiceSlug,
+                                {Object.entries(dimension.choicesByGroup).map(
+                                    ([groupName, groupChoices]) => (
+                                        <div
+                                            key={groupName}
+                                            className={cx("menu-group", {
+                                                "is-group":
+                                                    groupName !== "undefined",
                                             })}
                                         >
-                                            <div className="config-list">
-                                                <button
-                                                    onClick={() => {
-                                                        props.onChange?.(
-                                                            dimension.slug,
-                                                            choice.slug
-                                                        )
-                                                        setActive(false)
-                                                    }}
+                                            {groupName !== "undefined" && (
+                                                <label>{groupName}</label>
+                                            )}
+                                            {groupChoices.map((choice) => (
+                                                <section
+                                                    key={choice.slug}
+                                                    className={cx({
+                                                        active:
+                                                            choice.slug ===
+                                                            props.currentChoiceSlug,
+                                                    })}
                                                 >
-                                                    {choice.name}
-                                                </button>
-                                                {choice.description && (
-                                                    <label className="description">
-                                                        {choice.description}
-                                                    </label>
-                                                )}
-                                            </div>
-                                        </section>
+                                                    <div className="config-list">
+                                                        <button
+                                                            onClick={() => {
+                                                                props.onChange?.(
+                                                                    dimension.slug,
+                                                                    choice.slug
+                                                                )
+                                                                setActive(false)
+                                                            }}
+                                                        >
+                                                            {choice.name}
+                                                        </button>
+                                                        {choice.description && (
+                                                            <label className="description">
+                                                                {
+                                                                    choice.description
+                                                                }
+                                                            </label>
+                                                        )}
+                                                    </div>
+                                                </section>
+                                            ))}
+                                        </div>
                                     )
                                 )}
                             </div>

@@ -6,32 +6,44 @@ dimensions:
       choices:
           - slug: all
             name: All sources
+            group: Aggregates
             description: Total energy use
           - slug: fossil
             name: Fossil fuels
+            group: Aggregates
             description: The sum of coal, oil and gas
           - slug: coal
             name: Coal
+            group: Fossil fuels
           - slug: oil
             name: Oil
+            group: Fossil fuels
           - slug: gas
             name: Gas
+            group: Fossil fuels
           - slug: low-carbon
             name: Low-carbon
+            group: Aggregates
             description: The sum of nuclear and renewable sources
           - slug: nuclear
             name: Nuclear
+            group: Low-carbon & renewables
           - slug: renewable
             name: Renewables (all)
+            group: Aggregates
             description: Includes energy from hydropower, solar, wind, geothermal, wave and tidal, and bioenergy.
           - slug: hydro
             name: Hydropower
+            group: Low-carbon & renewables
           - slug: solar-wind
             name: Solar and wind
+            group: Low-carbon & renewables
           - slug: solar
             name: Solar
+            group: Low-carbon & renewables
           - slug: wind
             name: Wind
+            group: Low-carbon & renewables
     - slug: metric
       name: Metric
       choices:
