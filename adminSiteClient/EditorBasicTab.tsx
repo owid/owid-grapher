@@ -162,7 +162,7 @@ class DimensionSlotView extends React.Component<{
             dimensions: grapher.dimensions.map((dim) => dim.toObject()),
         })
         grapher.seriesColorMap?.clear()
-        this.grapher.rebuildInputOwidTable()
+        //this.grapher.rebuildInputOwidTable()
     }
 
     @action.bound private onDragEnd(result: DropResult) {
