@@ -242,11 +242,12 @@ class TagGraphNodeContainer extends React.Component<{
                         title={
                             <div>
                                 <strong>
-                                    Are you sure you want to remove this tag?
+                                    Are you sure you want to remove this tag
+                                    relationship?
                                 </strong>
                                 <div>
-                                    Subgraphs that aren't children of other
-                                    parents will also be removed.
+                                    Child tag relationships will also be removed
+                                    unless they are referenced elsewhere.
                                 </div>
                             </div>
                         }

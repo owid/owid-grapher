@@ -542,7 +542,6 @@ export function getMinimalTagsWithIsTopic(
         FROM tags t
         LEFT JOIN posts_gdocs_x_tags gt ON t.id = gt.tagId
         LEFT JOIN posts_gdocs pg ON gt.gdocId = pg.id
-        WHERE pg.published = TRUE
         GROUP BY t.id, t.name
         ORDER BY t.name ASC
     `,

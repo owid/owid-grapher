@@ -79,20 +79,20 @@ export class TagsIndexPage extends React.Component {
             <AdminLayout title="Categories">
                 <main className="TagsIndexPage">
                     {this.addTagModal()}
-                    <h2>Tags</h2>
-                    <div className="TagsIndexPage__description">
-                        <p>
-                            This is every single tag we have in the database. To
-                            organise them hierarchically, see the{" "}
-                            <Link to="tag-graph">tag graph</Link>.
-                        </p>
+                    <header className="TagsIndexPage__header">
+                        <h2>Tags</h2>
                         <Button
                             type="primary"
                             onClick={() => (this.isAddingTag = true)}
                         >
                             Add tag
                         </Button>
-                    </div>
+                    </header>
+                    <p>
+                        This is every single tag we have in the database. To
+                        organise them hierarchically, see the{" "}
+                        <Link to="tag-graph">tag graph</Link>.
+                    </p>
                     {this.tags.map((tag) => (
                         <TagBadge
                             key={tag.id}

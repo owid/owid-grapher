@@ -1382,10 +1382,9 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     }
 }
 
-.TagsIndexPage__description {
+.TagsIndexPage__header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 32px;
     p {
         line-height: 32px;
         margin: 0;
