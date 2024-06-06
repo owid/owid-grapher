@@ -2051,29 +2051,8 @@ postRouteWithRWTransaction(
     }
 )
 
-getRouteWithROTransaction(apiRouter, "/tags.json", async (req, res, trx) => {
-    const tags = await db.knexRaw<MinimalTagWithIsTopic>(
-        trx,
-        `-- sql
-        SELECT t.id, t.name, t.id, MAX(IF(pg.type IN (:types), TRUE, FALSE)) AS isTopic
-        FROM tags t
-        LEFT JOIN posts_gdocs_x_tags gt ON t.id = gt.tagId
-        LEFT JOIN posts_gdocs pg ON gt.gdocId = pg.id
-        GROUP BY t.id, t.name
-        ORDER BY t.name ASC
-    `,
-        {
-            types: [
-                OwidGdocType.TopicPage,
-                OwidGdocType.LinearTopicPage,
-                OwidGdocType.Article,
-            ],
-        }
-    )
-
-    return {
-        tags,
-    }
+getRouteWithROTransaction(apiRouter, "/tags.json", async (_, __, trx) => {
+    return { tags: await db.getMinimalTagsWithIsTopic(trx) }
 })
 
 deleteRouteWithRWTransaction(

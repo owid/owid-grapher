@@ -22,6 +22,7 @@ import {
     TagGraphRootName,
     FlatTagGraph,
     FlatTagGraphNode,
+    MinimalTagWithIsTopic,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash"
 
@@ -472,7 +473,8 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
             tg.weight,
             t.name,
             t.slug,
-            IFNULL((p.type IN (:types) AND p.published = 1), FALSE) AS isTopic
+            -- TODO: fix empty slug tricking this into thinking it's a topic
+            IFNULL((p.type IN (:types) AND p.published = 1 AND t.slug IS NOT NULL), FALSE) AS isTopic
         FROM
             tag_graph tg
         LEFT JOIN tags t ON
@@ -525,4 +527,31 @@ export async function updateTagGraph(
 
     await knex("tag_graph").delete()
     await knex("tag_graph").insert(tagGraphRows)
+}
+
+export function getMinimalTagsWithIsTopic(
+    knex: KnexReadonlyTransaction
+): Promise<MinimalTagWithIsTopic[]> {
+    return knexRaw<MinimalTagWithIsTopic>(
+        knex,
+        `-- sql
+        SELECT t.id, 
+        t.name, 
+        t.slug, 
+        t.slug IS NOT NULL AND MAX(IF(pg.type IN (:types), TRUE, FALSE)) AS isTopic
+        FROM tags t
+        LEFT JOIN posts_gdocs_x_tags gt ON t.id = gt.tagId
+        LEFT JOIN posts_gdocs pg ON gt.gdocId = pg.id
+        WHERE pg.published = TRUE
+        GROUP BY t.id, t.name
+        ORDER BY t.name ASC
+    `,
+        {
+            types: [
+                OwidGdocType.TopicPage,
+                OwidGdocType.LinearTopicPage,
+                OwidGdocType.Article,
+            ],
+        }
+    )
 }
