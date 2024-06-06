@@ -86,6 +86,7 @@ export default function OwidGdocPage({
     const canonicalUrl = getCanonicalUrl(baseUrl, gdoc)
     const pageTitle = getPageTitle(gdoc)
     const isDataInsight = gdoc.content.type === OwidGdocType.DataInsight
+    const isAuthor = gdoc.content.type === OwidGdocType.Author
 
     return (
         <html>
@@ -102,12 +103,14 @@ export default function OwidGdocPage({
                 atom={isDataInsight ? DATA_INSIGHT_ATOM_FEED_PROPS : undefined}
                 baseUrl={baseUrl}
             >
-                <CitationMeta
-                    title={content.title || ""}
-                    authors={content.authors}
-                    date={updatedAt || createdAt}
-                    canonicalUrl={canonicalUrl}
-                />
+                {!isAuthor && (
+                    <CitationMeta
+                        title={content.title || ""}
+                        authors={content.authors}
+                        date={updatedAt || createdAt}
+                        canonicalUrl={canonicalUrl}
+                    />
+                )}
 
                 <script
                     dangerouslySetInnerHTML={{
