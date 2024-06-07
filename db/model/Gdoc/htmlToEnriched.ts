@@ -36,6 +36,8 @@ import {
     EnrichedBlockBlockquote,
     EnrichedBlockHorizontalRule,
     traverseEnrichedSpan,
+    EnrichedBlockTopicPageIntro,
+    EnrichedTopicPageIntroRelatedTopic,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import {
@@ -814,6 +816,51 @@ function finishWpComponent(
             return {
                 errors: [],
                 content: [graySection],
+            }
+        })
+        .with("owid/front-matter", () => {
+            const stickyRight = content.content.find(
+                (block) =>
+                    isArchieMlComponent(block) && block.type === "sticky-right"
+            ) as EnrichedBlockStickyRightContainer | undefined
+
+            const gdocTopicPageIntroContent = get(
+                stickyRight,
+                "left",
+                []
+            ) as EnrichedBlockText[]
+
+            const wpRelatedTopics = get(stickyRight, "right", []).find(
+                (block) => block.type === "list"
+            ) as EnrichedBlockList | undefined
+
+            const gdocRelatedTopics: EnrichedTopicPageIntroRelatedTopic[] = []
+            if (wpRelatedTopics) {
+                wpRelatedTopics.items.forEach((item) => {
+                    if (item.type === "text") {
+                        const value = item.value[0]
+                        if (checkNodeIsSpanLink(value)) {
+                            gdocRelatedTopics.push({
+                                url: value.url,
+                                text: spansToUnformattedPlainText(
+                                    value.children
+                                ),
+                                type: "topic-page-intro-related-topic",
+                            })
+                        }
+                    }
+                })
+            }
+
+            const topicPageIntro: EnrichedBlockTopicPageIntro = {
+                type: "topic-page-intro",
+                parseErrors: [],
+                relatedTopics: gdocRelatedTopics,
+                content: gdocTopicPageIntroContent,
+            }
+            return {
+                errors: [],
+                content: [topicPageIntro],
             }
         })
         .otherwise(() => {
