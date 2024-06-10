@@ -38,6 +38,10 @@ import {
     traverseEnrichedSpan,
     EnrichedBlockTopicPageIntro,
     EnrichedTopicPageIntroRelatedTopic,
+    EnrichedBlockKeyInsightsSlide,
+    EnrichedBlockKeyInsights,
+    checkIsPlainObjectWithGuard,
+    ParseError,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import {
@@ -271,6 +275,7 @@ type ErrorNames =
     | "summary item doesn't have link"
     | "summary item has DataValue"
     | "unknown content type inside summary block"
+    | "unknown content type inside key-insights block insights array"
 
 interface BlockParseError {
     name: ErrorNames
@@ -864,24 +869,102 @@ function finishWpComponent(
             }
         })
         .with("owid/technical-text", () => {
-            console.log("technical-text content", content)
+            const text = []
+            for (const block of content.content) {
+                if (isArchieMlComponent(block)) {
+                    if (
+                        block.type === "text" ||
+                        block.type === "list" ||
+                        block.type === "heading"
+                    ) {
+                        text.push(block)
+                    }
+                }
+            }
+            const callout: EnrichedBlockCallout = {
+                type: "callout",
+                title: "What you should know about this data",
+                text,
+                parseErrors: [],
+            }
+
             return {
                 errors: [],
-                content: [],
+                content: callout,
             }
         })
         .with("owid/key-insight", () => {
-            console.log("key-insight content", content)
+            const title = get(details, "attributes.title", "") as string
+            const text: OwidEnrichedGdocBlock[] = []
+            for (const block of content.content) {
+                if (
+                    isArchieMlComponent(block) &&
+                    block.type !== "image" &&
+                    block.type !== "chart"
+                ) {
+                    text.push(block)
+                }
+            }
+            const keyInsightSlide: EnrichedBlockKeyInsightsSlide = {
+                title,
+                type: "key-insight-slide",
+                content: text,
+            }
+            const chartOrImage = content.content.find((block) => {
+                return (
+                    isArchieMlComponent(block) &&
+                    (block.type === "chart" || block.type === "image")
+                )
+            }) as EnrichedBlockChart | EnrichedBlockImage | undefined
+            if (chartOrImage) {
+                if (chartOrImage.type === "chart") {
+                    keyInsightSlide["url"] = chartOrImage.url
+                }
+                if (chartOrImage.type === "image") {
+                    keyInsightSlide["filename"] = chartOrImage.filename
+                }
+            }
+
             return {
                 errors: [],
-                content: [],
+                content: [keyInsightSlide],
             }
         })
         .with("owid/key-insights-slider", () => {
-            console.log("key-insights-slider content", content)
+            const heading = get(
+                details,
+                "attributes.title",
+                "Key insights"
+            ) as string
+            const insights: EnrichedBlockKeyInsightsSlide[] = []
+            const errors: BlockParseError[] = []
+            function isKeyInsightSlide(
+                block: unknown
+            ): block is EnrichedBlockKeyInsightsSlide {
+                return (
+                    checkIsPlainObjectWithGuard(block) &&
+                    block["type"] === "key-insight-slide"
+                )
+            }
+            for (const block of content.content) {
+                if (isKeyInsightSlide(block)) {
+                    insights.push(block)
+                } else {
+                    errors.push({
+                        name: "unknown content type inside key-insights block insights array",
+                        details: `Expected key-insight-slide, got ${block}`,
+                    })
+                }
+            }
+            const keyInsightBlock: EnrichedBlockKeyInsights = {
+                type: "key-insights",
+                heading,
+                insights,
+                parseErrors: [],
+            }
             return {
-                errors: [],
-                content: [],
+                errors,
+                content: [keyInsightBlock],
             }
         })
         .otherwise(() => {
