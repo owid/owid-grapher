@@ -246,6 +246,7 @@ export {
     countries,
     type Country,
     getCountryBySlug,
+    getCountryByName,
     getRegionByNameOrVariantName,
     isCountryName,
     continents,
