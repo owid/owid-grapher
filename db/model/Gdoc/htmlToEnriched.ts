@@ -863,6 +863,27 @@ function finishWpComponent(
                 content: [topicPageIntro],
             }
         })
+        .with("owid/technical-text", () => {
+            console.log("technical-text content", content)
+            return {
+                errors: [],
+                content: [],
+            }
+        })
+        .with("owid/key-insight", () => {
+            console.log("key-insight content", content)
+            return {
+                errors: [],
+                content: [],
+            }
+        })
+        .with("owid/key-insights-slider", () => {
+            console.log("key-insights-slider content", content)
+            return {
+                errors: [],
+                content: [],
+            }
+        })
         .otherwise(() => {
             return {
                 errors: [
