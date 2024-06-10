@@ -925,6 +925,7 @@ class LabelledSlopes
                 ...valueLabelProps,
                 maxWidth,
                 fontWeight: 700,
+                separators: [" ", "-"],
             }
             const leftEntityLabel = new TextWrap({
                 text,
