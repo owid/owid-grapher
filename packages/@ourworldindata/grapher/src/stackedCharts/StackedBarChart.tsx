@@ -39,11 +39,17 @@ import {
 } from "./AbstractStackedChart"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { VerticalAxis } from "../axis/Axis"
-import { ColorSchemeName, VerticalAlign } from "@ourworldindata/types"
+import {
+    ColorSchemeName,
+    HorizontalAlign,
+    VerticalAlign,
+} from "@ourworldindata/types"
 import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
 import { ColumnTypeMap } from "@ourworldindata/core-table"
+import { HorizontalCategoricalColorLegend } from "../horizontalColorLegend/HorizontalColorLegends"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     bar: StackedPoint<Time>
@@ -159,8 +165,22 @@ export class StackedBarChart
         )
     }
 
-    @computed protected get paddingForLegend(): number {
-        return this.sidebarWidth + 20
+    @computed private get showHorizontalLegend(): boolean {
+        return !!(this.manager.isSemiNarrow || this.manager.isStaticAndSmall)
+    }
+
+    @computed get legendAlign(): HorizontalAlign {
+        return HorizontalAlign.left
+    }
+
+    @computed protected get paddingForLegendRight(): number {
+        return this.showHorizontalLegend ? 0 : this.sidebarWidth + 20
+    }
+
+    @computed protected get paddingForLegendTop(): number {
+        return this.showHorizontalLegend
+            ? this.horizontalColorLegend.height + 8
+            : 0
     }
 
     @computed get shouldRunLinearInterpolation(): boolean {
@@ -207,7 +227,9 @@ export class StackedBarChart
         )
     }
 
-    @computed get legendItems(): LegendItem[] {
+    // used by <VerticalColorLegend />
+    @computed get legendItems(): (LegendItem &
+        Required<Pick<LegendItem, "label">>)[] {
         return this.series
             .map((series) => {
                 return {
@@ -218,27 +240,59 @@ export class StackedBarChart
             .reverse() // Vertical legend orders things in the opposite direction we want
     }
 
+    // used by <HorizontalCategoricalColorLegend />
+    @computed get categoricalLegendData(): CategoricalBin[] {
+        return this.legendItems.map(
+            (legendItem, index) =>
+                new CategoricalBin({
+                    index,
+                    value: legendItem.label,
+                    label: legendItem.label,
+                    color: legendItem.color,
+                })
+        )
+    }
+
+    @computed get legendWidth(): number {
+        return this.showHorizontalLegend
+            ? this.bounds.width
+            : this.verticalColorLegend.width
+    }
+
     @computed get maxLegendWidth(): number {
-        return this.sidebarMaxWidth
+        return this.showHorizontalLegend
+            ? this.bounds.width
+            : this.sidebarMaxWidth
     }
 
     @computed get sidebarMaxWidth(): number {
         return this.bounds.width / 5
     }
+
     @computed get sidebarMinWidth(): number {
         return 100
     }
+
     @computed get sidebarWidth(): number {
         if (!this.manager.showLegend) return 0
-        const { sidebarMinWidth, sidebarMaxWidth, legendDimensions } = this
+        const {
+            sidebarMinWidth,
+            sidebarMaxWidth,
+            verticalColorLegend: legendDimensions,
+        } = this
         return Math.max(
             Math.min(legendDimensions.width, sidebarMaxWidth),
             sidebarMinWidth
         )
     }
 
-    @computed private get legendDimensions(): VerticalColorLegend {
+    @computed private get verticalColorLegend(): VerticalColorLegend {
         return new VerticalColorLegend({ manager: this })
+    }
+
+    @computed
+    private get horizontalColorLegend(): HorizontalCategoricalColorLegend {
+        return new HorizontalCategoricalColorLegend({ manager: this })
     }
 
     @computed get tooltip(): React.ReactElement | undefined {
@@ -366,8 +420,12 @@ export class StackedBarChart
         return tickPlacements.filter((t) => !t.isHidden)
     }
 
-    @action.bound onLegendMouseOver(color: string): void {
-        this.hoverColor = color
+    // Both legend managers accept a `onLegendMouseOver` property, but define different signatures.
+    // The <HorizontalCategoricalColorLegend /> component expects a string,
+    // the <VerticalColorLegend /> component expects a ColorScaleBin.
+    @action.bound onLegendMouseOver(binOrColor: string | ColorScaleBin): void {
+        this.hoverColor =
+            typeof binOrColor === "string" ? binOrColor : binOrColor.color
     }
 
     @action.bound onLegendMouseLeave(): void {
@@ -429,6 +487,12 @@ export class StackedBarChart
         const axisLineWidth = manager.isStaticAndSmall
             ? GRAPHER_AXIS_LINE_WIDTH_THICK
             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+
+        const legend = this.showHorizontalLegend ? (
+            <HorizontalCategoricalColorLegend manager={this} />
+        ) : (
+            <VerticalColorLegend manager={this} />
+        )
 
         return (
             <g
@@ -549,9 +613,7 @@ export class StackedBarChart
                     })}
                 </g>
 
-                {this.manager.showLegend && (
-                    <VerticalColorLegend manager={this} />
-                )}
+                {this.manager.showLegend && legend}
                 {tooltip}
             </g>
         )
@@ -562,7 +624,9 @@ export class StackedBarChart
     }
 
     @computed get legendX(): number {
-        return this.bounds.right - this.sidebarWidth
+        return this.showHorizontalLegend
+            ? this.bounds.left
+            : this.bounds.right - this.sidebarWidth
     }
 
     @computed private get xValues(): number[] {

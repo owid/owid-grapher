@@ -69,7 +69,6 @@ import { NoDataSection } from "../scatterCharts/NoDataSection"
 
 export interface SlopeChartManager extends ChartManager {
     isModalOpen?: boolean
-    isSemiNarrow?: boolean
 }
 
 const LABEL_SLOPE_PADDING = 8

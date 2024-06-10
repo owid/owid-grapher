@@ -314,7 +314,7 @@ export class StackedAreaChart
 
     @observable hoverSeriesName?: SeriesName
 
-    @computed protected get paddingForLegend(): number {
+    @computed protected get paddingForLegendRight(): number {
         const { legendDimensions } = this
         return legendDimensions ? legendDimensions.width : 0
     }
