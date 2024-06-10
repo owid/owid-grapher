@@ -730,7 +730,7 @@ export class LineChart
     }
 
     @computed private get lineLegendDimensions(): LineLegend | undefined {
-        return this.manager.hideLegend
+        return !this.manager.showLegend
             ? undefined
             : new LineLegend({ manager: this })
     }
@@ -763,8 +763,6 @@ export class LineChart
             this
 
         const comparisonLines = manager.comparisonLines || []
-
-        const showLegend = !manager.hideLegend
 
         // The tiny bit of extra space in the clippath is to ensure circles centered on the very edge are still fully visible
         return (
@@ -808,7 +806,7 @@ export class LineChart
                             baseFontSize={this.fontSize}
                         />
                     ))}
-                    {showLegend && <LineLegend manager={this} />}
+                    {manager.showLegend && <LineLegend manager={this} />}
                     <Lines
                         dualAxis={dualAxis}
                         placedSeries={this.placedSeries}
@@ -898,7 +896,7 @@ export class LineChart
     // Color legend props
 
     @computed private get hasColorLegend(): boolean {
-        return this.hasColorScale && !this.manager.hideLegend
+        return this.hasColorScale && !!this.manager.showLegend
     }
 
     @computed get legendX(): number {
@@ -934,7 +932,7 @@ export class LineChart
     legendTickSize = 1
 
     @computed get numericLegend(): HorizontalNumericColorLegend | undefined {
-        return this.hasColorScale && !this.manager.hideLegend
+        return this.hasColorScale && this.manager.showLegend
             ? new HorizontalNumericColorLegend({ manager: this })
             : undefined
     }
@@ -1157,7 +1155,7 @@ export class LineChart
                 color,
                 seriesName,
                 // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
-                label: this.manager.hideLegend ? "" : `${seriesName}`,
+                label: !this.manager.showLegend ? "" : `${seriesName}`,
                 annotation: this.getAnnotationsForSeries(seriesName),
                 yValue: lastValue,
             }
@@ -1242,7 +1240,7 @@ export class LineChart
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
-        if (this.manager.hideLegend) {
+        if (!this.manager.showLegend) {
             const numericLegendData = this.hasColorScale
                 ? this.numericLegendData
                 : []

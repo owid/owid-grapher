@@ -684,6 +684,25 @@ export class Grapher
         return this.xAxis.toObject()
     }
 
+    @computed get showLegend(): boolean {
+        // hide the legend for stacked bar charts
+        // if the legend only ever shows a single entity
+        if (this.isStackedBar) {
+            const seriesStrategy =
+                this.chartInstance.seriesStrategy ||
+                autoDetectSeriesStrategy(this, true)
+            const hasSingleEntity =
+                this.selection.selectedEntityNames.length === 1 &&
+                (this.hideEntityControls || !this.canAddEntities)
+            const hideLegend =
+                this.hideLegend ||
+                (seriesStrategy === SeriesStrategy.entity && hasSingleEntity)
+            return !hideLegend
+        }
+
+        return !this.hideLegend
+    }
+
     // table that is used for display in the table tab
     @computed get tableForDisplay(): OwidTable {
         const table = this.table
@@ -1371,7 +1390,7 @@ export class Grapher
         return !!(
             !this.forceHideAnnotationFieldsInTitle?.entity &&
             this.tab === GrapherTabOption.chart &&
-            (seriesStrategy !== SeriesStrategy.entity || this.hideLegend) &&
+            (seriesStrategy !== SeriesStrategy.entity || !this.showLegend) &&
             selectedEntityNames.length === 1 &&
             (showEntityAnnotation ||
                 this.canChangeEntity ||
