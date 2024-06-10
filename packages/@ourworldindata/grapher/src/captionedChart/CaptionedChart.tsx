@@ -27,15 +27,6 @@ import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FacetChart } from "../facetChart/FacetChart"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import {
-    EntitySelectionToggle,
-    EntitySelectionManager,
-} from "../controls/EntitySelectionToggle"
-import {
-    MapProjectionMenu,
-    MapProjectionMenuManager,
-} from "../controls/MapProjectionMenu"
-import { SettingsMenu, SettingsMenuManager } from "../controls/SettingsMenu"
 import { FooterManager } from "../footer/FooterManager"
 import { HeaderManager } from "../header/HeaderManager"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -48,14 +39,14 @@ import {
 } from "@ourworldindata/types"
 import { DataTable, DataTableManager } from "../dataTable/DataTable"
 import {
-    ContentSwitchers,
-    ContentSwitchersManager,
-} from "../controls/ContentSwitchers"
-import {
     TimelineComponent,
     TIMELINE_HEIGHT,
 } from "../timeline/TimelineComponent"
 import { TimelineController } from "../timeline/TimelineController"
+import {
+    ControlsRow,
+    ControlsRowManager,
+} from "../controls/controlsRow/ControlsRow"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -63,10 +54,7 @@ export interface CaptionedChartManager
         FooterManager,
         HeaderManager,
         DataTableManager,
-        ContentSwitchersManager,
-        EntitySelectionManager,
-        MapProjectionMenuManager,
-        SettingsMenuManager {
+        ControlsRowManager {
     containerElement?: HTMLDivElement
     bakedGrapherURL?: string
     isReady?: boolean
@@ -207,22 +195,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return !this.manager.isOnMapTab && hasStrategy
     }
 
-    @computed get showContentSwitchers(): boolean {
-        return (this.manager.availableTabs?.length ?? 0) > 1
-    }
-
-    @computed get showControls(): boolean {
-        return (
-            SettingsMenu.shouldShow(this.manager) ||
-            EntitySelectionToggle.shouldShow(this.manager) ||
-            MapProjectionMenu.shouldShow(this.manager)
-        )
-    }
-
-    @computed get showControlsRow(): boolean {
-        return this.showContentSwitchers || this.showControls
-    }
-
     @computed get chartTypeName(): ChartTypeName {
         const { manager } = this
         return this.manager.isOnMapTab
@@ -274,44 +246,23 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return this.manager.isMedium ? 24 : 28
     }
 
-    @computed private get sidePanelWidth(): number {
-        return this.manager.sidePanelBounds?.width ?? 0
+    @computed private get showControlsRow(): boolean {
+        return ControlsRow.shouldShow(this.manager)
     }
 
     private renderControlsRow(): React.ReactElement {
-        const { showEntitySelectionToggle } = this.manager
         return (
-            <nav
-                className="controlsRow"
-                style={{ padding: `0 ${this.framePaddingHorizontal}px` }}
-            >
-                <div>
-                    {this.showContentSwitchers && (
-                        <ContentSwitchers manager={this.manager} />
-                    )}
-                </div>
-                <div className="chart-controls">
-                    {showEntitySelectionToggle && (
-                        <EntitySelectionToggle manager={this.manager} />
-                    )}
-
-                    <SettingsMenu
-                        manager={this.manager}
-                        top={
-                            this.framePaddingVertical +
-                            this.header.height +
-                            this.verticalPadding +
-                            CONTROLS_ROW_HEIGHT +
-                            4 // margin between button and menu
-                        }
-                        bottom={this.framePaddingVertical}
-                        right={
-                            this.sidePanelWidth + this.framePaddingHorizontal
-                        }
-                    />
-                    <MapProjectionMenu manager={this.manager} />
-                </div>
-            </nav>
+            <ControlsRow
+                manager={this.manager}
+                maxWidth={this.maxWidth}
+                settingsMenuTop={
+                    this.framePaddingVertical +
+                    this.header.height +
+                    this.verticalPadding +
+                    CONTROLS_ROW_HEIGHT +
+                    4 // margin between button and menu
+                }
+            />
         )
     }
 

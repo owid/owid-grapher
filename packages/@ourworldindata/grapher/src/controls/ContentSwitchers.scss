@@ -1,4 +1,10 @@
 .ContentSwitchers {
+    // keep in sync with variables in ContentSwitchers.tsx
+    $font-size: 13px;
+    $icon-width: 13px;
+    $icon-padding: 6px;
+    --outer-padding: 16px;
+
     $light-stroke: #e7e7e7;
 
     $hover-fill: #f2f2f2;
@@ -30,12 +36,12 @@
         display: block;
         text-transform: capitalize;
         color: $light-text;
-        font-size: 13px;
+        font-size: $font-size;
         font-weight: 500;
         height: $height;
         line-height: $height;
         border-radius: $border-radius - $visual-gap;
-        padding: 0 16px;
+        padding: 0 var(--outer-padding);
         cursor: default;
         letter-spacing: 0.01em;
         white-space: nowrap;
@@ -47,14 +53,14 @@
         }
 
         .label {
-            margin-left: 6px;
+            margin-left: $icon-padding;
         }
 
         svg {
             color: $info-icon;
 
             &.custom-icon {
-                --size: 13px;
+                --size: $icon-width;
 
                 display: inline-block;
                 height: var(--size);
@@ -106,6 +112,6 @@
 
 &.GrapherComponentMedium {
     .ContentSwitchers:not(.iconOnly) li > button {
-        padding: 0 8px;
+        --outer-padding: 8px;
     }
 }

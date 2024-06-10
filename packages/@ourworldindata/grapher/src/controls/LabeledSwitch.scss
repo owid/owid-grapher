@@ -13,6 +13,9 @@ $lato: $sans-serif-font-stack;
     .settings-menu-contents {
         // on/off switch with label written to the right
         .labeled-switch {
+            // keep in sync with TableFilterToggle.tsx
+            // where the width of a labeled switch is calculated
+
             display: flex;
             color: $light-text;
             font: $medium 13px/16px $lato;
