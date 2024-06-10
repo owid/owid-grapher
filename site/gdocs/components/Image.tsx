@@ -31,7 +31,14 @@ const gridSpan6 = generateResponsiveSizes(6)
 const gridSpan7 = generateResponsiveSizes(7)
 const gridSpan8 = generateResponsiveSizes(8)
 
-type ImageParentContainer = Container | "thumbnail" | "full-width"
+export type ImageParentContainer =
+    | Container
+    | "thumbnail"
+    | "full-width"
+    | "span-5"
+    | "span-6"
+    | "span-7"
+    | "span-8"
 
 const containerSizes: Record<ImageParentContainer, string> = {
     ["default"]: gridSpan8,
@@ -46,6 +53,10 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["full-width"]: "100vw",
     ["key-insight"]: gridSpan5,
     ["author-header"]: gridSpan2,
+    ["span-5"]: gridSpan5,
+    ["span-6"]: gridSpan6,
+    ["span-7"]: gridSpan7,
+    ["span-8"]: gridSpan8,
 }
 
 export default function Image(props: {
