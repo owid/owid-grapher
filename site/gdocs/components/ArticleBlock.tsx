@@ -126,7 +126,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["prominent-link"]: "grid grid-cols-5 span-cols-5 span-md-cols-10 grid-md-cols-10 span-sm-cols-12 grid-sm-cols-12",
     },
     ["sticky-right-left-heading-column"]: {
-        ["default"]: "span-rows-1 span-cols-5 col-start-1 span-md-cols-12"
+        ["default"]: "span-cols-5 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1"
     },
     ["sticky-right-right-column"]: {
         ["chart"]: "span-cols-7 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
@@ -480,7 +480,7 @@ export default function ArticleBlock({
                                 containerType
                             ),
                             {
-                                "grid-row-start-2 grid-sm-row-start-auto":
+                                "grid-row-start-2 grid-md-row-start-auto":
                                     separateHeading,
                             }
                         )}

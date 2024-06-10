@@ -163,8 +163,8 @@ $grid-responsive: (lg, md, sm);
     grid-row-start: 2;
 }
 
-.grid-sm-row-start-auto {
-    @include breakpoint-max(sm) {
+.grid-md-row-start-auto {
+    @include breakpoint-max(md) {
         grid-row-start: auto;
     }
 }
