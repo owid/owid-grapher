@@ -499,12 +499,22 @@ export class LineLegend extends React.Component<{
                 })
 
                 // pick the candidate with the highest score
-                const maxCandidate = maxBy(candidateScores, (s) => s[1])![0]
-                const picked = maybePickCandidate(maxCandidate)
+                // that fits into the available space
+                let picked = false
+                while (!picked && candidateScores.length > 0) {
+                    const maxCandidateArr = maxBy(candidateScores, (s) => s[1])!
+                    const maxCandidate = maxCandidateArr[0]
+                    picked = maybePickCandidate(maxCandidate)
 
-                // if the highest scoring candidate doesn't fit,
-                // remove it from the candidates and continue
-                if (!picked) candidates.delete(maxCandidate)
+                    // if the highest scoring candidate doesn't fit,
+                    // remove it from the candidates and continue
+                    if (!picked) {
+                        candidates.delete(maxCandidate)
+
+                        const cIndex = candidateScores.indexOf(maxCandidateArr)
+                        if (cIndex > -1) candidateScores.splice(cIndex, 1)
+                    }
+                }
             }
 
             return sortedKeepSeries
