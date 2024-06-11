@@ -707,7 +707,7 @@ class ChoroplethMap extends React.Component<{
             Africa: { x: 0.49, y: 0.7, width: 0.21, height: 0.38 },
             NorthAmerica: { x: 0.49, y: 0.4, width: 0.19, height: 0.32 },
             SouthAmerica: { x: 0.52, y: 0.815, width: 0.1, height: 0.26 },
-            Asia: { x: 0.75, y: 0.45, width: 0.3, height: 0.5 },
+            Asia: { x: 0.74, y: 0.45, width: 0.36, height: 0.5 },
             Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2 },
         }
 
