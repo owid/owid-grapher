@@ -57,7 +57,6 @@ import {
 } from "lodash"
 import cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
-import { parse } from "dotenv"
 
 //#region Spans
 function spanFallback(element: CheerioElement): SpanFallback {
@@ -280,6 +279,8 @@ type ErrorNames =
     | "summary item has DataValue"
     | "unknown content type inside summary block"
     | "unknown content type inside key-insights block insights array"
+    | "card missing attributes"
+    | "card missing title or linkUrl"
 
 interface BlockParseError {
     name: ErrorNames
@@ -893,7 +894,7 @@ function finishWpComponent(
 
             return {
                 errors: [],
-                content: callout,
+                content: [callout],
             }
         })
         .with("owid/key-insight", () => {
@@ -908,11 +909,14 @@ function finishWpComponent(
                     text.push(block)
                 }
             }
-            const keyInsightSlide: EnrichedBlockKeyInsightsSlide = {
+            const keyInsightSlide = {
                 title,
                 type: "key-insight-slide",
                 content: text,
-            }
+                // Casting as any because this isn't a complete OwidEnrichedGdocBlock - it's only valid inside a key-insights block
+                // So it doesn't have all the properties of a regular block, and adding them would require supporting it
+                // throughout the entire pipeline
+            } as any
             const chartOrImage = content.content.find((block) => {
                 return (
                     isArchieMlComponent(block) &&
@@ -977,7 +981,7 @@ function finishWpComponent(
                         {
                             name: "card missing attributes",
                             details: `Card is missing attributes`,
-                        },
+                        } as BlockParseError,
                     ],
                     content: [],
                 }
@@ -993,7 +997,7 @@ function finishWpComponent(
                         {
                             name: "card missing title or linkUrl",
                             details: `Card is missing title or linkUrl`,
-                        },
+                        } as BlockParseError,
                     ],
                     content: [],
                 }
@@ -1020,16 +1024,18 @@ function finishWpComponent(
                 }
             }
 
-            const link: EnrichedBlockResearchAndWritingLink = {
+            // Casting as any because this isn't a complete OwidEnrichedGdocBlock - it's only valid inside a research-and-writing block
+            // So it doesn't have all the properties of a regular block, and adding them would require supporting it
+            // throughout the entire pipeline
+            const link = {
                 value: {
                     url: linkUrl,
                     authors,
                     title,
                     subtitle,
                     filename: filename,
-                    date: "string",
                 },
-            }
+            } as any
             return {
                 errors: [],
                 content: [link],
