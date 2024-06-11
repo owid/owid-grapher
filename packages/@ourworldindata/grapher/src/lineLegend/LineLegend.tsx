@@ -10,6 +10,10 @@ import {
     sumBy,
     flatten,
     makeIdForHumanConsumption,
+    excludeUndefined,
+    sortedIndexBy,
+    last,
+    maxBy,
 } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
@@ -44,10 +48,10 @@ interface SizedSeries extends LineLabelSeries {
 interface PlacedSeries extends SizedSeries {
     origBounds: Bounds
     bounds: Bounds
-    isOverlap: boolean
     repositions: number
     level: number
     totalLevels: number
+    midY: number
 }
 
 function groupBounds(group: PlacedSeries[]): Bounds {
@@ -168,6 +172,8 @@ export interface LineLegendManager {
     focusedSeriesNames: EntityName[]
     yAxis: VerticalAxis
     lineLegendX?: number
+    // used to determine which series should be labelled when there is limited space
+    seriesSortedByImportance?: EntityName[]
 }
 
 @observer
@@ -256,47 +262,53 @@ export class LineLegend extends React.Component<{
         const { yAxis } = this.manager
         const { legendX } = this
 
-        return sortBy(
-            this.sizedLabels.map((label) => {
-                // place vertically centered at Y value
-                const initialY = yAxis.place(label.yValue) - label.height / 2
-                const origBounds = new Bounds(
-                    legendX,
-                    initialY,
-                    label.width,
-                    label.height
-                )
+        return this.sizedLabels.map((label) => {
+            // place vertically centered at Y value
+            const midY = yAxis.place(label.yValue)
+            const initialY = midY - label.height / 2
+            const origBounds = new Bounds(
+                legendX,
+                initialY,
+                label.width,
+                label.height
+            )
 
-                // ensure label doesn't go beyond the top or bottom of the chart
-                const y = Math.min(
-                    Math.max(initialY, yAxis.rangeMin),
-                    yAxis.rangeMax - label.height
-                )
-                const bounds = new Bounds(legendX, y, label.width, label.height)
+            // ensure label doesn't go beyond the top or bottom of the chart
+            const y = Math.min(
+                Math.max(initialY, yAxis.rangeMin),
+                yAxis.rangeMax - label.height
+            )
+            const bounds = new Bounds(legendX, y, label.width, label.height)
 
-                return {
-                    ...label,
-                    y,
-                    origBounds,
-                    bounds,
-                    isOverlap: false,
-                    repositions: 0,
-                    level: 0,
-                    totalLevels: 0,
-                }
-
-                // Ensure list is sorted by the visual position in ascending order
-            }),
-            (label) => yAxis.place(label.yValue)
-        )
+            return {
+                ...label,
+                y,
+                midY,
+                origBounds,
+                bounds,
+                repositions: 0,
+                level: 0,
+                totalLevels: 0,
+            }
+        })
     }
 
-    @computed get standardPlacement(): PlacedSeries[] {
+    @computed get initialSeriesByName(): Map<EntityName, PlacedSeries> {
+        return new Map(this.initialSeries.map((d) => [d.seriesName, d]))
+    }
+
+    @computed get placedSeries(): PlacedSeries[] {
         const { yAxis } = this.manager
 
-        const groups: PlacedSeries[][] = cloneDeep(this.initialSeries).map(
-            (mark) => [mark]
+        // ensure list is sorted by the visual position in ascending order
+        const sortedSeries = sortBy(
+            this.partialInitialSeries,
+            (label) => label.midY
         )
+
+        const groups: PlacedSeries[][] = cloneDeep(sortedSeries).map((mark) => [
+            mark,
+        ])
 
         let hasOverlap
 
@@ -360,49 +372,170 @@ export class LineLegend extends React.Component<{
         return flatten(groups)
     }
 
-    // Overlapping placement, for when we really can't find a solution without overlaps.
-    @computed get overlappingPlacement(): PlacedSeries[] {
-        const series = cloneDeep(this.initialSeries)
-        for (let i = 0; i < series.length; i++) {
-            const m1 = series[i]
-
-            for (let j = i + 1; j < series.length; j++) {
-                const m2 = series[j]
-                const isOverlap =
-                    !m1.isOverlap && m1.bounds.intersects(m2.bounds)
-                if (isOverlap) m2.isOverlap = true
-            }
-        }
-        return series
+    @computed get sortedSeriesByImportance(): PlacedSeries[] | undefined {
+        if (!this.manager.seriesSortedByImportance) return undefined
+        return excludeUndefined(
+            this.manager.seriesSortedByImportance.map((seriesName) =>
+                this.initialSeriesByName.get(seriesName)
+            )
+        )
     }
 
-    @computed get placedSeries(): PlacedSeries[] {
+    @computed get partialInitialSeries(): PlacedSeries[] {
+        const availableHeight = this.manager.yAxis.rangeSize
         const nonOverlappingMinHeight =
             sumBy(this.initialSeries, (series) => series.bounds.height) +
             this.initialSeries.length * LEGEND_ITEM_MIN_SPACING
-        const availableHeight = this.manager.yAxis.rangeSize
-        if (nonOverlappingMinHeight > availableHeight)
-            return this.overlappingPlacement
-        return this.standardPlacement
+
+        // early return if filtering is not needed
+        if (nonOverlappingMinHeight <= availableHeight)
+            return this.initialSeries
+
+        if (this.sortedSeriesByImportance) {
+            // keep a subset of series that fit within the available height,
+            // prioritizing by importance. Note that more important (but longer)
+            // series names are skipped if they don't fit.
+            const keepSeries: PlacedSeries[] = []
+            let keepSeriesHeight = 0
+            for (const series of this.sortedSeriesByImportance) {
+                const newHeight =
+                    keepSeriesHeight +
+                    series.bounds.height +
+                    LEGEND_ITEM_MIN_SPACING
+                if (newHeight <= availableHeight) {
+                    keepSeries.push(series)
+                    keepSeriesHeight = newHeight
+                    if (keepSeriesHeight > availableHeight) break
+                }
+            }
+            return keepSeries
+        } else {
+            const candidates = new Set<PlacedSeries>(this.initialSeries)
+            const sortedKeepSeries: PlacedSeries[] = []
+
+            let keepSeriesHeight = 0
+
+            const maybePickCandidate = (candidate: PlacedSeries): boolean => {
+                const newHeight =
+                    keepSeriesHeight +
+                    candidate.bounds.height +
+                    LEGEND_ITEM_MIN_SPACING
+                if (newHeight <= availableHeight) {
+                    const insertIndex = sortedIndexBy(
+                        sortedKeepSeries,
+                        candidate,
+                        (s) => s.midY
+                    )
+                    sortedKeepSeries.splice(insertIndex, 0, candidate)
+                    candidates.delete(candidate)
+                    keepSeriesHeight = newHeight
+                    return true
+                }
+                return false
+            }
+
+            type Bracket = [number, number]
+            const findBracket = (
+                sortedBrackets: Bracket[],
+                n: number
+            ): [number | undefined, number | undefined] => {
+                if (sortedBrackets.length === 0) return [undefined, undefined]
+
+                const firstBracketValue = sortedBrackets[0][0]
+                const lastBracketValue = last(sortedBrackets)![1]
+
+                if (n < firstBracketValue) return [undefined, firstBracketValue]
+                if (n >= lastBracketValue) return [lastBracketValue, undefined]
+
+                for (const bracket of sortedBrackets) {
+                    if (n >= bracket[0] && n < bracket[1]) return bracket
+                }
+
+                return [undefined, undefined]
+            }
+
+            const sortedCandidates = sortBy(this.initialSeries, (c) => c.midY)
+
+            // pick two candidates, one from the top and one from the bottom
+            const midIndex = Math.floor((sortedCandidates.length - 1) / 2)
+            for (let startIndex = 0; startIndex <= midIndex; startIndex++) {
+                const endIndex = sortedCandidates.length - 1 - startIndex
+                maybePickCandidate(sortedCandidates[endIndex])
+                if (sortedKeepSeries.length >= 2 || startIndex === endIndex)
+                    break
+                maybePickCandidate(sortedCandidates[startIndex])
+                if (sortedKeepSeries.length >= 2) break
+            }
+
+            while (candidates.size > 0 && keepSeriesHeight <= availableHeight) {
+                const sortedBrackets = sortedKeepSeries
+                    .slice(0, -1)
+                    .map((s, i) => [s.midY, sortedKeepSeries[i + 1].midY])
+                    .filter((bracket) => bracket[0] !== bracket[1]) as Bracket[]
+
+                // score each candidate based on how well it fits into the available space
+                const candidateScores: [PlacedSeries, number][] = Array.from(
+                    candidates
+                ).map((candidate) => {
+                    // find the bracket that the candidate is contained in
+                    const [start, end] = findBracket(
+                        sortedBrackets,
+                        candidate.midY
+                    )
+                    // if no bracket is found, return the worst possible score
+                    if (end === undefined || start === undefined)
+                        return [candidate, 0]
+
+                    // score the candidate based on how far it is from the
+                    // middle of the bracket and how large the bracket is
+                    const length = end - start
+                    const midPoint = start + length / 2
+                    const distanceFromMidPoint = Math.abs(
+                        candidate.midY - midPoint
+                    )
+                    const score = length - distanceFromMidPoint
+
+                    return [candidate, score]
+                })
+
+                // pick the candidate with the highest score
+                // that fits into the available space
+                let picked = false
+                while (!picked && candidateScores.length > 0) {
+                    const maxCandidateArr = maxBy(candidateScores, (s) => s[1])!
+                    const maxCandidate = maxCandidateArr[0]
+                    picked = maybePickCandidate(maxCandidate)
+
+                    // if the highest scoring candidate doesn't fit,
+                    // remove it from the candidates and continue
+                    if (!picked) {
+                        candidates.delete(maxCandidate)
+
+                        const cIndex = candidateScores.indexOf(maxCandidateArr)
+                        if (cIndex > -1) candidateScores.splice(cIndex, 1)
+                    }
+                }
+            }
+
+            return sortedKeepSeries
+        }
     }
 
     @computed private get backgroundSeries(): PlacedSeries[] {
         const { focusedSeriesNames } = this.manager
         const { isFocusMode } = this
-        return this.placedSeries.filter((mark) =>
-            isFocusMode
-                ? !focusedSeriesNames.includes(mark.seriesName)
-                : mark.isOverlap
+        return this.placedSeries.filter(
+            (mark) =>
+                isFocusMode && !focusedSeriesNames.includes(mark.seriesName)
         )
     }
 
     @computed private get focusedSeries(): PlacedSeries[] {
         const { focusedSeriesNames } = this.manager
         const { isFocusMode } = this
-        return this.placedSeries.filter((mark) =>
-            isFocusMode
-                ? focusedSeriesNames.includes(mark.seriesName)
-                : !mark.isOverlap
+        return this.placedSeries.filter(
+            (mark) =>
+                !isFocusMode || focusedSeriesNames.includes(mark.seriesName)
         )
     }
 

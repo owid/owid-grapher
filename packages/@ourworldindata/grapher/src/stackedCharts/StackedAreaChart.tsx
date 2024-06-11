@@ -13,6 +13,8 @@ import {
     Time,
     lastOfNonEmptyArray,
     makeIdForHumanConsumption,
+    maxBy,
+    sumBy,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { SeriesName } from "@ourworldindata/types"
@@ -313,18 +315,65 @@ export class StackedAreaChart
     }
 
     @observable hoverSeriesName?: SeriesName
+    @observable private hoverTimer?: NodeJS.Timeout
 
     @computed protected get paddingForLegendRight(): number {
         const { legendDimensions } = this
         return legendDimensions ? legendDimensions.width : 0
     }
 
+    @computed get seriesSortedByImportance(): string[] {
+        return [...this.series]
+            .sort(
+                (
+                    s1: StackedSeries<number>,
+                    s2: StackedSeries<number>
+                ): number => {
+                    const PREFER_S1 = -1
+                    const PREFER_S2 = 1
+
+                    if (!s1) return PREFER_S2
+                    if (!s2) return PREFER_S1
+
+                    // early return if one series is all zeroes
+                    if (s1.isAllZeros && !s2.isAllZeros) return PREFER_S2
+                    if (s2.isAllZeros && !s1.isAllZeros) return PREFER_S1
+
+                    // prefer series with a higher maximum value
+                    const yMax1 = maxBy(s1.points, (p) => p.value)?.value ?? 0
+                    const yMax2 = maxBy(s2.points, (p) => p.value)?.value ?? 0
+                    if (yMax1 > yMax2) return PREFER_S1
+                    if (yMax2 > yMax1) return PREFER_S2
+
+                    // prefer series with a higher last value
+                    const yLast1 = last(s1.points)?.value ?? 0
+                    const yLast2 = last(s2.points)?.value ?? 0
+                    if (yLast1 > yLast2) return PREFER_S1
+                    if (yLast2 > yLast1) return PREFER_S2
+
+                    // prefer series with a higher total area
+                    const area1 = sumBy(s1.points, (p) => p.value)
+                    const area2 = sumBy(s2.points, (p) => p.value)
+                    if (area1 > area2) return PREFER_S1
+                    if (area2 > area1) return PREFER_S2
+
+                    return 0
+                }
+            )
+            .map((s) => s.seriesName)
+    }
+
     @action.bound onLineLegendMouseOver(seriesName: SeriesName): void {
+        clearTimeout(this.hoverTimer)
         this.hoverSeriesName = seriesName
     }
 
     @action.bound onLineLegendMouseLeave(): void {
-        this.hoverSeriesName = undefined
+        clearTimeout(this.hoverTimer)
+        this.hoverTimer = setTimeout(() => {
+            // wait before clearing selection in case the mouse is moving quickly over neighboring labels
+            this.hoverSeriesName = undefined
+        }, 200)
     }
 
     @computed get focusedSeriesNames(): string[] {
