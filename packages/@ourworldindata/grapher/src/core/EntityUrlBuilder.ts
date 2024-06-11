@@ -54,6 +54,7 @@ const entityNamesFromV2Param = (queryParam: string): EntityName[] => {
 
 const migrateV1Delimited: UrlMigration = (url) => {
     const { country } = url.encodedQueryParams
+
     if (country !== undefined && isV1Param(country)) {
         return url.updateQueryParams({
             country: entityNamesToV2Param(
@@ -87,7 +88,8 @@ const migrateV1Delimited: UrlMigration = (url) => {
  *
  */
 
-const LegacyDimensionRegex = /\-\d+$/
+// Pattern for a entity name - number pair, where the entity name contains at least one non-digit character.
+const LegacyDimensionRegex = /^(.*\D.*)\-\d+$/
 
 const injectEntityNamesInLegacyDimension = (
     entityNames: EntityName[]
@@ -100,7 +102,7 @@ const injectEntityNamesInLegacyDimension = (
         if (LegacyDimensionRegex.test(entityName)) {
             const nonDimensionName = entityName.replace(
                 LegacyDimensionRegex,
-                ""
+                "$1"
             )
             newNames.push(nonDimensionName)
         }
@@ -144,7 +146,8 @@ export const migrateSelectedEntityNamesParam: UrlMigration = (
 export const getSelectedEntityNamesParam = (
     url: Url
 ): EntityName[] | undefined => {
-    const { country } = migrateSelectedEntityNamesParam(url).queryParams
+    // Expects an already-migrated URL as input
+    const { country } = url.queryParams
     return country !== undefined
         ? entityNamesFromV2Param(country).map(codeToEntityName)
         : undefined
@@ -154,7 +157,8 @@ export const setSelectedEntityNamesParam = (
     url: Url,
     entityNames: EntityName[] | undefined
 ): Url => {
-    return migrateSelectedEntityNamesParam(url).updateQueryParams({
+    // Expects an already-migrated URL as input
+    return url.updateQueryParams({
         country: entityNames
             ? entityNamesToV2Param(entityNames.map(entityNameToCode))
             : undefined,
