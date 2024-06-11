@@ -265,4 +265,5 @@ All of the below options can be given as query parameters, e.g. `?imType=og&noca
 In addition, all grapher URL options can be included as query parameters, e.g. `?time=1850..latest&tab=map&region=Asia`.
 
 [^1]: For OpenGraph; this one is being used by Facebook, LinkedIn, Slack, WhatsApp, Signal, etc.
+
 [^2]: For Twitter.
