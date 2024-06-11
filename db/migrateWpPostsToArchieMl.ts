@@ -110,10 +110,7 @@ const migrate = async (trx: db.KnexReadWriteTransaction): Promise<void> => {
             "updated_at" satisfies keyof DbRawPost,
             "featured_image" satisfies keyof DbRawPost
         )
-        .table(Post.postsTable)
-        .where("slug", "=", "biodiversity")
-
-    console.log("rawPosts", rawPosts)
+        .table(Post.postsTable) // .where("slug", "=", "biodiversity")
 
     for (const postRaw of rawPosts) {
         try {
