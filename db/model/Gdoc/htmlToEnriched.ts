@@ -44,6 +44,7 @@ import {
     EnrichedBlockResearchAndWriting,
     EnrichedBlockResearchAndWritingLink,
     EnrichedBlockResearchAndWritingRow,
+    EnrichedBlockAllCharts,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import {
@@ -56,6 +57,7 @@ import {
 } from "lodash"
 import cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
+import { parse } from "dotenv"
 
 //#region Spans
 function spanFallback(element: CheerioElement): SpanFallback {
@@ -1149,6 +1151,18 @@ function finishWpComponent(
             return {
                 errors: [],
                 content: [researchAndWriting],
+            }
+        })
+        .with("owid/all-charts", () => {
+            const allCharts: EnrichedBlockAllCharts = {
+                type: "all-charts",
+                heading: "All charts",
+                top: [],
+                parseErrors: [],
+            }
+            return {
+                errors: [],
+                content: [allCharts],
             }
         })
         .otherwise(() => {
