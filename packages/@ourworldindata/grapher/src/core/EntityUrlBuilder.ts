@@ -146,7 +146,8 @@ export const migrateSelectedEntityNamesParam: UrlMigration = (
 export const getSelectedEntityNamesParam = (
     url: Url
 ): EntityName[] | undefined => {
-    const { country } = migrateSelectedEntityNamesParam(url).queryParams
+    // Expects an already-migrated URL as input
+    const { country } = url.queryParams
     return country !== undefined
         ? entityNamesFromV2Param(country).map(codeToEntityName)
         : undefined
@@ -156,7 +157,8 @@ export const setSelectedEntityNamesParam = (
     url: Url,
     entityNames: EntityName[] | undefined
 ): Url => {
-    return migrateSelectedEntityNamesParam(url).updateQueryParams({
+    // Expects an already-migrated URL as input
+    return url.updateQueryParams({
         country: entityNames
             ? entityNamesToV2Param(entityNames.map(entityNameToCode))
             : undefined,
