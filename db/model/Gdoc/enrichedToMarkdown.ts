@@ -77,6 +77,7 @@ export function enrichedBlockToMarkdown(
     block: OwidEnrichedGdocBlock,
     exportComponents: boolean
 ): string | undefined {
+    if (!block.type) return undefined
     return match(block)
         .with({ type: "text" }, (b): string | undefined => {
             // TODO: the cases below should not happen but come up in the DB - this is a debug helper to get to the bottom of it

@@ -393,7 +393,7 @@ function isArchieMlComponent(
 }
 
 export function convertAllWpComponentsToArchieMLBlocks(
-    blocksOrComponents: ArchieBlockOrWpComponent[]
+    blocksOrComponents: ArchieBlockOrWpComponent[] = []
 ): OwidEnrichedGdocBlock[] {
     return blocksOrComponents.flatMap((blockOrComponentOrToc) => {
         if (isArchieMlComponent(blockOrComponentOrToc))
@@ -971,6 +971,17 @@ function finishWpComponent(
             }
         })
         .with("owid/card", () => {
+            if (!details.attributes) {
+                return {
+                    errors: [
+                        {
+                            name: "card missing attributes",
+                            details: `Card is missing attributes`,
+                        },
+                    ],
+                    content: [],
+                }
+            }
             const { title, linkUrl, mediaUrl } = details.attributes as {
                 title?: string
                 linkUrl?: string
