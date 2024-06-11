@@ -141,7 +141,6 @@ describe("it can handle legacy urls with dimension in selection key", () => {
         "GBR-0",
         "United Kingdom",
         "1980-1989",
-        "1980",
         "NotFound",
     ])
 })

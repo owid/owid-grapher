@@ -54,6 +54,7 @@ const entityNamesFromV2Param = (queryParam: string): EntityName[] => {
 
 const migrateV1Delimited: UrlMigration = (url) => {
     const { country } = url.encodedQueryParams
+
     if (country !== undefined && isV1Param(country)) {
         return url.updateQueryParams({
             country: entityNamesToV2Param(
@@ -87,7 +88,8 @@ const migrateV1Delimited: UrlMigration = (url) => {
  *
  */
 
-const LegacyDimensionRegex = /\-\d+$/
+// Pattern for a entity name - number pair, where the entity name contains at least one non-digit character.
+const LegacyDimensionRegex = /^(.*\D.*)\-\d+$/
 
 const injectEntityNamesInLegacyDimension = (
     entityNames: EntityName[]
@@ -100,7 +102,7 @@ const injectEntityNamesInLegacyDimension = (
         if (LegacyDimensionRegex.test(entityName)) {
             const nonDimensionName = entityName.replace(
                 LegacyDimensionRegex,
-                ""
+                "$1"
             )
             newNames.push(nonDimensionName)
         }
