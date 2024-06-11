@@ -887,7 +887,6 @@ function finishWpComponent(
             }
             const callout: EnrichedBlockCallout = {
                 type: "callout",
-                title: "What you should know about this data",
                 text,
                 parseErrors: [],
             }
