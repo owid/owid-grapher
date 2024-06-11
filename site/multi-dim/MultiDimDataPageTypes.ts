@@ -31,7 +31,9 @@ export interface Choice {
 
 export interface View {
     dimensions: Record<string, string> // Keys: dimension slugs, values: choice slugs
-    indicator_path: Record<string, DimensionProperty> // Keys: indicator path, values: dimension (e.g. x, y, color, size)
+    indicator_path:
+        | Record<string, DimensionProperty>
+        | Array<Record<string, DimensionProperty>> // Keys: indicator path, values: dimension (e.g. x, y, color, size)
     config?: Config
 }
 

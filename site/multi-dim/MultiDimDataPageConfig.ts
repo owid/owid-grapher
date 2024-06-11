@@ -104,7 +104,9 @@ export class MultiDimDataPageConfig {
     }
 
     static transformIndicatorPathObj(
-        indicatorPathObj: Record<string, DimensionProperty>
+        indicatorPathObj:
+            | Record<string, DimensionProperty>
+            | Array<Record<string, DimensionProperty>>
     ): Record<DimensionProperty, string[]> {
         const emptyObj: Record<DimensionProperty, string[]> = {
             x: [],
@@ -113,12 +115,27 @@ export class MultiDimDataPageConfig {
             size: [],
             table: [],
         }
-        return Object.entries(indicatorPathObj).reduce(
-            (result, [indicatorPath, dimension]) => {
-                result[dimension].push(indicatorPath)
+        if (Array.isArray(indicatorPathObj)) {
+            return indicatorPathObj.reduce((result, obj) => {
+                const transformed =
+                    MultiDimDataPageConfig.transformIndicatorPathObj(obj)
+                for (const [dimension, indicatorPaths] of Object.entries(
+                    transformed
+                )) {
+                    result[dimension as DimensionProperty].push(
+                        ...indicatorPaths
+                    )
+                }
                 return result
-            },
-            emptyObj
-        )
+            }, emptyObj)
+        } else {
+            return Object.entries(indicatorPathObj).reduce(
+                (result, [indicatorPath, dimension]) => {
+                    result[dimension].push(indicatorPath)
+                    return result
+                },
+                emptyObj
+            )
+        }
     }
 }
