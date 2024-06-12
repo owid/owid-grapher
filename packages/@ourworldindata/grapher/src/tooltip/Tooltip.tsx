@@ -14,7 +14,6 @@ import {
     TooltipManager,
     TooltipFadeMode,
     TooltipContext,
-    TooltipOptions,
 } from "./TooltipProps"
 export * from "./TooltipContents.js"
 
@@ -207,11 +206,9 @@ export class TooltipContainer extends React.Component<{
     containerHeight?: number // only relevant for tooltips anchored to the mouse
 }> {
     @action.bound private onDocumentClick(e: MouseEvent): void {
-        const { tooltips } = this.props.tooltipProvider
-        if (!tooltips || tooltips.size === 0) return
-        tooltips.forEach((tooltip) => {
-            if (tooltip.dismissOnDocumentClick) tooltip.dismiss?.()
-        })
+        const { tooltip } = this.props.tooltipProvider
+        if (!tooltip) return
+        if (tooltip.dismissOnDocumentClick) tooltip.dismiss?.()
         e.stopPropagation()
     }
 
@@ -232,29 +229,8 @@ export class TooltipContainer extends React.Component<{
     }
 
     @computed private get rendered(): React.ReactElement | null {
-        const { tooltips: tooltipsMap, activeTooltipId } =
-            this.props.tooltipProvider
-        if (!tooltipsMap || tooltipsMap.size === 0) return null
-        const tooltips = Object.entries(tooltipsMap.toJSON())
-        const activeTooltip = tooltipsMap.get(activeTooltipId?.get() ?? "")
-
-        const tooltipCards = activeTooltip ? (
-            <TooltipCard
-                {...activeTooltip}
-                containerWidth={this.props.containerWidth}
-                containerHeight={this.props.containerHeight}
-            />
-        ) : (
-            tooltips.map(([id, tooltip]) => (
-                <TooltipCard
-                    key={id}
-                    {...tooltip}
-                    containerWidth={this.props.containerWidth}
-                    containerHeight={this.props.containerHeight}
-                />
-            ))
-        )
-
+        const { tooltip } = this.props.tooltipProvider
+        if (!tooltip) return null
         return (
             <TooltipContext.Provider
                 value={{
@@ -267,7 +243,11 @@ export class TooltipContainer extends React.Component<{
                             this.anchor === GrapherTooltipAnchor.bottom,
                     })}
                 >
-                    {tooltipCards}
+                    <TooltipCard
+                        {...tooltip}
+                        containerWidth={this.props.containerWidth}
+                        containerHeight={this.props.containerHeight}
+                    />
                 </div>
             </TooltipContext.Provider>
         )
@@ -279,45 +259,24 @@ export class TooltipContainer extends React.Component<{
 }
 
 @observer
-export class Tooltip extends React.Component<
-    TooltipProps & { tooltipOptions?: TooltipOptions }
-> {
+export class Tooltip extends React.Component<TooltipProps> {
     componentDidMount(): void {
-        if (!this.options.allowMultiple) this.setActiveTooltipId()
         this.connectTooltipToContainer()
     }
 
-    @computed private get options(): TooltipOptions {
-        return {
-            allowMultiple: false,
-            ...this.props.tooltipOptions,
-        }
-    }
-
     @action.bound private connectTooltipToContainer(): void {
-        this.props.tooltipManager.tooltips?.set(this.props.id, this.props)
+        this.props.tooltipManager.tooltip = this.props
     }
 
     @action.bound private removeToolTipFromContainer(): void {
-        this.props.tooltipManager.tooltips?.delete(this.props.id)
-    }
-
-    @action.bound private setActiveTooltipId(): void {
-        this.props.tooltipManager.activeTooltipId?.set(this.props.id)
-    }
-
-    @action.bound private maybeUnsetActiveTooltipId(): void {
-        if (this.props.id === this.props.tooltipManager.activeTooltipId?.get())
-            this.props.tooltipManager.activeTooltipId?.set(undefined)
+        this.props.tooltipManager.tooltip = undefined
     }
 
     componentDidUpdate(): void {
-        if (!this.options.allowMultiple) this.setActiveTooltipId()
         this.connectTooltipToContainer()
     }
 
     componentWillUnmount(): void {
-        if (!this.options.allowMultiple) this.maybeUnsetActiveTooltipId()
         this.removeToolTipFromContainer()
     }
 

@@ -456,8 +456,7 @@ export class FacetChart
                     ...series.manager.yAxisConfig,
                     ...axes.y.config,
                 },
-                tooltips: this.manager.tooltips,
-                activeTooltipId: this.manager.activeTooltipId,
+                tooltip: this.manager.tooltip,
                 isTooltipFixedToBottom: this.manager.isTooltipFixedToBottom,
                 base: this.manager.base,
             }

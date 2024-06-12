@@ -567,7 +567,7 @@ export class StackedAreaChart
     }
 
     @computed private get isTooltipActive(): boolean {
-        return this.manager.activeTooltipId?.get() === this.tooltipId
+        return this.manager.tooltip?.id === this.tooltipId
     }
 
     @computed private get tooltip(): React.ReactElement | undefined {
