@@ -39,6 +39,7 @@ export interface ChartManager {
     comparisonLines?: ComparisonLineConfig[]
     showLegend?: boolean
     tooltips?: TooltipManager["tooltips"]
+    activeTooltipId?: TooltipManager["activeTooltipId"]
     baseColorScheme?: ColorSchemeName
     invertColorScheme?: boolean
     compareEndPointsOnly?: boolean

@@ -519,6 +519,14 @@ export class LineChart
         )
     }
 
+    @computed private get tooltipId(): number {
+        return this.renderUid
+    }
+
+    @computed private get isTooltipActive(): boolean {
+        return this.manager.activeTooltipId?.get() === this.tooltipId
+    }
+
     @computed private get tooltip(): React.ReactElement | undefined {
         const { formatColumn, colorColumn, hasColorScale } = this
         const { target, position, fading } = this.tooltipState
@@ -576,7 +584,7 @@ export class LineChart
 
         return (
             <Tooltip
-                id={this.renderUid}
+                id={this.tooltipId}
                 tooltipManager={this.manager}
                 x={position.x}
                 y={position.y}
@@ -885,7 +893,7 @@ export class LineChart
                         markerRadius={this.markerRadius}
                     />
                 </g>
-                {activeXVerticalLine}
+                {this.isTooltipActive && activeXVerticalLine}
 
                 {tooltip}
             </g>

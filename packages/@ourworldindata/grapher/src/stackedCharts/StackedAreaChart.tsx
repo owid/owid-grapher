@@ -562,6 +562,14 @@ export class StackedAreaChart
         )
     }
 
+    @computed private get tooltipId(): number {
+        return this.renderUid
+    }
+
+    @computed private get isTooltipActive(): boolean {
+        return this.manager.activeTooltipId?.get() === this.tooltipId
+    }
+
     @computed private get tooltip(): React.ReactElement | undefined {
         const { target, position, fading } = this.tooltipState
         if (!target) return undefined
@@ -580,7 +588,7 @@ export class StackedAreaChart
 
         return (
             <Tooltip
-                id={this.renderUid}
+                id={this.tooltipId}
                 tooltipManager={this.props.manager}
                 x={position.x}
                 y={position.y}
@@ -677,7 +685,7 @@ export class StackedAreaChart
                         onAreaMouseLeave={this.onAreaMouseLeave}
                     />
                 </g>
-                {this.activeXVerticalLine}
+                {this.isTooltipActive && this.activeXVerticalLine}
                 {this.tooltip}
             </g>
         )

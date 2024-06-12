@@ -1,5 +1,5 @@
 import React from "react"
-import { ObservableMap } from "mobx"
+import { ObservableMap, IObservableValue } from "mobx"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
     GrapherTooltipAnchor,
@@ -9,6 +9,11 @@ import {
 // We can't pass the property directly because we need it to be observable.
 export interface TooltipManager {
     tooltips?: ObservableMap<TooltipProps["id"], TooltipProps>
+    activeTooltipId?: IObservableValue<TooltipProps["id"] | undefined>
+}
+
+export interface TooltipOptions {
+    allowMultiple?: boolean
 }
 
 export type TooltipFadeMode = "delayed" | "immediate" | "none"

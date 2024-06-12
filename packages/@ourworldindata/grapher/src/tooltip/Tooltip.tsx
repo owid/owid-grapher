@@ -14,6 +14,7 @@ import {
     TooltipManager,
     TooltipFadeMode,
     TooltipContext,
+    TooltipOptions,
 } from "./TooltipProps"
 export * from "./TooltipContents.js"
 
@@ -231,9 +232,29 @@ export class TooltipContainer extends React.Component<{
     }
 
     @computed private get rendered(): React.ReactElement | null {
-        const tooltipsMap = this.props.tooltipProvider.tooltips
+        const { tooltips: tooltipsMap, activeTooltipId } =
+            this.props.tooltipProvider
         if (!tooltipsMap || tooltipsMap.size === 0) return null
         const tooltips = Object.entries(tooltipsMap.toJSON())
+        const activeTooltip = tooltipsMap.get(activeTooltipId?.get() ?? "")
+
+        const tooltipCards = activeTooltip ? (
+            <TooltipCard
+                {...activeTooltip}
+                containerWidth={this.props.containerWidth}
+                containerHeight={this.props.containerHeight}
+            />
+        ) : (
+            tooltips.map(([id, tooltip]) => (
+                <TooltipCard
+                    key={id}
+                    {...tooltip}
+                    containerWidth={this.props.containerWidth}
+                    containerHeight={this.props.containerHeight}
+                />
+            ))
+        )
+
         return (
             <TooltipContext.Provider
                 value={{
@@ -246,14 +267,7 @@ export class TooltipContainer extends React.Component<{
                             this.anchor === GrapherTooltipAnchor.bottom,
                     })}
                 >
-                    {tooltips.map(([id, tooltip]) => (
-                        <TooltipCard
-                            key={id}
-                            {...tooltip}
-                            containerWidth={this.props.containerWidth}
-                            containerHeight={this.props.containerHeight}
-                        />
-                    ))}
+                    {tooltipCards}
                 </div>
             </TooltipContext.Provider>
         )
@@ -265,9 +279,19 @@ export class TooltipContainer extends React.Component<{
 }
 
 @observer
-export class Tooltip extends React.Component<TooltipProps> {
+export class Tooltip extends React.Component<
+    TooltipProps & { tooltipOptions?: TooltipOptions }
+> {
     componentDidMount(): void {
+        if (!this.options.allowMultiple) this.setActiveTooltipId()
         this.connectTooltipToContainer()
+    }
+
+    @computed private get options(): TooltipOptions {
+        return {
+            allowMultiple: false,
+            ...this.props.tooltipOptions,
+        }
     }
 
     @action.bound private connectTooltipToContainer(): void {
@@ -278,11 +302,22 @@ export class Tooltip extends React.Component<TooltipProps> {
         this.props.tooltipManager.tooltips?.delete(this.props.id)
     }
 
+    @action.bound private setActiveTooltipId(): void {
+        this.props.tooltipManager.activeTooltipId?.set(this.props.id)
+    }
+
+    @action.bound private maybeUnsetActiveTooltipId(): void {
+        if (this.props.id === this.props.tooltipManager.activeTooltipId?.get())
+            this.props.tooltipManager.activeTooltipId?.set(undefined)
+    }
+
     componentDidUpdate(): void {
+        if (!this.options.allowMultiple) this.setActiveTooltipId()
         this.connectTooltipToContainer()
     }
 
     componentWillUnmount(): void {
+        if (!this.options.allowMultiple) this.maybeUnsetActiveTooltipId()
         this.removeToolTipFromContainer()
     }
 

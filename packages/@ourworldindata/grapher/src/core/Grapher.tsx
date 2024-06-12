@@ -824,6 +824,9 @@ export class Grapher
     @observable.ref isExportingToSvgOrPng = false
 
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
+    activeTooltipId?: TooltipManager["activeTooltipId"] =
+        observable.box(undefined)
+
     @observable isPlaying = false
 
     @observable.ref isEntitySelectorModalOrDrawerOpen = false

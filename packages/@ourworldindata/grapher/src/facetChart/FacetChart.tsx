@@ -457,6 +457,8 @@ export class FacetChart
                     ...axes.y.config,
                 },
                 tooltips: this.manager.tooltips,
+                activeTooltipId: this.manager.activeTooltipId,
+                isTooltipFixedToBottom: this.manager.isTooltipFixedToBottom,
                 base: this.manager.base,
             }
             const contentBounds = getContentBounds(
