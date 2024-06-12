@@ -110,7 +110,8 @@ const migrate = async (trx: db.KnexReadWriteTransaction): Promise<void> => {
             "updated_at" satisfies keyof DbRawPost,
             "featured_image" satisfies keyof DbRawPost
         )
-        .table(Post.postsTable) //.where("id", "=", "54759"))
+        .table(Post.postsTable)
+    // .where("slug", "=", "oil-spills")
 
     for (const postRaw of rawPosts) {
         try {
@@ -121,6 +122,9 @@ const migrate = async (trx: db.KnexReadWriteTransaction): Promise<void> => {
                     : null,
             }
             const isEntry = entries.has(post.slug)
+            const isTopicPage = post.content.includes(
+                "bodyClassName:topic-page"
+            )
             const text = post.content
             let relatedCharts: RelatedChart[] = []
             if (isEntry) {
@@ -242,7 +246,9 @@ const migrate = async (trx: db.KnexReadWriteTransaction): Promise<void> => {
                     refs: undefined,
                     type: isEntry
                         ? OwidGdocType.LinearTopicPage
-                        : OwidGdocType.Article,
+                        : isTopicPage
+                          ? OwidGdocType.TopicPage
+                          : OwidGdocType.Article,
                     // Provide an empty array to prevent the sticky nav from rendering at all
                     // Because if it isn't defined, it tries to automatically populate itself
                     "sticky-nav": isEntry ? [] : undefined,

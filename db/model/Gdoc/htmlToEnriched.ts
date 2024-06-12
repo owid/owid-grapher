@@ -36,6 +36,15 @@ import {
     EnrichedBlockBlockquote,
     EnrichedBlockHorizontalRule,
     traverseEnrichedSpan,
+    EnrichedBlockTopicPageIntro,
+    EnrichedTopicPageIntroRelatedTopic,
+    EnrichedBlockKeyInsightsSlide,
+    EnrichedBlockKeyInsights,
+    checkIsPlainObjectWithGuard,
+    EnrichedBlockResearchAndWriting,
+    EnrichedBlockResearchAndWritingLink,
+    EnrichedBlockResearchAndWritingRow,
+    EnrichedBlockAllCharts,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import {
@@ -269,6 +278,9 @@ type ErrorNames =
     | "summary item doesn't have link"
     | "summary item has DataValue"
     | "unknown content type inside summary block"
+    | "unknown content type inside key-insights block insights array"
+    | "card missing attributes"
+    | "card missing title or linkUrl"
 
 interface BlockParseError {
     name: ErrorNames
@@ -382,7 +394,7 @@ function isArchieMlComponent(
 }
 
 export function convertAllWpComponentsToArchieMLBlocks(
-    blocksOrComponents: ArchieBlockOrWpComponent[]
+    blocksOrComponents: ArchieBlockOrWpComponent[] = []
 ): OwidEnrichedGdocBlock[] {
     return blocksOrComponents.flatMap((blockOrComponentOrToc) => {
         if (isArchieMlComponent(blockOrComponentOrToc))
@@ -814,6 +826,359 @@ function finishWpComponent(
             return {
                 errors: [],
                 content: [graySection],
+            }
+        })
+        .with("owid/front-matter", () => {
+            const stickyRight = content.content.find(
+                (block) =>
+                    isArchieMlComponent(block) && block.type === "sticky-right"
+            ) as EnrichedBlockStickyRightContainer | undefined
+
+            const gdocTopicPageIntroContent = get(
+                stickyRight,
+                "left",
+                []
+            ) as EnrichedBlockText[]
+
+            const wpRelatedTopics = get(stickyRight, "right", []).find(
+                (block) => block.type === "list"
+            ) as EnrichedBlockList | undefined
+
+            const gdocRelatedTopics: EnrichedTopicPageIntroRelatedTopic[] = []
+            if (wpRelatedTopics) {
+                wpRelatedTopics.items.forEach((item) => {
+                    if (item.type === "text") {
+                        const value = item.value[0]
+                        if (checkNodeIsSpanLink(value)) {
+                            gdocRelatedTopics.push({
+                                url: value.url,
+                                text: spansToUnformattedPlainText(
+                                    value.children
+                                ),
+                                type: "topic-page-intro-related-topic",
+                            })
+                        }
+                    }
+                })
+            }
+
+            const topicPageIntro: EnrichedBlockTopicPageIntro = {
+                type: "topic-page-intro",
+                parseErrors: [],
+                relatedTopics: gdocRelatedTopics,
+                content: gdocTopicPageIntroContent,
+            }
+            return {
+                errors: [],
+                content: [topicPageIntro],
+            }
+        })
+        .with("owid/technical-text", () => {
+            const text = []
+            for (const block of content.content) {
+                if (isArchieMlComponent(block)) {
+                    if (
+                        block.type === "text" ||
+                        block.type === "list" ||
+                        block.type === "heading"
+                    ) {
+                        text.push(block)
+                    }
+                }
+            }
+            const callout: EnrichedBlockCallout = {
+                type: "callout",
+                text,
+                parseErrors: [],
+            }
+
+            return {
+                errors: [],
+                content: [callout],
+            }
+        })
+        .with("owid/key-insight", () => {
+            const title = get(details, "attributes.title", "") as string
+            const text: OwidEnrichedGdocBlock[] = []
+            for (const block of content.content) {
+                if (
+                    isArchieMlComponent(block) &&
+                    block.type !== "image" &&
+                    block.type !== "chart"
+                ) {
+                    text.push(block)
+                }
+            }
+            const keyInsightSlide = {
+                title,
+                type: "key-insight-slide",
+                content: text,
+                // Casting as any because this isn't a complete OwidEnrichedGdocBlock - it's only valid inside a key-insights block
+                // So it doesn't have all the properties of a regular block, and adding them would require supporting it
+                // throughout the entire pipeline
+            } as any
+            const chartOrImage = content.content.find((block) => {
+                return (
+                    isArchieMlComponent(block) &&
+                    (block.type === "chart" || block.type === "image")
+                )
+            }) as EnrichedBlockChart | EnrichedBlockImage | undefined
+            if (chartOrImage) {
+                if (chartOrImage.type === "chart") {
+                    keyInsightSlide["url"] = chartOrImage.url
+                }
+                if (chartOrImage.type === "image") {
+                    keyInsightSlide["filename"] = chartOrImage.filename
+                }
+            }
+
+            return {
+                errors: [],
+                content: [keyInsightSlide],
+            }
+        })
+        .with("owid/key-insights-slider", () => {
+            const heading = get(
+                details,
+                "attributes.title",
+                "Key insights"
+            ) as string
+            const insights: EnrichedBlockKeyInsightsSlide[] = []
+            const errors: BlockParseError[] = []
+            function isKeyInsightSlide(
+                block: unknown
+            ): block is EnrichedBlockKeyInsightsSlide {
+                return (
+                    checkIsPlainObjectWithGuard(block) &&
+                    block["type"] === "key-insight-slide"
+                )
+            }
+            for (const block of content.content) {
+                if (isKeyInsightSlide(block)) {
+                    insights.push(block)
+                } else {
+                    errors.push({
+                        name: "unknown content type inside key-insights block insights array",
+                        details: `Expected key-insight-slide, got ${block}`,
+                    })
+                }
+            }
+            const keyInsightBlock: EnrichedBlockKeyInsights = {
+                type: "key-insights",
+                heading,
+                insights,
+                parseErrors: [],
+            }
+            return {
+                errors,
+                content: [keyInsightBlock],
+            }
+        })
+        .with("owid/card", () => {
+            if (!details.attributes) {
+                return {
+                    errors: [
+                        {
+                            name: "card missing attributes",
+                            details: `Card is missing attributes`,
+                        } as BlockParseError,
+                    ],
+                    content: [],
+                }
+            }
+            const { title, linkUrl, mediaUrl } = details.attributes as {
+                title?: string
+                linkUrl?: string
+                mediaUrl?: string
+            }
+            if (!linkUrl || !title) {
+                return {
+                    errors: [
+                        {
+                            name: "card missing title or linkUrl",
+                            details: `Card is missing title or linkUrl`,
+                        } as BlockParseError,
+                    ],
+                    content: [],
+                }
+            }
+
+            const filename = mediaUrl?.split("/").pop()
+            let subtitle = ""
+            let authors: string[] = []
+
+            // Either it's a card with only authors, or a card with a subtitle and authors
+            if (content.content.length === 1) {
+                const firstBlock = content.content[0]
+                if (isEnrichedTextBlock(firstBlock)) {
+                    authors = spansToSimpleString(firstBlock.value).split(", ")
+                }
+            } else if (content.content.length === 2) {
+                const firstBlock = content.content[0]
+                const secondBlock = content.content[1]
+                if (isEnrichedTextBlock(firstBlock)) {
+                    subtitle = spansToSimpleString(firstBlock.value)
+                }
+                if (isEnrichedTextBlock(secondBlock)) {
+                    authors = spansToSimpleString(secondBlock.value).split(", ")
+                }
+            }
+
+            // Casting as any because this isn't a complete OwidEnrichedGdocBlock - it's only valid inside a research-and-writing block
+            // So it doesn't have all the properties of a regular block, and adding them would require supporting it
+            // throughout the entire pipeline
+            const link = {
+                value: {
+                    url: linkUrl,
+                    authors,
+                    title,
+                    subtitle,
+                    filename: filename,
+                },
+            } as any
+            return {
+                errors: [],
+                content: [link],
+            }
+        })
+        .with("owid/research-and-writing", () => {
+            function isResearchAndWritingLink(
+                block: unknown
+            ): block is EnrichedBlockResearchAndWritingLink {
+                return (
+                    checkIsPlainObjectWithGuard(block) &&
+                    "value" in block &&
+                    checkIsPlainObjectWithGuard(block["value"])
+                )
+            }
+
+            const primary: EnrichedBlockResearchAndWritingLink[] = []
+            const secondary: EnrichedBlockResearchAndWritingLink[] = []
+            let more: EnrichedBlockResearchAndWritingRow | undefined = undefined
+            const rows: EnrichedBlockResearchAndWritingRow[] = []
+            let heading = ""
+
+            let isInMoreSection = false
+            const moreSectionArticleBlocks: (
+                | EnrichedBlockText
+                | EnrichedBlockHeading
+            )[] = []
+
+            for (let i = 0; i < content.content.length; i++) {
+                const block = content.content[i]
+
+                if (isResearchAndWritingLink(block)) {
+                    if (rows.length) {
+                        rows[rows.length - 1].articles.push(block)
+                    } else if (primary.length === 0 && block.value.subtitle) {
+                        primary.push(block)
+                    } else if (secondary.length <= 2 && block.value.subtitle) {
+                        secondary.push(block)
+                    }
+                    continue
+                }
+
+                if (!isArchieMlComponent(block)) {
+                    continue
+                }
+
+                const isMoreSectionBlock =
+                    block.type === "text" ||
+                    (block.type === "heading" && block.level === 6)
+
+                if (isInMoreSection && isMoreSectionBlock) {
+                    moreSectionArticleBlocks.push(block)
+                } else {
+                    // If we're in the more section and we've hit a heading, we're done with the more section
+                    isInMoreSection = false
+                }
+
+                if (block.type === "heading") {
+                    if (i === 0) {
+                        heading = spansToSimpleString(block.text)
+                    }
+                    // The only h5 in this context is the "More" section
+                    else if (block.level === 5) {
+                        isInMoreSection = true
+                        more = {
+                            heading: spansToSimpleString(block.text),
+                            articles: [],
+                        }
+                    } else if (block.level === 4) {
+                        rows.push({
+                            heading: spansToSimpleString(block.text),
+                            articles: [],
+                        })
+                    }
+                }
+            }
+
+            // Once we've iterated through all the blocks, we can parse the more section
+            if (more) {
+                for (let i = 0; i < moreSectionArticleBlocks.length; i += 2) {
+                    const heading = moreSectionArticleBlocks[i]
+                    let url = ""
+                    let title = ""
+                    if (heading.type === "heading") {
+                        if (heading.text.length === 1) {
+                            const span = heading.text[0]
+                            if (span.spanType === "span-link") {
+                                url = span.url
+                                if (span.children.length === 1) {
+                                    title = spansToSimpleString(span.children)
+                                }
+                            }
+                        }
+                    }
+
+                    const authorsBlock = moreSectionArticleBlocks[i + 1]
+                    const authors: string[] = []
+                    if (authorsBlock.type === "text") {
+                        authors.push(
+                            ...spansToSimpleString(authorsBlock.value).split(
+                                ", "
+                            )
+                        )
+                    }
+                    const moreArticleBlock: EnrichedBlockResearchAndWritingLink =
+                        {
+                            value: {
+                                url,
+                                authors,
+                                title,
+                                filename: "",
+                            },
+                        }
+                    more.articles.push(moreArticleBlock)
+                }
+            }
+
+            const researchAndWriting: EnrichedBlockResearchAndWriting = {
+                type: "research-and-writing",
+                heading,
+                primary,
+                secondary,
+                rows,
+                more,
+                parseErrors: [],
+                "hide-authors": false,
+            }
+
+            return {
+                errors: [],
+                content: [researchAndWriting],
+            }
+        })
+        .with("owid/all-charts", () => {
+            const allCharts: EnrichedBlockAllCharts = {
+                type: "all-charts",
+                heading: "All charts",
+                top: [],
+                parseErrors: [],
+            }
+            return {
+                errors: [],
+                content: [allCharts],
             }
         })
         .otherwise(() => {
