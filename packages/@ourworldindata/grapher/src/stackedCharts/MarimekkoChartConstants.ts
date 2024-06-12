@@ -71,11 +71,13 @@ export interface PlacedItem extends Item {
 
 export interface EntityWithSize {
     entityName: string
+    shortEntityName?: string
     xValue: number
     ySortValue: number | undefined
 }
 export interface LabelCandidate {
     item: EntityWithSize
+    label: string
     bounds: Bounds
     isPicked: boolean
     isSelected: boolean

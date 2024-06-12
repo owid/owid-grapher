@@ -193,7 +193,7 @@ describe("config overrides", () => {
     })
 
     it("entity legend is hidden for single-metric facets by entity", () => {
-        expect(chart.placedSeries[0].manager.hideLegend).toEqual(true)
+        expect(chart.placedSeries[0].manager.showLegend).toEqual(false)
     })
 })
 

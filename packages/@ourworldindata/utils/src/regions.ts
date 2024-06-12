@@ -63,6 +63,10 @@ export const continents: Continent[] = entities.filter(
     (entity) => entity.regionType === "continent"
 ) as Continent[]
 
+const countriesByName: Record<string, Country> = Object.fromEntries(
+    countries.map((country) => [country.name, country])
+)
+
 const countriesBySlug: Record<string, Country> = Object.fromEntries(
     countries.map((country) => [country.slug, country])
 )
@@ -85,6 +89,9 @@ const currentAndHistoricalCountryNames = regions
 
 export const isCountryName = (name: string): boolean =>
     currentAndHistoricalCountryNames.includes(name.toLowerCase())
+
+export const getCountryByName = (name: string): Country | undefined =>
+    countriesByName[name]
 
 export const getCountryBySlug = (slug: string): Country | undefined =>
     countriesBySlug[slug]

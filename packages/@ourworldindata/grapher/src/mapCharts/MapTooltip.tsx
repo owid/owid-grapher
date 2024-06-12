@@ -135,7 +135,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             colorColumnSlug: this.mapColumnSlug,
             selection: [this.entityName],
             colorScaleOverride: this.lineColorScale,
-            hideLegend: true,
+            showLegend: false,
             hidePoints: true,
             fontSize: 11,
             disableIntroAnimation: true,

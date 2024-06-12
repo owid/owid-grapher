@@ -69,7 +69,6 @@ import { NoDataSection } from "../scatterCharts/NoDataSection"
 
 export interface SlopeChartManager extends ChartManager {
     isModalOpen?: boolean
-    isSemiNarrow?: boolean
 }
 
 const LABEL_SLOPE_PADDING = 8
@@ -925,6 +924,7 @@ class LabelledSlopes
                 ...valueLabelProps,
                 maxWidth,
                 fontWeight: 700,
+                separators: [" ", "-"],
             }
             const leftEntityLabel = new TextWrap({
                 text,

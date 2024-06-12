@@ -81,4 +81,12 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventContext: key,
         })
     }
+
+    logDodShown(id: string) {
+        this.logToGA({
+            event: EventCategory.DetailOnDemand,
+            eventAction: "show",
+            eventTarget: id,
+        })
+    }
 }

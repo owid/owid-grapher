@@ -22,6 +22,7 @@ import {
     ColorSchemeName,
     EntitySelectionMode,
     makeIdForHumanConsumption,
+    getCountryByName,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -81,6 +82,9 @@ import {
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
 const MAX_LABEL_COUNT: number = 20
+
+// if an entity name exceeds this width, we use the short name instead (if available)
+const SOFT_MAX_LABEL_WIDTH = 60
 
 function MarimekkoBar({
     bar,
@@ -1213,11 +1217,20 @@ export class MarimekkoChart
         fontSize: number,
         isSelected: boolean
     ): LabelCandidate {
+        let label = item.entityName
+        let labelBounds = Bounds.forText(label, {
+            fontSize,
+        })
+        if (labelBounds.width > SOFT_MAX_LABEL_WIDTH && item.shortEntityName) {
+            label = item.shortEntityName
+            labelBounds = Bounds.forText(label, {
+                fontSize,
+            })
+        }
         return {
             item: item,
-            bounds: Bounds.forText(item.entityName, {
-                fontSize,
-            }),
+            label,
+            bounds: labelBounds,
             isPicked: isSelected,
             isSelected,
         }
@@ -1303,6 +1316,7 @@ export class MarimekkoChart
                 MarimekkoChart.labelCandidateFromItem(
                     {
                         entityName: row.entityName,
+                        shortEntityName: getShortNameForEntity(row.entityName),
                         xValue:
                             xColumnAtLastTimePoint !== undefined
                                 ? row.value
@@ -1698,7 +1712,7 @@ export class MarimekkoChart
                             this.onEntityClick(candidate.item.entityName)
                         }
                     >
-                        {candidate.item.entityName}
+                        {candidate.label}
                     </text>
                 ),
             }
@@ -1713,4 +1727,9 @@ export class MarimekkoChart
 
         return yColumns.every((col) => col.isEmpty) ? "No matching data" : ""
     }
+}
+
+function getShortNameForEntity(entityName: string): string | undefined {
+    const country = getCountryByName(entityName)
+    return country?.shortName
 }

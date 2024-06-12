@@ -5,6 +5,7 @@ import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { renderToStaticMarkup } from "react-dom/server.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { DetailDictionary } from "@ourworldindata/utils"
+import { SiteAnalytics } from "./SiteAnalytics.js"
 
 type Tippyfied<E> = E & {
     _tippy?: Instance
@@ -15,6 +16,8 @@ declare global {
         details?: DetailDictionary
     }
 }
+
+const siteAnalytics = new SiteAnalytics()
 
 export async function runDetailsOnDemand() {
     window.details = await fetch(`${BAKED_BASE_URL}/dods.json`, {
@@ -31,13 +34,14 @@ export async function runDetailsOnDemand() {
     function handleEvent(event: MouseEvent | TouchEvent) {
         const target = event.target as Tippyfied<Element>
         if (target?.classList.contains("dod-span")) {
-            showDod(target)
+            const id = target.attributes.getNamedItem("data-id")?.nodeValue
+            if (!id) return
+            showDod(id, target)
+            siteAnalytics.logDodShown(id)
         }
     }
 
-    function showDod(element: Tippyfied<Element>) {
-        const id = element.attributes.getNamedItem("data-id")?.nodeValue
-        if (!id) return
+    function showDod(id: string, element: Tippyfied<Element>) {
         const dod = window.details?.[id]
         if (!dod) return
 
