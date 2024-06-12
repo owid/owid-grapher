@@ -10,6 +10,7 @@ import {
 import {
     OwidVariableDataTableConfigInterface,
     OwidVariableDisplayConfigInterface,
+    OwidVariableRoundingMode,
 } from "@ourworldindata/types"
 
 class OwidVariableDisplayConfigDefaults {
@@ -18,7 +19,9 @@ class OwidVariableDisplayConfigDefaults {
     @observable shortUnit?: string = undefined
     @observable isProjection?: boolean = undefined
     @observable conversionFactor?: number = undefined
+    @observable roundingMode?: OwidVariableRoundingMode = undefined
     @observable numDecimalPlaces?: number = undefined
+    @observable numSignificantFigures?: number = undefined
     @observable tolerance?: number = undefined
     @observable yearIsDay?: boolean = undefined
     @observable zeroDay?: string = undefined

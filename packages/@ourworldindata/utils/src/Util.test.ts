@@ -28,6 +28,7 @@ import {
     findGreatestCommonDivisorOfArray,
     traverseEnrichedBlock,
     cartesian,
+    formatInlineList,
 } from "./Util.js"
 import {
     BlockImageSize,
@@ -768,5 +769,29 @@ describe(cartesian, () => {
             ["b", "y", "+"],
             ["b", "y", "-"],
         ])
+    })
+})
+
+describe(formatInlineList, () => {
+    it("returns an empty string when no items are given", () => {
+        expect(formatInlineList([])).toEqual("")
+    })
+
+    it("returns a single item as a string", () => {
+        expect(formatInlineList(["a"])).toEqual("a")
+    })
+
+    it("formats two items correctly", () => {
+        expect(formatInlineList(["a", "b"])).toEqual("a and b")
+    })
+
+    it("formats three items correctly using 'and'", () => {
+        expect(formatInlineList(["a", "b", "c"])).toEqual("a, b and c")
+    })
+
+    it("formats four items correctly using 'or'", () => {
+        expect(formatInlineList(["a", "b", "c", "d"], "or")).toEqual(
+            "a, b, c or d"
+        )
     })
 })

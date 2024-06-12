@@ -579,8 +579,19 @@
         "editor": "textfield"
     },
     {
+        "type": "string",
+        "pointer": "/dimensions/0/display/roundingMode",
+        "editor": "dropdown",
+        "enumOptions": ["decimalPlaces", "significantFigures"]
+    },
+    {
         "type": "integer",
         "pointer": "/dimensions/0/display/numDecimalPlaces",
+        "editor": "numeric"
+    },
+    {
+        "type": "integer",
+        "pointer": "/dimensions/0/display/numSignificantFigures",
         "editor": "numeric"
     },
     {

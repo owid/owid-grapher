@@ -20,6 +20,7 @@ import {
     BinningStrategy,
     Color,
     CoreValueType,
+    OwidVariableRoundingMode,
 } from "@ourworldindata/types"
 import { CoreColumn } from "@ourworldindata/core-table"
 
@@ -271,10 +272,15 @@ export class ColorScale {
             const color = customNumericColors[index] ?? baseColor
             const label = customNumericLabels[index]
 
+            const roundingOptions = {
+                roundingMode: OwidVariableRoundingMode.decimalPlaces,
+            }
             const displayMin =
-                this.colorScaleColumn?.formatValueShort(min) ?? min.toString()
+                this.colorScaleColumn?.formatValueShort(min, roundingOptions) ??
+                min.toString()
             const displayMax =
-                this.colorScaleColumn?.formatValueShort(max) ?? max.toString()
+                this.colorScaleColumn?.formatValueShort(max, roundingOptions) ??
+                max.toString()
 
             const currentMin = min
             const isFirst = index === 0

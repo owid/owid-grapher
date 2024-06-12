@@ -39,7 +39,13 @@ import {
     LineLegendManager,
 } from "../lineLegend/LineLegend"
 import { ComparisonLine } from "../scatterCharts/ComparisonLine"
-import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
+import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
+import {
+    Tooltip,
+    TooltipState,
+    TooltipTable,
+    makeTooltipRoundingNotice,
+} from "../tooltip/Tooltip"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { extent } from "d3-array"
 import {
@@ -564,9 +570,21 @@ export class LineChart
                 ? `% change since ${formatColumn.formatTime(startTime)}`
                 : unitLabel
         const subtitleFormat = subtitle === unitLabel ? "unit" : undefined
-        const footer = sortedData.some((series) => series.isProjection)
-            ? `Projected data`
+
+        const projectionNotice = sortedData.some(
+            (series) => series.isProjection
+        )
+            ? { icon: TooltipFooterIcon.stripes, text: "Projected data" }
             : undefined
+        const roundingNotice = formatColumn.roundsToSignificantFigures
+            ? {
+                  icon: TooltipFooterIcon.none,
+                  text: makeTooltipRoundingNotice([
+                      formatColumn.numSignificantFigures,
+                  ]),
+              }
+            : undefined
+        const footer = excludeUndefined([projectionNotice, roundingNotice])
 
         return (
             <Tooltip
@@ -582,7 +600,6 @@ export class LineChart
                 subtitle={subtitle}
                 subtitleFormat={subtitleFormat}
                 footer={footer}
-                footerFormat="stripes"
                 dissolve={fading}
             >
                 <TooltipTable

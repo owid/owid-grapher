@@ -372,10 +372,11 @@ export {
 export type { OwidSource } from "./OwidSource.js"
 export type { OwidOrigin } from "./OwidOrigin.js"
 
-export type {
-    OwidVariableDisplayConfigInterface,
-    OwidVariableDataTableConfigInterface,
-    OwidChartDimensionInterface,
+export {
+    type OwidVariableDisplayConfigInterface,
+    type OwidVariableDataTableConfigInterface,
+    OwidVariableRoundingMode,
+    type OwidChartDimensionInterface,
 } from "./OwidVariableDisplayConfigInterface.js"
 
 export {

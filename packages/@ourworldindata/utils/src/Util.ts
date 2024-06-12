@@ -1894,3 +1894,12 @@ export function createTagGraph(
 
     return recursivelySetChildren(tagGraph) as TagGraphRoot
 }
+
+export function formatInlineList(
+    array: unknown[],
+    connector: "and" | "or" = "and"
+): string {
+    if (array.length === 0) return ""
+    if (array.length === 1) return `${array[0]}`
+    return `${array.slice(0, -1).join(", ")} ${connector} ${last(array)}`
+}

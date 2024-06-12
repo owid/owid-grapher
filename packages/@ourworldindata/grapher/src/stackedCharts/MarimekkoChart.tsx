@@ -47,7 +47,13 @@ import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
-import { Tooltip, TooltipValue, TooltipState } from "../tooltip/Tooltip"
+import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
+import {
+    Tooltip,
+    TooltipValue,
+    TooltipState,
+    makeTooltipRoundingNotice,
+} from "../tooltip/Tooltip"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
@@ -981,10 +987,42 @@ export class MarimekkoChart
         const shouldShowXTimeNotice =
             xPoint && xPoint.time !== endTime && xOverrideTime === undefined
         const xNotice = shouldShowXTimeNotice ? xPoint?.time : undefined
-        const notice =
+        const targetNotice =
             xNotice || yValues.some(({ notice }) => !!notice)
                 ? timeColumn.formatValue(endTime)
                 : undefined
+        const toleranceNotice = targetNotice
+            ? { icon: TooltipFooterIcon.notice, text: targetNotice }
+            : undefined
+
+        const columns = excludeUndefined([xColumn, yColumn])
+        const allRoundedToSigFigs = columns.every(
+            (column) => column.roundsToSignificantFigures
+        )
+        const anyRoundedToSigFigs = columns.some(
+            (column) => column.roundsToSignificantFigures
+        )
+        const sigFigs = excludeUndefined(
+            columns.map((column) =>
+                column.roundsToSignificantFigures
+                    ? column.numSignificantFigures
+                    : undefined
+            )
+        )
+        const roundingNotice = anyRoundedToSigFigs
+            ? {
+                  icon: allRoundedToSigFigs
+                      ? TooltipFooterIcon.none
+                      : TooltipFooterIcon.significance,
+                  text: makeTooltipRoundingNotice(sigFigs, {
+                      plural: sigFigs.length > 1,
+                  }),
+              }
+            : undefined
+        const superscript =
+            !!roundingNotice && roundingNotice.icon !== TooltipFooterIcon.none
+
+        const footer = excludeUndefined([toleranceNotice, roundingNotice])
 
         return (
             <g
@@ -1025,8 +1063,7 @@ export class MarimekkoChart
                         offsetY={-16}
                         title={entityName}
                         subtitle={timeColumn.formatValue(endTime)}
-                        footer={notice}
-                        footerFormat="notice"
+                        footer={footer}
                         dissolve={fading}
                     >
                         {yValues.map(({ name, value, notice }) => (
@@ -1035,6 +1072,7 @@ export class MarimekkoChart
                                 column={yColumn}
                                 value={value}
                                 notice={notice}
+                                showSignificanceSuperscript={superscript}
                             />
                         ))}
                         {xColumn && (
@@ -1042,6 +1080,7 @@ export class MarimekkoChart
                                 column={xColumn}
                                 value={xPoint?.value}
                                 notice={xNotice}
+                                showSignificanceSuperscript={superscript}
                             />
                         )}
                     </Tooltip>

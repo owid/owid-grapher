@@ -1,11 +1,23 @@
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Tooltip, TooltipValue, TooltipState } from "../tooltip/Tooltip"
+import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
+import {
+    Tooltip,
+    TooltipValue,
+    TooltipState,
+    makeTooltipToleranceNotice,
+    makeTooltipRoundingNotice,
+} from "../tooltip/Tooltip"
 import { MapChartManager } from "./MapChartConstants"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
-import { Time, EntityName, OwidVariableRow } from "@ourworldindata/types"
-import { OwidTable } from "@ourworldindata/core-table"
+import {
+    Time,
+    EntityName,
+    OwidVariableRow,
+    OwidVariableRoundingMode,
+} from "@ourworldindata/types"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { LineChart } from "../lineCharts/LineChart"
 import {
     Bounds,
@@ -18,6 +30,8 @@ import {
     last,
     min,
     max,
+    excludeUndefined,
+    anyToString,
 } from "@ourworldindata/utils"
 import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { darkenColorForHighContrastText } from "../color/ColorUtils"
@@ -26,7 +40,7 @@ interface MapTooltipProps {
     tooltipState: TooltipState<{ featureId: string; clickable: boolean }>
     manager: MapChartManager
     colorScaleManager: ColorScaleManager
-    formatValue: (d: PrimitiveType) => string
+    formatValueIfCustom: (d: PrimitiveType) => string | undefined
     timeSeriesTable: OwidTable
     targetTime?: Time
 }
@@ -40,6 +54,10 @@ const SPARKLINE_NUDGE = 3 // step away from the axis
 export class MapTooltip extends React.Component<MapTooltipProps> {
     @computed private get mapColumnSlug(): string | undefined {
         return this.props.manager.mapColumnSlug
+    }
+
+    @computed private get mapColumn(): CoreColumn {
+        return this.mapTable.get(this.mapColumnSlug)
     }
 
     @computed private get mapAndYColumnAreTheSame(): boolean {
@@ -75,7 +93,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     @computed private get datum():
         | OwidVariableRow<number | string>
         | undefined {
-        return this.mapTable.get(this.mapColumnSlug).owidRows[0]
+        return this.mapColumn.owidRows[0]
     }
 
     @computed private get hasTimeSeriesData(): boolean {
@@ -198,10 +216,10 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     render(): React.ReactElement {
-        const { mapTable, datum, lineColorScale } = this
+        const { mapTable, mapColumn, datum, lineColorScale } = this
         const {
             targetTime,
-            formatValue,
+            formatValueIfCustom,
             tooltipState: { target, position, fading },
         } = this.props
 
@@ -214,9 +232,23 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 ? timeColumn.formatValue(datum?.time)
                 : datum?.time.toString() ?? ""
         const valueColor: string | undefined = darkenColorForHighContrastText(
-                lineColorScale?.getColor(datum?.value) ?? "#333"
-            ),
-            valueLabel = datum ? formatValue(datum.value) : undefined
+            lineColorScale?.getColor(datum?.value) ?? "#333"
+        )
+
+        // format the value label
+        let valueLabel: string | undefined,
+            isValueLabelRounded = false
+        if (datum) {
+            const customValueLabel = formatValueIfCustom(datum.value)
+            if (customValueLabel !== undefined) {
+                valueLabel = customValueLabel
+            } else if (isNumber(datum.value)) {
+                valueLabel = mapColumn?.formatValueShort(datum.value)
+                isValueLabelRounded = true
+            } else {
+                valueLabel = anyToString(datum.value)
+            }
+        }
 
         const { yAxisConfig } = this.sparklineManager,
             yColumn = this.sparklineTable.get(this.mapColumnSlug),
@@ -231,14 +263,37 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             useCustom = isString(minCustom) && isString(maxCustom),
             minLabel = useCustom
                 ? minCustom
-                : yColumn.formatValueShort(minVal ?? 0),
+                : yColumn.formatValueShort(minVal ?? 0, {
+                      roundingMode: OwidVariableRoundingMode.decimalPlaces,
+                  }),
             maxLabel = useCustom
                 ? maxCustom
-                : yColumn.formatValueShort(maxVal ?? 0)
+                : yColumn.formatValueShort(maxVal ?? 0, {
+                      roundingMode: OwidVariableRoundingMode.decimalPlaces,
+                  })
         const { innerBounds: axisBounds } = this.sparklineChart.dualAxis
 
-        const notice =
+        const targetNotice =
             datum && datum.time !== targetTime ? displayTime : undefined
+        const toleranceNotice = targetNotice
+            ? {
+                  icon: TooltipFooterIcon.notice,
+                  text: makeTooltipToleranceNotice(targetNotice),
+              }
+            : undefined
+        const roundingNotice =
+            isValueLabelRounded && mapColumn.roundsToSignificantFigures
+                ? {
+                      icon: this.showSparkline
+                          ? TooltipFooterIcon.significance
+                          : TooltipFooterIcon.none,
+                      text: makeTooltipRoundingNotice(
+                          [mapColumn.numSignificantFigures],
+                          { plural: false }
+                      ),
+                  }
+                : undefined
+        const footer = excludeUndefined([toleranceNotice, roundingNotice])
 
         const labelX = axisBounds.right - SPARKLINE_NUDGE
         const labelTop = axisBounds.top - SPARKLINE_NUDGE
@@ -257,15 +312,18 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 offsetYDirection={"downward"}
                 title={target?.featureId}
                 subtitle={datum ? displayDatumTime : displayTime}
-                subtitleFormat={notice ? "notice" : undefined}
-                footer={notice}
-                footerFormat="notice"
+                subtitleFormat={targetNotice ? "notice" : undefined}
+                footer={footer}
                 dissolve={fading}
             >
                 <TooltipValue
                     column={yColumn}
                     value={valueLabel}
                     color={valueColor}
+                    showSignificanceSuperscript={
+                        !!roundingNotice &&
+                        roundingNotice.icon !== TooltipFooterIcon.none
+                    }
                 />
                 {this.showSparkline && (
                     <div
