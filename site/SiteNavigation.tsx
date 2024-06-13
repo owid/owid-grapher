@@ -604,6 +604,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Natural Disasters",
                         },
                         {
+                            slug: "wildfires",
+                            title: "Wildfires",
+                        },
+                        {
                             slug: "biodiversity",
                             title: "Biodiversity",
                         },
