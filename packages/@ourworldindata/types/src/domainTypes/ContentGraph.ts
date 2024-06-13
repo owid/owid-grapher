@@ -12,6 +12,14 @@ export interface CategoryWithEntries {
     subcategories?: CategoryWithEntries[]
 }
 
+export type DbInsertTagGraphNode = {
+    parentId: number
+    childId: number
+    weight?: number
+}
+
+export type DbPlainTagGraphNode = Required<DbInsertTagGraphNode>
+
 export const TagGraphRootName = "tag-graph-root" as const
 
 export type FlatTagGraphNode = Pick<DbPlainTag, "name" | "slug"> & {

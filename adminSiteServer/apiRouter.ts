@@ -2018,7 +2018,8 @@ postRouteWithRWTransaction(
             return (
                 checkIsPlainObjectWithGuard(tag) &&
                 typeof tag.name === "string" &&
-                (tag.slug === null || typeof tag.slug === "string")
+                (tag.slug === null ||
+                    (typeof tag.slug === "string" && tag.slug !== ""))
             )
         }
         if (!validateTag(tag)) throw new JsonError("Invalid tag", 400)

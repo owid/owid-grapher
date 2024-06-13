@@ -124,13 +124,13 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                             field="name"
                             store={newtag}
                             label="Name"
-                            helpText="Tag names should ideally be unique across the database and able to be understood without context"
+                            helpText="Tag names must be unique and should be able to be understood without context"
                         />
                         <BindString
                             field="slug"
                             store={newtag}
                             label="Slug"
-                            helpText="The slug for this tag's topic page, e.g. trade-and-globalization. If specified, we assume this tag is a topic."
+                            helpText="The slug for this tag's topic page, e.g. trade-and-globalization. If specified, we assume this tag is a topic. Must be unique"
                         />
                         <div>
                             <input

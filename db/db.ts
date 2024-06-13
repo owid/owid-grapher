@@ -23,6 +23,7 @@ import {
     FlatTagGraph,
     FlatTagGraphNode,
     MinimalTagWithIsTopic,
+    DbPlainTagGraphNode,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash"
 
@@ -472,14 +473,13 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
             tg.childId,
             tg.weight,
             t.name,
-            t.slug,
-            IFNULL((p.type IN (:types) AND p.published = 1 AND t.slug IS NOT NULL), FALSE) AS isTopic
+            p.slug IS NOT NULL AS isTopic
         FROM
             tag_graph tg
         LEFT JOIN tags t ON
             tg.childId = t.id
-        LEFT JOIN posts_gdocs p on
-            t.slug = p.slug
+        LEFT JOIN posts_gdocs p ON
+            t.slug = p.slug AND p.published = 1 AND p.type IN (:types)
         -- order by descending weight, tiebreak by name
         ORDER BY tg.weight DESC, t.name ASC`,
         {

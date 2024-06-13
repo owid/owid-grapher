@@ -131,6 +131,8 @@ export {
     type PostReference,
     type TagGraphNode,
     type TagGraphRoot,
+    type DbInsertTagGraphNode,
+    type DbPlainTagGraphNode,
 } from "./domainTypes/ContentGraph.js"
 export {
     WP_BlockClass,

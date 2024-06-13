@@ -6,7 +6,7 @@ export class AddTagGraph1716401298509 implements MigrationInterface {
             CREATE TABLE tag_graph (
                 parentId INT NOT NULL,
                 childId INT NOT NULL,
-                weight INT NOT NULL DEFAULT 1,
+                weight INT NOT NULL DEFAULT 100,
                 PRIMARY KEY (parentId, childId),
                 FOREIGN KEY (parentId) REFERENCES tags (id),
                 FOREIGN KEY (childId) REFERENCES tags (id),

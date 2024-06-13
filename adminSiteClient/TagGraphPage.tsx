@@ -377,7 +377,7 @@ export class TagGraphPage extends React.Component {
             childId: tag.id,
             parentId: parentId,
             name: tag.name,
-            weight: 1,
+            weight: 100,
             slug: tag.slug,
             isTopic: tag.isTopic,
         }
