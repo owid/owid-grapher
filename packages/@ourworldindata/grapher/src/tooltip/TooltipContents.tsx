@@ -179,7 +179,7 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                             swatch = "transparent",
                         } = row
                         const [_m, seriesName, seriesParenthetical] =
-                            name.match(/^(.*?)(\([^()]*\))?$/) ?? []
+                            name.trim().match(/^(.*?)(\([^()]*\))?$/) ?? []
 
                         return (
                             <tr
