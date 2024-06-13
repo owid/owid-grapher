@@ -422,6 +422,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             slug: "smallpox",
                             title: "Smallpox",
                         },
+                        {
+                            slug: "neglected-tropical-diseases",
+                            title: "Neglected Tropical Diseases",
+                        },
                     ],
                 },
                 {
