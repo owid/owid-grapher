@@ -11,12 +11,14 @@ export const GrapherWithFallback = ({
     slug,
     className,
     id,
+    getGrapherInstance,
 }: {
     grapher?: Grapher | undefined
     manager?: GrapherManager
     slug?: string
     className?: string
     id?: string
+    getGrapherInstance?: (grapher: Grapher) => void
 }) => {
     return (
         <div
@@ -29,7 +31,11 @@ export const GrapherWithFallback = ({
         >
             <>
                 {grapher ? (
-                    <GrapherFigureView grapher={grapher} manager={manager} />
+                    <GrapherFigureView
+                        grapher={grapher}
+                        manager={manager}
+                        getGrapherInstance={getGrapherInstance}
+                    />
                 ) : (
                     // Render fallback svg when javascript disabled or while
                     // grapher is loading

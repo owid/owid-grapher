@@ -57,6 +57,7 @@ import {
     Url,
     getWindowQueryParams,
     isEqual,
+    GrapherTabOption,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "../gdocs/OwidGdoc.js"
 import StickyNav from "../blocks/StickyNav.js"
@@ -466,13 +467,21 @@ export const MultiDimDataPageContent = ({
         [selectionArray]
     )
 
+    // This is the ACTUAL grapher instance being used, because GrapherFigureView/GrapherWithFallback are doing weird things and are not actually using the grapher instance we pass into it
+    // and therefore we can not access the grapher state (e.g. tab, selection) from the grapher instance we pass into it
+    // TODO we should probably fix that? seems sensible? change GrapherFigureView around a bit to use the actual grapher inst? or pass a GrapherProgrammaticInterface to it instead?
+    const [grapherInst, setGrapherInst] = useState<Grapher | null>(null)
+
     const grapherConfigComputed = useMemo(() => {
         return {
             ...currentView?.config,
             dimensions: dimensionsConfig,
             isEmbeddedInADataPage: true,
-        }
-    }, [currentView, dimensionsConfig])
+
+            // Keep the tab we last had
+            tab: grapherInst?.tab ?? GrapherTabOption.chart,
+        } as GrapherProgrammaticInterface
+    }, [currentView, dimensionsConfig, grapherInst])
 
     const grapher = useMemo(() => {
         const grapher = new Grapher(grapherConfigComputed)
@@ -616,6 +625,7 @@ export const MultiDimDataPageContent = ({
                         key={JSON.stringify(grapherConfigComputed)}
                         grapher={grapher}
                         manager={grapherManager}
+                        getGrapherInstance={(g) => setGrapherInst}
                         id="explore-the-data"
                     />
                     {datapageDataFromVar && (

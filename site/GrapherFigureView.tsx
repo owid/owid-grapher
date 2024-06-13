@@ -19,6 +19,7 @@ import {
 export class GrapherFigureView extends React.Component<{
     grapher: Grapher
     manager?: GrapherManager
+    getGrapherInstance?: (grapher: Grapher) => void
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref bounds?: Bounds
@@ -54,6 +55,7 @@ export class GrapherFigureView extends React.Component<{
                 this.context?.admin?.settings?.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
             enableKeyboardShortcuts: true,
             manager,
+            getGrapherInstance: this.props.getGrapherInstance,
         }
         return (
             // They key= in here makes it so that the chart is re-loaded when the slug changes.
