@@ -2,7 +2,11 @@ import { action, observable } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 
-import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
+import {
+    Grapher,
+    GrapherManager,
+    GrapherProgrammaticInterface,
+} from "@ourworldindata/grapher"
 import { Bounds } from "@ourworldindata/utils"
 import {
     ADMIN_BASE_URL,
@@ -12,7 +16,10 @@ import {
 
 // Wrapper for Grapher that uses css on figure element to determine the bounds
 @observer
-export class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
+export class GrapherFigureView extends React.Component<{
+    grapher: Grapher
+    manager?: GrapherManager
+}> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref bounds?: Bounds
 
@@ -32,7 +39,7 @@ export class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
     }
 
     render() {
-        const { grapher } = this.props
+        const { grapher, manager } = this.props
 
         const props: GrapherProgrammaticInterface = {
             ...grapher.toObject(),
@@ -46,6 +53,7 @@ export class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
             dataApiUrlForAdmin:
                 this.context?.admin?.settings?.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
             enableKeyboardShortcuts: true,
+            manager,
         }
         return (
             // They key= in here makes it so that the chart is re-loaded when the slug changes.

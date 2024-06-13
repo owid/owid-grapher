@@ -3,7 +3,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowDown, faCaretDown } from "@fortawesome/free-solid-svg-icons"
 import {
     Grapher,
+    GrapherManager,
     GrapherProgrammaticInterface,
+    SelectionArray,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import {
@@ -71,12 +73,22 @@ import {
     DimensionEnriched,
     MultiDimDataPageConfigType,
 } from "./MultiDimDataPageTypes.js"
+import { action, autorun, reaction } from "mobx"
 declare global {
     interface Window {
         _OWID_MULTI_DIM_CONFIG: MultiDimDataPageConfigType
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
+
+// https://blog.logrocket.com/accessing-previous-props-state-react-hooks/
+function usePrevious<T>(value: T) {
+    const ref = useRef<T>()
+    useEffect(() => {
+        ref.current = value
+    }, [value])
+    return ref.current
+}
 
 // We still have topic pages on WordPress, whose featured images are specified as absolute URLs which this component handles
 // Once we've migrated all WP topic pages to gdocs, we'll be able to remove this component and just use <Image />
@@ -436,16 +448,28 @@ export const MultiDimDataPageContent = ({
             </a>
         ))
 
-    const grapherConfigComputed = useMemo(() => {
-        return {
-            ...currentView?.config,
-            dimensions: dimensionsConfig,
-            selectedEntityNames: [
+    const selectionArray = useMemo(
+        () =>
+            new SelectionArray([
                 "Spain",
                 "Zimbabwe",
                 "United Kingdom",
                 "World",
-            ],
+            ]),
+        []
+    )
+
+    const grapherManager = useMemo(
+        (): GrapherManager => ({
+            selection: selectionArray,
+        }),
+        [selectionArray]
+    )
+
+    const grapherConfigComputed = useMemo(() => {
+        return {
+            ...currentView?.config,
+            dimensions: dimensionsConfig,
             isEmbeddedInADataPage: true,
         }
     }, [currentView, dimensionsConfig])
@@ -591,6 +615,7 @@ export const MultiDimDataPageContent = ({
                     <GrapherWithFallback
                         key={JSON.stringify(grapherConfigComputed)}
                         grapher={grapher}
+                        manager={grapherManager}
                         id="explore-the-data"
                     />
                     {datapageDataFromVar && (
