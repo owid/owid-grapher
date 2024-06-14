@@ -157,3 +157,14 @@ $grid-responsive: (lg, md, sm);
         }
     }
 }
+
+// Custom helpers
+.grid-row-start-2 {
+    grid-row-start: 2;
+}
+
+.grid-md-row-start-auto {
+    @include breakpoint-max(md) {
+        grid-row-start: auto;
+    }
+}

@@ -32,7 +32,7 @@ const gridSpan7 = generateResponsiveSizes(7)
 const gridSpan8 = generateResponsiveSizes(8)
 
 export type ImageParentContainer =
-    | Container
+    | Exclude<Container, "sticky-right-left-heading-column">
     | "thumbnail"
     | "full-width"
     | "span-5"

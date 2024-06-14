@@ -8,7 +8,7 @@ import PullQuote from "./PullQuote.js"
 import Recirc from "./Recirc.js"
 import List from "./List.js"
 import NumberedList from "./NumberedList.js"
-import Image from "./Image.js"
+import Image, { ImageParentContainer } from "./Image.js"
 import {
     get,
     OwidEnrichedGdocBlock,
@@ -46,6 +46,7 @@ import { Socials } from "./Socials.js"
 export type Container =
     | "default"
     | "sticky-right-left-column"
+    | "sticky-right-left-heading-column"
     | "sticky-right-right-column"
     | "sticky-left-left-column"
     | "sticky-left-right-column"
@@ -123,6 +124,9 @@ const layouts: { [key in Container]: Layouts} = {
         ["explorer"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["default"]: "span-cols-5 col-start-1 span-md-cols-12",
         ["prominent-link"]: "grid grid-cols-5 span-cols-5 span-md-cols-10 grid-md-cols-10 span-sm-cols-12 grid-sm-cols-12",
+    },
+    ["sticky-right-left-heading-column"]: {
+        ["default"]: "span-cols-5 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1"
     },
     ["sticky-right-right-column"]: {
         ["chart"]: "span-cols-7 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
@@ -255,7 +259,7 @@ export default function ArticleBlock({
                     smallFilename={block.smallFilename}
                     alt={block.alt}
                     hasOutline={block.hasOutline}
-                    containerType={containerType}
+                    containerType={containerType as ImageParentContainer}
                 />
                 {block.caption ? (
                     <figcaption
@@ -433,40 +437,67 @@ export default function ArticleBlock({
                 d={block}
             />
         ))
-        .with({ type: "sticky-right" }, (block) => (
-            <div className={getLayout("sticky-right", containerType)}>
-                <div
-                    className={getLayout(
-                        "sticky-right-left-column",
-                        containerType
-                    )}
-                >
-                    {block.left.map((item, i) => (
+        .with({ type: "sticky-right" }, (block) => {
+            const firstBlock = block.left[0]
+            let separateHeading = null
+            let left = block.left
+            if (
+                firstBlock?.type === "heading" &&
+                block.right[0]?.type !== "chart-story"
+            ) {
+                separateHeading = firstBlock
+                left = block.left.slice(1)
+            }
+            return (
+                <div className={getLayout("sticky-right", containerType)}>
+                    {separateHeading && (
                         <ArticleBlock
-                            key={i}
-                            b={item}
-                            containerType="sticky-right-left-column"
+                            b={separateHeading}
+                            containerType="sticky-right-left-heading-column"
                         />
-                    ))}
-                </div>
-                <div
-                    className={getLayout(
-                        "sticky-right-right-column",
-                        containerType
                     )}
-                >
-                    <div className="sticky-column-wrapper grid grid-cols-7 span-cols-7 grid-md-cols-12 span-md-cols-12">
-                        {block.right.map((item, i) => (
+                    <div
+                        className={cx(
+                            getLayout(
+                                "sticky-right-left-column",
+                                containerType
+                            ),
+                            { "grid-row-start-2": separateHeading }
+                        )}
+                    >
+                        {left.map((item, i) => (
                             <ArticleBlock
                                 key={i}
                                 b={item}
-                                containerType="sticky-right-right-column"
+                                containerType="sticky-right-left-column"
                             />
                         ))}
                     </div>
+                    <div
+                        className={cx(
+                            getLayout(
+                                "sticky-right-right-column",
+                                containerType
+                            ),
+                            {
+                                "grid-row-start-2 grid-md-row-start-auto":
+                                    separateHeading,
+                            }
+                        )}
+                    >
+                        <div className="sticky-column-wrapper grid grid-cols-7 span-cols-7 grid-md-cols-12 span-md-cols-12">
+                            {block.right.map((item, i) => (
+                                <ArticleBlock
+                                    key={i}
+                                    b={item}
+                                    containerType="sticky-right-right-column"
+                                />
+                            ))}
+                        </div>
+                    </div>
                 </div>
-            </div>
-        ))
+            )
+        })
         .with({ type: "sticky-left" }, (block) => (
             <div className={getLayout("sticky-left", containerType)}>
                 <div
