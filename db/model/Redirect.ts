@@ -50,3 +50,9 @@ export async function getChainedRedirect(
         [target, source]
     )
 }
+
+export async function deleteExpiredRedirects(
+    knex: db.KnexReadWriteTransaction
+): Promise<void> {
+    await db.knexRaw(knex, "DELETE FROM redirects WHERE ttl < NOW()")
+}

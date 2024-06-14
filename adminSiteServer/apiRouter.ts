@@ -27,12 +27,14 @@ import {
     fetchS3DataValuesByPath,
     searchVariables,
 } from "../db/model/Variable.js"
+import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     applyPatch,
     BulkChartEditResponseRow,
     BulkGrapherConfigResponse,
     camelCaseProperties,
     chartBulkUpdateAllowedColumnNamesAndTypes,
+    dayjs,
     GdocsContentSource,
     GrapherConfigPatch,
     isEmpty,
@@ -2468,6 +2470,15 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     if (gdoc.published && checkIsGdocPostExcludingFragments(gdoc)) {
         await removeIndividualGdocPostFromIndex(gdoc)
     }
+    // Assets have TTL of one week in Cloudflare. Add a redirect to make sure
+    // the page is no longer accessible.
+    // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
+    const ttl = dayjs().add(8, "days").toDate()
+    await db.knexRawInsert(
+        trx,
+        `INSERT INTO redirects (source, target, ttl) VALUES (?, ?, ?)`,
+        [getCanonicalUrl("", gdoc), "/", ttl]
+    )
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })

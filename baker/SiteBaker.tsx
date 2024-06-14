@@ -1014,7 +1014,7 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked assets" })
     }
 
-    async bakeRedirects(knex: db.KnexReadonlyTransaction) {
+    async bakeRedirects(knex: db.KnexReadWriteTransaction) {
         if (!this.bakeSteps.has("redirects")) return
         const redirects = await getRedirects(knex)
         this.progressBar.tick({ name: "✅ got redirects" })
@@ -1032,7 +1032,8 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked redirects" })
     }
 
-    // TODO: this transaction is only RW because somewhere inside it we fetch images
+    // TODO: This transaction is RW because we delete expired redirects and
+    //       somewhere inside it we fetch images.
     async bakeWordpressPages(knex: db.KnexReadWriteTransaction) {
         await this.bakeRedirects(knex)
         await this.bakeEmbeds(knex)
