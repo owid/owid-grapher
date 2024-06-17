@@ -422,6 +422,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             slug: "smallpox",
                             title: "Smallpox",
                         },
+                        {
+                            slug: "neglected-tropical-diseases",
+                            title: "Neglected Tropical Diseases",
+                        },
                     ],
                 },
                 {
@@ -598,6 +602,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         {
                             slug: "natural-disasters",
                             title: "Natural Disasters",
+                        },
+                        {
+                            slug: "wildfires",
+                            title: "Wildfires",
                         },
                         {
                             slug: "biodiversity",
