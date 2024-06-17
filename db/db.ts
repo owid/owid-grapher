@@ -23,7 +23,6 @@ import {
     FlatTagGraph,
     FlatTagGraphNode,
     MinimalTagWithIsTopic,
-    DbPlainTagGraphNode,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash"
 
@@ -524,8 +523,64 @@ export async function updateTagGraph(
         }
     }
 
-    await knex("tag_graph").delete()
-    await knex("tag_graph").insert(tagGraphRows)
+    const existingTagGraphRows = await knexRaw<{
+        parentId: number
+        childId: number
+        weight: number
+    }>(
+        knex,
+        `-- sql
+        SELECT parentId, childId, weight FROM tag_graph
+    `
+    )
+    // Remove rows that are not in the new tag graph
+    // Add rows that are in the new tag graph but not in the existing tag graph
+    const rowsToDelete = existingTagGraphRows.filter(
+        (row) =>
+            !tagGraphRows.some(
+                (newRow) =>
+                    newRow.parentId === row.parentId &&
+                    newRow.childId === row.childId &&
+                    newRow.weight === row.weight
+            )
+    )
+    const rowsToAdd = tagGraphRows.filter(
+        (newRow) =>
+            !existingTagGraphRows.some(
+                (row) =>
+                    newRow.parentId === row.parentId &&
+                    newRow.childId === row.childId &&
+                    newRow.weight === row.weight
+            )
+    )
+
+    if (rowsToDelete.length > 0) {
+        await knexRaw(
+            knex,
+            `-- sql
+            DELETE FROM tag_graph
+            WHERE parentId IN (?)
+            AND childId IN (?)
+            AND weight IN (?)
+        `,
+            [
+                rowsToDelete.map((row) => row.parentId),
+                rowsToDelete.map((row) => row.childId),
+                rowsToDelete.map((row) => row.weight),
+            ]
+        )
+    }
+
+    if (rowsToAdd.length > 0) {
+        await knexRaw(
+            knex,
+            `-- sql
+            INSERT INTO tag_graph (parentId, childId, weight)
+            VALUES ?
+        `,
+            [rowsToAdd.map((row) => [row.parentId, row.childId, row.weight])]
+        )
+    }
 }
 
 export function getMinimalTagsWithIsTopic(

@@ -7,6 +7,7 @@ export class AddTagGraph1716401298509 implements MigrationInterface {
                 parentId INT NOT NULL,
                 childId INT NOT NULL,
                 weight INT NOT NULL DEFAULT 100,
+                updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (parentId, childId),
                 FOREIGN KEY (parentId) REFERENCES tags (id),
                 FOREIGN KEY (childId) REFERENCES tags (id),

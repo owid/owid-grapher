@@ -16,6 +16,7 @@ export type DbInsertTagGraphNode = {
     parentId: number
     childId: number
     weight?: number
+    updatedAt?: string
 }
 
 export type DbPlainTagGraphNode = Required<DbInsertTagGraphNode>
