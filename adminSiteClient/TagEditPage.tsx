@@ -1,10 +1,10 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action, runInAction } from "mobx"
+import { observable, computed, runInAction } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 import { DbChartTagJoin } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
-import { BindString, NumericSelectField, FieldsRow, Timeago } from "./Forms.js"
+import { BindString, Timeago } from "./Forms.js"
 import { DatasetList, DatasetListItem } from "./DatasetList.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { TagBadge } from "./TagBadge.js"
@@ -12,20 +12,17 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 interface TagPageData {
     id: number
-    parentId?: number
     name: string
     specialType?: string
     updatedAt: string
     datasets: DatasetListItem[]
     charts: ChartListItem[]
     children: DbChartTagJoin[]
-    possibleParents: DbChartTagJoin[]
     slug: string | null
 }
 
 class TagEditable {
     @observable name: string = ""
-    @observable parentId?: number
     @observable slug: string | null = null
 
     constructor(json: TagPageData) {
@@ -84,7 +81,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
 
         if (
             !window.confirm(
-                `Really delete the category ${tag.name}? This action cannot be undone!`
+                `Really delete the tag ${tag.name}? This action cannot be undone!`
             )
         )
             return
@@ -98,21 +95,6 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
         if (json.success) {
             runInAction(() => (this.isDeleted = true))
         }
-    }
-
-    @action.bound onChooseParent(parentId: number) {
-        if (parentId === -1) {
-            this.newtag.parentId = undefined
-        } else {
-            this.newtag.parentId = parentId
-        }
-    }
-
-    @computed get parentTag() {
-        const { parentId } = this.props.tag
-        return parentId
-            ? this.props.tag.possibleParents.find((c) => c.id === parentId)
-            : undefined
     }
 
     render() {
@@ -142,49 +124,30 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                             field="name"
                             store={newtag}
                             label="Name"
-                            helpText="Category names should ideally be unique across the database and able to be understood without context"
+                            helpText="Tag names must be unique and should be able to be understood without context"
                         />
                         <BindString
                             field="slug"
                             store={newtag}
                             label="Slug"
-                            helpText="The slug for this tag's topic page, e.g. trade-and-globalization. If specified, we assume this tag is a topic."
+                            helpText="The slug for this tag's topic page, e.g. trade-and-globalization. If specified, we assume this tag is a topic. Must be unique"
                         />
-                        <FieldsRow>
-                            <NumericSelectField
-                                label="Parent Category"
-                                value={newtag.parentId || -1}
-                                options={[{ value: -1, label: "None" }].concat(
-                                    tag.possibleParents.map((p) => ({
-                                        value: p.id as number,
-                                        label: p.name,
-                                    }))
-                                )}
-                                onValue={this.onChooseParent}
-                            />
-                            <div>
-                                <br />
-                                {this.parentTag && (
-                                    <TagBadge
-                                        tag={this.parentTag as DbChartTagJoin}
-                                    />
-                                )}
-                            </div>
-                        </FieldsRow>
                         <div>
                             <input
                                 type="submit"
+                                disabled={!this.isModified || !newtag.name}
                                 className="btn btn-success"
-                                value="Update category"
+                                value="Update tag"
                             />{" "}
                             {tag.datasets.length === 0 &&
                                 tag.children.length === 0 &&
                                 !tag.specialType && (
                                     <button
                                         className="btn btn-danger"
+                                        type="button"
                                         onClick={() => this.deleteTag()}
                                     >
-                                        Delete category
+                                        Delete tag
                                     </button>
                                 )}
                         </div>

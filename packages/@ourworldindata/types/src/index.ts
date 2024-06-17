@@ -123,9 +123,16 @@ export {
 } from "./domainTypes/Layout.js"
 
 export {
-    type EntryMeta,
-    type PostReference,
+    TagGraphRootName,
     type CategoryWithEntries,
+    type EntryMeta,
+    type FlatTagGraph,
+    type FlatTagGraphNode,
+    type PostReference,
+    type TagGraphNode,
+    type TagGraphRoot,
+    type DbInsertTagGraphNode,
+    type DbPlainTagGraphNode,
 } from "./domainTypes/ContentGraph.js"
 export {
     WP_BlockClass,
@@ -613,6 +620,7 @@ export {
 export {
     type DbInsertTag,
     type DbPlainTag,
+    type MinimalTagWithIsTopic,
     type MinimalTag,
     TagsTableName,
 } from "./dbTypes/Tags.js"

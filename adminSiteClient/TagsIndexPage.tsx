@@ -1,204 +1,109 @@
-import React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action, runInAction } from "mobx"
-import * as lodash from "lodash"
-import { Redirect } from "react-router-dom"
+import React from "react"
 import { AdminLayout } from "./AdminLayout.js"
-import { FieldsRow, Modal, TextField } from "./Forms.js"
-import { DbChartTagJoin } from "@ourworldindata/utils"
-import { TagBadge } from "./TagBadge.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-
-interface TagListItem {
-    id: number
-    name: string
-    parentId: number
-    specialType?: string
-}
-
-@observer
-class AddTagModal extends React.Component<{
-    parentId?: number
-    onClose: () => void
-}> {
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
-
-    @observable tagName: string = ""
-    @observable newTagId?: number
-
-    @computed get tag() {
-        if (!this.tagName) return undefined
-
-        return {
-            parentId: this.props.parentId,
-            name: this.tagName,
-        }
-    }
-
-    async submit() {
-        if (this.tag) {
-            const resp = await this.context.admin.requestJSON(
-                "/api/tags/new",
-                { tag: this.tag },
-                "POST"
-            )
-            if (resp.success) {
-                this.newTagId = resp.tagId
-            }
-        }
-    }
-
-    @action.bound onTagName(tagName: string) {
-        this.tagName = tagName
-    }
-
-    render() {
-        return (
-            <Modal onClose={this.props.onClose}>
-                <form
-                    onSubmit={(e) => {
-                        e.preventDefault()
-                        void this.submit()
-                    }}
-                >
-                    <div className="modal-header">
-                        <h5 className="modal-title">Add category</h5>
-                    </div>
-                    <div className="modal-body">
-                        <TextField
-                            label="Category Name"
-                            value={this.tagName}
-                            onValue={this.onTagName}
-                            autofocus
-                            required
-                        />
-                    </div>
-                    <div className="modal-footer">
-                        <input
-                            type="submit"
-                            className="btn btn-primary"
-                            value="Add tag"
-                        />
-                    </div>
-                </form>
-                {this.newTagId !== undefined && (
-                    <Redirect to={`/tags/${this.newTagId}`} />
-                )}
-            </Modal>
-        )
-    }
-}
+import { observable, runInAction } from "mobx"
+import { DbPlainTag } from "@ourworldindata/types"
+import { TagBadge } from "./TagBadge.js"
+import { Link } from "react-router-dom"
+import { Button, Modal } from "antd"
 
 @observer
 export class TagsIndexPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable tags: TagListItem[] = []
-    @observable isAddingTag: boolean = false
-    @observable addTagParentId?: number
+    @observable tags: DbPlainTag[] = []
+    @observable newTagName = ""
+    @observable newTagSlug = ""
+    @observable isAddingTag = false
 
-    @computed get categoriesById(): Record<string, TagListItem> {
-        return lodash.keyBy(this.tags, (t) => t.id)
-    }
-
-    @computed get parentCategories(): {
-        id: number
-        name: string
-        specialType?: string
-        children: TagListItem[]
-    }[] {
-        const parentCategories = this.tags
-            .filter((c) => !c.parentId)
-            .map((c) => ({
-                id: c.id,
-                name: c.name,
-                specialType: c.specialType,
-                children: this.tags.filter((c2) => c2.parentId === c.id),
-            }))
-
-        return parentCategories
-    }
-
-    @action.bound onNewTag(parentId?: number) {
-        this.addTagParentId = parentId
-        this.isAddingTag = true
-    }
-
-    render() {
-        const { parentCategories } = this
-
-        return (
-            <AdminLayout title="Categories">
-                <main className="TagsIndexPage">
-                    <FieldsRow>
-                        <span>Showing {this.tags.length} tags</span>
-                    </FieldsRow>
-                    <p>
-                        Tags are a way of organizing data. Each chart and
-                        dataset can be assigned any number of tags. A tag may be
-                        listed under another parent tag.
-                    </p>
-                    <div className="cardHolder">
-                        <section>
-                            <h4>Top-Level Categories</h4>
-                            {parentCategories.map((parent) => (
-                                <TagBadge
-                                    key={parent.id}
-                                    tag={parent as DbChartTagJoin}
-                                />
-                            ))}
-                            <button
-                                className="btn btn-default"
-                                onClick={() => this.onNewTag()}
-                            >
-                                + New Tag
-                            </button>
-                        </section>
-                        {parentCategories.map((parent) => (
-                            <section key={`${parent.id}-section`}>
-                                <h4>{parent.name}</h4>
-                                {parent.specialType === "systemParent" && (
-                                    <p>
-                                        These are special categories that are
-                                        assigned automatically.
-                                    </p>
-                                )}
-                                {parent.children.map((tag) => (
-                                    <TagBadge
-                                        key={tag.id}
-                                        tag={tag as DbChartTagJoin}
-                                    />
-                                ))}
-                                <button
-                                    className="btn btn-default"
-                                    onClick={() => this.onNewTag(parent.id)}
-                                >
-                                    + New Tag
-                                </button>
-                            </section>
-                        ))}
-                    </div>
-                </main>
-                {this.isAddingTag && (
-                    <AddTagModal
-                        parentId={this.addTagParentId}
-                        onClose={action(() => (this.isAddingTag = false))}
-                    />
-                )}
-            </AdminLayout>
-        )
+    componentDidMount(): void {
+        void this.getData()
+        this.addTag = this.addTag.bind(this)
     }
 
     async getData() {
-        const json = await this.context.admin.getJSON("/api/tags.json")
+        const result = await this.context.admin.getJSON<{ tags: DbPlainTag[] }>(
+            "/api/tags.json"
+        )
         runInAction(() => {
-            this.tags = json.tags
+            this.tags = result.tags
         })
     }
 
-    componentDidMount() {
-        void this.getData()
+    async addTag() {
+        await this.context.admin.requestJSON(
+            "/api/tags/new",
+            {
+                name: this.newTagName,
+                slug: this.newTagSlug,
+            },
+            "POST"
+        )
+        this.isAddingTag = false
+        this.newTagName = ""
+        this.newTagSlug = ""
+        await this.getData()
+    }
+
+    addTagModal() {
+        return (
+            <Modal
+                className="TagsIndexPage__add-tag-modal"
+                open={this.isAddingTag}
+                onCancel={() => (this.isAddingTag = false)}
+            >
+                <h3>Add tag</h3>
+                <form>
+                    <input
+                        placeholder="Name"
+                        value={this.newTagName}
+                        onChange={(e) => (this.newTagName = e.target.value)}
+                    />
+                    <input
+                        placeholder="Slug (optional)"
+                        value={this.newTagSlug}
+                        onChange={(e) => (this.newTagSlug = e.target.value)}
+                    />
+                    <Button disabled={!this.newTagName} onClick={this.addTag}>
+                        Add
+                    </Button>
+                </form>
+            </Modal>
+        )
+    }
+
+    render() {
+        return (
+            <AdminLayout title="Categories">
+                <main className="TagsIndexPage">
+                    {this.addTagModal()}
+                    <header className="TagsIndexPage__header">
+                        <h2>Tags</h2>
+                        <Button
+                            type="primary"
+                            onClick={() => (this.isAddingTag = true)}
+                        >
+                            Add tag
+                        </Button>
+                    </header>
+                    <p>
+                        This is every single tag we have in the database. To
+                        organise them hierarchically, see the{" "}
+                        <Link to="tag-graph">tag graph</Link>.
+                    </p>
+                    {this.tags.map((tag) => (
+                        <TagBadge
+                            key={tag.id}
+                            tag={{
+                                id: tag.id,
+                                name: tag.name,
+                            }}
+                        />
+                    ))}
+                </main>
+            </AdminLayout>
+        )
     }
 }

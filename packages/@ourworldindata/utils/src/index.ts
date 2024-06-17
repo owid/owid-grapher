@@ -126,6 +126,7 @@ export {
     roundDownToNearestHundred,
     commafyNumber,
     isFiniteWithGuard,
+    createTagGraph,
 } from "./Util.js"
 
 export {

@@ -19,7 +19,12 @@ import {
     DbEnrichedPostGdoc,
     DbRawPostGdoc,
     parsePostsGdocsRow,
+    TagGraphRootName,
+    FlatTagGraph,
+    FlatTagGraphNode,
+    MinimalTagWithIsTopic,
 } from "@ourworldindata/types"
+import { groupBy } from "lodash"
 
 // Return the first match from a mysql query
 export const closeTypeOrmAndKnexConnections = async (): Promise<void> => {
@@ -447,4 +452,159 @@ export const getNonGrapherExplorerViewCount = (
             AND type = "graphers"
             AND grapherId IS NULL`
     ).then((res) => res?.count ?? 0)
+}
+
+/**
+ * 1. Fetch all records in tag_graph, isTopic = true when there is a published TP/LTP/Article with the same slug as the tag
+ * 2. Group tags by their parentId
+ * 3. Return the flat tag graph along with a __rootId property so that the UI knows which record is the root node
+ */
+export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
+    FlatTagGraph & {
+        __rootId: number
+    }
+> {
+    const tagGraphByParentId = await knexRaw<FlatTagGraphNode>(
+        knex,
+        `-- sql
+        SELECT
+            tg.parentId,
+            tg.childId,
+            tg.weight,
+            t.name,
+            p.slug IS NOT NULL AS isTopic
+        FROM
+            tag_graph tg
+        LEFT JOIN tags t ON
+            tg.childId = t.id
+        LEFT JOIN posts_gdocs p ON
+            t.slug = p.slug AND p.published = 1 AND p.type IN (:types)
+        -- order by descending weight, tiebreak by name
+        ORDER BY tg.weight DESC, t.name ASC`,
+        {
+            types: [
+                OwidGdocType.TopicPage,
+                OwidGdocType.LinearTopicPage,
+                // For sub-topics e.g. Nuclear Energy we use the article format
+                OwidGdocType.Article,
+            ],
+        }
+    ).then((rows) => groupBy(rows, "parentId"))
+
+    const tagGraphRootIdResult = await knexRawFirst<{
+        id: number
+    }>(
+        knex,
+        `-- sql
+        SELECT id FROM tags WHERE name = "${TagGraphRootName}"`
+    )
+    if (!tagGraphRootIdResult) throw new Error("Tag graph root not found")
+
+    return { ...tagGraphByParentId, __rootId: tagGraphRootIdResult.id }
+}
+
+export async function updateTagGraph(
+    knex: KnexReadWriteTransaction,
+    tagGraph: FlatTagGraph
+): Promise<void> {
+    const tagGraphRows: {
+        parentId: number
+        childId: number
+        weight: number
+    }[] = []
+
+    for (const children of Object.values(tagGraph)) {
+        for (const child of children) {
+            tagGraphRows.push({
+                parentId: child.parentId,
+                childId: child.childId,
+                weight: child.weight,
+            })
+        }
+    }
+
+    const existingTagGraphRows = await knexRaw<{
+        parentId: number
+        childId: number
+        weight: number
+    }>(
+        knex,
+        `-- sql
+        SELECT parentId, childId, weight FROM tag_graph
+    `
+    )
+    // Remove rows that are not in the new tag graph
+    // Add rows that are in the new tag graph but not in the existing tag graph
+    const rowsToDelete = existingTagGraphRows.filter(
+        (row) =>
+            !tagGraphRows.some(
+                (newRow) =>
+                    newRow.parentId === row.parentId &&
+                    newRow.childId === row.childId &&
+                    newRow.weight === row.weight
+            )
+    )
+    const rowsToAdd = tagGraphRows.filter(
+        (newRow) =>
+            !existingTagGraphRows.some(
+                (row) =>
+                    newRow.parentId === row.parentId &&
+                    newRow.childId === row.childId &&
+                    newRow.weight === row.weight
+            )
+    )
+
+    if (rowsToDelete.length > 0) {
+        await knexRaw(
+            knex,
+            `-- sql
+            DELETE FROM tag_graph
+            WHERE parentId IN (?)
+            AND childId IN (?)
+            AND weight IN (?)
+        `,
+            [
+                rowsToDelete.map((row) => row.parentId),
+                rowsToDelete.map((row) => row.childId),
+                rowsToDelete.map((row) => row.weight),
+            ]
+        )
+    }
+
+    if (rowsToAdd.length > 0) {
+        await knexRaw(
+            knex,
+            `-- sql
+            INSERT INTO tag_graph (parentId, childId, weight)
+            VALUES ?
+        `,
+            [rowsToAdd.map((row) => [row.parentId, row.childId, row.weight])]
+        )
+    }
+}
+
+export function getMinimalTagsWithIsTopic(
+    knex: KnexReadonlyTransaction
+): Promise<MinimalTagWithIsTopic[]> {
+    return knexRaw<MinimalTagWithIsTopic>(
+        knex,
+        `-- sql
+        SELECT t.id, 
+        t.name, 
+        t.slug, 
+        t.slug IS NOT NULL AND MAX(IF(pg.type IN (:types), TRUE, FALSE)) AS isTopic
+        FROM tags t
+        LEFT JOIN posts_gdocs_x_tags gt ON t.id = gt.tagId
+        LEFT JOIN posts_gdocs pg ON gt.gdocId = pg.id
+        GROUP BY t.id, t.name
+        ORDER BY t.name ASC
+    `,
+        {
+            types: [
+                OwidGdocType.TopicPage,
+                OwidGdocType.LinearTopicPage,
+                OwidGdocType.Article,
+            ],
+        }
+    )
 }

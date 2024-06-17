@@ -1,0 +1,113 @@
+.TagGraphPage {
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+    }
+    .tag-box {
+        position: relative;
+        padding: 8px;
+        padding-right: 0;
+        background-color: #f0f0f0;
+        transition: box-shadow 0.2s;
+        border-radius: 3px;
+        border: 3px solid transparent;
+        cursor: default;
+        &.tag-box--dragging {
+            z-index: 2;
+            box-shadow: 4px 4px 8px 8px #bbb;
+        }
+
+        &.tag-box--hovering:not(.tag-box--dragging) {
+            border: 3px solid orange;
+        }
+
+        // 🤫
+        & > .tag-box {
+            background-color: #d0d0d0;
+            & > .tag-box {
+                background-color: #f0f0f0;
+                & > .tag-box {
+                    background-color: #d0d0d0;
+                    & > .tag-box {
+                        background-color: #f0f0f0;
+                        & > .tag-box {
+                            background-color: #d0d0d0;
+                            & > .tag-box {
+                                background-color: #f0f0f0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        margin: 4px;
+        .grip-button {
+            position: absolute;
+            right: 4px;
+            top: 8px;
+            width: 32px;
+            height: 32px;
+            background-color: transparent;
+            padding: 0;
+            border: none;
+            line-height: 1;
+            transition: 0.2s;
+            color: #666;
+            &:hover {
+                color: #111;
+            }
+        }
+    }
+    .root-tag-box {
+        padding: 24px 0;
+        cursor: default;
+        > .grip-button {
+            display: none;
+        }
+    }
+    .tag-box__controls-container {
+        margin-bottom: 8px;
+    }
+    .tag-box__weight-control {
+        margin: 0 8px;
+        label {
+            margin: 0;
+            margin-right: 8px;
+        }
+        input {
+            width: 50px;
+            padding-left: 5px;
+            padding-right: 4px;
+            border: none;
+            background-color: transparent;
+            padding-top: 4px;
+            padding-bottom: 5px;
+            margin-right: 0;
+        }
+    }
+    .add-tag-button {
+        margin-right: 8px;
+        background-color: #686868;
+        border-color: #686868;
+        &:hover {
+            background-color: #888;
+            border-color: #888;
+        }
+    }
+    .add-tag-form {
+        display: inline-block;
+        margin-right: 8px;
+    }
+    .add-tag-input {
+        width: 256px;
+        border-radius: 3px;
+    }
+
+    .TagBadge {
+        font-size: 1.1em;
+        font-weight: 500;
+        background: none;
+        border: none;
+    }
+}

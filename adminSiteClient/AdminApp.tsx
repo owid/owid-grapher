@@ -16,6 +16,7 @@ import { RedirectsIndexPage } from "./RedirectsIndexPage.js"
 import SiteRedirectsIndexPage from "./SiteRedirectsIndexPage"
 import { TagEditPage } from "./TagEditPage.js"
 import { TagsIndexPage } from "./TagsIndexPage.js"
+import { TagGraphPage } from "./TagGraphPage.js"
 import { PostsIndexPage } from "./PostsIndexPage.js"
 import { TestIndexPage } from "./TestIndexPage.js"
 import { NotFoundPage } from "./NotFoundPage.js"
@@ -262,6 +263,11 @@ export class AdminApp extends React.Component<{
                                         tagId={parseInt(match.params.tagId)}
                                     />
                                 )}
+                            />
+                            <Route
+                                exact
+                                path="/tag-graph"
+                                component={TagGraphPage}
                             />
                             <Route
                                 exact

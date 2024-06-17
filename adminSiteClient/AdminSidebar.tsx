@@ -18,6 +18,7 @@ import {
     faCodeBranch,
     faDownload,
     faHatWizard,
+    faSitemap,
 } from "@fortawesome/free-solid-svg-icons"
 
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
@@ -87,6 +88,11 @@ export const AdminSidebar = (): React.ReactElement => (
             <li>
                 <Link to="/tags">
                     <FontAwesomeIcon icon={faTag} /> Tags
+                </Link>
+            </li>
+            <li>
+                <Link to="/tag-graph">
+                    <FontAwesomeIcon icon={faSitemap} /> Tag Graph
                 </Link>
             </li>
             <li>
