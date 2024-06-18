@@ -37,7 +37,7 @@ export class TagsIndexPage extends React.Component {
             "/api/tags/new",
             {
                 name: this.newTagName,
-                slug: this.newTagSlug,
+                slug: this.newTagSlug || null,
             },
             "POST"
         )
