@@ -1,5 +1,4 @@
 import React, { createRef } from "react"
-import ReactDOM from "react-dom"
 import cx from "classnames"
 import { throttle } from "@ourworldindata/utils"
 

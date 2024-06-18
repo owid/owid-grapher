@@ -1,7 +1,5 @@
 import React, { CSSProperties, useRef, useState } from "react"
 import cx from "classnames"
-import ReactDOM from "react-dom"
-import ReactDOMServer from "react-dom/server.js"
 
 export const ExpandableParagraph = (
     props:
