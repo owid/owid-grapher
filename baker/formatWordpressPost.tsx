@@ -27,7 +27,6 @@ import {
 } from "../site/blocks/AdditionalInformation.js"
 import { renderHelp } from "../site/blocks/Help.js"
 import { renderCodeSnippets } from "@ourworldindata/components"
-import { renderExpandableParagraphs } from "../site/blocks/ExpandableParagraph.js"
 import {
     formatUrls,
     getBodyHtml,
@@ -35,8 +34,7 @@ import {
 } from "../site/formatting.js"
 import { GRAPHER_PREVIEW_CLASS } from "../site/SiteConstants.js"
 import { INTERACTIVE_ICON_SVG } from "../site/InteractionNotice.js"
-import { renderKeyInsights, renderProminentLinks } from "./siteRenderers.js"
-import { KEY_INSIGHTS_CLASS_NAME } from "../site/blocks/KeyInsights.js"
+import { renderProminentLinks } from "./siteRenderers.js"
 import { RELATED_CHARTS_CLASS_NAME } from "../site/blocks/RelatedCharts.js"
 import { KnexReadonlyTransaction } from "../db/db.js"
 
@@ -47,15 +45,6 @@ export const formatWordpressPost = async (
     grapherExports?: GrapherExports
 ): Promise<FormattedPost> => {
     let html = post.content
-
-    // Inject key insights early so they can be formatted by the embedding
-    // article. Another option would be to format the content independently,
-    // which would allow for inclusion further down the formatting pipeline.
-    // This is however creating issues by running non-idempotent formatting
-    // functions twice on the same content (e.g. table processing double wraps
-    // in "tableContainer" divs). On the other hand, rendering key insights last
-    // would require special care for footnotes.
-    html = await renderKeyInsights(html, post.id)
 
     // Standardize urls
     html = formatUrls(html)
@@ -155,7 +144,6 @@ export const formatWordpressPost = async (
     //   perspective, the server rendered version is different from the client
     //   one, hence the discrepancy.
     renderAdditionalInformation(cheerioEl)
-    renderExpandableParagraphs(cheerioEl)
     renderCodeSnippets(cheerioEl)
     renderHelp(cheerioEl)
     renderAllCharts(cheerioEl, post)
@@ -407,27 +395,12 @@ export const formatWordpressPost = async (
 
         $heading.attr("id", slug)
 
-        if ($heading.closest(`.${KEY_INSIGHTS_CLASS_NAME}`).length) return
-
         $heading.append(`<a class="${DEEP_LINK_CLASS}" href="#${slug}"></a>`)
     })
-
-    // Extracting the useful information from the HTML
-    const stickyNavLinks: { text: string; target: string }[] = []
-    const $stickyNavContents = cheerioEl(".sticky-nav-contents")
-    const $stickyNavLinks = $stickyNavContents.children().children()
-    $stickyNavLinks.each((_, element) => {
-        const $elem = cheerioEl(element)
-        const text = $elem.text()
-        const target = $elem.attr("href")
-        if (text && target) stickyNavLinks.push({ text, target })
-    })
-    $stickyNavContents.remove()
 
     return {
         ...post,
         supertitle,
-        stickyNavLinks,
         lastUpdated,
         byline,
         info,

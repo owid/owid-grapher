@@ -203,20 +203,3 @@ class StickyNav extends React.Component<
 }
 
 export default StickyNav
-
-export const hydrateStickyNav = () => {
-    const wrapper = document.querySelector(".sticky-nav")
-    if (wrapper) {
-        const anchorTags =
-            document.querySelectorAll<HTMLAnchorElement>(".sticky-nav a")
-        const links: StickyNavLink[] = []
-
-        for (const anchorTag of anchorTags) {
-            const text = anchorTag.innerText
-            const target = anchorTag.hash
-            links.push({ text, target })
-        }
-
-        ReactDOM.hydrate(<StickyNav links={links} />, wrapper)
-    }
-}

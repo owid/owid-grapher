@@ -289,22 +289,3 @@ const RightArrow = () => {
         </Arrow>
     ) : null
 }
-
-export const hydrateKeyInsights = () => {
-    document
-        .querySelectorAll<HTMLElement>(
-            `.${KEY_INSIGHTS_CLASS_NAME} .${KEY_INSIGHTS_THUMBS_CLASS_NAME}`
-        )
-        .forEach((block) => {
-            const titles = Array.from(
-                block.querySelectorAll(`.${KEY_INSIGHTS_THUMB_CLASS_NAME}`)
-            ).map((thumb) => thumb.textContent || "")
-            if (!titles.length) return
-
-            const blockWrapper = block.parentElement
-            ReactDOM.hydrate(
-                <KeyInsightsThumbs titles={titles} />,
-                blockWrapper
-            )
-        })
-}
