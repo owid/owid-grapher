@@ -1,11 +1,9 @@
 import { HitAttributeHighlightResult } from "instantsearch.js"
-import { IChartHit } from "./searchTypes.js"
 import { EntityName } from "@ourworldindata/types"
 import {
     Region,
     getRegionByNameOrVariantName,
     regions,
-    countries,
     escapeRegExp,
     removeTrailingParenthetical,
 } from "@ourworldindata/utils"
@@ -31,18 +29,39 @@ export const extractRegionNamesFromSearchQuery = (query: string) => {
 const removeHighlightTags = (text: string) =>
     text.replace(/<\/?(mark|strong)>/g, "")
 
-export function pickEntitiesForChartHit(hit: IChartHit): EntityName[] {
-    const availableEntitiesHighlighted = hit._highlightResult
-        ?.availableEntities as HitAttributeHighlightResult[] | undefined
+export function pickEntitiesForChartHit(
+    availableEntitiesHighlighted: HitAttributeHighlightResult[] | undefined,
+    availableEntities: EntityName[] | undefined,
+    searchQueryRegionsMatches: Region[] | undefined
+): EntityName[] {
+    if (!availableEntities) return []
 
-    const pickedEntities = availableEntitiesHighlighted
-        ?.filter((highlightEntry) => {
-            if (highlightEntry.matchLevel === "none") return false
+    const pickedEntities = new Set(
+        searchQueryRegionsMatches?.map((r) => r.name)
+    )
+
+    // Build intersection of searchQueryRegionsMatches and availableEntities, so we only select entities that are actually present in the chart
+    if (pickedEntities.size > 0) {
+        const availableEntitiesSet = new Set(availableEntities)
+        for (const entity of pickedEntities) {
+            if (!availableEntitiesSet.has(entity)) {
+                pickedEntities.delete(entity)
+            }
+        }
+    }
+
+    if (availableEntitiesHighlighted) {
+        for (const highlightEntry of availableEntitiesHighlighted) {
+            if (highlightEntry.matchLevel === "none") continue
+
+            const withoutHighlightTags = removeHighlightTags(
+                highlightEntry.value
+            )
+            if (pickedEntities.has(withoutHighlightTags)) continue
 
             // Remove any trailing parentheses, e.g. "Africa (UN)" -> "Africa"
-            const entityNameWithoutTrailingParens = removeTrailingParenthetical(
-                removeHighlightTags(highlightEntry.value)
-            )
+            const withoutTrailingParens =
+                removeTrailingParenthetical(withoutHighlightTags)
 
             // The sequence of words that Algolia matched; could be something like ["arab", "united", "republic"]
             // which we want to check against the entity name
@@ -53,27 +72,16 @@ export function pickEntitiesForChartHit(hit: IChartHit): EntityName[] {
             // Pick entity if the matched sequence contains the full entity name
             if (
                 matchedSequenceLowerCase.startsWith(
-                    entityNameWithoutTrailingParens
+                    withoutTrailingParens
                         .replaceAll("-", " ") // makes "high-income countries" into "high income countries", enabling a match
                         .toLowerCase()
                 )
             )
-                return true
+                pickedEntities.add(withoutHighlightTags)
+        }
+    }
 
-            const country = countries.find(
-                (c) => c.name === entityNameWithoutTrailingParens
-            )
-            if (country?.variantNames) {
-                // Pick entity if the matched sequence contains any of the variant names
-                return country.variantNames.some((variant) =>
-                    matchedSequenceLowerCase.includes(variant.toLowerCase())
-                )
-            }
+    const sortedEntities = [...pickedEntities].sort()
 
-            return false
-        })
-        .map((highlightEntry) => removeHighlightTags(highlightEntry.value))
-        .sort()
-
-    return pickedEntities ?? []
+    return sortedEntities ?? []
 }
