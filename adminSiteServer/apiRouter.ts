@@ -34,7 +34,6 @@ import {
     BulkGrapherConfigResponse,
     camelCaseProperties,
     chartBulkUpdateAllowedColumnNamesAndTypes,
-    dayjs,
     GdocsContentSource,
     GrapherConfigPatch,
     isEmpty,
@@ -2473,11 +2472,11 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     // Assets have TTL of one week in Cloudflare. Add a redirect to make sure
     // the page is no longer accessible.
     // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
-    const ttl = dayjs().add(8, "days").toDate()
     await db.knexRawInsert(
         trx,
-        `INSERT INTO redirects (source, target, ttl) VALUES (?, ?, ?)`,
-        [getCanonicalUrl("", gdoc), "/", ttl]
+        `INSERT INTO redirects (source, target, ttl)
+         VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 8 DAY))`,
+        [getCanonicalUrl("", gdoc), "/"]
     )
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
