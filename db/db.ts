@@ -159,8 +159,8 @@ export const knexRawInsert = async (
 /**
  *  In the backporting workflow, the users create gdoc posts for posts. As long as these are not yet published,
  *  we still want to bake them from the WP posts. Once the users presses publish there though, we want to stop
- *  baking them from the wordpress post. This funciton fetches all the slugs of posts that have been published via gdocs,
- *  to help us exclude them from the baking process.
+ *  baking them from the wordpress post. This function fetches all the slugs of posts that have been published via gdocs,
+ *  to help us exclude them from the baking process. This query used to rely on the gdocSuccessorId field but that fell out of sync.
  */
 export const getSlugsWithPublishedGdocsSuccessors = async (
     knex: KnexReadonlyTransaction
@@ -168,12 +168,17 @@ export const getSlugsWithPublishedGdocsSuccessors = async (
     return knexRaw(
         knex,
         `-- sql
-            SELECT
-                slug
-            FROM
-                posts_with_gdoc_publish_status
-            WHERE
-                isGdocPublished = TRUE`
+        SELECT
+            p.slug,
+            p.type
+        FROM
+            posts p
+        LEFT JOIN posts_gdocs g on
+            p.slug = g.slug
+        WHERE
+            p.status = "publish"
+            AND g.published = TRUE
+    `
     ).then((rows) => new Set(rows.map((row: any) => row.slug)))
 }
 

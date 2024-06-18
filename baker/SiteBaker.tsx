@@ -512,11 +512,25 @@ export class SiteBaker {
         // TODO: the knex instance should be handed down as a parameter
         const alreadyPublishedViaGdocsSlugsSet =
             await db.getSlugsWithPublishedGdocsSuccessors(knex)
+        const redirectTargets = await db.knexRaw<{
+            source: string
+            target: string
+        }>(
+            knex,
+            `-- sql
+            SELECT source, target FROM redirects WHERE code = 301`
+        )
 
         const postsApi = await getPostsFromSnapshots(
             knex,
             undefined,
-            (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
+            (postrow) =>
+                // Exclude posts that are already published via GDocs
+                !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug) &&
+                // Exclude posts that are redirect targets
+                !redirectTargets.some(
+                    (row) => row.source.slice(1) === postrow.slug
+                )
         )
 
         await pMap(
