@@ -8,6 +8,28 @@ import {
     removeTrailingParenthetical,
 } from "@ourworldindata/utils"
 
+/**
+ * The below code is used to search for entities we can highlight in charts and explorer results.
+ *
+ * There are two main functions here:
+ * - `extractRegionNamesFromSearchQuery` looks at the search query (e.g. "covid cases us china asia") and extracts anything
+ *   that looks like a country, region or variant name (e.g. "US"), case-insensitive.
+ *   It doesn't have any knowledge of what entities are actually available.
+ * - `pickEntitiesForChartHit` gets information about the entities available in a chart.
+ *    It also receives the result of `extractRegionNamesFromSearchQuery`, i.e. a list of regions that are mentioned in the search query.
+ *    This is useful because Algolia removes stop words like "the" and "and", which makes it difficult to match entities like
+ *    "Trinidad and Tobago".
+ *    - It then reduces this list to the entities that are actually available in the chart.
+ *    - Afterwards, it uses the highlighted entities from Algolia to pick any other entities that are fully contained in the
+ *      search query - this now adds any entities _not_ in the `regions` list, like "high-income countries" or "Salmon (farmed)".
+ *
+ * In practice, we use `pickEntitiesForChartHit` for explorers, since there we don't have any entity information available,
+ * and can only act based on the fact that most explorers are country-based and have data for most countries and regions.
+ * For charts, we use the more accurate `pickEntitiesForChartHit` function, since entity information is available.
+ *
+ * -- @marcelgerber, 2024-06-18
+ */
+
 const allCountryNamesAndVariants = regions.flatMap((c) => [
     c.name,
     ...(("variantNames" in c && c.variantNames) || []),
