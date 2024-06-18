@@ -10,6 +10,7 @@ export interface DbInsertRedirect {
     code: RedirectCode
     createdAt?: Date | null
     updatedAt?: Date | null
+    ttl?: Date | null
 }
 
 export type DbPlainRedirect = Required<DbInsertRedirect>

@@ -27,6 +27,7 @@ import {
     fetchS3DataValuesByPath,
     searchVariables,
 } from "../db/model/Variable.js"
+import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     applyPatch,
     BulkChartEditResponseRow,
@@ -2489,6 +2490,15 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     if (gdoc.published && checkIsGdocPostExcludingFragments(gdoc)) {
         await removeIndividualGdocPostFromIndex(gdoc)
     }
+    // Assets have TTL of one week in Cloudflare. Add a redirect to make sure
+    // the page is no longer accessible.
+    // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
+    await db.knexRawInsert(
+        trx,
+        `INSERT INTO redirects (source, target, ttl)
+         VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 8 DAY))`,
+        [getCanonicalUrl("", gdoc), "/"]
+    )
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })

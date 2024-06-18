@@ -3,9 +3,12 @@ import { memoize, JsonError, Url } from "@ourworldindata/utils"
 import { isCanonicalInternalUrl } from "./formatting.js"
 import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-import { getRedirectsFromDb } from "../db/model/Redirect.js"
+import {
+    deleteExpiredRedirects,
+    getRedirectsFromDb,
+} from "../db/model/Redirect.js"
 
-export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
+export const getRedirects = async (knex: db.KnexReadWriteTransaction) => {
     const staticRedirects = [
         // RSS feed
         "/feed /atom.xml 302",
@@ -57,6 +60,7 @@ export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
         "/grapher/exports/* https://assets.ourworldindata.org/grapher/exports/:splat 301",
     ]
 
+    await deleteExpiredRedirects(knex)
     // Get redirects from the database (exported from the Wordpress DB)
     // Redirects are assumed to be trailing-slash-free (see syncRedirectsToGrapher.ts)
     const redirectsFromDb = (await getRedirectsFromDb(knex)).map(
