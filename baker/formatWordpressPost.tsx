@@ -28,12 +28,6 @@ import {
     formatDataValue,
     formatImages,
 } from "./formatting.js"
-import { mathjax } from "mathjax-full/js/mathjax.js"
-import { TeX } from "mathjax-full/js/input/tex.js"
-import { SVG } from "mathjax-full/js/output/svg.js"
-import { liteAdaptor } from "mathjax-full/js/adaptors/liteAdaptor.js"
-import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html.js"
-import { AllPackages } from "mathjax-full/js/input/tex/AllPackages.js"
 import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import {
@@ -62,65 +56,6 @@ import { RELATED_CHARTS_CLASS_NAME } from "../site/blocks/RelatedCharts.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { KnexReadonlyTransaction } from "../db/db.js"
 
-const initMathJax = () => {
-    const adaptor = liteAdaptor()
-    RegisterHTMLHandler(adaptor)
-
-    const tex = new TeX({ packages: AllPackages })
-    const svg = new SVG({ fontCache: "none" })
-    const doc = mathjax.document("", {
-        InputJax: tex,
-        OutputJax: svg,
-    })
-
-    return function format(latex: string): string {
-        const node = doc.convert(latex, {
-            display: true,
-        })
-        return adaptor.outerHTML(node) // as HTML
-    }
-}
-
-const formatMathJax = initMathJax()
-
-const extractLatex = (html: string): [string, string[]] => {
-    const latexBlocks: string[] = []
-    html = html.replace(/\[latex\]([\s\S]*?)\[\/latex\]/gm, (_, latex) => {
-        latexBlocks.push(
-            latex.replace("\\[", "").replace("\\]", "").replace(/\$\$/g, "")
-        )
-        return "[latex]"
-    })
-    return [html, latexBlocks]
-}
-
-const formatLatex = async (
-    html: string,
-    latexBlocks?: string[]
-): Promise<string> => {
-    if (!latexBlocks) [html, latexBlocks] = extractLatex(html)
-
-    // return early so we don't do unnecessary work for sites without latex
-    if (!latexBlocks.length) return html
-
-    const compiled: string[] = []
-    for (const latex of latexBlocks) {
-        try {
-            compiled.push(formatMathJax(latex))
-        } catch (err) {
-            compiled.push(
-                `${latex} (Could not format equation due to MathJax error)`
-            )
-        }
-    }
-
-    let i = -1
-    return html.replace(/\[latex\]/g, () => {
-        i += 1
-        return compiled[i]
-    })
-}
-
 export const formatWordpressPost = async (
     post: FullPost,
     formattingOptions: FormattingOptions,
@@ -143,12 +78,6 @@ export const formatWordpressPost = async (
 
     // Strip comments
     html = html.replace(/<!--[^>]+-->/g, "")
-
-    // Need to skirt around wordpress formatting to get proper latex rendering
-    let latexBlocks
-    ;[html, latexBlocks] = extractLatex(html)
-
-    html = await formatLatex(html, latexBlocks)
 
     // Footnotes
     const footnotes: string[] = []

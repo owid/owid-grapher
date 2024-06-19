@@ -398,17 +398,6 @@ h6:hover .deep-link {
     blockquote {
         font-style: italic;
     }
-
-    /* Center latex equations that occur on their own line e.g. https://ourworldindata.org/projections-of-future-education#methodology */
-    mjx-container:only-child {
-        display: block;
-        margin: auto;
-        text-align: center;
-
-        svg {
-            max-width: 100%; // e.g. https//ourworldindata.org/coronavirus#the-definition-of-the-case-fatality-rate-cfr
-        }
-    }
 }
 
 /* Major sections e.g. I. Empirical View */
