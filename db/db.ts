@@ -40,7 +40,7 @@ export const knexInstance = (): Knex<any, any[]> => {
     if (_knexInstance) return _knexInstance
 
     _knexInstance = knex({
-        client: "mysql",
+        client: "mysql2",
         connection: {
             host: GRAPHER_DB_HOST,
             user: GRAPHER_DB_USER,
@@ -52,8 +52,14 @@ export const knexInstance = (): Knex<any, any[]> => {
                 if (field.type === "TINY" && field.length === 1) {
                     return field.string() === "1" // 1 = true, 0 = false
                 }
+
                 return next()
             },
+
+            // The mysql2 driver will return JSON objects by default, which is nice, but we have many code paths that
+            // expect JSON strings, so we instead tell it to return JSON strings.
+            //@ts-expect-error This is an option in mysql2 v3.10+, but it's not yet reflected in the knex types
+            jsonStrings: true,
         },
     })
 

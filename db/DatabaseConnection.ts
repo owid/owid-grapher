@@ -1,8 +1,8 @@
-import mysql from "mysql"
+import mysql2 from "mysql2"
 
 class TransactionContext {
-    conn: mysql.PoolConnection
-    constructor(conn: mysql.PoolConnection) {
+    conn: mysql2.PoolConnection
+    constructor(conn: mysql2.PoolConnection) {
         this.conn = conn
     }
 
@@ -27,19 +27,19 @@ class TransactionContext {
 
 // Promise wrapper for node-mysql with transaction support and some shorthands
 export class DatabaseConnection {
-    config: mysql.PoolConfig
-    pool!: mysql.Pool
+    config: mysql2.PoolOptions
+    pool!: mysql2.Pool
 
-    constructor(config: mysql.PoolConfig) {
+    constructor(config: mysql2.PoolOptions) {
         this.config = config
     }
 
     async connect(): Promise<void> {
-        this.pool = mysql.createPool(this.config)
+        this.pool = mysql2.createPool(this.config)
         await this.getConnection()
     }
 
-    getConnection(): Promise<mysql.PoolConnection> {
+    getConnection(): Promise<mysql2.PoolConnection> {
         return new Promise((resolve, reject) => {
             this.pool.getConnection((poolerr, conn) => {
                 if (poolerr) {

@@ -9,7 +9,7 @@ import {
 } from "../../settings/serverSettings.js"
 
 export const dbTestConfig = {
-    client: "mysql",
+    client: "mysql2",
     connection: {
         database: GRAPHER_TEST_DB_NAME,
         user: GRAPHER_TEST_DB_USER,
