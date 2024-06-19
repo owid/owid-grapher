@@ -4,7 +4,7 @@ import { isCanonicalInternalUrl } from "./formatting.js"
 import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import {
-    deleteExpiredRedirects,
+    // deleteExpiredRedirects,
     getRedirectsFromDb,
 } from "../db/model/Redirect.js"
 
@@ -60,7 +60,8 @@ export const getRedirects = async (knex: db.KnexReadWriteTransaction) => {
         "/grapher/exports/* https://assets.ourworldindata.org/grapher/exports/:splat 301",
     ]
 
-    await deleteExpiredRedirects(knex)
+    // TODO: Fix this transaction locking up the DB for too long.
+    // await deleteExpiredRedirects(knex)
     // Get redirects from the database (exported from the Wordpress DB)
     // Redirects are assumed to be trailing-slash-free (see syncRedirectsToGrapher.ts)
     const redirectsFromDb = (await getRedirectsFromDb(knex)).map(
