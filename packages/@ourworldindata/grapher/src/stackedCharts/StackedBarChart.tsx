@@ -394,12 +394,13 @@ export class StackedBarChart
                     columns={[formatColumn]}
                     totals={[totalValue]}
                     rows={sortedHoverPoints.map(
-                        ({ point, seriesName: name, seriesColor: swatch }) => {
+                        ({ point, seriesName: name, seriesColor }) => {
                             const focused = hoverSeries?.seriesName === name
                             const blurred = point?.fake ?? true
                             const values = [
                                 point?.fake ? undefined : point?.value,
                             ]
+                            const swatch = point?.color ?? seriesColor
 
                             return { name, swatch, blurred, focused, values }
                         }
@@ -641,7 +642,7 @@ export class StackedBarChart
                                         <StackedBarSegment
                                             key={index}
                                             bar={bar}
-                                            color={series.color}
+                                            color={bar.color ?? series.color}
                                             xOffset={xPos}
                                             opacity={barOpacity}
                                             yAxis={verticalAxis}
@@ -691,6 +692,25 @@ export class StackedBarChart
     }
 
     defaultBaseColorScheme = ColorSchemeName.stackedAreaDefault
+
+    /**
+     * Colour positive and negative values differently if there is only one series
+     * (and that series has both positive and negative values)
+     */
+    @computed get shouldUseValueBasedColorScheme(): boolean {
+        return (
+            this.rawSeries.length === 1 &&
+            this.rawSeries[0].rows.some((row) => row.value < 0) &&
+            this.rawSeries[0].rows.some((row) => row.value > 0)
+        )
+    }
+
+    @computed get useValueBasedColorScheme(): boolean {
+        return (
+            this.manager.useValueBasedColorScheme ||
+            this.shouldUseValueBasedColorScheme
+        )
+    }
 
     @computed get series(): readonly StackedSeries<number>[] {
         // TODO: remove once monthly data is supported (https://github.com/owid/owid-grapher/issues/2007)

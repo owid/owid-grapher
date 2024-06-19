@@ -96,6 +96,7 @@ export const withMissingValuesAsZeroes = <
                     valueOffset: 0,
                     interpolated: point?.interpolated,
                     fake: !point || !!point.interpolated,
+                    color: point?.color,
                 })
             }),
         }

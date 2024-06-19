@@ -344,6 +344,13 @@ export class FacetChart
     // Only made public for testing
     @computed get placedSeries(): PlacedFacetSeries[] {
         const { intermediateChartInstances } = this
+
+        // If one of the charts should use a value-based color scheme,
+        // switch them all over for consistency
+        const useValueBasedColorScheme = intermediateChartInstances.some(
+            (instance) => instance.shouldUseValueBasedColorScheme
+        )
+
         // Define the global axis config, shared between all facets
         const sharedAxesSizes: PositionMap<number> = {}
 
@@ -437,6 +444,7 @@ export class FacetChart
             // We need to preserve most config coming in.
             const manager = {
                 ...series.manager,
+                useValueBasedColorScheme,
                 externalLegendFocusBin: this.legendFocusBin,
                 xAxisConfig: {
                     hideAxis: shouldHideFacetAxis(

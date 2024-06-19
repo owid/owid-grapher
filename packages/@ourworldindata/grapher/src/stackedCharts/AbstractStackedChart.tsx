@@ -40,7 +40,15 @@ import { ColorSchemes } from "../color/ColorSchemes"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
-import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
+import {
+    CategoricalColorAssigner,
+    CategoricalColorMap,
+} from "../color/CategoricalColorAssigner.js"
+import { BinaryMapPaletteE } from "../color/CustomSchemes"
+
+// used in StackedBar charts to color negative and positive bars
+const POSITIVE_COLOR = BinaryMapPaletteE.colorSets[0][0] // orange
+const NEGATIVE_COLOR = BinaryMapPaletteE.colorSets[0][1] // blue
 
 export interface AbstractStackedChartProps {
     bounds?: Bounds
@@ -312,6 +320,12 @@ export class AbstractStackedChart
         return ""
     }
 
+    @computed private get colorMap(): CategoricalColorMap {
+        return this.isEntitySeries
+            ? this.inputTable.entityNameColorIndex
+            : this.inputTable.columnDisplayNameToColorMap
+    }
+
     @computed private get categoricalColorAssigner(): CategoricalColorAssigner {
         const seriesCount = this.isEntitySeries
             ? this.selectionArray.numSelectedEntities
@@ -323,9 +337,7 @@ export class AbstractStackedChart
                     : null) ??
                 ColorSchemes.get(ColorSchemeName.stackedAreaDefault),
             invertColorScheme: this.manager.invertColorScheme,
-            colorMap: this.isEntitySeries
-                ? this.inputTable.entityNameColorIndex
-                : this.inputTable.columnDisplayNameToColorMap,
+            colorMap: this.colorMap,
             autoColorMapCache: this.manager.seriesColorMap,
             numColorsInUse: seriesCount,
         })
@@ -376,6 +388,14 @@ export class AbstractStackedChart
         return strategies
     }
 
+    @computed get shouldUseValueBasedColorScheme(): boolean {
+        return false
+    }
+
+    @computed get useValueBasedColorScheme(): boolean {
+        return false
+    }
+
     @computed get unstackedSeries(): readonly StackedSeries<number>[] {
         return this.rawSeries
             .filter((series) => series.rows.length > 0)
@@ -384,6 +404,8 @@ export class AbstractStackedChart
                 const { isProjection, seriesName, rows } = series
 
                 const points = rows.map((row) => {
+                    const pointColor =
+                        row.value > 0 ? POSITIVE_COLOR : NEGATIVE_COLOR
                     return {
                         position: row.time,
                         time: row.time,
@@ -393,6 +415,10 @@ export class AbstractStackedChart
                             this.shouldRunLinearInterpolation &&
                             isNotErrorValueOrEmptyCell(row.value) &&
                             !isNotErrorValueOrEmptyCell(row.originalValue),
+                        // takes precedence over the series color if given
+                        color: this.useValueBasedColorScheme
+                            ? pointColor
+                            : undefined,
                     }
                 })
 
