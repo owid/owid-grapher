@@ -129,7 +129,6 @@ export {
 } from "./domainTypes/ContentGraph.js"
 export {
     WP_BlockClass,
-    WP_BlockType,
     WP_ColumnStyle,
     WP_PostType,
     type PostRestApi,

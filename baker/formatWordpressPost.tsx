@@ -4,19 +4,16 @@ import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import { HTTPS_ONLY } from "../settings/serverSettings.js"
 import { GrapherExports } from "../baker/GrapherBakingUtils.js"
-import { AllCharts, renderAllCharts } from "../site/blocks/AllCharts.js"
 import { FormattingOptions } from "@ourworldindata/types"
 import {
     FormattedPost,
     FullPost,
     TocHeading,
-    WP_BlockType,
     parseKeyValueArgs,
 } from "@ourworldindata/utils"
 import { Footnote } from "../site/Footnote.js"
 import { LoadingIndicator } from "@ourworldindata/grapher"
 import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink.js"
-import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { DataToken } from "../site/DataToken.js"
 import { DEEP_LINK_CLASS, formatImages } from "./formatting.js"
 import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects.js"
@@ -27,11 +24,7 @@ import {
 } from "../site/blocks/AdditionalInformation.js"
 import { renderHelp } from "../site/blocks/Help.js"
 import { renderCodeSnippets } from "@ourworldindata/components"
-import {
-    formatUrls,
-    getBodyHtml,
-    SUMMARY_CLASSNAME,
-} from "../site/formatting.js"
+import { formatUrls, getBodyHtml } from "../site/formatting.js"
 import { GRAPHER_PREVIEW_CLASS } from "../site/SiteConstants.js"
 import { INTERACTIVE_ICON_SVG } from "../site/InteractionNotice.js"
 import { renderProminentLinks } from "./siteRenderers.js"
@@ -100,42 +93,11 @@ export const formatWordpressPost = async (
 
     const cheerioEl = cheerio.load(html)
 
-    // Related charts
-    if (
-        !countryProfileSpecs.some(
-            (spec) => post.slug === spec.landingPageSlug
-        ) &&
-        post.relatedCharts?.length &&
-        // Render fallback "All charts" block at the top of entries only if
-        // manual "All charts" block not present in the rest of the document.
-        // This is to help transitioning towards topic pages, where this block
-        // is manually added in the content. In that case, we don't want to
-        // inject it at the top too.
-        !cheerioEl(`block[type='${WP_BlockType.AllCharts}']`).length
-    ) {
-        // Mimicking SSR output of additional information block from PHP
-        const allCharts = `
-        <block type="additional-information" default-open="false">
-            <content>
-            ${ReactDOMServer.renderToStaticMarkup(<AllCharts post={post} />)}
-            </content>
-        </block>
-        `
-        const $summary = cheerioEl(`.${SUMMARY_CLASSNAME}`)
-        if ($summary.length !== 0) {
-            $summary.after(allCharts)
-        } else {
-            cheerioEl("body > h2:first-of-type, body > h3:first-of-type")
-                .first()
-                .before(allCharts)
-        }
-    }
-
     // SSR rendering of Gutenberg blocks, before hydration on client
     //
     // - Note: any post-processing on these blocks runs the risk of hydration
     //   discrepancies. E.g. the ToC post-processing further below add an "id"
-    //   attribute to elibigle heading tags. In an unbridled version of that
+    //   attribute to eligible heading tags. In an unbridled version of that
     //   script, the AdditionalInformation block title (h3) would be altered and
     //   receive an "id" attribute (<h3 id="some-title">). When this block is
     //   then hydrated on the client, the "id" attribute is missing, since it
@@ -146,7 +108,6 @@ export const formatWordpressPost = async (
     renderAdditionalInformation(cheerioEl)
     renderCodeSnippets(cheerioEl)
     renderHelp(cheerioEl)
-    renderAllCharts(cheerioEl, post)
     await renderProminentLinks(cheerioEl, post.id, knex)
 
     // Extract inline styling
