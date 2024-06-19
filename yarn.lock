@@ -7591,13 +7591,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"commander@npm:^6.0.0":
-  version: 6.2.1
-  resolution: "commander@npm:6.2.1"
-  checksum: 10/25b88c2efd0380c84f7844b39cf18510da7bfc5013692d68cdc65f764a1c34e6c8a36ea6d72b6620e3710a930cf8fab2695bdec2bf7107a0f4fa30a3ef3b7d0e
-  languageName: node
-  linkType: hard
-
 "commander@npm:^7.2.0":
   version: 7.2.0
   resolution: "commander@npm:7.2.0"
@@ -11097,7 +11090,6 @@ __metadata:
     lerna: "npm:^8.1.3"
     lint-staged: "npm:^15.2.2"
     lodash: "npm:^4.17.21"
-    mathjax-full: "npm:^3.1.0"
     md5: "npm:^2.3.0"
     mdast-util-find-and-replace: "npm:1.1.1"
     mdast-util-from-markdown: "npm:^0.8.0"
@@ -13985,17 +13977,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mathjax-full@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "mathjax-full@npm:3.1.0"
-  dependencies:
-    esm: "npm:^3.2.25"
-    mj-context-menu: "npm:^0.6.1"
-    speech-rule-engine: "npm:^3.1.0"
-  checksum: 10/aaff9dbd17978909ad5ced2cbbec96cdcd1f1280a0b12f348d2b85323e42cf2996898dfa2fb9cc3d5304e3f81dec4597e5787b9de9e579f97ffe3fa686fcda30
-  languageName: node
-  linkType: hard
-
 "md5@npm:^2.3.0":
   version: 2.3.0
   resolution: "md5@npm:2.3.0"
@@ -14441,13 +14422,6 @@ __metadata:
     minipass: "npm:^3.0.0"
     yallist: "npm:^4.0.0"
   checksum: 10/ae0f45436fb51344dcb87938446a32fbebb540d0e191d63b35e1c773d47512e17307bf54aa88326cc6d176594d00e4423563a091f7266c2f9a6872cdc1e234d1
-  languageName: node
-  linkType: hard
-
-"mj-context-menu@npm:^0.6.1":
-  version: 0.6.1
-  resolution: "mj-context-menu@npm:0.6.1"
-  checksum: 10/5b9d6e3dabd9098eb37b9583a55b5e23d9d4f80a97c295c2f4ca318233801519e5abc7b5d7907817fea5cc7dcf334f192ac9622e2d4da55d350b78c8e31e7e3a
   languageName: node
   linkType: hard
 
@@ -18579,19 +18553,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"speech-rule-engine@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "speech-rule-engine@npm:3.1.0"
-  dependencies:
-    commander: "npm:^6.0.0"
-    wicked-good-xpath: "npm:^1.3.0"
-    xmldom-sre: "npm:^0.1.31"
-  bin:
-    sre: ./bin/sre
-  checksum: 10/b54380b3c5f161102383a09bfe25f63ab4243cbf0385b411a929b4cf84f2a2f79176692425afc0e108aabd50779d83f41e939b354e36f38410decd3ccd3504ff
-  languageName: node
-  linkType: hard
-
 "spel2js@npm:^0.2.8":
   version: 0.2.8
   resolution: "spel2js@npm:0.2.8"
@@ -20615,13 +20576,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wicked-good-xpath@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "wicked-good-xpath@npm:1.3.0"
-  checksum: 10/e4d7d6c1b48ccb4f406d69217b2fe1073988bcb970645c64be359a1cc81e5aec49d348a7763ad54c7c4a05b6a92986dff7c23edcc5462b54bf1260d52217ace4
-  languageName: node
-  linkType: hard
-
 "wide-align@npm:^1.1.2, wide-align@npm:^1.1.5":
   version: 1.1.5
   resolution: "wide-align@npm:1.1.5"
@@ -20838,13 +20792,6 @@ __metadata:
   version: 2.2.0
   resolution: "xmlchars@npm:2.2.0"
   checksum: 10/4ad5924974efd004a47cce6acf5c0269aee0e62f9a805a426db3337af7bcbd331099df174b024ace4fb18971b8a56de386d2e73a1c4b020e3abd63a4a9b917f1
-  languageName: node
-  linkType: hard
-
-"xmldom-sre@npm:^0.1.31":
-  version: 0.1.31
-  resolution: "xmldom-sre@npm:0.1.31"
-  checksum: 10/0aad5fda92cab061cb47be4b5e50dedef007dbd394f3ce9134c957203561aace5bd0b5fac10cb573fc326440e852390de74110424d6afd7a7d700466b1b171d9
   languageName: node
   linkType: hard
 
