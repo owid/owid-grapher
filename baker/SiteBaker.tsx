@@ -15,7 +15,6 @@ import {
     renderFrontPage,
     renderBlogByPageNum,
     renderChartsPage,
-    renderMenuJson,
     renderSearchPage,
     renderDonatePage,
     entriesByYearPage,
@@ -641,11 +640,6 @@ export class SiteBaker {
             `${this.bakedSiteDir}/404.html`,
             await renderNotFoundPage()
         )
-        await this.stageWrite(
-            `${this.bakedSiteDir}/headerMenu.json`,
-            await renderMenuJson()
-        )
-
         await this.stageWrite(
             `${this.bakedSiteDir}/sitemap.xml`,
             await makeSitemap(this.explorerAdminServer, knex)
