@@ -1,7 +1,6 @@
 {
   "name": "owid-functions",
   "dependencies": {
-    "@cloudflare/pages-plugin-sentry": "^1.1.1",
     "@ourworldindata/grapher": "workspace:^",
     "@ourworldindata/utils": "workspace:^",
     "itty-router": "^5.0.17",

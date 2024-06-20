@@ -10,7 +10,6 @@ export const logError = async (
     filePath: string,
     env: SlackEnvVars
 ) => {
-    // Reporting to Sentry through the CaptureConsole integration in _middleware.ts
     console.error(error)
 
     // Reporting to Slack
