@@ -1,18 +1,19 @@
 #! /usr/bin/env jest
 
 import React from "react"
-import {
-    KeyInsightsSlides,
-    KeyInsightsThumbs,
-    KEY_INSIGHTS_CLASS_NAME,
-    KEY_INSIGHTS_INSIGHT_PARAM,
-} from "./KeyInsights.js"
+import { KEY_INSIGHTS_INSIGHT_PARAM } from "./KeyInsights.js"
 
-import { KeyInsight, getWindowUrl } from "@ourworldindata/utils"
+import {
+    EnrichedBlockKeyInsights,
+    EnrichedBlockKeyInsightsSlide,
+    getWindowUrl,
+    slugify,
+} from "@ourworldindata/utils"
 import { fireEvent, render, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 
 import { jest } from "@jest/globals"
+import ArticleBlock from "./ArticleBlock.js"
 
 const KEY_INSIGHTS_SLUG = "key-insights"
 
@@ -27,43 +28,28 @@ beforeEach(() => {
     window.IntersectionObserver = mockIntersectionObserver as any
 })
 
-const generateKeyInsights = (
-    count: number,
-    { isTitleHidden = false }: { isTitleHidden?: boolean } = {}
-): KeyInsight[] => {
-    return [...new Array(count)].map((_, idx) => ({
-        title: `Key insight ${idx}`,
-        slug: `key-insight-${idx}`,
-        content: `content ${idx}`,
-        isTitleHidden,
-    }))
+const generateKeyInsights = (count: number): EnrichedBlockKeyInsights => {
+    return {
+        type: "key-insights",
+        heading: "Key insights",
+        parseErrors: [],
+        insights: [...new Array(count)].map((_, idx) => ({
+            title: `Key insight ${idx}`,
+            type: "key-insight-slide",
+            url: "https://ourworldindata.org/grapher/life-expectancy",
+            content: [],
+        })) as EnrichedBlockKeyInsightsSlide[],
+    }
 }
 
-const renderKeyInsights = (keyInsights: KeyInsight[]) => {
-    const slug = KEY_INSIGHTS_SLUG
-    const title = "Key insights"
-    const titles = keyInsights.map(({ title }) => title)
-
+const renderKeyInsights = (keyInsightsBlock: EnrichedBlockKeyInsights) => {
     render(
-        <>
-            <h3 id={slug}>{title}</h3>
-            <div className={`${KEY_INSIGHTS_CLASS_NAME}`}>
-                <div className="block-wrapper">
-                    <KeyInsightsThumbs titles={titles} />
-                </div>
-                <KeyInsightsSlides insights={keyInsights} />
-            </div>
-        </>
+        <div>
+            <p>test??</p>
+            <ArticleBlock b={keyInsightsBlock} />
+        </div>
     )
 }
-
-it("renders key insights with hidden titles", () => {
-    const keyInsights = generateKeyInsights(3, { isTitleHidden: true })
-    renderKeyInsights(keyInsights)
-
-    expect(screen.getAllByRole("tab")).toHaveLength(3)
-    expect(screen.queryAllByRole("heading", { level: 4 })).toHaveLength(0)
-})
 
 it("renders key insights and selects the first one", () => {
     const keyInsights = generateKeyInsights(3)
@@ -71,12 +57,12 @@ it("renders key insights and selects the first one", () => {
 
     expect(screen.getAllByRole("tab")).toHaveLength(3)
     expect(screen.getByRole("tab", { selected: true })).toHaveTextContent(
-        keyInsights[0].title
+        keyInsights.insights[0].title
     )
 
     fireEvent.click(screen.getAllByRole("tab")[1])
     expect(screen.getByRole("tab", { selected: true })).toHaveTextContent(
-        keyInsights[1].title
+        keyInsights.insights[1].title
     )
 })
 
@@ -101,7 +87,8 @@ it("updates the URL", () => {
 
     fireEvent.click(screen.getAllByRole("tab")[1])
     expect(getWindowUrl().hash).toEqual(`#${KEY_INSIGHTS_SLUG}`)
+    const slugifiedTitle = slugify(keyInsights.insights[1].title)
     expect(getWindowUrl().queryStr).toEqual(
-        `?${KEY_INSIGHTS_INSIGHT_PARAM}=${keyInsights[1].slug}`
+        `?${KEY_INSIGHTS_INSIGHT_PARAM}=${slugifiedTitle}`
     )
 })

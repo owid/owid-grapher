@@ -11,11 +11,6 @@ import {
 } from "@ourworldindata/utils"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector.js"
-import {
-    KEY_INSIGHTS_CLASS_NAME,
-    KEY_INSIGHTS_SLIDE_CLASS_NAME,
-    KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME,
-} from "./gdocs/components/KeyInsights.js"
 import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink.js"
 import { Byline } from "./Byline.js"
 import { SectionHeading } from "./SectionHeading.js"
@@ -157,43 +152,6 @@ export const splitContentIntoSectionsAndColumns = (
         }
     }
 
-    class KeyInsightsHandler extends AbstractHandler {
-        handle(el: CheerioElement, context: ColumnsContext) {
-            const $el = cheerioEl(el)
-            if ($el.hasClass(`${KEY_INSIGHTS_CLASS_NAME}`)) {
-                flushAndResetColumns(context)
-
-                // Split the content of each slide into columns
-                $el.find(`.${KEY_INSIGHTS_SLIDE_CLASS_NAME}`).each(
-                    (_, slide) => {
-                        const $slide = cheerioEl(slide)
-                        const $title = $slide.find("h4")
-                        const $slideContent = $slide.find(
-                            `.${KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME}`
-                        )
-                        const slideContentHtml = $slideContent.html()
-
-                        if (!slideContentHtml) return
-                        const $ = cheerio.load(slideContentHtml)
-                        splitContentIntoSectionsAndColumns($)
-                        $slideContent.html(getBodyHtml($))
-
-                        // the h4 title creates an (undesirable here) column set
-                        // in splitContentIntoSectionsAndColumns(). So we inject
-                        // it into the first column after processing move the
-                        $slide
-                            .find(".wp-block-column:first-child")
-                            .prepend($title)
-                    }
-                )
-
-                context.$section.append($el)
-                return null
-            }
-            return super.handle(el, context)
-        }
-    }
-
     class H4Handler extends AbstractHandler {
         static isElementH4 = (el: CheerioElement): boolean => {
             return el.name === "h4"
@@ -308,7 +266,6 @@ export const splitContentIntoSectionsAndColumns = (
     // - A handler should never do both 1) and 2) – both apply a transformation and additionally let other handlers apply transformations.
     // see https://github.com/owid/owid-grapher/pull/1220#discussion_r816126831
     fullWidthHandler
-        .setNext(new KeyInsightsHandler())
         .setNext(new H4Handler())
         .setNext(new SideBySideHandler())
         .setNext(new StandaloneFigureHandler())

@@ -2,15 +2,27 @@ import React, { useCallback, useContext, useEffect, useState } from "react"
 import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
-import { KeyInsight, getWindowUrl, setWindowUrl } from "@ourworldindata/utils"
+import cx from "classnames"
+import {
+    KeyInsight,
+    getWindowUrl,
+    setWindowUrl,
+    EnrichedBlockKeyInsightsSlide,
+    slugify,
+    KEY_INSIGHTS_ID,
+} from "@ourworldindata/utils"
+
+import { ArticleBlocks } from "./ArticleBlocks.js"
+import Image from "./Image.js"
+import Chart from "./Chart.js"
 
 export const KEY_INSIGHTS_CLASS_NAME = "key-insights"
 export const KEY_INSIGHTS_INSIGHT_PARAM = "insight"
-export const KEY_INSIGHTS_THUMBS_CLASS_NAME = "thumbs"
-export const KEY_INSIGHTS_THUMB_CLASS_NAME = "thumb"
-export const KEY_INSIGHTS_SLIDES_CLASS_NAME = "slides"
-export const KEY_INSIGHTS_SLIDE_CLASS_NAME = "slide"
-export const KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME = "content"
+const KEY_INSIGHTS_THUMBS_CLASS_NAME = "thumbs"
+const KEY_INSIGHTS_THUMB_CLASS_NAME = "thumb"
+const KEY_INSIGHTS_SLIDES_CLASS_NAME = "slides"
+const KEY_INSIGHTS_SLIDE_CLASS_NAME = "slide"
+const KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME = "content"
 
 type scrollVisibilityApiType = React.ContextType<typeof VisibilityContext>
 
@@ -184,28 +196,6 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
     )
 }
 
-export const KeyInsightsSlides = ({ insights }: { insights: KeyInsight[] }) => (
-    <div className={KEY_INSIGHTS_SLIDES_CLASS_NAME}>
-        {insights.map(({ title, isTitleHidden, slug, content }, idx) => (
-            <div
-                key={idx}
-                className={KEY_INSIGHTS_SLIDE_CLASS_NAME}
-                data-active={idx === 0}
-                role="tabpanel"
-                tabIndex={0}
-            >
-                <h4 style={isTitleHidden ? { display: "none" } : {}} id={slug}>
-                    {title}
-                </h4>
-                <div
-                    className={KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME}
-                    dangerouslySetInnerHTML={{ __html: content }}
-                />
-            </div>
-        ))}
-    </div>
-)
-
 const Arrow = ({
     children,
     disabled,
@@ -287,4 +277,103 @@ const RightArrow = () => {
             <FontAwesomeIcon icon={faAngleRight} />
         </Arrow>
     ) : null
+}
+
+type KeyInsightsProps = {
+    className?: string
+    insights: EnrichedBlockKeyInsightsSlide[]
+    heading: string
+}
+
+export const KeyInsights = ({
+    insights,
+    heading,
+    className,
+}: KeyInsightsProps) => {
+    function renderAssetForInsight({
+        filename,
+        url,
+    }: {
+        filename?: string
+        url?: string
+    }): React.ReactElement | null {
+        if (filename) {
+            return (
+                <Image
+                    filename={filename}
+                    containerType="sticky-right-left-column"
+                />
+            )
+        }
+        if (url) {
+            return (
+                <Chart
+                    d={{ url, type: "chart", parseErrors: [] }}
+                    fullWidthOnMobile={true}
+                />
+            )
+        }
+
+        return null
+    }
+    return (
+        <div className={className}>
+            <h1
+                className="article-block__heading h1-semibold"
+                id={KEY_INSIGHTS_ID}
+            >
+                {heading}
+                <a className="deep-link" href={`#${KEY_INSIGHTS_ID}`} />
+            </h1>
+            <div className={KEY_INSIGHTS_CLASS_NAME}>
+                <div>
+                    <KeyInsightsThumbs
+                        titles={insights.map(({ title }) => title)}
+                    />
+                    <div className={KEY_INSIGHTS_SLIDES_CLASS_NAME}>
+                        {insights.map(
+                            ({ title, content, filename, url }, idx) => {
+                                return (
+                                    <div
+                                        key={idx}
+                                        className={cx(
+                                            KEY_INSIGHTS_SLIDE_CLASS_NAME,
+                                            "grid grid-cols-12 span-cols-12"
+                                        )}
+                                        data-active={idx === 0}
+                                        role="tabpanel"
+                                        tabIndex={0}
+                                    >
+                                        <div className="grid span-cols-12">
+                                            <div className="article-block__key-insights-content-column span-cols-5 span-md-cols-12">
+                                                <h4 id={slugify(title)}>
+                                                    {title}
+                                                </h4>
+                                                <div
+                                                    className={
+                                                        KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME
+                                                    }
+                                                >
+                                                    <ArticleBlocks
+                                                        blocks={content}
+                                                        containerType="key-insight"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="span-cols-7 span-md-cols-12">
+                                                {renderAssetForInsight({
+                                                    filename,
+                                                    url,
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            }
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
 }

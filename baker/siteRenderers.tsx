@@ -63,12 +63,7 @@ import {
 } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
-import {
-    KeyInsightsThumbs,
-    KeyInsightsSlides,
-    KEY_INSIGHTS_CLASS_NAME,
-} from "../site/gdocs/components/KeyInsights.js"
-import { formatUrls, KEY_INSIGHTS_H2_CLASSNAME } from "../site/formatting.js"
+import { formatUrls } from "../site/formatting.js"
 
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
@@ -831,98 +826,4 @@ const renderExplorerDefaultThumbnail = (): string => {
     return ReactDOMServer.renderToStaticMarkup(
         <img src={`${BAKED_BASE_URL}/default-thumbnail.jpg`} />
     )
-}
-
-export const renderKeyInsights = async (
-    html: string,
-    containerPostId: number
-): Promise<string> => {
-    const $ = cheerio.load(html)
-
-    for (const block of Array.from($("block[type='key-insights']"))) {
-        const $block = $(block)
-        // only selecting <title> and <slug> from direct children, to not match
-        // titles and slugs from individual key insights slides.
-        const title = $block.find("> title").text()
-        const slug = $block.find("> slug").text()
-        if (!title || !slug) {
-            void logErrorAndMaybeSendToBugsnag(
-                new JsonError(
-                    `Title or anchor missing for key insights block, content removed in wordpress post with id ${containerPostId}.`
-                )
-            )
-            $block.remove()
-            continue
-        }
-
-        const keyInsights = extractKeyInsights($, $block, containerPostId)
-        if (!keyInsights.length) {
-            void logErrorAndMaybeSendToBugsnag(
-                new JsonError(
-                    `No valid key insights found within block, content removed in wordpress post with id ${containerPostId}`
-                )
-            )
-            $block.remove()
-            continue
-        }
-        const titles = keyInsights.map((keyInsight) => keyInsight.title)
-
-        const rendered = ReactDOMServer.renderToString(
-            <>
-                <h2 id={slug} className={KEY_INSIGHTS_H2_CLASSNAME}>
-                    {title}
-                </h2>
-                <div className={`${KEY_INSIGHTS_CLASS_NAME}`}>
-                    <div className="block-wrapper">
-                        <KeyInsightsThumbs titles={titles} />
-                    </div>
-                    <KeyInsightsSlides insights={keyInsights} />
-                </div>
-            </>
-        )
-
-        $block.replaceWith(rendered)
-    }
-    return $.html()
-}
-
-export const extractKeyInsights = (
-    $: CheerioStatic,
-    $wrapper: Cheerio,
-    containerPostId: number
-): KeyInsight[] => {
-    const keyInsights: KeyInsight[] = []
-
-    for (const block of Array.from(
-        $wrapper.find("block[type='key-insight']")
-    )) {
-        const $block = $(block)
-        // restrictive children selector not strictly necessary here for now but
-        // kept for consistency and evolutions of the block. In the future, key
-        // insights could host other blocks with <title> tags
-        const $title = $block.find("> title")
-        const title = $title.text()
-        const isTitleHidden = $title.attr("is-hidden") === "1"
-        const slug = $block.find("> slug").text()
-        const content = $block.find("> content").html()
-
-        // "!content" is taken literally here. An empty paragraph will return
-        // "\n\n<p></p>\n\n" and will not trigger an error. This can be seen
-        // both as an unexpected behaviour or a feature, depending on the stage
-        // of work (published or WIP).
-        if (!title || !slug || !content) {
-            void logErrorAndMaybeSendToBugsnag(
-                new JsonError(
-                    `Missing title, slug or content for key insight ${
-                        title || slug
-                    }, content removed in wordpress post with id ${containerPostId}.`
-                )
-            )
-            continue
-        }
-
-        keyInsights.push({ title, isTitleHidden, content, slug })
-    }
-
-    return keyInsights
 }
