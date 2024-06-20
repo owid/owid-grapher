@@ -31,9 +31,10 @@ export const GdocsPublishedAt = <T extends OwidGdoc>({
             <DatePicker
                 onChange={onChangePublishedAt}
                 value={publishedAt ? dayjs(publishedAt) : undefined}
-                format="ddd, MMM D, YYYY"
+                format="ddd, MMM D, YYYY HH:mm"
                 id="publishedAt"
                 status={publishedAtError?.type}
+                showTime
                 // The "Today" button has been disabled because it sets
                 // the time to the current time. This time change makes
                 // it all the way to the atom feed, which is then

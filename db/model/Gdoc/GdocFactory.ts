@@ -237,7 +237,8 @@ export async function getGdocBaseObjectBySlug(
             SELECT *
             FROM posts_gdocs
             WHERE slug = ?
-            AND published = 1`,
+            AND published = 1
+            AND publishedAt <= NOW()`,
         [slug]
     )
     if (!row) return undefined

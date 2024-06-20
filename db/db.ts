@@ -256,7 +256,7 @@ export const getPublishedDataInsights = (
         FROM posts_gdocs
         WHERE type = '${OwidGdocType.DataInsight}'
             AND published = TRUE
-            AND publishedAt < NOW()
+            AND publishedAt <= NOW()
         ORDER BY publishedAt DESC
         LIMIT ?`,
         [limit]
@@ -279,7 +279,7 @@ export const getPublishedDataInsightCount = (
         FROM posts_gdocs
         WHERE type = '${OwidGdocType.DataInsight}'
             AND published = TRUE
-            AND publishedAt < NOW()`
+            AND publishedAt <= NOW()`
     ).then((res) => res?.count ?? 0)
 }
 
@@ -416,7 +416,7 @@ export const getPublishedGdocPostsWithTags = async (
     FROM
         posts_gdocs g
     LEFT JOIN posts_gdocs_x_tags gxt ON
-        g.id = gxt.gdocId 
+        g.id = gxt.gdocId
     LEFT JOIN tags t ON
         gxt.tagId = t.id
     WHERE
@@ -595,9 +595,9 @@ export function getMinimalTagsWithIsTopic(
     return knexRaw<MinimalTagWithIsTopic>(
         knex,
         `-- sql
-        SELECT t.id, 
-        t.name, 
-        t.slug, 
+        SELECT t.id,
+        t.name,
+        t.slug,
         t.slug IS NOT NULL AND MAX(IF(pg.type IN (:types), TRUE, FALSE)) AS isTopic
         FROM tags t
         LEFT JOIN posts_gdocs_x_tags gt ON t.id = gt.tagId
