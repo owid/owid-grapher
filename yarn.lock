@@ -2477,12 +2477,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@handsontable/react@npm:^12.3.3":
-  version: 12.3.3
-  resolution: "@handsontable/react@npm:12.3.3"
+"@handsontable/pikaday@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@handsontable/pikaday@npm:1.0.0"
+  checksum: 10/f9a428900fd6fcf96fd32ad466a8e319cf7b6d4b9ed1ad4ea5c7c6f489466f0eae5dfec796b0b2dd3ab47b94d24a7efb559a57e2d48f5f835f6b262889f1b5c9
+  languageName: node
+  linkType: hard
+
+"@handsontable/react@npm:^14.4.0":
+  version: 14.4.0
+  resolution: "@handsontable/react@npm:14.4.0"
   peerDependencies:
-    handsontable: ">=12.0.0"
-  checksum: 10/0c10a9859f8b018902f13d97df9d07433b8890618fa465d5b088d960fdbdd67ea8653eb7efd17878f802d25f44acecef31d4ffa78e3f0fa5cc276e87f9af32a9
+    handsontable: ">=14.0.0"
+  checksum: 10/83a0810d5c6cc13846e9f4528916ba30408dc4d28ca0da26f080645756fd6bd92882a9b540e759c84301b93417771fd551537086cd614894443c5057bb82d0be
   languageName: node
   linkType: hard
 
@@ -7834,10 +7841,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js@npm:^3.0.0, core-js@npm:^3.6.4":
-  version: 3.18.3
-  resolution: "core-js@npm:3.18.3"
-  checksum: 10/4e3de26861f20575d395fd8871e43ededd09d16761428cea5487bb57ebbd8db4f53d0c6f3d0d837eebd2a1d5079228ebf3737c805c5e72f6d739b22aa9971ad6
+"core-js@npm:^3.37.0":
+  version: 3.37.1
+  resolution: "core-js@npm:3.37.1"
+  checksum: 10/25d6bd15fcc6ffd2a0ec0be57a78ff3358b3e1fdffdb6800fc93dcfdb3854037aee41f3d101aed8c37905d107daf98218b3e7ee95cec383710d2a66a5d9e541b
   languageName: node
   linkType: hard
 
@@ -10995,7 +11002,7 @@ __metadata:
     "@fortawesome/free-brands-svg-icons": "npm:^6.5.2"
     "@fortawesome/free-solid-svg-icons": "npm:^6.5.2"
     "@fortawesome/react-fontawesome": "npm:^0.2.0"
-    "@handsontable/react": "npm:^12.3.3"
+    "@handsontable/react": "npm:^14.4.0"
     "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/grapher": "workspace:^"
@@ -11087,7 +11094,7 @@ __metadata:
     fuzzysort: "npm:^1.1.4"
     glob: "npm:^10.3.3"
     googleapis: "npm:^108.0.0"
-    handsontable: "npm:^12.3.3"
+    handsontable: "npm:^14.4.0"
     html-to-text: "npm:^9.0.5"
     http-server: "npm:^14.1.1"
     husky: "npm:^9.0.11"
@@ -11215,21 +11222,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"handsontable@npm:^12.3.3":
-  version: 12.3.3
-  resolution: "handsontable@npm:12.3.3"
+"handsontable@npm:^14.4.0":
+  version: 14.4.0
+  resolution: "handsontable@npm:14.4.0"
   dependencies:
+    "@handsontable/pikaday": "npm:^1.0.0"
     "@types/pikaday": "npm:1.7.4"
-    core-js: "npm:^3.0.0"
+    core-js: "npm:^3.37.0"
     dompurify: "npm:^2.1.1"
-    hyperformula: "npm:^2.0.0"
-    moment: "npm:2.29.4"
+    hyperformula: "npm:^2.6.2"
+    moment: "npm:2.30.1"
     numbro: "npm:2.1.2"
     pikaday: "npm:1.8.2"
   dependenciesMeta:
     hyperformula:
       optional: true
-  checksum: 10/e0dbc61e1631fe7df5aeda942dd29057ab9bc6ed438bc744bb8eb2bcb21580c75c440347d3dd785507be571849b968839a445087b3a133e0ee82878a2ea5326c
+  checksum: 10/96461b1a7cf38e345fc14b5084c8b0f2e7d236ab059af274b8e3a26571c19178eececaea46fd4a15d8a82a7bd3a3390ca3dfa10e88877cac139d4c03a488fb03
   languageName: node
   linkType: hard
 
@@ -11628,20 +11636,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hyperformula@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "hyperformula@npm:2.0.0"
+"hyperformula@npm:^2.6.2":
+  version: 2.7.0
+  resolution: "hyperformula@npm:2.7.0"
   dependencies:
     chevrotain: "npm:^6.5.0"
-    core-js: "npm:^3.6.4"
-    fsevents: "npm:~2.3.2"
-    regenerator-runtime: "npm:^0.13.3"
     tiny-emitter: "npm:^2.1.0"
-    unorm: "npm:^1.6.0"
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  checksum: 10/c7aa6139ac3dd1eb1b7bed7cc5741c471146d1abab92644fe1d89ee0768fe98577faec10460e19bb9d75b3918b7f43ae0e1e2c4b684688a197f1c1a8aa966ae7
+  checksum: 10/603ee583104e06cc8915f345126e2fbd6281273c68e07b933822c07096aef1c633037a15e188c298680364ab778d517ea799e59dd9a056603124d73e4bea77a5
   languageName: node
   linkType: hard
 
@@ -14525,10 +14526,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"moment@npm:2.29.4, moment@npm:>=2.14.0, moment@npm:^2.24.0, moment@npm:^2.29.2, moment@npm:^2.29.4":
-  version: 2.29.4
-  resolution: "moment@npm:2.29.4"
-  checksum: 10/157c5af5a0ba8196e577bc67feb583303191d21ba1f7f2af30b3b40d4c63a64d505ba402be2a1454832082fac6be69db1e0d186c3279dae191e6634b0c33705c
+"moment@npm:2.30.1, moment@npm:>=2.14.0, moment@npm:^2.24.0, moment@npm:^2.29.2, moment@npm:^2.29.4":
+  version: 2.30.1
+  resolution: "moment@npm:2.30.1"
+  checksum: 10/ae42d876d4ec831ef66110bdc302c0657c664991e45cf2afffc4b0f6cd6d251dde11375c982a5c0564ccc0fa593fc564576ddceb8c8845e87c15f58aa6baca69
   languageName: node
   linkType: hard
 
@@ -17595,7 +17596,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"regenerator-runtime@npm:^0.13.11, regenerator-runtime@npm:^0.13.3":
+"regenerator-runtime@npm:^0.13.11":
   version: 0.13.11
   resolution: "regenerator-runtime@npm:0.13.11"
   checksum: 10/d493e9e118abef5b099c78170834f18540c4933cedf9bfabc32d3af94abfb59a7907bd7950259cbab0a929ebca7db77301e8024e5121e6482a82f78283dfd20c
@@ -20018,13 +20019,6 @@ __metadata:
   version: 2.0.0
   resolution: "universalify@npm:2.0.0"
   checksum: 10/2406a4edf4a8830aa6813278bab1f953a8e40f2f63a37873ffa9a3bc8f9745d06cc8e88f3572cb899b7e509013f7f6fcc3e37e8a6d914167a5381d8440518c44
-  languageName: node
-  linkType: hard
-
-"unorm@npm:^1.6.0":
-  version: 1.6.0
-  resolution: "unorm@npm:1.6.0"
-  checksum: 10/af09a4c656830173571a547605a185916eb5ee2a684374282edf318ef54882f9b25d00bfd44591b686a292d8130e083755a3317eca62753d56e18616e98e501b
   languageName: node
   linkType: hard
 

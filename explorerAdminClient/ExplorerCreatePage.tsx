@@ -1,4 +1,4 @@
-import { HotTable } from "@handsontable/react"
+import { HotTable, HotTableClass } from "@handsontable/react"
 import { CoreMatrix } from "@ourworldindata/types"
 import { LoadingIndicator } from "@ourworldindata/grapher"
 import {
@@ -332,7 +332,7 @@ class HotEditor extends React.Component<{
     program: ExplorerProgram
     programOnDisk: ExplorerProgram
 }> {
-    private hotTableComponent = React.createRef<HotTable>()
+    private hotTableComponent = React.createRef<HotTableClass>()
 
     @computed private get program() {
         return this.props.program
@@ -462,7 +462,7 @@ class HotEditor extends React.Component<{
         return (
             <HotTable
                 settings={this.hotSettings}
-                ref={this.hotTableComponent as any}
+                ref={this.hotTableComponent}
                 licenseKey={"non-commercial-and-evaluation"}
             />
         )
