@@ -205,22 +205,22 @@ export class AbstractStackedChart
         return autoDetectSeriesStrategy(this.manager)
     }
 
-    @computed protected get dualAxis(): DualAxis {
-        const {
-            bounds,
-            horizontalAxisPart,
-            verticalAxisPart,
-            paddingForLegendRight,
-            paddingForLegendTop,
-        } = this
-        return new DualAxis({
-            bounds: bounds
-                .padTop(paddingForLegendTop)
-                .padRight(paddingForLegendRight)
+    @computed get innerBounds(): Bounds {
+        return (
+            this.bounds
+                .padTop(this.paddingForLegendTop)
+                .padRight(this.paddingForLegendRight)
                 // top padding leaves room for tick labels
                 .padTop(6)
                 // bottom padding avoids axis labels to be cut off at some resolutions
-                .padBottom(2),
+                .padBottom(2)
+        )
+    }
+
+    @computed protected get dualAxis(): DualAxis {
+        const { horizontalAxisPart, verticalAxisPart } = this
+        return new DualAxis({
+            bounds: this.innerBounds,
             horizontalAxis: horizontalAxisPart,
             verticalAxis: verticalAxisPart,
         })
@@ -234,14 +234,9 @@ export class AbstractStackedChart
         return this.dualAxis.horizontalAxis
     }
 
-    @computed private get xAxisConfig(): AxisConfig {
-        return new AxisConfig(
-            {
-                hideGridlines: true,
-                ...this.manager.xAxisConfig,
-            },
-            this
-        )
+    // implemented in subclasses
+    @computed protected get xAxisConfig(): AxisConfig {
+        return new AxisConfig()
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {

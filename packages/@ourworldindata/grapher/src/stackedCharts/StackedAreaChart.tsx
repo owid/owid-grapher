@@ -54,6 +54,7 @@ import {
 import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { bind } from "decko"
+import { AxisConfig } from "../axis/AxisConfig.js"
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis
@@ -277,6 +278,16 @@ export class StackedAreaChart
             (point) => point.value + point.valueOffset
         )
         return [0, max(yValues) ?? 0]
+    }
+
+    @computed protected get xAxisConfig(): AxisConfig {
+        return new AxisConfig(
+            {
+                hideGridlines: true,
+                ...this.manager.xAxisConfig,
+            },
+            this
+        )
     }
 
     @computed get midpoints(): number[] {

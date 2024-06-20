@@ -285,6 +285,13 @@ export interface AxisConfigInterface {
      * Should the point be placed at the start, middle or end of the axis?
      */
     singleValueAxisPointAlign?: AxisAlign
+
+    /**
+     * If given, think of the axis scale as a band scale, where each domain value
+     * occupies a fixed width. The axis is padded on both sides to reserve space
+     * for the outermost values.
+     */
+    domainValues?: number[]
 }
 
 export interface ComparisonLineConfig {

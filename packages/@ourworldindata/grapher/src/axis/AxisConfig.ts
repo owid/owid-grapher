@@ -40,6 +40,7 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref ticks?: Tickmark[] = undefined
     @observable.ref singleValueAxisPointAlign?: AxisAlign = undefined
     @observable.ref label: string = ""
+    @observable.ref domainValues?: number[] = undefined
 }
 
 export class AxisConfig
@@ -78,6 +79,7 @@ export class AxisConfig
             facetDomain: this.facetDomain,
             ticks: this.ticks,
             singleValueAxisPointAlign: this.singleValueAxisPointAlign,
+            domainValues: this.domainValues,
         })
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())
