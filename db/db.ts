@@ -169,8 +169,7 @@ export const getSlugsWithPublishedGdocsSuccessors = async (
         knex,
         `-- sql
         SELECT
-            p.slug,
-            p.type
+            p.slug
         FROM
             posts p
         LEFT JOIN posts_gdocs g on
