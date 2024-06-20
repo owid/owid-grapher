@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import { ChartEditor, Log } from "./ChartEditor.js"
 import { Section, Timeago } from "./Forms.js"
 import { computed, action, observable } from "mobx"
-import { copyToClipboard } from "@ourworldindata/utils"
+import { Json, copyToClipboard } from "@ourworldindata/utils"
 import YAML from "yaml"
 import { notification, Modal } from "antd"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
@@ -116,13 +116,12 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
         return this.props.editor.logs || []
     }
 
-    @action.bound async applyConfig(config: any) {
+    @action.bound async applyConfig(config: Json) {
         const { grapher } = this.props.editor
-        const configJson = JSON.parse(config)
-        grapher.updateFromObject(configJson)
+        grapher.updateFromObject(config)
         grapher.updateAuthoredVersion({
             ...grapher.toObject(),
-            data: configJson.data,
+            data: config.data,
         })
         grapher.rebuildInputOwidTable()
     }
