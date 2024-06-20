@@ -619,6 +619,10 @@ export class StackedBarChart
         )
     }
 
+    @computed get categoryLegendY(): number {
+        return this.bounds.top
+    }
+
     @computed get legendY(): number {
         return this.bounds.top
     }
