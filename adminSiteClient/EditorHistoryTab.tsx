@@ -6,7 +6,7 @@ import { computed, action, observable } from "mobx"
 import { copyToClipboard } from "@ourworldindata/utils"
 import YAML from "yaml"
 import { notification, Modal } from "antd"
-import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
+import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 
 function LogCompareModal({
     log,
