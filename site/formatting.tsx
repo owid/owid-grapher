@@ -15,7 +15,7 @@ import {
     KEY_INSIGHTS_CLASS_NAME,
     KEY_INSIGHTS_SLIDE_CLASS_NAME,
     KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME,
-} from "./blocks/KeyInsights.js"
+} from "./gdocs/components/KeyInsights.js"
 import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink.js"
 import { Byline } from "./Byline.js"
 import { SectionHeading } from "./SectionHeading.js"

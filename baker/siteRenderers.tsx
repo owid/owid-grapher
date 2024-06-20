@@ -67,7 +67,7 @@ import {
     KeyInsightsThumbs,
     KeyInsightsSlides,
     KEY_INSIGHTS_CLASS_NAME,
-} from "../site/blocks/KeyInsights.js"
+} from "../site/gdocs/components/KeyInsights.js"
 import { formatUrls, KEY_INSIGHTS_H2_CLASSNAME } from "../site/formatting.js"
 
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
