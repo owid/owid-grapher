@@ -410,7 +410,7 @@ export function filterTreeToSExpression(
     } else if (filterTree.type === "rule") {
         if (isNil(filterTree.properties.field)) return undefined
         const field = getFieldSymbol(
-            filterTree.properties.field,
+            filterTree.properties.field as string,
             context,
             readOnlyFieldNamesMap
         )

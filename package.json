@@ -61,7 +61,7 @@
         "@ourworldindata/grapher": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
-        "@react-awesome-query-builder/antd": "^6.1.1",
+        "@react-awesome-query-builder/antd": "^6.5.2",
         "@sinclair/typebox": "^0.28.5",
         "@slack/web-api": "^7.1.0",
         "@tippyjs/react": "^4.2.6",
