@@ -67,7 +67,7 @@
         "@tippyjs/react": "^4.2.6",
         "@wojtekmaj/enzyme-adapter-react-17": "^0.8.0",
         "algoliasearch": "^4.23.2",
-        "antd": "^4.23.1",
+        "antd": "^5.18.3",
         "archieml": "^0.5.0",
         "bcrypt": "^5.1.0",
         "bootstrap": "^4.6.1",
