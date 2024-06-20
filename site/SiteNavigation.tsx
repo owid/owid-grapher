@@ -316,12 +316,12 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     slug: "distribution-of-the-world-population",
                     entries: [
                         {
-                            slug: "urbanization",
-                            title: "Urbanization",
-                        },
-                        {
                             slug: "migration",
                             title: "Migration",
+                        },
+                        {
+                            slug: "urbanization",
+                            title: "Urbanization",
                         },
                     ],
                 },
@@ -333,21 +333,56 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
             entries: [],
             subcategories: [
                 {
+                    name: "Life and Death",
+                    slug: "life-and-death",
+                    entries: [
+                        {
+                            slug: "health-meta",
+                            title: "Global Health",
+                        },
+                        {
+                            slug: "life-expectancy",
+                            title: "Life Expectancy",
+                        },
+                        {
+                            slug: "causes-of-death",
+                            title: "Causes of Death",
+                        },
+                        {
+                            slug: "child-mortality",
+                            title: "Child and Infant Mortality",
+                        },
+                        {
+                            slug: "maternal-mortality",
+                            title: "Maternal Mortality",
+                        },
+                        {
+                            slug: "mental-health",
+                            title: "Mental Health",
+                        },
+                        {
+                            slug: "suicide",
+                            title: "Suicides",
+                        },
+                        {
+                            slug: "burden-of-disease",
+                            title: "Burden of Disease",
+                        },
+
+                        {
+                            slug: "cancer",
+                            title: "Cancer",
+                        },
+                        {
+                            slug: "cardiovascular-diseases",
+                            title: "Cardiovascular Diseases",
+                        },
+                    ],
+                },
+                {
                     name: "Health Risks",
                     slug: "health-risks",
                     entries: [
-                        {
-                            slug: "lead-pollution",
-                            title: "Lead Pollution",
-                        },
-                        {
-                            slug: "alcohol-consumption",
-                            title: "Alcohol Consumption",
-                        },
-                        {
-                            slug: "illicit-drug-use",
-                            title: "Opioids, Cocaine, Cannabis, and Other Illicit Drugs",
-                        },
                         {
                             slug: "air-pollution",
                             title: "Air Pollution",
@@ -360,6 +395,19 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             slug: "indoor-air-pollution",
                             title: "Indoor Air Pollution",
                         },
+                        {
+                            slug: "lead-pollution",
+                            title: "Lead Pollution",
+                        },
+                        {
+                            slug: "alcohol-consumption",
+                            title: "Alcohol Consumption",
+                        },
+                        {
+                            slug: "illicit-drug-use",
+                            title: "Opioids, Cocaine, Cannabis, and Other Illicit Drugs",
+                        },
+
                         {
                             slug: "obesity",
                             title: "Obesity",
@@ -383,16 +431,12 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Pandemics",
                         },
                         {
-                            slug: "monkeypox",
-                            title: "Mpox (monkeypox)",
+                            slug: "malaria",
+                            title: "Malaria",
                         },
                         {
                             slug: "hiv-aids",
                             title: "HIV / AIDS",
-                        },
-                        {
-                            slug: "malaria",
-                            title: "Malaria",
                         },
                         {
                             slug: "diarrheal-diseases",
@@ -415,6 +459,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Pneumonia",
                         },
                         {
+                            slug: "neglected-tropical-diseases",
+                            title: "Neglected Tropical Diseases",
+                        },
+                        {
                             slug: "tetanus",
                             title: "Tetanus",
                         },
@@ -423,8 +471,8 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Smallpox",
                         },
                         {
-                            slug: "neglected-tropical-diseases",
-                            title: "Neglected Tropical Diseases",
+                            slug: "monkeypox",
+                            title: "Mpox (monkeypox)",
                         },
                     ],
                 },
@@ -446,52 +494,6 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         },
                     ],
                 },
-                {
-                    name: "Life and Death",
-                    slug: "life-and-death",
-                    entries: [
-                        {
-                            slug: "life-expectancy",
-                            title: "Life Expectancy",
-                        },
-                        {
-                            slug: "causes-of-death",
-                            title: "Causes of Death",
-                        },
-                        {
-                            slug: "child-mortality",
-                            title: "Child and Infant Mortality",
-                        },
-                        {
-                            slug: "mental-health",
-                            title: "Mental Health",
-                        },
-                        {
-                            slug: "suicide",
-                            title: "Suicides",
-                        },
-                        {
-                            slug: "cardiovascular-diseases",
-                            title: "Cardiovascular Diseases",
-                        },
-                        {
-                            slug: "burden-of-disease",
-                            title: "Burden of Disease",
-                        },
-                        {
-                            slug: "cancer",
-                            title: "Cancer",
-                        },
-                        {
-                            slug: "maternal-mortality",
-                            title: "Maternal Mortality",
-                        },
-                        {
-                            slug: "health-meta",
-                            title: "Global Health",
-                        },
-                    ],
-                },
             ],
         },
         {
@@ -499,6 +501,36 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
             slug: "environment",
             entries: [],
             subcategories: [
+                {
+                    name: "Climate and Air",
+                    slug: "climate-and-air",
+                    entries: [
+                        {
+                            slug: "co2-and-greenhouse-gas-emissions",
+                            title: "CO₂ and Greenhouse Gas Emissions",
+                        },
+                        {
+                            slug: "climate-change",
+                            title: "Climate Change",
+                        },
+                        {
+                            slug: "ozone-layer",
+                            title: "Ozone Layer",
+                        },
+                        {
+                            slug: "air-pollution",
+                            title: "Air Pollution",
+                        },
+                        {
+                            slug: "outdoor-air-pollution",
+                            title: "Outdoor Air Pollution",
+                        },
+                        {
+                            slug: "indoor-air-pollution",
+                            title: "Indoor Air Pollution",
+                        },
+                    ],
+                },
                 {
                     name: "Energy Systems",
                     slug: "energy-systems",
@@ -543,36 +575,7 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         },
                     ],
                 },
-                {
-                    name: "Climate and Air",
-                    slug: "climate-and-air",
-                    entries: [
-                        {
-                            slug: "co2-and-greenhouse-gas-emissions",
-                            title: "CO₂ and Greenhouse Gas Emissions",
-                        },
-                        {
-                            slug: "climate-change",
-                            title: "Climate Change",
-                        },
-                        {
-                            slug: "ozone-layer",
-                            title: "Ozone Layer",
-                        },
-                        {
-                            slug: "air-pollution",
-                            title: "Air Pollution",
-                        },
-                        {
-                            slug: "outdoor-air-pollution",
-                            title: "Outdoor Air Pollution",
-                        },
-                        {
-                            slug: "indoor-air-pollution",
-                            title: "Indoor Air Pollution",
-                        },
-                    ],
-                },
+
                 {
                     name: "Water",
                     slug: "water",
@@ -637,44 +640,6 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
             entries: [],
             subcategories: [
                 {
-                    name: "Nutrition",
-                    slug: "nutrition",
-                    entries: [
-                        {
-                            slug: "hunger-and-undernourishment",
-                            title: "Hunger and Undernourishment",
-                        },
-                        {
-                            slug: "food-supply",
-                            title: "Food Supply",
-                        },
-                        {
-                            slug: "food-prices",
-                            title: "Food Prices",
-                        },
-                        {
-                            slug: "diet-compositions",
-                            title: "Diet Compositions",
-                        },
-                        {
-                            slug: "obesity",
-                            title: "Obesity",
-                        },
-                        {
-                            slug: "human-height",
-                            title: "Human Height",
-                        },
-                        {
-                            slug: "micronutrient-deficiency",
-                            title: "Micronutrient Deficiency",
-                        },
-                        {
-                            slug: "famines",
-                            title: "Famines",
-                        },
-                    ],
-                },
-                {
                     name: "Food Production",
                     slug: "food-production",
                     entries: [
@@ -726,6 +691,44 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         },
                     ],
                 },
+                {
+                    name: "Nutrition",
+                    slug: "nutrition",
+                    entries: [
+                        {
+                            slug: "hunger-and-undernourishment",
+                            title: "Hunger and Undernourishment",
+                        },
+                        {
+                            slug: "food-supply",
+                            title: "Food Supply",
+                        },
+                        {
+                            slug: "food-prices",
+                            title: "Food Prices",
+                        },
+                        {
+                            slug: "diet-compositions",
+                            title: "Diet Compositions",
+                        },
+                        {
+                            slug: "obesity",
+                            title: "Obesity",
+                        },
+                        {
+                            slug: "human-height",
+                            title: "Human Height",
+                        },
+                        {
+                            slug: "micronutrient-deficiency",
+                            title: "Micronutrient Deficiency",
+                        },
+                        {
+                            slug: "famines",
+                            title: "Famines",
+                        },
+                    ],
+                },
             ],
         },
         {
@@ -733,6 +736,28 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
             slug: "growth-inequality",
             entries: [],
             subcategories: [
+                {
+                    name: "Poverty and Prosperity",
+                    slug: "poverty-and-prosperity",
+                    entries: [
+                        {
+                            slug: "poverty",
+                            title: "Poverty",
+                        },
+                        {
+                            slug: "economic-inequality",
+                            title: "Economic Inequality",
+                        },
+                        {
+                            slug: "economic-growth",
+                            title: "Economic Growth",
+                        },
+                        {
+                            slug: "economic-inequality-by-gender",
+                            title: "Economic Inequality by Gender",
+                        },
+                    ],
+                },
                 {
                     name: "Public Sector",
                     slug: "public-sector",
@@ -767,28 +792,7 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         },
                     ],
                 },
-                {
-                    name: "Poverty and Prosperity",
-                    slug: "poverty-and-prosperity",
-                    entries: [
-                        {
-                            slug: "poverty",
-                            title: "Poverty",
-                        },
-                        {
-                            slug: "economic-inequality",
-                            title: "Economic Inequality",
-                        },
-                        {
-                            slug: "economic-growth",
-                            title: "Economic Growth",
-                        },
-                        {
-                            slug: "economic-inequality-by-gender",
-                            title: "Economic Inequality by Gender",
-                        },
-                    ],
-                },
+
                 {
                     name: "Labor",
                     slug: "labor",
@@ -875,6 +879,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
             slug: "technology",
             entries: [
                 {
+                    slug: "technological-change",
+                    title: "Technological Change",
+                },
+                {
                     slug: "artificial-intelligence",
                     title: "Artificial Intelligence",
                 },
@@ -890,10 +898,7 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     slug: "research-and-development",
                     title: "Research and Development",
                 },
-                {
-                    slug: "technological-change",
-                    title: "Technological Change",
-                },
+
                 {
                     slug: "transport",
                     title: "Transport",
