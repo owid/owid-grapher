@@ -45,9 +45,15 @@ const iconGdocTypeMap = {
     [OwidGdocType.Author]: <FontAwesomeIcon icon={faUserPen} />,
 }
 
+enum GdocPublishStatus {
+    All = "all",
+    Published = "published",
+    Unpublished = "unpublished",
+}
+
 @observer
 class GdocsIndexPageSearch extends React.Component<{
-    filters: Record<OwidGdocType, boolean>
+    filters: GdocsSearchFilters
     search: { value: string }
 }> {
     toggleGdocTypeFilter = (type: OwidGdocType) => {
@@ -98,6 +104,23 @@ class GdocsIndexPageSearch extends React.Component<{
                             </label>
                         )
                     })}
+                    <label className="gdoc-index-filter-checkbox">
+                        <select
+                            id="shouldShowPublishedOnly"
+                            onChange={({ target }) => {
+                                const value = target.value as GdocPublishStatus
+                                this.props.filters.publishStatus = value
+                            }}
+                        >
+                            <option value={GdocPublishStatus.All}>All</option>
+                            <option value={GdocPublishStatus.Published}>
+                                Published
+                            </option>
+                            <option value={GdocPublishStatus.Unpublished}>
+                                Unpublished
+                            </option>
+                        </select>
+                    </label>
                 </div>
             </div>
         )
@@ -110,12 +133,16 @@ interface GdocsMatchParams {
 
 export type GdocsMatchProps = RouteComponentProps<GdocsMatchParams>
 
+type GdocsSearchFilters = Record<OwidGdocType, boolean> & {
+    publishStatus: GdocPublishStatus
+}
+
 @observer
 export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
     static contextType = GdocsStoreContext
     context!: React.ContextType<typeof GdocsStoreContext>
 
-    @observable filters: Record<OwidGdocType, boolean> = {
+    @observable filters: GdocsSearchFilters = {
         [OwidGdocType.Fragment]: false,
         [OwidGdocType.Article]: false,
         [OwidGdocType.TopicPage]: false,
@@ -124,6 +151,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         [OwidGdocType.Homepage]: false,
         [OwidGdocType.AboutPage]: false,
         [OwidGdocType.Author]: false,
+        publishStatus: GdocPublishStatus.All,
     }
 
     @observable search = { value: "" }
@@ -148,16 +176,34 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         if (!context) return []
 
         // Don't filter unless at least one filter is active
-        const shouldUseFilters = !!Object.values(this.filters).find(
+        const { publishStatus, ...typeFilters } = this.filters
+        const areAnyTypeFiltersActive = Object.values(typeFilters).some(
             (isFilterActive) => isFilterActive
         )
+        const shouldUseFilters =
+            areAnyTypeFiltersActive || publishStatus !== GdocPublishStatus.All
 
         const filteredByType = shouldUseFilters
-            ? context.gdocs.filter(
-                  (gdoc) =>
-                      // don't filter docs with no type set
-                      !gdoc.type || !!this.filters[gdoc.type]
-              )
+            ? context.gdocs.filter((gdoc) => {
+                  const isPublished = gdoc.published
+                  const shouldFilterByType =
+                      // don't filter if no type filters are active
+                      !areAnyTypeFiltersActive ||
+                      // don't filter gdocs with no type
+                      !gdoc.type ||
+                      // if any type filter is active, and the gdoc has a type,
+                      // show this document if its type is active
+                      this.filters[gdoc.type]
+
+                  switch (publishStatus) {
+                      case GdocPublishStatus.All:
+                          return shouldFilterByType
+                      case GdocPublishStatus.Published:
+                          return shouldFilterByType && isPublished
+                      case GdocPublishStatus.Unpublished:
+                          return shouldFilterByType && !isPublished
+                  }
+              })
             : context.gdocs
 
         if (searchWords.length > 0) {
