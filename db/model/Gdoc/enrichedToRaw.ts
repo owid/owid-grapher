@@ -44,6 +44,7 @@ import {
     RawBlockHomepageIntro,
     RawBlockLatestDataInsights,
     RawBlockSocials,
+    RawBlockUpdate,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -529,6 +530,21 @@ export function enrichedBlockToRawBlock(
             return {
                 type: "socials",
                 value: b.links,
+            }
+        })
+        .with({ type: "update" }, (b): RawBlockUpdate => {
+            return {
+                type: "update",
+                value: {
+                    publishDate: b.publishDate?.toISOString(),
+                    publishTime: b.publishTime
+                        ? `${b.publishTime.hour}:${b.publishTime.minute}`
+                        : undefined,
+                    title: b.title,
+                    authors: b.authors.join(", "),
+                    "grapher-url": b.grapherUrl,
+                    content: b.content.map(enrichedBlockToRawBlock),
+                },
             }
         })
         .exhaustive()

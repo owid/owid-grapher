@@ -56,6 +56,7 @@ export enum OwidGdocType {
     Homepage = "homepage",
     AboutPage = "about-page",
     Author = "author",
+    Announcements = "announcements",
 }
 
 export interface OwidGdocBaseInterface {
@@ -118,6 +119,18 @@ export function extractGdocIndexItem(
         authors: gdoc.content.authors,
         type: gdoc.content.type,
     }
+}
+
+export interface OwidGdocAnnouncementsContent {
+    type: OwidGdocType.Announcements
+    body: OwidEnrichedGdocBlock[]
+    authors: string[]
+    title?: string
+    subtitle?: string
+}
+
+export interface OwidGdocAnnouncementsInterface extends OwidGdocBaseInterface {
+    content: OwidGdocAnnouncementsContent
 }
 
 export interface OwidGdocDataInsightContent {
@@ -189,12 +202,14 @@ export type OwidGdocContent =
     | OwidGdocDataInsightContent
     | OwidGdocHomepageContent
     | OwidGdocAuthorContent
+    | OwidGdocAnnouncementsContent
 
 export type OwidGdoc =
     | OwidGdocPostInterface
     | OwidGdocDataInsightInterface
     | OwidGdocHomepageInterface
     | OwidGdocAuthorInterface
+    | OwidGdocAnnouncementsInterface
 
 export enum OwidGdocErrorMessageType {
     Error = "error",

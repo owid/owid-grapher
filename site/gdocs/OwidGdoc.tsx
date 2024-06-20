@@ -21,6 +21,7 @@ import { DataInsightPage } from "./pages/DataInsight.js"
 import { Fragment } from "./pages/Fragment.js"
 import { Homepage } from "./pages/Homepage.js"
 import { Author } from "./pages/Author.js"
+import { AnnouncementsPage } from "./pages/Announcements.js"
 
 export const AttachmentsContext = createContext<{
     linkedAuthors?: DbEnrichedAuthor[]
@@ -95,6 +96,9 @@ export function OwidGdoc({
         ))
         .with({ content: { type: OwidGdocType.Fragment } }, (props) => (
             <Fragment {...props} />
+        ))
+        .with({ content: { type: OwidGdocType.Announcements } }, (props) => (
+            <AnnouncementsPage {...props} />
         ))
         .with(P.any, (gdoc) => (
             <div

@@ -1676,6 +1676,12 @@ export function traverseEnrichedBlock(
                 )
             }
         )
+        .with({ type: "update" }, (update) => {
+            callback(update)
+            update.content.forEach((node) =>
+                traverseEnrichedBlock(node, callback, spanCallback)
+            )
+        })
         .with(
             {
                 type: P.union(

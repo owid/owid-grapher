@@ -40,10 +40,16 @@ import {
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { GdocAuthor } from "./GdocAuthor.js"
 import { fetchImagesFromDriveAndSyncToS3 } from "../Image.js"
+import { GdocAnnouncements } from "./GdocAnnouncements.js"
 
-export function gdocFromJSON(
-    json: Record<string, any>
-): GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor {
+export type GdocClass =
+    | GdocPost
+    | GdocDataInsight
+    | GdocHomepage
+    | GdocAuthor
+    | GdocAnnouncements
+
+export function gdocFromJSON(json: Record<string, any>): GdocClass {
     if (typeof json.content === "string") {
         json.content = JSON.parse(json.content)
     }
@@ -86,13 +92,16 @@ export function gdocFromJSON(
             // TODO: better validation here?
             () => GdocAuthor.create({ ...(json as any) })
         )
+        .with(OwidGdocType.Announcements, () =>
+            GdocAnnouncements.create({ ...(json as any) })
+        )
         .exhaustive()
 }
 
 export async function createGdocAndInsertIntoDb(
     knex: KnexReadWriteTransaction,
     id: string
-): Promise<OwidGdoc> {
+): Promise<GdocClass> {
     // Fetch the data from Google Docs and save it to the database
     // We have to fetch it here because we need to know the type of the Gdoc in load()
     const base = new GdocBase(id)
@@ -120,7 +129,7 @@ export async function createGdocAndInsertIntoDb(
 export async function updateGdocContentOnly(
     knex: KnexReadonlyTransaction,
     id: string,
-    gdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor
+    gdoc: GdocClass
 ): Promise<void> {
     let markdown: string | null = gdoc.markdown
     try {
@@ -265,7 +274,7 @@ export async function getGdocBaseObjectBySlug(
 export async function getAndLoadGdocBySlug(
     knex: KnexReadWriteTransaction,
     slug: string
-): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
+): Promise<GdocClass> {
     const base = await getGdocBaseObjectBySlug(knex, slug, true)
     if (!base) {
         throw new Error(
@@ -280,7 +289,7 @@ export async function getAndLoadGdocById(
     knex: KnexReadWriteTransaction,
     id: string,
     contentSource?: GdocsContentSource
-): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
+): Promise<GdocClass> {
     const base = await getGdocBaseObjectById(knex, id, true)
     if (!base)
         throw new Error(`No Google Doc with id "${id}" found in the database`)
@@ -291,7 +300,7 @@ export async function getAndLoadGdocById(
 export async function createOrLoadGdocById(
     trx: KnexReadWriteTransaction,
     id: string
-): Promise<OwidGdoc> {
+): Promise<GdocClass> {
     // Check to see if the gdoc already exists in the database
     const existingGdoc = await getGdocBaseObjectById(trx, id, false)
     if (existingGdoc) {
@@ -309,7 +318,7 @@ export async function loadGdocFromGdocBase(
     knex: KnexReadWriteTransaction,
     base: OwidGdocBaseInterface,
     contentSource?: GdocsContentSource
-): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
+): Promise<GdocClass> {
     const type = get(base, "content.type") as unknown
     if (!type)
         throw new Error(
@@ -335,6 +344,7 @@ export async function loadGdocFromGdocBase(
         .with(OwidGdocType.DataInsight, () => GdocDataInsight.create(base))
         .with(OwidGdocType.Homepage, () => GdocHomepage.create(base))
         .with(OwidGdocType.Author, () => GdocAuthor.create(base))
+        .with(OwidGdocType.Announcements, () => GdocAnnouncements.create(base))
         .exhaustive()
 
     if (contentSource === GdocsContentSource.Gdocs) {
@@ -571,7 +581,7 @@ export async function getAllGdocIndexItemsOrderedByUpdatedAt(
 
 export async function addImagesToContentGraph(
     trx: KnexReadWriteTransaction,
-    gdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor
+    gdoc: GdocClass
 ): Promise<void> {
     const id = gdoc.id
     // Deleting and recreating these is simpler than tracking orphans over the next code block

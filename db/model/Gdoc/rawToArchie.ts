@@ -43,6 +43,7 @@ import {
     RawBlockHomepageSearch,
     RawBlockLatestDataInsights,
     RawBlockSocials,
+    RawBlockUpdate,
 } from "@ourworldindata/types"
 import { isArray } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
@@ -755,6 +756,27 @@ function* rawBlockSocialsToArchieMLString(
     yield "[]"
 }
 
+function* rawBlockUpdateToArchieMLString(
+    block: RawBlockUpdate
+): Generator<string, void, undefined> {
+    yield "{.update}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("publishDate", block.value)
+        yield* propertyToArchieMLString("publishTime", block.value)
+        yield* propertyToArchieMLString("title", block.value)
+        yield* propertyToArchieMLString("authors", block.value)
+        yield* propertyToArchieMLString("grapher-url", block.value)
+        if (block.value.content && typeof block.value.content !== "string") {
+            yield "[.+content]"
+            for (const b of block.value.content) {
+                yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
+            }
+            yield "[]"
+        }
+    }
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock | RawBlockTableRow
 ): Generator<string, void, undefined> {
@@ -836,6 +858,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         )
         .with({ type: "homepage-intro" }, rawBlockHomepageIntroToArchieMLString)
         .with({ type: "socials" }, rawBlockSocialsToArchieMLString)
+        .with({ type: "update" }, rawBlockUpdateToArchieMLString)
         .exhaustive()
     yield* content
 }

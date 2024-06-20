@@ -13,6 +13,7 @@ import {
     faThList,
     faBuildingNgo,
     faUserPen,
+    faBolt,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -43,6 +44,7 @@ const iconGdocTypeMap = {
     [OwidGdocType.Homepage]: <FontAwesomeIcon icon={faHouse} />,
     [OwidGdocType.AboutPage]: <FontAwesomeIcon icon={faBuildingNgo} />,
     [OwidGdocType.Author]: <FontAwesomeIcon icon={faUserPen} />,
+    [OwidGdocType.Announcements]: <FontAwesomeIcon icon={faBolt} />,
 }
 
 @observer
@@ -124,6 +126,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         [OwidGdocType.Homepage]: false,
         [OwidGdocType.AboutPage]: false,
         [OwidGdocType.Author]: false,
+        [OwidGdocType.Announcements]: false,
     }
 
     @observable search = { value: "" }

@@ -42,6 +42,7 @@ import { HomepageIntro } from "./HomepageIntro.js"
 import { HomepageSearch } from "./HomepageSearch.js"
 import { LatestDataInsightsBlock } from "./LatestDataInsights.js"
 import { Socials } from "./Socials.js"
+import { Update } from "./Update.js"
 
 export type Container =
     | "default"
@@ -107,6 +108,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["text"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["toc"]: "grid grid-cols-8 col-start-4 span-cols-8 grid-md-cols-10 col-md-start-3 span-md-cols-10 grid-sm-cols-12 span-sm-cols-12 col-sm-start-2",
         ["topic-page-intro"]: "grid col-start-2 span-cols-12",
+        ["update"]: "grid grid-cols-12-full-width span-cols-14",
         ["video"]: "col-start-4 span-cols-8 col-md-start-2 span-md-cols-12",
     },
     ["datapage"]: {
@@ -726,6 +728,12 @@ export default function ArticleBlock({
             <Socials
                 className={getLayout("socials", containerType)}
                 {...block}
+            />
+        ))
+        .with({ type: "update" }, (update) => (
+            <Update
+                className={getLayout("update", containerType)}
+                {...update}
             />
         ))
         .exhaustive()
