@@ -2,16 +2,13 @@ import cheerio from "cheerio"
 import urlSlug from "url-slug"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
-import { BAKED_BASE_URL, HTTPS_ONLY } from "../settings/serverSettings.js"
+import { HTTPS_ONLY } from "../settings/serverSettings.js"
 import { GrapherExports } from "../baker/GrapherBakingUtils.js"
 import { AllCharts, renderAllCharts } from "../site/blocks/AllCharts.js"
 import { FormattingOptions } from "@ourworldindata/types"
 import {
-    BLOCK_WRAPPER_DATATYPE,
-    DataValueProps,
     FormattedPost,
     FullPost,
-    JsonError,
     TocHeading,
     WP_BlockType,
     parseKeyValueArgs,
@@ -21,21 +18,9 @@ import { LoadingIndicator } from "@ourworldindata/grapher"
 import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { DataToken } from "../site/DataToken.js"
-import {
-    dataValueRegex,
-    DEEP_LINK_CLASS,
-    extractDataValuesConfiguration,
-    formatDataValue,
-    formatImages,
-} from "./formatting.js"
+import { DEEP_LINK_CLASS, formatImages } from "./formatting.js"
 import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
-import {
-    getDataValue,
-    getOwidChartDimensionConfigForVariable,
-    getOwidVariableDisplayConfig,
-} from "../db/model/Variable.js"
-import { AnnotatingDataValue } from "../site/AnnotatingDataValue.js"
 import {
     ADDITIONAL_INFORMATION_CLASS_NAME,
     renderAdditionalInformation,
@@ -53,7 +38,6 @@ import { INTERACTIVE_ICON_SVG } from "../site/InteractionNotice.js"
 import { renderKeyInsights, renderProminentLinks } from "./siteRenderers.js"
 import { KEY_INSIGHTS_CLASS_NAME } from "../site/blocks/KeyInsights.js"
 import { RELATED_CHARTS_CLASS_NAME } from "../site/blocks/RelatedCharts.js"
-import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { KnexReadonlyTransaction } from "../db/db.js"
 
 export const formatWordpressPost = async (
@@ -97,73 +81,7 @@ export const formatWordpressPost = async (
         }
     })
 
-    const dataValuesConfigurationsMap =
-        await extractDataValuesConfiguration(html)
-    const dataValues = new Map<string, DataValueProps>()
-    for (const [
-        dataValueConfigurationString,
-        dataValueConfiguration,
-    ] of dataValuesConfigurationsMap) {
-        const { queryArgs, template } = dataValueConfiguration
-        const { variableId, chartId } = queryArgs
-        const { value, year, unit, entityName } =
-            (await getDataValue(queryArgs, knex)) || {}
-
-        if (!value || !year || !entityName || !template) continue
-
-        let formattedValue
-        if (variableId && chartId) {
-            const legacyVariableDisplayConfig =
-                await getOwidVariableDisplayConfig(variableId, knex)
-            const legacyChartDimension =
-                await getOwidChartDimensionConfigForVariable(
-                    variableId,
-                    chartId,
-                    knex
-                )
-            formattedValue = formatDataValue(
-                value,
-                variableId,
-                legacyVariableDisplayConfig,
-                legacyChartDimension
-            )
-        }
-
-        dataValues.set(dataValueConfigurationString, {
-            value,
-            formattedValue,
-            template,
-            year,
-            unit,
-            entityName,
-        })
-    }
-
-    const jsonErrors: JsonError[] = []
-
-    html = html.replace(dataValueRegex, (_, dataValueConfigurationString) => {
-        const dataValueProps: DataValueProps | undefined = dataValues.get(
-            dataValueConfigurationString
-        )
-        if (!dataValueProps) {
-            jsonErrors.push(
-                new JsonError(
-                    `Missing data value for {{DataValue ${dataValueConfigurationString}}}" in ${BAKED_BASE_URL}/${post.slug}`
-                )
-            )
-            return "{ ⚠️ Value pending update }"
-        }
-        return ReactDOMServer.renderToString(
-            <span data-type={BLOCK_WRAPPER_DATATYPE}>
-                <AnnotatingDataValue dataValueProps={dataValueProps} />
-            </span>
-        )
-    })
-
-    await Promise.allSettled(jsonErrors.map(logErrorAndMaybeSendToBugsnag))
-
-    // Needs to be happen after DataValue replacements, as the DataToken regex
-    // would otherwise capture DataValue tags
+    // The only two supported ones here are: {{LastUpdated timestampUrl:...}} and {{FullWidthRawHtml url:...}}
     const dataTokenRegex = /{{\s*([a-zA-Z]+)\s*(.+?)\s*}}/g
 
     html = html.replace(

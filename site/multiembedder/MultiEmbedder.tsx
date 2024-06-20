@@ -37,7 +37,6 @@ import {
     BAKED_GRAPHER_URL,
     DATA_API_URL,
 } from "../../settings/clientSettings.js"
-import { hydrateAnnotatingDataValue } from "../AnnotatingDataValue.js"
 import Bugsnag from "@bugsnag/js"
 import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
 
@@ -246,9 +245,6 @@ class MultiEmbedder {
             if (window.location.pathname.startsWith("/collection/custom")) {
                 embedDynamicCollectionGrapher(grapherRef, figure)
             }
-
-            if (!grapherRef.current) return
-            hydrateAnnotatingDataValue(grapherRef.current, figure)
         }
     }
 

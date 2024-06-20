@@ -276,7 +276,6 @@ type ErrorNames =
     | "prominent link missing url"
     | "summary item isn't text"
     | "summary item doesn't have link"
-    | "summary item has DataValue"
     | "unknown content type inside summary block"
     | "unknown content type inside key-insights block insights array"
     | "card missing attributes"
@@ -749,12 +748,6 @@ function finishWpComponent(
                                 const text = spansToUnformattedPlainText(
                                     value.children
                                 )
-                                if (text.includes("DataValue")) {
-                                    errors.push({
-                                        name: "summary item has DataValue",
-                                        details: text,
-                                    })
-                                }
                                 items.push({
                                     // Remove "#" from the beginning of the slug
                                     slug: hash.slice(1),

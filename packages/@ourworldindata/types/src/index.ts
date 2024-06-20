@@ -21,16 +21,9 @@ export {
     type QueryParams,
 } from "./domainTypes/Various.js"
 export {
-    type DataValueConfiguration,
-    type DataValueProps,
-    type DataValueQueryArgs,
-    type DataValueResult,
-} from "./domainTypes/DataValues.js"
-export {
     type BreadcrumbItem,
     type KeyInsight,
     type KeyValueProps,
-    BLOCK_WRAPPER_DATATYPE,
 } from "./domainTypes/Site.js"
 export {
     type FormattedPost,
