@@ -19,7 +19,7 @@ import {
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { getElementWithHalo } from "./Halos"
+import { Halo } from "../halo/Halo"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import {
     ScatterPointsWithLabelsProps,
@@ -422,9 +422,8 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                 {this.backgroundSeries.map((series) => {
                     return series.allLabels
                         .filter((label) => !label.isHidden)
-                        .map((label) =>
-                            getElementWithHalo(
-                                series.displayKey + "-endLabel",
+                        .map((label) => (
+                            <Halo key={series.displayKey + "-endLabel"}>
                                 <text
                                     id={makeIdForHumanConsumption(
                                         "scatter-label",
@@ -441,8 +440,8 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                                 >
                                     {label.text}
                                 </text>
-                            )
-                        )
+                            </Halo>
+                        ))
                 })}
             </g>
         )
@@ -555,9 +554,8 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         return this.foregroundSeries.map((series) => {
             return series.allLabels
                 .filter((label) => !label.isHidden)
-                .map((label, index) =>
-                    getElementWithHalo(
-                        `${series.displayKey}-label-${index}`,
+                .map((label, index) => (
+                    <Halo key={`${series.displayKey}-label-${index}`}>
                         <text
                             id={makeIdForHumanConsumption(
                                 "scatter-label",
@@ -573,8 +571,8 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                         >
                             {label.text}
                         </text>
-                    )
-                )
+                    </Halo>
+                ))
         })
     }
 

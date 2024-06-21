@@ -1,15 +1,29 @@
 import React from "react"
-import { action, computed } from "mobx"
+import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faPlus, faRightLeft } from "@fortawesome/free-solid-svg-icons"
+import a from "indefinite"
+import {
+    Bounds,
+    DEFAULT_BOUNDS,
+    VerticalAlign,
+    dyFromAlign,
+} from "@ourworldindata/utils"
+import {
+    BASE_FONT_SIZE,
+    DEFAULT_GRAPHER_ENTITY_TYPE,
+    DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
+    GRAPHER_DARK_TEXT,
+    GRAPHER_LIGHT_TEXT,
+} from "../core/GrapherConstants"
+import { Halo } from "../halo/Halo"
 
 export interface NoDataModalManager {
     canChangeEntity?: boolean
-    canAddData?: boolean
-    isEntitySelectorModalOrDrawerOpen?: boolean
+    canAddEntities?: boolean
     entityType?: string
+    entityTypePlural?: string
+    fontSize?: number
+    isStatic?: boolean
 }
 
 @observer
@@ -18,49 +32,76 @@ export class NoDataModal extends React.Component<{
     message?: string
     manager: NoDataModalManager
 }> {
-    @action.bound private onDataSelect(): void {
-        this.props.manager.isEntitySelectorModalOrDrawerOpen = true
-    }
-
     @computed private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
+    @computed private get manager(): NoDataModalManager {
+        return this.props.manager
+    }
+
+    @computed private get fontSize(): number {
+        return this.manager.fontSize ?? BASE_FONT_SIZE
+    }
+
     render(): React.ReactElement {
-        const { message, manager } = this.props
-        const entityType = manager.entityType
         const { bounds } = this
+        const { message } = this.props
+        const {
+            entityType = DEFAULT_GRAPHER_ENTITY_TYPE,
+            entityTypePlural = DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
+            canAddEntities,
+            canChangeEntity,
+            isStatic,
+        } = this.manager
+
+        const helpText = canAddEntities
+            ? `Try adding ${entityTypePlural} to display data.`
+            : canChangeEntity
+              ? `Try choosing ${a(entityType)} to display data.`
+              : undefined
+
+        const center = bounds.centerPos
+        const padding = 0.75 * this.fontSize
+        const showHelpText = !isStatic && !!helpText
+
         return (
-            <foreignObject
-                x={bounds.left}
-                y={bounds.top}
-                width={bounds.width}
-                height={bounds.height}
-            >
-                <div className="NoData">
-                    <p className="message">{message || "No available data"}</p>
-                    <div className="actions">
-                        {manager.canAddData && (
-                            <button
-                                className="action"
-                                onClick={this.onDataSelect}
-                            >
-                                <FontAwesomeIcon icon={faPlus} /> Add{" "}
-                                {entityType}
-                            </button>
-                        )}
-                        {manager.canChangeEntity && (
-                            <button
-                                className="action"
-                                onClick={this.onDataSelect}
-                            >
-                                <FontAwesomeIcon icon={faRightLeft} /> Change{" "}
-                                {entityType}
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </foreignObject>
+            <g className="no-data">
+                <rect {...bounds.toProps()} fill="#fff" opacity={0.6} />
+
+                <Halo key="no-data-message">
+                    <text
+                        x={center.x}
+                        y={center.y}
+                        dy={
+                            showHelpText
+                                ? -padding / 2
+                                : dyFromAlign(VerticalAlign.middle)
+                        }
+                        textAnchor="middle"
+                        fontSize={this.fontSize}
+                        fontWeight={500}
+                        fill={GRAPHER_DARK_TEXT}
+                    >
+                        {message || "No available data"}
+                    </text>
+                </Halo>
+
+                {showHelpText && (
+                    <Halo key="no-data-help">
+                        <text
+                            x={center.x}
+                            y={center.y + padding / 2}
+                            textAnchor="middle"
+                            dy={dyFromAlign(VerticalAlign.bottom)}
+                            fontSize={0.9 * this.fontSize}
+                            fill={GRAPHER_LIGHT_TEXT}
+                        >
+                            {helpText}
+                        </text>
+                    </Halo>
+                )}
+            </g>
         )
     }
 }
