@@ -152,6 +152,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         if (!currentGdoc) return
         // set to today if not specified
         const publishedAt = currentGdoc.publishedAt ?? new Date()
+        publishedAt.setSeconds(0, 0)
         const slug = currentGdoc.slug || slugify(`${currentGdoc.content.title}`)
         const publishedGdoc = await store.publish({
             ...currentGdoc,
