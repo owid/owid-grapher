@@ -17,9 +17,7 @@ import { SectionHeading } from "./SectionHeading.js"
 import { FormattingOptions } from "@ourworldindata/types"
 import { GRAPHER_PREVIEW_CLASS } from "./SiteConstants.js"
 
-export const SUMMARY_CLASSNAME = "wp-block-owid-summary"
 export const RESEARCH_AND_WRITING_CLASSNAME = "wp-block-research-and-writing"
-export const KEY_INSIGHTS_H2_CLASSNAME = "key-insights-heading"
 
 export const formatUrls = (html: string) => {
     const formatted = html
@@ -310,8 +308,6 @@ const addTocToSections = (
         .map((el) => cheerioEl(el))
         .filter(($el) => {
             return (
-                $el.closest(`.${SUMMARY_CLASSNAME}`).length === 0 &&
-                $el.closest(`.${KEY_INSIGHTS_H2_CLASSNAME}`).length === 0 &&
                 $el.closest(`.${RESEARCH_AND_WRITING_CLASSNAME}`).length === 0
             )
         })
