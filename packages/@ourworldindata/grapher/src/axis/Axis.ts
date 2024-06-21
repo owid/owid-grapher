@@ -520,6 +520,10 @@ export class HorizontalAxis extends AbstractAxis {
         return this.rangeSize
     }
 
+    // note that we intentionally don't take `hideAxisLabels` into account here.
+    // tick labels might be hidden in faceted charts. when faceted, it's important
+    // the axis size doesn't change as a result of hiding the axis labels, or else
+    // we might end up with misaligned axes.
     @computed get height(): number {
         if (this.hideAxis) return 0
         const { labelOffset, labelPadding } = this
@@ -635,6 +639,10 @@ export class VerticalAxis extends AbstractAxis {
             : 0
     }
 
+    // note that we intentionally don't take `hideAxisLabels` into account here.
+    // tick labels might be hidden in faceted charts. when faceted, it's important
+    // the axis size doesn't change as a result of hiding the axis labels, or else
+    // we might end up with misaligned axes.
     @computed get width(): number {
         if (this.hideAxis) return 0
         const { labelOffset, labelPadding } = this

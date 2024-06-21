@@ -65,6 +65,8 @@ import {
     NumericBin,
 } from "../color/ColorScaleBin"
 
+const SHARED_X_AXIS_MIN_FACET_COUNT = 12
+
 const facetBackgroundColor = "none" // we don't use color yet but may use it for background later
 
 const getContentBounds = (
@@ -211,7 +213,11 @@ export class FacetChart
         columnPadding: number
         outerPadding: number
     } {
-        return getChartPadding(this.facetFontSize)
+        const { isSharedXAxis, facetFontSize } = this
+        return getChartPadding({
+            baseFontSize: facetFontSize,
+            isSharedXAxis,
+        })
     }
 
     @computed private get hideFacetLegends(): boolean {
@@ -342,6 +348,29 @@ export class FacetChart
         })
     }
 
+    @computed private get isSharedYAxis(): boolean {
+        // When the Y axis is uniform for all facets:
+        // - for most charts, we want to only show the axis on the left-most facet charts, and omit
+        //   it on the others
+        // - for bar charts the Y axis is plotted horizontally, so we don't want to omit it
+        return (
+            this.uniformYAxis &&
+            ![
+                ChartTypeName.StackedDiscreteBar,
+                ChartTypeName.DiscreteBar,
+            ].includes(this.chartTypeName)
+        )
+    }
+
+    @computed private get isSharedXAxis(): boolean {
+        return (
+            this.uniformXAxis &&
+            // TODO: do this for stacked area charts and line charts as well?
+            this.chartTypeName === ChartTypeName.StackedBar &&
+            this.facetCount >= SHARED_X_AXIS_MIN_FACET_COUNT
+        )
+    }
+
     // Only made public for testing
     @computed get placedSeries(): PlacedFacetSeries[] {
         const { intermediateChartInstances } = this
@@ -355,36 +384,18 @@ export class FacetChart
         // Define the global axis config, shared between all facets
         const sharedAxesSizes: PositionMap<number> = {}
 
-        // When the Y axis is uniform for all facets:
-        // - for most charts, we want to only show the axis on the left-most facet charts, and omit
-        //   it on the others
-        // - for bar charts the Y axis is plotted horizontally, so we don't want to omit it
-        const isSharedYAxis =
-            this.uniformYAxis &&
-            ![
-                ChartTypeName.StackedDiscreteBar,
-                ChartTypeName.DiscreteBar,
-            ].includes(this.chartTypeName)
-
         const axes: AxesInfo = {
             x: {
                 config: {},
                 axisAccessor: (instance) => instance.xAxis,
                 uniform: this.uniformXAxis,
-                // For now, X axes are never shared for any chart.
-                // If we ever allow them to be shared, we need to be careful with how we determine
-                // the `minSize` – in the intermediate series (at this time) all axes are shown in
-                // order to find the one with maximum size, but in the placed series, some axes are
-                // hidden. This expands the available area for the chart, which can in turn increase
-                // the number of ticks shown, which can make the size of the axis in the placed
-                // series greater than the one in the intermediate series.
-                shared: false,
+                shared: this.isSharedXAxis,
             },
             y: {
                 config: {},
                 axisAccessor: (instance) => instance.yAxis,
                 uniform: this.uniformYAxis,
-                shared: isSharedYAxis,
+                shared: this.isSharedYAxis,
             },
         }
         values(axes).forEach(({ config, axisAccessor, uniform, shared }) => {
@@ -425,7 +436,11 @@ export class FacetChart
                         config.max,
                     ])
                     config.minSize = size
-                    if (shared) sharedAxesSizes[axis.orient] = size
+                    if (shared) {
+                        const sharedAxisSize =
+                            axis.orient === Position.bottom ? 0 : size
+                        sharedAxesSizes[axis.orient] = sharedAxisSize
+                    }
                 }
             } else if (axisWithMaxSize) {
                 config.minSize = axisWithMaxSize.size
@@ -446,10 +461,10 @@ export class FacetChart
         return this.intermediatePlacedSeries.map((series, i) => {
             const chartInstance = intermediateChartInstances[i]
             const { xAxis, yAxis } = chartInstance
-            const { bounds: initialGridBounds, edges } = gridBoundsArr[i]
+            const { bounds: initialGridBounds, cellEdges } = gridBoundsArr[i]
             let bounds = initialGridBounds
             // Only expand bounds if the facet is on the same edge as the shared axes
-            for (const edge of edges) {
+            for (const edge of cellEdges) {
                 bounds = bounds.expand({
                     [edge]: sharedAxesSizes[edge],
                 })
@@ -461,9 +476,17 @@ export class FacetChart
                 useValueBasedColorScheme,
                 externalLegendFocusBin: this.legendFocusBin,
                 xAxisConfig: {
-                    hideAxis: shouldHideFacetAxis(
+                    // For now, sharing an x axis means hiding the tick labels of inner facets.
+                    // This means that none of the x axes are actually hidden (we just don't plot their tick labels).
+                    // If we ever allow shared x axes to be actually hidden, we need to be careful with how we determine
+                    // the `minSize` – in the intermediate series (at this time) all axes are shown in
+                    // order to find the one with maximum size, but in the placed series, some axes are
+                    // hidden. This expands the available area for the chart, which can in turn increase
+                    // the number of ticks shown, which can make the size of the axis in the placed
+                    // series greater than the one in the intermediate series.
+                    hideTickLabels: shouldHideFacetAxis(
                         xAxis,
-                        edges,
+                        cellEdges,
                         sharedAxesSizes
                     ),
                     ...series.manager.xAxisConfig,
@@ -472,7 +495,7 @@ export class FacetChart
                 yAxisConfig: {
                     hideAxis: shouldHideFacetAxis(
                         yAxis,
-                        edges,
+                        cellEdges,
                         sharedAxesSizes
                     ),
                     ...series.manager.yAxisConfig,

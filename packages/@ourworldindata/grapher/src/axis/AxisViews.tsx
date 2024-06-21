@@ -260,7 +260,7 @@ export class VerticalAxisComponent extends React.Component<{
             detailsMarker,
             showTickMarks,
         } = this.props
-        const { tickLabels, labelTextWrap } = verticalAxis
+        const { tickLabels, labelTextWrap, config } = verticalAxis
 
         return (
             <g
@@ -299,34 +299,38 @@ export class VerticalAxisComponent extends React.Component<{
                         ))}
                     </g>
                 )}
-                <g id={makeIdForHumanConsumption("tick-labels")}>
-                    {tickLabels.map((label, i) => {
-                        const { y, xAlign, yAlign, formattedValue } = label
-                        return (
-                            <text
-                                key={i}
-                                id={makeIdForHumanConsumption(
-                                    "tick-label",
-                                    formattedValue
-                                )}
-                                x={(
-                                    bounds.left +
-                                    verticalAxis.width -
-                                    verticalAxis.labelPadding
-                                ).toFixed(2)}
-                                y={y}
-                                dy={dyFromAlign(yAlign ?? VerticalAlign.middle)}
-                                textAnchor={textAnchorFromAlign(
-                                    xAlign ?? HorizontalAlign.right
-                                )}
-                                fill={tickColor || GRAPHER_DARK_TEXT}
-                                fontSize={verticalAxis.tickFontSize}
-                            >
-                                {formattedValue}
-                            </text>
-                        )
-                    })}
-                </g>
+                {!config.hideTickLabels && (
+                    <g id={makeIdForHumanConsumption("tick-labels")}>
+                        {tickLabels.map((label, i) => {
+                            const { y, xAlign, yAlign, formattedValue } = label
+                            return (
+                                <text
+                                    key={i}
+                                    id={makeIdForHumanConsumption(
+                                        "tick-label",
+                                        formattedValue
+                                    )}
+                                    x={(
+                                        bounds.left +
+                                        verticalAxis.width -
+                                        verticalAxis.labelPadding
+                                    ).toFixed(2)}
+                                    y={y}
+                                    dy={dyFromAlign(
+                                        yAlign ?? VerticalAlign.middle
+                                    )}
+                                    textAnchor={textAnchorFromAlign(
+                                        xAlign ?? HorizontalAlign.right
+                                    )}
+                                    fill={tickColor || GRAPHER_DARK_TEXT}
+                                    fontSize={verticalAxis.tickFontSize}
+                                >
+                                    {formattedValue}
+                                </text>
+                            )
+                        })}
+                    </g>
+                )}
             </g>
         )
     }
@@ -384,6 +388,8 @@ export class HorizontalAxisComponent extends React.Component<{
             ? bounds.top + labelOffset + 10
             : bounds.bottom - labelOffset
 
+        const showTickLabels = !axis.config.hideTickLabels
+
         return (
             <g
                 id={makeIdForHumanConsumption("horizontal-axis")}
@@ -398,40 +404,46 @@ export class HorizontalAxisComponent extends React.Component<{
                         },
                         detailsMarker,
                     })}
-                {tickLabels.map((label) => {
-                    const { x, xAlign, formattedValue } = label
-                    return (
-                        <g
-                            id={makeIdForHumanConsumption(
-                                "tick",
-                                formattedValue
-                            )}
-                            key={formattedValue}
-                        >
-                            {showTickMarks && (
-                                <line
-                                    x1={axis.place(label.value)}
-                                    y1={tickMarksYPosition - tickMarkWidth / 2}
-                                    x2={axis.place(label.value)}
-                                    y2={tickMarksYPosition + tickSize}
-                                    stroke={SOLID_TICK_COLOR}
-                                    strokeWidth={tickMarkWidth}
-                                />
-                            )}
-                            <text
-                                x={x}
-                                y={tickLabelYPlacement}
-                                fill={tickColor || GRAPHER_DARK_TEXT}
-                                textAnchor={textAnchorFromAlign(
-                                    xAlign ?? HorizontalAlign.center
+                {(showTickMarks || showTickLabels) &&
+                    tickLabels.map((label) => {
+                        const { x, xAlign, formattedValue } = label
+                        return (
+                            <g
+                                id={makeIdForHumanConsumption(
+                                    "tick",
+                                    formattedValue
                                 )}
-                                fontSize={axis.tickFontSize}
+                                key={formattedValue}
                             >
-                                {formattedValue}
-                            </text>
-                        </g>
-                    )
-                })}
+                                {showTickMarks && (
+                                    <line
+                                        x1={axis.place(label.value)}
+                                        y1={
+                                            tickMarksYPosition -
+                                            tickMarkWidth / 2
+                                        }
+                                        x2={axis.place(label.value)}
+                                        y2={tickMarksYPosition + tickSize}
+                                        stroke={SOLID_TICK_COLOR}
+                                        strokeWidth={tickMarkWidth}
+                                    />
+                                )}
+                                {showTickLabels && (
+                                    <text
+                                        x={x}
+                                        y={tickLabelYPlacement}
+                                        fill={tickColor || GRAPHER_DARK_TEXT}
+                                        textAnchor={textAnchorFromAlign(
+                                            xAlign ?? HorizontalAlign.center
+                                        )}
+                                        fontSize={axis.tickFontSize}
+                                    >
+                                        {formattedValue}
+                                    </text>
+                                )}
+                            </g>
+                        )
+                    })}
             </g>
         )
     }

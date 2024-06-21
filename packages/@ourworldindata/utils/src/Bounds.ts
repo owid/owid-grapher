@@ -18,7 +18,7 @@ type PadObject = PositionMap<number>
 export interface GridBounds {
     col: number
     row: number
-    edges: Set<Position>
+    cellEdges: Set<Position>
     bounds: Bounds
 }
 
@@ -359,7 +359,7 @@ export class Bounds {
         gridParams: GridParameters,
         padding: SplitBoundsPadding = {}
     ): GridBounds[] {
-        const { columns, rows } = gridParams
+        const { columns, rows, count } = gridParams
         const { columnPadding = 0, rowPadding = 0, outerPadding = 0 } = padding
 
         const contentWidth =
@@ -369,18 +369,29 @@ export class Bounds {
         const boxWidth = Math.floor(contentWidth / columns)
         const boxHeight = Math.floor(contentHeight / rows)
 
-        return range(0, rows * columns).map((index: number) => {
+        const hasCell = (row: number, col: number): boolean => {
+            if (row < 0 || row >= rows) return false
+            if (col < 0 || col >= columns) return false
+            const index = row * columns + col
+            if (index >= count) return false
+            return true
+        }
+
+        const grid = range(0, count).map((index: number) => {
             const col = index % columns
             const row = Math.floor(index / columns)
-            const edges = new Set<Position>()
-            if (col === 0) edges.add(Position.left)
-            if (col === columns - 1) edges.add(Position.right)
-            if (row === 0) edges.add(Position.top)
-            if (row === rows - 1) edges.add(Position.bottom)
+
+            // edges around the existing cells
+            const cellEdges = new Set<Position>()
+            if (!hasCell(row, col - 1)) cellEdges.add(Position.left)
+            if (!hasCell(row, col + 1)) cellEdges.add(Position.right)
+            if (!hasCell(row - 1, col)) cellEdges.add(Position.top)
+            if (!hasCell(row + 1, col)) cellEdges.add(Position.bottom)
+
             return {
                 row,
                 col,
-                edges,
+                cellEdges,
                 bounds: new Bounds(
                     this.x + outerPadding + col * (boxWidth + columnPadding),
                     this.y + outerPadding + row * (boxHeight + rowPadding),
@@ -389,6 +400,8 @@ export class Bounds {
                 ),
             }
         })
+
+        return grid
     }
 
     yRange(): [number, number] {

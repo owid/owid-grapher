@@ -652,7 +652,7 @@ export const getIdealGridParams = ({
     const ratio = containerAspectRatio / idealAspectRatio
     // Prefer vertical grid for count=2.
     if (count === 2 && containerAspectRatio < 2.8)
-        return { rows: 2, columns: 1 }
+        return { rows: 2, columns: 1, count }
     // Otherwise, optimize for closest to the ideal aspect ratio.
     const initialColumns = Math.min(Math.round(Math.sqrt(count * ratio)), count)
     const rows = Math.ceil(count / initialColumns)
@@ -662,6 +662,7 @@ export const getIdealGridParams = ({
     return {
         rows,
         columns,
+        count,
     }
 }
 
