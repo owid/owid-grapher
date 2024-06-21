@@ -4,7 +4,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
 import {
-    KeyInsight,
     getWindowUrl,
     setWindowUrl,
     EnrichedBlockKeyInsightsSlide,

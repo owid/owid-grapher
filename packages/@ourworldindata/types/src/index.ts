@@ -22,7 +22,6 @@ export {
 } from "./domainTypes/Various.js"
 export {
     type BreadcrumbItem,
-    type KeyInsight,
     type KeyValueProps,
 } from "./domainTypes/Site.js"
 export {
