@@ -103,7 +103,7 @@ export default function OwidGdocPage({
                 atom={isDataInsight ? DATA_INSIGHT_ATOM_FEED_PROPS : undefined}
                 baseUrl={baseUrl}
             >
-                {!isAuthor && (
+                {!isAuthor && !isDataInsight && (
                     <CitationMeta
                         title={content.title || ""}
                         authors={content.authors}
