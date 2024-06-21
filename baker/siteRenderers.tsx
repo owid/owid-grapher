@@ -97,7 +97,6 @@ import {
     getAndLoadGdocBySlug,
     getAndLoadGdocById,
 } from "../db/model/Gdoc/GdocFactory.js"
-import { SiteNavigationStatic } from "../site/SiteNavigation.js"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
@@ -226,10 +225,6 @@ export const renderPreview = async (
 ): Promise<string> => {
     const postApi = await getFullPostByIdFromSnapshot(knex, postId)
     return renderPost(postApi, knex)
-}
-
-export const renderMenuJson = async () => {
-    return JSON.stringify(SiteNavigationStatic)
 }
 
 export const renderPost = async (

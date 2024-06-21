@@ -15,7 +15,6 @@ import {
     renderFrontPage,
     renderBlogByPageNum,
     renderChartsPage,
-    renderMenuJson,
     renderSearchPage,
     renderDonatePage,
     entriesByYearPage,
@@ -642,11 +641,6 @@ export class SiteBaker {
             await renderNotFoundPage()
         )
         await this.stageWrite(
-            `${this.bakedSiteDir}/headerMenu.json`,
-            await renderMenuJson()
-        )
-
-        await this.stageWrite(
             `${this.bakedSiteDir}/sitemap.xml`,
             await makeSitemap(this.explorerAdminServer, knex)
         )
@@ -995,8 +989,10 @@ export class SiteBaker {
         await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/dist/assets ${this.bakedSiteDir}/assets`
         )
+
+        // The `assets-admin` folder is optional; don't fail if it doesn't exist
         await execWrapper(
-            `rm -rf ${this.bakedSiteDir}/assets-admin && cp -r ${BASE_DIR}/dist/assets-admin ${this.bakedSiteDir}/assets-admin`
+            `rm -rf ${this.bakedSiteDir}/assets-admin && (cp -r ${BASE_DIR}/dist/assets-admin ${this.bakedSiteDir}/assets-admin || true)`
         )
 
         await this.validateTagIcons(trx)

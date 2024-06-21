@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect } from "react"
 import ReactDOM from "react-dom"
 import {
     faListUl,
@@ -24,7 +24,6 @@ import { SiteMobileMenu } from "./SiteMobileMenu.js"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import classnames from "classnames"
 import { useTriggerOnEscape } from "./hooks.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { AUTOCOMPLETE_CONTAINER_ID } from "./search/Autocomplete.js"
 
 export enum Menu {
@@ -49,9 +48,6 @@ export const SiteNavigation = ({
     isOnHomepage?: boolean
 }) => {
     const [menu, setActiveMenu] = React.useState<Menu | null>(null)
-    const [categorizedTopics, setCategorizedTopics] = useState<
-        CategoryWithEntries[]
-    >([])
     const [query, setQuery] = React.useState<string>("")
 
     const isActiveMobileMenu =
@@ -108,21 +104,6 @@ export const SiteNavigation = ({
         }
     }, [query])
 
-    useEffect(() => {
-        const fetchCategorizedTopics = async () => {
-            const response = await fetch(`${BAKED_BASE_URL}/headerMenu.json`, {
-                method: "GET",
-                credentials: "same-origin",
-                headers: {
-                    Accept: "application/json",
-                },
-            })
-            const json = await response.json()
-            setCategorizedTopics(json.categories)
-        }
-        void fetchCategorizedTopics()
-    }, [])
-
     useTriggerOnEscape(closeOverlay)
 
     return (
@@ -144,7 +125,7 @@ export const SiteNavigation = ({
                                 <SiteMobileMenu
                                     menu={menu}
                                     toggleMenu={toggleMenu}
-                                    topics={categorizedTopics}
+                                    topics={SiteNavigationStatic.categories}
                                     className="hide-sm-up"
                                 />
                             }
@@ -164,7 +145,9 @@ export const SiteNavigation = ({
                                         dropdown={
                                             <SiteNavigationTopics
                                                 onClose={closeOverlay}
-                                                topics={categorizedTopics}
+                                                topics={
+                                                    SiteNavigationStatic.categories
+                                                }
                                                 className="hide-sm-only"
                                             />
                                         }

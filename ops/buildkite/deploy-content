@@ -100,7 +100,7 @@ deploy_to_cloudflare() {
 create_dist() {
     echo '--- Creating dist/ folder'
     # Define a list of excluded directories for rsync
-    EXCLUDES=(grapher/data/variables/ .git/ grapher/exports/ exports/ uploads/)
+    EXCLUDES=(grapher/data/variables/ .git/ grapher/exports/ exports/ uploads/ assets-admin/)
 
     # Build rsync command with excluded directories
     RSYNC_COMMAND=("rsync" "-havzq" "--delete")

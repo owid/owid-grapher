@@ -411,6 +411,10 @@ export class SlopeChart
         )
     }
 
+    @computed get categoryLegendY(): number {
+        return this.bounds.top
+    }
+
     @computed get legendY() {
         return this.bounds.top
     }

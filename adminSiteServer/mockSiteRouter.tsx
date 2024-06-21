@@ -5,7 +5,6 @@ import {
     renderGdocsPageBySlug,
     renderPageBySlug,
     renderChartsPage,
-    renderMenuJson,
     renderSearchPage,
     renderDonatePage,
     entriesByYearPage,
@@ -373,11 +372,6 @@ getPlainRouteNonIdempotentWithRWTransaction(
         } else throw new Error("invalid page number")
     }
 )
-
-mockSiteRouter.get("/headerMenu.json", async (req, res) => {
-    res.contentType("application/json")
-    res.send(await renderMenuJson())
-})
 
 mockSiteRouter.use(
     "/images/published",

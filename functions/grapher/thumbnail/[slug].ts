@@ -42,7 +42,7 @@ export const onRequestGet: PagesFunction = async (ctx) => {
     console.log("Handling", request.url, request.headers.get("User-Agent"))
 
     return router
-        .handle(request, url, { ...env, url }, ctx)
+        .fetch(request, url, { ...env, url }, ctx)
         .then((resp: Response) => {
             if (shouldCache) {
                 resp.headers.set(

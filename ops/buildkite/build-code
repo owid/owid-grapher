@@ -78,7 +78,7 @@ update_owid_grapher_repo() {
 build_grapher() {
     echo '--- Building owid-grapher'
 
-    # NOTE: buildVite creates dist/ folder and `bakeAssets` then copies it to
+    # NOTE: buildViteSite creates dist/assets folder and `bakeAssets` then copies it to
     # the bakedSite folder
     (
         cd owid-grapher
@@ -87,7 +87,7 @@ build_grapher() {
         yarn install
         yarn buildLerna --skip-nx-cache
         yarn buildTsc
-        yarn buildVite
+        yarn buildViteSite
         yarn runDbMigrations
         node --enable-source-maps --unhandled-rejections=strict itsJustJavascript/baker/algolia/configureAlgolia.js
     )
