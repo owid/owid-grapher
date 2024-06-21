@@ -2,6 +2,7 @@ import { Col, DatePicker } from "antd"
 import { Dayjs } from "dayjs"
 import { dayjs, OwidGdocErrorMessage, OwidGdoc } from "@ourworldindata/utils"
 import React from "react"
+import { PUBLISHED_AT_FORMAT } from "../settings/clientSettings"
 import { getPropertyMostCriticalError } from "./gdocsValidation.js"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 
@@ -31,9 +32,10 @@ export const GdocsPublishedAt = <T extends OwidGdoc>({
             <DatePicker
                 onChange={onChangePublishedAt}
                 value={publishedAt ? dayjs(publishedAt) : undefined}
-                format="ddd, MMM D, YYYY"
+                format={PUBLISHED_AT_FORMAT}
                 id="publishedAt"
                 status={publishedAtError?.type}
+                showTime
                 // The "Today" button has been disabled because it sets
                 // the time to the current time. This time change makes
                 // it all the way to the atom feed, which is then

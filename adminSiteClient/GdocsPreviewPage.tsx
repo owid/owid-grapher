@@ -16,6 +16,7 @@ import {
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     checkIsPlainObjectWithGuard,
+    dayjs,
     GdocsContentSource,
     getOwidGdocFromJSON,
     OwidGdocJSON,
@@ -24,10 +25,15 @@ import {
     slugify,
     OwidGdocType,
     OwidGdoc,
+    Tippy,
 } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faGear, faAngleLeft } from "@fortawesome/free-solid-svg-icons"
+import {
+    faGear,
+    faAngleLeft,
+    faQuestionCircle,
+} from "@fortawesome/free-solid-svg-icons"
 import { match as tsMatch, P } from "ts-pattern"
 
 import { getErrors } from "./gdocsValidation.js"
@@ -40,7 +46,10 @@ import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import {
+    BAKED_BASE_URL,
+    PUBLISHED_AT_FORMAT,
+} from "../settings/clientSettings.js"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -229,11 +238,26 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             {currentGdoc.published && (
                                 <>
                                     [
-                                    <a
-                                        href={`${BAKED_BASE_URL}/${currentGdoc.slug}`}
-                                    >
-                                        View live
-                                    </a>
+                                    {currentGdoc.publishedAt &&
+                                    currentGdoc.publishedAt <= new Date() ? (
+                                        <>
+                                            <a
+                                                href={`${BAKED_BASE_URL}/${currentGdoc.slug}`}
+                                            >
+                                                View live
+                                            </a>
+                                            <Tippy
+                                                content="There might be a slight delay before content scheduled into the future becomes live."
+                                                placement="bottom"
+                                            >
+                                                <FontAwesomeIcon
+                                                    icon={faQuestionCircle}
+                                                />
+                                            </Tippy>
+                                        </>
+                                    ) : (
+                                        `Scheduled for ${dayjs(currentGdoc.publishedAt).format(PUBLISHED_AT_FORMAT)}`
+                                    )}
                                     ]
                                 </>
                             )}
