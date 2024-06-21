@@ -16,6 +16,7 @@ import {
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     checkIsPlainObjectWithGuard,
+    dayjs,
     GdocsContentSource,
     getOwidGdocFromJSON,
     OwidGdocJSON,
@@ -45,7 +46,10 @@ import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import {
+    BAKED_BASE_URL,
+    PUBLISHED_AT_FORMAT,
+} from "../settings/clientSettings.js"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -252,7 +256,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                             </Tippy>
                                         </>
                                     ) : (
-                                        "Scheduled"
+                                        `Scheduled for ${dayjs(currentGdoc.publishedAt).format(PUBLISHED_AT_FORMAT)}`
                                     )}
                                     ]
                                 </>

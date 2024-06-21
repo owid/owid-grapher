@@ -60,7 +60,7 @@ import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
 import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import pMap from "p-map"
-import { getGdocBaseObjectBySlug } from "../db/model/Gdoc/GdocFactory.js"
+import { getPublishedGdocBaseObjectBySlug } from "../db/model/Gdoc/GdocFactory.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -247,7 +247,7 @@ export async function renderDataPageV2(
         }
         let gdoc: OwidGdocBaseInterface | undefined = undefined
         if (slug) {
-            gdoc = await getGdocBaseObjectBySlug(knex, slug, true)
+            gdoc = await getPublishedGdocBaseObjectBySlug(knex, slug, true)
         }
         if (gdoc) {
             const citation = getShortPageCitation(
