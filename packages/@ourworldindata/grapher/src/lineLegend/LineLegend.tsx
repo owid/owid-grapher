@@ -161,8 +161,6 @@ class Label extends React.Component<{
 }
 
 export interface LineLegendManager {
-    canAddData?: boolean
-    entityType?: string
     labelSeries: LineLabelSeries[]
     maxLineLegendWidth?: number
     fontSize?: number

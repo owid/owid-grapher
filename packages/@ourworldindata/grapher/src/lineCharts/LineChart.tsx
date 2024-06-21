@@ -774,19 +774,36 @@ export class LineChart
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
-            return (
-                <NoDataModal
-                    manager={this.manager}
-                    bounds={this.bounds}
-                    message={this.failMessage}
-                />
-            )
-
         const { manager, tooltip, dualAxis, clipPath, activeXVerticalLine } =
             this
 
         const comparisonLines = manager.comparisonLines || []
+
+        const dualAxisComponent = (
+            <DualAxisComponent
+                dualAxis={dualAxis}
+                showTickMarks={true}
+                labelColor={manager.secondaryColorInStaticCharts}
+                lineWidth={
+                    manager.isStaticAndSmall
+                        ? GRAPHER_AXIS_LINE_WIDTH_THICK
+                        : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+                }
+                detailsMarker={manager.detailsMarkerInSvg}
+            />
+        )
+
+        if (this.failMessage)
+            return (
+                <g className="LineChart">
+                    {dualAxisComponent}
+                    <NoDataModal
+                        manager={this.manager}
+                        bounds={dualAxis.innerBounds}
+                        message={this.failMessage}
+                    />
+                </g>
+            )
 
         // The tiny bit of extra space in the clippath is to ensure circles centered on the very edge are still fully visible
         return (
@@ -810,17 +827,7 @@ export class LineChart
                 {this.hasColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
-                <DualAxisComponent
-                    dualAxis={dualAxis}
-                    showTickMarks={true}
-                    labelColor={manager.secondaryColorInStaticCharts}
-                    lineWidth={
-                        manager.isStaticAndSmall
-                            ? GRAPHER_AXIS_LINE_WIDTH_THICK
-                            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
-                    }
-                    detailsMarker={manager.detailsMarkerInSvg}
-                />
+                {dualAxisComponent}
                 <g clipPath={clipPath.id}>
                     {comparisonLines.map((line, index) => (
                         <ComparisonLine

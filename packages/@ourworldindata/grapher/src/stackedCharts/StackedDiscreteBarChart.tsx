@@ -72,7 +72,7 @@ import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { bind } from "decko"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
-import { getElementWithHalo } from "../scatterCharts/Halos.js"
+import { Halo } from "../halo/Halo"
 import { TextWrap } from "@ourworldindata/components"
 
 const labelToBarPadding = 5
@@ -613,9 +613,8 @@ export class StackedDiscreteBarChart
                             onMouseLeave={this.onEntityMouseLeave}
                         />
                     ))}
-                    {this.showTotalValueLabel &&
-                        getElementWithHalo(
-                            entityName + "-value-label",
+                    {this.showTotalValueLabel && (
+                        <Halo key={entityName + "-value-label"}>
                             <text
                                 id={makeIdForHumanConsumption(
                                     "total",
@@ -629,7 +628,8 @@ export class StackedDiscreteBarChart
                             >
                                 {totalLabel}
                             </text>
-                        )}
+                        </Halo>
+                    )}
                 </g>
             )
         }
