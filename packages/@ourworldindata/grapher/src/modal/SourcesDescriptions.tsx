@@ -1,5 +1,5 @@
 import React from "react"
-import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
+import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     ExpandableToggle,

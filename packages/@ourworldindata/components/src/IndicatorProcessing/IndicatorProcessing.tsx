@@ -1,6 +1,6 @@
 import React from "react"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
-import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
+import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 export interface IndicatorProcessingProps {
