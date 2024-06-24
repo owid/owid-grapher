@@ -83,7 +83,6 @@ export interface ChartManager {
     showNoDataArea?: boolean
 
     annotation?: Annotation
-    resetAnnotation?: () => void
 
     externalLegendFocusBin?: ColorScaleBin | undefined
     disableIntroAnimation?: boolean

@@ -1,5 +1,3 @@
-export const BLOCK_WRAPPER_DATATYPE = "block-wrapper"
-
 export interface BreadcrumbItem {
     label: string
     href?: string

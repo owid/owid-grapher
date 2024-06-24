@@ -2590,22 +2590,6 @@ export class Grapher
         )
     }
 
-    @action.bound
-    resetAnnotation(): void {
-        this.renderAnnotation(undefined)
-    }
-
-    @action.bound
-    renderAnnotation(annotation: Annotation | undefined): void {
-        this.setAuthoredVersion(this.props)
-        this.reset()
-        this.updateFromObject({ ...this.props })
-        this.populateFromQueryParams(
-            legacyToCurrentGrapherQueryParams(this.props.queryStr ?? "")
-        )
-        this.annotation = annotation
-    }
-
     private renderGrapherComponent(): React.ReactElement {
         const containerClasses = classnames({
             GrapherComponent: true,
