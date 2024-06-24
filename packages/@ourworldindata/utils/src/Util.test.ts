@@ -3,7 +3,6 @@
 import timezoneMock from "timezone-mock"
 import {
     findClosestTime,
-    getStartEndValues,
     formatDay,
     retryPromise,
     rollingMap,
@@ -88,28 +87,6 @@ describe(findClosestTime, () => {
             expect(findClosestTime(years, -99)).toEqual(-100)
             expect(findClosestTime(years, 99)).toEqual(100)
         })
-    })
-})
-
-describe(getStartEndValues, () => {
-    it("handles an empty array", () => {
-        const extent = getStartEndValues([])
-        expect(extent[0]).toEqual(undefined)
-        expect(extent[1]).toEqual(undefined)
-    })
-    it("handles a single element array", () => {
-        const extent = getStartEndValues([{ time: 2016, value: 1 }])
-        expect(extent[0]!.time).toEqual(2016)
-        expect(extent[1]!.time).toEqual(2016)
-    })
-    it("handles a multi-element array", () => {
-        const extent = getStartEndValues([
-            { time: 2016, value: -20 },
-            { time: 2014, value: 5 },
-            { time: 2017, value: 7 },
-        ])
-        expect(extent[0]!.time).toEqual(2014)
-        expect(extent[1]!.time).toEqual(2017)
     })
 })
 
