@@ -20,10 +20,7 @@ export {
     type UserCountryInformation,
     type QueryParams,
 } from "./domainTypes/Various.js"
-export {
-    type BreadcrumbItem,
-    type KeyValueProps,
-} from "./domainTypes/Site.js"
+export { type BreadcrumbItem, type KeyValueProps } from "./domainTypes/Site.js"
 export {
     type FormattedPost,
     type IndexPost,
