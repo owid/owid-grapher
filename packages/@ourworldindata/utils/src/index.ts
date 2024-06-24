@@ -50,19 +50,15 @@ export {
     es6mapValues,
     type DataValue,
     valuesByEntityAtTimes,
-    valuesByEntityWithinTimes,
-    getStartEndValues,
     dateDiffInDays,
     diffDateISOStringInDays,
     getYearFromISOStringAndDayOffset,
-    addDays,
     parseIntOrUndefined,
     anyToString,
     scrollIntoViewIfNeeded,
     rollingMap,
     groupMap,
     keyMap,
-    oneOf,
     intersectionOfSets,
     unionOfSets,
     differenceOfSets,
@@ -74,7 +70,6 @@ export {
     sortNumeric,
     mapBy,
     findIndexFast,
-    logMe,
     getClosestTimePairs,
     omitUndefinedValues,
     omitNullableValues,
@@ -360,12 +355,7 @@ export {
     highlightFunctionForSearchWords,
 } from "./search.js"
 
-export {
-    findUrlsInText,
-    camelCaseProperties,
-    includesCaseInsensitive,
-    titleCase,
-} from "./string.js"
+export { camelCaseProperties, titleCase } from "./string.js"
 
 export { serializeJSONForHTML, deserializeJSONFromHTML } from "./serializers.js"
 

@@ -1,9 +1,3 @@
-const URL_REGEX =
-    /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi
-
-export const findUrlsInText = (str: string): string[] =>
-    str.match(URL_REGEX) || []
-
 const snakeToCamel = (str: string): string =>
     str.replace(/(\_\w)/g, (char) => char[1].toUpperCase())
 
@@ -16,14 +10,6 @@ export const camelCaseProperties = (
     }
     return newObj
 }
-
-export const includesCaseInsensitive = (
-    str?: string,
-    fragment?: string
-): boolean =>
-    !!str &&
-    !!fragment &&
-    str.toLocaleLowerCase().includes(fragment.toLocaleLowerCase())
 
 /**
  * Converts a string to title case, with support for hyphenated words
