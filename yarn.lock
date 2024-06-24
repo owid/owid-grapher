@@ -1551,15 +1551,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cloudflare/pages-plugin-sentry@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "@cloudflare/pages-plugin-sentry@npm:1.1.1"
-  dependencies:
-    toucan-js: "npm:^3.0.0"
-  checksum: 10/a9058ac31f662b6f6a2176f92e8befc07d82b28e72c73904600f173aa9ed782953cb0b3cdd82a23e84f6be7ea2c67ae81e377920206825083495c8b66075d582
-  languageName: node
-  linkType: hard
-
 "@cloudflare/workerd-darwin-64@npm:1.20240610.1":
   version: 1.20240610.1
   resolution: "@cloudflare/workerd-darwin-64@npm:1.20240610.1"
@@ -3718,44 +3709,6 @@ __metadata:
     domhandler: "npm:^5.0.3"
     selderee: "npm:^0.11.0"
   checksum: 10/7550108d270e6ea2be4850d55cbf4d58d5a90c109a15b874c3c7c622a1399bd8015359ef3672983a86118432ca8325a6aca1fe79d961b01278fdaeaea8895c5f
-  languageName: node
-  linkType: hard
-
-"@sentry/core@npm:7.76.0":
-  version: 7.76.0
-  resolution: "@sentry/core@npm:7.76.0"
-  dependencies:
-    "@sentry/types": "npm:7.76.0"
-    "@sentry/utils": "npm:7.76.0"
-  checksum: 10/f6b524036a0bfe875868882d31a822ae71e598a33da1c6bb6ebf62da0520ac2b6dca5e28c70e8fb7570751ae1ebd590fc3c5b5fcc49f857753dcb739bfa7f06e
-  languageName: node
-  linkType: hard
-
-"@sentry/integrations@npm:7.76.0":
-  version: 7.76.0
-  resolution: "@sentry/integrations@npm:7.76.0"
-  dependencies:
-    "@sentry/core": "npm:7.76.0"
-    "@sentry/types": "npm:7.76.0"
-    "@sentry/utils": "npm:7.76.0"
-    localforage: "npm:^1.8.1"
-  checksum: 10/8f307c81fd0eec8ee250061a311bc0b5d7f0839a069b6939d0576aee74f9d87cd332e6376d41b75dc4c789aaeedba11087f28e7950f1769884bbf05a3898a3d0
-  languageName: node
-  linkType: hard
-
-"@sentry/types@npm:7.76.0":
-  version: 7.76.0
-  resolution: "@sentry/types@npm:7.76.0"
-  checksum: 10/67a4cde848be8be534b42608f930da91fcb3e6e9f38843d9fc670d5bd531f7d13f826fb24f0ef6f88f1e3e603e8377ea1412b2fd8097ba641746ad4243b90936
-  languageName: node
-  linkType: hard
-
-"@sentry/utils@npm:7.76.0":
-  version: 7.76.0
-  resolution: "@sentry/utils@npm:7.76.0"
-  dependencies:
-    "@sentry/types": "npm:7.76.0"
-  checksum: 10/141e40b3ed4da50b2b6ceb11d58e557db34431d0ad8837af21636de5692275e1fddb0b920bb20c9ac2ead67c28a446fc76f451eefd10304a4aea85f9f2b32242
   languageName: node
   linkType: hard
 
@@ -11702,13 +11655,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"immediate@npm:~3.0.5":
-  version: 3.0.6
-  resolution: "immediate@npm:3.0.6"
-  checksum: 10/f9b3486477555997657f70318cc8d3416159f208bec4cca3ff3442fd266bc23f50f0c9bd8547e1371a6b5e82b821ec9a7044a4f7b944798b25aa3cc6d5e63e62
-  languageName: node
-  linkType: hard
-
 "immutable@npm:^4.0.0, immutable@npm:^4.3.6":
   version: 4.3.6
   resolution: "immutable@npm:4.3.6"
@@ -13557,15 +13503,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lie@npm:3.1.1":
-  version: 3.1.1
-  resolution: "lie@npm:3.1.1"
-  dependencies:
-    immediate: "npm:~3.0.5"
-  checksum: 10/c2c7d9dcc3a9aae641f41cde4e2e2cd571e4426b1f5915862781d77776672dcbca43461e16f4d382c9a300825c15e1a4923f1def3a5568d97577e077a3cecb44
-  languageName: node
-  linkType: hard
-
 "lilconfig@npm:3.0.0":
   version: 3.0.0
   resolution: "lilconfig@npm:3.0.0"
@@ -13677,15 +13614,6 @@ __metadata:
   version: 0.2.5
   resolution: "load-tsconfig@npm:0.2.5"
   checksum: 10/b3176f6f0c86dbdbbc7e337440a803b0b4407c55e2e1cfc53bd3db68e0211448f36428a6075ecf5e286db5d1bf791da756fc0ac4d2447717140fb6a5218ecfb4
-  languageName: node
-  linkType: hard
-
-"localforage@npm:^1.8.1":
-  version: 1.10.0
-  resolution: "localforage@npm:1.10.0"
-  dependencies:
-    lie: "npm:3.1.1"
-  checksum: 10/d5c44be3a09169b013a3ebe252e678aaeb6938ffe72e9e12c199fd4307c1ec9d1a057ac2dfdfbb1379dfeec467a34ad0fc3ecd27489a2c43a154fb72b2822542
   languageName: node
   linkType: hard
 
@@ -15511,7 +15439,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "owid-functions@workspace:functions"
   dependencies:
-    "@cloudflare/pages-plugin-sentry": "npm:^1.1.1"
     "@cloudflare/workers-types": "npm:^4.20240614.0"
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
@@ -19374,18 +19301,6 @@ __metadata:
   bin:
     geo2topo: bin/geo2topo
   checksum: 10/bdc0836a672294d6bd9b8777c74c1a16b2db28ac871a404fb3dc0570d6ec1c090d43b807cab2f32853f0d8558e581de5e3f1ba43ce1c197a096fcd1025a043b0
-  languageName: node
-  linkType: hard
-
-"toucan-js@npm:^3.0.0":
-  version: 3.3.1
-  resolution: "toucan-js@npm:3.3.1"
-  dependencies:
-    "@sentry/core": "npm:7.76.0"
-    "@sentry/integrations": "npm:7.76.0"
-    "@sentry/types": "npm:7.76.0"
-    "@sentry/utils": "npm:7.76.0"
-  checksum: 10/6985980551f68170bca01e932f32b06ec14698bcd661188084cfa741a98a789ac3f5195ec2da3b535b8a254fadc2c8a018f3a334b6788884178a624e337a5179
   languageName: node
   linkType: hard
 
