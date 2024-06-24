@@ -1138,10 +1138,10 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             const tree =
                 jsonLogicTree ?? QbUtils.loadTree(initialFilterQueryValue)
             this.filterState = {
-                tree: QbUtils.checkTree(
+                tree: QbUtils.sanitizeTree(
                     tree,
                     this.FilterPanelConfig ?? filterPanelInitialConfig
-                ),
+                ).fixedTree,
                 config: this.FilterPanelConfig ?? filterPanelInitialConfig,
             }
 

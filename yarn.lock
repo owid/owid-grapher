@@ -3615,11 +3615,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-awesome-query-builder/antd@npm:^6.5.2":
-  version: 6.5.2
-  resolution: "@react-awesome-query-builder/antd@npm:6.5.2"
+"@react-awesome-query-builder/antd@npm:^6.6.0":
+  version: 6.6.0
+  resolution: "@react-awesome-query-builder/antd@npm:6.6.0"
   dependencies:
-    "@react-awesome-query-builder/ui": "npm:^6.5.2"
+    "@react-awesome-query-builder/ui": "npm:^6.6.0"
     lodash: "npm:^4.17.21"
     prop-types: "npm:^15.8.1"
     rc-picker: "npm:^4.5.0"
@@ -3628,13 +3628,13 @@ __metadata:
     antd: ^4.17.0 || ^5.0.0
     react: ^16.8.4 || ^17.0.1 || ^18.0.0
     react-dom: ^16.8.4 || ^17.0.1 || ^18.0.0
-  checksum: 10/568d0ded7d5fdadd8aac9c2396b9a95c87de04afc9f565ed1e321781e53a62c772e0f80a66ce040e0060b85a98775ee7889fb1c28143826e38a753b72ca89e6d
+  checksum: 10/a56a1b078ef802098f7b785f9feec8277fd31f220e66f88872a7b5e9e0830be2765881449398e070af55ae1e1e7ea8df9ca81186fd30709257a0bca0229e57eb
   languageName: node
   linkType: hard
 
-"@react-awesome-query-builder/core@npm:^6.5.2":
-  version: 6.5.2
-  resolution: "@react-awesome-query-builder/core@npm:6.5.2"
+"@react-awesome-query-builder/core@npm:^6.6.0":
+  version: 6.6.0
+  resolution: "@react-awesome-query-builder/core@npm:6.6.0"
   dependencies:
     "@babel/runtime": "npm:^7.24.5"
     clone: "npm:^2.1.2"
@@ -3645,15 +3645,15 @@ __metadata:
     moment: "npm:^2.30.1"
     spel2js: "npm:^0.2.8"
     sqlstring: "npm:^2.3.3"
-  checksum: 10/a9cdea1aa7c60c5f4f515223cdb5e7531fe91b2f1a1a936d21cee425b3a5125b0eb1a627d3ba209ee243e43696abd0287c98957d53056ab2614768a5429826ea
+  checksum: 10/a80c4746836fa74ce2d7a75fde72a5011bb9f1235a6ebd5ce8e59b26e030d98f12da14cb8f108435bd6b6317a899fe7322193d660ed5e844e3fa13672db98759
   languageName: node
   linkType: hard
 
-"@react-awesome-query-builder/ui@npm:^6.5.2":
-  version: 6.5.2
-  resolution: "@react-awesome-query-builder/ui@npm:6.5.2"
+"@react-awesome-query-builder/ui@npm:^6.6.0":
+  version: 6.6.0
+  resolution: "@react-awesome-query-builder/ui@npm:6.6.0"
   dependencies:
-    "@react-awesome-query-builder/core": "npm:^6.5.2"
+    "@react-awesome-query-builder/core": "npm:^6.6.0"
     classnames: "npm:^2.5.1"
     lodash: "npm:^4.17.21"
     prop-types: "npm:^15.8.1"
@@ -3662,7 +3662,7 @@ __metadata:
   peerDependencies:
     react: ^16.8.4 || ^17.0.1 || ^18.0.0
     react-dom: ^16.8.4 || ^17.0.1 || ^18.0.0
-  checksum: 10/4b5514db75d7198a520190309604aca9956ef40e167764b2c792b0ad71ef6304068276703713d1d5420cd7fee872cd19f7537c89bccb7f68e30e8357972be276
+  checksum: 10/ca6a9adec903eb5575d090f59eb31490739ef00a00ea41c1c957a8fe25d1669dc4b8b70777c3d7e28d794b3af54e084217d3416963860f4de841f612611fe321
   languageName: node
   linkType: hard
 
@@ -10958,7 +10958,7 @@ __metadata:
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
-    "@react-awesome-query-builder/antd": "npm:^6.5.2"
+    "@react-awesome-query-builder/antd": "npm:^6.6.0"
     "@rmp135/sql-ts": "npm:^2.1.0"
     "@sinclair/typebox": "npm:^0.28.5"
     "@slack/web-api": "npm:^7.1.0"
