@@ -313,12 +313,6 @@ export {
 
 export { Tippy, TippyIfInteractive } from "./Tippy.js"
 
-export {
-    extractFormattingOptions,
-    parseFormattingOptions,
-    parseKeyValueArgs,
-} from "./wordpressUtils.js"
-
 // This re-exports everything in the types package from the utils package. This is done so that
 // the transition is easier - we might want to get rid of this and rewrite all the imports instead
 // but it's a lot of work
