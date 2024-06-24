@@ -4,10 +4,11 @@ import {
     GrapherTooltipAnchor,
     TickFormattingOptions,
 } from "@ourworldindata/utils"
+import { IObservableValue } from "mobx"
 
 // We can't pass the property directly because we need it to be observable.
 export interface TooltipManager {
-    tooltip?: TooltipProps
+    tooltip?: IObservableValue<TooltipProps | undefined>
 }
 
 export interface TooltipOptions {

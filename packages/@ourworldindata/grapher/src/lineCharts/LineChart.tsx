@@ -524,7 +524,7 @@ export class LineChart
     }
 
     @computed private get isTooltipActive(): boolean {
-        return this.manager.tooltip?.id === this.tooltipId
+        return this.manager.tooltip?.get()?.id === this.tooltipId
     }
 
     @computed private get tooltip(): React.ReactElement | undefined {
@@ -623,10 +623,10 @@ export class LineChart
                                 )
                               : series.color
 
-                        const values = [
+                        const values = excludeUndefined([
                             point?.y,
                             point?.colorValue as undefined | number,
-                        ]
+                        ])
 
                         return {
                             name,

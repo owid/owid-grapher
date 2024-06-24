@@ -823,7 +823,8 @@ export class Grapher
     @observable.ref renderToStatic = false
     @observable.ref isExportingToSvgOrPng = false
 
-    @observable.ref tooltip?: TooltipManager["tooltip"] = undefined
+    @observable.ref tooltip?: TooltipManager["tooltip"] =
+        observable.box(undefined)
 
     @observable isPlaying = false
 
@@ -2732,7 +2733,7 @@ export class Grapher
                         if (entry.isIntersecting) {
                             this.hasBeenVisible = true
                         } else {
-                            this.tooltip?.dismiss?.()
+                            this.tooltip?.get()?.dismiss?.()
                         }
                     })
                 },

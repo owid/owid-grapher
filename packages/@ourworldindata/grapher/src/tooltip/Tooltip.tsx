@@ -206,7 +206,8 @@ export class TooltipContainer extends React.Component<{
     containerHeight?: number // only relevant for tooltips anchored to the mouse
 }> {
     @action.bound private onDocumentClick(e: MouseEvent): void {
-        const { tooltip } = this.props.tooltipProvider
+        const { tooltip: tooltipBox } = this.props.tooltipProvider
+        const tooltip = tooltipBox?.get()
         if (!tooltip) return
         if (tooltip.dismissOnDocumentClick) tooltip.dismiss?.()
         e.stopPropagation()
@@ -229,7 +230,8 @@ export class TooltipContainer extends React.Component<{
     }
 
     @computed private get rendered(): React.ReactElement | null {
-        const { tooltip } = this.props.tooltipProvider
+        const { tooltip: tooltipBox } = this.props.tooltipProvider
+        const tooltip = tooltipBox?.get()
         if (!tooltip) return null
         return (
             <TooltipContext.Provider
@@ -265,11 +267,11 @@ export class Tooltip extends React.Component<TooltipProps> {
     }
 
     @action.bound private connectTooltipToContainer(): void {
-        this.props.tooltipManager.tooltip = this.props
+        this.props.tooltipManager.tooltip?.set(this.props)
     }
 
     @action.bound private removeToolTipFromContainer(): void {
-        this.props.tooltipManager.tooltip = undefined
+        this.props.tooltipManager.tooltip?.set(undefined)
     }
 
     componentDidUpdate(): void {
