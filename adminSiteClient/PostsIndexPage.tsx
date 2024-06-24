@@ -2,13 +2,12 @@ import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 
+import { uniq, DbChartTagJoin } from "@ourworldindata/utils"
 import {
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
     SearchWord,
-    uniq,
-    DbChartTagJoin,
-} from "@ourworldindata/utils"
+} from "../adminShared/search.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow, Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"

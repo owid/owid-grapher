@@ -2,7 +2,7 @@ import React from "react"
 import {
     chartBulkUpdateAllowedColumnNamesAndTypes,
     WHITELISTED_SQL_COLUMN_NAMES,
-} from "@ourworldindata/utils"
+} from "../adminShared/AdminSessionTypes.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { GrapherConfigGridEditor } from "./GrapherConfigGridEditor.js"
 import {

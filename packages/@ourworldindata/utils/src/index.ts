@@ -197,6 +197,7 @@ export {
     sum,
     sumBy,
     takeWhile,
+    tail,
     throttle,
     toString,
     union,
@@ -285,75 +286,6 @@ export {
 export { Url, setWindowUrl, getWindowUrl } from "./urls/Url.js"
 
 export { type UrlMigration, performUrlMigrations } from "./urls/UrlMigration.js"
-
-export {
-    type GrapherConfigPatch,
-    type BulkGrapherConfigResponseRow,
-    type VariableAnnotationsResponseRow,
-    type BulkChartEditResponseRow,
-    type BulkGrapherConfigResponse,
-    WHITELISTED_SQL_COLUMN_NAMES,
-    variableAnnotationAllowedColumnNamesAndTypes,
-    chartBulkUpdateAllowedColumnNamesAndTypes,
-} from "./AdminSessionTypes.js"
-
-export {
-    setValueRecursiveInplace,
-    setValueRecursive,
-    compileGetValueFunction,
-    applyPatch,
-} from "./patchHelper.js"
-
-export {
-    EditorOption,
-    FieldType,
-    type FieldDescription,
-    extractFieldDescriptionsFromSchema,
-} from "./schemaProcessing.js"
-
-export {
-    type SExprAtom,
-    type JSONPreciselyTyped,
-    type JsonLogicContext,
-    Arity,
-    type OperationContext,
-    type Operation,
-    ExpressionType,
-    BooleanAtom,
-    NumberAtom,
-    StringAtom,
-    JsonPointerSymbol,
-    SqlColumnName,
-    ArithmeticOperator,
-    allArithmeticOperators,
-    ArithmeticOperation,
-    NullCheckOperator,
-    allNullCheckOperators,
-    NullCheckOperation,
-    EqualityOperator,
-    allEqualityOperators,
-    EqualityComparision,
-    StringContainsOperation,
-    ComparisonOperator,
-    allComparisonOperators,
-    NumericComparison,
-    BinaryLogicOperators,
-    allBinaryLogicOperators,
-    BinaryLogicOperation,
-    Negation,
-    parseOperationRecursive,
-    parseToOperation,
-    NumericOperation,
-    BooleanOperation,
-    StringOperation,
-} from "./SqlFilterSExpression.js"
-
-export {
-    type SearchWord,
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-} from "./search.js"
 
 export { camelCaseProperties, titleCase } from "./string.js"
 
