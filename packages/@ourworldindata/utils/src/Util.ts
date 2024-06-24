@@ -1846,12 +1846,12 @@ export function roundDownToNearestHundred(value: number): number {
     return Math.floor(value / 100) * 100
 }
 
-const commafyFormatter = new Intl.NumberFormat("en-US")
+const commafyFormatter = lazy(() => new Intl.NumberFormat("en-US"))
 /**
  * Example: 12000 -> "12,000"
  */
 export function commafyNumber(value: number): string {
-    return commafyFormatter.format(value)
+    return commafyFormatter().format(value)
 }
 
 export function isFiniteWithGuard(value: unknown): value is number {
