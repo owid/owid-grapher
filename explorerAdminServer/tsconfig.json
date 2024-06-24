@@ -7,7 +7,6 @@
     "references": [
         { "path": "../explorer" },
         { "path": "../site" },
-        { "path": "../db" },
-        { "path": "../adminShared" }
+        { "path": "../db" }
     ]
 }
