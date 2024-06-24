@@ -123,6 +123,7 @@ export {
     isFiniteWithGuard,
     createTagGraph,
     formatInlineList,
+    lazy,
 } from "./Util.js"
 
 export {

@@ -1,4 +1,4 @@
-import { omit, invert } from "@ourworldindata/utils"
+import { omit, invert, lazy } from "@ourworldindata/utils"
 import { ColorSchemeInterface, ColorSchemeName } from "@ourworldindata/types"
 
 export const CustomColorSchemes: ColorSchemeInterface[] = []
@@ -32,7 +32,7 @@ export const OwidDistinctColors = {
     Coral: "#D73C50",
 } as const
 
-const OwidDistinctColorsNames = invert(OwidDistinctColors)
+const OwidDistinctColorsNames = lazy(() => invert(OwidDistinctColors))
 
 // These are variations of some of the colors above where the original color would have too little
 // contrast against a white background for thin lines or text elements
@@ -60,7 +60,7 @@ export const OwidDistinctLinesColors = {
 }
 
 // Used for looking up names from color hex values
-const OwidDistinctLinesColorNames = invert(OwidDistinctLinesColors)
+const OwidDistinctLinesColorNames = lazy(() => invert(OwidDistinctLinesColors))
 
 // Below are 5 variations of the same colors in different permutations
 export const CategoricalColorsPaletteA = [
@@ -253,7 +253,7 @@ export const EnergyColors = {
 }
 
 // Used for looking up color names from hex values
-const EnergyColorsNames = invert(EnergyColors)
+const EnergyColorsNames = lazy(() => invert(EnergyColors))
 
 const EnergyColorPalette = [
     EnergyColors.Coal,
@@ -289,7 +289,9 @@ function getModifiedLinesNames(
     )
 }
 
-const EnergyColorsLinesNames = getModifiedLinesNames(EnergyColorsNames)
+const EnergyColorsLinesNames = lazy(() =>
+    getModifiedLinesNames(EnergyColorsNames())
+)
 
 export const OwidEnergyLines = getModifiedLinesColorScheme(OwidEnergy)
 CustomColorSchemes.push(OwidEnergyLines)
@@ -332,7 +334,7 @@ export const ContinentColors = {
 } as const
 
 // Used for looking up color names from hex values
-const ContinentColorsNames = invert(ContinentColors)
+const ContinentColorsNames = lazy(() => invert(ContinentColors))
 
 const ContinentColorPalette = [
     ContinentColors.Africa,
@@ -383,7 +385,9 @@ function getModifiedLinesColorScheme(
     }
 }
 
-const ContinentColorsLinesNames = getModifiedLinesNames(ContinentColorsNames)
+const ContinentColorsLinesNames = lazy(() =>
+    getModifiedLinesNames(ContinentColorsNames())
+)
 
 export const ContinentColorsLinesColorScheme = getModifiedLinesColorScheme(
     ContinentColorsColorScheme
@@ -625,9 +629,9 @@ export function getColorNameOwidDistinctAndSemanticPalettes(
 ): string[] {
     return getColorNameAndSemanticPalettes(
         color,
-        OwidDistinctColorsNames,
-        ContinentColorsNames,
-        EnergyColorsNames
+        OwidDistinctColorsNames(),
+        ContinentColorsNames(),
+        EnergyColorsNames()
     )
 }
 
@@ -636,9 +640,9 @@ export function getColorNameOwidDistinctLinesAndSemanticPalettes(
 ): string[] {
     return getColorNameAndSemanticPalettes(
         color,
-        OwidDistinctLinesColorNames,
-        ContinentColorsLinesNames,
-        EnergyColorsLinesNames
+        OwidDistinctLinesColorNames(),
+        ContinentColorsLinesNames(),
+        EnergyColorsLinesNames()
     )
 }
 

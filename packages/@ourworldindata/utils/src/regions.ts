@@ -1,4 +1,5 @@
 import entities from "./regions.json"
+import { lazy } from "./Util.js"
 
 export enum RegionType {
     Country = "country",
@@ -51,24 +52,31 @@ export const countries: Country[] = regions.filter(
         !entity.isHistorical
 ) as Country[]
 
-export const others: Country[] = entities.filter(
-    (entity) => entity.regionType === "other"
-) as Country[]
-
-export const aggregates: Aggregate[] = entities.filter(
-    (entity) => entity.regionType === "aggregate"
-) as Aggregate[]
-
-export const continents: Continent[] = entities.filter(
-    (entity) => entity.regionType === "continent"
-) as Continent[]
-
-const countriesByName: Record<string, Country> = Object.fromEntries(
-    countries.map((country) => [country.name, country])
+export const others = lazy(
+    () =>
+        entities.filter((entity) => entity.regionType === "other") as Country[]
 )
 
-const countriesBySlug: Record<string, Country> = Object.fromEntries(
-    countries.map((country) => [country.slug, country])
+export const aggregates = lazy(
+    () =>
+        entities.filter(
+            (entity) => entity.regionType === "aggregate"
+        ) as Aggregate[]
+)
+
+export const continents = lazy(
+    () =>
+        entities.filter(
+            (entity) => entity.regionType === "continent"
+        ) as Continent[]
+)
+
+const countriesByName = lazy(() =>
+    Object.fromEntries(countries.map((country) => [country.name, country]))
+)
+
+const countriesBySlug = lazy(() =>
+    Object.fromEntries(countries.map((country) => [country.slug, country]))
 )
 
 const regionsByNameOrVariantNameLowercase: Map<string, Region> = new Map(
@@ -83,18 +91,20 @@ const regionsByNameOrVariantNameLowercase: Map<string, Region> = new Map(
     })
 )
 
-const currentAndHistoricalCountryNames = regions
-    .filter(({ regionType }) => regionType === "country")
-    .map(({ name }) => name.toLowerCase())
+const currentAndHistoricalCountryNames = lazy(() =>
+    regions
+        .filter(({ regionType }) => regionType === "country")
+        .map(({ name }) => name.toLowerCase())
+)
 
 export const isCountryName = (name: string): boolean =>
-    currentAndHistoricalCountryNames.includes(name.toLowerCase())
+    currentAndHistoricalCountryNames().includes(name.toLowerCase())
 
 export const getCountryByName = (name: string): Country | undefined =>
-    countriesByName[name]
+    countriesByName()[name]
 
 export const getCountryBySlug = (slug: string): Country | undefined =>
-    countriesBySlug[slug]
+    countriesBySlug()[slug]
 
 export const getRegionByNameOrVariantName = (
     nameOrVariantName: string

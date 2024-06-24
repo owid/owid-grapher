@@ -762,7 +762,7 @@ class ChoroplethMap extends React.Component<{
         return features.filter(
             (feature) =>
                 projection ===
-                (WorldRegionToProjection[
+                (WorldRegionToProjection()[
                     feature.id as WorldRegionName
                 ] as any as MapProjectionName)
         )

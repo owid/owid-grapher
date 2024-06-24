@@ -1,9 +1,9 @@
-import { regions, continents } from "@ourworldindata/utils"
+import { regions, continents, lazy, Continent } from "@ourworldindata/utils"
 import { MapProjectionName } from "@ourworldindata/types"
 
-export const WorldRegionToProjection: Map<string, MapProjectionName> =
+export const WorldRegionToProjection = lazy(() =>
     Object.fromEntries(
-        continents.flatMap(({ name, members }) =>
+        continents().flatMap(({ name, members }) =>
             members
                 .map((code) => [
                     regions.find((c) => c.code === code)?.name,
@@ -12,5 +12,6 @@ export const WorldRegionToProjection: Map<string, MapProjectionName> =
                 .filter(([name, _projection]) => !!name)
         )
     )
+)
 
-export type WorldRegionName = keyof typeof WorldRegionToProjection
+export type WorldRegionName = Continent["name"]

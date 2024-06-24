@@ -1,15 +1,16 @@
-import { invert, regions } from "@ourworldindata/utils"
+import { invert, lazy, regions } from "@ourworldindata/utils"
 import { EntityName } from "@ourworldindata/types"
 
-export const entityCodesToEntityNames: Record<string, string> =
+const entityCodesToEntityNames: () => Record<string, string> = lazy(() =>
     Object.fromEntries(regions.map(({ code, name }) => [code, name]))
+)
 
-export const entityNamesToEntityCodes = invert(entityCodesToEntityNames)
+const entityNamesToEntityCodes = lazy(() => invert(entityCodesToEntityNames()))
 
 export const codeToEntityName = (codeOrEntityName: string): EntityName => {
-    return entityCodesToEntityNames[codeOrEntityName] ?? codeOrEntityName
+    return entityCodesToEntityNames()[codeOrEntityName] ?? codeOrEntityName
 }
 
 export const entityNameToCode = (entityName: EntityName): string => {
-    return entityNamesToEntityCodes[entityName] ?? entityName
+    return entityNamesToEntityCodes()[entityName] ?? entityName
 }
