@@ -1,6 +1,7 @@
 import { omit, invert, lazy } from "@ourworldindata/utils"
 import { ColorSchemeInterface, ColorSchemeName } from "@ourworldindata/types"
 
+// TODO: Initialize CustomColorSchemes lazily
 export const CustomColorSchemes: ColorSchemeInterface[] = []
 
 // Create some of our own!
@@ -54,6 +55,7 @@ const darkerColorReplacementsHexToReplacementColorName = {
     [OwidDistinctColors.Lime]: DarkerOwidDistinctColors.LimeDarker,
 } as Record<string, string>
 
+// TODO: Make this into a lazy initialization
 export const OwidDistinctLinesColors = {
     ...omit(OwidDistinctColors, Object.keys(DarkerOwidDistinctColors)),
     ...DarkerOwidDistinctColors,
