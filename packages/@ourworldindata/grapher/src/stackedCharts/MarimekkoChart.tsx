@@ -179,7 +179,6 @@ interface MarimekkoBarsProps {
 function MarimekkoBarsForOneEntity(
     props: MarimekkoBarsProps
 ): React.ReactElement {
-    7
     const {
         entityName,
         bars,
