@@ -57,8 +57,6 @@ const ColorBrewerSchemeIndex: {
     Set2: { displayName: "Set 2 colors", singleColorScale: false },
     Set3: { displayName: "Set 3 colors", singleColorScale: false },
     PuBu: { displayName: "Purple-Blue shades", singleColorScale: true },
-    "hsv-RdBu": { displayName: "HSV Red-Blue", singleColorScale: false },
-    "hsv-CyMg": { displayName: "HSV Cyan-Magenta", singleColorScale: false },
 } as const
 
 export const getColorBrewerScheme: (
@@ -69,14 +67,14 @@ export const getColorBrewerScheme: (
 
     if (!props || !colorSets) return undefined
 
-        const colorSetsArray: Color[][] = []
-        Object.keys(colorSets).forEach(
-            (numColors) => (colorSetsArray[+numColors] = colorSets[numColors])
-        )
-        return {
+    const colorSetsArray: Color[][] = []
+    Object.keys(colorSets).forEach(
+        (numColors) => (colorSetsArray[+numColors] = colorSets[numColors])
+    )
+    return {
         name,
-            displayName: props.displayName,
-            colorSets: colorSetsArray,
-            singleColorScale: props.singleColorScale,
-        }
+        displayName: props.displayName,
+        colorSets: colorSetsArray,
+        singleColorScale: props.singleColorScale,
+    }
 }

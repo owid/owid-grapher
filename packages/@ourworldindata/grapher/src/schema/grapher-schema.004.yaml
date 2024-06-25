@@ -94,8 +94,6 @@ $defs:
                     - Set2
                     - Set3
                     - PuBu
-                    - hsv-RdBu
-                    - hsv-CyMg
                     - Magma
                     - Inferno
                     - Plasma
@@ -104,7 +102,6 @@ $defs:
                     - stackedAreaDefault
                     - owid-distinct
                     - default
-                    - ContinentsLines
                     - SingleColorDenim
                     - SingleColorTeal
                     - SingleColorPurple

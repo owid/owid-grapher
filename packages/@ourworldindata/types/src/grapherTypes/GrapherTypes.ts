@@ -455,8 +455,6 @@ export enum ColorSchemeName {
     Set2 = "Set2",
     Set3 = "Set3",
     PuBu = "PuBu",
-    "hsv-RdBu" = "hsv-RdBu",
-    "hsv-CyMg" = "hsv-CyMg",
 
     // Custom schemes:
     Magma = "Magma",
@@ -464,7 +462,6 @@ export enum ColorSchemeName {
     Plasma = "Plasma",
     Viridis = "Viridis",
     continents = "continents",
-    ContinentsLines = "ContinentsLines",
     stackedAreaDefault = "stackedAreaDefault",
     "owid-distinct" = "owid-distinct",
     SingleColorDenim = "SingleColorDenim",
