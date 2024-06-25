@@ -20,11 +20,7 @@ export {
     type UserCountryInformation,
     type QueryParams,
 } from "./domainTypes/Various.js"
-export {
-    type BreadcrumbItem,
-    type KeyInsight,
-    type KeyValueProps,
-} from "./domainTypes/Site.js"
+export { type BreadcrumbItem, type KeyValueProps } from "./domainTypes/Site.js"
 export {
     type FormattedPost,
     type IndexPost,
@@ -129,7 +125,6 @@ export {
 } from "./domainTypes/ContentGraph.js"
 export {
     WP_BlockClass,
-    WP_BlockType,
     WP_ColumnStyle,
     WP_PostType,
     type PostRestApi,

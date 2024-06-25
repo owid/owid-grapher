@@ -13,10 +13,7 @@ import { runDetailsOnDemand } from "./detailsOnDemand.js"
 import { runDataTokens } from "./runDataTokens.js"
 import { runSearchCountry } from "./SearchCountry.js"
 import { hydrate as hydrateAdditionalInformation } from "./blocks/AdditionalInformation.js"
-import { hydrateKeyInsights } from "./blocks/KeyInsights.js"
-import { hydrateExpandableParagraphs } from "./blocks/ExpandableParagraph.js"
 import { hydrateCodeSnippets } from "@ourworldindata/components"
-import { hydrateStickyNav } from "./blocks/StickyNav.js"
 import { hydrateDynamicCollectionPage } from "./collections/DynamicCollection.js"
 import {
     _OWID_DATA_INSIGHTS_INDEX_PAGE_DATA,
@@ -85,10 +82,7 @@ export const runSiteFooterScripts = (
             runDataTokens()
             runSearchCountry()
             hydrateAdditionalInformation()
-            hydrateKeyInsights()
-            hydrateExpandableParagraphs()
             hydrateCodeSnippets()
-            hydrateStickyNav()
             MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
             MultiEmbedderSingleton.embedAll()
             runAllGraphersLoadedListener()

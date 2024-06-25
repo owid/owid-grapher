@@ -12,7 +12,6 @@ import { runFeedbackPage } from "./Feedback.js"
 import { runDonateForm } from "./DonateForm.js"
 import { runCountryProfilePage } from "./runCountryProfilePage.js"
 import { runTableOfContents } from "./TableOfContents.js"
-import { runRelatedCharts } from "./blocks/RelatedCharts.js"
 import { Explorer } from "../explorer/Explorer.js"
 import {
     ENV,
@@ -43,7 +42,6 @@ window.runFeedbackPage = runFeedbackPage
 window.runDonateForm = runDonateForm
 window.runCountryProfilePage = runCountryProfilePage
 window.runTableOfContents = runTableOfContents
-window.runRelatedCharts = runRelatedCharts
 window.MultiEmbedderSingleton = MultiEmbedderSingleton
 
 // Note: do a text search of the project for "runSiteFooterScripts" to find the usage. todo: clean that up.
