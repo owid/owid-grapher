@@ -120,13 +120,12 @@ export const ColorSchemes = {
     },
 }
 
-const getAllColorSchemes = (): { [key in ColorSchemeName]: ColorScheme } => {
-    return Object.keys(ColorSchemeName).reduce(
-        (acc, key) => ({
-            ...acc,
-            [key]: ColorSchemes.get(key as ColorSchemeName),
-        }),
-        {} as { [key in ColorSchemeName]: ColorScheme }
+const getAllColorSchemes = (): Map<ColorSchemeName, ColorScheme> => {
+    return new Map(
+        Object.keys(ColorSchemeName).map((key) => [
+            key as ColorSchemeName,
+            ColorSchemes.get(key as ColorSchemeName),
+        ])
     )
 }
 
@@ -136,7 +135,7 @@ export function getColorSchemeForChartType(type: ChartTypeName): {
     const preferred = new Set(getPreferredSchemesByType(type))
     const allSchemes = getAllColorSchemes()
     const [preferredSchemes, otherSchemes] = partition(
-        Object.entries(allSchemes) as [ColorSchemeName, ColorScheme][],
+        [...allSchemes.entries()],
         (schemeKeyValue) => preferred.has(schemeKeyValue[0])
     )
     return Object.fromEntries([...preferredSchemes, ...otherSchemes]) as {
