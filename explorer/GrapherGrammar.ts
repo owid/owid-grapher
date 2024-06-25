@@ -21,6 +21,8 @@ import {
     SlugsDeclarationCellDef,
     StringCellDef,
     UrlCellDef,
+    IndicatorIdsOrEtlPathsCellDef,
+    IndicatorIdOrEtlPathCellDef,
 } from "../gridLang/GridLangConstants.js"
 
 const toTerminalOptions = (keywords: string[]): CellDef[] => {
@@ -50,7 +52,7 @@ export const GrapherGrammar: Grammar = {
         keyword: "ySlugs",
     },
     yVariableIds: {
-        ...PositiveIntegersCellDef,
+        ...IndicatorIdsOrEtlPathsCellDef,
         keyword: "yVariableIds",
         description: "Variable ID(s) for the yAxis",
     },
@@ -93,7 +95,7 @@ export const GrapherGrammar: Grammar = {
         keyword: "xSlug",
     },
     xVariableId: {
-        ...IntegerCellDef,
+        ...IndicatorIdOrEtlPathCellDef,
         keyword: "xVariableId",
         description: "Variable ID for the xAxis",
     },
@@ -103,7 +105,7 @@ export const GrapherGrammar: Grammar = {
         keyword: "colorSlug",
     },
     colorVariableId: {
-        ...IntegerCellDef,
+        ...IndicatorIdOrEtlPathCellDef,
         keyword: "colorVariableId",
         description: "Variable ID for the color",
     },
@@ -113,7 +115,7 @@ export const GrapherGrammar: Grammar = {
         keyword: "sizeSlug",
     },
     sizeVariableId: {
-        ...IntegerCellDef,
+        ...IndicatorIdOrEtlPathCellDef,
         keyword: "sizeVariableId",
         description: "Variable ID for the size of points on scatters",
     },

@@ -41,6 +41,7 @@ import {
     keyBy,
     keyMap,
     omitUndefinedValues,
+    parseIntOrUndefined,
     PromiseCache,
     PromiseSwitcher,
     SerializedGridProgram,
@@ -83,6 +84,7 @@ import Bugsnag from "@bugsnag/js"
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
     partialGrapherConfigs?: GrapherInterface[]
+    catalogPathToIndicatorIdMap?: Record<string, number | null>
     queryStr?: string
     isEmbeddedInAnOwidPage?: boolean
     isInStandalonePage?: boolean
@@ -130,12 +132,13 @@ export class Explorer
         grapherConfigs: GrapherInterface[],
         partialGrapherConfigs: GrapherInterface[],
         urlMigrationSpec?: ExplorerPageUrlMigrationSpec,
-        catalogPathToIndicatorIdMap?: Record<string, number>
+        catalogPathToIndicatorIdMap?: Record<string, number | null>
     ) {
         const props: ExplorerProps = {
             ...program,
             grapherConfigs,
             partialGrapherConfigs,
+            catalogPathToIndicatorIdMap,
             isEmbeddedInAnOwidPage: false,
             isInStandalonePage: true,
         }
@@ -486,6 +489,23 @@ export class Explorer
         grapher.downloadData()
     }
 
+    // The input to this function may be a catalog path (e.g. grapher/demography/2023-03-31/population/population#population)
+    // or an integer indicator id.
+    resolveMaybeCatalogPathToIndicatorId = (
+        catalogPathOrIndicatorId: string
+    ): number | undefined => {
+        const possiblyIndicatorId = parseIntOrUndefined(
+            catalogPathOrIndicatorId
+        )
+        if (possiblyIndicatorId !== undefined) return possiblyIndicatorId
+        else
+            return (
+                this.props.catalogPathToIndicatorIdMap?.[
+                    catalogPathOrIndicatorId
+                ] ?? undefined
+            )
+    }
+
     @action.bound private async updateGrapherFromExplorerUsingVariableIds() {
         const grapher = this.grapher
         if (!grapher) return
@@ -502,8 +522,8 @@ export class Explorer
 
         const yVariableIdsList = yVariableIds
             .split(" ")
-            .map((item) => parseInt(item, 10))
-            .filter((item) => !isNaN(item))
+            .map(this.resolveMaybeCatalogPathToIndicatorId)
+            .filter((item) => item !== undefined)
 
         const partialGrapherConfig =
             this.partialGrapherConfigsByVariableId.get(yVariableIdsList[0]) ??
@@ -534,22 +554,31 @@ export class Explorer
             })
         })
         if (xVariableId) {
-            dimensions.push({
-                variableId: xVariableId,
-                property: DimensionProperty.x,
-            })
+            const resolvedXVariableId =
+                this.resolveMaybeCatalogPathToIndicatorId(xVariableId)
+            if (resolvedXVariableId)
+                dimensions.push({
+                    variableId: resolvedXVariableId,
+                    property: DimensionProperty.x,
+                })
         }
         if (colorVariableId) {
-            dimensions.push({
-                variableId: colorVariableId,
-                property: DimensionProperty.color,
-            })
+            const resolvedColorVariableId =
+                this.resolveMaybeCatalogPathToIndicatorId(colorVariableId)
+            if (resolvedColorVariableId)
+                dimensions.push({
+                    variableId: resolvedColorVariableId,
+                    property: DimensionProperty.color,
+                })
         }
         if (sizeVariableId) {
-            dimensions.push({
-                variableId: sizeVariableId,
-                property: DimensionProperty.size,
-            })
+            const resolvedSizeVariableId =
+                this.resolveMaybeCatalogPathToIndicatorId(sizeVariableId)
+            if (resolvedSizeVariableId)
+                dimensions.push({
+                    variableId: resolvedSizeVariableId,
+                    property: DimensionProperty.size,
+                })
         }
 
         // Slugs that are used to create a chart refer to columns derived from variables
