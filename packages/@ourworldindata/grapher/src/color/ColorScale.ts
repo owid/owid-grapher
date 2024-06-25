@@ -97,7 +97,7 @@ export class ColorScale {
     }
 
     @computed private get defaultColorScheme(): ColorScheme {
-        return ColorSchemes[ColorSchemeName.BuGn]
+        return ColorSchemes.get(ColorSchemeName.BuGn)
     }
 
     @computed private get defaultNoDataColor(): Color {
@@ -139,7 +139,7 @@ export class ColorScale {
     }
 
     @computed private get colorScheme(): ColorScheme {
-        return ColorSchemes[this.baseColorScheme] ?? this.defaultColorScheme
+        return ColorSchemes.get(this.baseColorScheme) ?? this.defaultColorScheme
     }
 
     @computed get singleColorScale(): boolean {

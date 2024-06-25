@@ -61,22 +61,22 @@ const ColorBrewerSchemeIndex: {
     "hsv-CyMg": { displayName: "HSV Cyan-Magenta", singleColorScale: false },
 } as const
 
-const brewerKeys = Object.keys(colorbrewer) as ColorSchemeName[]
+export const getColorBrewerScheme: (
+    name: string
+) => ColorSchemeInterface | undefined = (name: string) => {
+    const props = ColorBrewerSchemeIndex[name as ColorSchemeName]
+    const colorSets = (colorbrewer as any)[name]
 
-// TODO: Make this into a lazy initialization
-export const ColorBrewerSchemes: ColorSchemeInterface[] = brewerKeys
-    .filter((brewerName) => ColorBrewerSchemeIndex[brewerName])
-    .map((brewerName) => {
-        const props = ColorBrewerSchemeIndex[brewerName]!
-        const colorSets = (colorbrewer as any)[brewerName] as any
+    if (!props || !colorSets) return undefined
+
         const colorSetsArray: Color[][] = []
         Object.keys(colorSets).forEach(
             (numColors) => (colorSetsArray[+numColors] = colorSets[numColors])
         )
         return {
-            name: brewerName,
+        name,
             displayName: props.displayName,
             colorSets: colorSetsArray,
             singleColorScale: props.singleColorScale,
         }
-    })
+}
