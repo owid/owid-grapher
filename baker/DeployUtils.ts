@@ -138,7 +138,7 @@ const getSlackMentionByEmail = async (
     email: string | undefined,
     slackClient: WebClient
 ): Promise<string | undefined> => {
-    if (!email) return
+    if (!email || email === "etl@ourworldindata.org") return
 
     try {
         const response = await slackClient.users.lookupByEmail({ email })
