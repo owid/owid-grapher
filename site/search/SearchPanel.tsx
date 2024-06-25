@@ -74,6 +74,7 @@ import {
     extractRegionNamesFromSearchQuery,
     pickEntitiesForChartHit,
 } from "./SearchUtils.js"
+import { HitAttributeHighlightResult } from "instantsearch.js"
 
 const siteAnalytics = new SiteAnalytics()
 
@@ -131,14 +132,30 @@ const getEntityQueryStr = (
     }
 }
 
-function ChartHit({ hit }: { hit: IChartHit }) {
+function ChartHit({
+    hit,
+    searchQueryRegionsMatches,
+}: {
+    hit: IChartHit
+    searchQueryRegionsMatches?: Region[] | undefined
+}) {
     const [imgLoaded, setImgLoaded] = useState(false)
     const [imgError, setImgError] = useState(false)
 
     const entities = useMemo(
-        () => pickEntitiesForChartHit(hit),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [hit._highlightResult?.availableEntities]
+        () =>
+            pickEntitiesForChartHit(
+                hit._highlightResult?.availableEntities as
+                    | HitAttributeHighlightResult[]
+                    | undefined,
+                hit.availableEntities,
+                searchQueryRegionsMatches
+            ),
+        [
+            hit._highlightResult?.availableEntities,
+            hit.availableEntities,
+            searchQueryRegionsMatches,
+        ]
     )
     const queryStr = useMemo(() => getEntityQueryStr(entities), [entities])
     const previewUrl = queryStr
@@ -702,13 +719,20 @@ const SearchResults = (props: SearchResultsProps) => {
                                 />
                             </div>
                         </header>
-                        <Hits
+                        <Hits<IChartHit>
                             classNames={{
                                 root: "search-results__list-container",
                                 list: "search-results__charts-list grid grid-cols-4 grid-sm-cols-2",
                                 item: "search-results__chart-hit span-md-cols-2",
                             }}
-                            hitComponent={ChartHit}
+                            hitComponent={(props) => (
+                                <ChartHit
+                                    {...props}
+                                    searchQueryRegionsMatches={
+                                        searchQueryRegionsMatches
+                                    }
+                                />
+                            )}
                         />
                     </section>
                 </NoResultsBoundary>
