@@ -4,29 +4,48 @@ import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
 } from "@ourworldindata/grapher"
-import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../settings/clientSettings.js"
+import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
+import { Url } from "@ourworldindata/utils"
 
-export default function GrapherImage({
-    alt,
-    slug,
-    noFormatting,
-}: {
+export default function GrapherImage(props: {
+    url: string
+    alt?: string
+    noFormatting?: boolean
+}): JSX.Element
+export default function GrapherImage(props: {
     slug: string
+    queryString?: string
+    alt?: string
+    noFormatting?: boolean
+}): JSX.Element
+export default function GrapherImage(props: {
+    url?: string
+    slug?: string
+    queryString?: string
     alt?: string
     noFormatting?: boolean
 }) {
+    let slug: string = ""
+    let queryString: string = ""
+    if (props.url) {
+        const url = Url.fromURL(props.url)
+        slug = url.slug!
+        queryString = url.queryStr
+    } else {
+        slug = props.slug!
+        queryString = props.queryString ?? ""
+    }
+
     return (
         <img
             className="GrapherImage"
-            // TODO: use the CF worker to render these previews so that we can show non-default configurations of the chart
-            // https://github.com/owid/owid-grapher/issues/3661
-            src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${slug}.svg`}
-            alt={alt}
+            src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}${queryString}`}
+            alt={props.alt}
             width={DEFAULT_GRAPHER_WIDTH}
             height={DEFAULT_GRAPHER_HEIGHT}
             loading="lazy"
             data-no-lightbox
-            data-no-img-formatting={noFormatting}
+            data-no-img-formatting={props.noFormatting}
         />
     )
 }
