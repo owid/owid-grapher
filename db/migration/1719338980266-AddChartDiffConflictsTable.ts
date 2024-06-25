@@ -7,6 +7,7 @@ export class ChartDiffConflicts1719334981843 implements MigrationInterface {
                 id integer NOT NULL AUTO_INCREMENT,
                 chartId integer NOT NULL,
                 targetUpdatedAt datetime DEFAULT NULL,
+                updatedAt datetime NOT NULL,
                 conflict varchar(255) NOT NULL,
                 FOREIGN KEY (chartId) REFERENCES charts (id) ON DELETE CASCADE ON UPDATE CASCADE,
                 PRIMARY KEY (id),
