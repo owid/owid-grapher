@@ -274,7 +274,7 @@ export const OwidEnergy = {
     isDistinct: true,
     colorSets: [EnergyColorPalette],
 }
-CustomColorSchemes.push(OwidCategoricalEScheme)
+CustomColorSchemes.push(OwidEnergy)
 
 function getModifiedLinesNames(
     colorNames: Record<string, string>
