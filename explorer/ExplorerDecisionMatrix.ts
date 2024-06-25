@@ -5,6 +5,7 @@ import {
     identity,
     trimObject,
     uniq,
+    parseIntOrUndefined,
 } from "@ourworldindata/utils"
 import { ColumnTypeNames } from "@ourworldindata/types"
 import {
@@ -139,6 +140,25 @@ export class DecisionMatrix {
                 .map((ids: number[]) => ids[0])
                 .filter(identity)
         )
+    }
+
+    get requiredCatalogPaths(): Set<string> {
+        const indicatorColKeywords = [
+            GrapherGrammar.yVariableIds.keyword,
+            GrapherGrammar.xVariableId.keyword,
+            GrapherGrammar.colorVariableId.keyword,
+            GrapherGrammar.sizeVariableId.keyword,
+        ]
+        const allIndicators = indicatorColKeywords
+            .flatMap((keyword) => this.table.get(keyword).uniqValues)
+            .flatMap((value) => value.split(" "))
+
+        // Assume it's a catalog path if it doesn't look like a number
+        const catalogPaths = allIndicators.filter(
+            (indicator) => parseIntOrUndefined(indicator) === undefined
+        )
+
+        return new Set(catalogPaths)
     }
 
     choiceNameToControlTypeMap: Map<ChoiceName, ExplorerControlType>

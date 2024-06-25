@@ -129,7 +129,8 @@ export class Explorer
         program: ExplorerProps,
         grapherConfigs: GrapherInterface[],
         partialGrapherConfigs: GrapherInterface[],
-        urlMigrationSpec?: ExplorerPageUrlMigrationSpec
+        urlMigrationSpec?: ExplorerPageUrlMigrationSpec,
+        catalogPathToIndicatorIdMap?: Record<string, number>
     ) {
         const props: ExplorerProps = {
             ...program,

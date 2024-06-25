@@ -91,6 +91,7 @@ import {
     getAndLoadGdocBySlug,
     getAndLoadGdocById,
 } from "../db/model/Gdoc/GdocFactory.js"
+import { getVariableIdsByCatalogPath } from "../db/model/Variable.js"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
@@ -696,7 +697,8 @@ export const renderExplorerPage = async (
     knex: KnexReadonlyTransaction,
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
 ) => {
-    const { requiredGrapherIds, requiredVariableIds } = program.decisionMatrix
+    const { requiredGrapherIds, requiredVariableIds, requiredCatalogPaths } =
+        program.decisionMatrix
 
     type ChartRow = { id: number; config: string }
     let grapherConfigRows: ChartRow[] = []
@@ -766,12 +768,28 @@ export const renderExplorerPage = async (
           )
         : undefined
 
+    const catalogPathToIndicatorIdMap = await getVariableIdsByCatalogPath(
+        [...requiredCatalogPaths],
+        knex
+    )
+    const unresolvedCatalogPaths = [...requiredCatalogPaths].filter(
+        (path) => !catalogPathToIndicatorIdMap[path]
+    )
+    if (unresolvedCatalogPaths.length > 0) {
+        void logErrorAndMaybeSendToBugsnag(
+            new JsonError(
+                `${unresolvedCatalogPaths.length} catalog paths cannot be found for explorer ${program.slug}: ${unresolvedCatalogPaths.join(", ")}.`
+            )
+        )
+    }
+
     return (
         `<!doctype html>` +
         ReactDOMServer.renderToStaticMarkup(
             <ExplorerPage
                 grapherConfigs={grapherConfigs}
                 partialGrapherConfigs={partialGrapherConfigs}
+                catalogPathToIndicatorIdMap={catalogPathToIndicatorIdMap}
                 program={program}
                 wpContent={wpContent}
                 baseUrl={BAKED_BASE_URL}
