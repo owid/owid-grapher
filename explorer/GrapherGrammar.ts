@@ -54,7 +54,7 @@ export const GrapherGrammar: Grammar = {
     yVariableIds: {
         ...IndicatorIdsOrEtlPathsCellDef,
         keyword: "yVariableIds",
-        description: "Variable ID(s) for the yAxis",
+        description: "Variable ID(s) or ETL path(s) for the yAxis",
     },
     type: {
         ...StringCellDef,
@@ -97,7 +97,7 @@ export const GrapherGrammar: Grammar = {
     xVariableId: {
         ...IndicatorIdOrEtlPathCellDef,
         keyword: "xVariableId",
-        description: "Variable ID for the xAxis",
+        description: "Variable ID or ETL path for the xAxis",
     },
     colorSlug: {
         ...SlugDeclarationCellDef,
@@ -107,7 +107,7 @@ export const GrapherGrammar: Grammar = {
     colorVariableId: {
         ...IndicatorIdOrEtlPathCellDef,
         keyword: "colorVariableId",
-        description: "Variable ID for the color",
+        description: "Variable ID or ETL path for the color",
     },
     sizeSlug: {
         ...SlugDeclarationCellDef,
@@ -117,7 +117,8 @@ export const GrapherGrammar: Grammar = {
     sizeVariableId: {
         ...IndicatorIdOrEtlPathCellDef,
         keyword: "sizeVariableId",
-        description: "Variable ID for the size of points on scatters",
+        description:
+            "Variable ID or ETL path for the size of points on scatters",
     },
     tableSlugs: {
         ...SlugsDeclarationCellDef,

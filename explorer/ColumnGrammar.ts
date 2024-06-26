@@ -9,6 +9,7 @@ import {
     BooleanCellDef,
     EnumCellDef,
     Grammar,
+    IndicatorIdOrEtlPathCellDef,
     IntegerCellDef,
     NumericCellDef,
     SlugDeclarationCellDef,
@@ -18,9 +19,9 @@ import {
 
 export const ColumnGrammar: Grammar = {
     variableId: {
-        ...IntegerCellDef,
+        ...IndicatorIdOrEtlPathCellDef,
         keyword: "variableId",
-        description: "Numerical variable ID",
+        description: "Numerical variable ID, or ETL path",
     },
     slug: {
         ...SlugDeclarationCellDef,
