@@ -16,7 +16,6 @@ import {
     Grammar,
     IntegerCellDef,
     NumericCellDef,
-    PositiveIntegersCellDef,
     SlugDeclarationCellDef,
     SlugsDeclarationCellDef,
     StringCellDef,
