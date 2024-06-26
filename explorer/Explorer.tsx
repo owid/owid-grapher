@@ -422,7 +422,13 @@ export class Explorer
         const { columnDefsWithoutTableSlug } = this.explorerProgram
         return keyBy(
             columnDefsWithoutTableSlug,
-            (def: OwidColumnDef) => def.owidVariableId ?? def.slug
+            (def: OwidColumnDef) =>
+                def.owidVariableId ??
+                (def.catalogPath &&
+                    this.resolveMaybeCatalogPathToIndicatorId(
+                        def.catalogPath
+                    )) ??
+                def.slug
         )
     }
 

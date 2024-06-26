@@ -2,7 +2,6 @@ import {
     CoreMatrix,
     ColumnTypeNames,
     CoreTableInputOption,
-    CoreValueType,
     OwidColumnDef,
     TableSlug,
     SubNavId,
@@ -11,6 +10,7 @@ import {
 } from "@ourworldindata/types"
 import {
     CoreTable,
+    ErrorValueTypes,
     OwidTable,
     isNotErrorValue,
 } from "@ourworldindata/core-table"
@@ -20,6 +20,7 @@ import {
     SerializedGridProgram,
     trimObject,
     omit,
+    parseIntOrUndefined,
 } from "@ourworldindata/utils"
 import {
     CellDef,
@@ -475,30 +476,69 @@ export const trimAndParseObject = (config: any, grammar: Grammar) => {
 }
 
 const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
+    /**
+     * This is messy at this point, but what's going on is that a column def line can have:
+     * - a column named `variableId`, which either contains a variable id or an ETL path
+     * - a column named `slug`, which is the referenced column in its data file
+     *
+     * We want to filter out any rows that contain neither of those, and we also want to turn `variableId`
+     * into the two columns `owidVariableId` and `catalogPath` - one for numeric values (parsed to integers)
+     * and the other for string values contained in the `variableId` column.
+     */
     const columnsTable = new CoreTable(block)
         .appendColumnsIfNew([
             { slug: "slug", type: ColumnTypeNames.String, name: "slug" },
             {
                 slug: "variableId",
-                type: ColumnTypeNames.Numeric,
+                type: ColumnTypeNames.String,
                 name: "variableId",
             },
         ])
-        .renameColumn("variableId", "owidVariableId")
+
+        // Rename column to be less of a misnomer :)
+        .renameColumn("variableId", "owidVariableIdOrCatalogPath")
+
+        // Extract integer variable IDs from owidVariableIdOrCatalogPath
+        .duplicateColumn("owidVariableIdOrCatalogPath", {
+            slug: "owidVariableId",
+            name: "owidVariableId",
+            type: ColumnTypeNames.Integer,
+        })
+        .replaceCells(
+            ["owidVariableId"],
+            (cell) =>
+                (typeof cell === "string"
+                    ? parseIntOrUndefined(cell)
+                    : undefined) ?? ErrorValueTypes.FilteredValue
+        )
+
+        // Extract non-integer catalog paths from owidVariableIdOrCatalogPath
+        .duplicateColumn("owidVariableIdOrCatalogPath", {
+            slug: "catalogPath",
+            name: "catalogPath",
+            type: ColumnTypeNames.String,
+        })
+        .replaceCells(["catalogPath"], (cell) =>
+            typeof cell === "string" && parseIntOrUndefined(cell) === undefined
+                ? cell
+                : ErrorValueTypes.FilteredValue
+        )
+
+        // Filter out rows that don't have any of these values present
         .rowFilter(
             (row) =>
                 !!(
                     row.slug ||
-                    row.owidVariableId?.toString() ||
+                    typeof row.owidVariableId === "number" ||
                     row.catalogPath
                 ),
             "Keep only column defs with a slug or variable id"
         )
     return columnsTable.rows.map((row) => {
-        // ignore slug if a variable id is given
+        // ignore slug if variable id or catalog path is given
         if (
-            row.owidVariableId &&
-            isNotErrorValue(row.owidVariableId) &&
+            row.owidVariableIdOrCatalogPath &&
+            isNotErrorValue(row.owidVariableIdOrCatalogPath) &&
             row.slug
         )
             delete row.slug
