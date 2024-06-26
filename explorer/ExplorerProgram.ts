@@ -485,21 +485,15 @@ const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
             },
         ])
         .renameColumn("variableId", "owidVariableId")
-        .combineColumns(
-            ["slug", "owidVariableId"],
-            {
-                slug: "slugOrVariableId",
-                type: ColumnTypeNames.String,
-                name: "slugOrVariableId",
-            },
-            (values) => values.slug || values.owidVariableId?.toString()
-        )
-        .columnFilter(
-            "slugOrVariableId",
-            (value: CoreValueType) => !!value,
+        .rowFilter(
+            (row) =>
+                !!(
+                    row.slug ||
+                    row.owidVariableId?.toString() ||
+                    row.catalogPath
+                ),
             "Keep only column defs with a slug or variable id"
         )
-        .dropColumns(["slugOrVariableId"])
     return columnsTable.rows.map((row) => {
         // ignore slug if a variable id is given
         if (
