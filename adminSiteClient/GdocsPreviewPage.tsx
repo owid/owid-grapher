@@ -211,6 +211,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             </AdminLayout>
         )
     }
+    console.log("currentGdoc.publishedAt", currentGdoc?.publishedAt)
 
     return currentGdoc ? (
         <AdminLayout
@@ -236,32 +237,33 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 {currentGdoc.content.title}
                             </Typography.Title>
                             [ <GdocsEditLink gdocId={currentGdoc.id} /> ]
-                            {currentGdoc.published && (
-                                <>
-                                    [
-                                    {currentGdoc.publishedAt &&
-                                    currentGdoc.publishedAt <= new Date() ? (
-                                        <>
-                                            <a
-                                                href={`${BAKED_BASE_URL}/${currentGdoc.slug}`}
-                                            >
-                                                View live
-                                            </a>
-                                            <Tippy
-                                                content="There might be a slight delay before content scheduled into the future becomes live."
-                                                placement="bottom"
-                                            >
-                                                <FontAwesomeIcon
-                                                    icon={faQuestionCircle}
-                                                />
-                                            </Tippy>
-                                        </>
-                                    ) : (
-                                        `Scheduled for ${dayjs(currentGdoc.publishedAt).format(PUBLISHED_AT_FORMAT)}`
-                                    )}
-                                    ]
-                                </>
-                            )}
+                            {currentGdoc.published &&
+                                currentGdoc.publishedAt && (
+                                    <>
+                                        [
+                                        {currentGdoc.publishedAt <=
+                                        new Date() ? (
+                                            <>
+                                                <a
+                                                    href={`${BAKED_BASE_URL}/${currentGdoc.slug}`}
+                                                >
+                                                    View live
+                                                </a>
+                                                <Tippy
+                                                    content="There might be a slight delay before content scheduled into the future becomes live."
+                                                    placement="bottom"
+                                                >
+                                                    <FontAwesomeIcon
+                                                        icon={faQuestionCircle}
+                                                    />
+                                                </Tippy>
+                                            </>
+                                        ) : (
+                                            `Scheduled for ${dayjs(currentGdoc.publishedAt).utc().format(PUBLISHED_AT_FORMAT)} (UTC)`
+                                        )}
+                                        ]
+                                    </>
+                                )}
                             <div>
                                 {!currentGdoc.published && (
                                     <Tag color="default">Draft</Tag>

@@ -70,7 +70,7 @@ export const GdocsPublishedAt = <T extends OwidGdoc>({
             <GdocsErrorHelp
                 error={publishedAtError}
                 help={
-                    "Used in default dateline. Visible in the citation block. Also used to sort articles in lists. Timezone is UTC."
+                    "UTC. Used in default dateline. Visible in the citation block. Also used to sort articles in lists."
                 }
             />
         </Col>
