@@ -122,6 +122,7 @@ export {
     commafyNumber,
     isFiniteWithGuard,
     createTagGraph,
+    formatInlineList,
 } from "./Util.js"
 
 export {

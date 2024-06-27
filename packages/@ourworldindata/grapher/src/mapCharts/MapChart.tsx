@@ -1,7 +1,5 @@
 import React from "react"
 import {
-    anyToString,
-    isNumber,
     Bounds,
     DEFAULT_BOUNDS,
     flatten,
@@ -325,19 +323,18 @@ export class MapChart
         this.mapConfig.projection = value
     }
 
-    @computed private get formatTooltipValue(): (d: PrimitiveType) => string {
-        const { mapConfig, mapColumn, colorScale } = this
+    @computed private get formatTooltipValueIfCustom(): (
+        d: PrimitiveType
+    ) => string | undefined {
+        const { mapConfig, colorScale } = this
 
-        return (d: PrimitiveType): string => {
-            if (mapConfig.tooltipUseCustomLabels) {
-                // Find the bin (and its label) that this value belongs to
-                const bin = colorScale.getBinForValue(d)
-                const label = bin?.label
-                if (label !== undefined && label !== "") return label
-            }
-            return isNumber(d)
-                ? mapColumn?.formatValueShort(d) ?? ""
-                : anyToString(d)
+        return (d: PrimitiveType): string | undefined => {
+            if (!mapConfig.tooltipUseCustomLabels) return undefined
+            // Find the bin (and its label) that this value belongs to
+            const bin = colorScale.getBinForValue(d)
+            const label = bin?.label
+            if (label !== undefined && label !== "") return label
+            else return undefined
         }
     }
 
@@ -620,7 +617,7 @@ export class MapChart
                     <MapTooltip
                         tooltipState={tooltipState}
                         timeSeriesTable={this.inputTable}
-                        formatValue={this.formatTooltipValue}
+                        formatValueIfCustom={this.formatTooltipValueIfCustom}
                         manager={this.manager}
                         colorScaleManager={this}
                         targetTime={this.targetTime}

@@ -35,6 +35,7 @@ import {
     EntityName,
     OwidVariableRow,
     ErrorValue,
+    OwidVariableRoundingMode,
 } from "@ourworldindata/types"
 import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
 import {
@@ -223,8 +224,26 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.originalTimeColumn.formatValue(time)
     }
 
+    @imemo get roundingMode(): OwidVariableRoundingMode {
+        return (
+            this.display?.roundingMode ?? OwidVariableRoundingMode.decimalPlaces
+        )
+    }
+
+    @imemo get roundsToFixedDecimals(): boolean {
+        return this.roundingMode === OwidVariableRoundingMode.decimalPlaces
+    }
+
+    @imemo get roundsToSignificantFigures(): boolean {
+        return this.roundingMode === OwidVariableRoundingMode.significantFigures
+    }
+
     @imemo get numDecimalPlaces(): number {
         return this.display?.numDecimalPlaces ?? 2
+    }
+
+    @imemo get numSignificantFigures(): number {
+        return this.display?.numSignificantFigures ?? 3
     }
 
     @imemo get unit(): string | undefined {
@@ -612,7 +631,9 @@ abstract class AbstractColumnWithNumberFormatting<
     formatValue(value: unknown, options?: TickFormattingOptions): string {
         if (isNumber(value)) {
             return formatValue(value, {
+                roundingMode: this.roundingMode,
                 numDecimalPlaces: this.numDecimalPlaces,
+                numSignificantFigures: this.numSignificantFigures,
                 ...options,
             })
         }
@@ -731,6 +752,7 @@ class IntegerColumn extends NumericColumn {
 class CurrencyColumn extends NumericColumn {
     formatValue(value: unknown, options?: TickFormattingOptions): string {
         return super.formatValue(value, {
+            roundingMode: OwidVariableRoundingMode.decimalPlaces,
             numDecimalPlaces: 0,
             unit: this.shortUnit,
             ...options,

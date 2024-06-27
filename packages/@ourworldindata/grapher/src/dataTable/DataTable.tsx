@@ -13,6 +13,7 @@ import {
     Time,
     EntityName,
     OwidTableSlugs,
+    OwidVariableRoundingMode,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -724,6 +725,7 @@ export class DataTable extends React.Component<{
         return value === undefined
             ? value
             : column.formatValueShort(value, {
+                  roundingMode: OwidVariableRoundingMode.decimalPlaces,
                   numberAbbreviation: false,
                   trailingZeroes: true,
                   useNoBreakSpace: true,

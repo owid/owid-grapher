@@ -32,7 +32,13 @@ import {
     LineLegendManager,
 } from "../lineLegend/LineLegend"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
+import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
+import {
+    Tooltip,
+    TooltipState,
+    TooltipTable,
+    makeTooltipRoundingNotice,
+} from "../tooltip/Tooltip"
 import { rgb } from "d3-color"
 import {
     AbstractStackedChart,
@@ -503,12 +509,22 @@ export class StackedAreaChart
         const hoveredPointIndex = target.index
         const bottomSeriesPoint = series[0].points[hoveredPointIndex]
 
-        const yColumn = this.yColumns[0], // Assumes same type for all columns.
-            formattedTime = yColumn.formatTime(bottomSeriesPoint.position),
-            { unit, shortUnit } = yColumn
+        const formatColumn = this.yColumns[0], // Assumes same type for all columns.
+            formattedTime = formatColumn.formatTime(bottomSeriesPoint.position),
+            { unit, shortUnit } = formatColumn
 
         const lastStackedPoint = last(series)!.points[hoveredPointIndex]
         const totalValue = lastStackedPoint.value + lastStackedPoint.valueOffset
+
+        const roundingNotice = formatColumn.roundsToSignificantFigures
+            ? {
+                  icon: TooltipFooterIcon.none,
+                  text: makeTooltipRoundingNotice([
+                      formatColumn.numSignificantFigures,
+                  ]),
+              }
+            : undefined
+        const footer = excludeUndefined([roundingNotice])
 
         return (
             <Tooltip
@@ -523,10 +539,11 @@ export class StackedAreaChart
                 title={formattedTime}
                 subtitle={unit !== shortUnit ? unit : undefined}
                 subtitleFormat="unit"
+                footer={footer}
                 dissolve={fading}
             >
                 <TooltipTable
-                    columns={[yColumn]}
+                    columns={[formatColumn]}
                     totals={[totalValue]}
                     rows={series
                         .slice()
@@ -544,7 +561,13 @@ export class StackedAreaChart
                                 point?.fake ? undefined : point?.value,
                             ]
 
-                            return { name, swatch, focused, blurred, values }
+                            return {
+                                name,
+                                swatch,
+                                focused,
+                                blurred,
+                                values,
+                            }
                         })}
                 />
             </Tooltip>

@@ -20,6 +20,7 @@ import {
     Tickmark,
     ValueRange,
     cloneDeep,
+    OwidVariableRoundingMode,
 } from "@ourworldindata/utils"
 import { AxisConfig, AxisManager } from "./AxisConfig"
 import { MarkdownTextWrap } from "@ourworldindata/components"
@@ -323,6 +324,7 @@ abstract class AbstractAxis {
     private getTickFormattingOptions(): TickFormattingOptions {
         const options: TickFormattingOptions = {
             ...this.config.tickFormattingOptions,
+            roundingMode: OwidVariableRoundingMode.decimalPlaces,
         }
 
         // The chart's tick formatting function is used by default to format axis ticks. This means

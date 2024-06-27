@@ -2,8 +2,16 @@ import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartDimension } from "@ourworldindata/grapher"
+import { OwidVariableRoundingMode } from "@ourworldindata/types"
+import { startCase } from "@ourworldindata/utils"
 import { ChartEditor, DimensionErrorMessage } from "./ChartEditor.js"
-import { Toggle, BindAutoString, BindAutoFloat, ColorBox } from "./Forms.js"
+import {
+    Toggle,
+    BindAutoString,
+    BindAutoFloat,
+    ColorBox,
+    SelectField,
+} from "./Forms.js"
 import { Link } from "./Link.js"
 import {
     faChevronDown,
@@ -47,6 +55,13 @@ export class DimensionCard extends React.Component<{
 
     @computed get color() {
         return this.props.dimension.column.def.color
+    }
+
+    @computed get roundingMode(): OwidVariableRoundingMode {
+        return (
+            this.props.dimension.display.roundingMode ??
+            OwidVariableRoundingMode.decimalPlaces
+        )
     }
 
     private get tableDisplaySettings() {
@@ -166,13 +181,49 @@ export class DimensionCard extends React.Component<{
                             auto={column.shortUnit ?? ""}
                             onBlur={this.onChange}
                         />
+                        <SelectField
+                            label="Rounding mode"
+                            value={dimension.display.roundingMode}
+                            onValue={(value) => {
+                                const roundingMode =
+                                    value as OwidVariableRoundingMode
+                                this.props.dimension.display.roundingMode =
+                                    roundingMode !==
+                                    OwidVariableRoundingMode.decimalPlaces
+                                        ? roundingMode
+                                        : undefined
+
+                                this.onChange()
+                            }}
+                            options={Object.keys(OwidVariableRoundingMode).map(
+                                (key) => ({
+                                    value: key,
+                                    label: startCase(key),
+                                })
+                            )}
+                        />
+                        {this.roundingMode ===
+                            OwidVariableRoundingMode.significantFigures && (
+                            <BindAutoFloat
+                                label="Number of significant figures"
+                                field="numSignificantFigures"
+                                store={dimension.display}
+                                auto={column.numSignificantFigures}
+                                onBlur={this.onChange}
+                            />
+                        )}
                         <BindAutoFloat
                             label="Number of decimal places"
                             field="numDecimalPlaces"
                             store={dimension.display}
                             auto={column.numDecimalPlaces}
-                            helpText={`A negative number here will round integers`}
                             onBlur={this.onChange}
+                            helpText={
+                                this.roundingMode ===
+                                OwidVariableRoundingMode.significantFigures
+                                    ? "Used in Grapher's table where values are always rounded to a fixed number of decimal places"
+                                    : undefined
+                            }
                         />
                         <BindAutoFloat
                             label="Unit conversion factor"

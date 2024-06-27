@@ -46,7 +46,13 @@ import {
     withMissingValuesAsZeroes,
 } from "../stackedCharts/StackedUtils"
 import { ChartManager } from "../chart/ChartManager"
-import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
+import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
+import {
+    Tooltip,
+    TooltipState,
+    TooltipTable,
+    makeTooltipRoundingNotice,
+} from "../tooltip/Tooltip"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import {
@@ -770,7 +776,22 @@ export class StackedDiscreteBarChart
             hasNotice = item?.bars.some(
                 ({ point }) => !point.fake && point.time !== targetTime
             ),
-            notice = hasNotice ? timeColumn.formatValue(targetTime) : undefined
+            targetNotice = hasNotice
+                ? timeColumn.formatValue(targetTime)
+                : undefined
+
+        const toleranceNotice = targetNotice
+            ? { icon: TooltipFooterIcon.notice, text: targetNotice }
+            : undefined
+        const roundingNotice = this.formatColumn.roundsToSignificantFigures
+            ? {
+                  icon: TooltipFooterIcon.none,
+                  text: makeTooltipRoundingNotice([
+                      this.formatColumn.numSignificantFigures,
+                  ]),
+              }
+            : undefined
+        const footer = excludeUndefined([toleranceNotice, roundingNotice])
 
         return (
             target &&
@@ -786,8 +807,7 @@ export class StackedDiscreteBarChart
                     title={target.entityName}
                     subtitle={unit !== shortUnit ? unit : undefined}
                     subtitleFormat="unit"
-                    footer={notice}
-                    footerFormat="notice"
+                    footer={footer}
                     dissolve={fading}
                 >
                     <TooltipTable

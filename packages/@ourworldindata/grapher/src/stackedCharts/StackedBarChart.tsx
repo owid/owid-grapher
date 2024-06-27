@@ -11,6 +11,7 @@ import {
     colorScaleConfigDefaults,
     dyFromAlign,
     makeIdForHumanConsumption,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import {
     VerticalAxisComponent,
@@ -23,7 +24,13 @@ import {
     VerticalColorLegendManager,
     LegendItem,
 } from "../verticalColorLegend/VerticalColorLegend"
-import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
+import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
+import {
+    Tooltip,
+    TooltipState,
+    TooltipTable,
+    makeTooltipRoundingNotice,
+} from "../tooltip/Tooltip"
 import {
     BASE_FONT_SIZE,
     GRAPHER_AREA_OPACITY_DEFAULT,
@@ -311,8 +318,8 @@ export class StackedBarChart
             hoverTime = hoveredTick.time
         } else return
 
-        const yColumn = yColumns[0], // we can just use the first column for formatting, b/c we assume all columns have same type
-            { unit, shortUnit } = yColumn
+        const formatColumn = yColumns[0], // we can just use the first column for formatting, b/c we assume all columns have same type
+            { unit, shortUnit } = formatColumn
 
         const totalValue = sum(
             series.map(
@@ -320,6 +327,16 @@ export class StackedBarChart
                     points.find((bar) => bar.position === hoverTime)?.value ?? 0
             )
         )
+
+        const roundingNotice = formatColumn.roundsToSignificantFigures
+            ? {
+                  icon: TooltipFooterIcon.none,
+                  text: makeTooltipRoundingNotice([
+                      formatColumn.numSignificantFigures,
+                  ]),
+              }
+            : undefined
+        const footer = excludeUndefined([roundingNotice])
 
         return (
             <Tooltip
@@ -330,13 +347,14 @@ export class StackedBarChart
                 style={{ maxWidth: "500px" }}
                 offsetX={20}
                 offsetY={-16}
-                title={yColumn.formatTime(hoverTime)}
+                title={formatColumn.formatTime(hoverTime)}
                 subtitle={unit !== shortUnit ? unit : undefined}
                 subtitleFormat="unit"
+                footer={footer}
                 dissolve={fading}
             >
                 <TooltipTable
-                    columns={[yColumn]}
+                    columns={[formatColumn]}
                     totals={[totalValue]}
                     rows={series
                         .slice()
@@ -356,7 +374,13 @@ export class StackedBarChart
                                 point?.fake ? undefined : point?.value,
                             ]
 
-                            return { name, swatch, blurred, focused, values }
+                            return {
+                                name,
+                                swatch,
+                                blurred,
+                                focused,
+                                values,
+                            }
                         })}
                 />
             </Tooltip>
