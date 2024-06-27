@@ -997,6 +997,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     title: "LGBT+ Rights",
                 },
                 {
+                    slug: "corruption",
+                    title: "Corruption",
+                },
+                {
                     slug: "economic-inequality-by-gender",
                     title: "Economic Inequality by Gender",
                 },
