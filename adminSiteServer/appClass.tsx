@@ -1,9 +1,8 @@
 import React from "react"
 import { simpleGit } from "simple-git"
 import express, { NextFunction } from "express"
-require("express-async-errors") // todo: why the require
+require("express-async-errors") // todo: why the require?
 import cookieParser from "cookie-parser"
-import "reflect-metadata"
 import http from "http"
 import Bugsnag from "@bugsnag/js"
 import BugsnagPluginExpress from "@bugsnag/plugin-express"
@@ -12,7 +11,6 @@ import {
     BUGSNAG_NODE_API_KEY,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
-import * as wpdb from "../db/wpdb.js"
 import { IndexPage } from "./IndexPage.js"
 import {
     authCloudflareSSOMiddleware,
@@ -233,29 +231,6 @@ export class OwidAdminApp {
                     "Could not connect to grapher database. Continuing without DB..."
                 )
             }
-        }
-
-        if (wpdb.isWordpressDBEnabled) {
-            try {
-                await wpdb.singleton.connect()
-            } catch (error) {
-                if (!this.options.quiet) {
-                    console.error(error)
-                    console.warn(
-                        "Could not connect to Wordpress database. Continuing without Wordpress..."
-                    )
-                }
-            }
-        } else if (!this.options.quiet) {
-            console.log(
-                "WORDPRESS_DB_NAME is not configured -- continuing without Wordpress DB"
-            )
-        }
-
-        if (!wpdb.isWordpressAPIEnabled && !this.options.quiet) {
-            console.log(
-                "WORDPRESS_API_URL is not configured -- continuing without Wordpress API"
-            )
         }
     }
 }
