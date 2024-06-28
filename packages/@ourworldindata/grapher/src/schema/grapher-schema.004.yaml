@@ -482,7 +482,7 @@ properties:
                             type: string
                             description: Long unit text - This is shown in the UI when there is more space (e.g. tooltips) after values
                         roundingMode:
-                            type: enum
+                            type: string
                             description: |
                                 Rounding strategy to use. Supported are rounding to a fixed number of decimals and rounding to significant figures.
                                 If 'decimalPlaces' is selected, then 'numDecimalPlaces' is used. If 'significantFigures' is selected, then 'numSignificantFigures' is used.
