@@ -189,9 +189,16 @@ function AccordionItem({
                                     })
                                 }
 
-                                if (contentRef.current) {
-                                    contentRef.current.focus()
-                                }
+                                // focus on content after the scroll-into-view
+                                // animation has finished (fixes a bug in Safari
+                                // where focus is lost after an accordion item
+                                // is opened and the focus unexpectedly jumps
+                                // to the top of the page on further interactions)
+                                setTimeout(() => {
+                                    if (contentRef.current) {
+                                        contentRef.current.focus()
+                                    }
+                                }, 600)
                             }, HEIGHT_ANIMATION_DURATION_IN_SECONDS * 1000)
                         }
                     }}
