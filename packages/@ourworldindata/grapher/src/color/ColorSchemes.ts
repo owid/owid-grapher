@@ -107,6 +107,7 @@ const initAllSchemes = (): { [key in ColorSchemeName]: ColorScheme } => {
     return colorSchemes as { [key in ColorSchemeName]: ColorScheme }
 }
 
+// TODO: Init lazily
 export const ColorSchemes = initAllSchemes()
 
 export function getColorSchemeForChartType(type: ChartTypeName): {

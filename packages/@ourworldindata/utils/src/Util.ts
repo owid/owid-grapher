@@ -1846,12 +1846,12 @@ export function roundDownToNearestHundred(value: number): number {
     return Math.floor(value / 100) * 100
 }
 
-const commafyFormatter = new Intl.NumberFormat("en-US")
+const commafyFormatter = lazy(() => new Intl.NumberFormat("en-US"))
 /**
  * Example: 12000 -> "12,000"
  */
 export function commafyNumber(value: number): string {
-    return commafyFormatter.format(value)
+    return commafyFormatter().format(value)
 }
 
 export function isFiniteWithGuard(value: unknown): value is number {
@@ -1902,4 +1902,23 @@ export function formatInlineList(
     if (array.length === 0) return ""
     if (array.length === 1) return `${array[0]}`
     return `${array.slice(0, -1).join(", ")} ${connector} ${last(array)}`
+}
+
+// The below comment marks this function as side-effect free, meaning that the bundler
+// can safely remove it if it is not used.
+// This is useful for e.g. constants that are only used in some parts of the codebase.
+// See https://rollupjs.org/configuration-options/#no-side-effects
+// @__NO_SIDE_EFFECTS__
+// Other than that, this function is like lodash's once, in that it'll run fn at most once
+// and then save the result for future calls.
+export function lazy<T>(fn: () => T): () => T {
+    let hasRun = false
+    let _value: T
+    return () => {
+        if (!hasRun) {
+            _value = fn()
+            hasRun = true
+        }
+        return _value
+    }
 }

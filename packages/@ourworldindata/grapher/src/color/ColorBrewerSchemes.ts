@@ -63,6 +63,7 @@ const ColorBrewerSchemeIndex: {
 
 const brewerKeys = Object.keys(colorbrewer) as ColorSchemeName[]
 
+// TODO: Make this into a lazy initialization
 export const ColorBrewerSchemes: ColorSchemeInterface[] = brewerKeys
     .filter((brewerName) => ColorBrewerSchemeIndex[brewerName])
     .map((brewerName) => {

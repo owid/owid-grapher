@@ -123,6 +123,7 @@ export {
     isFiniteWithGuard,
     createTagGraph,
     formatInlineList,
+    lazy,
 } from "./Util.js"
 
 export {
@@ -248,11 +249,11 @@ export {
     getCountryByName,
     getRegionByNameOrVariantName,
     isCountryName,
-    continents,
+    getContinents,
     type Continent,
-    aggregates,
+    getAggregates,
     type Aggregate,
-    others,
+    getOthers,
 } from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"
