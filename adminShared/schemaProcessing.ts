@@ -8,7 +8,7 @@ import {
     isBoolean,
     isNumber,
     mapValues,
-} from "./Util.js"
+} from "@ourworldindata/utils"
 import { compileGetValueFunction } from "./patchHelper.js"
 
 export enum EditorOption {

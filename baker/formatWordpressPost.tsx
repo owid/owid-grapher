@@ -5,12 +5,8 @@ import ReactDOMServer from "react-dom/server.js"
 import { HTTPS_ONLY } from "../settings/serverSettings.js"
 import { GrapherExports } from "../baker/GrapherBakingUtils.js"
 import { FormattingOptions } from "@ourworldindata/types"
-import {
-    FormattedPost,
-    FullPost,
-    TocHeading,
-    parseKeyValueArgs,
-} from "@ourworldindata/utils"
+import { FormattedPost, FullPost, TocHeading } from "@ourworldindata/utils"
+import { parseKeyValueArgs } from "../serverUtils/wordpressUtils.js"
 import { Footnote } from "../site/Footnote.js"
 import { LoadingIndicator } from "@ourworldindata/grapher"
 import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink.js"

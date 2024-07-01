@@ -29,23 +29,14 @@ import {
 } from "../db/model/Variable.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
-    applyPatch,
-    BulkChartEditResponseRow,
-    BulkGrapherConfigResponse,
     camelCaseProperties,
-    chartBulkUpdateAllowedColumnNamesAndTypes,
     GdocsContentSource,
-    GrapherConfigPatch,
     isEmpty,
     JsonError,
-    OperationContext,
     OwidGdocPostInterface,
     parseIntOrUndefined,
-    parseToOperation,
     DbRawPostWithGdocPublishStatus,
     SuggestedChartRevisionStatus,
-    variableAnnotationAllowedColumnNamesAndTypes,
-    VariableAnnotationsResponseRow,
     OwidVariableWithSource,
     OwidChartDimensionInterface,
     DimensionProperty,
@@ -56,6 +47,19 @@ import {
     checkIsGdocPostExcludingFragments,
     checkIsPlainObjectWithGuard,
 } from "@ourworldindata/utils"
+import { applyPatch } from "../adminShared/patchHelper.js"
+import {
+    OperationContext,
+    parseToOperation,
+} from "../adminShared/SqlFilterSExpression.js"
+import {
+    BulkChartEditResponseRow,
+    BulkGrapherConfigResponse,
+    chartBulkUpdateAllowedColumnNamesAndTypes,
+    GrapherConfigPatch,
+    variableAnnotationAllowedColumnNamesAndTypes,
+    VariableAnnotationsResponseRow,
+} from "../adminShared/AdminSessionTypes.js"
 import {
     DbPlainDatasetTag,
     GrapherInterface,

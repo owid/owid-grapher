@@ -1,4 +1,4 @@
-import { drop, escapeRegExp, sortBy } from "./Util.js"
+import { drop, escapeRegExp, sortBy } from "@ourworldindata/utils"
 import React from "react"
 
 export interface SearchWord {

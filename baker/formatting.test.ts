@@ -3,7 +3,7 @@
 import {
     parseFormattingOptions,
     parseKeyValueArgs,
-} from "@ourworldindata/utils"
+} from "../serverUtils/wordpressUtils.js"
 
 it("parses formatting options", () => {
     const formattingOptions =

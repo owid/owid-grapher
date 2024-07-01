@@ -47,9 +47,9 @@ import {
     OwidGdocType,
     OwidGdoc,
     OwidGdocDataInsightInterface,
-    extractFormattingOptions,
     DbRawPost,
 } from "@ourworldindata/utils"
+import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
