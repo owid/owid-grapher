@@ -32,8 +32,10 @@ export async function runDetailsOnDemand() {
     document.addEventListener("touchstart", handleEvent, { passive: true })
 
     function handleEvent(event: MouseEvent | TouchEvent) {
-        const target = event.target as Tippyfied<Element>
-        if (target?.classList.contains("dod-span")) {
+        const target = event.target as Tippyfied<Node>
+        if (!(target instanceof Element)) return
+
+        if (target.classList.contains("dod-span")) {
             const id = target.attributes.getNamedItem("data-id")?.nodeValue
             if (!id) return
             showDod(id, target)
