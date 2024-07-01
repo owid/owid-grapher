@@ -1,16 +1,18 @@
 import { invert, lazy, regions } from "@ourworldindata/utils"
 import { EntityName } from "@ourworldindata/types"
 
-const entityCodesToEntityNames: () => Record<string, string> = lazy(() =>
+const getEntityCodesToEntityNames: () => Record<string, string> = lazy(() =>
     Object.fromEntries(regions.map(({ code, name }) => [code, name]))
 )
 
-const entityNamesToEntityCodes = lazy(() => invert(entityCodesToEntityNames()))
+const getEntityNamesToEntityCodes = lazy(() =>
+    invert(getEntityCodesToEntityNames())
+)
 
 export const codeToEntityName = (codeOrEntityName: string): EntityName => {
-    return entityCodesToEntityNames()[codeOrEntityName] ?? codeOrEntityName
+    return getEntityCodesToEntityNames()[codeOrEntityName] ?? codeOrEntityName
 }
 
 export const entityNameToCode = (entityName: EntityName): string => {
-    return entityNamesToEntityCodes()[entityName] ?? entityName
+    return getEntityNamesToEntityCodes()[entityName] ?? entityName
 }

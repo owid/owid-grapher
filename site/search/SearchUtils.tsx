@@ -31,7 +31,7 @@ import {
  * -- @marcelgerber, 2024-06-18
  */
 
-const regionNameRegex = lazy(() => {
+const getRegionNameRegex = lazy(() => {
     const allCountryNamesAndVariants = lazy(() =>
         regions.flatMap((c) => [
             c.name,
@@ -47,7 +47,7 @@ const regionNameRegex = lazy(() => {
 })
 
 export const extractRegionNamesFromSearchQuery = (query: string) => {
-    const matches = query.matchAll(regionNameRegex())
+    const matches = query.matchAll(getRegionNameRegex())
     const regionNames = Array.from(matches, (match) => match[0])
     if (regionNames.length === 0) return null
     return regionNames.map(getRegionByNameOrVariantName) as Region[]

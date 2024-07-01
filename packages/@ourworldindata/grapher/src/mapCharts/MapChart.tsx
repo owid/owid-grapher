@@ -51,10 +51,7 @@ import {
 } from "../color/ColorScaleBin"
 import * as topojson from "topojson-client"
 import { MapTopology } from "./MapTopology"
-import {
-    WorldRegionName,
-    WorldRegionToProjection,
-} from "./WorldRegionsToProjection"
+import { getCountryToProjectionMap } from "./WorldRegionsToProjection"
 import {
     ColorSchemeName,
     MapProjectionName,
@@ -761,10 +758,7 @@ class ChoroplethMap extends React.Component<{
 
         return features.filter(
             (feature) =>
-                projection ===
-                (WorldRegionToProjection()[
-                    feature.id as WorldRegionName
-                ] as any as MapProjectionName)
+                projection === getCountryToProjectionMap().get(feature.id)
         )
     }
 

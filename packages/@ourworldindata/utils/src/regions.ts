@@ -52,19 +52,19 @@ export const countries: Country[] = regions.filter(
         !entity.isHistorical
 ) as Country[]
 
-export const others = lazy(
+export const getOthers = lazy(
     () =>
         entities.filter((entity) => entity.regionType === "other") as Country[]
 )
 
-export const aggregates = lazy(
+export const getAggregates = lazy(
     () =>
         entities.filter(
             (entity) => entity.regionType === "aggregate"
         ) as Aggregate[]
 )
 
-export const continents = lazy(
+export const getContinents = lazy(
     () =>
         entities.filter(
             (entity) => entity.regionType === "continent"
@@ -79,16 +79,21 @@ const countriesBySlug = lazy(() =>
     Object.fromEntries(countries.map((country) => [country.slug, country]))
 )
 
-const regionsByNameOrVariantNameLowercase: Map<string, Region> = new Map(
-    regions.flatMap((region) => {
-        const names = [region.name.toLowerCase()]
-        if ("variantNames" in region && region.variantNames) {
-            names.push(
-                ...region.variantNames.map((variant) => variant.toLowerCase())
-            )
-        }
-        return names.map((name) => [name, region])
-    })
+const regionsByNameOrVariantNameLowercase = lazy(
+    () =>
+        new Map(
+            regions.flatMap((region) => {
+                const names = [region.name.toLowerCase()]
+                if ("variantNames" in region && region.variantNames) {
+                    names.push(
+                        ...region.variantNames.map((variant) =>
+                            variant.toLowerCase()
+                        )
+                    )
+                }
+                return names.map((name) => [name, region])
+            })
+        )
 )
 
 const currentAndHistoricalCountryNames = lazy(() =>
@@ -109,4 +114,4 @@ export const getCountryBySlug = (slug: string): Country | undefined =>
 export const getRegionByNameOrVariantName = (
     nameOrVariantName: string
 ): Region | undefined =>
-    regionsByNameOrVariantNameLowercase.get(nameOrVariantName.toLowerCase())
+    regionsByNameOrVariantNameLowercase().get(nameOrVariantName.toLowerCase())
