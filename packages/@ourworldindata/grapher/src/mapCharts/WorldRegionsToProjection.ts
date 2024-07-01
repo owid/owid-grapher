@@ -25,5 +25,6 @@ const countriesByProjectionMap = lazy(
         )
 )
 
-export const getCountriesByProjection = (projection: MapProjectionName) =>
-    countriesByProjectionMap().get(projection)
+export const getCountriesByProjection = (
+    projection: MapProjectionName
+): Set<string> | undefined => countriesByProjectionMap().get(projection)
