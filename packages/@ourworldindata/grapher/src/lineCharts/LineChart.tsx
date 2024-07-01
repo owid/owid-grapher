@@ -1000,8 +1000,8 @@ export class LineChart
     @computed private get colorScheme(): ColorScheme {
         return (
             (this.manager.baseColorScheme
-                ? ColorSchemes[this.manager.baseColorScheme]
-                : null) ?? ColorSchemes[this.defaultBaseColorScheme]
+                ? ColorSchemes.get(this.manager.baseColorScheme)
+                : null) ?? ColorSchemes.get(this.defaultBaseColorScheme)
         )
     }
 

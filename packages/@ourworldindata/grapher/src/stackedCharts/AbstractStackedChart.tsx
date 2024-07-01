@@ -3,6 +3,7 @@ import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import {
+    ColorSchemeName,
     FacetStrategy,
     MissingDataStrategy,
     SeriesStrategy,
@@ -319,8 +320,9 @@ export class AbstractStackedChart
         return new CategoricalColorAssigner({
             colorScheme:
                 (this.manager.baseColorScheme
-                    ? ColorSchemes[this.manager.baseColorScheme]
-                    : null) ?? ColorSchemes.stackedAreaDefault,
+                    ? ColorSchemes.get(this.manager.baseColorScheme)
+                    : null) ??
+                ColorSchemes.get(ColorSchemeName.stackedAreaDefault),
             invertColorScheme: this.manager.invertColorScheme,
             colorMap: this.isEntitySeries
                 ? this.inputTable.entityNameColorIndex

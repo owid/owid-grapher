@@ -23,7 +23,11 @@ import {
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { FacetStrategy, SeriesName } from "@ourworldindata/types"
+import {
+    ColorSchemeName,
+    FacetStrategy,
+    SeriesName,
+} from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     GRAPHER_AREA_OPACITY_DEFAULT,
@@ -872,8 +876,8 @@ export class StackedDiscreteBarChart
     @computed private get colorScheme(): ColorScheme {
         return (
             (this.manager.baseColorScheme
-                ? ColorSchemes[this.manager.baseColorScheme]
-                : null) ?? ColorSchemes["owid-distinct"]
+                ? ColorSchemes.get(this.manager.baseColorScheme)
+                : null) ?? ColorSchemes.get(ColorSchemeName["owid-distinct"])
         )
     }
 

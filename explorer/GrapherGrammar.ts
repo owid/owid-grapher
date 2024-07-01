@@ -1,12 +1,12 @@
 import {
     ChartTypeName,
+    ColorSchemeName,
     FacetAxisDomain,
     FacetStrategy,
     GrapherTabOption,
     MissingDataStrategy,
     StackMode,
 } from "@ourworldindata/types"
-import { ColorSchemes } from "@ourworldindata/grapher"
 import { SortBy, SortOrder } from "@ourworldindata/utils"
 import {
     GridBoolean,
@@ -181,7 +181,7 @@ export const GrapherGrammar: Grammar = {
         keyword: "baseColorScheme",
         description:
             "The default color scheme if no color overrides are specified",
-        terminalOptions: toTerminalOptions(Object.keys(ColorSchemes)),
+        terminalOptions: toTerminalOptions(Object.keys(ColorSchemeName)),
     },
     note: {
         ...StringCellDef,

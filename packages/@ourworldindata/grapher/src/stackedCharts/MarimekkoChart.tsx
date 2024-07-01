@@ -481,8 +481,9 @@ export class MarimekkoChart
     @computed private get colorScheme(): ColorScheme {
         return (
             (this.manager.baseColorScheme
-                ? ColorSchemes[this.manager.baseColorScheme]
-                : undefined) ?? ColorSchemes["owid-distinct"]
+                ? ColorSchemes.get(this.manager.baseColorScheme)
+                : undefined) ??
+            ColorSchemes.get(ColorSchemeName["owid-distinct"])
         )
     }
 

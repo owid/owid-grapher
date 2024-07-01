@@ -733,8 +733,8 @@ export class DiscreteBarChart
         const defaultColorScheme = this.defaultBaseColorScheme
         const colorScheme = this.manager.baseColorScheme ?? defaultColorScheme
         return this.manager.isLineChart
-            ? ColorSchemes[defaultColorScheme]
-            : ColorSchemes[colorScheme]
+            ? ColorSchemes.get(defaultColorScheme)
+            : ColorSchemes.get(colorScheme)
     }
 
     @computed private get valuesToColorsMap(): Map<number, string> {
