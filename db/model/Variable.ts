@@ -19,6 +19,7 @@ import {
     DimensionProperty,
     GrapherInterface,
     DbRawVariable,
+    VariablesTableName,
 } from "@ourworldindata/types"
 import { knexRaw } from "../db.js"
 
@@ -577,4 +578,24 @@ export interface VariableResultView {
     dataset: string
     table: string
     shortName: string
+}
+
+export const getVariableIdsByCatalogPath = async (
+    catalogPaths: string[],
+    knex: db.KnexReadonlyTransaction
+): Promise<Map<string, number | null>> => {
+    const rows: Pick<DbRawVariable, "id" | "catalogPath">[] = await knex
+        .select("id", "catalogPath")
+        .from(VariablesTableName)
+        .whereIn("catalogPath", catalogPaths)
+
+    const rowsByPath = _.keyBy(rows, "catalogPath")
+
+    // `rowsByPath` only contains the rows that were found, so we need to create
+    // a map where all keys from `catalogPaths` are present, and set the value to
+    // undefined if no row was found for that catalog path.
+    return new Map(
+        // Sort for good measure and determinism.
+        catalogPaths.sort().map((path) => [path, rowsByPath[path]?.id ?? null])
+    )
 }

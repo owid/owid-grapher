@@ -2,7 +2,6 @@ import {
     CoreMatrix,
     ColumnTypeNames,
     CoreTableInputOption,
-    CoreValueType,
     OwidColumnDef,
     TableSlug,
     SubNavId,
@@ -53,9 +52,9 @@ interface ExplorerGrapherInterface extends GrapherInterface {
     grapherId?: number
     tableSlug?: string
     yVariableIds?: string
-    xVariableId?: number
-    colorVariableId?: number
-    sizeVariableId?: number
+    xVariableId?: string
+    colorVariableId?: string
+    sizeVariableId?: string
     yScaleToggle?: boolean
     yAxisMin?: number
     facetYDomain?: FacetAxisDomain
@@ -475,33 +474,31 @@ export const trimAndParseObject = (config: any, grammar: Grammar) => {
 }
 
 const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
+    /**
+     * A column def line can have:
+     * - a column named `variableId`, which contains a variable id
+     * - a column named `slug`, which is the referenced column in its data file
+     *
+     * We want to filter out any rows that contain neither of those, and we also
+     * want to rename `variableId` to `owidVariableId`.
+     */
     const columnsTable = new CoreTable(block)
         .appendColumnsIfNew([
             { slug: "slug", type: ColumnTypeNames.String, name: "slug" },
             {
                 slug: "variableId",
-                type: ColumnTypeNames.Numeric,
+                type: ColumnTypeNames.Integer,
                 name: "variableId",
             },
         ])
         .renameColumn("variableId", "owidVariableId")
-        .combineColumns(
-            ["slug", "owidVariableId"],
-            {
-                slug: "slugOrVariableId",
-                type: ColumnTypeNames.String,
-                name: "slugOrVariableId",
-            },
-            (values) => values.slug || values.owidVariableId?.toString()
-        )
-        .columnFilter(
-            "slugOrVariableId",
-            (value: CoreValueType) => !!value,
+        // Filter out rows that neither have a slug nor an owidVariableId
+        .rowFilter(
+            (row) => !!(row.slug || typeof row.owidVariableId === "number"),
             "Keep only column defs with a slug or variable id"
         )
-        .dropColumns(["slugOrVariableId"])
     return columnsTable.rows.map((row) => {
-        // ignore slug if a variable id is given
+        // ignore slug if variable id is given
         if (
             row.owidVariableId &&
             isNotErrorValue(row.owidVariableId) &&

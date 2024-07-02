@@ -91,6 +91,7 @@ import {
     getAndLoadGdocBySlug,
     getAndLoadGdocById,
 } from "../db/model/Gdoc/GdocFactory.js"
+import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerBaker.js"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
@@ -691,12 +692,34 @@ export const renderReusableBlock = async (
     return cheerioEl("body").html() ?? undefined
 }
 
+interface ExplorerRenderOpts {
+    urlMigrationSpec?: ExplorerPageUrlMigrationSpec
+    isPreviewing?: boolean
+}
+
 export const renderExplorerPage = async (
     program: ExplorerProgram,
     knex: KnexReadonlyTransaction,
-    urlMigrationSpec?: ExplorerPageUrlMigrationSpec
+    opts?: ExplorerRenderOpts
 ) => {
-    const { requiredGrapherIds, requiredVariableIds } = program.decisionMatrix
+    const transformResult = await transformExplorerProgramToResolveCatalogPaths(
+        program,
+        knex
+    )
+    const { program: transformedProgram, unresolvedCatalogPaths } =
+        transformResult
+    if (unresolvedCatalogPaths?.size) {
+        const errMessage = new JsonError(
+            `${unresolvedCatalogPaths.size} catalog paths cannot be found for explorer ${transformedProgram.slug}: ${[...unresolvedCatalogPaths].join(", ")}.`
+        )
+        if (opts?.isPreviewing) console.error(errMessage)
+        else void logErrorAndMaybeSendToBugsnag(errMessage)
+    }
+
+    // This needs to run after transformExplorerProgramToResolveCatalogPaths, so that the catalog paths
+    // have already been resolved and all the required grapher and variable IDs are available
+    const { requiredGrapherIds, requiredVariableIds } =
+        transformedProgram.decisionMatrix
 
     type ChartRow = { id: number; config: string }
     let grapherConfigRows: ChartRow[] = []
@@ -726,7 +749,7 @@ export const renderExplorerPage = async (
         if (missingIds.length > 0) {
             void logErrorAndMaybeSendToBugsnag(
                 new JsonError(
-                    `Referenced variable IDs do not exist in the database for explorer ${program.slug}: ${missingIds.join(", ")}.`
+                    `Referenced variable IDs do not exist in the database for explorer ${transformedProgram.slug}: ${missingIds.join(", ")}.`
                 )
             )
         }
@@ -758,10 +781,13 @@ export const renderExplorerPage = async (
             return mergePartialGrapherConfigs(etlConfig, adminConfig)
         })
 
-    const wpContent = program.wpBlockId
+    const wpContent = transformedProgram.wpBlockId
         ? await renderReusableBlock(
-              await getBlockContentFromSnapshot(knex, program.wpBlockId),
-              program.wpBlockId,
+              await getBlockContentFromSnapshot(
+                  knex,
+                  transformedProgram.wpBlockId
+              ),
+              transformedProgram.wpBlockId,
               knex
           )
         : undefined
@@ -772,10 +798,11 @@ export const renderExplorerPage = async (
             <ExplorerPage
                 grapherConfigs={grapherConfigs}
                 partialGrapherConfigs={partialGrapherConfigs}
-                program={program}
+                program={transformedProgram}
                 wpContent={wpContent}
                 baseUrl={BAKED_BASE_URL}
-                urlMigrationSpec={urlMigrationSpec}
+                urlMigrationSpec={opts?.urlMigrationSpec}
+                isPreviewing={opts?.isPreviewing}
             />
         )
     )

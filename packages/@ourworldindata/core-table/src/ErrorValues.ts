@@ -28,6 +28,7 @@ class FilteredValue extends ErrorValue {}
 class NoValueForInterpolation extends ErrorValue {}
 class InvalidQuarterValue extends ErrorValue {}
 class InvalidNegativeValue extends ErrorValue {}
+class NoMatchingVariableId extends ErrorValue {}
 
 // todo: if we don't export this, get an error in Transforms. should be fixable, see: https://github.com/microsoft/TypeScript/issues/5711
 export class MissingValuePlaceholder extends ErrorValue {}
@@ -53,6 +54,7 @@ export const ErrorValueTypes = {
     NoValueForInterpolation: new NoValueForInterpolation(),
     InvalidQuarterValue: new InvalidQuarterValue(),
     InvalidNegativeValue: new InvalidNegativeValue(),
+    NoMatchingVariableId: new NoMatchingVariableId(),
 }
 
 // https://github.com/robertmassaioli/ts-is-present
