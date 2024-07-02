@@ -142,7 +142,7 @@ export class DecisionMatrix {
         )
     }
 
-    get allColumnsWithIndicatorIds() {
+    get allColumnsWithIndicatorIdsOrCatalogPaths() {
         const indicatorColKeywords = [
             GrapherGrammar.yVariableIds.keyword,
             GrapherGrammar.xVariableId.keyword,
@@ -155,7 +155,7 @@ export class DecisionMatrix {
     }
 
     get requiredCatalogPaths(): Set<string> {
-        const allIndicators = this.allColumnsWithIndicatorIds
+        const allIndicators = this.allColumnsWithIndicatorIdsOrCatalogPaths
             .flatMap((col) => col.uniqValues)
             .flatMap((value) => value.split(" "))
             .filter((value) => value !== "")
@@ -169,6 +169,7 @@ export class DecisionMatrix {
     }
 
     // This is, basically, the inverse of `dropColumnTypes`.
+    // Turns a column named "Metric" back into "Metric Dropdown", for example.
     get tableWithOriginalColumnNames() {
         return this.table.renameColumns(
             Object.fromEntries(

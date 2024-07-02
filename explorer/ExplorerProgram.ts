@@ -478,7 +478,7 @@ export const trimAndParseObject = (config: any, grammar: Grammar) => {
 const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
     /**
      * This is messy at this point, but what's going on is that a column def line can have:
-     * - a column named `variableId`, which either contains a variable id or an ETL path
+     * - a column named `variableId`, contains a variable id or an ETL path
      * - a column named `slug`, which is the referenced column in its data file
      *
      * We want to filter out any rows that contain neither of those, and we also want to turn `variableId`
@@ -490,56 +490,21 @@ const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
             { slug: "slug", type: ColumnTypeNames.String, name: "slug" },
             {
                 slug: "variableId",
-                type: ColumnTypeNames.String,
+                type: ColumnTypeNames.Integer,
                 name: "variableId",
             },
         ])
-
-        // Rename column to be less of a misnomer :)
-        .renameColumn("variableId", "owidVariableIdOrCatalogPath")
-
-        // Extract integer variable IDs from owidVariableIdOrCatalogPath
-        .duplicateColumn("owidVariableIdOrCatalogPath", {
-            slug: "owidVariableId",
-            name: "owidVariableId",
-            type: ColumnTypeNames.Integer,
-        })
-        .replaceCells(["owidVariableId"], (cell) => {
-            if (typeof cell === "number") return cell
-            if (typeof cell === "string")
-                return (
-                    parseIntOrUndefined(cell) ?? ErrorValueTypes.FilteredValue
-                )
-            return ErrorValueTypes.FilteredValue
-        })
-
-        // Extract non-integer catalog paths from owidVariableIdOrCatalogPath
-        .duplicateColumn("owidVariableIdOrCatalogPath", {
-            slug: "catalogPath",
-            name: "catalogPath",
-            type: ColumnTypeNames.String,
-        })
-        .replaceCells(["catalogPath"], (cell) =>
-            typeof cell === "string" && parseIntOrUndefined(cell) === undefined
-                ? cell
-                : ErrorValueTypes.FilteredValue
-        )
-
-        // Filter out rows that don't have any of these values present
+        .renameColumn("variableId", "owidVariableId")
+        // Filter out rows that neither have a slug nor an owidVariableId
         .rowFilter(
-            (row) =>
-                !!(
-                    row.slug ||
-                    typeof row.owidVariableId === "number" ||
-                    row.catalogPath
-                ),
+            (row) => !!(row.slug || typeof row.owidVariableId === "number"),
             "Keep only column defs with a slug or variable id"
         )
     return columnsTable.rows.map((row) => {
         // ignore slug if variable id or catalog path is given
         if (
-            row.owidVariableIdOrCatalogPath &&
-            isNotErrorValue(row.owidVariableIdOrCatalogPath) &&
+            row.owidVariableId &&
+            isNotErrorValue(row.owidVariableId) &&
             row.slug
         )
             delete row.slug

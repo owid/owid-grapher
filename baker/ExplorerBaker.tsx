@@ -38,9 +38,10 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
         )
     )
 
-    const colSlugsToUpdate = decisionMatrix.allColumnsWithIndicatorIds.map(
-        (col) => col.slug
-    )
+    const colSlugsToUpdate =
+        decisionMatrix.allColumnsWithIndicatorIdsOrCatalogPaths.map(
+            (col) => col.slug
+        )
     // In the decision matrix table, replace any catalog paths with their corresponding indicator ids
     // If a catalog path is not found, it will be left as is
     const newDecisionMatrixTable =
