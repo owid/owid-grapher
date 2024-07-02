@@ -91,7 +91,6 @@ import {
     getAndLoadGdocBySlug,
     getAndLoadGdocById,
 } from "../db/model/Gdoc/GdocFactory.js"
-import { getVariableIdsByCatalogPath } from "../db/model/Variable.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerBaker.js"
 
 export const renderToHtmlPage = (element: any) =>
@@ -712,6 +711,8 @@ export const renderExplorerPage = async (
         )
     }
 
+    // This needs to run after transformExplorerProgramToResolveCatalogPaths, so that the catalog paths
+    // have already been resolved and all the required grapher and variable IDs are available
     const { requiredGrapherIds, requiredVariableIds } =
         transformedProgram.decisionMatrix
 

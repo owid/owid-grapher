@@ -60,19 +60,31 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
                 return val
             }
         )
+
+    // Write the result to the "graphers" block
     const grapherBlockLine = program.getRowMatchingWords(
         ExplorerGrammar.graphers.keyword
     )
+    if (grapherBlockLine === -1)
+        throw new Error(
+            `"graphers" block not found in explorer ${program.slug}`
+        )
     const newProgram = program.updateBlock(
         grapherBlockLine,
         newDecisionMatrixTable.toMatrix()
     )
 
-    program.columnDefsByTableSlug.forEach((columnDefs, tableSlug) => {
+    // Next, we also need to update the "columns" block of the explorer
+    program.columnDefsByTableSlug.forEach((_columnDefs, tableSlug) => {
         const lineNoInProgram = newProgram.getRowMatchingWords(
             ExplorerGrammar.columns.keyword,
             tableSlug
         )
+        // This should, in theory, never happen because columnDefsByTableSlug gets generated from such a block
+        if (lineNoInProgram === -1)
+            throw new Error(
+                `Column defs not found for explorer ${program.slug} and table ${tableSlug}`
+            )
         const columnDefTable = new CoreTable(
             newProgram.getBlock(lineNoInProgram)
         )
@@ -83,7 +95,7 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
             ],
             {
                 slug: ColumnGrammar.variableId.keyword,
-                type: ColumnTypeNames.Numeric,
+                type: ColumnTypeNames.Integer,
             },
             (row) => {
                 const variableId = row[ColumnGrammar.variableId.keyword]
@@ -105,7 +117,7 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
         newProgram.updateBlock(lineNoInProgram, newColumnDefsTable.toMatrix())
     })
 
-    return { program: newProgram, unresolvedCatalogPaths }
+    return { program: newProgram.clone, unresolvedCatalogPaths }
 }
 
 export const bakeAllPublishedExplorers = async (

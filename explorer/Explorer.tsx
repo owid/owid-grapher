@@ -534,22 +534,28 @@ export class Explorer
             })
         })
         if (xVariableId) {
-            dimensions.push({
-                variableId: xVariableId,
-                property: DimensionProperty.x,
-            })
+            const maybeXVariableId = parseIntOrUndefined(xVariableId)
+            if (maybeXVariableId !== undefined)
+                dimensions.push({
+                    variableId: maybeXVariableId,
+                    property: DimensionProperty.x,
+                })
         }
         if (colorVariableId) {
-            dimensions.push({
-                variableId: colorVariableId,
-                property: DimensionProperty.color,
-            })
+            const maybeColorVariableId = parseIntOrUndefined(colorVariableId)
+            if (maybeColorVariableId !== undefined)
+                dimensions.push({
+                    variableId: maybeColorVariableId,
+                    property: DimensionProperty.color,
+                })
         }
         if (sizeVariableId) {
-            dimensions.push({
-                variableId: sizeVariableId,
-                property: DimensionProperty.size,
-            })
+            const maybeSizeVariableId = parseIntOrUndefined(sizeVariableId)
+            if (maybeSizeVariableId !== undefined)
+                dimensions.push({
+                    variableId: maybeSizeVariableId,
+                    property: DimensionProperty.size,
+                })
         }
 
         // Slugs that are used to create a chart refer to columns derived from variables
