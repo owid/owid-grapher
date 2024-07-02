@@ -32,7 +32,7 @@ export async function getUserByEmail(
 export async function insertUser(
     knex: KnexReadWriteTransaction,
     user: DbInsertUser
-): Promise<void> {
+): Promise<number[]> {
     return knex(UsersTableName).insert(user)
 }
 

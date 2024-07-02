@@ -1,0 +1,2584 @@
+{
+    "config": {
+        "url": "https://docs.googleapis.com/v1/documents/1wwQxA5gmmP-sLy0LfV4EJ-pdrh7YYIAe8UTaj2uhIC0?suggestionsViewMode=PREVIEW_WITHOUT_SUGGESTIONS",
+        "method": "GET",
+        "userAgentDirectives": [
+            {
+                "product": "google-api-nodejs-client",
+                "version": "6.0.3",
+                "comment": "gzip"
+            }
+        ],
+        "headers": {
+            "x-goog-api-client": "gdcl/6.0.3 gl-node/18.16.0 auth/8.5.2",
+            "Accept-Encoding": "gzip",
+            "User-Agent": "google-api-nodejs-client/6.0.3 (gzip)",
+            "Accept": "application/json"
+        },
+        "params": {
+            "suggestionsViewMode": "PREVIEW_WITHOUT_SUGGESTIONS"
+        },
+        "retry": true,
+        "responseType": "json"
+    },
+    "data": {
+        "title": "Daniel test article",
+        "body": {
+            "content": [
+                {
+                    "endIndex": 1,
+                    "sectionBreak": {
+                        "sectionStyle": {
+                            "columnSeparatorStyle": "NONE",
+                            "contentDirection": "LEFT_TO_RIGHT",
+                            "sectionType": "CONTINUOUS"
+                        }
+                    }
+                },
+                {
+                    "startIndex": 1,
+                    "endIndex": 22,
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "startIndex": 1,
+                                "endIndex": 22,
+                                "textRun": {
+                                    "content": "Title: Basic article\n",
+                                    "textStyle": {
+                                        "foregroundColor": {
+                                            "color": {
+                                                "rgbColor": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "paragraphStyle": {
+                            "namedStyleType": "NORMAL_TEXT",
+                            "lineSpacing": 115,
+                            "direction": "LEFT_TO_RIGHT",
+                            "spacingMode": "COLLAPSE_LISTS",
+                            "spaceBelow": {
+                                "unit": "PT"
+                            }
+                        }
+                    }
+                },
+                {
+                    "startIndex": 22,
+                    "endIndex": 69,
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "startIndex": 22,
+                                "endIndex": 69,
+                                "textRun": {
+                                    "content": "Subtitle: This will be shown beneath the title\n",
+                                    "textStyle": {
+                                        "foregroundColor": {
+                                            "color": {
+                                                "rgbColor": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "paragraphStyle": {
+                            "namedStyleType": "NORMAL_TEXT",
+                            "lineSpacing": 115,
+                            "direction": "LEFT_TO_RIGHT",
+                            "spacingMode": "COLLAPSE_LISTS",
+                            "spaceBelow": {
+                                "unit": "PT"
+                            }
+                        }
+                    }
+                },
+                {
+                    "startIndex": 69,
+                    "endIndex": 122,
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "startIndex": 69,
+                                "endIndex": 122,
+                                "textRun": {
+                                    "content": "Excerpt: This will be shown on social media previews\n",
+                                    "textStyle": {
+                                        "foregroundColor": {
+                                            "color": {
+                                                "rgbColor": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "paragraphStyle": {
+                            "namedStyleType": "NORMAL_TEXT",
+                            "lineSpacing": 115,
+                            "direction": "LEFT_TO_RIGHT",
+                            "spacingMode": "COLLAPSE_LISTS",
+                            "spaceBelow": {
+                                "unit": "PT"
+                            }
+                        }
+                    }
+                },
+                {
+                    "startIndex": 122,
+                    "endIndex": 149,
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "startIndex": 122,
+                                "endIndex": 149,
+                                "textRun": {
+                                    "content": "authors: Our World In Data\n",
+                                    "textStyle": {
+                                        "foregroundColor": {
+                                            "color": {
+                                                "rgbColor": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "paragraphStyle": {
+                            "namedStyleType": "NORMAL_TEXT",
+                            "lineSpacing": 115,
+                            "direction": "LEFT_TO_RIGHT",
+                            "spacingMode": "COLLAPSE_LISTS",
+                            "spaceBelow": {
+                                "unit": "PT"
+                            }
+                        }
+                    }
+                },
+                {
+                    "startIndex": 149,
+                    "endIndex": 175,
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "startIndex": 149,
+                                "endIndex": 175,
+                                "textRun": {
+                                    "content": "dateline: January 1, 2023\n",
+                                    "textStyle": {
+                                        "foregroundColor": {
+                                            "color": {
+                                                "rgbColor": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "paragraphStyle": {
+                            "namedStyleType": "NORMAL_TEXT",
+                            "lineSpacing": 115,
+                            "direction": "LEFT_TO_RIGHT",
+                            "spacingMode": "COLLAPSE_LISTS",
+                            "spaceBelow": {
+                                "unit": "PT"
+                            }
+                        }
+                    }
+                },
+                {
+                    "startIndex": 175,
+                    "endIndex": 190,
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "startIndex": 175,
+                                "endIndex": 190,
+                                "textRun": {
+                                    "content": "type: article \n",
+                                    "textStyle": {
+                                        "foregroundColor": {
+                                            "color": {
+                                                "rgbColor": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "paragraphStyle": {
+                            "namedStyleType": "NORMAL_TEXT",
+                            "lineSpacing": 115,
+                            "direction": "LEFT_TO_RIGHT",
+                            "spacingMode": "COLLAPSE_LISTS",
+                            "spaceBelow": {
+                                "unit": "PT"
+                            }
+                        }
+                    }
+                },
+                {
+                    "startIndex": 190,
+                    "endIndex": 191,
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "startIndex": 190,
+                                "endIndex": 191,
+                                "textRun": {
+                                    "content": "\n",
+                                    "textStyle": {
+                                        "foregroundColor": {
+                                            "color": {
+                                                "rgbColor": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "paragraphStyle": {
+                            "namedStyleType": "NORMAL_TEXT",
+                            "lineSpacing": 115,
+                            "direction": "LEFT_TO_RIGHT",
+                            "spacingMode": "COLLAPSE_LISTS",
+                            "spaceBelow": {
+                                "unit": "PT"
+                            }
+                        }
+                    }
+                },
+                {
+                    "startIndex": 191,
+                    "endIndex": 199,
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "startIndex": 191,
+                                "endIndex": 199,
+                                "textRun": {
+                                    "content": "[+body]\n",
+                                    "textStyle": {
+                                        "foregroundColor": {
+                                            "color": {
+                                                "rgbColor": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "paragraphStyle": {
+                            "namedStyleType": "NORMAL_TEXT",
+                            "lineSpacing": 115,
+                            "direction": "LEFT_TO_RIGHT",
+                            "spacingMode": "COLLAPSE_LISTS",
+                            "spaceBelow": {
+                                "unit": "PT"
+                            }
+                        }
+                    }
+                },
+                {
+                    "startIndex": 199,
+                    "endIndex": 221,
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "startIndex": 199,
+                                "endIndex": 221,
+                                "textRun": {
+                                    "content": "* this is a list item\n",
+                                    "textStyle": {
+                                        "foregroundColor": {
+                                            "color": {
+                                                "rgbColor": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "paragraphStyle": {
+                            "namedStyleType": "NORMAL_TEXT",
+                            "direction": "LEFT_TO_RIGHT"
+                        }
+                    }
+                },
+                {
+                    "startIndex": 221,
+                    "endIndex": 323,
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "startIndex": 221,
+                                "endIndex": 323,
+                                "textRun": {
+                                    "content": "Unordered lists can be written using Google Docs formatting. Ordered lists are currently unsupported.\n",
+                                    "textStyle": {
+                                        "foregroundColor": {
+                                            "color": {
+                                                "rgbColor": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "paragraphStyle": {
+                            "namedStyleType": "NORMAL_TEXT",
+                            "lineSpacing": 115,
+                            "direction": "LEFT_TO_RIGHT",
+                            "spacingMode": "COLLAPSE_LISTS",
+                            "spaceBelow": {
+                                "unit": "PT"
+                            }
+                        }
+                    }
+                },
+                {
+                    "startIndex": 323,
+                    "endIndex": 324,
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "startIndex": 323,
+                                "endIndex": 324,
+                                "textRun": {
+                                    "content": "\n",
+                                    "textStyle": {
+                                        "foregroundColor": {
+                                            "color": {
+                                                "rgbColor": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "paragraphStyle": {
+                            "namedStyleType": "NORMAL_TEXT",
+                            "lineSpacing": 115,
+                            "direction": "LEFT_TO_RIGHT",
+                            "spacingMode": "COLLAPSE_LISTS",
+                            "spaceBelow": {
+                                "unit": "PT"
+                            }
+                        }
+                    }
+                },
+                {
+                    "startIndex": 324,
+                    "endIndex": 331,
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "startIndex": 324,
+                                "endIndex": 331,
+                                "textRun": {
+                                    "content": "Apples\n",
+                                    "textStyle": {
+                                        "foregroundColor": {
+                                            "color": {
+                                                "rgbColor": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "paragraphStyle": {
+                            "namedStyleType": "NORMAL_TEXT",
+                            "lineSpacing": 115,
+                            "direction": "LEFT_TO_RIGHT",
+                            "spacingMode": "COLLAPSE_LISTS",
+                            "spaceBelow": {
+                                "unit": "PT"
+                            },
+                            "indentFirstLine": {
+                                "magnitude": 18,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 36,
+                                "unit": "PT"
+                            }
+                        },
+                        "bullet": {
+                            "listId": "kix.112do6yzmhz1",
+                            "textStyle": {
+                                "foregroundColor": {
+                                    "color": {
+                                        "rgbColor": {}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "startIndex": 331,
+                    "endIndex": 338,
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "startIndex": 331,
+                                "endIndex": 338,
+                                "textRun": {
+                                    "content": "Pears\t\n",
+                                    "textStyle": {
+                                        "foregroundColor": {
+                                            "color": {
+                                                "rgbColor": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "paragraphStyle": {
+                            "namedStyleType": "NORMAL_TEXT",
+                            "lineSpacing": 115,
+                            "direction": "LEFT_TO_RIGHT",
+                            "spacingMode": "COLLAPSE_LISTS",
+                            "spaceBelow": {
+                                "unit": "PT"
+                            },
+                            "indentFirstLine": {
+                                "magnitude": 18,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 36,
+                                "unit": "PT"
+                            }
+                        },
+                        "bullet": {
+                            "listId": "kix.112do6yzmhz1",
+                            "textStyle": {
+                                "foregroundColor": {
+                                    "color": {
+                                        "rgbColor": {}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "startIndex": 338,
+                    "endIndex": 346,
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "startIndex": 338,
+                                "endIndex": 346,
+                                "textRun": {
+                                    "content": "Oranges\n",
+                                    "textStyle": {
+                                        "foregroundColor": {
+                                            "color": {
+                                                "rgbColor": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "paragraphStyle": {
+                            "namedStyleType": "NORMAL_TEXT",
+                            "lineSpacing": 115,
+                            "direction": "LEFT_TO_RIGHT",
+                            "spacingMode": "COLLAPSE_LISTS",
+                            "spaceBelow": {
+                                "unit": "PT"
+                            },
+                            "indentFirstLine": {
+                                "magnitude": 18,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 36,
+                                "unit": "PT"
+                            }
+                        },
+                        "bullet": {
+                            "listId": "kix.112do6yzmhz1",
+                            "textStyle": {
+                                "foregroundColor": {
+                                    "color": {
+                                        "rgbColor": {}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "startIndex": 346,
+                    "endIndex": 349,
+                    "paragraph": {
+                        "elements": [
+                            {
+                                "startIndex": 346,
+                                "endIndex": 349,
+                                "textRun": {
+                                    "content": "[]\n",
+                                    "textStyle": {
+                                        "foregroundColor": {
+                                            "color": {
+                                                "rgbColor": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "paragraphStyle": {
+                            "namedStyleType": "NORMAL_TEXT",
+                            "direction": "LEFT_TO_RIGHT"
+                        }
+                    }
+                }
+            ]
+        },
+        "documentStyle": {
+            "background": {
+                "color": {}
+            },
+            "pageNumberStart": 1,
+            "marginTop": {
+                "magnitude": 72,
+                "unit": "PT"
+            },
+            "marginBottom": {
+                "magnitude": 72,
+                "unit": "PT"
+            },
+            "marginRight": {
+                "magnitude": 72,
+                "unit": "PT"
+            },
+            "marginLeft": {
+                "magnitude": 72,
+                "unit": "PT"
+            },
+            "pageSize": {
+                "height": {
+                    "magnitude": 841.8897637795277,
+                    "unit": "PT"
+                },
+                "width": {
+                    "magnitude": 595.2755905511812,
+                    "unit": "PT"
+                }
+            },
+            "marginHeader": {
+                "magnitude": 36,
+                "unit": "PT"
+            },
+            "marginFooter": {
+                "magnitude": 36,
+                "unit": "PT"
+            },
+            "useCustomHeaderFooterMargins": true
+        },
+        "namedStyles": {
+            "styles": [
+                {
+                    "namedStyleType": "NORMAL_TEXT",
+                    "textStyle": {
+                        "bold": false,
+                        "italic": false,
+                        "underline": false,
+                        "strikethrough": false,
+                        "smallCaps": false,
+                        "backgroundColor": {},
+                        "foregroundColor": {
+                            "color": {
+                                "rgbColor": {
+                                    "red": 0.4,
+                                    "green": 0.4,
+                                    "blue": 0.4
+                                }
+                            }
+                        },
+                        "fontSize": {
+                            "magnitude": 11,
+                            "unit": "PT"
+                        },
+                        "weightedFontFamily": {
+                            "fontFamily": "Arial",
+                            "weight": 400
+                        },
+                        "baselineOffset": "NONE"
+                    },
+                    "paragraphStyle": {
+                        "namedStyleType": "NORMAL_TEXT",
+                        "alignment": "START",
+                        "lineSpacing": 114,
+                        "direction": "LEFT_TO_RIGHT",
+                        "spacingMode": "NEVER_COLLAPSE",
+                        "spaceAbove": {
+                            "unit": "PT"
+                        },
+                        "spaceBelow": {
+                            "magnitude": 8,
+                            "unit": "PT"
+                        },
+                        "borderBetween": {
+                            "color": {},
+                            "width": {
+                                "unit": "PT"
+                            },
+                            "padding": {
+                                "unit": "PT"
+                            },
+                            "dashStyle": "SOLID"
+                        },
+                        "borderTop": {
+                            "color": {},
+                            "width": {
+                                "unit": "PT"
+                            },
+                            "padding": {
+                                "unit": "PT"
+                            },
+                            "dashStyle": "SOLID"
+                        },
+                        "borderBottom": {
+                            "color": {},
+                            "width": {
+                                "unit": "PT"
+                            },
+                            "padding": {
+                                "unit": "PT"
+                            },
+                            "dashStyle": "SOLID"
+                        },
+                        "borderLeft": {
+                            "color": {},
+                            "width": {
+                                "unit": "PT"
+                            },
+                            "padding": {
+                                "unit": "PT"
+                            },
+                            "dashStyle": "SOLID"
+                        },
+                        "borderRight": {
+                            "color": {},
+                            "width": {
+                                "unit": "PT"
+                            },
+                            "padding": {
+                                "unit": "PT"
+                            },
+                            "dashStyle": "SOLID"
+                        },
+                        "indentFirstLine": {
+                            "unit": "PT"
+                        },
+                        "indentStart": {
+                            "unit": "PT"
+                        },
+                        "indentEnd": {
+                            "unit": "PT"
+                        },
+                        "keepLinesTogether": false,
+                        "keepWithNext": false,
+                        "avoidWidowAndOrphan": true,
+                        "shading": {
+                            "backgroundColor": {}
+                        },
+                        "pageBreakBefore": false
+                    }
+                },
+                {
+                    "namedStyleType": "HEADING_1",
+                    "textStyle": {
+                        "bold": true,
+                        "foregroundColor": {
+                            "color": {
+                                "rgbColor": {
+                                    "red": 0.20784314,
+                                    "green": 0.10980392,
+                                    "blue": 0.45882353
+                                }
+                            }
+                        },
+                        "fontSize": {
+                            "magnitude": 24,
+                            "unit": "PT"
+                        }
+                    },
+                    "paragraphStyle": {
+                        "headingId": "h.dhwkiaftr0ky",
+                        "namedStyleType": "HEADING_1",
+                        "direction": "LEFT_TO_RIGHT",
+                        "spaceAbove": {
+                            "magnitude": 20,
+                            "unit": "PT"
+                        },
+                        "spaceBelow": {
+                            "magnitude": 6,
+                            "unit": "PT"
+                        },
+                        "keepLinesTogether": true,
+                        "keepWithNext": true
+                    }
+                },
+                {
+                    "namedStyleType": "HEADING_2",
+                    "textStyle": {
+                        "bold": true,
+                        "foregroundColor": {
+                            "color": {
+                                "rgbColor": {
+                                    "red": 0.20784314,
+                                    "green": 0.10980392,
+                                    "blue": 0.45882353
+                                }
+                            }
+                        },
+                        "fontSize": {
+                            "magnitude": 20,
+                            "unit": "PT"
+                        }
+                    },
+                    "paragraphStyle": {
+                        "headingId": "h.dwnoitt5k839",
+                        "namedStyleType": "HEADING_2",
+                        "lineSpacing": 100,
+                        "direction": "LEFT_TO_RIGHT",
+                        "spaceAbove": {
+                            "magnitude": 18,
+                            "unit": "PT"
+                        },
+                        "spaceBelow": {
+                            "magnitude": 6,
+                            "unit": "PT"
+                        },
+                        "keepLinesTogether": true,
+                        "keepWithNext": true
+                    }
+                },
+                {
+                    "namedStyleType": "HEADING_3",
+                    "textStyle": {
+                        "bold": true,
+                        "foregroundColor": {
+                            "color": {
+                                "rgbColor": {
+                                    "red": 0.45490196,
+                                    "green": 0.105882354,
+                                    "blue": 0.2784314
+                                }
+                            }
+                        },
+                        "fontSize": {
+                            "magnitude": 17,
+                            "unit": "PT"
+                        }
+                    },
+                    "paragraphStyle": {
+                        "headingId": "h.353bk6ac297l",
+                        "namedStyleType": "HEADING_3",
+                        "direction": "LEFT_TO_RIGHT",
+                        "spaceAbove": {
+                            "magnitude": 16,
+                            "unit": "PT"
+                        },
+                        "spaceBelow": {
+                            "magnitude": 4,
+                            "unit": "PT"
+                        },
+                        "keepLinesTogether": true,
+                        "keepWithNext": true
+                    }
+                },
+                {
+                    "namedStyleType": "HEADING_4",
+                    "textStyle": {
+                        "bold": true,
+                        "foregroundColor": {
+                            "color": {
+                                "rgbColor": {
+                                    "red": 0.45490196,
+                                    "green": 0.105882354,
+                                    "blue": 0.2784314
+                                }
+                            }
+                        },
+                        "fontSize": {
+                            "magnitude": 14,
+                            "unit": "PT"
+                        }
+                    },
+                    "paragraphStyle": {
+                        "headingId": "h.d0d610cw5thd",
+                        "namedStyleType": "HEADING_4",
+                        "lineSpacing": 100,
+                        "direction": "LEFT_TO_RIGHT",
+                        "spaceAbove": {
+                            "magnitude": 12,
+                            "unit": "PT"
+                        },
+                        "spaceBelow": {
+                            "magnitude": 12,
+                            "unit": "PT"
+                        },
+                        "keepLinesTogether": true,
+                        "keepWithNext": true
+                    }
+                },
+                {
+                    "namedStyleType": "HEADING_5",
+                    "textStyle": {
+                        "bold": true,
+                        "foregroundColor": {
+                            "color": {
+                                "rgbColor": {
+                                    "red": 0.40392157,
+                                    "green": 0.30588236,
+                                    "blue": 0.654902
+                                }
+                            }
+                        },
+                        "fontSize": {
+                            "magnitude": 12,
+                            "unit": "PT"
+                        }
+                    },
+                    "paragraphStyle": {
+                        "headingId": "h.7j7ok7lasx0g",
+                        "namedStyleType": "HEADING_5",
+                        "direction": "LEFT_TO_RIGHT",
+                        "spaceAbove": {
+                            "magnitude": 12,
+                            "unit": "PT"
+                        },
+                        "spaceBelow": {
+                            "magnitude": 4,
+                            "unit": "PT"
+                        },
+                        "keepLinesTogether": true,
+                        "keepWithNext": true
+                    }
+                },
+                {
+                    "namedStyleType": "HEADING_6",
+                    "textStyle": {
+                        "italic": true,
+                        "foregroundColor": {
+                            "color": {
+                                "rgbColor": {
+                                    "red": 0.4,
+                                    "green": 0.4,
+                                    "blue": 0.4
+                                }
+                            }
+                        },
+                        "fontSize": {
+                            "magnitude": 11,
+                            "unit": "PT"
+                        }
+                    },
+                    "paragraphStyle": {
+                        "namedStyleType": "NORMAL_TEXT",
+                        "direction": "LEFT_TO_RIGHT",
+                        "spaceAbove": {
+                            "magnitude": 12,
+                            "unit": "PT"
+                        },
+                        "spaceBelow": {
+                            "magnitude": 4,
+                            "unit": "PT"
+                        },
+                        "keepLinesTogether": true,
+                        "keepWithNext": true,
+                        "pageBreakBefore": false
+                    }
+                },
+                {
+                    "namedStyleType": "TITLE",
+                    "textStyle": {
+                        "bold": true,
+                        "foregroundColor": {
+                            "color": {
+                                "rgbColor": {
+                                    "red": 0.45490196,
+                                    "green": 0.105882354,
+                                    "blue": 0.2784314
+                                }
+                            }
+                        },
+                        "fontSize": {
+                            "magnitude": 28,
+                            "unit": "PT"
+                        }
+                    },
+                    "paragraphStyle": {
+                        "headingId": "h.4zl6d7stz5w6",
+                        "namedStyleType": "TITLE",
+                        "lineSpacing": 100,
+                        "direction": "LEFT_TO_RIGHT",
+                        "spaceBelow": {
+                            "magnitude": 3,
+                            "unit": "PT"
+                        },
+                        "keepLinesTogether": true,
+                        "keepWithNext": true
+                    }
+                },
+                {
+                    "namedStyleType": "SUBTITLE",
+                    "textStyle": {
+                        "italic": false,
+                        "foregroundColor": {
+                            "color": {
+                                "rgbColor": {
+                                    "red": 0.4,
+                                    "green": 0.4,
+                                    "blue": 0.4
+                                }
+                            }
+                        },
+                        "fontSize": {
+                            "magnitude": 15,
+                            "unit": "PT"
+                        },
+                        "weightedFontFamily": {
+                            "fontFamily": "Arial",
+                            "weight": 400
+                        }
+                    },
+                    "paragraphStyle": {
+                        "namedStyleType": "NORMAL_TEXT",
+                        "direction": "LEFT_TO_RIGHT",
+                        "spaceAbove": {
+                            "unit": "PT"
+                        },
+                        "spaceBelow": {
+                            "magnitude": 16,
+                            "unit": "PT"
+                        },
+                        "keepLinesTogether": true,
+                        "keepWithNext": true,
+                        "pageBreakBefore": false
+                    }
+                }
+            ]
+        },
+        "lists": {
+            "kix.112do6yzmhz1": {
+                "listProperties": {
+                    "nestingLevels": [
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%0",
+                            "indentFirstLine": {
+                                "magnitude": 18,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 36,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%1",
+                            "indentFirstLine": {
+                                "magnitude": 54,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 72,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%2",
+                            "indentFirstLine": {
+                                "magnitude": 90,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 108,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%3",
+                            "indentFirstLine": {
+                                "magnitude": 126,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 144,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%4",
+                            "indentFirstLine": {
+                                "magnitude": 162,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 180,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%5",
+                            "indentFirstLine": {
+                                "magnitude": 198,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 216,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%6",
+                            "indentFirstLine": {
+                                "magnitude": 234,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 252,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%7",
+                            "indentFirstLine": {
+                                "magnitude": 270,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 288,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%8",
+                            "indentFirstLine": {
+                                "magnitude": 306,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 324,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        }
+                    ]
+                }
+            },
+            "kix.4mon5kpaw5d3": {
+                "listProperties": {
+                    "nestingLevels": [
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%0",
+                            "indentFirstLine": {
+                                "magnitude": 18,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 36,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%1",
+                            "indentFirstLine": {
+                                "magnitude": 54,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 72,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%2",
+                            "indentFirstLine": {
+                                "magnitude": 90,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 108,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%3",
+                            "indentFirstLine": {
+                                "magnitude": 126,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 144,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%4",
+                            "indentFirstLine": {
+                                "magnitude": 162,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 180,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%5",
+                            "indentFirstLine": {
+                                "magnitude": 198,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 216,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%6",
+                            "indentFirstLine": {
+                                "magnitude": 234,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 252,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%7",
+                            "indentFirstLine": {
+                                "magnitude": 270,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 288,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%8",
+                            "indentFirstLine": {
+                                "magnitude": 306,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 324,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        }
+                    ]
+                }
+            },
+            "kix.9nxbx9n13qdc": {
+                "listProperties": {
+                    "nestingLevels": [
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%0",
+                            "indentFirstLine": {
+                                "magnitude": 18,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 36,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%1",
+                            "indentFirstLine": {
+                                "magnitude": 54,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 72,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%2",
+                            "indentFirstLine": {
+                                "magnitude": 90,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 108,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%3",
+                            "indentFirstLine": {
+                                "magnitude": 126,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 144,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%4",
+                            "indentFirstLine": {
+                                "magnitude": 162,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 180,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%5",
+                            "indentFirstLine": {
+                                "magnitude": 198,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 216,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%6",
+                            "indentFirstLine": {
+                                "magnitude": 234,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 252,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%7",
+                            "indentFirstLine": {
+                                "magnitude": 270,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 288,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%8",
+                            "indentFirstLine": {
+                                "magnitude": 306,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 324,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        }
+                    ]
+                }
+            },
+            "kix.c7rxyarm793d": {
+                "listProperties": {
+                    "nestingLevels": [
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%0",
+                            "indentFirstLine": {
+                                "magnitude": 18,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 36,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%1",
+                            "indentFirstLine": {
+                                "magnitude": 54,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 72,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%2",
+                            "indentFirstLine": {
+                                "magnitude": 90,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 108,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%3",
+                            "indentFirstLine": {
+                                "magnitude": 126,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 144,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%4",
+                            "indentFirstLine": {
+                                "magnitude": 162,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 180,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%5",
+                            "indentFirstLine": {
+                                "magnitude": 198,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 216,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%6",
+                            "indentFirstLine": {
+                                "magnitude": 234,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 252,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%7",
+                            "indentFirstLine": {
+                                "magnitude": 270,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 288,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%8",
+                            "indentFirstLine": {
+                                "magnitude": 306,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 324,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        }
+                    ]
+                }
+            },
+            "kix.civ363iilpoi": {
+                "listProperties": {
+                    "nestingLevels": [
+                        {
+                            "bulletAlignment": "START",
+                            "glyphType": "DECIMAL",
+                            "glyphFormat": "%0.",
+                            "indentFirstLine": {
+                                "magnitude": 18,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 36,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphType": "ALPHA",
+                            "glyphFormat": "%1.",
+                            "indentFirstLine": {
+                                "magnitude": 54,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 72,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "END",
+                            "glyphType": "ROMAN",
+                            "glyphFormat": "%2.",
+                            "indentFirstLine": {
+                                "magnitude": 90,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 108,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphType": "DECIMAL",
+                            "glyphFormat": "%3.",
+                            "indentFirstLine": {
+                                "magnitude": 126,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 144,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphType": "ALPHA",
+                            "glyphFormat": "%4.",
+                            "indentFirstLine": {
+                                "magnitude": 162,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 180,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "END",
+                            "glyphType": "ROMAN",
+                            "glyphFormat": "%5.",
+                            "indentFirstLine": {
+                                "magnitude": 198,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 216,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphType": "DECIMAL",
+                            "glyphFormat": "%6.",
+                            "indentFirstLine": {
+                                "magnitude": 234,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 252,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphType": "ALPHA",
+                            "glyphFormat": "%7.",
+                            "indentFirstLine": {
+                                "magnitude": 270,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 288,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "END",
+                            "glyphType": "ROMAN",
+                            "glyphFormat": "%8.",
+                            "indentFirstLine": {
+                                "magnitude": 306,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 324,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        }
+                    ]
+                }
+            },
+            "kix.gv6nvdhi1k68": {
+                "listProperties": {
+                    "nestingLevels": [
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "●",
+                            "glyphFormat": "%0",
+                            "indentFirstLine": {
+                                "magnitude": 18,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 36,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "○",
+                            "glyphFormat": "%1",
+                            "indentFirstLine": {
+                                "magnitude": 54,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 72,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "■",
+                            "glyphFormat": "%2",
+                            "indentFirstLine": {
+                                "magnitude": 90,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 108,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "●",
+                            "glyphFormat": "%3",
+                            "indentFirstLine": {
+                                "magnitude": 126,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 144,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "○",
+                            "glyphFormat": "%4",
+                            "indentFirstLine": {
+                                "magnitude": 162,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 180,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "■",
+                            "glyphFormat": "%5",
+                            "indentFirstLine": {
+                                "magnitude": 198,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 216,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "●",
+                            "glyphFormat": "%6",
+                            "indentFirstLine": {
+                                "magnitude": 234,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 252,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "○",
+                            "glyphFormat": "%7",
+                            "indentFirstLine": {
+                                "magnitude": 270,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 288,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "■",
+                            "glyphFormat": "%8",
+                            "indentFirstLine": {
+                                "magnitude": 306,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 324,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        }
+                    ]
+                }
+            },
+            "kix.pobaeol1p6m2": {
+                "listProperties": {
+                    "nestingLevels": [
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "●",
+                            "glyphFormat": "%0",
+                            "indentFirstLine": {
+                                "magnitude": 18,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 36,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "○",
+                            "glyphFormat": "%1",
+                            "indentFirstLine": {
+                                "magnitude": 54,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 72,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "■",
+                            "glyphFormat": "%2",
+                            "indentFirstLine": {
+                                "magnitude": 90,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 108,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "●",
+                            "glyphFormat": "%3",
+                            "indentFirstLine": {
+                                "magnitude": 126,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 144,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "○",
+                            "glyphFormat": "%4",
+                            "indentFirstLine": {
+                                "magnitude": 162,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 180,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "■",
+                            "glyphFormat": "%5",
+                            "indentFirstLine": {
+                                "magnitude": 198,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 216,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "●",
+                            "glyphFormat": "%6",
+                            "indentFirstLine": {
+                                "magnitude": 234,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 252,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "○",
+                            "glyphFormat": "%7",
+                            "indentFirstLine": {
+                                "magnitude": 270,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 288,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "■",
+                            "glyphFormat": "%8",
+                            "indentFirstLine": {
+                                "magnitude": 306,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 324,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        }
+                    ]
+                }
+            },
+            "kix.s62mm3sesjwf": {
+                "listProperties": {
+                    "nestingLevels": [
+                        {
+                            "bulletAlignment": "START",
+                            "glyphType": "GLYPH_TYPE_UNSPECIFIED",
+                            "indentFirstLine": {
+                                "magnitude": 18,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 36,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphType": "GLYPH_TYPE_UNSPECIFIED",
+                            "indentFirstLine": {
+                                "magnitude": 54,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 72,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphType": "GLYPH_TYPE_UNSPECIFIED",
+                            "indentFirstLine": {
+                                "magnitude": 90,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 108,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphType": "GLYPH_TYPE_UNSPECIFIED",
+                            "indentFirstLine": {
+                                "magnitude": 126,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 144,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphType": "GLYPH_TYPE_UNSPECIFIED",
+                            "indentFirstLine": {
+                                "magnitude": 162,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 180,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphType": "GLYPH_TYPE_UNSPECIFIED",
+                            "indentFirstLine": {
+                                "magnitude": 198,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 216,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphType": "GLYPH_TYPE_UNSPECIFIED",
+                            "indentFirstLine": {
+                                "magnitude": 234,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 252,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphType": "GLYPH_TYPE_UNSPECIFIED",
+                            "indentFirstLine": {
+                                "magnitude": 270,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 288,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphType": "GLYPH_TYPE_UNSPECIFIED",
+                            "indentFirstLine": {
+                                "magnitude": 306,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 324,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        }
+                    ]
+                }
+            },
+            "kix.tkn5boq0drae": {
+                "listProperties": {
+                    "nestingLevels": [
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%0",
+                            "indentFirstLine": {
+                                "magnitude": 18,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 36,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%1",
+                            "indentFirstLine": {
+                                "magnitude": 54,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 72,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%2",
+                            "indentFirstLine": {
+                                "magnitude": 90,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 108,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%3",
+                            "indentFirstLine": {
+                                "magnitude": 126,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 144,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%4",
+                            "indentFirstLine": {
+                                "magnitude": 162,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 180,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%5",
+                            "indentFirstLine": {
+                                "magnitude": 198,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 216,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%6",
+                            "indentFirstLine": {
+                                "magnitude": 234,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 252,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%7",
+                            "indentFirstLine": {
+                                "magnitude": 270,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 288,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%8",
+                            "indentFirstLine": {
+                                "magnitude": 306,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 324,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        }
+                    ]
+                }
+            },
+            "kix.wr4obfl4vf8f": {
+                "listProperties": {
+                    "nestingLevels": [
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%0",
+                            "indentFirstLine": {
+                                "magnitude": 18,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 36,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%1",
+                            "indentFirstLine": {
+                                "magnitude": 54,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 72,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%2",
+                            "indentFirstLine": {
+                                "magnitude": 90,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 108,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%3",
+                            "indentFirstLine": {
+                                "magnitude": 126,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 144,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%4",
+                            "indentFirstLine": {
+                                "magnitude": 162,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 180,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%5",
+                            "indentFirstLine": {
+                                "magnitude": 198,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 216,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%6",
+                            "indentFirstLine": {
+                                "magnitude": 234,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 252,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%7",
+                            "indentFirstLine": {
+                                "magnitude": 270,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 288,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        },
+                        {
+                            "bulletAlignment": "START",
+                            "glyphSymbol": "-",
+                            "glyphFormat": "%8",
+                            "indentFirstLine": {
+                                "magnitude": 306,
+                                "unit": "PT"
+                            },
+                            "indentStart": {
+                                "magnitude": 324,
+                                "unit": "PT"
+                            },
+                            "textStyle": {
+                                "underline": false
+                            },
+                            "startNumber": 1
+                        }
+                    ]
+                }
+            }
+        },
+        "revisionId": "ALBJ4LuwgeeDgaMK4ngwUNjCkerx85KKA9z4oDqMHmBsEwgfSKdBUIaaQTsEq-ZOa7VMlLm4N-4gLsbJU8IYLQ",
+        "suggestionsViewMode": "PREVIEW_WITHOUT_SUGGESTIONS",
+        "documentId": "1wwQxA5gmmP-sLy0LfV4EJ-pdrh7YYIAe8UTaj2uhIC0"
+    },
+    "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "cache-control": "private",
+        "connection": "close",
+        "content-encoding": "gzip",
+        "content-type": "application/json; charset=UTF-8",
+        "date": "Tue, 02 Jul 2024 08:00:37 GMT",
+        "server": "ESF",
+        "transfer-encoding": "chunked",
+        "vary": "Origin, X-Origin, Referer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-l2-request-path": "l2-managed-5",
+        "x-xss-protection": "0"
+    },
+    "status": 200,
+    "statusText": "OK",
+    "request": {
+        "responseURL": "https://docs.googleapis.com/v1/documents/1wwQxA5gmmP-sLy0LfV4EJ-pdrh7YYIAe8UTaj2uhIC0?suggestionsViewMode=PREVIEW_WITHOUT_SUGGESTIONS"
+    }
+}
