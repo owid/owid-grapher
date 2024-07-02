@@ -15,7 +15,6 @@ import {
     exposeInstanceOnWindow,
     flatten,
     guid,
-    max,
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -252,16 +251,16 @@ export class AbstractStackedChart
         return new AxisConfig(this.manager.yAxisConfig, this)
     }
 
+    // implemented in subclasses
+    @computed protected get yAxisDomain(): [number, number] {
+        return [0, 0]
+    }
+
     @computed private get verticalAxisPart(): VerticalAxis {
-        // const lastSeries = this.series[this.series.length - 1]
-        // const yValues = lastSeries.points.map((d) => d.yOffset + d.y)
-        const yValues = this.allStackedPoints.map(
-            (point) => point.value + point.valueOffset
-        )
         const axis = this.yAxisConfig.toVerticalAxis()
         // Use user settings for axis, unless relative mode
         if (this.manager.isRelativeMode) axis.domain = [0, 100]
-        else axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 0]) // Stacked area chart must have its own y domain)
+        else axis.updateDomainPreservingUserSettings(this.yAxisDomain)
         axis.formatColumn = this.yColumns[0]
         return axis
     }

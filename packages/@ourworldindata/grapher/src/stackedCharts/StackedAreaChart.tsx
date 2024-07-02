@@ -15,6 +15,7 @@ import {
     makeIdForHumanConsumption,
     maxBy,
     sumBy,
+    max,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { SeriesName } from "@ourworldindata/types"
@@ -269,6 +270,13 @@ export class StackedAreaChart
 {
     constructor(props: AbstractStackedChartProps) {
         super(props)
+    }
+
+    @computed protected get yAxisDomain(): [number, number] {
+        const yValues = this.allStackedPoints.map(
+            (point) => point.value + point.valueOffset
+        )
+        return [0, max(yValues) ?? 0]
     }
 
     @computed get midpoints(): number[] {

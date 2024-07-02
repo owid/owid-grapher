@@ -12,6 +12,9 @@ import {
     dyFromAlign,
     makeIdForHumanConsumption,
     excludeUndefined,
+    min,
+    max,
+    partition,
 } from "@ourworldindata/utils"
 import {
     VerticalAxisComponent,
@@ -51,7 +54,10 @@ import {
     HorizontalAlign,
     VerticalAlign,
 } from "@ourworldindata/types"
-import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
+import {
+    stackSeriesInBothDirections,
+    withMissingValuesAsZeroes,
+} from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
 import { ColumnTypeMap } from "@ourworldindata/core-table"
@@ -88,12 +94,17 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 
     @computed get yPos(): number {
         const { bar, yAxis } = this.props
-        return yAxis.place(bar.value + bar.valueOffset)
+        // The top position of a bar
+        return bar.value < 0
+            ? yAxis.place(bar.valueOffset)
+            : yAxis.place(bar.value + bar.valueOffset)
     }
 
     @computed get barHeight(): number {
         const { bar, yAxis } = this.props
-        return yAxis.place(bar.valueOffset) - this.yPos
+        return bar.value < 0
+            ? yAxis.place(bar.valueOffset + bar.value) - this.yPos
+            : yAxis.place(bar.valueOffset) - this.yPos
     }
 
     @computed get trueOpacity(): number {
@@ -157,6 +168,13 @@ export class StackedBarChart
 
     @computed get tickFontSize(): number {
         return GRAPHER_FONT_SCALE_12 * this.baseFontSize
+    }
+
+    @computed protected get yAxisDomain(): [number, number] {
+        const yValues = this.allStackedPoints.map(
+            (point) => point.value + point.valueOffset
+        )
+        return [min([0, ...yValues]) ?? 0, max([0, ...yValues]) ?? 0]
     }
 
     @computed get barWidth(): number {
@@ -338,6 +356,25 @@ export class StackedBarChart
             : undefined
         const footer = excludeUndefined([roundingNotice])
 
+        const hoverPoints = series.map((series) => {
+            const point = series.points.find(
+                (bar) => bar.position === hoverTime
+            )
+            return {
+                seriesName: series.seriesName,
+                seriesColor: series.color,
+                point,
+            }
+        })
+        const [positivePoints, negativePoints] = partition(
+            hoverPoints,
+            ({ point }) => (point?.value ?? 0) >= 0
+        )
+        const sortedHoverPoints = [
+            ...positivePoints.slice().reverse(),
+            ...negativePoints,
+        ]
+
         return (
             <Tooltip
                 id={this.renderUid}
@@ -356,32 +393,17 @@ export class StackedBarChart
                 <TooltipTable
                     columns={[formatColumn]}
                     totals={[totalValue]}
-                    rows={series
-                        .slice()
-                        .reverse()
-                        .map((series) => {
-                            const {
-                                seriesName: name,
-                                color: swatch,
-                                points,
-                            } = series
-                            const point = points.find(
-                                (bar) => bar.position === hoverTime
-                            )
+                    rows={sortedHoverPoints.map(
+                        ({ point, seriesName: name, seriesColor: swatch }) => {
                             const focused = hoverSeries?.seriesName === name
                             const blurred = point?.fake ?? true
                             const values = [
                                 point?.fake ? undefined : point?.value,
                             ]
 
-                            return {
-                                name,
-                                swatch,
-                                blurred,
-                                focused,
-                                values,
-                            }
-                        })}
+                            return { name, swatch, blurred, focused, values }
+                        }
+                    )}
                 />
             </Tooltip>
         )
@@ -676,7 +698,7 @@ export class StackedBarChart
             this.transformedTable.timeColumn instanceof ColumnTypeMap.Day
         )
 
-        return stackSeries(
+        return stackSeriesInBothDirections(
             withMissingValuesAsZeroes(this.unstackedSeries, {
                 enforceUniformSpacing,
             })

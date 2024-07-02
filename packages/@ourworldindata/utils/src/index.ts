@@ -156,6 +156,7 @@ export {
     dropRightWhile,
     dropWhile,
     extend,
+    findLast,
     findLastIndex,
     flatten,
     get,
