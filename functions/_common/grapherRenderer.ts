@@ -119,7 +119,11 @@ const extractOptions = (params: URLSearchParams): ImageOptions => {
         options.pngHeight = options.svgHeight = DEFAULT_HEIGHT
     }
 
-    if (!options.fontSize && options.svgHeight) {
+    if (
+        !options.fontSize &&
+        options.svgHeight &&
+        options.svgHeight !== DEFAULT_HEIGHT
+    ) {
         options.fontSize = Math.max(10, options.svgHeight / 25)
     }
 
