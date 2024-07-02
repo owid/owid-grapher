@@ -692,10 +692,15 @@ export const renderReusableBlock = async (
     return cheerioEl("body").html() ?? undefined
 }
 
+interface ExplorerRenderOpts {
+    urlMigrationSpec?: ExplorerPageUrlMigrationSpec
+    isPreviewing?: boolean
+}
+
 export const renderExplorerPage = async (
     program: ExplorerProgram,
     knex: KnexReadonlyTransaction,
-    urlMigrationSpec?: ExplorerPageUrlMigrationSpec
+    opts?: ExplorerRenderOpts
 ) => {
     const transformResult = await transformExplorerProgramToResolveCatalogPaths(
         program,
@@ -704,11 +709,11 @@ export const renderExplorerPage = async (
     const { program: transformedProgram, unresolvedCatalogPaths } =
         transformResult
     if (unresolvedCatalogPaths?.size) {
-        void logErrorAndMaybeSendToBugsnag(
-            new JsonError(
-                `${unresolvedCatalogPaths.size} catalog paths cannot be found for explorer ${transformedProgram.slug}: ${[...unresolvedCatalogPaths].join(", ")}.`
-            )
+        const errMessage = new JsonError(
+            `${unresolvedCatalogPaths.size} catalog paths cannot be found for explorer ${transformedProgram.slug}: ${[...unresolvedCatalogPaths].join(", ")}.`
         )
+        if (opts?.isPreviewing) console.error(errMessage)
+        else void logErrorAndMaybeSendToBugsnag(errMessage)
     }
 
     // This needs to run after transformExplorerProgramToResolveCatalogPaths, so that the catalog paths
@@ -796,7 +801,8 @@ export const renderExplorerPage = async (
                 program={transformedProgram}
                 wpContent={wpContent}
                 baseUrl={BAKED_BASE_URL}
-                urlMigrationSpec={urlMigrationSpec}
+                urlMigrationSpec={opts?.urlMigrationSpec}
+                isPreviewing={opts?.isPreviewing}
             />
         )
     )

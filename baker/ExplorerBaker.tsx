@@ -171,8 +171,10 @@ export const bakeAllExplorerRedirects = async (
             )
         }
         const html = await renderExplorerPage(program, knex, {
-            explorerUrlMigrationId: migrationId,
-            baseQueryStr,
+            urlMigrationSpec: {
+                explorerUrlMigrationId: migrationId,
+                baseQueryStr,
+            },
         })
         await write(path.join(outputFolder, `${redirectPath}.html`), html)
     }
