@@ -41,7 +41,13 @@ import { OwidAdminApp } from "./appClass.js"
 import { logInAsUser } from "./authentication.js"
 import knex, { Knex } from "knex"
 import { dbTestConfig } from "../db/tests/dbTestConfig.js"
-import { setKnexInstance } from "../db/db.js"
+import {
+    TransactionCloseMode,
+    knexInstance,
+    knexRaw,
+    knexReadWriteTransaction,
+    setKnexInstance,
+} from "../db/db.js"
 import { cleanTestDb } from "../db/tests/testHelpers.js"
 import { ChartsTableName } from "@ourworldindata/types"
 import path from "path"
@@ -87,14 +93,28 @@ beforeAll(async () => {
     ).id
 })
 
-afterAll((done: any) => {
+async function cleanupDb() {
     // We leave the user in the database for other tests to use
     // For other cases it is good to drop any rows created in the test
-    void Promise.allSettled([
-        app?.stopListening(),
-        testKnexInstance?.destroy(),
-        serverKnexInstance?.destroy(),
-    ]).then(() => done())
+    await knexReadWriteTransaction(
+        async (trx) => {
+            await knexRaw(trx, `DELETE FROM posts_gdocs`, [])
+        },
+        TransactionCloseMode.KeepOpen,
+        testKnexInstance
+    )
+}
+
+afterAll((done: any) => {
+    void cleanupDb()
+        .then(() =>
+            Promise.allSettled([
+                app?.stopListening(),
+                testKnexInstance?.destroy(),
+                serverKnexInstance?.destroy(),
+            ])
+        )
+        .then(() => done())
 })
 
 async function getCountForTable(tableName: string): Promise<number> {
