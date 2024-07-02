@@ -8,8 +8,8 @@ import { ToleranceStrategy } from "@ourworldindata/utils"
 import {
     BooleanCellDef,
     EnumCellDef,
+    EtlPathCellDef,
     Grammar,
-    IndicatorIdOrEtlPathCellDef,
     IntegerCellDef,
     NumericCellDef,
     SlugDeclarationCellDef,
@@ -19,9 +19,14 @@ import {
 
 export const ColumnGrammar: Grammar = {
     variableId: {
-        ...IndicatorIdOrEtlPathCellDef,
+        ...IntegerCellDef,
         keyword: "variableId",
-        description: "Numerical variable ID, or ETL path",
+        description: "Numerical variable ID",
+    },
+    catalogPath: {
+        ...EtlPathCellDef,
+        keyword: "catalogPath",
+        description: "Catalog path to the etl indicator",
     },
     slug: {
         ...SlugDeclarationCellDef,

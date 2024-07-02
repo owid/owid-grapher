@@ -182,6 +182,14 @@ export const SlugsDeclarationCellDef: CellDef = {
     requirementsDescription: `Can only contain the characters a-zA-Z0-9-_ `,
 }
 
+export const EtlPathCellDef: CellDef = {
+    keyword: "IndicatorIdOrEtlPath",
+    cssClass: "EtlPath",
+    description: "Path to an ETL indicator.",
+    regex: /^$|^[\w\d_/\-]+(#[\w\d_/\-]+)?$/,
+    requirementsDescription: `Can only contain the characters a-zA-Z0-9-_/#`,
+}
+
 export const IndicatorIdOrEtlPathCellDef: CellDef = {
     keyword: "",
     cssClass: "IndicatorIdOrEtlPath",

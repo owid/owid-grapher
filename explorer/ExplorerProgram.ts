@@ -54,9 +54,9 @@ interface ExplorerGrapherInterface extends GrapherInterface {
     grapherId?: number
     tableSlug?: string
     yVariableIds?: string
-    xVariableId?: string
-    colorVariableId?: string
-    sizeVariableId?: string
+    xVariableId?: number
+    colorVariableId?: number
+    sizeVariableId?: number
     yScaleToggle?: boolean
     yAxisMin?: number
     facetYDomain?: FacetAxisDomain
@@ -504,13 +504,14 @@ const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
             name: "owidVariableId",
             type: ColumnTypeNames.Integer,
         })
-        .replaceCells(
-            ["owidVariableId"],
-            (cell) =>
-                (typeof cell === "string"
-                    ? parseIntOrUndefined(cell)
-                    : undefined) ?? ErrorValueTypes.FilteredValue
-        )
+        .replaceCells(["owidVariableId"], (cell) => {
+            if (typeof cell === "number") return cell
+            if (typeof cell === "string")
+                return (
+                    parseIntOrUndefined(cell) ?? ErrorValueTypes.FilteredValue
+                )
+            return ErrorValueTypes.FilteredValue
+        })
 
         // Extract non-integer catalog paths from owidVariableIdOrCatalogPath
         .duplicateColumn("owidVariableIdOrCatalogPath", {

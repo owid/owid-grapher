@@ -8,8 +8,13 @@ import { renderExplorerPage } from "./siteRenderers.js"
 import * as db from "../db/db.js"
 import { getVariableIdsByCatalogPath } from "../db/model/Variable.js"
 import { ExplorerGrammar } from "../explorer/ExplorerGrammar.js"
-import { CoreTable } from "@ourworldindata/core-table"
+import {
+    CoreTable,
+    ErrorValueTypes,
+    isNotErrorValueOrEmptyCell,
+} from "@ourworldindata/core-table"
 import { ColumnGrammar } from "../explorer/ColumnGrammar.js"
+import { ColumnTypeNames } from "@ourworldindata/types"
 
 export const transformExplorerProgramToResolveCatalogPaths = async (
     program: ExplorerProgram,
@@ -70,14 +75,30 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
         const columnDefTable = new CoreTable(
             newProgram.getBlock(lineNoInProgram)
         )
-        const newColumnDefsTable = columnDefTable.replaceCells(
-            [ColumnGrammar.variableId.keyword],
-            (val) => {
-                if (typeof val === "string")
+        const newColumnDefsTable = columnDefTable.combineColumns(
+            [
+                ColumnGrammar.variableId.keyword,
+                ColumnGrammar.catalogPath.keyword,
+            ],
+            {
+                slug: ColumnGrammar.variableId.keyword,
+                type: ColumnTypeNames.Numeric,
+            },
+            (row) => {
+                const variableId = row[ColumnGrammar.variableId.keyword]
+                if (isNotErrorValueOrEmptyCell(variableId)) return variableId
+
+                const catalogPath = row[ColumnGrammar.catalogPath.keyword]
+                if (
+                    isNotErrorValueOrEmptyCell(catalogPath) &&
+                    typeof catalogPath === "string"
+                ) {
                     return (
-                        catalogPathToIndicatorIdMap.get(val)?.toString() ?? val
+                        catalogPathToIndicatorIdMap.get(catalogPath) ??
+                        ErrorValueTypes.NoMatchingVariableId
                     )
-                return val
+                }
+                return ErrorValueTypes.NoMatchingVariableId
             }
         )
         newProgram.updateBlock(lineNoInProgram, newColumnDefsTable.toMatrix())

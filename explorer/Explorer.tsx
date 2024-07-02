@@ -84,7 +84,6 @@ import Bugsnag from "@bugsnag/js"
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
     partialGrapherConfigs?: GrapherInterface[]
-    catalogPathToIndicatorIdMap?: Record<string, number | null>
     queryStr?: string
     isEmbeddedInAnOwidPage?: boolean
     isInStandalonePage?: boolean
@@ -131,14 +130,12 @@ export class Explorer
         program: ExplorerProps,
         grapherConfigs: GrapherInterface[],
         partialGrapherConfigs: GrapherInterface[],
-        urlMigrationSpec?: ExplorerPageUrlMigrationSpec,
-        catalogPathToIndicatorIdMap?: Record<string, number | null>
+        urlMigrationSpec?: ExplorerPageUrlMigrationSpec
     ) {
         const props: ExplorerProps = {
             ...program,
             grapherConfigs,
             partialGrapherConfigs,
-            catalogPathToIndicatorIdMap,
             isEmbeddedInAnOwidPage: false,
             isInStandalonePage: true,
         }
@@ -422,13 +419,7 @@ export class Explorer
         const { columnDefsWithoutTableSlug } = this.explorerProgram
         return keyBy(
             columnDefsWithoutTableSlug,
-            (def: OwidColumnDef) =>
-                def.owidVariableId ??
-                (def.catalogPath &&
-                    this.resolveMaybeCatalogPathToIndicatorId(
-                        def.catalogPath
-                    )) ??
-                def.slug
+            (def: OwidColumnDef) => def.owidVariableId ?? def.slug
         )
     }
 
@@ -495,23 +486,6 @@ export class Explorer
         grapher.downloadData()
     }
 
-    // The input to this function may be a catalog path (e.g. grapher/demography/2023-03-31/population/population#population)
-    // or an integer indicator id.
-    resolveMaybeCatalogPathToIndicatorId = (
-        catalogPathOrIndicatorId: string
-    ): number | undefined => {
-        const possiblyIndicatorId = parseIntOrUndefined(
-            catalogPathOrIndicatorId
-        )
-        if (possiblyIndicatorId !== undefined) return possiblyIndicatorId
-        else
-            return (
-                this.props.catalogPathToIndicatorIdMap?.[
-                    catalogPathOrIndicatorId
-                ] ?? undefined
-            )
-    }
-
     @action.bound private async updateGrapherFromExplorerUsingVariableIds() {
         const grapher = this.grapher
         if (!grapher) return
@@ -528,7 +502,7 @@ export class Explorer
 
         const yVariableIdsList = yVariableIds
             .split(" ")
-            .map(this.resolveMaybeCatalogPathToIndicatorId)
+            .map(parseIntOrUndefined)
             .filter((item) => item !== undefined)
 
         const partialGrapherConfig =
@@ -560,31 +534,22 @@ export class Explorer
             })
         })
         if (xVariableId) {
-            const resolvedXVariableId =
-                this.resolveMaybeCatalogPathToIndicatorId(xVariableId)
-            if (resolvedXVariableId)
-                dimensions.push({
-                    variableId: resolvedXVariableId,
-                    property: DimensionProperty.x,
-                })
+            dimensions.push({
+                variableId: xVariableId,
+                property: DimensionProperty.x,
+            })
         }
         if (colorVariableId) {
-            const resolvedColorVariableId =
-                this.resolveMaybeCatalogPathToIndicatorId(colorVariableId)
-            if (resolvedColorVariableId)
-                dimensions.push({
-                    variableId: resolvedColorVariableId,
-                    property: DimensionProperty.color,
-                })
+            dimensions.push({
+                variableId: colorVariableId,
+                property: DimensionProperty.color,
+            })
         }
         if (sizeVariableId) {
-            const resolvedSizeVariableId =
-                this.resolveMaybeCatalogPathToIndicatorId(sizeVariableId)
-            if (resolvedSizeVariableId)
-                dimensions.push({
-                    variableId: resolvedSizeVariableId,
-                    property: DimensionProperty.size,
-                })
+            dimensions.push({
+                variableId: sizeVariableId,
+                property: DimensionProperty.size,
+            })
         }
 
         // Slugs that are used to create a chart refer to columns derived from variables
