@@ -50,6 +50,11 @@ export interface ChartManager {
     colorScaleColumnOverride?: CoreColumn
     // for passing colorScale to sparkline in map charts
     colorScaleOverride?: ColorScale
+    // If you want to use auto-assigned colors, but then have them preserved across selection and chart changes
+    seriesColorMap?: SeriesColorMap
+    // If you want to opt out of assigned colors and use a value-based color scheme instead
+    // (e.g. stacked bar charts coloring positive/negative values differently)
+    useValueBasedColorScheme?: boolean
 
     yAxisConfig?: Readonly<AxisConfigInterface>
     xAxisConfig?: Readonly<AxisConfigInterface>
@@ -64,9 +69,6 @@ export interface ChartManager {
 
     selection?: SelectionArray | EntityName[]
     entityType?: string
-
-    // If you want to use auto-assigned colors, but then have them preserved across selection and chart changes
-    seriesColorMap?: SeriesColorMap
 
     hidePoints?: boolean // for line options
     startHandleTimeBound?: TimeBound // for relative-to-first-year line chart

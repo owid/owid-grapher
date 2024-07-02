@@ -26,6 +26,7 @@ export interface ChartInterface {
     transformedTable: OwidTable // Points to the OwidTable after the chart has transformed the input table. The chart may add a relative transform, for example. Standardized as part of the interface as a development aid.
 
     colorScale?: ColorScale
+    shouldUseValueBasedColorScheme?: boolean // Opt-out of assigned colors and use a value-based color scheme instead
 
     seriesStrategy?: SeriesStrategy
     series: readonly ChartSeries[] // This points to the marks that the chart will render. They don't have to be placed yet. Standardized as part of the interface as a development aid.
