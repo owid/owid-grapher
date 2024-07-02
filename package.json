@@ -70,7 +70,7 @@
         "antd": "^5.18.3",
         "archieml": "^0.5.0",
         "bcrypt": "^5.1.0",
-        "bootstrap": "^4.6.1",
+        "bootstrap": "^5.3.2",
         "cheerio": "^1.0.0-rc.12",
         "chunk-text": "^2.0.1",
         "classnames": "^2.5.1",
