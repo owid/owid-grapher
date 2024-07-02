@@ -477,13 +477,12 @@ export const trimAndParseObject = (config: any, grammar: Grammar) => {
 
 const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
     /**
-     * This is messy at this point, but what's going on is that a column def line can have:
-     * - a column named `variableId`, contains a variable id or an ETL path
+     * A column def line can have:
+     * - a column named `variableId`, which contains a variable id
      * - a column named `slug`, which is the referenced column in its data file
      *
-     * We want to filter out any rows that contain neither of those, and we also want to turn `variableId`
-     * into the two columns `owidVariableId` and `catalogPath` - one for numeric values (parsed to integers)
-     * and the other for string values contained in the `variableId` column.
+     * We want to filter out any rows that contain neither of those, and we also
+     * want to rename `variableId` to `owidVariableId`.
      */
     const columnsTable = new CoreTable(block)
         .appendColumnsIfNew([
