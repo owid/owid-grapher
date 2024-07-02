@@ -192,7 +192,11 @@ export class StackedBarChart
     }
 
     @computed protected get paddingForLegendRight(): number {
-        return this.showHorizontalLegend ? 0 : this.sidebarWidth + 20
+        return this.showHorizontalLegend
+            ? 0
+            : this.sidebarWidth > 0
+              ? this.sidebarWidth + 20
+              : 0
     }
 
     @computed protected get paddingForLegendTop(): number {

@@ -31,6 +31,7 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref minSize?: number = undefined
     @observable.ref hideAxis?: boolean = undefined
     @observable.ref hideGridlines?: boolean = undefined
+    @observable.ref hideTickLabels?: boolean = undefined
     @observable.ref labelPadding?: number = undefined
     @observable.ref nice?: boolean = undefined
     @observable.ref maxTicks?: number = undefined
@@ -70,6 +71,7 @@ export class AxisConfig
             minSize: this.minSize,
             hideAxis: this.hideAxis,
             hideGridlines: this.hideGridlines,
+            hideTickLabels: this.hideTickLabels,
             labelPadding: this.labelPadding,
             nice: this.nice,
             maxTicks: this.maxTicks,
