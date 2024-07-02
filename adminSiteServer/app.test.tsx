@@ -1,16 +1,51 @@
-import { OwidAdminApp } from "./appClass.js"
+import { google } from "googleapis"
 import { jest } from "@jest/globals"
+// Mock the google docs api to retrieve files from the test-files directory
+// AFAICT, we have to do this directly after the import
+// and before any other code that might import googleapis
+jest.mock("googleapis", () => {
+    const originalModule: any = jest.requireActual("googleapis")
+
+    return {
+        ...originalModule,
+        google: {
+            ...originalModule.google,
+            docs: jest.fn(() => ({
+                documents: {
+                    get: jest.fn(({ documentId }) => {
+                        // This is a bit hacky and assumes we are running from inside
+                        // the itsJustJavascript directory - I couldn't find a better way
+                        // to get the workspace root directory here
+                        const unparsed = fs.readFileSync(
+                            path.join(
+                                __dirname,
+                                "..",
+                                "..",
+                                "adminSiteServer",
+                                "test-files",
+                                `${documentId}.json`
+                            ),
+                            "utf8"
+                        )
+                        const data = JSON.parse(unparsed)
+                        return Promise.resolve(data)
+                    }),
+                },
+            })),
+        },
+    }
+})
+
+import { OwidAdminApp } from "./appClass.js"
+
 import { logInAsUser } from "./authentication.js"
 import knex, { Knex } from "knex"
 import { dbTestConfig } from "../db/tests/dbTestConfig.js"
-import sqlFixtures from "sql-fixtures"
-import {
-    TransactionCloseMode,
-    knexReadonlyTransaction,
-    setKnexInstance,
-} from "../db/db.js"
+import { setKnexInstance } from "../db/db.js"
 import { cleanTestDb } from "../db/tests/testHelpers.js"
 import { ChartsTableName } from "@ourworldindata/types"
+import path from "path"
+import fs from "fs"
 
 jest.setTimeout(10000) // wait for up to 10s for the app server to start
 let testKnexInstance: Knex<any, unknown[]> | undefined = undefined
@@ -19,6 +54,10 @@ let app: OwidAdminApp | undefined = undefined
 let cookieId: string = ""
 
 beforeAll(async () => {
+    // jest.setup.js
+    const _ = google.docs
+    testKnexInstance = knex(dbTestConfig)
+    serverKnexInstance = knex(dbTestConfig)
     const dataSpec = {
         users: [
             {
@@ -30,12 +69,12 @@ beforeAll(async () => {
             },
         ],
     }
-    testKnexInstance = knex(dbTestConfig)
-    serverKnexInstance = knex(dbTestConfig)
-    await cleanTestDb(testKnexInstance)
 
-    const fixturesCreator = new sqlFixtures(testKnexInstance)
-    await fixturesCreator.create(dataSpec)
+    await cleanTestDb(testKnexInstance)
+    for (const [tableName, tableData] of Object.entries(dataSpec)) {
+        await testKnexInstance(tableName).insert(tableData)
+    }
+
     setKnexInstance(serverKnexInstance!)
 
     app = new OwidAdminApp({ isDev: true, gitCmsDir: "", quiet: true })
@@ -78,7 +117,7 @@ describe("OwidAdminApp", () => {
         )
         expect(nodeVersion.status).toBe(200)
         const text = await nodeVersion.text()
-        expect(text).toBe("v18.16.1")
+        expect(text).toBe("v18.16.0")
     })
 
     it("should be able to add a new chart via the api", async () => {
@@ -107,7 +146,7 @@ describe("OwidAdminApp", () => {
     })
 
     it("should be able to create a GDoc article", async () => {
-        const gdocId = "1wwQxA5gmmP-sLy0LfV4EJ-pdrh7YYIAe8UTaj2uhIC0" // replace with your test id
+        const gdocId = "gdoc-test-create-1"
         const response = await fetch(
             `http://localhost:8765/admin/api/gdocs/${gdocId}`,
             {
@@ -119,8 +158,9 @@ describe("OwidAdminApp", () => {
             }
         )
         expect(response.status).toBe(200)
+
         const text = await response.json()
-        expect(text.success).toBe(true)
+        expect(text.id).toBe(gdocId)
 
         // Fetch the GDoc to verify it was created
         const gdocResponse = await fetch(
@@ -132,7 +172,6 @@ describe("OwidAdminApp", () => {
         expect(gdocResponse.status).toBe(200)
         const gdoc = await gdocResponse.json()
         expect(gdoc.id).toBe(gdocId)
-        expect(gdoc.title).toBe("Test GDoc")
-        expect(gdoc.content).toBe("This is a test GDoc")
+        expect(gdoc.content.title).toBe("Basic article")
     })
 })

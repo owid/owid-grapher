@@ -1,0 +1,15 @@
+{
+    "extends": "../tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "../../itsJustJavascript/devTools/gdocs",
+        "rootDir": "."
+    },
+    "references": [
+        {
+            "path": "../../baker"
+        },
+        {
+            "path": "../../settings"
+        }
+    ]
+}

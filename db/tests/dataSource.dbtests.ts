@@ -17,4 +17,10 @@ export const dataSource = new DataSource({
     entities: ["db/model/**/!(*.test).ts"],
     migrations: ["db/migration/**/!(*.test).ts"],
     charset: "utf8mb4",
+    connectorPackage: "mysql2",
+    extra: {
+        // Instruct the mysql2 driver to not convert json columns to a JS object implicitly; many
+        // of our migrations rely on the raw JSON string
+        jsonStrings: true,
+    },
 })
