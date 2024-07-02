@@ -18,6 +18,7 @@ import {
     PositionMap,
     HorizontalAlign,
     Color,
+    uniq,
 } from "@ourworldindata/utils"
 import { shortenForTargetWidth } from "@ourworldindata/components"
 import { action, computed, observable } from "mobx"
@@ -393,14 +394,27 @@ export class FacetChart
                 (axis) => axis?.size
             )
             if (uniform) {
-                // If the axes are uniform, we want to find the full domain extent across all facets
-                const domains = excludeUndefined(
-                    intermediateChartInstances
-                        .map(axisAccessor)
-                        .map((axis) => axis?.domain)
+                const axes = excludeUndefined(
+                    intermediateChartInstances.map(axisAccessor)
                 )
+
+                // If the axes are uniform, we want to find the full domain extent across all facets
+                const domains = axes.map((axis) => axis.domain)
                 config.min = min(domains.map((d) => d[0]))
                 config.max = max(domains.map((d) => d[1]))
+
+                // Find domain values across all facets
+                const domainValues = uniq(
+                    axes.flatMap((axis) => axis.config.domainValues ?? [])
+                )
+                if (domainValues.length > 0) config.domainValues = domainValues
+
+                // Find ticks across all facets
+                const ticks = uniq(
+                    axes.flatMap((axis) => axis.config.ticks ?? [])
+                )
+                if (ticks.length > 0) config.ticks = ticks
+
                 // If there was at least one chart with a non-undefined axis,
                 // this variable will be populated
                 if (axisWithMaxSize) {
