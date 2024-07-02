@@ -3205,6 +3205,7 @@ export class Grapher
             this.canSelectMultipleEntities &&
             (this.isLineChart ||
                 this.isStackedArea ||
+                this.isStackedBar ||
                 this.isDiscreteBar ||
                 this.isStackedDiscreteBar)
         )

@@ -594,19 +594,35 @@ export class StackedAreaChart
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
-            return (
-                <NoDataModal
-                    manager={this.manager}
-                    bounds={this.props.bounds}
-                    message={this.failMessage}
-                />
-            )
-
         const { manager, bounds, dualAxis, renderUid, series } = this
         const { target } = this.tooltipState
-
         const showLegend = this.manager.showLegend
+
+        const dualAxisComponent = (
+            <DualAxisComponent
+                dualAxis={dualAxis}
+                showTickMarks={true}
+                labelColor={manager.secondaryColorInStaticCharts}
+                lineWidth={
+                    manager.isStaticAndSmall
+                        ? GRAPHER_AXIS_LINE_WIDTH_THICK
+                        : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+                }
+                detailsMarker={manager.detailsMarkerInSvg}
+            />
+        )
+
+        if (this.failMessage)
+            return (
+                <g className="StackedArea">
+                    {dualAxisComponent}
+                    <NoDataModal
+                        manager={this.manager}
+                        bounds={dualAxis.bounds}
+                        message={this.failMessage}
+                    />
+                </g>
+            )
 
         const clipPath = makeClipPath(renderUid, {
             ...bounds,
@@ -632,17 +648,7 @@ export class StackedAreaChart
                     whole charting area, including the axis, the entity labels, and the whitespace next to them.
                     We need these to be able to show the tooltip for the first/last year even if the mouse is outside the charting area. */}
                 </rect>
-                <DualAxisComponent
-                    dualAxis={dualAxis}
-                    showTickMarks={true}
-                    labelColor={manager.secondaryColorInStaticCharts}
-                    lineWidth={
-                        manager.isStaticAndSmall
-                            ? GRAPHER_AXIS_LINE_WIDTH_THICK
-                            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
-                    }
-                    detailsMarker={manager.detailsMarkerInSvg}
-                />
+                {dualAxisComponent}
                 <g clipPath={clipPath.id}>
                     {showLegend && <LineLegend manager={this} />}
                     <Areas

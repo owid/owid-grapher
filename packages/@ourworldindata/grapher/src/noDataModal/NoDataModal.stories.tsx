@@ -14,8 +14,7 @@ export const WithAddDataButtons = (): React.ReactElement => {
                     message="You have no data, but this is only a test"
                     manager={{
                         canChangeEntity: true,
-                        canAddData: true,
-                        isEntitySelectorModalOrDrawerOpen: false,
+                        canAddEntities: true,
                         entityType: "Country",
                     }}
                 />
