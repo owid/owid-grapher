@@ -30,6 +30,7 @@ interface ExplorerPageSettings {
     partialGrapherConfigs: GrapherInterface[]
     baseUrl: string
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
+    isPreviewing?: boolean
 }
 
 const ExplorerContent = ({ content }: { content: string }) => {

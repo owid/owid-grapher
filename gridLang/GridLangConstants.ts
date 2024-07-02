@@ -182,6 +182,30 @@ export const SlugsDeclarationCellDef: CellDef = {
     requirementsDescription: `Can only contain the characters a-zA-Z0-9-_ `,
 }
 
+export const EtlPathCellDef: CellDef = {
+    keyword: "",
+    cssClass: "IndicatorIdOrEtlPath",
+    description: "Path to an ETL indicator.",
+    regex: /^$|^[\w\d_/\-]+#[\w\d_/\-]+$/,
+    requirementsDescription: `Can only contain the characters a-zA-Z0-9-_/#`,
+}
+
+export const IndicatorIdOrEtlPathCellDef: CellDef = {
+    keyword: "",
+    cssClass: "IndicatorIdOrEtlPath",
+    description: "A single indicator ID or a path to an ETL indicator.",
+    regex: /^\d+|[\w\d_/\-]+#[\w\d_/\-]+$/,
+    requirementsDescription: `Can only contain the characters a-zA-Z0-9-_/#`,
+}
+
+export const IndicatorIdsOrEtlPathsCellDef: CellDef = {
+    keyword: "",
+    cssClass: "IndicatorIdOrEtlPath",
+    description: "One or more indicator IDs or paths to an ETL indicator.",
+    regex: /^((\d+|[\w\d_/\-]*#[\w\d_/\-]+)( +|$))+$/,
+    requirementsDescription: `Can only contain the characters a-zA-Z0-9-_/# `,
+}
+
 export const JSONObjectCellDef: CellDef = {
     keyword: "",
     cssClass: "JSONObjectCellDef",

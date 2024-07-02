@@ -6,6 +6,119 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { explorerRedirectTable } from "../explorerAdminServer/ExplorerRedirects.js"
 import { renderExplorerPage } from "./siteRenderers.js"
 import * as db from "../db/db.js"
+import { getVariableIdsByCatalogPath } from "../db/model/Variable.js"
+import { ExplorerGrammar } from "../explorer/ExplorerGrammar.js"
+import {
+    CoreTable,
+    ErrorValueTypes,
+    isNotErrorValueOrEmptyCell,
+} from "@ourworldindata/core-table"
+import { ColumnGrammar } from "../explorer/ColumnGrammar.js"
+import { ColumnTypeNames } from "@ourworldindata/types"
+
+export const transformExplorerProgramToResolveCatalogPaths = async (
+    program: ExplorerProgram,
+    knex: db.KnexReadonlyTransaction
+): Promise<{
+    program: ExplorerProgram
+    unresolvedCatalogPaths?: Set<string>
+}> => {
+    const { decisionMatrix } = program
+    const { requiredCatalogPaths } = decisionMatrix
+
+    if (requiredCatalogPaths.size === 0) return { program }
+
+    const catalogPathToIndicatorIdMap = await getVariableIdsByCatalogPath(
+        [...requiredCatalogPaths],
+        knex
+    )
+    const unresolvedCatalogPaths = new Set(
+        [...requiredCatalogPaths].filter(
+            (path) => !catalogPathToIndicatorIdMap.get(path)
+        )
+    )
+
+    const colSlugsToUpdate =
+        decisionMatrix.allColumnsWithIndicatorIdsOrCatalogPaths.map(
+            (col) => col.slug
+        )
+    // In the decision matrix table, replace any catalog paths with their corresponding indicator ids
+    // If a catalog path is not found, it will be left as is
+    const newDecisionMatrixTable =
+        decisionMatrix.tableWithOriginalColumnNames.replaceCells(
+            colSlugsToUpdate,
+            (val) => {
+                if (typeof val === "string") {
+                    const vals = val.split(" ")
+                    const updatedVals = vals.map(
+                        (val) =>
+                            catalogPathToIndicatorIdMap.get(val)?.toString() ??
+                            val
+                    )
+                    return updatedVals.join(" ")
+                }
+                return val
+            }
+        )
+
+    // Write the result to the "graphers" block
+    const grapherBlockLine = program.getRowMatchingWords(
+        ExplorerGrammar.graphers.keyword
+    )
+    if (grapherBlockLine === -1)
+        throw new Error(
+            `"graphers" block not found in explorer ${program.slug}`
+        )
+    const newProgram = program.updateBlock(
+        grapherBlockLine,
+        newDecisionMatrixTable.toMatrix()
+    )
+
+    // Next, we also need to update the "columns" block of the explorer
+    program.columnDefsByTableSlug.forEach((_columnDefs, tableSlug) => {
+        const lineNoInProgram = newProgram.getRowMatchingWords(
+            ExplorerGrammar.columns.keyword,
+            tableSlug
+        )
+        // This should, in theory, never happen because columnDefsByTableSlug gets generated from such a block
+        if (lineNoInProgram === -1)
+            throw new Error(
+                `Column defs not found for explorer ${program.slug} and table ${tableSlug}`
+            )
+        const columnDefTable = new CoreTable(
+            newProgram.getBlock(lineNoInProgram)
+        )
+        const newColumnDefsTable = columnDefTable.combineColumns(
+            [
+                ColumnGrammar.variableId.keyword,
+                ColumnGrammar.catalogPath.keyword,
+            ],
+            {
+                slug: ColumnGrammar.variableId.keyword,
+                type: ColumnTypeNames.Integer,
+            },
+            (row) => {
+                const variableId = row[ColumnGrammar.variableId.keyword]
+                if (isNotErrorValueOrEmptyCell(variableId)) return variableId
+
+                const catalogPath = row[ColumnGrammar.catalogPath.keyword]
+                if (
+                    isNotErrorValueOrEmptyCell(catalogPath) &&
+                    typeof catalogPath === "string"
+                ) {
+                    return (
+                        catalogPathToIndicatorIdMap.get(catalogPath) ??
+                        ErrorValueTypes.NoMatchingVariableId
+                    )
+                }
+                return ErrorValueTypes.NoMatchingVariableId
+            }
+        )
+        newProgram.updateBlock(lineNoInProgram, newColumnDefsTable.toMatrix())
+    })
+
+    return { program: newProgram.clone, unresolvedCatalogPaths }
+}
 
 export const bakeAllPublishedExplorers = async (
     outputFolder: string,
@@ -58,8 +171,10 @@ export const bakeAllExplorerRedirects = async (
             )
         }
         const html = await renderExplorerPage(program, knex, {
-            explorerUrlMigrationId: migrationId,
-            baseQueryStr,
+            urlMigrationSpec: {
+                explorerUrlMigrationId: migrationId,
+                baseQueryStr,
+            },
         })
         await write(path.join(outputFolder, `${redirectPath}.html`), html)
     }

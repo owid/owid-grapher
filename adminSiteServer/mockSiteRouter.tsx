@@ -189,8 +189,10 @@ getPlainRouteWithROTransaction(
         const program =
             await explorerAdminServer.getExplorerFromSlug(explorerSlug)
         const explorerPage = await renderExplorerPage(program, trx, {
-            explorerUrlMigrationId: migrationId,
-            baseQueryStr,
+            urlMigrationSpec: {
+                explorerUrlMigrationId: migrationId,
+                baseQueryStr,
+            },
         })
         res.send(explorerPage)
     }

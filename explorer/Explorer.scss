@@ -9,6 +9,11 @@ $explorer-padding: 0.5rem;
     width: 100%;
     position: relative;
     padding: $explorer-padding;
+
+    .admin-only-locally-edited-checkbox {
+        position: absolute;
+        right: 5px;
+    }
 }
 
 html.IsInIframe #ExplorerContainer {
@@ -17,6 +22,10 @@ html.IsInIframe #ExplorerContainer {
     max-height: none;
     // leave some padding for shadows
     padding: 3px;
+
+    .admin-only-locally-edited-checkbox {
+        display: none;
+    }
 }
 
 .ExplorerHeaderBox {
