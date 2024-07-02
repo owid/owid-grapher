@@ -10,7 +10,6 @@ import {
 } from "@ourworldindata/types"
 import {
     CoreTable,
-    ErrorValueTypes,
     OwidTable,
     isNotErrorValue,
 } from "@ourworldindata/core-table"
@@ -20,7 +19,6 @@ import {
     SerializedGridProgram,
     trimObject,
     omit,
-    parseIntOrUndefined,
 } from "@ourworldindata/utils"
 import {
     CellDef,
@@ -500,7 +498,7 @@ const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
             "Keep only column defs with a slug or variable id"
         )
     return columnsTable.rows.map((row) => {
-        // ignore slug if variable id or catalog path is given
+        // ignore slug if variable id is given
         if (
             row.owidVariableId &&
             isNotErrorValue(row.owidVariableId) &&
