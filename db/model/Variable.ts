@@ -583,7 +583,7 @@ export interface VariableResultView {
 export const getVariableIdsByCatalogPath = async (
     catalogPaths: string[],
     knex: db.KnexReadonlyTransaction
-): Promise<Record<string, number | null>> => {
+): Promise<Map<string, number | null>> => {
     const rows: Pick<DbRawVariable, "id" | "catalogPath">[] = await knex
         .select("id", "catalogPath")
         .from(VariablesTableName)
@@ -594,7 +594,7 @@ export const getVariableIdsByCatalogPath = async (
     // `rowsByPath` only contains the rows that were found, so we need to create
     // a map where all keys from `catalogPaths` are present, and set the value to
     // undefined if no row was found for that catalog path.
-    return Object.fromEntries(
+    return new Map(
         // Sort for good measure and determinism.
         catalogPaths.sort().map((path) => [path, rowsByPath[path]?.id ?? null])
     )

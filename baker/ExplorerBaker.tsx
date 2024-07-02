@@ -6,6 +6,85 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { explorerRedirectTable } from "../explorerAdminServer/ExplorerRedirects.js"
 import { renderExplorerPage } from "./siteRenderers.js"
 import * as db from "../db/db.js"
+import { getVariableIdsByCatalogPath } from "../db/model/Variable.js"
+import { ExplorerGrammar } from "../explorer/ExplorerGrammar.js"
+import { CoreTable } from "@ourworldindata/core-table"
+import { ColumnGrammar } from "../explorer/ColumnGrammar.js"
+
+export const transformExplorerProgramToResolveCatalogPaths = async (
+    program: ExplorerProgram,
+    knex: db.KnexReadonlyTransaction
+): Promise<{
+    program: ExplorerProgram
+    unresolvedCatalogPaths?: Set<string>
+}> => {
+    const { decisionMatrix } = program
+    const { requiredCatalogPaths } = decisionMatrix
+
+    if (requiredCatalogPaths.size === 0) return { program }
+
+    const catalogPathToIndicatorIdMap = await getVariableIdsByCatalogPath(
+        [...requiredCatalogPaths],
+        knex
+    )
+    const unresolvedCatalogPaths = new Set(
+        [...requiredCatalogPaths].filter(
+            (path) => !catalogPathToIndicatorIdMap.get(path)
+        )
+    )
+
+    const colSlugsToUpdate = decisionMatrix.allColumnsWithIndicatorIds.map(
+        (col) => col.slug
+    )
+    // In the decision matrix table, replace any catalog paths with their corresponding indicator ids
+    // If a catalog path is not found, it will be left as is
+    const newDecisionMatrixTable =
+        decisionMatrix.tableWithOriginalColumnNames.replaceCells(
+            colSlugsToUpdate,
+            (val) => {
+                if (typeof val === "string") {
+                    const vals = val.split(" ")
+                    const updatedVals = vals.map(
+                        (val) =>
+                            catalogPathToIndicatorIdMap.get(val)?.toString() ??
+                            val
+                    )
+                    return updatedVals.join(" ")
+                }
+                return val
+            }
+        )
+    const grapherBlockLine = program.getKeywordIndex(
+        ExplorerGrammar.graphers.keyword
+    )
+    const newProgram = program.updateBlock(
+        grapherBlockLine,
+        newDecisionMatrixTable.toMatrix()
+    )
+
+    program.columnDefsByTableSlug.forEach((columnDefs, tableSlug) => {
+        const lineNoInProgram = newProgram.getRowMatchingWords(
+            ExplorerGrammar.columns.keyword,
+            tableSlug
+        )
+        const columnDefTable = new CoreTable(
+            newProgram.getBlock(lineNoInProgram)
+        )
+        const newColumnDefsTable = columnDefTable.replaceCells(
+            [ColumnGrammar.variableId.keyword],
+            (val) => {
+                if (typeof val === "string")
+                    return (
+                        catalogPathToIndicatorIdMap.get(val)?.toString() ?? val
+                    )
+                return val
+            }
+        )
+        newProgram.updateBlock(lineNoInProgram, newColumnDefsTable.toMatrix())
+    })
+
+    return { program: newProgram, unresolvedCatalogPaths }
+}
 
 export const bakeAllPublishedExplorers = async (
     outputFolder: string,

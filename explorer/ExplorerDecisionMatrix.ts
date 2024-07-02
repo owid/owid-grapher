@@ -142,16 +142,23 @@ export class DecisionMatrix {
         )
     }
 
-    get requiredCatalogPaths(): Set<string> {
+    get allColumnsWithIndicatorIds() {
         const indicatorColKeywords = [
             GrapherGrammar.yVariableIds.keyword,
             GrapherGrammar.xVariableId.keyword,
             GrapherGrammar.colorVariableId.keyword,
             GrapherGrammar.sizeVariableId.keyword,
         ]
-        const allIndicators = indicatorColKeywords
-            .flatMap((keyword) => this.table.get(keyword).uniqValues)
+        return this.table
+            .getColumns(indicatorColKeywords)
+            .filter((col) => !col.isMissing)
+    }
+
+    get requiredCatalogPaths(): Set<string> {
+        const allIndicators = this.allColumnsWithIndicatorIds
+            .flatMap((col) => col.uniqValues)
             .flatMap((value) => value.split(" "))
+            .filter((value) => value !== "")
 
         // Assume it's a catalog path if it doesn't look like a number
         const catalogPaths = allIndicators.filter(
@@ -159,6 +166,19 @@ export class DecisionMatrix {
         )
 
         return new Set(catalogPaths)
+    }
+
+    // This is, basically, the inverse of `dropColumnTypes`.
+    get tableWithOriginalColumnNames() {
+        return this.table.renameColumns(
+            Object.fromEntries(
+                [...this.choiceNameToControlTypeMap.entries()].map(
+                    ([choiceName, controlType]) => {
+                        return [choiceName, `${choiceName} ${controlType}`]
+                    }
+                )
+            )
+        )
     }
 
     choiceNameToControlTypeMap: Map<ChoiceName, ExplorerControlType>

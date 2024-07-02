@@ -92,6 +92,7 @@ import {
     getAndLoadGdocById,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { getVariableIdsByCatalogPath } from "../db/model/Variable.js"
+import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerBaker.js"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
@@ -697,8 +698,22 @@ export const renderExplorerPage = async (
     knex: KnexReadonlyTransaction,
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
 ) => {
-    const { requiredGrapherIds, requiredVariableIds, requiredCatalogPaths } =
-        program.decisionMatrix
+    const transformResult = await transformExplorerProgramToResolveCatalogPaths(
+        program,
+        knex
+    )
+    const { program: transformedProgram, unresolvedCatalogPaths } =
+        transformResult
+    if (unresolvedCatalogPaths?.size) {
+        void logErrorAndMaybeSendToBugsnag(
+            new JsonError(
+                `${unresolvedCatalogPaths.size} catalog paths cannot be found for explorer ${transformedProgram.slug}: ${[...unresolvedCatalogPaths].join(", ")}.`
+            )
+        )
+    }
+
+    const { requiredGrapherIds, requiredVariableIds } =
+        transformedProgram.decisionMatrix
 
     type ChartRow = { id: number; config: string }
     let grapherConfigRows: ChartRow[] = []
@@ -728,7 +743,7 @@ export const renderExplorerPage = async (
         if (missingIds.length > 0) {
             void logErrorAndMaybeSendToBugsnag(
                 new JsonError(
-                    `Referenced variable IDs do not exist in the database for explorer ${program.slug}: ${missingIds.join(", ")}.`
+                    `Referenced variable IDs do not exist in the database for explorer ${transformedProgram.slug}: ${missingIds.join(", ")}.`
                 )
             )
         }
@@ -760,28 +775,16 @@ export const renderExplorerPage = async (
             return mergePartialGrapherConfigs(etlConfig, adminConfig)
         })
 
-    const wpContent = program.wpBlockId
+    const wpContent = transformedProgram.wpBlockId
         ? await renderReusableBlock(
-              await getBlockContentFromSnapshot(knex, program.wpBlockId),
-              program.wpBlockId,
+              await getBlockContentFromSnapshot(
+                  knex,
+                  transformedProgram.wpBlockId
+              ),
+              transformedProgram.wpBlockId,
               knex
           )
         : undefined
-
-    const catalogPathToIndicatorIdMap = await getVariableIdsByCatalogPath(
-        [...requiredCatalogPaths],
-        knex
-    )
-    const unresolvedCatalogPaths = [...requiredCatalogPaths].filter(
-        (path) => !catalogPathToIndicatorIdMap[path]
-    )
-    if (unresolvedCatalogPaths.length > 0) {
-        void logErrorAndMaybeSendToBugsnag(
-            new JsonError(
-                `${unresolvedCatalogPaths.length} catalog paths cannot be found for explorer ${program.slug}: ${unresolvedCatalogPaths.join(", ")}.`
-            )
-        )
-    }
 
     return (
         `<!doctype html>` +
@@ -789,8 +792,7 @@ export const renderExplorerPage = async (
             <ExplorerPage
                 grapherConfigs={grapherConfigs}
                 partialGrapherConfigs={partialGrapherConfigs}
-                catalogPathToIndicatorIdMap={catalogPathToIndicatorIdMap}
-                program={program}
+                program={transformedProgram}
                 wpContent={wpContent}
                 baseUrl={BAKED_BASE_URL}
                 urlMigrationSpec={urlMigrationSpec}

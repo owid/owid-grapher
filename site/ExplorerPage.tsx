@@ -9,7 +9,6 @@ import {
 } from "@ourworldindata/utils"
 import React from "react"
 import {
-    EMBEDDED_EXPLORER_CATALOG_PATH_TO_INDICATOR_ID_MAP,
     EMBEDDED_EXPLORER_DELIMITER,
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EMBEDDED_EXPLORER_PARTIAL_GRAPHER_CONFIGS,
@@ -29,7 +28,6 @@ interface ExplorerPageSettings {
     wpContent?: string
     grapherConfigs: GrapherInterface[]
     partialGrapherConfigs: GrapherInterface[]
-    catalogPathToIndicatorIdMap: Record<string, number | null>
     baseUrl: string
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
 }
@@ -61,7 +59,6 @@ export const ExplorerPage = (props: ExplorerPageSettings) => {
         program,
         grapherConfigs,
         partialGrapherConfigs,
-        catalogPathToIndicatorIdMap,
         baseUrl,
         urlMigrationSpec,
     } = props
@@ -96,11 +93,7 @@ const partialGrapherConfigs = ${serializeJSONForHTML(
 const urlMigrationSpec = ${
         urlMigrationSpec ? JSON.stringify(urlMigrationSpec) : "undefined"
     };
-const catalogPathToIndicatorIdMap = ${serializeJSONForHTML(
-        catalogPathToIndicatorIdMap,
-        EMBEDDED_EXPLORER_CATALOG_PATH_TO_INDICATOR_ID_MAP
-    )};
-window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfigs, partialGrapherConfigs, urlMigrationSpec, catalogPathToIndicatorIdMap);`
+window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfigs, partialGrapherConfigs, urlMigrationSpec);`
 
     return (
         <html>
