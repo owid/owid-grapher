@@ -1,7 +1,15 @@
+import { IRequestStrict, Router, error } from "itty-router"
+import { fetchCsvForGrapher } from "../_common/grapherRenderer.js"
+import { Env } from "./thumbnail/[slug].js"
 export const onRequestGet: PagesFunction = async (context) => {
     // Makes it so that if there's an error, we will just deliver the original page before the HTML rewrite.
     // Only caveat is that redirects will not be taken into account for some reason; but on the other hand the worker is so simple that it's unlikely to fail.
     context.passThroughOnException()
+    console.log(
+        "prepping Handling",
+        context.request.url,
+        context.request.headers.get("User-Agent")
+    )
 
     // Redirects handling is performed by the worker, and is done by fetching the (baked) _grapherRedirects.json file.
     // That file is a mapping from old slug to new slug.
@@ -18,16 +26,18 @@ export const onRequestGet: PagesFunction = async (context) => {
         return redirects[slug]
     }
 
+    const { request, env, params } = context
+    const url = new URL(request.url)
+    const isCsvRequest = url.pathname.endsWith(".csv")
     const createRedirectResponse = (redirSlug: string, currentUrl: URL) =>
         new Response(null, {
             status: 302,
-            headers: { Location: `/grapher/${redirSlug}${currentUrl.search}` },
+            headers: {
+                Location: `/grapher/${redirSlug}${isCsvRequest ? ".csv" : ""}${currentUrl.search}`,
+            },
         })
 
-    const { request, env, params } = context
-
     const originalSlug = params.slug as string
-    const url = new URL(request.url)
 
     /**
      * REDIRECTS HANDLING:
@@ -56,7 +66,16 @@ export const onRequestGet: PagesFunction = async (context) => {
     //     { redirect: "manual" }
     // )
 
-    const grapherPageResp = await env.ASSETS.fetch(url, { redirect: "manual" })
+    const grapherUrl = new URL(request.url)
+    // if we have a csv url, then create a new url without the csv extension but keeping the query params
+    // this is to check if the page exists and to redirect to the correct page if it does
+    if (isCsvRequest) {
+        grapherUrl.pathname = url.pathname.replace(/\.csv$/, "")
+    }
+
+    const grapherPageResp = await env.ASSETS.fetch(grapherUrl, {
+        redirect: "manual",
+    })
 
     if (grapherPageResp.status === 404) {
         // If the request is a 404, we check if there's a redirect for it.
@@ -74,37 +93,87 @@ export const onRequestGet: PagesFunction = async (context) => {
     // In the case of the redirect, the browser will then request the new URL which will again be handled by this worker.
     if (grapherPageResp.status !== 200) return grapherPageResp
 
-    const openGraphThumbnailUrl = `/grapher/thumbnail/${lowerCaseSlug}.png?imType=og${
-        url.search ? "&" + url.search.slice(1) : ""
-    }`
-    const twitterThumbnailUrl = `/grapher/thumbnail/${lowerCaseSlug}.png?imType=twitter${
-        url.search ? "&" + url.search.slice(1) : ""
-    }`
+    const handleGrapherPage = (): Response => {
+        const openGraphThumbnailUrl = `/grapher/thumbnail/${lowerCaseSlug}.png?imType=og${
+            url.search ? "&" + url.search.slice(1) : ""
+        }`
+        const twitterThumbnailUrl = `/grapher/thumbnail/${lowerCaseSlug}.png?imType=twitter${
+            url.search ? "&" + url.search.slice(1) : ""
+        }`
 
-    // Take the origin (e.g. https://ourworldindata.org) from the canonical URL, which should appear before the image elements.
-    // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
-    let origin = ""
+        // Take the origin (e.g. https://ourworldindata.org) from the canonical URL, which should appear before the image elements.
+        // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
+        let origin = ""
 
-    // Rewrite the two meta tags that are used for a social media preview image.
-    const rewriter = new HTMLRewriter()
-        .on('meta[property="og:url"]', {
-            // Replace canonical URL, otherwise the preview image will not include the search parameters.
-            element: (element) => {
-                const canonicalUrl = element.getAttribute("content")
-                element.setAttribute("content", canonicalUrl + url.search)
-                origin = new URL(canonicalUrl).origin
-            },
-        })
-        .on('meta[property="og:image"]', {
-            element: (element) => {
-                element.setAttribute("content", origin + openGraphThumbnailUrl)
-            },
-        })
-        .on('meta[name="twitter:image"]', {
-            element: (element) => {
-                element.setAttribute("content", origin + twitterThumbnailUrl)
-            },
-        })
+        // Rewrite the two meta tags that are used for a social media preview image.
+        const rewriter = new HTMLRewriter()
+            .on('meta[property="og:url"]', {
+                // Replace canonical URL, otherwise the preview image will not include the search parameters.
+                element: (element) => {
+                    const canonicalUrl = element.getAttribute("content")
+                    element.setAttribute("content", canonicalUrl + url.search)
+                    origin = new URL(canonicalUrl).origin
+                },
+            })
+            .on('meta[property="og:image"]', {
+                element: (element) => {
+                    element.setAttribute(
+                        "content",
+                        origin + openGraphThumbnailUrl
+                    )
+                },
+            })
+            .on('meta[name="twitter:image"]', {
+                element: (element) => {
+                    element.setAttribute(
+                        "content",
+                        origin + twitterThumbnailUrl
+                    )
+                },
+            })
 
-    return rewriter.transform(grapherPageResp)
+        return rewriter.transform(grapherPageResp)
+    }
+
+    const shouldCache =
+        !url.searchParams.has("nocache") && context.request.url.endsWith(".csv")
+
+    const cache = caches.default
+    if (shouldCache) {
+        const maybeCached = await cache.match(request)
+        if (maybeCached) return maybeCached
+    }
+
+    console.log("Handling", request.url, request.headers.get("User-Agent"))
+
+    const router = Router<IRequestStrict, [URL, Env, ExecutionContext]>()
+    router
+        .get(
+            "/grapher/:slug.csv",
+            async ({ params: { slug } }, { searchParams }, env) =>
+                fetchCsvForGrapher(slug, env, searchParams) // pass undefined if we want the full csv
+        )
+        .get(
+            "/grapher/:slug",
+            async ({ params: { slug } }, { searchParams }, env) =>
+                handleGrapherPage()
+        )
+        .all("*", () => error(404, "Route not defined"))
+    return router
+        .handle(request, url, { ...env, url }, context)
+        .then((resp: Response) => {
+            if (shouldCache) {
+                resp.headers.set(
+                    "Cache-Control",
+                    "public, s-maxage=3600, max-age=3600"
+                )
+                context.waitUntil(caches.default.put(request, resp.clone()))
+            } else
+                resp.headers.set(
+                    "Cache-Control",
+                    "public, s-maxage=0, max-age=0, must-revalidate"
+                )
+            return resp
+        })
+        .catch((e) => error(500, e))
 }
