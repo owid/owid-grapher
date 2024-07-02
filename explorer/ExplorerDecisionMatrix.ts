@@ -94,15 +94,17 @@ export class DecisionMatrix {
                 slug: GrapherGrammar.grapherId.keyword,
                 type: ColumnTypeNames.Integer,
             },
-            // yVariableIds can either be a single integer or multiple integers
-            // separated by a whitespace. if the first row is a single integer,
-            // then the column type is automatically inferred to be numeric and
-            // rows with multiple integers are parsed incorrectly. to avoid this,
-            // we explicitly set the column type to be string.
-            {
-                slug: GrapherGrammar.yVariableIds.keyword,
-                type: ColumnTypeNames.String,
-            },
+            // yVariableIds, xVariableIds, etc. can either be an indicator ID or a catalog path.
+            // If the first row contains a numeric value, the column type is inferred to be
+            // numeric, and parsing may fail if subsequent rows contain non-numeric values.
+            // In addition, yVariableIds may also contain a space-separated list of multiple
+            // indicator IDs or catalog paths.
+            ...DecisionMatrix.allColumnSlugsWithIndicatorIdsOrCatalogPaths.map(
+                (slug) => ({
+                    slug,
+                    type: ColumnTypeNames.String,
+                })
+            ),
         ])
         this.hash = hash
         this.setValuesFromChoiceParams() // Initialize options
@@ -142,15 +144,18 @@ export class DecisionMatrix {
         )
     }
 
+    private static allColumnSlugsWithIndicatorIdsOrCatalogPaths = [
+        GrapherGrammar.yVariableIds.keyword,
+        GrapherGrammar.xVariableId.keyword,
+        GrapherGrammar.colorVariableId.keyword,
+        GrapherGrammar.sizeVariableId.keyword,
+    ]
+
     get allColumnsWithIndicatorIdsOrCatalogPaths() {
-        const indicatorColKeywords = [
-            GrapherGrammar.yVariableIds.keyword,
-            GrapherGrammar.xVariableId.keyword,
-            GrapherGrammar.colorVariableId.keyword,
-            GrapherGrammar.sizeVariableId.keyword,
-        ]
         return this.table
-            .getColumns(indicatorColKeywords)
+            .getColumns(
+                DecisionMatrix.allColumnSlugsWithIndicatorIdsOrCatalogPaths
+            )
             .filter((col) => !col.isMissing)
     }
 
