@@ -186,7 +186,7 @@ export const EtlPathCellDef: CellDef = {
     keyword: "IndicatorIdOrEtlPath",
     cssClass: "EtlPath",
     description: "Path to an ETL indicator.",
-    regex: /^$|^[\w\d_/\-]+(#[\w\d_/\-]+)?$/,
+    regex: /^$|^[\w\d_/\-]+#[\w\d_/\-]+$/,
     requirementsDescription: `Can only contain the characters a-zA-Z0-9-_/#`,
 }
 
@@ -194,7 +194,7 @@ export const IndicatorIdOrEtlPathCellDef: CellDef = {
     keyword: "",
     cssClass: "IndicatorIdOrEtlPath",
     description: "A single indicator ID or a path to an ETL indicator.",
-    regex: /^\d+|[\w\d_/\-]+(#[\w\d_/\-]+)?$/,
+    regex: /^\d+|[\w\d_/\-]+#[\w\d_/\-]+$/,
     requirementsDescription: `Can only contain the characters a-zA-Z0-9-_/#`,
 }
 
@@ -202,7 +202,7 @@ export const IndicatorIdsOrEtlPathsCellDef: CellDef = {
     keyword: "",
     cssClass: "IndicatorIdOrEtlPath",
     description: "One or more indicator IDs or paths to an ETL indicator.",
-    regex: /^(\d+|[\w\d_/\-]+(#[\w\d_/\-]+)?(\s+|$))+$/,
+    regex: /^(\d+|[\w\d_/\-]+#[\w\d_/\-]+( +|$))+$/,
     requirementsDescription: `Can only contain the characters a-zA-Z0-9-_/# `,
 }
 
