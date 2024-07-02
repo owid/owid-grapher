@@ -202,7 +202,7 @@ export const IndicatorIdsOrEtlPathsCellDef: CellDef = {
     keyword: "",
     cssClass: "IndicatorIdOrEtlPath",
     description: "One or more indicator IDs or paths to an ETL indicator.",
-    regex: /^(\d+|[\w\d_/\-]+#[\w\d_/\-]+( +|$))+$/,
+    regex: /^(\d+|\w[\w\d_/\-]*#[\w\d_/\-]+( +|$))+$/,
     requirementsDescription: `Can only contain the characters a-zA-Z0-9-_/# `,
 }
 
