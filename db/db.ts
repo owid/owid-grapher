@@ -23,8 +23,12 @@ import {
     FlatTagGraph,
     FlatTagGraphNode,
     MinimalTagWithIsTopic,
+    DbPlainPostGdocLink,
+    OwidGdocLinkType,
+    OwidGdoc,
 } from "@ourworldindata/types"
 import { groupBy } from "lodash"
+import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
 
 // Return the first match from a mysql query
 export const closeTypeOrmAndKnexConnections = async (): Promise<void> => {
@@ -617,4 +621,40 @@ export function getMinimalTagsWithIsTopic(
             ],
         }
     )
+}
+
+export async function getGrapherLinkTargets(
+    knex: KnexReadonlyTransaction
+): Promise<Pick<DbPlainPostGdocLink, "target">[]> {
+    return knexRaw<Pick<DbPlainPostGdocLink, "target">>(
+        knex,
+        `-- sql
+        SELECT target
+        FROM posts_gdocs_links
+        WHERE linkType = '${OwidGdocLinkType.Grapher}'
+        `
+    )
+}
+
+/**
+ * Get the slugs of all datapages that are linked to in KeyIndicator blocks
+ * Optionally exclude homepage KeyIndicator blocks, because for prefetching (the one current usecase for this function)
+ * the SiteBaker fetches the indicator metadata separately
+ */
+export async function getLinkedIndicatorSlugs({
+    knex,
+    excludeHomepage = false,
+}: {
+    knex: KnexReadonlyTransaction
+    excludeHomepage: boolean
+}): Promise<Set<string>> {
+    let rawQuery = `-- sql
+        SELECT * FROM posts_gdocs WHERE published = TRUE`
+    if (excludeHomepage) {
+        rawQuery += ` AND type != '${OwidGdocType.Homepage}'`
+    }
+    return knexRaw<OwidGdoc>(knex, rawQuery)
+        .then((gdocs) => gdocs.map((gdoc) => gdocFromJSON(gdoc)))
+        .then((gdocs) => gdocs.flatMap((gdoc) => gdoc.linkedKeyIndicatorSlugs))
+        .then((slugs) => new Set(slugs))
 }

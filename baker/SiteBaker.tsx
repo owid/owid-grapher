@@ -351,8 +351,21 @@ export class SiteBaker {
                 name: `✅ Prefetched ${Object.values(publishedExplorersBySlug).length} explorers`,
             })
 
+            // Get all grapher links from the database so that we only prefetch the ones that are actually in use
+            // 2024-06-25 before/after: 6266/2194
+            const grapherLinks = await db
+                .getGrapherLinkTargets(knex)
+                .then((rows) => rows.map((row) => row.target))
+                .then((targets) => new Set(targets))
+
             // Includes redirects
-            const publishedChartsRaw = await mapSlugsToConfigs(knex)
+            const publishedChartsRaw = await mapSlugsToConfigs(knex).then(
+                (configs) => {
+                    return configs.filter((config) =>
+                        grapherLinks.has(config.slug)
+                    )
+                }
+            )
             const publishedCharts: LinkedChart[] = []
 
             for (const publishedChartsRawChunk of chunk(
@@ -383,11 +396,21 @@ export class SiteBaker {
                 name: `✅ Prefetched ${publishedCharts.length} charts`,
             })
 
-            const publishedChartsWithIndicatorIds = publishedCharts.filter(
-                (chart) => chart.indicatorId
+            // The only reason we need linkedIndicators is for the KeyIndicator+KeyIndicatorCollection components.
+            // The homepage is currently the only place that uses them (and it handles its data fetching separately)
+            // so all of this is kind of redundant, but it's here for completeness if we start using them elsewhere
+            const allLinkedIndicatorSlugs = await db.getLinkedIndicatorSlugs({
+                knex,
+                excludeHomepage: true,
+            })
+
+            const linkedIndicatorCharts = publishedCharts.filter(
+                (chart) =>
+                    allLinkedIndicatorSlugs.has(chart.originalSlug) &&
+                    chart.indicatorId
             )
-            const datapageIndicators: LinkedIndicator[] = await Promise.all(
-                publishedChartsWithIndicatorIds.map(async (linkedChart) => {
+            const linkedIndicators: LinkedIndicator[] = await Promise.all(
+                linkedIndicatorCharts.map(async (linkedChart) => {
                     const indicatorId = linkedChart.indicatorId as number
                     const metadata = await getVariableMetadata(indicatorId)
                     return {
@@ -399,9 +422,9 @@ export class SiteBaker {
                 })
             )
             this.progressBar.tick({
-                name: `✅ Prefetched ${datapageIndicators.length} linked indicators`,
+                name: `✅ Prefetched ${linkedIndicators.length} linked indicators`,
             })
-            const datapageIndicatorsById = keyBy(datapageIndicators, "id")
+            const datapageIndicatorsById = keyBy(linkedIndicators, "id")
 
             const publishedAuthors = await getMinimalAuthors(knex)
 
