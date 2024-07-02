@@ -357,7 +357,8 @@ properties:
         description: Reverse the order of colors in the color scheme
     hideRelativeToggle:
         type: boolean
-        description: Whether to hide the relative mode UI toggle. Default depends on the chart type
+        default: true
+        description: Whether to hide the relative mode UI toggle
     comparisonLines:
         description: List of vertical comparison lines to draw
         type: array
