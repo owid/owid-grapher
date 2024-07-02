@@ -43,7 +43,6 @@ import knex, { Knex } from "knex"
 import { dbTestConfig } from "../db/tests/dbTestConfig.js"
 import {
     TransactionCloseMode,
-    knexInstance,
     knexRaw,
     knexReadWriteTransaction,
     setKnexInstance,

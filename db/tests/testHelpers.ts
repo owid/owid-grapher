@@ -10,7 +10,7 @@ export async function cleanTestDb(
     await knexInstance.raw("DELETE FROM users")
 }
 
-export function sleep(time: number, value: any): Promise<any> {
+export function sleep(time: number, value: unknown): Promise<any> {
     return new Promise((resolve) => {
         setTimeout(() => {
             return resolve(value)
