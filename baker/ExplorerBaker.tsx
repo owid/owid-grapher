@@ -59,7 +59,7 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
                 return val
             }
         )
-    const grapherBlockLine = program.getKeywordIndex(
+    const grapherBlockLine = program.getRowMatchingWords(
         ExplorerGrammar.graphers.keyword
     )
     const newProgram = program.updateBlock(

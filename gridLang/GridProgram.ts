@@ -197,7 +197,7 @@ export class GridProgram {
         return { startRow, endRow: startRow + numRows, numRows }
     }
 
-    getKeywordIndex(key: string) {
+    protected getKeywordIndex(key: string) {
         return this.lines.findIndex((line) => line[0] === key)
     }
 
