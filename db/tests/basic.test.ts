@@ -13,10 +13,12 @@ import {
 import { deleteUser, insertUser, updateUser } from "../model/User.js"
 import {
     ChartsTableName,
+    ChartConfigsTableName,
     DbInsertChart,
     DbPlainUser,
-    DbRawChart,
+    DbPlainChart,
     UsersTableName,
+    DbInsertChartConfig,
 } from "@ourworldindata/types"
 
 let knexInstance: Knex<any, unknown[]> | undefined = undefined
@@ -65,17 +67,36 @@ function sleep(time: number, value: any): Promise<any> {
     })
 }
 
+const getBinaryUUID = async (
+    knex: KnexReadonlyTransaction
+): Promise<string> => {
+    const { id } = (await knexRawFirst<{ id: string }>(
+        knex,
+        `SELECT UUID_TO_BIN(UUID(), 1) AS id`
+    ))!
+    return id
+}
+
 test("timestamps are automatically created and updated", async () => {
     await knexReadWriteTransaction(
         async (trx) => {
-            const chart: DbInsertChart = {
+            const configId = await getBinaryUUID(trx)
+            const chartConfig: DbInsertChartConfig = {
+                id: configId,
+                config: "{}",
+                patchConfig: "{}",
+            }
+            // TODO(charts.config): remove chart field from here
+            const chart: DbInsertChart & { config: string } = {
+                configId,
                 config: "{}",
                 lastEditedAt: new Date(),
                 lastEditedByUserId: 1,
                 is_indexable: 0,
             }
+            await trx.table(ChartConfigsTableName).insert(chartConfig)
             await trx.table(ChartsTableName).insert(chart)
-            const created = await knexRawFirst<DbRawChart>(
+            const created = await knexRawFirst<DbPlainChart>(
                 trx,
                 "select * from charts where id = 1",
                 []
@@ -89,7 +110,7 @@ test("timestamps are automatically created and updated", async () => {
                     .table(ChartsTableName)
                     .where({ id: 1 })
                     .update({ is_indexable: 1 })
-                const updated = await knexRawFirst<DbRawChart>(
+                const updated = await knexRawFirst<DbPlainChart>(
                     trx,
                     "select * from charts where id = 1",
                     []

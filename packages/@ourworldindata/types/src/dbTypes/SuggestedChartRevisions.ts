@@ -1,6 +1,6 @@
 import { JsonString } from "../domainTypes/Various.js"
 import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
-import { parseChartConfig, serializeChartConfig } from "./Charts.js"
+import { parseChartConfig, serializeChartConfig } from "./ChartConfigs.js"
 
 export interface SuggestedChartRevisionsExperimental {
     gpt: {

@@ -43,6 +43,8 @@ import {
     FaqDictionary,
     ImageMetadata,
     OwidGdocBaseInterface,
+    DbPlainChart,
+    DbRawChartConfig,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -482,16 +484,22 @@ export const bakeSingleGrapherChart = async (
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
     // TODO: this transaction is only RW because somewhere inside it we fetch images
     async (bakedSiteDir: string, knex: db.KnexReadWriteTransaction) => {
-        const chartsToBake: { id: number; config: string; slug: string }[] =
-            await knexRaw(
-                knex,
-                `-- sql
-                SELECT
-                    id, config, config->>'$.slug' as slug
-                FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
-                ORDER BY JSON_EXTRACT(config, "$.slug") ASC
+        const chartsToBake = await knexRaw<
+            Pick<DbPlainChart, "id"> &
+                Pick<DbRawChartConfig, "config"> & { slug: string }
+        >(
+            knex,
+            `-- sql
+                    SELECT
+                        c.id,
+                        cc.config,
+                        cc.config->>'$.slug' as slug
+                    FROM charts c
+                    JOIN chart_configs cc ON c.configId = cc.id
+                    WHERE JSON_EXTRACT(cc.config, "$.isPublished")=true
+                    ORDER BY JSON_EXTRACT(cc.config, "$.slug") ASC
                 `
-            )
+        )
 
         const newSlugs = chartsToBake.map((row) => row.slug)
         await fs.mkdirp(bakedSiteDir + "/grapher")

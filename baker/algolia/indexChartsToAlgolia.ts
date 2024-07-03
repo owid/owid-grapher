@@ -123,19 +123,20 @@ const getChartsRecords = async (
         `-- sql
         WITH indexable_charts_with_entity_names AS (
             SELECT c.id,
-                   config ->> "$.slug"                    AS slug,
-                   config ->> "$.title"                   AS title,
-                   config ->> "$.variantName"             AS variantName,
-                   config ->> "$.subtitle"                AS subtitle,
-                   JSON_LENGTH(config ->> "$.dimensions") AS numDimensions,
+                   cc.config ->> "$.slug"                    AS slug,
+                   cc.config ->> "$.title"                   AS title,
+                   cc.config ->> "$.variantName"             AS variantName,
+                   cc.config ->> "$.subtitle"                AS subtitle,
+                   JSON_LENGTH(cc.config ->> "$.dimensions") AS numDimensions,
                    c.publishedAt,
                    c.updatedAt,
                    JSON_ARRAYAGG(e.name)                  AS entityNames
             FROM charts c
+                     LEFT JOIN chart_configs cc ON c.configId = cc.id
                      LEFT JOIN charts_x_entities ce ON c.id = ce.chartId
                      LEFT JOIN entities e ON ce.entityId = e.id
-            WHERE config ->> "$.isPublished" = 'true'
-              AND is_indexable IS TRUE
+            WHERE cc.config ->> "$.isPublished" = 'true'
+                AND c.is_indexable IS TRUE
             GROUP BY c.id
         )
         SELECT c.id,

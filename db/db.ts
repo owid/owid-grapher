@@ -292,10 +292,12 @@ export const getTotalNumberOfCharts = (
 ): Promise<number> => {
     return knexRawFirst<{ count: number }>(
         knex,
+        `-- sql
+            SELECT COUNT(*) AS count
+            FROM charts c
+            JOIN chart_configs cc ON c.configId = cc.id
+            WHERE cc.config ->> "$.isPublished" = "true"
         `
-        SELECT COUNT(*) AS count
-        FROM charts
-        WHERE config->"$.isPublished" = TRUE`
     ).then((res) => res?.count ?? 0)
 }
 

@@ -72,7 +72,7 @@ import {
     PostsTableName,
     DbRawPost,
     DbPlainChartSlugRedirect,
-    DbRawChart,
+    DbPlainChart,
     DbInsertChartRevision,
     serializeChartConfig,
     DbRawOrigin,
@@ -83,6 +83,7 @@ import {
     DbPlainDataset,
     DbInsertUser,
     FlatTagGraph,
+    DbRawChartConfig,
 } from "@ourworldindata/types"
 import {
     getVariableDataRoute,
@@ -273,6 +274,16 @@ const expectChartById = async (
     throw new JsonError(`No chart found for id ${chartId}`, 404)
 }
 
+const getBinaryUUID = async (
+    knex: db.KnexReadonlyTransaction
+): Promise<string> => {
+    const { id } = (await db.knexRawFirst<{ id: string }>(
+        knex,
+        `SELECT UUID_TO_BIN(UUID(), 1) AS id`
+    ))!
+    return id
+}
+
 const saveGrapher = async (
     knex: db.KnexReadWriteTransaction,
     user: DbPlainUser,
@@ -294,9 +305,17 @@ const saveGrapher = async (
     }
 
     async function isSlugUsedInOtherGrapher() {
-        const rows = await db.knexRaw<Pick<DbRawChart, "id">>(
+        const rows = await db.knexRaw<Pick<DbPlainChart, "id">>(
             knex,
-            `SELECT id FROM charts WHERE id != ? AND config->>"$.isPublished" = "true" AND JSON_EXTRACT(config, "$.slug") = ?`,
+            `-- sql
+                SELECT c.id
+                FROM charts c
+                JOIN chart_configs cc ON cc.id = c.configId
+                WHERE
+                    c.id != ?
+                    AND cc.config ->> "$.isPublished" = "true"
+                    AND cc.config ->> "$.slug" = ?
+            `,
             // -1 is a placeholder ID that will never exist; but we cannot use NULL because
             // in that case we would always get back an empty resultset
             [existingConfig ? existingConfig.id : -1, newConfig.slug]
@@ -348,25 +367,72 @@ const saveGrapher = async (
     const now = new Date()
     let chartId = existingConfig && existingConfig.id
     const newJsonConfig = JSON.stringify(newConfig)
-    if (existingConfig)
+    if (existingConfig) {
         await db.knexRaw(
             knex,
-            `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=? WHERE id = ?`,
+            `-- sql
+                UPDATE chart_configs cc
+                JOIN charts c ON c.configId = cc.id
+                SET
+                    cc.patchConfig=?,
+                    cc.config=?,
+                    cc.updatedAt=?
+                WHERE c.id = ?
+            `,
+            [newJsonConfig, newJsonConfig, now, chartId]
+        )
+        // TODO(charts.config): stop writing to `charts.config`
+        await db.knexRaw(
+            knex,
+            `-- sql
+                UPDATE charts
+                SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=?
+                WHERE id = ?
+            `,
             [newJsonConfig, now, now, user.id, chartId]
         )
-    else {
+    } else {
+        const configId = await getBinaryUUID(knex)
+        await db.knexRaw(
+            knex,
+            `-- sql
+                INSERT INTO chart_configs (id, patchConfig, config, createdAt, updatedAt)
+                VALUES (?, ?, ?, ?, ?)
+            `,
+            [configId, newJsonConfig, newJsonConfig, now, now]
+        )
+        // TODO(charts.config): stop writing to `charts.config`
         const result = await db.knexRawInsert(
             knex,
-            `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId) VALUES (?, ?, ?, ?, ?)`,
-            [newJsonConfig, now, now, now, user.id]
+            `-- sql
+                INSERT INTO charts (config, configId, createdAt, updatedAt, lastEditedAt, lastEditedByUserId)
+                VALUES (?, ?, ?, ?, ?, ?)
+            `,
+            [newJsonConfig, configId, now, now, now, user.id]
         )
         chartId = result.insertId
         // The chart config itself has an id field that should store the id of the chart - update the chart now so this is true
         newConfig.id = chartId
-        await db.knexRaw(knex, `UPDATE charts SET config=? WHERE id = ?`, [
-            JSON.stringify(newConfig),
-            chartId,
-        ])
+        await db.knexRaw(
+            knex,
+            `-- sql
+                UPDATE chart_configs cc
+                JOIN charts c ON c.configId = cc.id
+                SET cc.patchConfig=?, cc.config=?
+                WHERE c.id = ?
+            `,
+            [JSON.stringify(newConfig), JSON.stringify(newConfig), chartId]
+        )
+        // TODO(charts.config): stop writing to `charts.config`
+        await db.knexRaw(
+            knex,
+            `-- sql
+                UPDATE charts
+                SET config=?
+                WHERE id = ?
+            `,
+            [JSON.stringify(newConfig), chartId]
+        )
     }
 
     // Record this change in version history
@@ -447,11 +513,12 @@ getRouteWithROTransaction(apiRouter, "/charts.json", async (req, res, trx) => {
     const charts = await db.knexRaw<OldChartFieldList>(
         trx,
         `-- sql
-        SELECT ${oldChartFieldList} FROM charts
-        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-        ORDER BY charts.lastEditedAt DESC LIMIT ?
-    `,
+            SELECT ${oldChartFieldList} FROM charts
+            JOIN chart_configs ON chart_configs.id = charts.configId
+            JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+            LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+            ORDER BY charts.lastEditedAt DESC LIMIT ?
+        `,
         [limit]
     )
 
@@ -467,36 +534,37 @@ getRouteWithROTransaction(apiRouter, "/charts.csv", async (req, res, trx) => {
     const charts = await db.knexRaw(
         trx,
         `-- sql
-        SELECT
-            charts.id,
-            charts.config->>"$.version" AS version,
-            CONCAT("${BAKED_BASE_URL}/grapher/", charts.config->>"$.slug") AS url,
-            CONCAT("${ADMIN_BASE_URL}", "/admin/charts/", charts.id, "/edit") AS editUrl,
-            charts.config->>"$.slug" AS slug,
-            charts.config->>"$.title" AS title,
-            charts.config->>"$.subtitle" AS subtitle,
-            charts.config->>"$.sourceDesc" AS sourceDesc,
-            charts.config->>"$.note" AS note,
-            charts.config->>"$.type" AS type,
-            charts.config->>"$.internalNotes" AS internalNotes,
-            charts.config->>"$.variantName" AS variantName,
-            charts.config->>"$.isPublished" AS isPublished,
-            charts.config->>"$.tab" AS tab,
-            JSON_EXTRACT(charts.config, "$.hasChartTab") = true AS hasChartTab,
-            JSON_EXTRACT(charts.config, "$.hasMapTab") = true AS hasMapTab,
-            charts.config->>"$.originUrl" AS originUrl,
-            charts.lastEditedAt,
-            charts.lastEditedByUserId,
-            lastEditedByUser.fullName AS lastEditedBy,
-            charts.publishedAt,
-            charts.publishedByUserId,
-            publishedByUser.fullName AS publishedBy
-        FROM charts
-        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-        ORDER BY charts.lastEditedAt DESC
-        LIMIT ?
-    `,
+            SELECT
+                charts.id,
+                chart_configs.config->>"$.version" AS version,
+                CONCAT("${BAKED_BASE_URL}/grapher/", chart_configs.config->>"$.slug") AS url,
+                CONCAT("${ADMIN_BASE_URL}", "/admin/charts/", charts.id, "/edit") AS editUrl,
+                chart_configs.config->>"$.slug" AS slug,
+                chart_configs.config->>"$.title" AS title,
+                chart_configs.config->>"$.subtitle" AS subtitle,
+                chart_configs.config->>"$.sourceDesc" AS sourceDesc,
+                chart_configs.config->>"$.note" AS note,
+                chart_configs.config->>"$.type" AS type,
+                chart_configs.config->>"$.internalNotes" AS internalNotes,
+                chart_configs.config->>"$.variantName" AS variantName,
+                chart_configs.config->>"$.isPublished" AS isPublished,
+                chart_configs.config->>"$.tab" AS tab,
+                JSON_EXTRACT(chart_configs.config, "$.hasChartTab") = true AS hasChartTab,
+                JSON_EXTRACT(chart_configs.config, "$.hasMapTab") = true AS hasMapTab,
+                chart_configs.config->>"$.originUrl" AS originUrl,
+                charts.lastEditedAt,
+                charts.lastEditedByUserId,
+                lastEditedByUser.fullName AS lastEditedBy,
+                charts.publishedAt,
+                charts.publishedByUserId,
+                publishedByUser.fullName AS publishedBy
+            FROM charts
+            JOIN chart_configs ON chart_configs.id = charts.configId
+            JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+            LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+            ORDER BY charts.lastEditedAt DESC
+            LIMIT ?
+        `,
         [limit]
     )
     // note: retrieving references is VERY slow.
@@ -770,7 +838,18 @@ deleteRouteWithRWTransaction(
             `DELETE FROM suggested_chart_revisions WHERE chartId=?`,
             [chart.id]
         )
-        await db.knexRaw(trx, `DELETE FROM charts WHERE id=?`, [chart.id])
+
+        const row = await db.knexRawFirst<{ configId: number }>(
+            trx,
+            `SELECT configId FROM charts WHERE id = ?`,
+            [chart.id]
+        )
+        if (row) {
+            await db.knexRaw(trx, `DELETE FROM charts WHERE id=?`, [chart.id])
+            await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id=?`, [
+                row.configId,
+            ])
+        }
 
         if (chart.isPublished)
             await triggerStaticBuild(
@@ -1092,7 +1171,7 @@ getRouteWithROTransaction(
         trx
     ): Promise<BulkGrapherConfigResponse<BulkChartEditResponseRow>> => {
         const context: OperationContext = {
-            grapherConfigFieldName: "config",
+            grapherConfigFieldName: "chart_configs.config",
             whitelistedColumnNamesAndTypes:
                 chartBulkUpdateAllowedColumnNamesAndTypes,
         }
@@ -1110,21 +1189,25 @@ getRouteWithROTransaction(
         const whereClause = filterSExpr?.toSql() ?? "true"
         const resultsWithStringGrapherConfigs = await db.knexRaw(
             trx,
-            `SELECT charts.id as id,
-            charts.config as config,
-            charts.createdAt as createdAt,
-            charts.updatedAt as updatedAt,
-            charts.lastEditedAt as lastEditedAt,
-            charts.publishedAt as publishedAt,
-            lastEditedByUser.fullName as lastEditedByUser,
-            publishedByUser.fullName as publishedByUser
-FROM charts
-LEFT JOIN users lastEditedByUser ON lastEditedByUser.id=charts.lastEditedByUserId
-LEFT JOIN users publishedByUser ON publishedByUser.id=charts.publishedByUserId
-WHERE ${whereClause}
-ORDER BY charts.id DESC
-LIMIT 50
-OFFSET ${offset.toString()}`
+            `-- sql
+                SELECT
+                    charts.id as id,
+                    chart_configs.config as config,
+                    charts.createdAt as createdAt,
+                    charts.updatedAt as updatedAt,
+                    charts.lastEditedAt as lastEditedAt,
+                    charts.publishedAt as publishedAt,
+                    lastEditedByUser.fullName as lastEditedByUser,
+                    publishedByUser.fullName as publishedByUser
+                FROM charts
+                LEFT JOIN chart_configs ON chart_configs.id = charts.configId
+                LEFT JOIN users lastEditedByUser ON lastEditedByUser.id=charts.lastEditedByUserId
+                LEFT JOIN users publishedByUser ON publishedByUser.id=charts.publishedByUserId
+                WHERE ${whereClause}
+                ORDER BY charts.id DESC
+                LIMIT 50
+                OFFSET ${offset.toString()}
+            `
         )
 
         const results = resultsWithStringGrapherConfigs.map((row: any) => ({
@@ -1133,9 +1216,12 @@ OFFSET ${offset.toString()}`
         }))
         const resultCount = await db.knexRaw<{ count: number }>(
             trx,
-            `SELECT count(*) as count
-FROM charts
-WHERE ${whereClause}`
+            `-- sql
+                SELECT count(*) as count
+                FROM charts
+                JOIN chart_configs ON chart_configs.id = charts.configId
+                WHERE ${whereClause}
+            `
         )
         return { rows: results, numTotalRows: resultCount[0].count }
     }
@@ -1149,10 +1235,17 @@ patchRouteWithRWTransaction(
         const chartIds = new Set(patchesList.map((patch) => patch.id))
 
         const configsAndIds = await db.knexRaw<
-            Pick<DbRawChart, "id" | "config">
-        >(trx, `SELECT id, config FROM charts where id IN (?)`, [
-            [...chartIds.values()],
-        ])
+            Pick<DbPlainChart, "id"> & Pick<DbRawChartConfig, "config">
+        >(
+            trx,
+            `-- sql
+                SELECT c.id, cc.config
+                FROM charts c
+                JOIN chart_configs cc ON cc.id = c.configId
+                WHERE c.id IN (?)
+            `,
+            [[...chartIds.values()]]
+        )
         const configMap = new Map<number, GrapherInterface>(
             configsAndIds.map((item: any) => [
                 item.id,
@@ -1320,13 +1413,14 @@ getRouteWithROTransaction(
         const charts = await db.knexRaw<OldChartFieldList>(
             trx,
             `-- sql
-            SELECT ${oldChartFieldList}
-            FROM charts
-            JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-            LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-            JOIN chart_dimensions cd ON cd.chartId = charts.id
-            WHERE cd.variableId = ?
-            GROUP BY charts.id
+                SELECT ${oldChartFieldList}
+                FROM charts
+                JOIN chart_configs ON chart_configs.id = charts.configId
+                JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+                LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+                JOIN chart_dimensions cd ON cd.chartId = charts.id
+                WHERE cd.variableId = ?
+                GROUP BY charts.id
             `,
             [variableId]
         )
@@ -1546,15 +1640,16 @@ getRouteWithROTransaction(
         const charts = await db.knexRaw<OldChartFieldList>(
             trx,
             `-- sql
-        SELECT ${oldChartFieldList}
-        FROM charts
-        JOIN chart_dimensions AS cd ON cd.chartId = charts.id
-        JOIN variables AS v ON cd.variableId = v.id
-        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-        WHERE v.datasetId = ?
-        GROUP BY charts.id
-    `,
+                SELECT ${oldChartFieldList}
+                FROM charts
+                JOIN chart_configs ON chart_configs.id = charts.configId
+                JOIN chart_dimensions AS cd ON cd.chartId = charts.id
+                JOIN variables AS v ON cd.variableId = v.id
+                JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+                LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+                WHERE v.datasetId = ?
+                GROUP BY charts.id
+            `,
             [datasetId]
         )
 
@@ -1725,18 +1820,34 @@ postRouteWithRWTransaction(
         if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
         if (req.body.republish) {
+            // TODO(charts.config): stop writing to `charts.config`
             await db.knexRaw(
                 trx,
-                `
-            UPDATE charts
-            SET config = JSON_SET(config, "$.version", config->"$.version" + 1)
-            WHERE id IN (
-                SELECT DISTINCT chart_dimensions.chartId
-                FROM chart_dimensions
-                JOIN variables ON variables.id = chart_dimensions.variableId
-                WHERE variables.datasetId = ?
+                `-- sql
+                    UPDATE charts
+                    SET config = JSON_SET(config, "$.version", config->"$.version" + 1)
+                    WHERE c.id IN (
+                        SELECT DISTINCT chart_dimensions.chartId
+                        FROM chart_dimensions
+                        JOIN variables ON variables.id = chart_dimensions.variableId
+                        WHERE variables.datasetId = ?
+                    )`,
+                [datasetId]
             )
-            `,
+            await db.knexRaw(
+                trx,
+                `-- sql
+                    UPDATE chart_configs cc
+                    JOIN charts c ON c.configId = cc.id
+                    SET
+                        cc.config = JSON_SET(cc.config, "$.version", cc.config->"$.version" + 1),
+                        cc.patchConfig = JSON_SET(cc.config, "$.version", cc.config->"$.version" + 1)
+                    WHERE c.id IN (
+                        SELECT DISTINCT chart_dimensions.chartId
+                        FROM chart_dimensions
+                        JOIN variables ON variables.id = chart_dimensions.variableId
+                        WHERE variables.datasetId = ?
+                    )`,
                 [datasetId]
             )
         }
@@ -1758,9 +1869,16 @@ getRouteWithROTransaction(
         redirects: await db.knexRaw(
             trx,
             `-- sql
-        SELECT r.id, r.slug, r.chart_id as chartId, JSON_UNQUOTE(JSON_EXTRACT(charts.config, "$.slug")) AS chartSlug
-        FROM chart_slug_redirects AS r JOIN charts ON charts.id = r.chart_id
-        ORDER BY r.id DESC`
+                SELECT
+                    r.id,
+                    r.slug,
+                    r.chart_id as chartId,
+                    JSON_UNQUOTE(JSON_EXTRACT(chart_configs.config, "$.slug")) AS chartSlug
+                FROM chart_slug_redirects AS r
+                JOIN charts ON charts.id = r.chart_id
+                JOIN chart_configs ON chart_configs.id = charts.configId
+                ORDER BY r.id DESC
+            `
         ),
     })
 )
@@ -1932,14 +2050,15 @@ getRouteWithROTransaction(
         const charts = await db.knexRaw<OldChartFieldList>(
             trx,
             `-- sql
-        SELECT ${oldChartFieldList} FROM charts
-        LEFT JOIN chart_tags ct ON ct.chartId=charts.id
-        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-        WHERE ct.tagId ${tagId === UNCATEGORIZED_TAG_ID ? "IS NULL" : "= ?"}
-        GROUP BY charts.id
-        ORDER BY charts.updatedAt DESC
-    `,
+                SELECT ${oldChartFieldList} FROM charts
+                JOIN chart_configs ON chart_configs.id = charts.configId
+                LEFT JOIN chart_tags ct ON ct.chartId=charts.id
+                JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+                LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+                WHERE ct.tagId ${tagId === UNCATEGORIZED_TAG_ID ? "IS NULL" : "= ?"}
+                GROUP BY charts.id
+                ORDER BY charts.updatedAt DESC
+            `,
             uncategorized ? [] : [tagId]
         )
         tag.charts = charts

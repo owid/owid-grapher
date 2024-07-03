@@ -7,6 +7,8 @@ import {
     DbEnrichedVariable,
     VariablesTableName,
     parseVariablesRow,
+    DbRawChartConfig,
+    parseChartConfig,
 } from "@ourworldindata/types"
 import * as lodash from "lodash"
 import {
@@ -45,13 +47,20 @@ const countryIndicatorGraphers = async (
     trx: db.KnexReadonlyTransaction
 ): Promise<GrapherInterface[]> =>
     bakeCache(countryIndicatorGraphers, async () => {
-        const graphers = (
-            await trx
-                .table("charts")
-                .whereRaw(
-                    "publishedAt is not null and config->>'$.isPublished' = 'true' and is_indexable is true"
-                )
-        ).map((c: any) => JSON.parse(c.config)) as GrapherInterface[]
+        const configs = await db.knexRaw<Pick<DbRawChartConfig, "config">>(
+            trx,
+            `-- sql
+                SELECT cc.config
+                FROM charts c
+                JOIN chart_configs cc ON cc.id = c.configId
+                WHERE
+                    c.publishedAt is not null
+                    AND cc.config->>'$.isPublished' = 'true'
+                    AND c.is_indexable is true
+            `
+        )
+
+        const graphers = configs.map((c: any) => parseChartConfig(c.config))
 
         return graphers.filter(checkShouldShowIndicator)
     })

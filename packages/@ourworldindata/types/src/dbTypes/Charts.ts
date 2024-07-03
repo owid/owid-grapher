@@ -1,9 +1,6 @@
-import { JsonString } from "../domainTypes/Various.js"
-import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
-
 export const ChartsTableName = "charts"
 export interface DbInsertChart {
-    config: JsonString
+    configId: string
     createdAt?: Date
     id?: number
     is_indexable?: number
@@ -11,31 +8,14 @@ export interface DbInsertChart {
     lastEditedByUserId: number
     publishedAt?: Date | null
     publishedByUserId?: number | null
-    slug?: string | null
-    type?: string | null
     updatedAt?: Date | null
-}
-export type DbRawChart = Required<DbInsertChart>
 
-export type DbEnrichedChart = Omit<DbRawChart, "config"> & {
-    config: GrapherInterface
-}
+    // TODO(charts.config):
+    // we moved all configs to the `chart_configs` table,
+    // but kept the `config` column for now to be on the safe side,
+    // with the intention to remove it soon. that's why we pretend
+    // it doesn't exist here.
 
-export function parseChartConfig(config: JsonString): GrapherInterface {
-    return JSON.parse(config)
+    // config: JsonString
 }
-
-export function serializeChartConfig(config: GrapherInterface): JsonString {
-    return JSON.stringify(config)
-}
-
-export function parseChartsRow(row: DbRawChart): DbEnrichedChart {
-    return { ...row, config: parseChartConfig(row.config) }
-}
-
-export function serializeChartsRow(row: DbEnrichedChart): DbRawChart {
-    return {
-        ...row,
-        config: serializeChartConfig(row.config),
-    }
-}
+export type DbPlainChart = Required<DbInsertChart>
