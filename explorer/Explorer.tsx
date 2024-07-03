@@ -709,9 +709,15 @@ export class Explorer
         grapher.reset()
         this.updateGrapherFromExplorerCommon()
         grapher.updateFromObject(config)
-        await grapher.downloadLegacyDataFromOwidVariableIds(
-            inputTableTransformer
-        )
+        if (dimensions.length === 0) {
+            // If dimensions are empty, explicitly set the table to an empty table
+            // so we don't end up confusingly showing stale data from a previous chart
+            grapher.receiveOwidData(new Map())
+        } else {
+            await grapher.downloadLegacyDataFromOwidVariableIds(
+                inputTableTransformer
+            )
+        }
     }
 
     @action.bound private updateGrapherFromExplorerUsingColumnSlugs() {
