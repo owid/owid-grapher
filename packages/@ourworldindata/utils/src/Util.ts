@@ -38,6 +38,7 @@ import {
     maxBy,
     memoize,
     merge,
+    mergeWith,
     min,
     minBy,
     noop,
@@ -110,6 +111,7 @@ export {
     maxBy,
     memoize,
     merge,
+    mergeWith,
     min,
     minBy,
     noop,
@@ -1748,6 +1750,7 @@ export function filterValidStringValues<ValidValue extends string>(
 }
 
 // TODO: type this correctly once we have moved types into their own top level package
+// TODO: remove in favour of the new function
 export function mergePartialGrapherConfigs<T extends Record<string, any>>(
     ...grapherConfigs: (T | undefined)[]
 ): T {
