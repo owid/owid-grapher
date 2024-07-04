@@ -1,106 +1,11 @@
 import cheerio from "cheerio"
-import {
-    DataValueConfiguration,
-    DataValueQueryArgs,
-    FormattedPost,
-    OwidVariableId,
-    Country,
-    OwidVariableDataMetadataDimensions,
-    OwidChartDimensionInterface,
-    OwidVariableDisplayConfigInterface,
-    capitalize,
-    Url,
-    parseKeyValueArgs,
-} from "@ourworldindata/utils"
+import { FormattedPost, Country, capitalize, Url } from "@ourworldindata/utils"
 import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
-import { DATA_VALUE } from "../site/DataValue.js"
-import { legacyToOwidTableAndDimensions } from "@ourworldindata/grapher"
 import { getBodyHtml } from "../site/formatting.js"
 import path from "path"
 
 export const DEEP_LINK_CLASS = "deep-link"
-
-export const dataValueRegex = new RegExp(
-    `{{\\s*${DATA_VALUE}\\s*(.+?)\\s*}}`,
-    "g"
-)
-
-export const extractDataValuesConfiguration = async (
-    html: string
-): Promise<Map<string, DataValueConfiguration>> => {
-    const dataValueSeparator = /\s*\|\s*/
-    const dataValuesConfigurations = new Map<string, DataValueConfiguration>()
-
-    const dataValueMatches = html.matchAll(dataValueRegex)
-    for (const match of dataValueMatches) {
-        const dataValueConfigurationString = match[1]
-        const [queryArgsString, template] =
-            dataValueConfigurationString.split(dataValueSeparator)
-        const queryArgs = parseDataValueArgs(queryArgsString)
-
-        dataValuesConfigurations.set(dataValueConfigurationString, {
-            queryArgs,
-            template,
-        })
-    }
-    return dataValuesConfigurations
-}
-
-export const parseDataValueArgs = (
-    rawArgsString: string
-): DataValueQueryArgs => {
-    return Object.fromEntries(
-        Object.entries(parseKeyValueArgs(rawArgsString)).map(([k, v]) => [
-            k,
-            Number(v),
-        ])
-    )
-}
-
-export const formatDataValue = (
-    value: number,
-    variableId: OwidVariableId,
-    legacyVariableDisplayConfig: OwidVariableDisplayConfigInterface = {},
-    legacyChartDimension: OwidChartDimensionInterface | undefined
-) => {
-    if (!legacyChartDimension) return
-    const legacyVariable: OwidVariableDataMetadataDimensions = {
-        data: {
-            values: [value],
-            years: [],
-            entities: [],
-        },
-        metadata: {
-            id: variableId,
-            display: legacyVariableDisplayConfig,
-            dimensions: {
-                years: { values: [] },
-                entities: { values: [] },
-            },
-        },
-    }
-    const legacyVariableDataMap = new Map([[variableId, legacyVariable]])
-
-    const legacyGrapherConfig = {
-        dimensions: [
-            {
-                ...legacyChartDimension,
-            },
-        ],
-    }
-
-    const { table, dimensions } = legacyToOwidTableAndDimensions(
-        legacyVariableDataMap,
-        legacyGrapherConfig
-    )
-
-    const formattedValueWithUnit = table
-        .get(dimensions[0].slug)
-        .formatValueLong(table.rows[0][variableId])
-
-    return formattedValueWithUnit
-}
 
 export const formatCountryProfile = (
     post: FormattedPost,

@@ -18,13 +18,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     DbChartTagJoin,
     OwidGdocType,
-    SearchWord,
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
     spansToUnformattedPlainText,
     checkIsGdocPost,
     OwidGdocIndexItem,
 } from "@ourworldindata/utils"
+import {
+    buildSearchWordsFromSearchString,
+    filterFunctionForSearchWords,
+    SearchWord,
+} from "../adminShared/search.js"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"

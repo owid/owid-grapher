@@ -10,21 +10,18 @@ import pl from "nodejs-polars"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
 import { escape } from "mysql2"
 import {
-    OwidChartDimensionInterface,
-    OwidVariableDisplayConfigInterface,
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
     OwidVariableMixedData,
-    DataValueQueryArgs,
-    DataValueResult,
     OwidVariableWithSourceAndDimension,
     OwidVariableId,
     ChartTypeName,
     DimensionProperty,
     GrapherInterface,
     DbRawVariable,
+    VariablesTableName,
 } from "@ourworldindata/types"
-import { knexRaw, knexRawFirst } from "../db.js"
+import { knexRaw } from "../db.js"
 
 //export type Field = keyof VariableRow
 
@@ -134,85 +131,6 @@ export async function writeVariableCSV(
         .sort(["entityName", "year"])
         .rename({ entityName: "Entity", year: "Year" })
         .writeCSV(stream)
-}
-
-export const getDataValue = async (
-    { variableId, entityId, year }: DataValueQueryArgs,
-    knex: db.KnexReadonlyTransaction
-): Promise<DataValueResult | undefined> => {
-    if (!variableId || !entityId) return
-
-    let df = (await dataAsDF([variableId], knex)).filter(
-        pl.col("entityId").eq(entityId)
-    )
-
-    const unit = (
-        await knexRawFirst<Pick<DbRawVariable, "unit">>(
-            knex,
-            `-- sql
-        SELECT unit FROM variables
-        WHERE id = ?
-        `,
-            [variableId]
-        )
-    )?.unit
-
-    if (year) {
-        df = df.filter(pl.col("year").eq(year))
-    } else {
-        df = df.sort(["year"], true).limit(1)
-    }
-
-    if (df.shape.height === 0) return
-    if (df.shape.height > 1) {
-        throw new Error(
-            `More than one data value found for variable ${variableId}, entity ${entityId}, year ${year}`
-        )
-    }
-
-    const row = df.toRecords()[0]
-
-    return {
-        value: Number(row.value),
-        year: Number(row.year),
-        unit: unit,
-        entityName: row.entityName,
-    }
-}
-
-export const getOwidChartDimensionConfigForVariable = async (
-    variableId: OwidVariableId,
-    chartId: number,
-    knex: db.KnexReadonlyTransaction
-): Promise<OwidChartDimensionInterface | undefined> => {
-    const row = await db.knexRawFirst<{ dimensions: string }>(
-        knex,
-        `
-        SELECT config->"$.dimensions" AS dimensions
-        FROM charts
-        WHERE id = ?
-        `,
-        [chartId]
-    )
-    if (!row?.dimensions) return
-    const dimensions = JSON.parse(row.dimensions)
-    return dimensions.find(
-        (dimension: OwidChartDimensionInterface) =>
-            dimension.variableId === variableId
-    )
-}
-
-export const getOwidVariableDisplayConfig = async (
-    variableId: OwidVariableId,
-    knex: db.KnexReadonlyTransaction
-): Promise<OwidVariableDisplayConfigInterface | undefined> => {
-    const row = await knexRawFirst<Pick<DbRawVariable, "display">>(
-        knex,
-        `SELECT display FROM variables WHERE id = ?`,
-        [variableId]
-    )
-    if (!row?.display) return
-    return JSON.parse(row.display)
 }
 
 export const entitiesAsDF = async (
@@ -660,4 +578,24 @@ export interface VariableResultView {
     dataset: string
     table: string
     shortName: string
+}
+
+export const getVariableIdsByCatalogPath = async (
+    catalogPaths: string[],
+    knex: db.KnexReadonlyTransaction
+): Promise<Map<string, number | null>> => {
+    const rows: Pick<DbRawVariable, "id" | "catalogPath">[] = await knex
+        .select("id", "catalogPath")
+        .from(VariablesTableName)
+        .whereIn("catalogPath", catalogPaths)
+
+    const rowsByPath = _.keyBy(rows, "catalogPath")
+
+    // `rowsByPath` only contains the rows that were found, so we need to create
+    // a map where all keys from `catalogPaths` are present, and set the value to
+    // undefined if no row was found for that catalog path.
+    return new Map(
+        // Sort for good measure and determinism.
+        catalogPaths.sort().map((path) => [path, rowsByPath[path]?.id ?? null])
+    )
 }

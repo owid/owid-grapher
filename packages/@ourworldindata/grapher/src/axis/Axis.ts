@@ -20,6 +20,7 @@ import {
     Tickmark,
     ValueRange,
     cloneDeep,
+    OwidVariableRoundingMode,
 } from "@ourworldindata/utils"
 import { AxisConfig, AxisManager } from "./AxisConfig"
 import { MarkdownTextWrap } from "@ourworldindata/components"
@@ -37,6 +38,10 @@ interface TickLabelPlacement {
     yAlign?: VerticalAlign
     isHidden: boolean
 }
+
+type Scale = ScaleLinear<number, number> | ScaleLogarithmic<number, number>
+
+const OUTER_PADDING = 4
 
 const doIntersect = (bounds: Bounds, bounds2: Bounds): boolean => {
     return bounds.intersects(bounds2)
@@ -165,13 +170,62 @@ abstract class AbstractAxis {
         return this
     }
 
-    @computed private get d3_scale():
-        | ScaleLinear<number, number>
-        | ScaleLogarithmic<number, number> {
+    private static calculateBandWidth({
+        values,
+        scale,
+    }: {
+        values: number[]
+        scale: Scale
+    }): number {
+        const range = scale.range()
+        const rangeSize = Math.abs(range[1] - range[0])
+        const maxBandWidth = 0.4 * rangeSize
+
+        if (values.length < 2) return maxBandWidth
+
+        // the band width is the smallest distance between
+        // two adjacent values placed on the axis
+        const sortedValues = sortBy(values)
+        const positions = sortedValues.map((value) => scale(value))
+        const diffs = positions
+            .slice(1)
+            .map((pos, index) => pos - positions[index])
+        const bandWidth = min(diffs) ?? 0
+
+        return min([bandWidth, maxBandWidth]) ?? 0
+    }
+
+    /**
+     * Maximum width a single value can take up on the axis.
+     * Not meaningful if no domain values are given.
+     */
+    @computed get bandWidth(): number | undefined {
+        const { domainValues } = this.config
+        if (!domainValues) return undefined
+        return AbstractAxis.calculateBandWidth({
+            values: domainValues,
+            scale: this.d3_scale,
+        })
+    }
+
+    @computed private get d3_scale(): Scale {
         const d3Scale =
             this.scaleType === ScaleType.log ? scaleLog : scaleLinear
-        const scale = d3Scale().domain(this.domain).range(this.range)
-        return this.nice ? scale.nice(this.totalTicksTarget) : scale
+        let scale = d3Scale().domain(this.domain).range(this.range)
+        scale = this.nice ? scale.nice(this.totalTicksTarget) : scale
+
+        if (this.config.domainValues) {
+            // compute bandwidth and adjust the scale
+            const bandWidth = AbstractAxis.calculateBandWidth({
+                values: this.config.domainValues,
+                scale,
+            })
+            const offset = bandWidth / 2 + OUTER_PADDING
+            const r = scale.range()
+            return scale.range([r[0] + offset, r[1] - offset])
+        } else {
+            return scale
+        }
     }
 
     @computed get rangeSize(): number {
@@ -323,6 +377,7 @@ abstract class AbstractAxis {
     private getTickFormattingOptions(): TickFormattingOptions {
         const options: TickFormattingOptions = {
             ...this.config.tickFormattingOptions,
+            roundingMode: OwidVariableRoundingMode.decimalPlaces,
         }
 
         // The chart's tick formatting function is used by default to format axis ticks. This means
@@ -465,6 +520,10 @@ export class HorizontalAxis extends AbstractAxis {
         return this.rangeSize
     }
 
+    // note that we intentionally don't take `hideAxisLabels` into account here.
+    // tick labels might be hidden in faceted charts. when faceted, it's important
+    // the axis size doesn't change as a result of hiding the axis labels, or else
+    // we might end up with misaligned axes.
     @computed get height(): number {
         if (this.hideAxis) return 0
         const { labelOffset, labelPadding } = this
@@ -534,11 +593,12 @@ export class HorizontalAxis extends AbstractAxis {
         let xAlign = HorizontalAlign.center
         const left = x - width / 2
         const right = x + width / 2
-        if (left < this.rangeMin) {
+        const offset = this.bandWidth ? this.bandWidth / 2 + OUTER_PADDING : 0
+        if (left < this.rangeMin - offset) {
             x = this.rangeMin
             xAlign = HorizontalAlign.left
         }
-        if (right > this.rangeMax) {
+        if (right > this.rangeMax + offset) {
             x = this.rangeMax
             xAlign = HorizontalAlign.right
         }
@@ -579,6 +639,10 @@ export class VerticalAxis extends AbstractAxis {
             : 0
     }
 
+    // note that we intentionally don't take `hideAxisLabels` into account here.
+    // tick labels might be hidden in faceted charts. when faceted, it's important
+    // the axis size doesn't change as a result of hiding the axis labels, or else
+    // we might end up with misaligned axes.
     @computed get width(): number {
         if (this.hideAxis) return 0
         const { labelOffset, labelPadding } = this

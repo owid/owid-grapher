@@ -6,7 +6,7 @@ import {
     isNil,
     checkIsPlainObjectWithGuard,
     checkIsStringIndexable,
-} from "./Util.js"
+} from "@ourworldindata/utils"
 
 export function setValueRecursiveInplace(
     json: unknown,

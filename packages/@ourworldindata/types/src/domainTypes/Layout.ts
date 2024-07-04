@@ -30,4 +30,5 @@ export enum AxisAlign {
 export interface GridParameters {
     rows: number
     columns: number
+    count: number
 }

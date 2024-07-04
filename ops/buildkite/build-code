@@ -82,9 +82,9 @@ build_grapher() {
     # the bakedSite folder
     (
         cd owid-grapher
-        yarn cleanTsc
-        git rev-parse HEAD > /home/owid/live-data/bakedSite/head.txt
         yarn install
+        git rev-parse HEAD > /home/owid/live-data/bakedSite/head.txt
+        yarn cleanTsc
         yarn buildLerna --skip-nx-cache
         yarn buildTsc
         yarn buildViteSite

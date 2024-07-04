@@ -2,6 +2,7 @@
 
 import {
     stackSeries,
+    stackSeriesInBothDirections,
     withMissingValuesAsZeroes,
     withUniformSpacing,
 } from "./StackedUtils"
@@ -29,6 +30,33 @@ const seriesArr = [
         points: [
             { position: 2000, time: 2000, value: 6, valueOffset: 0 },
             { position: 2003, time: 2003, value: 4, valueOffset: 0 },
+        ],
+    },
+]
+
+const seriesArrWithNegativeValues = [
+    {
+        seriesName: "Canada",
+        columnSlug: "var",
+        color: "red",
+        points: [
+            { position: 2000, time: 2000, value: -10, valueOffset: 0 },
+            { position: 2002, time: 2002, value: 12, valueOffset: 0 },
+        ],
+    },
+    {
+        seriesName: "USA",
+        columnSlug: "var",
+        color: "red",
+        points: [{ position: 2000, time: 2000, value: 2, valueOffset: 0 }],
+    },
+    {
+        seriesName: "France",
+        columnSlug: "var",
+        color: "red",
+        points: [
+            { position: 2000, time: 2000, value: -6, valueOffset: 0 },
+            { position: 2002, time: 2002, value: -4, valueOffset: 0 },
         ],
     },
 ]
@@ -72,5 +100,25 @@ describe(stackSeries, () => {
         expect(seriesArr[1].points[0].valueOffset).toEqual(0)
         const series = stackSeries(withMissingValuesAsZeroes(seriesArr))
         expect(series[1].points[0].valueOffset).toEqual(10)
+        expect(series[2].points[0].valueOffset).toEqual(12)
+    })
+})
+
+describe(stackSeriesInBothDirections, () => {
+    it("can stack positive values", () => {
+        const series = stackSeriesInBothDirections(
+            withMissingValuesAsZeroes(seriesArr)
+        )
+        expect(series[1].points[0].valueOffset).toEqual(10) // USA 2000
+        expect(series[2].points[0].valueOffset).toEqual(12) // France 2000
+    })
+
+    it("can stack positive & negative values", () => {
+        const series = stackSeriesInBothDirections(
+            withMissingValuesAsZeroes(seriesArrWithNegativeValues)
+        )
+        expect(series[1].points[0].valueOffset).toEqual(0) // USA 2000
+        expect(series[2].points[0].valueOffset).toEqual(-10) // France 2000
+        expect(series[2].points[1].valueOffset).toEqual(0) // France 2002
     })
 })

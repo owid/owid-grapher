@@ -57,25 +57,24 @@ const ColorBrewerSchemeIndex: {
     Set2: { displayName: "Set 2 colors", singleColorScale: false },
     Set3: { displayName: "Set 3 colors", singleColorScale: false },
     PuBu: { displayName: "Purple-Blue shades", singleColorScale: true },
-    "hsv-RdBu": { displayName: "HSV Red-Blue", singleColorScale: false },
-    "hsv-CyMg": { displayName: "HSV Cyan-Magenta", singleColorScale: false },
 } as const
 
-const brewerKeys = Object.keys(colorbrewer) as ColorSchemeName[]
+export const getColorBrewerScheme: (
+    name: string
+) => ColorSchemeInterface | undefined = (name: string) => {
+    const props = ColorBrewerSchemeIndex[name as ColorSchemeName]
+    const colorSets = (colorbrewer as any)[name]
 
-export const ColorBrewerSchemes: ColorSchemeInterface[] = brewerKeys
-    .filter((brewerName) => ColorBrewerSchemeIndex[brewerName])
-    .map((brewerName) => {
-        const props = ColorBrewerSchemeIndex[brewerName]!
-        const colorSets = (colorbrewer as any)[brewerName] as any
-        const colorSetsArray: Color[][] = []
-        Object.keys(colorSets).forEach(
-            (numColors) => (colorSetsArray[+numColors] = colorSets[numColors])
-        )
-        return {
-            name: brewerName,
-            displayName: props.displayName,
-            colorSets: colorSetsArray,
-            singleColorScale: props.singleColorScale,
-        }
-    })
+    if (!props || !colorSets) return undefined
+
+    const colorSetsArray: Color[][] = []
+    Object.keys(colorSets).forEach(
+        (numColors) => (colorSetsArray[+numColors] = colorSets[numColors])
+    )
+    return {
+        name,
+        displayName: props.displayName,
+        colorSets: colorSetsArray,
+        singleColorScale: props.singleColorScale,
+    }
+}

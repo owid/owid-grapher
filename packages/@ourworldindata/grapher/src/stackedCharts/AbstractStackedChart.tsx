@@ -3,6 +3,7 @@ import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import {
+    ColorSchemeName,
     FacetStrategy,
     MissingDataStrategy,
     SeriesStrategy,
@@ -14,7 +15,6 @@ import {
     exposeInstanceOnWindow,
     flatten,
     guid,
-    max,
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -40,7 +40,15 @@ import { ColorSchemes } from "../color/ColorSchemes"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
-import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
+import {
+    CategoricalColorAssigner,
+    CategoricalColorMap,
+} from "../color/CategoricalColorAssigner.js"
+import { BinaryMapPaletteE } from "../color/CustomSchemes"
+
+// used in StackedBar charts to color negative and positive bars
+const POSITIVE_COLOR = BinaryMapPaletteE.colorSets[0][0] // orange
+const NEGATIVE_COLOR = BinaryMapPaletteE.colorSets[0][1] // blue
 
 export interface AbstractStackedChartProps {
     bounds?: Bounds
@@ -197,22 +205,22 @@ export class AbstractStackedChart
         return autoDetectSeriesStrategy(this.manager)
     }
 
-    @computed protected get dualAxis(): DualAxis {
-        const {
-            bounds,
-            horizontalAxisPart,
-            verticalAxisPart,
-            paddingForLegendRight,
-            paddingForLegendTop,
-        } = this
-        return new DualAxis({
-            bounds: bounds
-                .padTop(paddingForLegendTop)
-                .padRight(paddingForLegendRight)
+    @computed get innerBounds(): Bounds {
+        return (
+            this.bounds
+                .padTop(this.paddingForLegendTop)
+                .padRight(this.paddingForLegendRight)
                 // top padding leaves room for tick labels
                 .padTop(6)
                 // bottom padding avoids axis labels to be cut off at some resolutions
-                .padBottom(2),
+                .padBottom(2)
+        )
+    }
+
+    @computed protected get dualAxis(): DualAxis {
+        const { horizontalAxisPart, verticalAxisPart } = this
+        return new DualAxis({
+            bounds: this.innerBounds,
             horizontalAxis: horizontalAxisPart,
             verticalAxis: verticalAxisPart,
         })
@@ -226,14 +234,9 @@ export class AbstractStackedChart
         return this.dualAxis.horizontalAxis
     }
 
-    @computed private get xAxisConfig(): AxisConfig {
-        return new AxisConfig(
-            {
-                hideGridlines: true,
-                ...this.manager.xAxisConfig,
-            },
-            this
-        )
+    // implemented in subclasses
+    @computed protected get xAxisConfig(): AxisConfig {
+        return new AxisConfig()
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
@@ -251,16 +254,16 @@ export class AbstractStackedChart
         return new AxisConfig(this.manager.yAxisConfig, this)
     }
 
+    // implemented in subclasses
+    @computed protected get yAxisDomain(): [number, number] {
+        return [0, 0]
+    }
+
     @computed private get verticalAxisPart(): VerticalAxis {
-        // const lastSeries = this.series[this.series.length - 1]
-        // const yValues = lastSeries.points.map((d) => d.yOffset + d.y)
-        const yValues = this.allStackedPoints.map(
-            (point) => point.value + point.valueOffset
-        )
         const axis = this.yAxisConfig.toVerticalAxis()
         // Use user settings for axis, unless relative mode
         if (this.manager.isRelativeMode) axis.domain = [0, 100]
-        else axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 0]) // Stacked area chart must have its own y domain)
+        else axis.updateDomainPreservingUserSettings(this.yAxisDomain)
         axis.formatColumn = this.yColumns[0]
         return axis
     }
@@ -312,6 +315,12 @@ export class AbstractStackedChart
         return ""
     }
 
+    @computed private get colorMap(): CategoricalColorMap {
+        return this.isEntitySeries
+            ? this.inputTable.entityNameColorIndex
+            : this.inputTable.columnDisplayNameToColorMap
+    }
+
     @computed private get categoricalColorAssigner(): CategoricalColorAssigner {
         const seriesCount = this.isEntitySeries
             ? this.selectionArray.numSelectedEntities
@@ -319,12 +328,11 @@ export class AbstractStackedChart
         return new CategoricalColorAssigner({
             colorScheme:
                 (this.manager.baseColorScheme
-                    ? ColorSchemes[this.manager.baseColorScheme]
-                    : null) ?? ColorSchemes.stackedAreaDefault,
+                    ? ColorSchemes.get(this.manager.baseColorScheme)
+                    : null) ??
+                ColorSchemes.get(ColorSchemeName.stackedAreaDefault),
             invertColorScheme: this.manager.invertColorScheme,
-            colorMap: this.isEntitySeries
-                ? this.inputTable.entityNameColorIndex
-                : this.inputTable.columnDisplayNameToColorMap,
+            colorMap: this.colorMap,
             autoColorMapCache: this.manager.seriesColorMap,
             numColorsInUse: seriesCount,
         })
@@ -375,6 +383,14 @@ export class AbstractStackedChart
         return strategies
     }
 
+    @computed get shouldUseValueBasedColorScheme(): boolean {
+        return false
+    }
+
+    @computed get useValueBasedColorScheme(): boolean {
+        return false
+    }
+
     @computed get unstackedSeries(): readonly StackedSeries<number>[] {
         return this.rawSeries
             .filter((series) => series.rows.length > 0)
@@ -383,6 +399,8 @@ export class AbstractStackedChart
                 const { isProjection, seriesName, rows } = series
 
                 const points = rows.map((row) => {
+                    const pointColor =
+                        row.value > 0 ? POSITIVE_COLOR : NEGATIVE_COLOR
                     return {
                         position: row.time,
                         time: row.time,
@@ -392,6 +410,10 @@ export class AbstractStackedChart
                             this.shouldRunLinearInterpolation &&
                             isNotErrorValueOrEmptyCell(row.value) &&
                             !isNotErrorValueOrEmptyCell(row.originalValue),
+                        // takes precedence over the series color if given
+                        color: this.useValueBasedColorScheme
+                            ? pointColor
+                            : undefined,
                     }
                 })
 

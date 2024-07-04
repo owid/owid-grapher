@@ -159,8 +159,8 @@ export const knexRawInsert = async (
 /**
  *  In the backporting workflow, the users create gdoc posts for posts. As long as these are not yet published,
  *  we still want to bake them from the WP posts. Once the users presses publish there though, we want to stop
- *  baking them from the wordpress post. This funciton fetches all the slugs of posts that have been published via gdocs,
- *  to help us exclude them from the baking process.
+ *  baking them from the wordpress post. This function fetches all the slugs of posts that have been published via gdocs,
+ *  to help us exclude them from the baking process. This query used to rely on the gdocSuccessorId field but that fell out of sync.
  */
 export const getSlugsWithPublishedGdocsSuccessors = async (
     knex: KnexReadonlyTransaction
@@ -168,12 +168,16 @@ export const getSlugsWithPublishedGdocsSuccessors = async (
     return knexRaw(
         knex,
         `-- sql
-            SELECT
-                slug
-            FROM
-                posts_with_gdoc_publish_status
-            WHERE
-                isGdocPublished = TRUE`
+        SELECT
+            p.slug
+        FROM
+            posts p
+        LEFT JOIN posts_gdocs g on
+            p.slug = g.slug
+        WHERE
+            p.status = "publish"
+            AND g.published = TRUE
+    `
     ).then((rows) => new Set(rows.map((row: any) => row.slug)))
 }
 
@@ -256,7 +260,7 @@ export const getPublishedDataInsights = (
         FROM posts_gdocs
         WHERE type = '${OwidGdocType.DataInsight}'
             AND published = TRUE
-            AND publishedAt < NOW()
+            AND publishedAt <= NOW()
         ORDER BY publishedAt DESC
         LIMIT ?`,
         [limit]
@@ -279,7 +283,7 @@ export const getPublishedDataInsightCount = (
         FROM posts_gdocs
         WHERE type = '${OwidGdocType.DataInsight}'
             AND published = TRUE
-            AND publishedAt < NOW()`
+            AND publishedAt <= NOW()`
     ).then((res) => res?.count ?? 0)
 }
 
@@ -416,7 +420,7 @@ export const getPublishedGdocPostsWithTags = async (
     FROM
         posts_gdocs g
     LEFT JOIN posts_gdocs_x_tags gxt ON
-        g.id = gxt.gdocId 
+        g.id = gxt.gdocId
     LEFT JOIN tags t ON
         gxt.tagId = t.id
     WHERE
@@ -595,9 +599,9 @@ export function getMinimalTagsWithIsTopic(
     return knexRaw<MinimalTagWithIsTopic>(
         knex,
         `-- sql
-        SELECT t.id, 
-        t.name, 
-        t.slug, 
+        SELECT t.id,
+        t.name,
+        t.slug,
         t.slug IS NOT NULL AND MAX(IF(pg.type IN (:types), TRUE, FALSE)) AS isTopic
         FROM tags t
         LEFT JOIN posts_gdocs_x_tags gt ON t.id = gt.tagId

@@ -1,12 +1,12 @@
 import {
     ChartTypeName,
+    ColorSchemeName,
     FacetAxisDomain,
     FacetStrategy,
     GrapherTabOption,
     MissingDataStrategy,
     StackMode,
 } from "@ourworldindata/types"
-import { ColorSchemes } from "@ourworldindata/grapher"
 import { SortBy, SortOrder } from "@ourworldindata/utils"
 import {
     GridBoolean,
@@ -16,11 +16,12 @@ import {
     Grammar,
     IntegerCellDef,
     NumericCellDef,
-    PositiveIntegersCellDef,
     SlugDeclarationCellDef,
     SlugsDeclarationCellDef,
     StringCellDef,
     UrlCellDef,
+    IndicatorIdsOrEtlPathsCellDef,
+    IndicatorIdOrEtlPathCellDef,
 } from "../gridLang/GridLangConstants.js"
 
 const toTerminalOptions = (keywords: string[]): CellDef[] => {
@@ -50,9 +51,9 @@ export const GrapherGrammar: Grammar = {
         keyword: "ySlugs",
     },
     yVariableIds: {
-        ...PositiveIntegersCellDef,
+        ...IndicatorIdsOrEtlPathsCellDef,
         keyword: "yVariableIds",
-        description: "Variable ID(s) for the yAxis",
+        description: "Variable ID(s) or ETL path(s) for the yAxis",
     },
     type: {
         ...StringCellDef,
@@ -93,9 +94,9 @@ export const GrapherGrammar: Grammar = {
         keyword: "xSlug",
     },
     xVariableId: {
-        ...IntegerCellDef,
+        ...IndicatorIdOrEtlPathCellDef,
         keyword: "xVariableId",
-        description: "Variable ID for the xAxis",
+        description: "Variable ID or ETL path for the xAxis",
     },
     colorSlug: {
         ...SlugDeclarationCellDef,
@@ -103,9 +104,9 @@ export const GrapherGrammar: Grammar = {
         keyword: "colorSlug",
     },
     colorVariableId: {
-        ...IntegerCellDef,
+        ...IndicatorIdOrEtlPathCellDef,
         keyword: "colorVariableId",
-        description: "Variable ID for the color",
+        description: "Variable ID or ETL path for the color",
     },
     sizeSlug: {
         ...SlugDeclarationCellDef,
@@ -113,9 +114,10 @@ export const GrapherGrammar: Grammar = {
         keyword: "sizeSlug",
     },
     sizeVariableId: {
-        ...IntegerCellDef,
+        ...IndicatorIdOrEtlPathCellDef,
         keyword: "sizeVariableId",
-        description: "Variable ID for the size of points on scatters",
+        description:
+            "Variable ID or ETL path for the size of points on scatters",
     },
     tableSlugs: {
         ...SlugsDeclarationCellDef,
@@ -181,7 +183,7 @@ export const GrapherGrammar: Grammar = {
         keyword: "baseColorScheme",
         description:
             "The default color scheme if no color overrides are specified",
-        terminalOptions: toTerminalOptions(Object.keys(ColorSchemes)),
+        terminalOptions: toTerminalOptions(Object.keys(ColorSchemeName)),
     },
     note: {
         ...StringCellDef,

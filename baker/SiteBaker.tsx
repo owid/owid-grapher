@@ -105,6 +105,7 @@ import {
 import { getBakePath } from "@ourworldindata/components"
 import { GdocAuthor, getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
 import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
+import { getRedirectsFromDb } from "../db/model/Redirect.js"
 
 type PrefetchedAttachments = {
     linkedAuthors: DbEnrichedAuthor[]
@@ -509,14 +510,18 @@ export class SiteBaker {
 
     private async bakePosts(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("wordpressPosts")) return
-        // TODO: the knex instance should be handed down as a parameter
         const alreadyPublishedViaGdocsSlugsSet =
             await db.getSlugsWithPublishedGdocsSuccessors(knex)
+        const redirects = await getRedirectsFromDb(knex)
 
         const postsApi = await getPostsFromSnapshots(
             knex,
             undefined,
-            (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
+            (postrow) =>
+                // Exclude posts that are already published via GDocs
+                !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug) &&
+                // Exclude posts that are redirect sources
+                !redirects.some((row) => row.source.slice(1) === postrow.slug)
         )
 
         await pMap(

@@ -1051,10 +1051,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     get isBlank(): boolean {
-        return (
-            this.tableDescription.startsWith(BLANK_TABLE_MESSAGE) &&
-            !this.numRows
-        )
+        return !this.numRows
     }
 }
 

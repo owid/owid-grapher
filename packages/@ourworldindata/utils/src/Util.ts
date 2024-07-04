@@ -13,6 +13,7 @@ import {
     dropWhile,
     escapeRegExp,
     extend,
+    findLast,
     findLastIndex,
     flatten,
     get,
@@ -86,6 +87,7 @@ export {
     dropWhile,
     escapeRegExp,
     extend,
+    findLast,
     findLastIndex,
     flatten,
     get,
@@ -650,7 +652,7 @@ export const getIdealGridParams = ({
     const ratio = containerAspectRatio / idealAspectRatio
     // Prefer vertical grid for count=2.
     if (count === 2 && containerAspectRatio < 2.8)
-        return { rows: 2, columns: 1 }
+        return { rows: 2, columns: 1, count }
     // Otherwise, optimize for closest to the ideal aspect ratio.
     const initialColumns = Math.min(Math.round(Math.sqrt(count * ratio)), count)
     const rows = Math.ceil(count / initialColumns)
@@ -660,6 +662,7 @@ export const getIdealGridParams = ({
     return {
         rows,
         columns,
+        count,
     }
 }
 
@@ -752,29 +755,6 @@ export const valuesByEntityAtTimes = (
         valuesAtTimes(valueByTime, targetTimes, tolerance)
     )
 
-export const valuesByEntityWithinTimes = (
-    valueByEntityAndTimes: Map<string, Map<number, string | number>>,
-    range: (number | undefined)[]
-): Map<string, DataValue[]> => {
-    const start = range[0] !== undefined ? range[0] : -Infinity
-    const end = range[1] !== undefined ? range[1] : Infinity
-    return es6mapValues(valueByEntityAndTimes, (valueByTime) =>
-        Array.from(valueByTime.keys())
-            .filter((time) => time >= start && time <= end)
-            .map((time) => ({
-                time,
-                value: valueByTime.get(time),
-            }))
-    )
-}
-
-export const getStartEndValues = (
-    values: DataValue[]
-): (DataValue | undefined)[] => [
-    minBy(values, (dv) => dv.time),
-    maxBy(values, (dv) => dv.time),
-]
-
 const MS_PER_DAY = 1000 * 60 * 60 * 24
 
 // From https://stackoverflow.com/a/15289883
@@ -794,12 +774,6 @@ export const getYearFromISOStringAndDayOffset = (
 ): number => {
     const date = dayjs.utc(epoch).add(daysOffset, "day")
     return date.year()
-}
-
-export const addDays = (date: Date, days: number): Date => {
-    const newDate = new Date(date.getTime())
-    newDate.setDate(newDate.getDate() + days)
-    return newDate
 }
 
 export const sleep = (ms: number): Promise<void> =>
@@ -923,13 +897,6 @@ export function keyMap<Key, Value>(
     return result
 }
 
-export const oneOf = <T>(value: unknown, options: T[], defaultOption: T): T => {
-    for (const option of options) {
-        if (value === option) return option
-    }
-    return defaultOption
-}
-
 export const intersectionOfSets = <T>(sets: Set<T>[]): Set<T> => {
     if (!sets.length) return new Set<T>()
     const intersection = new Set<T>(sets[0])
@@ -1050,20 +1017,6 @@ export const findIndexFast = (
         index++
     }
     return -1
-}
-
-export const logMe = (
-    target: unknown,
-    propertyName: string,
-    descriptor: TypedPropertyDescriptor<any>
-): TypedPropertyDescriptor<any> => {
-    const originalMethod = descriptor.value
-    descriptor.value = function (...args: any[]): any {
-        // eslint-disable-next-line no-console
-        console.log(`Running ${propertyName} with '${args}'`)
-        return originalMethod.apply(this, args)
-    }
-    return descriptor
 }
 
 export function getClosestTimePairs(
@@ -1801,15 +1754,6 @@ export function mergePartialGrapherConfigs<T extends Record<string, any>>(
     return merge({}, ...grapherConfigs)
 }
 
-export const joinWithAmpersand = (fragments: string[]): string => {
-    if (fragments.length === 0) return ""
-    else if (fragments.length === 1) return fragments[0]
-    else {
-        const last = fragments.pop()
-        return fragments.join(", ") + " & " + last
-    }
-}
-
 /** Works for:
  * #dod:text
  * #dod:text-hyphenated
@@ -1905,12 +1849,12 @@ export function roundDownToNearestHundred(value: number): number {
     return Math.floor(value / 100) * 100
 }
 
-const commafyFormatter = new Intl.NumberFormat("en-US")
+const commafyFormatter = lazy(() => new Intl.NumberFormat("en-US"))
 /**
  * Example: 12000 -> "12,000"
  */
 export function commafyNumber(value: number): string {
-    return commafyFormatter.format(value)
+    return commafyFormatter().format(value)
 }
 
 export function isFiniteWithGuard(value: unknown): value is number {
@@ -1952,4 +1896,32 @@ export function createTagGraph(
     }
 
     return recursivelySetChildren(tagGraph) as TagGraphRoot
+}
+
+export function formatInlineList(
+    array: unknown[],
+    connector: "and" | "or" = "and"
+): string {
+    if (array.length === 0) return ""
+    if (array.length === 1) return `${array[0]}`
+    return `${array.slice(0, -1).join(", ")} ${connector} ${last(array)}`
+}
+
+// The below comment marks this function as side-effect free, meaning that the bundler
+// can safely remove it if it is not used.
+// This is useful for e.g. constants that are only used in some parts of the codebase.
+// See https://rollupjs.org/configuration-options/#no-side-effects
+// @__NO_SIDE_EFFECTS__
+// Other than that, this function is like lodash's once, in that it'll run fn at most once
+// and then save the result for future calls.
+export function lazy<T>(fn: () => T): () => T {
+    let hasRun = false
+    let _value: T
+    return () => {
+        if (!hasRun) {
+            _value = fn()
+            hasRun = true
+        }
+        return _value
+    }
 }

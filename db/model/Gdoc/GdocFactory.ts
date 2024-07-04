@@ -226,7 +226,7 @@ export async function getAllMinimalGdocBaseObjects(
     })
 }
 
-export async function getGdocBaseObjectBySlug(
+export async function getPublishedGdocBaseObjectBySlug(
     knex: KnexReadonlyTransaction,
     slug: string,
     fetchLinkedTags: boolean
@@ -237,7 +237,8 @@ export async function getGdocBaseObjectBySlug(
             SELECT *
             FROM posts_gdocs
             WHERE slug = ?
-            AND published = 1`,
+            AND published = 1
+            AND publishedAt <= NOW()`,
         [slug]
     )
     if (!row) return undefined
@@ -266,7 +267,7 @@ export async function getAndLoadGdocBySlug(
     knex: KnexReadWriteTransaction,
     slug: string
 ): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
-    const base = await getGdocBaseObjectBySlug(knex, slug, true)
+    const base = await getPublishedGdocBaseObjectBySlug(knex, slug, true)
     if (!base) {
         throw new Error(
             `No published Google Doc with slug "${slug}" found in the database`
