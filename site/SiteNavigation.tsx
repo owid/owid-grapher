@@ -283,6 +283,16 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     ],
                 },
                 {
+                    name: "Geography of the World Population",
+                    slug: "distribution-of-the-world-population",
+                    entries: [
+                        {
+                            slug: "migration",
+                            title: "Migration",
+                        },
+                    ],
+                },
+                {
                     name: "Population Change",
                     slug: "population-change",
                     entries: [
@@ -313,10 +323,6 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         {
                             slug: "urbanization",
                             title: "Urbanization",
-                        },
-                        {
-                            slug: "migration",
-                            title: "Migration",
                         },
                     ],
                 },
