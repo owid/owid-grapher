@@ -304,7 +304,8 @@ getPlainRouteWithROTransaction(
         if (slug === DefaultNewExplorerSlug)
             return renderExplorerPage(
                 new ExplorerProgram(DefaultNewExplorerSlug, ""),
-                knex
+                knex,
+                { isPreviewing: true }
             )
         if (
             !slug ||
@@ -312,7 +313,9 @@ getPlainRouteWithROTransaction(
         )
             return `File not found`
         const explorer = await explorerAdminServer.getExplorerFromFile(filename)
-        const explorerPage = await renderExplorerPage(explorer, knex)
+        const explorerPage = await renderExplorerPage(explorer, knex, {
+            isPreviewing: true,
+        })
 
         return res.send(explorerPage)
     }

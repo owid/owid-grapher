@@ -42,7 +42,6 @@ export {
     type InterpolationProvider,
     linearInterpolation,
     toleranceInterpolation,
-    interpolateRowValuesWithTolerance,
     makeKeyFn,
     concatColumnStores,
     rowsToColumnStore,

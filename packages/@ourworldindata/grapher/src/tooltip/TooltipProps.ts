@@ -8,6 +8,12 @@ export interface TooltipManager {
 }
 
 export type TooltipFadeMode = "delayed" | "immediate" | "none"
+export enum TooltipFooterIcon {
+    notice = "notice",
+    stripes = "stripes",
+    significance = "significance",
+    none = "none",
+}
 
 export interface TooltipProps {
     id: number | string
@@ -20,8 +26,7 @@ export interface TooltipProps {
     title?: string | number // header text
     subtitle?: string | number // header deck
     subtitleFormat?: "notice" | "unit" // optional postprocessing for subtitle
-    footer?: string // target year for tolerance notice or freeform contents
-    footerFormat?: "notice" | "stripes" // add icon for tolerance or projection
+    footer?: { icon: TooltipFooterIcon; text: string }[]
     style?: React.CSSProperties // css overrides (particularly width/maxWidth)
     dissolve?: TooltipFadeMode // flag that the tooltip should begin fading out
     tooltipManager: TooltipManager
@@ -33,6 +38,7 @@ export interface TooltipValueProps {
     value?: number | string
     color?: string
     notice?: number | string // actual year data was drawn from (when ≠ target year)
+    showSignificanceSuperscript?: boolean // show significance-s superscript if applicable
 }
 
 export interface TooltipValueRangeProps {
@@ -40,6 +46,7 @@ export interface TooltipValueRangeProps {
     values: number[]
     color?: string
     notice?: (number | string | undefined)[] // actual year data was drawn from (when ≠ target year)
+    showSignificanceSuperscript?: boolean // show significance-s superscript if applicable
 }
 
 export interface TooltipTableProps {

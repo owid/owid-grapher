@@ -31,6 +31,7 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref minSize?: number = undefined
     @observable.ref hideAxis?: boolean = undefined
     @observable.ref hideGridlines?: boolean = undefined
+    @observable.ref hideTickLabels?: boolean = undefined
     @observable.ref labelPadding?: number = undefined
     @observable.ref nice?: boolean = undefined
     @observable.ref maxTicks?: number = undefined
@@ -40,6 +41,7 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref ticks?: Tickmark[] = undefined
     @observable.ref singleValueAxisPointAlign?: AxisAlign = undefined
     @observable.ref label: string = ""
+    @observable.ref domainValues?: number[] = undefined
 }
 
 export class AxisConfig
@@ -69,6 +71,7 @@ export class AxisConfig
             minSize: this.minSize,
             hideAxis: this.hideAxis,
             hideGridlines: this.hideGridlines,
+            hideTickLabels: this.hideTickLabels,
             labelPadding: this.labelPadding,
             nice: this.nice,
             maxTicks: this.maxTicks,
@@ -78,6 +81,7 @@ export class AxisConfig
             facetDomain: this.facetDomain,
             ticks: this.ticks,
             singleValueAxisPointAlign: this.singleValueAxisPointAlign,
+            domainValues: this.domainValues,
         })
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())

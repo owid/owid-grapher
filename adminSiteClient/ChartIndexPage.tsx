@@ -11,7 +11,7 @@ import {
     filterFunctionForSearchWords,
     highlightFunctionForSearchWords,
     SearchWord,
-} from "@ourworldindata/utils"
+} from "../adminShared/search.js"
 
 @observer
 export class ChartIndexPage extends React.Component {

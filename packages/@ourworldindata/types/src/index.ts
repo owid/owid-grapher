@@ -20,18 +20,7 @@ export {
     type UserCountryInformation,
     type QueryParams,
 } from "./domainTypes/Various.js"
-export {
-    type DataValueConfiguration,
-    type DataValueProps,
-    type DataValueQueryArgs,
-    type DataValueResult,
-} from "./domainTypes/DataValues.js"
-export {
-    type BreadcrumbItem,
-    type KeyInsight,
-    type KeyValueProps,
-    BLOCK_WRAPPER_DATATYPE,
-} from "./domainTypes/Site.js"
+export { type BreadcrumbItem, type KeyValueProps } from "./domainTypes/Site.js"
 export {
     type FormattedPost,
     type IndexPost,
@@ -136,7 +125,6 @@ export {
 } from "./domainTypes/ContentGraph.js"
 export {
     WP_BlockClass,
-    WP_BlockType,
     WP_ColumnStyle,
     WP_PostType,
     type PostRestApi,
@@ -384,10 +372,11 @@ export {
 export type { OwidSource } from "./OwidSource.js"
 export type { OwidOrigin } from "./OwidOrigin.js"
 
-export type {
-    OwidVariableDisplayConfigInterface,
-    OwidVariableDataTableConfigInterface,
-    OwidChartDimensionInterface,
+export {
+    type OwidVariableDisplayConfigInterface,
+    type OwidVariableDataTableConfigInterface,
+    OwidVariableRoundingMode,
+    type OwidChartDimensionInterface,
 } from "./OwidVariableDisplayConfigInterface.js"
 
 export {

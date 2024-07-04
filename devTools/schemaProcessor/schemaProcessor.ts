@@ -1,9 +1,8 @@
 import fs from "fs-extra"
-import path from "path"
 import {
     extractFieldDescriptionsFromSchema,
     FieldDescription,
-} from "@ourworldindata/utils"
+} from "../../adminShared/schemaProcessing.js"
 import parseArgs from "minimist"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {

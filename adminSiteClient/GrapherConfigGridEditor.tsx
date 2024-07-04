@@ -1,21 +1,24 @@
 import React from "react"
 import {
-    GrapherConfigPatch,
-    applyPatch,
-    setValueRecursiveInplace,
-    FieldDescription,
-    extractFieldDescriptionsFromSchema,
-    FieldType,
-    EditorOption,
     Bounds,
     stringifyUnknownError,
     excludeUndefined,
     moveArrayItemToIndex,
-    Operation,
     getWindowUrl,
     setWindowUrl,
     excludeNull,
 } from "@ourworldindata/utils"
+import { GrapherConfigPatch } from "../adminShared/AdminSessionTypes.js"
+import {
+    applyPatch,
+    setValueRecursiveInplace,
+} from "../adminShared/patchHelper.js"
+import {
+    FieldDescription,
+    extractFieldDescriptionsFromSchema,
+    FieldType,
+    EditorOption,
+} from "../adminShared/schemaProcessing.js"
 import {
     DragDropContext,
     Droppable,
@@ -104,6 +107,7 @@ import codemirror from "codemirror"
 import { UnControlled as CodeMirror } from "react-codemirror2"
 import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
+import { Operation } from "../adminShared/SqlFilterSExpression.js"
 
 function HotColorScaleRenderer() {
     return <div style={{ color: "gray" }}>Color scale</div>
@@ -1138,10 +1142,10 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             const tree =
                 jsonLogicTree ?? QbUtils.loadTree(initialFilterQueryValue)
             this.filterState = {
-                tree: QbUtils.checkTree(
+                tree: QbUtils.sanitizeTree(
                     tree,
                     this.FilterPanelConfig ?? filterPanelInitialConfig
-                ),
+                ).fixedTree,
                 config: this.FilterPanelConfig ?? filterPanelInitialConfig,
             }
 

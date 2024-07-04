@@ -1,9 +1,13 @@
 import { CustomColorSchemes } from "./CustomSchemes"
-import { ColorBrewerSchemes } from "./ColorBrewerSchemes"
 import { ColorScheme } from "./ColorScheme"
 import { match } from "ts-pattern"
 import { partition } from "@ourworldindata/utils"
-import { ChartTypeName, ColorSchemeName } from "@ourworldindata/types"
+import {
+    ChartTypeName,
+    ColorSchemeInterface,
+    ColorSchemeName,
+} from "@ourworldindata/types"
+import { getColorBrewerScheme } from "./ColorBrewerSchemes.js"
 
 function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
     // This function could also be a Map<ChartTypeName, ColorName[]> but
@@ -90,31 +94,48 @@ function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
         .exhaustive()
 }
 
-const initAllSchemes = (): { [key in ColorSchemeName]: ColorScheme } => {
-    const schemes = [...ColorBrewerSchemes, ...CustomColorSchemes]
+const initColorScheme = (scheme: ColorSchemeInterface): ColorScheme =>
+    new ColorScheme(
+        scheme.displayName ?? scheme.name,
+        scheme.colorSets,
+        scheme.singleColorScale,
+        scheme.isDistinct
+    )
 
-    // NB: Temporarily switch to any typing to build the ColorScheme map. Ideally it would just be an enum, but in TS in enums you can only have primitive values.
-    // There is another way to do it with static classes, but that's also not great. If you are adding a color scheme, just make sure to add it's name to the ColorSchemeName enum.
-    const colorSchemes: any = {}
-    schemes.forEach((scheme) => {
-        colorSchemes[scheme.name] = new ColorScheme(
-            scheme.displayName ?? scheme.name,
-            scheme.colorSets,
-            scheme.singleColorScale,
-            scheme.isDistinct
-        )
-    })
-    return colorSchemes as { [key in ColorSchemeName]: ColorScheme }
+const _colorSchemes = new Map<ColorSchemeName, ColorScheme>()
+
+// This object has a map-like appearance from the outside (with a .get() method),
+// but lazy-loads color schemes as they are requested
+export const ColorSchemes = {
+    get: (name: ColorSchemeName): ColorScheme => {
+        if (!_colorSchemes.has(name)) {
+            const schemeRaw =
+                getColorBrewerScheme(name) ??
+                CustomColorSchemes.find((s) => s.name === name)
+            if (!schemeRaw) throw new Error(`Color scheme ${name} not found`)
+            const scheme = initColorScheme(schemeRaw)
+            _colorSchemes.set(name, scheme)
+        }
+        return _colorSchemes.get(name)!
+    },
 }
 
-export const ColorSchemes = initAllSchemes()
+const getAllColorSchemes = (): Map<ColorSchemeName, ColorScheme> => {
+    return new Map(
+        Object.keys(ColorSchemeName).map((key) => [
+            key as ColorSchemeName,
+            ColorSchemes.get(key as ColorSchemeName),
+        ])
+    )
+}
 
 export function getColorSchemeForChartType(type: ChartTypeName): {
     [key in ColorSchemeName]: ColorScheme
 } {
     const preferred = new Set(getPreferredSchemesByType(type))
+    const allSchemes = getAllColorSchemes()
     const [preferredSchemes, otherSchemes] = partition(
-        Object.entries(ColorSchemes) as [ColorSchemeName, ColorScheme][],
+        [...allSchemes.entries()],
         (schemeKeyValue) => preferred.has(schemeKeyValue[0])
     )
     return Object.fromEntries([...preferredSchemes, ...otherSchemes]) as {

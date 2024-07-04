@@ -1002,6 +1002,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     title: "LGBT+ Rights",
                 },
                 {
+                    slug: "corruption",
+                    title: "Corruption",
+                },
+                {
                     slug: "economic-inequality-by-gender",
                     title: "Economic Inequality by Gender",
                 },
@@ -1058,13 +1062,14 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
     ],
 }
 
-export const UNIQUE_TOPIC_COUNT = SiteNavigationStatic.categories
-    .flatMap((category) => {
-        const subcategoryEntries =
-            category?.subcategories?.flatMap(
-                (subcategory) => subcategory.entries || []
-            ) || []
-        return [...category.entries, ...subcategoryEntries]
-    })
-    .map((entry) => entry.slug)
-    .filter((value, index, array) => array.indexOf(value) === index).length
+export const getUniqueTopicCount = () =>
+    SiteNavigationStatic.categories
+        .flatMap((category) => {
+            const subcategoryEntries =
+                category?.subcategories?.flatMap(
+                    (subcategory) => subcategory.entries || []
+                ) || []
+            return [...category.entries, ...subcategoryEntries]
+        })
+        .map((entry) => entry.slug)
+        .filter((value, index, array) => array.indexOf(value) === index).length

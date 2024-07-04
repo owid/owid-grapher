@@ -41,10 +41,12 @@ import {
     keyBy,
     keyMap,
     omitUndefinedValues,
+    parseIntOrUndefined,
     PromiseCache,
     PromiseSwitcher,
     SerializedGridProgram,
     setWindowUrl,
+    Tippy,
     uniq,
     uniqBy,
     Url,
@@ -53,7 +55,7 @@ import { MarkdownTextWrap, Checkbox } from "@ourworldindata/components"
 import classNames from "classnames"
 import { action, computed, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
-import React from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import ReactDOM from "react-dom"
 import { ExplorerControlBar, ExplorerControlPanel } from "./ExplorerControls.js"
 import { ExplorerProgram } from "./ExplorerProgram.js"
@@ -91,26 +93,89 @@ export interface ExplorerProps extends SerializedGridProgram {
     selection?: SelectionArray
 }
 
-const renderLivePreviewVersion = (props: ExplorerProps) => {
-    let renderedVersion: string
-    setInterval(() => {
-        const versionToRender =
-            localStorage.getItem(UNSAVED_EXPLORER_DRAFT + props.slug) ??
-            props.program
-        if (versionToRender === renderedVersion) return
+const LivePreviewComponent = (props: ExplorerProps) => {
+    const [useLocalStorage, setUseLocalStorage] = useState(true)
+    const [renderedProgram, setRenderedProgram] = useState("")
+    const [hasLocalStorage, setHasLocalStorage] = useState(false)
 
-        const newProps = { ...props, program: versionToRender }
-        ReactDOM.render(
+    const updateProgram = useCallback(() => {
+        const localStorageProgram = localStorage.getItem(
+            UNSAVED_EXPLORER_DRAFT + props.slug
+        )
+        let program: string
+        if (useLocalStorage) program = localStorageProgram ?? props.program
+        else program = props.program
+
+        setHasLocalStorage(!!localStorageProgram)
+        setRenderedProgram((previousProgram) => {
+            if (program === previousProgram) return previousProgram
+            return program
+        })
+    }, [props.program, props.slug, useLocalStorage])
+
+    useEffect(() => {
+        updateProgram()
+        const interval = setInterval(updateProgram, 1000)
+        return () => clearInterval(interval)
+    }, [updateProgram])
+
+    const newProps = { ...props, program: renderedProgram }
+
+    return (
+        <>
+            {hasLocalStorage && (
+                <div className="admin-only-locally-edited-checkbox">
+                    <Tippy
+                        content={
+                            <span>
+                                <p>
+                                    <b>Checked</b>: Use the explorer version
+                                    with changes as present in the admin.
+                                </p>
+                                <p>
+                                    <b>Unchecked</b>: Use the currently-saved
+                                    version.
+                                </p>
+                                <hr />
+                                <p>
+                                    Note that some features may only work
+                                    correctly when this checkbox is unchecked:
+                                    in particular, using <kbd>catalogPath</kbd>s
+                                    and <kbd>grapherId</kbd>s and variable IDs.
+                                </p>
+                            </span>
+                        }
+                        placement="bottom"
+                    >
+                        <label>
+                            <input
+                                type="checkbox"
+                                id="useLocalStorage"
+                                onChange={(e) =>
+                                    setUseLocalStorage(e.target.checked)
+                                }
+                                checked={useLocalStorage}
+                            />
+                            Display locally edited explorer
+                        </label>
+                    </Tippy>
+                </div>
+            )}
             <Explorer
                 {...newProps}
                 queryStr={window.location.search}
                 key={Date.now()}
                 isPreview={true}
-            />,
-            document.getElementById(ExplorerContainerId)
-        )
-        renderedVersion = versionToRender
-    }, 1000)
+            />
+        </>
+    )
+}
+
+const renderLivePreviewVersion = (props: ExplorerProps) => {
+    ReactDOM.render(
+        <LivePreviewComponent {...props} />,
+        document.getElementById(ExplorerContainerId)
+    )
 }
 
 const isNarrow = () =>
@@ -501,8 +566,8 @@ export class Explorer
 
         const yVariableIdsList = yVariableIds
             .split(" ")
-            .map((item) => parseInt(item, 10))
-            .filter((item) => !isNaN(item))
+            .map(parseIntOrUndefined)
+            .filter((item) => item !== undefined)
 
         const partialGrapherConfig =
             this.partialGrapherConfigsByVariableId.get(yVariableIdsList[0]) ??
@@ -533,22 +598,28 @@ export class Explorer
             })
         })
         if (xVariableId) {
-            dimensions.push({
-                variableId: xVariableId,
-                property: DimensionProperty.x,
-            })
+            const maybeXVariableId = parseIntOrUndefined(xVariableId)
+            if (maybeXVariableId !== undefined)
+                dimensions.push({
+                    variableId: maybeXVariableId,
+                    property: DimensionProperty.x,
+                })
         }
         if (colorVariableId) {
-            dimensions.push({
-                variableId: colorVariableId,
-                property: DimensionProperty.color,
-            })
+            const maybeColorVariableId = parseIntOrUndefined(colorVariableId)
+            if (maybeColorVariableId !== undefined)
+                dimensions.push({
+                    variableId: maybeColorVariableId,
+                    property: DimensionProperty.color,
+                })
         }
         if (sizeVariableId) {
-            dimensions.push({
-                variableId: sizeVariableId,
-                property: DimensionProperty.size,
-            })
+            const maybeSizeVariableId = parseIntOrUndefined(sizeVariableId)
+            if (maybeSizeVariableId !== undefined)
+                dimensions.push({
+                    variableId: maybeSizeVariableId,
+                    property: DimensionProperty.size,
+                })
         }
 
         // Slugs that are used to create a chart refer to columns derived from variables
@@ -638,9 +709,15 @@ export class Explorer
         grapher.reset()
         this.updateGrapherFromExplorerCommon()
         grapher.updateFromObject(config)
-        await grapher.downloadLegacyDataFromOwidVariableIds(
-            inputTableTransformer
-        )
+        if (dimensions.length === 0) {
+            // If dimensions are empty, explicitly set the table to an empty table
+            // so we don't end up confusingly showing stale data from a previous chart
+            grapher.receiveOwidData(new Map())
+        } else {
+            await grapher.downloadLegacyDataFromOwidVariableIds(
+                inputTableTransformer
+            )
+        }
     }
 
     @action.bound private updateGrapherFromExplorerUsingColumnSlugs() {

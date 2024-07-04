@@ -19,6 +19,7 @@ import {
     FieldsRow,
     BindDropdown,
     Toggle,
+    SelectField,
 } from "./Forms.js"
 import {
     OwidVariableWithDataAndSource,
@@ -31,6 +32,7 @@ import {
     OwidOrigin,
     OwidSource,
     stringifyUnknownError,
+    startCase,
 } from "@ourworldindata/utils"
 import { GrapherFigureView } from "../site/GrapherFigureView.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
@@ -38,7 +40,11 @@ import { OriginList } from "./OriginList.js"
 import { SourceList } from "./SourceList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Base64 } from "js-base64"
-import { GrapherTabOption, GrapherInterface } from "@ourworldindata/types"
+import {
+    GrapherTabOption,
+    GrapherInterface,
+    OwidVariableRoundingMode,
+} from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -250,19 +256,42 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         store={newVariable.display}
                                         placeholder={newVariable.shortUnit}
                                     />
-                                </FieldsRow>
-                                <FieldsRow>
-                                    <BindFloat
-                                        label="Number of decimal places"
-                                        field="numDecimalPlaces"
-                                        store={newVariable.display}
-                                        helpText={`A negative number here will round integers`}
-                                    />
                                     <BindFloat
                                         label="Unit conversion factor"
                                         field="conversionFactor"
                                         store={newVariable.display}
                                         helpText={`Multiply all values by this amount`}
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <SelectField
+                                        label="Rounding mode"
+                                        value={variable.display?.roundingMode}
+                                        onValue={(value) => {
+                                            const roundingMode =
+                                                value as OwidVariableRoundingMode
+                                            newVariable.display.roundingMode =
+                                                roundingMode !==
+                                                OwidVariableRoundingMode.decimalPlaces
+                                                    ? roundingMode
+                                                    : undefined
+                                        }}
+                                        options={Object.keys(
+                                            OwidVariableRoundingMode
+                                        ).map((key) => ({
+                                            value: key,
+                                            label: startCase(key),
+                                        }))}
+                                    />
+                                    <BindFloat
+                                        label="Number of decimal places"
+                                        field="numDecimalPlaces"
+                                        store={newVariable.display}
+                                    />
+                                    <BindFloat
+                                        label="Number of significant figures"
+                                        field="numSignificantFigures"
+                                        store={newVariable.display}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>

@@ -1,4 +1,7 @@
-import { OwidChartDimensionInterface } from "../OwidVariableDisplayConfigInterface.js"
+import {
+    OwidChartDimensionInterface,
+    OwidVariableRoundingMode,
+} from "../OwidVariableDisplayConfigInterface.js"
 import { ColumnSlugs, EntityName } from "../domainTypes/CoreTableTypes.js"
 import { AxisAlign, Position } from "../domainTypes/Layout.js"
 import { Integer, QueryParams, TopicId } from "../domainTypes/Various.js"
@@ -204,7 +207,9 @@ export interface Tickmark {
     solid?: boolean // mostly for labelling domain start (e.g. 0)
 }
 export interface TickFormattingOptions {
+    roundingMode?: OwidVariableRoundingMode
     numDecimalPlaces?: number
+    numSignificantFigures?: number
     unit?: string
     trailingZeroes?: boolean
     spaceBeforeUnit?: boolean
@@ -221,6 +226,7 @@ export interface AxisConfigInterface {
     canChangeScaleType?: boolean
     removePointsOutsideDomain?: boolean
     hideAxis?: boolean
+    hideTickLabels?: boolean
 
     /** Hide the faint lines that are shown inside the plot (axis ticks may still be visible). */
     hideGridlines?: boolean
@@ -280,6 +286,13 @@ export interface AxisConfigInterface {
      * Should the point be placed at the start, middle or end of the axis?
      */
     singleValueAxisPointAlign?: AxisAlign
+
+    /**
+     * If given, think of the axis scale as a band scale, where each domain value
+     * occupies a fixed width. The axis is padded on both sides to reserve space
+     * for the outermost values.
+     */
+    domainValues?: number[]
 }
 
 export interface ComparisonLineConfig {
@@ -450,8 +463,6 @@ export enum ColorSchemeName {
     Set2 = "Set2",
     Set3 = "Set3",
     PuBu = "PuBu",
-    "hsv-RdBu" = "hsv-RdBu",
-    "hsv-CyMg" = "hsv-CyMg",
 
     // Custom schemes:
     Magma = "Magma",
@@ -459,7 +470,6 @@ export enum ColorSchemeName {
     Plasma = "Plasma",
     Viridis = "Viridis",
     continents = "continents",
-    ContinentsLines = "ContinentsLines",
     stackedAreaDefault = "stackedAreaDefault",
     "owid-distinct" = "owid-distinct",
     SingleColorDenim = "SingleColorDenim",

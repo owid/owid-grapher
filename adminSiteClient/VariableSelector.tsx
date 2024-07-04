@@ -3,15 +3,17 @@ import * as lodash from "lodash"
 import {
     groupBy,
     sortBy,
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-    SearchWord,
     OwidVariableId,
     excludeUndefined,
     uniq,
     isNumber,
 } from "@ourworldindata/utils"
+import {
+    buildSearchWordsFromSearchString,
+    filterFunctionForSearchWords,
+    highlightFunctionForSearchWords,
+    SearchWord,
+} from "../adminShared/search.js"
 import { computed, action, observable, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
 import Select, { MultiValue } from "react-select"

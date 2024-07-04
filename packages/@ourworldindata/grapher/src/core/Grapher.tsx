@@ -2590,22 +2590,6 @@ export class Grapher
         )
     }
 
-    @action.bound
-    resetAnnotation(): void {
-        this.renderAnnotation(undefined)
-    }
-
-    @action.bound
-    renderAnnotation(annotation: Annotation | undefined): void {
-        this.setAuthoredVersion(this.props)
-        this.reset()
-        this.updateFromObject({ ...this.props })
-        this.populateFromQueryParams(
-            legacyToCurrentGrapherQueryParams(this.props.queryStr ?? "")
-        )
-        this.annotation = annotation
-    }
-
     private renderGrapherComponent(): React.ReactElement {
         const containerClasses = classnames({
             GrapherComponent: true,
@@ -3188,9 +3172,17 @@ export class Grapher
         if (this.numSelectableEntityNames < 2) return false
         if (this.addCountryMode === EntitySelectionMode.MultipleEntities)
             return true
+
         if (
+            // we force multi-entity selection mode when the chart is faceted
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.facetStrategy !== FacetStrategy.none
+            this.facetStrategy !== FacetStrategy.none &&
+            // unless the author explicitly configured the chart to be split
+            // by metric and hid the facet control
+            !(
+                this.facetStrategy === FacetStrategy.metric &&
+                this.hideFacetControl
+            )
         )
             return true
 

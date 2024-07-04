@@ -19,83 +19,83 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-core@npm:1.17.0":
-  version: 1.17.0
-  resolution: "@algolia/autocomplete-core@npm:1.17.0"
+"@algolia/autocomplete-core@npm:1.17.2":
+  version: 1.17.2
+  resolution: "@algolia/autocomplete-core@npm:1.17.2"
   dependencies:
-    "@algolia/autocomplete-plugin-algolia-insights": "npm:1.17.0"
-    "@algolia/autocomplete-shared": "npm:1.17.0"
-  checksum: 10/09b0beaf3e742db9f278d951a76a51ef328ac7545564d692d54c0d9e54600e1836a9f03281585bd3cc056c0afa8f9cb9936755aab6b7e46492d463b76f117410
+    "@algolia/autocomplete-plugin-algolia-insights": "npm:1.17.2"
+    "@algolia/autocomplete-shared": "npm:1.17.2"
+  checksum: 10/7d178bccbcf16cca6b2244596a2e69302a30d5a3cae2373a962eca8b1883517d542f94cd2a43512727160478ede7bc0ff00b619194ab3294df879c6bd966dd83
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-js@npm:1.17.0, @algolia/autocomplete-js@npm:^1.17.0":
-  version: 1.17.0
-  resolution: "@algolia/autocomplete-js@npm:1.17.0"
+"@algolia/autocomplete-js@npm:1.17.2, @algolia/autocomplete-js@npm:^1.17.2":
+  version: 1.17.2
+  resolution: "@algolia/autocomplete-js@npm:1.17.2"
   dependencies:
-    "@algolia/autocomplete-core": "npm:1.17.0"
-    "@algolia/autocomplete-preset-algolia": "npm:1.17.0"
-    "@algolia/autocomplete-shared": "npm:1.17.0"
+    "@algolia/autocomplete-core": "npm:1.17.2"
+    "@algolia/autocomplete-preset-algolia": "npm:1.17.2"
+    "@algolia/autocomplete-shared": "npm:1.17.2"
     htm: "npm:^3.1.1"
     preact: "npm:^10.13.2"
   peerDependencies:
     "@algolia/client-search": ">= 4.5.1 < 6"
     algoliasearch: ">= 4.9.1 < 6"
-  checksum: 10/e40576eeaf245242d44453c7c1c4860a239ab7b85d8ab59b53fa8479e248dce8ecf9adc91162f2c7f0d37b2da0c123010efa6975714abd0f56dd7d7e99dab674
+  checksum: 10/0d1771406530161c939be78507e813db5d525bf261cf32b1969e302830cc5f24fb06f40f21f956660fe7fe1d5477aa2375ad9bdd269bab8d0ad06ed1141002f9
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-plugin-algolia-insights@npm:1.17.0":
-  version: 1.17.0
-  resolution: "@algolia/autocomplete-plugin-algolia-insights@npm:1.17.0"
+"@algolia/autocomplete-plugin-algolia-insights@npm:1.17.2":
+  version: 1.17.2
+  resolution: "@algolia/autocomplete-plugin-algolia-insights@npm:1.17.2"
   dependencies:
-    "@algolia/autocomplete-shared": "npm:1.17.0"
+    "@algolia/autocomplete-shared": "npm:1.17.2"
   peerDependencies:
     search-insights: ">= 1 < 3"
-  checksum: 10/99fb44f998acf340bac6ba039e434e925c24d20d3ebca462e8a0b3e8091da239b19a5a18be4e2abd9dae58398cfd6843f9f630e300a394abe292164bbfe0dee3
+  checksum: 10/e47f3cb65efeb9631610326fa53e42c4d6c6e790b55fefba87883921a2018abc98b4a52fa72b18eff08758d6745279edb957adeb57f4c212db1f326bfef9528e
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-plugin-recent-searches@npm:^1.17.0":
-  version: 1.17.0
-  resolution: "@algolia/autocomplete-plugin-recent-searches@npm:1.17.0"
+"@algolia/autocomplete-plugin-recent-searches@npm:^1.17.2":
+  version: 1.17.2
+  resolution: "@algolia/autocomplete-plugin-recent-searches@npm:1.17.2"
   dependencies:
-    "@algolia/autocomplete-core": "npm:1.17.0"
-    "@algolia/autocomplete-js": "npm:1.17.0"
-    "@algolia/autocomplete-preset-algolia": "npm:1.17.0"
-    "@algolia/autocomplete-shared": "npm:1.17.0"
+    "@algolia/autocomplete-core": "npm:1.17.2"
+    "@algolia/autocomplete-js": "npm:1.17.2"
+    "@algolia/autocomplete-preset-algolia": "npm:1.17.2"
+    "@algolia/autocomplete-shared": "npm:1.17.2"
   peerDependencies:
     "@algolia/client-search": ">= 4.5.1 < 6"
-  checksum: 10/2af4baff7b1cdd5bceb5e74cc7e37c11c8499520568a9a556d296d76775af39a94800a08eecf21a72154387355ff19e5083dfbf6a465bbb65bee6712a3fd6e4f
+  checksum: 10/790f163d5aed6feaf159cf00e202595c47dfcb038ac6cccfc07b8ccb90cc9023fbf8d59b8631e93edc780e101674d7f62c1d88c1e45b53e64bd50e648beedd5e
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-preset-algolia@npm:1.17.0":
-  version: 1.17.0
-  resolution: "@algolia/autocomplete-preset-algolia@npm:1.17.0"
+"@algolia/autocomplete-preset-algolia@npm:1.17.2":
+  version: 1.17.2
+  resolution: "@algolia/autocomplete-preset-algolia@npm:1.17.2"
   dependencies:
-    "@algolia/autocomplete-shared": "npm:1.17.0"
+    "@algolia/autocomplete-shared": "npm:1.17.2"
   peerDependencies:
     "@algolia/client-search": ">= 4.9.1 < 6"
     algoliasearch: ">= 4.9.1 < 6"
-  checksum: 10/9d1b879d56f123b974a1aabfeedce7204ba1dec11894d6642f3282d127beac63607dcfe5c79ea2948c35683288f436f916215c3f08ec9cddd2c8d102107a2ed6
+  checksum: 10/dcd57be23cbbdb26566ddaf2397e5fbe5293ceae0656fae77e06d51bc9917151070a9ef6bf49eca61351c4fbb287d30688402df73c09b58e6926e96dc1dc8f71
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-shared@npm:1.17.0":
-  version: 1.17.0
-  resolution: "@algolia/autocomplete-shared@npm:1.17.0"
+"@algolia/autocomplete-shared@npm:1.17.2":
+  version: 1.17.2
+  resolution: "@algolia/autocomplete-shared@npm:1.17.2"
   peerDependencies:
     "@algolia/client-search": ">= 4.9.1 < 6"
     algoliasearch: ">= 4.9.1 < 6"
-  checksum: 10/19d2937ece343c2ad99bb362a27ded5c08bde4b8b5eadc04d3de1371cb2bcee377f29f841abce9d4578160cb9e9406f6216cc06dad0128bff9d4b7115cffab9e
+  checksum: 10/ff61b0f1ee8e54276ed1af2a2a12946aa6386e64f248d5aa1ebc5ff601f18af2b00ef98adf699e05dc3705e16c3c9e536ba52212de46594a424705bcba7b236a
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-theme-classic@npm:^1.17.0":
-  version: 1.17.0
-  resolution: "@algolia/autocomplete-theme-classic@npm:1.17.0"
-  checksum: 10/17f9617d7cb9587d668f17991c9749ec04fa561891181e64613805b9528c37309ddad3192fced2763284a80df960b85c4fe17d8ff42cbab88f6e555050f8a859
+"@algolia/autocomplete-theme-classic@npm:^1.17.2":
+  version: 1.17.2
+  resolution: "@algolia/autocomplete-theme-classic@npm:1.17.2"
+  checksum: 10/3e63fdeb05bdcb1ba1ce4de336bf8377048fc939719bb034638f667c82c485f7a37509246742a37190c7e69728309066ec28877ce0c526d3f0cd55e5acc971de
   languageName: node
   linkType: hard
 
@@ -1548,15 +1548,6 @@ __metadata:
   dependencies:
     mime: "npm:^3.0.0"
   checksum: 10/020ef0a6f7f70f8cdcecd5d8c6cd3938a80205c5e4561255d8f6d6ad6be4bf231961a62c6a8d0cf94dab1cea249cc81064b8670fdbac2eb13a006b1f34a759c4
-  languageName: node
-  linkType: hard
-
-"@cloudflare/pages-plugin-sentry@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "@cloudflare/pages-plugin-sentry@npm:1.1.1"
-  dependencies:
-    toucan-js: "npm:^3.0.0"
-  checksum: 10/a9058ac31f662b6f6a2176f92e8befc07d82b28e72c73904600f173aa9ed782953cb0b3cdd82a23e84f6be7ea2c67ae81e377920206825083495c8b66075d582
   languageName: node
   linkType: hard
 
@@ -3376,7 +3367,7 @@ __metadata:
     react: "npm:^17.0.2"
     react-dom: "npm:^17.0.2"
     ts-pattern: "npm:^5.0.5"
-    typescript: "npm:~5.4.2"
+    typescript: "npm:~5.5.2"
   languageName: unknown
   linkType: soft
 
@@ -3390,7 +3381,7 @@ __metadata:
     d3: "npm:^6.1.1"
     dayjs: "npm:^1.11.11"
     eslint: "npm:^8.57.0"
-    typescript: "npm:~5.4.2"
+    typescript: "npm:~5.5.2"
   languageName: unknown
   linkType: soft
 
@@ -3449,7 +3440,7 @@ __metadata:
     topojson-client: "npm:^3.1.0"
     ts-pattern: "npm:^5.0.5"
     tsup: "npm:^7.2.0"
-    typescript: "npm:~5.4.2"
+    typescript: "npm:~5.5.2"
     url-parse: "npm:^1.5.10"
   languageName: unknown
   linkType: soft
@@ -3463,7 +3454,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^4.6.0"
     jest: "npm:^29.7.0"
     mobx: "npm:^5.15.7"
-    typescript: "npm:~5.4.2"
+    typescript: "npm:~5.5.2"
   languageName: unknown
   linkType: soft
 
@@ -3486,19 +3477,17 @@ __metadata:
     eslint: "npm:^8.57.0"
     eslint-plugin-react-hooks: "npm:^4.6.0"
     jest: "npm:^29.7.0"
-    json8-pointer: "npm:^1.0.6"
     lodash: "npm:^4.17.21"
     mobx: "npm:^5.15.7"
     mobx-react: "npm:5"
     react: "npm:^17.0.2"
     react-select: "npm:^5.8.0"
     react-tag-autocomplete: "npm:^7.1.0"
-    s-expression: "npm:^3.1.1"
     string-pixel-width: "npm:^1.10.0"
     striptags: "npm:^3.2.0"
     timezone-mock: "npm:^1.0.18"
     ts-pattern: "npm:^5.0.5"
-    typescript: "npm:~5.4.2"
+    typescript: "npm:~5.5.2"
     url-parse: "npm:^1.5.10"
   languageName: unknown
   linkType: soft
@@ -3624,11 +3613,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-awesome-query-builder/antd@npm:^6.5.2":
-  version: 6.5.2
-  resolution: "@react-awesome-query-builder/antd@npm:6.5.2"
+"@react-awesome-query-builder/antd@npm:^6.6.0":
+  version: 6.6.0
+  resolution: "@react-awesome-query-builder/antd@npm:6.6.0"
   dependencies:
-    "@react-awesome-query-builder/ui": "npm:^6.5.2"
+    "@react-awesome-query-builder/ui": "npm:^6.6.0"
     lodash: "npm:^4.17.21"
     prop-types: "npm:^15.8.1"
     rc-picker: "npm:^4.5.0"
@@ -3637,13 +3626,13 @@ __metadata:
     antd: ^4.17.0 || ^5.0.0
     react: ^16.8.4 || ^17.0.1 || ^18.0.0
     react-dom: ^16.8.4 || ^17.0.1 || ^18.0.0
-  checksum: 10/568d0ded7d5fdadd8aac9c2396b9a95c87de04afc9f565ed1e321781e53a62c772e0f80a66ce040e0060b85a98775ee7889fb1c28143826e38a753b72ca89e6d
+  checksum: 10/a56a1b078ef802098f7b785f9feec8277fd31f220e66f88872a7b5e9e0830be2765881449398e070af55ae1e1e7ea8df9ca81186fd30709257a0bca0229e57eb
   languageName: node
   linkType: hard
 
-"@react-awesome-query-builder/core@npm:^6.5.2":
-  version: 6.5.2
-  resolution: "@react-awesome-query-builder/core@npm:6.5.2"
+"@react-awesome-query-builder/core@npm:^6.6.0":
+  version: 6.6.0
+  resolution: "@react-awesome-query-builder/core@npm:6.6.0"
   dependencies:
     "@babel/runtime": "npm:^7.24.5"
     clone: "npm:^2.1.2"
@@ -3654,15 +3643,15 @@ __metadata:
     moment: "npm:^2.30.1"
     spel2js: "npm:^0.2.8"
     sqlstring: "npm:^2.3.3"
-  checksum: 10/a9cdea1aa7c60c5f4f515223cdb5e7531fe91b2f1a1a936d21cee425b3a5125b0eb1a627d3ba209ee243e43696abd0287c98957d53056ab2614768a5429826ea
+  checksum: 10/a80c4746836fa74ce2d7a75fde72a5011bb9f1235a6ebd5ce8e59b26e030d98f12da14cb8f108435bd6b6317a899fe7322193d660ed5e844e3fa13672db98759
   languageName: node
   linkType: hard
 
-"@react-awesome-query-builder/ui@npm:^6.5.2":
-  version: 6.5.2
-  resolution: "@react-awesome-query-builder/ui@npm:6.5.2"
+"@react-awesome-query-builder/ui@npm:^6.6.0":
+  version: 6.6.0
+  resolution: "@react-awesome-query-builder/ui@npm:6.6.0"
   dependencies:
-    "@react-awesome-query-builder/core": "npm:^6.5.2"
+    "@react-awesome-query-builder/core": "npm:^6.6.0"
     classnames: "npm:^2.5.1"
     lodash: "npm:^4.17.21"
     prop-types: "npm:^15.8.1"
@@ -3671,7 +3660,7 @@ __metadata:
   peerDependencies:
     react: ^16.8.4 || ^17.0.1 || ^18.0.0
     react-dom: ^16.8.4 || ^17.0.1 || ^18.0.0
-  checksum: 10/4b5514db75d7198a520190309604aca9956ef40e167764b2c792b0ad71ef6304068276703713d1d5420cd7fee872cd19f7537c89bccb7f68e30e8357972be276
+  checksum: 10/ca6a9adec903eb5575d090f59eb31490739ef00a00ea41c1c957a8fe25d1669dc4b8b70777c3d7e28d794b3af54e084217d3416963860f4de841f612611fe321
   languageName: node
   linkType: hard
 
@@ -3718,44 +3707,6 @@ __metadata:
     domhandler: "npm:^5.0.3"
     selderee: "npm:^0.11.0"
   checksum: 10/7550108d270e6ea2be4850d55cbf4d58d5a90c109a15b874c3c7c622a1399bd8015359ef3672983a86118432ca8325a6aca1fe79d961b01278fdaeaea8895c5f
-  languageName: node
-  linkType: hard
-
-"@sentry/core@npm:7.76.0":
-  version: 7.76.0
-  resolution: "@sentry/core@npm:7.76.0"
-  dependencies:
-    "@sentry/types": "npm:7.76.0"
-    "@sentry/utils": "npm:7.76.0"
-  checksum: 10/f6b524036a0bfe875868882d31a822ae71e598a33da1c6bb6ebf62da0520ac2b6dca5e28c70e8fb7570751ae1ebd590fc3c5b5fcc49f857753dcb739bfa7f06e
-  languageName: node
-  linkType: hard
-
-"@sentry/integrations@npm:7.76.0":
-  version: 7.76.0
-  resolution: "@sentry/integrations@npm:7.76.0"
-  dependencies:
-    "@sentry/core": "npm:7.76.0"
-    "@sentry/types": "npm:7.76.0"
-    "@sentry/utils": "npm:7.76.0"
-    localforage: "npm:^1.8.1"
-  checksum: 10/8f307c81fd0eec8ee250061a311bc0b5d7f0839a069b6939d0576aee74f9d87cd332e6376d41b75dc4c789aaeedba11087f28e7950f1769884bbf05a3898a3d0
-  languageName: node
-  linkType: hard
-
-"@sentry/types@npm:7.76.0":
-  version: 7.76.0
-  resolution: "@sentry/types@npm:7.76.0"
-  checksum: 10/67a4cde848be8be534b42608f930da91fcb3e6e9f38843d9fc670d5bd531f7d13f826fb24f0ef6f88f1e3e603e8377ea1412b2fd8097ba641746ad4243b90936
-  languageName: node
-  linkType: hard
-
-"@sentry/utils@npm:7.76.0":
-  version: 7.76.0
-  resolution: "@sentry/utils@npm:7.76.0"
-  dependencies:
-    "@sentry/types": "npm:7.76.0"
-  checksum: 10/141e40b3ed4da50b2b6ceb11d58e557db34431d0ad8837af21636de5692275e1fddb0b920bb20c9ac2ead67c28a446fc76f451eefd10304a4aea85f9f2b32242
   languageName: node
   linkType: hard
 
@@ -6055,14 +6006,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"algoliasearch-helper@npm:3.19.0":
-  version: 3.19.0
-  resolution: "algoliasearch-helper@npm:3.19.0"
+"algoliasearch-helper@npm:3.22.1":
+  version: 3.22.1
+  resolution: "algoliasearch-helper@npm:3.22.1"
   dependencies:
     "@algolia/events": "npm:^4.0.1"
   peerDependencies:
     algoliasearch: ">= 3.1 < 6"
-  checksum: 10/202f0f6b1e9d20d7f111e4d83313c30cc808d817136008049f64597194fdc8b18015a1c234bedd5ccf8faa0616fe440d395a2d7cd5f4d82d69c187265d52c944
+  checksum: 10/86e763cfbfcc332f55baeb5bccaa7a0093d4bfd5e00cc0baec60c1391d47b93a0c15639bc91481b47451c15ed0da964306b06c4caa90947159a28772709e0872
   languageName: node
   linkType: hard
 
@@ -10986,9 +10937,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "grapher@workspace:."
   dependencies:
-    "@algolia/autocomplete-js": "npm:^1.17.0"
-    "@algolia/autocomplete-plugin-recent-searches": "npm:^1.17.0"
-    "@algolia/autocomplete-theme-classic": "npm:^1.17.0"
+    "@algolia/autocomplete-js": "npm:^1.17.2"
+    "@algolia/autocomplete-plugin-recent-searches": "npm:^1.17.2"
+    "@algolia/autocomplete-theme-classic": "npm:^1.17.2"
     "@aws-sdk/client-s3": "npm:^3.572.0"
     "@bugsnag/core": "npm:^7.19.0"
     "@bugsnag/js": "npm:^7.20.0"
@@ -11005,7 +10956,7 @@ __metadata:
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
-    "@react-awesome-query-builder/antd": "npm:^6.5.2"
+    "@react-awesome-query-builder/antd": "npm:^6.6.0"
     "@rmp135/sql-ts": "npm:^2.1.0"
     "@sinclair/typebox": "npm:^0.28.5"
     "@slack/web-api": "npm:^7.1.0"
@@ -11097,7 +11048,7 @@ __metadata:
     husky: "npm:^9.0.11"
     indefinite: "npm:^2.4.3"
     ini: "npm:^4.1.2"
-    instantsearch.js: "npm:^4.68.0"
+    instantsearch.js: "npm:^4.72.1"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
     js-base64: "npm:^3.7.2"
@@ -11137,7 +11088,7 @@ __metadata:
     react-flip-toolkit: "npm:^7.0.9"
     react-hook-form: "npm:^7.51.3"
     react-horizontal-scrolling-menu: "npm:^4.0.3"
-    react-instantsearch: "npm:^7.7.3"
+    react-instantsearch: "npm:^7.11.3"
     react-intersection-observer: "npm:^9.10.1"
     react-move: "npm:^6.5.0"
     react-recaptcha: "npm:^2.3.10"
@@ -11150,7 +11101,7 @@ __metadata:
     s-expression: "npm:^3.1.1"
     safe-stable-stringify: "npm:^2.4.1"
     sass: "npm:^1.69.5"
-    search-insights: "npm:^2.13.0"
+    search-insights: "npm:^2.14.0"
     sharp: "npm:^0.32.5"
     shell-quote: "npm:^1.7.3"
     shelljs: "npm:^0.8.5"
@@ -11166,7 +11117,7 @@ __metadata:
     ts-pattern: "npm:^5.0.5"
     tsx: "npm:^4.10.2"
     typeorm: "npm:^0.3.20"
-    typescript: "npm:~5.4.2"
+    typescript: "npm:~5.5.2"
     unist-util-visit: "npm:^2.0.0"
     url-join: "npm:^4.0.0"
     url-parse: "npm:^1.5.10"
@@ -11702,13 +11653,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"immediate@npm:~3.0.5":
-  version: 3.0.6
-  resolution: "immediate@npm:3.0.6"
-  checksum: 10/f9b3486477555997657f70318cc8d3416159f208bec4cca3ff3442fd266bc23f50f0c9bd8547e1371a6b5e82b821ec9a7044a4f7b944798b25aa3cc6d5e63e62
-  languageName: node
-  linkType: hard
-
 "immutable@npm:^4.0.0, immutable@npm:^4.3.6":
   version: 4.3.6
   resolution: "immutable@npm:4.3.6"
@@ -11842,34 +11786,34 @@ __metadata:
   languageName: node
   linkType: hard
 
-"instantsearch-ui-components@npm:0.5.0":
-  version: 0.5.0
-  resolution: "instantsearch-ui-components@npm:0.5.0"
+"instantsearch-ui-components@npm:0.7.0":
+  version: 0.7.0
+  resolution: "instantsearch-ui-components@npm:0.7.0"
   dependencies:
     "@babel/runtime": "npm:^7.1.2"
-  checksum: 10/861b91f6b9d50196195ccdde89cb8ffb41cb945bae8ea4a778b5b104a1aed4edb953cfe0fc408efcd7d33b5e65e73e7dcb9d2083aa9dd1adadd519da3eb4d1e5
+  checksum: 10/b457e4500f4c8d34fadf75a8cb2bd58db55e7c9cc991117e1c7f3b71fd166ecd4b4f666eff3b94a749b6fb69aff4b49114b3be41c1c55d9cbf748f08814e5e2c
   languageName: node
   linkType: hard
 
-"instantsearch.js@npm:4.68.0, instantsearch.js@npm:^4.68.0":
-  version: 4.68.0
-  resolution: "instantsearch.js@npm:4.68.0"
+"instantsearch.js@npm:4.72.1, instantsearch.js@npm:^4.72.1":
+  version: 4.72.1
+  resolution: "instantsearch.js@npm:4.72.1"
   dependencies:
     "@algolia/events": "npm:^4.0.1"
     "@types/dom-speech-recognition": "npm:^0.0.1"
     "@types/google.maps": "npm:^3.45.3"
     "@types/hogan.js": "npm:^3.0.0"
     "@types/qs": "npm:^6.5.3"
-    algoliasearch-helper: "npm:3.19.0"
+    algoliasearch-helper: "npm:3.22.1"
     hogan.js: "npm:^3.0.2"
     htm: "npm:^3.0.0"
-    instantsearch-ui-components: "npm:0.5.0"
+    instantsearch-ui-components: "npm:0.7.0"
     preact: "npm:^10.10.0"
     qs: "npm:^6.5.1 < 6.10"
     search-insights: "npm:^2.13.0"
   peerDependencies:
     algoliasearch: ">= 3.1 < 6"
-  checksum: 10/7fd149696dc7118b23881b680a1f496f499411e4c0d5350b0912a44434c60e61039c52903d2b29b0086b70ae155c6cc895bfe5147b0f5684464d4f90346e6a5f
+  checksum: 10/90a0c6b17fdfe4eefb01ee35ac2861b9e98e9996d2ad6ae7515ee618bcf5c8ca28e43aa3c10ed241d8940b7cff3152319c9ebac8cb8f9a06665a654eec68ced7
   languageName: node
   linkType: hard
 
@@ -13557,15 +13501,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lie@npm:3.1.1":
-  version: 3.1.1
-  resolution: "lie@npm:3.1.1"
-  dependencies:
-    immediate: "npm:~3.0.5"
-  checksum: 10/c2c7d9dcc3a9aae641f41cde4e2e2cd571e4426b1f5915862781d77776672dcbca43461e16f4d382c9a300825c15e1a4923f1def3a5568d97577e077a3cecb44
-  languageName: node
-  linkType: hard
-
 "lilconfig@npm:3.0.0":
   version: 3.0.0
   resolution: "lilconfig@npm:3.0.0"
@@ -13677,15 +13612,6 @@ __metadata:
   version: 0.2.5
   resolution: "load-tsconfig@npm:0.2.5"
   checksum: 10/b3176f6f0c86dbdbbc7e337440a803b0b4407c55e2e1cfc53bd3db68e0211448f36428a6075ecf5e286db5d1bf791da756fc0ac4d2447717140fb6a5218ecfb4
-  languageName: node
-  linkType: hard
-
-"localforage@npm:^1.8.1":
-  version: 1.10.0
-  resolution: "localforage@npm:1.10.0"
-  dependencies:
-    lie: "npm:3.1.1"
-  checksum: 10/d5c44be3a09169b013a3ebe252e678aaeb6938ffe72e9e12c199fd4307c1ec9d1a057ac2dfdfbb1379dfeec467a34ad0fc3ecd27489a2c43a154fb72b2822542
   languageName: node
   linkType: hard
 
@@ -15511,7 +15437,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "owid-functions@workspace:functions"
   dependencies:
-    "@cloudflare/pages-plugin-sentry": "npm:^1.1.1"
     "@cloudflare/workers-types": "npm:^4.20240614.0"
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
@@ -17114,34 +17039,34 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-instantsearch-core@npm:7.7.3":
-  version: 7.7.3
-  resolution: "react-instantsearch-core@npm:7.7.3"
+"react-instantsearch-core@npm:7.11.3":
+  version: 7.11.3
+  resolution: "react-instantsearch-core@npm:7.11.3"
   dependencies:
     "@babel/runtime": "npm:^7.1.2"
-    algoliasearch-helper: "npm:3.19.0"
-    instantsearch.js: "npm:4.68.0"
+    algoliasearch-helper: "npm:3.22.1"
+    instantsearch.js: "npm:4.72.1"
     use-sync-external-store: "npm:^1.0.0"
   peerDependencies:
     algoliasearch: ">= 3.1 < 5"
     react: ">= 16.8.0 < 19"
-  checksum: 10/3a1952f0e1ea03e00477a8efb422cfdf8097c9b840fd5d6f3d978c711e9074d0cbb6ebf6b38efb038b797fe2bf7fb02dd903384d3e454807236e72ccfc04a6d9
+  checksum: 10/71e74cea474e6c1bc50a57ca5320752105c1af9997034ea8de3a3b8b1493ee41fd49da910df987159ba7e3dd2132cc6d51461673b21facbd8038e1a83cb2fe92
   languageName: node
   linkType: hard
 
-"react-instantsearch@npm:^7.7.3":
-  version: 7.7.3
-  resolution: "react-instantsearch@npm:7.7.3"
+"react-instantsearch@npm:^7.11.3":
+  version: 7.11.3
+  resolution: "react-instantsearch@npm:7.11.3"
   dependencies:
     "@babel/runtime": "npm:^7.1.2"
-    instantsearch-ui-components: "npm:0.5.0"
-    instantsearch.js: "npm:4.68.0"
-    react-instantsearch-core: "npm:7.7.3"
+    instantsearch-ui-components: "npm:0.7.0"
+    instantsearch.js: "npm:4.72.1"
+    react-instantsearch-core: "npm:7.11.3"
   peerDependencies:
     algoliasearch: ">= 3.1 < 5"
     react: ">= 16.8.0 < 19"
     react-dom: ">= 16.8.0 < 19"
-  checksum: 10/b993d62e756870044d9140588ffca52b2b8027b02323e34afbda48cc3f8ad1654611b530f6ace769e8cfd308fffec144ef66e05a13c2c3903feb5cedda9a708a
+  checksum: 10/d3b0b8d40214447e2bfed778a2a0271d8f5b62813b3306bb2a0e4072e10da10399b7054eb20d211fac27124f0a6ca8b8b7c421c689dbe9ee6417f70556586592
   languageName: node
   linkType: hard
 
@@ -18076,10 +18001,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"search-insights@npm:^2.13.0":
-  version: 2.13.0
-  resolution: "search-insights@npm:2.13.0"
-  checksum: 10/9a84110639592b38d7776cfc56c076f243457237f352dd83ff29af4ba961baa952709ed9eb50b77d07c2e6ff70a7a8ffcb237cd6a44f330dc8527e16972983b9
+"search-insights@npm:^2.13.0, search-insights@npm:^2.14.0":
+  version: 2.14.0
+  resolution: "search-insights@npm:2.14.0"
+  checksum: 10/0e49dc49ee750e89e0254eaf37d831a0872e713b3ebbc096f46989397c3539f81765ab9bae019a77b1810cc5d972318b1ee4032e8f34db07a286fcb9dcd5db41
   languageName: node
   linkType: hard
 
@@ -19377,18 +19302,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"toucan-js@npm:^3.0.0":
-  version: 3.3.1
-  resolution: "toucan-js@npm:3.3.1"
-  dependencies:
-    "@sentry/core": "npm:7.76.0"
-    "@sentry/integrations": "npm:7.76.0"
-    "@sentry/types": "npm:7.76.0"
-    "@sentry/utils": "npm:7.76.0"
-  checksum: 10/6985980551f68170bca01e932f32b06ec14698bcd661188084cfa741a98a789ac3f5195ec2da3b535b8a254fadc2c8a018f3a334b6788884178a624e337a5179
-  languageName: node
-  linkType: hard
-
 "tough-cookie@npm:^4.1.2, tough-cookie@npm:^4.1.3":
   version: 4.1.4
   resolution: "tough-cookie@npm:4.1.4"
@@ -19815,23 +19728,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:>=3 < 6, typescript@npm:~5.4.2":
-  version: 5.4.2
-  resolution: "typescript@npm:5.4.2"
+"typescript@npm:>=3 < 6, typescript@npm:~5.5.2":
+  version: 5.5.2
+  resolution: "typescript@npm:5.5.2"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10/f8cfdc630ab1672f004e9561eb2916935b2d267792d07ce93e97fc601c7a65191af32033d5e9c0169b7dc37da7db9bf320f7432bc84527cb7697effaa4e4559d
+  checksum: 10/9118b20f248e76b0dbff8737fef65dfa89d02668d4e633d2c5ceac99033a0ca5e8a1c1a53bc94da68e8f67677a88f318663dde859c9e9a09c1e116415daec2ba
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A>=3 < 6#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A~5.4.2#optional!builtin<compat/typescript>":
-  version: 5.4.2
-  resolution: "typescript@patch:typescript@npm%3A5.4.2#optional!builtin<compat/typescript>::version=5.4.2&hash=5adc0c"
+"typescript@patch:typescript@npm%3A>=3 < 6#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A~5.5.2#optional!builtin<compat/typescript>":
+  version: 5.5.2
+  resolution: "typescript@patch:typescript@npm%3A5.5.2#optional!builtin<compat/typescript>::version=5.5.2&hash=5adc0c"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10/f5f9a4133c2670761f0166eae5b3bafbc4a3fc24f0f42a93c9c893d9e9d6e66ea066969c5e7483fa66b4ae0e99125592553f3b92fd3599484de8be13b0615176
+  checksum: 10/28b3de2ddaf63a7620e7ddbe5d377af71ce93ecc558c41bf0e3d88661d8e6e7aa6c7739164fef98055f69819e41faca49252938ef3633a3dff2734cca6a9042e
   languageName: node
   linkType: hard
 

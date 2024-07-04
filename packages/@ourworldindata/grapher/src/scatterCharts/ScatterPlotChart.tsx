@@ -106,7 +106,14 @@ import {
     ScatterSizeLegend,
     ScatterSizeLegendManager,
 } from "./ScatterSizeLegend"
-import { Tooltip, TooltipState, TooltipValueRange } from "../tooltip/Tooltip"
+import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
+import {
+    Tooltip,
+    TooltipState,
+    TooltipValueRange,
+    makeTooltipToleranceNotice,
+    makeTooltipRoundingNotice,
+} from "../tooltip/Tooltip"
 import { NoDataSection } from "./NoDataSection"
 
 @observer
@@ -925,6 +932,7 @@ export class ScatterPlotChart
         const {
             xColumn,
             yColumn,
+            sizeColumn,
             tooltipState: { target, position, fading },
         } = this
         const points = target.series.points ?? []
@@ -971,6 +979,41 @@ export class ScatterPlotChart
             timeLabel =
                 timeRange + (isRelativeMode ? " (avg. annual change)" : "")
 
+        const columns = [xColumn, yColumn, sizeColumn]
+        const allRoundedToSigFigs = columns.every(
+            (column) => column.roundsToSignificantFigures
+        )
+        const anyRoundedToSigFigs = columns.some(
+            (column) => column.roundsToSignificantFigures
+        )
+        const sigFigs = excludeUndefined(
+            columns.map((column) =>
+                column.roundsToSignificantFigures
+                    ? column.numSignificantFigures
+                    : undefined
+            )
+        )
+
+        const toleranceNotice = targetNotice
+            ? {
+                  icon: TooltipFooterIcon.notice,
+                  text: makeTooltipToleranceNotice(targetNotice),
+              }
+            : undefined
+        const roundingNotice = anyRoundedToSigFigs
+            ? {
+                  icon: allRoundedToSigFigs
+                      ? TooltipFooterIcon.none
+                      : TooltipFooterIcon.significance,
+                  text: makeTooltipRoundingNotice(sigFigs, {
+                      plural: sigFigs.length > 1,
+                  }),
+              }
+            : undefined
+        const footer = excludeUndefined([toleranceNotice, roundingNotice])
+        const superscript =
+            !!roundingNotice && roundingNotice.icon !== TooltipFooterIcon.none
+
         return (
             <Tooltip
                 id="scatterTooltip"
@@ -983,22 +1026,24 @@ export class ScatterPlotChart
                 title={target.series.label}
                 subtitle={timeLabel}
                 dissolve={fading}
-                footer={targetNotice}
-                footerFormat="notice"
+                footer={footer}
             >
                 <TooltipValueRange
                     column={xColumn}
                     values={xValues}
                     notice={xNotice}
+                    showSignificanceSuperscript={superscript}
                 />
                 <TooltipValueRange
                     column={yColumn}
                     values={yValues}
                     notice={yNotice}
+                    showSignificanceSuperscript={superscript}
                 />
                 <TooltipValueRange
-                    column={this.sizeColumn}
+                    column={sizeColumn}
                     values={excludeNullish(values.map((v) => v.size))}
+                    showSignificanceSuperscript={superscript}
                 />
             </Tooltip>
         )

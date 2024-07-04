@@ -422,7 +422,6 @@ export const LongFormPage = (props: {
                             pageTitle,
                             // hideSubheadings: true
                         })})
-                        runRelatedCharts(${JSON.stringify(post.relatedCharts)})
                         `,
                     }}
                 />

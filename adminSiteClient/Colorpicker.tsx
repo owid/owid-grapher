@@ -3,7 +3,7 @@ import { action } from "mobx"
 import { observer } from "mobx-react"
 import { SketchPicker } from "react-color"
 
-import { lastOfNonEmptyArray } from "@ourworldindata/utils"
+import { ColorSchemeName, lastOfNonEmptyArray } from "@ourworldindata/utils"
 import {
     ColorSchemes,
     getColorNameOwidDistinctAndSemanticPalettes,
@@ -27,8 +27,8 @@ export class Colorpicker extends React.Component<ColorpickerProps> {
 
     render() {
         const scheme = this.props.showLineChartColors
-            ? ColorSchemes["OwidDistinctLines"]
-            : ColorSchemes["owid-distinct"]
+            ? ColorSchemes.get(ColorSchemeName.OwidDistinctLines)
+            : ColorSchemes.get(ColorSchemeName["owid-distinct"])
 
         const availableColors: string[] = lastOfNonEmptyArray(scheme.colorSets)
         const colorNameLookupFn = (color: string) => {

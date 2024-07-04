@@ -1,4 +1,5 @@
 import entities from "./regions.json"
+import { lazy } from "./Util.js"
 
 export enum RegionType {
     Country = "country",
@@ -51,52 +52,66 @@ export const countries: Country[] = regions.filter(
         !entity.isHistorical
 ) as Country[]
 
-export const others: Country[] = entities.filter(
-    (entity) => entity.regionType === "other"
-) as Country[]
-
-export const aggregates: Aggregate[] = entities.filter(
-    (entity) => entity.regionType === "aggregate"
-) as Aggregate[]
-
-export const continents: Continent[] = entities.filter(
-    (entity) => entity.regionType === "continent"
-) as Continent[]
-
-const countriesByName: Record<string, Country> = Object.fromEntries(
-    countries.map((country) => [country.name, country])
+export const getOthers = lazy(
+    () =>
+        entities.filter((entity) => entity.regionType === "other") as Country[]
 )
 
-const countriesBySlug: Record<string, Country> = Object.fromEntries(
-    countries.map((country) => [country.slug, country])
+export const getAggregates = lazy(
+    () =>
+        entities.filter(
+            (entity) => entity.regionType === "aggregate"
+        ) as Aggregate[]
 )
 
-const regionsByNameOrVariantNameLowercase: Map<string, Region> = new Map(
-    regions.flatMap((region) => {
-        const names = [region.name.toLowerCase()]
-        if ("variantNames" in region && region.variantNames) {
-            names.push(
-                ...region.variantNames.map((variant) => variant.toLowerCase())
-            )
-        }
-        return names.map((name) => [name, region])
-    })
+export const getContinents = lazy(
+    () =>
+        entities.filter(
+            (entity) => entity.regionType === "continent"
+        ) as Continent[]
 )
 
-const currentAndHistoricalCountryNames = regions
-    .filter(({ regionType }) => regionType === "country")
-    .map(({ name }) => name.toLowerCase())
+const countriesByName = lazy(() =>
+    Object.fromEntries(countries.map((country) => [country.name, country]))
+)
+
+const countriesBySlug = lazy(() =>
+    Object.fromEntries(countries.map((country) => [country.slug, country]))
+)
+
+const regionsByNameOrVariantNameLowercase = lazy(
+    () =>
+        new Map(
+            regions.flatMap((region) => {
+                const names = [region.name.toLowerCase()]
+                if ("variantNames" in region && region.variantNames) {
+                    names.push(
+                        ...region.variantNames.map((variant) =>
+                            variant.toLowerCase()
+                        )
+                    )
+                }
+                return names.map((name) => [name, region])
+            })
+        )
+)
+
+const currentAndHistoricalCountryNames = lazy(() =>
+    regions
+        .filter(({ regionType }) => regionType === "country")
+        .map(({ name }) => name.toLowerCase())
+)
 
 export const isCountryName = (name: string): boolean =>
-    currentAndHistoricalCountryNames.includes(name.toLowerCase())
+    currentAndHistoricalCountryNames().includes(name.toLowerCase())
 
 export const getCountryByName = (name: string): Country | undefined =>
-    countriesByName[name]
+    countriesByName()[name]
 
 export const getCountryBySlug = (slug: string): Country | undefined =>
-    countriesBySlug[slug]
+    countriesBySlug()[slug]
 
 export const getRegionByNameOrVariantName = (
     nameOrVariantName: string
 ): Region | undefined =>
-    regionsByNameOrVariantNameLowercase.get(nameOrVariantName.toLowerCase())
+    regionsByNameOrVariantNameLowercase().get(nameOrVariantName.toLowerCase())

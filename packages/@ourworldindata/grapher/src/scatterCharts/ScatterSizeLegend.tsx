@@ -2,7 +2,12 @@ import React from "react"
 import { computed } from "mobx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { TextWrap } from "@ourworldindata/components"
-import { first, last, makeIdForHumanConsumption } from "@ourworldindata/utils"
+import {
+    first,
+    last,
+    makeIdForHumanConsumption,
+    OwidVariableRoundingMode,
+} from "@ourworldindata/utils"
 import {
     BASE_FONT_SIZE,
     GRAPHER_DARK_TEXT,
@@ -171,7 +176,11 @@ export class ScatterSizeLegend {
                         <LegendItem
                             key={value}
                             label={this.manager.sizeColumn.formatValueShortWithAbbreviations(
-                                value
+                                value,
+                                {
+                                    roundingMode:
+                                        OwidVariableRoundingMode.decimalPlaces,
+                                }
                             )}
                             cx={cx}
                             cy={targetY + this.legendSize - radius}

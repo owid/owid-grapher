@@ -13,6 +13,7 @@
         { "path": "../adminSiteClient" },
         { "path": "../settings" },
         { "path": "../baker" },
-        { "path": "../serverUtils" }
+        { "path": "../serverUtils" },
+        { "path": "../adminShared" }
     ]
 }

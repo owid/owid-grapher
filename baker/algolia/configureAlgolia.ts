@@ -152,7 +152,13 @@ export const configureAlgolia = async () => {
         attributeForDistinct: "explorerSlug",
         distinct: 4,
         minWordSizefor1Typo: 6,
-        optionalWords: allCountryNamesAndVariants,
+        optionalWords: [
+            "data",
+            "explorer",
+            "explore",
+            "explorers",
+            ...allCountryNamesAndVariants,
+        ],
     })
 
     const synonyms = [

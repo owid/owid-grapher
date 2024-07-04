@@ -1,9 +1,5 @@
 import React from "react"
-import {
-    variableAnnotationAllowedColumnNamesAndTypes,
-    WHITELISTED_SQL_COLUMN_NAMES,
-    DimensionProperty,
-} from "@ourworldindata/utils"
+import { DimensionProperty } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
 import { GrapherConfigGridEditor } from "./GrapherConfigGridEditor.js"
 import {
@@ -12,6 +8,10 @@ import {
     GrapherConfigGridEditorSource,
     ReadOnlyColumn,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
+import {
+    variableAnnotationAllowedColumnNamesAndTypes,
+    WHITELISTED_SQL_COLUMN_NAMES,
+} from "../adminShared/AdminSessionTypes.js"
 
 const readOnlyVariableAnnotationColumnNamesFields: Map<string, ReadOnlyColumn> =
     new Map(

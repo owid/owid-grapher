@@ -1,7 +1,5 @@
 import React from "react"
 import {
-    anyToString,
-    isNumber,
     Bounds,
     DEFAULT_BOUNDS,
     flatten,
@@ -53,10 +51,7 @@ import {
 } from "../color/ColorScaleBin"
 import * as topojson from "topojson-client"
 import { MapTopology } from "./MapTopology"
-import {
-    WorldRegionName,
-    WorldRegionToProjection,
-} from "./WorldRegionsToProjection"
+import { getCountriesByProjection } from "./WorldRegionsToProjection"
 import {
     ColorSchemeName,
     MapProjectionName,
@@ -325,19 +320,18 @@ export class MapChart
         this.mapConfig.projection = value
     }
 
-    @computed private get formatTooltipValue(): (d: PrimitiveType) => string {
-        const { mapConfig, mapColumn, colorScale } = this
+    @computed private get formatTooltipValueIfCustom(): (
+        d: PrimitiveType
+    ) => string | undefined {
+        const { mapConfig, colorScale } = this
 
-        return (d: PrimitiveType): string => {
-            if (mapConfig.tooltipUseCustomLabels) {
-                // Find the bin (and its label) that this value belongs to
-                const bin = colorScale.getBinForValue(d)
-                const label = bin?.label
-                if (label !== undefined && label !== "") return label
-            }
-            return isNumber(d)
-                ? mapColumn?.formatValueShort(d) ?? ""
-                : anyToString(d)
+        return (d: PrimitiveType): string | undefined => {
+            if (!mapConfig.tooltipUseCustomLabels) return undefined
+            // Find the bin (and its label) that this value belongs to
+            const bin = colorScale.getBinForValue(d)
+            const label = bin?.label
+            if (label !== undefined && label !== "") return label
+            else return undefined
         }
     }
 
@@ -620,7 +614,7 @@ export class MapChart
                     <MapTooltip
                         tooltipState={tooltipState}
                         timeSeriesTable={this.inputTable}
-                        formatValue={this.formatTooltipValue}
+                        formatValueIfCustom={this.formatTooltipValueIfCustom}
                         manager={this.manager}
                         colorScaleManager={this}
                         targetTime={this.targetTime}
@@ -762,12 +756,11 @@ class ChoroplethMap extends React.Component<{
         const features = renderFeaturesFor(projection)
         if (projection === MapProjectionName.World) return features
 
-        return features.filter(
-            (feature) =>
-                projection ===
-                (WorldRegionToProjection[
-                    feature.id as WorldRegionName
-                ] as any as MapProjectionName)
+        const countriesByProjection = getCountriesByProjection(projection)
+        if (countriesByProjection === undefined) return []
+
+        return features.filter((feature) =>
+            countriesByProjection.has(feature.id)
         )
     }
 

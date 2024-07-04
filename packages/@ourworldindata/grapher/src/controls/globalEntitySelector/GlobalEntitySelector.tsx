@@ -20,6 +20,7 @@ import {
     sortBy,
     getWindowUrl,
     setWindowUrl,
+    lazy,
 } from "@ourworldindata/utils"
 import { GrapherAnalytics } from "../../core/GrapherAnalytics"
 import { WorldEntityName } from "../../core/GrapherConstants"
@@ -44,16 +45,18 @@ interface DropdownEntity {
     value: string
 }
 
-const allEntities = sortBy(countries, (c) => c.name)
-    // Add 'World'
-    .concat([
-        {
-            name: WorldEntityName,
-            code: "OWID_WRL",
-            slug: "world",
-            regionType: "other",
-        },
-    ])
+const getAllEntitiesSortedWithWorld = lazy(() =>
+    sortBy(countries, (c) => c.name)
+        // Add 'World'
+        .concat([
+            {
+                name: WorldEntityName,
+                code: "OWID_WRL",
+                slug: "world",
+                regionType: "other",
+            },
+        ])
+)
 
 const Option = (
     props: OptionProps<DropdownEntity, true, any>
@@ -189,7 +192,7 @@ export class GlobalEntitySelector extends React.Component<{
             const localCountryCode = await getUserCountryInformation()
             if (!localCountryCode) return
 
-            const country = allEntities.find(
+            const country = getAllEntitiesSortedWithWorld().find(
                 (entity): boolean => entity.code === localCountryCode.code
             )
             if (country) this.localEntityName = country.name
@@ -225,7 +228,7 @@ export class GlobalEntitySelector extends React.Component<{
         optionGroups = optionGroups.concat([
             {
                 label: "All countries",
-                options: allEntities
+                options: getAllEntitiesSortedWithWorld()
                     .map((entity) => entity.name)
                     .map(entityNameToOption),
             },

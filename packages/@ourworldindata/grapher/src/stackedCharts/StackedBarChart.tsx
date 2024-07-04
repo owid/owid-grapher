@@ -9,25 +9,28 @@ import {
     sum,
     getRelativeMouse,
     colorScaleConfigDefaults,
-    dyFromAlign,
-    makeIdForHumanConsumption,
+    excludeUndefined,
+    min,
+    max,
+    partition,
 } from "@ourworldindata/utils"
-import {
-    VerticalAxisComponent,
-    HorizontalAxisTickMark,
-    VerticalAxisGridLines,
-} from "../axis/AxisViews"
+import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
     LegendItem,
 } from "../verticalColorLegend/VerticalColorLegend"
-import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
+import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
+import {
+    Tooltip,
+    TooltipState,
+    TooltipTable,
+    makeTooltipRoundingNotice,
+} from "../tooltip/Tooltip"
 import {
     BASE_FONT_SIZE,
     GRAPHER_AREA_OPACITY_DEFAULT,
-    GRAPHER_DARK_TEXT,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
     GRAPHER_FONT_SCALE_12,
@@ -39,17 +42,17 @@ import {
 } from "./AbstractStackedChart"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { VerticalAxis } from "../axis/Axis"
+import { ColorSchemeName, HorizontalAlign } from "@ourworldindata/types"
 import {
-    ColorSchemeName,
-    HorizontalAlign,
-    VerticalAlign,
-} from "@ourworldindata/types"
-import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
+    stackSeriesInBothDirections,
+    withMissingValuesAsZeroes,
+} from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
 import { ColumnTypeMap } from "@ourworldindata/core-table"
 import { HorizontalCategoricalColorLegend } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
+import { AxisConfig } from "../axis/AxisConfig.js"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     bar: StackedPoint<Time>
@@ -81,12 +84,17 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 
     @computed get yPos(): number {
         const { bar, yAxis } = this.props
-        return yAxis.place(bar.value + bar.valueOffset)
+        // The top position of a bar
+        return bar.value < 0
+            ? yAxis.place(bar.valueOffset)
+            : yAxis.place(bar.value + bar.valueOffset)
     }
 
     @computed get barHeight(): number {
         const { bar, yAxis } = this.props
-        return yAxis.place(bar.valueOffset) - this.yPos
+        return bar.value < 0
+            ? yAxis.place(bar.valueOffset + bar.value) - this.yPos
+            : yAxis.place(bar.valueOffset) - this.yPos
     }
 
     @computed get trueOpacity(): number {
@@ -152,17 +160,27 @@ export class StackedBarChart
         return GRAPHER_FONT_SCALE_12 * this.baseFontSize
     }
 
-    @computed get barWidth(): number {
-        const { dualAxis } = this
-
-        return (0.8 * dualAxis.innerBounds.width) / this.xValues.length
+    @computed protected get xAxisConfig(): AxisConfig {
+        return new AxisConfig(
+            {
+                hideGridlines: true,
+                domainValues: this.xValues,
+                ticks: this.xValues.map((value) => ({ value, priority: 2 })),
+                ...this.manager.xAxisConfig,
+            },
+            this
+        )
     }
 
-    @computed get barSpacing(): number {
-        return (
-            this.dualAxis.innerBounds.width / this.xValues.length -
-            this.barWidth
+    @computed protected get yAxisDomain(): [number, number] {
+        const yValues = this.allStackedPoints.map(
+            (point) => point.value + point.valueOffset
         )
+        return [min([0, ...yValues]) ?? 0, max([0, ...yValues]) ?? 0]
+    }
+
+    @computed get barWidth(): number {
+        return (this.dualAxis.horizontalAxis.bandWidth ?? 0) * 0.8
     }
 
     @computed private get showHorizontalLegend(): boolean {
@@ -174,7 +192,11 @@ export class StackedBarChart
     }
 
     @computed protected get paddingForLegendRight(): number {
-        return this.showHorizontalLegend ? 0 : this.sidebarWidth + 20
+        return this.showHorizontalLegend
+            ? 0
+            : this.sidebarWidth > 0
+              ? this.sidebarWidth + 20
+              : 0
     }
 
     @computed protected get paddingForLegendTop(): number {
@@ -311,8 +333,8 @@ export class StackedBarChart
             hoverTime = hoveredTick.time
         } else return
 
-        const yColumn = yColumns[0], // we can just use the first column for formatting, b/c we assume all columns have same type
-            { unit, shortUnit } = yColumn
+        const formatColumn = yColumns[0], // we can just use the first column for formatting, b/c we assume all columns have same type
+            { unit, shortUnit } = formatColumn
 
         const totalValue = sum(
             series.map(
@@ -320,6 +342,35 @@ export class StackedBarChart
                     points.find((bar) => bar.position === hoverTime)?.value ?? 0
             )
         )
+
+        const roundingNotice = formatColumn.roundsToSignificantFigures
+            ? {
+                  icon: TooltipFooterIcon.none,
+                  text: makeTooltipRoundingNotice([
+                      formatColumn.numSignificantFigures,
+                  ]),
+              }
+            : undefined
+        const footer = excludeUndefined([roundingNotice])
+
+        const hoverPoints = series.map((series) => {
+            const point = series.points.find(
+                (bar) => bar.position === hoverTime
+            )
+            return {
+                seriesName: series.seriesName,
+                seriesColor: series.color,
+                point,
+            }
+        })
+        const [positivePoints, negativePoints] = partition(
+            hoverPoints,
+            ({ point }) => (point?.value ?? 0) >= 0
+        )
+        const sortedHoverPoints = [
+            ...positivePoints.slice().reverse(),
+            ...negativePoints,
+        ]
 
         return (
             <Tooltip
@@ -330,94 +381,30 @@ export class StackedBarChart
                 style={{ maxWidth: "500px" }}
                 offsetX={20}
                 offsetY={-16}
-                title={yColumn.formatTime(hoverTime)}
+                title={formatColumn.formatTime(hoverTime)}
                 subtitle={unit !== shortUnit ? unit : undefined}
                 subtitleFormat="unit"
+                footer={footer}
                 dissolve={fading}
             >
                 <TooltipTable
-                    columns={[yColumn]}
+                    columns={[formatColumn]}
                     totals={[totalValue]}
-                    rows={series
-                        .slice()
-                        .reverse()
-                        .map((series) => {
-                            const {
-                                seriesName: name,
-                                color: swatch,
-                                points,
-                            } = series
-                            const point = points.find(
-                                (bar) => bar.position === hoverTime
-                            )
+                    rows={sortedHoverPoints.map(
+                        ({ point, seriesName: name, seriesColor }) => {
                             const focused = hoverSeries?.seriesName === name
                             const blurred = point?.fake ?? true
                             const values = [
                                 point?.fake ? undefined : point?.value,
                             ]
+                            const swatch = point?.color ?? seriesColor
 
                             return { name, swatch, blurred, focused, values }
-                        })}
+                        }
+                    )}
                 />
             </Tooltip>
         )
-    }
-
-    @computed get mapXValueToOffset(): Map<number, number> {
-        const { dualAxis, barWidth, barSpacing } = this
-
-        const xValueToOffset = new Map<number, number>()
-        let xOffset = dualAxis.innerBounds.left + barSpacing
-
-        for (const xValue of this.xValues) {
-            xValueToOffset.set(xValue, xOffset)
-            xOffset += barWidth + barSpacing
-        }
-        return xValueToOffset
-    }
-
-    // Place ticks centered beneath the bars, before doing overlap detection
-    @computed private get tickPlacements(): TickmarkPlacement[] {
-        const { mapXValueToOffset, barWidth, dualAxis } = this
-        const { xValues } = this
-        const { horizontalAxis } = dualAxis
-
-        return xValues.map((x) => {
-            const text = horizontalAxis.formatTick(x)
-            const xPos = mapXValueToOffset.get(x) as number
-
-            const bounds = Bounds.forText(text, { fontSize: this.tickFontSize })
-            return {
-                time: x,
-                text,
-                bounds: bounds.set({
-                    x: xPos + barWidth / 2 - bounds.width / 2,
-                    y: dualAxis.innerBounds.bottom + 5,
-                }),
-                isHidden: false,
-            }
-        })
-    }
-
-    @computed get ticks(): TickmarkPlacement[] {
-        const { tickPlacements } = this
-
-        for (let i = 0; i < tickPlacements.length; i++) {
-            for (let j = 1; j < tickPlacements.length; j++) {
-                const t1 = tickPlacements[i],
-                    t2 = tickPlacements[j]
-
-                if (t1 === t2 || t1.isHidden || t2.isHidden) continue
-
-                if (t1.bounds.intersects(t2.bounds.padWidth(-5))) {
-                    if (i === 0) t2.isHidden = true
-                    else if (j === tickPlacements.length - 1) t1.isHidden = true
-                    else t2.isHidden = true
-                }
-            }
-        }
-
-        return tickPlacements.filter((t) => !t.isHidden)
     }
 
     // Both legend managers accept a `onLegendMouseOver` property, but define different signatures.
@@ -475,18 +462,12 @@ export class StackedBarChart
             bounds,
             tooltip,
             barWidth,
-            mapXValueToOffset,
-            ticks,
             tooltipState: { target },
         } = this
         const { series } = this
-        const { innerBounds, verticalAxis } = dualAxis
+        const { innerBounds, verticalAxis, horizontalAxis } = dualAxis
 
         const clipPath = makeClipPath(renderUid, innerBounds)
-
-        const axisLineWidth = manager.isStaticAndSmall
-            ? GRAPHER_AXIS_LINE_WIDTH_THICK
-            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
 
         const legend = this.showHorizontalLegend ? (
             <HorizontalCategoricalColorLegend manager={this} />
@@ -511,60 +492,18 @@ export class StackedBarChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                {!verticalAxis.hideAxis && (
-                    <VerticalAxisComponent
-                        bounds={bounds}
-                        verticalAxis={verticalAxis}
-                        labelColor={manager.secondaryColorInStaticCharts}
-                        detailsMarker={manager.detailsMarkerInSvg}
-                    />
-                )}
-                <VerticalAxisGridLines
-                    verticalAxis={verticalAxis}
-                    bounds={innerBounds}
-                    strokeWidth={axisLineWidth}
+
+                <DualAxisComponent
+                    dualAxis={dualAxis}
+                    showTickMarks={true}
+                    labelColor={manager.secondaryColorInStaticCharts}
+                    lineWidth={
+                        manager.isStaticAndSmall
+                            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+                            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+                    }
+                    detailsMarker={manager.detailsMarkerInSvg}
                 />
-
-                <g id={makeIdForHumanConsumption("tick-marks")}>
-                    {ticks.map((tick, i) => (
-                        <HorizontalAxisTickMark
-                            key={i}
-                            id={makeIdForHumanConsumption(
-                                "tick-mark",
-                                tick.text
-                            )}
-                            tickMarkTopPosition={innerBounds.bottom}
-                            tickMarkXPosition={tick.bounds.centerX}
-                            color="#666"
-                            width={axisLineWidth}
-                        />
-                    ))}
-                </g>
-
-                <g id={makeIdForHumanConsumption("tick-labels")}>
-                    {ticks.map((tick, i) => {
-                        return (
-                            <text
-                                key={i}
-                                id={makeIdForHumanConsumption(
-                                    "tick__label",
-                                    tick.text
-                                )}
-                                x={tick.bounds.x}
-                                y={tick.bounds.y + 1}
-                                fill={GRAPHER_DARK_TEXT}
-                                fontSize={this.tickFontSize}
-                                onMouseOver={(): void => {
-                                    this.onLabelMouseOver(tick)
-                                }}
-                                onMouseLeave={this.onLabelMouseLeave}
-                                dy={dyFromAlign(VerticalAlign.bottom)}
-                            >
-                                {tick.text}
-                            </text>
-                        )
-                    })}
-                </g>
 
                 <g clipPath={clipPath.id}>
                     {series.map((series, index) => {
@@ -585,9 +524,9 @@ export class StackedBarChart
                                 }
                             >
                                 {series.points.map((bar, index) => {
-                                    const xPos = mapXValueToOffset.get(
-                                        bar.position
-                                    ) as number
+                                    const xPos =
+                                        horizontalAxis.place(bar.position) -
+                                        this.barWidth / 2
                                     const barOpacity =
                                         bar === target?.bar ? 1 : opacity
 
@@ -595,7 +534,7 @@ export class StackedBarChart
                                         <StackedBarSegment
                                             key={index}
                                             bar={bar}
-                                            color={series.color}
+                                            color={bar.color ?? series.color}
                                             xOffset={xPos}
                                             opacity={barOpacity}
                                             yAxis={verticalAxis}
@@ -633,10 +572,6 @@ export class StackedBarChart
             : this.bounds.right - this.sidebarWidth
     }
 
-    @computed private get xValues(): number[] {
-        return uniq(this.allStackedPoints.map((bar) => bar.position))
-    }
-
     @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
         return {
             ...colorScaleConfigDefaults,
@@ -646,16 +581,49 @@ export class StackedBarChart
 
     defaultBaseColorScheme = ColorSchemeName.stackedAreaDefault
 
-    @computed get series(): readonly StackedSeries<number>[] {
+    /**
+     * Colour positive and negative values differently if there is only one series
+     * (and that series has both positive and negative values)
+     */
+    @computed get shouldUseValueBasedColorScheme(): boolean {
+        return (
+            this.rawSeries.length === 1 &&
+            this.rawSeries[0].rows.some((row) => row.value < 0) &&
+            this.rawSeries[0].rows.some((row) => row.value > 0)
+        )
+    }
+
+    @computed get useValueBasedColorScheme(): boolean {
+        return (
+            this.manager.useValueBasedColorScheme ||
+            this.shouldUseValueBasedColorScheme
+        )
+    }
+
+    @computed
+    private get unstackedSeriesWithMissingValuesAsZeroes(): StackedSeries<number>[] {
         // TODO: remove once monthly data is supported (https://github.com/owid/owid-grapher/issues/2007)
         const enforceUniformSpacing = !(
             this.transformedTable.timeColumn instanceof ColumnTypeMap.Day
         )
 
-        return stackSeries(
-            withMissingValuesAsZeroes(this.unstackedSeries, {
-                enforceUniformSpacing,
-            })
+        return withMissingValuesAsZeroes(this.unstackedSeries, {
+            enforceUniformSpacing,
+        })
+    }
+
+    @computed private get xValues(): number[] {
+        return uniq(
+            this.unstackedSeriesWithMissingValuesAsZeroes.flatMap((s) =>
+                s.points.map((p) => p.position)
+            )
+        )
+    }
+
+    @computed
+    get series(): readonly StackedSeries<number>[] {
+        return stackSeriesInBothDirections(
+            this.unstackedSeriesWithMissingValuesAsZeroes
         )
     }
 }

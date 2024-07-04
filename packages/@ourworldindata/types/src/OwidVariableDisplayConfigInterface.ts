@@ -11,7 +11,9 @@ export interface OwidVariableDisplayConfigInterface {
     shortUnit?: string
     isProjection?: boolean
     conversionFactor?: number
+    roundingMode?: OwidVariableRoundingMode
     numDecimalPlaces?: number
+    numSignificantFigures?: number
     tolerance?: number
     yearIsDay?: boolean
     zeroDay?: string
@@ -25,6 +27,11 @@ export interface OwidVariableDisplayConfigInterface {
 export interface OwidVariableDataTableConfigInterface {
     hideAbsoluteChange?: boolean
     hideRelativeChange?: boolean
+}
+
+export enum OwidVariableRoundingMode {
+    decimalPlaces = "decimalPlaces",
+    significantFigures = "significantFigures",
 }
 
 export interface OwidChartDimensionInterface {

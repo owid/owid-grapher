@@ -5,13 +5,25 @@ import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { Bounds, PointVector } from "@ourworldindata/utils"
-import { TooltipProps, TooltipManager, TooltipFadeMode } from "./TooltipProps"
+import {
+    TooltipProps,
+    TooltipManager,
+    TooltipFadeMode,
+    TooltipFooterIcon,
+} from "./TooltipProps"
+import { IconCircledS } from "./TooltipContents.js"
 export * from "./TooltipContents.js"
 
 export const TOOLTIP_FADE_DURATION = 400 // $fade-time + $fade-delay in scss
-const TOOLTIP_ICON = {
+const TOOLTIP_ICON: Record<TooltipFooterIcon, React.ReactElement | null> = {
     notice: <FontAwesomeIcon className="icon" icon={faInfoCircle} />,
     stripes: <div className="stripes icon"></div>,
+    significance: (
+        <div className="icon">
+            <IconCircledS />
+        </div>
+    ),
+    none: null,
 }
 
 export class TooltipState<T> {
@@ -87,7 +99,6 @@ class TooltipCard extends React.Component<
             subtitle,
             subtitleFormat,
             footer,
-            footerFormat,
             dissolve,
             children,
             offsetX = 0,
@@ -131,7 +142,6 @@ class TooltipCard extends React.Component<
 
         // flag the year in the header and add note in footer (if necessary)
         const timeNotice = !!subtitle && subtitleFormat === "notice"
-        const tolerance = footerFormat === "notice"
 
         // style the box differently if just displaying title/subtitle
         const plain = hasHeader && !children
@@ -162,10 +172,25 @@ class TooltipCard extends React.Component<
                     </div>
                 )}
                 {children && <div className="content">{children}</div>}
-                {footer && (
-                    <div className="endmatter">
-                        {footerFormat && TOOLTIP_ICON[footerFormat]}
-                        <p className={classnames({ tolerance })}>{footer}</p>
+                {footer && footer.length > 0 && (
+                    <div
+                        className={classnames("endmatter", {
+                            "multiple-lines": footer.length > 1,
+                        })}
+                    >
+                        {footer?.map(({ icon, text }) => (
+                            <div
+                                key={text}
+                                className={classnames("line", {
+                                    "icon-sig":
+                                        icon === TooltipFooterIcon.significance,
+                                    "no-icon": icon === TooltipFooterIcon.none,
+                                })}
+                            >
+                                {TOOLTIP_ICON[icon]}
+                                <p>{text}</p>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>

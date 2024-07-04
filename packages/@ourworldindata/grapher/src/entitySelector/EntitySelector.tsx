@@ -900,7 +900,8 @@ export class EntitySelector extends React.Component<{
         if (!isFiniteWithGuard(value)) return { formattedValue: "No data" }
 
         return {
-            formattedValue: displayColumn.formatValueShort(value),
+            formattedValue:
+                displayColumn.formatValueShortWithAbbreviations(value),
             width: clamp(barScale(value), 0, 1),
         }
     }

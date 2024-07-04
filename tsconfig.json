@@ -23,6 +23,9 @@
             "path": "./settings"
         },
         {
+            "path": "./adminShared"
+        },
+        {
             "path": "./adminSiteClient"
         },
         {

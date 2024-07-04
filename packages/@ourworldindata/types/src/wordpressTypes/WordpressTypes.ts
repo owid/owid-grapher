@@ -71,10 +71,6 @@ export enum WP_BlockClass {
     FullContentWidth = "wp-block-full-content-width", // not an actual WP block yet
 }
 
-export enum WP_BlockType {
-    AllCharts = "all-charts",
-}
-
 export interface FormattingOptions {
     toc?: boolean
     hideAuthors?: boolean

@@ -88,3 +88,5 @@ export const ETL_API_URL: string =
 
 export const GDOCS_DETAILS_ON_DEMAND_ID: string =
     process.env.GDOCS_DETAILS_ON_DEMAND_ID ?? ""
+
+export const PUBLISHED_AT_FORMAT = "ddd, MMM D, YYYY HH:mm"

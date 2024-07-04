@@ -1,5 +1,4 @@
 import React, { useState, useRef } from "react"
-import ReactDOM from "react-dom"
 import { orderBy, RelatedChart } from "@ourworldindata/utils"
 import { useEmbedChart } from "../hooks.js"
 import { GalleryArrow, GalleryArrowDirection } from "./GalleryArrow.js"
@@ -125,17 +124,4 @@ export const RelatedCharts = ({
     )
 
     return charts.length === 1 ? singleChartView : multipleChartsView
-}
-
-export const runRelatedCharts = (charts: RelatedChart[]) => {
-    const relatedChartsEl = document.querySelector<HTMLElement>(
-        `.${RELATED_CHARTS_CLASS_NAME}`
-    )
-    if (relatedChartsEl) {
-        const relatedChartsWrapper = relatedChartsEl.parentElement
-        ReactDOM.hydrate(
-            <RelatedCharts showKeyChartsOnly={true} charts={charts} />,
-            relatedChartsWrapper
-        )
-    }
 }

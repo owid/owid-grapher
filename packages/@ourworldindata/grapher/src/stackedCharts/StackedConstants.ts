@@ -13,6 +13,7 @@ export interface StackedPoint<PositionType extends StackedPointPositionType> {
     time: number
     interpolated?: boolean
     fake?: boolean
+    color?: string
 }
 
 export interface StackedSeries<PositionType extends StackedPointPositionType>
