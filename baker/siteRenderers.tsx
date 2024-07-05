@@ -112,7 +112,7 @@ export const renderChartsPage = async (
             config->>"$.variantName" AS variantName
         FROM charts
         WHERE
-            is_indexable IS TRUE
+            isIndexable IS TRUE
             AND publishedAt IS NOT NULL
             AND config->>"$.isPublished" = "true"
     `
