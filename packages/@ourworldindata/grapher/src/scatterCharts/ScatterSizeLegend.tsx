@@ -16,7 +16,7 @@ import {
     GRAPHER_LIGHT_TEXT,
 } from "../core/GrapherConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { getElementWithHalo } from "./Halos"
+import { Halo } from "../halo/Halo"
 import {
     ScatterSeries,
     SCATTER_POINT_MAX_RADIUS,
@@ -301,8 +301,7 @@ const LegendItem = ({
                 strokeWidth={circleStrokeWidth}
                 opacity={circleOpacity}
             />
-            {getElementWithHalo(
-                label,
+            <Halo key={label} style={{ ...style, strokeWidth: 3.5 }}>
                 <text
                     x={cx}
                     y={cy - circleRadius}
@@ -311,9 +310,8 @@ const LegendItem = ({
                     style={style}
                 >
                     {label}
-                </text>,
-                { ...style, strokeWidth: 3.5 }
-            )}
+                </text>
+            </Halo>
         </g>
     )
 }

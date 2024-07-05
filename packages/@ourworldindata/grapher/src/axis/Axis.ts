@@ -148,14 +148,15 @@ abstract class AbstractAxis {
     updateDomainPreservingUserSettings(
         domain: [number | undefined, number | undefined]
     ): this {
-        this.domain = [
+        const left =
             domain[0] !== undefined
-                ? Math.min(this.domain[0], domain[0])
-                : this.domain[0],
+                ? min([this.domain[0], domain[0]])
+                : this.domain[0]
+        const right =
             domain[1] !== undefined
-                ? Math.max(this.domain[1], domain[1])
-                : this.domain[1],
-        ]
+                ? max([this.domain[1], domain[1]])
+                : this.domain[1]
+        this.domain = [left ?? 0, right ?? 0]
         return this
     }
 
