@@ -936,10 +936,6 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             slug: "light-at-night",
                             title: "Light at Night",
                         },
-                        {
-                            slug: "light-at-night",
-                            title: "Light at Night",
-                        },
                     ],
                 },
                 {
