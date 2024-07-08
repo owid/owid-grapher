@@ -418,7 +418,7 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         },
                         {
                             slug: "hiv-aids",
-                            title: "HIV / AIDS",
+                            title: "HIV/AIDS",
                         },
                         {
                             slug: "diarrheal-diseases",
@@ -919,6 +919,7 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             slug: "indoor-air-pollution",
                             title: "Indoor Air Pollution",
                         },
+
                         {
                             slug: "clean-water-sanitation",
                             title: "Clean Water and Sanitation",
@@ -930,6 +931,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         {
                             slug: "sanitation",
                             title: "Sanitation",
+                        },
+                        {
+                            slug: "light-at-night",
+                            title: "Light at Night",
                         },
                         {
                             slug: "light-at-night",
