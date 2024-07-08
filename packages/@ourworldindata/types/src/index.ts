@@ -12,7 +12,6 @@ export {
     JsonError,
     type SerializedGridProgram,
     SiteFooterContext,
-    SuggestedChartRevisionStatus,
     TaggableType,
     type TopicId,
     type OwidVariableId,
@@ -596,16 +595,6 @@ export {
     parseSourcesRow,
     serializeSourcesRow,
 } from "./dbTypes/Sources.js"
-export {
-    type DbInsertSuggestedChartRevision,
-    type DbRawSuggestedChartRevision,
-    type DbEnrichedSuggestedChartRevision,
-    SuggestedChartRevisionsTableName,
-    parseSuggestedChartRevisionsExperimental,
-    serializeSuggestedChartRevisionsExperimental,
-    parseSuggestedChartRevisionsRow,
-    serializeSuggestedChartRevisionsRow,
-} from "./dbTypes/SuggestedChartRevisions.js"
 export {
     type DbInsertTag,
     type DbPlainTag,

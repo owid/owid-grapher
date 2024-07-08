@@ -15,7 +15,6 @@ import {
     faCoffee,
     faBook,
     faSatelliteDish,
-    faCodeBranch,
     faDownload,
     faHatWizard,
     faSitemap,
@@ -98,12 +97,6 @@ export const AdminSidebar = (): React.ReactElement => (
             <li>
                 <Link to="/bulk-downloads">
                     <FontAwesomeIcon icon={faDownload} /> Bulk downloads
-                </Link>
-            </li>
-            <li>
-                <Link to="/suggested-chart-revisions/review">
-                    <FontAwesomeIcon icon={faCodeBranch} /> Suggested chart
-                    revisions
                 </Link>
             </li>
             <li className="header">SETTINGS</li>

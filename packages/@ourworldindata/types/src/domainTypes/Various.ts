@@ -53,13 +53,6 @@ export enum TaggableType {
 
 export type TopicId = number
 
-export enum SuggestedChartRevisionStatus {
-    pending = "pending",
-    approved = "approved",
-    rejected = "rejected",
-    flagged = "flagged",
-}
-
 // Exception format that can be easily given as an API error
 export class JsonError extends Error {
     status: number

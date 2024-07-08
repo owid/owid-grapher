@@ -36,7 +36,6 @@ import {
     OwidGdocPostInterface,
     parseIntOrUndefined,
     DbRawPostWithGdocPublishStatus,
-    SuggestedChartRevisionStatus,
     OwidVariableWithSource,
     OwidChartDimensionInterface,
     DimensionProperty,
@@ -95,11 +94,6 @@ import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
 } from "./gitDataExport.js"
-import {
-    getQueryEnrichedSuggestedChartRevision,
-    getQueryEnrichedSuggestedChartRevisions,
-    isValidStatus,
-} from "../db/model/SuggestedChartRevision.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
 import {
     indexIndividualGdocPost,
@@ -765,11 +759,6 @@ deleteRouteWithRWTransaction(
             `DELETE FROM chart_slug_redirects WHERE chart_id=?`,
             [chart.id]
         )
-        await db.knexRaw(
-            trx,
-            `DELETE FROM suggested_chart_revisions WHERE chartId=?`,
-            [chart.id]
-        )
         await db.knexRaw(trx, `DELETE FROM charts WHERE id=?`, [chart.id])
 
         if (chart.isPublished)
@@ -777,216 +766,6 @@ deleteRouteWithRWTransaction(
                 res.locals.user,
                 `Deleting chart ${chart.slug}`
             )
-
-        return { success: true }
-    }
-)
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/suggested-chart-revisions",
-    async (req, res, trx) => {
-        const isValidSortBy = (sortBy: string) => {
-            return [
-                "updatedAt",
-                "createdAt",
-                "suggestedReason",
-                "id",
-                "chartId",
-                "status",
-                "variableId",
-                "chartUpdatedAt",
-                "chartCreatedAt",
-            ].includes(sortBy)
-        }
-        const isValidSortOrder = (sortOrder: string) => {
-            return (
-                sortOrder !== undefined &&
-                sortOrder !== null &&
-                ["ASC", "DESC"].includes(sortOrder.toUpperCase())
-            )
-        }
-        const limit =
-            req.query.limit !== undefined ? expectInt(req.query.limit) : 10000
-        const offset =
-            req.query.offset !== undefined ? expectInt(req.query.offset) : 0
-        const sortBy = isValidSortBy(req.query.sortBy as string)
-            ? req.query.sortBy
-            : "updatedAt"
-        const sortOrder = isValidSortOrder(req.query.sortOrder as string)
-            ? (req.query.sortOrder as string).toUpperCase()
-            : "DESC"
-        const status: string | null = isValidStatus(
-            req.query.status as SuggestedChartRevisionStatus
-        )
-            ? (req.query.status as string)
-            : null
-
-        let orderBy
-        if (sortBy === "variableId") {
-            orderBy =
-                "CAST(scr.suggestedConfig->>'$.dimensions[0].variableId' as SIGNED)"
-        } else if (sortBy === "chartUpdatedAt") {
-            orderBy = "c.updatedAt"
-        } else if (sortBy === "chartCreatedAt") {
-            orderBy = "c.createdAt"
-        } else {
-            orderBy = `scr.${sortBy}`
-        }
-
-        const numTotalRows = (
-            await db.knexRaw<{ count: number }>(
-                trx,
-                `
-                SELECT COUNT(*) as count
-                FROM suggested_chart_revisions
-                ${status ? "WHERE status = ?" : ""}
-            `,
-                status ? [status] : []
-            )
-        )[0].count
-
-        const enrichedSuggestedChartRevisions =
-            await getQueryEnrichedSuggestedChartRevisions(
-                trx,
-                orderBy,
-                sortOrder,
-                status,
-                limit,
-                offset
-            )
-
-        return {
-            suggestedChartRevisions: enrichedSuggestedChartRevisions,
-            numTotalRows: numTotalRows,
-        }
-    }
-)
-
-getRouteWithROTransaction(
-    apiRouter,
-    "/suggested-chart-revisions/:suggestedChartRevisionId",
-    async (req, res, trx) => {
-        const suggestedChartRevisionId = expectInt(
-            req.params.suggestedChartRevisionId
-        )
-
-        const suggestedChartRevision = getQueryEnrichedSuggestedChartRevision(
-            trx,
-            suggestedChartRevisionId
-        )
-
-        if (!suggestedChartRevision) {
-            throw new JsonError(
-                `No suggested chart revision by id '${suggestedChartRevisionId}'`,
-                404
-            )
-        }
-
-        return {
-            suggestedChartRevision: suggestedChartRevision,
-        }
-    }
-)
-
-postRouteWithRWTransaction(
-    apiRouter,
-    "/suggested-chart-revisions/:suggestedChartRevisionId/update",
-    async (req, res, trx) => {
-        const suggestedChartRevisionId = expectInt(
-            req.params.suggestedChartRevisionId
-        )
-
-        // Note: there was a suggestedConfig here that was not used - might have been a
-        // mistake in a refactoring that wasn't found before?
-        const { status, decisionReason } = req.body as {
-            status: string
-            decisionReason: string
-        }
-
-        const suggestedChartRevision =
-            await getQueryEnrichedSuggestedChartRevision(
-                trx,
-                suggestedChartRevisionId
-            )
-
-        if (!suggestedChartRevision) {
-            throw new JsonError(
-                `No suggested chart revision found for id '${suggestedChartRevisionId}'`,
-                404
-            )
-        }
-
-        const canUpdate =
-            (status === "approved" && suggestedChartRevision.canApprove) ||
-            (status === "rejected" && suggestedChartRevision.canReject) ||
-            (status === "pending" && suggestedChartRevision.canPending) ||
-            (status === "flagged" && suggestedChartRevision.canFlag)
-        if (!canUpdate) {
-            throw new JsonError(
-                `Suggest chart revision ${suggestedChartRevisionId} cannot be ` +
-                    `updated with status="${status}".`,
-                404
-            )
-        }
-
-        await db.knexRaw(
-            trx,
-            `
-                UPDATE suggested_chart_revisions
-                SET status=?, decisionReason=?, updatedAt=?, updatedBy=?
-                WHERE id = ?
-                `,
-            [
-                status,
-                decisionReason,
-                new Date(),
-                res.locals.user.id,
-                suggestedChartRevisionId,
-            ]
-        )
-
-        // Update config ONLY when APPROVE button is clicked
-        // Makes sense when the suggested config is a sugegstion by GPT, otherwise is redundant but we are cool with it
-        if (status === SuggestedChartRevisionStatus.approved) {
-            await db.knexRaw(
-                trx,
-                `
-                    UPDATE suggested_chart_revisions
-                    SET suggestedConfig=?
-                    WHERE id = ?
-                    `,
-                [
-                    JSON.stringify(suggestedChartRevision.suggestedConfig),
-                    suggestedChartRevisionId,
-                ]
-            )
-        }
-        // note: the calls to saveGrapher() below will never overwrite a config
-        // that has been changed since the suggestedConfig was created, because
-        // if the config has been changed since the suggestedConfig was created
-        // then canUpdate will be false (so an error would have been raised
-        // above).
-
-        if (status === "approved" && suggestedChartRevision.canApprove) {
-            await saveGrapher(
-                trx,
-                res.locals.user,
-                suggestedChartRevision.suggestedConfig,
-                suggestedChartRevision.existingConfig
-            )
-        } else if (
-            status === "rejected" &&
-            suggestedChartRevision.canReject &&
-            suggestedChartRevision.status === "approved"
-        ) {
-            await saveGrapher(
-                trx,
-                res.locals.user,
-                suggestedChartRevision.originalConfig,
-                suggestedChartRevision.existingConfig
-            )
-        }
 
         return { success: true }
     }
