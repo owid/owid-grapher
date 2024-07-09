@@ -69,6 +69,7 @@ export class GdocHomepage
         this.homepageMetadata = {
             chartCount: grapherCount + nonGrapherExplorerViewCount,
             topicCount: await db.getUniqueTopicCount(knex),
+            tagGraph: await db.generateTopicTagGraph(knex),
         }
 
         const { dataInsights, imageMetadata } =
