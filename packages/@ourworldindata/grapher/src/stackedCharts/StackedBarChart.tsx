@@ -446,15 +446,6 @@ export class StackedBarChart
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
-            return (
-                <NoDataModal
-                    manager={this.manager}
-                    bounds={this.bounds}
-                    message={this.failMessage}
-                />
-            )
-
         const {
             manager,
             dualAxis,
@@ -466,6 +457,36 @@ export class StackedBarChart
         } = this
         const { series } = this
         const { innerBounds, verticalAxis, horizontalAxis } = dualAxis
+
+        const dualAxisComponent = (
+            <DualAxisComponent
+                dualAxis={dualAxis}
+                showTickMarks={true}
+                labelColor={manager.secondaryColorInStaticCharts}
+                lineWidth={
+                    manager.isStaticAndSmall
+                        ? GRAPHER_AXIS_LINE_WIDTH_THICK
+                        : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+                }
+                detailsMarker={manager.detailsMarkerInSvg}
+            />
+        )
+
+        if (this.failMessage)
+            return (
+                <g
+                    className="StackedBarChart"
+                    width={bounds.width}
+                    height={bounds.height}
+                >
+                    {dualAxisComponent}
+                    <NoDataModal
+                        manager={this.manager}
+                        bounds={dualAxis.innerBounds}
+                        message={this.failMessage}
+                    />
+                </g>
+            )
 
         const clipPath = makeClipPath(renderUid, innerBounds)
 
@@ -493,17 +514,7 @@ export class StackedBarChart
                     fill="rgba(255,255,255,0)"
                 />
 
-                <DualAxisComponent
-                    dualAxis={dualAxis}
-                    showTickMarks={true}
-                    labelColor={manager.secondaryColorInStaticCharts}
-                    lineWidth={
-                        manager.isStaticAndSmall
-                            ? GRAPHER_AXIS_LINE_WIDTH_THICK
-                            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
-                    }
-                    detailsMarker={manager.detailsMarkerInSvg}
-                />
+                {dualAxisComponent}
 
                 <g clipPath={clipPath.id}>
                     {series.map((series, index) => {

@@ -73,7 +73,7 @@ import {
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { BaseType, Selection } from "d3"
-import { getElementWithHalo } from "../scatterCharts/Halos.js"
+import { Halo } from "../halo/Halo"
 import { TextWrap } from "@ourworldindata/components"
 
 const labelToTextPadding = 10
@@ -530,8 +530,7 @@ export class DiscreteBarChart
                                 opacity={GRAPHER_AREA_OPACITY_DEFAULT}
                                 style={{ transition: "height 200ms ease" }}
                             />
-                            {getElementWithHalo(
-                                series.seriesName + "-label",
+                            <Halo key={series.seriesName + "-label"}>
                                 <text
                                     x={0}
                                     y={0}
@@ -551,7 +550,7 @@ export class DiscreteBarChart
                                         {label.timeString}
                                     </tspan>
                                 </text>
-                            )}
+                            </Halo>
                         </g>
                     )
 
