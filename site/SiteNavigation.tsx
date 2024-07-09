@@ -568,7 +568,6 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             slug: "wildfires",
                             title: "Wildfires",
                         },
-
                         {
                             slug: "environmental-impacts-of-food",
                             title: "Environmental Impacts of Food Production",
@@ -597,7 +596,6 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         },
                     ],
                 },
-
                 {
                     name: "Water",
                     slug: "water",
