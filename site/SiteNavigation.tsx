@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SiteNavigationTopics } from "./SiteNavigationTopics.js"
 import { SiteLogos } from "./SiteLogos.js"
 import { SiteAbout } from "./SiteAbout.js"
+import { TagGraphRoot } from "@ourworldindata/utils"
 import { SiteResources } from "./SiteResources.js"
 import { SiteSearchNavigation } from "./SiteSearchNavigation.js"
 import { SiteMobileMenu } from "./SiteMobileMenu.js"
@@ -18,7 +19,7 @@ import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import classnames from "classnames"
 import { useTriggerOnEscape } from "./hooks.js"
 import { AUTOCOMPLETE_CONTAINER_ID } from "./search/Autocomplete.js"
-import { Menu, SiteNavigationStatic } from "./SiteConstants.js"
+import { Menu } from "./SiteConstants.js"
 
 // Note: tranforming the flag from an env string to a boolean in
 // clientSettings.ts is convoluted due to the two-pass SSR/Vite build process.
@@ -35,6 +36,16 @@ export const SiteNavigation = ({
 }) => {
     const [menu, setActiveMenu] = useState<Menu | null>(null)
     const [query, setQuery] = useState<string>("")
+    const [tagGraph, setTagGraph] = useState<TagGraphRoot | null>(null)
+
+    useEffect(() => {
+        const fetchTagGraph = async () => {
+            const response = await fetch("/headerMenu.json")
+            const tagGraph = await response.json()
+            setTagGraph(tagGraph)
+        }
+        if (!tagGraph) fetchTagGraph().catch(console.error)
+    }, [tagGraph, setTagGraph])
 
     const isActiveMobileMenu =
         menu !== null &&
@@ -111,7 +122,7 @@ export const SiteNavigation = ({
                                 <SiteMobileMenu
                                     menu={menu}
                                     toggleMenu={toggleMenu}
-                                    topics={SiteNavigationStatic.categories}
+                                    tagGraph={tagGraph}
                                     className="hide-sm-up"
                                 />
                             }
@@ -131,9 +142,7 @@ export const SiteNavigation = ({
                                         dropdown={
                                             <SiteNavigationTopics
                                                 onClose={closeOverlay}
-                                                topics={
-                                                    SiteNavigationStatic.categories
-                                                }
+                                                tagGraph={tagGraph}
                                                 className="hide-sm-only"
                                             />
                                         }

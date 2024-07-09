@@ -1,10 +1,10 @@
-import { EntryMeta } from "@ourworldindata/utils"
+import { TagGraphNode } from "@ourworldindata/utils"
 
-export const SiteNavigationTopic = ({ topic }: { topic: EntryMeta }) => {
+export const SiteNavigationTopic = ({ topic }: { topic: TagGraphNode }) => {
     return (
         <li className="SiteNavigationTopic">
             <a href={`/${topic.slug}`} data-track-note="header_navigation">
-                <span className="label">{topic.title}</span>
+                <span className="label">{topic.name}</span>
             </a>
         </li>
     )
