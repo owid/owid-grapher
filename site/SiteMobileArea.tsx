@@ -1,17 +1,16 @@
 import { useEffect, useRef } from "react"
-import { CategoryWithEntries } from "@ourworldindata/utils"
-import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import { SiteNavigationTopic } from "./SiteNavigationTopic.js"
-import { allTopicsInCategory } from "./gdocs/utils.js"
+import { TagGraphNode, getAllTopicsInArea } from "@ourworldindata/utils"
+import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 
-export const SiteMobileCategory = ({
-    category,
+export const SiteMobileArea = ({
+    area,
     isActive,
-    toggleCategory,
+    toggleArea,
 }: {
-    category: CategoryWithEntries
+    area: TagGraphNode
     isActive: boolean
-    toggleCategory: (category: CategoryWithEntries) => void
+    toggleArea: (category: TagGraphNode) => void
 }) => {
     const categoryRef = useRef<HTMLLIElement>(null)
 
@@ -22,20 +21,14 @@ export const SiteMobileCategory = ({
     }, [isActive])
 
     return (
-        <li
-            key={category.slug}
-            className="SiteMobileCategory"
-            ref={categoryRef}
-        >
+        <li key={area.slug} className="SiteMobileCategory" ref={categoryRef}>
             <SiteNavigationToggle
-                ariaLabel={
-                    isActive ? `Collapse ${category}` : `Expand ${category}`
-                }
+                ariaLabel={isActive ? `Collapse ${area}` : `Expand ${area}`}
                 isActive={isActive}
-                onToggle={() => toggleCategory(category)}
+                onToggle={() => toggleArea(area)}
                 dropdown={
                     <ul>
-                        {allTopicsInCategory(category).map((topic) => (
+                        {getAllTopicsInArea(area).map((topic) => (
                             <SiteNavigationTopic
                                 key={topic.slug}
                                 topic={topic}
@@ -45,7 +38,7 @@ export const SiteMobileCategory = ({
                 }
                 withCaret={true}
             >
-                {category.name}
+                {area.name}
             </SiteNavigationToggle>
         </li>
     )
