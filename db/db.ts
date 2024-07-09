@@ -30,6 +30,7 @@ import {
     MinimalExplorerInfo,
     DbEnrichedImage,
     DbEnrichedImageWithUserId,
+    TagGraphRoot,
 } from "@ourworldindata/types"
 import { groupBy, uniq } from "lodash"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -504,6 +505,7 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
             tg.parentId,
             tg.childId,
             tg.weight,
+            t.slug,
             t.name,
             p.slug IS NOT NULL AS isTopic
         FROM
@@ -805,4 +807,24 @@ export function getImageUsage(trx: KnexReadonlyTransaction): Promise<
             results.map((result) => [result.imageId, JSON.parse(result.posts)])
         )
     )
+}
+
+export async function generateSiteNav(
+    knex: KnexReadonlyTransaction
+): Promise<TagGraphRoot> {
+    const { __rootId: rootId, ...parents } = await getFlatTagGraph(knex)
+
+    const tagGraphTopicsOnly = Object.entries(parents).reduce(
+        (acc: FlatTagGraph, [parentId, children]) => {
+            acc[Number(parentId)] = children.filter((child) => {
+                if (child.parentId === rootId) return true
+                return child.isTopic
+            })
+            return acc
+        },
+        {} as FlatTagGraph
+    )
+
+    // TODO: SDGs? need to exclude them from sitenav but have it as a tag to use for breadcrumbs
+    return createTagGraph(tagGraphTopicsOnly, rootId)
 }
