@@ -10,7 +10,7 @@ const defaultHaloStyle: React.CSSProperties = {
 }
 
 export function Halo(props: {
-    key: React.Key
+    id: React.Key
     children: React.ReactElement
     style?: React.CSSProperties
 }): React.ReactElement {
@@ -18,7 +18,7 @@ export function Halo(props: {
         style: { ...defaultHaloStyle, ...props.style },
     })
     return (
-        <React.Fragment key={props.key}>
+        <React.Fragment key={props.id}>
             {halo}
             {props.children}
         </React.Fragment>

@@ -69,7 +69,7 @@ export class NoDataModal extends React.Component<{
             <g className="no-data">
                 <rect {...bounds.toProps()} fill="#fff" opacity={0.6} />
 
-                <Halo key="no-data-message">
+                <Halo id="no-data-message">
                     <text
                         x={center.x}
                         y={center.y}
@@ -88,7 +88,7 @@ export class NoDataModal extends React.Component<{
                 </Halo>
 
                 {showHelpText && (
-                    <Halo key="no-data-help">
+                    <Halo id="no-data-help">
                         <text
                             x={center.x}
                             y={center.y + padding / 2}
