@@ -1050,8 +1050,10 @@ export class SiteBaker {
         )
 
         await fs.writeFile(
-            `${this.bakedSiteDir}/headerMenu.json`,
-            await db.generateSiteNav(trx).then((nav) => JSON.stringify(nav))
+            `${this.bakedSiteDir}/topicTagGraph.json`,
+            await db
+                .generateTopicTagGraph(trx)
+                .then((nav) => JSON.stringify(nav))
         )
 
         // The `assets-admin` folder is optional; don't fail if it doesn't exist

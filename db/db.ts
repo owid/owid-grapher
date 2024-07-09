@@ -887,7 +887,7 @@ export function getImageUsage(trx: KnexReadonlyTransaction): Promise<
     )
 }
 
-export async function generateSiteNav(
+export async function generateTopicTagGraph(
     knex: KnexReadonlyTransaction
 ): Promise<TagGraphRoot> {
     const { __rootId: rootId, ...parents } = await getFlatTagGraph(knex)
@@ -903,6 +903,5 @@ export async function generateSiteNav(
         {} as FlatTagGraph
     )
 
-    // TODO: SDGs? need to exclude them from sitenav but have it as a tag to use for breadcrumbs
     return createTagGraph(tagGraphTopicsOnly, rootId)
 }

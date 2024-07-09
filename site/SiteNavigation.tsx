@@ -40,7 +40,7 @@ export const SiteNavigation = ({
 
     useEffect(() => {
         const fetchTagGraph = async () => {
-            const response = await fetch("/headerMenu.json")
+            const response = await fetch("/topicTagGraph.json")
             const tagGraph = await response.json()
             setTagGraph(tagGraph)
         }

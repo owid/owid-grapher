@@ -550,9 +550,9 @@ getPlainRouteNonIdempotentWithRWTransaction(
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
-    "/headerMenu.json",
+    "/topicTagGraph.json",
     async (req, res, trx) => {
-        const headerMenu = await db.generateSiteNav(trx)
+        const headerMenu = await db.generateTopicTagGraph(trx)
         res.send(headerMenu)
     }
 )
