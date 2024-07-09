@@ -1049,6 +1049,11 @@ export class SiteBaker {
             `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/dist/assets ${this.bakedSiteDir}/assets`
         )
 
+        await fs.writeFile(
+            `${this.bakedSiteDir}/headerMenu.json`,
+            await db.generateSiteNav(trx).then((nav) => JSON.stringify(nav))
+        )
+
         // The `assets-admin` folder is optional; don't fail if it doesn't exist
         await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets-admin && (cp -r ${BASE_DIR}/dist/assets-admin ${this.bakedSiteDir}/assets-admin || true)`
