@@ -905,3 +905,24 @@ export async function generateTopicTagGraph(
 
     return createTagGraph(tagGraphTopicsOnly, rootId)
 }
+
+export const getUniqueTopicCount = (
+    trx: KnexReadonlyTransaction
+): Promise<number> => {
+    const count = knexRawFirst<{ count: number }>(
+        trx,
+        `-- sql
+        SELECT COUNT(DISTINCT(t.slug))
+        FROM tags t
+        LEFT JOIN posts_gdocs p ON t.slug = p.slug
+        WHERE t.slug IS NOT NULL AND p.published IS TRUE`
+    )
+        .then((res) => (res ? res.count : 0))
+        .catch((e) => {
+            console.error("Failed to get unique topic count", e)
+            throw e
+        })
+    // throw on count == 0 also
+    if (!count) throw new Error("Failed to get unique topic count")
+    return count
+}
