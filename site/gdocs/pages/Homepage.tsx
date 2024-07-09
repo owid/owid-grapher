@@ -1,19 +1,12 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-
 import * as React from "react"
 import { NewsletterSubscriptionContext } from "../../newsletter.js"
 import { NewsletterSubscriptionForm } from "../../NewsletterSubscription.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
-import {
-    CategoryWithEntries,
-    EntryMeta,
-    OwidGdocHomepageContent,
-} from "@ourworldindata/types"
-import {
-    SiteNavigationStatic,
-    RSS_FEEDS,
-    SOCIALS,
-} from "../../SiteConstants.js"
+import { OwidGdocHomepageContent } from "@ourworldindata/types"
+import { RSS_FEEDS, SOCIALS } from "../../SiteConstants.js"
+import { getAllTopicsInArea } from "@ourworldindata/utils"
+import { AttachmentsContext } from "../AttachmentsContext.js"
 
 export interface HomepageProps {
     content: OwidGdocHomepageContent
@@ -60,29 +53,18 @@ const SocialSection = () => {
     )
 }
 
-type FlattenedCategory = EntryMeta & { isSubcategoryHeading?: boolean }
-
-// We have to flatten the categories because it's not possible to inline wrap nested <ul> elements the way we'd like them to
-const flattenCategories = (categories: CategoryWithEntries[]) =>
-    categories.map((category) => {
-        // First show any top-level entries that exist on the category
-        const flattened: FlattenedCategory[] = [...category.entries]
-        category.subcategories?.forEach((subcategory) => {
-            // Then for each subcategory, show the subcategory heading and then its entries
-            flattened.push({
-                title: subcategory.name,
-                slug: subcategory.slug,
-                isSubcategoryHeading: true,
-            })
-            flattened.push(...subcategory.entries)
-        })
-        return { entries: flattened, name: category.name }
-    })
-
 const AllTopicsSection = () => {
-    const flattenedCategories = flattenCategories(
-        SiteNavigationStatic.categories
-    )
+    const { homepageMetadata } = React.useContext(AttachmentsContext)
+    if (!homepageMetadata) return null
+    const { tagGraph } = homepageMetadata
+    if (!tagGraph) return null
+
+    // We have to flatten the areas because we can't nest <ul> elements and have them render correctly
+    const flattenedAreas = tagGraph.children.map((area) => ({
+        ...area,
+        children: getAllTopicsInArea(area),
+    }))
+
     return (
         <section
             id="all-topics"
@@ -92,33 +74,23 @@ const AllTopicsSection = () => {
             <p className="body-2-regular span-cols-12">
                 All our data, research, and writing — topic by topic.
             </p>
-            {flattenedCategories.map((category) => (
+            {flattenedAreas.map((area) => (
                 <section
-                    key={category.name}
+                    key={area.name}
                     className="homepage-topic span-cols-12"
                 >
                     <h2 className="homepage-topic__topic-name h3-bold">
-                        {category.name}
+                        {area.name}
                     </h2>
                     <ul className="homepage-topic__topic-list display-3-regular">
-                        {category.entries.map(
-                            ({ slug, title, isSubcategoryHeading }) =>
-                                isSubcategoryHeading ? (
-                                    <li
-                                        className="homepage-topic__subtopic"
-                                        key={`subtopic-entry-${slug}`}
-                                    >
-                                        {title}:
-                                    </li>
-                                ) : (
-                                    <li
-                                        className="homepage-topic__topic-entry"
-                                        key={`topic-entry-${slug}`}
-                                    >
-                                        <a href={`/${slug}`}>{title}</a>
-                                    </li>
-                                )
-                        )}
+                        {area.children.map(({ slug, name }) => (
+                            <li
+                                className="homepage-topic__topic-entry"
+                                key={`topic-entry-${slug}`}
+                            >
+                                <a href={`/${slug}`}>{name}</a>
+                            </li>
+                        ))}
                     </ul>
                 </section>
             ))}
