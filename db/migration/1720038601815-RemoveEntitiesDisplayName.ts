@@ -14,7 +14,7 @@ export class RemoveEntitiesDisplayName1720038601815 implements MigrationInterfac
         await queryRunner.query(`
             ALTER TABLE entities
                 ADD COLUMN
-                displayName`
+                displayName varchar(255) COLLATE utf8mb4_0900_as_cs NOT NULL`
         )
     }
 }
