@@ -530,7 +530,7 @@ export class DiscreteBarChart
                                 opacity={GRAPHER_AREA_OPACITY_DEFAULT}
                                 style={{ transition: "height 200ms ease" }}
                             />
-                            <Halo key={series.seriesName + "-label"}>
+                            <Halo id={series.seriesName + "-label"}>
                                 <text
                                     x={0}
                                     y={0}

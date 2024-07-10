@@ -301,7 +301,7 @@ const LegendItem = ({
                 strokeWidth={circleStrokeWidth}
                 opacity={circleOpacity}
             />
-            <Halo key={label} style={{ ...style, strokeWidth: 3.5 }}>
+            <Halo id={label} style={{ ...style, strokeWidth: 3.5 }}>
                 <text
                     x={cx}
                     y={cy - circleRadius}
