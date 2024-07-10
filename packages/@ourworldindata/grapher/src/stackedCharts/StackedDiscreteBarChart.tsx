@@ -614,7 +614,7 @@ export class StackedDiscreteBarChart
                         />
                     ))}
                     {this.showTotalValueLabel && (
-                        <Halo key={entityName + "-value-label"}>
+                        <Halo id={entityName + "-value-label"}>
                             <text
                                 id={makeIdForHumanConsumption(
                                     "total",

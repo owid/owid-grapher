@@ -122,7 +122,7 @@ export class ComparisonLine extends React.Component<{
                         }}
                         clipPath={`url(#axisBounds-${renderUid})`}
                     >
-                        <Halo key={`path-${renderUid}`}>
+                        <Halo id={`path-${renderUid}`}>
                             <textPath
                                 baselineShift="-0.2rem"
                                 href={`#path-${renderUid}`}
