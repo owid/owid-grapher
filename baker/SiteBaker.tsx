@@ -17,7 +17,6 @@ import {
     renderChartsPage,
     renderSearchPage,
     renderDonatePage,
-    entriesByYearPage,
     makeAtomFeed,
     feedbackPage,
     renderNotFoundPage,
@@ -77,7 +76,6 @@ import {
     getFullPost,
     getPostsFromSnapshots,
     postsFlushCache,
-    postsTable,
 } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { Image, getAllImages } from "../db/model/Image.js"
@@ -125,7 +123,6 @@ const wordpressSteps = [
     "assets",
     "blogIndex",
     "embeds",
-    "googleScholar",
     "redirects",
     "rss",
     "wordpressPosts",
@@ -290,7 +287,6 @@ export class SiteBaker {
                     !path.startsWith("countries") &&
                     !path.startsWith("country") &&
                     !path.startsWith("latest") &&
-                    !path.startsWith("entries-by-year") &&
                     !path.startsWith("explore") &&
                     !countryProfileSpecs.some((spec) =>
                         path.startsWith(spec.rootPath)
@@ -925,36 +921,6 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked author pages" })
     }
 
-    // Pages that are expected by google scholar for indexing
-    private async bakeGoogleScholar(trx: db.KnexReadonlyTransaction) {
-        if (!this.bakeSteps.has("googleScholar")) return
-        await this.stageWrite(
-            `${this.bakedSiteDir}/entries-by-year.html`,
-            await entriesByYearPage(trx)
-        )
-
-        const rows = (await trx
-            .table(postsTable)
-            .where({ status: "publish" })
-            .whereNot({ type: "wp_block" })
-            .join("post_tags", { "post_tags.post_id": "posts.id" })
-            .join("tags", { "tags.id": "post_tags.tag_id" })
-            .where({ "tags.name": "Entries" })
-            .select(trx.raw("distinct year(published_at) as year"))
-            .orderBy("year", "DESC")) as { year: number }[]
-
-        const years = rows.map((r) => r.year)
-
-        for (const year of years) {
-            await this.stageWrite(
-                `${this.bakedSiteDir}/entries-by-year/${year}.html`,
-                await entriesByYearPage(trx, year)
-            )
-        }
-
-        this.progressBar.tick({ name: "✅ baked google scholar" })
-    }
-
     // Bake the blog index
 
     // TODO: this transaction is only RW because somewhere inside it we fetch images
@@ -1073,7 +1039,6 @@ export class SiteBaker {
         await this.bakeBlogIndex(knex)
         await this.bakeRSS(knex)
         await this.bakeAssets(knex)
-        await this.bakeGoogleScholar(knex)
         await this.bakePosts(knex)
     }
 
