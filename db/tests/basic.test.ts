@@ -35,6 +35,7 @@ beforeAll(async () => {
         ],
     }
     knexInstance = knex(dbTestConfig)
+    // Clean the database so that the tests can start with a clean slate
     await cleanTestDb(knexInstance)
 
     for (const [tableName, tableData] of Object.entries(dataSpec)) {

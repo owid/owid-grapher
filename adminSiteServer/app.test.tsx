@@ -59,7 +59,8 @@ let app: OwidAdminApp | undefined = undefined
 let cookieId: string = ""
 
 beforeAll(async () => {
-    // jest.setup.js
+    // dummy use of google docs so that when we import the google
+    // docs above to mock it, prettier will not complain about an unused import
     const _ = google.docs
     testKnexInstance = knex(dbTestConfig)
     serverKnexInstance = knex(dbTestConfig)
@@ -117,6 +118,8 @@ afterAll((done: any) => {
 })
 
 async function getCountForTable(tableName: string): Promise<number> {
+    // This helper simply checks how many rows are in a table. I can be used
+    // for super simple asserts to verify if a row was created or deleted.
     const count = await testKnexInstance!.table(tableName).count()
     return count[0]["count(*)"] as number
 }
