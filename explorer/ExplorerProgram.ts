@@ -198,13 +198,6 @@ export class ExplorerProgram extends GridProgram {
         )
     }
 
-    get wpBlockId() {
-        const blockIdString = this.getLineValue(
-            ExplorerGrammar.wpBlockId.keyword
-        )
-        return blockIdString ? parseInt(blockIdString, 10) : undefined
-    }
-
     get decisionMatrixCode() {
         const keywordIndex = this.getKeywordIndex(
             ExplorerGrammar.graphers.keyword

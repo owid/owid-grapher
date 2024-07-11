@@ -25,7 +25,6 @@ import { SiteSubnavigation } from "../site/SiteSubnavigation.js"
 
 interface ExplorerPageSettings {
     program: ExplorerProgram
-    wpContent?: string
     grapherConfigs: GrapherInterface[]
     partialGrapherConfigs: GrapherInterface[]
     baseUrl: string
@@ -56,7 +55,6 @@ const ExplorerContent = ({ content }: { content: string }) => {
 
 export const ExplorerPage = (props: ExplorerPageSettings) => {
     const {
-        wpContent,
         program,
         grapherConfigs,
         partialGrapherConfigs,
@@ -117,7 +115,6 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                 <main id={ExplorerContainerId}>
                     <LoadingIndicator />
                 </main>
-                {wpContent && <ExplorerContent content={wpContent} />}
                 <SiteFooter
                     baseUrl={baseUrl}
                     context={SiteFooterContext.explorerPage}

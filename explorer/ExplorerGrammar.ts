@@ -99,12 +99,6 @@ export const ExplorerGrammar: Grammar = {
         keyword: "isPublished",
         description: "Set to true to make this Explorer public.",
     },
-    wpBlockId: {
-        ...IntegerCellDef,
-        keyword: "wpBlockId",
-        description:
-            "If present will show the matching Wordpress block ID beneath the Explorer.",
-    },
     hideControls: {
         ...BooleanCellDef,
         keyword: "hideControls",

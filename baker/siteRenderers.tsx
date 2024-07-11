@@ -781,17 +781,6 @@ export const renderExplorerPage = async (
             return mergePartialGrapherConfigs(etlConfig, adminConfig)
         })
 
-    const wpContent = transformedProgram.wpBlockId
-        ? await renderReusableBlock(
-              await getBlockContentFromSnapshot(
-                  knex,
-                  transformedProgram.wpBlockId
-              ),
-              transformedProgram.wpBlockId,
-              knex
-          )
-        : undefined
-
     return (
         `<!doctype html>` +
         ReactDOMServer.renderToStaticMarkup(
@@ -799,7 +788,6 @@ export const renderExplorerPage = async (
                 grapherConfigs={grapherConfigs}
                 partialGrapherConfigs={partialGrapherConfigs}
                 program={transformedProgram}
-                wpContent={wpContent}
                 baseUrl={BAKED_BASE_URL}
                 urlMigrationSpec={opts?.urlMigrationSpec}
                 isPreviewing={opts?.isPreviewing}
