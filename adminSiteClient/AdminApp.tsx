@@ -23,8 +23,6 @@ import { NotFoundPage } from "./NotFoundPage.js"
 import { PostEditorPage } from "./PostEditorPage.js"
 import { DeployStatusPage } from "./DeployStatusPage.js"
 import { ExplorerTagsPage } from "./ExplorerTagsPage.js"
-import { SuggestedChartRevisionApproverPage } from "./SuggestedChartRevisionApproverPage.js"
-import { SuggestedChartRevisionListPage } from "./SuggestedChartRevisionListPage.js"
 import { BulkDownloadPage } from "./BulkDownloadPage.js"
 import {
     BrowserRouter as Router,
@@ -319,28 +317,6 @@ export class AdminApp extends React.Component<{
                                 exact
                                 path="/explorer-tags"
                                 component={ExplorerTagsPage}
-                            />
-                            <Route
-                                exact
-                                path="/suggested-chart-revisions"
-                                component={SuggestedChartRevisionListPage}
-                            />
-                            <Route
-                                exact
-                                path="/suggested-chart-revisions/review"
-                                component={SuggestedChartRevisionApproverPage}
-                            />
-                            <Route
-                                exact
-                                path="/suggested-chart-revisions/review/:suggestedChartRevisionId"
-                                render={({ match }) => (
-                                    <SuggestedChartRevisionApproverPage
-                                        suggestedChartRevisionId={parseInt(
-                                            match.params
-                                                .suggestedChartRevisionId
-                                        )}
-                                    />
-                                )}
                             />
                             <Route
                                 exact
