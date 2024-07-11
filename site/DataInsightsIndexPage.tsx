@@ -28,7 +28,7 @@ export const DataInsightsIndexPage = (props: DataInsightsIndexPageProps) => {
         <html>
             <Head
                 canonicalUrl={`${baseUrl}/data-insights`}
-                pageTitle="Data Insights"
+                pageTitle="Dialy Data Insights"
                 baseUrl={baseUrl}
                 pageDesc="Bite-sized insights on how the world is changing, written by our team"
                 imageUrl={`${baseUrl}/data-insights-thumbnail.png`}

@@ -16,7 +16,6 @@ import {
     OwidGdocBaseInterface,
     OwidGdocPublicationContext,
     BreadcrumbItem,
-    MinimalDataInsightInterface,
     OwidGdocMinimalPostInterface,
     urlToSlug,
     grabMetadataForGdocLinkedIndicator,
@@ -58,6 +57,7 @@ import {
     DbEnrichedAuthor,
 } from "@ourworldindata/types"
 import { KnexReadonlyTransaction } from "../../db"
+import { GdocDataInsight } from "./GdocDataInsight.js"
 
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
@@ -79,7 +79,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     linkedCharts: Record<string, LinkedChart> = {}
     linkedIndicators: Record<number, LinkedIndicator> = {}
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
-    latestDataInsights: MinimalDataInsightInterface[] = []
+    latestDataInsights: GdocDataInsight[] = []
     _omittableFields: string[] = []
 
     constructor(id?: string) {

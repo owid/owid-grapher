@@ -122,7 +122,7 @@ const SocialSection = () => {
                         <a
                             href={`/${DATA_INSIGHTS_ATOM_FEED_NAME}`}
                             className="list-item"
-                            title="Data Insights RSS"
+                            title="Daily Data Insights RSS"
                             target="_blank"
                             data-track-note="homepage_follow_us"
                             rel="noopener"
@@ -131,7 +131,7 @@ const SocialSection = () => {
                                 <FontAwesomeIcon icon={faRss} />
                             </span>
                             <span className="label">
-                                Data Insights RSS Feed
+                                Daily Data Insights RSS Feed
                             </span>
                         </a>
                     </li>

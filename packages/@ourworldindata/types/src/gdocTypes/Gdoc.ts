@@ -133,7 +133,7 @@ export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
 
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     content: OwidGdocDataInsightContent
-    latestDataInsights?: MinimalDataInsightInterface[]
+    latestDataInsights?: OwidGdocDataInsightInterface[]
 }
 
 export type MinimalDataInsightInterface = Pick<

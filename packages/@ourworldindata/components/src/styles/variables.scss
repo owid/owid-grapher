@@ -58,7 +58,8 @@ $grapher-thumbnail-height: 600px;
 * Breakpoints
 */
 
-// Calculations in Image.tsx and image.ts rely on these variables. Please change them there if you change them here.
+// Calculations in LatestDataInsights.tsx, Image.tsx and image.ts rely on these
+// variables. Please change them there if you change them here.
 $sm: 768px;
 $md: 960px;
 $lg: 1280px;

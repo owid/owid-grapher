@@ -9,13 +9,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     OwidGdocDataInsightInterface,
     formatAuthors,
-    MinimalDataInsightInterface,
     formatDate,
     copyToClipboard,
     MinimalTag,
 } from "@ourworldindata/utils"
 import React, { useContext } from "react"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
+import LatestDataInsights from "../components/LatestDataInsights.js"
 import { AttachmentsContext } from "../OwidGdoc.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 
@@ -24,6 +24,8 @@ export const SECOND_MOST_RECENT_INSIGHT = "second-most-recent-data-insight"
 export const THIRD_MOST_RECENT_INSIGHT = "third-most-recent-data-insight"
 export const FOURTH_MOST_RECENT_INSIGHT = "fourth-most-recent-data-insight"
 export const FIFTH_MOST_RECENT_INSIGHT = "fifth-most-recent-data-insight"
+export const SIXTH_MOST_RECENT_INSIGHT = "sixth-most-recent-data-insight"
+export const SEVENTH_MOST_RECENT_INSIGHT = "seventh-most-recent-data-insight"
 
 export const dataInsightIndexToIdMap: Record<number, string> = {
     0: MOST_RECENT_DATA_INSIGHT,
@@ -31,29 +33,12 @@ export const dataInsightIndexToIdMap: Record<number, string> = {
     2: THIRD_MOST_RECENT_INSIGHT,
     3: FOURTH_MOST_RECENT_INSIGHT,
     4: FIFTH_MOST_RECENT_INSIGHT,
-}
-
-const DataInsightCard = (
-    props: MinimalDataInsightInterface
-): React.ReactElement => {
-    const publishedAt = props.publishedAt
-        ? formatDate(new Date(props.publishedAt))
-        : null
-    return (
-        <a
-            href={`/data-insights#${dataInsightIndexToIdMap[props.index]}`}
-            className="data-insight-card"
-        >
-            <p className="data-insight-card__published-at h6-black-caps">
-                {publishedAt}
-            </p>
-            <p className="data-insight-card__title subtitle-2">{props.title}</p>
-        </a>
-    )
+    5: SIXTH_MOST_RECENT_INSIGHT,
+    6: SEVENTH_MOST_RECENT_INSIGHT,
 }
 
 export const LatestDataInsightCards = (props: {
-    latestDataInsights?: MinimalDataInsightInterface[]
+    latestDataInsights?: OwidGdocDataInsightInterface[]
     className?: string
 }) => {
     const { latestDataInsights, className } = props
@@ -61,17 +46,15 @@ export const LatestDataInsightCards = (props: {
 
     return (
         <div className={cx(className, "data-insight-cards-container")}>
-            <h2 className="h2-bold ">Our latest data insights</h2>
+            <h2 className="h2-bold ">Our latest Daily Data Insights</h2>
             <div className="see-all-button-container">
                 <a href="/data-insights" className="body-3-medium">
-                    See all data insights{" "}
+                    See all Daily Data Insights{" "}
                     <FontAwesomeIcon icon={faArrowRight} />
                 </a>
             </div>
             <div className="data-insight-cards-container__cards">
-                {latestDataInsights.map((dataInsight) => (
-                    <DataInsightCard key={dataInsight.title} {...dataInsight} />
-                ))}
+                <LatestDataInsights latestDataInsights={latestDataInsights} />
             </div>
         </div>
     )
@@ -187,14 +170,14 @@ export const DataInsightPage = (
     props: DataInsightProps
 ): React.ReactElement => {
     const attachments = useContext(AttachmentsContext)
-    const latestDataInsights = attachments.latestDataInsights
-        ?.filter((dataInsight) => dataInsight.title !== props.content.title)
-        .slice(0, 4)
+    const latestDataInsights = attachments.latestDataInsights?.filter(
+        (dataInsight) => dataInsight.content.title !== props.content.title
+    )
 
     return (
         <div className="grid grid-cols-12-full-width data-insight-page">
             <div className="span-cols-8 col-start-4 span-md-cols-10 col-md-start-3 col-sm-start-2 span-sm-cols-12 data-insight-breadcrumbs">
-                <a href="/data-insights">Data Insights</a>
+                <a href="/data-insights">Daily Data Insights</a>
                 <FontAwesomeIcon icon={faChevronRight} />
                 <span>{props.content.title}</span>
             </div>

@@ -273,7 +273,7 @@ export async function getAndLoadGdocBySlug(
             `No published Google Doc with slug "${slug}" found in the database`
         )
     }
-    return loadGdocFromGdocBase(knex, base)
+    return loadGdocFromGdocBase(knex, base, undefined, true)
 }
 
 // TODO: this transaction is only RW because somewhere inside it we fetch images
@@ -309,7 +309,8 @@ export async function createOrLoadGdocById(
 export async function loadGdocFromGdocBase(
     knex: KnexReadWriteTransaction,
     base: OwidGdocBaseInterface,
-    contentSource?: GdocsContentSource
+    contentSource?: GdocsContentSource,
+    loadLatestDataInsights?: boolean
 ): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
     const type = get(base, "content.type") as unknown
     if (!type)
@@ -333,7 +334,9 @@ export async function loadGdocFromGdocBase(
             ),
             () => GdocPost.create(base)
         )
-        .with(OwidGdocType.DataInsight, () => GdocDataInsight.create(base))
+        .with(OwidGdocType.DataInsight, () =>
+            GdocDataInsight.create(base, loadLatestDataInsights)
+        )
         .with(OwidGdocType.Homepage, () => GdocHomepage.create(base))
         .with(OwidGdocType.Author, () => GdocAuthor.create(base))
         .exhaustive()
@@ -354,26 +357,16 @@ export async function loadGdocFromGdocBase(
 // TODO: this transaction is only RW because somewhere inside it we fetch images
 export async function getAndLoadPublishedDataInsights(
     knex: KnexReadWriteTransaction,
-    page?: number
+    options?: { limit: number; offset?: number }
 ): Promise<GdocDataInsight[]> {
-    const limitOffsetClause =
-        page !== undefined
-            ? `LIMIT ${DATA_INSIGHTS_INDEX_PAGE_SIZE} OFFSET ${
-                  page * DATA_INSIGHTS_INDEX_PAGE_SIZE
-              }`
-            : ""
-    const rows = await knexRaw<DbRawPostGdoc>(
-        knex,
-        `-- sql
-            SELECT *
-            FROM posts_gdocs
-            WHERE published = 1
-            AND type = ?
-            AND publishedAt <= NOW()
-            ORDER BY publishedAt DESC
-            ${limitOffsetClause}`,
-        [OwidGdocType.DataInsight]
-    )
+    let query = knex<DbRawPostGdoc>(PostsGdocsTableName)
+        .where("type", OwidGdocType.DataInsight)
+        .where("published", 1)
+        .where("publishedAt", "<=", knex.fn.now())
+        .orderBy("publishedAt", "desc")
+    if (options?.limit) query = query.limit(options.limit)
+    if (options?.offset) query = query.offset(options.offset)
+    const rows = await query.select("*")
     const ids = rows.map((row) => row.id)
     const tags = await knexRaw<DbPlainTag>(
         knex,
@@ -395,6 +388,20 @@ export async function getAndLoadPublishedDataInsights(
         enrichedRows.map(async (row) => loadGdocFromGdocBase(knex, row))
     )
     return gdocs as GdocDataInsight[]
+}
+
+export async function getAndLoadPublishedDataInsightsPage(
+    knex: KnexReadWriteTransaction,
+    page?: number
+): Promise<GdocDataInsight[]> {
+    const options =
+        page === undefined
+            ? undefined
+            : {
+                  limit: DATA_INSIGHTS_INDEX_PAGE_SIZE,
+                  offset: page * DATA_INSIGHTS_INDEX_PAGE_SIZE,
+              }
+    return await getAndLoadPublishedDataInsights(knex, options)
 }
 
 // TODO: this transaction is only RW because somewhere inside it we fetch images

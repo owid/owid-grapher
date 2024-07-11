@@ -239,6 +239,6 @@ export function getShortPageCitation(
 export const DATA_INSIGHTS_ATOM_FEED_NAME = "atom-data-insights.xml"
 
 export const DATA_INSIGHT_ATOM_FEED_PROPS = {
-    title: "Atom feed for Data Insights",
+    title: "Atom feed for Daily Data Insights",
     href: `https://ourworldindata.org/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
 }

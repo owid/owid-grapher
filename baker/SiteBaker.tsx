@@ -101,6 +101,7 @@ import {
 import {
     gdocFromJSON,
     getAllMinimalGdocBaseObjects,
+    getAndLoadPublishedDataInsights,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { getBakePath } from "@ourworldindata/components"
 import { GdocAuthor, getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
@@ -788,7 +789,9 @@ export class SiteBaker {
     // TODO: this transaction is only RW because somewhere inside it we fetch images
     private async bakeDataInsights(knex: db.KnexReadWriteTransaction) {
         if (!this.bakeSteps.has("dataInsights")) return
-        const latestDataInsights = await db.getPublishedDataInsights(knex, 5)
+        const latestDataInsights = await getAndLoadPublishedDataInsights(knex, {
+            limit: 7,
+        })
         const publishedDataInsights =
             await GdocDataInsight.getPublishedDataInsights(knex)
 
@@ -803,7 +806,10 @@ export class SiteBaker {
             // Not used just yet
             // dataInsight.linkedAuthors = attachments.linkedAuthors
             dataInsight.linkedDocuments = attachments.linkedDocuments
-            dataInsight.imageMetadata = attachments.imageMetadata
+            dataInsight.imageMetadata = Object.assign(
+                attachments.imageMetadata,
+                ...latestDataInsights.map((insight) => insight.imageMetadata)
+            )
             dataInsight.linkedCharts = {
                 ...attachments.linkedCharts.graphers,
                 ...attachments.linkedCharts.explorers,

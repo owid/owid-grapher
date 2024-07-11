@@ -228,50 +228,19 @@
         svg {
             height: 0.75rem;
         }
+
+        @include sm-only {
+            display: none;
+        }
     }
 
     .data-insight-cards-container__cards {
         margin-top: 24px;
-        display: flex;
-        overflow-x: auto;
-        width: 100%;
+        overflow: auto;
     }
 
     @include md-down {
-        overflow-x: auto;
         border-top: none;
-        // needed to stop scroll overflow when moving the button below the cards
-        padding-bottom: 2px;
-
-        .see-all-button-container {
-            // put it below the cards
-            order: 1;
-            margin-top: 24px;
-            margin-right: auto;
-        }
-    }
-}
-
-.data-insight-card {
-    background-color: $blue-10;
-    padding: 24px;
-    transition: 200ms;
-    max-width: 298px;
-    min-width: 298px;
-    &:not(:last-child) {
-        margin-right: 24px;
-    }
-    &:hover {
-        background-color: $blue-20;
-    }
-    .data-insight-card__published-at {
-        color: $blue-60;
-        margin: 0 0 4px;
-    }
-    .data-insight-card__title {
-        color: $blue-90;
-        font-weight: 500;
-        margin: 0;
     }
 }
 

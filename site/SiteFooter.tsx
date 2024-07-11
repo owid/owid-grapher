@@ -186,7 +186,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                     href="/atom-data-insights.xml"
                                     data-track-note="footer_navigation"
                                 >
-                                    Data Insights RSS Feed
+                                    Daily Data Insights RSS Feed
                                 </a>
                             </li>
                         </ul>

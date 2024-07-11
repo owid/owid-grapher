@@ -254,9 +254,7 @@ getPlainRouteNonIdempotentWithRWTransaction(
     "/data-insights/:pageNumberOrSlug?",
     async (req, res, trx) => {
         const totalPageCount = calculateDataInsightIndexPageCount(
-            await db
-                .getPublishedDataInsights(trx)
-                .then((insights) => insights.length)
+            await db.getPublishedDataInsightCount(trx)
         )
         async function renderIndexPage(pageNumber: number) {
             const dataInsights = await GdocDataInsight.getPublishedDataInsights(

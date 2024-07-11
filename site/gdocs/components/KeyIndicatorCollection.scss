@@ -7,8 +7,7 @@
     margin: 24px 0;
 
     @include sm-only {
-        background-color: $blue-5;
-        margin: 24px -16px;
+        margin: 8px -16px;
     }
 
     .accordion-item + .accordion-item {

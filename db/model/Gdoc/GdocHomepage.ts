@@ -13,6 +13,8 @@ import {
     OwidGdocHomepageMetadata,
 } from "@ourworldindata/types"
 import { getUniqueTopicCount } from "../../../site/SiteNavigation.js"
+import { getAndLoadPublishedDataInsights } from "./GdocFactory.js"
+
 export class GdocHomepage
     extends GdocBase
     implements OwidGdocHomepageInterface
@@ -58,7 +60,7 @@ export class GdocHomepage
     }
 
     _loadSubclassAttachments = async (
-        knex: db.KnexReadonlyTransaction
+        knex: db.KnexReadWriteTransaction
     ): Promise<void> => {
         const [grapherCount, nonGrapherExplorerViewCount] = await Promise.all([
             db.getTotalNumberOfCharts(knex),
@@ -70,6 +72,12 @@ export class GdocHomepage
             topicCount: getUniqueTopicCount(),
         }
 
-        this.latestDataInsights = await db.getPublishedDataInsights(knex, 4)
+        this.latestDataInsights = await getAndLoadPublishedDataInsights(knex, {
+            limit: 7,
+        })
+        this.imageMetadata = Object.assign(
+            this.imageMetadata,
+            ...this.latestDataInsights.map((insight) => insight.imageMetadata)
+        )
     }
 }

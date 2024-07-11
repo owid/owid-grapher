@@ -260,6 +260,17 @@ body {
     @include subtitle-2;
 }
 
+@mixin subtitle-2-bold {
+    font-family: $sans-serif-font-stack;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+.subtitle-2-bold {
+    @include subtitle-2-bold;
+}
+
 @mixin overline-black-caps {
     font-family: $sans-serif-font-stack;
     font-size: 0.75rem;

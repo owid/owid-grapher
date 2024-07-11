@@ -40,7 +40,7 @@ import KeyIndicatorCollection from "./KeyIndicatorCollection.js"
 import { PillRow } from "./PillRow.js"
 import { HomepageIntro } from "./HomepageIntro.js"
 import { HomepageSearch } from "./HomepageSearch.js"
-import { LatestDataInsightsBlock } from "./LatestDataInsights.js"
+import LatestDataInsightsBlock from "./LatestDataInsightsBlock.js"
 import { Socials } from "./Socials.js"
 
 export type Container =
