@@ -18,6 +18,7 @@ import {
     DbRawChart,
     UsersTableName,
 } from "@ourworldindata/types"
+import { cleanTestDb, sleep } from "./testHelpers.js"
 
 let knexInstance: Knex<any, unknown[]> | undefined = undefined
 
@@ -34,6 +35,8 @@ beforeAll(async () => {
         ],
     }
     knexInstance = knex(dbTestConfig)
+    // Clean the database so that the tests can start with a clean slate
+    await cleanTestDb(knexInstance)
 
     for (const [tableName, tableData] of Object.entries(dataSpec)) {
         await knexInstance(tableName).insert(tableData)
@@ -53,32 +56,30 @@ test("it can query a user created in fixture via TypeORM", async () => {
         .where({ email: "admin@example.com" })
         .first<DbPlainUser>()
     expect(user).toBeTruthy()
-    expect(user.id).toBe(1)
     expect(user.email).toBe("admin@example.com")
 })
-
-function sleep(time: number, value: any): Promise<any> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            return resolve(value)
-        }, time)
-    })
-}
 
 test("timestamps are automatically created and updated", async () => {
     await knexReadWriteTransaction(
         async (trx) => {
+            const user = await knexInstance!
+                .table(UsersTableName)
+                .where({ email: "admin@example.com" })
+                .first<DbPlainUser>()
+            expect(user).toBeTruthy()
+            expect(user.email).toBe("admin@example.com")
             const chart: DbInsertChart = {
                 config: "{}",
                 lastEditedAt: new Date(),
-                lastEditedByUserId: 1,
+                lastEditedByUserId: user.id,
                 is_indexable: 0,
             }
-            await trx.table(ChartsTableName).insert(chart)
+            const res = await trx.table(ChartsTableName).insert(chart)
+            const chartId = res[0]
             const created = await knexRawFirst<DbRawChart>(
                 trx,
-                "select * from charts where id = 1",
-                []
+                "select * from charts where id = ?",
+                [chartId]
             )
             expect(created).not.toBeNull()
             if (created) {
@@ -87,12 +88,12 @@ test("timestamps are automatically created and updated", async () => {
                 await sleep(1000, undefined)
                 await trx
                     .table(ChartsTableName)
-                    .where({ id: 1 })
+                    .where({ id: chartId })
                     .update({ is_indexable: 1 })
                 const updated = await knexRawFirst<DbRawChart>(
                     trx,
-                    "select * from charts where id = 1",
-                    []
+                    "select * from charts where id = ?",
+                    [chartId]
                 )
                 expect(updated).not.toBeNull()
                 if (updated) {
@@ -138,13 +139,16 @@ test("knex interface", async () => {
             }
 
             // Use the insert helper method
-            await insertUser(trx, {
+            const userIds = await insertUser(trx, {
                 email: "test@example.com",
                 fullName: "Test User",
             })
 
+            const userId = userIds[0]
+            expect(userId).toBeGreaterThan(0)
+
             // Use the update helper method
-            await updateUser(trx, 2, { isSuperuser: 1 })
+            await updateUser(trx, userId, { isSuperuser: 1 })
 
             // Check results after update and insert
             const afterUpdate = await trx
@@ -183,7 +187,7 @@ test("knex interface", async () => {
             ])
             expect(usersFromRawQueryWithInClauseAsArray.length).toBe(2)
 
-            await deleteUser(trx, 2)
+            await deleteUser(trx, userId)
         },
         TransactionCloseMode.KeepOpen,
         knexInstance

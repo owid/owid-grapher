@@ -201,7 +201,7 @@ function saltedHmac(salt: string, value: string): string {
     return hmac.digest("hex")
 }
 
-async function logInAsUser(user: DbPlainUser) {
+export async function logInAsUser(user: Pick<DbPlainUser, "email" | "id">) {
     const sessionId = randomstring.generate()
 
     const sessionJson = JSON.stringify({

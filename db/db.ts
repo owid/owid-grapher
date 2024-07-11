@@ -40,10 +40,12 @@ export const closeTypeOrmAndKnexConnections = async (): Promise<void> => {
 
 let _knexInstance: Knex | undefined = undefined
 
-export const knexInstance = (): Knex<any, any[]> => {
-    if (_knexInstance) return _knexInstance
+export function setKnexInstance(knexInstance: Knex<any, any[]>): void {
+    _knexInstance = knexInstance
+}
 
-    _knexInstance = knex({
+const getNewKnexInstance = (): Knex<any, any[]> => {
+    return knex({
         client: "mysql2",
         connection: {
             host: GRAPHER_DB_HOST,
@@ -66,6 +68,12 @@ export const knexInstance = (): Knex<any, any[]> => {
             jsonStrings: true,
         },
     })
+}
+
+export const knexInstance = (): Knex<any, any[]> => {
+    if (_knexInstance) return _knexInstance
+
+    _knexInstance = getNewKnexInstance()
 
     registerExitHandler(async () => {
         if (_knexInstance) await _knexInstance.destroy()

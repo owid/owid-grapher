@@ -17,6 +17,7 @@ export const dbTestConfig = {
         host: GRAPHER_TEST_DB_HOST,
         port: GRAPHER_TEST_DB_PORT,
         charset: "utf8mb4",
+        jsonStrings: true,
     },
     pool: {
         min: 2,
