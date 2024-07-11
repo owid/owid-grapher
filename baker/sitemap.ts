@@ -38,27 +38,17 @@ const xmlify = (url: SitemapUrl) => {
 }
 
 const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl[] => {
-    const baseUrl = `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${program.slug}`
+    const loc = `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${program.slug}`
     const lastmod = program.lastCommit?.date
         ? dayjs(program.lastCommit.date).format("YYYY-MM-DD")
         : undefined
 
-    if (program.indexViewsSeparately) {
-        // return an array containing the URLs to each view of the explorer
-        return program.decisionMatrix
-            .allDecisionsAsQueryParams()
-            .map((params) => ({
-                loc: baseUrl + queryParamsToStr(params),
-                lastmod,
-            }))
-    } else {
         return [
             {
-                loc: baseUrl,
+                loc,
                 lastmod,
             },
         ]
-    }
 }
 
 // TODO: this transaction is only RW because somewhere inside it we fetch images

@@ -305,7 +305,6 @@ export class Explorer
         if (
             this.props.isInStandalonePage &&
             this.grapher &&
-            this.explorerProgram.indexViewsSeparately &&
             document.location.search
         ) {
             document.title = `${this.grapher.displayTitle} - Our World in Data`
@@ -802,12 +801,7 @@ export class Explorer
     }
 
     @computed get canonicalUrlForGoogle(): string {
-        // we want the canonical URL to match what's in the sitemap, so it's different depending on indexViewsSeparately
-        if (this.explorerProgram.indexViewsSeparately)
-            return Url.fromURL(this.baseUrl).setQueryParams(
-                this.currentChoiceParams
-            ).fullUrl
-        else return this.baseUrl
+        return this.baseUrl
     }
 
     private bindToWindow() {
