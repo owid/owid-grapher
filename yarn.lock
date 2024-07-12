@@ -8888,40 +8888,40 @@ __metadata:
   languageName: node
   linkType: hard
 
-"embla-carousel-class-names@npm:^8.1.6":
-  version: 8.1.6
-  resolution: "embla-carousel-class-names@npm:8.1.6"
+"embla-carousel-class-names@npm:8.1.5":
+  version: 8.1.5
+  resolution: "embla-carousel-class-names@npm:8.1.5"
   peerDependencies:
-    embla-carousel: 8.1.6
-  checksum: 10/a05c709780796d27fce090c12e665a8cd8315024bcc130837cf89df9b7b1997dea6fdda16426126942d5741bd71be9cf80949891aa9c449cf3ebadca77c2750c
+    embla-carousel: 8.1.5
+  checksum: 10/ffdf1d365aaa32f63937b783f219bb21907a1b9b9e14df9ef5bf162f9ce70d4460037f3a93ac8d210e19777f46bf67b6b7fa3379b19d628aef33b8ad136cfba2
   languageName: node
   linkType: hard
 
-"embla-carousel-react@npm:^8.1.6":
-  version: 8.1.6
-  resolution: "embla-carousel-react@npm:8.1.6"
+"embla-carousel-react@npm:8.1.5":
+  version: 8.1.5
+  resolution: "embla-carousel-react@npm:8.1.5"
   dependencies:
-    embla-carousel: "npm:8.1.6"
-    embla-carousel-reactive-utils: "npm:8.1.6"
+    embla-carousel: "npm:8.1.5"
+    embla-carousel-reactive-utils: "npm:8.1.5"
   peerDependencies:
     react: ^16.8.0 || ^17.0.1 || ^18.0.0
-  checksum: 10/a8c724c396f8f26d190943c778fd1a29706bd597a0f85b4d8133c5e25e6e651fb30dbc3be0a71b3d58b9698904ae1043052cbea0c4aa23f9a63f3d1205e4a128
+  checksum: 10/19e87862c4721fa604ad2aebfc870641ee60804ab83230811c8289a88c05e9f3199a7f106bb49c31b734f50c89a1111e3e6452a6e937a0b2099e7e580f0fbf3f
   languageName: node
   linkType: hard
 
-"embla-carousel-reactive-utils@npm:8.1.6":
-  version: 8.1.6
-  resolution: "embla-carousel-reactive-utils@npm:8.1.6"
+"embla-carousel-reactive-utils@npm:8.1.5":
+  version: 8.1.5
+  resolution: "embla-carousel-reactive-utils@npm:8.1.5"
   peerDependencies:
-    embla-carousel: 8.1.6
-  checksum: 10/1524006c5adb3115b7ad5b70c3a857a4a5110c283eb1baaf92db16873736b1543737901b54e7210014f9cfb6d85a9a6771fc702c90192f13781effed7071bc26
+    embla-carousel: 8.1.5
+  checksum: 10/2bd8e9a9ebdc3a9917057b3208c89836c69f9d3d4426daf66d5d9edf8be15f9a0b405f26ad94e85a6eec2781631df59c3202c58308552c4001de9cd8e14ec207
   languageName: node
   linkType: hard
 
-"embla-carousel@npm:8.1.6":
-  version: 8.1.6
-  resolution: "embla-carousel@npm:8.1.6"
-  checksum: 10/739a112c45b218755d747487b07e182ab137b9e2f262600cf6f0296e4a83a67b442da8fc0b9672219086ff3a0671aa3cdf0a171ebb0d620f2c9264ceaf5752d7
+"embla-carousel@npm:8.1.5":
+  version: 8.1.5
+  resolution: "embla-carousel@npm:8.1.5"
+  checksum: 10/0556c6eec249e60dbdaf0530a68776ecf727ceb7e647c271657f82d05f7da4b420d4c4f6d2d4c7b46b54712e090bb2a9ddd311a66cdb00f741b1c6cb1a4503d7
   languageName: node
   linkType: hard
 
@@ -10953,8 +10953,8 @@ __metadata:
     dayjs: "npm:^1.11.11"
     decko: "npm:^1.2.0"
     dotenv: "npm:^16.0.1"
-    embla-carousel-class-names: "npm:^8.1.6"
-    embla-carousel-react: "npm:^8.1.6"
+    embla-carousel-class-names: "npm:8.1.5"
+    embla-carousel-react: "npm:8.1.5"
     entities: "npm:^4.4.0"
     enzyme: "npm:^3.11.0"
     eslint: "npm:^8.57.0"
