@@ -11,6 +11,7 @@ import {
     countries,
     orderBy,
     removeTrailingParenthetical,
+    uniq,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
@@ -162,6 +163,8 @@ const getChartsRecords = async (
 
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
 
+    const parentTagsByChildName = await db.getParentTagsByChildName(knex)
+
     const records: ChartRecord[] = []
     for (const c of parsedRows) {
         // Our search currently cannot render explorers, so don't index them because
@@ -182,6 +185,11 @@ const getChartsRecords = async (
                   fontSize: 10, // doesn't matter, but is a mandatory field
               }).plaintext
 
+        const parentTags = c.tags.flatMap(
+            // a chart can be tagged with a tag that isn't in the tag graph
+            (tag) => parentTagsByChildName[tag] || []
+        )
+
         const record = {
             objectID: c.id.toString(),
             chartId: c.id,
@@ -193,7 +201,7 @@ const getChartsRecords = async (
             numDimensions: parseInt(c.numDimensions),
             publishedAt: c.publishedAt,
             updatedAt: c.updatedAt,
-            tags: c.tags as any as string[],
+            tags: uniq([...c.tags, ...parentTags]),
             keyChartForTags: c.keyChartForTags as string[],
             titleLength: c.title.length,
             // Number of references to this chart in all our posts and pages
