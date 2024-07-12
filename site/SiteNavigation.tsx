@@ -267,12 +267,12 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Population Growth",
                         },
                         {
-                            slug: "gender-ratio",
-                            title: "Gender Ratio",
-                        },
-                        {
                             slug: "age-structure",
                             title: "Age Structure",
+                        },
+                        {
+                            slug: "gender-ratio",
+                            title: "Gender Ratio",
                         },
                     ],
                 },
@@ -405,12 +405,12 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     slug: "infectious-diseases",
                     entries: [
                         {
-                            slug: "coronavirus",
-                            title: "Coronavirus Pandemic (COVID-19)",
-                        },
-                        {
                             slug: "pandemics",
                             title: "Pandemics",
+                        },
+                        {
+                            slug: "coronavirus",
+                            title: "Coronavirus Pandemic (COVID-19)",
                         },
                         {
                             slug: "malaria",
@@ -450,7 +450,7 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         },
                         {
                             slug: "monkeypox",
-                            title: "Mpox (monkeypox)",
+                            title: "Mpox",
                         },
                         {
                             slug: "smallpox",
@@ -553,6 +553,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Biodiversity",
                         },
                         {
+                            slug: "environmental-impacts-of-food",
+                            title: "Environmental Impacts of Food Production",
+                        },
+                        {
                             slug: "fish-and-overfishing",
                             title: "Fish and Overfishing",
                         },
@@ -567,10 +571,6 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         {
                             slug: "wildfires",
                             title: "Wildfires",
-                        },
-                        {
-                            slug: "environmental-impacts-of-food",
-                            title: "Environmental Impacts of Food Production",
                         },
                         {
                             slug: "animal-welfare",
@@ -754,6 +754,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     slug: "public-sector",
                     entries: [
                         {
+                            slug: "government-spending",
+                            title: "Government Spending",
+                        },
+                        {
                             slug: "state-capacity",
                             title: "State Capacity",
                         },
@@ -764,10 +768,6 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         {
                             slug: "corruption",
                             title: "Corruption",
-                        },
-                        {
-                            slug: "government-spending",
-                            title: "Government Spending",
                         },
                         {
                             slug: "financing-healthcare",
