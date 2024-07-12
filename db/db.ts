@@ -7,7 +7,7 @@ import {
     GRAPHER_DB_PORT,
 } from "../settings/serverSettings.js"
 import { registerExitHandler } from "./cleanup.js"
-import { keyBy } from "@ourworldindata/utils"
+import { createTagGraph, keyBy } from "@ourworldindata/utils"
 import {
     DbChartTagJoin,
     ImageMetadata,
@@ -26,8 +26,10 @@ import {
     DbPlainPostGdocLink,
     OwidGdocLinkType,
     OwidGdoc,
+    DbPlainTag,
+    TagGraphNode,
 } from "@ourworldindata/types"
-import { groupBy } from "lodash"
+import { groupBy, uniq } from "lodash"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
 
 // Return the first match from a mysql query
@@ -523,6 +525,47 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
     if (!tagGraphRootIdResult) throw new Error("Tag graph root not found")
 
     return { ...tagGraphByParentId, __rootId: tagGraphRootIdResult.id }
+}
+
+// DFS through the tag graph and create a map of parent tags for each child tag
+// e.g. { "Child": [ "Parent", "Grandparent" ], "Parent": [ "Grandparent" ] }
+// parent tags are listed in no particular order
+export async function getParentTagsByChildName(
+    trx: KnexReadonlyTransaction
+): Promise<Record<DbPlainTag["name"], DbPlainTag["name"][]>> {
+    const { __rootId, ...flatTagGraph } = await getFlatTagGraph(trx)
+    const tagGraph = createTagGraph(flatTagGraph, __rootId)
+
+    const tagsById = await knexRaw<Pick<DbPlainTag, "id" | "name">>(
+        trx,
+        `-- sql
+        SELECT id, name FROM tags`
+    ).then((tags) => keyBy(tags, "id"))
+
+    const parentTagsByChildName: Record<
+        DbPlainTag["name"],
+        DbPlainTag["name"][]
+    > = {}
+
+    function trackParents(node: TagGraphNode): void {
+        for (const child of node.children) {
+            trackParents(child)
+        }
+
+        const preexistingParents = parentTagsByChildName[node.name] ?? []
+        // node.path is an array of tag ids from the root to the current node
+        // slice to remove the root node and the current node, then map them into tag names
+        const newParents = node.path.slice(1, -1).map((id) => tagsById[id].name)
+
+        parentTagsByChildName[node.name] = uniq([
+            ...preexistingParents,
+            ...newParents,
+        ])
+    }
+
+    trackParents(tagGraph)
+
+    return parentTagsByChildName
 }
 
 export async function updateTagGraph(
