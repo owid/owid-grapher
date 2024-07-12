@@ -538,11 +538,9 @@ export async function getParentTagsByChildName(
     const { __rootId, ...flatTagGraph } = await getFlatTagGraph(trx)
     const tagGraph = createTagGraph(flatTagGraph, __rootId)
 
-    const tagsById = await knexRaw<Pick<DbPlainTag, "id" | "name">>(
-        trx,
-        `-- sql
-        SELECT id, name FROM tags`
-    ).then((tags) => keyBy(tags, "id"))
+    const tagsById = await trx("tags")
+        .select("id", "name")
+        .then((tags) => keyBy(tags, "id"))
 
     const parentTagsByChildName: Record<
         DbPlainTag["name"],
