@@ -594,6 +594,18 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             slug: "lead-pollution",
                             title: "Lead Pollution",
                         },
+                        {
+                            slug: "air-pollution",
+                            title: "Air Pollution",
+                        },
+                        {
+                            slug: "outdoor-air-pollution",
+                            title: "Outdoor Air Pollution",
+                        },
+                        {
+                            slug: "indoor-air-pollution",
+                            title: "Indoor Air Pollution",
+                        },
                     ],
                 },
                 {
