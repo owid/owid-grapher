@@ -720,19 +720,21 @@ export class SiteBaker {
                 knex,
                 `-- sql
                 SELECT
-                    config ->> '$.slug' as slug,
-                    config ->> '$.subtitle' as subtitle,
-                    config ->> '$.note' as note
+                    cc.slug,
+                    cc.full ->> '$.subtitle' as subtitle,
+                    cc.full ->> '$.note' as note
                 FROM
-                    charts
+                    charts c
+                JOIN
+                    chart_configs cc ON c.configId = cc.id
                 WHERE
-                    JSON_EXTRACT(config, "$.isPublished") = true
+                    JSON_EXTRACT(cc.full, "$.isPublished") = true
                 AND (
-                    JSON_EXTRACT(config, "$.subtitle") LIKE "%#dod:%"
-                    OR JSON_EXTRACT(config, "$.note") LIKE "%#dod:%"
+                    JSON_EXTRACT(cc.full, "$.subtitle") LIKE "%#dod:%"
+                    OR JSON_EXTRACT(cc.full, "$.note") LIKE "%#dod:%"
                 )
                 ORDER BY
-                    JSON_EXTRACT(config, "$.slug") ASC
+                    cc.slug ASC
             `
             )
 

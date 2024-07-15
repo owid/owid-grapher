@@ -7,7 +7,7 @@ import {
     dayjs,
     countries,
     queryParamsToStr,
-    ChartsTableName,
+    DbPlainChart,
 } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import urljoin from "url-join"
@@ -82,13 +82,18 @@ export const makeSitemap = async (
         publishedDataInsights.length
     )
 
-    const charts = (await knex
-        .table(ChartsTableName)
-        .select(knex.raw(`updatedAt, config->>"$.slug" AS slug`))
-        .whereRaw('config->"$.isPublished" = true')) as {
-        updatedAt: Date
-        slug: string
-    }[]
+    const charts = await db.knexRaw<
+        Pick<DbPlainChart, "updatedAt"> & { slug: string }
+    >(
+        knex,
+        `-- sql
+            SELECT c.updatedAt, cc.slug
+            FROM charts c
+            JOIN chart_configs cc ON cc.id = c.configId
+            WHERE
+                cc.full->"$.isPublished" = true
+        `
+    )
 
     const explorers = await explorerAdminServer.getAllPublishedExplorers()
 
