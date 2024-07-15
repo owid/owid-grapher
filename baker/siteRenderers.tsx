@@ -46,7 +46,12 @@ import {
     OwidGdocDataInsightInterface,
 } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
-import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
+import {
+    DbPlainChart,
+    DbRawChartConfig,
+    FormattingOptions,
+    GrapherInterface,
+} from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
 import {
@@ -104,15 +109,16 @@ export const renderChartsPage = async (
         knex,
         `-- sql
         SELECT
-            id,
-            config->>"$.slug" AS slug,
-            config->>"$.title" AS title,
-            config->>"$.variantName" AS variantName
-        FROM charts
+            c.id,
+            cc.slug,
+            cc.full->>"$.title" AS title,
+            cc.full->>"$.variantName" AS variantName
+        FROM charts c
+        JOIN chart_configs cc ON c.configId=cc.id
         WHERE
-            isIndexable IS TRUE
-            AND publishedAt IS NOT NULL
-            AND config->>"$.isPublished" = "true"
+            c.isIndexable IS TRUE
+            AND c.publishedAt IS NOT NULL
+            AND cc.full->>"$.isPublished" = "true"
     `
     )
 
@@ -734,9 +740,16 @@ export const renderExplorerPage = async (
     type ChartRow = { id: number; config: string }
     let grapherConfigRows: ChartRow[] = []
     if (requiredGrapherIds.length)
-        grapherConfigRows = await knexRaw(
+        grapherConfigRows = await knexRaw<
+            Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+        >(
             knex,
-            `SELECT id, config FROM charts WHERE id IN (?)`,
+            `-- sql
+                SELECT c.id, cc.full as config
+                FROM charts c
+                JOIN chart_configs cc ON c.configId=cc.id
+                WHERE c.id IN (?)
+            `,
             [requiredGrapherIds]
         )
 
