@@ -1,16 +1,22 @@
 .latest-data-insights {
     position: relative;
+    margin-bottom: 24px;
 }
 
 .latest-data-insights__viewport {
     overflow: hidden;
+    // Let box-shadow of the focused card overflow the container. It would
+    // happen by default with the initial value of `overflow`, which is
+    // `visible`, but we need it to be `hidden` for the carousel. We exclude
+    // the right side to keep the content clipped correctly.
+    padding: 24px 0 24px 24px;
+    margin: -24px 0 -24px -24px;
 }
 
 .latest-data-insights__card-container {
     display: flex;
     gap: var(--grid-gap);
     scrollbar-width: thin;
-    padding-bottom: 24px;
 }
 
 .latest-data-insights__card {
@@ -183,7 +189,7 @@
     align-items: center;
     gap: 8px;
     height: 12px;
-    margin-top: -12px;
+    bottom: -26px;
     z-index: 1;
     width: 100%;
 
