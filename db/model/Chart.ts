@@ -12,12 +12,12 @@ import {
     ChartTypeName,
     RelatedChart,
     DbPlainPostLink,
-    DbRawChart,
-    DbEnrichedChart,
-    parseChartsRow,
+    DbPlainChart,
     parseChartConfig,
     ChartRedirect,
     DbPlainTag,
+    DbRawChartConfig,
+    DbEnrichedChartConfig,
 } from "@ourworldindata/types"
 import { OpenAI } from "openai"
 import {
@@ -42,12 +42,11 @@ export async function mapSlugsToIds(
     const rows = await db.knexRaw<{ id: number; slug: string }>(
         knex,
         `-- sql
-    SELECT
-        id,
-        JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug
-    FROM charts
-    WHERE config->>"$.isPublished" = "true"
-`
+            SELECT c.id, cc.slug
+            FROM charts c
+            JOIN chart_configs cc ON cc.id = c.configId
+            WHERE cc.full ->> "$.isPublished" = "true"
+        `
     )
 
     const slugToId: { [slug: string]: number } = {}
@@ -72,16 +71,17 @@ export async function mapSlugsToConfigs(
         .knexRaw<{ slug: string; config: string; id: number }>(
             knex,
             `-- sql
-SELECT csr.slug AS slug, c.config AS config, c.id AS id
-FROM chart_slug_redirects csr
-JOIN charts c
-ON csr.chart_id = c.id
-WHERE c.config -> "$.isPublished" = true
-UNION
-SELECT c.slug AS slug, c.config AS config, c.id AS id
-FROM charts c
-WHERE c.config -> "$.isPublished" = true
-`
+                SELECT csr.slug AS slug, cc.full AS config, c.id AS id
+                FROM chart_slug_redirects csr
+                JOIN charts c ON csr.chart_id = c.id
+                JOIN chart_configs cc ON cc.id = c.configId
+                WHERE cc.full ->> "$.isPublished" = "true"
+                UNION
+                SELECT cc.slug, cc.full AS config, c.id AS id
+                FROM charts c
+                JOIN chart_configs cc ON cc.id = c.configId
+                WHERE cc.full ->> "$.isPublished" = "true"
+            `
         )
         .then((results) =>
             results.map((result) => ({
@@ -94,31 +94,42 @@ WHERE c.config -> "$.isPublished" = true
 export async function getEnrichedChartBySlug(
     knex: db.KnexReadonlyTransaction,
     slug: string
-): Promise<DbEnrichedChart | null> {
-    let chart = await db.knexRawFirst<DbRawChart>(
+): Promise<(DbPlainChart & { config: DbEnrichedChartConfig["full"] }) | null> {
+    let chart = await db.knexRawFirst<
+        DbPlainChart & { config: DbRawChartConfig["full"] }
+    >(
         knex,
-        `SELECT * FROM charts WHERE config ->> '$.slug' = ?`,
+        `-- sql
+            SELECT c.*, cc.full as config
+            FROM charts c
+            JOIN chart_configs cc ON c.configId = cc.id
+            WHERE cc.slug = ?
+        `,
         [slug]
     )
 
     if (!chart) {
-        chart = await db.knexRawFirst<DbRawChart>(
+        chart = await db.knexRawFirst<
+            DbPlainChart & { config: DbRawChartConfig["full"] }
+        >(
             knex,
             `-- sql
-            SELECT
-                c.*
-            FROM
-                chart_slug_redirects csr
-                JOIN charts c ON csr.chart_id = c.id
-            WHERE
-                csr.slug = ?`,
+                SELECT
+                    c.*, cc.full as config
+                FROM
+                    chart_slug_redirects csr
+                    JOIN charts c ON csr.chart_id = c.id
+                    JOIN chart_configs cc ON c.configId = cc.id
+                WHERE
+                    csr.slug = ?
+            `,
             [slug]
         )
     }
 
     if (!chart) return null
 
-    const enrichedChart = parseChartsRow(chart)
+    const enrichedChart = { ...chart, config: parseChartConfig(chart.config) }
 
     return enrichedChart
 }
@@ -126,10 +137,17 @@ export async function getEnrichedChartBySlug(
 export async function getRawChartById(
     knex: db.KnexReadonlyTransaction,
     id: number
-): Promise<DbRawChart | null> {
-    const chart = await db.knexRawFirst<DbRawChart>(
+): Promise<(DbPlainChart & { config: DbRawChartConfig["full"] }) | null> {
+    const chart = await db.knexRawFirst<
+        DbPlainChart & { config: DbRawChartConfig["full"] }
+    >(
         knex,
-        `SELECT * FROM charts WHERE id = ?`,
+        `-- sql
+            SELECT c.*, cc.full AS config
+            FROM charts c
+            JOIN chart_configs cc ON c.configId = cc.id
+            WHERE id = ?
+        `,
         [id]
     )
     if (!chart) return null
@@ -139,19 +157,24 @@ export async function getRawChartById(
 export async function getEnrichedChartById(
     knex: db.KnexReadonlyTransaction,
     id: number
-): Promise<DbEnrichedChart | null> {
+): Promise<(DbPlainChart & { config: DbEnrichedChartConfig["full"] }) | null> {
     const rawChart = await getRawChartById(knex, id)
     if (!rawChart) return null
-    return parseChartsRow(rawChart)
+    return { ...rawChart, config: parseChartConfig(rawChart.config) }
 }
 
 export async function getChartSlugById(
     knex: db.KnexReadonlyTransaction,
     id: number
 ): Promise<string | null> {
-    const chart = await db.knexRawFirst<Pick<DbRawChart, "slug">>(
+    const chart = await db.knexRawFirst<{ slug: string }>(
         knex,
-        `SELECT config ->> '$.slug' AS slug FROM charts WHERE id = ?`,
+        `-- sql
+            SELECT slug
+            FROM chart_configs cc
+            JOIN charts c ON c.configId = cc.id
+            WHERE c.id = ?
+        `,
         [id]
     )
     if (!chart) return null
@@ -161,10 +184,20 @@ export async function getChartSlugById(
 export const getChartConfigById = async (
     knex: db.KnexReadonlyTransaction,
     grapherId: number
-): Promise<Pick<DbEnrichedChart, "id" | "config"> | undefined> => {
-    const grapher = await db.knexRawFirst<Pick<DbRawChart, "id" | "config">>(
+): Promise<
+    | (Pick<DbPlainChart, "id"> & { config: DbEnrichedChartConfig["full"] })
+    | undefined
+> => {
+    const grapher = await db.knexRawFirst<
+        Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+    >(
         knex,
-        `SELECT id, config FROM charts WHERE id=?`,
+        `-- sql
+            SELECT c.id, cc.full as config
+            FROM charts c
+            JOIN chart_configs cc ON c.configId = cc.id
+            WHERE c.id=?
+        `,
         [grapherId]
     )
 
@@ -179,16 +212,24 @@ export const getChartConfigById = async (
 export async function getChartConfigBySlug(
     knex: db.KnexReadonlyTransaction,
     slug: string
-): Promise<Pick<DbEnrichedChart, "id" | "config">> {
-    const row = await db.knexRawFirst<Pick<DbRawChart, "id" | "config">>(
+): Promise<
+    Pick<DbPlainChart, "id"> & { config: DbEnrichedChartConfig["full"] }
+> {
+    const row = await db.knexRawFirst<
+        Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+    >(
         knex,
-        `SELECT id, config FROM charts WHERE JSON_EXTRACT(config, "$.slug") = ?`,
+        `-- sql
+            SELECT c.id, cc.full as config
+            FROM charts c
+            JOIN chart_configs cc ON c.configId = cc.id
+            WHERE cc.slug = ?`,
         [slug]
     )
 
     if (!row) throw new JsonError(`No chart found for slug ${slug}`, 404)
 
-    return { id: row.id, config: JSON.parse(row.config) }
+    return { id: row.id, config: parseChartConfig(row.config) }
 }
 
 export async function setChartTags(
@@ -287,11 +328,16 @@ export async function getGptTopicSuggestions(
 ): Promise<Pick<DbPlainTag, "id" | "name">[]> {
     if (!OPENAI_API_KEY) throw new JsonError("No OPENAI_API_KEY env found", 500)
 
-    const chartConfigOnly: Pick<DbRawChart, "config"> | undefined = await knex
-        .table<DbRawChart>("charts")
-        .select("config")
-        .where({ id: chartId })
-        .first()
+    const chartConfigOnly = await db.knexRawFirst<{ config: string }>(
+        knex,
+        `-- sql
+            SELECT cc.full as config
+            FROM chart_configs cc
+            JOIN charts c ON c.configId = cc.id
+            WHERE c.id = ?
+        `,
+        [chartId]
+    )
     if (!chartConfigOnly)
         throw new JsonError(`No chart found for id ${chartId}`, 404)
     const enrichedChartConfig = parseChartConfig(chartConfigOnly.config)
@@ -380,15 +426,15 @@ export interface OldChartFieldList {
 
 export const oldChartFieldList = `
         charts.id,
-        charts.config->>"$.title" AS title,
-        charts.config->>"$.slug" AS slug,
-        charts.config->>"$.type" AS type,
-        charts.config->>"$.internalNotes" AS internalNotes,
-        charts.config->>"$.variantName" AS variantName,
-        charts.config->>"$.isPublished" AS isPublished,
-        charts.config->>"$.tab" AS tab,
-        JSON_EXTRACT(charts.config, "$.hasChartTab") = true AS hasChartTab,
-        JSON_EXTRACT(charts.config, "$.hasMapTab") = true AS hasMapTab,
+        chart_configs.full->>"$.title" AS title,
+        chart_configs.full->>"$.slug" AS slug,
+        chart_configs.full->>"$.type" AS type,
+        chart_configs.full->>"$.internalNotes" AS internalNotes,
+        chart_configs.full->>"$.variantName" AS variantName,
+        chart_configs.full->>"$.isPublished" AS isPublished,
+        chart_configs.full->>"$.tab" AS tab,
+        JSON_EXTRACT(chart_configs.full, "$.hasChartTab") = true AS hasChartTab,
+        JSON_EXTRACT(chart_configs.full, "$.hasMapTab") = true AS hasMapTab,
         charts.lastEditedAt,
         charts.lastEditedByUserId,
         lastEditedByUser.fullName AS lastEditedBy,
@@ -417,15 +463,18 @@ export const getMostViewedGrapherIdsByChartType = async (
 ): Promise<number[]> => {
     const ids = await db.knexRaw<{ id: number }>(
         knex,
-        `SELECT c.id
-        FROM analytics_pageviews a
-        JOIN charts c ON c.slug = SUBSTRING_INDEX(a.url, '/', -1)
-        WHERE a.url LIKE "https://ourworldindata.org/grapher/%"
-            AND c.type = ?
-            AND c.config ->> "$.isPublished" = "true"
-            and (c.config ->> "$.hasChartTab" = "true" or c.config ->> "$.hasChartTab" is null)
-        ORDER BY a.views_365d DESC
-        LIMIT ?`,
+        `-- sql
+            SELECT c.id
+            FROM analytics_pageviews a
+            JOIN chart_configs cc ON slug = SUBSTRING_INDEX(a.url, '/', -1)
+            JOIN charts c ON c.configId = cc.id
+            WHERE a.url LIKE "https://ourworldindata.org/grapher/%"
+                AND cc.full ->> "$.type" = ?
+                AND cc.full ->> "$.isPublished" = "true"
+                and (cc.full ->> "$.hasChartTab" = "true" or cc.full ->> "$.hasChartTab" is null)
+            ORDER BY a.views_365d DESC
+            LIMIT ?
+        `,
         [chartType, count]
     )
     return ids.map((row) => row.id)
@@ -444,19 +493,20 @@ export const getRelatedChartsForVariable = async (
     return db.knexRaw<RelatedChart>(
         knex,
         `-- sql
-                SELECT
-                    charts.config->>"$.slug" AS slug,
-                    charts.config->>"$.title" AS title,
-                    charts.config->>"$.variantName" AS variantName,
-                    MAX(chart_tags.keyChartLevel) as keyChartLevel
-                FROM charts
-                INNER JOIN chart_tags ON charts.id=chart_tags.chartId
-                WHERE JSON_CONTAINS(config->'$.dimensions', '{"variableId":${variableId}}')
-                AND charts.config->>"$.isPublished" = "true"
-                ${excludeChartIds}
-                GROUP BY charts.id
-                ORDER BY title ASC
-            `
+            SELECT
+                chart_configs.slug,
+                chart_configs.full->>"$.title" AS title,
+                chart_configs.full->>"$.variantName" AS variantName,
+                MAX(chart_tags.keyChartLevel) as keyChartLevel
+            FROM charts
+            JOIN chart_configs ON charts.configId=chart_configs.id
+            INNER JOIN chart_tags ON charts.id=chart_tags.chartId
+            WHERE JSON_CONTAINS(chart_configs.full->'$.dimensions', '{"variableId":${variableId}}')
+            AND chart_configs.full->>"$.isPublished" = "true"
+            ${excludeChartIds}
+            GROUP BY charts.id
+            ORDER BY title ASC
+        `
     )
 }
 

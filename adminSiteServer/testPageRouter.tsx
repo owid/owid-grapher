@@ -24,13 +24,13 @@ import {
 import { grapherToSVG } from "../baker/GrapherImageBaker.js"
 import {
     ChartTypeName,
-    ChartsTableName,
     ColorSchemeName,
-    DbRawChart,
+    DbRawChartConfig,
+    DbPlainChart,
     EntitySelectionMode,
     GrapherTabOption,
     StackMode,
-    parseChartsRow,
+    parseChartConfig,
 } from "@ourworldindata/types"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
@@ -140,27 +140,28 @@ async function propsFromQueryParams(
 
     let query = knex
         .table("charts")
-        .whereRaw("publishedAt IS NOT NULL")
-        .orderBy("id", "DESC")
+        .join({ cc: "chart_configs" }, "charts.configId", "cc.id")
+        .whereRaw("charts.publishedAt IS NOT NULL")
+        .orderBy("charts.id", "DESC")
     console.error(query.toSQL())
 
     let tab = params.tab
 
     if (params.type) {
         if (params.type === ChartTypeName.WorldMap) {
-            query = query.andWhereRaw(`config->>"$.hasMapTab" = "true"`)
+            query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
             tab = tab || GrapherTabOption.map
         } else {
             if (params.type === "LineChart") {
                 query = query.andWhereRaw(
                     `(
-                        config->"$.type" = "LineChart"
-                        OR config->"$.type" IS NULL
-                    ) AND COALESCE(config->>"$.hasChartTab", "true") = "true"`
+                        cc.full->"$.type" = "LineChart"
+                        OR cc.full->"$.type" IS NULL
+                    ) AND COALESCE(cc.full->>"$.hasChartTab", "true") = "true"`
                 )
             } else {
                 query = query.andWhereRaw(
-                    `config->"$.type" = :type AND COALESCE(config->>"$.hasChartTab", "true") = "true"`,
+                    `cc.full->"$.type" = :type AND COALESCE(cc.full->>"$.hasChartTab", "true") = "true"`,
                     { type: params.type }
                 )
             }
@@ -170,27 +171,27 @@ async function propsFromQueryParams(
 
     if (params.logLinear) {
         query = query.andWhereRaw(
-            `config->>'$.yAxis.canChangeScaleType' = "true" OR config->>'$.xAxis.canChangeScaleType'  = "true"`
+            `cc.full->>'$.yAxis.canChangeScaleType' = "true" OR cc.full->>'$.xAxis.canChangeScaleType'  = "true"`
         )
         tab = GrapherTabOption.chart
     }
 
     if (params.comparisonLines) {
         query = query.andWhereRaw(
-            `config->'$.comparisonLines[0].yEquals' != ''`
+            `cc.full->'$.comparisonLines[0].yEquals' != ''`
         )
         tab = GrapherTabOption.chart
     }
 
     if (params.stackMode) {
-        query = query.andWhereRaw(`config->'$.stackMode' = :stackMode`, {
+        query = query.andWhereRaw(`cc.full->'$.stackMode' = :stackMode`, {
             stackMode: params.stackMode,
         })
         tab = GrapherTabOption.chart
     }
 
     if (params.relativeToggle) {
-        query = query.andWhereRaw(`config->>'$.hideRelativeToggle' = "false"`)
+        query = query.andWhereRaw(`cc.full->>'$.hideRelativeToggle' = "false"`)
         tab = GrapherTabOption.chart
     }
 
@@ -199,7 +200,7 @@ async function propsFromQueryParams(
         // have a visible categorial legend, and can leave out some that have one.
         // But in practice it seems to work reasonably well.
         query = query.andWhereRaw(
-            `json_length(config->'$.map.colorScale.customCategoryColors') > 1`
+            `json_length(cc.full->'$.map.colorScale.customCategoryColors') > 1`
         )
         tab = GrapherTabOption.map
     }
@@ -225,13 +226,13 @@ async function propsFromQueryParams(
         const mode = params.addCountryMode
         if (mode === EntitySelectionMode.MultipleEntities) {
             query = query.andWhereRaw(
-                `config->'$.addCountryMode' IS NULL OR config->'$.addCountryMode' = :mode`,
+                `cc.full->'$.addCountryMode' IS NULL OR cc.full->'$.addCountryMode' = :mode`,
                 {
                     mode: EntitySelectionMode.MultipleEntities,
                 }
             )
         } else {
-            query = query.andWhereRaw(`config->'$.addCountryMode' = :mode`, {
+            query = query.andWhereRaw(`cc.full->'$.addCountryMode' = :mode`, {
                 mode,
             })
         }
@@ -242,10 +243,10 @@ async function propsFromQueryParams(
     }
 
     if (tab === GrapherTabOption.map) {
-        query = query.andWhereRaw(`config->>"$.hasMapTab" = "true"`)
+        query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
     } else if (tab === GrapherTabOption.chart) {
         query = query.andWhereRaw(
-            `COALESCE(config->>"$.hasChartTab", "true") = "true"`
+            `COALESCE(cc.full->>"$.hasChartTab", "true") = "true"`
         )
     }
 
@@ -283,7 +284,7 @@ async function propsFromQueryParams(
 
     const chartsQuery = query
         .clone()
-        .select("id", "slug")
+        .select(knex.raw("charts.id, cc.slug"))
         .limit(perPage)
         .offset(perPage * (page - 1))
 
@@ -473,13 +474,26 @@ getPlainRouteWithROTransaction(
     "/embeds/:id",
     async (req, res, trx) => {
         const id = req.params.id
-        const chartRaw: DbRawChart = await trx
-            .table(ChartsTableName)
-            .where({ id: id })
-            .first()
-        const chartEnriched = parseChartsRow(chartRaw)
-        const viewProps = await getViewPropsFromQueryParams(req.query)
-        if (chartEnriched) {
+        const chartRaw = await db.knexRawFirst<
+            Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+        >(
+            trx,
+            `--sql
+                select ca.id, cc.full as config
+                from charts ca
+                join chart_configs cc
+                on ca.configId = cc.id
+                where ca.id = ?
+            `,
+            [id]
+        )
+
+        if (chartRaw) {
+            const chartEnriched = {
+                ...chartRaw,
+                config: parseChartConfig(chartRaw.config),
+            }
+            const viewProps = await getViewPropsFromQueryParams(req.query)
             const charts = [
                 {
                     id: chartEnriched.id,
@@ -727,9 +741,15 @@ getPlainRouteWithROTransaction(
     testPageRouter,
     "/previews",
     async (req, res, trx) => {
-        const rows = await db.knexRaw(
+        const rows = await db.knexRaw<{ config: DbRawChartConfig["full"] }>(
             trx,
-            `SELECT config FROM charts LIMIT 200`
+            `--sql
+                SELECT cc.full as config
+                FROM charts ca
+                JOIN chart_configs cc
+                ON ca.configId = cc.id
+                LIMIT 200
+            `
         )
         const charts = rows.map((row: any) => JSON.parse(row.config))
 
@@ -741,9 +761,15 @@ getPlainRouteWithROTransaction(
     testPageRouter,
     "/embedVariants",
     async (req, res, trx) => {
-        const rows = await db.knexRaw(
+        const rows = await db.knexRaw<{ config: DbRawChartConfig["full"] }>(
             trx,
-            `SELECT config FROM charts WHERE id=64`
+            `--sql
+                SELECT cc.full as config
+                FROM charts ca
+                JOIN chart_configs cc
+                ON ca.configId = cc.id
+                WHERE ca.id=64
+            `
         )
         const charts = rows.map((row: any) => JSON.parse(row.config))
         const viewProps = getViewPropsFromQueryParams(req.query)
