@@ -304,10 +304,12 @@ export const getTotalNumberOfCharts = (
 ): Promise<number> => {
     return knexRawFirst<{ count: number }>(
         knex,
+        `-- sql
+            SELECT COUNT(*) AS count
+            FROM charts c
+            JOIN chart_configs cc ON c.configId = cc.id
+            WHERE cc.full ->> "$.isPublished" = "true"
         `
-        SELECT COUNT(*) AS count
-        FROM charts
-        WHERE config->"$.isPublished" = TRUE`
     ).then((res) => res?.count ?? 0)
 }
 
@@ -665,4 +667,14 @@ export async function getLinkedIndicatorSlugs({
         .then((gdocs) => gdocs.map((gdoc) => gdocFromJSON(gdoc)))
         .then((gdocs) => gdocs.flatMap((gdoc) => gdoc.linkedKeyIndicatorSlugs))
         .then((slugs) => new Set(slugs))
+}
+
+export const getBinaryUUID = async (
+    knex: KnexReadonlyTransaction
+): Promise<Buffer> => {
+    const { id } = (await knexRawFirst<{ id: Buffer }>(
+        knex,
+        `SELECT UUID_TO_BIN(UUID(), 1) AS id`
+    ))!
+    return id
 }
