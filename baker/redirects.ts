@@ -97,9 +97,11 @@ export const getGrapherRedirectsMap = async (
     }>(
         knex,
         `-- sql
-        SELECT chart_slug_redirects.slug as oldSlug, charts.config ->> "$.slug" as newSlug
-        FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
-    `
+            SELECT chart_slug_redirects.slug as oldSlug, chart_configs.slug as newSlug
+            FROM chart_slug_redirects
+            INNER JOIN charts ON charts.id=chart_id
+            INNER JOIN chart_configs ON chart_configs.id=charts.configId
+        `
     )) as Array<{ oldSlug: string; newSlug: string }>
 
     return new Map(
