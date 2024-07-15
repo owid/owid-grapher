@@ -1,6 +1,19 @@
 import { IRequestStrict, Router, error } from "itty-router"
-import { fetchCsvForGrapher } from "../_common/grapherRenderer.js"
+import {
+    fetchCsvForGrapher,
+    fetchMetadataForGrapher,
+    fetchZipForGrapher,
+    fetchReadmeForGrapher,
+} from "../_common/grapherRenderer.js"
 import { Env } from "./thumbnail/[slug].js"
+
+enum PageType {
+    grapher = "grapher",
+    csv = "csv",
+    metadata = "metadata",
+    readme = "readme",
+    zip = "zip",
+}
 export const onRequestGet: PagesFunction = async (context) => {
     // Makes it so that if there's an error, we will just deliver the original page before the HTML rewrite.
     // Only caveat is that redirects will not be taken into account for some reason; but on the other hand the worker is so simple that it's unlikely to fail.
@@ -28,14 +41,42 @@ export const onRequestGet: PagesFunction = async (context) => {
 
     const { request, env, params } = context
     const url = new URL(request.url)
-    const isCsvRequest = url.pathname.endsWith(".csv")
-    const createRedirectResponse = (redirSlug: string, currentUrl: URL) =>
-        new Response(null, {
+    let pageType = PageType.grapher
+    if (url.pathname.endsWith(".csv")) {
+        pageType = PageType.csv
+    }
+    if (url.pathname.endsWith(".zip")) {
+        pageType = PageType.zip
+    }
+    if (url.pathname.endsWith(".metadata.json")) {
+        pageType = PageType.metadata
+    }
+    if (url.pathname.endsWith(".readme.md")) {
+        // eventually this not be accessible outside the zip file
+        pageType = PageType.readme
+    }
+
+    const createRedirectResponse = (redirSlug: string, currentUrl: URL) => {
+        let extension = ""
+        if (pageType === PageType.csv) {
+            extension = ".csv"
+        }
+        if (pageType === PageType.zip) {
+            extension = ".zip"
+        }
+        if (pageType === PageType.metadata) {
+            extension = ".metadata.json"
+        }
+        if (pageType === PageType.readme) {
+            extension = "readme.md"
+        }
+        return new Response(null, {
             status: 302,
             headers: {
-                Location: `/grapher/${redirSlug}${isCsvRequest ? ".csv" : ""}${currentUrl.search}`,
+                Location: `/grapher/${redirSlug}${extension}${currentUrl.search}`,
             },
         })
+    }
 
     const originalSlug = params.slug as string
 
@@ -69,8 +110,19 @@ export const onRequestGet: PagesFunction = async (context) => {
     const grapherUrl = new URL(request.url)
     // if we have a csv url, then create a new url without the csv extension but keeping the query params
     // this is to check if the page exists and to redirect to the correct page if it does
-    if (isCsvRequest) {
-        grapherUrl.pathname = url.pathname.replace(/\.csv$/, "")
+    if (pageType !== PageType.grapher) {
+        if (pageType === PageType.csv) {
+            grapherUrl.pathname = url.pathname.replace(/\.csv$/, "")
+        }
+        if (pageType === PageType.zip) {
+            grapherUrl.pathname = url.pathname.replace(/\.zip$/, "")
+        }
+        if (pageType === PageType.metadata) {
+            grapherUrl.pathname = url.pathname.replace(/\.metadata.json$/, "")
+        }
+        if (pageType === PageType.readme) {
+            grapherUrl.pathname = url.pathname.replace(/\.readme\.md$/, "")
+        }
     }
 
     const grapherPageResp = await env.ASSETS.fetch(grapherUrl, {
@@ -135,8 +187,7 @@ export const onRequestGet: PagesFunction = async (context) => {
         return rewriter.transform(grapherPageResp)
     }
 
-    const shouldCache =
-        !url.searchParams.has("nocache") && context.request.url.endsWith(".csv")
+    const shouldCache = !url.searchParams.has("nocache")
 
     const cache = caches.default
     if (shouldCache) {
@@ -152,6 +203,21 @@ export const onRequestGet: PagesFunction = async (context) => {
             "/grapher/:slug.csv",
             async ({ params: { slug } }, { searchParams }, env) =>
                 fetchCsvForGrapher(slug, env, searchParams) // pass undefined if we want the full csv
+        )
+        .get(
+            "/grapher/:slug.metadata.json",
+            async ({ params: { slug } }, { searchParams }, env) =>
+                fetchMetadataForGrapher(slug, env, searchParams) // pass undefined if we want the full csv
+        )
+        .get(
+            "/grapher/:slug.zip",
+            async ({ params: { slug } }, { searchParams }, env) =>
+                fetchZipForGrapher(slug, env, searchParams) // pass undefined if we want the full csv
+        )
+        .get(
+            "/grapher/:slug.readme.md",
+            async ({ params: { slug } }, { searchParams }, env) =>
+                fetchReadmeForGrapher(slug, env, searchParams) // pass undefined if we want the full csv
         )
         .get(
             "/grapher/:slug",

@@ -174,6 +174,71 @@ async function initGrapher(
     return grapher
 }
 
+export async function fetchMetadataForGrapher(
+    slug: string,
+    env: Env,
+    searchParams?: URLSearchParams
+) {
+    const grapherLogger = new TimeLogger("grapher")
+    console.log("Initializing grapher")
+    const grapher = await initGrapher(
+        {
+            slug,
+            options: TWITTER_OPTIONS,
+            searchParams: searchParams ?? new URLSearchParams(""),
+            env,
+        },
+        grapherLogger
+    )
+    console.log("Downloading data")
+    await grapher.downloadLegacyDataFromOwidVariableIds()
+    console.log("Getting defs")
+    const defs = grapher.inputTable
+        .getColumns(grapher.inputTable.columnNames)
+        .map((col) => col.def)
+    console.log("Returning response")
+    return new Response(JSON.stringify(defs), {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+}
+
+export async function fetchZipForGrapher(
+    slug: string,
+    env: Env,
+    searchParams?: URLSearchParams
+) {
+    const grapherLogger = new TimeLogger("grapher")
+    const grapher = await initGrapher(
+        {
+            slug,
+            options: TWITTER_OPTIONS,
+            searchParams: searchParams ?? new URLSearchParams(""),
+            env,
+        },
+        grapherLogger
+    )
+    await grapher.downloadLegacyDataFromOwidVariableIds()
+    const defs = grapher.inputTable
+        .getColumns(grapher.inputTable.columnNames)
+        .map((col) => col.def)
+    const table =
+        searchParams.get("csvType") === "filtered"
+            ? grapher.transformedTable
+            : grapher.inputTable
+    const json = JSON.stringify(defs)
+    const zip = new JSZip()
+    zip.file("metadata.json", json)
+    zip.file("data.csv", table.toPrettyCsv())
+    const content = await zip.generateAsync({ type: "blob" })
+    return new Response(content, {
+        headers: {
+            "Content-Type": "application/zip",
+        },
+    })
+}
+
 export async function fetchCsvForGrapher(
     slug: string,
     env: Env,
@@ -197,6 +262,51 @@ export async function fetchCsvForGrapher(
     return new Response(table.toPrettyCsv(), {
         headers: {
             "Content-Type": "text/csv",
+        },
+    })
+}
+
+export async function fetchReadmeForGrapher(
+    slug: string,
+    env: Env,
+    searchParams?: URLSearchParams
+) {
+    console.log("Initializing grapher")
+    const grapherLogger = new TimeLogger("grapher")
+    const grapher = await initGrapher(
+        {
+            slug,
+            options: TWITTER_OPTIONS,
+            searchParams: searchParams ?? new URLSearchParams(""),
+            env,
+        },
+        grapherLogger
+    )
+    console.log("Downloading data")
+    await grapher.downloadLegacyDataFromOwidVariableIds()
+    console.log("Getting defs")
+    const sources = grapher.inputTable
+        .getColumns(grapher.inputTable.columnNames)
+        .map(
+            (col) => `{## ${col.def.name}}
+${col.def.description}
+    `
+        )
+    console.log("Returning response")
+
+    const readme = `# ${grapher.title} - Data package
+
+This data package contains the data that powers the chart ["${grapher.title}"](${grapher.originUrl}) on the Our World in Data website.
+The source of this data is ${grapher.sourceDesc}.
+
+## Individual time series information
+
+${sources.join("\n")}
+
+    `
+    return new Response(readme, {
+        headers: {
+            "Content-Type": "text/markdown",
         },
     })
 }
