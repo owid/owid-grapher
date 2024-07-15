@@ -204,9 +204,10 @@
 .data-insight-cards-container {
     padding-top: 40px;
     border-top: $blue-10 4px solid;
-    margin-bottom: 24px;
     display: flex;
     flex-wrap: wrap;
+    gap: 24px;
+
     h2 {
         margin: 0;
     }
@@ -234,14 +235,13 @@
         }
     }
 
-    .data-insight-cards-container__cards {
-        margin-top: 24px;
-        overflow: auto;
-    }
-
     @include md-down {
         border-top: none;
     }
+}
+
+.data-insights-carousel {
+    width: 100%;
 }
 
 // Index page

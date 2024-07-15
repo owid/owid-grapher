@@ -28,7 +28,10 @@ export default function LatestDataInsightsBlock({
                 text="See all Daily Data Insights"
                 theme="outline-vermillion"
             />
-            <LatestDataInsights latestDataInsights={latestDataInsights} />
+            <LatestDataInsights
+                className="span-cols-12 col-start-2"
+                latestDataInsights={latestDataInsights}
+            />
         </section>
     )
 }

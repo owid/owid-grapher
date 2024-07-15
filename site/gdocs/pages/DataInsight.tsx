@@ -53,9 +53,10 @@ export const LatestDataInsightCards = (props: {
                     <FontAwesomeIcon icon={faArrowRight} />
                 </a>
             </div>
-            <div className="data-insight-cards-container__cards">
-                <LatestDataInsights latestDataInsights={latestDataInsights} />
-            </div>
+            <LatestDataInsights
+                className="data-insights-carousel"
+                latestDataInsights={latestDataInsights}
+            />
         </div>
     )
 }

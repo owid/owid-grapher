@@ -32,8 +32,10 @@ import Image from "./Image.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 
 export default function LatestDataInsights({
+    className,
     latestDataInsights,
 }: {
+    className?: string
     latestDataInsights: OwidGdocDataInsightInterface[]
 }) {
     const dataInsights = useMemo(
@@ -80,7 +82,7 @@ export default function LatestDataInsights({
     }, [emblaApi])
 
     return (
-        <div className="latest-data-insights span-cols-12 col-start-2">
+        <div className={cx("latest-data-insights", className)}>
             <div className="latest-data-insights__viewport" ref={emblaRef}>
                 <div className="latest-data-insights__card-container">
                     {dataInsights.map((dataInsight, index) => (
