@@ -234,7 +234,6 @@
         "tsx": "^4.10.2",
         "vite": "^5.3.4",
         "vite-plugin-checker": "^0.6.4",
-        "vite-plugin-warmup": "^0.1.0",
         "wrangler": "^3.61.0"
     },
     "prettier": {

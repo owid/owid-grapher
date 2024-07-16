@@ -10379,7 +10379,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-glob@npm:^3.2.12, fast-glob@npm:^3.2.7, fast-glob@npm:^3.2.9, fast-glob@npm:^3.3.1":
+"fast-glob@npm:^3.2.7, fast-glob@npm:^3.2.9, fast-glob@npm:^3.3.1":
   version: 3.3.2
   resolution: "fast-glob@npm:3.3.2"
   dependencies:
@@ -11477,7 +11477,6 @@ __metadata:
     url-slug: "npm:^3.0.2"
     vite: "npm:^5.3.4"
     vite-plugin-checker: "npm:^0.6.4"
-    vite-plugin-warmup: "npm:^0.1.0"
     webfontloader: "npm:^1.6.28"
     workerpool: "npm:^6.2.0"
     wrangler: "npm:^3.61.0"
@@ -20647,17 +20646,6 @@ __metadata:
     vue-tsc:
       optional: true
   checksum: 10/286dcc11d71e05ba09df2f3e442dbbba00fe26d6fcb59a23870fa769fcb748743dfc9c1fb04bb369758cdd13a91c2a5b5a39c85996f468aea33685ffba2d8b37
-  languageName: node
-  linkType: hard
-
-"vite-plugin-warmup@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "vite-plugin-warmup@npm:0.1.0"
-  dependencies:
-    fast-glob: "npm:^3.2.12"
-  peerDependencies:
-    vite: ^4.3.1
-  checksum: 10/ab63bb7d61704f00ac041bd9b5dfe22c1ad505700661c90d383226f81b797f9a1b49d2495358616a2ec434761ccb4312f476ebbe1f3ef6b6598c8e2629727101
   languageName: node
   linkType: hard
 

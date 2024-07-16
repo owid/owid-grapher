@@ -1,7 +1,6 @@
 import { defineConfig } from "vite"
 import pluginReact from "@vitejs/plugin-react"
 import pluginChecker from "vite-plugin-checker"
-import { warmup as pluginWarmup } from "vite-plugin-warmup"
 import * as clientSettings from "./settings/clientSettings.js"
 import {
     VITE_ASSET_SITE_ENTRY,
@@ -37,7 +36,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             devSourcemap: true,
         },
         define: {
-            // Replace all clientSettings with their respective values, i.e. assign e.g. BUGNSAG_API_KEY to process.env.BUGNSAG_API_KEY
+            // Replace all clientSettings with their respective values, i.e. assign e.g. BUGSNAG_API_KEY to process.env.BUGSNAG_API_KEY
             // it's important to note that we only expose values that are present in the clientSettings file - not any other things that are stored in .env
             ...Object.fromEntries(
                 Object.entries(clientSettings).map(([key, value]) => [
@@ -76,10 +75,10 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                     tsconfigPath: "tsconfig.vite-checker.json",
                 },
             }),
-            pluginWarmup({ clientFiles: [VITE_ASSET_SITE_ENTRY] }),
         ],
         server: {
             port: 8090,
+            warmup: { clientFiles: [VITE_ASSET_SITE_ENTRY] },
         },
         preview: {
             port: 8090,
