@@ -1,12 +1,12 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class FillChartIdInChartConfig1711487196262
+export class RemoveHideLinesOutsideToleranceFromConfig1721137710001
     implements MigrationInterface
 {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             UPDATE charts
-            SET config = JSON_REMOVE(config, '$."hideLinesOutsideTolerance"', true)
+            SET config = JSON_REMOVE(config, '$."hideLinesOutsideTolerance"')
             WHERE
                 type = "ScatterPlot"
             AND
