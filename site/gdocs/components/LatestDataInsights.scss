@@ -13,6 +13,10 @@
     margin: -24px 0 -24px -24px;
 }
 
+html:not(.js) .latest-data-insights__viewport {
+    overflow: auto;
+}
+
 .latest-data-insights__card-container {
     display: flex;
     gap: var(--grid-gap);
@@ -33,6 +37,7 @@
     }
 }
 
+html:not(.js) .latest-data-insights__card,
 .latest-data-insights__card.is-snapped {
     opacity: 1;
 }
