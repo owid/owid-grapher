@@ -61,24 +61,6 @@
         @include owid-link-90;
     }
 
-    .metadata-entry {
-        @include body-3-medium;
-    }
-
-    .metadata-entry__title {
-        color: $blue-50;
-    }
-
-    .metadata-entry__value {
-        color: $blue-90;
-    }
-
-    .description {
-        @include body-3-medium;
-        margin-top: 0;
-        margin-bottom: 16px;
-    }
-
     .datapage-link {
         margin-top: 16px;
         display: inline-block;
