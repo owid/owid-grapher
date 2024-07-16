@@ -233,7 +233,7 @@
         "topojson-server": "^3.0.1",
         "tsx": "^4.16.2",
         "vite": "^5.3.4",
-        "vite-plugin-checker": "^0.6.4",
+        "vite-plugin-checker": "^0.7.2",
         "wrangler": "^3.61.0"
     },
     "prettier": {
