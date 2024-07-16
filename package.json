@@ -231,7 +231,7 @@
         "sass": "^1.69.5",
         "tmex": "^1.0.8",
         "topojson-server": "^3.0.1",
-        "tsx": "^4.10.2",
+        "tsx": "^4.16.2",
         "vite": "^5.3.4",
         "vite-plugin-checker": "^0.6.4",
         "wrangler": "^3.61.0"
