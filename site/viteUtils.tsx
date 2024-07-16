@@ -7,7 +7,7 @@ import {
     VITE_PREVIEW,
 } from "../settings/serverSettings.js"
 import { POLYFILL_URL } from "./SiteConstants.js"
-import type { Manifest } from "vite"
+import type { Manifest, ManifestChunk } from "vite"
 import { sortBy } from "@ourworldindata/utils"
 import urljoin from "url-join"
 
@@ -97,13 +97,13 @@ export const createTagsForManifestEntry = (
     const createTags = (entry: string): React.ReactElement[] => {
         const manifestEntry =
             Object.values(manifest).find((e) => e.file === entry) ??
-            manifest[entry]
+            (manifest[entry] as ManifestChunk | undefined)
         let assets = [] as React.ReactElement[]
 
-        if (!manifestEntry)
+        if (!manifestEntry && !entry.endsWith(".css"))
             throw new Error(`Could not find manifest entry for ${entry}`)
 
-        const assetUrl = urljoin(assetBaseUrl, manifestEntry.file)
+        const assetUrl = urljoin(assetBaseUrl, manifestEntry?.file ?? entry)
 
         if (entry.endsWith(".css")) {
             assets = [
@@ -118,7 +118,7 @@ export const createTagsForManifestEntry = (
             ]
         } else if (entry.match(/\.[cm]?(js|jsx|ts|tsx)$/)) {
             // explicitly reference the entry; preload it and its dependencies
-            if (manifestEntry.isEntry) {
+            if (manifestEntry?.isEntry) {
                 assets = [
                     ...assets,
                     <script key={entry} type="module" src={assetUrl} />,
@@ -137,10 +137,10 @@ export const createTagsForManifestEntry = (
 
         // we need to recurse into both the module imports and imported css files, and add tags for them as well
         // also, we need to take care of the order here, so the imported file is loaded before the importing file
-        if (manifestEntry.css) {
+        if (manifestEntry?.css) {
             assets = [...manifestEntry.css.flatMap(createTags), ...assets]
         }
-        if (manifestEntry.imports) {
+        if (manifestEntry?.imports) {
             assets = [...manifestEntry.imports.flatMap(createTags), ...assets]
         }
         return assets
@@ -158,7 +158,7 @@ export const createTagsForManifestEntry = (
 const prodAssets = (entrypoint: ViteEntryPoint, baseUrl: string): Assets => {
     const baseDir = findBaseDir(__dirname)
     const entrypointInfo = VITE_ENTRYPOINT_INFO[entrypoint]
-    const manifestPath = `${baseDir}/dist/${entrypointInfo.outDir}/manifest.json`
+    const manifestPath = `${baseDir}/dist/${entrypointInfo.outDir}/.vite/manifest.json`
     let manifest
     try {
         manifest = fs.readJsonSync(manifestPath) as Manifest
