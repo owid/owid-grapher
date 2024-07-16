@@ -30,7 +30,7 @@
     "devDependencies": {
         "@types/react": "^17.0.69",
         "@types/react-dom": "^17.0.22",
-        "esbuild-sass-plugin": "^2.16.0",
+        "esbuild-sass-plugin": "^3.3.1",
         "eslint": "^8.57.0",
         "eslint-plugin-react-hooks": "^4.6.0",
         "typescript": "~5.5.2"
