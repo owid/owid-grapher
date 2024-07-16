@@ -1,4 +1,5 @@
 import {
+    defaultGrapherConfig,
     getVariableDataRoute,
     getVariableMetadataRoute,
     GrapherProgrammaticInterface,
@@ -15,6 +16,7 @@ import {
     GrapherInterface,
     ImageMetadata,
     Url,
+    diffGrapherConfigs,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import React from "react"
@@ -85,6 +87,7 @@ export const DataPageV2 = (props: {
         compact(grapher?.dimensions?.map((d) => d.variableId))
     )
 
+    // TODO(inheritance): use mergeGrapherConfigs instead
     const mergedGrapherConfig = mergePartialGrapherConfigs(
         datapageData.chartConfig as GrapherInterface,
         grapher
@@ -101,6 +104,12 @@ export const DataPageV2 = (props: {
         adminBaseUrl: ADMIN_BASE_URL,
         dataApiUrl: DATA_API_URL,
     }
+
+    // We bake the Grapher config without defaults
+    const grapherConfigToBake = diffGrapherConfigs(
+        grapherConfig,
+        defaultGrapherConfig
+    )
 
     // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
     const minimalTagToSlugMap = pick(
@@ -181,7 +190,7 @@ export const DataPageV2 = (props: {
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `window._OWID_GRAPHER_CONFIG = ${serializeJSONForHTML(
-                            grapherConfig
+                            grapherConfigToBake
                         )}`,
                     }}
                 />
