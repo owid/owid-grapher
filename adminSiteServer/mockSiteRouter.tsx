@@ -100,7 +100,7 @@ getPlainRouteNonIdempotentWithRWTransaction(
     `/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
     async (_, res) => {
         res.set("Content-Type", "application/xml")
-        const atomFeedDataInsights = await db.knexReadonlyTransaction((knex) =>
+        const atomFeedDataInsights = await db.knexReadWriteTransaction((knex) =>
             makeDataInsightsAtomFeed(knex)
         )
         res.send(atomFeedDataInsights)
