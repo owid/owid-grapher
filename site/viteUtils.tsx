@@ -158,7 +158,7 @@ export const createTagsForManifestEntry = (
 const prodAssets = (entrypoint: ViteEntryPoint, baseUrl: string): Assets => {
     const baseDir = findBaseDir(__dirname)
     const entrypointInfo = VITE_ENTRYPOINT_INFO[entrypoint]
-    const manifestPath = `${baseDir}/dist/${entrypointInfo.outDir}/manifest.json`
+    const manifestPath = `${baseDir}/dist/${entrypointInfo.outDir}/.vite/manifest.json`
     let manifest
     try {
         manifest = fs.readJsonSync(manifestPath) as Manifest
