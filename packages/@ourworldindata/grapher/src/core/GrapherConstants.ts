@@ -58,14 +58,11 @@ export const GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR = 735665 // "Wo
 export const isContinentsVariableId = (id: string | number): boolean =>
     id.toString() === CONTINENTS_INDICATOR_ID.toString()
 
-export const isPopulationVariableId = (id: string | number): boolean => {
-    const idString = id.toString()
-    return (
-        idString === "525709" || // "Population (historical + projections), Gapminder, HYDE & UN"
-        idString === "525711" || // "Population (historical estimates), Gapminder, HYDE & UN"
-        idString === "597929" || // "Population (various sources, 2023.1)"
-        idString === "597930" // "Population (various sources, 2023.1)"
-    )
+const population_regex =
+    /^grapher\/demography\/[\d-]+\/population\/population#population(_historical)?$/
+
+export const isPopulationVariableETLPath = (path: string): boolean => {
+    return population_regex.test(path)
 }
 
 export enum Patterns {

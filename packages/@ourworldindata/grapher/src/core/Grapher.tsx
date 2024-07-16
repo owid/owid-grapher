@@ -125,7 +125,7 @@ import {
     GRAPHER_LIGHT_TEXT,
     GRAPHER_LOADED_EVENT_NAME,
     isContinentsVariableId,
-    isPopulationVariableId,
+    isPopulationVariableETLPath,
 } from "../core/GrapherConstants"
 import { loadVariableDataAndMetadata } from "./loadVariable"
 import Cookies from "js-cookie"
@@ -1626,17 +1626,23 @@ export class Grapher
             columnSlugs.push(colorColumnSlug)
 
         if (xColumnSlug !== undefined) {
+            const xColumn = this.inputTable.get(xColumnSlug)
+                .def as OwidColumnDef
             // exclude population variable if it's used as the x dimension in a marimekko
-            if (!isMarimekko || !isPopulationVariableId(xColumnSlug))
+            if (
+                !isMarimekko ||
+                !isPopulationVariableETLPath(xColumn?.catalogPath ?? "")
+            )
                 columnSlugs.push(xColumnSlug)
         }
 
         // exclude population variable if it's used as the size dimension in a scatter plot
-        if (
-            sizeColumnSlug !== undefined &&
-            !isPopulationVariableId(sizeColumnSlug)
-        )
-            columnSlugs.push(sizeColumnSlug)
+        if (sizeColumnSlug !== undefined) {
+            const sizeColumn = this.inputTable.get(sizeColumnSlug)
+                .def as OwidColumnDef
+            if (!isPopulationVariableETLPath(sizeColumn?.catalogPath ?? ""))
+                columnSlugs.push(sizeColumnSlug)
+        }
         return columnSlugs
     }
 

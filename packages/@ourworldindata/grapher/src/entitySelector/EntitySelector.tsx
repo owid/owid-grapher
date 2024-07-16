@@ -38,13 +38,13 @@ import {
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
     POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
     GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
-    isPopulationVariableId,
+    isPopulationVariableETLPath,
 } from "../core/GrapherConstants"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { SortIcon } from "../controls/SortIcon"
 import { Dropdown } from "../controls/Dropdown"
 import { scaleLinear, type ScaleLinear } from "d3-scale"
-import { ColumnSlug } from "@ourworldindata/types"
+import { ColumnSlug, OwidColumnDef } from "@ourworldindata/types"
 import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { OverlayHeader } from "../core/OverlayHeader.js"
@@ -100,7 +100,9 @@ const EXTERNAL_SORT_INDICATORS = [
         label: "Population",
         indicatorId: POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
         isMatch: (column: CoreColumn): boolean =>
-            isPopulationVariableId(column.slug),
+            isPopulationVariableETLPath(
+                (column as OwidColumnDef)?.catalogPath ?? ""
+            ),
     },
     {
         key: "gdpPerCapita",
