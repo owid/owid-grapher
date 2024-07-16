@@ -57,7 +57,6 @@ $defs:
             baseColorScheme:
                 type: string
                 description: One of the predefined base color schemes
-                default: default
                 enum:
                     - YlGn
                     - YlGnBu
@@ -258,7 +257,9 @@ properties:
                           - earliest
             columnSlug:
                 # TODO: remove this once we have a convention of using the first y dimension instead
-                description: "Column to show in the map tab. Can be a column slug (e.g. in explorers) or a variable ID (as string)."
+                description: |
+                    Column to show in the map tab. Can be a column slug (e.g. in explorers) or a variable ID (as string).
+                    If not provided, the first y dimension is used.
                 type: string
         additionalProperties: false
     maxTime:
@@ -281,7 +282,6 @@ properties:
                 - string
     baseColorScheme:
         type: string
-        default: default
         description: The default color scheme if no color overrides are specified
     yAxis:
         $ref: "#/$defs/axis"
@@ -356,7 +356,8 @@ properties:
         description: Reverse the order of colors in the color scheme
     hideRelativeToggle:
         type: boolean
-        description: Whether to hide the relative mode UI toggle. Default depends on the chart type
+        default: true
+        description: Whether to hide the relative mode UI toggle
     comparisonLines:
         description: List of vertical comparison lines to draw
         type: array
@@ -375,7 +376,6 @@ properties:
         type: string
     version:
         type: integer
-        default: 1
         minimum: 0
     logo:
         type: string
@@ -490,13 +490,16 @@ properties:
                             type: integer
                             description: Number of decimal places to show
                             minimum: 0
+                            default: 2
                         numSignificantFigures:
                             type: integer
                             description: Number of significant figures to show
                             minimum: 1
+                            default: 3
                         zeroDay:
                             type: string
                             description: Iso date day string for the starting date if yearIsDay is used
+                            default: "2020-01-21"
                     additionalProperties: false
                 variableId:
                     type: integer

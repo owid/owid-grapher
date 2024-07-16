@@ -79,3 +79,4 @@ export {
     type SlideShowManager,
     SlideShowController,
 } from "./slideshowController/SlideShowController"
+export { defaultGrapherConfig } from "./schema/defaultGrapherConfig"
