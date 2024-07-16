@@ -38,6 +38,7 @@ import {
     maxBy,
     memoize,
     merge,
+    mergeWith,
     min,
     minBy,
     noop,
@@ -102,6 +103,7 @@ export {
     isNil,
     isNull,
     isNumber,
+    isPlainObject,
     isString,
     isUndefined,
     keyBy,
@@ -110,6 +112,7 @@ export {
     maxBy,
     memoize,
     merge,
+    mergeWith,
     min,
     minBy,
     noop,
@@ -1121,6 +1124,32 @@ export const omitNullableValues = <T>(object: T): NoUndefinedValues<T> => {
     return result
 }
 
+/**
+ * Omits undefined values and empty objects recursively.
+ */
+export function omitUndefinedValuesRecursive<T extends Record<string, any>>(
+    obj: T
+): NoUndefinedValues<T> {
+    const result: any = {}
+    for (const key in obj) {
+        const isEmptyObject =
+            isPlainObject(obj[key]) && isEmpty(omitUndefinedValues(obj[key]))
+        const isNonEmptyObject =
+            isPlainObject(obj[key]) && !isEmpty(omitUndefinedValues(obj[key]))
+
+        if (isNonEmptyObject) {
+            // re-apply the function if we encounter a non-empty object
+            result[key] = omitUndefinedValuesRecursive(obj[key])
+        } else if (obj[key] === undefined || isEmptyObject) {
+            // omit undefined values and empty objects
+        } else {
+            // otherwise, keep the value
+            result[key] = obj[key]
+        }
+    }
+    return result
+}
+
 export const isInIFrame = (): boolean => {
     try {
         return window.self !== window.top
@@ -1747,7 +1776,7 @@ export function filterValidStringValues<ValidValue extends string>(
     return filteredValues
 }
 
-// TODO: type this correctly once we have moved types into their own top level package
+// TODO(inheritance): remove in favour of mergeGrapherConfigs
 export function mergePartialGrapherConfigs<T extends Record<string, any>>(
     ...grapherConfigs: (T | undefined)[]
 ): T {
@@ -1924,4 +1953,20 @@ export function lazy<T>(fn: () => T): () => T {
         }
         return _value
     }
+}
+
+export function traverseObjects<T extends Record<string, any>>(
+    obj: T,
+    ref: Record<string, any>,
+    cb: (objValue: unknown, refValue: unknown, key: string) => unknown
+): Partial<T> {
+    const result: any = {}
+    for (const key in obj) {
+        if (isPlainObject(obj[key]) && isPlainObject(ref[key])) {
+            result[key] = traverseObjects(obj[key], ref[key], cb)
+        } else {
+            result[key] = cb(obj[key], ref[key], key)
+        }
+    }
+    return result
 }

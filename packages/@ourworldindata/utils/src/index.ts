@@ -333,3 +333,8 @@ export {
 } from "./DonateUtils.js"
 
 export { isAndroid, isIOS } from "./BrowserUtils.js"
+
+export {
+    diffGrapherConfigs,
+    mergeGrapherConfigs,
+} from "./grapherConfigUtils.js"

@@ -225,14 +225,20 @@ class MultiEmbedder {
                     localConfig.hasTableTab = true
             }
 
-            const config = merge(grapherPageConfig, common, localConfig, {
-                manager: {
-                    selection: new SelectionArray(
-                        this.selection.selectedEntityNames
-                    ),
-                },
-                annotation,
-            })
+            const config = merge(
+                {}, // merge mutates the first argument
+                grapherPageConfig,
+                common,
+                localConfig,
+                {
+                    manager: {
+                        selection: new SelectionArray(
+                            this.selection.selectedEntityNames
+                        ),
+                    },
+                    annotation,
+                }
+            )
             if (config.manager?.selection)
                 this.graphersAndExplorersToUpdate.add(config.manager.selection)
 

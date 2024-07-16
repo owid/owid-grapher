@@ -45,6 +45,8 @@ import {
     Json,
     checkIsGdocPostExcludingFragments,
     checkIsPlainObjectWithGuard,
+    mergeGrapherConfigs,
+    diffGrapherConfigs,
 } from "@ourworldindata/utils"
 import { applyPatch } from "../adminShared/patchHelper.js"
 import {
@@ -86,6 +88,7 @@ import {
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
 import {
+    defaultGrapherConfig,
     getVariableDataRoute,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
@@ -269,6 +272,113 @@ const expectChartById = async (
     throw new JsonError(`No chart found for id ${chartId}`, 404)
 }
 
+const saveNewChart = async (
+    knex: db.KnexReadWriteTransaction,
+    { config, user }: { config: GrapherInterface; user: DbPlainUser }
+): Promise<{ patchConfig: GrapherInterface; fullConfig: GrapherInterface }> => {
+    // if the schema version is missing, assume it's the latest
+    if (!config["$schema"]) {
+        config["$schema"] = defaultGrapherConfig["$schema"]
+    }
+
+    // compute patch and full configs
+    const parentConfig = defaultGrapherConfig
+    const patchConfig = diffGrapherConfigs(config, parentConfig)
+    const fullConfig = mergeGrapherConfigs(parentConfig, patchConfig)
+
+    // insert patch & full configs into the chart_configs table
+    const configId = uuidv7()
+    await db.knexRaw(
+        knex,
+        `-- sql
+            INSERT INTO chart_configs (id, patch, full)
+            VALUES (?, ?, ?)
+        `,
+        [configId, JSON.stringify(patchConfig), JSON.stringify(fullConfig)]
+    )
+
+    // add a new chart to the charts table
+    const result = await db.knexRawInsert(
+        knex,
+        `-- sql
+            INSERT INTO charts (configId, lastEditedAt, lastEditedByUserId)
+            VALUES (?, ?, ?)
+        `,
+        [configId, new Date(), user.id]
+    )
+
+    // The chart config itself has an id field that should store the id of the chart - update the chart now so this is true
+    const chartId = result.insertId
+    patchConfig.id = chartId
+    fullConfig.id = chartId
+    await db.knexRaw(
+        knex,
+        `-- sql
+            UPDATE chart_configs cc
+            JOIN charts c ON c.configId = cc.id
+            SET
+                cc.patch=JSON_SET(cc.patch, '$.id', ?),
+                cc.full=JSON_SET(cc.full, '$.id', ?)
+            WHERE c.id = ?
+        `,
+        [chartId, chartId, chartId]
+    )
+
+    return { patchConfig, fullConfig }
+}
+
+const updateExistingChart = async (
+    knex: db.KnexReadWriteTransaction,
+    {
+        config,
+        user,
+        chartId,
+    }: { config: GrapherInterface; user: DbPlainUser; chartId: number }
+): Promise<{ patchConfig: GrapherInterface; fullConfig: GrapherInterface }> => {
+    // make sure that the id of the incoming config matches the chart id
+    config.id = chartId
+
+    // if the schema version is missing, assume it's the latest
+    if (!config["$schema"]) {
+        config["$schema"] = defaultGrapherConfig["$schema"]
+    }
+
+    // compute patch and full configs
+    const parentConfig = defaultGrapherConfig
+    const patchConfig = diffGrapherConfigs(config, parentConfig)
+    const fullConfig = mergeGrapherConfigs(parentConfig, patchConfig)
+
+    // update configs
+    await db.knexRaw(
+        knex,
+        `-- sql
+            UPDATE chart_configs cc
+            JOIN charts c ON c.configId = cc.id
+            SET
+                cc.patch=?,
+                cc.full=?
+            WHERE c.id = ?
+        `,
+        [JSON.stringify(patchConfig), JSON.stringify(fullConfig), chartId]
+    )
+
+    // update charts row
+    await db.knexRaw(
+        knex,
+        `-- sql
+            UPDATE charts
+            SET lastEditedAt=?, lastEditedByUserId=?
+            WHERE id = ?
+        `,
+        [new Date(), user.id, chartId]
+    )
+
+    return {
+        patchConfig,
+        fullConfig,
+    }
+}
+
 const saveGrapher = async (
     knex: db.KnexReadWriteTransaction,
     user: DbPlainUser,
@@ -349,72 +459,32 @@ const saveGrapher = async (
     else newConfig.version = 1
 
     // Execute the actual database update or creation
-    const now = new Date()
-    let chartId = existingConfig && existingConfig.id
-    const newJsonConfig = JSON.stringify(newConfig)
+    let chartId: number
+    let newFullConfig: GrapherInterface
     if (existingConfig) {
-        await db.knexRaw(
-            knex,
-            `-- sql
-                UPDATE chart_configs cc
-                JOIN charts c ON c.configId = cc.id
-                SET
-                    cc.patch=?,
-                    cc.full=?
-                WHERE c.id = ?
-            `,
-            [newJsonConfig, newJsonConfig, chartId]
-        )
-        await db.knexRaw(
-            knex,
-            `-- sql
-                UPDATE charts
-                SET lastEditedAt=?, lastEditedByUserId=?
-                WHERE id = ?
-            `,
-            [now, user.id, chartId]
-        )
+        chartId = existingConfig.id!
+        const newConfigPair = await updateExistingChart(knex, {
+            config: newConfig,
+            user,
+            chartId,
+        })
+        newConfig = newConfigPair.patchConfig
+        newFullConfig = newConfigPair.fullConfig
     } else {
-        const configId = uuidv7()
-        await db.knexRaw(
-            knex,
-            `-- sql
-                INSERT INTO chart_configs (id, patch, full)
-                VALUES (?, ?, ?)
-            `,
-            [configId, newJsonConfig, newJsonConfig]
-        )
-        const result = await db.knexRawInsert(
-            knex,
-            `-- sql
-                INSERT INTO charts (configId, lastEditedAt, lastEditedByUserId)
-                VALUES (?, ?, ?)
-            `,
-            [configId, now, user.id]
-        )
-        chartId = result.insertId
-        // The chart config itself has an id field that should store the id of the chart - update the chart now so this is true
-        newConfig.id = chartId
-        await db.knexRaw(
-            knex,
-            `-- sql
-                UPDATE chart_configs cc
-                JOIN charts c ON c.configId = cc.id
-                SET
-                    cc.patch=JSON_SET(cc.patch, '$.id', ?),
-                    cc.full=JSON_SET(cc.full, '$.id', ?)
-                WHERE c.id = ?
-            `,
-            [chartId, chartId, chartId]
-        )
+        const newConfigPair = await saveNewChart(knex, {
+            config: newConfig,
+            user,
+        })
+        newConfig = newConfigPair.patchConfig
+        newFullConfig = newConfigPair.fullConfig
+        chartId = newConfig.id!
     }
 
     // Record this change in version history
-
     const chartRevisionLog = {
         chartId: chartId as number,
         userId: user.id,
-        config: serializeChartConfig(newConfig),
+        config: serializeChartConfig(newFullConfig),
         createdAt: new Date(),
         updatedAt: new Date(),
     } satisfies DbInsertChartRevision
@@ -461,7 +531,7 @@ const saveGrapher = async (
         await db.knexRaw(
             knex,
             `UPDATE charts SET publishedAt=?, publishedByUserId=? WHERE id = ? `,
-            [now, user.id, chartId]
+            [new Date(), user.id, chartId]
         )
         await triggerStaticBuild(user, `Publishing chart ${newConfig.slug}`)
     } else if (
@@ -479,7 +549,10 @@ const saveGrapher = async (
     } else if (newConfig.isPublished)
         await triggerStaticBuild(user, `Updating chart ${newConfig.slug}`)
 
-    return chartId
+    return {
+        chartId,
+        savedPatch: newConfig,
+    }
 }
 
 getRouteWithROTransaction(apiRouter, "/charts.json", async (req, res, trx) => {
@@ -756,7 +829,7 @@ apiRouter.get(
 )
 
 postRouteWithRWTransaction(apiRouter, "/charts", async (req, res, trx) => {
-    const chartId = await saveGrapher(trx, res.locals.user, req.body)
+    const { chartId } = await saveGrapher(trx, res.locals.user, req.body)
 
     return { success: true, chartId: chartId }
 })
@@ -779,10 +852,20 @@ putRouteWithRWTransaction(
     async (req, res, trx) => {
         const existingConfig = await expectChartById(trx, req.params.chartId)
 
-        await saveGrapher(trx, res.locals.user, req.body, existingConfig)
+        const { chartId, savedPatch } = await saveGrapher(
+            trx,
+            res.locals.user,
+            req.body,
+            existingConfig
+        )
 
         const logs = await getLogsByChartId(trx, existingConfig.id as number)
-        return { success: true, chartId: existingConfig.id, newLog: logs[0] }
+        return {
+            success: true,
+            chartId,
+            savedPatch,
+            newLog: logs[0],
+        }
     }
 )
 
