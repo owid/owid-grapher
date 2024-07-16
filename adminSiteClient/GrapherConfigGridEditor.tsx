@@ -347,6 +347,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             selectedRowContent.id
         )
 
+        // TODO(inheritance): use mergeGrapherConfigs instead
         const mergedConfig = merge(grapherConfig, finalConfigLayer)
         this.loadGrapherJson(mergedConfig)
     }
