@@ -173,7 +173,7 @@ const DataInsightCard = memo(function DataInsightCard({
                 {publishedAt && <Dateline publishedAt={publishedAt} />}
                 <h3 className="latest-data-insights__card-title">{title}</h3>
                 <div className="latest-data-insights__card-body">
-                    <ArticleBlocks blocks={otherBlocks} />
+                    <ArticleBlocks blocks={otherBlocks} renderLinks={false} />
                 </div>
                 <div className="latest-data-insights__card-continue">
                     <span className="body-3-medium-underlined">

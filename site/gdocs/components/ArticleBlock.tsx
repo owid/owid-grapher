@@ -176,10 +176,12 @@ export default function ArticleBlock({
     b: block,
     containerType = "default",
     toc,
+    renderLinks = true,
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
     toc?: TocHeadingWithTitleSupertitle[]
+    renderLinks?: boolean
 }) {
     block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
     if (block.parseErrors.filter(({ isWarning }) => !isWarning).length > 0) {
@@ -202,7 +204,7 @@ export default function ArticleBlock({
                 )}
             >
                 {caption ? (
-                    <figcaption>{renderSpans(caption)}</figcaption>
+                    <figcaption>{renderSpans(caption, renderLinks)}</figcaption>
                 ) : null}
             </figure>
         ))
@@ -265,7 +267,7 @@ export default function ArticleBlock({
                     <figcaption
                         className={getLayout("image-caption", containerType)}
                     >
-                        {renderSpans(block.caption)}
+                        {renderSpans(block.caption, renderLinks)}
                     </figcaption>
                 ) : null}
             </figure>
@@ -303,6 +305,7 @@ export default function ArticleBlock({
                 <Paragraph
                     d={block}
                     className={getLayout("text", containerType)}
+                    renderLinks={renderLinks}
                 />
             )
         })
@@ -317,11 +320,13 @@ export default function ArticleBlock({
                 )}
                 id={convertHeadingTextToId(block.text)}
             >
-                {renderSpans(block.text)}
-                <a
-                    className="deep-link"
-                    href={`#${convertHeadingTextToId(block.text)}`}
-                />
+                {renderSpans(block.text, renderLinks)}
+                {renderLinks && (
+                    <a
+                        className="deep-link"
+                        href={`#${convertHeadingTextToId(block.text)}`}
+                    />
+                )}
             </h1>
         ))
         .with({ type: "heading", level: 2 }, (block) => {
@@ -354,11 +359,13 @@ export default function ArticleBlock({
                     >
                         {supertitle ? (
                             <div className="article-block__heading-supertitle overline-black-caps">
-                                {renderSpans(supertitle)}
+                                {renderSpans(supertitle, renderLinks)}
                             </div>
                         ) : null}
                         {renderSpans(text)}
-                        <a className="deep-link" href={`#${id}`} />
+                        {renderLinks && (
+                            <a className="deep-link" href={`#${id}`} />
+                        )}
                     </h2>
                 </>
             )
@@ -390,8 +397,8 @@ export default function ArticleBlock({
                             {renderSpans(supertitle)}
                         </div>
                     ) : null}
-                    {renderSpans(text)}
-                    <a className="deep-link" href={`#${id}`} />
+                    {renderSpans(text, renderLinks)}
+                    {renderLinks && <a className="deep-link" href={`#${id}`} />}
                 </h3>
             )
         })
@@ -403,7 +410,7 @@ export default function ArticleBlock({
                 )}
                 id={convertHeadingTextToId(block.text)}
             >
-                {renderSpans(block.text)}
+                {renderSpans(block.text, renderLinks)}
             </h4>
         ))
         .with({ type: "heading", level: 5 }, (block) => (
@@ -414,7 +421,7 @@ export default function ArticleBlock({
                 )}
                 id={convertHeadingTextToId(block.text)}
             >
-                {renderSpans(block.text)}
+                {renderSpans(block.text, renderLinks)}
             </h5>
         ))
         .with(
@@ -668,6 +675,7 @@ export default function ArticleBlock({
                             className="article-block__text"
                             d={textBlock}
                             key={i}
+                            renderLinks={renderLinks}
                         />
                     ))}
 

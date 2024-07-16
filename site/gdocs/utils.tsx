@@ -176,25 +176,42 @@ const LinkedA = ({ span }: { span: SpanLink }): React.ReactElement => {
 
 export function renderSpan(
     span: Span,
-    key: React.Key | null | undefined = undefined
+    key: React.Key | null | undefined = undefined,
+    renderLinks: boolean = true
 ): React.ReactElement {
     return match(span)
         .with({ spanType: "span-simple-text" }, (span) => (
             <span key={key}>{span.text}</span>
         ))
-        .with({ spanType: "span-link" }, (span) => (
-            <LinkedA span={span} key={key} />
-        ))
-        .with({ spanType: "span-ref" }, (span) => (
-            <a key={key} href={span.url} className="ref">
-                {renderSpans(span.children)}
-            </a>
-        ))
-        .with({ spanType: "span-dod" }, (span) => (
-            <span key={key}>
-                <a data-id={`${span.id}`} className="dod-span">
+        .with({ spanType: "span-link" }, (span) =>
+            renderLinks ? (
+                <LinkedA span={span} key={key} />
+            ) : (
+                <span key={key}>{renderSpans(span.children)}</span>
+            )
+        )
+        .with({ spanType: "span-ref" }, (span) =>
+            renderLinks ? (
+                <a key={key} href={span.url} className="ref">
                     {renderSpans(span.children)}
                 </a>
+            ) : (
+                <span key={key} className="ref">
+                    {renderSpans(span.children)}
+                </span>
+            )
+        )
+        .with({ spanType: "span-dod" }, (span) => (
+            <span key={key}>
+                {renderLinks ? (
+                    <a data-id={`${span.id}`} className="dod-span">
+                        {renderSpans(span.children)}
+                    </a>
+                ) : (
+                    <span className="dod-span">
+                        {renderSpans(span.children)}
+                    </span>
+                )}
             </span>
         ))
         .with({ spanType: "span-newline" }, () => <br key={key} />)
@@ -222,8 +239,11 @@ export function renderSpan(
         .exhaustive()
 }
 
-export function renderSpans(spans: Span[]): React.ReactElement[] {
-    return spans.map(renderSpan)
+export function renderSpans(
+    spans: Span[],
+    renderLinks: boolean = true
+): React.ReactElement[] {
+    return spans.map((span, index) => renderSpan(span, index, renderLinks))
 }
 
 export function getShortPageCitation(
