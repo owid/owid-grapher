@@ -45,6 +45,7 @@ export async function getMergedGrapherConfigForVariable(
     const grapherConfigETL = row.grapherConfigETL
         ? JSON.parse(row.grapherConfigETL)
         : undefined
+    // TODO(inheritance): use mergeGrapherConfigs instead
     return _.merge({}, grapherConfigAdmin, grapherConfigETL)
 }
 

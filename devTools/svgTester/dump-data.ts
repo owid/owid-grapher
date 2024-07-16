@@ -1,6 +1,8 @@
 #! /usr/bin/env node
 
 import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker.js"
+import { defaultGrapherConfig } from "@ourworldindata/grapher"
+import { diffGrapherConfigs } from "@ourworldindata/utils"
 
 import { TransactionCloseMode, knexReadonlyTransaction } from "../../db/db.js"
 
@@ -23,7 +25,13 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         )
         const allGraphers = [...graphersBySlug.values()]
         const saveJobs: utils.SaveGrapherSchemaAndDataJob[] = allGraphers.map(
-            (grapher) => ({ config: grapher, outDir })
+            (grapher) => {
+                // since we're not baking defaults, we also exlcude them here
+                return {
+                    config: diffGrapherConfigs(grapher, defaultGrapherConfig),
+                    outDir,
+                }
+            }
         )
 
         await pMap(saveJobs, utils.saveGrapherSchemaAndData, {

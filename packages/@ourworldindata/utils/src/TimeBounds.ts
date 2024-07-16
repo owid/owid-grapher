@@ -3,6 +3,7 @@ import {
     Time,
     TimeBound,
     TimeBoundValue,
+    TimeBoundValueStr,
 } from "@ourworldindata/types"
 import {
     parseIntOrUndefined,
@@ -12,11 +13,6 @@ import {
     isNegativeInfinity,
     isPositiveInfinity,
 } from "./Util.js"
-
-enum TimeBoundValueStr {
-    unboundedLeft = "earliest",
-    unboundedRight = "latest",
-}
 
 export const timeFromTimebounds = (
     timeBound: TimeBound,
