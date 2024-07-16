@@ -100,8 +100,8 @@ export const createTagsForManifestEntry = (
             (manifest[entry] as ManifestChunk | undefined)
         let assets = [] as React.ReactElement[]
 
-        if (!manifestEntry)
-            console.warn(`Could not find manifest entry for ${entry}`)
+        if (!manifestEntry && !entry.endsWith(".css"))
+            throw new Error(`Could not find manifest entry for ${entry}`)
 
         const assetUrl = urljoin(assetBaseUrl, manifestEntry?.file ?? entry)
 
