@@ -6,7 +6,7 @@ export class FillChartIdInChartConfig1711487196262
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             UPDATE charts
-            SET config = JSON_REMOVE(config, '$."hideLinesOutsideTolerance"')
+            SET config = JSON_REMOVE(config, '$."hideLinesOutsideTolerance"', true)
             WHERE
                 type = "ScatterPlot"
             AND
@@ -14,7 +14,7 @@ export class FillChartIdInChartConfig1711487196262
                   "stunting-vs-level-of-prosperity-over-time",
                   "growth-of-income-and-trade"
                 )
-        `
+        `)
     }
 
     public async down(): Promise<void> {
