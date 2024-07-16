@@ -6,13 +6,13 @@ export class FillChartIdInChartConfig1711487196262
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             UPDATE charts
-            SET config = JSON_REPLACE(config, '$.hideLinesOutsideTolerance', 'true')
+            SET config = JSON_REMOVE(config, '$."hideLinesOutsideTolerance"')
             WHERE
-                type='ScatterPlot'
+                type = "ScatterPlot"
             AND
                 slug IN (
-                  'stunting-vs-level-of-prosperity-over-time',
-                  'growth-of-income-and-trade'
+                  "stunting-vs-level-of-prosperity-over-time",
+                  "growth-of-income-and-trade"
                 )
         `
     }
