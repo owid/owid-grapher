@@ -332,6 +332,11 @@ export {
 export { isAndroid, isIOS } from "./BrowserUtils.js"
 
 export {
+    diffGrapherConfigs,
+    mergeGrapherConfigs,
+} from "./grapherConfigUtils.js"
+
+export {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromQueryStr,
     multiDimStateToQueryStr,

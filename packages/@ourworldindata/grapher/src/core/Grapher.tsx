@@ -1007,6 +1007,9 @@ export class Grapher
 
     @computed get whatAreWeWaitingFor(): string {
         const { newSlugs, inputTable, dimensions } = this
+        if (dimensions.length === 0 && newSlugs.length === 0) {
+            return `Waiting for dimensions to be set. ${inputTable.tableDescription}`
+        }
         if (newSlugs.length || dimensions.length === 0) {
             const missingColumns = newSlugs.filter(
                 (slug) => !inputTable.has(slug)
