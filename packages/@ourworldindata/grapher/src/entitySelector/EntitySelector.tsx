@@ -101,7 +101,7 @@ const EXTERNAL_SORT_INDICATORS = [
         indicatorId: POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
         isMatch: (column: CoreColumn): boolean =>
             isPopulationVariableETLPath(
-                (column as OwidColumnDef)?.catalogPath ?? ""
+                (column.def as OwidColumnDef)?.catalogPath ?? ""
             ),
     },
     {
