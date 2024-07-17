@@ -30,7 +30,8 @@ export class EditorFeatures {
             this.grapher.isLineChart ||
             this.grapher.isScatter ||
             this.grapher.isMarimekko ||
-            this.grapher.isStackedArea
+            this.grapher.isStackedArea ||
+            this.grapher.isStackedBar
         )
     }
 
