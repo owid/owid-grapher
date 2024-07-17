@@ -46,7 +46,7 @@ export class ChartRow extends React.Component<{
 
         return (
             <tr>
-                <td style={{ minWidth: "140px", width: "12.5%" }}>
+                <td style={{ minWidth: "240px", width: "12.5%" }}>
                     {chart.isPublished && (
                         <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>
                             <img
@@ -56,7 +56,7 @@ export class ChartRow extends React.Component<{
                         </a>
                     )}
                 </td>
-                <td style={{ minWidth: "180px" }}>
+                <td style={{ minWidth: "140px" }}>
                     {chart.isPublished ? (
                         <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>
                             {highlight(chart.title ?? "")}
@@ -78,7 +78,9 @@ export class ChartRow extends React.Component<{
                         </div>
                     )}
                 </td>
-                <td style={{ minWidth: "100px" }}>{chart.id}</td>
+                <td style={{ minWidth: "60px" }}>
+                        {chart.id}
+                </td>
                 <td style={{ minWidth: "100px" }}>{showChartType(chart)}</td>
                 <td style={{ minWidth: "340px" }}>
                     <EditableTags
