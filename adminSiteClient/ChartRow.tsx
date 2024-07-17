@@ -79,7 +79,9 @@ export class ChartRow extends React.Component<{
                     )}
                 </td>
                 <td style={{ minWidth: "60px" }}>
+                    <a href={`/admin/test/embeds?ids=${chart.id}&comparisonUrl=https%3A%2F%2Fourworldindata.org`}>
                         {chart.id}
+                    </a>
                 </td>
                 <td style={{ minWidth: "100px" }}>{showChartType(chart)}</td>
                 <td style={{ minWidth: "340px" }}>
