@@ -565,6 +565,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Land Use",
                         },
                         {
+                            slug: "water-use-stress",
+                            title: "Water Use and Stress",
+                        },
+                        {
                             slug: "forests-and-deforestation",
                             title: "Forests and Deforestation",
                         },
@@ -593,28 +597,6 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         {
                             slug: "lead-pollution",
                             title: "Lead Pollution",
-                        },
-                    ],
-                },
-                {
-                    name: "Water",
-                    slug: "water",
-                    entries: [
-                        {
-                            slug: "clean-water-sanitation",
-                            title: "Clean Water and Sanitation",
-                        },
-                        {
-                            slug: "water-access",
-                            title: "Clean Water",
-                        },
-                        {
-                            slug: "sanitation",
-                            title: "Sanitation",
-                        },
-                        {
-                            slug: "water-use-stress",
-                            title: "Water Use and Stress",
                         },
                     ],
                 },
@@ -817,6 +799,24 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                         {
                             slug: "tourism",
                             title: "Tourism",
+                        },
+                    ],
+                },
+                {
+                    name: "Water",
+                    slug: "water",
+                    entries: [
+                        {
+                            slug: "clean-water-sanitation",
+                            title: "Clean Water and Sanitation",
+                        },
+                        {
+                            slug: "water-access",
+                            title: "Clean Water",
+                        },
+                        {
+                            slug: "sanitation",
+                            title: "Sanitation",
                         },
                     ],
                 },
