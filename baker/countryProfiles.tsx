@@ -49,7 +49,7 @@ const countryIndicatorGraphers = async (
             await trx
                 .table("charts")
                 .whereRaw(
-                    "publishedAt is not null and config->>'$.isPublished' = 'true' and is_indexable is true"
+                    "publishedAt is not null and config->>'$.isPublished' = 'true' and isIndexable is true"
                 )
         ).map((c: any) => JSON.parse(c.config)) as GrapherInterface[]
 

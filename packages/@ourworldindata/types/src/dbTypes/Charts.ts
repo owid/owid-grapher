@@ -6,7 +6,7 @@ export interface DbInsertChart {
     config: JsonString
     createdAt?: Date
     id?: number
-    is_indexable?: number
+    isIndexable?: number
     lastEditedAt: Date
     lastEditedByUserId: number
     publishedAt?: Date | null

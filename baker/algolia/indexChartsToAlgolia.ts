@@ -135,7 +135,7 @@ const getChartsRecords = async (
                      LEFT JOIN charts_x_entities ce ON c.id = ce.chartId
                      LEFT JOIN entities e ON ce.entityId = e.id
             WHERE config ->> "$.isPublished" = 'true'
-              AND is_indexable IS TRUE
+              AND isIndexable IS TRUE
             GROUP BY c.id
         )
         SELECT c.id,
