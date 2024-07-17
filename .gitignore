@@ -40,5 +40,6 @@ wpmigration
 dist/
 .wrangler/
 .nx/cache
+.nx/workspace-data
 .dev.vars
 **/tsup.config.bundled*.mjs
