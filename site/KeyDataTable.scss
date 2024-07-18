@@ -1,0 +1,32 @@
+.key-data-block {
+    row-gap: 24px;
+}
+
+.key-data {
+    @include body-3-medium;
+
+    a {
+        @include owid-link-90;
+        color: inherit;
+
+        // DoD spans should be dotted via the border, not underlined
+        &.dod-span {
+            text-decoration: none;
+        }
+    }
+}
+
+.key-data__title {
+    color: $blue-50;
+}
+
+.key-data__content--hide-overflow {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.key-data-description-short__title {
+    @include h5-black-caps;
+    margin-bottom: 8px;
+}

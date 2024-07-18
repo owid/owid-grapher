@@ -1,0 +1,21 @@
+.topic-tags__label {
+    margin-bottom: 16px;
+    @include overline-black-caps;
+    color: $blue-50;
+}
+
+.topic-tags {
+    @include gap-wrap(12px, 16px);
+}
+
+.topic-tag {
+    background-color: $white;
+    border-radius: 24px;
+    padding: 6px 16px;
+    @include body-3-medium;
+    color: $blue-90;
+
+    &:hover {
+        color: $blue-60;
+    }
+}
