@@ -211,7 +211,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             </AdminLayout>
         )
     }
-    console.log("currentGdoc.publishedAt", currentGdoc?.publishedAt)
 
     return currentGdoc ? (
         <AdminLayout

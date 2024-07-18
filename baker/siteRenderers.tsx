@@ -37,6 +37,7 @@ import { FeedbackPage } from "../site/FeedbackPage.js"
 import {
     getCountryBySlug,
     Country,
+    get,
     memoize,
     FormattedPost,
     FullPost,
@@ -58,7 +59,6 @@ import {
     KnexReadWriteTransaction,
     KnexReadonlyTransaction,
     getHomepageId,
-    getPublishedDataInsights,
 } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
@@ -90,8 +90,12 @@ import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import {
     getAndLoadGdocBySlug,
     getAndLoadGdocById,
+    getAndLoadPublishedDataInsights,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerBaker.js"
+import { AttachmentsContext } from "../site/gdocs/OwidGdoc.js"
+import AtomArticleBlocks from "../site/gdocs/components/AtomArticleBlocks.js"
+import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
@@ -112,7 +116,7 @@ export const renderChartsPage = async (
             config->>"$.variantName" AS variantName
         FROM charts
         WHERE
-            is_indexable IS TRUE
+            isIndexable IS TRUE
             AND publishedAt IS NOT NULL
             AND config->>"$.isPublished" = "true"
     `
@@ -361,24 +365,12 @@ export async function makeAtomFeed(knex: KnexReadWriteTransaction) {
     return makeAtomFeedFromPosts({ posts })
 }
 
-export async function makeDataInsightsAtomFeed(knex: KnexReadonlyTransaction) {
-    const dataInsights = await getPublishedDataInsights(knex).then((results) =>
-        results.slice(0, 10).map((di) => ({
-            authors: di.authors,
-            title: di.title,
-            date: new Date(di.publishedAt),
-            modifiedDate: new Date(di.updatedAt),
-            slug: di.slug,
-            type: OwidGdocType.DataInsight,
-        }))
-    )
-    return makeAtomFeedFromPosts({
-        posts: dataInsights,
-        title: "Our World in Data - Data Insights",
+export async function makeDataInsightsAtomFeed(knex: KnexReadWriteTransaction) {
+    const dataInsights = await getAndLoadPublishedDataInsights(knex, 0)
+    return makeAtomFeedFromDataInsights({
+        dataInsights,
         htmlUrl: `${BAKED_BASE_URL}/data-insights`,
         feedUrl: `${BAKED_BASE_URL}/atom-data-insights.xml`,
-        subtitle:
-            "Bite-sized insights on how the world is changing, written by our team",
     })
 }
 
@@ -450,6 +442,63 @@ ${posts
 `
 
     return feed
+}
+
+export async function makeAtomFeedFromDataInsights({
+    dataInsights,
+    htmlUrl = BAKED_BASE_URL,
+    feedUrl = `${BAKED_BASE_URL}/atom.xml`,
+}: {
+    dataInsights: GdocDataInsight[]
+    htmlUrl?: string
+    feedUrl?: string
+}) {
+    return `<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<title>Our World in Data - Daily Data Insights</title>
+<subtitle>Bite-sized insights on how the world is changing, written by our team</subtitle>
+<id>${htmlUrl}/</id>
+<link type="text/html" rel="alternate" href="${htmlUrl}"/>
+<link type="application/atom+xml" rel="self" href="${feedUrl}"/>
+<updated>${dataInsights[0].publishedAt?.toISOString()}</updated>
+${dataInsights
+    .map((post) => {
+        const postUrl = `${BAKED_BASE_URL}/data-insights/${post.slug}`
+        const content = ReactDOMServer.renderToStaticMarkup(
+            <AttachmentsContext.Provider
+                value={{
+                    linkedAuthors: get(post, "linkedAuthors", []),
+                    linkedDocuments: get(post, "linkedDocuments", {}),
+                    imageMetadata: get(post, "imageMetadata", {}),
+                    linkedCharts: get(post, "linkedCharts", {}),
+                    linkedIndicators: get(post, "linkedIndicators", {}),
+                    relatedCharts: get(post, "relatedCharts", []),
+                    latestDataInsights: get(post, "latestDataInsights", []),
+                    homepageMetadata: get(post, "homepageMetadata", {}),
+                    latestWorkLinks: get(post, "latestWorkLinks", []),
+                }}
+            >
+                <AtomArticleBlocks blocks={post.content.body} />
+            </AttachmentsContext.Provider>
+        )
+
+        return `<entry>
+            <title><![CDATA[${post.content.title}]]></title>
+            <id>${postUrl}</id>
+            <link rel="alternate" href="${postUrl}"/>
+            <published>${post.publishedAt?.toISOString()}</published>
+            <updated>${post.updatedAt?.toISOString()}</updated>
+            ${post.content.authors
+                .map(
+                    (author: string) =>
+                        `<author><name>${author}</name></author>`
+                )
+                .join("")}
+            <content type="html"><![CDATA[${content}]]></content>
+            </entry>`
+    })
+    .join("\n")}
+</feed>`
 }
 
 // These pages exist largely just for Google Scholar

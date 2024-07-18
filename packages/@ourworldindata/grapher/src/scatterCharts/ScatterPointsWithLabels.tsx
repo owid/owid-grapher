@@ -423,7 +423,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                     return series.allLabels
                         .filter((label) => !label.isHidden)
                         .map((label) => (
-                            <Halo key={series.displayKey + "-endLabel"}>
+                            <Halo
+                                key={series.displayKey + "-endLabel"}
+                                id={series.displayKey + "-endLabel"}
+                            >
                                 <text
                                     id={makeIdForHumanConsumption(
                                         "scatter-label",
@@ -555,7 +558,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
             return series.allLabels
                 .filter((label) => !label.isHidden)
                 .map((label, index) => (
-                    <Halo key={`${series.displayKey}-label-${index}`}>
+                    <Halo
+                        key={`${series.displayKey}-label-${index}`}
+                        id={`${series.displayKey}-label-${index}`}
+                    >
                         <text
                             id={makeIdForHumanConsumption(
                                 "scatter-label",
