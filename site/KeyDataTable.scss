@@ -27,6 +27,14 @@
 }
 
 .key-data-description-short__title {
+    color: $blue-50;
     @include h5-black-caps;
+}
+
+.key-data-description-short__title-fragments {
+    color: $blue-50;
+    @include h6-black-caps;
+    font-weight: 600;
+    letter-spacing: 0.05rem;
     margin-bottom: 8px;
 }

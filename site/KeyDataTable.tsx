@@ -34,20 +34,17 @@ export default function KeyDataTable({
         <div className="key-data-block grid grid-cols-4 grid-sm-cols-12">
             {datapageData.descriptionShort && (
                 <div className="key-data span-cols-4 span-sm-cols-12">
-                    <div className="key-data__title key-data-description-short__title">
+                    <div className="key-data-description-short__title">
                         {datapageData.title.title}
-                        {(datapageData.attributionShort ||
-                            datapageData.titleVariant) && (
-                            <>
-                                {" "}
-                                <span className="title-fragments">
-                                    {joinTitleFragments(
-                                        datapageData.attributionShort,
-                                        datapageData.titleVariant
-                                    )}
-                                </span>
-                            </>
-                        )}
+                    </div>
+                    <div className="key-data-description-short__title-fragments">
+                        {
+                            // This method may return undefined if both fields are empty
+                            joinTitleFragments(
+                                datapageData.attributionShort,
+                                datapageData.titleVariant
+                            )
+                        }
                     </div>
                     <div>
                         <SimpleMarkdownText
