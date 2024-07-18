@@ -32,6 +32,7 @@ export enum SiteFooterContext {
     explorerPage = "explorerPage",
     default = "default",
     dataInsightsIndexPage = "data-insights-index-page",
+    chartsPage = "chartsPage",
 }
 
 export interface GitCommit {
