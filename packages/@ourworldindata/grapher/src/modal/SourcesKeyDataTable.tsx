@@ -1,6 +1,6 @@
 import React from "react"
 import cx from "classnames"
-import { OwidProcessingLevel, excludeNull, range } from "@ourworldindata/utils"
+import { OwidProcessingLevel, chunk, excludeNull } from "@ourworldindata/utils"
 import {
     makeSource,
     makeLastUpdated,
@@ -48,12 +48,7 @@ export const SourcesKeyDataTable = (props: SourcesKeyDataTableProps) => {
         links ? { label: "Links", content: links } : null,
     ])
 
-    const rows = range(0, keyDataWithoutSource.length, 2).map(
-        (index: number) => [
-            keyDataWithoutSource[index],
-            keyDataWithoutSource[index + 1],
-        ]
-    )
+    const rows = chunk(keyDataWithoutSource, 2)
 
     return (
         <div className="sources-key-data-table">
