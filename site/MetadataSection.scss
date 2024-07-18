@@ -1,0 +1,109 @@
+.MetadataSection {
+    background-color: $gray-10;
+
+    .section-wrapper__faqs {
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list {
+            @include body-2-regular;
+            color: $blue-60;
+        }
+    }
+
+    .faqs__title {
+        @include datapage-section-title;
+
+        @include md-up {
+            margin-bottom: 0;
+        }
+    }
+
+    .faqs__items {
+        > *:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            margin: 24px 0 16px;
+        }
+    }
+
+    .data-sources {
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list {
+            @include body-3-medium;
+        }
+    }
+
+    .data-sources-processing__title {
+        @include datapage-section-title;
+    }
+
+    .data-sources__heading,
+    .data-processing__heading,
+    .citations__heading {
+        @include h3-bold;
+        margin: 0 0 24px;
+    }
+
+    .data-processing {
+        margin-top: 32px;
+    }
+
+    .reuse__title {
+        @include datapage-section-title;
+    }
+
+    .reuse__content {
+        margin-bottom: 24px;
+        margin-left: 16px;
+    }
+
+    .reuse__content,
+    .citation__paragraph {
+        color: $blue-60;
+    }
+
+    .reuse__list-item,
+    .citation__paragraph {
+        @include body-3-medium;
+        margin: 0 0 8px;
+    }
+
+    .reuse__link {
+        @include owid-link-60;
+    }
+
+    .citations {
+        margin-top: 16px;
+    }
+
+    .citations-section {
+        &:first-child {
+            margin-bottom: 32px;
+        }
+
+        &:not(:first-child) {
+            padding-top: 32px;
+            border-top: 1px solid $blue-20;
+        }
+    }
+
+    .citation__how-to-header {
+        @include overline-black-caps;
+        text-transform: uppercase;
+        margin: 0 0 8px;
+    }
+
+    .citation__how-to-header--data {
+        margin-bottom: 16px;
+    }
+
+    .citation__type {
+        display: block;
+        color: $blue-90;
+    }
+}

@@ -54,28 +54,6 @@
         }
     }
 
-    .topic-tags__label {
-        margin-bottom: 16px;
-        @include overline-black-caps;
-        color: $blue-50;
-    }
-
-    .topic-tags {
-        @include gap-wrap(12px, 16px);
-
-        a {
-            background-color: $white;
-            border-radius: 24px;
-            padding: 6px 16px;
-            @include body-3-medium;
-            color: $blue-90;
-
-            &:hover {
-                color: $blue-60;
-            }
-        }
-    }
-
     .chart-key-info {
         display: flex;
         flex-direction: column;
@@ -146,10 +124,6 @@
         }
     }
 
-    .bg-gray-10 {
-        background-color: $gray-10;
-    }
-
     .section-wrapper {
         padding-top: 32px;
         padding-bottom: 32px;
@@ -160,119 +134,6 @@
 
         &:not(:last-child) {
             border-bottom: 1px solid $blue-20;
-        }
-    }
-
-    .key-info__title {
-        @include h2-bold;
-        margin: 0 0 16px;
-        @include sm-up {
-            margin: 0 0 24px;
-        }
-    }
-
-    .key-info__content {
-        p {
-            margin: 0;
-        }
-
-        ul,
-        ol {
-            padding-left: 1em;
-            margin: 1em 0;
-
-            li {
-                margin-bottom: 1em;
-
-                &:last-child {
-                    margin-bottom: 0;
-                }
-            }
-        }
-    }
-
-    .key-info__learn-more {
-        @include expandable-paragraph__expand-button--full;
-        margin-top: 24px;
-        svg {
-            font-size: 0.75em;
-            margin-left: 12px;
-        }
-    }
-
-    .key-info__expandable-descriptions {
-        p {
-            margin: 8px 0;
-
-            &:first-of-type {
-                margin-top: 0;
-            }
-
-            &:last-of-type {
-                margin-bottom: 0;
-            }
-        }
-
-        a {
-            @include owid-link-60;
-            color: inherit;
-        }
-    }
-
-    .key-info__key-description + .key-info__expandable-descriptions {
-        margin-top: 24px;
-    }
-
-    .key-info__right {
-        @include sm-only {
-            margin-top: 48px;
-        }
-        @include sm-up {
-            padding-left: 24px;
-            border-left: 1px solid $blue-20;
-        }
-    }
-
-    .key-data-block {
-        row-gap: 24px;
-    }
-
-    .key-data {
-        @include body-3-medium;
-        a {
-            @include owid-link-90;
-            color: inherit;
-
-            // DoD spans should be dotted via the border, not underlined
-            &.dod-span {
-                text-decoration: none;
-            }
-        }
-    }
-
-    .key-data__title {
-        color: $blue-50;
-    }
-
-    .key-data__content--hide-overflow {
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-    }
-
-    .key-data-description-short__title {
-        @include h5-black-caps;
-        margin-bottom: 8px;
-    }
-
-    .wrapper-about-this-data {
-        width: 100%;
-    }
-
-    .about-this-data__title {
-        @include datapage-section-title;
-        @include md-up {
-            margin-bottom: 0px;
         }
     }
 
@@ -399,110 +260,8 @@
         }
     }
 
-    .data-sources-processing__title,
     .related-charts__title {
         @include datapage-section-title;
-    }
-
-    .section-wrapper__faqs {
-        .article-block__text,
-        .article-block__list,
-        .article-block__html,
-        .article-block__numbered-list {
-            @include body-2-regular;
-            color: $blue-60;
-        }
-    }
-
-    .faqs__title {
-        @include datapage-section-title;
-        @include md-up {
-            margin-bottom: 0px;
-        }
-    }
-
-    .faqs__items {
-        > *:first-child {
-            margin-top: 0;
-        }
-        h3 {
-            margin: 24px 0 16px;
-        }
-    }
-    .data-sources {
-        .article-block__text,
-        .article-block__list,
-        .article-block__html,
-        .article-block__numbered-list {
-            @include body-3-medium;
-        }
-    }
-
-    .data-sources__heading,
-    .data-processing__heading,
-    .citations__heading {
-        @include h3-bold;
-        margin: 0 0 24px;
-    }
-
-    .data-processing {
-        margin-top: 32px;
-    }
-
-    .reuse__content {
-        margin-bottom: 24px;
-    }
-
-    .reuse__content {
-        margin-left: 16px;
-    }
-
-    .reuse__list-item,
-    .citation__paragraph {
-        @include body-3-medium;
-        margin: 0 0 8px;
-    }
-
-    .citation__how-to-header {
-        @include overline-black-caps;
-        text-transform: uppercase;
-        margin: 0 0 8px;
-    }
-
-    .reuse__title {
-        @include datapage-section-title;
-    }
-
-    .reuse__content,
-    .citation__paragraph {
-        color: $blue-60;
-    }
-
-    .reuse__link {
-        @include owid-link-60;
-    }
-
-    .citations {
-        margin-top: 16px;
-    }
-
-    .citations-section {
-        &:first-child {
-            margin-bottom: 32px;
-        }
-        &:not(:first-child) {
-            padding-top: 32px;
-            border-top: 1px solid $blue-20;
-        }
-    }
-
-    .citation__how-to-header--data {
-        margin-bottom: 16px;
-    }
-
-    .citation__type {
-        display: block;
-        color: $blue-90;
     }
 
     .wp-code-snippet {
