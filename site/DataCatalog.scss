@@ -1,0 +1,43 @@
+#charts-index-page-root {
+}
+
+.data-catalog-header {
+    background-color: $blue-5;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+}
+
+.data-catalog-ribbon {
+    background-color: $blue-5;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.data-catalog-ribbon__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    h2 {
+        margin: 0;
+    }
+    a {
+        line-height: 38.4px;
+        margin-right: 16px;
+    }
+}
+.data-catalog-ribbon-hits {
+}
+.data-catalog-ribbon-hit {
+}
+.data-catalog-ribbon-list {
+    list-style: none;
+}
+.data-catalog-ribbon-thumbnail {
+    img {
+        width: 100%;
+    }
+    p {
+        margin: 0;
+        color: $blue-90;
+    }
+}
