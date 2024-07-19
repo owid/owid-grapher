@@ -37,6 +37,23 @@ const pathJoin = (...subpaths: string[]) => {
     return subpaths.join("/").replace(/\/+/g, "/")
 }
 
+const ChartHit = ({ hit }: { hit: any }) => {
+    return (
+        <a
+            key={hit.title}
+            href={`/grapher/${hit.slug}`}
+            className="data-catalog-ribbon-thumbnail"
+        >
+            <img
+                height={150}
+                width={212.5}
+                src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}`}
+            />
+            <p>{hit.title}</p>
+        </a>
+    )
+}
+
 const DataCatalogRibbon = (props: { tagName: string }) => {
     const { tagName } = props
 
@@ -63,20 +80,7 @@ const DataCatalogRibbon = (props: { tagName: string }) => {
                         item: "data-catalog-ribbon-hit",
                         list: "data-catalog-ribbon-list grid grid-cols-4",
                     }}
-                    hitComponent={({ hit }: any) => (
-                        <a
-                            key={hit.title}
-                            href={`/grapher/${hit.slug}`}
-                            className="data-catalog-ribbon-thumbnail"
-                        >
-                            <img
-                                height={150}
-                                width={212.5}
-                                src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}`}
-                            />
-                            <p>{hit.title}</p>
-                        </a>
-                    )}
+                    hitComponent={({ hit }: any) => <ChartHit hit={hit} />}
                 />
             </div>
         </Index>
@@ -126,19 +130,41 @@ const DataCatalogRibbonView = (props: {
 const DataCatalogResults = ({
     subpaths,
     tagGraph,
+    tagNamesBySlug,
 }: {
     subpaths: string[]
     tagGraph: TagGraphRoot
+    tagNamesBySlug: Record<string, string>
 }) => {
     const { uiState } = useInstantSearch()
     const query = uiState[""].query
     const shouldAttemptRibbonsView = subpaths.length < 2 && !query
+    const subpathsAsTagNames = subpaths.map(
+        (subpath) => tagNamesBySlug[subpath]
+    )
 
     return shouldAttemptRibbonsView ? (
         <DataCatalogRibbonView tagGraph={tagGraph} subpaths={subpaths} />
     ) : (
         <Index indexName={getIndexName(SearchIndexName.Charts)}>
-            <Configure tagFilters={`tags:${undefined}`} />
+            <Configure
+                facetFilters={[`tags:${subpathsAsTagNames.join(",")}`]}
+                hitsPerPage={20}
+            />
+            <Hits
+                classNames={{
+                    root: "data-catalog-search-hits span-cols-12 col-start-2",
+                    item: "data-catalog-search-hit",
+                    list: "data-catalog-search-list grid grid-cols-4",
+                }}
+                hitComponent={({ hit }: any) => <ChartHit hit={hit} />}
+            />
+            <pre
+                className="span-cols-12 col-start-2"
+                style={{ margin: "48px 0" }}
+            >
+                TODO: pagination
+            </pre>
         </Index>
     )
 }
@@ -198,10 +224,17 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                 <SearchBox
                     placeholder="Search for an indicator, a topic, or a keyword &hellip;"
                     searchAsYouType={false}
+                    classNames={{
+                        form: "data-catalog-search-form",
+                    }}
                     className="span-cols-12 col-start-2"
                 />
             </div>
-            <DataCatalogResults tagGraph={props.tagGraph} subpaths={subpaths} />
+            <DataCatalogResults
+                tagGraph={props.tagGraph}
+                subpaths={subpaths}
+                tagNamesBySlug={tagNamesBySlug}
+            />
         </InstantSearch>
     )
 }
