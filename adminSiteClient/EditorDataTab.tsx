@@ -9,7 +9,6 @@ import {
 } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
 import { ColorBox, SelectField, Section } from "./Forms.js"
-import { ChartEditor } from "./ChartEditor.js"
 import { faArrowsAltV, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -18,6 +17,7 @@ import {
     Droppable,
     DropResult,
 } from "react-beautiful-dnd"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 interface EntityItemProps extends React.HTMLProps<HTMLDivElement> {
     grapher: Grapher
@@ -164,7 +164,9 @@ export class KeysSection extends React.Component<{ grapher: Grapher }> {
 }
 
 @observer
-class MissingDataSection extends React.Component<{ editor: ChartEditor }> {
+class MissingDataSection<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor }> {
     @computed get grapher() {
         return this.props.editor.grapher
     }
@@ -208,7 +210,9 @@ class MissingDataSection extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
+export class EditorDataTab<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor }> {
     render() {
         const { editor } = this.props
         const { grapher, features } = editor

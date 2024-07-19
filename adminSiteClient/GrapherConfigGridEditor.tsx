@@ -7,6 +7,7 @@ import {
     getWindowUrl,
     setWindowUrl,
     excludeNull,
+    mergeGrapherConfigs,
 } from "@ourworldindata/utils"
 import { GrapherConfigPatch } from "../adminShared/AdminSessionTypes.js"
 import {
@@ -28,14 +29,12 @@ import {
 import { Disposer, observer } from "mobx-react"
 import { observable, computed, action, runInAction, autorun } from "mobx"
 import { match, P } from "ts-pattern"
-//import * as lodash from "lodash"
 import {
     cloneDeep,
     isArray,
     isEmpty,
     isEqual,
     isNil,
-    merge,
     omitBy,
     pick,
     range,
@@ -347,8 +346,10 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             selectedRowContent.id
         )
 
-        // TODO(inheritance): use mergeGrapherConfigs instead
-        const mergedConfig = merge(grapherConfig, finalConfigLayer)
+        const mergedConfig = mergeGrapherConfigs(
+            grapherConfig,
+            finalConfigLayer
+        )
         this.loadGrapherJson(mergedConfig)
     }
 

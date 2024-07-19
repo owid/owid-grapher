@@ -1,11 +1,16 @@
 import * as lodash from "lodash"
 import * as db from "../db.js"
-import { getDataForMultipleVariables } from "./Variable.js"
+import {
+    getDataForMultipleVariables,
+    getGrapherConfigsForVariable,
+} from "./Variable.js"
 import {
     JsonError,
     KeyChartLevel,
     MultipleOwidVariableDataDimensionsMap,
     DbChartTagJoin,
+    mergeGrapherConfigs,
+    getParentIndicatorIdFromChartConfig,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -19,6 +24,7 @@ import {
     DbRawChartConfig,
     DbEnrichedChartConfig,
 } from "@ourworldindata/types"
+import { defaultGrapherConfig } from "@ourworldindata/grapher"
 import { OpenAI } from "openai"
 import {
     BAKED_BASE_URL,
@@ -154,6 +160,24 @@ export async function getRawChartById(
     return chart
 }
 
+export async function getPatchConfigByChartId(
+    knex: db.KnexReadonlyTransaction,
+    id: number
+): Promise<GrapherInterface | undefined> {
+    const chart = await db.knexRawFirst<Pick<DbRawChartConfig, "patch">>(
+        knex,
+        `-- sql
+            SELECT patch
+            FROM chart_configs cc
+            JOIN charts c ON c.configId = cc.id
+            WHERE c.id = ?
+        `,
+        [id]
+    )
+    if (!chart) return undefined
+    return parseChartConfig(chart.patch)
+}
+
 export async function getEnrichedChartById(
     knex: db.KnexReadonlyTransaction,
     id: number
@@ -230,6 +254,46 @@ export async function getChartConfigBySlug(
     if (!row) throw new JsonError(`No chart found for slug ${slug}`, 404)
 
     return { id: row.id, config: parseChartConfig(row.config) }
+}
+
+export async function getParentConfigForChart(
+    trx: db.KnexReadonlyTransaction,
+    chartId: number
+): Promise<GrapherInterface> {
+    // check if the chart inherits settings from an indicator
+    const parentVariable = await db.knexRawFirst<{ id: number }>(
+        trx,
+        `-- sql
+            SELECT variableId AS id
+            FROM inheriting_charts
+            WHERE chartId = ?
+        `,
+        [chartId]
+    )
+
+    // all charts inherit from the default config
+    if (!parentVariable) return defaultGrapherConfig
+
+    const variable = await getGrapherConfigsForVariable(trx, parentVariable.id)
+    return mergeGrapherConfigs(
+        defaultGrapherConfig,
+        variable?.etl?.patchConfig ?? {},
+        variable?.admin?.patchConfig ?? {}
+    )
+}
+
+export async function getParentConfigForChartFromConfig(
+    trx: db.KnexReadonlyTransaction,
+    config: GrapherInterface
+): Promise<GrapherInterface> {
+    const parentVariableId = getParentIndicatorIdFromChartConfig(config)
+    if (!parentVariableId) return defaultGrapherConfig
+    const variable = await getGrapherConfigsForVariable(trx, parentVariableId)
+    return mergeGrapherConfigs(
+        defaultGrapherConfig,
+        variable?.etl?.patchConfig ?? {},
+        variable?.admin?.patchConfig ?? {}
+    )
 }
 
 export async function setChartTags(

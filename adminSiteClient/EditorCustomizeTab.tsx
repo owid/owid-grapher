@@ -1,7 +1,6 @@
 import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ChartEditor } from "./ChartEditor.js"
 import {
     ComparisonLineConfig,
     ColorSchemeName,
@@ -37,6 +36,8 @@ import {
 } from "./ColorSchemeDropdown.js"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import Select from "react-select"
+import { ChartEditorContext } from "./ChartEditorContext.js"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 @observer
 export class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
@@ -103,7 +104,9 @@ interface SortOrderDropdownOption {
 }
 
 @observer
-class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
+class SortOrderSection<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor }> {
     @computed get sortConfig(): SortConfig {
         return this.grapher._sortConfig
     }
@@ -203,7 +206,9 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-class FacetSection extends React.Component<{ editor: ChartEditor }> {
+class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
+    editor: Editor
+}> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get grapher() {
@@ -280,7 +285,9 @@ class FacetSection extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-class TimelineSection extends React.Component<{ editor: ChartEditor }> {
+class TimelineSection<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get grapher() {
@@ -387,7 +394,9 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
+class ComparisonLineSection<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor }> {
     @observable comparisonLines: ComparisonLineConfig[] = []
 
     @action.bound onAddComparisonLine() {
@@ -445,11 +454,16 @@ class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-export class EditorCustomizeTab extends React.Component<{
-    editor: ChartEditor
+export class EditorCustomizeTab<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{
+    editor: Editor
 }> {
+    // TODO
+    static contextType = ChartEditorContext
+
     @computed get errorMessages() {
-        return this.props.editor.manager.errorMessages
+        return this.context.errorMessages
     }
 
     render() {
