@@ -24,6 +24,8 @@ import {
 import { SearchIndexName } from "./search/searchTypes.js"
 import { getIndexName } from "./search/searchClient.js"
 import { UiState } from "instantsearch.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
 
 // SSR-safe way to get the current pathname
 const usePathname = () => {
@@ -101,11 +103,50 @@ function getArea(
     )
 }
 
-const DataCatalogRibbonView = (props: {
+const Breadcrumbs = ({
+    subpaths,
+    tagNamesBySlug,
+}: {
+    subpaths: string[]
+    tagNamesBySlug: Record<string, string>
+}) => {
+    return (
+        <div className="data-catalog-breadcrumbs span-cols-12 col-start-2">
+            <a className="body-3-medium data-catalog-breadcrumb" href="/charts">
+                All areas
+            </a>
+            {subpaths.map((subpath, i) => {
+                const path = subpaths.slice(0, i + 1).join("/")
+                const isLast = i === subpaths.length - 1
+                return (
+                    <span
+                        className="body-3-medium data-catalog-breadcrumb"
+                        key={subpath}
+                    >
+                        <FontAwesomeIcon icon={faChevronRight} />
+                        {isLast ? (
+                            tagNamesBySlug[subpath]
+                        ) : (
+                            <a href={`/charts/${path}`}>
+                                {tagNamesBySlug[subpath]}
+                            </a>
+                        )}
+                    </span>
+                )
+            })}
+        </div>
+    )
+}
+
+const DataCatalogRibbonView = ({
+    tagGraph,
+    subpaths,
+    tagNamesBySlug,
+}: {
     tagGraph: TagGraphRoot
+    tagNamesBySlug: Record<string, string>
     subpaths: string[]
 }) => {
-    const { tagGraph, subpaths } = props
     let areas: TagGraphNode[] = []
     // if subpaths = [], we're on the landing page, render all areas
     if (subpaths.length === 0) {
@@ -115,11 +156,13 @@ const DataCatalogRibbonView = (props: {
         areas = area ? area.children : []
     }
     if (areas.length === 0) {
+        // TODO: what should we do here?
         return <div className="span-cols-12 col-start-2">Invalid area</div>
     }
 
     return (
         <div className="span-cols-12 col-start-2">
+            <Breadcrumbs subpaths={subpaths} tagNamesBySlug={tagNamesBySlug} />
             {areas.map((area) => (
                 <DataCatalogRibbon tagName={area.name} key={area.name} />
             ))}
@@ -144,13 +187,18 @@ const DataCatalogResults = ({
     )
 
     return shouldAttemptRibbonsView ? (
-        <DataCatalogRibbonView tagGraph={tagGraph} subpaths={subpaths} />
+        <DataCatalogRibbonView
+            tagGraph={tagGraph}
+            subpaths={subpaths}
+            tagNamesBySlug={tagNamesBySlug}
+        />
     ) : (
         <Index indexName={getIndexName(SearchIndexName.Charts)}>
             <Configure
-                facetFilters={[`tags:${subpathsAsTagNames.join(",")}`]}
+                facetFilters={subpathsAsTagNames.map((tag) => `tags:${tag}`)}
                 hitsPerPage={20}
             />
+            <Breadcrumbs subpaths={subpaths} tagNamesBySlug={tagNamesBySlug} />
             <Hits
                 classNames={{
                     root: "data-catalog-search-hits span-cols-12 col-start-2",
@@ -163,7 +211,7 @@ const DataCatalogResults = ({
                 className="span-cols-12 col-start-2"
                 style={{ margin: "48px 0" }}
             >
-                TODO: pagination
+                TODO: pagination?
             </pre>
         </Index>
     )

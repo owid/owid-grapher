@@ -11,6 +11,17 @@
     position: relative;
 }
 
+.data-catalog-breadcrumb {
+    margin-left: 8px;
+    display: inline-block;
+    svg {
+        margin-right: 8px;
+    }
+    a {
+        color: $blue-60;
+    }
+}
+
 .data-catalog-ribbon {
     background-color: $blue-5;
     padding: 24px;
