@@ -9,7 +9,7 @@ import {
     SiteFooterContext,
     DataPageDataV2,
     serializeJSONForHTML,
-    mergePartialGrapherConfigs,
+    mergeGrapherConfigs,
     compact,
     FaqEntryData,
     pick,
@@ -88,10 +88,9 @@ export const DataPageV2 = (props: {
         compact(grapher?.dimensions?.map((d) => d.variableId))
     )
 
-    // TODO(inheritance): use mergeGrapherConfigs instead
-    const mergedGrapherConfig = mergePartialGrapherConfigs(
+    const mergedGrapherConfig = mergeGrapherConfigs(
         datapageData.chartConfig as GrapherInterface,
-        grapher
+        grapher ?? {}
     )
 
     // Note that we cannot set `bindUrlToWindow` and `isEmbeddedInADataPage` here,

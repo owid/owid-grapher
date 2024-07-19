@@ -9,9 +9,9 @@ import { ColumnSlug, isEmpty, ToleranceStrategy } from "@ourworldindata/utils"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { ChartEditor } from "./ChartEditor.js"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 @observer
 class VariableSection extends React.Component<{
@@ -161,7 +161,9 @@ class TooltipSection extends React.Component<{ mapConfig: MapConfig }> {
 }
 
 @observer
-export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
+export class EditorMapTab<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor }> {
     @computed get grapher() {
         return this.props.editor.grapher
     }
