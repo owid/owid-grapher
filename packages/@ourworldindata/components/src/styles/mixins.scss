@@ -211,13 +211,16 @@
 
 @mixin topic-chip {
     a {
+        display: flex;
+        align-items: center;
         background-color: $blue-10;
         border-radius: 50px;
-        padding: 8.5px 16px;
+        padding: 8px 16px;
         white-space: nowrap;
         @include body-3-medium;
         color: $blue-90;
         transition: background-color 150ms;
+        height: 32px;
 
         &:hover {
             background-color: $blue-20;

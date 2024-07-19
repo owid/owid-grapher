@@ -1,20 +1,20 @@
-import {
-    faArrowRight,
-    faChain,
-    faCheck,
-    faChevronRight,
-} from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     OwidGdocDataInsightInterface,
     formatAuthors,
-    formatDate,
     copyToClipboard,
     MinimalTag,
 } from "@ourworldindata/utils"
-import React, { useContext } from "react"
+import React, { useContext, useState } from "react"
+import {
+    faArrowRight,
+    faChevronRight,
+    faCheck,
+    faChain,
+} from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
+import DataInsightDateline from "../components/DataInsightDateline.js"
 import LatestDataInsights, {
     LatestDataInsight,
 } from "../components/LatestDataInsights.js"
@@ -49,12 +49,10 @@ export const LatestDataInsightCards = (props: {
     return (
         <div className={cx(className, "data-insight-cards-container")}>
             <h2 className="h2-bold ">Our latest Daily Data Insights</h2>
-            <div className="see-all-button-container">
-                <a href="/data-insights" className="body-3-medium">
-                    See all Daily Data Insights{" "}
-                    <FontAwesomeIcon icon={faArrowRight} />
-                </a>
-            </div>
+            <a href="/data-insights" className="see-all-button">
+                See all Daily Data Insights{" "}
+                <FontAwesomeIcon icon={faArrowRight} />
+            </a>
             <LatestDataInsights
                 className="data-insights-carousel"
                 latestDataInsights={latestDataInsights}
@@ -73,7 +71,7 @@ const RelatedTopicsList = ({
     if (!tags?.length) return null
     return (
         <div className={cx(className, "data-insights-related-topics")}>
-            <p className="h5-black-caps">Related topics: </p>
+            <p className="body-2-semibold">Related topic pages:</p>
             <ul>
                 {tags.map((tag) => (
                     <li key={tag.name}>
@@ -85,51 +83,33 @@ const RelatedTopicsList = ({
     )
 }
 
-const DataInsightMeta = (props: {
-    publishedAt: Date | string | null
-    authors: string[]
-    slug: string
-}) => {
-    const [hasCopied, setHasCopied] = React.useState(false)
-    const innerText = hasCopied ? "Copied!" : "Copy link"
-    const icon = hasCopied ? faCheck : faChain
-    const publishedAt = props.publishedAt
-        ? formatDate(new Date(props.publishedAt))
-        : "Unpublished"
-
+function CopyLinkButton(props: { slug: string }) {
+    const [hasCopied, setHasCopied] = useState(false)
     return (
-        <div className="span-cols-2 col-start-2 span-md-cols-10 col-md-start-3 span-sm-cols-14 col-sm-start-1 data-insight-meta">
-            <div>
-                <span className="data-insight-meta__published-at h6-black-caps">
-                    {publishedAt}
-                </span>
-                <span className="data-insight-meta__authors body-3-medium">
-                    {formatAuthors({ authors: props.authors })}
-                </span>
-            </div>
-            <div>
-                <label className="h6-black-caps" htmlFor="copy-link-button">
-                    Share this insight
-                </label>
-                <button
-                    aria-label="Copy link to clipboard"
-                    id="copy-link-button"
-                    className="data-insight-meta__copy-link-button body-3-medium"
-                    onClick={() => {
-                        void copyToClipboard(
-                            `${BAKED_BASE_URL}/data-insights/${props.slug}`
-                        )
-                        setHasCopied(true)
-                        setTimeout(() => {
-                            setHasCopied(false)
-                        }, 1000)
-                    }}
-                >
-                    <FontAwesomeIcon icon={icon} />
-                    {innerText}
-                </button>
-            </div>
-        </div>
+        <button
+            aria-label="Copy link to clipboard"
+            id="copy-link-button"
+            className="data-insight-copy-link-button body-3-medium"
+            onClick={() => {
+                void copyToClipboard(
+                    `${BAKED_BASE_URL}/data-insights/${props.slug}`
+                )
+                setHasCopied(true)
+                setTimeout(() => {
+                    setHasCopied(false)
+                }, 1000)
+            }}
+        >
+            {hasCopied ? (
+                <>
+                    <FontAwesomeIcon icon={faCheck} /> Copied!
+                </>
+            ) : (
+                <>
+                    <FontAwesomeIcon icon={faChain} /> Copy link
+                </>
+            )}
+        </button>
     )
 }
 
@@ -139,13 +119,9 @@ export const DataInsightBody = (
         publishedAt: Date | string | null
     }
 ) => {
+    const publishedAt = props.publishedAt ? new Date(props.publishedAt) : null
     return (
         <div className="grid grid-cols-12-full-width span-cols-14">
-            <DataInsightMeta
-                publishedAt={props.publishedAt}
-                authors={props.content.authors}
-                slug={props.slug}
-            />
             <div
                 id={props.anchor}
                 className={cx(
@@ -155,11 +131,26 @@ export const DataInsightBody = (
                     }
                 )}
             >
+                <DataInsightDateline
+                    className="data-insight__dateline"
+                    publishedAt={publishedAt}
+                    formatOptions={{
+                        year: "numeric",
+                        month: "long",
+                        day: "2-digit",
+                    }}
+                />
                 <h1 className="display-3-semibold">{props.content.title}</h1>
+                <div className="data-insight-authors body-3-medium">
+                    {formatAuthors({ authors: props.content.authors })}
+                </div>
                 <div className="data-insight-blocks">
                     <ArticleBlocks blocks={props.content.body} />
                 </div>
-                <RelatedTopicsList tags={props.tags ?? undefined} />
+                <div className="data-insight-footer">
+                    <RelatedTopicsList tags={props.tags ?? undefined} />
+                    <CopyLinkButton slug={props.slug} />
+                </div>
             </div>
         </div>
     )

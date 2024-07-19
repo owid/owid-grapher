@@ -126,13 +126,7 @@ html:not(.js) .latest-data-insights__card,
 }
 
 .latest-data-insights__card-dateline {
-    margin-bottom: 4px;
-    margin-top: 0;
-    color: $blue-60;
-
-    &--is-today {
-        color: $vermillion;
-    }
+    @include h5-black-caps;
 
     @include md-down {
         @include h6-black-caps;
