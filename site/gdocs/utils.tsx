@@ -177,21 +177,21 @@ const LinkedA = ({ span }: { span: SpanLink }): React.ReactElement => {
 export function renderSpan(
     span: Span,
     key: React.Key | null | undefined = undefined,
-    renderLinks: boolean = true
+    shouldRenderLinks: boolean = true
 ): React.ReactElement {
     return match(span)
         .with({ spanType: "span-simple-text" }, (span) => (
             <span key={key}>{span.text}</span>
         ))
         .with({ spanType: "span-link" }, (span) =>
-            renderLinks ? (
+            shouldRenderLinks ? (
                 <LinkedA span={span} key={key} />
             ) : (
                 <span key={key}>{renderSpans(span.children)}</span>
             )
         )
         .with({ spanType: "span-ref" }, (span) =>
-            renderLinks ? (
+            shouldRenderLinks ? (
                 <a key={key} href={span.url} className="ref">
                     {renderSpans(span.children)}
                 </a>
@@ -203,14 +203,12 @@ export function renderSpan(
         )
         .with({ spanType: "span-dod" }, (span) => (
             <span key={key}>
-                {renderLinks ? (
+                {shouldRenderLinks ? (
                     <a data-id={`${span.id}`} className="dod-span">
                         {renderSpans(span.children)}
                     </a>
                 ) : (
-                    <span className="dod-span">
-                        {renderSpans(span.children)}
-                    </span>
+                    <span>{renderSpans(span.children)}</span>
                 )}
             </span>
         ))
@@ -241,9 +239,11 @@ export function renderSpan(
 
 export function renderSpans(
     spans: Span[],
-    renderLinks: boolean = true
+    shouldRenderLinks: boolean = true
 ): React.ReactElement[] {
-    return spans.map((span, index) => renderSpan(span, index, renderLinks))
+    return spans.map((span, index) =>
+        renderSpan(span, index, shouldRenderLinks)
+    )
 }
 
 export function getShortPageCitation(

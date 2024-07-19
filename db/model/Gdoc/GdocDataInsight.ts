@@ -19,18 +19,21 @@ export class GdocDataInsight
     implements OwidGdocDataInsightInterface
 {
     content!: OwidGdocDataInsightContent
-    private loadLatestDataInsights: boolean
+    private shouldLoadLatestDataInsights: boolean
 
-    constructor(id?: string, loadLatestDataInsights: boolean = false) {
+    constructor(id?: string, shouldLoadLatestDataInsights: boolean = false) {
         super(id)
-        this.loadLatestDataInsights = loadLatestDataInsights
+        this.shouldLoadLatestDataInsights = shouldLoadLatestDataInsights
     }
 
     static create(
         obj: OwidGdocBaseInterface,
-        loadLatestDataInsights: boolean = false
+        shouldLoadLatestDataInsights: boolean = false
     ): GdocDataInsight {
-        const gdoc = new GdocDataInsight(undefined, loadLatestDataInsights)
+        const gdoc = new GdocDataInsight(
+            undefined,
+            shouldLoadLatestDataInsights
+        )
         Object.assign(gdoc, obj)
         return gdoc
     }
@@ -59,7 +62,7 @@ export class GdocDataInsight
         knex: db.KnexReadWriteTransaction
     ): Promise<void> => {
         // TODO: refactor these classes to properly use knex - not going to start it now
-        if (this.loadLatestDataInsights) {
+        if (this.shouldLoadLatestDataInsights) {
             this.latestDataInsights = await getAndLoadPublishedDataInsights(
                 knex,
                 {

@@ -158,11 +158,15 @@ html:not(.js) .latest-data-insights__card,
 }
 
 .latest-data-insights__control-button {
+    --button-size: 40px;
     position: absolute;
-    top: 141px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: calc(50% - (var(--button-size) / 2));
     z-index: 1;
-    width: 40px;
-    height: 40px;
+    width: var(--button-size);
+    height: var(--button-size);
     padding: 0;
     border-radius: 50%;
 

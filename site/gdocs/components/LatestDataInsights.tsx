@@ -31,12 +31,16 @@ import { dataInsightIndexToIdMap } from "../pages/DataInsight.js"
 import Image from "./Image.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 
+export interface LatestDataInsight extends OwidGdocDataInsightInterface {
+    index?: number
+}
+
 export default function LatestDataInsights({
     className,
     latestDataInsights,
 }: {
     className?: string
-    latestDataInsights: OwidGdocDataInsightInterface[]
+    latestDataInsights: LatestDataInsight[]
 }) {
     const dataInsights = useMemo(
         () =>
@@ -91,7 +95,7 @@ export default function LatestDataInsights({
                             title={dataInsight.content.title}
                             body={dataInsight.content.body}
                             publishedAt={dataInsight.publishedAt}
-                            href={`/data-insights#${dataInsightIndexToIdMap[index]}`}
+                            href={`/data-insights#${dataInsightIndexToIdMap[dataInsight.index ?? index]}`}
                         />
                     ))}
                     {isSmallScreen && (
@@ -166,6 +170,7 @@ const DataInsightCard = memo(function DataInsightCard({
                     className="latest-data-insights__card-left"
                     filename={firstImageBlock.filename}
                     smallFilename={firstImageBlock.smallFilename}
+                    containerType="span-5"
                     shouldLightbox={false}
                 />
             )}
@@ -173,7 +178,10 @@ const DataInsightCard = memo(function DataInsightCard({
                 {publishedAt && <Dateline publishedAt={publishedAt} />}
                 <h3 className="latest-data-insights__card-title">{title}</h3>
                 <div className="latest-data-insights__card-body">
-                    <ArticleBlocks blocks={otherBlocks} renderLinks={false} />
+                    <ArticleBlocks
+                        blocks={otherBlocks}
+                        shouldRenderLinks={false}
+                    />
                 </div>
                 <div className="latest-data-insights__card-continue">
                     <span className="body-3-medium-underlined">

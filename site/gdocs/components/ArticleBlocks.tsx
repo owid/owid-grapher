@@ -11,7 +11,7 @@ import {
  * @param blocks
  * @param containerType
  * @param toc
- * @param renderLinks - Won't render <a> elements when false. Useful to avoid
+ * @param shouldRenderLinks - Won't render <a> elements when false. Useful to avoid
  * invalid nested links.
  * @constructor
  */
@@ -19,12 +19,12 @@ export const ArticleBlocks = ({
     blocks,
     containerType = "default",
     toc,
-    renderLinks = true,
+    shouldRenderLinks = true,
 }: {
     blocks: OwidEnrichedGdocBlock[]
     containerType?: Container
     toc?: TocHeadingWithTitleSupertitle[]
-    renderLinks?: boolean
+    shouldRenderLinks?: boolean
 }) => (
     <>
         {blocks.map((block: OwidEnrichedGdocBlock, i: number) => {
@@ -34,7 +34,7 @@ export const ArticleBlocks = ({
                     b={block}
                     containerType={containerType}
                     toc={toc}
-                    renderLinks={renderLinks}
+                    shouldRenderLinks={shouldRenderLinks}
                 />
             )
         })}

@@ -14,14 +14,16 @@ function isOnlyEmptySpans(spans: Span[]) {
 export default function Paragraph({
     d,
     className = "",
-    renderLinks = true,
+    shouldRenderLinks = true,
 }: {
     d: EnrichedBlockText
     className?: string
-    renderLinks?: boolean
+    shouldRenderLinks?: boolean
 }) {
     if (isOnlyEmptySpans(d.value)) {
         return null
     }
-    return <p className={className}>{renderSpans(d.value, renderLinks)}</p>
+    return (
+        <p className={className}>{renderSpans(d.value, shouldRenderLinks)}</p>
+    )
 }

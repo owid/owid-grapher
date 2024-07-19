@@ -310,7 +310,7 @@ export async function loadGdocFromGdocBase(
     knex: KnexReadWriteTransaction,
     base: OwidGdocBaseInterface,
     contentSource?: GdocsContentSource,
-    loadLatestDataInsights?: boolean
+    shouldLoadLatestDataInsights?: boolean
 ): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
     const type = get(base, "content.type") as unknown
     if (!type)
@@ -335,7 +335,7 @@ export async function loadGdocFromGdocBase(
             () => GdocPost.create(base)
         )
         .with(OwidGdocType.DataInsight, () =>
-            GdocDataInsight.create(base, loadLatestDataInsights)
+            GdocDataInsight.create(base, shouldLoadLatestDataInsights)
         )
         .with(OwidGdocType.Homepage, () => GdocHomepage.create(base))
         .with(OwidGdocType.Author, () => GdocAuthor.create(base))

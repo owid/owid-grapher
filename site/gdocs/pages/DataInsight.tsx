@@ -15,7 +15,9 @@ import {
 } from "@ourworldindata/utils"
 import React, { useContext } from "react"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
-import LatestDataInsights from "../components/LatestDataInsights.js"
+import LatestDataInsights, {
+    LatestDataInsight,
+} from "../components/LatestDataInsights.js"
 import { AttachmentsContext } from "../OwidGdoc.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 
@@ -38,7 +40,7 @@ export const dataInsightIndexToIdMap: Record<number, string> = {
 }
 
 export const LatestDataInsightCards = (props: {
-    latestDataInsights?: OwidGdocDataInsightInterface[]
+    latestDataInsights?: LatestDataInsight[]
     className?: string
 }) => {
     const { latestDataInsights, className } = props
@@ -171,9 +173,11 @@ export const DataInsightPage = (
     props: DataInsightProps
 ): React.ReactElement => {
     const attachments = useContext(AttachmentsContext)
-    const latestDataInsights = attachments.latestDataInsights?.filter(
-        (dataInsight) => dataInsight.content.title !== props.content.title
-    )
+    const latestDataInsights = attachments.latestDataInsights
+        ?.map((dataInsight, index) => ({ ...dataInsight, index }))
+        .filter(
+            (dataInsight) => dataInsight.content.title !== props.content.title
+        )
 
     return (
         <div className="grid grid-cols-12-full-width data-insight-page">

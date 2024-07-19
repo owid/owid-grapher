@@ -366,7 +366,7 @@ export async function makeAtomFeed(knex: KnexReadWriteTransaction) {
 }
 
 export async function makeDataInsightsAtomFeed(knex: KnexReadWriteTransaction) {
-    const dataInsights = await getAndLoadPublishedDataInsightsPage(knex)
+    const dataInsights = await getAndLoadPublishedDataInsightsPage(knex, 0)
     return makeAtomFeedFromDataInsights({
         dataInsights,
         htmlUrl: `${BAKED_BASE_URL}/data-insights`,
