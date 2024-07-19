@@ -5,37 +5,26 @@
  *
  */
 
-import { Grapher } from "@ourworldindata/grapher"
 import {
-    type DetailDictionary,
     type RawPageview,
     Topic,
     PostReference,
     ChartRedirect,
-    DimensionProperty,
     Json,
+    GrapherInterface,
+    diffGrapherConfigs,
+    getParentIndicatorIdFromChartConfig,
+    mergeGrapherConfigs,
 } from "@ourworldindata/utils"
-import { computed, observable, runInAction, when } from "mobx"
+import { action, computed, observable, runInAction } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
+import { defaultGrapherConfig } from "@ourworldindata/grapher"
+import {
+    AbstractChartEditor,
+    AbstractChartEditorManager,
+    EditorTab,
+} from "./AbstractChartEditor.js"
 import { Admin } from "./Admin.js"
-import { EditorFeatures } from "./EditorFeatures.js"
-
-type EditorTab = string
-
-interface Variable {
-    id: number
-    name: string
-}
-
-export interface Dataset {
-    id: number
-    name: string
-    namespace: string
-    version: string | undefined
-    variables: Variable[]
-    isPrivate: boolean
-    nonRedistributable: boolean
-}
 
 export interface Log {
     userId: number
@@ -58,101 +47,18 @@ export const getFullReferencesCount = (references: References): number => {
     )
 }
 
-export interface Namespace {
-    name: string
-    description?: string
-    isArchived: boolean
-}
-
-// This contains the dataset/variable metadata for the entire database
-// Used for variable selector interface
-
-export interface NamespaceData {
-    datasets: Dataset[]
-}
-
-export class EditorDatabase {
-    @observable.ref namespaces: Namespace[]
-    @observable.ref variableUsageCounts: Map<number, number> = new Map()
-    @observable dataByNamespace: Map<string, NamespaceData> = new Map()
-
-    constructor(json: any) {
-        this.namespaces = json.namespaces
-    }
-}
-
-export type FieldWithDetailReferences =
-    | "subtitle"
-    | "note"
-    | "axisLabelX"
-    | "axisLabelY"
-
-export type DetailReferences = Record<FieldWithDetailReferences, string[]>
-
-export interface DimensionErrorMessage {
-    displayName?: string
-}
-
-export interface ChartEditorManager {
-    admin: Admin
-    grapher: Grapher
-    database: EditorDatabase
+export interface ChartEditorManager extends AbstractChartEditorManager {
     logs: Log[]
     references: References | undefined
     redirects: ChartRedirect[]
     pageviews?: RawPageview
     allTopics: Topic[]
-    details: DetailDictionary
-    invalidDetailReferences: DetailReferences
-    errorMessages: Partial<Record<FieldWithDetailReferences, string>>
-    errorMessagesForDimensions: Record<
-        DimensionProperty,
-        DimensionErrorMessage[]
-    >
 }
 
-interface VariableIdUsageRecord {
-    variableId: number
-    usageCount: number
-}
-
-export class ChartEditor {
-    manager: ChartEditorManager
-    // Whether the current chart state is saved or not
-    @observable.ref currentRequest: Promise<any> | undefined
-    @observable.ref tab: EditorTab = "basic"
-    @observable.ref errorMessage?: { title: string; content: string }
-    @observable.ref previewMode: "mobile" | "desktop"
-    @observable.ref showStaticPreview = false
-    @observable.ref savedGrapherJson: string = ""
-
+export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     // This gets set when we save a new chart for the first time
     // so the page knows to update the url
     @observable.ref newChartId?: number
-
-    constructor(props: { manager: ChartEditorManager }) {
-        this.manager = props.manager
-        this.previewMode =
-            localStorage.getItem("editorPreviewMode") === "mobile"
-                ? "mobile"
-                : "desktop"
-        when(
-            () => this.grapher.isReady,
-            () => (this.savedGrapherJson = JSON.stringify(this.grapher.object))
-        )
-    }
-
-    @computed get isModified(): boolean {
-        return JSON.stringify(this.grapher.object) !== this.savedGrapherJson
-    }
-
-    @computed get grapher() {
-        return this.manager.grapher
-    }
-
-    @computed get database() {
-        return this.manager.database
-    }
 
     @computed get logs() {
         return this.manager.logs
@@ -174,10 +80,6 @@ export class ChartEditor {
         return this.manager.allTopics
     }
 
-    @computed get details() {
-        return this.manager.details
-    }
-
     @computed get availableTabs(): EditorTab[] {
         const tabs: EditorTab[] = ["basic", "data", "text", "customize"]
         if (this.grapher.hasMapTab) tabs.push("map")
@@ -193,36 +95,43 @@ export class ChartEditor {
         return this.grapher.id === undefined
     }
 
-    @computed get features() {
-        return new EditorFeatures(this)
-    }
-
-    async loadVariableUsageCounts(): Promise<void> {
-        const data = (await this.manager.admin.getJSON(
-            `/api/variables.usages.json`
-        )) as VariableIdUsageRecord[]
-        const finalData = new Map(
-            data.map(({ variableId, usageCount }: VariableIdUsageRecord) => [
-                variableId,
-                +usageCount,
-            ])
+    @action.bound async updateParentConfig() {
+        const newIndicatorId = getParentIndicatorIdFromChartConfig(
+            this.liveConfig
         )
-        runInAction(() => (this.database.variableUsageCounts = finalData))
+        const currentIndicatorId = this.parentConfig?.dimensions?.[0].variableId
+        if (newIndicatorId !== currentIndicatorId) {
+            this.parentConfig = newIndicatorId
+                ? await fetchParentConfigForChart(
+                      this.manager.admin,
+                      newIndicatorId
+                  )
+                : undefined
+        }
+
+        // it's intentional that we don't use this.patchConfig here
+        const patchConfig = diffGrapherConfigs(
+            this.liveConfig,
+            this.parentConfig ?? {}
+        )
+        const config = mergeGrapherConfigs(this.parentConfig ?? {}, patchConfig)
+
+        this.grapher.updateFromObject(config)
+        // TODO(inheritance): what does this do? is this necessary?
+        this.grapher.updateAuthoredVersion({
+            ...this.grapher.toObject(),
+        })
     }
 
     async saveGrapher({
         onError,
     }: { onError?: () => void } = {}): Promise<void> {
-        const { grapher, isNewGrapher } = this
-        const currentGrapherObject = this.grapher.object
+        const { grapher, isNewGrapher, patchConfig } = this
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
         // But the server will need to know what we calculated in order to do its job
-        if (!currentGrapherObject.title)
-            currentGrapherObject.title = grapher.displayTitle
-
-        if (!currentGrapherObject.slug)
-            currentGrapherObject.slug = grapher.displaySlug
+        if (!patchConfig.title) patchConfig.title = grapher.displayTitle
+        if (!patchConfig.slug) patchConfig.slug = grapher.displaySlug
 
         const targetUrl = isNewGrapher
             ? "/api/charts"
@@ -230,7 +139,7 @@ export class ChartEditor {
 
         const json = await this.manager.admin.requestJSON(
             targetUrl,
-            currentGrapherObject,
+            patchConfig,
             isNewGrapher ? "POST" : "PUT"
         )
 
@@ -250,9 +159,9 @@ export class ChartEditor {
     }
 
     async saveAsNewGrapher(): Promise<void> {
-        const currentGrapherObject = this.grapher.object
+        const { patchConfig } = this
 
-        const chartJson = { ...currentGrapherObject }
+        const chartJson = { ...patchConfig }
         delete chartJson.id
         delete chartJson.isPublished
 
@@ -293,4 +202,20 @@ export class ChartEditor {
             })
         }
     }
+}
+
+export async function fetchParentConfigForChart(
+    admin: Admin,
+    indicatorId: number
+): Promise<GrapherInterface> {
+    const indicatorChart = await admin.getJSON(
+        `/api/variables/mergedGrapherConfig/${indicatorId}.json`
+    )
+    return mergeGrapherConfigs(defaultGrapherConfig, indicatorChart)
+}
+
+export function isChartEditorInstance(
+    editor: AbstractChartEditor
+): editor is ChartEditor {
+    return editor instanceof ChartEditor
 }

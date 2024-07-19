@@ -1,7 +1,6 @@
 import { OwidVariableType } from "../OwidVariable.js"
 import { OwidVariableDisplayConfigInterface } from "../OwidVariableDisplayConfigInterface.js"
 import { JsonString } from "../domainTypes/Various.js"
-import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
 
 export const VariablesTableName = "variables"
 export interface DbInsertVariable {
@@ -20,8 +19,8 @@ export interface DbInsertVariable {
     descriptionShort?: string | null
     dimensions?: JsonString | null
     display: JsonString
-    grapherConfigAdmin?: JsonString | null
-    grapherConfigETL?: JsonString | null
+    grapherConfigIdAdmin?: Buffer | null
+    grapherConfigIdETL?: Buffer | null
     id?: number
     license?: JsonString | null
     licenses?: JsonString | null
@@ -66,8 +65,6 @@ export type DbEnrichedVariable = Omit<
     | "dimensions"
     | "descriptionKey"
     | "originalMetadata"
-    | "grapherConfigAdmin"
-    | "grapherConfigETL"
     | "processingLog"
     | "sort"
 > & {
@@ -77,8 +74,6 @@ export type DbEnrichedVariable = Omit<
     dimensions: VariableDisplayDimension | null
     descriptionKey: string[] | null
     originalMetadata: unknown | null
-    grapherConfigAdmin: GrapherInterface | null
-    grapherConfigETL: GrapherInterface | null
     processingLog: unknown | null
     sort: string[] | null
 }
@@ -149,30 +144,6 @@ export function serializeVariableOriginalMetadata(
     return originalMetadata ? JSON.stringify(originalMetadata) : null
 }
 
-export function parseVariableGrapherConfigAdmin(
-    grapherConfigAdmin: JsonString | null
-): GrapherInterface {
-    return grapherConfigAdmin ? JSON.parse(grapherConfigAdmin) : null
-}
-
-export function serializeVariableGrapherConfigAdmin(
-    grapherConfigAdmin: GrapherInterface | null
-): JsonString | null {
-    return grapherConfigAdmin ? JSON.stringify(grapherConfigAdmin) : null
-}
-
-export function parseVariableGrapherConfigETL(
-    grapherConfigETL: JsonString | null
-): GrapherInterface {
-    return grapherConfigETL ? JSON.parse(grapherConfigETL) : null
-}
-
-export function serializeVariableGrapherConfigETL(
-    grapherConfigETL: GrapherInterface | null
-): JsonString | null {
-    return grapherConfigETL ? JSON.stringify(grapherConfigETL) : null
-}
-
 export function parseVariableProcessingLog(
     processingLog: JsonString | null
 ): any {
@@ -204,10 +175,6 @@ export function parseVariablesRow(row: DbRawVariable): DbEnrichedVariable {
         dimensions: parseVariableDimensions(row.dimensions),
         descriptionKey: parseVariableDescriptionKey(row.descriptionKey),
         originalMetadata: parseVariableOriginalMetadata(row.originalMetadata),
-        grapherConfigAdmin: parseVariableGrapherConfigAdmin(
-            row.grapherConfigAdmin
-        ),
-        grapherConfigETL: parseVariableGrapherConfigETL(row.grapherConfigETL),
         processingLog: parseVariableProcessingLog(row.processingLog),
         sort: parseVariableSort(row.sort),
     }
@@ -223,12 +190,6 @@ export function serializeVariablesRow(row: DbEnrichedVariable): DbRawVariable {
         descriptionKey: serializeVariableDescriptionKey(row.descriptionKey),
         originalMetadata: serializeVariableOriginalMetadata(
             row.originalMetadata
-        ),
-        grapherConfigAdmin: serializeVariableGrapherConfigAdmin(
-            row.grapherConfigAdmin
-        ),
-        grapherConfigETL: serializeVariableGrapherConfigETL(
-            row.grapherConfigETL
         ),
         processingLog: serializeVariableProcessingLog(row.processingLog),
         sort: serializeVariableSort(row.sort),

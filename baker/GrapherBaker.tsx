@@ -9,8 +9,8 @@ import {
     deserializeJSONFromHTML,
     uniq,
     keyBy,
-    mergePartialGrapherConfigs,
     compact,
+    mergeGrapherConfigs,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import * as lodash from "lodash"
@@ -135,16 +135,15 @@ export async function renderDataPageV2(
     knex: db.KnexReadWriteTransaction
 ) {
     const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
-        variableId,
-        knex
+        knex,
+        variableId
     )
     // Only merge the grapher config on the indicator if the caller tells us to do so -
     // this is true for preview pages for datapages on the indicator level but false
     // if we are on Grapher pages. Once we have a good way in the grapher admin for how
     // to use indicator level defaults, we should reconsider how this works here.
-    // TODO(inheritance): use mergeGrapherConfigs instead
     const grapher = useIndicatorGrapherConfigs
-        ? mergePartialGrapherConfigs(grapherConfigForVariable, pageGrapher)
+        ? mergeGrapherConfigs(grapherConfigForVariable ?? {}, pageGrapher ?? {})
         : pageGrapher ?? {}
 
     const faqDocIds = compact(
