@@ -7,6 +7,10 @@
     padding-bottom: 24px;
 }
 
+.data-catalog-search-form {
+    position: relative;
+}
+
 .data-catalog-ribbon {
     background-color: $blue-5;
     padding: 24px;
@@ -29,9 +33,13 @@
 }
 .data-catalog-ribbon-hit {
 }
+.data-catalog-search-list,
 .data-catalog-ribbon-list {
     list-style: none;
+    grid-gap: var(--grid-gap);
 }
+
+.data-catalog-search-thumbnail,
 .data-catalog-ribbon-thumbnail {
     img {
         width: 100%;
@@ -39,5 +47,10 @@
     p {
         margin: 0;
         color: $blue-90;
+    }
+    &:hover {
+        p {
+            text-decoration: underline;
+        }
     }
 }
