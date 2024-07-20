@@ -105,7 +105,6 @@ export class ChartList extends React.Component<{
             <table className="table table-bordered">
                 <thead>
                     <tr>
-                        <th></th>
                         <th>Chart</th>
                         <th>Id</th>
                         <th>Type</th>
