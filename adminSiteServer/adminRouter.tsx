@@ -50,7 +50,7 @@ import {
     getPlainRouteNonIdempotentWithRWTransaction,
     getPlainRouteWithROTransaction,
 } from "./plainRouterHelpers.js"
-import { MultiDimDataPageConfig } from "../site/multi-dim/MultiDimDataPageConfig.js"
+import { MultiDimDataPageConfig } from "../site/multiDim/MultiDimDataPageConfig.js"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
