@@ -7,7 +7,7 @@ import { SearchPage } from "../site/search/SearchPage.js"
 import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
-import { MultiDimDataPage } from "../site/multi-dim/MultiDimDataPage.js"
+import { MultiDimDataPage } from "../site/multiDim/MultiDimDataPage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
@@ -91,7 +91,7 @@ import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerBaker.j
 import { AttachmentsContext } from "../site/gdocs/OwidGdoc.js"
 import AtomArticleBlocks from "../site/gdocs/components/AtomArticleBlocks.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
-import { MultiDimDataPageConfig } from "../site/multi-dim/MultiDimDataPageConfig.js"
+import { MultiDimDataPageConfig } from "../site/multiDim/MultiDimDataPageConfig.js"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
