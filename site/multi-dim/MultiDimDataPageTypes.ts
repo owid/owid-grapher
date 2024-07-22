@@ -14,13 +14,16 @@ export interface Dimension {
     group?: string
     description?: string
     multi_select?: boolean
-    choices: Dimension[]
+    choices: Choice[]
 }
 
-export interface DimensionEnriched extends Dimension {
+export interface ChoicesEnriched {
+    choices: Choice[]
     choicesBySlug: Record<string, Choice>
     choicesByGroup: Record<string, Choice[]>
 }
+
+export type DimensionEnriched = Dimension & ChoicesEnriched
 
 export interface Choice {
     slug: string
