@@ -1,6 +1,8 @@
 import YAML from "yaml"
 import {
-    Dimension,
+    Choice,
+    ChoicesEnriched,
+    DimensionEnriched,
     MultiDimDataPageConfigType,
     View,
 } from "./MultiDimDataPageTypes.js"
@@ -9,15 +11,21 @@ import { DimensionProperty, groupBy, keyBy } from "@ourworldindata/utils"
 export class MultiDimDataPageConfig {
     private constructor(public readonly config: MultiDimDataPageConfigType) {}
 
-    static fromYaml(yaml: string) {
-        return new MultiDimDataPageConfig(YAML.parse(yaml))
+    static fromYaml(yamlString: string) {
+        return new MultiDimDataPageConfig(YAML.parse(yamlString))
+    }
+
+    static fromJson(jsonString: string) {
+        return new MultiDimDataPageConfig(JSON.parse(jsonString))
     }
 
     static fromObject(obj: MultiDimDataPageConfigType) {
         return new MultiDimDataPageConfig(obj)
     }
 
-    static getChoicesFields(choices: Dimension[]) {
+    private static getEnrichedChoicesFields(
+        choices: Choice[]
+    ): ChoicesEnriched {
         return {
             choices,
             choicesBySlug: keyBy(choices, "slug"),
@@ -25,10 +33,12 @@ export class MultiDimDataPageConfig {
         }
     }
 
-    get dimensions() {
+    get dimensions(): Record<string, DimensionEnriched> {
         const dimensionsEnriched = this.config.dimensions.map((dimension) => ({
             ...dimension,
-            ...MultiDimDataPageConfig.getChoicesFields(dimension.choices),
+            ...MultiDimDataPageConfig.getEnrichedChoicesFields(
+                dimension.choices
+            ),
         }))
         return keyBy(dimensionsEnriched, "slug")
     }
@@ -44,6 +54,8 @@ export class MultiDimDataPageConfig {
         })
     }
 
+    // This'll only ever find one or zero views, and will throw an error
+    // if more than one matching views were found
     findViewByDimensions(dimensions: Record<string, string>) {
         const matchingViews = this.filterViewsByDimensions(dimensions)
         if (matchingViews.length === 0) return undefined
@@ -57,23 +69,42 @@ export class MultiDimDataPageConfig {
         return matchingViews[0]
     }
 
+    /**
+     * This checks if matching views are available for the selected choices, and otherwise
+     * adapts them in such a way that they are available, in the following way:
+     * - Go through the choices left-to-right. The current dimension we're looking at is called `cur`.
+     * - If there is at least one available view for choices[leftmost, ..., cur], continue.
+     * - Otherwise, for dimension `cur`, find the first choice that has at least one available view.
+     *
+     * `selectedChoices` is expected to be fully-qualified, i.e. it should contain a choice for every available dimension.
+     *
+     * The method returns two values:
+     * - `selectedChoices` is the updated version of the input `selectedChoices`, where choices have been adapted to make sure there are available views.
+     * - `dimensionsWithAvailableChoices` indicates for each dimension which choices are available, and excludes the ones that are excluded by choices left of it.
+     *
+     * - @marcelgerber, 2024-07-22
+     */
     filterToAvailableChoices(selectedChoices: Record<string, string>) {
         const updatedSelectedChoices: Record<string, string> = {}
-        const dimensionsWithAvailableChoices = this.dimensions
-        for (const [dimSlug, dim] of Object.entries(
-            dimensionsWithAvailableChoices
+        const dimensionsWithAvailableChoices: Record<
+            string,
+            DimensionEnriched
+        > = {}
+        for (const [currentDimSlug, currentDim] of Object.entries(
+            this.dimensions
         )) {
             const availableViewsBeforeSelection = this.filterViewsByDimensions(
                 updatedSelectedChoices
             )
             if (
-                selectedChoices[dimSlug] &&
-                dim.choicesBySlug[selectedChoices[dimSlug]]
+                selectedChoices[currentDimSlug] &&
+                currentDim.choicesBySlug[selectedChoices[currentDimSlug]]
             ) {
-                updatedSelectedChoices[dimSlug] = selectedChoices[dimSlug]
+                updatedSelectedChoices[currentDimSlug] =
+                    selectedChoices[currentDimSlug]
             } else {
                 throw new Error(
-                    `Missing or invalid choice for dimension ${dimSlug}`
+                    `Missing or invalid choice for dimension ${currentDimSlug}`
                 )
             }
 
@@ -81,19 +112,26 @@ export class MultiDimDataPageConfig {
                 updatedSelectedChoices
             )
             if (availableViewsAfterSelection.length === 0) {
-                updatedSelectedChoices[dimSlug] =
-                    availableViewsBeforeSelection[0].dimensions[dimSlug]
+                // If there are no views available after this selection, choose the first available view before this choice and update to its choice
+                updatedSelectedChoices[currentDimSlug] =
+                    availableViewsBeforeSelection[0].dimensions[currentDimSlug]
             }
 
-            const choices = Object.values(dim.choices).filter((choice) =>
+            // Find all the available choices we can show for this dimension - these are all
+            // the ones that are possible for this dimension with all of the previous choices
+            // (i.e., left of this dimension) in mind.
+            const availableChoicesForDimension = Object.values(
+                currentDim.choices
+            ).filter((choice) =>
                 availableViewsBeforeSelection.some(
-                    (view) => view.dimensions[dimSlug] === choice.slug
+                    (view) => view.dimensions[currentDimSlug] === choice.slug
                 )
             )
-
-            dimensionsWithAvailableChoices[dimSlug] = {
-                ...dim,
-                ...MultiDimDataPageConfig.getChoicesFields(choices),
+            dimensionsWithAvailableChoices[currentDimSlug] = {
+                ...currentDim,
+                ...MultiDimDataPageConfig.getEnrichedChoicesFields(
+                    availableChoicesForDimension
+                ),
             }
         }
 
