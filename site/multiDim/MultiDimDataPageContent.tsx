@@ -373,24 +373,10 @@ export const MultiDimDataPageContent = ({
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
 }) => {
-    const [config, setConfig] = useState<MultiDimDataPageConfig | undefined>(
-        undefined
+    const config = useMemo(
+        () => MultiDimDataPageConfig.fromObject(window._OWID_MULTI_DIM_CONFIG),
+        []
     )
-    useEffect(() => {
-        const params = getWindowQueryParams()
-        const fetchUrl = params["url"]
-        if (!fetchUrl) throw new Error("No fetch url provided")
-
-        fetch(fetchUrl)
-            .then((res) => res.text())
-            .then(MultiDimDataPageConfig.fromYaml)
-            .then(setConfig)
-            .catch(console.error)
-    }, [])
-    // const config = useMemo(
-    //     () => MultiDimDataPageConfig.fromObject(window._OWID_MULTI_DIM_CONFIG),
-    //     []
-    // )
 
     const datapageDataStub: Partial<DataPageDataV2> = {
         title: {
