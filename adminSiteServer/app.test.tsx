@@ -83,7 +83,12 @@ beforeAll(async () => {
 
     setKnexInstance(serverKnexInstance!)
 
-    app = new OwidAdminApp({ isDev: true, gitCmsDir: "", quiet: true })
+    app = new OwidAdminApp({
+        isDev: true,
+        isTest: true,
+        gitCmsDir: "",
+        quiet: true,
+    })
     await app.startListening(8765, "localhost")
     cookieId = (
         await logInAsUser({
