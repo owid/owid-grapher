@@ -12,6 +12,7 @@ import {
     Hits,
     Index,
     InstantSearch,
+    RefinementList,
     SearchBox,
     useInstantSearch,
 } from "react-instantsearch"
@@ -112,9 +113,11 @@ const Breadcrumbs = ({
 }) => {
     return (
         <div className="data-catalog-breadcrumbs span-cols-12 col-start-2">
-            <a className="body-3-medium data-catalog-breadcrumb" href="/charts">
-                All areas
-            </a>
+            <span className="body-3-medium data-catalog-breadcrumb">
+                <a className="" href="/charts">
+                    All areas
+                </a>
+            </span>
             {subpaths.map((subpath, i) => {
                 const path = subpaths.slice(0, i + 1).join("/")
                 const isLast = i === subpaths.length - 1
@@ -186,19 +189,34 @@ const DataCatalogResults = ({
         (subpath) => tagNamesBySlug[subpath]
     )
 
-    return shouldAttemptRibbonsView ? (
-        <DataCatalogRibbonView
-            tagGraph={tagGraph}
-            subpaths={subpaths}
-            tagNamesBySlug={tagNamesBySlug}
-        />
-    ) : (
+    if (shouldAttemptRibbonsView)
+        return (
+            <DataCatalogRibbonView
+                tagGraph={tagGraph}
+                subpaths={subpaths}
+                tagNamesBySlug={tagNamesBySlug}
+            />
+        )
+
+    return (
         <Index indexName={getIndexName(SearchIndexName.Charts)}>
             <Configure
                 facetFilters={subpathsAsTagNames.map((tag) => `tags:${tag}`)}
                 hitsPerPage={20}
             />
             <Breadcrumbs subpaths={subpaths} tagNamesBySlug={tagNamesBySlug} />
+            <RefinementList
+                attribute="tags"
+                className="data-catalog-facets span-cols-12 col-start-2"
+                classNames={{
+                    list: "data-catalog-facets-list",
+                    item: "data-catalog-facets-list-item",
+                    label: "data-catalog-facets-list-item__label",
+                    labelText: "data-catalog-facets-list-item__label-text",
+                    count: "data-catalog-facets-list-item__count",
+                    checkbox: "data-catalog-facets-list-item__checkbox",
+                }}
+            />
             <Hits
                 classNames={{
                     root: "data-catalog-search-hits span-cols-12 col-start-2",
