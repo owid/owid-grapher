@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import React, { useCallback, useEffect } from "react"
 import ReactDOM from "react-dom"
 import {
     identity,
@@ -27,6 +27,7 @@ import { getIndexName } from "./search/searchClient.js"
 import { UiState } from "instantsearch.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
+import { RefinementListItem } from "instantsearch.js/es/connectors/refinement-list/connectRefinementList.js"
 
 // SSR-safe way to get the current pathname
 const usePathname = () => {
@@ -188,6 +189,15 @@ const DataCatalogResults = ({
     const subpathsAsTagNames = subpaths.map(
         (subpath) => tagNamesBySlug[subpath]
     )
+    const transformItems = useCallback(
+        (items: RefinementListItem[]) => {
+            const filtered = items.filter(
+                (item) => !subpathsAsTagNames.includes(item.label)
+            )
+            return filtered
+        },
+        [tagGraph]
+    )
 
     if (shouldAttemptRibbonsView)
         return (
@@ -207,6 +217,7 @@ const DataCatalogResults = ({
             <Breadcrumbs subpaths={subpaths} tagNamesBySlug={tagNamesBySlug} />
             <RefinementList
                 attribute="tags"
+                transformItems={transformItems}
                 className="data-catalog-facets span-cols-12 col-start-2"
                 classNames={{
                     list: "data-catalog-facets-list",
