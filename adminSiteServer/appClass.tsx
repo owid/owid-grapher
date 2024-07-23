@@ -30,6 +30,7 @@ import { getAndLoadGdocById } from "../db/model/Gdoc/GdocFactory.js"
 interface OwidAdminAppOptions {
     gitCmsDir: string
     isDev: boolean
+    isTest?: boolean
     quiet?: boolean
 }
 
@@ -154,8 +155,20 @@ export class OwidAdminApp {
         // error handler if it exists.
         if (bugsnagMiddleware) app.use(bugsnagMiddleware.errorHandler)
 
-        // todo: we probably always want to have this, and can remove the isDev
-        if (this.options.isDev) app.use("/", mockSiteRouter)
+        if (this.options.isDev) {
+            if (!this.options.isTest) {
+                // https://vitejs.dev/guide/ssr
+                const { createServer } = await import("vite")
+                const vite = await createServer({
+                    server: { middlewareMode: true },
+                    appType: "custom",
+                    base: "/",
+                })
+                app.use(vite.middlewares)
+            }
+            // todo (DB): we probably always want to have this
+            app.use("/", mockSiteRouter)
+        }
 
         // Give full error messages, including in production
         app.use(this.errorHandler)
