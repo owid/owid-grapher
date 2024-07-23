@@ -418,3 +418,15 @@ body {
 .label-2-medium {
     @include label-2-medium;
 }
+
+@mixin note-1-medium {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.33;
+}
+
+.note-1-medium {
+    @include note-1-medium;
+}

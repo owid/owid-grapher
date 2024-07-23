@@ -30,6 +30,7 @@
 @import "../packages/@ourworldindata/components/src/IndicatorSources/IndicatorSources.scss";
 @import "../packages/@ourworldindata/components/src/IndicatorProcessing/IndicatorProcessing.scss";
 @import "../packages/@ourworldindata/components/src/Button/Button.scss";
+@import "../packages/@ourworldindata/components/src/TextInput";
 
 @import "css/grid.scss";
 @import "css/layout.scss";
@@ -82,6 +83,7 @@
 @import "./gdocs/components/centered-article.scss";
 @import "./gdocs/components/topic-page.scss";
 @import "./gdocs/components/DataInsightDateline.scss";
+@import "./gdocs/components/DataInsightsNewsletter.scss";
 @import "./gdocs/components/LatestDataInsights.scss";
 @import "./gdocs/components/LatestDataInsightsBlock.scss";
 @import "./gdocs/components/SDGGrid.scss";
@@ -98,6 +100,7 @@
 @import "./gdocs/components/KeyIndicatorCollection.scss";
 @import "./gdocs/components/PillRow.scss";
 @import "./AboutThisData.scss";
+@import "./DataInsightsNewsletterBanner.scss";
 @import "./DataPage.scss";
 @import "./DataPageContent.scss";
 @import "./GrapherImage.scss";

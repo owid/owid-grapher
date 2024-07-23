@@ -1,6 +1,10 @@
 .latest-data-insights {
     position: relative;
     margin-bottom: 24px;
+
+    @include md-down {
+        margin-bottom: 48px;
+    }
 }
 
 .latest-data-insights__viewport {

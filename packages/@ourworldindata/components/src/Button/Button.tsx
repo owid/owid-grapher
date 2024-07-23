@@ -17,7 +17,7 @@ type WithHrefProps = {
 }
 
 type WithOnClickProps = {
-    onClick: () => void
+    onClick?: () => void
     href?: never
 }
 

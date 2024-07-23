@@ -20,6 +20,7 @@ import LatestDataInsights, {
 } from "../components/LatestDataInsights.js"
 import { AttachmentsContext } from "../OwidGdoc.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import DataInsightsNewsletterBanner from "../../DataInsightsNewsletterBanner.js"
 
 export const MOST_RECENT_DATA_INSIGHT = "most-recent-data-insight"
 export const SECOND_MOST_RECENT_INSIGHT = "second-most-recent-data-insight"
@@ -182,6 +183,7 @@ export const DataInsightPage = (
                 className="span-cols-12 col-start-2"
                 latestDataInsights={latestDataInsights}
             />
+            <DataInsightsNewsletterBanner />
         </div>
     )
 }

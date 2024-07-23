@@ -4,6 +4,7 @@ import cx from "classnames"
 import { AttachmentsContext } from "../OwidGdoc.js"
 import { Button } from "@ourworldindata/components"
 import LatestDataInsights from "./LatestDataInsights.js"
+import DataInsightsNewsletter from "./DataInsightsNewsletter.js"
 
 export default function LatestDataInsightsBlock({
     className,
@@ -32,6 +33,7 @@ export default function LatestDataInsightsBlock({
                 className="span-cols-12 col-start-2"
                 latestDataInsights={latestDataInsights}
             />
+            <DataInsightsNewsletter />
         </section>
     )
 }

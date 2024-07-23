@@ -16,6 +16,7 @@ import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { DebugProvider } from "./gdocs/DebugContext.js"
+import DataInsightsNewsletterBanner from "./DataInsightsNewsletterBanner.js"
 
 const Pagination = (props: { pageNumber: number; totalPageCount: number }) => {
     const { pageNumber, totalPageCount } = props
@@ -141,6 +142,7 @@ export const DataInsightsIndexPageContent = (
                     totalPageCount={props.totalPageCount}
                     pageNumber={props.pageNumber}
                 />
+                <DataInsightsNewsletterBanner />
             </AttachmentsContext.Provider>
         </DocumentContext.Provider>
     )

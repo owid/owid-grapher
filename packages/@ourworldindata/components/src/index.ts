@@ -34,6 +34,7 @@ export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.j
 
 export { Checkbox } from "./Checkbox.js"
 export { IndicatorSources } from "./IndicatorSources/IndicatorSources.js"
+export { TextInput } from "./TextInput.js"
 
 export {
     CodeSnippet,
