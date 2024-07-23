@@ -8,16 +8,6 @@ import {
     SelectionArray,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
-import {
-    SimpleMarkdownText,
-    makeSource,
-    makeDateRange,
-    makeLastUpdated,
-    makeNextUpdate,
-    makeUnit,
-    makeUnitConversionFactor,
-    makeLinks,
-} from "@ourworldindata/components"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "../GrapherWithFallback.js"
 import { RelatedCharts } from "../blocks/RelatedCharts.js"
@@ -39,6 +29,10 @@ import {
     memoize,
     isEqual,
     GrapherTabOption,
+    QueryParams,
+    setWindowQueryStr,
+    getWindowQueryParams,
+    getWindowQueryStr,
 } from "@ourworldindata/utils"
 import cx from "classnames"
 import { DebugProvider } from "../gdocs/DebugContext.js"
@@ -52,6 +46,11 @@ import {
 import AboutThisData from "../AboutThisData.js"
 import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
+import {
+    extractDimensionChoicesFromQueryStr,
+    stateToQueryStr,
+} from "./MultiDimUrl.js"
+import { reaction } from "mobx"
 declare global {
     interface Window {
         _OWID_MULTI_DIM_CONFIG: MultiDimDataPageConfigType
@@ -218,6 +217,7 @@ const DimensionDropdown = (props: {
 
 const MultiDimSettingsPanel = (props: {
     config: MultiDimDataPageConfig
+    currentSettings: Record<string, string>
     onChange?: (
         slug: string,
         value: string,
@@ -225,41 +225,36 @@ const MultiDimSettingsPanel = (props: {
     ) => void
     updateSettings?: (currentSettings: Record<string, string>) => void
 }) => {
-    const { config } = props
+    const { config, currentSettings, updateSettings } = props
 
     const { dimensions } = config
 
-    const initialSettings = useMemo(
+    // Non-partial version of `currentSettings` with all dimensions filled in
+    const resolvedCurrentSettings = useMemo(
         () =>
             Object.fromEntries(
                 Object.values(dimensions).map((dimension) => [
                     dimension.slug,
-                    Object.values(dimension.choices)[0].slug,
+                    currentSettings[dimension.slug] ??
+                        Object.values(dimension.choices)[0].slug,
                 ])
             ),
-        [dimensions]
+        [currentSettings, dimensions]
     )
-
-    const [currentSettings, setCurrentSettings] = useState(initialSettings)
 
     const [availableSettings, setAvailableSettings] = useState<
         Record<string, DimensionEnriched>
     >({})
 
     useEffect(() => {
-        if (!config) return
         const { dimensionsWithAvailableChoices, selectedChoices } =
-            config.filterToAvailableChoices(currentSettings)
+            config.filterToAvailableChoices(resolvedCurrentSettings)
 
-        if (!isEqual(selectedChoices, currentSettings))
-            setCurrentSettings(selectedChoices)
-        setAvailableSettings(dimensionsWithAvailableChoices)
-    }, [currentSettings, config])
-
-    useEffect(
-        () => props.updateSettings?.(currentSettings),
-        [props, currentSettings]
-    )
+        if (!isEqual(selectedChoices, resolvedCurrentSettings))
+            updateSettings?.(selectedChoices)
+        if (!isEqual(dimensionsWithAvailableChoices, availableSettings))
+            setAvailableSettings(dimensionsWithAvailableChoices)
+    }, [resolvedCurrentSettings, config, updateSettings, availableSettings])
 
     const settings = Object.values(availableSettings).map((dim) => (
         <DimensionDropdown
@@ -267,7 +262,7 @@ const MultiDimSettingsPanel = (props: {
             dimension={dim}
             currentChoiceSlug={currentSettings[dim.slug]}
             onChange={(slug, value) =>
-                setCurrentSettings({ ...currentSettings, [slug]: value })
+                updateSettings?.({ ...currentSettings, [slug]: value })
             }
         />
     ))
@@ -340,19 +335,24 @@ const cachedGetVariableMetadata = memoize(
 
 export const MultiDimDataPageContent = ({
     // _datapageData,
+    config,
     grapherConfig,
     isPreviewing = false,
     faqEntries,
     canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
     tagToSlugMap,
     imageMetadata,
+    initialQueryStr,
 }: DataPageV2ContentFields & {
+    config: MultiDimDataPageConfig
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
+    initialQueryStr?: string
 }) => {
-    const config = useMemo(
-        () => MultiDimDataPageConfig.fromObject(window._OWID_MULTI_DIM_CONFIG),
-        []
+    const [initialChoices] = useState(() =>
+        initialQueryStr
+            ? extractDimensionChoicesFromQueryStr(initialQueryStr, config)
+            : {}
     )
 
     const datapageDataStub: Partial<DataPageDataV2> = {
@@ -363,7 +363,9 @@ export const MultiDimDataPageContent = ({
         titleVariant: config?.config.dimensions_title,
     }
 
-    const [currentSettings, setCurrentSettings] = useState({})
+    const [currentSettings, setCurrentSettings] = useState(initialChoices)
+
+    console.log("currentSettings", currentSettings, initialChoices)
 
     const currentView = useMemo(() => {
         if (Object.keys(currentSettings).length === 0) return undefined
@@ -428,6 +430,37 @@ export const MultiDimDataPageContent = ({
     // and therefore we can not access the grapher state (e.g. tab, selection) from the grapher instance we pass into it
     // TODO we should probably fix that? seems sensible? change GrapherFigureView around a bit to use the actual grapher inst? or pass a GrapherProgrammaticInterface to it instead?
     const [grapherInst, setGrapherInst] = useState<Grapher | null>(null)
+
+    const [grapherChangedParams, setGrapherChangedParams] =
+        useState<QueryParams>({})
+
+    // De-mobx grapher.changedParams by transforming it into React state
+    useEffect(
+        () =>
+            grapherInst
+                ? reaction(
+                      () => grapherInst.changedParams,
+                      setGrapherChangedParams
+                  )
+                : undefined,
+        [grapherInst]
+    )
+
+    // TEMPORARY, only while we are using `url` as part of the query string
+    const urlQueryParam = getWindowQueryParams().url
+
+    const queryStr = useMemo(
+        () =>
+            stateToQueryStr(
+                { ...grapherChangedParams, url: urlQueryParam },
+                currentSettings
+            ),
+        [grapherChangedParams, currentSettings]
+    )
+
+    useEffect(() => {
+        setWindowQueryStr(queryStr)
+    }, [queryStr])
 
     const grapherConfigComputed = useMemo(() => {
         return {
@@ -505,6 +538,7 @@ export const MultiDimDataPageContent = ({
                 {config && (
                     <MultiDimSettingsPanel
                         config={config}
+                        currentSettings={currentSettings}
                         updateSettings={setCurrentSettings}
                     />
                 )}
@@ -516,7 +550,7 @@ export const MultiDimDataPageContent = ({
                         key={JSON.stringify(grapherConfigComputed)}
                         grapher={grapher}
                         manager={grapherManager}
-                        getGrapherInstance={(g) => setGrapherInst}
+                        getGrapherInstance={setGrapherInst}
                         id="explore-the-data"
                     />
                     {datapageDataFromVar && (
@@ -1311,108 +1345,21 @@ export const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
     const props: DataPageV2ContentFields = window._OWID_DATAPAGEV2_PROPS
     const grapherConfig = window._OWID_GRAPHER_CONFIG
+    const initialQueryStr = getWindowQueryStr()
+    const config = MultiDimDataPageConfig.fromObject(
+        window._OWID_MULTI_DIM_CONFIG
+    )
 
     ReactDOM.hydrate(
         <DebugProvider debug={isPreviewing}>
             <MultiDimDataPageContent
                 {...props}
+                config={config}
                 grapherConfig={grapherConfig}
                 isPreviewing={isPreviewing}
+                initialQueryStr={initialQueryStr}
             />
         </DebugProvider>,
         wrapper
-    )
-}
-
-const KeyDataTable = (props: {
-    datapageData: DataPageDataV2
-    attribution: string
-}) => {
-    const { datapageData } = props
-    const source = makeSource({
-        attribution: props.attribution,
-        owidProcessingLevel: datapageData.owidProcessingLevel,
-    })
-    const lastUpdated = makeLastUpdated(datapageData)
-    const nextUpdate = makeNextUpdate(datapageData)
-    const dateRange = makeDateRange(datapageData)
-    const unit = makeUnit(datapageData)
-    const unitConversionFactor = makeUnitConversionFactor(datapageData)
-    const links = makeLinks({ link: datapageData.source?.link })
-
-    return (
-        <div className="key-data-block grid grid-cols-4 grid-sm-cols-12">
-            {datapageData.descriptionShort && (
-                <div className="key-data span-cols-4 span-sm-cols-12">
-                    <div className="key-data__title key-data-description-short__title">
-                        {datapageData.title.title}
-                        {(datapageData.attributionShort ||
-                            datapageData.titleVariant) && (
-                            <>
-                                {" "}
-                                <span className="title-fragments">
-                                    {joinTitleFragments(
-                                        datapageData.attributionShort,
-                                        datapageData.titleVariant
-                                    )}
-                                </span>
-                            </>
-                        )}
-                    </div>
-                    <div>
-                        <SimpleMarkdownText
-                            text={datapageData.descriptionShort}
-                            useParagraphs={false}
-                        />
-                    </div>
-                </div>
-            )}
-            {source && (
-                <div className="key-data span-cols-4 span-sm-cols-12">
-                    <div className="key-data__title">Source</div>
-                    <div>{source}</div>
-                </div>
-            )}
-            {lastUpdated && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
-                    <div className="key-data__title">Last updated</div>
-                    <div>{lastUpdated}</div>
-                </div>
-            )}
-            {nextUpdate && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
-                    <div className="key-data__title">Next expected update</div>
-                    <div>{nextUpdate}</div>
-                </div>
-            )}
-            {dateRange && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
-                    <div className="key-data__title">Date range</div>
-                    <div>{dateRange}</div>
-                </div>
-            )}
-            {unit && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
-                    <div className="key-data__title">Unit</div>
-                    <div>{unit}</div>
-                </div>
-            )}
-            {unitConversionFactor && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
-                    <div className="key-data__title">
-                        Unit conversion factor
-                    </div>
-                    <div>{unitConversionFactor}</div>
-                </div>
-            )}
-            {links && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
-                    <div className="key-data__title">Links</div>
-                    <div className="key-data__content--hide-overflow">
-                        {links}
-                    </div>
-                </div>
-            )}
-        </div>
     )
 }
