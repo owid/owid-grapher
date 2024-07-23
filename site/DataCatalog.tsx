@@ -51,7 +51,7 @@ const ChartHit = ({ hit }: { hit: any }) => {
             <img
                 height={150}
                 width={212.5}
-                src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}`}
+                src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}.png`}
             />
             <p>{hit.title}</p>
         </a>
