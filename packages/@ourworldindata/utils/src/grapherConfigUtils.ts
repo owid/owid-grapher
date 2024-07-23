@@ -4,8 +4,10 @@ import {
     mergeWith,
     uniq,
     omit,
+    pick,
     excludeUndefined,
     omitUndefinedValuesRecursive,
+    omitEmptyObjectsRecursive,
     traverseObjects,
 } from "./Util"
 
@@ -65,12 +67,17 @@ export function diffGrapherConfigs(
     config: GrapherInterface,
     reference: GrapherInterface
 ): GrapherInterface {
-    return omitUndefinedValuesRecursive(
-        traverseObjects(config, reference, (value, refValue, key) => {
-            if (KEYS_EXCLUDED_FROM_INHERITANCE.includes(key)) return value
-            if (refValue === undefined) return value
-            if (!isEqual(value, refValue)) return value
-            else return undefined
-        })
+    const keep = pick(config, KEYS_EXCLUDED_FROM_INHERITANCE)
+
+    const diffed = omitEmptyObjectsRecursive(
+        omitUndefinedValuesRecursive(
+            traverseObjects(config, reference, (value, refValue) => {
+                if (refValue === undefined) return value
+                if (!isEqual(value, refValue)) return value
+                return undefined
+            })
+        )
     )
+
+    return { ...diffed, ...keep }
 }
