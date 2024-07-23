@@ -386,7 +386,7 @@ export const MultiDimDataPageContent = ({
         useState<DataPageDataV2 | null>(null)
 
     useEffect(() => {
-        const timer = window.setTimeout(() => setDatapageDataFromVar(null), 1)
+        setDatapageDataFromVar(null)
         const variableId = dimensionsConfig[0]?.variableId
         if (!variableId) return
         const variableMetadata = cachedGetVariableMetadata(variableId)
@@ -394,7 +394,6 @@ export const MultiDimDataPageContent = ({
         variableMetadata
             .then((json) => getDatapageDataV2(json, grapherConfig))
             .then(setDatapageDataFromVar)
-            .then(() => window.clearTimeout(timer))
             .catch(console.error)
     }, [dimensionsConfig, grapherConfig])
 
