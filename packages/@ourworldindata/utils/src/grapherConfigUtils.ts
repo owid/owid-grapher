@@ -11,6 +11,8 @@ import {
     traverseObjects,
 } from "./Util"
 
+const REQUIRED_KEYS = ["$schema", "dimensions"]
+
 const KEYS_EXCLUDED_FROM_INHERITANCE = [
     "$schema",
     "id",
@@ -67,7 +69,8 @@ export function diffGrapherConfigs(
     config: GrapherInterface,
     reference: GrapherInterface
 ): GrapherInterface {
-    const keep = pick(config, KEYS_EXCLUDED_FROM_INHERITANCE)
+    const keepKeys = [...REQUIRED_KEYS, ...KEYS_EXCLUDED_FROM_INHERITANCE]
+    const keep = pick(config, keepKeys)
 
     const diffed = omitEmptyObjectsRecursive(
         omitUndefinedValuesRecursive(

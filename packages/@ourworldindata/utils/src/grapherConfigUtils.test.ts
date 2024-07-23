@@ -1,6 +1,7 @@
 #! /usr/bin/env jest
 
 import {
+    DimensionProperty,
     GrapherInterface,
     GrapherTabOption,
     MapProjectionName,
@@ -288,7 +289,7 @@ describe(diffGrapherConfigs, () => {
         ).toEqual({})
     })
 
-    it("doesn't diff $schema, id, version, slug or isPublished", () => {
+    it("doesn't diff $schema, id, version, slug, isPublished or dimensions", () => {
         expect(
             diffGrapherConfigs(
                 {
@@ -299,6 +300,9 @@ describe(diffGrapherConfigs, () => {
                     version: 1,
                     slug: "slug",
                     isPublished: false,
+                    dimensions: [
+                        { property: DimensionProperty.y, variableId: 123456 },
+                    ],
                 },
                 {
                     title: "Reference chart",
@@ -308,6 +312,9 @@ describe(diffGrapherConfigs, () => {
                     version: 1,
                     slug: "slug",
                     isPublished: false,
+                    dimensions: [
+                        { property: DimensionProperty.y, variableId: 123456 },
+                    ],
                 }
             )
         ).toEqual({
@@ -318,6 +325,7 @@ describe(diffGrapherConfigs, () => {
             version: 1,
             slug: "slug",
             isPublished: false,
+            dimensions: [{ property: DimensionProperty.y, variableId: 123456 }],
         })
     })
 
