@@ -278,6 +278,16 @@ describe(diffGrapherConfigs, () => {
         ).toEqual({ title: "Chart" })
     })
 
+    it("strips empty objects from the config", () => {
+        expect(diffGrapherConfigs({ map: {} }, {})).toEqual({})
+        expect(
+            diffGrapherConfigs(
+                { map: { colorScale: { customCategoryColors: {} } } },
+                { map: { colorScale: { colorSchemeInvert: false } } }
+            )
+        ).toEqual({})
+    })
+
     it("doesn't diff $schema, id, version, slug or isPublished", () => {
         expect(
             diffGrapherConfigs(
