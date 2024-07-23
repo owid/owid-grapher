@@ -14,7 +14,7 @@ export class AddMissingSchemaURLsToConfigs1689156258161
             // updates the $schema field of all configs to the current schema url https://files.ourworldindata.org/schemas/grapher-schema.003.json
             // (not all configs are missing this field, but it's easier to just update all of them)
             await queryRunner.query(
-                `update ${tableName} set ${columnName} = JSON_SET(${columnName}, "$.$schema", "https://files.ourworldindata.org/schemas/grapher-schema.003.json")`
+                `update ${tableName} set ${columnName} = JSON_SET(${columnName}, "$.$schema", "https://files.ourworldindata.org/schemas/grapher-schema.005.json")`
             )
         }
     }
