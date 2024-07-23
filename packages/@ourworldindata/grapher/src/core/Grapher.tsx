@@ -1000,6 +1000,10 @@ export class Grapher
             this.selection.setSelectedEntities(this.selectedEntityNames)
     }
 
+    @computed get hasData(): boolean {
+        return this.dimensions.length > 0 || this.newSlugs.length > 0
+    }
+
     // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady(): boolean {
         return this.whatAreWeWaitingFor === ""
@@ -1007,9 +1011,6 @@ export class Grapher
 
     @computed get whatAreWeWaitingFor(): string {
         const { newSlugs, inputTable, dimensions } = this
-        if (dimensions.length === 0 && newSlugs.length === 0) {
-            return `Waiting for dimensions to be set. ${inputTable.tableDescription}`
-        }
         if (newSlugs.length || dimensions.length === 0) {
             const missingColumns = newSlugs.filter(
                 (slug) => !inputTable.has(slug)
