@@ -1116,26 +1116,33 @@ export const omitNullableValues = <T>(object: T): NoUndefinedValues<T> => {
     return result
 }
 
-/**
- * Omits undefined values and empty objects recursively.
- */
 export function omitUndefinedValuesRecursive<T extends Record<string, any>>(
     obj: T
 ): NoUndefinedValues<T> {
     const result: any = {}
     for (const key in obj) {
-        const isEmptyObject =
-            isPlainObject(obj[key]) && isEmpty(omitUndefinedValues(obj[key]))
-        const isNonEmptyObject =
-            isPlainObject(obj[key]) && !isEmpty(omitUndefinedValues(obj[key]))
-
-        if (isNonEmptyObject) {
+        if (isPlainObject(obj[key])) {
             // re-apply the function if we encounter a non-empty object
             result[key] = omitUndefinedValuesRecursive(obj[key])
-        } else if (obj[key] === undefined || isEmptyObject) {
-            // omit undefined values and empty objects
+        } else if (obj[key] === undefined) {
+            // omit undefined values
         } else {
             // otherwise, keep the value
+            result[key] = obj[key]
+        }
+    }
+    return result
+}
+
+export function omitEmptyObjectsRecursive<T extends Record<string, any>>(
+    obj: T
+): Partial<T> {
+    const result: any = {}
+    for (const key in obj) {
+        if (isPlainObject(obj[key])) {
+            const isObjectEmpty = isEmpty(omitEmptyObjectsRecursive(obj[key]))
+            if (!isObjectEmpty) result[key] = obj[key]
+        } else {
             result[key] = obj[key]
         }
     }
