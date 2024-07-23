@@ -142,7 +142,7 @@ export class ChartEditor {
                 ? "mobile"
                 : "desktop"
         when(
-            () => this.grapher.isReady,
+            () => this.grapher.hasData && this.grapher.isReady,
             () => (this.savedPatchConfig = this.patchConfig)
         )
     }
