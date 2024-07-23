@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowDown, faCaretDown } from "@fortawesome/free-solid-svg-icons"
+import { faCaretDown } from "@fortawesome/free-solid-svg-icons"
 import {
     Grapher,
     GrapherManager,
@@ -9,14 +9,7 @@ import {
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import {
-    CodeSnippet,
-    REUSE_THIS_WORK_SECTION_ID,
-    IndicatorSources,
-    DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
-    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
-    IndicatorProcessing,
     SimpleMarkdownText,
-    ExpandableToggle,
     makeSource,
     makeDateRange,
     makeLastUpdated,
@@ -24,25 +17,16 @@ import {
     makeUnit,
     makeUnitConversionFactor,
     makeLinks,
-    HtmlOrSimpleMarkdownText,
-    DataCitation,
 } from "@ourworldindata/components"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "../GrapherWithFallback.js"
-import { ArticleBlocks } from "../gdocs/components/ArticleBlocks.js"
 import { RelatedCharts } from "../blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
-    uniq,
     formatAuthors,
     intersection,
-    prepareSourcesForDisplay,
-    excludeUndefined,
-    OwidOrigin,
     DataPageDataV2,
-    getCitationShort,
     GrapherInterface,
-    getCitationLong,
     joinTitleFragments,
     ImageMetadata,
     DimensionProperty,
@@ -51,30 +35,23 @@ import {
     getNextUpdateFromVariable,
     omitUndefinedValues,
     getAttributionFragmentsFromVariable,
-    OwidVariableDataMetadataDimensions,
     OwidVariableWithSourceAndDimension,
     memoize,
-    Url,
-    getWindowQueryParams,
     isEqual,
     GrapherTabOption,
 } from "@ourworldindata/utils"
-import { AttachmentsContext, DocumentContext } from "../gdocs/OwidGdoc.js"
-import StickyNav from "../blocks/StickyNav.js"
 import cx from "classnames"
 import { DebugProvider } from "../gdocs/DebugContext.js"
-import dayjs from "dayjs"
 import { BAKED_BASE_URL, DATA_API_URL } from "../../settings/clientSettings.js"
 import Image from "../gdocs/components/Image.js"
 import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
-import Select, { OptionProps, components } from "react-select"
 import {
-    Choice,
-    Dimension,
     DimensionEnriched,
     MultiDimDataPageConfigType,
 } from "./MultiDimDataPageTypes.js"
-import { action, autorun, reaction } from "mobx"
+import AboutThisData from "../AboutThisData.js"
+import TopicTags from "../TopicTags.js"
+import MetadataSection from "../MetadataSection.js"
 declare global {
     interface Window {
         _OWID_MULTI_DIM_CONFIG: MultiDimDataPageConfigType
@@ -426,14 +403,9 @@ export const MultiDimDataPageContent = ({
         datapageDataFromVar?.titleVariant
     )
 
-    const topicTags = datapageDataFromVar?.topicTagsLinks
-        ?.map((name) => ({ name, slug: tagToSlugMap?.[name] }))
-        .filter((tag): tag is { name: string; slug: string } => !!tag.slug)
-        .map((tag) => (
-            <a href={`/${tag.slug}`} key={tag.slug}>
-                {tag.name}
-            </a>
-        ))
+    const topicTagsLinks = datapageDataFromVar?.topicTagsLinks?.filter(
+        (tag) => tagToSlugMap?.[tag]
+    )
 
     const selectionArray = useMemo(
         () =>
@@ -474,66 +446,6 @@ export const MultiDimDataPageContent = ({
         return grapher
     }, [grapherConfigComputed])
 
-    const hasDescriptionKey = !!datapageDataFromVar?.descriptionKey?.length
-
-    const attributionFragments = datapageDataFromVar?.attributions ?? []
-    const attributionUnshortened = attributionFragments.join("; ")
-    const citationShort = getCitationShort(
-        datapageDataFromVar?.origins ?? [],
-        datapageDataFromVar?.attributions ?? [],
-        datapageDataFromVar?.owidProcessingLevel
-    )
-    const currentYear = dayjs().year()
-    const citationLong = getCitationLong(
-        datapageDataFromVar?.title ?? { title: "" },
-        datapageDataFromVar?.origins ?? [],
-        datapageDataFromVar?.source,
-        datapageDataFromVar?.attributions ?? [],
-        datapageDataFromVar?.attributionShort,
-        datapageDataFromVar?.titleVariant,
-        datapageDataFromVar?.owidProcessingLevel,
-        canonicalUrl
-    )
-
-    const getYearSuffixFromOrigin = (o: OwidOrigin) => {
-        const year = o.dateAccessed
-            ? dayjs(o.dateAccessed, ["YYYY-MM-DD", "YYYY"]).year()
-            : o.datePublished
-              ? dayjs(o.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
-              : undefined
-        if (year) return ` (${year})`
-        else return ""
-    }
-    const producers = uniq(
-        datapageDataFromVar?.origins?.map((o) => `${o.producer}`)
-    )
-    const producersWithYear = uniq(
-        datapageDataFromVar?.origins?.map(
-            (o) => `${o.producer}${getYearSuffixFromOrigin(o)}`
-        )
-    )
-
-    const adaptedFrom =
-        producers.length > 0
-            ? producers.join(", ")
-            : datapageDataFromVar?.source?.name
-
-    const maybeAddPeriod = (s: string) =>
-        s.endsWith("?") || s.endsWith(".") ? s : `${s}.`
-
-    // For the citation of the data page add a period it doesn't have that or a question mark
-    const primaryTopicCitation = maybeAddPeriod(
-        datapageDataFromVar?.primaryTopic?.citation ?? ""
-    )
-
-    const citationDatapage = excludeUndefined([
-        datapageDataFromVar?.primaryTopic
-            ? `“Data Page: ${datapageDataFromVar?.title?.title}”, part of the following publication: ${primaryTopicCitation}`
-            : `“Data Page: ${datapageDataFromVar?.title?.title}”. Our World in Data (${currentYear}).`,
-        adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
-        `Retrieved from ${canonicalUrl} [online resource]`,
-    ]).join(" ")
-
     const relatedResearchCandidates = datapageDataFromVar?.relatedResearch ?? []
     const relatedResearch =
         relatedResearchCandidates.length > 3 &&
@@ -570,11 +482,6 @@ export const MultiDimDataPageContent = ({
             : "related-data__category--columns span-cols-8 span-lg-cols-12"
     } `
 
-    const sourcesForDisplay =
-        datapageDataFromVar !== null
-            ? prepareSourcesForDisplay(datapageDataFromVar)
-            : []
-
     return (
         <div className="DataPageContent MultiDimDataPageContent">
             <div className="bg-blue-10">
@@ -586,13 +493,12 @@ export const MultiDimDataPageContent = ({
                         </h1>
                         <div className="header__source">{titleFragments}</div>
                     </div>
-                    {!!datapageDataFromVar?.topicTagsLinks?.length && (
-                        <div className="header__right col-start-9 span-cols-4 span-sm-cols-12">
-                            <div className="topic-tags__label">
-                                See all data and research on:
-                            </div>
-                            <div className="topic-tags">{topicTags}</div>
-                        </div>
+                    {!!topicTagsLinks && (
+                        <TopicTags
+                            className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12"
+                            topicTagsLinks={topicTagsLinks}
+                            tagToSlugMap={tagToSlugMap}
+                        />
                     )}
                 </div>
             </div>
@@ -615,126 +521,10 @@ export const MultiDimDataPageContent = ({
                         id="explore-the-data"
                     />
                     {datapageDataFromVar && (
-                        <div className="wrapper-about-this-data grid grid-cols-12">
-                            {hasDescriptionKey ||
-                            datapageDataFromVar.descriptionFromProducer ||
-                            datapageDataFromVar.source?.additionalInfo ? (
-                                <>
-                                    <h2
-                                        id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
-                                        className="key-info__title span-cols-12"
-                                    >
-                                        What you should know about this
-                                        indicator
-                                    </h2>
-                                    <div className="col-start-1 span-cols-8 span-lg-cols-7 span-sm-cols-12">
-                                        <div className="key-info__content">
-                                            {hasDescriptionKey && (
-                                                <div className="key-info__key-description">
-                                                    {datapageDataFromVar
-                                                        .descriptionKey
-                                                        .length === 1 ? (
-                                                        <SimpleMarkdownText
-                                                            text={datapageDataFromVar.descriptionKey[0].trim()}
-                                                        />
-                                                    ) : (
-                                                        <ul>
-                                                            {datapageDataFromVar.descriptionKey.map(
-                                                                (text, i) => (
-                                                                    <li key={i}>
-                                                                        <SimpleMarkdownText
-                                                                            text={text.trim()}
-                                                                            useParagraphs={
-                                                                                false
-                                                                            }
-                                                                        />
-                                                                    </li>
-                                                                )
-                                                            )}
-                                                        </ul>
-                                                    )}
-                                                    {!!faqEntries?.faqs
-                                                        .length && (
-                                                        <a
-                                                            className="key-info__learn-more"
-                                                            href="#faqs"
-                                                        >
-                                                            Learn more in the
-                                                            FAQs
-                                                            <FontAwesomeIcon
-                                                                icon={
-                                                                    faArrowDown
-                                                                }
-                                                            />
-                                                        </a>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            <div className="key-info__expandable-descriptions">
-                                                {datapageDataFromVar.descriptionFromProducer && (
-                                                    <ExpandableToggle
-                                                        label={
-                                                            datapageDataFromVar.attributionShort
-                                                                ? `How does the producer of this data - ${datapageDataFromVar.attributionShort} - describe this data?`
-                                                                : "How does the producer of this data describe this data?"
-                                                        }
-                                                        content={
-                                                            <div className="article-block__text">
-                                                                <SimpleMarkdownText
-                                                                    text={
-                                                                        datapageDataFromVar.descriptionFromProducer
-                                                                    }
-                                                                />
-                                                            </div>
-                                                        }
-                                                        isStacked={
-                                                            !!datapageDataFromVar
-                                                                .source
-                                                                ?.additionalInfo
-                                                        }
-                                                    />
-                                                )}
-                                                {datapageDataFromVar.source
-                                                    ?.additionalInfo && (
-                                                    <ExpandableToggle
-                                                        label="Additional information about this data"
-                                                        content={
-                                                            <div className="expandable-info-blocks__content">
-                                                                <HtmlOrSimpleMarkdownText
-                                                                    text={datapageDataFromVar.source?.additionalInfo.trim()}
-                                                                />
-                                                            </div>
-                                                        }
-                                                    />
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="key-info__right span-cols-4 span-lg-cols-5 span-sm-cols-12">
-                                        <KeyDataTable
-                                            datapageData={datapageDataFromVar}
-                                            attribution={attributionUnshortened}
-                                        />
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    <h2
-                                        className="about-this-data__title span-cols-3 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                                        id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
-                                    >
-                                        About this data
-                                    </h2>
-                                    <div className="col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                        <KeyDataTable
-                                            datapageData={datapageDataFromVar}
-                                            attribution={attributionUnshortened}
-                                        />
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                        <AboutThisData
+                            datapageData={datapageDataFromVar}
+                            hasFaq={!!faqEntries?.faqs.length}
+                        />
                     )}
                 </div>
             </div>
@@ -866,138 +656,25 @@ export const MultiDimDataPageContent = ({
                     </div>
                 ) : null}
             </div>
-            <div className="bg-gray-10 span-cols-14 grid grid-cols-12-full-width">
-                <div className="col-start-2 span-cols-12">
-                    {!!faqEntries?.faqs.length && (
-                        <div className="section-wrapper section-wrapper__faqs grid">
-                            <h2
-                                className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                                id="faqs"
-                            >
-                                Frequently Asked Questions
-                            </h2>
-                            <div className="faqs__items grid grid-cols-10 grid-lg-cols-9 grid-md-cols-12 span-cols-10 span-lg-cols-9 span-md-cols-12 span-sm-cols-12">
-                                <ArticleBlocks
-                                    blocks={faqEntries.faqs}
-                                    containerType="datapage"
-                                />
-                            </div>
-                        </div>
-                    )}
-                    <div className="section-wrapper grid">
-                        <h2
-                            className="data-sources-processing__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                            id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
-                        >
-                            Sources and processing
-                        </h2>
-                        <div className="data-sources grid span-cols-12">
-                            <h3 className="data-sources__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                This data is based on the following sources
-                            </h3>
-                            <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                <IndicatorSources sources={sourcesForDisplay} />
-                            </div>
-                        </div>
-                        <div className="data-processing grid span-cols-12">
-                            <h3 className="data-processing__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                How we process data at Our World in Data
-                            </h3>
-                            <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                <IndicatorProcessing
-                                    descriptionProcessing={
-                                        datapageDataFromVar?.descriptionProcessing
-                                    }
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="section-wrapper grid">
-                        <h2
-                            className="reuse__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                            id="reuse-this-work"
-                        >
-                            Reuse this work
-                        </h2>
-                        <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                            <ul className="reuse__content">
-                                <li className="reuse__list-item">
-                                    All data produced by third-party providers
-                                    and made available by Our World in Data are
-                                    subject to the license terms from the
-                                    original providers. Our work would not be
-                                    possible without the data providers we rely
-                                    on, so we ask you to always cite them
-                                    appropriately (see below). This is crucial
-                                    to allow data providers to continue doing
-                                    their work, enhancing, maintaining and
-                                    updating valuable data.
-                                </li>
-                                <li className="reuse__list-item">
-                                    All data, visualizations, and code produced
-                                    by Our World in Data are completely open
-                                    access under the{" "}
-                                    <a
-                                        href="https://creativecommons.org/licenses/by/4.0/"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="reuse__link"
-                                    >
-                                        Creative Commons BY license
-                                    </a>
-                                    . You have the permission to use,
-                                    distribute, and reproduce these in any
-                                    medium, provided the source and authors are
-                                    credited.
-                                </li>
-                            </ul>
-                        </div>
-
-                        {(citationShort ||
-                            citationLong ||
-                            citationDatapage) && (
-                            <div className="citations grid span-cols-12">
-                                <h3 className="citations__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                    Citations
-                                </h3>
-                                <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                    {citationDatapage && (
-                                        <div className="citations-section">
-                                            <h5 className="citation__how-to-header">
-                                                How to cite this page
-                                            </h5>
-                                            <p className="citation__paragraph">
-                                                To cite this page overall,
-                                                including any descriptions, FAQs
-                                                or explanations of the data
-                                                authored by Our World in Data,
-                                                please use the following
-                                                citation:
-                                            </p>
-                                            <CodeSnippet
-                                                code={citationDatapage}
-                                                theme="light"
-                                                useMarkdown={true}
-                                            />
-                                        </div>
-                                    )}
-                                    <div className="citations-section">
-                                        <h5 className="citation__how-to-header citation__how-to-header--data">
-                                            How to cite this data
-                                        </h5>
-                                        {(citationShort || citationLong) && (
-                                            <DataCitation
-                                                citationLong={citationLong}
-                                                citationShort={citationShort}
-                                            />
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
+            {datapageDataFromVar && (
+                <MetadataSection
+                    attributionShort={datapageDataFromVar.attributionShort}
+                    attributions={datapageDataFromVar.attributions}
+                    canonicalUrl={canonicalUrl}
+                    descriptionProcessing={
+                        datapageDataFromVar.descriptionProcessing
+                    }
+                    faqEntries={faqEntries}
+                    origins={datapageDataFromVar.origins}
+                    owidProcessingLevel={
+                        datapageDataFromVar.owidProcessingLevel
+                    }
+                    primaryTopic={datapageDataFromVar.primaryTopic}
+                    source={datapageDataFromVar.source}
+                    title={datapageDataFromVar.title}
+                    titleVariant={datapageDataFromVar.titleVariant}
+                />
+            )}
         </div>
     )
 }
