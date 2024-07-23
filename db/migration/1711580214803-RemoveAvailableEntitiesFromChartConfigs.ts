@@ -28,7 +28,7 @@ export class RemoveAvailableEntitiesFromChartConfigs1711580214803
             await queryRunner.query(
                 `-- sql
                 UPDATE ??
-                SET ?? = JSON_SET(??, "$.$schema", "https://files.ourworldindata.org/schemas/grapher-schema.004.json")`,
+                SET ?? = JSON_SET(??, "$.$schema", "https://files.ourworldindata.org/schemas/grapher-schema.005.json")`,
                 [table, column, column]
             )
         }
