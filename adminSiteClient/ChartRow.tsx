@@ -46,12 +46,14 @@ export class ChartRow extends React.Component<{
 
         return (
             <tr>
-                <td style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    width: "400px",
-                }}>
-                    <div style={{ marginBottom: '16px' }}>
+                <td
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        width: "400px",
+                    }}
+                >
+                    <div style={{ marginBottom: "16px" }}>
                         {chart.isPublished ? (
                             <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>
                                 {highlight(chart.title ?? "")}
@@ -73,7 +75,7 @@ export class ChartRow extends React.Component<{
                             </div>
                         )}
                     </div>
-                    <div style={{ marginBottom: '16px' }}>
+                    <div style={{ marginBottom: "16px" }}>
                         {chart.isPublished && (
                             <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>
                                 <img
@@ -85,7 +87,9 @@ export class ChartRow extends React.Component<{
                     </div>
                 </td>
                 <td style={{ minWidth: "60px" }}>
-                    <a href={`/admin/test/embeds?ids=${chart.id}&comparisonUrl=https%3A%2F%2Fourworldindata.org`}>
+                    <a
+                        href={`/admin/test/embeds?ids=${chart.id}&comparisonUrl=https%3A%2F%2Fourworldindata.org`}
+                    >
                         {chart.id}
                     </a>
                 </td>
