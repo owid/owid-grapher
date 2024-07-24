@@ -1,6 +1,18 @@
-import { useEffect, RefObject, useState, useRef } from "react"
+import {
+    useEffect,
+    RefObject,
+    useState,
+    useRef,
+    useCallback,
+    useMemo,
+} from "react"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
-import { debounce, throttle } from "@ourworldindata/utils"
+import {
+    Bounds,
+    debounce,
+    DEFAULT_BOUNDS,
+    throttle,
+} from "@ourworldindata/utils"
 
 export const useTriggerWhenClickOutside = (
     container: RefObject<HTMLElement>,
@@ -85,4 +97,60 @@ export const useTriggerOnEscape = (trigger: VoidFunction) => {
             document.removeEventListener("keydown", handleEscape)
         }
     }, [trigger])
+}
+
+// Auto-updating Grapher bounds based on ResizeObserver
+// Optionally debounces the bounds updates
+export const useElementBounds = (
+    ref: RefObject<HTMLElement>,
+    initialValue: Bounds = DEFAULT_BOUNDS,
+    debounceTime: number | undefined = 100
+) => {
+    const [bounds, setBounds] = useState<Bounds>(initialValue)
+
+    const computeAndUpdateBoundsImmediately = useCallback(
+        (target: HTMLElement) =>
+            setBounds(Bounds.fromRect(target.getBoundingClientRect())),
+        []
+    )
+
+    const computeAndUpdateBoundsDebounced = useMemo(
+        () =>
+            debounceTime !== undefined
+                ? debounce(
+                      (target: HTMLElement) =>
+                          computeAndUpdateBoundsImmediately(target),
+                      debounceTime,
+
+                      // We use `leading` because, in many cases, there is only a single resize event (e.g. phone screen
+                      // orientation change), and we want to optimize for a fast response time in that case
+                      { leading: true }
+                  )
+                : computeAndUpdateBoundsImmediately,
+        [debounceTime, computeAndUpdateBoundsImmediately]
+    )
+
+    // Ensure bounds are computed on mount
+    useEffect(() => {
+        if (ref.current) computeAndUpdateBoundsImmediately(ref.current)
+    }, [ref, computeAndUpdateBoundsImmediately])
+
+    // Set up the actual ResizeObserver
+    useEffect(() => {
+        if (!ref.current) return
+
+        const observer = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                computeAndUpdateBoundsDebounced(entry.target as HTMLElement)
+            }
+        })
+        if (ref.current) {
+            observer.observe(ref.current)
+        }
+        return () => {
+            observer.disconnect()
+        }
+    }, [ref, computeAndUpdateBoundsDebounced])
+
+    return bounds
 }
