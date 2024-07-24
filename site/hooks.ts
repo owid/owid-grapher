@@ -114,10 +114,10 @@ export const useElementBounds = (
         []
     )
 
-    const computeAndUpdateBoundsDebounced = useMemo(
+    const computeAndUpdateBoundsThrottled = useMemo(
         () =>
             debounceTime !== undefined
-                ? debounce(
+                ? throttle(
                       (target: HTMLElement) =>
                           computeAndUpdateBoundsImmediately(target),
                       debounceTime,
@@ -141,7 +141,7 @@ export const useElementBounds = (
 
         const observer = new ResizeObserver((entries) => {
             for (const entry of entries) {
-                computeAndUpdateBoundsDebounced(entry.target as HTMLElement)
+                computeAndUpdateBoundsThrottled(entry.target as HTMLElement)
             }
         })
         if (ref.current) {
@@ -150,7 +150,7 @@ export const useElementBounds = (
         return () => {
             observer.disconnect()
         }
-    }, [ref, computeAndUpdateBoundsDebounced])
+    }, [ref, computeAndUpdateBoundsThrottled])
 
     return bounds
 }
