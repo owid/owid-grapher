@@ -270,7 +270,7 @@ const MultiDimSettingsPanel = (props: {
 
     return (
         <div className="settings-row">
-            <span>Configure the data</span>
+            <span className="h5-black-caps">Configure the data</span>
             {settings}
         </div>
     )
@@ -541,16 +541,14 @@ export const MultiDimDataPageContent = ({
                             tagToSlugMap={tagToSlugMap}
                         />
                     )}
+                    <div className="settings-row__wrapper span-cols-9 span-sm-cols-12">
+                        <MultiDimSettingsPanel
+                            config={config}
+                            currentSettings={currentSettings}
+                            updateSettings={setCurrentSettings}
+                        />
+                    </div>
                 </div>
-            </div>
-            <div className="wrapper">
-                {config && (
-                    <MultiDimSettingsPanel
-                        config={config}
-                        currentSettings={currentSettings}
-                        updateSettings={setCurrentSettings}
-                    />
-                )}
             </div>
 
             <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
