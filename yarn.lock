@@ -6502,12 +6502,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^0.24.0":
-  version: 0.24.0
-  resolution: "axios@npm:0.24.0"
+"axios@npm:^0.28.0":
+  version: 0.28.1
+  resolution: "axios@npm:0.28.1"
   dependencies:
-    follow-redirects: "npm:^1.14.4"
-  checksum: 10/4c5a7a5a45c909b4ce73fbf54b1fbc52a2290fc37cc51e64f8ef2ba8ac5f76a2e369a08ddfd7ec50317528d5aa55f5987cc56fb320923ef87e1b87f8ff05b5ba
+    follow-redirects: "npm:^1.15.0"
+    form-data: "npm:^4.0.0"
+    proxy-from-env: "npm:^1.1.0"
+  checksum: 10/3eb6799ce716de877c3015ddc2cbb5d5176c914d777c36076e097157792f2bc6d0a491156a9239bf32e8dfe1c138ec008d6bd31f4c5602d8e7b915111c10b635
   languageName: node
   linkType: hard
 
@@ -6884,11 +6886,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bundlewatch@npm:^0.3.3":
-  version: 0.3.3
-  resolution: "bundlewatch@npm:0.3.3"
+"bundlewatch@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "bundlewatch@npm:0.4.0"
   dependencies:
-    axios: "npm:^0.24.0"
+    axios: "npm:^0.28.0"
     bytes: "npm:^3.1.1"
     chalk: "npm:^4.0.0"
     ci-env: "npm:^1.17.0"
@@ -6900,7 +6902,7 @@ __metadata:
     read-pkg-up: "npm:^7.0.1"
   bin:
     bundlewatch: lib/bin/index.js
-  checksum: 10/85a167693b15a16a2decf83b41426768de1ec6b04d27432522003719fd0ec51dfa38387b1100580c31d4e6fc5703e49384a21d0625476f8bac38d12911943924
+  checksum: 10/e206f2413110d667e072a5ef6cf253d1696e633da70d3cdd2fda78634f78744e94308d8bbd2d3c2c3a7e9391b3f05d2f07b93199bbec72d7a77ef4144738b06f
   languageName: node
   linkType: hard
 
@@ -10133,7 +10135,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.14.4, follow-redirects@npm:^1.15.6":
+"follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.15.0, follow-redirects@npm:^1.15.6":
   version: 1.15.6
   resolution: "follow-redirects@npm:1.15.6"
   peerDependenciesMeta:
@@ -10897,7 +10899,7 @@ __metadata:
     archieml: "npm:^0.5.0"
     bcrypt: "npm:^5.1.0"
     bootstrap: "npm:^4.6.1"
-    bundlewatch: "npm:^0.3.3"
+    bundlewatch: "npm:^0.4.0"
     cheerio: "npm:^1.0.0-rc.12"
     chunk-text: "npm:^2.0.1"
     classnames: "npm:^2.5.1"
