@@ -409,7 +409,10 @@ export const MultiDimDataPageContent = ({
         (tag) => tagToSlugMap?.[tag]
     )
 
-    const selectionArray = useMemo(() => new SelectionArray(), [])
+    const selectionArray = useMemo(
+        () => new SelectionArray(config.config.default_selection),
+        [config]
+    )
 
     const grapherManager = useMemo(
         (): GrapherManager => ({

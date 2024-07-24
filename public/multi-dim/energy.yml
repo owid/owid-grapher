@@ -1,5 +1,9 @@
 name: Energy use
 dimensions_title: by energy source
+default_selection:
+    - World
+    - Europe
+    - Mexico
 dimensions:
     - slug: source
       name: Energy source
