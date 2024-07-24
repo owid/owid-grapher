@@ -58,6 +58,18 @@ The first time you run this it will take a while to download and set up the data
 
 Now you can open [http://localhost:3030/admin/charts](http://localhost:3030/admin/charts) and start creating charts. Any changes to the TypeScript code you make will be automatically compiled, but you will have to refresh your page to see the changes.
 
+## Using the interactive helper for setting up the .env file
+
+We have provided an interactive helper script `setup_dotenv.sh` to assist you in setting up the `.env` file by prompting for each required environment variable.
+
+To use the script, run the following command:
+
+```bash
+./scripts/setup_dotenv.sh
+```
+
+The script will prompt you for each required environment variable and write the values to the `.env` file. It will ignore optional variables and provide a templated value for each variable. Additionally, it includes a custom help message for each variable to guide you through the setup process.
+
 ## Inspecting the databases
 
 For all operating systems, we recommend using [DBeaver](https://dbeaver.io/).
