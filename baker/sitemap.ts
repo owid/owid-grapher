@@ -17,6 +17,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { getPostsFromSnapshots } from "../db/model/Post.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
+import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
 
 interface SitemapUrl {
     loc: string
@@ -74,6 +75,7 @@ export const makeSitemap = async (
         (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
     )
     const gdocPosts = await db.getPublishedGdocPosts(knex)
+    const authorPages = await GdocAuthor.getPublishedAuthors(knex)
 
     const publishedDataInsights = await db.getPublishedDataInsights(knex)
     const dataInsightFeedPageCount = calculateDataInsightIndexPageCount(
@@ -140,6 +142,12 @@ export const makeSitemap = async (
             }))
         )
         .concat(explorers.flatMap(explorerToSitemapUrl))
+        .concat(
+            authorPages.map((a) => ({
+                loc: urljoin(BAKED_BASE_URL, "team", a.slug),
+                lastmod: dayjs(a.updatedAt).format("YYYY-MM-DD"),
+            }))
+        )
 
     const sitemap = `<?xml version="1.0" encoding="utf-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
