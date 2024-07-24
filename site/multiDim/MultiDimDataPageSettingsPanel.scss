@@ -55,6 +55,21 @@
             // }
         }
     }
+
+    .setting-label {
+        &::after {
+            content: ":";
+            margin-right: 3px;
+        }
+
+        .active & {
+            color: $primary-text;
+        }
+    }
+
+    .setting-choice {
+        color: $primary-text;
+    }
 }
 
 .settings-dropdown {
@@ -62,6 +77,9 @@
 }
 
 .menu-wrapper {
+    $primary-text: $gray-80;
+    $secondary-text: $gray-60;
+
     position: absolute;
     width: 400px;
     left: 0;
@@ -72,16 +90,140 @@
     z-index: $zindex-controls-popup;
     overflow-y: scroll;
 
-    h4 {
+    h5 {
         padding: 0 1em;
-        margin-bottom: 0;
-        color: $primary-text;
+        margin-bottom: 8px;
+        color: $secondary-text;
     }
 
     p {
         padding: 0 1em;
         color: $primary-text;
         font-size: 0.8em;
+    }
+
+    .menu-group {
+        > label {
+            padding: 0 1em;
+            color: $primary-text;
+            font-weight: bold;
+            font-size: 14px;
+            // text-transform: uppercase;
+        }
+
+        padding-bottom: 0.25em;
+        margin-bottom: 0.25em;
+        border-bottom: 1px solid rgba($light-stroke, 0.3);
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    section {
+        font: $medium 14px/1.2 $lato;
+        color: $primary-text;
+        margin: 0 $indent;
+
+        border-bottom: 1px solid $gray-20;
+
+        .config-name {
+            font: $bold 14px/1.2 $lato;
+            color: $primary-text;
+            list-style: none;
+
+            svg {
+                color: $info-icon;
+                height: 13px;
+                padding: 0 0.333em;
+            }
+        }
+
+        .labeled-switch .labeled-switch-subtitle,
+        .config-subtitle {
+            font-size: 13px;
+            margin: 5px 0;
+        }
+
+        .config-toggle {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            padding: 0.5em 0;
+        }
+
+        &.active {
+            button {
+                background: $active-fill;
+                border: 1px solid $active-fill;
+                color: $active-text;
+
+                &:hover {
+                    background: darken($active-fill, 5%);
+                }
+
+                &:active {
+                    background: darken($active-fill, 10%);
+                }
+            }
+        }
+
+        .description {
+            font-size: 12px;
+            color: $gray-60;
+            margin: 0;
+            margin-bottom: 5px;
+        }
+    }
+
+    //
+    // resuable widgets
+    //
+    section {
+        // left/right pairs of options
+        .config-toggle {
+            label {
+                flex-basis: 100%;
+                color: $primary-text;
+                margin-bottom: 0.5em;
+            }
+            button {
+                width: calc(50% - 5px);
+                padding: 7px 16px;
+            }
+        }
+
+        // on/off switch with label written to the right
+        .labeled-switch {
+            margin: 14px 0;
+            display: block;
+        }
+
+        // vertical list of options (for selecting faceting mode)
+        .config-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 7px 0;
+            button {
+                width: 100%;
+
+                &.entity span {
+                    width: 10px;
+                    height: 10px;
+                }
+
+                &.metric span {
+                    width: 10px;
+                    height: 10px;
+                    border-radius: 5px;
+                }
+
+                &.active {
+                    background: #a4b6ca;
+                }
+            }
+        }
     }
 }
 
@@ -93,143 +235,4 @@
     width: 100%;
     height: 100%;
     z-index: $zindex-controls-backdrop;
-}
-
-.setting-label {
-    &::after {
-        content: ":";
-        margin-right: 3px;
-    }
-
-    .active & {
-        color: $primary-text;
-    }
-}
-
-.setting-choice {
-    color: $primary-text;
-}
-
-.menu-group {
-    > label {
-        padding: 0 1em;
-        color: $light-text;
-        font-size: 14px;
-        // text-transform: uppercase;
-    }
-
-    &.is-group section {
-        padding-left: 0.75em;
-    }
-    padding-bottom: 0.25em;
-    margin-bottom: 0.25em;
-    border-bottom: 1px solid rgba($light-stroke, 0.3);
-
-    &:last-child {
-        border-bottom: none;
-    }
-}
-
-section {
-    font: $medium 14px/1.2 $lato;
-    color: $primary-text;
-    margin: 0 $indent;
-
-    .config-name {
-        font: $bold 14px/1.2 $lato;
-        color: $primary-text;
-        list-style: none;
-
-        svg {
-            color: $info-icon;
-            height: 13px;
-            padding: 0 0.333em;
-        }
-    }
-
-    .labeled-switch .labeled-switch-subtitle,
-    .config-subtitle {
-        font-size: 13px;
-        margin: 5px 0;
-    }
-
-    .config-toggle {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        padding: 0.5em 0;
-    }
-
-    &.active {
-        button {
-            background: $active-fill;
-            border: 1px solid $active-fill;
-            color: $active-text;
-
-            &:hover {
-                background: darken($active-fill, 5%);
-            }
-
-            &:active {
-                background: darken($active-fill, 10%);
-            }
-        }
-    }
-
-    .description {
-        font-size: 12px;
-        color: $gray-60;
-        margin: 0;
-        margin-bottom: 5px;
-    }
-}
-
-//
-// resuable widgets
-//
-section {
-    // left/right pairs of options
-    .config-toggle {
-        label {
-            flex-basis: 100%;
-            color: $primary-text;
-            margin-bottom: 0.5em;
-        }
-        button {
-            width: calc(50% - 5px);
-            padding: 7px 16px;
-        }
-    }
-
-    // on/off switch with label written to the right
-    .labeled-switch {
-        margin: 14px 0;
-        display: block;
-    }
-
-    // vertical list of options (for selecting faceting mode)
-    .config-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 7px 0;
-        button {
-            width: 100%;
-
-            &.entity span {
-                width: 10px;
-                height: 10px;
-            }
-
-            &.metric span {
-                width: 10px;
-                height: 10px;
-                border-radius: 5px;
-            }
-
-            &.active {
-                background: #a4b6ca;
-            }
-        }
-    }
 }
