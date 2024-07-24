@@ -341,11 +341,12 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                 </div>
                                 <GrapherFigureView
                                     grapher={this.grapher}
-                                    dataApiUrlForAdmin={
-                                        this.context.admin?.settings
-                                            ?.DATA_API_FOR_ADMIN_UI
-                                    }
-                                    // passed this way because clientSettings are baked and need a recompile to be updated
+                                    extraProps={{
+                                        // passed this way because clientSettings are baked and need a recompile to be updated
+                                        dataApiUrlForAdmin:
+                                            this.context.admin?.settings
+                                                ?.DATA_API_FOR_ADMIN_UI,
+                                    }}
                                 />
                             </div>
                         )}

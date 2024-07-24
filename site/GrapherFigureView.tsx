@@ -11,15 +11,15 @@ import { useElementBounds } from "./hooks.js"
 // Wrapper for Grapher that uses css on figure element to determine the bounds
 export const GrapherFigureView = ({
     grapher,
-    dataApiUrlForAdmin,
+    extraProps,
 }: {
     grapher: Grapher
-    dataApiUrlForAdmin?: string
+    extraProps?: Partial<GrapherProgrammaticInterface>
 }) => {
     const base = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(base)
 
-    const props: GrapherProgrammaticInterface = {
+    const grapherProps: GrapherProgrammaticInterface = {
         ...grapher.toObject(),
         isEmbeddedInADataPage: grapher.isEmbeddedInADataPage,
         bindUrlToWindow: grapher.props.bindUrlToWindow,
@@ -28,16 +28,16 @@ export const GrapherFigureView = ({
             : undefined,
         bounds,
         dataApiUrl: DATA_API_URL,
-        dataApiUrlForAdmin,
         enableKeyboardShortcuts: true,
+        ...extraProps,
     }
     return (
         // They key= in here makes it so that the chart is re-loaded when the slug changes.
         <figure data-grapher-src ref={base}>
             {bounds && (
                 <Grapher
-                    key={props.slug}
-                    {...props}
+                    key={grapherProps.slug}
+                    {...grapherProps}
                     adminBaseUrl={ADMIN_BASE_URL}
                     bakedGrapherURL={BAKED_GRAPHER_URL}
                 />
