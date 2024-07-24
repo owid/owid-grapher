@@ -473,13 +473,14 @@ export const MultiDimDataPageContent = ({
             ...currentView?.config,
             dimensions: dimensionsConfig,
             isEmbeddedInADataPage: true,
+            selectedEntityNames: config.config.default_selection,
 
             bounds,
 
             // Keep the tab we last had
             tab: grapherInst?.tab ?? GrapherTabOption.chart,
         } as GrapherProgrammaticInterface
-    }, [currentView, dimensionsConfig, grapherInst, bounds])
+    }, [currentView, dimensionsConfig, grapherInst, bounds, config])
 
     // const grapher = useMemo(() => {
     //     const grapher = new Grapher({ ...grapherConfigComputed, queryStr })
