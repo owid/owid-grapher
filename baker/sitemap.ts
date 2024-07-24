@@ -17,7 +17,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { getPostsFromSnapshots } from "../db/model/Post.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
-import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
+import { GdocAuthor, getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
 
 interface SitemapUrl {
     loc: string
@@ -75,7 +75,7 @@ export const makeSitemap = async (
         (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
     )
     const gdocPosts = await db.getPublishedGdocPosts(knex)
-    const authorPages = await GdocAuthor.getPublishedAuthors(knex)
+    const authorPages = await getMinimalAuthors(knex)
 
     const publishedDataInsights = await db.getPublishedDataInsights(knex)
     const dataInsightFeedPageCount = calculateDataInsightIndexPageCount(
