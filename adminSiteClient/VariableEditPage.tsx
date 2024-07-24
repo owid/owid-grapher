@@ -339,7 +339,14 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         Edit as new chart
                                     </Link>
                                 </div>
-                                <GrapherFigureView grapher={this.grapher} />
+                                <GrapherFigureView
+                                    grapher={this.grapher}
+                                    dataApiUrlForAdmin={
+                                        this.context.admin?.settings
+                                            ?.DATA_API_FOR_ADMIN_UI
+                                    }
+                                    // passed this way because clientSettings are baked and need a recompile to be updated
+                                />
                             </div>
                         )}
                     </div>

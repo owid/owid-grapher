@@ -1,64 +1,47 @@
-import { action, observable } from "mobx"
-import { observer } from "mobx-react"
-import React from "react"
+import React, { useRef } from "react"
 
 import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
-import { Bounds } from "@ourworldindata/utils"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
     DATA_API_URL,
 } from "../settings/clientSettings.js"
+import { useElementBounds } from "./hooks.js"
 
 // Wrapper for Grapher that uses css on figure element to determine the bounds
-@observer
-export class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
-    base: React.RefObject<HTMLDivElement> = React.createRef()
-    @observable.ref bounds?: Bounds
+export const GrapherFigureView = ({
+    grapher,
+    dataApiUrlForAdmin,
+}: {
+    grapher: Grapher
+    dataApiUrlForAdmin?: string
+}) => {
+    const base = useRef<HTMLDivElement>(null)
+    const bounds = useElementBounds(base)
 
-    @action.bound calcBounds() {
-        this.bounds = Bounds.fromRect(
-            this.base.current!.getBoundingClientRect()
-        )
+    const props: GrapherProgrammaticInterface = {
+        ...grapher.toObject(),
+        isEmbeddedInADataPage: grapher.isEmbeddedInADataPage,
+        bindUrlToWindow: grapher.props.bindUrlToWindow,
+        queryStr: grapher.props.bindUrlToWindow
+            ? window.location.search
+            : undefined,
+        bounds,
+        dataApiUrl: DATA_API_URL,
+        dataApiUrlForAdmin,
+        enableKeyboardShortcuts: true,
     }
-
-    componentDidMount() {
-        window.addEventListener("resize", this.calcBounds)
-        this.calcBounds()
-    }
-
-    componentWillUnmount() {
-        window.removeEventListener("resize", this.calcBounds)
-    }
-
-    render() {
-        const { grapher } = this.props
-
-        const props: GrapherProgrammaticInterface = {
-            ...grapher.toObject(),
-            isEmbeddedInADataPage: grapher.isEmbeddedInADataPage,
-            bindUrlToWindow: grapher.props.bindUrlToWindow,
-            queryStr: grapher.props.bindUrlToWindow
-                ? window.location.search
-                : undefined,
-            bounds: this.bounds,
-            dataApiUrl: DATA_API_URL,
-            dataApiUrlForAdmin:
-                this.context?.admin?.settings?.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
-            enableKeyboardShortcuts: true,
-        }
-        return (
-            // They key= in here makes it so that the chart is re-loaded when the slug changes.
-            <figure data-grapher-src ref={this.base}>
-                {this.bounds && (
-                    <Grapher
-                        key={props.slug}
-                        {...props}
-                        adminBaseUrl={ADMIN_BASE_URL}
-                        bakedGrapherURL={BAKED_GRAPHER_URL}
-                    />
-                )}
-            </figure>
-        )
-    }
+    return (
+        // They key= in here makes it so that the chart is re-loaded when the slug changes.
+        <figure data-grapher-src ref={base}>
+            {bounds && (
+                <Grapher
+                    key={props.slug}
+                    {...props}
+                    adminBaseUrl={ADMIN_BASE_URL}
+                    bakedGrapherURL={BAKED_GRAPHER_URL}
+                />
+            )}
+        </figure>
+    )
 }
