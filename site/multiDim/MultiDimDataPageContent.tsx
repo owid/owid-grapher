@@ -9,7 +9,6 @@ import {
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import ReactDOM from "react-dom"
-import { GrapherWithFallback } from "../GrapherWithFallback.js"
 import { RelatedCharts } from "../blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
@@ -33,6 +32,7 @@ import {
     setWindowQueryStr,
     getWindowQueryParams,
     getWindowQueryStr,
+    Bounds,
 } from "@ourworldindata/utils"
 import cx from "classnames"
 import { DebugProvider } from "../gdocs/DebugContext.js"
@@ -365,8 +365,6 @@ export const MultiDimDataPageContent = ({
 
     const [currentSettings, setCurrentSettings] = useState(initialChoices)
 
-    console.log("currentSettings", currentSettings, initialChoices)
-
     const currentView = useMemo(() => {
         if (Object.keys(currentSettings).length === 0) return undefined
         return config?.findViewByDimensions(currentSettings)
@@ -408,16 +406,7 @@ export const MultiDimDataPageContent = ({
         (tag) => tagToSlugMap?.[tag]
     )
 
-    const selectionArray = useMemo(
-        () =>
-            new SelectionArray([
-                "Spain",
-                "Zimbabwe",
-                "United Kingdom",
-                "World",
-            ]),
-        []
-    )
+    const selectionArray = useMemo(() => new SelectionArray(), [])
 
     const grapherManager = useMemo(
         (): GrapherManager => ({
@@ -431,8 +420,9 @@ export const MultiDimDataPageContent = ({
     // TODO we should probably fix that? seems sensible? change GrapherFigureView around a bit to use the actual grapher inst? or pass a GrapherProgrammaticInterface to it instead?
     const [grapherInst, setGrapherInst] = useState<Grapher | null>(null)
 
-    const [grapherChangedParams, setGrapherChangedParams] =
-        useState<QueryParams>({})
+    const [grapherChangedParams, setGrapherChangedParams] = useState<
+        QueryParams | undefined
+    >(undefined)
 
     // De-mobx grapher.changedParams by transforming it into React state
     useEffect(
@@ -440,7 +430,8 @@ export const MultiDimDataPageContent = ({
             grapherInst
                 ? reaction(
                       () => grapherInst.changedParams,
-                      setGrapherChangedParams
+                      setGrapherChangedParams,
+                      { fireImmediately: true }
                   )
                 : undefined,
         [grapherInst]
@@ -451,15 +442,22 @@ export const MultiDimDataPageContent = ({
 
     const queryStr = useMemo(
         () =>
-            stateToQueryStr(
-                { ...grapherChangedParams, url: urlQueryParam },
-                currentSettings
-            ),
-        [grapherChangedParams, currentSettings]
+            grapherChangedParams !== undefined
+                ? stateToQueryStr(
+                      { ...grapherChangedParams, url: urlQueryParam },
+                      currentSettings
+                  )
+                : initialQueryStr,
+        [
+            grapherChangedParams,
+            urlQueryParam, // TEMPORARY
+            currentSettings,
+            initialQueryStr,
+        ]
     )
 
     useEffect(() => {
-        setWindowQueryStr(queryStr)
+        setWindowQueryStr(queryStr ?? "")
     }, [queryStr])
 
     const grapherConfigComputed = useMemo(() => {
@@ -468,15 +466,18 @@ export const MultiDimDataPageContent = ({
             dimensions: dimensionsConfig,
             isEmbeddedInADataPage: true,
 
+            // TODO temp
+            bounds: new Bounds(0, 0, 1000, 600),
+
             // Keep the tab we last had
             tab: grapherInst?.tab ?? GrapherTabOption.chart,
         } as GrapherProgrammaticInterface
     }, [currentView, dimensionsConfig, grapherInst])
 
-    const grapher = useMemo(() => {
-        const grapher = new Grapher(grapherConfigComputed)
-        return grapher
-    }, [grapherConfigComputed])
+    // const grapher = useMemo(() => {
+    //     const grapher = new Grapher({ ...grapherConfigComputed, queryStr })
+    //     return grapher
+    // }, [grapherConfigComputed, queryStr])
 
     const relatedResearchCandidates = datapageDataFromVar?.relatedResearch ?? []
     const relatedResearch =
@@ -546,13 +547,19 @@ export const MultiDimDataPageContent = ({
 
             <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
                 <div className="chart-key-info col-start-2 span-cols-12">
-                    <GrapherWithFallback
-                        key={JSON.stringify(grapherConfigComputed)}
-                        grapher={grapher}
-                        manager={grapherManager}
-                        getGrapherInstance={setGrapherInst}
+                    <div
                         id="explore-the-data"
-                    />
+                        className="GrapherWithFallback full-width-on-mobile"
+                    >
+                        <figure data-grapher-src>
+                            <Grapher
+                                {...grapherConfigComputed}
+                                queryStr={queryStr}
+                                manager={grapherManager}
+                                getGrapherInstance={setGrapherInst}
+                            />
+                        </figure>
+                    </div>
                     {datapageDataFromVar && (
                         <AboutThisData
                             datapageData={datapageDataFromVar}
