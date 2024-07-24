@@ -95,6 +95,9 @@ export default function LatestDataInsights({
                             title={dataInsight.content.title}
                             body={dataInsight.content.body}
                             publishedAt={dataInsight.publishedAt}
+                            // We need to supply a custom index to correctly map
+                            // the URL when we are excluding the current data
+                            // insight from the list, i.e. on the detail page.
                             href={`/data-insights#${dataInsightIndexToIdMap[dataInsight.index ?? index]}`}
                         />
                     ))}
