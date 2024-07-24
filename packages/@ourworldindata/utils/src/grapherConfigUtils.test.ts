@@ -141,7 +141,7 @@ describe(mergeGrapherConfigs, () => {
         ).toThrowError()
     })
 
-    it("excludes $schema, id, slug, version and isPublished from inheritance", () => {
+    it("excludes id, slug, version and isPublished from inheritance", () => {
         expect(
             mergeGrapherConfigs(
                 {
@@ -165,7 +165,37 @@ describe(mergeGrapherConfigs, () => {
                 },
                 { slug: "child-slug", version: 1, title: "Title B" }
             )
-        ).toEqual({ slug: "child-slug", version: 1, title: "Title B" })
+        ).toEqual({
+            slug: "child-slug",
+            version: 1,
+            title: "Title B",
+        })
+    })
+
+    it("ignores empty objects", () => {
+        expect(
+            mergeGrapherConfigs(
+                {
+                    title: "Parent title",
+                    subtitle: "Parent subtitle",
+                },
+                {
+                    $schema: "004",
+                    id: 1,
+                    slug: "parent-slug",
+                    version: 1,
+                    title: "Title A",
+                },
+                {}
+            )
+        ).toEqual({
+            $schema: "004",
+            id: 1,
+            slug: "parent-slug",
+            version: 1,
+            title: "Title A",
+            subtitle: "Parent subtitle",
+        })
     })
 
     it("overwrites values with an empty string if requested", () => {
