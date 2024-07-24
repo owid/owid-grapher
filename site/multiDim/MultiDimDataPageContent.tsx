@@ -51,6 +51,7 @@ import {
     stateToQueryStr,
 } from "./MultiDimUrl.js"
 import { reaction } from "mobx"
+import { useElementBounds } from "../hooks.js"
 declare global {
     interface Window {
         _OWID_MULTI_DIM_CONFIG: MultiDimDataPageConfigType
@@ -349,6 +350,8 @@ export const MultiDimDataPageContent = ({
     imageMetadata: Record<string, ImageMetadata>
     initialQueryStr?: string
 }) => {
+    const grapherFigureRef = useRef<HTMLDivElement>(null)
+
     const [initialChoices] = useState(() =>
         initialQueryStr
             ? extractDimensionChoicesFromQueryStr(initialQueryStr, config)
@@ -437,6 +440,8 @@ export const MultiDimDataPageContent = ({
         [grapherInst]
     )
 
+    const bounds = useElementBounds(grapherFigureRef)
+
     // TEMPORARY, only while we are using `url` as part of the query string
     const urlQueryParam = getWindowQueryParams().url
 
@@ -466,13 +471,12 @@ export const MultiDimDataPageContent = ({
             dimensions: dimensionsConfig,
             isEmbeddedInADataPage: true,
 
-            // TODO temp
-            bounds: new Bounds(0, 0, 1000, 600),
+            bounds,
 
             // Keep the tab we last had
             tab: grapherInst?.tab ?? GrapherTabOption.chart,
         } as GrapherProgrammaticInterface
-    }, [currentView, dimensionsConfig, grapherInst])
+    }, [currentView, dimensionsConfig, grapherInst, bounds])
 
     // const grapher = useMemo(() => {
     //     const grapher = new Grapher({ ...grapherConfigComputed, queryStr })
@@ -551,7 +555,7 @@ export const MultiDimDataPageContent = ({
                         id="explore-the-data"
                         className="GrapherWithFallback full-width-on-mobile"
                     >
-                        <figure data-grapher-src>
+                        <figure data-grapher-src ref={grapherFigureRef}>
                             <Grapher
                                 {...grapherConfigComputed}
                                 queryStr={queryStr}
