@@ -2,6 +2,7 @@ import * as React from "react"
 import { useState, useEffect } from "react"
 import Cookies from "js-cookie"
 import cx from "classnames"
+import { NewsletterSubscriptionContext } from "./newsletter.js"
 import DataInsightsNewsletter from "./gdocs/components/DataInsightsNewsletter.js"
 
 const COOKIE_NAME = "is_data_insights_newsletter_banner_hidden"
@@ -28,6 +29,7 @@ export default function DataInsightsNewsletterBanner() {
             className={cx("data-insights-newsletter-banner", {
                 "data-insights-newsletter-banner--visible": isVisible,
             })}
+            context={NewsletterSubscriptionContext.FloatingDataInsights}
             onClose={handleOnClose}
         />
     )

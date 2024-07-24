@@ -3,18 +3,16 @@ import { faTimes, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { TextInput } from "@ourworldindata/components"
+import { NewsletterSubscriptionContext } from "./newsletter.js"
 
 const analytics = new SiteAnalytics()
-
-export enum NewsletterSubscriptionContext {
-    Homepage = "homepage",
-    Floating = "floating",
-}
 
 export const NewsletterSubscription = ({
     context,
 }: {
-    context?: NewsletterSubscriptionContext
+    context?:
+        | NewsletterSubscriptionContext.Homepage
+        | NewsletterSubscriptionContext.Floating
 }) => {
     const [isOpen, setIsOpen] = useState(false)
 
@@ -92,6 +90,12 @@ export const NewsletterSubscriptionForm = ({
             id="mc-embedded-subscribe-form"
             name="mc-embedded-subscribe-form"
             target="_blank"
+            onSubmit={() =>
+                analytics.logSiteFormSubmit(
+                    "newsletter-subscribe",
+                    `Subscribe [${context ?? "other-contexts"}]`
+                )
+            }
         >
             <span className="NewsletterSubscriptionForm__header">
                 Receive our latest work by email.

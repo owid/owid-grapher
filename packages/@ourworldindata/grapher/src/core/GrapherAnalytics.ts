@@ -22,6 +22,7 @@ export enum EventCategory {
     SiteSearchClick = "owid.site_search_click",
     SiteSearchFilterClick = "owid.site_search_filter_click",
     SiteInstantSearchClick = "owid.site_instantsearch_click",
+    SiteFormSubmit = "owid.site_form_submit",
     DetailOnDemand = "owid.detail_on_demand",
 }
 
@@ -121,6 +122,14 @@ export class GrapherAnalytics {
     logSiteClick(action: string = "unknown-action", label?: string): void {
         this.logToGA({
             event: EventCategory.SiteClick,
+            eventAction: action,
+            eventTarget: label,
+        })
+    }
+
+    logSiteFormSubmit(action: string, label?: string): void {
+        this.logToGA({
+            event: EventCategory.SiteFormSubmit,
             eventAction: action,
             eventTarget: label,
         })

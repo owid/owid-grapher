@@ -3,12 +3,20 @@ import cx from "classnames"
 import { faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Button, TextInput } from "@ourworldindata/components"
+import { SiteAnalytics } from "../../SiteAnalytics.js"
+import { NewsletterSubscriptionContext } from "../../newsletter.js"
+
+const analytics = new SiteAnalytics()
 
 export default function DataInsightsNewsletter({
     className,
+    context,
     onClose,
 }: {
     className?: string
+    context:
+        | NewsletterSubscriptionContext.HomepageDataInsights
+        | NewsletterSubscriptionContext.FloatingDataInsights
     onClose?: () => void
 }) {
     return (
@@ -48,6 +56,12 @@ export default function DataInsightsNewsletter({
                         action="https://ourworldindata.us8.list-manage.com/subscribe/post?u=18058af086319ba6afad752ec&id=2e166c1fc1"
                         method="post"
                         target="_blank"
+                        onSubmit={() =>
+                            analytics.logSiteFormSubmit(
+                                "newsletter-subscribe",
+                                `Subscribe [${context}]`
+                            )
+                        }
                     >
                         <TextInput
                             className="data-insights-newsletter__email-input"
@@ -62,6 +76,12 @@ export default function DataInsightsNewsletter({
                             theme="solid-vermillion"
                             text="Subscribe"
                             icon={null}
+                            onClick={() =>
+                                analytics.logSiteClick(
+                                    "newsletter-subscribe",
+                                    `Subscribe [${context}]`
+                                )
+                            }
                         />
                     </form>
                     <p className="data-insights-newsletter__note note-1-medium">

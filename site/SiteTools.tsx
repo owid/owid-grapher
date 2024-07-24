@@ -2,10 +2,10 @@ import React from "react"
 import ReactDOM from "react-dom"
 import { FeedbackPrompt } from "./Feedback.js"
 import { ScrollDirection, useScrollDirection } from "./hooks.js"
+import { NewsletterSubscriptionContext } from "./newsletter.js"
 import {
     NewsletterSubscription,
     NewsletterSubscriptionForm,
-    NewsletterSubscriptionContext,
 } from "./NewsletterSubscription.js"
 // import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 // import { faHandshake } from "@fortawesome/free-solid-svg-icons"
