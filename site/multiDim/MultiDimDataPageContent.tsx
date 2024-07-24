@@ -557,6 +557,7 @@ export const MultiDimDataPageContent = ({
                     >
                         <figure data-grapher-src ref={grapherFigureRef}>
                             <Grapher
+                                key={JSON.stringify(currentView)}
                                 {...grapherConfigComputed}
                                 queryStr={queryStr}
                                 manager={grapherManager}
