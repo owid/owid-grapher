@@ -45,8 +45,8 @@ export default function DataInsightsNewsletter({
                             Get Daily Data Insights delivered to your inbox
                         </h3>
                         <p className="data-insights-newsletter__description body-3-medium">
-                            Receive an email from us whenever we publish a Daily
-                            Data Insight (maximum 1 per day).
+                            Receive an email from us when we publish a Daily
+                            Data Insight (every weekday).
                         </p>
                     </div>
                 </div>

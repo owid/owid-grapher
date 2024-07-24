@@ -21,7 +21,7 @@ export default function LatestDataInsightsBlock({
                 <h2 className="h2-bold">Daily Data Insights</h2>
                 <p className="body-2-regular">
                     Bite-sized insights on how the world is changing, published
-                    daily.
+                    every weekday.
                 </p>
             </header>
             <Button
