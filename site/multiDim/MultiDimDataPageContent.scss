@@ -18,13 +18,23 @@ $indent: 15px;
 $control-row-height: 32px;
 
 $light-text: #858585;
-$dark-text: #5b5b5b;
+$secondary-text: $blue-50;
+$primary-text: $blue-90;
 $active-text: $blue-90;
 
 $zindex-controls-backdrop: 130;
 $zindex-controls-popup: 140;
 
 .MultiDimDataPageContent {
+    .header__left {
+        padding-bottom: 20px;
+    }
+
+    .settings-row__wrapper {
+        padding-bottom: 20px;
+        border-top: 1px solid $blue-20;
+    }
+
     .settings-row {
         display: flex;
         align-items: center;
@@ -32,37 +42,35 @@ $zindex-controls-popup: 140;
         margin-top: 20px;
 
         > span {
-            color: $gray-70;
-            text-transform: uppercase;
+            color: $secondary-text;
             font-weight: 700;
-            font-size: 0.9em;
             margin-right: 10px;
         }
 
         button {
             display: flex;
             align-items: center;
-            color: $dark-text;
+            color: $secondary-text;
             background: white;
             border: 1px solid $light-stroke;
             font: $medium 13px/16px $lato;
             letter-spacing: 0.01em;
             border-radius: 4px;
-            padding: 7px;
+            padding: 8px 12px;
             height: 40px;
 
             svg {
                 margin-left: 5px;
             }
 
-            &:hover {
-                background: $hover-fill;
-                cursor: pointer;
+            // &:hover {
+            //     background: $hover-fill;
+            //     cursor: pointer;
 
-                &:not(.active) {
-                    color: $dark-text;
-                }
-            }
+            //     &:not(.active) {
+            //         color: $dark-text;
+            //     }
+            // }
 
             &.active,
             &:active {
@@ -74,9 +82,9 @@ $zindex-controls-popup: 140;
                 cursor: default;
                 color: $active-text;
 
-                .setting-label {
-                    color: $dark-text;
-                }
+                // .setting-label {
+                //     color: $dark-text;
+                // }
             }
         }
     }
@@ -99,12 +107,12 @@ $zindex-controls-popup: 140;
         h4 {
             padding: 0 1em;
             margin-bottom: 0;
-            color: $dark-text;
+            color: $primary-text;
         }
 
         p {
             padding: 0 1em;
-            color: $dark-text;
+            color: $primary-text;
             font-size: 0.8em;
         }
     }
@@ -120,15 +128,18 @@ $zindex-controls-popup: 140;
     }
 
     .setting-label {
-        color: $light-text;
         &::after {
             content: ":";
             margin-right: 3px;
         }
 
         .active & {
-            color: $dark-text;
+            color: $primary-text;
         }
+    }
+
+    .setting-choice {
+        color: $primary-text;
     }
 
     .menu-group {
@@ -153,12 +164,12 @@ $zindex-controls-popup: 140;
 
     section {
         font: $medium 14px/1.2 $lato;
-        color: $dark-text;
+        color: $primary-text;
         margin: 0 $indent;
 
         .config-name {
             font: $bold 14px/1.2 $lato;
-            color: $dark-text;
+            color: $primary-text;
             list-style: none;
 
             svg {
@@ -213,7 +224,7 @@ $zindex-controls-popup: 140;
         .config-toggle {
             label {
                 flex-basis: 100%;
-                color: $dark-text;
+                color: $primary-text;
                 margin-bottom: 0.5em;
             }
             button {
