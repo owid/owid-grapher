@@ -66,7 +66,7 @@ const DimensionDropdown = (props: {
                         ></div>
                         {/* <OverlayHeader /> */}
                         <div className="menu-wrapper">
-                            <h4>{dimension.name}</h4>
+                            <h5 className="h5-black-caps">{dimension.name}</h5>
                             {dimension.description && (
                                 <p>{dimension.description}</p>
                             )}
