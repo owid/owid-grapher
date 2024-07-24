@@ -9,6 +9,7 @@ import {
     omitUndefinedValuesRecursive,
     omitEmptyObjectsRecursive,
     traverseObjects,
+    isEmpty,
 } from "./Util"
 
 const REQUIRED_KEYS = ["$schema", "dimensions"]
@@ -24,20 +25,26 @@ const KEYS_EXCLUDED_FROM_INHERITANCE = [
 export function mergeGrapherConfigs(
     ...grapherConfigs: GrapherInterface[]
 ): GrapherInterface {
+    const configsToMerge = grapherConfigs.filter((c) => !isEmpty(c))
+
+    // return early if there are no configs to merge
+    if (configsToMerge.length === 0) return {}
+    if (configsToMerge.length === 1) return configsToMerge[0]
+
     // warn if one of the configs is missing a schema version
-    const configsWithoutSchema = grapherConfigs.filter(
+    const configsWithoutSchema = configsToMerge.filter(
         (c) => c["$schema"] === undefined
     )
     if (configsWithoutSchema.length > 0) {
-        const ids = configsWithoutSchema.map((c) => c.id)
+        const configsJson = JSON.stringify(configsWithoutSchema, null, 2)
         console.warn(
-            `About to merge Grapher configs with missing schema information. Charts with missing schema information: ${ids}`
+            `About to merge Grapher configs with missing schema information: ${configsJson}`
         )
     }
 
     // abort if the grapher configs have different schema versions
     const uniqueSchemas = uniq(
-        excludeUndefined(grapherConfigs.map((c) => c["$schema"]))
+        excludeUndefined(configsToMerge.map((c) => c["$schema"]))
     )
     if (uniqueSchemas.length > 1) {
         throw new Error(
@@ -48,8 +55,8 @@ export function mergeGrapherConfigs(
     }
 
     // keys that should not be inherited are removed from all but the last config
-    const cleanedConfigs = grapherConfigs.map((config, index) => {
-        if (index === grapherConfigs.length - 1) return config
+    const cleanedConfigs = configsToMerge.map((config, index) => {
+        if (index === configsToMerge.length - 1) return config
         return omit(config, KEYS_EXCLUDED_FROM_INHERITANCE)
     })
 
