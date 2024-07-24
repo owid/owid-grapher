@@ -3,6 +3,7 @@ import { DimensionProperty } from "@ourworldindata/types"
 export interface MultiDimDataPageConfigType {
     name: string
     dimensions_title: string
+    default_selection?: string[]
     common_indicator_path_prefix?: string
     dimensions: Dimension[]
     views: View[]
