@@ -15,4 +15,9 @@
         opacity: 1;
         pointer-events: auto;
     }
+
+    // We need a separate class without `opacity: 0` for hiding to animate.
+    &--hiding {
+        transform: translateY(100%);
+    }
 }

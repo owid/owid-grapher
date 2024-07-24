@@ -12,6 +12,10 @@
     font-size: 0.875rem;
     a {
         @include owid-link-90;
+
+        &:visited {
+            color: $blue-90; // Don't change the color.
+        }
     }
     svg {
         height: 12px;
@@ -26,7 +30,7 @@
     }
 
     @include sm-only {
-        margin: 24px 0;
+        margin: 16px 0 20px 0;
     }
 }
 
