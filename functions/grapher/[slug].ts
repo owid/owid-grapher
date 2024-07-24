@@ -226,7 +226,7 @@ export const onRequestGet: PagesFunction = async (context) => {
         )
         .all("*", () => error(404, "Route not defined"))
     return router
-        .handle(request, url, { ...env, url }, context)
+        .fetch(request, url, { ...env, url }, context)
         .then((resp: Response) => {
             if (shouldCache) {
                 resp.headers.set(
