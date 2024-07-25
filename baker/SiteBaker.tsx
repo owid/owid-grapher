@@ -757,7 +757,7 @@ export class SiteBaker {
     private async bakeMultiDimPages(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("multiDimPages")) return
 
-        await bakeAllMultiDimDataPages(this.bakedSiteDir, knex)
+        await bakeAllMultiDimDataPages(knex, this.bakedSiteDir)
 
         this.progressBar.tick({ name: "✅ baked multi-dim pages" })
     }

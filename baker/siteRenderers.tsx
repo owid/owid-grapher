@@ -865,11 +865,3 @@ const renderExplorerDefaultThumbnail = (): string => {
         <img src={`${BAKED_BASE_URL}/default-thumbnail.jpg`} />
     )
 }
-
-export const renderMultiDimDataPage = async (
-    config: MultiDimDataPageConfig
-) => {
-    return renderToHtmlPage(
-        <MultiDimDataPage baseUrl={BAKED_BASE_URL} config={config} />
-    )
-}

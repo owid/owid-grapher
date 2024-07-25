@@ -13,7 +13,6 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import {
     renderExplorerPage,
     renderGdoc,
-    renderMultiDimDataPage,
     renderPreview,
 } from "../baker/siteRenderers.js"
 import { GitCmsServer } from "../gitCms/GitCmsServer.js"
@@ -50,7 +49,6 @@ import {
     getPlainRouteNonIdempotentWithRWTransaction,
     getPlainRouteWithROTransaction,
 } from "./plainRouterHelpers.js"
-import { MultiDimDataPageConfig } from "../site/multiDim/MultiDimDataPageConfig.js"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
@@ -354,25 +352,6 @@ getPlainRouteNonIdempotentWithRWTransaction(
         const previewDataPageOrGrapherPage =
             await renderPreviewDataPageOrGrapherPage(entity.config, trx)
         res.send(previewDataPageOrGrapherPage)
-    }
-)
-
-getPlainRouteNonIdempotentWithRWTransaction(
-    adminRouter,
-    "/multi-dim",
-    async (req, res, trx) => {
-        const reqUrl = new URL(req.url, `http://localhost/`)
-        const fetchUrl = reqUrl.searchParams.get("url")
-        if (!fetchUrl) return new JsonError("No URL provided", 400)
-        const configRaw = await fetch(fetchUrl).catch(() => null)
-        if (!configRaw) return new JsonError("Failed to fetch config", 500)
-        const config = await configRaw
-            .text()
-            .then(MultiDimDataPageConfig.fromYaml)
-
-        const page = await renderMultiDimDataPage(config)
-        res.send(page)
-        return
     }
 )
 
