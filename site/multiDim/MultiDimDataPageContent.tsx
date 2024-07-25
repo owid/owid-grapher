@@ -223,10 +223,6 @@ export const MultiDimDataPageContent = ({
         datapageDataFromVar?.titleVariant
     )
 
-    const topicTagsLinks = datapageDataFromVar?.topicTagsLinks?.filter(
-        (tag) => tagToSlugMap?.[tag]
-    )
-
     const selectionArray = useMemo(
         () => new SelectionArray(config.config.default_selection),
         [config]
@@ -333,10 +329,10 @@ export const MultiDimDataPageContent = ({
                         </h1>
                         <div className="header__source">{titleFragments}</div>
                     </div>
-                    {!!topicTagsLinks && (
+                    {!!datapageDataFromVar?.topicTagsLinks && (
                         <TopicTags
                             className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12"
-                            topicTagsLinks={topicTagsLinks}
+                            topicTagsLinks={datapageDataFromVar.topicTagsLinks}
                             tagToSlugMap={tagToSlugMap}
                         />
                     )}
