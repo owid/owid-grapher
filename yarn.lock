@@ -11008,6 +11008,7 @@ __metadata:
     url-join: "npm:^4.0.0"
     url-parse: "npm:^1.5.10"
     url-slug: "npm:^3.0.2"
+    usehooks-ts: "npm:^3.1.0"
     vite: "npm:^5.3.4"
     vite-plugin-checker: "npm:^0.7.2"
     webfontloader: "npm:^1.6.28"
@@ -13532,6 +13533,13 @@ __metadata:
   version: 4.17.21
   resolution: "lodash-es@npm:4.17.21"
   checksum: 10/03f39878ea1e42b3199bd3f478150ab723f93cc8730ad86fec1f2804f4a07c6e30deaac73cad53a88e9c3db33348bb8ceeb274552390e7a75d7849021c02df43
+  languageName: node
+  linkType: hard
+
+"lodash.debounce@npm:^4.0.8":
+  version: 4.0.8
+  resolution: "lodash.debounce@npm:4.0.8"
+  checksum: 10/cd0b2819786e6e80cb9f5cda26b1a8fc073daaf04e48d4cb462fa4663ec9adb3a5387aa22d7129e48eed1afa05b482e2a6b79bfc99b86886364449500cbb00fd
   languageName: node
   linkType: hard
 
@@ -19859,6 +19867,17 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
   checksum: 10/a676216affc203876bd47981103f201f28c2731361bb186367e12d287a7566763213a8816910c6eb88265eccd4c230426eb783d64c373c4a180905be8820ed8e
+  languageName: node
+  linkType: hard
+
+"usehooks-ts@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "usehooks-ts@npm:3.1.0"
+  dependencies:
+    lodash.debounce: "npm:^4.0.8"
+  peerDependencies:
+    react: ^16.8.0  || ^17 || ^18
+  checksum: 10/6aef8affd3c053a3040b7421816dab85eb21601c5203496a705bafc32eb973fb519a2b0ddda527962e361d248f3a1c49df130620efe871c8f89e897451ed1cc7
   languageName: node
   linkType: hard
 
