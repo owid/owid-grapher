@@ -149,6 +149,7 @@ $zindex-input: 1;
 $zindex-global-entity-select: 11;
 $zindex-footnote: 15;
 $zindex-sidebar: 20;
+$zindex-sidebar-page-overlay: $zindex-sidebar - 1;
 $zindex-popover: 100;
 $zindex-search-overlay: 100;
 $zindex-cookie-notice: 110;
