@@ -61,6 +61,10 @@ $toggle-height: 40px;
 
     .md-settings__dropdown-current-choice {
         color: $primary-text;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
 
