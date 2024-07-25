@@ -1,18 +1,19 @@
 $radio-button-padding-y: 16px;
 $indent: 16px;
 
-.settings-row__wrapper {
-    padding-bottom: 20px;
-    border-top: 1px solid $blue-20;
-}
+$toggle-height: 40px;
 
-.settings-row {
+.md-settings-row {
     display: flex;
     align-items: center;
     gap: 15px;
     margin-top: 20px;
 
-    .menu-toggle {
+    .md-settings__configure-data {
+        color: $blue-60;
+    }
+
+    .md-settings__dropdown-toggle {
         display: flex;
         align-items: center;
         color: $secondary-text;
@@ -22,20 +23,18 @@ $indent: 16px;
         letter-spacing: 0.01em;
         border-radius: 4px;
         padding: 8px 12px;
-        height: 40px;
+        height: $toggle-height;
+        cursor: pointer;
 
         svg {
             margin-left: 5px;
         }
 
-        // &:hover {
-        //     background: $hover-fill;
-        //     cursor: pointer;
-
-        //     &:not(.active) {
-        //         color: $dark-text;
-        //     }
-        // }
+        &:hover,
+        &:focus {
+            // background: $gray-5;
+            border-color: $blue-30;
+        }
 
         &.active,
         &:active {
@@ -46,14 +45,10 @@ $indent: 16px;
         &.active {
             cursor: default;
             color: $active-text;
-
-            // .setting-label {
-            //     color: $dark-text;
-            // }
         }
     }
 
-    .setting-label {
+    .md-settings__dropdown-label {
         &::after {
             content: ":";
             margin-right: 3px;
@@ -64,44 +59,49 @@ $indent: 16px;
         }
     }
 
-    .setting-choice {
+    .md-settings__dropdown-current-choice {
         color: $primary-text;
     }
 }
 
-.settings-dropdown {
+.md-settings__dropdown {
     position: relative;
 }
 
-.menu-wrapper {
+.md-menu {
     $primary-text: $gray-80;
     $secondary-text: $gray-60;
 
     position: absolute;
     width: 400px;
     left: 0;
-    top: 40px + 5px;
+    top: calc($toggle-height + 5px);
     background: white;
     border-radius: 4px;
     box-shadow: 0px 4px 23px 4px #0000000f;
     z-index: $zindex-controls-popup;
-    overflow-y: scroll;
 
     .overlay-header {
         padding-bottom: 0;
-        margin-bottom: 0;
     }
 
-    p {
-        margin-top: 0;
-        margin: 0 $indent;
+    .md-description {
         color: $secondary-text;
         font-size: 0.8em;
     }
 
-    .menu-group {
-        > label {
-            margin: 0 $indent;
+    .menu-dimension__description {
+        margin: 0 $indent;
+    }
+
+    .md-menu__options {
+        padding: 0 $indent;
+        overflow-y: auto;
+        max-height: 50vh;
+    }
+
+    .md-menu__group {
+        .md-menu__group-label {
             color: $light-text;
             font-weight: 600;
             font-size: 14px;
@@ -110,10 +110,7 @@ $indent: 16px;
         margin-bottom: 0.25em;
     }
 
-    .menu__radio-button {
-        font: $medium 14px/1.2 $lato;
-        color: $primary-text;
-        margin: 0 $indent;
+    .md-menu__radio-button {
         padding: $radio-button-padding-y 0;
 
         border-bottom: 1px solid $gray-20;
@@ -125,51 +122,5 @@ $indent: 16px;
         &:last-child {
             border-bottom: none;
         }
-
-        .labeled-switch .labeled-switch-subtitle,
-        .config-subtitle {
-            font-size: 13px;
-            margin: 5px 0;
-        }
-
-        .config-toggle {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            padding: 0.5em 0;
-        }
-
-        &.active {
-            button {
-                background: $active-fill;
-                border: 1px solid $active-fill;
-                color: $active-text;
-
-                &:hover {
-                    background: darken($active-fill, 5%);
-                }
-
-                &:active {
-                    background: darken($active-fill, 10%);
-                }
-            }
-        }
-
-        .description {
-            font-size: 12px;
-            color: $gray-60;
-            margin: 0;
-            margin-bottom: 5px;
-        }
     }
-}
-
-// transparent mouse-event catcher while popup is visible
-.menu-backdrop {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    z-index: $zindex-controls-backdrop;
 }

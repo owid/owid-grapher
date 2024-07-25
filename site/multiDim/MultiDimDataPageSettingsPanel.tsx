@@ -6,6 +6,7 @@ import cx from "classnames"
 import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
 import { isEqual } from "@ourworldindata/utils"
 import { OverlayHeader, RadioButton } from "@ourworldindata/components"
+import { useTriggerOnEscape, useTriggerWhenClickOutside } from "../hooks.js"
 
 const DimensionDropdown = (props: {
     dimension: DimensionEnriched
@@ -17,121 +18,91 @@ const DimensionDropdown = (props: {
     const [active, setActive] = useState(false)
 
     const toggleVisibility = useCallback(() => setActive(!active), [active])
+    const hide = useCallback(() => setActive(false), [])
 
     const dropdownRef = useRef<HTMLDivElement>(null)
 
-    useEffect(() => {
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === "Escape") setActive(false)
-        }
-
-        document.addEventListener("keydown", handleEscape)
-        return () => document.removeEventListener("keydown", handleEscape)
-    }, [])
-
-    useEffect(() => {
-        const handleOutsideClick = (e: MouseEvent) => {
-            if (
-                active &&
-                dropdownRef.current &&
-                e.target instanceof Node &&
-                !dropdownRef.current.contains(e.target)
-            )
-                setActive(false)
-        }
-
-        document.addEventListener("click", handleOutsideClick)
-        return () => document.removeEventListener("click", handleOutsideClick)
-    }, [active])
+    useTriggerOnEscape(hide)
+    useTriggerWhenClickOutside(dropdownRef, active, hide)
 
     const currentChoice = dimension.choicesBySlug[props.currentChoiceSlug]
 
     return (
-        <div className="settings-dropdown" ref={dropdownRef}>
+        <div className="md-settings__dropdown" ref={dropdownRef}>
             <button
-                className={cx("menu-toggle", { active })}
+                className={cx("md-settings__dropdown-toggle", { active })}
                 onClick={toggleVisibility}
                 data-track-note="multi-dim-choice-dropdown"
                 type="button"
             >
-                <span className="setting-label">{dimension.name}</span>
-                <span className="setting-choice">{currentChoice.name}</span>
+                <span className="md-settings__dropdown-label">
+                    {dimension.name}
+                </span>
+                <span className="md-settings__dropdown-current-choice">
+                    {currentChoice.name}
+                </span>
                 <FontAwesomeIcon icon={faCaretDown} />
             </button>
             {active && (
-                <div className="menu">
-                    <div className="menu-contents">
-                        <div
-                            className="menu-backdrop"
-                            onClick={toggleVisibility}
-                        ></div>
-                        <div className="menu-wrapper">
-                            <OverlayHeader
-                                title={dimension.name}
-                                onDismiss={() => setActive(false)}
-                            />
-                            {dimension.description && (
-                                <p className="menu-dimension__description">
-                                    {dimension.description}
-                                </p>
-                            )}
-                            <div className="menu-options">
-                                {Object.entries(dimension.choicesByGroup).map(
-                                    ([groupLabel, groupChoices]) => (
-                                        <div
-                                            key={groupLabel}
-                                            className={cx("menu-group", {
-                                                "is-group":
-                                                    groupLabel !== "undefined",
-                                            })}
-                                        >
-                                            {groupLabel !== "undefined" && (
-                                                <label className="settings-group__label">
-                                                    {groupLabel}
-                                                </label>
-                                            )}
-                                            <div className="menu-group__options">
-                                                {groupChoices.map((choice) => (
-                                                    <div
-                                                        className="menu__radio-button"
-                                                        key={choice.slug}
-                                                    >
-                                                        <RadioButton
-                                                            checked={
-                                                                choice.slug ===
-                                                                props.currentChoiceSlug
-                                                            }
-                                                            label={
-                                                                <>
-                                                                    <div>
-                                                                        {
-                                                                            choice.name
-                                                                        }
-                                                                    </div>
-                                                                    {choice.description && (
-                                                                        <label className="description">
-                                                                            {
-                                                                                choice.description
-                                                                            }
-                                                                        </label>
-                                                                    )}
-                                                                </>
-                                                            }
-                                                            onChange={() =>
-                                                                props.onChange?.(
-                                                                    dimension.slug,
-                                                                    choice.slug
-                                                                )
-                                                            }
-                                                        />
-                                                    </div>
-                                                ))}
+                <div className="md-menu">
+                    <OverlayHeader title={dimension.name} onDismiss={hide} />
+                    {dimension.description && (
+                        <p className="md-description menu-dimension__description">
+                            {dimension.description}
+                        </p>
+                    )}
+                    <div className="md-menu__options">
+                        {Object.entries(dimension.choicesByGroup).map(
+                            ([groupLabel, groupChoices]) => (
+                                <div
+                                    key={groupLabel}
+                                    className={cx("md-menu__group", {
+                                        "is-group": groupLabel !== "undefined",
+                                    })}
+                                >
+                                    {groupLabel !== "undefined" && (
+                                        <label className="md-menu__group-label">
+                                            {groupLabel}
+                                        </label>
+                                    )}
+                                    <div className="md-menu__group-options">
+                                        {groupChoices.map((choice) => (
+                                            <div
+                                                className="md-menu__radio-button"
+                                                key={choice.slug}
+                                            >
+                                                <RadioButton
+                                                    checked={
+                                                        choice.slug ===
+                                                        props.currentChoiceSlug
+                                                    }
+                                                    label={
+                                                        <>
+                                                            <div>
+                                                                {choice.name}
+                                                            </div>
+                                                            {choice.description && (
+                                                                <label className="md-description">
+                                                                    {
+                                                                        choice.description
+                                                                    }
+                                                                </label>
+                                                            )}
+                                                        </>
+                                                    }
+                                                    onChange={() =>
+                                                        props.onChange?.(
+                                                            dimension.slug,
+                                                            choice.slug
+                                                        )
+                                                    }
+                                                />
                                             </div>
-                                        </div>
-                                    )
-                                )}
-                            </div>
-                        </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )
+                        )}
                     </div>
                 </div>
             )}
@@ -192,8 +163,10 @@ export const MultiDimSettingsPanel = (props: {
     ))
 
     return (
-        <div className="settings-row">
-            <span className="h5-black-caps">Configure the data</span>
+        <div className="md-settings-row">
+            <span className="h5-black-caps md-settings__configure-data">
+                Configure the data
+            </span>
             {settings}
         </div>
     )
