@@ -46,10 +46,11 @@ const resolveMultiDimDataPageCatalogPathsToIndicatorIds = async (
 ): Promise<MultiDimDataPageConfigPreProcessed> => {
     const allCatalogPaths = rawConfig.views
         .flatMap((view) =>
-            Object.values(view.indicators).flatMap((indicatorOrIndicators) =>
-                Array.isArray(indicatorOrIndicators)
-                    ? indicatorOrIndicators
-                    : [indicatorOrIndicators]
+            Object.values(view.indicators ?? {}).flatMap(
+                (indicatorOrIndicators) =>
+                    Array.isArray(indicatorOrIndicators)
+                        ? indicatorOrIndicators
+                        : [indicatorOrIndicators]
             )
         )
         .filter((indicator) => typeof indicator === "string")
@@ -95,12 +96,13 @@ const resolveMultiDimDataPageCatalogPathsToIndicatorIds = async (
     }
 
     for (const view of rawConfig.views) {
-        view.indicators = Object.fromEntries(
-            Object.entries(view.indicators).map(([key, value]) => [
-                key,
-                resolveField(value),
-            ])
-        ) as any
+        if (view.indicators)
+            view.indicators = Object.fromEntries(
+                Object.entries(view.indicators).map(([key, value]) => [
+                    key,
+                    resolveField(value),
+                ])
+            ) as any
     }
 
     return rawConfig as MultiDimDataPageConfigPreProcessed

@@ -203,7 +203,7 @@ getPlainRouteNonIdempotentWithRWTransaction(
     "/grapher/:slug",
     async (req, res, trx) => {
         const chartRow = await getChartConfigBySlug(trx, req.params.slug).catch(
-            noop
+            console.error
         )
         if (chartRow) {
             // XXX add dev-prod parity for this
@@ -217,7 +217,7 @@ getPlainRouteNonIdempotentWithRWTransaction(
             const page = await renderMultiDimDataPageBySlug(
                 trx,
                 req.params.slug
-            ).catch(noop)
+            ).catch(console.error)
             if (page) {
                 res.send(page)
                 return
