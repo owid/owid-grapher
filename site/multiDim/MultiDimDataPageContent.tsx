@@ -282,6 +282,8 @@ export const MultiDimDataPageContent = ({
         } as GrapherProgrammaticInterface
     }, [currentView, dimensionsConfig, bounds, config])
 
+    const hasTopicTags = !!datapageDataFromVar?.topicTagsLinks?.length
+
     const relatedResearchCandidates = datapageDataFromVar?.relatedResearch ?? []
     const relatedResearch =
         relatedResearchCandidates.length > 3 &&
@@ -329,14 +331,22 @@ export const MultiDimDataPageContent = ({
                         </h1>
                         <div className="header__source">{titleFragments}</div>
                     </div>
-                    {!!datapageDataFromVar?.topicTagsLinks && (
+                    {hasTopicTags && (
                         <TopicTags
                             className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12"
-                            topicTagsLinks={datapageDataFromVar.topicTagsLinks}
+                            topicTagsLinks={
+                                datapageDataFromVar.topicTagsLinks ?? []
+                            }
                             tagToSlugMap={tagToSlugMap}
                         />
                     )}
-                    <div className="settings-row__wrapper span-cols-9 span-sm-cols-12">
+                    <div
+                        className={cx(
+                            "settings-row__wrapper",
+                            "span-sm-cols-12",
+                            hasTopicTags ? "span-cols-9" : "span-cols-12"
+                        )}
+                    >
                         <MultiDimSettingsPanel
                             config={config}
                             currentSettings={currentSettings}
