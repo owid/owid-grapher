@@ -21,7 +21,11 @@ import {
     excludeUndefined,
     intersection,
 } from "@ourworldindata/utils"
-import { Checkbox, RadioButton } from "@ourworldindata/components"
+import {
+    Checkbox,
+    RadioButton,
+    OverlayHeader,
+} from "@ourworldindata/components"
 import { FuzzySearch } from "../controls/FuzzySearch"
 import {
     faCircleXmark,
@@ -46,7 +50,6 @@ import { scaleLinear, type ScaleLinear } from "d3-scale"
 import { ColumnSlug, OwidColumnDef } from "@ourworldindata/types"
 import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { loadVariableDataAndMetadata } from "../core/loadVariable"
-import { OverlayHeader } from "../core/OverlayHeader.js"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
 
 export interface EntitySelectorState {

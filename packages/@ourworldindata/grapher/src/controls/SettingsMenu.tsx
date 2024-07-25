@@ -30,7 +30,7 @@ import {
     TableFilterToggle,
     TableFilterToggleManager,
 } from "./settings/TableFilterToggle"
-import { OverlayHeader } from "../core/OverlayHeader"
+import { OverlayHeader } from "@ourworldindata/components"
 import { DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL } from "../core/GrapherConstants"
 
 const {
