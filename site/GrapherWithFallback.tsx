@@ -1,4 +1,4 @@
-import { Grapher, GrapherManager } from "@ourworldindata/grapher"
+import { Grapher } from "@ourworldindata/grapher"
 import React from "react"
 import { GrapherFigureView } from "./GrapherFigureView.js"
 import cx from "classnames"
