@@ -7,18 +7,14 @@ import GrapherImage from "./GrapherImage.js"
 
 export const GrapherWithFallback = ({
     grapher,
-    manager,
     slug,
     className,
     id,
-    getGrapherInstance,
 }: {
     grapher?: Grapher | undefined
-    manager?: GrapherManager
     slug?: string
     className?: string
     id?: string
-    getGrapherInstance?: (grapher: Grapher) => void
 }) => {
     return (
         <div
@@ -31,11 +27,7 @@ export const GrapherWithFallback = ({
         >
             <>
                 {grapher ? (
-                    <GrapherFigureView
-                        grapher={grapher}
-                        manager={manager}
-                        getGrapherInstance={getGrapherInstance}
-                    />
+                    <GrapherFigureView grapher={grapher} />
                 ) : (
                     // Render fallback svg when javascript disabled or while
                     // grapher is loading
