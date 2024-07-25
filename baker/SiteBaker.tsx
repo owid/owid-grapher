@@ -105,6 +105,7 @@ import { getBakePath } from "@ourworldindata/components"
 import { GdocAuthor, getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
 import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
+import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
 
 type PrefetchedAttachments = {
     linkedAuthors: LinkedAuthor[]
@@ -134,6 +135,7 @@ const nonWordpressSteps = [
     "countryProfiles",
     "explorers",
     "charts",
+    "multiDimPages",
     "gdocPosts",
     "gdriveImages",
     "dods",
@@ -752,6 +754,14 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ validated grapher dods" })
     }
 
+    private async bakeMultiDimPages(knex: db.KnexReadonlyTransaction) {
+        if (!this.bakeSteps.has("multiDimPages")) return
+
+        await bakeAllMultiDimDataPages(this.bakedSiteDir, knex)
+
+        this.progressBar.tick({ name: "✅ baked multi-dim pages" })
+    }
+
     private async bakeDetailsOnDemand(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("dods")) return
         if (!GDOCS_DETAILS_ON_DEMAND_ID) {
@@ -1059,6 +1069,7 @@ export class SiteBaker {
                 name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
             })
         }
+        await this.bakeMultiDimPages(knex)
         await this.bakeDetailsOnDemand(knex)
         await this.validateGrapherDodReferences(knex)
         await this.bakeGDocPosts(knex)
