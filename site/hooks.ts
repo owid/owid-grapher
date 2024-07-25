@@ -18,15 +18,13 @@ import { useResizeObserver } from "usehooks-ts"
 export const useTriggerWhenClickOutside = (
     container: RefObject<HTMLElement>,
     active: boolean,
-    trigger: (arg0: boolean) => void
+    trigger: () => void
 ) => {
     useEffect(() => {
         if (!active) return
-        // Don't toggle if viewport width is xxlg or larger
-        if (window.innerWidth >= 1536) return
         const handleClick = (e: MouseEvent) => {
             if (container && !container.current?.contains(e.target as Node)) {
-                trigger(false)
+                trigger()
             }
         }
         document.addEventListener("mousedown", handleClick)
