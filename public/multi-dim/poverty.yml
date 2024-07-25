@@ -1,5 +1,9 @@
 name: Poverty
 dimensions_title: by poverty line
+default_selection:
+    - World
+    - Europe
+    - Asia
 dimensions:
     - slug: povertyLine
       name: Poverty line

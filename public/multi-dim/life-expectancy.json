@@ -1,6 +1,7 @@
 {
     "name": "Life expectancy",
     "dimensions_title": "by age and sex",
+    "default_selection": ["World", "Europe", "Asia"],
     "dimensions": [
         {
             "slug": "age",

@@ -1,3 +1,7 @@
+default_selection:
+    - World
+    - Europe
+    - Asia
 dimensions:
     - choices:
           - description: See all causes side by side
