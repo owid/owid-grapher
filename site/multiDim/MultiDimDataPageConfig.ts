@@ -2,19 +2,22 @@ import {
     Choice,
     ChoicesEnriched,
     DimensionEnriched,
-    MultiDimDataPageConfigType,
+    IndicatorEntryAfterPreProcessing,
+    MultiDimDataPageConfigPreProcessed,
     View,
 } from "./MultiDimDataPageTypes.js"
-import { DimensionProperty, groupBy, keyBy } from "@ourworldindata/utils"
+import { groupBy, keyBy } from "@ourworldindata/utils"
 
 export class MultiDimDataPageConfig {
-    private constructor(public readonly config: MultiDimDataPageConfigType) {}
+    private constructor(
+        public readonly config: MultiDimDataPageConfigPreProcessed
+    ) {}
 
     static fromJson(jsonString: string) {
         return new MultiDimDataPageConfig(JSON.parse(jsonString))
     }
 
-    static fromObject(obj: MultiDimDataPageConfigType) {
+    static fromObject(obj: MultiDimDataPageConfigPreProcessed) {
         return new MultiDimDataPageConfig(obj)
     }
 
@@ -38,7 +41,9 @@ export class MultiDimDataPageConfig {
         return keyBy(dimensionsEnriched, "slug")
     }
 
-    filterViewsByDimensions(dimensions: Record<string, string>): View[] {
+    filterViewsByDimensions(
+        dimensions: Record<string, string>
+    ): View<IndicatorEntryAfterPreProcessing>[] {
         return this.config.views.filter((view) => {
             for (const [dimensionSlug, choiceSlug] of Object.entries(
                 dimensions
@@ -51,7 +56,9 @@ export class MultiDimDataPageConfig {
 
     // This'll only ever find one or zero views, and will throw an error
     // if more than one matching views were found
-    findViewByDimensions(dimensions: Record<string, string>) {
+    findViewByDimensions(
+        dimensions: Record<string, string>
+    ): View<IndicatorEntryAfterPreProcessing> | undefined {
         const matchingViews = this.filterViewsByDimensions(dimensions)
         if (matchingViews.length === 0) return undefined
         if (matchingViews.length > 1) {
@@ -130,42 +137,6 @@ export class MultiDimDataPageConfig {
         return {
             selectedChoices: updatedSelectedChoices,
             dimensionsWithAvailableChoices,
-        }
-    }
-
-    static transformIndicatorPathObj(
-        indicatorPathObj:
-            | Record<string, DimensionProperty>
-            | Array<Record<string, DimensionProperty>>
-    ): Record<DimensionProperty, string[]> {
-        const emptyObj: Record<DimensionProperty, string[]> = {
-            x: [],
-            y: [],
-            color: [],
-            size: [],
-            table: [],
-        }
-        if (Array.isArray(indicatorPathObj)) {
-            return indicatorPathObj.reduce((result, obj) => {
-                const transformed =
-                    MultiDimDataPageConfig.transformIndicatorPathObj(obj)
-                for (const [dimension, indicatorPaths] of Object.entries(
-                    transformed
-                )) {
-                    result[dimension as DimensionProperty].push(
-                        ...indicatorPaths
-                    )
-                }
-                return result
-            }, emptyObj)
-        } else {
-            return Object.entries(indicatorPathObj).reduce(
-                (result, [indicatorPath, dimension]) => {
-                    result[dimension].push(indicatorPath)
-                    return result
-                },
-                emptyObj
-            )
         }
     }
 }

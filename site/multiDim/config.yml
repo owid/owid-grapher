@@ -36,14 +36,14 @@ views:
     - dimensions:
           fuel_type: gas
           sector: transport
-      indicator_path:
+      indicators:
           emissions__gas__transport: y
       config:
           title: Natural gas emissions in transport
     - dimensions:
           fuel_type: oil
           sector: transport
-      indicator_path:
+      indicators:
           emissions__oil__transport: y
       config:
           title: Oil emissions in transport
@@ -51,7 +51,7 @@ views:
     - dimensions: # This dimension uses other fields; they probably are nicer to work with
           fuel_type: solar
           sector: electricity
-      indicator_path:
+      indicators:
           emissions__solar__transport: y
       config:
           title: ...

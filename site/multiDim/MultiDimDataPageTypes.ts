@@ -1,13 +1,22 @@
-import { DimensionProperty } from "@ourworldindata/types"
+// Indicator ID, catalog path, or maybe an array of those
+export type IndicatorEntryBeforePreProcessing = string | number | undefined
+export type IndicatorEntryAfterPreProcessing = number | undefined // catalog paths have been resolved to indicator IDs
+export type MultiIndicatorEntry<IndicatorType> = IndicatorType | IndicatorType[]
 
-export interface MultiDimDataPageConfigType {
+interface MultiDimDataPageConfigType<IndicatorType> {
     name: string
     dimensions_title: string
     default_selection?: string[]
     common_indicator_path_prefix?: string
     dimensions: Dimension[]
-    views: View[]
+    views: View<IndicatorType>[]
 }
+
+export type MultiDimDataPageConfigRaw =
+    MultiDimDataPageConfigType<IndicatorEntryBeforePreProcessing>
+
+export type MultiDimDataPageConfigPreProcessed =
+    MultiDimDataPageConfigType<IndicatorEntryAfterPreProcessing>
 
 export interface Dimension {
     slug: string
@@ -33,11 +42,14 @@ export interface Choice {
     multi_select?: boolean
 }
 
-export interface View {
+export interface View<IndicatorType> {
     dimensions: Record<string, string> // Keys: dimension slugs, values: choice slugs
-    indicator_path:
-        | Record<string, DimensionProperty>
-        | Array<Record<string, DimensionProperty>> // Keys: indicator path, values: dimension (e.g. x, y, color, size)
+    indicators: {
+        y: MultiIndicatorEntry<IndicatorType>
+        x?: IndicatorType
+        size?: IndicatorType
+        color?: IndicatorType
+    }
     config?: Config
 }
 

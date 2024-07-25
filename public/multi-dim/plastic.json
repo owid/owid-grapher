@@ -64,7 +64,7 @@
     "views": [
         {
             "dimensions": { "metric": "waste_gen", "measurement": "total" },
-            "indicator_path": { "97679": "y" },
+            "indicators": { "y": "97679" },
             "config": {
                 "title": "Plastic waste generation",
                 "subtitle": "This measures total plastic waste generation prior to management and therefore does not represent the quantity of plastic at risk of polluting waterways, rivers and the ocean environment."
@@ -75,7 +75,7 @@
                 "metric": "waste_gen",
                 "measurement": "per_capita"
             },
-            "indicator_path": { "65358": "y" },
+            "indicators": { "y": "65358" },
             "config": {
                 "title": "Plastic waste generation per capita",
                 "subtitle": "This measures total plastic waste generation prior to management and therefore does not represent the quantity of plastic at risk of polluting waterways, rivers and the ocean environment."
@@ -86,7 +86,7 @@
                 "metric": "waste_gen",
                 "measurement": "share_of_world"
             },
-            "indicator_path": { "146456": "y" },
+            "indicators": { "y": "146456" },
             "config": {
                 "title": "Plastic waste generation",
                 "subtitle": "This measures total plastic waste generation prior to management and therefore does not represent the quantity of plastic at risk of polluting waterways, rivers and the ocean environment."

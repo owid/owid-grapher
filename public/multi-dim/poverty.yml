@@ -43,56 +43,56 @@ views:
           metric: share
       config:
           hasMapTab: true
-      indicator_path:
-          819727: y
+      indicators:
+          y: 819727
     - dimensions:
           povertyLine: "3.65"
           metric: share
-      indicator_path:
-          819729: y
+      indicators:
+          y: 819729
       config:
           hasMapTab: true
     - dimensions:
           povertyLine: "6.85"
           metric: share
-      indicator_path:
-          819731: y
+      indicators:
+          y: 819731
       config:
           hasMapTab: true
     - dimensions:
           povertyLine: "10"
           metric: share
-      indicator_path:
-          819725: y
+      indicators:
+          y: 819725
       config:
           hasMapTab: true
     - dimensions:
           povertyLine: "20"
           metric: share
-      indicator_path:
-          819726: y
+      indicators:
+          y: 819726
       config:
           hasMapTab: true
     - dimensions:
           povertyLine: "30"
           metric: share
-      indicator_path:
-          819728: y
+      indicators:
+          y: 819728
       config:
           hasMapTab: true
     - dimensions:
           povertyLine: "40"
           metric: share
-      indicator_path:
-          819730: y
+      indicators:
+          y: 819730
       config:
           hasMapTab: true
     - dimensions:
           povertyLine: "2.15"
           metric: shareVsGdp
-      indicator_path:
-          819727: y
-          539760: x
+      indicators:
+          y: 819727
+          x: 539760
       config:
           hasMapTab: true
           type: ScatterPlot
@@ -101,9 +101,9 @@ views:
     - dimensions:
           povertyLine: "3.65"
           metric: shareVsGdp
-      indicator_path:
-          819729: y
-          539760: x
+      indicators:
+          y: 819729
+          x: 539760
       config:
           hasMapTab: true
           type: ScatterPlot
@@ -112,9 +112,9 @@ views:
     - dimensions:
           povertyLine: "6.85"
           metric: shareVsGdp
-      indicator_path:
-          819731: y
-          539760: x
+      indicators:
+          y: 819731
+          x: 539760
       config:
           hasMapTab: true
           type: ScatterPlot
@@ -123,9 +123,9 @@ views:
     - dimensions:
           povertyLine: "10"
           metric: shareVsGdp
-      indicator_path:
-          819725: y
-          539760: x
+      indicators:
+          y: 819725
+          x: 539760
       config:
           hasMapTab: true
           type: ScatterPlot
@@ -134,9 +134,9 @@ views:
     - dimensions:
           povertyLine: "20"
           metric: shareVsGdp
-      indicator_path:
-          819726: y
-          539760: x
+      indicators:
+          y: 819726
+          x: 539760
       config:
           hasMapTab: true
           type: ScatterPlot
@@ -145,9 +145,9 @@ views:
     - dimensions:
           povertyLine: "30"
           metric: shareVsGdp
-      indicator_path:
-          819728: y
-          539760: x
+      indicators:
+          y: 819728
+          x: 539760
       config:
           hasMapTab: true
           type: ScatterPlot
@@ -156,9 +156,9 @@ views:
     - dimensions:
           povertyLine: "40"
           metric: shareVsGdp
-      indicator_path:
-          819730: y
-          539760: x
+      indicators:
+          y: 819730
+          x: 539760
       config:
           hasMapTab: true
           type: ScatterPlot
@@ -167,64 +167,65 @@ views:
     - dimensions:
           povertyLine: "2.15"
           metric: absolute
-      indicator_path:
-          819719: y
+      indicators:
+          y: 819719
       config:
           hasMapTab: true
     - dimensions:
           povertyLine: "3.65"
           metric: absolute
-      indicator_path:
-          819721: y
+      indicators:
+          y: 819721
       config:
           hasMapTab: true
     - dimensions:
           povertyLine: "6.85"
           metric: absolute
-      indicator_path:
-          819723: y
+      indicators:
+          y: 819723
       config:
           hasMapTab: true
     - dimensions:
           povertyLine: "10"
           metric: absolute
-      indicator_path:
-          819717: y
+      indicators:
+          y: 819717
       config:
           hasMapTab: true
     - dimensions:
           povertyLine: "20"
           metric: absolute
-      indicator_path:
-          819718: y
+      indicators:
+          y: 819718
       config:
           hasMapTab: true
     - dimensions:
           povertyLine: "30"
           metric: absolute
-      indicator_path:
-          819720: y
+      indicators:
+          y: 819720
       config:
           hasMapTab: true
     - dimensions:
           povertyLine: "40"
           metric: absolute
-      indicator_path:
-          819722: y
+      indicators:
+          y: 819722
       config:
           hasMapTab: true
     - dimensions:
           povertyLine: all
           metric: share
-      indicator_path:
-          - 819811: y
-          - 819826: y
-          - 819824: y
-          - 819822: y
-          - 819820: y
-          - 819818: y
-          - 819816: y
-          - 819815: y
+      indicators:
+          y:
+              - 819811
+              - 819826
+              - 819824
+              - 819822
+              - 819820
+              - 819818
+              - 819816
+              - 819815
       config:
           type: StackedArea
           hasMapTab: true
