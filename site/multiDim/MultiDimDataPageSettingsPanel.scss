@@ -6,7 +6,8 @@ $toggle-height: 40px;
 .md-settings-row {
     display: flex;
     align-items: center;
-    gap: 15px;
+    flex-wrap: wrap;
+    column-gap: 15px;
     margin-top: 20px;
 
     .md-settings__configure-data {
