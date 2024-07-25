@@ -23,5 +23,10 @@
     },
     "Prettier-SQL.keywordCase": "upper",
     "Prettier-SQL.SQLFlavourOverride": "mysql",
-    "Prettier-SQL.expressionWidth": 80
+    "Prettier-SQL.expressionWidth": 80,
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#083427",
+        "titleBar.activeBackground": "#0B4937",
+        "titleBar.activeForeground": "#F2FDFA"
+    }
 }
