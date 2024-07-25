@@ -259,23 +259,12 @@ export const MultiDimDataPageContent = ({
 
     const bounds = useElementBounds(grapherFigureRef)
 
-    // TEMPORARY, only while we are using `url` as part of the query string
-    const urlQueryParam = getWindowQueryParams().url
-
     const queryStr = useMemo(
         () =>
             grapherChangedParams !== undefined
-                ? stateToQueryStr(
-                      { ...grapherChangedParams, url: urlQueryParam },
-                      currentSettings
-                  )
+                ? stateToQueryStr(grapherChangedParams, currentSettings)
                 : initialQueryStr,
-        [
-            grapherChangedParams,
-            urlQueryParam, // TEMPORARY
-            currentSettings,
-            initialQueryStr,
-        ]
+        [grapherChangedParams, currentSettings, initialQueryStr]
     )
 
     useEffect(() => {
