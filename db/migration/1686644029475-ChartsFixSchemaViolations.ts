@@ -105,9 +105,9 @@ export class ChartsFixSchemaViolations1686644029475
             }
             console.log(`Updated ${fixedCharts.length} charts in ${tableName}`)
 
-            // now update all json configs to include a new field $schema with the current schema url https://files.ourworldindata.org/schemas/grapher-schema.005.json
+            // now update all json configs to include a new field $schema with the current schema url https://files.ourworldindata.org/schemas/grapher-schema.003.json
             await queryRunner.query(
-                `update ${tableName} set ${columnName} = JSON_SET(${columnName}, "$.$schema", "https://files.ourworldindata.org/schemas/grapher-schema.005.json")`
+                `update ${tableName} set ${columnName} = JSON_SET(${columnName}, "$.$schema", "https://files.ourworldindata.org/schemas/grapher-schema.003.json")`
             )
         }
     }
