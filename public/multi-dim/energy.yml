@@ -71,12 +71,12 @@ views:
           source: all
           metric: total
       indicators:
-          y: 900831
+          y: grapher/energy/2024-05-08/primary_energy_consumption/primary_energy_consumption#primary_energy_consumption__twh
     - dimensions:
           source: all
           metric: per_capita
       indicators:
-          y: 900839
+          y: grapher/energy/2024-05-08/primary_energy_consumption/primary_energy_consumption#primary_energy_consumption_per_capita__kwh
     - dimensions:
           source: all
           metric: share_total
@@ -84,12 +84,12 @@ views:
           source: all
           metric: proportional_change
       indicators:
-          y: 900830
+          y: grapher/energy/2024-05-08/primary_energy_consumption/primary_energy_consumption#annual_change_in_primary_energy_consumption__pct
     - dimensions:
           source: all
           metric: absolute_change
       indicators:
-          y: 900832
+          y: grapher/energy/2024-05-08/primary_energy_consumption/primary_energy_consumption#annual_change_in_primary_energy_consumption__twh
 
     - dimensions:
           source: fossil

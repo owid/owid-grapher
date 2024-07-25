@@ -216,7 +216,7 @@ export const MultiDimDataPageContent = ({
 
     useEffect(() => {
         setDatapageDataFromVar(null)
-        const yIndicatorOrIndicators = currentView?.indicators["y"]
+        const yIndicatorOrIndicators = currentView?.indicators?.["y"]
         const variableId = Array.isArray(yIndicatorOrIndicators)
             ? yIndicatorOrIndicators[0]
             : yIndicatorOrIndicators
