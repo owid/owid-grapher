@@ -12,6 +12,8 @@ import {
     OwidTableSlugs,
     getDateRange,
     uniq,
+    getCitationShort,
+    getCitationLong,
 } from "@ourworldindata/utils"
 import { svg2png, initialize as initializeSvg2Png } from "svg2png-wasm"
 import { TimeLogger } from "./timeLogger"
@@ -335,10 +337,70 @@ function columnReadmeText(col: CoreColumn) {
     const unit = def.unit
     if (unit) lines.push(`Unit: ${unit}`)
 
+    const unitConversionFactor =
+        col.unitConversionFactor && col.unitConversionFactor !== 1
+            ? col.unitConversionFactor
+            : undefined
+    if (unitConversionFactor)
+        lines.push(`Unit conversion factor: ${unitConversionFactor}`)
+
     const descriptionKey = def.descriptionKey
     if (descriptionKey)
         lines.push(`### What you should know about this data
 ${descriptionKey.map((desc) => `* ${desc.trim()}`).join("\n")}`)
+
+    if (def.descriptionFromProducer) {
+        lines.push(
+            `### How is this data described by its producer - ${attribution}?`
+        )
+        lines.push(def.descriptionFromProducer.trim())
+    }
+
+    if (def.additionalInfo) {
+        lines.push(`### Additional information about this data`)
+        lines.push(def.additionalInfo.trim())
+    }
+
+    lines.push("### How we process data at Our World In Data")
+    lines.push(
+        `All data and visualizations on Our World in Data rely on data sourced from one or several original data providers. Preparing this original data involves several processing steps. Depending on the data, this can include standardizing country names and world region definitions, converting units, calculating derived indicators such as per capita measures, as well as adding or adapting metadata such as the name or the description given to an indicator.`
+    )
+    lines.push(
+        `At the link below you can find a detailed description of the structure of our data pipeline, including links to all the code used to prepare data across Our World in Data.`
+    )
+    lines.push(
+        `[Read about our data pipeline](https://docs.owid.io/projects/etl/)`
+    )
+    if (def.descriptionProcessing)
+        lines.push(
+            `#### Notes on our processing step for this indicator
+${def.descriptionProcessing}`
+        )
+
+    lines.push("### How to cite this data")
+    lines.push("#### In-line citation")
+    lines.push(
+        `If you have limited space (e.g. in data visualizations), you can use this abbreviated in-line citation:`
+    )
+    const citationShort = getCitationShort(
+        def.origins ?? [],
+        getAttributionFragmentsFromVariable(def),
+        def.owidProcessingLevel
+    )
+    lines.push(citationShort)
+
+    lines.push("#### Full citation")
+    const citationLong = getCitationLong(
+        col.titlePublicOrDisplayName,
+        def.origins ?? [],
+        col.source ?? {},
+        getAttributionFragmentsFromVariable(def),
+        def.presentation?.attributionShort,
+        def.presentation?.titleVariant,
+        def.owidProcessingLevel,
+        undefined
+    )
+    lines.push(citationLong)
 
     return lines.join("\n")
 }
