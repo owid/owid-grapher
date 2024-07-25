@@ -78,7 +78,6 @@ $zindex-controls-drawer: 150;
     @import "../slideInDrawer/SlideInDrawer.scss";
     @import "../sidePanel/SidePanel.scss";
     @import "../closeButton/CloseButton.scss";
-    @import "../controls/RadioButton.scss";
     @import "../controls/Dropdown.scss";
     @import "../core/OverlayHeader.scss";
 }
@@ -89,6 +88,7 @@ $zindex-controls-drawer: 150;
 @import "../controls/globalEntitySelector/GlobalEntitySelector.scss";
 @import "../fullScreen/FullScreen.scss";
 @import "../../../components/src/Checkbox.scss";
+@import "../../../components/src/RadioButton.scss";
 
 .grapher_dark {
     color: $dark-text;

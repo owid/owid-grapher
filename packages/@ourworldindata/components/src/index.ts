@@ -33,6 +33,7 @@ export {
 export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.js"
 
 export { Checkbox } from "./Checkbox.js"
+export { RadioButton } from "./RadioButton.js"
 export { IndicatorSources } from "./IndicatorSources/IndicatorSources.js"
 
 export {

@@ -21,7 +21,7 @@ import {
     excludeUndefined,
     intersection,
 } from "@ourworldindata/utils"
-import { Checkbox } from "@ourworldindata/components"
+import { Checkbox, RadioButton } from "@ourworldindata/components"
 import { FuzzySearch } from "../controls/FuzzySearch"
 import {
     faCircleXmark,
@@ -31,7 +31,6 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SelectionArray } from "../selection/SelectionArray"
 import { Flipper, Flipped } from "react-flip-toolkit"
-import { RadioButton } from "../controls/RadioButton"
 import { makeSelectionArray } from "../chart/ChartUtils.js"
 import {
     DEFAULT_GRAPHER_ENTITY_TYPE,
