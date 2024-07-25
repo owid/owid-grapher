@@ -1,6 +1,7 @@
 {
     "name": "Plastic",
     "dimensions_title": "waste and pollution",
+    "default_selection": ["World", "Europe", "Asia"],
     "dimensions": [
         {
             "slug": "metric",
