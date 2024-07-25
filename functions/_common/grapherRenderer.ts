@@ -1,5 +1,18 @@
 import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
-import { Bounds, deserializeJSONFromHTML } from "@ourworldindata/utils"
+import {
+    Bounds,
+    deserializeJSONFromHTML,
+    excludeUndefined,
+    formatSourceDate,
+    getAttributionFragmentsFromVariable,
+    getLastUpdatedFromVariable,
+    getNextUpdateFromVariable,
+    getPhraseForProcessingLevel,
+    OwidColumnDef,
+    OwidTableSlugs,
+    getDateRange,
+    uniq,
+} from "@ourworldindata/utils"
 import { svg2png, initialize as initializeSvg2Png } from "svg2png-wasm"
 import { TimeLogger } from "./timeLogger"
 import { png } from "itty-router"
@@ -12,7 +25,8 @@ import LatoMedium from "../_common/fonts/LatoLatin-Medium.ttf.bin"
 import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
 import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "../grapher/thumbnail/[slug].js"
-import { OwidTable } from "@ourworldindata/core-table"
+import { CoreColumn } from "@ourworldindata/core-table"
+import { toJS } from "mobx"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -180,7 +194,7 @@ export async function fetchMetadataForGrapher(
     searchParams?: URLSearchParams
 ) {
     const grapherLogger = new TimeLogger("grapher")
-    console.log("Initializing grapher")
+
     const grapher = await initGrapher(
         {
             slug,
@@ -190,13 +204,13 @@ export async function fetchMetadataForGrapher(
         },
         grapherLogger
     )
-    console.log("Downloading data")
+
     await grapher.downloadLegacyDataFromOwidVariableIds()
-    console.log("Getting defs")
+
     const defs = grapher.inputTable
         .getColumns(grapher.inputTable.columnNames)
         .map((col) => col.def)
-    console.log("Returning response")
+
     return new Response(JSON.stringify(defs), {
         headers: {
             "Content-Type": "application/json",
@@ -266,12 +280,82 @@ export async function fetchCsvForGrapher(
     })
 }
 
+function columnReadmeText(col: CoreColumn) {
+    const def = col.def as OwidColumnDef
+    let title = col.titlePublicOrDisplayName.title
+    if (
+        col.titlePublicOrDisplayName.attributionShort &&
+        col.titlePublicOrDisplayName.titleVariant
+    )
+        title = `${title} – ${col.titlePublicOrDisplayName.titleVariant} – ${col.titlePublicOrDisplayName.attributionShort}`
+    else if (col.titlePublicOrDisplayName.titleVariant)
+        title = `${title} – ${col.titlePublicOrDisplayName.titleVariant}`
+    else if (col.titlePublicOrDisplayName.attributionShort)
+        title = `${title} – ${col.titlePublicOrDisplayName.attributionShort}`
+
+    const lines = []
+    lines.push(`## ${title}`)
+
+    const description = def.descriptionShort || def.description
+    if (description) lines.push(description)
+
+    lines.push("")
+
+    const producers = uniq(
+        excludeUndefined((def.origins ?? []).map((o) => o.producer))
+    )
+
+    const attributionFragments =
+        getAttributionFragmentsFromVariable(def) ?? producers
+    const attribution = attributionFragments.join(", ")
+
+    const processingLevelPhrase =
+        attribution.toLowerCase() !== "our world in data"
+            ? getPhraseForProcessingLevel(def.owidProcessingLevel)
+            : undefined
+    const fullProcessingPhrase = processingLevelPhrase
+        ? ` – ${processingLevelPhrase} by Our World In Data`
+        : ""
+    const source = `${attribution}${fullProcessingPhrase}`
+    lines.push(`Source: ${source}`)
+
+    const lastUpdated = getLastUpdatedFromVariable(def)
+    if (lastUpdated)
+        lines.push(
+            `Last updated: ${formatSourceDate(lastUpdated, "MMMM D, YYYY")}`
+        )
+
+    const nextUpdate = getNextUpdateFromVariable(def)
+    if (nextUpdate)
+        lines.push(`Next update: ${formatSourceDate(nextUpdate, "MMMM YYYY")}`)
+
+    const dateRange = def.timespan ? getDateRange(def.timespan) : undefined
+    if (dateRange) lines.push(`Date range: ${dateRange}`)
+
+    const unit = def.unit
+    if (unit) lines.push(`Unit: ${unit}`)
+
+    const descriptionKey = def.descriptionKey
+    if (descriptionKey)
+        lines.push(`### What you should know about this data
+${descriptionKey.map((desc) => `* ${desc.trim()}`).join("\n")}`)
+
+    return lines.join("\n")
+}
+
+export function sleep(time: number, value: unknown): Promise<any> {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            return resolve(value)
+        }, time)
+    })
+}
+
 export async function fetchReadmeForGrapher(
     slug: string,
     env: Env,
     searchParams?: URLSearchParams
 ) {
-    console.log("Initializing grapher")
     const grapherLogger = new TimeLogger("grapher")
     const grapher = await initGrapher(
         {
@@ -282,22 +366,31 @@ export async function fetchReadmeForGrapher(
         },
         grapherLogger
     )
-    console.log("Downloading data")
+
     await grapher.downloadLegacyDataFromOwidVariableIds()
-    console.log("Getting defs")
-    const sources = grapher.inputTable
-        .getColumns(grapher.inputTable.columnNames)
-        .map(
-            (col) => `{## ${col.def.name}}
-${col.def.description}
-    `
-        )
-    console.log("Returning response")
+
+    const columnsToIgnore = new Set(
+        [
+            OwidTableSlugs.entityId,
+            OwidTableSlugs.time,
+            OwidTableSlugs.entityColor,
+            OwidTableSlugs.entityName,
+            OwidTableSlugs.entityCode,
+            OwidTableSlugs.year,
+        ].map((slug) => slug.toString())
+    )
+
+    const columnsToGet = grapher.inputTable.columnSlugs.filter(
+        (col) => !columnsToIgnore.has(col)
+    )
+
+    const columns = grapher.inputTable.getColumns(columnsToGet)
+    const sources = columns.map((col) => columnReadmeText(toJS(col)))
 
     const readme = `# ${grapher.title} - Data package
 
 This data package contains the data that powers the chart ["${grapher.title}"](${grapher.originUrl}) on the Our World in Data website.
-The source of this data is ${grapher.sourceDesc}.
+The source of this data in compact form is: ${grapher.sourcesLine}.
 
 ## Individual time series information
 
@@ -355,7 +448,6 @@ export const fetchAndRenderGrapher = async (
 ) => {
     const options = extractOptions(searchParams)
 
-    console.log("Rendering", slug, outType, options)
     const svg = await fetchAndRenderGrapherToSvg({
         slug,
         options,
