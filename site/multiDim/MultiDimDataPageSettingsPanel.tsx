@@ -5,6 +5,7 @@ import { faCaretDown } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
 import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
 import { isEqual } from "@ourworldindata/utils"
+import { OverlayHeader, RadioButton } from "@ourworldindata/components"
 
 const DimensionDropdown = (props: {
     dimension: DimensionEnriched
@@ -64,56 +65,68 @@ const DimensionDropdown = (props: {
                             className="menu-backdrop"
                             onClick={toggleVisibility}
                         ></div>
-                        {/* <OverlayHeader /> */}
                         <div className="menu-wrapper">
-                            <h5 className="h5-black-caps">{dimension.name}</h5>
+                            <OverlayHeader
+                                title={dimension.name}
+                                onDismiss={() => setActive(false)}
+                            />
                             {dimension.description && (
-                                <p>{dimension.description}</p>
+                                <p className="menu-dimension__description">
+                                    {dimension.description}
+                                </p>
                             )}
                             <div className="menu-options">
                                 {Object.entries(dimension.choicesByGroup).map(
-                                    ([groupName, groupChoices]) => (
+                                    ([groupLabel, groupChoices]) => (
                                         <div
-                                            key={groupName}
+                                            key={groupLabel}
                                             className={cx("menu-group", {
                                                 "is-group":
-                                                    groupName !== "undefined",
+                                                    groupLabel !== "undefined",
                                             })}
                                         >
-                                            {groupName !== "undefined" && (
-                                                <label>{groupName}</label>
+                                            {groupLabel !== "undefined" && (
+                                                <label className="settings-group__label">
+                                                    {groupLabel}
+                                                </label>
                                             )}
-                                            {groupChoices.map((choice) => (
-                                                <section
-                                                    key={choice.slug}
-                                                    className={cx({
-                                                        active:
-                                                            choice.slug ===
-                                                            props.currentChoiceSlug,
-                                                    })}
-                                                >
-                                                    <div className="config-list">
-                                                        <button
-                                                            onClick={() => {
+                                            <div className="menu-group__options">
+                                                {groupChoices.map((choice) => (
+                                                    <div
+                                                        className="menu__radio-button"
+                                                        key={choice.slug}
+                                                    >
+                                                        <RadioButton
+                                                            checked={
+                                                                choice.slug ===
+                                                                props.currentChoiceSlug
+                                                            }
+                                                            label={
+                                                                <>
+                                                                    <div>
+                                                                        {
+                                                                            choice.name
+                                                                        }
+                                                                    </div>
+                                                                    {choice.description && (
+                                                                        <label className="description">
+                                                                            {
+                                                                                choice.description
+                                                                            }
+                                                                        </label>
+                                                                    )}
+                                                                </>
+                                                            }
+                                                            onChange={() =>
                                                                 props.onChange?.(
                                                                     dimension.slug,
                                                                     choice.slug
                                                                 )
-                                                                setActive(false)
-                                                            }}
-                                                        >
-                                                            {choice.name}
-                                                        </button>
-                                                        {choice.description && (
-                                                            <label className="description">
-                                                                {
-                                                                    choice.description
-                                                                }
-                                                            </label>
-                                                        )}
+                                                            }
+                                                        />
                                                     </div>
-                                                </section>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
                                     )
                                 )}
@@ -171,9 +184,9 @@ export const MultiDimSettingsPanel = (props: {
         <DimensionDropdown
             key={dim.slug}
             dimension={dim}
-            currentChoiceSlug={currentSettings[dim.slug]}
+            currentChoiceSlug={resolvedCurrentSettings[dim.slug]}
             onChange={(slug, value) =>
-                updateSettings?.({ ...currentSettings, [slug]: value })
+                updateSettings?.({ ...resolvedCurrentSettings, [slug]: value })
             }
         />
     ))

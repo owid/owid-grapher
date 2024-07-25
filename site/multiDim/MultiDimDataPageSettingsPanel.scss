@@ -1,3 +1,6 @@
+$radio-button-padding-y: 16px;
+$indent: 16px;
+
 .settings-row__wrapper {
     padding-bottom: 20px;
     border-top: 1px solid $blue-20;
@@ -9,13 +12,7 @@
     gap: 15px;
     margin-top: 20px;
 
-    > span {
-        color: $secondary-text;
-        font-weight: 700;
-        margin-right: 10px;
-    }
-
-    button {
+    .menu-toggle {
         display: flex;
         align-items: center;
         color: $secondary-text;
@@ -90,53 +87,43 @@
     z-index: $zindex-controls-popup;
     overflow-y: scroll;
 
-    h5 {
-        padding: 0 1em;
-        margin-bottom: 8px;
-        color: $secondary-text;
+    .overlay-header {
+        padding-bottom: 0;
+        margin-bottom: 0;
     }
 
     p {
-        padding: 0 1em;
-        color: $primary-text;
+        margin-top: 0;
+        margin: 0 $indent;
+        color: $secondary-text;
         font-size: 0.8em;
     }
 
     .menu-group {
         > label {
-            padding: 0 1em;
-            color: $primary-text;
-            font-weight: bold;
+            margin: 0 $indent;
+            color: $light-text;
+            font-weight: 600;
             font-size: 14px;
-            // text-transform: uppercase;
         }
 
-        padding-bottom: 0.25em;
         margin-bottom: 0.25em;
-        border-bottom: 1px solid rgba($light-stroke, 0.3);
-
-        &:last-child {
-            border-bottom: none;
-        }
     }
 
-    section {
+    .menu__radio-button {
         font: $medium 14px/1.2 $lato;
         color: $primary-text;
         margin: 0 $indent;
+        padding: $radio-button-padding-y 0;
 
         border-bottom: 1px solid $gray-20;
 
-        .config-name {
-            font: $bold 14px/1.2 $lato;
-            color: $primary-text;
-            list-style: none;
+        &:first-child {
+            padding-top: calc($radio-button-padding-y - 4px);
+        }
 
-            svg {
-                color: $info-icon;
-                height: 13px;
-                padding: 0 0.333em;
-            }
+        &:last-child {
+            border-bottom: none;
         }
 
         .labeled-switch .labeled-switch-subtitle,
@@ -173,56 +160,6 @@
             color: $gray-60;
             margin: 0;
             margin-bottom: 5px;
-        }
-    }
-
-    //
-    // resuable widgets
-    //
-    section {
-        // left/right pairs of options
-        .config-toggle {
-            label {
-                flex-basis: 100%;
-                color: $primary-text;
-                margin-bottom: 0.5em;
-            }
-            button {
-                width: calc(50% - 5px);
-                padding: 7px 16px;
-            }
-        }
-
-        // on/off switch with label written to the right
-        .labeled-switch {
-            margin: 14px 0;
-            display: block;
-        }
-
-        // vertical list of options (for selecting faceting mode)
-        .config-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 7px 0;
-            button {
-                width: 100%;
-
-                &.entity span {
-                    width: 10px;
-                    height: 10px;
-                }
-
-                &.metric span {
-                    width: 10px;
-                    height: 10px;
-                    border-radius: 5px;
-                }
-
-                &.active {
-                    background: #a4b6ca;
-                }
-            }
         }
     }
 }
