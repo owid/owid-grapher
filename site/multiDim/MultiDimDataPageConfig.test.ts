@@ -1,11 +1,7 @@
 #! /usr/bin/env jest
 
 import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
-
-it("fromYaml", () => {
-    const config = MultiDimDataPageConfig.fromYaml(`name: Test`)
-    expect(config.config.name).toBe("Test")
-})
+import YAML from "yaml"
 
 it("fromObject", () => {
     const config = MultiDimDataPageConfig.fromObject({ name: "Test" } as any)
@@ -73,7 +69,7 @@ describe("methods", () => {
               title: ...
               subtitle: ...
 `
-    const config = MultiDimDataPageConfig.fromYaml(yaml)
+    const config = MultiDimDataPageConfig.fromObject(YAML.parse(yaml))
 
     it("dimensions", () => {
         expect(Object.keys(config.dimensions)).toEqual(["fuel_type", "sector"])

@@ -1,4 +1,3 @@
-import YAML from "yaml"
 import {
     Choice,
     ChoicesEnriched,
@@ -10,10 +9,6 @@ import { DimensionProperty, groupBy, keyBy } from "@ourworldindata/utils"
 
 export class MultiDimDataPageConfig {
     private constructor(public readonly config: MultiDimDataPageConfigType) {}
-
-    static fromYaml(yamlString: string) {
-        return new MultiDimDataPageConfig(YAML.parse(yamlString))
-    }
 
     static fromJson(jsonString: string) {
         return new MultiDimDataPageConfig(JSON.parse(jsonString))
