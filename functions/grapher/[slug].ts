@@ -92,7 +92,11 @@ export const onRequestGet: PagesFunction = async (context) => {
             element: (element) => {
                 const canonicalUrl = element.getAttribute("content")
                 element.setAttribute("content", canonicalUrl + url.search)
-                origin = new URL(canonicalUrl).origin
+                try {
+                    origin = new URL(canonicalUrl).origin
+                } catch (e) {
+                    console.error("Error parsing canonical URL", e)
+                }
             },
         })
         .on('meta[property="og:image"]', {
