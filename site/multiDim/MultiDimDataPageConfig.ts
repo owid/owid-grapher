@@ -71,10 +71,8 @@ export class MultiDimDataPageConfig {
      * - If there is at least one available view for choices[leftmost, ..., cur], continue.
      * - Otherwise, for dimension `cur`, find the first choice that has at least one available view.
      *
-     * `selectedChoices` is expected to be fully-qualified, i.e. it should contain a choice for every available dimension.
-     *
      * The method returns two values:
-     * - `selectedChoices` is the updated version of the input `selectedChoices`, where choices have been adapted to make sure there are available views.
+     * - `selectedChoices` is the updated version of the input `selectedChoices`, where choices have been adapted to make sure there are available views. It is fully-qualified, i.e. it has choices for all dimensions.
      * - `dimensionsWithAvailableChoices` indicates for each dimension which choices are available, and excludes the ones that are excluded by choices left of it.
      *
      * - @marcelgerber, 2024-07-22
@@ -98,9 +96,8 @@ export class MultiDimDataPageConfig {
                 updatedSelectedChoices[currentDimSlug] =
                     selectedChoices[currentDimSlug]
             } else {
-                throw new Error(
-                    `Missing or invalid choice for dimension ${currentDimSlug}`
-                )
+                updatedSelectedChoices[currentDimSlug] =
+                    availableViewsBeforeSelection[0].dimensions[currentDimSlug]
             }
 
             const availableViewsAfterSelection = this.filterViewsByDimensions(
