@@ -4,8 +4,11 @@ import path from "path"
 import findProjectBaseDir from "../settings/findBaseDir.js"
 import { MultiDimDataPageConfigType } from "../site/multiDim/MultiDimDataPageTypes.js"
 import { MultiDimDataPageConfig } from "../site/multiDim/MultiDimDataPageConfig.js"
-import { renderMultiDimDataPage } from "./siteRenderers.js"
 import * as db from "../db/db.js"
+import { renderToHtmlPage } from "./siteRenderers.js"
+import { MultiDimDataPage } from "../site/multiDim/MultiDimDataPage.js"
+import React from "react"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
 // TODO Make this dynamic
 const baseDir = findProjectBaseDir(__dirname)
@@ -24,25 +27,42 @@ const MULTI_DIM_SITES_BY_SLUG: Record<string, MultiDimDataPageConfigType> = {
     "mdd-poverty": readMultiDimConfig("poverty.yml"),
 }
 
+export const renderMultiDimDataPageBySlug = async (
+    knex: db.KnexReadonlyTransaction,
+    slug: string
+) => {
+    const rawConfig = MULTI_DIM_SITES_BY_SLUG[slug]
+    if (!rawConfig) throw new Error(`No multi-dim site found for slug: ${slug}`)
+
+    const config = MultiDimDataPageConfig.fromObject(rawConfig)
+    return renderToHtmlPage(
+        <MultiDimDataPage baseUrl={BAKED_BASE_URL} config={config} />
+    )
+}
+
+export const renderMultiDimDataPage = async (
+    config: MultiDimDataPageConfig
+) => {
+    return renderToHtmlPage(
+        <MultiDimDataPage baseUrl={BAKED_BASE_URL} config={config} />
+    )
+}
+
 export const bakeMultiDimDataPage = async (
+    knex: db.KnexReadonlyTransaction,
     bakedSiteDir: string,
     slug: string
 ) => {
-    const site = MULTI_DIM_SITES_BY_SLUG[slug]
-    if (!site) throw new Error(`No multi-dim site found for slug: ${slug}`)
-
-    const config = MultiDimDataPageConfig.fromObject(site)
-
+    const renderedHtml = await renderMultiDimDataPageBySlug(knex, slug)
     const outPath = path.join(bakedSiteDir, `grapher/${slug}.html`)
-    const renderedHtml = await renderMultiDimDataPage(config)
     await fs.writeFile(outPath, renderedHtml)
 }
 
 export const bakeAllMultiDimDataPages = async (
-    bakedSiteDir: string,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    bakedSiteDir: string
 ) => {
     for (const slug of Object.keys(MULTI_DIM_SITES_BY_SLUG)) {
-        await bakeMultiDimDataPage(bakedSiteDir, slug)
+        await bakeMultiDimDataPage(knex, bakedSiteDir, slug)
     }
 }
