@@ -9,6 +9,7 @@ import { renderToHtmlPage } from "./siteRenderers.js"
 import { MultiDimDataPage } from "../site/multiDim/MultiDimDataPage.js"
 import React from "react"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { getTagToSlugMap } from "./GrapherBakingUtils.js"
 
 // TODO Make this dynamic
 const baseDir = findProjectBaseDir(__dirname)
@@ -28,6 +29,10 @@ const MULTI_DIM_SITES_BY_SLUG: Record<string, MultiDimDataPageConfigType> = {
     "mdd-poverty": readMultiDimConfig("poverty.yml"),
 }
 
+interface BakingAdditionalContext {
+    tagToSlugMap: Record<string, string>
+}
+
 export const renderMultiDimDataPageBySlug = async (
     knex: db.KnexReadonlyTransaction,
     slug: string
@@ -35,17 +40,23 @@ export const renderMultiDimDataPageBySlug = async (
     const rawConfig = MULTI_DIM_SITES_BY_SLUG[slug]
     if (!rawConfig) throw new Error(`No multi-dim site found for slug: ${slug}`)
 
+    const tagToSlugMap = await getTagToSlugMap(knex)
+    const bakingContext = { tagToSlugMap }
+
     const config = MultiDimDataPageConfig.fromObject(rawConfig)
-    return renderToHtmlPage(
-        <MultiDimDataPage baseUrl={BAKED_BASE_URL} config={config} />
-    )
+    return renderMultiDimDataPage(config, bakingContext)
 }
 
 export const renderMultiDimDataPage = async (
-    config: MultiDimDataPageConfig
+    config: MultiDimDataPageConfig,
+    bakingContext?: BakingAdditionalContext
 ) => {
     return renderToHtmlPage(
-        <MultiDimDataPage baseUrl={BAKED_BASE_URL} config={config} />
+        <MultiDimDataPage
+            baseUrl={BAKED_BASE_URL}
+            config={config}
+            tagToSlugMap={bakingContext?.tagToSlugMap}
+        />
     )
 }
 

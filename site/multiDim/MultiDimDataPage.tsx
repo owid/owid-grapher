@@ -10,9 +10,11 @@ import { SiteFooterContext, serializeJSONForHTML } from "@ourworldindata/utils"
 export const MultiDimDataPage = (props: {
     baseUrl: string
     config: MultiDimDataPageConfig
+    tagToSlugMap?: Record<string, string>
 }) => {
     const canonicalUrl = "" // TODO
     const baseUrl = props.baseUrl // TODO
+
     return (
         <html>
             <Head
@@ -56,19 +58,19 @@ export const MultiDimDataPage = (props: {
             <body className="DataPage">
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
-                    {/* <script
+                    <script
                         dangerouslySetInnerHTML={{
                             __html: `window._OWID_DATAPAGEV2_PROPS = ${JSON.stringify(
                                 {
-                                    datapageData,
-                                    faqEntries,
+                                    // datapageData,
+                                    // faqEntries,
                                     canonicalUrl,
-                                    tagToSlugMap: minimalTagToSlugMap,
-                                    imageMetadata,
+                                    tagToSlugMap: props.tagToSlugMap,
+                                    // imageMetadata,
                                 }
                             )}`,
                         }}
-                    /> */}
+                    />
                     <div id={OWID_DATAPAGE_CONTENT_ROOT_ID}>
                         {/* <DebugProvider debug={isPreviewing}>
                             <DataPageV2Content
