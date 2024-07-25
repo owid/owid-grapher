@@ -93,7 +93,7 @@ const DatapageResearchThumbnail = ({
 // From DataPageUtils
 const getDatapageDataV2 = async (
     variableMetadata: OwidVariableWithSource,
-    partialGrapherConfig: GrapherInterface
+    partialGrapherConfig: GrapherInterface | undefined
 ): Promise<DataPageDataV2> => {
     {
         const lastUpdated = getLastUpdatedFromVariable(variableMetadata) ?? ""
@@ -109,7 +109,7 @@ const getDatapageDataV2 = async (
                   })
                 : {
                       title:
-                          partialGrapherConfig.title ??
+                          partialGrapherConfig?.title ??
                           variableMetadata.display?.name ??
                           variableMetadata.name ??
                           "",
@@ -160,7 +160,7 @@ export const MultiDimDataPageContent = ({
     initialQueryStr,
 }: DataPageV2ContentFields & {
     config: MultiDimDataPageConfig
-    grapherConfig: GrapherInterface
+    grapherConfig?: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
     initialQueryStr?: string
 }) => {
