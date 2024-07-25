@@ -35,7 +35,7 @@ import { DebugProvider } from "../gdocs/DebugContext.js"
 import { BAKED_BASE_URL, DATA_API_URL } from "../../settings/clientSettings.js"
 import Image from "../gdocs/components/Image.js"
 import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
-import { MultiDimDataPageConfigType } from "./MultiDimDataPageTypes.js"
+import { MultiDimDataPageConfigPreProcessed } from "./MultiDimDataPageTypes.js"
 import AboutThisData from "../AboutThisData.js"
 import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
@@ -48,7 +48,7 @@ import { useElementBounds } from "../hooks.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
 declare global {
     interface Window {
-        _OWID_MULTI_DIM_CONFIG: MultiDimDataPageConfigType
+        _OWID_MULTI_DIM_CONFIG: MultiDimDataPageConfigPreProcessed
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
@@ -192,15 +192,23 @@ export const MultiDimDataPageContent = ({
     }, [currentSettings, config])
 
     const dimensionsConfig = useMemo(() => {
-        const dimObj = MultiDimDataPageConfig.transformIndicatorPathObj(
-            currentView?.indicator_path ?? {}
-        )
-        return Object.entries(dimObj).flatMap(([property, variableIds]) =>
-            variableIds.flatMap((variableId) => ({
-                property: property as DimensionProperty,
-                variableId: parseInt(variableId),
-            }))
-        )
+        const dimObj = currentView?.indicators
+        if (!dimObj) return []
+        return Object.entries(dimObj)
+            .flatMap(([property, variableIds]) => {
+                if (Array.isArray(variableIds)) {
+                    return variableIds.flatMap((variableId) => ({
+                        property: property as DimensionProperty,
+                        variableId,
+                    }))
+                } else {
+                    return {
+                        property: property as DimensionProperty,
+                        variableId: variableIds,
+                    }
+                }
+            })
+            .filter((dim) => dim.variableId !== undefined)
     }, [currentView])
 
     const [datapageDataFromVar, setDatapageDataFromVar] =
@@ -208,7 +216,10 @@ export const MultiDimDataPageContent = ({
 
     useEffect(() => {
         setDatapageDataFromVar(null)
-        const variableId = dimensionsConfig[0]?.variableId
+        const yIndicatorOrIndicators = currentView?.indicators["y"]
+        const variableId = Array.isArray(yIndicatorOrIndicators)
+            ? yIndicatorOrIndicators[0]
+            : yIndicatorOrIndicators
         if (!variableId) return
         const variableMetadata = cachedGetVariableMetadata(variableId)
 

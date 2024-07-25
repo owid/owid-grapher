@@ -70,26 +70,26 @@ views:
     - dimensions:
           source: all
           metric: total
-      indicator_path:
-          900831: y
+      indicators:
+          y: 900831
     - dimensions:
           source: all
           metric: per_capita
-      indicator_path:
-          900839: y
+      indicators:
+          y: 900839
     - dimensions:
           source: all
           metric: share_total
     - dimensions:
           source: all
           metric: proportional_change
-      indicator_path:
-          900830: y
+      indicators:
+          y: 900830
     - dimensions:
           source: all
           metric: absolute_change
-      indicator_path:
-          900832: y
+      indicators:
+          y: 900832
 
     - dimensions:
           source: fossil

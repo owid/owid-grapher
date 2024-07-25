@@ -48,14 +48,14 @@ describe("methods", () => {
         - dimensions:
               fuel_type: gas
               sector: transport
-          indicator_path:
+          indicators:
               emissions__gas__transport: y
           config:
               title: Natural gas emissions in transport
         - dimensions:
               fuel_type: oil
               sector: transport
-          indicator_path:
+          indicators:
               emissions__oil__transport: y
           config:
               title: Oil emissions in transport
@@ -63,7 +63,7 @@ describe("methods", () => {
         - dimensions: # This dimension uses other fields; they probably are nicer to work with
               fuel_type: solar
               sector: electricity
-          indicator_path:
+          indicators:
               emissions__solar__transport: y
           config:
               title: ...
@@ -97,29 +97,5 @@ describe("methods", () => {
             sector: "transport",
         })
         expect(view).toBeDefined()
-        expect(view!.indicator_path).toEqual({
-            emissions__gas__transport: "y",
-        })
-    })
-})
-
-describe("transformIndicatorPathObj", () => {
-    it("works", () => {
-        const obj = {
-            emissions__gas__transport: "y",
-            emissions__oil__transport: "y",
-            time: "x",
-            gdp_per_capita: "size",
-        }
-        const result = MultiDimDataPageConfig.transformIndicatorPathObj(
-            obj as any
-        )
-        expect(result).toEqual({
-            x: ["time"],
-            y: ["emissions__gas__transport", "emissions__oil__transport"],
-            color: [],
-            size: ["gdp_per_capita"],
-            table: [],
-        })
     })
 })
