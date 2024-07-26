@@ -316,10 +316,13 @@ export class IRDetailOnDemand extends IRElement {
     }
     toHTML(key?: React.Key): React.ReactElement {
         return (
-            <span key={key}>
-                <a className="dod-span" data-id={this.term}>
-                    {this.children.map((child, i) => child.toHTML(i))}
-                </a>
+            <span
+                key={key}
+                className="dod-span"
+                data-id={this.term}
+                tabIndex={0}
+            >
+                {this.children.map((child, i) => child.toHTML(i))}
             </span>
         )
     }
