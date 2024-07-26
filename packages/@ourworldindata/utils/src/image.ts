@@ -6,6 +6,7 @@ import { traverseEnrichedBlock } from "./Util.js"
 import { OwidGdoc, OwidGdocType, ImageMetadata } from "@ourworldindata/types"
 import { match, P } from "ts-pattern"
 
+export const AUTHOR_BYLINE_WIDTH = 48
 export const THUMBNAIL_WIDTH = 100
 export const LARGE_THUMBNAIL_WIDTH = 350
 
@@ -13,9 +14,9 @@ export function getSizes(
     originalWidth: ImageMetadata["originalWidth"]
 ): number[] {
     if (!originalWidth) return []
-    // ensure a thumbnail is generated
-    const widths = [THUMBNAIL_WIDTH]
-    // start at 350 and go up by 500 to a max of 1350 before we just show the original image
+    // ensure a thumbnail and author byline is generated
+    const widths = [AUTHOR_BYLINE_WIDTH, THUMBNAIL_WIDTH]
+    // start at large thumbnail and go up by 500 to a max of 1350 before we just show the original image
     let width = LARGE_THUMBNAIL_WIDTH
     while (width < originalWidth && width <= 1350) {
         widths.push(width)

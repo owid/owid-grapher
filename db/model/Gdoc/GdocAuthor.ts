@@ -1,4 +1,5 @@
 import {
+    LinkedAuthor,
     OwidGdocErrorMessage,
     OwidGdocAuthorInterface,
     OwidGdocAuthorContent,
@@ -9,7 +10,6 @@ import {
     DEFAULT_GDOC_FEATURED_IMAGE,
     OwidGdocBaseInterface,
     excludeNullish,
-    DbRawAuthor,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
@@ -163,13 +163,14 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
 
 export async function getMinimalAuthors(
     knex: db.KnexReadonlyTransaction
-): Promise<DbRawAuthor[]> {
-    const rows = await db.knexRaw<DbRawAuthor>(
+): Promise<LinkedAuthor[]> {
+    const rows = await db.knexRaw<LinkedAuthor>(
         knex,
         `-- sql
             SELECT
                 slug,
-                content ->> '$.title' as title
+                content->>'$.title' as name,
+                content->>'$."featured-image"' as featuredImage
             FROM posts_gdocs
             WHERE type = 'author'
             AND published = 1`

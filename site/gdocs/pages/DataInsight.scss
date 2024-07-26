@@ -45,7 +45,7 @@
 
     h1 {
         margin-top: 0;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
     }
 
     .article-block__image {
@@ -59,7 +59,7 @@
 
         h1 {
             font-size: 1.625rem;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .article-block__image {
@@ -74,8 +74,18 @@
 }
 
 .data-insight-authors {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     color: $blue-60;
     margin-bottom: 16px;
+}
+
+.data-insight-author {
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .data-insight-blocks {

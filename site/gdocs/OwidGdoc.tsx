@@ -1,6 +1,7 @@
 import React, { createContext } from "react"
 import ReactDOM from "react-dom"
 import {
+    LinkedAuthor,
     LinkedChart,
     LinkedIndicator,
     ImageMetadata,
@@ -11,7 +12,6 @@ import {
     OwidGdocMinimalPostInterface,
     OwidGdocHomepageMetadata,
     DbEnrichedLatestWork,
-    DbEnrichedAuthor,
 } from "@ourworldindata/types"
 import { get, getOwidGdocFromJSON } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
@@ -23,7 +23,7 @@ import { Homepage } from "./pages/Homepage.js"
 import { Author } from "./pages/Author.js"
 
 export const AttachmentsContext = createContext<{
-    linkedAuthors?: DbEnrichedAuthor[]
+    linkedAuthors?: LinkedAuthor[]
     linkedCharts: Record<string, LinkedChart>
     linkedIndicators: Record<number, LinkedIndicator>
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>

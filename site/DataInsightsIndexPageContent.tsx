@@ -6,6 +6,7 @@ import {
     LinkedChart,
     OwidGdocMinimalPostInterface,
     merge,
+    LinkedAuthor,
 } from "@ourworldindata/utils"
 import {
     DataInsightBody,
@@ -88,15 +89,19 @@ export const DataInsightsIndexPageContent = (
 ) => {
     const { pageNumber, dataInsights, isPreviewing = false } = props
     // Extract all attachments from the data insights and supply them to the AttachmentsContext
-    const { imageMetadata, linkedCharts, linkedDocuments } =
+    const { imageMetadata, linkedAuthors, linkedCharts, linkedDocuments } =
         dataInsights.reduce(
             (acc, di) => ({
                 imageMetadata: merge(acc.imageMetadata, di.imageMetadata),
+                linkedAuthors: di.linkedAuthors
+                    ? [...acc.linkedAuthors, ...di.linkedAuthors]
+                    : acc.linkedAuthors,
                 linkedCharts: merge(acc.linkedCharts, di.linkedCharts),
                 linkedDocuments: merge(acc.linkedDocuments, di.linkedDocuments),
             }),
             {
                 imageMetadata: {} as Record<string, ImageMetadata>,
+                linkedAuthors: [] as LinkedAuthor[],
                 linkedCharts: {} as Record<string, LinkedChart>,
                 linkedDocuments: {} as Record<
                     string,
@@ -109,6 +114,7 @@ export const DataInsightsIndexPageContent = (
             <AttachmentsContext.Provider
                 value={{
                     imageMetadata,
+                    linkedAuthors,
                     linkedCharts,
                     linkedDocuments,
                     linkedIndicators: {}, // not needed for data insights

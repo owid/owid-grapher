@@ -43,6 +43,7 @@ import { bakeDriveImages } from "../baker/GDriveImagesBaker.js"
 import {
     countries,
     FullPost,
+    LinkedAuthor,
     LinkedChart,
     LinkedIndicator,
     extractDetailsFromSyntax,
@@ -54,7 +55,6 @@ import {
     excludeUndefined,
     grabMetadataForGdocLinkedIndicator,
     GrapherTabOption,
-    DbEnrichedAuthor,
 } from "@ourworldindata/utils"
 
 import { execWrapper } from "../db/execWrapper.js"
@@ -109,7 +109,7 @@ import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
 
 type PrefetchedAttachments = {
-    linkedAuthors: DbEnrichedAuthor[]
+    linkedAuthors: LinkedAuthor[]
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
     imageMetadata: Record<string, ImageMetadata>
     linkedCharts: {
@@ -498,7 +498,7 @@ export class SiteBaker {
                 ),
                 linkedAuthors:
                     this._prefetchedAttachmentsCache.linkedAuthors.filter(
-                        (author) => authorNames.includes(author.title)
+                        (author) => authorNames.includes(author.name)
                     ),
             }
         }

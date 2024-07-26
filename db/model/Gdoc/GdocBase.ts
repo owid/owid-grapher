@@ -1,4 +1,4 @@
-import * as db from "../../db"
+import * as db from "../../db.js"
 import { getUrlTarget } from "@ourworldindata/components"
 import {
     LinkedChart,
@@ -50,13 +50,11 @@ import {
 } from "../Variable.js"
 import { createLinkFromUrl } from "../Link.js"
 import {
+    LinkedAuthor,
     OwidGdoc,
     OwidGdocContent,
     OwidGdocType,
-    DbRawAuthor,
-    DbEnrichedAuthor,
 } from "@ourworldindata/types"
-import { KnexReadonlyTransaction } from "../../db"
 import { GdocDataInsight } from "./GdocDataInsight.js"
 
 export class GdocBase implements OwidGdocBaseInterface {
@@ -75,7 +73,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     tags: DbPlainTag[] | null = null
     errors: OwidGdocErrorMessage[] = []
     imageMetadata: Record<string, ImageMetadata> = {}
-    linkedAuthors: DbEnrichedAuthor[] = []
+    linkedAuthors: LinkedAuthor[] = []
     linkedCharts: Record<string, LinkedChart> = {}
     linkedIndicators: Record<number, LinkedIndicator> = {}
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
@@ -242,9 +240,12 @@ export class GdocBase implements OwidGdocBaseInterface {
         // even if this method is being called on a GdocFaq (for example)
         const featuredImages = Object.values(this.linkedDocuments)
             .map((d) => d["featured-image"])
-            .filter((filename?: string): filename is string => !!filename)
+            .filter((filename) => filename) as string[]
+        const featuredAuthorImages = this.linkedAuthors
+            .map((author) => author.featuredImage)
+            .filter((filename) => !!filename) as string[]
 
-        return [...this.filenames, ...featuredImages]
+        return [...this.filenames, ...featuredImages, ...featuredAuthorImages]
     }
 
     get linkedKeyIndicatorSlugs(): string[] {
@@ -709,7 +710,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     async validate(knex: db.KnexReadonlyTransaction): Promise<void> {
         const authorErrors = this.content.authors.reduce(
             (errors: OwidGdocErrorMessage[], name): OwidGdocErrorMessage[] => {
-                if (!this.linkedAuthors.find((a) => a.title === name)) {
+                if (!this.linkedAuthors.find((a) => a.name === name)) {
                     errors.push({
                         property: "linkedAuthors",
                         message: `Author "${name}" does not exist or is not published`,
@@ -850,7 +851,7 @@ export class GdocBase implements OwidGdocBaseInterface {
 
 // This function would naturally live in GdocFactory but that would create a circular dependency
 export async function getMinimalGdocPostsByIds(
-    knex: KnexReadonlyTransaction,
+    knex: db.KnexReadonlyTransaction,
     ids: string[]
 ): Promise<OwidGdocMinimalPostInterface[]> {
     if (ids.length === 0) return []
@@ -900,21 +901,21 @@ export async function getMinimalGdocPostsByIds(
 }
 
 export async function getMinimalAuthorsByNames(
-    knex: KnexReadonlyTransaction,
+    knex: db.KnexReadonlyTransaction,
     names: string[]
-): Promise<DbRawAuthor[]> {
+): Promise<LinkedAuthor[]> {
     if (names.length === 0) return []
-    const rows = await db.knexRaw<DbRawAuthor>(
+    return await db.knexRaw<LinkedAuthor>(
         knex,
         `-- sql
-            SELECT
-                slug,
-                content ->> '$.title' as title
-            FROM posts_gdocs
-            WHERE type = 'author'
-            AND content->>"$.title" in (:names)
-            AND published = 1`,
+           SELECT
+               slug,
+               content->>'$.title' AS name,
+               content->>'$."featured-image"' AS featuredImage
+           FROM posts_gdocs
+           WHERE type = 'author'
+           AND content->>'$.title' in (:names)
+           AND published = 1`,
         { names }
     )
-    return rows
 }
