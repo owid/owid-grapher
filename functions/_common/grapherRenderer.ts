@@ -17,6 +17,7 @@ import {
     prepareSourcesForDisplay,
     uniqBy,
 } from "@ourworldindata/utils"
+import { OwidOrigin } from "@ourworldindata/types"
 import {
     getAttribution,
     getCitationLines,
@@ -43,6 +44,7 @@ import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf
 import { Env } from "../grapher/thumbnail/[slug].js"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { toJS } from "mobx"
+import { fromPairs } from "lodash"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -223,11 +225,146 @@ export async function fetchMetadataForGrapher(
 
     await grapher.downloadLegacyDataFromOwidVariableIds()
 
-    const defs = grapher.inputTable
-        .getColumns(grapher.inputTable.columnNames)
-        .map((col) => col.def)
+    const columnsToIgnore = new Set(
+        [
+            OwidTableSlugs.entityId,
+            OwidTableSlugs.time,
+            OwidTableSlugs.entityColor,
+            OwidTableSlugs.entityName,
+            OwidTableSlugs.entityCode,
+            OwidTableSlugs.year,
+        ].map((slug) => slug.toString())
+    )
 
-    return new Response(JSON.stringify(defs), {
+    const columnsToGet = grapher.inputTable.columnSlugs.filter(
+        (col) => !columnsToIgnore.has(col)
+    )
+
+    const columns: [
+        string,
+        {
+            title: string
+            titleProducer: string
+            titleVariant: string
+            descriptionShort: string
+            descriptionFromProducer: string
+            descriptionKey: string[]
+            descriptionProcessing: string
+            shortUnit: string
+            unit: string
+            timespan: string
+            tolerance: number
+            type: string
+            conversionFactor: number
+            owidVariableId: number
+            catalogPath: string
+            sources: Partial<
+                Pick<
+                    OwidOrigin,
+                    | "attribution"
+                    | "attributionShort"
+                    | "description"
+                    | "urlDownload"
+                    | "urlMain"
+                >
+            >[]
+            shortName: string
+        },
+    ][] = grapher.inputTable.getColumns(columnsToGet).map((col) => {
+        const {
+            descriptionShort,
+            descriptionFromProducer,
+            descriptionKey,
+            descriptionProcessing,
+            shortUnit,
+            unit,
+            timespan,
+            tolerance,
+            type,
+            display,
+            presentation,
+            origins,
+            sourceLink,
+            sourceName,
+            catalogPath,
+            owidVariableId,
+            shortName,
+        } = col.def as OwidColumnDef
+
+        let consensedOrigins: Partial<
+            Pick<
+                OwidOrigin,
+                | "attribution"
+                | "attributionShort"
+                | "description"
+                | "urlDownload"
+                | "urlMain"
+            >
+        >[] = origins.map((origin) => {
+            const {
+                attribution,
+                attributionShort,
+                description,
+                urlDownload,
+                urlMain,
+            } = origin
+            return {
+                attribution,
+                attributionShort,
+                description,
+                urlDownload,
+                urlMain,
+            }
+        })
+
+        if (consensedOrigins.length === 0) {
+            consensedOrigins = [
+                {
+                    attribution: sourceName,
+                    urlMain: sourceLink,
+                },
+            ]
+        }
+
+        return [
+            col.name,
+            {
+                title: col.titlePublicOrDisplayName.title,
+                titleProducer: col.titlePublicOrDisplayName.attributionShort,
+                titleVariant: col.titlePublicOrDisplayName.titleVariant,
+                descriptionShort,
+                descriptionFromProducer,
+                descriptionKey,
+                descriptionProcessing,
+                shortUnit,
+                unit,
+                timespan,
+                tolerance,
+                type,
+                conversionFactor: col.display.conversionFactor,
+                owidVariableId,
+                catalogPath,
+                sources: consensedOrigins,
+                shortName,
+            },
+        ]
+    })
+
+    const fullMetadata = {
+        chart: {
+            title: grapher.title,
+            subtitle: grapher.subtitle,
+            note: grapher.note,
+            xAxisLabel: grapher.xAxis.label,
+            yAxisLabel: grapher.yAxis.label,
+            citation: grapher.sourcesLine,
+            originalChartUrl: grapher.canonicalUrl,
+            selection: grapher.selectedEntityNames,
+        },
+        columns: fromPairs(columns),
+    }
+
+    return new Response(JSON.stringify(fullMetadata), {
         headers: {
             "Content-Type": "application/json",
         },
