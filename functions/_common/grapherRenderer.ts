@@ -225,6 +225,8 @@ export async function fetchMetadataForGrapher(
 
     await grapher.downloadLegacyDataFromOwidVariableIds()
 
+    //const useShortNames = searchParams.get("useColumnShortNames") === "true"
+
     const columnsToIgnore = new Set(
         [
             OwidTableSlugs.entityId,
@@ -233,12 +235,15 @@ export async function fetchMetadataForGrapher(
             OwidTableSlugs.entityName,
             OwidTableSlugs.entityCode,
             OwidTableSlugs.year,
+            OwidTableSlugs.day,
         ].map((slug) => slug.toString())
     )
 
     const columnsToGet = grapher.inputTable.columnSlugs.filter(
         (col) => !columnsToIgnore.has(col)
     )
+    const useShortNames = searchParams.get("useColumnShortNames") === "true"
+    console.log("useShortNames", useShortNames)
 
     const columns: [
         string,
@@ -271,6 +276,7 @@ export async function fetchMetadataForGrapher(
             shortName: string
         },
     ][] = grapher.inputTable.getColumns(columnsToGet).map((col) => {
+        console.log("mapping col", col.name)
         const {
             descriptionShort,
             descriptionFromProducer,
@@ -291,16 +297,18 @@ export async function fetchMetadataForGrapher(
             shortName,
         } = col.def as OwidColumnDef
 
-        let consensedOrigins: Partial<
-            Pick<
-                OwidOrigin,
-                | "attribution"
-                | "attributionShort"
-                | "description"
-                | "urlDownload"
-                | "urlMain"
-            >
-        >[] = origins.map((origin) => {
+        let consensedOrigins:
+            | Partial<
+                  Pick<
+                      OwidOrigin,
+                      | "attribution"
+                      | "attributionShort"
+                      | "description"
+                      | "urlDownload"
+                      | "urlMain"
+                  >
+              >[]
+            | undefined = origins?.map((origin) => {
             const {
                 attribution,
                 attributionShort,
@@ -317,7 +325,7 @@ export async function fetchMetadataForGrapher(
             }
         })
 
-        if (consensedOrigins.length === 0) {
+        if (!consensedOrigins || consensedOrigins.length === 0) {
             consensedOrigins = [
                 {
                     attribution: sourceName,
@@ -327,7 +335,7 @@ export async function fetchMetadataForGrapher(
         }
 
         return [
-            col.name,
+            useShortNames ? shortName : col.name,
             {
                 title: col.titlePublicOrDisplayName.title,
                 titleProducer: col.titlePublicOrDisplayName.attributionShort,
@@ -341,7 +349,7 @@ export async function fetchMetadataForGrapher(
                 timespan,
                 tolerance,
                 type,
-                conversionFactor: col.display.conversionFactor,
+                conversionFactor: col.display?.conversionFactor,
                 owidVariableId,
                 catalogPath,
                 sources: consensedOrigins,
@@ -422,11 +430,12 @@ export async function fetchCsvForGrapher(
         grapherLogger
     )
     await grapher.downloadLegacyDataFromOwidVariableIds()
+    const useShortNames = searchParams.get("useColumnShortNames") === "true"
     const table =
         searchParams.get("csvType") === "filtered"
             ? grapher.transformedTable
             : grapher.inputTable
-    return new Response(table.toPrettyCsv(), {
+    return new Response(table.toPrettyCsv(useShortNames), {
         headers: {
             "Content-Type": "text/csv",
         },
@@ -459,6 +468,7 @@ export async function fetchReadmeForGrapher(
             OwidTableSlugs.entityName,
             OwidTableSlugs.entityCode,
             OwidTableSlugs.year,
+            OwidTableSlugs.day,
         ].map((slug) => slug.toString())
     )
 

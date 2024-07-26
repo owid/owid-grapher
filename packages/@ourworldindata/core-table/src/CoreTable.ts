@@ -37,6 +37,7 @@ import {
     CoreColumnDef,
     JsTypes,
     OwidTableSlugs,
+    OwidColumnDef,
 } from "@ourworldindata/types"
 import {
     AlignedTextTableOptions,
@@ -904,11 +905,17 @@ export class CoreTable<
         return this.toDelimited("\t")
     }
 
-    toCsvWithColumnNames(): string {
+    toCsvWithColumnNames(useShortNames: boolean = false): string {
         const delimiter = ","
         const header =
             this.columnsAsArray
-                .map((col) => csvEscape(col.name))
+                .map((col) =>
+                    csvEscape(
+                        useShortNames && (col.def as OwidColumnDef).shortName
+                            ? (col.def as OwidColumnDef).shortName
+                            : col.name
+                    )
+                )
                 .join(delimiter) + "\n"
         const body = this.rows
             .map((row) =>
