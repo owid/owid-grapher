@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import ReactDOM from "react-dom"
 import {
     excludeNullish,
@@ -45,16 +45,26 @@ const ChartHit = ({ hit }: { hit: any }) => {
     )
 }
 
-const DataCatalogRibbon = (props: { tagName: string }) => {
-    const { tagName } = props
-
+const DataCatalogRibbon = ({
+    tagName,
+    setGlobalFacetFilters,
+}: {
+    tagName: string
+    setGlobalFacetFilters: (facetFilters: string[]) => void
+}) => {
     return (
         <Index indexName={getIndexName(SearchIndexName.Charts)}>
             <Configure facetFilters={[`tags:${tagName}`]} hitsPerPage={4} />
             <div className="data-catalog-ribbon">
                 <div className="data-catalog-ribbon__header">
                     <h2 className="body-1-regular">{tagName}</h2>
-                    <a href={`/charts?topics=${tagName}`}>
+                    <a
+                        href={`/charts?topics=${tagName}`}
+                        onClick={(e) => {
+                            e.preventDefault()
+                            setGlobalFacetFilters([`tags:${tagName}`])
+                        }}
+                    >
                         See all charts {">"}
                     </a>
                 </div>
@@ -74,9 +84,11 @@ const DataCatalogRibbon = (props: { tagName: string }) => {
 const DataCatalogRibbonView = ({
     tagGraph,
     tagToShow,
+    setGlobalFacetFilters,
 }: {
     tagGraph: TagGraphRoot
     tagToShow: string | undefined
+    setGlobalFacetFilters: (facetFilters: string[]) => void
 }) => {
     const areas: TagGraphNode[] = []
     if (tagToShow) {
@@ -91,13 +103,25 @@ const DataCatalogRibbonView = ({
     return (
         <div className="span-cols-12 col-start-2">
             {areas.map((area) => (
-                <DataCatalogRibbon tagName={area.name} key={area.name} />
+                <DataCatalogRibbon
+                    tagName={area.name}
+                    key={area.name}
+                    setGlobalFacetFilters={setGlobalFacetFilters}
+                />
             ))}
         </div>
     )
 }
 
-// takes the pretty chaotically-typed facetFilters from instantsearch's UI state
+// "Energy and Environment, Air Pollution" => ["tags:Energy and Environment", "tags:Air Pollution"]
+// Currently unclear why this seems to work even though I thought it should be string[][]
+function transformRouteTopicsToFacetFilters(
+    topics: string | undefined
+): string[] | undefined {
+    return topics ? topics.split(",").map((tag) => "tags:" + tag) : undefined
+}
+
+// takes the chaotically-typed facetFilters from instantsearch's UI state
 // and returns a list of tags
 // e.g. [["tags:Energy"], ["tags:Air Polluion"]] => ["Energy", "Air Pollution"]
 function parseFacetFilters(
@@ -127,7 +151,13 @@ function checkIfNoFacetsOrOneAreaFacetApplied(
     return areas.includes(tag)
 }
 
-const DataCatalogResults = ({ tagGraph }: { tagGraph: TagGraphRoot }) => {
+const DataCatalogResults = ({
+    tagGraph,
+    setGlobalFacetFilters,
+}: {
+    tagGraph: TagGraphRoot
+    setGlobalFacetFilters: (facetFilters: string[]) => void
+}) => {
     const { uiState } = useInstantSearch()
     const genericState = uiState[""]
     const query = genericState.query
@@ -141,6 +171,7 @@ const DataCatalogResults = ({ tagGraph }: { tagGraph: TagGraphRoot }) => {
             <DataCatalogRibbonView
                 tagGraph={tagGraph}
                 tagToShow={facetFilters[0]}
+                setGlobalFacetFilters={setGlobalFacetFilters}
             />
         )
 
@@ -181,7 +212,6 @@ const TopicsRefinementList = () => {
     const configure = useConfigure({})
     return (
         <div className="span-cols-12 col-start-2">
-            {/* <Configure hitsPerPage={hitsPerPage} /> */}
             <button
                 onClick={() => {
                     configure.refine({
@@ -206,6 +236,21 @@ const TopicsRefinementList = () => {
 
 export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
     const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+    const [globalFacetFilters, setGlobalFacetFilters] = useState<
+        string[] | undefined
+    >()
+    useEffect(() => {
+        const handlePopState = () => {
+            const urlParams = new URLSearchParams(window.location.search)
+            const topics = urlParams.get("topics") || ""
+            setGlobalFacetFilters(transformRouteTopicsToFacetFilters(topics))
+        }
+        window.addEventListener("popstate", handlePopState)
+        handlePopState()
+        return () => {
+            window.removeEventListener("popstate", handlePopState)
+        }
+    }, [])
 
     return (
         <InstantSearch
@@ -221,11 +266,8 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                         )
                         const topics: string = facetFilters.join(",")
 
-                        const hitsPerPage = genericState.configure?.hitsPerPage
-
                         return {
                             q,
-                            // hitsPerPage,
                             topics: topics.length ? topics : undefined,
                         }
                     },
@@ -233,12 +275,10 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                         return {
                             "": {
                                 configure: {
-                                    // hitsPerPage: routeState.hitsPerPage || 10,
-                                    facetFilters: routeState.topics
-                                        ? routeState.topics
-                                              .split(",")
-                                              .map((tag) => ["tags:" + tag])
-                                        : [],
+                                    facetFilters:
+                                        transformRouteTopicsToFacetFilters(
+                                            routeState.topics
+                                        ),
                                 },
                                 query: routeState.q,
                             },
@@ -247,6 +287,7 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                 },
             }}
         >
+            <Configure facetFilters={globalFacetFilters} />
             <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
                 <header className="data-catalog-heading span-cols-12 col-start-2">
                     <h1 className="h1-semibold">Data Catalog</h1>
@@ -265,8 +306,10 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                     className="span-cols-12 col-start-2"
                 />
             </div>
-            {/* <TopicsRefinementList /> */}
-            <DataCatalogResults tagGraph={props.tagGraph} />
+            <DataCatalogResults
+                tagGraph={props.tagGraph}
+                setGlobalFacetFilters={setGlobalFacetFilters}
+            />
         </InstantSearch>
     )
 }
