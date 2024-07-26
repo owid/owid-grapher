@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect } from "react"
+import React, { useState } from "react"
 import ReactDOM from "react-dom"
 import {
+    excludeNullish,
     identity,
-    slugify,
+    isArray,
     TagGraphNode,
     TagGraphRoot,
-    Url,
 } from "@ourworldindata/utils"
 import {
     Configure,
@@ -14,7 +14,9 @@ import {
     InstantSearch,
     RefinementList,
     SearchBox,
+    useConfigure,
     useInstantSearch,
+    useRefinementList,
 } from "react-instantsearch"
 import algoliasearch from "algoliasearch"
 import {
@@ -25,21 +27,6 @@ import {
 import { SearchIndexName } from "./search/searchTypes.js"
 import { getIndexName } from "./search/searchClient.js"
 import { UiState } from "instantsearch.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
-import { RefinementListItem } from "instantsearch.js/es/connectors/refinement-list/connectRefinementList.js"
-
-// SSR-safe way to get the current pathname
-const usePathname = () => {
-    if (typeof window !== "undefined") {
-        return window.location.pathname
-    }
-    return ""
-}
-
-const pathJoin = (...subpaths: string[]) => {
-    return subpaths.join("/").replace(/\/+/g, "/")
-}
 
 const ChartHit = ({ hit }: { hit: any }) => {
     return (
@@ -61,22 +48,15 @@ const ChartHit = ({ hit }: { hit: any }) => {
 const DataCatalogRibbon = (props: { tagName: string }) => {
     const { tagName } = props
 
-    let newUrl = Url.fromURL(window.location.href)
-    const currentPathname = newUrl.pathname!
-    // hopefully temporary - we should just add slugs to each of the area tags
-    // although, currently we assume tags with slugs are topics...
-    const areaNameAsSlug = slugify(tagName)
-    newUrl = newUrl.update({
-        pathname: pathJoin(currentPathname, areaNameAsSlug),
-    })
-
     return (
         <Index indexName={getIndexName(SearchIndexName.Charts)}>
             <Configure facetFilters={[`tags:${tagName}`]} hitsPerPage={4} />
             <div className="data-catalog-ribbon">
                 <div className="data-catalog-ribbon__header">
                     <h2 className="body-1-regular">{tagName}</h2>
-                    <a href={newUrl.fullUrl}>See all charts {">"}</a>
+                    <a href={`/charts?topics=${tagName}`}>
+                        See all charts {">"}
+                    </a>
                 </div>
                 <Hits
                     classNames={{
@@ -91,82 +71,25 @@ const DataCatalogRibbon = (props: { tagName: string }) => {
     )
 }
 
-function getArea(
-    subpaths: string[],
-    tagGraph: TagGraphRoot
-): TagGraphNode | undefined {
-    return subpaths.reduce(
-        (currentArea, childName) => {
-            return currentArea?.children.find(
-                (child) => slugify(child.name) === childName
-            )
-        },
-        tagGraph as TagGraphNode | undefined
-    )
-}
-
-const Breadcrumbs = ({
-    subpaths,
-    tagNamesBySlug,
-}: {
-    subpaths: string[]
-    tagNamesBySlug: Record<string, string>
-}) => {
-    return (
-        <div className="data-catalog-breadcrumbs span-cols-12 col-start-2">
-            <span className="body-3-medium data-catalog-breadcrumb">
-                <a className="" href="/charts">
-                    All areas
-                </a>
-            </span>
-            {subpaths.map((subpath, i) => {
-                const path = subpaths.slice(0, i + 1).join("/")
-                const isLast = i === subpaths.length - 1
-                return (
-                    <span
-                        className="body-3-medium data-catalog-breadcrumb"
-                        key={subpath}
-                    >
-                        <FontAwesomeIcon icon={faChevronRight} />
-                        {isLast ? (
-                            tagNamesBySlug[subpath]
-                        ) : (
-                            <a href={`/charts/${path}`}>
-                                {tagNamesBySlug[subpath]}
-                            </a>
-                        )}
-                    </span>
-                )
-            })}
-        </div>
-    )
-}
-
 const DataCatalogRibbonView = ({
     tagGraph,
-    subpaths,
-    tagNamesBySlug,
+    tagToShow,
 }: {
     tagGraph: TagGraphRoot
-    tagNamesBySlug: Record<string, string>
-    subpaths: string[]
+    tagToShow: string | undefined
 }) => {
-    let areas: TagGraphNode[] = []
-    // if subpaths = [], we're on the landing page, render all areas
-    if (subpaths.length === 0) {
-        areas = tagGraph.children
+    const areas: TagGraphNode[] = []
+    if (tagToShow) {
+        const tagNode = tagGraph.children.find(
+            (child) => child.name === tagToShow
+        )
+        if (tagNode) areas.push(...tagNode.children)
     } else {
-        const area = getArea(subpaths, tagGraph)
-        areas = area ? area.children : []
-    }
-    if (areas.length === 0) {
-        // TODO: what should we do here?
-        return <div className="span-cols-12 col-start-2">Invalid area</div>
+        areas.push(...tagGraph.children)
     }
 
     return (
         <div className="span-cols-12 col-start-2">
-            <Breadcrumbs subpaths={subpaths} tagNamesBySlug={tagNamesBySlug} />
             {areas.map((area) => (
                 <DataCatalogRibbon tagName={area.name} key={area.name} />
             ))}
@@ -174,50 +97,58 @@ const DataCatalogRibbonView = ({
     )
 }
 
-const DataCatalogResults = ({
-    subpaths,
-    tagGraph,
-    tagNamesBySlug,
-}: {
-    subpaths: string[]
-    tagGraph: TagGraphRoot
-    tagNamesBySlug: Record<string, string>
-}) => {
-    const { uiState } = useInstantSearch()
-    const query = uiState[""].query
-    const shouldAttemptRibbonsView = subpaths.length < 2 && !query
-    const subpathsAsTagNames = subpaths.map(
-        (subpath) => tagNamesBySlug[subpath]
-    )
-    const transformItems = useCallback(
-        (items: RefinementListItem[]) => {
-            const filtered = items.filter(
-                (item) => !subpathsAsTagNames.includes(item.label)
-            )
-            return filtered
-        },
-        [tagGraph]
-    )
+// takes the pretty chaotically-typed facetFilters from instantsearch's UI state
+// and returns a list of tags
+// e.g. [["tags:Energy"], ["tags:Air Polluion"]] => ["Energy", "Air Pollution"]
+function parseFacetFilters(
+    facetFilters: string | undefined | readonly (string | readonly string[])[]
+): string[] {
+    if (!isArray(facetFilters)) return []
+    return facetFilters
+        .flat<string[]>()
+        .reduce((tags: string[], filter: string) => {
+            const match = filter.match(/^tags:(.*)$/)
+            if (match) tags.push(match[1])
+            return tags
+        }, [])
+}
 
-    if (shouldAttemptRibbonsView)
+// facetFilters is usually something like [["tags:Energy"], ["tags:Air Polluion"]]
+// This function checks to see if it's [["tags:Health"]] (or any other area tag) or []
+// which are the two cases in which we show the ribbon view
+function checkIfNoFacetsOrOneAreaFacetApplied(
+    facetFilters: string[],
+    areas: string[]
+) {
+    if (facetFilters.length === 0) return true
+    if (facetFilters.length > 1) return false
+
+    const [tag] = facetFilters
+    return areas.includes(tag)
+}
+
+const DataCatalogResults = ({ tagGraph }: { tagGraph: TagGraphRoot }) => {
+    const { uiState } = useInstantSearch()
+    const genericState = uiState[""]
+    const query = genericState.query
+    const facetFilters = parseFacetFilters(genericState.configure?.facetFilters)
+    const areaNames = tagGraph.children.map((child) => child.name)
+    const shouldShowRibbons =
+        !query && checkIfNoFacetsOrOneAreaFacetApplied(facetFilters, areaNames)
+
+    if (shouldShowRibbons)
         return (
             <DataCatalogRibbonView
                 tagGraph={tagGraph}
-                subpaths={subpaths}
-                tagNamesBySlug={tagNamesBySlug}
+                tagToShow={facetFilters[0]}
             />
         )
 
     return (
         <Index indexName={getIndexName(SearchIndexName.Charts)}>
-            <Configure
-                facetFilters={subpathsAsTagNames.map((tag) => `tags:${tag}`)}
-                hitsPerPage={20}
-            />
-            <Breadcrumbs subpaths={subpaths} tagNamesBySlug={tagNamesBySlug} />
-            <RefinementList
+            {/* <Configure hitsPerPage={2} /> */}
+            {/* <RefinementList
                 attribute="tags"
-                transformItems={transformItems}
                 className="data-catalog-facets span-cols-12 col-start-2"
                 classNames={{
                     list: "data-catalog-facets-list",
@@ -227,7 +158,7 @@ const DataCatalogResults = ({
                     count: "data-catalog-facets-list-item__count",
                     checkbox: "data-catalog-facets-list-item__checkbox",
                 }}
-            />
+            /> */}
             <Hits
                 classNames={{
                     root: "data-catalog-search-hits span-cols-12 col-start-2",
@@ -246,45 +177,72 @@ const DataCatalogResults = ({
     )
 }
 
-function getTagNamesBySlug(tagGraph: TagGraphRoot): Record<string, string> {
-    const tagNamesBySlug: Record<string, string> = {}
-    function addTagNameBySlug(node: TagGraphNode) {
-        if (node.slug) {
-            tagNamesBySlug[node.slug] = node.name
-        } else {
-            tagNamesBySlug[slugify(node.name)] = node.name
-        }
-        node.children.forEach(addTagNameBySlug)
-    }
-    tagGraph.children.forEach(addTagNameBySlug)
-    return tagNamesBySlug
+const TopicsRefinementList = () => {
+    const configure = useConfigure({})
+    return (
+        <div className="span-cols-12 col-start-2">
+            {/* <Configure hitsPerPage={hitsPerPage} /> */}
+            <button
+                onClick={() => {
+                    configure.refine({
+                        hitsPerPage: 4,
+                    })
+                }}
+            >
+                4 hits
+            </button>
+            <button
+                onClick={() => {
+                    configure.refine({
+                        facetFilters: ["tags:Artificial Intelligence"],
+                    })
+                }}
+            >
+                AI
+            </button>
+        </div>
+    )
 }
 
 export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
     const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
-    const tagNamesBySlug = getTagNamesBySlug(props.tagGraph)
-    const pathname = usePathname()
-    const subpaths = pathname.split("/").filter(identity).slice(1)
-    const areSubpathsValid = subpaths.every((part) => part in tagNamesBySlug)
-    useEffect(() => {
-        if (!areSubpathsValid) {
-            history.replaceState(null, "", "/charts")
-        }
-    }, [areSubpathsValid])
 
     return (
         <InstantSearch
             searchClient={searchClient}
             routing={{
                 stateMapping: {
-                    stateToRoute(uiState) {
+                    stateToRoute(uiStates) {
+                        // uiStates are keyed by indexName, which is an empty string at this level
+                        const genericState = uiStates[""]
+                        const q = genericState.query
+                        const facetFilters = parseFacetFilters(
+                            genericState.configure?.facetFilters
+                        )
+                        const topics: string = facetFilters.join(",")
+
+                        const hitsPerPage = genericState.configure?.hitsPerPage
+
                         return {
-                            // uiState is keyed by indexName, which is an empty string at this level
-                            q: uiState[""].query,
+                            q,
+                            // hitsPerPage,
+                            topics: topics.length ? topics : undefined,
                         }
                     },
                     routeToState(routeState): UiState {
-                        return { "": { query: routeState.q } }
+                        return {
+                            "": {
+                                configure: {
+                                    // hitsPerPage: routeState.hitsPerPage || 10,
+                                    facetFilters: routeState.topics
+                                        ? routeState.topics
+                                              .split(",")
+                                              .map((tag) => ["tags:" + tag])
+                                        : [],
+                                },
+                                query: routeState.q,
+                            },
+                        }
                     },
                 },
             }}
@@ -307,11 +265,8 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                     className="span-cols-12 col-start-2"
                 />
             </div>
-            <DataCatalogResults
-                tagGraph={props.tagGraph}
-                subpaths={subpaths}
-                tagNamesBySlug={tagNamesBySlug}
-            />
+            {/* <TopicsRefinementList /> */}
+            <DataCatalogResults tagGraph={props.tagGraph} />
         </InstantSearch>
     )
 }
