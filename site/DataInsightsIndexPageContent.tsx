@@ -7,6 +7,7 @@ import {
     OwidGdocMinimalPostInterface,
     merge,
     LinkedAuthor,
+    uniqBy,
 } from "@ourworldindata/utils"
 import {
     DataInsightBody,
@@ -114,7 +115,7 @@ export const DataInsightsIndexPageContent = (
             <AttachmentsContext.Provider
                 value={{
                     imageMetadata,
-                    linkedAuthors,
+                    linkedAuthors: uniqBy(linkedAuthors, ({ name }) => name),
                     linkedCharts,
                     linkedDocuments,
                     linkedIndicators: {}, // not needed for data insights
