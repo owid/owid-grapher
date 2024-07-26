@@ -609,6 +609,7 @@ const columnDefFromOwidVariable = (
         presentation,
         catalogPath,
         updatePeriodDays,
+        shortName,
     } = variable
 
     // Without this the much used var 123 appears as "Countries Continent". We could rename in Grapher but not sure the effects of that.
@@ -660,6 +661,7 @@ const columnDefFromOwidVariable = (
         owidSchemaVersion: variable.schemaVersion,
         type,
         sort,
+        shortName,
     }
 }
 
