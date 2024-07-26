@@ -17,6 +17,18 @@ import {
     prepareSourcesForDisplay,
     uniqBy,
 } from "@ourworldindata/utils"
+import {
+    getAttribution,
+    getCitationLines,
+    getDataProcessingLines,
+    getDescription,
+    getDescriptionLines,
+    getKeyDataLines,
+    getSource,
+    getSources,
+    getTitle,
+    constructReadme,
+} from "./readmeTools"
 import { svg2png, initialize as initializeSvg2Png } from "svg2png-wasm"
 import { TimeLogger } from "./timeLogger"
 import { png } from "itty-router"
@@ -284,186 +296,6 @@ export async function fetchCsvForGrapher(
     })
 }
 
-function* columnReadmeText(col: CoreColumn) {
-    const def = col.def as OwidColumnDef
-
-    const title = getTitle(col)
-    yield `## ${title}`
-
-    yield* getDescription(def)
-
-    yield ""
-
-    const attribution = getAttribution(def)
-
-    const source = getSource(attribution, def)
-    yield `Source: ${source}`
-
-    yield* getKeyDataLinex(def, col)
-
-    yield* getDescriptionLines(def, attribution)
-
-    yield* getSources(def)
-
-    yield* getDataProcessingLines(def)
-
-    yield* getCitationLines(def, col)
-    yield ""
-}
-
-function* getCitationLines(def: OwidColumnDef, col: CoreColumn) {
-    yield "### How to cite this data"
-    yield "#### In-line citation"
-    yield `If you have limited space (e.g. in data visualizations), you can use this abbreviated in-line citation:`
-    const citationShort = getCitationShort(
-        def.origins ?? [],
-        getAttributionFragmentsFromVariable(def),
-        def.owidProcessingLevel
-    )
-    yield citationShort
-
-    yield "#### Full citation"
-    const citationLong = getCitationLong(
-        col.titlePublicOrDisplayName,
-        def.origins ?? [],
-        col.source ?? {},
-        getAttributionFragmentsFromVariable(def),
-        def.presentation?.attributionShort,
-        def.presentation?.titleVariant,
-        def.owidProcessingLevel,
-        undefined
-    )
-    yield citationLong
-}
-
-function* getDataProcessingLines(def: OwidColumnDef) {
-    yield "### How we process data at Our World In Data"
-    yield `All data and visualizations on Our World in Data rely on data sourced from one or several original data providers. Preparing this original data involves several processing steps. Depending on the data, this can include standardizing country names and world region definitions, converting units, calculating derived indicators such as per capita measures, as well as adding or adapting metadata such as the name or the description given to an indicator.`
-    yield `At the link below you can find a detailed description of the structure of our data pipeline, including links to all the code used to prepare data across Our World in Data.`
-    yield `[Read about our data pipeline](https://docs.owid.io/projects/etl/)`
-    if (def.descriptionProcessing)
-        yield `#### Notes on our processing step for this indicator
-${def.descriptionProcessing}`
-}
-
-function* getDescriptionLines(def: OwidColumnDef, attribution: string) {
-    const descriptionKey = def.descriptionKey
-    if (descriptionKey)
-        yield `### What you should know about this data
-${descriptionKey.map((desc) => `* ${desc.trim()}`).join("\n")}`
-
-    if (def.descriptionFromProducer) {
-        yield `### How is this data described by its producer - ${attribution}?`
-        yield def.descriptionFromProducer.trim()
-    }
-
-    if (def.additionalInfo) {
-        yield `### Additional information about this data`
-        yield def.additionalInfo.trim()
-    }
-}
-
-function* getKeyDataLinex(def: OwidColumnDef, col: CoreColumn) {
-    const lastUpdated = getLastUpdatedFromVariable(def)
-    if (lastUpdated)
-        yield `Last updated: ${formatSourceDate(lastUpdated, "MMMM D, YYYY")}`
-
-    const nextUpdate = getNextUpdateFromVariable(def)
-    if (nextUpdate)
-        yield `Next update: ${formatSourceDate(nextUpdate, "MMMM YYYY")}`
-
-    const dateRange = def.timespan ? getDateRange(def.timespan) : undefined
-    if (dateRange) yield `Date range: ${dateRange}`
-
-    const unit = def.unit
-    if (unit) yield `Unit: ${unit}`
-
-    const unitConversionFactor =
-        col.unitConversionFactor && col.unitConversionFactor !== 1
-            ? col.unitConversionFactor
-            : undefined
-    if (unitConversionFactor)
-        yield `Unit conversion factor: ${unitConversionFactor}`
-}
-
-function yieldMultilineTextAsLines(line: string) {
-    return line.split("\n").map((l) => l.trim())
-}
-
-function* getSources(def: OwidColumnDef) {
-    const sourcesForDisplay = uniqBy(prepareSourcesForDisplay(def), "label")
-    for (const source of sourcesForDisplay) {
-        yield `#### ${source.label}`
-        if (source.description)
-            yield* yieldMultilineTextAsLines(source.description).map(
-                (l) => `> ${l}`
-            )
-        if (source.dataPublishedBy)
-            yield `Data published by: ${source.dataPublishedBy.trim()}`
-        if (source.retrievedOn)
-            yield `Retrieved on: ${source.retrievedOn.trim()}`
-        if (source.retrievedFrom)
-            yield `Retrieved from: ${source.retrievedFrom.trim()}`
-        if (source.citation) {
-            yield "##### Citation"
-            yield "This is the citation of the original data obtained from the source, prior to any processing or adaptation by Our World in Data."
-            yield* yieldMultilineTextAsLines(source.citation).map(
-                (l) => `> ${l}`
-            )
-        }
-    }
-}
-
-function getSource(attribution: string, def: OwidColumnDef) {
-    const processingLevelPhrase =
-        attribution.toLowerCase() !== "our world in data"
-            ? getPhraseForProcessingLevel(def.owidProcessingLevel)
-            : undefined
-    const fullProcessingPhrase = processingLevelPhrase
-        ? ` – ${processingLevelPhrase} by Our World In Data`
-        : ""
-    const source = `${attribution}${fullProcessingPhrase}`
-    return source
-}
-
-function getAttribution(def: OwidColumnDef) {
-    const producers = uniq(
-        excludeUndefined((def.origins ?? []).map((o) => o.producer))
-    )
-
-    const attributionFragments =
-        getAttributionFragmentsFromVariable(def) ?? producers
-    const attribution = attributionFragments.join(", ")
-    return attribution
-}
-
-function* getDescription(def: OwidColumnDef) {
-    const description = def.descriptionShort || def.description
-    if (description) yield yieldMultilineTextAsLines(description)
-}
-
-function getTitle(col: CoreColumn) {
-    let title = col.titlePublicOrDisplayName.title
-    if (
-        col.titlePublicOrDisplayName.attributionShort &&
-        col.titlePublicOrDisplayName.titleVariant
-    )
-        title = `${title} – ${col.titlePublicOrDisplayName.titleVariant} – ${col.titlePublicOrDisplayName.attributionShort}`
-    else if (col.titlePublicOrDisplayName.titleVariant)
-        title = `${title} – ${col.titlePublicOrDisplayName.titleVariant}`
-    else if (col.titlePublicOrDisplayName.attributionShort)
-        title = `${title} – ${col.titlePublicOrDisplayName.attributionShort}`
-    return title
-}
-
-export function sleep(time: number, value: unknown): Promise<any> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            return resolve(value)
-        }, time)
-    })
-}
-
 export async function fetchReadmeForGrapher(
     slug: string,
     env: Env,
@@ -498,18 +330,8 @@ export async function fetchReadmeForGrapher(
     )
 
     const columns = grapher.inputTable.getColumns(columnsToGet)
-    const sources = columns.flatMap((col) => [...columnReadmeText(toJS(col))])
 
-    const readme = `# ${grapher.title} - Data package
-
-This data package contains the data that powers the chart ["${grapher.title}"](${grapher.originUrl}) on the Our World in Data website.
-The source of this data in compact form is: ${grapher.sourcesLine}.
-
-## Individual time series information
-
-${sources.join("\n")}
-
-    `
+    const readme = constructReadme(grapher, columns)
     return new Response(readme, {
         headers: {
             "Content-Type": "text/markdown",
