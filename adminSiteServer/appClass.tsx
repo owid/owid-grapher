@@ -160,6 +160,8 @@ export class OwidAdminApp {
                 // https://vitejs.dev/guide/ssr
                 const { createServer } = await import("vite")
                 const vite = await createServer({
+                    configFile: "vite.config-site.mts",
+                    css: { devSourcemap: true },
                     server: { middlewareMode: true },
                     appType: "custom",
                     base: "/",

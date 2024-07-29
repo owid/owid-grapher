@@ -25,7 +25,7 @@
         "refreshPageviews": "tsx --tsconfig tsconfig.tsx.json db/refreshPageviewsFromDatasette.ts",
         "revertLastDbMigration": "tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:revert -d db/dataSource.ts",
         "startAdminServer": "node --enable-source-maps ./itsJustJavascript/adminSiteServer/app.js",
-        "startAdminDevServer": "tsx watch --tsconfig tsconfig.tsx.json adminSiteServer/app.tsx",
+        "startAdminDevServer": "tsx watch --ignore '**.mjs' --tsconfig tsconfig.tsx.json adminSiteServer/app.tsx",
         "startLocalCloudflareFunctions": "wrangler pages dev localBake --compatibility-date 2023-10-09",
         "startDeployQueueServer": "node --enable-source-maps ./itsJustJavascript/baker/startDeployQueueServer.js",
         "startLernaWatcher": "lerna watch --scope '@ourworldindata/*' -- lerna run build --scope=\\$LERNA_PACKAGE_NAME --include-dependents",
