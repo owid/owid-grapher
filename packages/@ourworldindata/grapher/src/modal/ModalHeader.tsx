@@ -1,5 +1,5 @@
 import React from "react"
-import { CloseButton } from "../closeButton/CloseButton.js"
+import { CloseButton } from "@ourworldindata/components"
 
 export function ModalHeader({
     title,
