@@ -1,0 +1,141 @@
+.data-insights-newsletter {
+    background-color: $blue-10;
+    padding-top: 32px;
+    padding-bottom: 16px;
+
+    @include sm-only {
+        padding-top: 16px;
+    }
+}
+
+.data-insights-newsletter__inner {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 16px 24px;
+
+    @include sm-only {
+        flex-wrap: wrap;
+    }
+}
+
+.data-insights-newsletter__close {
+    display: flex;
+    position: relative;
+    padding: 4px 0;
+
+    @include sm-only {
+        padding: 0;
+    }
+}
+
+.data-insights-newsletter__close-button {
+    position: absolute;
+    top: -32px;
+    right: -14px;
+    color: $blue-60;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    margin-left: auto;
+    height: 40px;
+    width: 40px;
+
+    &:hover {
+        color: $blue-90;
+    }
+}
+
+.data-insights-newsletter--has-close .data-insights-newsletter__close-button {
+    @include sm-only {
+        top: -12px;
+    }
+}
+
+.data-insights-newsletter__heading {
+    color: $blue-90;
+    margin: 0;
+}
+
+.data-insights-newsletter__description {
+    color: $blue-65;
+    margin: 0;
+
+    @include sm-only {
+        display: none;
+    }
+}
+
+.data-insights-newsletter__left {
+    display: flex;
+    align-items: start;
+    gap: 16px;
+
+    @include sm-only {
+        flex: auto;
+        align-items: center;
+        justify-content: space-between;
+        flex-direction: row-reverse;
+    }
+}
+
+.data-insights-newsletter--has-close .data-insights-newsletter__left {
+    @include sm-only {
+        padding-right: 24px;
+    }
+}
+
+.data-insights-newsletter__left__text {
+    flex: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.data-insights-newsletter__icon {
+    flex-shrink: 0;
+}
+
+.data-insights-newsletter--has-close .data-insights-newsletter__icon {
+    @include sm-only {
+        display: none;
+    }
+}
+
+.data-insights-newsletter__right {
+    flex: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.data-insights-newsletter__form {
+    flex: auto;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    gap: 8px;
+}
+
+.data-insights-newsletter__email-input {
+    flex: 0 1 400px;
+
+    @include sm-only {
+        flex: 1 1 100%;
+    }
+}
+
+.data-insights-newsletter__note {
+    color: $blue-65;
+    margin: 8px 0 0 auto;
+
+    a {
+        color: $blue-65;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
+}

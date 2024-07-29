@@ -1,0 +1,17 @@
+.text-input {
+    @include body-3-medium;
+    padding: 8px 16px;
+    color: $blue-90;
+    border: 1px solid $blue-20;
+    border-radius: 0;
+    height: 40px;
+
+    &:focus {
+        outline: none;
+        border: 1px solid $blue-40;
+    }
+
+    &::placeholder {
+        color: $blue-40;
+    }
+}

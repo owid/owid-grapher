@@ -7,10 +7,8 @@ import {
     faThreads,
 } from "@fortawesome/free-brands-svg-icons"
 import React from "react"
-import {
-    NewsletterSubscriptionContext,
-    NewsletterSubscriptionForm,
-} from "../../NewsletterSubscription.js"
+import { NewsletterSubscriptionContext } from "../../newsletter.js"
+import { NewsletterSubscriptionForm } from "../../NewsletterSubscription.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import {
     CategoryWithEntries,

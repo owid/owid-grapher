@@ -41,6 +41,7 @@ export {
 } from "./closeButton/CloseButton.js"
 export { OverlayHeader } from "./OverlayHeader.js"
 export { IndicatorSources } from "./IndicatorSources/IndicatorSources.js"
+export { TextInput } from "./TextInput.js"
 
 export {
     CodeSnippet,

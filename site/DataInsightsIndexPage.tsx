@@ -30,7 +30,7 @@ export const DataInsightsIndexPage = (props: DataInsightsIndexPageProps) => {
                 canonicalUrl={`${baseUrl}/data-insights`}
                 pageTitle="Daily Data Insights"
                 baseUrl={baseUrl}
-                pageDesc="Bite-sized insights on how the world is changing, published daily"
+                pageDesc="Bite-sized insights on how the world is changing, published every weekday"
                 imageUrl={`${baseUrl}/data-insights-thumbnail.png`}
                 atom={DATA_INSIGHT_ATOM_FEED_PROPS}
             ></Head>

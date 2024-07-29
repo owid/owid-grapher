@@ -1,0 +1,23 @@
+.data-insights-newsletter-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: translateY(100%);
+    transition: transform 0.3s ease-out;
+    opacity: 0;
+    pointer-events: none;
+    background-color: $accent-pale-blue;
+    z-index: 1000;
+
+    &--visible {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    // We need a separate class without `opacity: 0` for hiding to animate.
+    &--hiding {
+        transform: translateY(100%);
+    }
+}

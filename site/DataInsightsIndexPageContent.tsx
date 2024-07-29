@@ -16,6 +16,7 @@ import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { DebugProvider } from "./gdocs/DebugContext.js"
+import DataInsightsNewsletterBanner from "./DataInsightsNewsletterBanner.js"
 
 const Pagination = (props: { pageNumber: number; totalPageCount: number }) => {
     const { pageNumber, totalPageCount } = props
@@ -121,7 +122,7 @@ export const DataInsightsIndexPageContent = (
                     </h2>
                     <p className="span-cols-8 col-start-4 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12 body-1-regular">
                         Bite-sized insights on how the world is changing,
-                        published daily.
+                        published every weekday.
                     </p>
                 </header>
                 {dataInsights.map((dataInsight, index) => {
@@ -141,6 +142,7 @@ export const DataInsightsIndexPageContent = (
                     totalPageCount={props.totalPageCount}
                     pageNumber={props.pageNumber}
                 />
+                <DataInsightsNewsletterBanner />
             </AttachmentsContext.Provider>
         </DocumentContext.Provider>
     )

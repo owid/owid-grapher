@@ -6,10 +6,8 @@ import {
     faXmark,
     faEnvelopeOpenText,
 } from "@fortawesome/free-solid-svg-icons"
-import {
-    NewsletterSubscriptionContext,
-    NewsletterSubscriptionForm,
-} from "./NewsletterSubscription.js"
+import { NewsletterSubscriptionContext } from "./newsletter.js"
+import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SiteNavigationTopics } from "./SiteNavigationTopics.js"
 import { SiteLogos } from "./SiteLogos.js"

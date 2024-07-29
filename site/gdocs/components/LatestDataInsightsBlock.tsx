@@ -3,7 +3,9 @@ import cx from "classnames"
 
 import { AttachmentsContext } from "../OwidGdoc.js"
 import { Button } from "@ourworldindata/components"
+import { NewsletterSubscriptionContext } from "../../newsletter.js"
 import LatestDataInsights from "./LatestDataInsights.js"
+import DataInsightsNewsletter from "./DataInsightsNewsletter.js"
 
 export default function LatestDataInsightsBlock({
     className,
@@ -19,7 +21,7 @@ export default function LatestDataInsightsBlock({
                 <h2 className="h2-bold">Daily Data Insights</h2>
                 <p className="body-2-regular">
                     Bite-sized insights on how the world is changing, published
-                    daily.
+                    every weekday.
                 </p>
             </header>
             <Button
@@ -31,6 +33,9 @@ export default function LatestDataInsightsBlock({
             <LatestDataInsights
                 className="span-cols-12 col-start-2"
                 latestDataInsights={latestDataInsights}
+            />
+            <DataInsightsNewsletter
+                context={NewsletterSubscriptionContext.HomepageDataInsights}
             />
         </section>
     )
