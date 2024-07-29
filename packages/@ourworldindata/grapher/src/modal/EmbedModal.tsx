@@ -3,8 +3,7 @@ import React from "react"
 import { computed, action } from "mobx"
 import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { Modal } from "./Modal"
-import { CodeSnippet } from "@ourworldindata/components"
-import { OverlayHeader } from "../core/OverlayHeader.js"
+import { CodeSnippet, OverlayHeader } from "@ourworldindata/components"
 
 export interface EmbedModalManager {
     canonicalUrl?: string

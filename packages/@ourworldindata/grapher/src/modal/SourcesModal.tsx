@@ -21,6 +21,9 @@ import {
     IndicatorProcessing,
     SimpleMarkdownText,
     DataCitation,
+    OverlayHeader,
+    CLOSE_BUTTON_WIDTH,
+    CloseButton,
 } from "@ourworldindata/components"
 import React from "react"
 import cx from "classnames"
@@ -36,9 +39,7 @@ import { SourcesDescriptions } from "./SourcesDescriptions"
 import { Tabs } from "../tabs/Tabs"
 import { ExpandableTabs } from "../tabs/ExpandableTabs"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
-import { CLOSE_BUTTON_WIDTH, CloseButton } from "../closeButton/CloseButton"
 import { isContinentsVariableId } from "../core/GrapherConstants"
-import { OverlayHeader } from "../core/OverlayHeader.js"
 
 // keep in sync with variables in SourcesModal.scss
 const MAX_CONTENT_WIDTH = 640

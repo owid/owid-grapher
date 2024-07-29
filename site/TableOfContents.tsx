@@ -61,7 +61,7 @@ export const TableOfContents = ({
         }
     }
 
-    useTriggerWhenClickOutside(tocRef, isOpen, setIsOpen)
+    useTriggerWhenClickOutside(tocRef, isOpen, () => setIsOpen(false))
 
     useEffect(() => {
         if ("IntersectionObserver" in window) {

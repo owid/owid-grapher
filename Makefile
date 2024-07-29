@@ -33,6 +33,7 @@ help:
 	@echo '  make test                   run full suite (except db tests) of CI checks including unit tests'
 	@echo '  make dbtest                 run db test suite that needs a running mysql db'
 	@echo '  make svgtest                compare current rendering against reference SVGs'
+	@echo '  make local-bake             do a full local site bake'
 	@echo
 	@echo '  GRAPHER + CLOUDFLARE (staff-only)'
 	@echo '  make up.full                start dev environment via docker-compose and tmux'
@@ -291,6 +292,11 @@ delete-algolia-index: itsJustJavascript
 bench.search: itsJustJavascript
 	@echo '==> Running search benchmarks'
 	@node --enable-source-maps itsJustJavascript/site/search/evaluateSearch.js
+
+local-bake: itsJustJavascript
+	@echo '==> Baking site'
+	yarn buildVite
+	yarn buildLocalBake
 
 clean:
 	rm -rf node_modules itsJustJavascript

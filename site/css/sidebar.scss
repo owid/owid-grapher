@@ -15,6 +15,7 @@
 
     .entry-sidebar__overlay {
         @include overlay;
+        z-index: $zindex-sidebar-page-overlay;
     }
 }
 
