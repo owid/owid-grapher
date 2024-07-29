@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react"
+import cx from "classnames"
 import ReactDOM from "react-dom"
 import { get, isArray, TagGraphNode, TagGraphRoot } from "@ourworldindata/utils"
 import {
@@ -19,11 +20,7 @@ import { SearchIndexName } from "./search/searchTypes.js"
 import { getIndexName } from "./search/searchClient.js"
 import { ScopedResult, UiState } from "instantsearch.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    faArrowRight,
-    faChevronRight,
-    faClose,
-} from "@fortawesome/free-solid-svg-icons"
+import { faArrowRight, faClose } from "@fortawesome/free-solid-svg-icons"
 
 const ChartHit = ({ hit }: { hit: any }) => {
     return (
@@ -100,15 +97,21 @@ const DataCatalogRibbonView = ({
     tagGraph,
     tagToShow,
     addGlobalFacetFilter,
+    isLoading,
 }: {
     tagGraph: TagGraphRoot
     tagToShow: string | undefined
     addGlobalFacetFilter: (x: string) => void
+    isLoading: boolean
 }) => {
     const areas = getAreaChildrenFromTag(tagGraph, tagToShow)
 
     return (
-        <div className="span-cols-12 col-start-2">
+        <div
+            className={cx("span-cols-12 col-start-2 data-catalog-ribbons", {
+                "data-catalog-ribbons--is-loading": isLoading,
+            })}
+        >
             {areas.map((area) => (
                 <DataCatalogRibbon
                     tagName={area.name}
@@ -173,12 +176,12 @@ const DataCatalogResults = ({
     tagGraph: TagGraphRoot
     addGlobalFacetFilter: (tag: string) => void
 }) => {
-    const { uiState } = useInstantSearch()
+    const { uiState, status } = useInstantSearch()
     const genericState = uiState[""]
     const query = genericState.query
     const facetFilters = parseFacetFilters(genericState.configure?.facetFilters)
     const areaNames = tagGraph.children.map((child) => child.name)
-
+    const isLoading = status === "loading" || status === "stalled"
     const shouldShowRibbons = checkShouldShowRibbonView(
         query,
         facetFilters,
@@ -188,6 +191,7 @@ const DataCatalogResults = ({
     if (shouldShowRibbons)
         return (
             <DataCatalogRibbonView
+                isLoading={isLoading}
                 tagGraph={tagGraph}
                 tagToShow={facetFilters[0]}
                 addGlobalFacetFilter={addGlobalFacetFilter}
@@ -198,18 +202,17 @@ const DataCatalogResults = ({
         <Index indexName={getIndexName(SearchIndexName.Charts)}>
             <Hits
                 classNames={{
-                    root: "data-catalog-search-hits span-cols-12 col-start-2",
+                    root: cx(
+                        "data-catalog-search-hits span-cols-12 col-start-2",
+                        {
+                            "data-catalog-search-hits--is-loading": isLoading,
+                        }
+                    ),
                     item: "data-catalog-search-hit",
                     list: "data-catalog-search-list grid grid-cols-4",
                 }}
                 hitComponent={({ hit }: any) => <ChartHit hit={hit} />}
             />
-            <pre
-                className="span-cols-12 col-start-2"
-                style={{ margin: "48px 0" }}
-            >
-                TODO: pagination?
-            </pre>
         </Index>
     )
 }
@@ -222,6 +225,18 @@ function getNbHitsForTag(tag: string, results: ScopedResult[]) {
     return result ? result.results.nbHits : undefined
 }
 
+const DataCatalogLoadingSpinner = () => {
+    const { status } = useInstantSearch()
+    if (status === "loading" || status === "stalled") {
+        return (
+            <div className="data-catalog-loading-spinner span-cols-12 col-start-2">
+                <div className="data-catalog-loading-spinner__spinner"></div>
+            </div>
+        )
+    }
+    return null
+}
+
 const TopicsRefinementList = ({
     tagGraph,
     addGlobalFacetFilter,
@@ -231,10 +246,11 @@ const TopicsRefinementList = ({
     addGlobalFacetFilter: (tag: string) => void
     removeGlobalFacetFilter: (tag: string) => void
 }) => {
-    const { uiState, scopedResults } = useInstantSearch()
+    const { uiState, scopedResults, status } = useInstantSearch()
     const genericState = uiState[""]
     const areaNames = tagGraph.children.map((child) => child.name)
     const facetFilters = parseFacetFilters(genericState.configure?.facetFilters)
+    const isLoading = status === "loading" || status === "stalled"
     const isShowingRibbons = checkShouldShowRibbonView(
         genericState.query,
         facetFilters,
@@ -266,7 +282,14 @@ const TopicsRefinementList = ({
         return (
             <React.Fragment>
                 {appliedFiltersSection}
-                <ul className="span-cols-12 col-start-2 data-catalog-facets-list">
+                <ul
+                    className={cx(
+                        "span-cols-12 col-start-2 data-catalog-facets-list",
+                        {
+                            "data-catalog-facets-list--is-loading": isLoading,
+                        }
+                    )}
+                >
                     {areas.map((area, i) => {
                         const isLast = i === areas.length - 1
                         return (
@@ -410,6 +433,7 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                 tagGraph={props.tagGraph}
                 addGlobalFacetFilter={addGlobalFacetFilter}
             />
+            <DataCatalogLoadingSpinner />
         </InstantSearch>
     )
 }
