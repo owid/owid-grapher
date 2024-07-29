@@ -35,48 +35,60 @@
 }
 
 .data-catalog-facets-list {
-    display: flex;
-    flex-direction: row;
+    margin-bottom: 16px;
     list-style: none;
-    flex-wrap: wrap;
 }
 
 .data-catalog-facets-list-item {
-    margin-right: 8px;
-    border: 1px solid $blue-20;
-    border-radius: 50px;
-    margin-bottom: 4px;
-    &:hover {
-        border-color: $blue-40;
-    }
-
-    &.ais-RefinementList-item--selected {
-        background-color: $blue-20;
-    }
-}
-
-.data-catalog-facets-list-item__checkbox {
-    display: none;
-}
-
-.data-catalog-facets-list-item__label {
-    cursor: pointer;
-    padding: 2px 4px;
-    display: inline-block;
-}
-
-.data-catalog-facets-list-item__label-text {
     @include body-3-medium;
-    margin-left: 8px;
+    display: inline;
+    font-weight: bold;
+    cursor: pointer;
+    color: $blue-90;
+    &:hover {
+        text-decoration: underline;
+    }
 }
 
-.data-catalog-facets-list-item__count {
-    margin-left: 8px;
-    background-color: $blue-10;
-    font-size: 0.75rem;
+.data-catalog-facets-list-item__hit-count {
+    color: $blue-60;
+    margin-left: 4px;
+}
+
+.data-catalog-facets-list-separator {
+    display: inline-block;
+    pointer-events: none;
+    margin: 0 8px;
+    color: $blue-30;
+    &::after {
+        content: "•";
+    }
+}
+
+.data-catalog-applied-filters-list {
+    list-style: none;
+    margin-bottom: 8px;
+}
+.data-catalog-applied-filters-item {
+    display: inline-block;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+.data-catalog-applied-filters-button {
+    background-color: $blue-20;
     color: $blue-90;
+    padding: 5.5px 16px;
+    border: none;
     border-radius: 50px;
-    padding: 4px 8px;
+    cursor: pointer;
+    svg {
+        height: 16px;
+        margin-bottom: -2px;
+        margin-left: 4px;
+    }
+    &:hover {
+        color: $blue-100;
+    }
 }
 
 .data-catalog-ribbon {
@@ -91,16 +103,30 @@
     margin-bottom: 24px;
     h2 {
         margin: 0;
+        font-weight: bold;
     }
     a {
         line-height: 38.4px;
         margin-right: 16px;
     }
 }
-.data-catalog-ribbon-hits {
+
+.data-catalog-ribbon__hit-count {
+    color: $blue-65;
+    &:hover {
+        text-decoration: underline;
+    }
+    svg {
+        height: 10px;
+        width: 10px;
+        background-color: $blue-65;
+        border-radius: 50px;
+        padding: 2px;
+        color: $blue-10;
+        margin-left: 8px;
+    }
 }
-.data-catalog-ribbon-hit {
-}
+
 .data-catalog-search-list,
 .data-catalog-ribbon-list {
     list-style: none;
