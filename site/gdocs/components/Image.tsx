@@ -53,7 +53,7 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["datapage"]: gridSpan6,
     ["full-width"]: "100vw",
     ["key-insight"]: gridSpan5,
-    ["author-byline"]: "48px",
+    ["author-byline"]: "100px",
     ["author-header"]: gridSpan2,
     ["span-5"]: gridSpan5,
     ["span-6"]: gridSpan6,
