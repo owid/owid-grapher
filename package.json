@@ -164,6 +164,7 @@
         "url-join": "^4.0.0",
         "url-parse": "^1.5.10",
         "url-slug": "^3.0.2",
+        "usehooks-ts": "^3.1.0",
         "webfontloader": "^1.6.28",
         "workerpool": "^6.2.0",
         "yaml": "^2.4.2"
@@ -216,7 +217,7 @@
         "@typescript-eslint/parser": "^7.2.0",
         "@vitejs/plugin-react": "^4.3.1",
         "@yarnpkg/types": "^4.0.0",
-        "bundlewatch": "^0.3.3",
+        "bundlewatch": "^0.4.0",
         "cypress": "9.3.1",
         "eslint": "^8.57.0",
         "eslint-config-prettier": "^9.1.0",

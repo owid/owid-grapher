@@ -8,7 +8,7 @@ import {
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "@ourworldindata/utils"
-import { Checkbox } from "@ourworldindata/components"
+import { Checkbox, OverlayHeader } from "@ourworldindata/components"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
@@ -20,7 +20,6 @@ import {
 } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
-import { OverlayHeader } from "../core/OverlayHeader.js"
 
 export interface DownloadModalManager {
     displaySlug: string

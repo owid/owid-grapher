@@ -60,10 +60,10 @@ export const isContinentsVariableId = (id: string | number): boolean =>
 
 // ETL paths are composed of channel/namespace/version/dataset/table#columnname
 // We want to identify the any version of these two columns (added whitespaces for readability):
-// grapher / demography / ANY VERSION / population # population
-// grapher / demography / ANY VERSION / population # population_historical
+// grapher / demography / ANY VERSION / population / population # population
+// grapher / demography / ANY VERSION / population / historical # population_historical
 const population_regex =
-    /^grapher\/demography\/[\d-]+\/population\/population#population(_historical)?$/
+    /^grapher\/demography\/[\d-]+\/population\/(population#population|historical#population_historical)$/
 
 export const isPopulationVariableETLPath = (path: string): boolean => {
     return population_regex.test(path)
