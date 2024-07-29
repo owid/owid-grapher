@@ -90,7 +90,7 @@ import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import {
     getAndLoadGdocBySlug,
     getAndLoadGdocById,
-    getAndLoadPublishedDataInsights,
+    getAndLoadPublishedDataInsightsPage,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerBaker.js"
 import { AttachmentsContext } from "../site/gdocs/OwidGdoc.js"
@@ -366,7 +366,7 @@ export async function makeAtomFeed(knex: KnexReadWriteTransaction) {
 }
 
 export async function makeDataInsightsAtomFeed(knex: KnexReadWriteTransaction) {
-    const dataInsights = await getAndLoadPublishedDataInsights(knex, 0)
+    const dataInsights = await getAndLoadPublishedDataInsightsPage(knex, 0)
     return makeAtomFeedFromDataInsights({
         dataInsights,
         htmlUrl: `${BAKED_BASE_URL}/data-insights`,

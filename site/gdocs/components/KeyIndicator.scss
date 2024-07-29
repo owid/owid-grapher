@@ -1,7 +1,9 @@
 .key-indicator {
     --padding: var(--grid-gap, 24px);
 
-    background-color: $blue-5;
+    @include sm-up {
+        background-color: $blue-5;
+    }
 
     margin: 24px calc(-1 * var(--padding));
     padding: var(--padding);

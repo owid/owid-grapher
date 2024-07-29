@@ -224,6 +224,8 @@ export { dayjs }
 export type {
     Dayjs,
     customParseFormatType,
+    isTodayType,
+    isYesterdayType,
     relativeTimeType,
     utcType,
 } from "./dayjs.js"

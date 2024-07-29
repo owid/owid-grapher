@@ -3,33 +3,43 @@ import {
     OwidGdocErrorMessageType,
     OwidGdocDataInsightContent,
     OwidGdocDataInsightInterface,
-    MinimalDataInsightInterface,
     OwidGdocMinimalPostInterface,
     OwidGdocBaseInterface,
     excludeNullish,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import * as db from "../../../db/db.js"
-import { getAndLoadPublishedDataInsights } from "./GdocFactory.js"
+import {
+    getAndLoadPublishedDataInsights,
+    getAndLoadPublishedDataInsightsPage,
+} from "./GdocFactory.js"
 
 export class GdocDataInsight
     extends GdocBase
     implements OwidGdocDataInsightInterface
 {
     content!: OwidGdocDataInsightContent
+    private shouldLoadLatestDataInsights: boolean
 
-    constructor(id?: string) {
+    constructor(id?: string, shouldLoadLatestDataInsights: boolean = false) {
         super(id)
+        this.shouldLoadLatestDataInsights = shouldLoadLatestDataInsights
     }
 
-    static create(obj: OwidGdocBaseInterface): GdocDataInsight {
-        const gdoc = new GdocDataInsight()
+    static create(
+        obj: OwidGdocBaseInterface,
+        shouldLoadLatestDataInsights: boolean = false
+    ): GdocDataInsight {
+        const gdoc = new GdocDataInsight(
+            undefined,
+            shouldLoadLatestDataInsights
+        )
         Object.assign(gdoc, obj)
         return gdoc
     }
 
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
-    latestDataInsights: MinimalDataInsightInterface[] = []
+    latestDataInsights: GdocDataInsight[] = []
     // TODO: support query parameters in grapher urls so we can track country selections
 
     protected typeSpecificUrls(): string[] {
@@ -49,10 +59,23 @@ export class GdocDataInsight
     }
 
     _loadSubclassAttachments = async (
-        knex: db.KnexReadonlyTransaction
+        knex: db.KnexReadWriteTransaction
     ): Promise<void> => {
         // TODO: refactor these classes to properly use knex - not going to start it now
-        this.latestDataInsights = await db.getPublishedDataInsights(knex, 5)
+        if (this.shouldLoadLatestDataInsights) {
+            this.latestDataInsights = await getAndLoadPublishedDataInsights(
+                knex,
+                {
+                    limit: 7,
+                }
+            )
+            this.imageMetadata = Object.assign(
+                this.imageMetadata,
+                ...this.latestDataInsights.map(
+                    (insight) => insight.imageMetadata
+                )
+            )
+        }
     }
 
     // TODO: this transaction is only RW because somewhere inside it we fetch images
@@ -60,6 +83,6 @@ export class GdocDataInsight
         knex: db.KnexReadWriteTransaction,
         page?: number
     ): Promise<GdocDataInsight[]> {
-        return getAndLoadPublishedDataInsights(knex, page)
+        return getAndLoadPublishedDataInsightsPage(knex, page)
     }
 }

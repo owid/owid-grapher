@@ -1,69 +1,231 @@
-.latest-data-insights-block {
-    background-color: $blue-5;
-    padding: 24px 0;
-    @include sm-only {
-        margin-top: 24px;
-        background-color: #fff;
-    }
-}
-.latest-data-insights-block__header {
-    margin-bottom: 16px;
-    h2 {
-        color: $blue-90;
-        margin: 0;
-    }
-    p {
-        color: $blue-60;
-        margin: 0;
-    }
+.latest-data-insights {
+    position: relative;
+    margin-bottom: 24px;
 }
 
-.latest-data-insights-block__card-container {
+.latest-data-insights__viewport {
+    overflow: hidden;
+    // Let box-shadow of the focused card overflow the container. It would
+    // happen by default with the initial value of `overflow`, which is
+    // `visible`, but we need it to be `hidden` for the carousel. We exclude
+    // the right side to keep the content clipped correctly.
+    padding: 24px 0 24px 24px;
+    margin: -24px 0 -24px -24px;
+}
+
+html:not(.js) .latest-data-insights__viewport {
+    overflow: auto;
+}
+
+.latest-data-insights__card-container {
     display: flex;
-    overflow-x: auto;
+    gap: var(--grid-gap);
     scrollbar-width: thin;
 }
 
-.latest-data-insights-block__card {
-    min-width: 302px;
-    background-color: #fff;
-    padding: 16px;
-    align-self: start;
-    &:not(:last-child) {
-        margin-right: var(--grid-gap);
-    }
-    &:hover {
-        .latest-data-insights-block__card-title {
-            text-decoration: underline;
-        }
-    }
-    @include sm-only {
-        background-color: $blue-5;
+.latest-data-insights__card {
+    height: 322px;
+    transition:
+        opacity 0.2s ease-in-out,
+        box-shadow 0.2s ease-in-out;
+    opacity: 0.6;
+
+    @include md-down {
+        flex: 0 0 91%;
+        max-width: 330px;
+        height: 538px;
     }
 }
 
-.latest-data-insights-block__card-date {
+html:not(.js) .latest-data-insights__card,
+.latest-data-insights__card.is-snapped {
+    opacity: 1;
+}
+
+.latest-data-insights__card__data-insight {
+    display: flex;
+    gap: 16px 24px;
+    flex: 0 0 845px;
+    color: $blue-90;
+    background: $blue-20;
+    padding: 16px;
+
+    .article-block__text {
+        @include body-3-medium;
+    }
+
+    &:hover {
+        background: $accent-pale-blue;
+
+        .latest-data-insights__card-body:before {
+            background: linear-gradient(
+                180deg,
+                rgba(231, 242, 255, 0) 50%,
+                #e7f2ff 100%
+            );
+        }
+    }
+
+    @include md-down {
+        flex-direction: column;
+    }
+}
+
+.latest-data-insights__card__data-insight.is-snapped {
+    box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
+}
+
+.latest-data-insights__card__see-all {
+    padding: 257px 0;
+}
+
+.latest-data-insights__card-left {
+    display: flex;
+    flex: 1 1 410px;
+
+    @include md-down {
+        flex: initial;
+    }
+}
+
+.latest-data-insights__card-right {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 379px;
+
+    @include md-down {
+        flex: 1 1 0;
+        min-height: 0;
+    }
+}
+
+.latest-data-insights__card-body {
+    position: relative;
+    overflow: hidden;
+
+    &:before {
+        content: "";
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        background: linear-gradient(
+            180deg,
+            rgba(219, 229, 240, 0) 50%,
+            #dbe5f0 100%
+        );
+    }
+}
+.latest-data-insights__card-continue {
+    @include body-3-medium;
+
+    @include md-down {
+        display: none;
+    }
+}
+
+.latest-data-insights__card-dateline {
     margin-bottom: 4px;
     margin-top: 0;
     color: $blue-60;
+
+    &--is-today {
+        color: $vermillion;
+    }
+
+    @include md-down {
+        @include h6-black-caps;
+    }
 }
 
-.latest-data-insights-block__card .latest-data-insights-block__card-title {
+.latest-data-insights__card-date {
+    margin-left: 8px;
+
+    @include md-down {
+        margin-left: 6px;
+    }
+}
+
+.latest-data-insights__card .latest-data-insights__card-title {
+    margin: 0 0 8px 0;
+
+    @include subtitle-2-bold;
+
+    @include md-down {
+        font-size: 18px;
+    }
+}
+
+.latest-data-insights__control-button {
+    --button-size: 40px;
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: calc(50% - (var(--button-size) / 2));
+    z-index: 1;
+    width: var(--button-size);
+    height: var(--button-size);
+    padding: 0;
+    border-radius: 50%;
+
+    &--prev {
+        left: 8px;
+
+        @include xlg-up {
+            left: -60px;
+        }
+    }
+
+    &--next {
+        right: 8px;
+
+        @include xlg-up {
+            right: -60px;
+        }
+    }
+
+    @include md-down {
+        display: none;
+    }
+}
+
+.latest-data-insights__control-dots {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    height: 12px;
+    bottom: -26px;
+    z-index: 1;
+    width: 100%;
+
+    @include md-up {
+        display: none;
+    }
+}
+
+.latest-data-insights__control-dot {
+    background-color: $blue-30;
+    touch-action: manipulation;
+    display: inline-flex;
+    text-decoration: none;
+    cursor: pointer;
+    border: 0;
+    padding: 0;
     margin: 0;
-    color: $blue-90;
-}
+    width: 8px;
+    height: 8px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease-in-out;
 
-.latest-data-insights-block__see-all-data-insights-button {
-    justify-self: end;
-    align-self: center;
-    // necessary to be centered with heading
-    margin-bottom: 16px;
-
-    @include sm-only {
-        margin-top: 16px;
-        margin-bottom: 0;
-        justify-self: unset;
-        text-align: center;
-        order: 2;
+    &--selected {
+        background-color: $blue-65;
+        width: 12px;
+        height: 12px;
     }
 }

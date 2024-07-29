@@ -1,0 +1,36 @@
+.latest-data-insights-block {
+    padding-top: 24px;
+
+    @include sm-only {
+        margin-top: 24px;
+    }
+}
+
+.latest-data-insights-block__header {
+    margin-bottom: 16px;
+
+    h2 {
+        color: $blue-90;
+        margin: 0;
+
+        @include sm-only {
+            font-size: 1.5rem;
+        }
+    }
+
+    p {
+        color: $blue-60;
+        margin: 0;
+    }
+}
+
+.latest-data-insights-block__see-all-data-insights-button {
+    justify-self: end;
+    align-self: center;
+    // necessary to be centered with heading
+    margin-bottom: 16px;
+
+    @include sm-only {
+        display: none;
+    }
+}

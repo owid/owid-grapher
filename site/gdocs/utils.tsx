@@ -176,25 +176,40 @@ const LinkedA = ({ span }: { span: SpanLink }): React.ReactElement => {
 
 export function renderSpan(
     span: Span,
-    key: React.Key | null | undefined = undefined
+    key: React.Key | null | undefined = undefined,
+    shouldRenderLinks: boolean = true
 ): React.ReactElement {
     return match(span)
         .with({ spanType: "span-simple-text" }, (span) => (
             <span key={key}>{span.text}</span>
         ))
-        .with({ spanType: "span-link" }, (span) => (
-            <LinkedA span={span} key={key} />
-        ))
-        .with({ spanType: "span-ref" }, (span) => (
-            <a key={key} href={span.url} className="ref">
-                {renderSpans(span.children)}
-            </a>
-        ))
-        .with({ spanType: "span-dod" }, (span) => (
-            <span key={key}>
-                <a data-id={`${span.id}`} className="dod-span">
+        .with({ spanType: "span-link" }, (span) =>
+            shouldRenderLinks ? (
+                <LinkedA span={span} key={key} />
+            ) : (
+                <span key={key}>{renderSpans(span.children)}</span>
+            )
+        )
+        .with({ spanType: "span-ref" }, (span) =>
+            shouldRenderLinks ? (
+                <a key={key} href={span.url} className="ref">
                     {renderSpans(span.children)}
                 </a>
+            ) : (
+                <span key={key} className="ref">
+                    {renderSpans(span.children)}
+                </span>
+            )
+        )
+        .with({ spanType: "span-dod" }, (span) => (
+            <span key={key}>
+                {shouldRenderLinks ? (
+                    <a data-id={`${span.id}`} className="dod-span">
+                        {renderSpans(span.children)}
+                    </a>
+                ) : (
+                    <span>{renderSpans(span.children)}</span>
+                )}
             </span>
         ))
         .with({ spanType: "span-newline" }, () => <br key={key} />)
@@ -222,8 +237,13 @@ export function renderSpan(
         .exhaustive()
 }
 
-export function renderSpans(spans: Span[]): React.ReactElement[] {
-    return spans.map(renderSpan)
+export function renderSpans(
+    spans: Span[],
+    shouldRenderLinks: boolean = true
+): React.ReactElement[] {
+    return spans.map((span, index) =>
+        renderSpan(span, index, shouldRenderLinks)
+    )
 }
 
 export function getShortPageCitation(
@@ -239,6 +259,6 @@ export function getShortPageCitation(
 export const DATA_INSIGHTS_ATOM_FEED_NAME = "atom-data-insights.xml"
 
 export const DATA_INSIGHT_ATOM_FEED_PROPS = {
-    title: "Atom feed for Data Insights",
+    title: "Atom feed for Daily Data Insights",
     href: `https://ourworldindata.org/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
 }

@@ -40,7 +40,7 @@ import KeyIndicatorCollection from "./KeyIndicatorCollection.js"
 import { PillRow } from "./PillRow.js"
 import { HomepageIntro } from "./HomepageIntro.js"
 import { HomepageSearch } from "./HomepageSearch.js"
-import { LatestDataInsightsBlock } from "./LatestDataInsights.js"
+import LatestDataInsightsBlock from "./LatestDataInsightsBlock.js"
 import { Socials } from "./Socials.js"
 
 export type Container =
@@ -176,10 +176,12 @@ export default function ArticleBlock({
     b: block,
     containerType = "default",
     toc,
+    shouldRenderLinks = true,
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
     toc?: TocHeadingWithTitleSupertitle[]
+    shouldRenderLinks?: boolean
 }) {
     block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
     if (block.parseErrors.filter(({ isWarning }) => !isWarning).length > 0) {
@@ -202,7 +204,9 @@ export default function ArticleBlock({
                 )}
             >
                 {caption ? (
-                    <figcaption>{renderSpans(caption)}</figcaption>
+                    <figcaption>
+                        {renderSpans(caption, shouldRenderLinks)}
+                    </figcaption>
                 ) : null}
             </figure>
         ))
@@ -265,7 +269,7 @@ export default function ArticleBlock({
                     <figcaption
                         className={getLayout("image-caption", containerType)}
                     >
-                        {renderSpans(block.caption)}
+                        {renderSpans(block.caption, shouldRenderLinks)}
                     </figcaption>
                 ) : null}
             </figure>
@@ -303,6 +307,7 @@ export default function ArticleBlock({
                 <Paragraph
                     d={block}
                     className={getLayout("text", containerType)}
+                    shouldRenderLinks={shouldRenderLinks}
                 />
             )
         })
@@ -317,11 +322,13 @@ export default function ArticleBlock({
                 )}
                 id={convertHeadingTextToId(block.text)}
             >
-                {renderSpans(block.text)}
-                <a
-                    className="deep-link"
-                    href={`#${convertHeadingTextToId(block.text)}`}
-                />
+                {renderSpans(block.text, shouldRenderLinks)}
+                {shouldRenderLinks && (
+                    <a
+                        className="deep-link"
+                        href={`#${convertHeadingTextToId(block.text)}`}
+                    />
+                )}
             </h1>
         ))
         .with({ type: "heading", level: 2 }, (block) => {
@@ -354,11 +361,13 @@ export default function ArticleBlock({
                     >
                         {supertitle ? (
                             <div className="article-block__heading-supertitle overline-black-caps">
-                                {renderSpans(supertitle)}
+                                {renderSpans(supertitle, shouldRenderLinks)}
                             </div>
                         ) : null}
                         {renderSpans(text)}
-                        <a className="deep-link" href={`#${id}`} />
+                        {shouldRenderLinks && (
+                            <a className="deep-link" href={`#${id}`} />
+                        )}
                     </h2>
                 </>
             )
@@ -390,8 +399,10 @@ export default function ArticleBlock({
                             {renderSpans(supertitle)}
                         </div>
                     ) : null}
-                    {renderSpans(text)}
-                    <a className="deep-link" href={`#${id}`} />
+                    {renderSpans(text, shouldRenderLinks)}
+                    {shouldRenderLinks && (
+                        <a className="deep-link" href={`#${id}`} />
+                    )}
                 </h3>
             )
         })
@@ -403,7 +414,7 @@ export default function ArticleBlock({
                 )}
                 id={convertHeadingTextToId(block.text)}
             >
-                {renderSpans(block.text)}
+                {renderSpans(block.text, shouldRenderLinks)}
             </h4>
         ))
         .with({ type: "heading", level: 5 }, (block) => (
@@ -414,7 +425,7 @@ export default function ArticleBlock({
                 )}
                 id={convertHeadingTextToId(block.text)}
             >
-                {renderSpans(block.text)}
+                {renderSpans(block.text, shouldRenderLinks)}
             </h5>
         ))
         .with(
@@ -668,6 +679,7 @@ export default function ArticleBlock({
                             className="article-block__text"
                             d={textBlock}
                             key={i}
+                            shouldRenderLinks={shouldRenderLinks}
                         />
                     ))}
 
