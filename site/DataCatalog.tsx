@@ -1,22 +1,13 @@
 import React, { useEffect, useState } from "react"
 import ReactDOM from "react-dom"
-import {
-    excludeNullish,
-    identity,
-    isArray,
-    TagGraphNode,
-    TagGraphRoot,
-} from "@ourworldindata/utils"
+import { get, isArray, TagGraphNode, TagGraphRoot } from "@ourworldindata/utils"
 import {
     Configure,
     Hits,
     Index,
     InstantSearch,
-    RefinementList,
     SearchBox,
-    useConfigure,
     useInstantSearch,
-    useRefinementList,
 } from "react-instantsearch"
 import algoliasearch from "algoliasearch"
 import {
@@ -26,7 +17,13 @@ import {
 } from "../settings/clientSettings.js"
 import { SearchIndexName } from "./search/searchTypes.js"
 import { getIndexName } from "./search/searchClient.js"
-import { UiState } from "instantsearch.js"
+import { ScopedResult, UiState } from "instantsearch.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import {
+    faArrowRight,
+    faChevronRight,
+    faClose,
+} from "@fortawesome/free-solid-svg-icons"
 
 const ChartHit = ({ hit }: { hit: any }) => {
     return (
@@ -47,11 +44,12 @@ const ChartHit = ({ hit }: { hit: any }) => {
 
 const DataCatalogRibbon = ({
     tagName,
-    setGlobalFacetFilters,
+    addGlobalFacetFilter,
 }: {
     tagName: string
-    setGlobalFacetFilters: (facetFilters: string[]) => void
+    addGlobalFacetFilter: (x: string) => void
 }) => {
+    const { scopedResults } = useInstantSearch()
     return (
         <Index indexName={getIndexName(SearchIndexName.Charts)}>
             <Configure facetFilters={[`tags:${tagName}`]} hitsPerPage={4} />
@@ -62,10 +60,13 @@ const DataCatalogRibbon = ({
                         href={`/charts?topics=${tagName}`}
                         onClick={(e) => {
                             e.preventDefault()
-                            setGlobalFacetFilters([`tags:${tagName}`])
+                            addGlobalFacetFilter(tagName)
                         }}
                     >
-                        See all charts {">"}
+                        <span className="data-catalog-ribbon__hit-count body-2-semibold">
+                            {getNbHitsForTag(tagName, scopedResults)} indicators
+                            <FontAwesomeIcon icon={faArrowRight} />
+                        </span>
                     </a>
                 </div>
                 <Hits
@@ -81,24 +82,30 @@ const DataCatalogRibbon = ({
     )
 }
 
-const DataCatalogRibbonView = ({
-    tagGraph,
-    tagToShow,
-    setGlobalFacetFilters,
-}: {
-    tagGraph: TagGraphRoot
-    tagToShow: string | undefined
-    setGlobalFacetFilters: (facetFilters: string[]) => void
-}) => {
+function getAreaChildrenFromTag(
+    tagGraph: TagGraphRoot,
+    tag: string | undefined
+) {
     const areas: TagGraphNode[] = []
-    if (tagToShow) {
-        const tagNode = tagGraph.children.find(
-            (child) => child.name === tagToShow
-        )
+    if (tag) {
+        const tagNode = tagGraph.children.find((child) => child.name === tag)
         if (tagNode) areas.push(...tagNode.children)
     } else {
         areas.push(...tagGraph.children)
     }
+    return areas
+}
+
+const DataCatalogRibbonView = ({
+    tagGraph,
+    tagToShow,
+    addGlobalFacetFilter,
+}: {
+    tagGraph: TagGraphRoot
+    tagToShow: string | undefined
+    addGlobalFacetFilter: (x: string) => void
+}) => {
+    const areas = getAreaChildrenFromTag(tagGraph, tagToShow)
 
     return (
         <div className="span-cols-12 col-start-2">
@@ -106,14 +113,14 @@ const DataCatalogRibbonView = ({
                 <DataCatalogRibbon
                     tagName={area.name}
                     key={area.name}
-                    setGlobalFacetFilters={setGlobalFacetFilters}
+                    addGlobalFacetFilter={addGlobalFacetFilter}
                 />
             ))}
         </div>
     )
 }
 
-// "Energy and Environment, Air Pollution" => ["tags:Energy and Environment", "tags:Air Pollution"]
+// "Energy and Environment, Air Pollution" => ["Energy and Environment", "Air Pollution"]
 // Currently unclear why this seems to work even though I thought it should be string[][]
 function transformRouteTopicsToFacetFilters(
     topics: string | undefined
@@ -151,45 +158,44 @@ function checkIfNoFacetsOrOneAreaFacetApplied(
     return areas.includes(tag)
 }
 
+function checkShouldShowRibbonView(
+    query: string | undefined,
+    facetFilters: string[],
+    areas: string[]
+) {
+    return !query && checkIfNoFacetsOrOneAreaFacetApplied(facetFilters, areas)
+}
+
 const DataCatalogResults = ({
     tagGraph,
-    setGlobalFacetFilters,
+    addGlobalFacetFilter,
 }: {
     tagGraph: TagGraphRoot
-    setGlobalFacetFilters: (facetFilters: string[]) => void
+    addGlobalFacetFilter: (tag: string) => void
 }) => {
     const { uiState } = useInstantSearch()
     const genericState = uiState[""]
     const query = genericState.query
     const facetFilters = parseFacetFilters(genericState.configure?.facetFilters)
     const areaNames = tagGraph.children.map((child) => child.name)
-    const shouldShowRibbons =
-        !query && checkIfNoFacetsOrOneAreaFacetApplied(facetFilters, areaNames)
+
+    const shouldShowRibbons = checkShouldShowRibbonView(
+        query,
+        facetFilters,
+        areaNames
+    )
 
     if (shouldShowRibbons)
         return (
             <DataCatalogRibbonView
                 tagGraph={tagGraph}
                 tagToShow={facetFilters[0]}
-                setGlobalFacetFilters={setGlobalFacetFilters}
+                addGlobalFacetFilter={addGlobalFacetFilter}
             />
         )
 
     return (
         <Index indexName={getIndexName(SearchIndexName.Charts)}>
-            {/* <Configure hitsPerPage={2} /> */}
-            {/* <RefinementList
-                attribute="tags"
-                className="data-catalog-facets span-cols-12 col-start-2"
-                classNames={{
-                    list: "data-catalog-facets-list",
-                    item: "data-catalog-facets-list-item",
-                    label: "data-catalog-facets-list-item__label",
-                    labelText: "data-catalog-facets-list-item__label-text",
-                    count: "data-catalog-facets-list-item__count",
-                    checkbox: "data-catalog-facets-list-item__checkbox",
-                }}
-            /> */}
             <Hits
                 classNames={{
                     root: "data-catalog-search-hits span-cols-12 col-start-2",
@@ -208,42 +214,131 @@ const DataCatalogResults = ({
     )
 }
 
-const TopicsRefinementList = () => {
-    const configure = useConfigure({})
+function getNbHitsForTag(tag: string, results: ScopedResult[]) {
+    const result = results.find((r) =>
+        // for some reason I can only find facetFilters in the internal _state object
+        parseFacetFilters(get(r, "results._state.facetFilters")).includes(tag)
+    )
+    return result ? result.results.nbHits : undefined
+}
+
+const TopicsRefinementList = ({
+    tagGraph,
+    addGlobalFacetFilter,
+    removeGlobalFacetFilter,
+}: {
+    tagGraph: TagGraphRoot
+    addGlobalFacetFilter: (tag: string) => void
+    removeGlobalFacetFilter: (tag: string) => void
+}) => {
+    const { uiState, scopedResults } = useInstantSearch()
+    const genericState = uiState[""]
+    const areaNames = tagGraph.children.map((child) => child.name)
+    const facetFilters = parseFacetFilters(genericState.configure?.facetFilters)
+    const isShowingRibbons = checkShouldShowRibbonView(
+        genericState.query,
+        facetFilters,
+        areaNames
+    )
+
+    const appliedFiltersSection = (
+        <ul className="span-cols-12 col-start-2 data-catalog-applied-filters-list">
+            {facetFilters.map((facetFilter) => (
+                <li
+                    key={facetFilter}
+                    className="data-catalog-applied-filters-item"
+                >
+                    <button
+                        className="data-catalog-applied-filters-button body-3-medium"
+                        onClick={() => {
+                            removeGlobalFacetFilter(facetFilter)
+                        }}
+                    >
+                        {facetFilter}
+                        <FontAwesomeIcon icon={faClose} />
+                    </button>
+                </li>
+            ))}
+        </ul>
+    )
+    if (isShowingRibbons) {
+        const areas = getAreaChildrenFromTag(tagGraph, facetFilters[0])
+        return (
+            <React.Fragment>
+                {appliedFiltersSection}
+                <ul className="span-cols-12 col-start-2 data-catalog-facets-list">
+                    {areas.map((area, i) => {
+                        const isLast = i === areas.length - 1
+                        return (
+                            <React.Fragment key={area.name}>
+                                <li
+                                    key={area.name}
+                                    className="data-catalog-facets-list-item"
+                                    tabIndex={0}
+                                    onClick={() => {
+                                        addGlobalFacetFilter(area.name)
+                                    }}
+                                >
+                                    <span>{area.name}</span>
+                                    <span className="data-catalog-facets-list-item__hit-count">
+                                        (
+                                        {getNbHitsForTag(
+                                            area.name,
+                                            scopedResults
+                                        )}
+                                        )
+                                    </span>
+                                </li>
+                                {!isLast ? (
+                                    <li
+                                        className="data-catalog-facets-list-separator"
+                                        // including an empty space so that the list has spaces in it when copied to clipboard
+                                    >
+                                        {" "}
+                                    </li>
+                                ) : null}
+                            </React.Fragment>
+                        )
+                    })}
+                </ul>
+            </React.Fragment>
+        )
+    }
     return (
-        <div className="span-cols-12 col-start-2">
-            <button
-                onClick={() => {
-                    configure.refine({
-                        hitsPerPage: 4,
-                    })
-                }}
-            >
-                4 hits
-            </button>
-            <button
-                onClick={() => {
-                    configure.refine({
-                        facetFilters: ["tags:Artificial Intelligence"],
-                    })
-                }}
-            >
-                AI
-            </button>
-        </div>
+        <div className="span-cols-12 col-start-2">{appliedFiltersSection}</div>
     )
 }
 
 export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
     const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+    // globalFacetFilters apply to all indexes, unless they're overridden by a nested Configure component.
+    // They're only relevant when we're not showing the ribbon view (because each ribbon has its own Configure.)
+    // They're stored as ["Energy", "Air Pollution"] which is easier to work with in other components,
+    // then are formatted into [["tags:Energy"], ["tags:Air Pollution"]] to be used in this component's Configure.
     const [globalFacetFilters, setGlobalFacetFilters] = useState<
         string[] | undefined
     >()
+    function addGlobalFacetFilter(tag: string) {
+        setGlobalFacetFilters((prev) => {
+            if (!prev) return [tag]
+            if (prev.includes(tag)) return prev
+            return prev.concat(tag)
+        })
+    }
+    function removeGlobalFacetFilter(tag: string) {
+        setGlobalFacetFilters((prev) => {
+            if (!prev) return []
+            return prev.filter((t) => t !== tag)
+        })
+    }
+    const formattedGlobalFacetFilters = globalFacetFilters?.map((f) => [
+        `tags:${f}`,
+    ])
     useEffect(() => {
         const handlePopState = () => {
             const urlParams = new URLSearchParams(window.location.search)
             const topics = urlParams.get("topics") || ""
-            setGlobalFacetFilters(transformRouteTopicsToFacetFilters(topics))
+            setGlobalFacetFilters(topics ? topics.split(",") : undefined)
         }
         window.addEventListener("popstate", handlePopState)
         handlePopState()
@@ -287,7 +382,7 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                 },
             }}
         >
-            <Configure facetFilters={globalFacetFilters} />
+            <Configure facetFilters={formattedGlobalFacetFilters} />
             <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
                 <header className="data-catalog-heading span-cols-12 col-start-2">
                     <h1 className="h1-semibold">Data Catalog</h1>
@@ -306,9 +401,14 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                     className="span-cols-12 col-start-2"
                 />
             </div>
+            <TopicsRefinementList
+                tagGraph={props.tagGraph}
+                addGlobalFacetFilter={addGlobalFacetFilter}
+                removeGlobalFacetFilter={removeGlobalFacetFilter}
+            />
             <DataCatalogResults
                 tagGraph={props.tagGraph}
-                setGlobalFacetFilters={setGlobalFacetFilters}
+                addGlobalFacetFilter={addGlobalFacetFilter}
             />
         </InstantSearch>
     )
