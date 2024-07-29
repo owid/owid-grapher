@@ -13,14 +13,17 @@ import {
 } from "./ArchieMlComponents.js"
 import { DbChartTagJoin } from "../dbTypes/ChartTags.js"
 import { MinimalTag } from "../dbTypes/Tags.js"
-import {
-    DbEnrichedAuthor,
-    DbEnrichedLatestWork,
-} from "../domainTypes/Author.js"
+import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
     listed = "listed",
+}
+
+export interface LinkedAuthor {
+    name: string
+    slug: string
+    featuredImage: string | null
 }
 
 // A minimal object containing metadata needed for rendering prominent links etc in the client
@@ -70,7 +73,7 @@ export interface OwidGdocBaseInterface {
     revisionId: string | null
     publicationContext: OwidGdocPublicationContext
     breadcrumbs: BreadcrumbItem[] | null
-    linkedAuthors?: DbEnrichedAuthor[]
+    linkedAuthors?: LinkedAuthor[]
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     linkedCharts?: Record<string, LinkedChart>
     linkedIndicators?: Record<number, LinkedIndicator>

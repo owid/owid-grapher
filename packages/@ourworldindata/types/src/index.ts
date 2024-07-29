@@ -293,6 +293,7 @@ export {
     type DetailDictionary,
     GdocsContentSource,
     type OwidArticleBackportingStatistics,
+    type LinkedAuthor,
     type LinkedChart,
     OwidGdocLinkType,
     type LinkedIndicator,
@@ -643,8 +644,6 @@ export { RedirectCode, type DbPlainRedirect } from "./dbTypes/Redirects.js"
 export type { Nominal } from "./NominalType.js"
 
 export {
-    type DbRawAuthor,
-    type DbEnrichedAuthor,
     type DbRawLatestWork,
     type DbEnrichedLatestWork,
     parseLatestWork,

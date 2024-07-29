@@ -1,7 +1,6 @@
 import cx from "classnames"
 import {
     OwidGdocDataInsightInterface,
-    formatAuthors,
     copyToClipboard,
     MinimalTag,
 } from "@ourworldindata/utils"
@@ -14,6 +13,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
+import LinkedAuthor from "../components/LinkedAuthor.js"
 import DataInsightDateline from "../components/DataInsightDateline.js"
 import LatestDataInsights, {
     LatestDataInsight,
@@ -143,7 +143,14 @@ export const DataInsightBody = (
                 />
                 <h1 className="display-3-semibold">{props.content.title}</h1>
                 <div className="data-insight-authors body-3-medium">
-                    {formatAuthors({ authors: props.content.authors })}
+                    {props.content.authors.map((author, index) => (
+                        <LinkedAuthor
+                            className="data-insight-author"
+                            key={index}
+                            name={author}
+                            includeImage={true}
+                        />
+                    ))}
                 </div>
                 <div className="data-insight-blocks">
                     <ArticleBlocks blocks={props.content.body} />

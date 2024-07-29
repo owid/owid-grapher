@@ -33,6 +33,7 @@ const gridSpan8 = generateResponsiveSizes(8)
 
 export type ImageParentContainer =
     | Exclude<Container, "sticky-right-left-heading-column">
+    | "author-byline"
     | "thumbnail"
     | "full-width"
     | "span-5"
@@ -52,6 +53,7 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["datapage"]: gridSpan6,
     ["full-width"]: "100vw",
     ["key-insight"]: gridSpan5,
+    ["author-byline"]: "48px",
     ["author-header"]: gridSpan2,
     ["span-5"]: gridSpan5,
     ["span-6"]: gridSpan6,
