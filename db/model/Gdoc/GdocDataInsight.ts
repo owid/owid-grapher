@@ -6,12 +6,13 @@ import {
     OwidGdocMinimalPostInterface,
     OwidGdocBaseInterface,
     excludeNullish,
+    LatestDataInsight,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import * as db from "../../../db/db.js"
 import {
-    getAndLoadPublishedDataInsights,
     getAndLoadPublishedDataInsightsPage,
+    getLatestDataInsights,
 } from "./GdocFactory.js"
 
 export class GdocDataInsight
@@ -19,27 +20,19 @@ export class GdocDataInsight
     implements OwidGdocDataInsightInterface
 {
     content!: OwidGdocDataInsightContent
-    private shouldLoadLatestDataInsights: boolean
 
-    constructor(id?: string, shouldLoadLatestDataInsights: boolean = false) {
+    constructor(id?: string) {
         super(id)
-        this.shouldLoadLatestDataInsights = shouldLoadLatestDataInsights
     }
 
-    static create(
-        obj: OwidGdocBaseInterface,
-        shouldLoadLatestDataInsights: boolean = false
-    ): GdocDataInsight {
-        const gdoc = new GdocDataInsight(
-            undefined,
-            shouldLoadLatestDataInsights
-        )
+    static create(obj: OwidGdocBaseInterface): GdocDataInsight {
+        const gdoc = new GdocDataInsight(undefined)
         Object.assign(gdoc, obj)
         return gdoc
     }
 
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
-    latestDataInsights: GdocDataInsight[] = []
+    latestDataInsights: LatestDataInsight[] = []
     // TODO: support query parameters in grapher urls so we can track country selections
 
     protected typeSpecificUrls(): string[] {
@@ -62,20 +55,10 @@ export class GdocDataInsight
         knex: db.KnexReadWriteTransaction
     ): Promise<void> => {
         // TODO: refactor these classes to properly use knex - not going to start it now
-        if (this.shouldLoadLatestDataInsights) {
-            this.latestDataInsights = await getAndLoadPublishedDataInsights(
-                knex,
-                {
-                    limit: 7,
-                }
-            )
-            this.imageMetadata = Object.assign(
-                this.imageMetadata,
-                ...this.latestDataInsights.map(
-                    (insight) => insight.imageMetadata
-                )
-            )
-        }
+        const { dataInsights, imageMetadata } =
+            await getLatestDataInsights(knex)
+        this.latestDataInsights = dataInsights
+        this.imageMetadata = Object.assign(this.imageMetadata, imageMetadata)
     }
 
     // TODO: this transaction is only RW because somewhere inside it we fetch images

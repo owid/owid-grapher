@@ -1,5 +1,6 @@
 import cx from "classnames"
 import {
+    LatestDataInsight,
     OwidGdocDataInsightInterface,
     copyToClipboard,
     MinimalTag,
@@ -15,9 +16,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import LinkedAuthor from "../components/LinkedAuthor.js"
 import DataInsightDateline from "../components/DataInsightDateline.js"
-import LatestDataInsights, {
-    LatestDataInsight,
-} from "../components/LatestDataInsights.js"
+import LatestDataInsights from "../components/LatestDataInsights.js"
 import { AttachmentsContext } from "../OwidGdoc.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import DataInsightsNewsletterBanner from "../../DataInsightsNewsletterBanner.js"

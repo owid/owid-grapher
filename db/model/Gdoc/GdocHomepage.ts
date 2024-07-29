@@ -13,7 +13,7 @@ import {
     OwidGdocHomepageMetadata,
 } from "@ourworldindata/types"
 import { getUniqueTopicCount } from "../../../site/SiteNavigation.js"
-import { getAndLoadPublishedDataInsights } from "./GdocFactory.js"
+import { getLatestDataInsights } from "./GdocFactory.js"
 
 export class GdocHomepage
     extends GdocBase
@@ -72,12 +72,9 @@ export class GdocHomepage
             topicCount: getUniqueTopicCount(),
         }
 
-        this.latestDataInsights = await getAndLoadPublishedDataInsights(knex, {
-            limit: 7,
-        })
-        this.imageMetadata = Object.assign(
-            this.imageMetadata,
-            ...this.latestDataInsights.map((insight) => insight.imageMetadata)
-        )
+        const { dataInsights, imageMetadata } =
+            await getLatestDataInsights(knex)
+        this.latestDataInsights = dataInsights
+        this.imageMetadata = Object.assign(this.imageMetadata, imageMetadata)
     }
 }

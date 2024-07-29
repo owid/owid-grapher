@@ -23,16 +23,12 @@ import { Button } from "@ourworldindata/components"
 import {
     EnrichedBlockImage,
     OwidEnrichedGdocBlock,
-    OwidGdocDataInsightInterface,
+    LatestDataInsight,
 } from "@ourworldindata/utils"
 import { dataInsightIndexToIdMap } from "../pages/DataInsight.js"
 import Image from "./Image.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import DataInsightDateline from "./DataInsightDateline.js"
-
-export interface LatestDataInsight extends OwidGdocDataInsightInterface {
-    index?: number
-}
 
 export default function LatestDataInsights({
     className,

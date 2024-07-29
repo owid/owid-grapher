@@ -293,6 +293,7 @@ export {
     type DetailDictionary,
     GdocsContentSource,
     type OwidArticleBackportingStatistics,
+    type LatestDataInsight,
     type LinkedAuthor,
     type LinkedChart,
     OwidGdocLinkType,
