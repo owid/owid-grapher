@@ -91,6 +91,16 @@
     }
 }
 
+.data-catalog-search-hits {
+    margin-bottom: 24px;
+}
+
+.data-catalog-search-hits--is-loading,
+.data-catalog-ribbons--is-loading,
+.data-catalog-facets-list--is-loading {
+    display: none;
+}
+
 .data-catalog-ribbon {
     background-color: $blue-5;
     padding: 24px;
@@ -147,4 +157,13 @@
             text-decoration: underline;
         }
     }
+}
+
+.data-catalog-loading-spinner {
+    min-height: 100vh;
+}
+
+.data-catalog-loading-spinner__spinner {
+    width: 100px;
+    height: 100px;
 }
