@@ -55,8 +55,17 @@ export const getRedirects = async (knex: db.KnexReadWriteTransaction) => {
         "/slides/* https://slides.ourworldindata.org/:splat 301",
 
         // These are needed for the Cloudflare Pages migration
+
+        // Wordpress uploads, mostly images
+        // Example: https://assets.ourworldindata.org/uploads/2022/03/Age-of-onset-depression2-01-1-800x521.png
         "/uploads/* https://assets.ourworldindata.org/uploads/:splat 301",
+
+        // Automatic static grapher exports for graphers embedded into Wordpress, taking query params such as `country=USA` into account
+        // Example: https://assets.ourworldindata.org/exports/absolute-change-co2-a847e6c96bb2640c05a8cd075949d1bb_v26_850x600.svg
         "/exports/* https://assets.ourworldindata.org/exports/:splat 301",
+
+        // Automatic static grapher exports for every grapher chart
+        // Example: https://assets.ourworldindata.org/grapher/exports/absolute-change-co2.svg
         "/grapher/exports/* https://assets.ourworldindata.org/grapher/exports/:splat 301",
     ]
 
