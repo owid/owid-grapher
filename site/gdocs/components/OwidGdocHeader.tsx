@@ -114,10 +114,10 @@ function OwidArticleHeader({
 function OwidTopicPageHeader({ content }: { content: OwidGdocPostContent }) {
     return (
         <header className="topic-page-header grid span-cols-14 grid-cols-12-full-width">
-            <h1 className="display-1-semibold col-start-2 span-cols-8">
+            <h1 className="display-1-semibold col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
                 {content.title}
             </h1>
-            <p className="topic-page-header__subtitle body-1-regular col-start-2 span-cols-8">
+            <p className="topic-page-header__subtitle body-1-regular col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
                 {content.subtitle}
             </p>
             {content.authors.length > 0 && (
