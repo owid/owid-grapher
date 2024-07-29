@@ -25,6 +25,7 @@ import { observer } from "mobx-react"
 import {
     ColorSchemeName,
     FacetStrategy,
+    MissingDataStrategy,
     SeriesName,
 } from "@ourworldindata/types"
 import {
@@ -143,6 +144,12 @@ export class StackedDiscreteBarChart
             table = table.interpolateColumnWithTolerance(slug)
         })
 
+        // If MissingDataStrategy is not explicitly set to show, drop rows (= times) where one of
+        // the y columns has no data
+        if (this.missingDataStrategy !== MissingDataStrategy.show) {
+            table = table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
+        }
+
         if (this.manager.isRelativeMode) {
             table = table.toPercentageFromEachColumnForEachEntityAndTime(
                 this.yColumnSlugs
@@ -150,6 +157,23 @@ export class StackedDiscreteBarChart
         }
 
         return table
+    }
+
+    transformTableForSelection(table: OwidTable): OwidTable {
+        table = table
+            .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+            .replaceNegativeCellsWithErrorValues(this.yColumnSlugs)
+            .dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
+
+        if (this.missingDataStrategy !== MissingDataStrategy.show) {
+            table = table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
+        }
+
+        return table
+    }
+
+    @computed private get missingDataStrategy(): MissingDataStrategy {
+        return this.manager.missingDataStrategy || MissingDataStrategy.auto
     }
 
     @computed get sortConfig(): SortConfig {
