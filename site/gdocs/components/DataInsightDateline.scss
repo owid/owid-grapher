@@ -1,0 +1,13 @@
+.data-insight-dateline {
+    margin-bottom: 4px;
+    margin-top: 0;
+    color: $blue-60;
+
+    &--is-today {
+        color: $vermillion;
+    }
+}
+
+.data-insight-dateline__icon {
+    margin-right: 4px;
+}

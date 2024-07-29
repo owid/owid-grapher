@@ -11,7 +11,6 @@ import { useMediaQuery } from "react-responsive"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faArrowRight,
-    faCalendarDay,
     faChevronRight,
     faChevronLeft,
 } from "@fortawesome/free-solid-svg-icons"
@@ -25,11 +24,11 @@ import {
     EnrichedBlockImage,
     OwidEnrichedGdocBlock,
     OwidGdocDataInsightInterface,
-    dayjs,
 } from "@ourworldindata/utils"
 import { dataInsightIndexToIdMap } from "../pages/DataInsight.js"
 import Image from "./Image.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
+import DataInsightDateline from "./DataInsightDateline.js"
 
 export interface LatestDataInsight extends OwidGdocDataInsightInterface {
     index?: number
@@ -178,7 +177,13 @@ const DataInsightCard = memo(function DataInsightCard({
                 />
             )}
             <div className="latest-data-insights__card-right">
-                {publishedAt && <Dateline publishedAt={publishedAt} />}
+                {publishedAt && (
+                    <DataInsightDateline
+                        className="latest-data-insights__card-dateline"
+                        publishedAt={publishedAt}
+                        highlightToday={true}
+                    />
+                )}
                 <h3 className="latest-data-insights__card-title">{title}</h3>
                 <div className="latest-data-insights__card-body">
                     <ArticleBlocks
@@ -199,36 +204,6 @@ const DataInsightCard = memo(function DataInsightCard({
         </a>
     )
 })
-
-function Dateline({ publishedAt }: { publishedAt: Date }) {
-    const date = dayjs(publishedAt)
-    let formattedDate
-    let className
-    if (date.isToday()) {
-        formattedDate = "Today"
-        className = "latest-data-insights__card-dateline--is-today"
-    } else if (date.isYesterday()) {
-        formattedDate = "Yesterday"
-    } else {
-        formattedDate = publishedAt.toLocaleDateString("en-US", {
-            month: "long",
-            day: "2-digit",
-        })
-    }
-    return (
-        <p
-            className={cx(
-                "latest-data-insights__card-dateline h5-black-caps",
-                className
-            )}
-        >
-            <FontAwesomeIcon icon={faCalendarDay} />
-            <span className="latest-data-insights__card-date">
-                {formattedDate}
-            </span>
-        </p>
-    )
-}
 
 function useDotButton(emblaApi: EmblaCarouselType | undefined): {
     selectedIndex: number

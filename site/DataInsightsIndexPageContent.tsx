@@ -121,7 +121,7 @@ export const DataInsightsIndexPageContent = (
                     </h2>
                     <p className="span-cols-8 col-start-4 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12 body-1-regular">
                         Bite-sized insights on how the world is changing,
-                        written by our team.
+                        published daily.
                     </p>
                 </header>
                 {dataInsights.map((dataInsight, index) => {
