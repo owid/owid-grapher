@@ -54,6 +54,9 @@
         },
         {
             "path": "./devTools/navigationTest"
+        },
+        {
+            "path": "./devTools/syncGraphersToR2"
         }
     ]
 }

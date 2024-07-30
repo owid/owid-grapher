@@ -174,10 +174,12 @@ import {
     TagGraphRoot,
     TagGraphRootName,
     TagGraphNode,
+    Nominal,
 } from "@ourworldindata/types"
 import { PointVector } from "./PointVector.js"
 import React from "react"
 import { match, P } from "ts-pattern"
+// import "crypto"
 
 export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
@@ -452,6 +454,42 @@ export const cagr = (
         (Math.pow(Math.abs(ratio), 1 / yearsElapsed) - 1) *
         100
     )
+}
+
+export type Base64String = Nominal<string, "Base64">
+export type HexString = Nominal<string, "Hex">
+
+export function base64ToBytes(base64: Base64String): Uint8Array {
+    const binString = atob(base64)
+    return Uint8Array.from(binString, (m) => {
+        const cp = m.codePointAt(0)
+        if (cp === undefined) throw new Error("Invalid base64")
+        return cp
+    })
+}
+
+export function bytesToBase64(bytes: Uint8Array): Base64String {
+    const binString = Array.from(bytes, (byte) =>
+        String.fromCodePoint(byte)
+    ).join("")
+    return btoa(binString) as Base64String
+}
+
+export function hexToBytes(hex: string): Uint8Array {
+    if (hex.length % 2 !== 0) throw new Error("Invalid hex")
+    const bytes = new Uint8Array(hex.length / 2)
+    for (let i = 0; i < hex.length; i += 2) {
+        const parsed = parseInt(hex.slice(i, i + 2), 16)
+        if (isNaN(parsed)) throw new Error("Invalid hex")
+        bytes[i / 2] = parsed
+    }
+    return bytes
+}
+
+export function bytesToHex(bytes: Uint8Array): HexString {
+    return Array.from(bytes)
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join("") as HexString
 }
 
 export const makeAnnotationsSlug = (columnSlug: string): string =>
