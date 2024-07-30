@@ -154,22 +154,20 @@ export const IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH: string =
         IMAGE_HOSTING_R2_BUCKET_PATH.indexOf("/") + 1
     )
 // extract R2 credentials from rclone config as defaults
-export const IMAGE_HOSTING_R2_ENDPOINT: string =
-    serverSettings.IMAGE_HOSTING_R2_ENDPOINT ||
+export const R2_ENDPOINT: string =
+    serverSettings.R2_ENDPOINT ||
     rcloneConfig["owid-r2"]?.endpoint ||
     "https://078fcdfed9955087315dd86792e71a7e.r2.cloudflarestorage.com"
-export const IMAGE_HOSTING_R2_ACCESS_KEY_ID: string =
-    serverSettings.IMAGE_HOSTING_R2_ACCESS_KEY_ID ||
+export const R2_ACCESS_KEY_ID: string =
+    serverSettings.R2_ACCESS_KEY_ID ||
     rcloneConfig["owid-r2"]?.access_key_id ||
     ""
-export const IMAGE_HOSTING_R2_SECRET_ACCESS_KEY: string =
-    serverSettings.IMAGE_HOSTING_R2_SECRET_ACCESS_KEY ||
+export const R2_SECRET_ACCESS_KEY: string =
+    serverSettings.R2_SECRET_ACCESS_KEY ||
     rcloneConfig["owid-r2"]?.secret_access_key ||
     ""
-export const IMAGE_HOSTING_R2_REGION: string =
-    serverSettings.IMAGE_HOSTING_R2_REGION ||
-    rcloneConfig["owid-r2"]?.region ||
-    "auto"
+export const R2_REGION: string =
+    serverSettings.R2_REGION || rcloneConfig["owid-r2"]?.region || "auto"
 
 export const DATA_API_URL: string = clientSettings.DATA_API_URL
 

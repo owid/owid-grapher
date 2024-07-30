@@ -21,10 +21,10 @@ import {
 } from "@ourworldindata/utils"
 import { OwidGoogleAuth } from "../OwidGoogleAuth.js"
 import {
-    IMAGE_HOSTING_R2_ENDPOINT,
-    IMAGE_HOSTING_R2_ACCESS_KEY_ID,
-    IMAGE_HOSTING_R2_SECRET_ACCESS_KEY,
-    IMAGE_HOSTING_R2_REGION,
+    R2_ENDPOINT,
+    R2_ACCESS_KEY_ID,
+    R2_SECRET_ACCESS_KEY,
+    R2_REGION,
     IMAGE_HOSTING_R2_BUCKET_PATH,
     GDOCS_CLIENT_EMAIL,
     GDOCS_SHARED_DRIVE_ID,
@@ -139,12 +139,12 @@ class ImageStore {
 export const imageStore = new ImageStore()
 
 export const s3Client = new S3Client({
-    endpoint: IMAGE_HOSTING_R2_ENDPOINT,
+    endpoint: R2_ENDPOINT,
     forcePathStyle: false,
-    region: IMAGE_HOSTING_R2_REGION,
+    region: R2_REGION,
     credentials: {
-        accessKeyId: IMAGE_HOSTING_R2_ACCESS_KEY_ID,
-        secretAccessKey: IMAGE_HOSTING_R2_SECRET_ACCESS_KEY,
+        accessKeyId: R2_ACCESS_KEY_ID,
+        secretAccessKey: R2_SECRET_ACCESS_KEY,
     },
 })
 
