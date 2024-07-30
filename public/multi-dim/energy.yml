@@ -1,6 +1,7 @@
-name: Energy use
-dimensions_title: by energy source
-default_selection:
+title:
+    title: Energy use
+    titleVariant: by energy source
+defaultSelection:
     - World
     - Europe
     - Mexico
