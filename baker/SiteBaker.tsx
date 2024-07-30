@@ -831,15 +831,15 @@ export class SiteBaker {
             }
             try {
                 await this.bakeOwidGdoc(dataInsight)
-                // We don't need latest data insights nor their images on the
-                // index page.
-                dataInsight.latestDataInsights = []
-                dataInsight.imageMetadata = attachments.imageMetadata
             } catch (e) {
                 await logErrorAndMaybeSendToBugsnag(
                     `Error baking gdoc post with id "${dataInsight.id}" and slug "${dataInsight.slug}": ${e}`
                 )
             }
+            // We don't need the latest data insights nor their images in the
+            // feed later, when we render the list of all data insights.
+            dataInsight.latestDataInsights = []
+            dataInsight.imageMetadata = attachments.imageMetadata
         }
 
         const totalPageCount = calculateDataInsightIndexPageCount(
