@@ -26,7 +26,7 @@ export interface Preference {
 
 export const POLICY_DATE: number = 20201009
 export const DATE_FORMAT = "YYYYMMDD"
-const COOKIE_NAME = "cookie_preferences"
+export const COOKIE_NAME = "cookie_preferences"
 const PREFERENCES_SEPARATOR = "|"
 const DATE_SEPARATOR = "-"
 const PREFERENCE_KEY_VALUE_SEPARATOR = ":"
