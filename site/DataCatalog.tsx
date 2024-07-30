@@ -1,7 +1,14 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import cx from "classnames"
 import ReactDOM from "react-dom"
-import { get, isArray, TagGraphNode, TagGraphRoot } from "@ourworldindata/utils"
+import {
+    get,
+    isArray,
+    TagGraphNode,
+    TagGraphRoot,
+    countriesByName,
+    Country,
+} from "@ourworldindata/utils"
 import {
     Configure,
     Hits,
@@ -20,7 +27,16 @@ import { SearchIndexName } from "./search/searchTypes.js"
 import { getIndexName } from "./search/searchClient.js"
 import { ScopedResult, UiState } from "instantsearch.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowRight, faClose } from "@fortawesome/free-solid-svg-icons"
+import {
+    faArrowRight,
+    faClose,
+    faMapMarker,
+} from "@fortawesome/free-solid-svg-icons"
+import {
+    useFocusTrap,
+    useTriggerOnEscape,
+    useTriggerWhenClickOutside,
+} from "./hooks.js"
 
 const ChartHit = ({ hit }: { hit: any }) => {
     return (
@@ -332,6 +348,95 @@ const TopicsRefinementList = ({
     )
 }
 
+function DataCatalogCountrySelector() {
+    const [isOpen, setIsOpen] = useState(false)
+    const [selections, setSelections] = useState<Set<string>>(new Set())
+    const countrySelectorRef = useRef<HTMLDivElement>(null)
+    const listContainerRef = useRef<HTMLDivElement>(null)
+    useFocusTrap(listContainerRef, isOpen)
+    useTriggerOnEscape(() => setIsOpen(false))
+    useTriggerWhenClickOutside(countrySelectorRef, isOpen, () =>
+        setIsOpen(false)
+    )
+    function handleSelection(countryName: string) {
+        setSelections((prev) => {
+            const newSet = new Set(prev)
+            if (newSet.has(countryName)) {
+                newSet.delete(countryName)
+            } else {
+                newSet.add(countryName)
+            }
+            return newSet
+        })
+    }
+    return (
+        <div className="data-catalog-country-selector" ref={countrySelectorRef}>
+            <button
+                className="data-catalog-country-selector-button body-3-medium"
+                aria-expanded={isOpen}
+                aria-label={
+                    isOpen ? "Close country selector" : "Open country selector"
+                }
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                <FontAwesomeIcon icon={faMapMarker} />
+                Country selector
+            </button>
+            {isOpen ? (
+                <div
+                    className="data-catalog-country-selector-list-container"
+                    ref={listContainerRef}
+                >
+                    <div className="data-catalog-country-selector-header">
+                        <h5 className="h5-black-caps data-catalog-country-selector__heading">
+                            Select or search for a country
+                        </h5>
+                        <button
+                            className="data-catalog-country-selector-close-button"
+                            onClick={() => setIsOpen(false)}
+                        >
+                            <FontAwesomeIcon icon={faClose} />
+                        </button>
+                    </div>
+                    <ol className="data-catalog-country-selector-list">
+                        {Object.values(countriesByName()).map(
+                            (country: Country) => (
+                                <li
+                                    value={country.name}
+                                    key={country.name}
+                                    className="data-catalog-country-selector-list__item"
+                                >
+                                    <label
+                                        className="body-3-medium"
+                                        htmlFor={`country-${country.name}`}
+                                    >
+                                        <img
+                                            className="flag"
+                                            aria-hidden={true}
+                                            height={16}
+                                            width={20}
+                                            src={`/images/flags/${country.code}.svg`}
+                                        />
+                                        {country.name}
+                                    </label>
+                                    <input
+                                        type="checkbox"
+                                        id={`country-${country.name}`}
+                                        checked={selections.has(country.name)}
+                                        onChange={() => {
+                                            handleSelection(country.name)
+                                        }}
+                                    />
+                                </li>
+                            )
+                        )}
+                    </ol>
+                </div>
+            ) : null}
+        </div>
+    )
+}
+
 export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
     const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
     // globalFacetFilters apply to all indexes, unless they're overridden by a nested Configure component.
@@ -415,15 +520,18 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                         keyword to find what you’re looking for.
                     </p>
                 </header>
-                <SearchBox
-                    placeholder="Search for an indicator, a topic, or a keyword &hellip;"
-                    searchAsYouType={false}
-                    classNames={{
-                        form: "data-catalog-search-form",
-                    }}
-                    className="span-cols-12 col-start-2"
-                />
+                <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
+                    <SearchBox
+                        placeholder="Search for an indicator, a topic, or a keyword &hellip;"
+                        searchAsYouType={false}
+                        classNames={{
+                            form: "data-catalog-search-form",
+                        }}
+                    />
+                    <DataCatalogCountrySelector />
+                </div>
             </div>
+
             <TopicsRefinementList
                 tagGraph={props.tagGraph}
                 addGlobalFacetFilter={addGlobalFacetFilter}
