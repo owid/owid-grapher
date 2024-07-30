@@ -2,11 +2,12 @@ import * as React from "react"
 import { useState, useEffect } from "react"
 import Cookies from "js-cookie"
 import cx from "classnames"
-import { COOKIE_NAME as PREFERENCES_COOKIE_NAME } from "./CookiePreferencesManager.js"
+import { COOKIE_PREFERENCES_COOKIE_NAME } from "./CookiePreferencesManager.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import DataInsightsNewsletter from "./gdocs/components/DataInsightsNewsletter.js"
 
-const COOKIE_NAME = "is_data_insights_newsletter_banner_hidden"
+const DATA_INSIGHTS_NEWSLETTER_BANNER_COOKIE_NAME =
+    "is_data_insights_newsletter_banner_hidden"
 
 export default function DataInsightsNewsletterBanner() {
     const [isVisible, setIsVisible] = useState(false)
@@ -14,7 +15,8 @@ export default function DataInsightsNewsletterBanner() {
 
     useEffect(() => {
         const keepHidden =
-            Cookies.get(COOKIE_NAME) || !Cookies.get(PREFERENCES_COOKIE_NAME)
+            Cookies.get(DATA_INSIGHTS_NEWSLETTER_BANNER_COOKIE_NAME) ||
+            !Cookies.get(COOKIE_PREFERENCES_COOKIE_NAME)
         if (keepHidden) return
         const timeoutId = setTimeout(() => {
             setIsVisible(true)
@@ -24,7 +26,9 @@ export default function DataInsightsNewsletterBanner() {
 
     function handleOnClose() {
         setIsHiding(true)
-        Cookies.set(COOKIE_NAME, "true", { expires: 90 })
+        Cookies.set(DATA_INSIGHTS_NEWSLETTER_BANNER_COOKIE_NAME, "true", {
+            expires: 90,
+        })
         setTimeout(() => {
             setIsVisible(false)
             setIsHiding(false)

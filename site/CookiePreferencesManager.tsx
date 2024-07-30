@@ -26,7 +26,7 @@ export interface Preference {
 
 export const POLICY_DATE: number = 20201009
 export const DATE_FORMAT = "YYYYMMDD"
-export const COOKIE_NAME = "cookie_preferences"
+export const COOKIE_PREFERENCES_COOKIE_NAME = "cookie_preferences"
 const PREFERENCES_SEPARATOR = "|"
 const DATE_SEPARATOR = "-"
 const PREFERENCE_KEY_VALUE_SEPARATOR = ":"
@@ -65,7 +65,7 @@ export const CookiePreferencesManager = ({
     // Commit state
     useEffect(() => {
         if (state.date) {
-            Cookies.set(COOKIE_NAME, serializeState(state), {
+            Cookies.set(COOKIE_PREFERENCES_COOKIE_NAME, serializeState(state), {
                 expires: 365 * 3,
             })
         }
@@ -155,7 +155,9 @@ const getInitialState = (): State => {
         // Cookie access can be restricted by iframe sandboxing, in which case the below code will throw an error
         // see https://github.com/owid/owid-grapher/pull/2452
 
-        cookieValue = parseRawCookieValue(Cookies.get(COOKIE_NAME))
+        cookieValue = parseRawCookieValue(
+            Cookies.get(COOKIE_PREFERENCES_COOKIE_NAME)
+        )
     } catch {}
 
     if (!cookieValue || arePreferencesOutdated(cookieValue.date, POLICY_DATE))
