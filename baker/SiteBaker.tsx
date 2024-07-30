@@ -101,7 +101,7 @@ import {
 import {
     gdocFromJSON,
     getAllMinimalGdocBaseObjects,
-    getAndLoadPublishedDataInsights,
+    getLatestDataInsights,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { getBakePath } from "@ourworldindata/components"
 import { GdocAuthor, getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
@@ -789,9 +789,10 @@ export class SiteBaker {
     // TODO: this transaction is only RW because somewhere inside it we fetch images
     private async bakeDataInsights(knex: db.KnexReadWriteTransaction) {
         if (!this.bakeSteps.has("dataInsights")) return
-        const latestDataInsights = await getAndLoadPublishedDataInsights(knex, {
-            limit: 7,
-        })
+        const {
+            dataInsights: latestDataInsights,
+            imageMetadata: latestDataInsightsImageMetadata,
+        } = await getLatestDataInsights(knex)
         const publishedDataInsights =
             await GdocDataInsight.getPublishedDataInsights(knex)
 
@@ -803,13 +804,11 @@ export class SiteBaker {
                 dataInsight.linkedChartSlugs.grapher,
                 dataInsight.linkedChartSlugs.explorer,
             ])
-            // Not used just yet
-            // dataInsight.linkedAuthors = attachments.linkedAuthors
             dataInsight.linkedDocuments = attachments.linkedDocuments
-            dataInsight.imageMetadata = Object.assign(
-                attachments.imageMetadata,
-                ...latestDataInsights.map((insight) => insight.imageMetadata)
-            )
+            dataInsight.imageMetadata = {
+                ...attachments.imageMetadata,
+                ...latestDataInsightsImageMetadata,
+            }
             dataInsight.linkedCharts = {
                 ...attachments.linkedCharts.graphers,
                 ...attachments.linkedCharts.explorers,
@@ -837,6 +836,10 @@ export class SiteBaker {
                     `Error baking gdoc post with id "${dataInsight.id}" and slug "${dataInsight.slug}": ${e}`
                 )
             }
+            // We don't need the latest data insights nor their images in the
+            // feed later, when we render the list of all data insights.
+            dataInsight.latestDataInsights = []
+            dataInsight.imageMetadata = attachments.imageMetadata
         }
 
         const totalPageCount = calculateDataInsightIndexPageCount(

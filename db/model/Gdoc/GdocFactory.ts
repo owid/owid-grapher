@@ -8,8 +8,11 @@ import {
     DbPlainTag,
     DbRawPostGdoc,
     GdocsContentSource,
+    ImageMetadata,
+    LatestDataInsight,
     OwidGdoc,
     OwidGdocBaseInterface,
+    OwidGdocDataInsightContent,
     OwidGdocIndexItem,
     OwidGdocMinimalPostInterface,
     OwidGdocPublicationContext,
@@ -21,8 +24,10 @@ import {
     checkIsOwidGdocType,
     extractGdocIndexItem,
     formatDate,
+    parsePostGdocContent,
     parsePostsGdocsRow,
     serializePostsGdocsRow,
+    traverseEnrichedBlock,
 } from "@ourworldindata/utils"
 
 import { GdocBase } from "./GdocBase.js"
@@ -39,6 +44,7 @@ import {
 } from "../../db.js"
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { GdocAuthor } from "./GdocAuthor.js"
+import { extractFilenamesFromBlock } from "./gdocUtils.js"
 import { fetchImagesFromDriveAndSyncToS3 } from "../Image.js"
 
 export function gdocFromJSON(
@@ -273,7 +279,7 @@ export async function getAndLoadGdocBySlug(
             `No published Google Doc with slug "${slug}" found in the database`
         )
     }
-    return loadGdocFromGdocBase(knex, base, undefined, true)
+    return loadGdocFromGdocBase(knex, base)
 }
 
 // TODO: this transaction is only RW because somewhere inside it we fetch images
@@ -309,8 +315,7 @@ export async function createOrLoadGdocById(
 export async function loadGdocFromGdocBase(
     knex: KnexReadWriteTransaction,
     base: OwidGdocBaseInterface,
-    contentSource?: GdocsContentSource,
-    shouldLoadLatestDataInsights?: boolean
+    contentSource?: GdocsContentSource
 ): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAuthor> {
     const type = get(base, "content.type") as unknown
     if (!type)
@@ -334,9 +339,7 @@ export async function loadGdocFromGdocBase(
             ),
             () => GdocPost.create(base)
         )
-        .with(OwidGdocType.DataInsight, () =>
-            GdocDataInsight.create(base, shouldLoadLatestDataInsights)
-        )
+        .with(OwidGdocType.DataInsight, () => GdocDataInsight.create(base))
         .with(OwidGdocType.Homepage, () => GdocHomepage.create(base))
         .with(OwidGdocType.Author, () => GdocAuthor.create(base))
         .exhaustive()
@@ -402,6 +405,47 @@ export async function getAndLoadPublishedDataInsightsPage(
                   offset: page * DATA_INSIGHTS_INDEX_PAGE_SIZE,
               }
     return await getAndLoadPublishedDataInsights(knex, options)
+}
+
+export async function getLatestDataInsights(
+    knex: KnexReadonlyTransaction
+): Promise<{
+    dataInsights: LatestDataInsight[]
+    imageMetadata: Record<string, ImageMetadata>
+}> {
+    const rows = await knexRaw<DbRawPostGdoc>(
+        knex,
+        `SELECT id, slug, publishedAt, content
+         FROM posts_gdocs
+         WHERE type = :type
+         AND published = 1
+         AND publishedAt <= NOW()
+         ORDER BY publishedAt DESC
+         LIMIT 7`,
+        { type: OwidGdocType.DataInsight }
+    )
+    const dataInsights = rows.map((row) => {
+        return {
+            ...row,
+            content: parsePostGdocContent(
+                row.content
+            ) as OwidGdocDataInsightContent,
+        }
+    })
+    const filenames = new Set<string>()
+    for (const dataInsight of dataInsights) {
+        for (const block of dataInsight.content.body) {
+            traverseEnrichedBlock(block, (block) => {
+                for (const filename of extractFilenamesFromBlock(block)) {
+                    filenames.add(filename)
+                }
+            })
+        }
+    }
+    return {
+        dataInsights,
+        imageMetadata: await getImageMetadataByFilenames(knex, [...filenames]),
+    }
 }
 
 // TODO: this transaction is only RW because somewhere inside it we fetch images

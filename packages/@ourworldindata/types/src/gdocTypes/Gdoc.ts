@@ -20,6 +20,14 @@ export enum OwidGdocPublicationContext {
     listed = "listed",
 }
 
+export interface LatestDataInsight {
+    id: string
+    slug: string
+    publishedAt: Date | null
+    content: OwidGdocDataInsightContent
+    index?: number
+}
+
 export interface LinkedAuthor {
     name: string
     slug: string
@@ -136,7 +144,7 @@ export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
 
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     content: OwidGdocDataInsightContent
-    latestDataInsights?: OwidGdocDataInsightInterface[]
+    latestDataInsights?: LatestDataInsight[]
 }
 
 export type MinimalDataInsightInterface = Pick<

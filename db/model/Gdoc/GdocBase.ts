@@ -50,12 +50,12 @@ import {
 } from "../Variable.js"
 import { createLinkFromUrl } from "../Link.js"
 import {
+    LatestDataInsight,
     LinkedAuthor,
     OwidGdoc,
     OwidGdocContent,
     OwidGdocType,
 } from "@ourworldindata/types"
-import { GdocDataInsight } from "./GdocDataInsight.js"
 
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
@@ -77,7 +77,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     linkedCharts: Record<string, LinkedChart> = {}
     linkedIndicators: Record<number, LinkedIndicator> = {}
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
-    latestDataInsights: GdocDataInsight[] = []
+    latestDataInsights: LatestDataInsight[] = []
     _omittableFields: string[] = []
 
     constructor(id?: string) {

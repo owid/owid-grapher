@@ -1,6 +1,7 @@
 import React, { createContext } from "react"
 import ReactDOM from "react-dom"
 import {
+    LatestDataInsight,
     LinkedAuthor,
     LinkedChart,
     LinkedIndicator,
@@ -8,7 +9,6 @@ import {
     RelatedChart,
     OwidGdocType,
     OwidGdoc as OwidGdocInterface,
-    OwidGdocDataInsightInterface,
     OwidGdocMinimalPostInterface,
     OwidGdocHomepageMetadata,
     DbEnrichedLatestWork,
@@ -29,7 +29,7 @@ export const AttachmentsContext = createContext<{
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
     imageMetadata: Record<string, ImageMetadata>
     relatedCharts: RelatedChart[]
-    latestDataInsights?: OwidGdocDataInsightInterface[]
+    latestDataInsights?: LatestDataInsight[]
     homepageMetadata?: OwidGdocHomepageMetadata
     latestWorkLinks?: DbEnrichedLatestWork[]
 }>({
