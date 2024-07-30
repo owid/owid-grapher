@@ -25,22 +25,9 @@ export default function LinkedAuthor({
             />
         ) : undefined
 
-    // Somehow, using a fragment here messes up the hydration process and causes
-    // some links to be applied to the wrong authors, but only if the first
-    // author is unlinked (which probably gets tangled with the "By: " text
-    // above). Additional markup, here in the form of a span, works more
-    // reliably.
-    if (!author.slug) {
-        return (
-            <span className={className}>
-                {image}
-                {author.name}
-            </span>
-        )
-    }
-
     const path = getCanonicalUrl("", {
-        slug: author.slug,
+        // If there's no author slug, this will link to /team/
+        slug: author.slug || "",
         content: { type: OwidGdocType.Author },
     })
     return (
