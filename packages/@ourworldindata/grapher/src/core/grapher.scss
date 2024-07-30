@@ -242,4 +242,8 @@ $zindex-controls-drawer: 150;
     .markdown-text-wrap__line:last-child {
         margin-bottom: 2px;
     }
+
+    .dod-span {
+        @include dod-span;
+    }
 }

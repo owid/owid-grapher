@@ -16,13 +16,7 @@
 }
 
 .dod-span {
-    color: inherit;
-    border-bottom: 1px dotted #1d3d63;
-    cursor: help;
-
-    span {
-        pointer-events: none;
-    }
+    @include dod-span;
 }
 
 // Specificity trump to overwrite the Grapher styles when inside a dod
