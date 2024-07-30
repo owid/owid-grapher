@@ -496,7 +496,8 @@ getPlainRouteNonIdempotentWithRWTransaction(
     mockSiteRouter,
     "/*",
     async (req, res, trx) => {
-        const slug = req.path.replace(/^\//, "")
+        // Remove leading and trailing slashes
+        const slug = req.path.replace(/^\/|\/$/g, "")
 
         try {
             const page = await renderGdocsPageBySlug(trx, slug)
