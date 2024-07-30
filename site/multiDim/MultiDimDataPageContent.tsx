@@ -24,10 +24,8 @@ import {
     getAttributionFragmentsFromVariable,
     OwidVariableWithSourceAndDimension,
     memoize,
-    GrapherTabOption,
     QueryParams,
     setWindowQueryStr,
-    getWindowQueryParams,
     getWindowQueryStr,
 } from "@ourworldindata/utils"
 import cx from "classnames"
@@ -293,16 +291,15 @@ export const MultiDimDataPageContent = ({
         } as GrapherProgrammaticInterface
     }, [currentView, dimensionsConfig, bounds, config])
 
-    const hasTopicTags = !!datapageDataFromVar?.topicTagsLinks?.length
+    const hasTopicTags = !!config.config.topicTags?.length
 
     const relatedResearchCandidates = datapageDataFromVar?.relatedResearch ?? []
     const relatedResearch =
-        relatedResearchCandidates.length > 3 &&
-        datapageDataFromVar?.topicTagsLinks?.length
+        relatedResearchCandidates.length > 3 && config.config.topicTags?.length
             ? relatedResearchCandidates.filter((research) => {
                   const shared = intersection(
                       research.tags,
-                      datapageDataFromVar?.topicTagsLinks ?? []
+                      config.config.topicTags ?? []
                   )
                   return shared.length > 0
               })
@@ -345,9 +342,7 @@ export const MultiDimDataPageContent = ({
                     {hasTopicTags && (
                         <TopicTags
                             className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12"
-                            topicTagsLinks={
-                                datapageDataFromVar.topicTagsLinks ?? []
-                            }
+                            topicTagsLinks={config.config.topicTags ?? []}
                             tagToSlugMap={tagToSlugMap}
                         />
                     )}

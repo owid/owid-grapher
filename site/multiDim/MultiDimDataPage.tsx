@@ -5,15 +5,27 @@ import { IFrameDetector } from "../IframeDetector.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { OWID_DATAPAGE_CONTENT_ROOT_ID } from "../DataPageV2Content.js"
 import { SiteFooter } from "../SiteFooter.js"
-import { SiteFooterContext, serializeJSONForHTML } from "@ourworldindata/utils"
+import {
+    SiteFooterContext,
+    pick,
+    serializeJSONForHTML,
+} from "@ourworldindata/utils"
 
 export const MultiDimDataPage = (props: {
     baseUrl: string
     config: MultiDimDataPageConfig
     tagToSlugMap?: Record<string, string>
 }) => {
+    const { config } = props
+
     const canonicalUrl = "" // TODO
     const baseUrl = props.baseUrl // TODO
+
+    // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
+    const minimalTagToSlugMap = pick(
+        props.tagToSlugMap,
+        config.config.topicTags ?? []
+    )
 
     return (
         <html>
@@ -65,7 +77,7 @@ export const MultiDimDataPage = (props: {
                                     // datapageData,
                                     // faqEntries,
                                     canonicalUrl,
-                                    tagToSlugMap: props.tagToSlugMap,
+                                    tagToSlugMap: minimalTagToSlugMap,
                                     // imageMetadata,
                                 }
                             )}`,

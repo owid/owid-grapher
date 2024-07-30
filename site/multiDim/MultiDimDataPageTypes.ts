@@ -7,6 +7,7 @@ interface MultiDimDataPageConfigType<IndicatorType> {
     name: string
     dimensions_title: string
     default_selection?: string[]
+    topicTags?: string[]
     common_indicator_path_prefix?: string
     dimensions: Dimension[]
     views: View<IndicatorType>[]
