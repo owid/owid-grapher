@@ -4,6 +4,8 @@ default_selection:
     - World
     - Europe
     - Mexico
+topicTags:
+    - Energy
 dimensions:
     - slug: source
       name: Energy source
