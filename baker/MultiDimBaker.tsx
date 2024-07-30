@@ -31,6 +31,7 @@ const readMultiDimConfig = (filename: string) =>
 const MULTI_DIM_SITES_BY_SLUG: Record<string, MultiDimDataPageConfigRaw> = {
     "mdd-causes-of-death": readMultiDimConfig("causes-of-death.yml"),
     "mdd-energy": readMultiDimConfig("energy.yml"),
+    "mdd-mixed": readMultiDimConfig("mixed.yml"),
     "mdd-life-expectancy": readMultiDimConfig("life-expectancy.json"),
     "mdd-plastic": readMultiDimConfig("plastic.json"),
     "mdd-poverty": readMultiDimConfig("poverty.yml"),

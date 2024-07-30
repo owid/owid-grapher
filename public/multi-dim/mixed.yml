@@ -1,0 +1,15 @@
+title:
+    title: Anything goes
+
+dimensions:
+    - slug: view
+      name: View
+      choices:
+          - slug: stunting
+            name: Stunting
+
+views:
+    - dimensions:
+          view: stunting
+      indicators:
+          y: grapher/worldbank_wdi/2024-05-20/wdi/wdi#sh_sta_stnt_zs
