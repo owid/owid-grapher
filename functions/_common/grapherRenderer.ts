@@ -282,6 +282,7 @@ export async function fetchMetadataForGrapher(
             descriptionFromProducer,
             descriptionKey,
             descriptionProcessing,
+            additionalInfo,
             shortUnit,
             unit,
             timespan,
@@ -296,6 +297,8 @@ export async function fetchMetadataForGrapher(
             owidVariableId,
             shortName,
         } = col.def as OwidColumnDef
+        const lastUpdated = getLastUpdatedFromVariable(col.def)
+        const nextUpdate = getNextUpdateFromVariable(col.def)
 
         let consensedOrigins:
             | Partial<
@@ -313,8 +316,10 @@ export async function fetchMetadataForGrapher(
                 attribution,
                 attributionShort,
                 description,
+                citationFull,
                 urlDownload,
                 urlMain,
+                dateAccessed,
             } = origin
             return {
                 attribution,
@@ -322,6 +327,8 @@ export async function fetchMetadataForGrapher(
                 description,
                 urlDownload,
                 urlMain,
+                dateAccessed,
+                citationFull,
             }
         })
 
@@ -333,6 +340,25 @@ export async function fetchMetadataForGrapher(
                 },
             ]
         }
+
+        const def = col.def as OwidColumnDef
+
+        const citationShort = getCitationShort(
+            def.origins,
+            getAttributionFragmentsFromVariable(def),
+            def.owidProcessingLevel
+        )
+
+        const citationLong = getCitationLong(
+            col.titlePublicOrDisplayName,
+            def.origins ?? [],
+            col.source ?? {},
+            getAttributionFragmentsFromVariable(def),
+            def.presentation?.attributionShort,
+            def.presentation?.titleVariant,
+            def.owidProcessingLevel,
+            undefined
+        )
 
         return [
             useShortNames ? shortName : col.name,
@@ -354,6 +380,11 @@ export async function fetchMetadataForGrapher(
                 catalogPath,
                 sources: consensedOrigins,
                 shortName,
+                additionalInfo,
+                lastUpdated,
+                nextUpdate,
+                citationShort,
+                citationLong,
             },
         ]
     })
