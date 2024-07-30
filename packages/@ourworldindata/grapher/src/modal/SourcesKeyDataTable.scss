@@ -31,11 +31,6 @@
         color: inherit;
         text-decoration: underline;
 
-        // DoD spans should be dotted via the border, not underlined
-        &.dod-span {
-            text-decoration: none;
-        }
-
         &:hover {
             text-decoration: none;
         }

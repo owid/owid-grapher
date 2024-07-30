@@ -203,14 +203,13 @@ export function renderSpan(
             )
         )
         .with({ spanType: "span-dod" }, (span) => (
-            <span key={key}>
-                {shouldRenderLinks ? (
-                    <a data-id={`${span.id}`} className="dod-span">
-                        {renderSpans(span.children)}
-                    </a>
-                ) : (
-                    <span>{renderSpans(span.children)}</span>
-                )}
+            <span
+                key={key}
+                className="dod-span"
+                data-id={`${span.id}`}
+                tabIndex={0}
+            >
+                {renderSpans(span.children)}
             </span>
         ))
         .with({ spanType: "span-newline" }, () => <br key={key} />)

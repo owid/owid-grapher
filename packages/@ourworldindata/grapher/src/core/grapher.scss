@@ -243,12 +243,7 @@ $zindex-controls-drawer: 150;
         margin-bottom: 2px;
     }
 
-    a.dod-span {
-        border-bottom: 1px dotted #666;
-        text-decoration: none;
-
-        &:hover {
-            text-decoration: none;
-        }
+    .dod-span {
+        @include dod-span;
     }
 }

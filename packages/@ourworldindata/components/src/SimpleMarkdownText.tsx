@@ -24,9 +24,11 @@ function transformDodLinks() {
                     // to capture the term
                     const match = node.properties.href.match(/#dod:(?<term>.+)/)
                     if (match) {
+                        node.tagName = "span"
                         node.properties.class = "dod-span"
                         node.properties["data-id"] = match.groups?.term
                         node.properties["aria-expanded"] = "false"
+                        node.properties["tabindex"] = 0
                         delete node.properties.href
                     }
                     //node.children.push(

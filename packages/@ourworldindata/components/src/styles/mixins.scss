@@ -36,6 +36,15 @@
     }
 }
 
+@mixin dod-span {
+    border-bottom: 1px dotted $blue-90;
+    cursor: help;
+
+    span {
+        pointer-events: none;
+    }
+}
+
 @mixin info {
     font-size: 0.875rem;
 
