@@ -253,6 +253,7 @@ export {
     getAggregates,
     type Aggregate,
     getOthers,
+    countriesByName,
 } from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"
