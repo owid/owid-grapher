@@ -1,4 +1,7 @@
-default_selection:
+title:
+    title: Causes of death
+    titleVariant: by cause and age group
+defaultSelection:
     - World
     - Europe
     - Asia

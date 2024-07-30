@@ -170,13 +170,7 @@ export const MultiDimDataPageContent = ({
             : {}
     )
 
-    const datapageDataStub: Partial<DataPageDataV2> = {
-        title: {
-            title: config.config.name ?? "",
-            titleVariant: config.config.dimensions_title,
-        },
-        titleVariant: config.config.dimensions_title,
-    }
+    const title = config.config.title
 
     const [currentSettings, setCurrentSettings] = useState(() => {
         const { selectedChoices } =
@@ -225,15 +219,15 @@ export const MultiDimDataPageContent = ({
             .then((json) => getDatapageDataV2(json, grapherConfig))
             .then(setDatapageDataFromVar)
             .catch(console.error)
-    }, [dimensionsConfig, grapherConfig])
+    }, [dimensionsConfig, currentView?.indicators, grapherConfig])
 
     const titleFragments = joinTitleFragments(
-        datapageDataFromVar?.attributionShort,
-        datapageDataFromVar?.titleVariant
+        title.titleVariant,
+        title.attributionShort
     )
 
     const selectionArray = useMemo(
-        () => new SelectionArray(config.config.default_selection),
+        () => new SelectionArray(config.config.defaultSelection),
         [config]
     )
 
@@ -285,7 +279,7 @@ export const MultiDimDataPageContent = ({
             ...currentView?.config,
             dimensions: dimensionsConfig,
             isEmbeddedInADataPage: true,
-            selectedEntityNames: config.config.default_selection,
+            selectedEntityNames: config.config.defaultSelection,
 
             bounds,
         } as GrapherProgrammaticInterface
@@ -334,9 +328,7 @@ export const MultiDimDataPageContent = ({
                 <div className="header__wrapper wrapper grid grid-cols-12 ">
                     <div className="header__left span-cols-8 span-sm-cols-12">
                         <div className="header__supertitle">Data</div>
-                        <h1 className="header__title">
-                            {datapageDataFromVar?.title?.title}
-                        </h1>
+                        <h1 className="header__title">{title.title}</h1>
                         <div className="header__source">{titleFragments}</div>
                     </div>
                     {hasTopicTags && (

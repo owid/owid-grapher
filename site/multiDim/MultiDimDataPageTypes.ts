@@ -1,14 +1,15 @@
+import { IndicatorTitleWithFragments } from "@ourworldindata/types"
+
 // Indicator ID, catalog path, or maybe an array of those
 export type IndicatorEntryBeforePreProcessing = string | number | undefined
 export type IndicatorEntryAfterPreProcessing = number | undefined // catalog paths have been resolved to indicator IDs
 export type MultiIndicatorEntry<IndicatorType> = IndicatorType | IndicatorType[]
 
 interface MultiDimDataPageConfigType<IndicatorType> {
-    name: string
-    dimensions_title: string
-    default_selection?: string[]
+    title: IndicatorTitleWithFragments
+    defaultSelection?: string[]
     topicTags?: string[]
-    common_indicator_path_prefix?: string
+    // commonIndicatorPathPrefix?: string
     dimensions: Dimension[]
     views: View<IndicatorType>[]
 }
@@ -40,7 +41,7 @@ export interface Choice {
     slug: string
     name: string
     description?: string
-    multi_select?: boolean
+    // multi_select?: boolean
 }
 
 export interface View<IndicatorType> {
