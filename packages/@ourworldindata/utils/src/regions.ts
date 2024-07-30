@@ -71,7 +71,7 @@ export const getContinents = lazy(
         ) as Continent[]
 )
 
-const countriesByName = lazy(() =>
+export const countriesByName = lazy(() =>
     Object.fromEntries(countries.map((country) => [country.name, country]))
 )
 
