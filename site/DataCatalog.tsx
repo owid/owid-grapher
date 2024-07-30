@@ -51,21 +51,21 @@ const DataCatalogRibbon = ({
         <Index indexName={getIndexName(SearchIndexName.Charts)}>
             <Configure facetFilters={[`tags:${tagName}`]} hitsPerPage={4} />
             <div className="data-catalog-ribbon">
-                <div className="data-catalog-ribbon__header">
-                    <h2 className="body-1-regular">{tagName}</h2>
-                    <a
-                        href={`/charts?topics=${tagName}`}
-                        onClick={(e) => {
-                            e.preventDefault()
-                            addGlobalFacetFilter(tagName)
-                        }}
-                    >
+                <a
+                    href={`/charts?topics=${tagName}`}
+                    onClick={(e) => {
+                        e.preventDefault()
+                        addGlobalFacetFilter(tagName)
+                    }}
+                >
+                    <div className="data-catalog-ribbon__header">
+                        <h2 className="body-1-regular">{tagName}</h2>
                         <span className="data-catalog-ribbon__hit-count body-2-semibold">
                             {getNbHitsForTag(tagName, scopedResults)} indicators
                             <FontAwesomeIcon icon={faArrowRight} />
                         </span>
-                    </a>
-                </div>
+                    </div>
+                </a>
                 <Hits
                     classNames={{
                         root: "data-catalog-ribbon-hits",
