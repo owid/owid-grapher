@@ -9,6 +9,7 @@ import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { Static, Type } from "@sinclair/typebox"
 import { OwidEnrichedGdocBlock } from "./ArchieMlComponents.js"
 import { ImageMetadata } from "./Image.js"
+import { EnrichedFaq } from "./Gdoc.js"
 
 export interface FaqLink {
     gdocId: string
@@ -127,6 +128,10 @@ export type FaqEntryData = {
     faqs: OwidEnrichedGdocBlock[]
 }
 
+export type FaqEntryKeyedByGdocIdAndFragmentId = {
+    faqs: Record<string, Record<string, OwidEnrichedGdocBlock[]>>
+}
+
 export interface DataPageV2ContentFields {
     datapageData: DataPageDataV2
     faqEntries: FaqEntryData | undefined
@@ -136,6 +141,11 @@ export interface DataPageV2ContentFields {
     tagToSlugMap: Record<string, string>
     imageMetadata: Record<string, ImageMetadata>
 }
+
+export type MultiDimDataPageContentFields = DataPageV2ContentFields & {
+    faqEntries: FaqEntryKeyedByGdocIdAndFragmentId
+}
+
 export interface DisplaySource {
     label: string
     description?: string

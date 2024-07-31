@@ -27,6 +27,7 @@ import {
     QueryParams,
     setWindowQueryStr,
     getWindowQueryStr,
+    compact,
 } from "@ourworldindata/utils"
 import cx from "classnames"
 import { DebugProvider } from "../gdocs/DebugContext.js"
@@ -44,6 +45,10 @@ import {
 import { reaction } from "mobx"
 import { useElementBounds } from "../hooks.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
+import {
+    FaqEntryKeyedByGdocIdAndFragmentId,
+    MultiDimDataPageContentFields,
+} from "@ourworldindata/types/dist/gdocTypes/Datapage.js"
 declare global {
     interface Window {
         _OWID_MULTI_DIM_CONFIG: MultiDimDataPageConfigPreProcessed
@@ -119,7 +124,7 @@ const getDatapageDataV2 = async (
             titleVariant: variableMetadata.presentation?.titleVariant,
             topicTagsLinks: variableMetadata.presentation?.topicTagsLinks ?? [],
             attributions: getAttributionFragmentsFromVariable(variableMetadata),
-            faqs: [],
+            faqs: variableMetadata.presentation?.faqs ?? [],
             descriptionKey: variableMetadata.descriptionKey ?? [],
             descriptionProcessing: variableMetadata.descriptionProcessing,
             owidProcessingLevel: variableMetadata.processingLevel,
@@ -159,6 +164,7 @@ export const MultiDimDataPageContent = ({
 }: DataPageV2ContentFields & {
     config: MultiDimDataPageConfig
     grapherConfig?: GrapherInterface
+    faqEntries: FaqEntryKeyedByGdocIdAndFragmentId
     imageMetadata: Record<string, ImageMetadata>
     initialQueryStr?: string
 }) => {
@@ -322,6 +328,16 @@ export const MultiDimDataPageContent = ({
             : "related-data__category--columns span-cols-8 span-lg-cols-12"
     } `
 
+    const faqEntriesForView = useMemo(() => {
+        return compact(
+            datapageDataFromVar?.faqs?.flatMap(
+                (faq) => faqEntries.faqs?.[faq.gdocId]?.[faq.fragmentId]
+            )
+        )
+    }, [datapageDataFromVar?.faqs, faqEntries])
+
+    console.log(faqEntriesForView)
+
     return (
         <div className="DataPageContent MultiDimDataPageContent">
             <div className="bg-blue-10">
@@ -373,7 +389,7 @@ export const MultiDimDataPageContent = ({
                     {datapageDataFromVar && (
                         <AboutThisData
                             datapageData={datapageDataFromVar}
-                            hasFaq={!!faqEntries?.faqs.length}
+                            hasFaq={!!faqEntriesForView?.length}
                         />
                     )}
                 </div>
@@ -514,7 +530,7 @@ export const MultiDimDataPageContent = ({
                     descriptionProcessing={
                         datapageDataFromVar.descriptionProcessing
                     }
-                    faqEntries={faqEntries}
+                    faqEntries={{ faqs: faqEntriesForView }}
                     origins={datapageDataFromVar.origins}
                     owidProcessingLevel={
                         datapageDataFromVar.owidProcessingLevel
@@ -531,7 +547,8 @@ export const MultiDimDataPageContent = ({
 
 export const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
-    const props: DataPageV2ContentFields = window._OWID_DATAPAGEV2_PROPS
+    const props: MultiDimDataPageContentFields =
+        window._OWID_DATAPAGEV2_PROPS as MultiDimDataPageContentFields
     const grapherConfig = window._OWID_GRAPHER_CONFIG
     const initialQueryStr = getWindowQueryStr()
     const config = MultiDimDataPageConfig.fromObject(

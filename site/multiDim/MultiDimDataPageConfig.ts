@@ -2,7 +2,7 @@ import {
     Choice,
     ChoicesEnriched,
     DimensionEnriched,
-    IndicatorEntryAfterPreProcessing,
+    IndicatorsAfterPreProcessing,
     MultiDimDataPageConfigPreProcessed,
     View,
 } from "./MultiDimDataPageTypes.js"
@@ -43,7 +43,7 @@ export class MultiDimDataPageConfig {
 
     filterViewsByDimensions(
         dimensions: Record<string, string>
-    ): View<IndicatorEntryAfterPreProcessing>[] {
+    ): View<IndicatorsAfterPreProcessing>[] {
         return this.config.views.filter((view) => {
             for (const [dimensionSlug, choiceSlug] of Object.entries(
                 dimensions
@@ -58,7 +58,7 @@ export class MultiDimDataPageConfig {
     // if more than one matching views were found
     findViewByDimensions(
         dimensions: Record<string, string>
-    ): View<IndicatorEntryAfterPreProcessing> | undefined {
+    ): View<IndicatorsAfterPreProcessing> | undefined {
         const matchingViews = this.filterViewsByDimensions(dimensions)
         if (matchingViews.length === 0) return undefined
         if (matchingViews.length > 1) {

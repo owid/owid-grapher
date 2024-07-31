@@ -7,9 +7,15 @@ dimensions:
       choices:
           - slug: stunting
             name: Stunting
+          - slug: poverty
+            name: Poverty
 
 views:
     - dimensions:
           view: stunting
       indicators:
           y: grapher/worldbank_wdi/2024-05-20/wdi/wdi#sh_sta_stnt_zs
+    - dimensions:
+          view: poverty
+      indicators:
+          y: 819727
