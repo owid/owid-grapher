@@ -3,9 +3,10 @@ import { IndicatorTitleWithFragments } from "@ourworldindata/types"
 // Indicator ID, catalog path, or maybe an array of those
 export type IndicatorEntryBeforePreProcessing = string | number | undefined
 export type IndicatorEntryAfterPreProcessing = number | undefined // catalog paths have been resolved to indicator IDs
-export type MultiIndicatorEntry<IndicatorType> = IndicatorType | IndicatorType[]
 
-interface MultiDimDataPageConfigType<IndicatorType> {
+interface MultiDimDataPageConfigType<
+    IndicatorType extends Record<string, any>,
+> {
     title: IndicatorTitleWithFragments
     defaultSelection?: string[]
     topicTags?: string[]
@@ -15,10 +16,10 @@ interface MultiDimDataPageConfigType<IndicatorType> {
 }
 
 export type MultiDimDataPageConfigRaw =
-    MultiDimDataPageConfigType<IndicatorEntryBeforePreProcessing>
+    MultiDimDataPageConfigType<IndicatorsBeforePreProcessing>
 
 export type MultiDimDataPageConfigPreProcessed =
-    MultiDimDataPageConfigType<IndicatorEntryAfterPreProcessing>
+    MultiDimDataPageConfigType<IndicatorsAfterPreProcessing>
 
 export interface Dimension {
     slug: string
@@ -44,14 +45,23 @@ export interface Choice {
     // multi_select?: boolean
 }
 
-export interface View<IndicatorType> {
+export interface IndicatorsBeforePreProcessing {
+    y: IndicatorEntryBeforePreProcessing | IndicatorEntryBeforePreProcessing[]
+    x?: IndicatorEntryBeforePreProcessing
+    size?: IndicatorEntryBeforePreProcessing
+    color?: IndicatorEntryBeforePreProcessing
+}
+
+export interface IndicatorsAfterPreProcessing {
+    y: IndicatorEntryAfterPreProcessing[]
+    x?: IndicatorEntryAfterPreProcessing
+    size?: IndicatorEntryAfterPreProcessing
+    color?: IndicatorEntryAfterPreProcessing
+}
+
+export interface View<IndicatorsType extends Record<string, any>> {
     dimensions: Record<string, string> // Keys: dimension slugs, values: choice slugs
-    indicators: {
-        y: MultiIndicatorEntry<IndicatorType>
-        x?: IndicatorType
-        size?: IndicatorType
-        color?: IndicatorType
-    }
+    indicators: IndicatorsType
     config?: Config
 }
 
