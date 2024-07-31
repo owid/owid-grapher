@@ -912,7 +912,8 @@ export async function getMinimalAuthorsByNames(
                slug,
                content->>'$.title' AS name,
                content->>'$."featured-image"' AS featuredImage,
-               updatedAt
+               -- updatedAt is often set to the unix epoch instead of null
+               COALESCE(NULLIF(updatedAt, '1970-01-01'), createdAt) updatedAt
            FROM posts_gdocs
            WHERE type = 'author'
            AND content->>'$.title' in (:names)

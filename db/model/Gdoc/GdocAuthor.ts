@@ -171,7 +171,8 @@ export async function getMinimalAuthors(
                 slug,
                 content->>'$.title' as name,
                 content->>'$."featured-image"' as featuredImage,
-                updatedAt
+                -- updatedAt is often set to the unix epoch instead of null
+                COALESCE(NULLIF(updatedAt, '1970-01-01'), createdAt) updatedAt
             FROM posts_gdocs
             WHERE type = 'author'
             AND published = 1`
