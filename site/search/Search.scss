@@ -31,7 +31,7 @@ $reset-button-margin: 16px;
     }
 }
 
-.ais-SearchBox-input {
+.search-panel-input {
     background-color: white;
     width: 100%;
     height: 56px;
@@ -54,7 +54,7 @@ $reset-button-margin: 16px;
     }
 }
 
-.ais-SearchBox-reset {
+.search-panel-reset-button {
     display: inline-block;
     position: absolute;
     right: $reset-button-margin;
