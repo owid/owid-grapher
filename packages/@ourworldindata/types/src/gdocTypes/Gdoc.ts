@@ -32,6 +32,7 @@ export interface LinkedAuthor {
     name: string
     slug: string
     featuredImage: string | null
+    updatedAt: Date
 }
 
 // A minimal object containing metadata needed for rendering prominent links etc in the client

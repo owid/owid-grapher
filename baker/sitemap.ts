@@ -17,7 +17,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { getPostsFromSnapshots } from "../db/model/Post.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
-import { GdocAuthor, getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
+import { getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
 
 interface SitemapUrl {
     loc: string

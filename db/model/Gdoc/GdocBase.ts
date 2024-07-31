@@ -911,7 +911,8 @@ export async function getMinimalAuthorsByNames(
            SELECT
                slug,
                content->>'$.title' AS name,
-               content->>'$."featured-image"' AS featuredImage
+               content->>'$."featured-image"' AS featuredImage,
+               updatedAt
            FROM posts_gdocs
            WHERE type = 'author'
            AND content->>'$.title' in (:names)
