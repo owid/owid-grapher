@@ -9,14 +9,21 @@ import {
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     omitUndefinedValues,
+    partition,
 } from "@ourworldindata/utils"
 import {
     getGdocBaseObjectById,
     loadGdocFromGdocBase,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { OwidGoogleAuth } from "../db/OwidGoogleAuth.js"
-import { GrapherInterface, OwidGdocBaseInterface } from "@ourworldindata/types"
+import {
+    EnrichedFaq,
+    FaqDictionary,
+    GrapherInterface,
+    OwidGdocBaseInterface,
+} from "@ourworldindata/types"
 import { KnexReadWriteTransaction } from "../db/db.js"
+import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
 
 export const getDatapageDataV2 = async (
     variableMetadata: OwidVariableWithSource,
@@ -111,4 +118,68 @@ export const getDatapageGdoc = async (
         )
 
     return datapageGdoc
+}
+
+type EnrichedFaqLookupError = {
+    type: "error"
+    error: string
+}
+
+type EnrichedFaqLookupSuccess = {
+    type: "success"
+    enrichedFaq: EnrichedFaq
+}
+
+type EnrichedFaqLookupResult = EnrichedFaqLookupError | EnrichedFaqLookupSuccess
+
+export const fetchAndParseFaqs = async (
+    knex: KnexReadWriteTransaction, // TODO: this transaction is only RW because somewhere inside it we fetch images
+    faqGdocIds: string[],
+    { isPreviewing }: { isPreviewing: boolean }
+) => {
+    const gdocFetchPromises = faqGdocIds.map((gdocId) =>
+        getDatapageGdoc(knex, gdocId, isPreviewing)
+    )
+    const gdocs = await Promise.all(gdocFetchPromises)
+    const gdocIdToFragmentIdToBlock: Record<string, FaqDictionary> = {}
+    gdocs.forEach((gdoc) => {
+        if (!gdoc) return
+        const faqs = parseFaqs(
+            ("faqs" in gdoc.content && gdoc.content?.faqs) ?? [],
+            gdoc.id
+        )
+        gdocIdToFragmentIdToBlock[gdoc.id] = faqs.faqs
+    })
+
+    return gdocIdToFragmentIdToBlock
+}
+
+export const resolveFaqsForVariable = (
+    gdocIdToFragmentIdToBlock: Record<string, FaqDictionary>,
+    variableMetadata: OwidVariableWithSource
+) => {
+    const resolvedFaqResults: EnrichedFaqLookupResult[] = variableMetadata
+        .presentation?.faqs
+        ? variableMetadata.presentation.faqs.map((faq) => {
+              const enrichedFaq = gdocIdToFragmentIdToBlock[faq.gdocId]?.[
+                  faq.fragmentId
+              ] as EnrichedFaq | undefined
+              if (!enrichedFaq)
+                  return {
+                      type: "error",
+                      error: `Could not find fragment ${faq.fragmentId} in gdoc ${faq.gdocId}`,
+                  }
+              return {
+                  type: "success",
+                  enrichedFaq,
+              }
+          })
+        : []
+
+    const [resolvedFaqs, errors] = partition(
+        resolvedFaqResults,
+        (result) => result.type === "success"
+    ) as [EnrichedFaqLookupSuccess[], EnrichedFaqLookupError[]]
+
+    return { resolvedFaqs, errors }
 }
