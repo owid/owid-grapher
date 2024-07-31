@@ -8,6 +8,7 @@ import {
     TagGraphRoot,
     countriesByName,
     Country,
+    identity,
 } from "@ourworldindata/utils"
 import {
     Configure,
@@ -143,24 +144,37 @@ const DataCatalogRibbonView = ({
 // Currently unclear why this seems to work even though I thought it should be string[][]
 function transformRouteTopicsToFacetFilters(
     topics: string | undefined
-): string[] | undefined {
-    return topics ? topics.split(",").map((tag) => "tags:" + tag) : undefined
+): string[] {
+    return topics ? topics.split(",").map((tag) => "tags:" + tag) : []
+}
+
+function transformRouteCountriesToFacetFilters(
+    countries: string | undefined
+): string[] {
+    return countries
+        ? countries.split(",").map((country) => "availableEntities:" + country)
+        : []
 }
 
 // takes the chaotically-typed facetFilters from instantsearch's UI state
 // and returns a list of tags
-// e.g. [["tags:Energy"], ["tags:Air Polluion"]] => ["Energy", "Air Pollution"]
+// e.g. [["tags:Energy"], ["tags:Air Pollution"], ["availableEntities": "New Zealand"]] => { topics: ["Energy", "Air Pollution"], countries: ["New Zealand"] }
 function parseFacetFilters(
     facetFilters: string | undefined | readonly (string | readonly string[])[]
-): string[] {
-    if (!isArray(facetFilters)) return []
-    return facetFilters
-        .flat<string[]>()
-        .reduce((tags: string[], filter: string) => {
-            const match = filter.match(/^tags:(.*)$/)
-            if (match) tags.push(match[1])
-            return tags
-        }, [])
+): { topics: string[]; countries: string[] } {
+    if (!isArray(facetFilters)) return { topics: [], countries: [] }
+    return facetFilters.flat<string[]>().reduce(
+        (facets, filter: string) => {
+            const match = filter.match(/^(tags|availableEntities):(.*)$/)
+            if (match) {
+                if (match[1] === "tags") facets.topics.push(match[2])
+                if (match[1] === "availableEntities")
+                    facets.countries.push(match[2])
+            }
+            return facets
+        },
+        { topics: [] as string[], countries: [] as string[] }
+    )
 }
 
 // facetFilters is usually something like [["tags:Energy"], ["tags:Air Polluion"]]
@@ -200,7 +214,7 @@ const DataCatalogResults = ({
     const isLoading = status === "loading" || status === "stalled"
     const shouldShowRibbons = checkShouldShowRibbonView(
         query,
-        facetFilters,
+        facetFilters.topics,
         areaNames
     )
 
@@ -209,7 +223,7 @@ const DataCatalogResults = ({
             <DataCatalogRibbonView
                 isLoading={isLoading}
                 tagGraph={tagGraph}
-                tagToShow={facetFilters[0]}
+                tagToShow={facetFilters.topics[0]}
                 addGlobalFacetFilter={addGlobalFacetFilter}
             />
         )
@@ -236,7 +250,9 @@ const DataCatalogResults = ({
 function getNbHitsForTag(tag: string, results: ScopedResult[]) {
     const result = results.find((r) =>
         // for some reason I can only find facetFilters in the internal _state object
-        parseFacetFilters(get(r, "results._state.facetFilters")).includes(tag)
+        parseFacetFilters(
+            get(r, "results._state.facetFilters")
+        ).topics.includes(tag)
     )
     return result ? result.results.nbHits : undefined
 }
@@ -269,13 +285,13 @@ const TopicsRefinementList = ({
     const isLoading = status === "loading" || status === "stalled"
     const isShowingRibbons = checkShouldShowRibbonView(
         genericState.query,
-        facetFilters,
+        facetFilters.topics,
         areaNames
     )
 
     const appliedFiltersSection = (
         <ul className="span-cols-12 col-start-2 data-catalog-applied-filters-list">
-            {facetFilters.map((facetFilter) => (
+            {facetFilters.topics.map((facetFilter) => (
                 <li
                     key={facetFilter}
                     className="data-catalog-applied-filters-item"
@@ -294,7 +310,7 @@ const TopicsRefinementList = ({
         </ul>
     )
     if (isShowingRibbons) {
-        const areas = getAreaChildrenFromTag(tagGraph, facetFilters[0])
+        const areas = getAreaChildrenFromTag(tagGraph, facetFilters.topics[0])
         return (
             <React.Fragment>
                 {appliedFiltersSection}
@@ -348,9 +364,14 @@ const TopicsRefinementList = ({
     )
 }
 
-function DataCatalogCountrySelector() {
+function DataCatalogCountrySelector({
+    countrySelections,
+    setCountrySelections,
+}: {
+    countrySelections: Set<string>
+    setCountrySelections: React.Dispatch<React.SetStateAction<Set<string>>>
+}) {
     const [isOpen, setIsOpen] = useState(false)
-    const [selections, setSelections] = useState<Set<string>>(new Set())
     const countrySelectorRef = useRef<HTMLDivElement>(null)
     const listContainerRef = useRef<HTMLDivElement>(null)
     useFocusTrap(listContainerRef, isOpen)
@@ -358,8 +379,8 @@ function DataCatalogCountrySelector() {
     useTriggerWhenClickOutside(countrySelectorRef, isOpen, () =>
         setIsOpen(false)
     )
-    function handleSelection(countryName: string) {
-        setSelections((prev) => {
+    function handleCountrySelection(countryName: string) {
+        setCountrySelections((prev) => {
             const newSet = new Set(prev)
             if (newSet.has(countryName)) {
                 newSet.delete(countryName)
@@ -422,9 +443,11 @@ function DataCatalogCountrySelector() {
                                     <input
                                         type="checkbox"
                                         id={`country-${country.name}`}
-                                        checked={selections.has(country.name)}
+                                        checked={countrySelections.has(
+                                            country.name
+                                        )}
                                         onChange={() => {
-                                            handleSelection(country.name)
+                                            handleCountrySelection(country.name)
                                         }}
                                     />
                                 </li>
@@ -439,13 +462,14 @@ function DataCatalogCountrySelector() {
 
 export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
     const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+    const [countrySelections, setCountrySelections] = useState<Set<string>>(
+        new Set()
+    )
     // globalFacetFilters apply to all indexes, unless they're overridden by a nested Configure component.
     // They're only relevant when we're not showing the ribbon view (because each ribbon has its own Configure.)
     // They're stored as ["Energy", "Air Pollution"] which is easier to work with in other components,
     // then are formatted into [["tags:Energy"], ["tags:Air Pollution"]] to be used in this component's Configure.
-    const [globalFacetFilters, setGlobalFacetFilters] = useState<
-        string[] | undefined
-    >()
+    const [globalFacetFilters, setGlobalFacetFilters] = useState<string[]>([])
     function addGlobalFacetFilter(tag: string) {
         setGlobalFacetFilters((prev) => {
             if (!prev) return [tag]
@@ -459,14 +483,19 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
             return prev.filter((t) => t !== tag)
         })
     }
-    const formattedGlobalFacetFilters = globalFacetFilters?.map((f) => [
+    const formattedGlobalFacetFilters = globalFacetFilters.map((f) => [
         `tags:${f}`,
+    ])
+    const formattedCountrySelections = [...countrySelections].map((c) => [
+        `availableEntities:${c}`,
     ])
     useEffect(() => {
         const handlePopState = () => {
             const urlParams = new URLSearchParams(window.location.search)
             const topics = urlParams.get("topics") || ""
-            setGlobalFacetFilters(topics ? topics.split(",") : undefined)
+            setGlobalFacetFilters(topics ? topics.split(",") : [])
+            const countries = urlParams.get("countries") || ""
+            setCountrySelections(new Set(countries ? countries.split(",") : []))
         }
         window.addEventListener("popstate", handlePopState)
         handlePopState()
@@ -487,21 +516,30 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                         const facetFilters = parseFacetFilters(
                             genericState.configure?.facetFilters
                         )
-                        const topics: string = facetFilters.join(",")
+                        const topics: string = facetFilters.topics.join(",")
+                        const countries = facetFilters.countries.join(",")
 
                         return {
                             q,
                             topics: topics.length ? topics : undefined,
+                            countries: countries.length ? countries : undefined,
                         }
                     },
                     routeToState(routeState): UiState {
+                        const facetFilters = [
+                            ...transformRouteTopicsToFacetFilters(
+                                routeState.topics
+                            ),
+                            ...transformRouteCountriesToFacetFilters(
+                                routeState.countries
+                            ),
+                        ]
                         return {
                             "": {
                                 configure: {
-                                    facetFilters:
-                                        transformRouteTopicsToFacetFilters(
-                                            routeState.topics
-                                        ),
+                                    facetFilters: facetFilters.length
+                                        ? facetFilters
+                                        : undefined,
                                 },
                                 query: routeState.q,
                             },
@@ -510,7 +548,12 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                 },
             }}
         >
-            <Configure facetFilters={formattedGlobalFacetFilters} />
+            <Configure
+                facetFilters={[
+                    ...formattedGlobalFacetFilters,
+                    ...formattedCountrySelections,
+                ]}
+            />
             <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
                 <header className="data-catalog-heading span-cols-12 col-start-2">
                     <h1 className="h1-semibold">Data Catalog</h1>
@@ -528,7 +571,10 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                             form: "data-catalog-search-form",
                         }}
                     />
-                    <DataCatalogCountrySelector />
+                    <DataCatalogCountrySelector
+                        countrySelections={countrySelections}
+                        setCountrySelections={setCountrySelections}
+                    />
                 </div>
             </div>
 
