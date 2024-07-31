@@ -708,7 +708,14 @@ export class DiscreteBarChart
         let sortByFunc: (item: DiscreteBarItem) => number | string | undefined
         switch (this.sortConfig.sortBy) {
             case SortBy.custom:
-                sortByFunc = (): undefined => undefined
+                if (this.seriesStrategy === SeriesStrategy.entity) {
+                    sortByFunc = (item: DiscreteBarItem): number =>
+                        this.selectionArray.selectedEntityNames.indexOf(
+                            item.seriesName
+                        )
+                } else {
+                    sortByFunc = (): undefined => undefined
+                }
                 break
             case SortBy.entityName:
                 sortByFunc = (item: DiscreteBarItem): string => item.seriesName
