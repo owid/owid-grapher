@@ -11,7 +11,6 @@ import {
     keyBy,
     mergePartialGrapherConfigs,
     compact,
-    partition,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import * as lodash from "lodash"
@@ -37,9 +36,7 @@ import {
     DimensionProperty,
     OwidVariableWithSource,
     OwidChartDimensionInterface,
-    EnrichedFaq,
     FaqEntryData,
-    FaqDictionary,
     ImageMetadata,
     OwidGdocBaseInterface,
 } from "@ourworldindata/types"
@@ -49,11 +46,14 @@ import {
     getMergedGrapherConfigForVariable,
     getVariableOfDatapageIfApplicable,
 } from "../db/model/Variable.js"
-import { getDatapageDataV2, getDatapageGdoc } from "./DatapageHelpers.js"
+import {
+    fetchAndParseFaqs,
+    getDatapageDataV2,
+    resolveFaqsForVariable,
+} from "./DatapageHelpers.js"
 import { Image, getAllImages } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
-import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
@@ -114,18 +114,6 @@ export const renderDataPageOrGrapherPage = async (
     return renderGrapherPage(grapher, knex)
 }
 
-type EnrichedFaqLookupError = {
-    type: "error"
-    error: string
-}
-
-type EnrichedFaqLookupSuccess = {
-    type: "success"
-    enrichedFaq: EnrichedFaq
-}
-
-type EnrichedFaqLookupResult = EnrichedFaqLookupError | EnrichedFaqLookupSuccess
-
 export async function renderDataPageV2(
     {
         variableId,
@@ -158,45 +146,16 @@ export async function renderDataPageV2(
         ? mergePartialGrapherConfigs(grapherConfigForVariable, pageGrapher)
         : pageGrapher ?? {}
 
-    const faqDocs = compact(
+    const faqDocIds = compact(
         uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
     )
-    const gdocFetchPromises = faqDocs.map((gdocId) =>
-        getDatapageGdoc(knex, gdocId, isPreviewing)
+
+    const faqGdocs = await fetchAndParseFaqs(knex, faqDocIds, { isPreviewing })
+
+    const { resolvedFaqs, errors: faqResolveErrors } = resolveFaqsForVariable(
+        faqGdocs,
+        variableMetadata
     )
-    const gdocs = await Promise.all(gdocFetchPromises)
-    const gdocIdToFragmentIdToBlock: Record<string, FaqDictionary> = {}
-    gdocs.forEach((gdoc) => {
-        if (!gdoc) return
-        const faqs = parseFaqs(
-            ("faqs" in gdoc.content && gdoc.content?.faqs) ?? [],
-            gdoc.id
-        )
-        gdocIdToFragmentIdToBlock[gdoc.id] = faqs.faqs
-    })
-
-    const resolvedFaqsResults: EnrichedFaqLookupResult[] = variableMetadata
-        .presentation?.faqs
-        ? variableMetadata.presentation.faqs.map((faq) => {
-              const enrichedFaq = gdocIdToFragmentIdToBlock[faq.gdocId]?.[
-                  faq.fragmentId
-              ] as EnrichedFaq | undefined
-              if (!enrichedFaq)
-                  return {
-                      type: "error",
-                      error: `Could not find fragment ${faq.fragmentId} in gdoc ${faq.gdocId}`,
-                  }
-              return {
-                  type: "success",
-                  enrichedFaq,
-              }
-          })
-        : []
-
-    const [resolvedFaqs, faqResolveErrors] = partition(
-        resolvedFaqsResults,
-        (result) => result.type === "success"
-    ) as [EnrichedFaqLookupSuccess[], EnrichedFaqLookupError[]]
 
     if (faqResolveErrors.length > 0) {
         for (const error of faqResolveErrors) {
