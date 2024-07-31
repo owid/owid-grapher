@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from "react"
-import cx from "classnames"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import ReactDOM from "react-dom"
+import cx from "classnames"
 import {
     get,
     isArray,
@@ -8,7 +8,6 @@ import {
     TagGraphRoot,
     countriesByName,
     Country,
-    identity,
 } from "@ourworldindata/utils"
 import {
     Configure,
@@ -24,9 +23,10 @@ import {
     ALGOLIA_SEARCH_KEY,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../settings/clientSettings.js"
-import { SearchIndexName } from "./search/searchTypes.js"
+import { IChartHit, SearchIndexName } from "./search/searchTypes.js"
 import { getIndexName } from "./search/searchClient.js"
 import { ScopedResult, UiState } from "instantsearch.js"
+import { history } from "instantsearch.js/es/lib/routers"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
@@ -39,19 +39,26 @@ import {
     useTriggerWhenClickOutside,
 } from "./hooks.js"
 
-const ChartHit = ({ hit }: { hit: any }) => {
+const ChartHit = ({ hit }: { hit: IChartHit }) => {
     return (
         <a
             key={hit.title}
             href={`/grapher/${hit.slug}`}
-            className="data-catalog-ribbon-thumbnail"
+            className="data-catalog-hit__thumbnail"
         >
             <img
                 height={150}
                 width={212.5}
                 src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}.png`}
             />
-            <p>{hit.title}</p>
+            <p>
+                {hit.title}{" "}
+                {hit.variantName ? (
+                    <span className="data-catalog-hit__variant-name">
+                        {hit.variantName}
+                    </span>
+                ) : null}
+            </p>
         </a>
     )
 }
@@ -390,6 +397,11 @@ function DataCatalogCountrySelector({
             return newSet
         })
     }
+    const alphabetizedCountriesByName = useMemo(() => {
+        return Object.values(countriesByName()).sort((a, b) => {
+            return a.name.localeCompare(b.name)
+        })
+    }, [])
     return (
         <div className="data-catalog-country-selector" ref={countrySelectorRef}>
             <button
@@ -420,7 +432,7 @@ function DataCatalogCountrySelector({
                         </button>
                     </div>
                     <ol className="data-catalog-country-selector-list">
-                        {Object.values(countriesByName()).map(
+                        {Object.values(alphabetizedCountriesByName).map(
                             (country: Country) => (
                                 <li
                                     value={country.name}
@@ -460,8 +472,48 @@ function DataCatalogCountrySelector({
     )
 }
 
+const SelectedCountriesPills = ({
+    countrySelections,
+    setCountrySelections,
+}: {
+    countrySelections: Set<string>
+    setCountrySelections: React.Dispatch<React.SetStateAction<Set<string>>>
+}) => {
+    return (
+        <div className="data-catalog-selected-countries-container">
+            {[...countrySelections].map((country) => (
+                <div
+                    key={country}
+                    className="data-catalog-selected-country-pill"
+                >
+                    <img
+                        width={20}
+                        height={16}
+                        src={`/images/flags/${countriesByName()[country].code}.svg`}
+                    />
+                    <span className="body-3-medium">{country}</span>
+                    <button
+                        onClick={() => {
+                            setCountrySelections((prev) => {
+                                const newSet = new Set(prev)
+                                newSet.delete(country)
+                                return newSet
+                            })
+                        }}
+                    >
+                        <FontAwesomeIcon icon={faClose} />
+                    </button>
+                </div>
+            ))}
+        </div>
+    )
+}
+
 export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
     const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+    // TODO: setting these is causing the SearchBox value to reset to previous searches
+    // investigate why this is happening
+    // possibly switch setCountrySelections to use useInstantSearch().setUiState ?
     const [countrySelections, setCountrySelections] = useState<Set<string>>(
         new Set()
     )
@@ -564,20 +616,28 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                     </p>
                 </header>
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
-                    <SearchBox
-                        placeholder="Search for an indicator, a topic, or a keyword &hellip;"
-                        searchAsYouType={false}
-                        classNames={{
-                            form: "data-catalog-search-form",
-                        }}
-                    />
+                    <div className="data-catalog-pseudoform">
+                        <SelectedCountriesPills
+                            countrySelections={countrySelections}
+                            setCountrySelections={setCountrySelections}
+                        />
+                        <SearchBox
+                            placeholder="Search for an indicator, a topic, or a keyword &hellip;"
+                            searchAsYouType={false}
+                            className="data-catalog-search-box-container"
+                            classNames={{
+                                form: "data-catalog-search-form",
+                                input: "data-catalog-search-input",
+                                reset: "data-catalog-search-reset-button",
+                            }}
+                        />
+                    </div>
                     <DataCatalogCountrySelector
                         countrySelections={countrySelections}
                         setCountrySelections={setCountrySelections}
                     />
                 </div>
             </div>
-
             <TopicsRefinementList
                 tagGraph={props.tagGraph}
                 addGlobalFacetFilter={addGlobalFacetFilter}
