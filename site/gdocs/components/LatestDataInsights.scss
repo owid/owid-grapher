@@ -85,22 +85,24 @@ html:not(.js) .latest-data-insights__card,
 
 .latest-data-insights__card-left {
     display: flex;
-    flex: 1 1 410px;
+    height: 100%;
 
-    @include md-down {
-        flex: initial;
+    img {
+        height: 100%;
+        width: auto;
+        max-width: initial;
+
+        @include md-down {
+            max-width: 100%;
+        }
     }
 }
 
 .latest-data-insights__card-right {
     display: flex;
     flex-direction: column;
-    flex: 1 0 379px;
-
-    @include md-down {
-        flex: 1 1 0;
-        min-height: 0;
-    }
+    height: 100%;
+    min-height: 0;
 }
 
 .latest-data-insights__card-body {
