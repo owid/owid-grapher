@@ -880,6 +880,10 @@ export class InstantSearchContainer extends React.Component {
                     <SearchBox
                         placeholder={DEFAULT_SEARCH_PLACEHOLDER}
                         className="searchbox"
+                        classNames={{
+                            input: "search-panel-input",
+                            reset: "search-panel-reset-button",
+                        }}
                         queryHook={this.handleQuery}
                     />
                     <Filters

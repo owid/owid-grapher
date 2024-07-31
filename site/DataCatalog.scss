@@ -11,8 +11,71 @@
     position: relative;
 }
 
+.data-catalog-pseudoform {
+    display: flex;
+    flex-grow: 1;
+    outline: 1px solid $blue-20;
+    background-color: #fff;
+    &:focus-within {
+        outline: 1px solid $blue-40;
+    }
+}
+
 .data-catalog-search-controls-container {
     position: relative;
+    display: flex;
+}
+
+.data-catalog-search-box-container {
+    flex-grow: 2;
+}
+
+.data-catalog-search-input {
+    background-color: white;
+    width: 100%;
+    height: 56px;
+    padding-left: 16px;
+    padding-right: 44px;
+    border: none;
+    outline-offset: 0px;
+
+    &:focus {
+        outline: none;
+    }
+}
+
+.data-catalog-selected-countries-container {
+    background: #fff;
+    z-index: 2;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+
+.data-catalog-selected-country-pill {
+    background-color: $blue-5;
+    padding: 8px;
+    margin-right: 8px;
+    img {
+        margin-right: 8px;
+    }
+    span {
+        color: $blue-90;
+    }
+    button {
+        background-color: transparent;
+        border: none;
+        margin-left: 8px;
+        color: $blue-60;
+        padding: 0;
+        cursor: pointer;
+        svg {
+            width: 10px;
+            margin-bottom: -3px;
+            display: block;
+        }
+    }
 }
 
 .data-catalog-country-selector {
@@ -35,6 +98,7 @@
         margin-right: 4px;
     }
 }
+
 .data-catalog-country-selector-list-container {
     background-color: #fff;
     position: absolute;
@@ -77,6 +141,7 @@
     max-height: 300px;
     overflow-y: scroll;
 }
+
 .data-catalog-country-selector-list__item {
     border-bottom: 1px solid $gray-20;
     position: relative;
@@ -104,25 +169,11 @@
     }
 }
 
-.data-catalog-breadcrumbs {
-    margin-bottom: 16px;
+.data-catalog-search-reset-button {
+    display: none;
 }
 
-.data-catalog-breadcrumb {
-    margin-left: 8px;
-    display: inline-block;
-    color: $blue-60;
-    a {
-        @include owid-link-90;
-        &:visited {
-            color: $blue-90;
-        }
-    }
-    svg {
-        margin-right: 8px;
-    }
-}
-
+/* Results */
 .data-catalog-facets {
     margin-bottom: 16px;
 }
@@ -237,13 +288,13 @@
     grid-gap: var(--grid-gap);
 }
 
-.data-catalog-search-thumbnail,
-.data-catalog-ribbon-thumbnail {
+.data-catalog-hit__thumbnail {
     img {
         width: 100%;
     }
     p {
         margin: 0;
+        font-weight: 600;
         color: $blue-90;
     }
     &:hover {
@@ -251,6 +302,12 @@
             text-decoration: underline;
         }
     }
+}
+
+.data-catalog-hit__variant-name {
+    color: $blue-60;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .data-catalog-loading-spinner {
