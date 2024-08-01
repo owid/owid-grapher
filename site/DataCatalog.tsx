@@ -16,6 +16,7 @@ import {
     InstantSearch,
     SearchBox,
     useInstantSearch,
+    useSearchBox,
 } from "react-instantsearch"
 import algoliasearch from "algoliasearch"
 import {
@@ -479,6 +480,7 @@ const SelectedCountriesPills = ({
     countrySelections: Set<string>
     setCountrySelections: React.Dispatch<React.SetStateAction<Set<string>>>
 }) => {
+    if (countrySelections.size === 0) return null
     return (
         <div className="data-catalog-selected-countries-container">
             {[...countrySelections].map((country) => (
@@ -505,6 +507,35 @@ const SelectedCountriesPills = ({
                     </button>
                 </div>
             ))}
+        </div>
+    )
+}
+
+const DataCatalogSearchBox = () => {
+    const { uiState } = useInstantSearch()
+    const initValue = get(uiState, ["", "query"], "")
+    const [query, setQuery] = useState(initValue)
+    const sb = useSearchBox()
+
+    return (
+        <div className="data-catalog-search-box-container">
+            <form
+                className="data-catalog-search-form"
+                onSubmit={(e) => {
+                    e.preventDefault()
+                    sb.refine(query)
+                }}
+            >
+                <input
+                    type="text"
+                    className="data-catalog-search-input"
+                    placeholder="Search for an indicator, a topic, or a keyword &hellip;"
+                    value={query}
+                    onChange={(e) => {
+                        setQuery(e.target.value)
+                    }}
+                />
+            </form>
         </div>
     )
 }
@@ -616,21 +647,15 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                     </p>
                 </header>
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
+                    {/* Uses CSS to fake an input bar that will highlight correctly using focus-within
+                        without highlighting when the country selector is focused
+                     */}
                     <div className="data-catalog-pseudoform">
                         <SelectedCountriesPills
                             countrySelections={countrySelections}
                             setCountrySelections={setCountrySelections}
                         />
-                        <SearchBox
-                            placeholder="Search for an indicator, a topic, or a keyword &hellip;"
-                            searchAsYouType={false}
-                            className="data-catalog-search-box-container"
-                            classNames={{
-                                form: "data-catalog-search-form",
-                                input: "data-catalog-search-input",
-                                reset: "data-catalog-search-reset-button",
-                            }}
-                        />
+                        <DataCatalogSearchBox />
                     </div>
                     <DataCatalogCountrySelector
                         countrySelections={countrySelections}

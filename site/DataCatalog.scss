@@ -35,7 +35,8 @@
     width: 100%;
     height: 56px;
     padding-left: 16px;
-    padding-right: 44px;
+    // the approximate width of the country selector button
+    padding-right: 140px;
     border: none;
     outline-offset: 0px;
 
@@ -290,6 +291,7 @@
 
 .data-catalog-hit__thumbnail {
     img {
+        display: block;
         width: 100%;
     }
     p {
