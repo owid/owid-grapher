@@ -9,8 +9,8 @@ import {
 import cx from "classnames"
 import { LIGHTBOX_IMAGE_CLASS } from "../../Lightbox.js"
 import {
-    R2_BUCKET_SUBFOLDER_PATH,
-    R2_CDN_URL,
+    IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH,
+    IMAGE_HOSTING_R2_CDN_URL,
 } from "../../../settings/clientSettings.js"
 import { DocumentContext } from "../OwidGdoc.js"
 import { Container } from "./ArticleBlock.js"
@@ -115,7 +115,7 @@ export default function Image(props: {
 
     if (isPreviewing) {
         const makePreviewUrl = (f: string) =>
-            `${R2_CDN_URL}/${R2_BUCKET_SUBFOLDER_PATH}/${encodeURIComponent(f)}`
+            `${IMAGE_HOSTING_R2_CDN_URL}/${IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH}/${encodeURIComponent(f)}`
 
         const PreviewSource = (props: { i?: ImageMetadata; sm?: boolean }) => {
             const { i, sm } = props
