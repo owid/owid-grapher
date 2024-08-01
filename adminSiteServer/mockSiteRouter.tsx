@@ -7,7 +7,6 @@ import {
     renderChartsPage,
     renderSearchPage,
     renderDonatePage,
-    entriesByYearPage,
     makeAtomFeed,
     feedbackPage,
     renderNotFoundPage,
@@ -116,19 +115,6 @@ getPlainRouteNonIdempotentWithRWTransaction(
         const sitemap = await makeSitemap(explorerAdminServer, trx)
         res.send(sitemap)
     }
-)
-
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    "/entries-by-year",
-    async (req, res, trx) => res.send(await entriesByYearPage(trx))
-)
-
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    `/entries-by-year/:year`,
-    async (req, res, trx) =>
-        res.send(await entriesByYearPage(trx, parseInt(req.params.year)))
 )
 
 mockSiteRouter.get(

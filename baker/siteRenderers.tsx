@@ -29,10 +29,6 @@ import {
     BAKED_GRAPHER_EXPORTS_BASE_URL,
     RECAPTCHA_SITE_KEY,
 } from "../settings/clientSettings.js"
-import {
-    EntriesByYearPage,
-    EntriesForYearPage,
-} from "../site/EntriesByYearPage.js"
 import { FeedbackPage } from "../site/FeedbackPage.js"
 import {
     getCountryBySlug,
@@ -48,7 +44,6 @@ import {
     OwidGdocType,
     OwidGdoc,
     OwidGdocDataInsightInterface,
-    DbRawPost,
 } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
@@ -83,7 +78,6 @@ import {
     getFullPostByIdFromSnapshot,
     getFullPostBySlugFromSnapshot,
     isPostSlugCitable,
-    postsTable,
 } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
@@ -499,39 +493,6 @@ ${dataInsights
     })
     .join("\n")}
 </feed>`
-}
-
-// These pages exist largely just for Google Scholar
-export const entriesByYearPage = async (
-    trx: KnexReadonlyTransaction,
-    year?: number
-) => {
-    const entries = (await trx
-        .table(postsTable)
-        .where({ status: "publish" })
-        .whereNot({ type: "wp_block" })
-        .join("post_tags", { "post_tags.post_id": "posts.id" })
-        .join("tags", { "tags.id": "post_tags.tag_id" })
-        .where({ "tags.name": "Entries" })
-        .select("title", "posts.slug", "published_at")) as Pick<
-        DbRawPost,
-        "title" | "slug" | "published_at"
-    >[]
-
-    // TODO: include topic pages here once knex refactor is done
-
-    if (year !== undefined)
-        return renderToHtmlPage(
-            <EntriesForYearPage
-                entries={entries}
-                year={year}
-                baseUrl={BAKED_BASE_URL}
-            />
-        )
-
-    return renderToHtmlPage(
-        <EntriesByYearPage entries={entries} baseUrl={BAKED_BASE_URL} />
-    )
 }
 
 export const feedbackPage = () =>
