@@ -32,6 +32,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
     faClose,
+    faMagnifyingGlass,
     faMapMarker,
 } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -380,6 +381,7 @@ function DataCatalogCountrySelector({
     setCountrySelections: React.Dispatch<React.SetStateAction<Set<string>>>
 }) {
     const [isOpen, setIsOpen] = useState(false)
+    const [countrySearchQuery, setCountrySearchQuery] = useState("")
     const countrySelectorRef = useRef<HTMLDivElement>(null)
     const listContainerRef = useRef<HTMLDivElement>(null)
     useFocusTrap(listContainerRef, isOpen)
@@ -403,6 +405,17 @@ function DataCatalogCountrySelector({
             return a.name.localeCompare(b.name)
         })
     }, [])
+
+    const filteredCountriesByName = useMemo(() => {
+        return alphabetizedCountriesByName.filter(
+            (country) =>
+                countrySelections.has(country.name) ||
+                country.name
+                    .toLowerCase()
+                    .includes(countrySearchQuery.toLowerCase())
+        )
+    }, [countrySearchQuery, countrySelections, alphabetizedCountriesByName])
+
     return (
         <div className="data-catalog-country-selector" ref={countrySelectorRef}>
             <button
@@ -432,13 +445,33 @@ function DataCatalogCountrySelector({
                             <FontAwesomeIcon icon={faClose} />
                         </button>
                     </div>
+                    <div className="data-catalog-country-selector-search-container">
+                        <FontAwesomeIcon icon={faMagnifyingGlass} />
+                        <input
+                            type="text"
+                            placeholder="Search for a country"
+                            className="data-catalog-country-selector-search-input body-3-regular"
+                            value={countrySearchQuery}
+                            onChange={(e) =>
+                                setCountrySearchQuery(e.target.value)
+                            }
+                        />
+                    </div>
                     <ol className="data-catalog-country-selector-list">
-                        {Object.values(alphabetizedCountriesByName).map(
+                        {Object.values(filteredCountriesByName).map(
                             (country: Country) => (
                                 <li
                                     value={country.name}
                                     key={country.name}
-                                    className="data-catalog-country-selector-list__item"
+                                    className={cx(
+                                        "data-catalog-country-selector-list__item",
+                                        {
+                                            "data-catalog-country-selector-list__item--selected":
+                                                countrySelections.has(
+                                                    country.name
+                                                ),
+                                        }
+                                    )}
                                 >
                                     <label
                                         className="body-3-medium"
@@ -528,7 +561,7 @@ const DataCatalogSearchBox = () => {
             >
                 <input
                     type="text"
-                    className="data-catalog-search-input"
+                    className="data-catalog-search-input body-3-regular"
                     placeholder="Search for an indicator, a topic, or a keyword &hellip;"
                     value={query}
                     onChange={(e) => {
