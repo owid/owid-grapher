@@ -9,9 +9,9 @@ import {
     knexRawFirst,
     knexReadonlyTransaction,
     TransactionCloseMode,
-    getBinaryUUID,
 } from "../db.js"
 import { deleteUser, insertUser, updateUser } from "../model/User.js"
+import { uuidv7 } from "uuidv7"
 import {
     ChartsTableName,
     ChartConfigsTableName,
@@ -71,7 +71,7 @@ test("timestamps are automatically created and updated", async () => {
                 .first<DbPlainUser>()
             expect(user).toBeTruthy()
             expect(user.email).toBe("admin@example.com")
-            const configId = await getBinaryUUID(trx)
+            const configId = uuidv7()
             const chartConfig: DbInsertChartConfig = {
                 id: configId,
                 patch: "{}",

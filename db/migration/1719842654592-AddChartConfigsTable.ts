@@ -1,13 +1,12 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-
+import { uuidv7 } from "uuidv7"
 export class AddChartConfigsTable1719842654592 implements MigrationInterface {
     private async createChartConfigsTable(
         queryRunner: QueryRunner
     ): Promise<void> {
         await queryRunner.query(`-- sql
             CREATE TABLE chart_configs (
-                id binary(16) NOT NULL DEFAULT (UUID_TO_BIN(UUID(), 1)) PRIMARY KEY,
-                uuid varchar(36) GENERATED ALWAYS AS (BIN_TO_UUID(id, 1)) VIRTUAL,
+                id char(36) NOT NULL PRIMARY KEY,
                 patch json NOT NULL,
                 full json NOT NULL,
                 slug varchar(255) GENERATED ALWAYS AS (JSON_UNQUOTE(JSON_EXTRACT(full, '$.slug'))) STORED,
@@ -25,7 +24,7 @@ export class AddChartConfigsTable1719842654592 implements MigrationInterface {
         // that points to the `chart_configs` table
         await queryRunner.query(`-- sql
             ALTER TABLE charts
-            ADD COLUMN configId binary(16) UNIQUE AFTER type,
+            ADD COLUMN configId char(36) UNIQUE AFTER type,
             ADD CONSTRAINT charts_configId
                 FOREIGN KEY (configId)
                 REFERENCES chart_configs (id)
@@ -44,11 +43,21 @@ export class AddChartConfigsTable1719842654592 implements MigrationInterface {
             WHERE id != config ->> "$.id";
         `)
 
-        // insert all the configs into the `chart_configs` table
-        await queryRunner.query(`-- sql
-            INSERT INTO chart_configs (patch, full)
-            SELECT config, config FROM charts
-        `)
+        const chartConfigs: { config: string }[] =
+            await queryRunner.query(`-- sql
+            select config from charts`)
+
+        // I tried to write this as a chunked builk insert of 500 at a time but
+        // failed to get it to work without doing strange things. We only run this once
+        // for ~5000 items so it's not too bad to do it one insert at a time
+        for (const chartConfig of chartConfigs) {
+            await queryRunner.query(
+                `-- sql
+                INSERT INTO chart_configs (id, patch, full)
+                VALUES (?, ?, ?)`,
+                [uuidv7(), chartConfig.config, chartConfig.config]
+            )
+        }
 
         // update the `configId` column in the `charts` table
         await queryRunner.query(`-- sql
@@ -61,7 +70,7 @@ export class AddChartConfigsTable1719842654592 implements MigrationInterface {
         // now that the `configId` column is filled, make it NOT NULL
         await queryRunner.query(`-- sql
             ALTER TABLE charts
-            MODIFY COLUMN configId binary(16) NOT NULL;
+            MODIFY COLUMN configId char(36) NOT NULL;
         `)
 
         // update `createdAt` and `updatedAt` of the chart_configs table

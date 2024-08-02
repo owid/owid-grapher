@@ -3,8 +3,7 @@ import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
 
 export const ChartConfigsTableName = "chart_configs"
 export interface DbInsertChartConfig {
-    id: Buffer
-    uuid?: string
+    id: string
     patch: JsonString
     full: JsonString
     slug?: string | null

@@ -11075,6 +11075,7 @@ __metadata:
     url-parse: "npm:^1.5.10"
     url-slug: "npm:^3.0.2"
     usehooks-ts: "npm:^3.1.0"
+    uuidv7: "npm:^1.0.1"
     vite: "npm:^5.3.4"
     vite-plugin-checker: "npm:^0.7.2"
     webfontloader: "npm:^1.6.28"
@@ -20022,6 +20023,15 @@ __metadata:
   bin:
     uuid: dist/bin/uuid
   checksum: 10/9d0b6adb72b736e36f2b1b53da0d559125ba3e39d913b6072f6f033e0c87835b414f0836b45bcfaf2bdf698f92297fea1c3cc19b0b258bc182c9c43cc0fab9f2
+  languageName: node
+  linkType: hard
+
+"uuidv7@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "uuidv7@npm:1.0.1"
+  bin:
+    uuidv7: cli.js
+  checksum: 10/24f835d067ee69ee46b1734b1da33e6f751f04ccfa5aa83703fc84693b8628d0ae0b4cd7f31c940ec933268971c338931bf5b57b09e882e14df47dfebba2b760
   languageName: node
   linkType: hard
 
