@@ -3,6 +3,7 @@ import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import urljoin from "url-join"
+import { Country } from "@ourworldindata/utils"
 
 export interface CountryProfileIndicator {
     name: string
@@ -21,11 +22,7 @@ export interface CountryProfileKeyStats {
 }
 
 export interface CountryProfilePageProps {
-    country: {
-        name: string
-        slug: string
-        code: string
-    }
+    country: Country
     indicators: CountryProfileIndicator[]
     baseUrl: string
 }
@@ -51,7 +48,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                     <header>
                         <img
                             className="flag"
-                            src={`/images/flags/${country.code}.svg`}
+                            src={`https://hatscripts.github.io/circle-flags/flags/${country.shortCode?.toLowerCase()}.svg`}
                         />
                         <h1>{country.name}</h1>
                     </header>

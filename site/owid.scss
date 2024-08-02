@@ -1041,6 +1041,7 @@ html:not(.js) {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
         grid-column-gap: 1rem;
+        grid-row-gap: 0.5em;
     }
 
     li {
@@ -1049,6 +1050,7 @@ html:not(.js) {
         padding-right: 1em;
         font-size: 0.8em;
         max-width: 90vw;
+        display: flex;
     }
 
     .flag {

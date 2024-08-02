@@ -1732,6 +1732,7 @@
     },
     {
         "code": "OWID_KOS",
+        "shortCode": "xk",
         "name": "Kosovo",
         "slug": "kosovo",
         "regionType": "country",

@@ -2,12 +2,7 @@ import React from "react"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-
-interface Country {
-    name: string
-    slug: string
-    code: string
-}
+import { Country } from "@ourworldindata/utils"
 
 export const CountriesIndexPage = (props: {
     countries: Country[]
@@ -32,7 +27,7 @@ export const CountriesIndexPage = (props: {
                             <li key={country.code}>
                                 <img
                                     className="flag"
-                                    src={`/images/flags/${country.code}.svg`}
+                                    src={`https://hatscripts.github.io/circle-flags/flags/${country.shortCode?.toLowerCase()}.svg`}
                                 />
                                 <a href={`/country/${country.slug}`}>
                                     {country.name}
