@@ -132,7 +132,7 @@ const getEntityQueryStr = (
     }
 }
 
-function ChartHit({
+export function ChartHit({
     hit,
     searchQueryRegionsMatches,
 }: {
