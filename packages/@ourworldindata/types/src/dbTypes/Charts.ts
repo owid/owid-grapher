@@ -1,6 +1,6 @@
 export const ChartsTableName = "charts"
 export interface DbInsertChart {
-    configId: Buffer
+    configId: string
     createdAt?: Date
     id?: number
     isIndexable?: number

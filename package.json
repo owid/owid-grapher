@@ -165,6 +165,7 @@
         "url-parse": "^1.5.10",
         "url-slug": "^3.0.2",
         "usehooks-ts": "^3.1.0",
+        "uuidv7": "^1.0.1",
         "webfontloader": "^1.6.28",
         "workerpool": "^6.2.0",
         "yaml": "^2.4.2"
