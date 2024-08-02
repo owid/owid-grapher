@@ -1353,22 +1353,27 @@ getRouteWithROTransaction(
 
         await assignTagsForCharts(trx, charts)
 
-        const grapherConfig = await getMergedGrapherConfigForVariable(
+        const variableWithConfigs = await getGrapherConfigsForVariable(
             trx,
             variableId
         )
+        const grapherConfigETL = variableWithConfigs?.etl?.fullConfig
+        const mergedGrapherConfig =
+            variableWithConfigs?.admin?.fullConfig ?? grapherConfigETL
 
-        const variablesWithCharts: OwidVariableWithSource & {
+        const variableWithCharts: OwidVariableWithSource & {
             charts: Record<string, any>
             grapherConfig: GrapherInterface | undefined
+            grapherConfigETL: GrapherInterface | undefined
         } = {
             ...variable,
             charts,
-            grapherConfig,
+            grapherConfig: mergedGrapherConfig,
+            grapherConfigETL,
         }
 
         return {
-            variable: variablesWithCharts,
+            variable: variableWithCharts,
         } /*, vardata: await getVariableData([variableId]) }*/
     }
 )
