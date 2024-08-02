@@ -8,26 +8,21 @@ import {
     TagGraphRoot,
     countriesByName,
     Country,
+    Region,
 } from "@ourworldindata/utils"
 import {
     Configure,
     Hits,
     Index,
     InstantSearch,
-    SearchBox,
     useInstantSearch,
     useSearchBox,
 } from "react-instantsearch"
 import algoliasearch from "algoliasearch"
-import {
-    ALGOLIA_ID,
-    ALGOLIA_SEARCH_KEY,
-    GRAPHER_DYNAMIC_THUMBNAIL_URL,
-} from "../settings/clientSettings.js"
-import { IChartHit, SearchIndexName } from "./search/searchTypes.js"
+import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "../settings/clientSettings.js"
+import { SearchIndexName } from "./search/searchTypes.js"
 import { getIndexName } from "./search/searchClient.js"
 import { ScopedResult, UiState } from "instantsearch.js"
-import { history } from "instantsearch.js/es/lib/routers"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
@@ -40,7 +35,15 @@ import {
     useTriggerOnEscape,
     useTriggerWhenClickOutside,
 } from "./hooks.js"
-import { ChartHit } from "./search/SearchPanel.js"
+import { ChartHit } from "./search/ChartHit.js"
+
+type FacetFilters = string | undefined | readonly (string | readonly string[])[]
+function getRegionsFromSelectedEntitiesFacets(
+    facetFilters: FacetFilters
+): Region[] {
+    const selectedEntities = parseFacetFilters(facetFilters).countries
+    return selectedEntities.map((entity) => countriesByName()[entity])
+}
 
 const DataCatalogRibbon = ({
     tagName,
@@ -49,7 +52,12 @@ const DataCatalogRibbon = ({
     tagName: string
     addGlobalFacetFilter: (x: string) => void
 }) => {
-    const { scopedResults } = useInstantSearch()
+    const { scopedResults, uiState } = useInstantSearch()
+    const genericState = uiState[""]
+    const countrySelections = getRegionsFromSelectedEntitiesFacets(
+        genericState.configure?.facetFilters
+    )
+
     return (
         <Index indexName={getIndexName(SearchIndexName.Charts)}>
             <Configure facetFilters={[`tags:${tagName}`]} hitsPerPage={4} />
@@ -75,7 +83,12 @@ const DataCatalogRibbon = ({
                         item: "data-catalog-ribbon-hit",
                         list: "data-catalog-ribbon-list grid grid-cols-4",
                     }}
-                    hitComponent={({ hit }: any) => <ChartHit hit={hit} />}
+                    hitComponent={({ hit }: any) => (
+                        <ChartHit
+                            hit={hit}
+                            searchQueryRegionsMatches={countrySelections}
+                        />
+                    )}
                 />
             </div>
         </Index>
@@ -145,9 +158,10 @@ function transformRouteCountriesToFacetFilters(
 // takes the chaotically-typed facetFilters from instantsearch's UI state
 // and returns a list of tags
 // e.g. [["tags:Energy"], ["tags:Air Pollution"], ["availableEntities": "New Zealand"]] => { topics: ["Energy", "Air Pollution"], countries: ["New Zealand"] }
-function parseFacetFilters(
-    facetFilters: string | undefined | readonly (string | readonly string[])[]
-): { topics: string[]; countries: string[] } {
+function parseFacetFilters(facetFilters: FacetFilters): {
+    topics: string[]
+    countries: string[]
+} {
     if (!isArray(facetFilters)) return { topics: [], countries: [] }
     return facetFilters.flat<string[]>().reduce(
         (facets, filter: string) => {
@@ -195,9 +209,9 @@ const DataCatalogResults = ({
     const { uiState, status } = useInstantSearch()
     const genericState = uiState[""]
     const query = genericState.query
-    const countrySelections = parseFacetFilters(
+    const countrySelections = getRegionsFromSelectedEntitiesFacets(
         genericState.configure?.facetFilters
-    ).countries
+    )
     const facetFilters = parseFacetFilters(genericState.configure?.facetFilters)
     const areaNames = tagGraph.children.map((child) => child.name)
     const isLoading = status === "loading" || status === "stalled"
@@ -233,9 +247,7 @@ const DataCatalogResults = ({
                 hitComponent={({ hit }: any) => (
                     <ChartHit
                         hit={hit}
-                        searchQueryRegionsMatches={countrySelections.map(
-                            (c) => countriesByName()[c]
-                        )}
+                        searchQueryRegionsMatches={countrySelections}
                     />
                 )}
             />
