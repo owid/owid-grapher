@@ -14,6 +14,7 @@ import {
     DEFAULT_GRAPHER_CONFIG_SCHEMA,
 } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
+import { uuidv7 } from "uuidv7"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
 import { escape } from "mysql2"
 import {
@@ -135,7 +136,7 @@ export async function insertNewGrapherConfigForVariable(
     }
 ): Promise<void> {
     // insert chart config into the database
-    const configId = await db.getBinaryUUID(knex)
+    const configId = uuidv7()
     await db.knexRaw(
         knex,
         `-- sql

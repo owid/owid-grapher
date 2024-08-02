@@ -2,6 +2,7 @@ import { defaultGrapherConfig } from "@ourworldindata/grapher"
 import { DimensionProperty, GrapherInterface } from "@ourworldindata/types"
 import { mergeGrapherConfigs, omit } from "@ourworldindata/utils"
 import { MigrationInterface, QueryRunner } from "typeorm"
+import { uuidv7 } from "uuidv7"
 
 export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
     implements MigrationInterface
@@ -9,8 +10,8 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             ALTER TABLE variables
-                ADD COLUMN grapherConfigIdAdmin binary(16) UNIQUE AFTER sort,
-                ADD COLUMN grapherConfigIdETL binary(16) UNIQUE AFTER grapherConfigIdAdmin,
+                ADD COLUMN grapherConfigIdAdmin char(36) UNIQUE AFTER sort,
+                ADD COLUMN grapherConfigIdETL char(36) UNIQUE AFTER grapherConfigIdAdmin,
                 ADD CONSTRAINT fk_variables_grapherConfigIdAdmin
                     FOREIGN KEY (grapherConfigIdAdmin)
                     REFERENCES chart_configs (id)
@@ -68,7 +69,7 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
             }
 
             // insert config into the chart_configs table
-            const configId = await getBinaryUUID(queryRunner)
+            const configId = uuidv7()
             await queryRunner.query(
                 `-- sql
                     INSERT INTO chart_configs (id, patch, full)
@@ -231,9 +232,4 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
             )
         }
     }
-}
-
-const getBinaryUUID = async (queryRunner: QueryRunner): Promise<Buffer> => {
-    const rows = await queryRunner.query(`SELECT UUID_TO_BIN(UUID(), 1) AS id`)
-    return rows[0].id
 }
