@@ -47,6 +47,12 @@ up: export DEBUG = 'knex:query'
 up: require create-if-missing.env ../owid-content tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env
 	@make check-port-3306
+
+	@if tmux has-session -t grapher 2>/dev/null; then \
+		echo '==> Killing existing tmux session'; \
+		tmux kill-session -t grapher; \
+	fi
+
 	@echo '==> Building grapher'
 	yarn lerna run build
 
@@ -96,6 +102,11 @@ up.full: export DEBUG = 'knex:query'
 up.full: require create-if-missing.env.full ../owid-content tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env.full
 	@make check-port-3306
+
+	@if tmux has-session -t grapher 2>/dev/null; then \
+		echo '==> Killing existing tmux session'; \
+		tmux kill-session -t grapher; \
+	fi
 
 	@echo '==> Building grapher'
 	yarn lerna run build
