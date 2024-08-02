@@ -372,99 +372,6 @@ $reset-button-margin: 16px;
     }
 }
 
-.search-results__chart-hit {
-    list-style: none;
-    &:hover {
-        .search-results__chart-hit-highlight {
-            text-decoration: underline;
-        }
-        .search-results__chart-hit-img-container img {
-            box-shadow: none;
-        }
-    }
-}
-
-.search-results__chart-hit-title-container {
-    line-height: 20px;
-
-    .search-results__chart-hit-highlight {
-        color: $blue-90;
-    }
-
-    .search-results__chart-hit-variant {
-        color: $blue-60;
-        font-size: 0.9em;
-    }
-}
-
-@keyframes chartErrorFadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-.search-results__chart-hit-img-container {
-    margin-bottom: 8px;
-    aspect-ratio: calc($grapher-thumbnail-width / $grapher-thumbnail-height);
-    width: 100%;
-    background-color: $gray-10;
-
-    img {
-        display: block; // remove the space below the image
-        transition: box-shadow 0.1s;
-
-        &.loaded {
-            box-shadow:
-                0px 0px 0px 0px rgba(49, 37, 2, 0.03),
-                0px 6px 13px 0px rgba(49, 37, 2, 0.03),
-                0px 93px 37px 0px rgba(49, 37, 2, 0.01),
-                0px 145px 41px 0px rgba(49, 37, 2, 0);
-        }
-
-        &.error {
-            display: none;
-        }
-    }
-
-    .search-results__chart-hit-img-error {
-        display: flex;
-        height: 100%;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-
-        color: $grey-text-color;
-        animation: chartErrorFadeIn 0.3s;
-
-        gap: 0.5em;
-
-        svg {
-            font-size: 1.75em;
-        }
-    }
-}
-
-.search-results__chart-hit-entities {
-    list-style: none;
-    font-size: 0.8em;
-
-    li {
-        display: inline;
-        color: $blue-50;
-
-        &::after {
-            content: ", ";
-        }
-
-        &:last-child::after {
-            content: "";
-        }
-    }
-}
-
 /*
 *  Tabs / Filtering
 **/
@@ -489,7 +396,7 @@ $reset-button-margin: 16px;
 
         // On the "All" tab, limit to the first 4 pages, 4 charts, and 2 explorer views
         .search-results__page-hit:nth-child(n + 5),
-        .search-results__chart-hit:nth-child(n + 5),
+        .chart-hit:nth-child(n + 5),
         .search-results__explorer-hit:nth-child(n + 3) {
             display: none;
         }

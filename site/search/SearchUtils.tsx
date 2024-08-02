@@ -7,7 +7,9 @@ import {
     escapeRegExp,
     removeTrailingParenthetical,
     lazy,
+    Url,
 } from "@ourworldindata/utils"
+import { setSelectedEntityNamesParam } from "@ourworldindata/grapher"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -111,4 +113,20 @@ export function pickEntitiesForChartHit(
     const sortedEntities = [...pickedEntities].sort()
 
     return sortedEntities ?? []
+}
+
+export const getEntityQueryStr = (
+    entities: EntityName[] | null | undefined,
+    existingQueryStr: string = ""
+) => {
+    if (!entities?.length) return existingQueryStr
+    else {
+        return setSelectedEntityNamesParam(
+            // If we have any entities pre-selected, we want to show the chart tab
+            Url.fromQueryStr(existingQueryStr).updateQueryParams({
+                tab: "chart",
+            }),
+            entities
+        ).queryStr
+    }
 }

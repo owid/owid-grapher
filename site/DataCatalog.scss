@@ -212,6 +212,7 @@
 
 .data-catalog-facets-list {
     margin-bottom: 16px;
+    line-height: 24px;
     list-style: none;
 }
 
@@ -271,11 +272,10 @@
     margin-bottom: 24px;
 }
 
-.data-catalog-search-hit {
-    &:hover {
-        .ais-Highlight {
-            text-decoration: underline;
-        }
+.data-catalog-search-hit:hover,
+.data-catalog-ribbon-hit:hover {
+    .ais-Highlight {
+        text-decoration: underline;
     }
 }
 
@@ -335,4 +335,10 @@
 .data-catalog-loading-spinner__spinner {
     width: 100px;
     height: 100px;
+}
+
+/* temp */
+.chart-hit-title-container {
+    @include body-3-regular;
+    line-height: 18px;
 }
