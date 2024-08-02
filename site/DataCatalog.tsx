@@ -40,30 +40,7 @@ import {
     useTriggerOnEscape,
     useTriggerWhenClickOutside,
 } from "./hooks.js"
-
-const ChartHit = ({ hit }: { hit: IChartHit }) => {
-    return (
-        <a
-            key={hit.title}
-            href={`/grapher/${hit.slug}`}
-            className="data-catalog-hit__thumbnail"
-        >
-            <img
-                height={150}
-                width={212.5}
-                src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}.png`}
-            />
-            <p>
-                {hit.title}{" "}
-                {hit.variantName ? (
-                    <span className="data-catalog-hit__variant-name">
-                        {hit.variantName}
-                    </span>
-                ) : null}
-            </p>
-        </a>
-    )
-}
+import { ChartHit } from "./search/SearchPanel.js"
 
 const DataCatalogRibbon = ({
     tagName,
@@ -218,6 +195,9 @@ const DataCatalogResults = ({
     const { uiState, status } = useInstantSearch()
     const genericState = uiState[""]
     const query = genericState.query
+    const countrySelections = parseFacetFilters(
+        genericState.configure?.facetFilters
+    ).countries
     const facetFilters = parseFacetFilters(genericState.configure?.facetFilters)
     const areaNames = tagGraph.children.map((child) => child.name)
     const isLoading = status === "loading" || status === "stalled"
@@ -250,7 +230,14 @@ const DataCatalogResults = ({
                     item: "data-catalog-search-hit",
                     list: "data-catalog-search-list grid grid-cols-4",
                 }}
-                hitComponent={({ hit }: any) => <ChartHit hit={hit} />}
+                hitComponent={({ hit }: any) => (
+                    <ChartHit
+                        hit={hit}
+                        searchQueryRegionsMatches={countrySelections.map(
+                            (c) => countriesByName()[c]
+                        )}
+                    />
+                )}
             />
         </Index>
     )

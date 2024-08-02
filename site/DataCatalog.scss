@@ -271,6 +271,14 @@
     margin-bottom: 24px;
 }
 
+.data-catalog-search-hit {
+    &:hover {
+        .ais-Highlight {
+            text-decoration: underline;
+        }
+    }
+}
+
 .data-catalog-search-hits--is-loading,
 .data-catalog-ribbons--is-loading,
 .data-catalog-facets-list--is-loading {
@@ -318,29 +326,6 @@
 .data-catalog-ribbon-list {
     list-style: none;
     grid-gap: var(--grid-gap);
-}
-
-.data-catalog-hit__thumbnail {
-    img {
-        display: block;
-        width: 100%;
-    }
-    p {
-        margin: 0;
-        font-weight: 600;
-        color: $blue-90;
-    }
-    &:hover {
-        p {
-            text-decoration: underline;
-        }
-    }
-}
-
-.data-catalog-hit__variant-name {
-    color: $blue-60;
-    font-size: 0.9rem;
-    font-weight: 500;
 }
 
 .data-catalog-loading-spinner {
