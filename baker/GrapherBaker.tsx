@@ -25,7 +25,6 @@ import * as db from "../db/db.js"
 import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import {
-    getPostEnrichedBySlug,
     getPostIdFromSlug,
     getPostRelatedCharts,
     getRelatedArticles,
@@ -258,20 +257,6 @@ export async function renderDataPageV2(
             datapageData.primaryTopic = {
                 topicTag: firstTopicTag,
                 citation,
-            }
-        } else {
-            const post = await getPostEnrichedBySlug(knex, slug)
-            if (post) {
-                const authors = post.authors
-                const citation = getShortPageCitation(
-                    authors ?? [],
-                    post.title,
-                    post.published_at
-                )
-                datapageData.primaryTopic = {
-                    topicTag: firstTopicTag,
-                    citation,
-                }
             }
         }
     }
