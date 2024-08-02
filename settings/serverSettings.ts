@@ -169,6 +169,15 @@ export const R2_SECRET_ACCESS_KEY: string =
 export const R2_REGION: string =
     serverSettings.R2_REGION || rcloneConfig["owid-r2"]?.region || "auto"
 
+export const GRAPHER_CONFIG_BASE_URL: string =
+    serverSettings.GRAPHER_CONFIG_BASE_URL ||
+    "https://ourworldindata.org/grapher/"
+
+export const GRAPHER_CONFIG_R2_BUCKET: string | undefined =
+    serverSettings.GRAPHER_CONFIG_R2_BUCKET
+export const GRAPHER_CONFIG_R2_BUCKET_PATH: string | undefined =
+    serverSettings.GRAPHER_CONFIG_R2_BUCKET_PATH
+
 export const DATA_API_URL: string = clientSettings.DATA_API_URL
 
 export const BUILDKITE_API_ACCESS_TOKEN: string =
