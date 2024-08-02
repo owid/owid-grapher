@@ -67,6 +67,26 @@
                 margin-top: 8px;
             }
         }
+        ol,
+        ul {
+            padding: 0;
+            margin-left: 1em;
+
+            li {
+                margin-top: 0.5em;
+                margin-bottom: 0.5em;
+                margin-left: 1em;
+                &:first-child {
+                    margin-top: 0;
+                }
+                &:last-child {
+                    margin-bottom: 0;
+                }
+                p {
+                    margin: 0;
+                }
+            }
+        }
     }
 
     a {
