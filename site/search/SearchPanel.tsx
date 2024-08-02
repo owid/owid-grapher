@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom"
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo } from "react"
 import cx from "classnames"
 import {
     keyBy,
@@ -10,8 +10,6 @@ import {
     sortBy,
     groupBy,
     uniqBy,
-    EntityName,
-    Url,
     Region,
 } from "@ourworldindata/utils"
 import {
@@ -31,9 +29,6 @@ import {
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
     BAKED_BASE_URL,
-    BAKED_GRAPHER_EXPORTS_BASE_URL,
-    BAKED_GRAPHER_URL,
-    GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../../settings/clientSettings.js"
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -49,11 +44,7 @@ import {
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import {
-    faArrowRight,
-    faHeartBroken,
-    faSearch,
-} from "@fortawesome/free-solid-svg-icons"
+import { faArrowRight, faSearch } from "@fortawesome/free-solid-svg-icons"
 import {
     DEFAULT_SEARCH_PLACEHOLDER,
     getIndexName,
@@ -63,18 +54,13 @@ import {
     PreferenceType,
     getPreferenceValue,
 } from "../CookiePreferencesManager.js"
-import {
-    DEFAULT_GRAPHER_HEIGHT,
-    DEFAULT_GRAPHER_WIDTH,
-    setSelectedEntityNamesParam,
-} from "@ourworldindata/grapher"
 import type { SearchResults as AlgoliaSearchResultsType } from "algoliasearch-helper"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import {
     extractRegionNamesFromSearchQuery,
-    pickEntitiesForChartHit,
+    getEntityQueryStr,
 } from "./SearchUtils.js"
-import { HitAttributeHighlightResult } from "instantsearch.js"
+import { ChartHit } from "./ChartHit.js"
 
 const siteAnalytics = new SiteAnalytics()
 
@@ -112,104 +98,6 @@ function PagesHit({ hit }: { hit: IPageHit }) {
                     hit={hit}
                 />
             </div>
-        </a>
-    )
-}
-
-const getEntityQueryStr = (
-    entities: EntityName[] | null | undefined,
-    existingQueryStr: string = ""
-) => {
-    if (!entities?.length) return existingQueryStr
-    else {
-        return setSelectedEntityNamesParam(
-            // If we have any entities pre-selected, we want to show the chart tab
-            Url.fromQueryStr(existingQueryStr).updateQueryParams({
-                tab: "chart",
-            }),
-            entities
-        ).queryStr
-    }
-}
-
-export function ChartHit({
-    hit,
-    searchQueryRegionsMatches,
-}: {
-    hit: IChartHit
-    searchQueryRegionsMatches?: Region[] | undefined
-}) {
-    const [imgLoaded, setImgLoaded] = useState(false)
-    const [imgError, setImgError] = useState(false)
-
-    const entities = useMemo(
-        () =>
-            pickEntitiesForChartHit(
-                hit._highlightResult?.availableEntities as
-                    | HitAttributeHighlightResult[]
-                    | undefined,
-                hit.availableEntities,
-                searchQueryRegionsMatches
-            ),
-        [
-            hit._highlightResult?.availableEntities,
-            hit.availableEntities,
-            searchQueryRegionsMatches,
-        ]
-    )
-    const queryStr = useMemo(() => getEntityQueryStr(entities), [entities])
-    const previewUrl = queryStr
-        ? `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}.svg${queryStr}`
-        : `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${hit.slug}.svg`
-
-    useEffect(() => {
-        setImgLoaded(false)
-        setImgError(false)
-    }, [previewUrl])
-
-    return (
-        <a
-            href={`${BAKED_GRAPHER_URL}/${hit.slug}${queryStr}`}
-            data-algolia-index={getIndexName(SearchIndexName.Charts)}
-            data-algolia-object-id={hit.objectID}
-            data-algolia-position={hit.__position}
-        >
-            <div className="search-results__chart-hit-img-container">
-                {imgError && (
-                    <div className="search-results__chart-hit-img-error">
-                        <FontAwesomeIcon icon={faHeartBroken} />
-                        <span>Chart preview not available</span>
-                    </div>
-                )}
-                <img
-                    key={previewUrl}
-                    className={cx({ loaded: imgLoaded, error: imgError })}
-                    loading="lazy"
-                    width={DEFAULT_GRAPHER_WIDTH}
-                    height={DEFAULT_GRAPHER_HEIGHT}
-                    src={previewUrl}
-                    onLoad={() => setImgLoaded(true)}
-                    onError={() => setImgError(true)}
-                />
-            </div>
-            <div className="search-results__chart-hit-title-container">
-                <Highlight
-                    attribute="title"
-                    highlightedTagName="strong"
-                    className="search-results__chart-hit-highlight"
-                    hit={hit}
-                />{" "}
-                <span className="search-results__chart-hit-variant">
-                    {hit.variantName}
-                </span>
-            </div>
-            {entities.length > 0 && (
-                <ul className="search-results__chart-hit-entities">
-                    {entities.map((entity) => (
-                        <li key={entity}>{entity}</li>
-                    ))}
-                </ul>
-            )}
         </a>
     )
 }
@@ -723,7 +611,7 @@ const SearchResults = (props: SearchResultsProps) => {
                             classNames={{
                                 root: "search-results__list-container",
                                 list: "search-results__charts-list grid grid-cols-4 grid-sm-cols-2",
-                                item: "search-results__chart-hit span-md-cols-2",
+                                item: "list-style-none span-md-cols-2",
                             }}
                             hitComponent={(props) => (
                                 <ChartHit
