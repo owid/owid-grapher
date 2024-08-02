@@ -84,6 +84,7 @@ import {
     FlatTagGraph,
     DbRawChartConfig,
 } from "@ourworldindata/types"
+import { uuidv7 } from "uuidv7"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
@@ -374,7 +375,7 @@ const saveGrapher = async (
             [now, user.id, chartId]
         )
     } else {
-        const configId = await db.getBinaryUUID(knex)
+        const configId = uuidv7()
         await db.knexRaw(
             knex,
             `-- sql

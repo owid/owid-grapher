@@ -668,13 +668,3 @@ export async function getLinkedIndicatorSlugs({
         .then((gdocs) => gdocs.flatMap((gdoc) => gdoc.linkedKeyIndicatorSlugs))
         .then((slugs) => new Set(slugs))
 }
-
-export const getBinaryUUID = async (
-    knex: KnexReadonlyTransaction
-): Promise<Buffer> => {
-    const { id } = (await knexRawFirst<{ id: Buffer }>(
-        knex,
-        `SELECT UUID_TO_BIN(UUID(), 1) AS id`
-    ))!
-    return id
-}
