@@ -39,7 +39,8 @@
         "testPrettierAll": "yarn prettier --check \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml}\"",
         "testJest": "lerna run buildTests && jest",
         "testSiteNavigation": "tsx --tsconfig tsconfig.tsx.json devTools/navigationTest/navigationTest.ts",
-        "generateDbTypes": "npx @rmp135/sql-ts -c db/sql-ts/sql-ts-config.json"
+        "generateDbTypes": "npx @rmp135/sql-ts -c db/sql-ts/sql-ts-config.json",
+        "syncGraphersToR2": "tsx --tsconfig tsconfig.tsx.json devTools/syncGraphersToR2/syncGraphersToR2.ts"
     },
     "dependencies": {
         "@algolia/autocomplete-js": "^1.17.2",
