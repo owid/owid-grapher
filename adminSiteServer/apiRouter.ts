@@ -47,7 +47,6 @@ import {
     checkIsPlainObjectWithGuard,
     mergeGrapherConfigs,
     diffGrapherConfigs,
-    getSHA1HashBase64,
 } from "@ourworldindata/utils"
 import { applyPatch } from "../adminShared/patchHelper.js"
 import {
@@ -162,6 +161,7 @@ import {
     R2GrapherConfigDirectory,
     saveGrapherConfigToR2,
     saveGrapherConfigToR2ByUUID,
+    getMd5HashBase64,
 } from "./chartConfigR2Helpers.js"
 
 const apiRouter = new FunctionalRouter()
@@ -296,21 +296,21 @@ const saveNewChart = async (
     const fullConfigStringified = JSON.stringify(fullConfig)
 
     // compute a sha-1 hash of the full config
-    const fullConfigSha1 = await getSHA1HashBase64(fullConfigStringified)
+    const fullConfigMd5 = await getMd5HashBase64(fullConfigStringified)
 
     // insert patch & full configs into the chart_configs table
     const chartConfigId = uuidv7()
     await db.knexRaw(
         knex,
         `-- sql
-            INSERT INTO chart_configs (id, patch, full, fullSha1)
+            INSERT INTO chart_configs (id, patch, full, fullMd5)
             VALUES (?, ?, ?, ?)
         `,
         [
             chartConfigId,
             JSON.stringify(patchConfig),
             fullConfigStringified,
-            fullConfigSha1,
+            fullConfigMd5,
         ]
     )
 
@@ -368,8 +368,7 @@ const updateExistingChart = async (
     const fullConfig = mergeGrapherConfigs(parentConfig, patchConfig)
     const fullConfigStringified = JSON.stringify(fullConfig)
 
-    // compute a sha-1 hash of the full config
-    const fullConfigSha1 = await getSHA1HashBase64(fullConfigStringified)
+    const fullConfigMd5 = await getMd5HashBase64(fullConfigStringified)
 
     const chartConfigId = await db.knexRawFirst<Pick<DbPlainChart, "configId">>(
         knex,
@@ -388,13 +387,13 @@ const updateExistingChart = async (
             SET
                 patch=?,
                 full=?,
-                fullSha1Base64=?
+                fullMd5=?
             WHERE id = ?
         `,
         [
             JSON.stringify(patchConfig),
             fullConfigStringified,
-            fullConfigSha1,
+            fullConfigMd5,
             chartConfigId.configId,
         ]
     )
@@ -571,12 +570,12 @@ const saveGrapher = async (
 
     if (newConfig.isPublished) {
         const configStringified = JSON.stringify(fullConfig)
-        const configSha1 = await getSHA1HashBase64(configStringified)
+        const configMd5 = await getMd5HashBase64(configStringified)
         await saveGrapherConfigToR2(
             configStringified,
             R2GrapherConfigDirectory.publishedGrapherBySlug,
             `${newConfig.slug}.json`,
-            configSha1
+            configMd5
         )
     }
 
