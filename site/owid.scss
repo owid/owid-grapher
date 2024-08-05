@@ -1034,9 +1034,6 @@ html:not(.js) {
 }
 
 .CountriesIndexPage > main {
-    max-width: 1100px;
-    margin: auto;
-
     ul {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
