@@ -1,0 +1,18 @@
+{
+    "extends": "../tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "../../itsJustJavascript/devTools/syncGrapherToR2",
+        "rootDir": "."
+    },
+    "references": [
+        {
+            "path": "../../db"
+        },
+        {
+            "path": "../../adminSiteServer"
+        },
+        {
+            "path": "../../settings"
+        },
+    ]
+}
