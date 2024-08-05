@@ -75,7 +75,7 @@
     "views": [
         {
             "dimensions": { "age": "0", "sex": "both", "projection": "none" },
-            "indicators": { "y": "520369" },
+            "indicators": { "y": 520369 },
             "config": {
                 "title": "Life expectancy at birth",
                 "hasMapTab": true
@@ -83,7 +83,7 @@
         },
         {
             "dimensions": { "age": "0", "sex": "both", "projection": "medium" },
-            "indicators": { "y": "520370" },
+            "indicators": { "y": 520370 },
             "config": {
                 "title": "Life expectancy at birth, medium projection",
                 "hasMapTab": true
@@ -92,7 +92,7 @@
 
         {
             "dimensions": { "age": "0", "sex": "male", "projection": "none" },
-            "indicators": { "y": "520349" },
+            "indicators": { "y": 520349 },
             "config": {
                 "title": "Male life expectancy at birth",
                 "hasMapTab": true
@@ -100,7 +100,7 @@
         },
         {
             "dimensions": { "age": "0", "sex": "male", "projection": "medium" },
-            "indicators": { "y": "520350" },
+            "indicators": { "y": 520350 },
             "config": {
                 "title": "Male life expectancy at birth, medium projection",
                 "hasMapTab": true
@@ -109,7 +109,7 @@
 
         {
             "dimensions": { "age": "0", "sex": "female", "projection": "none" },
-            "indicators": { "y": "520329" },
+            "indicators": { "y": 520329 },
             "config": {
                 "title": "Female life expectancy at birth",
                 "hasMapTab": true
@@ -121,7 +121,7 @@
                 "sex": "female",
                 "projection": "medium"
             },
-            "indicators": { "y": "520330" },
+            "indicators": { "y": 520330 },
             "config": {
                 "title": "Female life expectancy at birth, medium projection",
                 "hasMapTab": true
@@ -130,7 +130,7 @@
 
         {
             "dimensions": { "age": "15", "sex": "both", "projection": "none" },
-            "indicators": { "y": "520379" },
+            "indicators": { "y": 520379 },
             "config": {
                 "title": "Life expectancy at age 15",
                 "hasMapTab": true
@@ -142,7 +142,7 @@
                 "sex": "both",
                 "projection": "medium"
             },
-            "indicators": { "y": "520380" },
+            "indicators": { "y": 520380 },
             "config": {
                 "title": "Life expectancy at age 15, medium projection",
                 "hasMapTab": true
@@ -151,7 +151,7 @@
 
         {
             "dimensions": { "age": "15", "sex": "male", "projection": "none" },
-            "indicators": { "y": "520359" },
+            "indicators": { "y": 520359 },
             "config": {
                 "title": "Male life expectancy at age 15",
                 "hasMapTab": true
@@ -163,7 +163,7 @@
                 "sex": "male",
                 "projection": "medium"
             },
-            "indicators": { "y": "520360" },
+            "indicators": { "y": 520360 },
             "config": {
                 "title": "Male life expectancy at age 15, medium projection",
                 "hasMapTab": true
@@ -176,7 +176,7 @@
                 "sex": "female",
                 "projection": "none"
             },
-            "indicators": { "y": "520338" },
+            "indicators": { "y": 520338 },
             "config": {
                 "title": "Female life expectancy at age 15",
                 "hasMapTab": true
@@ -188,7 +188,7 @@
                 "sex": "female",
                 "projection": "medium"
             },
-            "indicators": { "y": "520340" },
+            "indicators": { "y": 520340 },
             "config": {
                 "title": "Female life expectancy at age 15, medium projection",
                 "hasMapTab": true
