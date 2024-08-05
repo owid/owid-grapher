@@ -1,5 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2500 1800">
-<path d="M0,0H2500V1800H0" fill="#003897"/>
-<path d="M700,0h400V1800h-400M0,700H2500v400H0" fill="#fff"/>
-<path d="M800,0h200V1800h-200M0,800H2500v200H0" fill="#d72828"/>
+<svg xmlns="http://www.w3.org/2000/svg" id="flag-icons-is" viewBox="0 0 640 480">
+  <defs>
+    <clipPath id="is-a">
+      <path fill-opacity=".7" d="M0 0h640v480H0z"/>
+    </clipPath>
+  </defs>
+  <g fill-rule="evenodd" stroke-width="0" clip-path="url(#is-a)">
+    <path fill="#003897" d="M0 0h666.7v480H0z"/>
+    <path fill="#fff" d="M0 186.7h186.7V0h106.6v186.7h373.4v106.6H293.3V480H186.7V293.3H0z"/>
+    <path fill="#d72828" d="M0 213.3h213.3V0h53.4v213.3h400v53.4h-400V480h-53.4V266.7H0z"/>
+  </g>
 </svg>

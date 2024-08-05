@@ -1,26 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1400 700">
-<rect width="1400" fill="#060" height="700"/>
-<rect width="1400" fill="#fff" height="500"/>
-<rect width="1400" fill="#c00" height="200"/>
-<g fill="#f8c300">
-<path d="M 672.0,340.7 a 12.5,12.5 0,0,1 23.3,5.9 v 50 h 9.4 v -50 a 12.5,12.5 0,0,1 23.3,-5.9 a 29.5,29.5 0,1,0 -56,0"/>
-<path d="M 678.7,327.65 a 20,20 0,0,1 21.3,9.55 a 20,20 0,0,1 21.3,-9.55 a 21.5,21.5 0,0,0 -42.6,0" fill="#fff"/>
-<path id="w" d="M 695.3,376.627 a 38,38 0 0 1 -63.845,24.316 a 39.5,39.5 0 0 1 -59.734,17.467 c 3.6496,36.426 58.252,28.989 62.32,-6.4288 17.154,30.115 54.873,21.49 65.91,-15.4 z"/>
-<use xlink:href="#w" transform="translate(700,0) scale(-1,1) translate(-700,0)"/>
-<path id="r" d="M 658.84,441.31 c -7.6181,16.446 -22.845,19.271 -36.164,5.9953 0,0 5.3539,-3.7831 11.086,-4.826 -1.0748,-4.5744 1.1291,-10.902 4.2354,-14.324 3.2575,2.2264 7.8036,6.6886 8.9598,11.874 8.0291,-1.0394 11.883,1.2815 11.883,1.2815 z"/>
-<use xlink:href="#r" transform="rotate(9.37, 700,804)"/>
-<use xlink:href="#r" transform="rotate(18.74, 700,804)"/>
-<path d="M 603,478 a 340,340 0 0 1 194,0" fill="none" stroke-width="16" stroke="#f8c300"/>
-<g transform="translate(700,380)">
-<g transform="translate(0,-140)">
-<polygon id="s" points="0,-513674 301930,415571 -488533,-158734 488533,-158734 -301930,415571" transform="scale(0.000048669)"/>
-</g>
-<g id="h">
-<use xlink:href="#s" transform="rotate(-30) translate(0,-140) rotate(30)"/>
-<use xlink:href="#s" transform="rotate(-60) translate(0,-140) rotate(60)"/>
-<use xlink:href="#s" transform="rotate(-90) translate(0,-140) rotate(90)"/>
-</g>
-<use xlink:href="#h" transform="scale(-1,1)"/>
-</g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="flag-icons-tj" viewBox="0 0 640 480">
+  <path fill="#060" d="M0 0h640v480H0z"/>
+  <path fill="#fff" d="M0 0h640v342.9H0z"/>
+  <path fill="#c00" d="M0 0h640v137.1H0z"/>
+  <path fill="#f8c300" d="M300.8 233.6a8.6 8.6 0 0 1 16 4V272h6.4v-34.3a8.6 8.6 0 0 1 16-4 20.2 20.2 0 1 0-38.4 0"/>
+  <path fill="#fff" d="M305.4 224.7a13.7 13.7 0 0 1 14.6 6.5 13.7 13.7 0 0 1 14.6-6.5 14.7 14.7 0 0 0-29.2 0"/>
+  <path id="tj-a" fill="#f8c300" d="M316.8 258.3a26 26 0 0 1-43.8 16.6 27 27 0 0 1-41 12c2.5 25 40 19.9 42.8-4.4 11.7 20.7 37.6 14.7 45.2-10.6z"/>
+  <use xlink:href="#tj-a" width="100%" height="100%" fill="#f8c300" transform="matrix(-1 0 0 1 640 0)"/>
+  <path id="tj-b" fill="#f8c300" d="M291.8 302.6c-5.3 11.3-15.7 13.2-24.8 4.1 0 0 3.6-2.6 7.6-3.3-.8-3.1.7-7.5 2.9-9.8a15 15 0 0 1 6.1 8.1c5.5-.7 8.2 1 8.2 1z"/>
+  <use xlink:href="#tj-b" width="100%" height="100%" fill="#f8c300" transform="rotate(9.4 320 551.3)"/>
+  <use xlink:href="#tj-b" width="100%" height="100%" fill="#f8c300" transform="rotate(18.7 320 551.3)"/>
+  <path fill="none" stroke="#f8c300" stroke-width="11" d="M253.5 327.8a233.1 233.1 0 0 1 133 0"/>
+  <g fill="#f8c300" transform="translate(320 164.6)scale(.68571)">
+    <path id="tj-c" d="m301930 415571-790463-574305h977066l-790463 574305L0-513674z" transform="scale(.00005)"/>
+  </g>
+  <g id="tj-d" fill="#f8c300" transform="translate(320 260.6)scale(.68571)">
+    <use xlink:href="#tj-c" width="100%" height="100%" transform="translate(-70 -121.2)"/>
+    <use xlink:href="#tj-c" width="100%" height="100%" transform="translate(-121.2 -70)"/>
+    <use xlink:href="#tj-c" width="100%" height="100%" transform="translate(-140)"/>
+  </g>
+  <use xlink:href="#tj-d" width="100%" height="100%" fill="#f8c300" transform="matrix(-1 0 0 1 640 0)"/>
 </svg>

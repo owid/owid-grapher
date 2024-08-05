@@ -1,18 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 72 36">
-<rect width="72" height="36" style="fill:#0073cf"/>
-<rect width="72" height="12" y="12" style="fill:#fff"/>
-<g id="star" transform="translate(36,18) scale(2)" fill="#0073cf">
-<g id="cone">
-<polygon id="triangle" points="0,0 0,1 .5,1" transform="translate(0,-1) rotate(18)"/>
-<use xlink:href="#triangle" transform="scale(-1,1)" id="use12"/>
-</g>
-<use xlink:href="#cone" transform="rotate(72)" id="use14"/>
-<use xlink:href="#cone" transform="rotate(-72)" id="use16"/>
-<use xlink:href="#cone" transform="rotate(144)" id="use18"/>
-<use xlink:href="#cone" transform="rotate(-144)" id="use20"/>
-</g>
-<use xlink:href="#star" transform="translate(10,-3.2)"/>
-<use xlink:href="#star" transform="translate(10,2.8)"/>
-<use xlink:href="#star" transform="translate(-10,-3.2)"/>
-<use xlink:href="#star" transform="translate(-10,2.8)"/>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="flag-icons-hn" viewBox="0 0 640 480">
+  <path fill="#18c3df" d="M0 0h640v480H0z"/>
+  <path fill="#fff" d="M0 160h640v160H0z"/>
+  <g id="hn-c" fill="#18c3df" transform="translate(320 240)scale(26.66665)">
+    <g id="hn-b">
+      <path id="hn-a" d="m-.3 0 .5.1L0-1z"/>
+      <use xlink:href="#hn-a" width="100%" height="100%" transform="scale(-1 1)"/>
+    </g>
+    <use xlink:href="#hn-b" width="100%" height="100%" transform="rotate(72)"/>
+    <use xlink:href="#hn-b" width="100%" height="100%" transform="rotate(-72)"/>
+    <use xlink:href="#hn-b" width="100%" height="100%" transform="rotate(144)"/>
+    <use xlink:href="#hn-b" width="100%" height="100%" transform="rotate(-144)"/>
+  </g>
+  <use xlink:href="#hn-c" width="100%" height="100%" transform="translate(133.3 -42.7)"/>
+  <use xlink:href="#hn-c" width="100%" height="100%" transform="translate(133.3 37.3)"/>
+  <use xlink:href="#hn-c" width="100%" height="100%" transform="translate(-133.3 -42.7)"/>
+  <use xlink:href="#hn-c" width="100%" height="100%" transform="translate(-133.3 37.3)"/>
 </svg>
