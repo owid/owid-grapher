@@ -35,6 +35,7 @@ import {
 } from "@ourworldindata/utils"
 import { string } from "ts-pattern/dist/patterns.js"
 import { chunk, take } from "lodash"
+import ProgressBar from "progress"
 
 type HashAndId = Pick<DbRawChartConfig, "fullMd5" | "id">
 
@@ -86,6 +87,13 @@ async function syncWithR2(
     console.log("Number of files to upsert", hashesOfFilesToToUpsert.size)
     console.log("Number of files to delete", hashesOfFilesToDelete.size)
 
+    let progressBar = new ProgressBar(
+        "--- Deleting obsolote configs [:bar] :current/:total :elapseds\n",
+        {
+            total: hashesOfFilesToDelete.size,
+        }
+    )
+
     for (const [key, _] of hashesOfFilesToDelete.entries()) {
         const deleteObjectCommandInput: DeleteObjectCommandInput = {
             Bucket: GRAPHER_CONFIG_R2_BUCKET,
@@ -96,7 +104,19 @@ async function syncWithR2(
                 new DeleteObjectCommand(deleteObjectCommandInput)
             )
         else console.log("Would have deleted", key)
+        progressBar.tick()
     }
+
+    console.log("Finished deletes")
+
+    progressBar = new ProgressBar(
+        "--- Storing missing configs [:bar] :current/:total :elapseds\n",
+        {
+            total: hashesOfFilesToToUpsert.size,
+        }
+    )
+
+    const errors = []
 
     // Chunk the inserts so that we don't need to keep all the full configs in memory
     for (const batch of chunk([...hashesOfFilesToToUpsert.entries()], 100)) {
@@ -116,19 +136,33 @@ async function syncWithR2(
                 console.error(`Full config not found for id ${id}`)
                 return
             }
-            const putObjectCommandInput: PutObjectCommandInput = {
-                Bucket: GRAPHER_CONFIG_R2_BUCKET,
-                Key: key,
-                Body: full,
-                ContentMD5: fullMd5,
+            try {
+                const putObjectCommandInput: PutObjectCommandInput = {
+                    Bucket: GRAPHER_CONFIG_R2_BUCKET,
+                    Key: key,
+                    Body: full,
+                    ContentMD5: fullMd5,
+                }
+                if (!dryRun)
+                    await s3Client.send(
+                        new PutObjectCommand(putObjectCommandInput)
+                    )
+                else console.log("Would have upserted", key)
+            } catch (err) {
+                return err
             }
-            if (!dryRun)
-                return s3Client.send(
-                    new PutObjectCommand(putObjectCommandInput)
-                )
-            else console.log("Would have upserted", key)
+            progressBar.tick()
         })
-        await Promise.all(uploadPromises)
+        const promiseResults = await Promise.allSettled(uploadPromises)
+        const batchErrors = promiseResults
+            .filter((result) => result.status === "rejected")
+            .map((result) => result.reason)
+        errors.push(...batchErrors)
+    }
+
+    console.log("Finished upserts")
+    if (errors.length > 0) {
+        console.error("Errors during upserts", errors)
     }
 }
 
