@@ -2,7 +2,7 @@ import React from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL } from "../../core/GrapherConstants"
-import { LabeledSwitch } from "../LabeledSwitch"
+import { LabeledSwitch } from "@ourworldindata/components"
 import { Bounds } from "@ourworldindata/utils"
 
 export interface TableFilterToggleManager {
