@@ -18,6 +18,7 @@ export {
     type RawPageview,
     type UserCountryInformation,
     type QueryParams,
+    R2GrapherConfigDirectory,
 } from "./domainTypes/Various.js"
 export { type BreadcrumbItem, type KeyValueProps } from "./domainTypes/Site.js"
 export {

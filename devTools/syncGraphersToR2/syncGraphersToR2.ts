@@ -23,7 +23,6 @@ import {
     KnexReadonlyTransaction,
     knexReadonlyTransaction,
 } from "../../db/db.js"
-import { R2GrapherConfigDirectory } from "../../adminSiteServer/chartConfigR2Helpers.js"
 import {
     base64ToBytes,
     bytesToBase64,
@@ -32,6 +31,7 @@ import {
     excludeUndefined,
     HexString,
     hexToBytes,
+    R2GrapherConfigDirectory,
 } from "@ourworldindata/utils"
 import { string } from "ts-pattern/dist/patterns.js"
 import { chunk, take } from "lodash"
