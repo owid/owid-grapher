@@ -17,7 +17,16 @@ ENV = "preview"
 [env.production]
 compatibility_date = "2024-04-29"
 
+[[env.production.r2_buckets]]
+binding = "r2ChartConfigs"
+bucket_name = "owid-grapher-configs"
+
 [env.production.vars]
 ENV = "production"
 MAILGUN_DOMAIN = "mg.ourworldindata.org"
 SLACK_ERROR_CHANNEL_ID = "C5JJW19PS"
+
+
+[[env.development.r2_buckets]]
+binding = "r2ChartConfigs"
+bucket_name = "owid-grapher-configs-staging"
