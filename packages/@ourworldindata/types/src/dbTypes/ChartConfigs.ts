@@ -6,7 +6,7 @@ export interface DbInsertChartConfig {
     id: string
     patch: JsonString
     full: JsonString
-    fullSha1Base64?: string
+    fullMd5?: string
     slug?: string | null
     createdAt?: Date
     updatedAt?: Date | null

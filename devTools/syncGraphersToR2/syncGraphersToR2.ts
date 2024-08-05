@@ -18,13 +18,121 @@ import {
     R2_REGION,
     R2_SECRET_ACCESS_KEY,
 } from "../../settings/serverSettings.js"
-import { knexRaw, knexReadonlyTransaction } from "../../db/db.js"
+import {
+    knexRaw,
+    KnexReadonlyTransaction,
+    knexReadonlyTransaction,
+} from "../../db/db.js"
 import { R2GrapherConfigDirectory } from "../../adminSiteServer/chartConfigR2Helpers.js"
-import { DbRawChartConfig, excludeUndefined } from "@ourworldindata/utils"
+import {
+    base64ToBytes,
+    bytesToBase64,
+    DbRawChartConfig,
+    differenceOfSets,
+    excludeUndefined,
+    HexString,
+    hexToBytes,
+} from "@ourworldindata/utils"
 import { string } from "ts-pattern/dist/patterns.js"
-import { take } from "lodash"
+import { chunk, take } from "lodash"
 
-async function main(parsedArgs: parseArgs.ParsedArgs) {
+type HashAndId = Pick<DbRawChartConfig, "fullMd5" | "id">
+
+async function syncWithR2(
+    s3Client: S3Client,
+    pathPrefix: string,
+    hashesOfFilesToToUpsert: Map<string, HashAndId>,
+    trx: KnexReadonlyTransaction,
+    dryRun: boolean = false
+) {
+    const hashesOfFilesToDelete = new Map<string, string>()
+
+    // list the files in the R2 bucket. There may be more files in the
+    // bucket than can be returned in one list operation so loop until
+    // all files are listed
+    let continuationToken: string | undefined = undefined
+    do {
+        const listObjectsCommandInput = {
+            Bucket: GRAPHER_CONFIG_R2_BUCKET,
+            Prefix: pathPrefix,
+            ContinuationToken: continuationToken,
+        }
+        const listObjectsCommandOutput: ListObjectsV2CommandOutput =
+            await s3Client.send(
+                new ListObjectsV2Command(listObjectsCommandInput)
+            )
+        if ((listObjectsCommandOutput.Contents?.length ?? 0) > 0) {
+            listObjectsCommandOutput.Contents!.forEach((object) => {
+                if (object.Key && object.ETag) {
+                    // For some reason the etag has quotes around it, strip those
+                    const md5 = object.ETag.replace(/"/g, "") as HexString
+                    const md5Base64 = bytesToBase64(hexToBytes(md5))
+
+                    if (
+                        hashesOfFilesToToUpsert.has(object.Key) &&
+                        hashesOfFilesToToUpsert.get(object.Key)?.fullMd5 ===
+                            md5Base64
+                    ) {
+                        hashesOfFilesToToUpsert.delete(object.Key)
+                    } else {
+                        hashesOfFilesToDelete.set(object.Key, md5Base64)
+                    }
+                }
+            })
+        }
+        continuationToken = listObjectsCommandOutput.NextContinuationToken
+    } while (continuationToken)
+
+    console.log("Number of files to upsert", hashesOfFilesToToUpsert.size)
+    console.log("Number of files to delete", hashesOfFilesToDelete.size)
+
+    for (const [key, _] of hashesOfFilesToDelete.entries()) {
+        const deleteObjectCommandInput: DeleteObjectCommandInput = {
+            Bucket: GRAPHER_CONFIG_R2_BUCKET,
+            Key: key,
+        }
+        if (!dryRun)
+            await s3Client.send(
+                new DeleteObjectCommand(deleteObjectCommandInput)
+            )
+        else console.log("Would have deleted", key)
+    }
+
+    // Chunk the inserts so that we don't need to keep all the full configs in memory
+    for (const batch of chunk([...hashesOfFilesToToUpsert.entries()], 100)) {
+        const fullConfigs = await knexRaw<
+            Pick<DbRawChartConfig, "id" | "full">
+        >(trx, `select id, full from chart_configs where id in (?)`, [
+            batch.map((entry) => entry[1].id),
+        ])
+        const fullConfigMap = new Map<string, string>(
+            fullConfigs.map(({ id, full }) => [id, full])
+        )
+        const uploadPromises = batch.map(async ([key, val]) => {
+            const id = val.id
+            const fullMd5 = val.fullMd5
+            const full = fullConfigMap.get(id)
+            if (full === undefined) {
+                console.error(`Full config not found for id ${id}`)
+                return
+            }
+            const putObjectCommandInput: PutObjectCommandInput = {
+                Bucket: GRAPHER_CONFIG_R2_BUCKET,
+                Key: key,
+                Body: full,
+                ContentMD5: fullMd5,
+            }
+            if (!dryRun)
+                return s3Client.send(
+                    new PutObjectCommand(putObjectCommandInput)
+                )
+            else console.log("Would have upserted", key)
+        })
+        await Promise.all(uploadPromises)
+    }
+}
+
+async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
     if (
         GRAPHER_CONFIG_R2_BUCKET === undefined ||
         GRAPHER_CONFIG_R2_BUCKET_PATH === undefined
@@ -43,57 +151,67 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         },
     })
 
+    const hashesOfFilesToToUpsertBySlug = new Map<string, HashAndId>()
+    const hashesOfFilesToToUpsertByUuid = new Map<string, HashAndId>()
+    const pathPrefixBySlug = excludeUndefined([
+        GRAPHER_CONFIG_R2_BUCKET_PATH,
+        R2GrapherConfigDirectory.publishedGrapherBySlug,
+    ]).join("/")
+
+    const pathPrefixByUuid = excludeUndefined([
+        GRAPHER_CONFIG_R2_BUCKET_PATH,
+        R2GrapherConfigDirectory.byUUID,
+    ]).join("/")
+
     await knexReadonlyTransaction(async (trx) => {
+        // Ensure that the published charts exist by slug
         const slugsAndHashesFromDb = await knexRaw<
-            Pick<DbRawChartConfig, "slug" | "fullSha1Base64">
+            Pick<DbRawChartConfig, "slug" | "fullMd5" | "id">
         >(
             trx,
-            `select slug, fullSha1Base64 from chart_configs where slug is not null`
+            `select slug, fullMd5, id from chart_configs where slug is not null`
         )
-        const hashesOfFilesToToUpsert = new Map<string, string>()
-        const path = excludeUndefined([
-            GRAPHER_CONFIG_R2_BUCKET_PATH,
-            R2GrapherConfigDirectory.publishedGrapherBySlug,
-        ]).join("/")
 
         slugsAndHashesFromDb.forEach((row) => {
-            hashesOfFilesToToUpsert.set(
-                `${path}/${row.slug}.json`,
-                row.fullSha1Base64
+            hashesOfFilesToToUpsertBySlug.set(
+                `${pathPrefixBySlug}/${row.slug}.json`,
+                {
+                    fullMd5: row.fullMd5,
+                    id: row.id,
+                }
             )
         })
 
-        const hashesOfFilesToDelete = new Map<string, string>()
+        await syncWithR2(
+            s3Client,
+            pathPrefixBySlug,
+            hashesOfFilesToToUpsertBySlug,
+            trx,
+            dryRun
+        )
 
-        // list the files in the R2 bucket. There may be more files in the
-        // bucket than can be returned in one list operation so loop until
-        // all files are listed
-        let continuationToken: string | undefined = undefined
-        do {
-            const listObjectsCommandInput = {
-                Bucket: GRAPHER_CONFIG_R2_BUCKET,
-                Prefix: path,
-                ContinuationToken: continuationToken,
-            }
-            const listObjectsCommandOutput: ListObjectsV2CommandOutput =
-                await s3Client.send(
-                    new ListObjectsV2Command(listObjectsCommandInput)
-                )
-            console.log(
-                "Got next batch of objects",
-                listObjectsCommandOutput.Contents
+        // Ensure that all chart configs exist by id
+        const slugsAndHashesFromDbByUuid = await knexRaw<
+            Pick<DbRawChartConfig, "fullMd5" | "id">
+        >(trx, `select fullMd5, id from chart_configs`)
+
+        slugsAndHashesFromDbByUuid.forEach((row) => {
+            hashesOfFilesToToUpsertByUuid.set(
+                `${pathPrefixByUuid}/${row.id}.json`,
+                {
+                    fullMd5: row.fullMd5,
+                    id: row.id,
+                }
             )
-            if (listObjectsCommandOutput.Contents) {
-                listObjectsCommandOutput.Contents.forEach((object) => {
-                    if (object.Key && object.ETag) {
-                        hashesOfFilesToDelete.set(object.Key, object.ETag)
-                    }
-                })
-            }
-            continuationToken = listObjectsCommandOutput.NextContinuationToken
-        } while (continuationToken)
+        })
 
-        console.log("10 entries ", take(hashesOfFilesToDelete.entries(), 10))
+        await syncWithR2(
+            s3Client,
+            pathPrefixByUuid,
+            hashesOfFilesToToUpsertByUuid,
+            trx,
+            dryRun
+        )
     })
 }
 
@@ -101,5 +219,5 @@ const parsedArgs = parseArgs(process.argv.slice(2))
 if (parsedArgs["h"]) {
     console.log(`syncGraphersToR2.js - sync graphers to R2`)
 } else {
-    main(parsedArgs)
+    main(parsedArgs, parsedArgs["dry-run"])
 }
