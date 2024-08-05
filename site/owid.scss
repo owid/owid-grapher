@@ -1051,6 +1051,10 @@ html:not(.js) {
         max-width: 90vw;
     }
 
+    a {
+        display: inline-flex; // Align flag and country name
+    }
+
     .flag {
         width: 16px;
         margin-right: 4px;
