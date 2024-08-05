@@ -16,11 +16,20 @@ import {
 import {
     Base64String,
     excludeUndefined,
-    getSHA1HashBase64,
     JsonError,
+    getMd5HashBase64,
 } from "@ourworldindata/utils"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { createHash } from "crypto"
 
+export function getMd5HashBase64(data: string): Base64String {
+    // I would have liked to create a function in utils that can compute a varienty of hashes
+    // in both the browser, CF workers and node but unfortunately this isn't easily possible
+    // for md5 - so here we just special case for md5, node and base64 encoding for now.
+    return createHash("md5")
+        .update(data, "utf-8")
+        .digest("base64") as Base64String
+}
 export enum R2GrapherConfigDirectory {
     byUUID = "config/by-uuid",
     publishedGrapherBySlug = "grapher/by-slug",
@@ -32,13 +41,13 @@ export async function saveGrapherConfigToR2ByUUID(
     id: string,
     chartConfigStringified: string
 ) {
-    const configSha1 = await getSHA1HashBase64(chartConfigStringified)
+    const configMd5 = await getMd5HashBase64(chartConfigStringified)
 
     await saveGrapherConfigToR2(
         chartConfigStringified,
         R2GrapherConfigDirectory.byUUID,
         `${id}.json`,
-        configSha1
+        configMd5
     )
 }
 
@@ -53,7 +62,7 @@ export async function saveGrapherConfigToR2(
     config_stringified: string,
     directory: R2GrapherConfigDirectory,
     filename: string,
-    config_sha1_hash: Base64String
+    configMd5: Base64String
 ) {
     if (
         GRAPHER_CONFIG_R2_BUCKET === undefined ||
@@ -95,7 +104,7 @@ export async function saveGrapherConfigToR2(
             Key: `${path}/${filename}`,
             Body: config_stringified,
             ContentType: MIMEType,
-            ChecksumSHA1: config_sha1_hash,
+            ContentMD5: configMd5,
         }
 
         await s3Client.send(new PutObjectCommand(params))
