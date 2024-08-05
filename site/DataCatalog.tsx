@@ -10,6 +10,8 @@ import {
     Country,
     Region,
 } from "@ourworldindata/utils"
+// TODO: extract this in a different branch
+// import { LabeledSwitch } from "@ourworldindata/components"
 import {
     Configure,
     Hits,
@@ -47,10 +49,10 @@ function getRegionsFromSelectedEntitiesFacets(
 
 const DataCatalogRibbon = ({
     tagName,
-    addGlobalFacetFilter,
+    addGlobalTagFilter,
 }: {
     tagName: string
-    addGlobalFacetFilter: (x: string) => void
+    addGlobalTagFilter: (x: string) => void
 }) => {
     const { scopedResults, uiState } = useInstantSearch()
     const genericState = uiState[""]
@@ -66,7 +68,7 @@ const DataCatalogRibbon = ({
                     href={`/charts?topics=${tagName}`}
                     onClick={(e) => {
                         e.preventDefault()
-                        addGlobalFacetFilter(tagName)
+                        addGlobalTagFilter(tagName)
                     }}
                 >
                     <div className="data-catalog-ribbon__header">
@@ -112,12 +114,12 @@ function getAreaChildrenFromTag(
 const DataCatalogRibbonView = ({
     tagGraph,
     tagToShow,
-    addGlobalFacetFilter,
+    addGlobalTagFilter,
     isLoading,
 }: {
     tagGraph: TagGraphRoot
     tagToShow: string | undefined
-    addGlobalFacetFilter: (x: string) => void
+    addGlobalTagFilter: (x: string) => void
     isLoading: boolean
 }) => {
     const areas = getAreaChildrenFromTag(tagGraph, tagToShow)
@@ -132,7 +134,7 @@ const DataCatalogRibbonView = ({
                 <DataCatalogRibbon
                     tagName={area.name}
                     key={area.name}
-                    addGlobalFacetFilter={addGlobalFacetFilter}
+                    addGlobalTagFilter={addGlobalTagFilter}
                 />
             ))}
         </div>
@@ -201,10 +203,10 @@ function checkShouldShowRibbonView(
 
 const DataCatalogResults = ({
     tagGraph,
-    addGlobalFacetFilter,
+    addGlobalTagFilter,
 }: {
     tagGraph: TagGraphRoot
-    addGlobalFacetFilter: (tag: string) => void
+    addGlobalTagFilter: (tag: string) => void
 }) => {
     const { uiState, status } = useInstantSearch()
     const genericState = uiState[""]
@@ -227,7 +229,7 @@ const DataCatalogResults = ({
                 isLoading={isLoading}
                 tagGraph={tagGraph}
                 tagToShow={facetFilters.topics[0]}
-                addGlobalFacetFilter={addGlobalFacetFilter}
+                addGlobalTagFilter={addGlobalTagFilter}
             />
         )
 
@@ -279,12 +281,12 @@ const DataCatalogLoadingSpinner = () => {
 
 const TopicsRefinementList = ({
     tagGraph,
-    addGlobalFacetFilter,
-    removeGlobalFacetFilter,
+    addGlobalTagFilter,
+    removeGlobalTagFilter,
 }: {
     tagGraph: TagGraphRoot
-    addGlobalFacetFilter: (tag: string) => void
-    removeGlobalFacetFilter: (tag: string) => void
+    addGlobalTagFilter: (tag: string) => void
+    removeGlobalTagFilter: (tag: string) => void
 }) => {
     const { uiState, scopedResults, status } = useInstantSearch()
     const genericState = uiState[""]
@@ -307,7 +309,7 @@ const TopicsRefinementList = ({
                     <button
                         className="data-catalog-applied-filters-button body-3-medium"
                         onClick={() => {
-                            removeGlobalFacetFilter(facetFilter)
+                            removeGlobalTagFilter(facetFilter)
                         }}
                     >
                         {facetFilter}
@@ -339,7 +341,7 @@ const TopicsRefinementList = ({
                                     className="data-catalog-facets-list-item"
                                     tabIndex={0}
                                     onClick={() => {
-                                        addGlobalFacetFilter(area.name)
+                                        addGlobalTagFilter(area.name)
                                     }}
                                 >
                                     <span>{area.name}</span>
@@ -375,9 +377,15 @@ const TopicsRefinementList = ({
 function DataCatalogCountrySelector({
     countrySelections,
     setCountrySelections,
+    shouldAllCountriesMatch,
+    setMustHaveDataForAllSelectedCountries,
 }: {
     countrySelections: Set<string>
     setCountrySelections: React.Dispatch<React.SetStateAction<Set<string>>>
+    shouldAllCountriesMatch: boolean
+    setMustHaveDataForAllSelectedCountries: React.Dispatch<
+        React.SetStateAction<boolean>
+    >
 }) {
     const [isOpen, setIsOpen] = useState(false)
     const [countrySearchQuery, setCountrySearchQuery] = useState("")
@@ -443,6 +451,33 @@ function DataCatalogCountrySelector({
                         >
                             <FontAwesomeIcon icon={faClose} />
                         </button>
+                    </div>
+                    <div>
+                        {/* <LabeledSwitch
+                            value={shouldAllCountriesMatch}
+                            onToggle={() =>
+                                setMustHaveDataForAllSelectedCountries(
+                                    !shouldAllCountriesMatch
+                                )
+                            }
+                            label="Only show charts with data for selected countries"
+                        /> */}
+                        <input
+                            checked={shouldAllCountriesMatch}
+                            onChange={() =>
+                                setMustHaveDataForAllSelectedCountries(
+                                    !shouldAllCountriesMatch
+                                )
+                            }
+                            type="checkbox"
+                            id="all-countries-match-checkbox"
+                        />
+                        <label
+                            htmlFor="all-countries-match-checkbox"
+                            className="label-2-medium data-catalog__all-countries-match-label"
+                        >
+                            Only show charts with data for selected countries
+                        </label>
                     </div>
                     <div className="data-catalog-country-selector-search-container">
                         <FontAwesomeIcon icon={faMagnifyingGlass} />
@@ -574,41 +609,52 @@ const DataCatalogSearchBox = () => {
 
 export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
     const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
-    // TODO: setting these is causing the SearchBox value to reset to previous searches
-    // investigate why this is happening
-    // possibly switch setCountrySelections to use useInstantSearch().setUiState ?
     const [countrySelections, setCountrySelections] = useState<Set<string>>(
         new Set()
     )
+    const [
+        mustHaveDataForAllSelectedCountries,
+        setMustHaveDataForAllSelectedCountries,
+    ] = useState(false)
     // globalFacetFilters apply to all indexes, unless they're overridden by a nested Configure component.
     // They're only relevant when we're not showing the ribbon view (because each ribbon has its own Configure.)
     // They're stored as ["Energy", "Air Pollution"] which is easier to work with in other components,
     // then are formatted into [["tags:Energy"], ["tags:Air Pollution"]] to be used in this component's Configure.
-    const [globalFacetFilters, setGlobalFacetFilters] = useState<string[]>([])
-    function addGlobalFacetFilter(tag: string) {
-        setGlobalFacetFilters((prev) => {
+    const [globalTagFilters, setGlobalTagFilters] = useState<string[]>([])
+    function addGlobalTagFilter(tag: string) {
+        setGlobalTagFilters((prev) => {
             if (!prev) return [tag]
             if (prev.includes(tag)) return prev
             return prev.concat(tag)
         })
     }
-    function removeGlobalFacetFilter(tag: string) {
-        setGlobalFacetFilters((prev) => {
+    function removeGlobalTagFilter(tag: string) {
+        setGlobalTagFilters((prev) => {
             if (!prev) return []
             return prev.filter((t) => t !== tag)
         })
     }
-    const formattedGlobalFacetFilters = globalFacetFilters.map((f) => [
-        `tags:${f}`,
-    ])
-    const formattedCountrySelections = [...countrySelections].map((c) => [
-        `availableEntities:${c}`,
-    ])
+
+    const facetFilters = globalTagFilters.map((f) => [`tags:${f}`])
+    // conjunction mode (A AND B): [[attribute:"A"], [attribute:"B"]]
+    if (mustHaveDataForAllSelectedCountries) {
+        for (const c of countrySelections) {
+            facetFilters.push([`availableEntities:${c}`])
+        }
+    } else {
+        // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
+        const orFacets: string[] = []
+        for (const c of countrySelections) {
+            orFacets.push(`availableEntities:${c}`)
+        }
+        facetFilters.push(orFacets)
+    }
+
     useEffect(() => {
         const handlePopState = () => {
             const urlParams = new URLSearchParams(window.location.search)
             const topics = urlParams.get("topics") || ""
-            setGlobalFacetFilters(topics ? topics.split(",") : [])
+            setGlobalTagFilters(topics ? topics.split(",") : [])
             const countries = urlParams.get("countries") || ""
             setCountrySelections(new Set(countries ? countries.split(",") : []))
         }
@@ -663,12 +709,7 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                 },
             }}
         >
-            <Configure
-                facetFilters={[
-                    ...formattedGlobalFacetFilters,
-                    ...formattedCountrySelections,
-                ]}
-            />
+            <Configure facetFilters={facetFilters} />
             <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
                 <header className="data-catalog-heading span-cols-12 col-start-2">
                     <h1 className="h1-semibold">Data Catalog</h1>
@@ -690,6 +731,12 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                         <DataCatalogSearchBox />
                     </div>
                     <DataCatalogCountrySelector
+                        shouldAllCountriesMatch={
+                            mustHaveDataForAllSelectedCountries
+                        }
+                        setMustHaveDataForAllSelectedCountries={
+                            setMustHaveDataForAllSelectedCountries
+                        }
                         countrySelections={countrySelections}
                         setCountrySelections={setCountrySelections}
                     />
@@ -697,12 +744,12 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
             </div>
             <TopicsRefinementList
                 tagGraph={props.tagGraph}
-                addGlobalFacetFilter={addGlobalFacetFilter}
-                removeGlobalFacetFilter={removeGlobalFacetFilter}
+                addGlobalTagFilter={addGlobalTagFilter}
+                removeGlobalTagFilter={removeGlobalTagFilter}
             />
             <DataCatalogResults
                 tagGraph={props.tagGraph}
-                addGlobalFacetFilter={addGlobalFacetFilter}
+                addGlobalTagFilter={addGlobalTagFilter}
             />
             <DataCatalogLoadingSpinner />
         </InstantSearch>
