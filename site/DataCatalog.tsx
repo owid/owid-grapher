@@ -28,7 +28,7 @@ import {
     faArrowRight,
     faClose,
     faMagnifyingGlass,
-    faMapMarker,
+    faMapMarkerAlt,
 } from "@fortawesome/free-solid-svg-icons"
 import {
     useFocusTrap,
@@ -425,7 +425,7 @@ function DataCatalogCountrySelector({
                 }
                 onClick={() => setIsOpen(!isOpen)}
             >
-                <FontAwesomeIcon icon={faMapMarker} />
+                <FontAwesomeIcon icon={faMapMarkerAlt} />
                 Country selector
             </button>
             {isOpen ? (
