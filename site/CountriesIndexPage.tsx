@@ -30,11 +30,12 @@ export const CountriesIndexPage = (props: {
                     <ul>
                         {countries.map((country) => (
                             <li key={country.code}>
-                                <img
-                                    className="flag"
-                                    src={`/images/flags/${country.code}.svg`}
-                                />
                                 <a href={`/country/${country.slug}`}>
+                                    <img
+                                        className="flag"
+                                        src={`/images/flags/${country.code}.svg`}
+                                        loading="lazy"
+                                    />
                                     {country.name}
                                 </a>
                             </li>
