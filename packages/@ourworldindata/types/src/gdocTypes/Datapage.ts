@@ -9,7 +9,6 @@ import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { Static, Type } from "@sinclair/typebox"
 import { OwidEnrichedGdocBlock } from "./ArchieMlComponents.js"
 import { ImageMetadata } from "./Image.js"
-import { EnrichedFaq } from "./Gdoc.js"
 
 export interface FaqLink {
     gdocId: string
@@ -144,6 +143,7 @@ export interface DataPageV2ContentFields {
 
 export type MultiDimDataPageContentFields = DataPageV2ContentFields & {
     faqEntries: FaqEntryKeyedByGdocIdAndFragmentId
+    primaryTopic?: PrimaryTopic | undefined
 }
 
 export interface DisplaySource {

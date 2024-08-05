@@ -38,7 +38,6 @@ import {
     OwidChartDimensionInterface,
     FaqEntryData,
     ImageMetadata,
-    OwidGdocBaseInterface,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -49,17 +48,16 @@ import {
 import {
     fetchAndParseFaqs,
     getDatapageDataV2,
+    getPrimaryTopic,
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
 import { Image, getAllImages } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
-import { getShortPageCitation } from "../site/gdocs/utils.js"
-import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
+import { getTagToSlugMap } from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
 import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import pMap from "p-map"
-import { getPublishedGdocBaseObjectBySlug } from "../db/model/Gdoc/GdocFactory.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -193,32 +191,7 @@ export async function renderDataPageV2(
     )
 
     const firstTopicTag = datapageData.topicTagsLinks?.[0]
-
-    let slug = ""
-    if (firstTopicTag) {
-        try {
-            slug = await getSlugForTopicTag(knex, firstTopicTag)
-        } catch (error) {
-            await logErrorAndMaybeSendToBugsnag(
-                `Datapage with variableId "${variableId}" and title "${datapageData.title.title}" is using "${firstTopicTag}" as its primary tag, which we are unable to resolve to a tag in the grapher DB`
-            )
-        }
-        let gdoc: OwidGdocBaseInterface | undefined = undefined
-        if (slug) {
-            gdoc = await getPublishedGdocBaseObjectBySlug(knex, slug, true)
-        }
-        if (gdoc) {
-            const citation = getShortPageCitation(
-                gdoc.content.authors,
-                gdoc.content.title ?? "",
-                gdoc?.publishedAt
-            )
-            datapageData.primaryTopic = {
-                topicTag: firstTopicTag,
-                citation,
-            }
-        }
-    }
+    datapageData.primaryTopic = await getPrimaryTopic(knex, firstTopicTag)
 
     // Get the charts this variable is being used in (aka "related charts")
     // and exclude the current chart to avoid duplicates

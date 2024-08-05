@@ -13,6 +13,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     getGdocBaseObjectById,
+    getPublishedGdocBaseObjectBySlug,
     loadGdocFromGdocBase,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { OwidGoogleAuth } from "../db/OwidGoogleAuth.js"
@@ -24,6 +25,9 @@ import {
 } from "@ourworldindata/types"
 import { KnexReadWriteTransaction } from "../db/db.js"
 import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
+import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { getSlugForTopicTag } from "./GrapherBakingUtils.js"
+import { getShortPageCitation } from "../site/gdocs/utils.js"
 
 export const getDatapageDataV2 = async (
     variableMetadata: OwidVariableWithSource,
@@ -182,4 +186,38 @@ export const resolveFaqsForVariable = (
     ) as [EnrichedFaqLookupSuccess[], EnrichedFaqLookupError[]]
 
     return { resolvedFaqs, errors }
+}
+
+export const getPrimaryTopic = async (
+    knex: KnexReadWriteTransaction,
+    firstTopicTag: string | undefined
+) => {
+    if (!firstTopicTag) return undefined
+
+    let topicSlug: string
+    try {
+        topicSlug = await getSlugForTopicTag(knex, firstTopicTag)
+    } catch (e) {
+        await logErrorAndMaybeSendToBugsnag(
+            `Data page is using "${firstTopicTag}" as its primary tag, which we are unable to resolve to a tag in the grapher DB`
+        )
+        return undefined
+    }
+
+    if (topicSlug) {
+        const gdoc = await getPublishedGdocBaseObjectBySlug(
+            knex,
+            topicSlug,
+            true
+        )
+        if (gdoc) {
+            const citation = getShortPageCitation(
+                gdoc.content.authors,
+                gdoc.content.title ?? "",
+                gdoc?.publishedAt
+            )
+            return { topicTag: firstTopicTag, citation }
+        }
+    }
+    return undefined
 }
