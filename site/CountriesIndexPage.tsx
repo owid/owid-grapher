@@ -25,7 +25,7 @@ export const CountriesIndexPage = (props: {
             />
             <body className="CountriesIndexPage">
                 <SiteHeader baseUrl={baseUrl} />
-                <main>
+                <main className="wrapper">
                     <h1>Data by country</h1>
                     <ul>
                         {countries.map((country) => (

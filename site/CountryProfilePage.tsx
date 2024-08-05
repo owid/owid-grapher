@@ -47,7 +47,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
             />
             <body className="CountryProfilePage">
                 <SiteHeader baseUrl={baseUrl} />
-                <main>
+                <main className="wrapper">
                     <header>
                         <img
                             className="flag"
