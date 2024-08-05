@@ -2,18 +2,15 @@ import React from "react"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-
-interface Country {
-    name: string
-    slug: string
-    code: string
-}
+import { Country, sortBy } from "@ourworldindata/utils"
 
 export const CountriesIndexPage = (props: {
     countries: Country[]
     baseUrl: string
 }) => {
     const { countries, baseUrl } = props
+
+    const sortedCountries = sortBy(countries, (country) => country.name)
 
     return (
         <html>
@@ -28,7 +25,7 @@ export const CountriesIndexPage = (props: {
                 <main className="wrapper">
                     <h1>Data by country</h1>
                     <ul>
-                        {countries.map((country) => (
+                        {sortedCountries.map((country) => (
                             <li key={country.code}>
                                 <a href={`/country/${country.slug}`}>
                                     <img

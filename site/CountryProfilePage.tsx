@@ -3,6 +3,7 @@ import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import urljoin from "url-join"
+import { Country } from "@ourworldindata/utils"
 
 export interface CountryProfileIndicator {
     name: string
@@ -21,11 +22,7 @@ export interface CountryProfileKeyStats {
 }
 
 export interface CountryProfilePageProps {
-    country: {
-        name: string
-        slug: string
-        code: string
-    }
+    country: Country
     indicators: CountryProfileIndicator[]
     baseUrl: string
 }
