@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class UpdateSchemaForChartConfigChange
+export class UpdateSchemaForChartConfigChange1722419367806
     implements MigrationInterface
 {
     public async up(queryRunner: QueryRunner): Promise<void> {
