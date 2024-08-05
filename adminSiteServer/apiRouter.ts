@@ -1555,6 +1555,9 @@ postRouteWithRWTransaction(
     "/site-redirects/new",
     async (req: Request, res, trx) => {
         const { source, target } = req.body
+        const sourceAsUrl = new URL(source, "https://ourworldindata.org")
+        if (sourceAsUrl.pathname === "/")
+            throw new JsonError("Cannot redirect from /", 400)
         if (await redirectWithSourceExists(trx, source)) {
             throw new JsonError(
                 `Redirect with source ${source} already exists`,

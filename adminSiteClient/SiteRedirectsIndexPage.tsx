@@ -81,6 +81,10 @@ export default function SiteRedirectsIndexPage() {
         if (value === source) {
             return "Source and target cannot be the same."
         }
+        const sourceUrl = new URL(source, "https://ourworldindata.org")
+        if (sourceUrl.pathname === "/") {
+            return "Source cannot be the root."
+        }
         return undefined
     }
 
