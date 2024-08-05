@@ -115,6 +115,7 @@ create_dist() {
 
     # copy over Pages Functions as-is
     rsync -havzq --delete owid-grapher/functions dist/
+    rsync -havzq owid-grapher/wrangler.toml dist/
 
     # we need node_modules for Pages Functions
     rm -rf dist/node_modules

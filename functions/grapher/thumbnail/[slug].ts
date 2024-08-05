@@ -6,6 +6,7 @@ export interface Env {
         fetch: typeof fetch
     }
     url: URL
+    ENV: string
 }
 
 const router = Router<IRequestStrict, [URL, Env, ExecutionContext]>()
