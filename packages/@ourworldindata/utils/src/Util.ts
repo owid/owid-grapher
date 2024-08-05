@@ -181,7 +181,7 @@ import React from "react"
 import { match, P } from "ts-pattern"
 // import "crypto"
 
-let subtleCrypto : any
+let subtleCrypto: any
 
 if (typeof globalThis.crypto !== "undefined" && globalThis.crypto.subtle) {
     // Browsers and Cloudflare Workers
@@ -472,14 +472,23 @@ export const cagr = (
     )
 }
 
-/** Compute a SHA1 hash for a given string
- */
-export async function getSHA1HashBytes(data: string): Promise<Uint8Array> {
+export enum HashAlgorithm {
+    Sha1 = "sha1",
+}
+
+export async function getHashBytes(
+    data: string,
+    algorithm: HashAlgorithm
+): Promise<Uint8Array> {
     const encoder = new TextEncoder()
     const dataBuffer = encoder.encode(data)
-    const hashBuffer = await subtleCrypto.digest("SHA-1", dataBuffer)
+    const hashBuffer = await subtleCrypto.digest(algorithm, dataBuffer)
 
     return new Uint8Array(hashBuffer)
+}
+
+export async function getSHA1HashBytes(data: string): Promise<Uint8Array> {
+    return getHashBytes(data, HashAlgorithm.Sha1)
 }
 
 export type Base64String = Nominal<string, "Base64">
@@ -518,15 +527,11 @@ export function bytesToHex(bytes: Uint8Array): HexString {
         .join("") as HexString
 }
 
-/** Compute a SHA1 hash for a given string and return it as a string HEX encoded
- */
 export async function getSHA1HashHex(data: string): Promise<HexString> {
     const hashBuffer = await getSHA1HashBytes(data)
     return bytesToHex(hashBuffer)
 }
 
-/** Compute a SHA1 hash for a given string and return it as a string BASE64 encoded
- */
 export async function getSHA1HashBase64(data: string): Promise<Base64String> {
     const bytes = await getSHA1HashBytes(data)
     const base64 = bytesToBase64(bytes)
