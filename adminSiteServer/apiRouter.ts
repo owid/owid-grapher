@@ -2279,13 +2279,19 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     // Assets have TTL of one week in Cloudflare. Add a redirect to make sure
     // the page is no longer accessible.
     // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
-    await db.knexRawInsert(
-        trx,
-        `INSERT INTO redirects (source, target, ttl)
-         VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 8 DAY))`,
-        [getCanonicalUrl("", gdoc), "/"]
-    )
-    await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
+    const gdocSlug = getCanonicalUrl("", gdoc)
+    if (gdoc.published) {
+        if (gdocSlug && gdocSlug !== "/") {
+            console.log(`Creating redirect for "${gdocSlug}" to "/"`)
+            await db.knexRawInsert(
+                trx,
+                `INSERT INTO redirects (source, target, ttl)
+                VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 8 DAY))`,
+                [gdocSlug, "/"]
+            )
+        }
+        await triggerStaticBuild(res.locals.user, `Deleting ${gdocSlug}`)
+    }
     return {}
 })
 
