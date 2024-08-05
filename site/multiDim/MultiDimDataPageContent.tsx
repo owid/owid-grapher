@@ -48,6 +48,7 @@ import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
 import {
     FaqEntryKeyedByGdocIdAndFragmentId,
     MultiDimDataPageContentFields,
+    PrimaryTopic,
 } from "@ourworldindata/types/dist/gdocTypes/Datapage.js"
 declare global {
     interface Window {
@@ -157,6 +158,7 @@ export const MultiDimDataPageContent = ({
     grapherConfig,
     isPreviewing = false,
     faqEntries,
+    primaryTopic,
     canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
     tagToSlugMap,
     imageMetadata,
@@ -167,6 +169,7 @@ export const MultiDimDataPageContent = ({
     faqEntries: FaqEntryKeyedByGdocIdAndFragmentId
     imageMetadata: Record<string, ImageMetadata>
     initialQueryStr?: string
+    primaryTopic?: PrimaryTopic | undefined
 }) => {
     const grapherFigureRef = useRef<HTMLDivElement>(null)
 
@@ -535,7 +538,7 @@ export const MultiDimDataPageContent = ({
                     owidProcessingLevel={
                         datapageDataFromVar.owidProcessingLevel
                     }
-                    primaryTopic={datapageDataFromVar.primaryTopic}
+                    primaryTopic={primaryTopic}
                     source={datapageDataFromVar.source}
                     title={datapageDataFromVar.title}
                     titleVariant={datapageDataFromVar.titleVariant}

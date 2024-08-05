@@ -19,15 +19,17 @@ import {
     getVariableMetadata,
 } from "../db/model/Variable.js"
 import pMap from "p-map"
+import { JsonError, keyBy, OwidVariableWithSource } from "@ourworldindata/utils"
 import {
-    JsonError,
-    keyBy,
-    mapValues,
-    OwidVariableWithSource,
-} from "@ourworldindata/utils"
-import { fetchAndParseFaqs, resolveFaqsForVariable } from "./DatapageHelpers.js"
+    fetchAndParseFaqs,
+    getPrimaryTopic,
+    resolveFaqsForVariable,
+} from "./DatapageHelpers.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-import { FaqEntryKeyedByGdocIdAndFragmentId } from "@ourworldindata/types/dist/gdocTypes/Datapage.js"
+import {
+    FaqEntryKeyedByGdocIdAndFragmentId,
+    PrimaryTopic,
+} from "@ourworldindata/types/dist/gdocTypes/Datapage.js"
 
 // TODO Make this dynamic
 const baseDir = findProjectBaseDir(__dirname)
@@ -51,6 +53,7 @@ const MULTI_DIM_SITES_BY_SLUG: Record<string, MultiDimDataPageConfigRaw> = {
 interface BakingAdditionalContext {
     tagToSlugMap: Record<string, string>
     faqEntries: FaqEntryKeyedByGdocIdAndFragmentId
+    primaryTopic: PrimaryTopic | undefined
 }
 
 const resolveMultiDimDataPageCatalogPathsToIndicatorIds = async (
@@ -230,7 +233,12 @@ export const renderMultiDimDataPageBySlug = async (
         variableMetaDict
     )
 
-    const bakingContext = { tagToSlugMap, faqEntries }
+    const primaryTopic = await getPrimaryTopic(
+        knex,
+        preProcessedConfig.topicTags?.[0]
+    )
+
+    const bakingContext = { tagToSlugMap, faqEntries, primaryTopic }
 
     return renderMultiDimDataPage(config, bakingContext)
 }
@@ -245,6 +253,7 @@ export const renderMultiDimDataPage = async (
             config={config}
             tagToSlugMap={bakingContext?.tagToSlugMap}
             faqEntries={bakingContext?.faqEntries}
+            primaryTopic={bakingContext?.primaryTopic}
         />
     )
 }

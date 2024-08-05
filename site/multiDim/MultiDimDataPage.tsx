@@ -10,13 +10,17 @@ import {
     pick,
     serializeJSONForHTML,
 } from "@ourworldindata/utils"
-import { FaqEntryKeyedByGdocIdAndFragmentId } from "@ourworldindata/types/dist/gdocTypes/Datapage.js"
+import {
+    FaqEntryKeyedByGdocIdAndFragmentId,
+    PrimaryTopic,
+} from "@ourworldindata/types/dist/gdocTypes/Datapage.js"
 
 export const MultiDimDataPage = (props: {
     baseUrl: string
     config: MultiDimDataPageConfig
     tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
+    primaryTopic?: PrimaryTopic | undefined
 }) => {
     const { config, faqEntries } = props
 
@@ -80,6 +84,7 @@ export const MultiDimDataPage = (props: {
                                     canonicalUrl,
                                     tagToSlugMap: minimalTagToSlugMap,
                                     faqEntries,
+                                    primaryTopic: props.primaryTopic,
                                     // imageMetadata,
                                 }
                             )}`,
