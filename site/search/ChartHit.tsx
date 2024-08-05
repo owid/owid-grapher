@@ -11,7 +11,10 @@ import {
 } from "../../settings/clientSettings.js"
 import { getIndexName } from "./searchClient.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faHeartBroken } from "@fortawesome/free-solid-svg-icons"
+import {
+    faHeartBroken,
+    faMapMarkerAlt,
+} from "@fortawesome/free-solid-svg-icons"
 import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
@@ -90,8 +93,16 @@ export function ChartHit({
             </div>
             {entities.length > 0 && (
                 <ul className="chart-hit-entities">
-                    {entities.map((entity) => (
-                        <li key={entity}>{entity}</li>
+                    {entities.map((entity, i) => (
+                        <li key={entity}>
+                            {i === 0 && (
+                                <FontAwesomeIcon
+                                    className="chart-hit-icon"
+                                    icon={faMapMarkerAlt}
+                                />
+                            )}
+                            {entity}
+                        </li>
                     ))}
                 </ul>
             )}
