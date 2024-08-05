@@ -1,5 +1,10 @@
-import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
-import { Bounds, deserializeJSONFromHTML } from "@ourworldindata/utils"
+import { Grapher } from "@ourworldindata/grapher"
+import {
+    Bounds,
+    excludeUndefined,
+    GrapherInterface,
+    R2GrapherConfigDirectory,
+} from "@ourworldindata/utils"
 import { svg2png, initialize as initializeSvg2Png } from "svg2png-wasm"
 import { TimeLogger } from "./timeLogger"
 import { png } from "itty-router"
@@ -130,32 +135,82 @@ const extractOptions = (params: URLSearchParams): ImageOptions => {
     return options as ImageOptions
 }
 
-async function fetchAndRenderGrapherToSvg({
-    slug,
-    options,
-    searchParams,
-    env,
-}: {
-    slug: string
-    options: ImageOptions
-    searchParams: URLSearchParams
+const WORKER_CACHE_TIME_IN_SECONDS = 60
+
+async function fetchFromR2(
+    url: URL,
+    etag: string | undefined,
+    fallbackUrl?: URL
+) {
+    const headers = new Headers()
+    if (etag) headers.set("If-None-Match", etag)
+    const init = {
+        cf: {
+            cacheEverything: true,
+            cacheTtl: WORKER_CACHE_TIME_IN_SECONDS,
+        },
+        headers,
+    }
+    const primaryResponse = await fetch(url.toString(), init)
+    if (primaryResponse.status === 404 && fallbackUrl) {
+        return fetch(fallbackUrl.toString(), init)
+    }
+    return primaryResponse
+}
+
+async function fetchAndRenderGrapherToSvg(
+    slug: string,
+    options: ImageOptions,
+    searchParams: URLSearchParams,
     env: Env
-}) {
+) {
     const grapherLogger = new TimeLogger("grapher")
 
-    // Fetch grapher config and extract it from the HTML
-    const grapherConfig: GrapherInterface = await env.ASSETS.fetch(
-        new URL(`/grapher/${slug}`, env.url)
-    )
-        .then((r) => (r.ok ? r : Promise.reject("Failed to load grapher page")))
-        .then((r) => r.text())
-        .then((html) => deserializeJSONFromHTML(html))
+    // The top level directory is either the bucket path (should be set in dev environments and production)
+    // or the branch name on preview staging environments
+    console.log("branch", env.CF_PAGES_BRANCH)
+    const topLevelDirectory = env.GRAPHER_CONFIG_R2_BUCKET_PATH
+        ? [env.GRAPHER_CONFIG_R2_BUCKET_PATH]
+        : ["by-branch", env.CF_PAGES_BRANCH]
 
-    if (!grapherConfig) {
-        throw new Error("Could not find grapher config")
+    const key = excludeUndefined([
+        ...topLevelDirectory,
+        R2GrapherConfigDirectory.publishedGrapherBySlug,
+        `${slug}.json`,
+    ]).join("/")
+
+    console.log("fetching grapher config from this key", key)
+
+    const requestUrl = new URL(key, env.GRAPHER_CONFIG_R2_BUCKET_URL)
+
+    let fallbackUrl
+
+    if (
+        env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL &&
+        env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH
+    ) {
+        const topLevelDirectory = env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH
+        const fallbackKey = excludeUndefined([
+            topLevelDirectory,
+            R2GrapherConfigDirectory.publishedGrapherBySlug,
+            `${slug}.json`,
+        ]).join("/")
+        fallbackUrl = new URL(
+            fallbackKey,
+            env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL
+        )
     }
 
-    grapherLogger.log("fetchGrapherConfig")
+    // Fetch grapher config
+    const fetchResponse = await fetchFromR2(requestUrl, undefined, fallbackUrl)
+
+    if (fetchResponse.status !== 200) {
+        console.log("Failed to fetch grapher config", fetchResponse.status)
+        return null
+    }
+
+    const grapherConfig: GrapherInterface = await fetchResponse.json()
+    console.log("grapher title", grapherConfig.title)
 
     const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
     const grapher = new Grapher({
@@ -199,12 +254,17 @@ export const fetchAndRenderGrapher = async (
     const options = extractOptions(searchParams)
 
     console.log("Rendering", slug, outType, options)
-    const svg = await fetchAndRenderGrapherToSvg({
+    const svg = await fetchAndRenderGrapherToSvg(
         slug,
         options,
         searchParams,
-        env,
-    })
+        env
+    )
+    console.log("fetched svg")
+
+    if (!svg) {
+        return new Response("Not found", { status: 404 })
+    }
 
     switch (outType) {
         case "png":

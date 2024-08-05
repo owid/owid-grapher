@@ -14,13 +14,9 @@ import {
     S3Client,
 } from "@aws-sdk/client-s3"
 import { JsonError, lazy } from "@ourworldindata/utils"
+import { R2GrapherConfigDirectory } from "@ourworldindata/types"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { Base64String } from "../serverUtils/serverUtil.js"
-
-export enum R2GrapherConfigDirectory {
-    byUUID = "config/by-uuid",
-    publishedGrapherBySlug = "config/by-slug-published",
-}
 
 const getS3Client: () => S3Client = lazy(
     () =>
