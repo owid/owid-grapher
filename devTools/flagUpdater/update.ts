@@ -23,8 +23,14 @@ const main = async () => {
 
     for (const country of countries) {
         if (!country.shortCode) {
-            skippedBecauseMissingShortCode.push(country)
-            continue
+            if (country.code === "OWID_KOS") {
+                // Kosovo is a special case; it doesn't have an official ISO code,
+                // but has been assigned the special "XK" and has a flag under that code
+                country.shortCode = "XK"
+            } else {
+                skippedBecauseMissingShortCode.push(country)
+                continue
+            }
         }
 
         const flagPath = path.join(
