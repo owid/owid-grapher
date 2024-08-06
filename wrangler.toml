@@ -12,6 +12,10 @@ ENV = "development"
 MAILGUN_DOMAIN = "mg.ourworldindata.org"
 SLACK_ERROR_CHANNEL_ID = "C016H0BNNB1"
 
+[[r2_buckets]]
+binding = "r2ChartConfigs"
+bucket_name = "owid-grapher-configs-staging"
+
 
 # Overrides for CF production deployment
 [env.production]
@@ -25,8 +29,11 @@ bucket_name = "owid-grapher-configs"
 ENV = "production"
 MAILGUN_DOMAIN = "mg.ourworldindata.org"
 SLACK_ERROR_CHANNEL_ID = "C5JJW19PS"
+GRAPHER_CONFIG_R2_BUCKET_PATH = "v1"
 
 
-[[env.development.r2_buckets]]
+[[env.preview.r2_buckets]]
 binding = "r2ChartConfigs"
 bucket_name = "owid-grapher-configs-staging"
+
+[env.preview.vars]
