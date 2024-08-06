@@ -1,14 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" id="flag-icons-tg" viewBox="0 0 640 480">
-  <defs>
-    <clipPath id="tg-a">
-      <path fill-opacity=".7" d="M0 0h682.7v512H0z"/>
-    </clipPath>
-  </defs>
-  <g fill-rule="evenodd" clip-path="url(#tg-a)" transform="scale(.9375)">
-    <path fill="#ffe300" d="M0 0h767.6v512H0z"/>
-    <path fill="#118600" d="M0 208.1h767.6V311H0zM0 .2h767.6v102.9H0z"/>
-    <path fill="#d80000" d="M0 .3h306.5v310.6H0z"/>
-    <path fill="#fff" d="M134.4 128.4c0-.8 18.9-53 18.9-53l17 52.2s57.4 1.7 57.4.8-45.3 34.3-45.3 34.3 21.4 60 20.5 58.2c-.8-1.7-49.6-36-49.6-36s-49.7 34.3-48.8 34.3c.8 0 18.8-56.5 18.8-56.5l-44.5-33.4z"/>
-    <path fill="#118600" d="M0 409.2h767.6V512H0z"/>
-  </g>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 640 480" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(0.9375,0,0,0.9375,0,0)">
+        <clipPath id="_clip1">
+            <rect x="0" y="0" width="682.7" height="512"/>
+        </clipPath>
+        <g clip-path="url(#_clip1)">
+            <rect x="0" y="0" width="767.6" height="512" style="fill:rgb(255,206,0);"/>
+            <path d="M0,208.1L767.6,208.1L767.6,311L0,311L0,208.1ZM0,0.2L767.6,0.2L767.6,103.1L0,103.1L0,0.2Z" style="fill:rgb(0,106,78);"/>
+            <rect x="0" y="0.3" width="306.5" height="310.6" style="fill:rgb(210,16,52);"/>
+            <path d="M134.4,128.4C134.4,127.6 153.3,75.4 153.3,75.4L170.3,127.6C170.3,127.6 227.7,129.3 227.7,128.4C227.7,127.5 182.4,162.7 182.4,162.7C182.4,162.7 203.8,222.7 202.9,220.9C202.1,219.2 153.3,184.9 153.3,184.9C153.3,184.9 103.6,219.2 104.5,219.2C105.3,219.2 123.3,162.7 123.3,162.7L78.8,129.3L134.4,128.4Z" style="fill:white;"/>
+            <rect x="0" y="409.2" width="767.6" height="102.8" style="fill:rgb(0,106,78);"/>
+        </g>
+    </g>
 </svg>
