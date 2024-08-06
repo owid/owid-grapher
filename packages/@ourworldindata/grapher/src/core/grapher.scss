@@ -18,7 +18,6 @@ $frame-color: #f2f2f2;
 
 // text
 $dark-text: #5b5b5b;
-$light-text: #858585;
 $active-text: $blue-90;
 
 // tooltip for button label
@@ -96,7 +95,7 @@ $zindex-controls-drawer: 150;
 }
 
 .grapher_light {
-    color: $light-text;
+    color: $gray-70;
 }
 
 .GrapherComponent,
@@ -178,10 +177,10 @@ $zindex-controls-drawer: 150;
     .wp-code-snippet {
         --code-snippet-border: #e7e7e7;
         --code-snippet-background-light: #f7f7f7;
-        --code-snippet-text: #{$light-text};
+        --code-snippet-text: #{$gray-70};
         --code-snippet-button: #{$dark-text};
-        --code-snippet-button-hover: #{$light-text};
-        --code-snippet-button-active: #{$light-text};
+        --code-snippet-button-hover: #{$gray-70};
+        --code-snippet-button-active: #{$gray-70};
 
         margin-bottom: 0 !important;
     }

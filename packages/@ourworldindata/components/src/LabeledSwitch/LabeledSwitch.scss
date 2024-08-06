@@ -1,5 +1,4 @@
 $dark-text: #5b5b5b;
-$light-text: #858585;
 $light-fill: #dadada;
 $active-fill: #dbe5f0;
 
@@ -14,7 +13,7 @@ $lato: $sans-serif-font-stack;
     // where the width of a labeled switch is calculated
 
     display: flex;
-    color: $light-text;
+    color: $gray-70;
     font: $medium 13px/16px $lato;
     letter-spacing: 0.01em;
 
@@ -65,7 +64,7 @@ $lato: $sans-serif-font-stack;
             content: " ";
             width: 10px;
             height: 10px;
-            background: $light-text;
+            background: $gray-70;
             border-radius: 5px;
             top: 3px;
             left: 3px;
