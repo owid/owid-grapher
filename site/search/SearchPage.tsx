@@ -2,11 +2,12 @@ import React from "react"
 import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
+import { Html } from "../Html.js"
 
 export const SearchPage = (props: { baseUrl: string }) => {
     const { baseUrl } = props
     return (
-        <html>
+        <Html>
             <Head
                 canonicalUrl={`${baseUrl}/search`}
                 pageTitle="Search"
@@ -35,6 +36,6 @@ export const SearchPage = (props: { baseUrl: string }) => {
                 <SiteFooter hideDonate={true} baseUrl={baseUrl} />
                 <script type="module">{`window.runSearchPage()`}</script>
             </body>
-        </html>
+        </Html>
     )
 }

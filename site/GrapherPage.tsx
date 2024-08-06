@@ -28,6 +28,7 @@ import { RelatedArticles } from "./RelatedArticles/RelatedArticles.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 import GrapherImage from "./GrapherImage.js"
+import { Html } from "./Html.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
@@ -74,7 +75,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
 
     return (
-        <html>
+        <Html>
             <Head
                 canonicalUrl={canonicalUrl}
                 pageTitle={pageTitle}
@@ -170,6 +171,6 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                     dangerouslySetInnerHTML={{ __html: script }}
                 />
             </body>
-        </html>
+        </Html>
     )
 }

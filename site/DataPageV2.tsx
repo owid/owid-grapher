@@ -33,6 +33,7 @@ import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugContext.js"
+import { Html } from "./Html.js"
 
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
@@ -109,7 +110,7 @@ export const DataPageV2 = (props: {
     )
 
     return (
-        <html>
+        <Html>
             <Head
                 canonicalUrl={canonicalUrl}
                 pageTitle={pageTitle}
@@ -186,6 +187,6 @@ export const DataPageV2 = (props: {
                     }}
                 />
             </body>
-        </html>
+        </Html>
     )
 }

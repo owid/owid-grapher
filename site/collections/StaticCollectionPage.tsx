@@ -6,6 +6,7 @@ import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import InteractionNotice from "../InteractionNotice.js"
 import GrapherImage from "../GrapherImage.js"
+import { Html } from "../Html.js"
 
 export interface StaticCollectionPageProps {
     title: string
@@ -19,7 +20,7 @@ export const StaticCollectionPage = (
     const { baseUrl, title, charts, introduction } = props
 
     return (
-        <html>
+        <Html>
             <Head
                 canonicalUrl={`${baseUrl}/shared-collection/top-charts`}
                 pageTitle={title}
@@ -66,6 +67,6 @@ export const StaticCollectionPage = (
                 </main>
                 <SiteFooter hideDonate={true} baseUrl={baseUrl} />
             </body>
-        </html>
+        </Html>
     )
 }

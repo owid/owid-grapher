@@ -4,6 +4,7 @@ import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { range, IndexPost } from "@ourworldindata/utils"
 import PostCard from "./PostCard/PostCard.js"
+import { Html } from "./Html.js"
 
 export const BlogIndexPage = (props: {
     posts: IndexPost[]
@@ -16,7 +17,7 @@ export const BlogIndexPage = (props: {
     const pageTitle = "Latest"
 
     return (
-        <html>
+        <Html>
             <Head
                 canonicalUrl={
                     `${baseUrl}/latest` +
@@ -72,6 +73,6 @@ export const BlogIndexPage = (props: {
                 </main>
                 <SiteFooter baseUrl={baseUrl} />
             </body>
-        </html>
+        </Html>
     )
 }
