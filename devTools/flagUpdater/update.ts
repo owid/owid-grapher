@@ -1,4 +1,4 @@
-import { countries, Country } from "@ourworldindata/utils"
+import { Country, regions } from "@ourworldindata/utils"
 
 import path from "path"
 import fs from "fs-extra"
@@ -21,21 +21,29 @@ const main = async () => {
 
     await fs.ensureDir(FLAG_TARGET_DIR)
 
-    for (const country of countries) {
-        if (!country.shortCode) {
-            if (country.code === "OWID_KOS") {
-                // Kosovo is a special case; it doesn't have an official ISO code,
-                // but has been assigned the special "XK" and has a flag under that code
-                country.shortCode = "XK"
-            } else {
-                skippedBecauseMissingShortCode.push(country)
-                continue
-            }
+    for (const region of regions) {
+        if (region.regionType !== "country" || region.isHistorical) continue
+        const country = region as Country
+
+        let shortCode = country.shortCode
+
+        if (country.code === "OWID_KOS") {
+            // Kosovo is a special case; it doesn't have an official ISO code,
+            // but has been assigned the special "XK" and has a flag under that code
+            shortCode = "XK"
+        } else if (country.code === "PS_GZA") {
+            // Gaza Strip and Palestine use the same flag
+            shortCode = "PS"
+        }
+
+        if (!shortCode) {
+            skippedBecauseMissingShortCode.push(country)
+            continue
         }
 
         const flagPath = path.join(
             FLAG_BASE_PATH,
-            `${country.shortCode.toLowerCase()}.svg`
+            `${shortCode.toLowerCase()}.svg`
         )
         const exists = await fs.pathExists(flagPath)
         if (!exists) {
