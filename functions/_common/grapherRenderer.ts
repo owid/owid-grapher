@@ -1,5 +1,9 @@
 import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
-import { Bounds, deserializeJSONFromHTML } from "@ourworldindata/utils"
+import {
+    Bounds,
+    deserializeJSONFromHTML,
+    excludeUndefined,
+} from "@ourworldindata/utils"
 import { svg2png, initialize as initializeSvg2Png } from "svg2png-wasm"
 import { TimeLogger } from "./timeLogger"
 import { png } from "itty-router"
@@ -12,6 +16,7 @@ import LatoMedium from "../_common/fonts/LatoLatin-Medium.ttf.bin"
 import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
 import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "../grapher/thumbnail/[slug].js"
+import { R2GrapherConfigDirectory } from "@ourworldindata/types"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -143,13 +148,21 @@ async function fetchAndRenderGrapherToSvg({
 }) {
     const grapherLogger = new TimeLogger("grapher")
 
+    const url = new URL(`/grapher/${slug}`, env.url)
+    const slugOnly = url.pathname.split("/").pop()
+    console.log("Fetching", url.href)
+    const key = excludeUndefined([
+        env.GRAPHER_CONFIG_R2_BUCKET_PATH,
+        R2GrapherConfigDirectory.bySlug,
+        `${slugOnly}.json`,
+    ]).join("/")
+
+    console.log("Fetching", key)
+
+    console.log("r2", env.r2ChartConfigs)
+
     // Fetch grapher config and extract it from the HTML
-    const grapherConfig: GrapherInterface = await env.ASSETS.fetch(
-        new URL(`/grapher/${slug}`, env.url)
-    )
-        .then((r) => (r.ok ? r : Promise.reject("Failed to load grapher page")))
-        .then((r) => r.text())
-        .then((html) => deserializeJSONFromHTML(html))
+    const grapherConfig: GrapherInterface = await env.r2ChartConfigs.get(key)
 
     if (!grapherConfig) {
         throw new Error("Could not find grapher config")
