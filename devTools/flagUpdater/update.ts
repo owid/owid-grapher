@@ -1,4 +1,4 @@
-import { Country, regions } from "@ourworldindata/utils"
+import { Region, regions } from "@ourworldindata/utils"
 
 import path from "path"
 import fs from "fs-extra"
@@ -11,8 +11,8 @@ const FLAG_BASE_PATH = path.join(BASE_DIR, "node_modules/flag-icons/flags/4x3")
 const FLAG_TARGET_DIR = path.join(BASE_DIR, "public/images/flags")
 
 const main = async () => {
-    const skippedBecauseMissingShortCode: Country[] = []
-    const failedBecauseNoFlag: Country[] = []
+    const skippedBecauseMissingShortCode: Region[] = []
+    const failedBecauseNoFlag: Region[] = []
     let successfulCount: number = 0
 
     for (const f of await glob(`${FLAG_TARGET_DIR}/*.svg`)) {
@@ -22,22 +22,24 @@ const main = async () => {
     await fs.ensureDir(FLAG_TARGET_DIR)
 
     for (const region of regions) {
-        if (region.regionType !== "country" || region.isHistorical) continue
-        const country = region as Country
+        // We want to ensure we have a flag for every non-historical country; others are optional
+        const isNonHistoricalCountry =
+            region.regionType === "country" && !region.isHistorical
 
-        let shortCode = country.shortCode
+        let shortCode = "shortCode" in region && region.shortCode
 
-        if (country.code === "OWID_KOS") {
+        if (region.code === "OWID_KOS") {
             // Kosovo is a special case; it doesn't have an official ISO code,
             // but has been assigned the special "XK" and has a flag under that code
             shortCode = "XK"
-        } else if (country.code === "PS_GZA") {
+        } else if (region.code === "PS_GZA") {
             // Gaza Strip and Palestine use the same flag
             shortCode = "PS"
         }
 
         if (!shortCode) {
-            skippedBecauseMissingShortCode.push(country)
+            if (isNonHistoricalCountry)
+                skippedBecauseMissingShortCode.push(region)
             continue
         }
 
@@ -47,11 +49,11 @@ const main = async () => {
         )
         const exists = await fs.pathExists(flagPath)
         if (!exists) {
-            failedBecauseNoFlag.push(country)
+            if (isNonHistoricalCountry) failedBecauseNoFlag.push(region)
             continue
         }
 
-        const targetPath = path.join(FLAG_TARGET_DIR, `${country.code}.svg`)
+        const targetPath = path.join(FLAG_TARGET_DIR, `${region.code}.svg`)
         await fs.copy(flagPath, targetPath)
         successfulCount++
     }
