@@ -14,13 +14,15 @@
 @import "./typography.scss";
 
 // grapher frame
-$frame-color: #f2f2f2;
+$frame-color: $gray-10;
 
 // text
+$dark-text: $gray-80;
+$light-text: $gray-70;
 $active-text: $blue-90;
 
 // tooltip for button label
-$tooltip-fill: #4e4e4e;
+$tooltip-fill: $gray-90;
 $tooltip-text: #fff;
 
 // These should be between 0–100 in order to avoid conflicting with
