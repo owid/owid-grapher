@@ -1,7 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" id="flag-icons-ml" viewBox="0 0 640 480">
-  <g fill-rule="evenodd">
-    <path fill="red" d="M425.8 0H640v480H425.7z"/>
-    <path fill="#009a00" d="M0 0h212.9v480H0z"/>
-    <path fill="#ff0" d="M212.9 0h214v480h-214z"/>
-  </g>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 640 480" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g>
+        <path d="M425.8,0L640,0L640,480L425.7,480L425.8,0Z" style="fill:rgb(206,17,38);"/>
+        <rect x="0" y="0" width="212.9" height="480" style="fill:rgb(20,181,58);"/>
+        <rect x="212.9" y="0" width="214" height="480" style="fill:rgb(252,209,22);"/>
+    </g>
 </svg>
