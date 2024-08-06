@@ -11,7 +11,6 @@
     $dark-fill: #e7e7e7;
 
     // sort icon
-    $sort-icon: #c6c6c6;
     $hover-icon: #a1a1a1;
 
     // closest time notice
@@ -159,7 +158,7 @@
                 }
 
                 .sort-icon {
-                    color: $sort-icon;
+                    color: $gray-50;
                     font-size: 13px;
                     width: 19px; // keeps column widths fixed when sorting
                     text-align: right;

@@ -298,7 +298,7 @@
             }
 
             &:disabled {
-                color: #c6c6c6;
+                color: $gray-50;
                 text-decoration: none;
                 cursor: default;
             }
