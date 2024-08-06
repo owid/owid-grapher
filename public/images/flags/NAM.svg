@@ -1,17 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 90 60">
-<path d="M90,0H0V60z" fill="#003580"/>
-<path d="M0,60H90V0z" fill="#009543"/>
-<path d="M0,60 90,0" stroke="#fff" stroke-width="20"/>
-<path d="M0,60 90,0" stroke="#d21034" stroke-width="15"/>
-<g fill="#ffce00" transform="translate(18,16.34148)">
-<g id="r4">
-<path id="r" d="M0,10 1.552914,5.795555H-1.552914z"/>
-<use xlink:href="#r" transform="rotate(90)"/>
-<use xlink:href="#r" transform="rotate(180)"/>
-<use xlink:href="#r" transform="rotate(270)"/>
-</g>
-<use xlink:href="#r4" transform="rotate(30)"/>
-<use xlink:href="#r4" transform="rotate(60)"/>
-<circle r="5.5" stroke="#003580"/>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" clip-rule="evenodd" viewBox="0 0 640 480">
+  <clipPath id="_clip1">
+    <path d="M0 0h640v480H0z"/>
+  </clipPath>
+  <g clip-path="url(#_clip1)">
+    <path fill="#fff" d="M0 0h640v480H0z"/>
+    <path fill="#002f6c" d="m-26.4.2.8 345.6L512.5 0-26.4.2Z"/>
+    <path fill="#009a44" d="M666.4 479.6 665 120.3 122.3 479.8l544-.2h.1Z"/>
+    <path fill="#c8102e" d="m-26 371.8.4 108.2 117.5-.1 548.144-367.5L640 0l-91.3.3L-26 371.7v.1Z"/>
+    <path fill="#ffcd00" d="m219.6 172-21.8-13.2-12.6 22.1-12.2-22.2-22 12.9.6-25.4-25.4.2 13.2-21.8-22.1-12.5 22.2-12.3-12.8-22 25.4.6-.1-25.5 21.7 13.2L186.3 44l12.2 22.2 22-12.9-.6 25.4 25.4-.2-13.2 21.8 22.1 12.5-22.2 12.3 12.8 22-25.4-.6.2 25.5Z"/>
+    <path fill="#002f6c" d="M232.4 112.4c0 25.6-20.9 46.3-46.6 46.3-25.7 0-46.6-20.7-46.6-46.3 0-25.6 20.8-46.2 46.6-46.2s46.6 20.7 46.6 46.2"/>
+    <path fill="#ffcd00" d="M222.3 112.4c0 20.023-16.477 36.5-36.5 36.5s-36.5-16.477-36.5-36.5 16.477-36.5 36.5-36.5 36.5 16.477 36.5 36.5"/>
+  </g>
 </svg>

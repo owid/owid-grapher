@@ -1,6 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6">
-<rect width="12" height="2" fill="#007a3d"/>
-<rect width="12" height="2" y="2" fill="#fff"/>
-<rect width="12" height="2" y="4" fill="#ce1126"/>
-<polygon points="0,0 3,2 3,4 0,6"/>
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" clip-rule="evenodd" viewBox="0 0 640 480">
+  <g transform="scale(.9375)">
+    <clipPath id="_clip1">
+      <path d="M0 0h682.7v512H0z"/>
+    </clipPath>
+    <g clip-path="url(#_clip1)">
+      <path fill="#fff" d="M0 170.6h1024v170.7H0z"/>
+      <path fill="#ce1126" d="M0 341.3h1024V512H0z"/>
+      <path fill="#007a3d" d="M0 0h1024v170.7H0z"/>
+      <path fill="#000001" d="M0 0v512l255.4-170.7.6-170.8L0 0Z"/>
+    </g>
+  </g>
 </svg>

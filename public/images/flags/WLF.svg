@@ -1,7 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100">
-<path fill="#ED2939" d="M0,0H150V100H0z"/>
-<path fill="#FFF" d="M0,0H40V40H0z"/>
-<path fill="#002395" d="M0,0H20V40H0z"/>
-<path fill="none" stroke="#FFF" d="M0,40H60V0"/>
-<path fill="#FFF" d="M105,46 93,34H117zM101,50 89,38V62zM105,54 93,66H117zM109,50 121,38V62z"/>
+<svg xmlns="http://www.w3.org/2000/svg" id="flag-icons-wf" viewBox="0 0 640 480">
+  <path fill="#fff" d="M0 0h640v480H0z"/>
+  <path fill="#000091" d="M0 0h213.3v480H0z"/>
+  <path fill="#e1000f" d="M426.7 0H640v480H426.7z"/>
 </svg>

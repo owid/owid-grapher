@@ -1,16 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 809 500">
-<rect width="809" height="500" fill="#006a4e"/>
-<rect y="100" width="809" height="100" fill="#ffce00"/>
-<rect y="300" width="809" height="100" fill="#ffce00"/>
-<rect width="300" height="300" fill="#d21034"/>
-<g transform="translate(150,150)" fill="#fff">
-<g id="c">
-<path id="t" d="M 0,-95 V 0 H 50" transform="rotate(18 0,-95)"/>
-<use xlink:href="#t" transform="scale(-1,1)"/>
-</g>
-<use xlink:href="#c" transform="rotate(72)"/>
-<use xlink:href="#c" transform="rotate(144)"/>
-<use xlink:href="#c" transform="rotate(216)"/>
-<use xlink:href="#c" transform="rotate(288)"/>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" clip-rule="evenodd" viewBox="0 0 640 480">
+  <g transform="scale(.9375)">
+    <clipPath id="_clip1">
+      <path d="M0 0h682.7v512H0z"/>
+    </clipPath>
+    <g clip-path="url(#_clip1)">
+      <path fill="#ffce00" d="M0 0h767.6v512H0z"/>
+      <path fill="#006a4e" d="M0 208.1h767.6V311H0V208.1ZM0 .2h767.6v102.9H0V.2Z"/>
+      <path fill="#d21034" d="M0 .3h306.5v310.6H0z"/>
+      <path fill="#fff" d="M134.4 128.4c0-.8 18.9-53 18.9-53l17 52.2s57.4 1.7 57.4.8c0-.9-45.3 34.3-45.3 34.3s21.4 60 20.5 58.2c-.8-1.7-49.6-36-49.6-36s-49.7 34.3-48.8 34.3c.8 0 18.8-56.5 18.8-56.5l-44.5-33.4 55.6-.9Z"/>
+      <path fill="#006a4e" d="M0 409.2h767.6V512H0z"/>
+    </g>
+  </g>
 </svg>

@@ -1,10 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 48">
-<rect width="72" height="48" fill="#009e60"/>
-<rect width="54" height="48" fill="#fcd116"/>
-<rect width="18" height="48" fill="#0072c6"/>
-<g fill="#009e60">
-<path d="m32,34 4,8 4,-8 -4,-8z"/>
-<path d="m27,24 4,8 4,-8 -4,-8z"/>
-<path d="m37,24 4,8 4,-8 -4,-8z"/>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" clip-rule="evenodd" viewBox="0 0 640 480">
+  <path fill="#fcd022" d="M0 0h640v480H0z"/>
+  <path fill="#007c2e" d="M490 0h150v480H490z"/>
+  <path fill="#002674" d="M0 0h150v480H0z"/>
+  <path fill="#007c2e" d="m259.3 130-46.4 71.3 44.7 74.4 43.8-73.7-42.1-72Zm121.2 0-46.3 71.3 44.7 74.4 43.8-73.7-42.2-72Zm-61.2 97.3-46.4 71.4 44.8 74.4 43.8-73.7-42.2-72v-.1Z"/>
 </svg>

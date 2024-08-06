@@ -1,5 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 300">
-<rect fill="#C60C30" width="450" height="300"/>
-<rect fill="#FECB00" width="300" height="300"/>
-<rect fill="#002664" width="150" height="300"/>
+<svg xmlns="http://www.w3.org/2000/svg" id="flag-icons-td" viewBox="0 0 640 480">
+  <g fill-rule="evenodd">
+    <path fill="#002664" d="M0 0h214v480H0z"/>
+    <path fill="#c60c30" d="M426 0h214v480H426z"/>
+    <path fill="#fecb00" d="M214 0h212v480H214z"/>
+  </g>
 </svg>

@@ -1,14 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 900 600">
-<rect width="900" height="600" fill="#009e49"/>
-<rect width="900" height="300" fill="#ef2b2d"/>
-<g transform="translate(450,300)" fill="#fcd116">
-<g id="c">
-<path id="t" d="M 0,-100 V 0 H 50" transform="rotate(18 0,-100)"/>
-<use xlink:href="#t" transform="scale(-1,1)"/>
-</g>
-<use xlink:href="#c" transform="rotate(72)"/>
-<use xlink:href="#c" transform="rotate(144)"/>
-<use xlink:href="#c" transform="rotate(216)"/>
-<use xlink:href="#c" transform="rotate(288)"/>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" clip-rule="evenodd" viewBox="0 0 640 480">
+  <path fill="#ef2b2d" d="M.4 0H640v479.6H.4z"/>
+  <path fill="#009e49" d="M0 240.2h639.6V480H0z"/>
+  <path fill="#fcd116" d="M271.056 250.081 191.73 195.9h98.035L320 108.192l30.234 87.857 98.035-.074-79.326 54.18 30.309 87.783-79.327-54.33-79.251 54.18"/>
 </svg>
