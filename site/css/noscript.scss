@@ -1,0 +1,11 @@
+.js--hide-if-js-disabled {
+    @at-root html.js-disabled & {
+        display: none;
+    }
+}
+
+.js--hide-if-js-enabled {
+    @at-root html.js-enabled & {
+        display: none;
+    }
+}
