@@ -113,7 +113,6 @@ import {
     makeTooltipRoundingNotice,
 } from "../tooltip/Tooltip"
 import { NoDataSection } from "./NoDataSection"
-import { isElementInteractive } from "../utils"
 
 @observer
 export class ScatterPlotChart
@@ -764,46 +763,10 @@ export class ScatterPlotChart
         )
     }
 
-    // click anywhere inside the Grapher frame to dismiss the current selection
-    @action.bound onGrapherClick(e: Event): void {
-        const target = e.target as HTMLElement
-        const isTargetInteractive = isElementInteractive(target)
-        if (
-            this.canAddCountry &&
-            !this.hoverColor &&
-            !this.manager.isModalOpen &&
-            !isTargetInteractive &&
-            this.hasInteractedWithChart
-        ) {
-            this.selectionArray.clearSelection()
-        }
-    }
-
-    @computed private get grapherElement():
-        | HTMLElement
-        | SVGElement
-        | undefined {
-        return this.manager.base?.current ?? undefined
-    }
-
     componentDidMount(): void {
-        if (this.grapherElement) {
-            this.grapherElement.addEventListener(
-                "mousedown",
-                this.onGrapherClick
-            )
-        }
         exposeInstanceOnWindow(this)
     }
 
-    componentWillUnmount(): void {
-        if (this.grapherElement) {
-            this.grapherElement.removeEventListener(
-                "mousedown",
-                this.onGrapherClick
-            )
-        }
-    }
     render(): React.ReactElement {
         if (this.failMessage)
             return (
