@@ -7,13 +7,6 @@ import { MapProjectionLabels } from "../mapCharts/MapProjections"
 import { Dropdown } from "./Dropdown"
 import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
 
-export { AbsRelToggle } from "./settings/AbsRelToggle"
-export { FacetStrategySelector } from "./settings/FacetStrategySelector"
-export { FacetYDomainToggle } from "./settings/FacetYDomainToggle"
-export { NoDataAreaToggle } from "./settings/NoDataAreaToggle"
-export { TableFilterToggle } from "./settings/TableFilterToggle"
-export { ZoomToggle } from "./settings/ZoomToggle"
-
 export interface MapProjectionMenuManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
