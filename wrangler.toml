@@ -3,16 +3,17 @@ name = "owid"
 compatibility_date = "2024-04-29"
 pages_build_output_dir = "./localBake"
 
+# Vars that should be available in all envs, including local dev
 [vars]
 ENV = "development"
+
+# Overrides for CF preview deployments
+[env.preview.vars]
 MAILGUN_DOMAIN = "mg.ourworldindata.org"
-# MAILGUN_SENDING_KEY =
-# RECAPTCHA_SECRET_KEY =
 SLACK_ERROR_CHANNEL_ID = "C016H0BNNB1"
-# STRIPE_API_KEY =
-# STRIPE_WEBHOOK_SECRET =
 
 
+# Overrides for CF production deployment
 [env.production]
 compatibility_date = "2024-04-29"
 
