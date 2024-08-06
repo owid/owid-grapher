@@ -1,17 +1,13 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="100%" height="100%" viewBox="0 0 640 480" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-    <g transform="matrix(1,0,0,1,12,0)">
-        <clipPath id="_clip1">
-            <rect x="-12" y="0" width="640" height="480"/>
-        </clipPath>
-        <g clip-path="url(#_clip1)">
-            <rect x="-10.5" y="1.8" width="979" height="478.2" style="fill:white;"/>
-            <rect x="-10.5" y="143.3" width="979" height="201.2" style="fill:rgb(255,199,44);"/>
-            <g transform="matrix(1.00153,0,0,1.00418,-1.48391,-2.00837)">
-                <path d="M968.5,480L-10.5,480L-10.5,320.6L968.5,320.6L968.5,480ZM968.5,161.3L-10.5,161.3L-10.5,2L968.5,2L968.5,161.3Z" style="fill:rgb(0,119,139);"/>
-            </g>
-            <path d="M-12,0C-9.7,0 380.8,236.8 380.8,236.8L-12,480L-12,0Z" style="fill:rgb(0,0,1);"/>
-        </g>
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" clip-rule="evenodd" viewBox="0 0 640 480">
+  <g transform="translate(12)">
+    <clipPath id="_clip1">
+      <path d="M-12 0h640v480H-12z"/>
+    </clipPath>
+    <g clip-path="url(#_clip1)">
+      <path fill="#fff" d="M-10.5 1.8h979V480h-979z"/>
+      <path fill="#ffc72c" d="M-10.5 143.3h979v201.2h-979z"/>
+      <path fill="#00778b" d="M968.498 479.998H-12V319.932h980.498v160.066Zm0-320.032H-12V0h980.498v159.966Z"/>
+      <path fill="#000001" d="M-12 0c2.3 0 392.8 236.8 392.8 236.8L-12 480V0Z"/>
     </g>
+  </g>
 </svg>

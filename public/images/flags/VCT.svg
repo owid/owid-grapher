@@ -1,10 +1,6 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="100%" height="100%" viewBox="0 0 640 480" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-    <g>
-        <rect x="0" y="0" width="640" height="480" style="fill:rgb(252,208,34);"/>
-        <rect x="490" y="0" width="150" height="480" style="fill:rgb(0,124,46);"/>
-        <rect x="0" y="0" width="150" height="480" style="fill:rgb(0,38,116);"/>
-        <path d="M259.3,130L212.9,201.3L257.6,275.7L301.4,202L259.3,130ZM380.5,130L334.2,201.3L378.9,275.7L422.7,202L380.5,130ZM319.3,227.3L272.9,298.7L317.7,373.1L361.5,299.4L319.3,227.4L319.3,227.3Z" style="fill:rgb(0,124,46);"/>
-    </g>
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" clip-rule="evenodd" viewBox="0 0 640 480">
+  <path fill="#fcd022" d="M0 0h640v480H0z"/>
+  <path fill="#007c2e" d="M490 0h150v480H490z"/>
+  <path fill="#002674" d="M0 0h150v480H0z"/>
+  <path fill="#007c2e" d="m259.3 130-46.4 71.3 44.7 74.4 43.8-73.7-42.1-72Zm121.2 0-46.3 71.3 44.7 74.4 43.8-73.7-42.2-72Zm-61.2 97.3-46.4 71.4 44.8 74.4 43.8-73.7-42.2-72v-.1Z"/>
 </svg>
