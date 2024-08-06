@@ -17,7 +17,6 @@
 $frame-color: #f2f2f2;
 
 // text
-$dark-text: #5b5b5b;
 $active-text: $blue-90;
 
 // tooltip for button label
@@ -91,7 +90,7 @@ $zindex-controls-drawer: 150;
 @import "../../../components/src/OverlayHeader.scss";
 
 .grapher_dark {
-    color: $dark-text;
+    color: $gray-80;
 }
 
 .grapher_light {
@@ -113,7 +112,7 @@ $zindex-controls-drawer: 150;
     line-height: 1em;
 
     background: white;
-    color: $dark-text;
+    color: $gray-80;
 
     position: relative;
     container-type: size;
@@ -178,7 +177,7 @@ $zindex-controls-drawer: 150;
         --code-snippet-border: #e7e7e7;
         --code-snippet-background-light: #f7f7f7;
         --code-snippet-text: #{$gray-70};
-        --code-snippet-button: #{$dark-text};
+        --code-snippet-button: #{$gray-80};
         --code-snippet-button-hover: #{$gray-70};
         --code-snippet-button-active: #{$gray-70};
 
@@ -209,7 +208,7 @@ $zindex-controls-drawer: 150;
 .tippy-box[data-theme="grapher-explanation"],
 .tippy-box[data-theme="grapher-explanation--short"] {
     background: white;
-    color: $dark-text;
+    color: $gray-80;
     font: 400 14px/1.5 $sans-serif-font-stack;
     box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
 

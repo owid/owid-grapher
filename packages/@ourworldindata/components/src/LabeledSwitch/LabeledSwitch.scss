@@ -1,4 +1,3 @@
-$dark-text: #5b5b5b;
 $light-fill: #dadada;
 $active-fill: #dbe5f0;
 
@@ -23,7 +22,7 @@ $lato: $sans-serif-font-stack;
     user-select: none;
 
     label {
-        color: $dark-text;
+        color: $gray-80;
         padding-left: 35px;
         white-space: nowrap;
 
@@ -75,7 +74,7 @@ $lato: $sans-serif-font-stack;
 
     &:hover {
         .outer .inner {
-            background: $dark-text;
+            background: $gray-80;
         }
     }
 
