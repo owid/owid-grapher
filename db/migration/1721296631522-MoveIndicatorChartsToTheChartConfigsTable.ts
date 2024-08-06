@@ -1,12 +1,110 @@
 import { defaultGrapherConfig } from "@ourworldindata/grapher"
-import { DimensionProperty, GrapherInterface } from "@ourworldindata/types"
-import { mergeGrapherConfigs, omit } from "@ourworldindata/utils"
+import { mergeGrapherConfigs } from "@ourworldindata/utils"
 import { MigrationInterface, QueryRunner } from "typeorm"
 import { uuidv7 } from "uuidv7"
 
 export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
     implements MigrationInterface
 {
+    private async validateGrapherConfigETLs(
+        queryRunner: QueryRunner
+    ): Promise<void> {
+        // we have v3 configs in the database (the current version is v4);
+        // turn these into v4 configs by removing the `data` property
+        // which was the breaking change that lead to v4
+        // (we don't have v2 or v1 configs in the database, so we don't need to handle those)
+        await queryRunner.query(
+            `-- sql
+                UPDATE variables
+                SET grapherConfigETL = JSON_SET(
+                    JSON_REMOVE(grapherConfigETL, '$.data'),
+                    '$.$schema',
+                    'https://files.ourworldindata.org/schemas/grapher-schema.004.json'
+                )
+                WHERE
+                    grapherConfigETL IS NOT NULL
+                    AND grapherConfigETL ->> '$.$schema' = 'https://files.ourworldindata.org/schemas/grapher-schema.003.json'
+              `
+        )
+
+        // if the config has no schema, assume it's the default version
+        await queryRunner.query(
+            `-- sql
+              UPDATE variables
+              SET grapherConfigETL = JSON_SET(
+                  grapherConfigETL,
+                  '$.$schema',
+                  'https://files.ourworldindata.org/schemas/grapher-schema.004.json'
+              )
+              WHERE
+                  grapherConfigETL IS NOT NULL
+                  AND grapherConfigETL ->> '$.$schema' IS NULL
+            `
+        )
+
+        // fill dimensions to make the config plottable
+        // (at the time of writing, the dimensions field is empty for all configs)
+        await queryRunner.query(
+            `-- sql
+              UPDATE variables
+              SET grapherConfigETL = JSON_SET(
+                  grapherConfigETL,
+                  '$.dimensions',
+                  JSON_ARRAY(JSON_OBJECT('variableId', id, 'property', 'y'))
+              )
+              WHERE grapherConfigETL IS NOT NULL
+          `
+        )
+    }
+
+    private async moveGrapherConfigETLsToChartConfigsTable(
+        queryRunner: QueryRunner
+    ): Promise<void> {
+        // ~ 68000 entries at the time of writing
+        const variables: { id: number }[] = await queryRunner.query(`-- sql
+            SELECT id
+            FROM variables
+            WHERE grapherConfigETL IS NOT NULL
+        `)
+
+        // generate UUIDs for every config
+        const ids = variables.map((v) => ({
+            variableId: v.id,
+            uuid: uuidv7(),
+        }))
+
+        // insert a new row for each config with dummy values for the config fields
+        await queryRunner.query(
+            `-- sql
+                INSERT INTO chart_configs (id, patch, full)
+                VALUES ?
+            `,
+            [ids.map(({ uuid }) => [uuid, "{}", "{}"])]
+        )
+
+        // add a reference to the chart_configs uuid in the variables table
+        const variablesUpdateValues = ids
+            .map(
+                ({ variableId, uuid }) =>
+                    `(${variableId},'${uuid}',unit,coverage,timespan,datasetId,display)`
+            )
+            .join(",")
+        await queryRunner.query(`-- sql
+            INSERT INTO variables (id, grapherConfigIdETL, unit, coverage, timespan, datasetId, display)
+            VALUES ${variablesUpdateValues}
+            ON DUPLICATE KEY UPDATE grapherConfigIdETL=VALUES(grapherConfigIdETL)
+        `)
+
+        // copy configs from the variables table to the chart_configs table
+        await queryRunner.query(`-- sql
+            UPDATE chart_configs
+            JOIN variables ON variables.grapherConfigIdETL = chart_configs.id
+            SET
+                patch = variables.grapherConfigETL,
+                full = variables.grapherConfigETL
+        `)
+    }
+
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             ALTER TABLE variables
@@ -27,67 +125,11 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
         // note that we copy the ETL-authored configs to the chart_configs table,
         // but drop the admin-authored configs
 
-        const variables = await queryRunner.query(`-- sql
-            SELECT id, grapherConfigETL
-            FROM variables
-            WHERE grapherConfigETL IS NOT NULL
-        `)
+        // first, make sure all given grapherConfigETLs are valid
+        await this.validateGrapherConfigETLs(queryRunner)
 
-        for (const { id: variableId, grapherConfigETL } of variables) {
-            let config: GrapherInterface = JSON.parse(grapherConfigETL)
-
-            // if the config has no schema, assume it's the default version
-            if (!config.$schema) {
-                config.$schema = defaultGrapherConfig.$schema
-            }
-
-            // check if the given dimensions are correct
-            if (config.dimensions && config.dimensions.length >= 1) {
-                // make sure there is only a single entry
-                config.dimensions = config.dimensions.slice(0, 1)
-                // make sure the variable id matches
-                config.dimensions[0].variableId = variableId
-            }
-
-            // fill dimensions if not given to make the config plottable
-            if (!config.dimensions || config.dimensions.length === 0) {
-                config.dimensions = [
-                    { property: DimensionProperty.y, variableId },
-                ]
-            }
-
-            // we have v3 configs in the database (the current version is v4);
-            // turn these into v4 configs by removing the `data` property
-            // which was the breaking change that lead to v4
-            // (we don't have v2 or v1 configs in the database, so we don't need to handle those)
-            if (
-                config.$schema ===
-                "https://files.ourworldindata.org/schemas/grapher-schema.003.json"
-            ) {
-                config = omit(config, "data")
-                config.$schema = defaultGrapherConfig.$schema
-            }
-
-            // insert config into the chart_configs table
-            const configId = uuidv7()
-            await queryRunner.query(
-                `-- sql
-                    INSERT INTO chart_configs (id, patch, full)
-                    VALUES (?, ?, ?)
-                `,
-                [configId, JSON.stringify(config), JSON.stringify(config)]
-            )
-
-            // update reference in the variables table
-            await queryRunner.query(
-                `-- sql
-                    UPDATE variables
-                    SET grapherConfigIdETL = ?
-                    WHERE id = ?
-                `,
-                [configId, variableId]
-            )
-        }
+        // then, move all grapherConfigETLs to the chart_configs table
+        await this.moveGrapherConfigETLsToChartConfigsTable(queryRunner)
 
         // drop `grapherConfigAdmin` and `grapherConfigETL` columns
         await queryRunner.query(`-- sql
