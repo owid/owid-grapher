@@ -302,6 +302,18 @@ export const SiteFooter = (props: SiteFooterProps) => (
             <div className="site-tools" />
             {viteAssetsForSite().forFooter}
             <script
+                dangerouslySetInnerHTML={{
+                    __html: `
+document.querySelectorAll("script[data-attach-owid-error-handler]").forEach(script => {
+    script.onerror = () => {
+        console.log(new Error("Failed to load script: ", script.src));
+        document.documentElement.classList.add("js-disabled");
+        document.documentElement.classList.remove("js-enabled");
+    }
+})`,
+                }}
+            />
+            <script
                 type="module"
                 dangerouslySetInnerHTML={{
                     __html: `window.runSiteFooterScripts(${JSON.stringify({
