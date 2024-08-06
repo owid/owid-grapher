@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
 import { SiteFooterContext } from "@ourworldindata/utils"
 import { viteAssetsForSite } from "./viteUtils.js"
+import { ScriptLoadErrorDetector } from "./NoJSDetector.js"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -301,18 +302,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
             </div>
             <div className="site-tools" />
             {viteAssetsForSite().forFooter}
-            <script
-                dangerouslySetInnerHTML={{
-                    __html: `
-document.querySelectorAll("script[data-attach-owid-error-handler]").forEach(script => {
-    script.onerror = () => {
-        console.log(new Error("Failed to load script: ", script.src));
-        document.documentElement.classList.add("js-disabled");
-        document.documentElement.classList.remove("js-enabled");
-    }
-})`,
-                }}
-            />
+            <ScriptLoadErrorDetector />
             <script
                 type="module"
                 dangerouslySetInnerHTML={{
