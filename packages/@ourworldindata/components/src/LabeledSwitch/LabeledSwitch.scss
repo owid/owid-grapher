@@ -3,7 +3,6 @@ $light-text: #858585;
 $light-fill: #dadada;
 $active-fill: #dbe5f0;
 
-$info-icon: #a1a1a1;
 $active-switch: #6e87a2;
 
 $medium: 400;
@@ -34,7 +33,7 @@ $lato: $sans-serif-font-stack;
         }
 
         svg {
-            color: $info-icon;
+            color: $gray-60;
             height: 13px;
             padding: 0 0.333em;
         }

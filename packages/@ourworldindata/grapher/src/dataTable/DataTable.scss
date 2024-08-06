@@ -10,9 +10,6 @@
     $hover-fill: #f0f0f0;
     $dark-fill: #e7e7e7;
 
-    // sort icon
-    $hover-icon: #a1a1a1;
-
     // closest time notice
     $info-icon: #dadada;
 
@@ -132,7 +129,7 @@
                     text-align: left;
 
                     .description {
-                        color: #a1a1a1;
+                        color: $gray-60;
                         text-align: left;
                     }
                 }
@@ -169,7 +166,7 @@
                 }
 
                 &:hover .sort-icon {
-                    color: $hover-icon;
+                    color: $gray-60;
                 }
             }
         }

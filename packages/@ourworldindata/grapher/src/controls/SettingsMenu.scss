@@ -7,7 +7,6 @@ $active-fill: #dbe5f0;
 $hover-fill: #f2f2f2;
 $selected-fill: #c7ced7;
 
-$info-icon: #a1a1a1;
 $active-switch: #6e87a2;
 
 $medium: 400;
@@ -105,7 +104,7 @@ nav.controlsRow .chart-controls .settings-menu {
                 list-style: none;
 
                 svg {
-                    color: $info-icon;
+                    color: $gray-60;
                     height: 13px;
                     padding: 0 0.333em;
                 }

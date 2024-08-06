@@ -28,7 +28,7 @@
             $svg-margin: 8px;
             $svg-size: 12px;
 
-            $placeholder: #a1a1a1;
+            $placeholder: $gray-60;
             $focus: 1px solid #a4b6ca;
 
             position: relative;
@@ -155,7 +155,7 @@
 
             &:disabled {
                 background: #f2f2f2;
-                color: #a1a1a1;
+                color: $gray-60;
             }
         }
     }
@@ -194,7 +194,7 @@
             }
 
             .value {
-                color: #a1a1a1;
+                color: $gray-60;
                 white-space: nowrap;
                 margin-left: 12px;
             }
@@ -216,7 +216,7 @@
                 svg {
                     margin-left: 6px;
                     font-size: 0.9em;
-                    color: #a1a1a1;
+                    color: $gray-60;
 
                     // hide focus outline when clicked
                     &:focus:not(:focus-visible) {
