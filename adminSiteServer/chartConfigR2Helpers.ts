@@ -14,6 +14,7 @@ import {
     S3Client,
 } from "@aws-sdk/client-s3"
 import { Base64String, JsonError } from "@ourworldindata/utils"
+import { R2GrapherConfigDirectory } from "@ourworldindata/types"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { createHash } from "crypto"
 
@@ -24,10 +25,6 @@ export function getMd5HashBase64(data: string): Base64String {
     return createHash("md5")
         .update(data, "utf-8")
         .digest("base64") as Base64String
-}
-export enum R2GrapherConfigDirectory {
-    byUUID = "config/by-uuid",
-    publishedGrapherBySlug = "grapher/by-slug",
 }
 
 let s3Client: S3Client | undefined = undefined

@@ -5,7 +5,11 @@ export interface Env {
     ASSETS: {
         fetch: typeof fetch
     }
+    r2ChartConfigs: {
+        get: (url: string) => Promise<R2ObjectBody>
+    }
     url: URL
+    GRAPHER_CONFIG_R2_BUCKET_PATH: string
     ENV: string
 }
 
@@ -30,6 +34,14 @@ router
 
 export const onRequestGet: PagesFunction = async (ctx) => {
     const { request, env } = ctx
+    const test = await (ctx.env as any).r2ChartConfigs.get(
+        "devs/daniel/grapher/by-slug/life-expectancy.json"
+    )
+    const listed = await (ctx.env as any).r2ChartConfigs.list({ limit: 10 })
+    console.log("listed", listed)
+    console.log("bucket is null", (ctx.env as any).r2ChartConfigs === null)
+    console.log("has get get", "get" in (ctx.env as any).r2ChartConfigs)
+    console.log("r2", test)
 
     const url = new URL(request.url)
     const shouldCache = !url.searchParams.has("nocache")
