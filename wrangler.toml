@@ -36,4 +36,3 @@ GRAPHER_CONFIG_R2_BUCKET_PATH = "v1"
 binding = "r2ChartConfigs"
 bucket_name = "owid-grapher-configs-staging"
 
-[env.preview.vars]
