@@ -116,6 +116,7 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                 />
                 {subNav}
                 <main id={ExplorerContainerId}>
+                    <div className="js--show-warning-block-if-js-disabled" />
                     <LoadingIndicator />
                 </main>
                 {wpContent && <ExplorerContent content={wpContent} />}
