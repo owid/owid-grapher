@@ -86,11 +86,6 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
                 <IFrameDetector />
-                <noscript>
-                    <style>{`
-                    figure { display: none !important; }
-                `}</style>
-                </noscript>
                 <link rel="preconnect" href={dataApiOrigin} />
                 {variableIds.flatMap((variableId) =>
                     [
@@ -117,10 +112,13 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
-                    <figure data-grapher-src={`/grapher/${grapher.slug}`}>
+                    <figure
+                        className="js--hide-if-js-disabled"
+                        data-grapher-src={`/grapher/${grapher.slug}`}
+                    >
                         <LoadingIndicator />
                     </figure>
-                    <noscript id="fallback">
+                    <div className="js--hide-if-js-enabled" id="fallback">
                         {grapher.slug && (
                             <GrapherImage
                                 slug={grapher.slug}
@@ -128,7 +126,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                             />
                         )}
                         <p>Interactive visualization requires JavaScript</p>
-                    </noscript>
+                    </div>
 
                     {((relatedArticles && relatedArticles.length !== 0) ||
                         (relatedCharts && relatedCharts.length !== 0)) && (
