@@ -858,7 +858,11 @@ export class Grapher
      */
     @computed get useAdminAPI(): boolean {
         if (typeof window === "undefined") return false
-        return window.admin !== undefined
+        return (
+            window.admin !== undefined &&
+            // Ensure that we're not accidentally matching on a DOM element with an ID of "admin"
+            typeof window.admin.isSuperuser === "boolean"
+        )
     }
 
     @computed get isUserLoggedInAsAdmin(): boolean {
