@@ -1,0 +1,98 @@
+$dark-text: #5b5b5b;
+$light-text: #858585;
+$light-fill: #dadada;
+$active-fill: #dbe5f0;
+
+$info-icon: #a1a1a1;
+$active-switch: #6e87a2;
+
+$medium: 400;
+$lato: $sans-serif-font-stack;
+
+// on/off switch with label written to the right
+.labeled-switch {
+    // keep in sync with TableFilterToggle.tsx
+    // where the width of a labeled switch is calculated
+
+    display: flex;
+    color: $light-text;
+    font: $medium 13px/16px $lato;
+    letter-spacing: 0.01em;
+
+    position: relative;
+    margin: 8px 0;
+    -webkit-user-select: none;
+    user-select: none;
+
+    label {
+        color: $dark-text;
+        padding-left: 35px;
+        white-space: nowrap;
+
+        &:hover {
+            cursor: pointer;
+        }
+
+        svg {
+            color: $info-icon;
+            height: 13px;
+            padding: 0 0.333em;
+        }
+    }
+
+    .labeled-switch-subtitle {
+        // only show subtitle in settings menu, otherwise use icon + tooltip
+        display: none;
+    }
+
+    input {
+        position: absolute;
+        opacity: 0;
+        left: 0;
+    }
+
+    .outer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        content: " ";
+        width: 29px;
+        height: 16px;
+        background: $light-fill;
+        border-radius: 8px;
+        pointer-events: none;
+        .inner {
+            position: relative;
+            content: " ";
+            width: 10px;
+            height: 10px;
+            background: $light-text;
+            border-radius: 5px;
+            top: 3px;
+            left: 3px;
+            pointer-events: none;
+            transition: transform 333ms;
+        }
+    }
+
+    &:hover {
+        .outer .inner {
+            background: $dark-text;
+        }
+    }
+
+    input:focus-visible + .outer {
+        outline: 2px solid $controls-color;
+    }
+
+    input:checked + .outer {
+        background: $active-fill;
+        .inner {
+            background: $active-switch;
+            transform: translate(13px, 0);
+        }
+    }
+    &:hover input:checked + .outer .inner {
+        background: darken($active-switch, 13%);
+    }
+}

@@ -3,7 +3,7 @@ import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { FacetAxisDomain, FacetStrategy } from "@ourworldindata/types"
 import { AxisConfig } from "../../axis/AxisConfig"
-import { LabeledSwitch } from "../LabeledSwitch"
+import { LabeledSwitch } from "@ourworldindata/components"
 
 export interface FacetYDomainToggleManager {
     facetStrategy?: FacetStrategy

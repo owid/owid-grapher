@@ -32,6 +32,7 @@ export {
 } from "./IndicatorKeyData/IndicatorKeyData.js"
 export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.js"
 
+export { LabeledSwitch } from "./LabeledSwitch/LabeledSwitch.js"
 export { Checkbox } from "./Checkbox.js"
 export { RadioButton } from "./RadioButton.js"
 export {

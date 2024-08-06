@@ -7,6 +7,7 @@
 @import "../../../components/src/CodeSnippet/code-snippet.scss";
 @import "../../../components/src/ExpandableToggle/ExpandableToggle.scss";
 
+@import "../../../components/src/LabeledSwitch/LabeledSwitch.scss";
 @import "../../../components/src/IndicatorSources/IndicatorSources.scss";
 @import "../../../components/src/IndicatorProcessing/IndicatorProcessing.scss";
 
@@ -51,7 +52,6 @@ $zindex-controls-drawer: 150;
 // e.g. &.narrow is equivalent to .GrapherComponent.narrow
 .GrapherComponent {
     @import "../controls/CommandPalette.scss";
-    @import "../controls/LabeledSwitch.scss";
     @import "../controls/Controls.scss";
     @import "../controls/SettingsMenu.scss";
     @import "../controls/MapProjectionMenu.scss";

@@ -1,7 +1,7 @@
 import React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
-import { LabeledSwitch } from "../LabeledSwitch"
+import { LabeledSwitch } from "@ourworldindata/components"
 
 export interface ZoomToggleManager {
     zoomToSelection?: boolean
