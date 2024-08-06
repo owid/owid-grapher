@@ -20,34 +20,34 @@ import { Env } from "../grapher/thumbnail/[slug].js"
 import { R2GrapherConfigDirectory } from "@ourworldindata/types"
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3"
 
-async function getFileFromR2(key: string, env: Env): Promise<string | null> {
-    const s3Client = new S3Client({
-        endpoint: env.R2_ENDPOINT,
-        forcePathStyle: false,
-        region: env.R2_REGION,
-        credentials: {
-            accessKeyId: env.R2_ACCESS_KEY_ID,
-            secretAccessKey: env.R2_SECRET_ACCESS_KEY,
-        },
-    })
+// async function getFileFromR2(key: string, env: Env): Promise<string | null> {
+//     const s3Client = new S3Client({
+//         endpoint: env.R2_ENDPOINT,
+//         forcePathStyle: false,
+//         region: env.R2_REGION,
+//         credentials: {
+//             accessKeyId: env.R2_ACCESS_KEY_ID,
+//             secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+//         },
+//     })
 
-    const params = {
-        Bucket: env.GRAPHER_CONFIG_R2_BUCKET,
-        Key: key,
-    }
+//     const params = {
+//         Bucket: env.GRAPHER_CONFIG_R2_BUCKET,
+//         Key: key,
+//     }
 
-    try {
-        console.log("preparing s3 get")
-        const response = await s3Client.send(new GetObjectCommand(params))
-        console.log("got s3 response")
-        const content = await response.Body.transformToString()
-        console.log("got s3 content")
-        return content
-    } catch (err) {
-        if (err.name === "NoSuchKey") return null
-        else throw err
-    }
-}
+//     try {
+//         console.log("preparing s3 get")
+//         const response = await s3Client.send(new GetObjectCommand(params))
+//         console.log("got s3 response")
+//         const content = await response.Body.transformToString()
+//         console.log("got s3 content")
+//         return content
+//     } catch (err) {
+//         if (err.name === "NoSuchKey") return null
+//         else throw err
+//     }
+// }
 
 declare global {
     // eslint-disable-next-line no-var
