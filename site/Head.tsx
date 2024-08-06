@@ -99,6 +99,38 @@ export const Head = (props: {
             <meta name="twitter:image" content={encodeURI(imageUrl)} />
             {stylesheets}
             {props.children}
+            <script
+                // Handle any SyntaxErrors, which are likely to occur in old browsers.
+                // We're adding a class "js-disabled" to the <html> element to allow for CSS overrides.
+                // We only handle errors that occur on scripts from our domain, not ones from third-party scripts or extensions.
+                // Checking for <script nomodule> support is a quickfire way to detect old browsers immediately.
+                dangerouslySetInnerHTML={{
+                    __html: `
+function setJSEnabled(enabled) {
+    var elem = window.document.documentElement;
+    if (enabled) {
+        elem.classList.remove("js-disabled");
+        elem.classList.add("js-enabled");
+    } else {
+        elem.classList.remove("js-enabled");
+        elem.classList.add("js-disabled");
+    }
+}
+if ("noModule" in HTMLScriptElement.prototype) {
+    setJSEnabled(true);
+} else {
+    setJSEnabled(false);
+}
+window.onerror = function (err, url) {
+    var isOurSyntaxError = typeof err === "string" && err.indexOf("SyntaxError") > -1 && url.indexOf("${baseUrl}") > -1;
+    if (isOurSyntaxError) {
+        console.error("Caught global syntax error", err, url);
+        setJSEnabled(false);
+    }
+}`,
+                }}
+            ></script>
+            {/* <script dangerouslySetInnerHTML={{ __html: `{` }} /> */}
             <GTMScriptTags gtmId={GOOGLE_TAG_MANAGER_ID} />
         </head>
     )
