@@ -34,8 +34,6 @@ import {
     GRAPHER_DARK_TEXT,
     GRAPHER_FONT_SCALE_9_6,
     GRAPHER_FONT_SCALE_10_5,
-    GRAPHER_TIMELINE_CLASS,
-    GRAPHER_SIDE_PANEL_CLASS,
 } from "../core/GrapherConstants"
 import {
     ScaleType,
@@ -66,6 +64,7 @@ import {
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { NoDataSection } from "../scatterCharts/NoDataSection"
+import { isElementInteractive } from "../utils"
 
 export interface SlopeChartManager extends ChartManager {
     isModalOpen?: boolean
@@ -499,11 +498,7 @@ export class SlopeChart
     // click anywhere inside the Grapher frame to dismiss the current selection
     @action.bound onGrapherClick(e: Event): void {
         const target = e.target as HTMLElement
-
-        // check if the target is an interactive element or contained within one
-        const selector = `a, button, input, .${GRAPHER_TIMELINE_CLASS}, .${GRAPHER_SIDE_PANEL_CLASS}`
-        const isTargetInteractive = target.closest(selector) !== null
-
+        const isTargetInteractive = isElementInteractive(target)
         if (
             this.isEntitySelectionEnabled &&
             this.hasInteractedWithChart &&

@@ -31,7 +31,10 @@ import {
     TableFilterToggleManager,
 } from "./settings/TableFilterToggle"
 import { OverlayHeader } from "@ourworldindata/components"
-import { DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL } from "../core/GrapherConstants"
+import {
+    DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
+    GRAPHER_SETTINGS_CLASS,
+} from "../core/GrapherConstants"
 
 const {
     LineChart,
@@ -391,7 +394,7 @@ export class SettingsMenu extends React.Component<{
         const menuTitle = `${isOnTableTab ? "Table" : chartType} settings`
 
         return (
-            <div className="settings-menu-contents" ref={this.contentRef}>
+            <div className={GRAPHER_SETTINGS_CLASS} ref={this.contentRef}>
                 <div
                     className="settings-menu-backdrop"
                     onClick={this.toggleVisibility}

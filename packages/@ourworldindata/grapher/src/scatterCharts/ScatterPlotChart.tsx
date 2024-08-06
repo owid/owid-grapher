@@ -51,8 +51,6 @@ import {
     BASE_FONT_SIZE,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
-    GRAPHER_SIDE_PANEL_CLASS,
-    GRAPHER_TIMELINE_CLASS,
 } from "../core/GrapherConstants"
 import {
     OwidTable,
@@ -115,6 +113,7 @@ import {
     makeTooltipRoundingNotice,
 } from "../tooltip/Tooltip"
 import { NoDataSection } from "./NoDataSection"
+import { isElementInteractive } from "../utils"
 
 @observer
 export class ScatterPlotChart
@@ -768,11 +767,7 @@ export class ScatterPlotChart
     // click anywhere inside the Grapher frame to dismiss the current selection
     @action.bound onGrapherClick(e: Event): void {
         const target = e.target as HTMLElement
-
-        // check if the target is an interactive element or contained within one
-        const selector = `a, button, input, .${GRAPHER_TIMELINE_CLASS}, .${GRAPHER_SIDE_PANEL_CLASS}`
-        const isTargetInteractive = target.closest(selector) !== null
-
+        const isTargetInteractive = isElementInteractive(target)
         if (
             this.canAddCountry &&
             !this.hoverColor &&
