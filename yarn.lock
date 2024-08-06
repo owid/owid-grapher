@@ -425,7 +425,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.572.0":
+"@aws-sdk/client-s3@npm:3.572.0, @aws-sdk/client-s3@npm:^3.572.0":
   version: 3.572.0
   resolution: "@aws-sdk/client-s3@npm:3.572.0"
   dependencies:
@@ -15274,6 +15274,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "owid-functions@workspace:functions"
   dependencies:
+    "@aws-sdk/client-s3": "npm:3.572.0"
     "@cloudflare/workers-types": "npm:^4.20240614.0"
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/utils": "workspace:^"

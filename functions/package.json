@@ -1,6 +1,7 @@
 {
   "name": "owid-functions",
   "dependencies": {
+    "@aws-sdk/client-s3": "3.572.0",
     "@ourworldindata/grapher": "workspace:^",
     "@ourworldindata/utils": "workspace:^",
     "itty-router": "^5.0.17",

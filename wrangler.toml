@@ -7,6 +7,8 @@ pages_build_output_dir = "./localBake"
 [vars]
 ENV = "development"
 GRAPHER_CONFIG_R2_BUCKET = "owid-grapher-configs-staging"
+R2_ENDPOINT = "https://078fcdfed9955087315dd86792e71a7e.r2.cloudflarestorage.com"
+R2_REGION = "auto"
 
 # Overrides for CF preview deployments
 [env.preview.vars]

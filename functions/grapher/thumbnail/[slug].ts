@@ -7,6 +7,10 @@ export interface Env {
     }
     url: URL
     GRAPHER_CONFIG_R2_BUCKET_PATH: string
+    R2_ENDPOINT: string
+    R2_REGION: string
+    R2_ACCESS_KEY_ID: string
+    R2_SECRET_ACCESS_KEY: string
     CF_PAGES_BRANCH: string
 }
 

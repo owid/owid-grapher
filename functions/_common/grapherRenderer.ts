@@ -17,6 +17,27 @@ import LatoMedium from "../_common/fonts/LatoLatin-Medium.ttf.bin"
 import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
 import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "../grapher/thumbnail/[slug].js"
+import { R2GrapherConfigDirectory } from "@ourworldindata/types"
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3"
+
+async function getFileFromR2(key: string, env: Env) {
+    const s3Client = new S3Client({
+        endpoint: env.R2_ENDPOINT,
+        forcePathStyle: false,
+        region: env.R2_REGION,
+        credentials: {
+            accessKeyId: env.R2_ACCESS_KEY_ID,
+            secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+        },
+    })
+
+    const params = {
+        Bucket: env.GRAPHER_CONFIG_R2_BUCKET_PATH,
+        Key: key,
+    }
+
+    const response = await s3Client.send(new GetObjectCommand(params))
+}
 
 declare global {
     // eslint-disable-next-line no-var
