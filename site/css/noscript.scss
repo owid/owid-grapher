@@ -1,12 +1,12 @@
 .js--hide-if-js-disabled {
     @at-root html.js-disabled & {
-        display: none;
+        display: none !important;
     }
 }
 
 .js--hide-if-js-enabled {
     @at-root html.js-enabled & {
-        display: none;
+        display: none !important;
     }
 }
 
