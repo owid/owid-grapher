@@ -46,11 +46,11 @@ For (1) and (2), we can get by with using `<noscript>` elements, containing HTML
 
 -   Our static renders all start out with `<html class="js-disabled">`, via [Html.tsx](../site/Html.tsx).
     -   Addresses (1) and (2), where no further scripts are ever executed.
--   An inline script in [Head.tsx](../site/Head.tsx) that is executed early checks if `<script type="module">` is supported, and then replaces `js-disabled` with `js-enabled`. It is executed synchronously before any rendering is performed, meaning that CSS styles targeting `js-disabled` are never evaluated, and e.g. fallback images are not downloaded if not needed.
+-   An inline script called [`<NoJSDetector>`](../site/NoJSDetector.tsx) (contained in `<Head>`) that is executed early checks if `<script type="module">` is supported, and then replaces `js-disabled` with `js-enabled`. It is executed synchronously before any rendering is performed, meaning that CSS styles targeting `js-disabled` are never evaluated, and e.g. fallback images are not downloaded if not needed.
     -   Addresses (3).
 -   This same inline script also sets up a global `window.onerror` event handler. If that one catches a global `SyntaxError` _under our own domain_, then we go back to replacing `js-enabled` with `js-disabled`. The domain check disregards failures coming from other scripts (e.g. Google Tag Manager) or browser extensions.
     -   Addresses (4).
--   Another inline script in [SiteFooter.tsx](../site/SiteFooter.tsx) sets up a `<script onerror="...">` handler for our core JS assets, which we mark using a `data-attach-owid-error-handler` attribute. If the handler fires (meaning the script couldn't be loaded), we again replace `js-enabled` with `js-disabled`.
+-   Another inline script called [`<ScriptLoadErrorDetector>`](../site/NoJSDetector.tsx) (contained in `<SiteFooter>`) sets up a `<script onerror="...">` handler for our core JS assets, which we mark using a `data-attach-owid-error-handler` attribute. If the handler fires (meaning the script couldn't be loaded), we again replace `js-enabled` with `js-disabled`.
     -   Addresses (5).
 -   If `owid.mjs` executes successfully, it will additionally add a `js-loaded` class to the `<html>` element.
 
