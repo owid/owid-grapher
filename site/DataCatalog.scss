@@ -114,8 +114,10 @@
         margin-left: 8px;
     }
 }
-.data-catalog__all-countries-match-label {
-    color: $gray-80;
+.data-catalog-country-selector-switch {
+    label {
+        white-space: wrap;
+    }
 }
 
 .data-catalog-country-selector-search-input {
