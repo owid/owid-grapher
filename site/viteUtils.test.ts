@@ -66,7 +66,7 @@ describe(createTagsForManifestEntry, () => {
 
         expect(assetsForFooter.length).toEqual(1)
         expect(assetsForFooter).toEqual([
-            '<script type="module" src="BASE/assets/owid.mjs"></script>',
+            '<script type="module" src="BASE/assets/owid.mjs" data-attach-owid-error-handler="true"></script>',
         ])
     })
 })
