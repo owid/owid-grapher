@@ -6,6 +6,7 @@ export interface Env {
         fetch: typeof fetch
     }
     url: URL
+    GRAPHER_CONFIG_R2_BUCKET: string
     GRAPHER_CONFIG_R2_BUCKET_PATH: string
     R2_ENDPOINT: string
     R2_REGION: string

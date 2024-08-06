@@ -20,7 +20,7 @@ import { Env } from "../grapher/thumbnail/[slug].js"
 import { R2GrapherConfigDirectory } from "@ourworldindata/types"
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3"
 
-async function getFileFromR2(key: string, env: Env) {
+async function getFileFromR2(key: string, env: Env): Promise<string | null> {
     const s3Client = new S3Client({
         endpoint: env.R2_ENDPOINT,
         forcePathStyle: false,
@@ -32,11 +32,21 @@ async function getFileFromR2(key: string, env: Env) {
     })
 
     const params = {
-        Bucket: env.GRAPHER_CONFIG_R2_BUCKET_PATH,
+        Bucket: env.GRAPHER_CONFIG_R2_BUCKET,
         Key: key,
     }
 
-    const response = await s3Client.send(new GetObjectCommand(params))
+    try {
+        console.log("preparing s3 get")
+        const response = await s3Client.send(new GetObjectCommand(params))
+        console.log("got s3 response")
+        const content = await response.Body.transformToString()
+        console.log("got s3 content")
+        return content
+    } catch (err) {
+        if (err.name === "NoSuchKey") return null
+        else throw err
+    }
 }
 
 declare global {
@@ -187,15 +197,17 @@ async function fetchAndRenderGrapherToSvg({
 
     console.log("fetching grapher config from this key", key)
 
-    // Fetch grapher config
-    const fetchResponse = await env.r2ChartConfigs.get(key)
+    console.log("Fetching", key)
 
-    if (!fetchResponse) {
-        return null
+    // Fetch grapher config and extract it from the HTML
+    const grapherConfigText = await getFileFromR2(key, env)
+    const grapherConfig: GrapherInterface = JSON.parse(grapherConfigText)
+
+    if (!grapherConfig) {
+        throw new Error("Could not find grapher config")
     }
 
-    const grapherConfig: GrapherInterface = await fetchResponse.json()
-    console.log("grapher title", grapherConfig.title)
+    grapherLogger.log("fetchGrapherConfig")
 
     const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
     const grapher = new Grapher({
