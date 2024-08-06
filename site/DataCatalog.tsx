@@ -10,8 +10,7 @@ import {
     Country,
     Region,
 } from "@ourworldindata/utils"
-// TODO: extract this in a different branch
-// import { LabeledSwitch } from "@ourworldindata/components"
+import { LabeledSwitch } from "@ourworldindata/components"
 import {
     Configure,
     Hits,
@@ -378,14 +377,12 @@ function DataCatalogCountrySelector({
     countrySelections,
     setCountrySelections,
     shouldAllCountriesMatch,
-    setMustHaveDataForAllSelectedCountries,
+    handleToggleRequireAllCountries,
 }: {
     countrySelections: Set<string>
     setCountrySelections: React.Dispatch<React.SetStateAction<Set<string>>>
     shouldAllCountriesMatch: boolean
-    setMustHaveDataForAllSelectedCountries: React.Dispatch<
-        React.SetStateAction<boolean>
-    >
+    handleToggleRequireAllCountries: () => void
 }) {
     const [isOpen, setIsOpen] = useState(false)
     const [countrySearchQuery, setCountrySearchQuery] = useState("")
@@ -452,33 +449,12 @@ function DataCatalogCountrySelector({
                             <FontAwesomeIcon icon={faClose} />
                         </button>
                     </div>
-                    <div>
-                        {/* <LabeledSwitch
-                            value={shouldAllCountriesMatch}
-                            onToggle={() =>
-                                setMustHaveDataForAllSelectedCountries(
-                                    !shouldAllCountriesMatch
-                                )
-                            }
-                            label="Only show charts with data for selected countries"
-                        /> */}
-                        <input
-                            checked={shouldAllCountriesMatch}
-                            onChange={() =>
-                                setMustHaveDataForAllSelectedCountries(
-                                    !shouldAllCountriesMatch
-                                )
-                            }
-                            type="checkbox"
-                            id="all-countries-match-checkbox"
-                        />
-                        <label
-                            htmlFor="all-countries-match-checkbox"
-                            className="label-2-medium data-catalog__all-countries-match-label"
-                        >
-                            Only show charts with data for selected countries
-                        </label>
-                    </div>
+                    <LabeledSwitch
+                        className="data-catalog-country-selector-switch"
+                        value={shouldAllCountriesMatch}
+                        onToggle={() => handleToggleRequireAllCountries()}
+                        label="Only show charts with data for selected countries"
+                    />
                     <div className="data-catalog-country-selector-search-container">
                         <FontAwesomeIcon icon={faMagnifyingGlass} />
                         <input
@@ -607,6 +583,8 @@ const DataCatalogSearchBox = () => {
     )
 }
 
+const REQUIRE_ALL_COUNTRIES_QUERY_PARAM = "requireAllCountries"
+
 export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
     const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
     const [countrySelections, setCountrySelections] = useState<Set<string>>(
@@ -615,7 +593,29 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
     const [
         mustHaveDataForAllSelectedCountries,
         setMustHaveDataForAllSelectedCountries,
-    ] = useState(false)
+    ] = useState(
+        typeof window !== "undefined" &&
+            new URLSearchParams(window.location.search).has(
+                REQUIRE_ALL_COUNTRIES_QUERY_PARAM
+            )
+    )
+    const handleToggleRequireAllCountries = () => {
+        setMustHaveDataForAllSelectedCountries(
+            !mustHaveDataForAllSelectedCountries
+        )
+
+        const urlParams = new URLSearchParams(window.location.search)
+        if (mustHaveDataForAllSelectedCountries) {
+            urlParams.delete(REQUIRE_ALL_COUNTRIES_QUERY_PARAM)
+        } else {
+            urlParams.set(REQUIRE_ALL_COUNTRIES_QUERY_PARAM, "true")
+        }
+        window.history.pushState(
+            {},
+            "",
+            `${window.location.pathname}?${urlParams}`
+        )
+    }
     // globalFacetFilters apply to all indexes, unless they're overridden by a nested Configure component.
     // They're only relevant when we're not showing the ribbon view (because each ribbon has its own Configure.)
     // They're stored as ["Energy", "Air Pollution"] which is easier to work with in other components,
@@ -684,6 +684,10 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                             q,
                             topics: topics.length ? topics : undefined,
                             countries: countries.length ? countries : undefined,
+                            requireAllCountries:
+                                mustHaveDataForAllSelectedCountries
+                                    ? "true"
+                                    : undefined,
                         }
                     },
                     routeToState(routeState): UiState {
@@ -734,8 +738,8 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                         shouldAllCountriesMatch={
                             mustHaveDataForAllSelectedCountries
                         }
-                        setMustHaveDataForAllSelectedCountries={
-                            setMustHaveDataForAllSelectedCountries
+                        handleToggleRequireAllCountries={
+                            handleToggleRequireAllCountries
                         }
                         countrySelections={countrySelections}
                         setCountrySelections={setCountrySelections}
