@@ -685,12 +685,6 @@ a.ref sup {
     display: none !important;
 }
 
-html:not(.js) {
-    .js-only {
-        display: none;
-    }
-}
-
 @media print {
     .site-header,
     .alert-banner,

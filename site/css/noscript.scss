@@ -9,3 +9,33 @@
         display: none;
     }
 }
+
+.js--show-warning-block-if-js-disabled {
+    @at-root html.js-disabled & {
+        display: block;
+        background: repeating-linear-gradient(
+            45deg,
+            $amber-10,
+            $amber-10 10px,
+            transparent 10px,
+            transparent 20px
+        );
+        // Fill the entire parent container
+        height: 100%;
+        min-height: inherit;
+        max-height: inherit;
+        width: 100%;
+
+        padding: 10px;
+        text-align: center;
+
+        &::after {
+            white-space: pre-wrap;
+            content: "⚠️ JavaScript needs to be enabled to view this content.\A Either enable JavaScript in your browser or switch to a modern browser that supports it.";
+        }
+    }
+
+    @at-root html.js-enabled & {
+        display: none;
+    }
+}
