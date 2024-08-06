@@ -16,6 +16,7 @@ import { DebugProvider } from "./DebugContext.js"
 import { match, P } from "ts-pattern"
 import { EnrichedBlockText, IMAGES_DIRECTORY } from "@ourworldindata/types"
 import { DATA_INSIGHT_ATOM_FEED_PROPS } from "./utils.js"
+import { Html } from "../Html.js"
 
 declare global {
     interface Window {
@@ -89,7 +90,7 @@ export default function OwidGdocPage({
     const isAuthor = gdoc.content.type === OwidGdocType.Author
 
     return (
-        <html>
+        <Html>
             <Head
                 pageTitle={pageTitle}
                 pageDesc={pageDesc}
@@ -137,6 +138,6 @@ export default function OwidGdocPage({
                     isPreviewing={isPreviewing}
                 />
             </body>
-        </html>
+        </Html>
     )
 }

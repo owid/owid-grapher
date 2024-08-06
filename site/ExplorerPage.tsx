@@ -22,6 +22,7 @@ import { IFrameDetector } from "../site/IframeDetector.js"
 import { SiteFooter } from "../site/SiteFooter.js"
 import { SiteHeader } from "../site/SiteHeader.js"
 import { SiteSubnavigation } from "../site/SiteSubnavigation.js"
+import { Html } from "./Html.js"
 
 interface ExplorerPageSettings {
     program: ExplorerProgram
@@ -97,7 +98,7 @@ const urlMigrationSpec = ${
 window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfigs, partialGrapherConfigs, urlMigrationSpec);`
 
     return (
-        <html>
+        <Html>
             <Head
                 canonicalUrl={`${baseUrl}/${EXPLORERS_ROUTE_FOLDER}/${slug}`}
                 hideCanonicalUrl // explorers set their canonical url dynamically
@@ -127,6 +128,6 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                     dangerouslySetInnerHTML={{ __html: inlineJs }}
                 />
             </body>
-        </html>
+        </Html>
     )
 }
