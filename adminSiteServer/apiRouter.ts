@@ -85,6 +85,7 @@ import {
     DbInsertUser,
     FlatTagGraph,
     DbRawChartConfig,
+    R2GrapherConfigDirectory,
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
 import {
@@ -158,7 +159,6 @@ import path from "path"
 import {
     deleteGrapherConfigFromR2,
     deleteGrapherConfigFromR2ByUUID,
-    R2GrapherConfigDirectory,
     saveGrapherConfigToR2,
     saveGrapherConfigToR2ByUUID,
     getMd5HashBase64,
