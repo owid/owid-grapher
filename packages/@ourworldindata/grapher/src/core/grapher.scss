@@ -176,8 +176,8 @@ $zindex-controls-drawer: 150;
 
     // customize css of the <CodeSnippet> component
     .wp-code-snippet {
-        --code-snippet-border: #e7e7e7;
-        --code-snippet-background-light: #f7f7f7;
+        --code-snippet-border: #{$gray-20};
+        --code-snippet-background-light: #{$gray-5};
         --code-snippet-text: #{$gray-70};
         --code-snippet-button: #{$gray-80};
         --code-snippet-button-hover: #{$gray-70};

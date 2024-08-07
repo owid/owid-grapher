@@ -1,17 +1,17 @@
 .DataTableContainer {
-    $cell-border: 1px solid #f2f2f2;
+    $cell-border: 1px solid $gray-10;
 
     // header
-    $header: #f7f7f7;
-    $header-hover: #e7e7e7;
+    $header: $gray-5;
+    $header-hover: $gray-20;
 
     // rows
-    $light-fill: #f7f7f7;
+    $light-fill: $gray-5;
     $hover-fill: #f0f0f0;
-    $dark-fill: #e7e7e7;
+    $dark-fill: $gray-20;
 
     // closest time notice
-    $info-icon: #dadada;
+    $info-icon: $gray-30;
 
     display: flex;
     align-items: center;

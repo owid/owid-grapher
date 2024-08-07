@@ -2,16 +2,16 @@ $timelineHeight: 32px;
 
 .timeline-component {
     // timeline slider and interval
-    $light-timeline: #e7e7e7;
-    $active-timeline: #a4b6ca;
+    $light-timeline: $gray-20;
+    $active-timeline: $blue-30;
 
     // end handle
-    $active-knob: #6e87a2;
+    $active-knob: $blue-50;
 
     // start/end year label
-    $light-fill: #f2f2f2;
-    $hover-fill: #e7e7e7;
-    $active-fill: #dbe5f0;
+    $light-fill: $gray-10;
+    $hover-fill: $gray-20;
+    $active-fill: $blue-20;
 
     width: 100%;
     height: $timelineHeight;

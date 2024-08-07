@@ -17,7 +17,7 @@
         line {
             stroke-dasharray: 0;
             stroke-linecap: square;
-            stroke: #dadada;
+            stroke: $gray-30;
         }
 
         // the zero line
@@ -28,7 +28,7 @@
 
     line.max-line {
         stroke-linecap: square;
-        stroke: #dadada;
+        stroke: $gray-30;
     }
 
     .axis-label {

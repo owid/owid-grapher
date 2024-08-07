@@ -4,11 +4,11 @@
 
 .ExpandableTabs__button {
     color: $dark-text;
-    border-color: #f2f2f2;
-    background: #f2f2f2;
+    border-color: $gray-10;
+    background: $gray-10;
 
     &:hover {
-        background: #e7e7e7;
+        background: $gray-20;
     }
 
     svg {

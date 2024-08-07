@@ -27,9 +27,9 @@ $paddingX: 12px; // keep in sync with PADDING_X
 }
 
 .ActionButton {
-    $light-fill: #f2f2f2;
-    $hover-fill: #e7e7e7;
-    $active-fill: #dbe5f0;
+    $light-fill: $gray-10;
+    $hover-fill: $gray-20;
+    $active-fill: $blue-20;
 
     height: 100%;
     border-radius: 4px;

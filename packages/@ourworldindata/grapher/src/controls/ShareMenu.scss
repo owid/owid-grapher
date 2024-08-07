@@ -7,8 +7,8 @@ $zindex-ControlsFooter: 2;
 }
 
 .ShareMenu {
-    $hover-fill: #f2f2f2;
-    $active-fill: #dbe5f0;
+    $hover-fill: $gray-10;
+    $active-fill: $blue-20;
 
     position: absolute;
     bottom: $timelineHeight + 8px;
