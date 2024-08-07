@@ -276,7 +276,7 @@ h3.article-block__heading {
     margin: 32px 0;
 
     & .image--has-outline {
-        outline: 1px solid #f2f2f2;
+        outline: 1px solid $gray-10;
     }
 
     picture {
@@ -681,8 +681,8 @@ div.raw-html-table__container {
 
 .article-block__pull-quote {
     @include h1-bold-italic;
-    border-bottom: 1px solid #dbe5f0;
-    border-top: 1px solid #dbe5f0;
+    border-bottom: 1px solid $blue-20;
+    border-top: 1px solid $blue-20;
     margin: 32px 0;
     padding: 32px 0;
     text-align: center;
@@ -1106,7 +1106,7 @@ div.raw-html-table__container {
 
     .aa-Form {
         background-color: #fff;
-        border-color: #dbe5f0;
+        border-color: $blue-20;
         height: 56px;
     }
 

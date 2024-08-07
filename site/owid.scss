@@ -917,12 +917,12 @@ html:not(.js) {
             box-sizing: border-box;
             vertical-align: middle;
             line-height: 1.28571;
-            color: #002147;
+            color: $oxford-blue;
             font-family: inherit;
             font-size: 1rem;
 
             &:focus {
-                border-color: #002147;
+                border-color: $oxford-blue;
             }
         }
 

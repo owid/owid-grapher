@@ -6,14 +6,12 @@
     $medium: 400;
     $lato: $sans-serif-font-stack;
 
-    $light-stroke: #e7e7e7;
-    $active-stroke: #a4b6ca;
+    $light-stroke: $gray-20;
+    $active-stroke: $blue-30;
 
-    $active-fill: #dbe5f0;
-    $hover-fill: #f2f2f2;
+    $active-fill: $blue-20;
+    $hover-fill: $gray-10;
     $selected-fill: #c7ced7;
-
-    $light-text: #858585;
 
     font: $medium 13px/16px $lato;
 
@@ -34,7 +32,7 @@
         color: $dark-text;
 
         &.focus {
-            outline: 1px solid #a4b6ca !important;
+            outline: 1px solid $blue-30 !important;
             outline-offset: -1px;
         }
 

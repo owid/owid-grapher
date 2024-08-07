@@ -1,9 +1,9 @@
 .checkbox {
     $checkbox-size: 16px;
 
-    $light-stroke: #dadada;
-    $hover-stroke: #a4b6ca;
-    $active-fill: #a4b6ca;
+    $light-stroke: $gray-30;
+    $hover-stroke: $blue-30;
+    $active-fill: $blue-30;
 
     position: relative;
 

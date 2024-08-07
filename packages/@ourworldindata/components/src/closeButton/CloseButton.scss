@@ -2,10 +2,10 @@
     // keep in sync with CLOSE_BUTTON_SIZE in CloseButton.tsx
     $size: 32px;
 
-    $light-stroke: #e7e7e7;
+    $light-stroke: $gray-20;
 
     $active-fill: #dbe5f0;
-    $hover-fill: #f2f2f2;
+    $hover-fill: $gray-10;
 
     display: flex;
     align-items: center;

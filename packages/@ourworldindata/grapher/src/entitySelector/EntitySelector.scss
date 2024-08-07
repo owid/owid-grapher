@@ -28,8 +28,8 @@
             $svg-margin: 8px;
             $svg-size: 12px;
 
-            $placeholder: #a1a1a1;
-            $focus: 1px solid #a4b6ca;
+            $placeholder: $gray-60;
+            $focus: 1px solid $blue-30;
 
             position: relative;
 
@@ -60,7 +60,7 @@
                 @include grapher_label-2-regular;
                 width: 100%;
                 height: 32px;
-                border: 1px solid #e7e7e7;
+                border: 1px solid $gray-20;
                 padding-left: $svg-margin + $svg-size + 4px;
                 padding-right: $svg-margin + $svg-size + 4px;
                 border-radius: 4px;
@@ -133,7 +133,7 @@
             padding: 7px;
 
             color: $dark-text;
-            background: #f2f2f2;
+            background: $gray-10;
             border: none;
             border-radius: 4px;
 
@@ -143,25 +143,25 @@
             }
 
             &:hover:not(:disabled) {
-                background: #e7e7e7;
+                background: $gray-20;
                 cursor: pointer;
             }
 
             &:active:not(:disabled) {
-                color: #1d3d63;
-                background: #dbe5f0;
-                border: 1px solid #dbe5f0;
+                color: $blue-90;
+                background: $blue-20;
+                border: 1px solid $blue-20;
             }
 
             &:disabled {
-                background: #f2f2f2;
-                color: #a1a1a1;
+                background: $gray-10;
+                color: $gray-60;
             }
         }
     }
 
     .entity-selector__content {
-        $row-border: 1px solid #f2f2f2;
+        $row-border: 1px solid $gray-10;
 
         margin: 0 var(--padding) 8px var(--padding);
 
@@ -194,7 +194,7 @@
             }
 
             .value {
-                color: #a1a1a1;
+                color: $gray-60;
                 white-space: nowrap;
                 margin-left: 12px;
             }
@@ -204,7 +204,7 @@
                 top: 0;
                 left: 0;
                 height: 100%;
-                background: #ebeef2;
+                background: $blue-10;
                 z-index: -1;
             }
 
@@ -216,7 +216,7 @@
                 svg {
                     margin-left: 6px;
                     font-size: 0.9em;
-                    color: #a1a1a1;
+                    color: $gray-60;
 
                     // hide focus outline when clicked
                     &:focus:not(:focus-visible) {
@@ -294,11 +294,11 @@
             }
 
             &:active {
-                background: #f7f7f7;
+                background: $gray-5;
             }
 
             &:disabled {
-                color: #c6c6c6;
+                color: $gray-50;
                 text-decoration: none;
                 cursor: default;
             }

@@ -5,13 +5,12 @@
     $icon-padding: 6px;
     --outer-padding: 16px;
 
-    $light-stroke: #e7e7e7;
+    $light-stroke: $gray-20;
 
-    $hover-fill: #f2f2f2;
-    $active-fill: #dbe5f0;
+    $hover-fill: $gray-10;
+    $active-fill: $blue-20;
 
-    $info-icon: #a1a1a1;
-    $active-icon: #6e87a2;
+    $active-icon: $blue-50;
 
     $border-radius: 4px;
     $visual-gap: 2px;
@@ -57,7 +56,7 @@
         }
 
         svg {
-            color: $info-icon;
+            color: $gray-60;
 
             &.custom-icon {
                 --size: $icon-width;

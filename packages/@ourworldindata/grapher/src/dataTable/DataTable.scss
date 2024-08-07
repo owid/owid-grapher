@@ -1,21 +1,17 @@
 .DataTableContainer {
-    $cell-border: 1px solid #f2f2f2;
+    $cell-border: 1px solid $gray-10;
 
     // header
-    $header: #f7f7f7;
-    $header-hover: #e7e7e7;
+    $header: $gray-5;
+    $header-hover: $gray-20;
 
     // rows
-    $light-fill: #f7f7f7;
+    $light-fill: $gray-5;
     $hover-fill: #f0f0f0;
-    $dark-fill: #e7e7e7;
-
-    // sort icon
-    $sort-icon: #c6c6c6;
-    $hover-icon: #a1a1a1;
+    $dark-fill: $gray-20;
 
     // closest time notice
-    $info-icon: #dadada;
+    $info-icon: $gray-30;
 
     display: flex;
     align-items: center;
@@ -133,7 +129,7 @@
                     text-align: left;
 
                     .description {
-                        color: #a1a1a1;
+                        color: $gray-60;
                         text-align: left;
                     }
                 }
@@ -159,7 +155,7 @@
                 }
 
                 .sort-icon {
-                    color: $sort-icon;
+                    color: $gray-50;
                     font-size: 13px;
                     width: 19px; // keeps column widths fixed when sorting
                     text-align: right;
@@ -170,7 +166,7 @@
                 }
 
                 &:hover .sort-icon {
-                    color: $hover-icon;
+                    color: $gray-60;
                 }
             }
         }

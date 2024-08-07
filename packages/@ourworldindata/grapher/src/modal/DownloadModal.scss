@@ -39,7 +39,7 @@
         flex-direction: row;
         align-items: center;
         color: $dark-text;
-        background-color: #f7f7f7;
+        background-color: $gray-5;
         position: relative;
         width: 100%;
         padding: 16px;
@@ -86,8 +86,8 @@
 
     .grouped-menu-callout {
         border-radius: 8px;
-        border: 1px solid #dadada;
-        background: #f7f7f7;
+        border: 1px solid $gray-30;
+        background: $gray-5;
         padding: 16px;
 
         svg {
@@ -118,7 +118,7 @@
 .static-exports-options {
     margin: 16px 0 24px;
     padding-bottom: 24px;
-    border-bottom: 1px solid #f2f2f2;
+    border-bottom: 1px solid $gray-10;
 
     > .checkbox + .checkbox {
         margin-top: 8px;
