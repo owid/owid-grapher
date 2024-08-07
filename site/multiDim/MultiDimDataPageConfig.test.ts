@@ -4,8 +4,8 @@ import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
 import YAML from "yaml"
 
 it("fromObject", () => {
-    const config = MultiDimDataPageConfig.fromObject({ name: "Test" } as any)
-    expect(config.config.name).toBe("Test")
+    const config = MultiDimDataPageConfig.fromObject({ title: "Test" } as any)
+    expect(config.config.title).toBe("Test")
 })
 
 describe("methods", () => {
