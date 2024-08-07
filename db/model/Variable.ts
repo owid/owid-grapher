@@ -11,7 +11,6 @@ import {
     getVariableDataRoute,
     getVariableMetadataRoute,
     defaultGrapherConfig,
-    DEFAULT_GRAPHER_CONFIG_SCHEMA,
 } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
 import { uuidv7 } from "uuidv7"
@@ -171,7 +170,7 @@ function makeConfigValidForIndicator({
 
     // if no schema is given, assume it's the latest
     if (!updatedConfig.$schema) {
-        updatedConfig.$schema = DEFAULT_GRAPHER_CONFIG_SCHEMA
+        updatedConfig.$schema = defaultGrapherConfig.$schema
     }
 
     // check if the given dimensions are correct
