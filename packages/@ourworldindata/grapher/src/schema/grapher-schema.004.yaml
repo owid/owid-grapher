@@ -101,7 +101,6 @@ $defs:
                     - continents
                     - stackedAreaDefault
                     - owid-distinct
-                    - default
                     - SingleColorDenim
                     - SingleColorTeal
                     - SingleColorPurple
