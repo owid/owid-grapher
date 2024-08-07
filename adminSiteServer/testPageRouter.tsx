@@ -5,7 +5,6 @@ import React from "react"
 
 import { renderToHtmlPage, expectInt } from "../serverUtils/serverUtil.js"
 import {
-    getChartConfigById,
     getChartConfigBySlug,
     getChartVariableData,
 } from "../db/model/Chart.js"
@@ -38,7 +37,6 @@ import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerChartCreationMode } from "../explorer/ExplorerConstants.js"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import {
-    ColorScheme,
     ColorSchemes,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
