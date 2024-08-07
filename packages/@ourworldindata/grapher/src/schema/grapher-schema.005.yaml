@@ -1,5 +1,5 @@
 $schema: "http://json-schema.org/draft-07/schema#"
-$id: "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
+$id: "https://files.ourworldindata.org/schemas/grapher-schema.005.json"
 $defs:
     axis:
         type: object
@@ -619,10 +619,6 @@ properties:
         type: boolean
         default: false
         description: Whether to show year labels in bar charts
-    hideLinesOutsideTolerance:
-        type: boolean
-        default: false
-        description: Hide entities without data for full time span (within tolerance)
     hideTotalValueLabel:
         type: boolean
         default: false
