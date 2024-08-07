@@ -315,7 +315,7 @@ export const mapGdocsToWordpressPosts = (
         slug: gdoc.slug,
         type: gdoc.content.type,
         date: gdoc.publishedAt as Date,
-        modifiedDate: gdoc.updatedAt as Date,
+        modifiedDate: gdoc.updatedAt === null ? null : new Date(gdoc.updatedAt), // Pff0f
         authors: gdoc.content.authors,
         excerpt: gdoc.content["atom-excerpt"] || gdoc.content.excerpt,
         imageUrl: gdoc.content["featured-image"]
