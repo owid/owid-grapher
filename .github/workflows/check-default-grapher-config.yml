@@ -1,0 +1,53 @@
+name: Check default grapher config
+on:
+    push:
+        branches:
+            - "**"
+            - "!master"
+        paths:
+            - "packages/@ourworldindata/grapher/src/schema/**"
+
+jobs:
+    commit-default-config:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Clone repository
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.head_ref }}
+
+            - uses: ./.github/actions/setup-node-yarn-deps
+            - uses: ./.github/actions/build-tsc
+
+            - uses: hustcer/setup-nu@v3
+              with:
+                  version: "0.80" # Don't use 0.80 here, as it was a float number and will be convert to 0.8, you can use v0.80/0.80.0 or '0.80'
+
+            # Turn all yaml files in the schema directory into json (should only be one)
+            - name: Convert yaml schema to json
+              run: |
+                  (ls packages/@ourworldindata/grapher/src/schema/*.yaml
+                  | each {|yaml|
+                      open $yaml.name
+                      | to json
+                      | save -f ($yaml.name
+                          | path parse
+                          | upsert extension "json"
+                          | path join) })
+              shell: nu {0}
+
+            # Construct default config objects for all grapher schemas in the schema directory (should only be one)
+            - name: Generate default grapher config
+              run: |
+                  (ls packages/@ourworldindata/grapher/src/schema/grapher-schema.*.json
+                  | each {|json|
+                      node itsJustJavascript/devTools/schema/generate-default-object-from-schema.js $json.name --save-ts packages/@ourworldindata/grapher/src/schema/defaultGrapherConfig.ts })
+              shell: nu {0}
+
+            - name: Run prettier
+              run: yarn fixPrettierAll
+
+            - uses: stefanzweifel/git-auto-commit-action@v5
+              with:
+                  commit_message: "🤖 update default grapher config"
