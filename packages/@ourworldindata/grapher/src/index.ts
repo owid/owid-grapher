@@ -26,7 +26,6 @@ export {
     grapherInterfaceWithHiddenTabsOnly,
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
-    DEFAULT_GRAPHER_CONFIG_SCHEMA,
 } from "./core/GrapherConstants"
 export {
     getVariableDataRoute,
