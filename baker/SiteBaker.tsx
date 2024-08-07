@@ -754,7 +754,7 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ validated grapher dods" })
     }
 
-    private async bakeMultiDimPages(knex: db.KnexReadonlyTransaction) {
+    private async bakeMultiDimPages(knex: db.KnexReadWriteTransaction) {
         if (!this.bakeSteps.has("multiDimPages")) return
 
         await bakeAllMultiDimDataPages(knex, this.bakedSiteDir)
