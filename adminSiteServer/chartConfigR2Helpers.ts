@@ -17,7 +17,6 @@ import {
     Base64String,
     excludeUndefined,
     JsonError,
-    getMd5HashBase64,
 } from "@ourworldindata/utils"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { createHash } from "crypto"
