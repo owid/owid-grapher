@@ -189,22 +189,6 @@ import React from "react"
 import { match, P } from "ts-pattern"
 // import "crypto"
 
-let subtleCrypto: any
-
-if (typeof globalThis.crypto !== "undefined" && globalThis.crypto.subtle) {
-    // Browsers and Cloudflare Workers
-    subtleCrypto = globalThis.crypto.subtle
-} else {
-    // Node.js 18+ using the built-in webcrypto module
-    import("node:crypto")
-        .then(({ webcrypto }) => {
-            subtleCrypto = webcrypto.subtle
-        })
-        .catch((err) => {
-            console.error("Failed to import crypto module:", err)
-        })
-}
-
 export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
 }
@@ -480,25 +464,6 @@ export const cagr = (
     )
 }
 
-export enum HashAlgorithm {
-    Sha1 = "sha1",
-}
-
-export async function getHashBytes(
-    data: string,
-    algorithm: HashAlgorithm
-): Promise<Uint8Array> {
-    const encoder = new TextEncoder()
-    const dataBuffer = encoder.encode(data)
-    const hashBuffer = await subtleCrypto.digest(algorithm, dataBuffer)
-
-    return new Uint8Array(hashBuffer)
-}
-
-export async function getSHA1HashBytes(data: string): Promise<Uint8Array> {
-    return getHashBytes(data, HashAlgorithm.Sha1)
-}
-
 export type Base64String = Nominal<string, "Base64">
 export type HexString = Nominal<string, "Hex">
 
@@ -533,17 +498,6 @@ export function bytesToHex(bytes: Uint8Array): HexString {
     return Array.from(bytes)
         .map((byte) => byte.toString(16).padStart(2, "0"))
         .join("") as HexString
-}
-
-export async function getSHA1HashHex(data: string): Promise<HexString> {
-    const hashBuffer = await getSHA1HashBytes(data)
-    return bytesToHex(hashBuffer)
-}
-
-export async function getSHA1HashBase64(data: string): Promise<Base64String> {
-    const bytes = await getSHA1HashBytes(data)
-    const base64 = bytesToBase64(bytes)
-    return base64
 }
 
 export const makeAnnotationsSlug = (columnSlug: string): string =>
