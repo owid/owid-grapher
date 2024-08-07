@@ -60,6 +60,7 @@ export class ChartIndexPage extends React.Component {
 
     @action.bound onSearchInput(input: string) {
         this.searchInput = input
+        this.setSearchInputInUrl(input)
     }
 
     @action.bound onShowMore() {
@@ -115,6 +116,23 @@ export class ChartIndexPage extends React.Component {
     }
 
     componentDidMount() {
+        this.searchInput = this.getSearchInputFromUrl()
         void this.getData()
+    }
+
+    getSearchInputFromUrl(): string {
+        const params = new URLSearchParams(window.location.search)
+        return params.get("search") || ""
+    }
+
+    setSearchInputInUrl(searchInput: string) {
+        const params = new URLSearchParams(window.location.search)
+        if (searchInput) {
+            params.set("search", searchInput)
+        } else {
+            params.delete("search")
+        }
+        const newUrl = `${window.location.pathname}?${params.toString()}`
+        window.history.replaceState({}, "", newUrl)
     }
 }
