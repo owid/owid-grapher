@@ -134,7 +134,7 @@ async function syncWithR2(
             const full = fullConfigMap.get(id)
             if (full === undefined) {
                 console.error(`Full config not found for id ${id}`)
-                return
+                return null
             }
             try {
                 const putObjectCommandInput: PutObjectCommandInput = {
@@ -148,10 +148,11 @@ async function syncWithR2(
                         new PutObjectCommand(putObjectCommandInput)
                     )
                 else console.log("Would have upserted", key)
+                progressBar.tick()
+                return null
             } catch (err) {
                 return err
             }
-            progressBar.tick()
         })
         const promiseResults = await Promise.allSettled(uploadPromises)
         const batchErrors = promiseResults
