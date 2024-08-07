@@ -171,6 +171,16 @@ export class TestIndexPage extends React.Component {
                                 Embed Variants
                             </Link>
                         </li>
+
+                        <li>
+                            <Link
+                                native
+                                target="_blank"
+                                to="/test/colorSchemes?slug=life-expectancy&tab=map"
+                            >
+                                Color Schemes
+                            </Link>
+                        </li>
                     </ul>
 
                     <h2>Test Explorer Embeds</h2>
