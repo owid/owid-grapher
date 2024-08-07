@@ -2629,6 +2629,7 @@ export class Grapher
                 ref={this.base}
                 className={containerClasses}
                 style={containerStyle}
+                data-grapher-id={this.id}
                 data-grapher-url={this.canonicalUrl}
             >
                 {this.commandPalette}
