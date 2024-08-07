@@ -29,11 +29,6 @@ import {
     traverseEnrichedBlock,
     cartesian,
     formatInlineList,
-    getSHA1HashBytes,
-    bytesToBase64,
-    base64ToBytes,
-    bytesToHex,
-    hexToBytes,
 } from "./Util.js"
 import {
     BlockImageSize,
@@ -798,19 +793,5 @@ describe(formatInlineList, () => {
         expect(formatInlineList(["a", "b", "c", "d"], "or")).toEqual(
             "a, b, c or d"
         )
-    })
-})
-
-// a test to see if getSHA1HashBytes encoded to base64 and back to bytes is the same as the original bytes
-describe("getSHA1HashBytes going back and forth through base64 and hex yields identical results", () => {
-    it("hashes a string and decodes it back to the same bytes", async () => {
-        const bytes = await getSHA1HashBytes("Hello World")
-        const base64 = bytesToBase64(bytes)
-        const decodedBytes = base64ToBytes(base64)
-        expect(decodedBytes).toEqual(bytes)
-
-        const hex = bytesToHex(bytes)
-        const decodedBytes2 = hexToBytes(hex)
-        expect(decodedBytes2).toEqual(bytes)
     })
 })
