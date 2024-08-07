@@ -114,7 +114,6 @@ import {
     BASE_FONT_SIZE,
     CookieKey,
     ThereWasAProblemLoadingThisChart,
-    DEFAULT_GRAPHER_CONFIG_SCHEMA,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_FRAME_PADDING,
@@ -127,6 +126,7 @@ import {
     isContinentsVariableId,
     isPopulationVariableETLPath,
 } from "../core/GrapherConstants"
+import { defaultGrapherConfig } from "../schema/defaultGrapherConfig"
 import { loadVariableDataAndMetadata } from "./loadVariable"
 import Cookies from "js-cookie"
 import {
@@ -344,7 +344,7 @@ export class Grapher
         MapChartManager,
         SlopeChartManager
 {
-    @observable.ref $schema = DEFAULT_GRAPHER_CONFIG_SCHEMA
+    @observable.ref $schema = defaultGrapherConfig.$schema
     @observable.ref type = ChartTypeName.LineChart
     @observable.ref id?: number = undefined
     @observable.ref version = 1
@@ -527,7 +527,7 @@ export class Grapher
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
 
         // always include the schema, even if it's the default
-        obj.$schema = this.$schema || DEFAULT_GRAPHER_CONFIG_SCHEMA
+        obj.$schema = this.$schema || defaultGrapherConfig.$schema
 
         // todo: nulls got into the DB for this one. we can remove after moving Graphers from DB.
         if (obj.stackMode === null) delete obj.stackMode

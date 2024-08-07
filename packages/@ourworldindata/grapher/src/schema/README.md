@@ -10,14 +10,13 @@ If you update the default value of an existing property or you add a new propert
 
 Breaking changes should be done by renaming the schema file to an increased version number. Make sure to also rename the authorative url
 inside the schema file (the "$id" field at the top level) to point to the new version number json. Then write the migrations from the last to
-the current version of the schema, including the migration of pointing to the URL of the new schema version. Also update `DEFAULT_GRAPHER_CONFIG_SCHEMA` in `GrapherConstants.ts` to point to the new schema version number url.
+the current version of the schema, including the migration of pointing to the URL of the new schema version.s
 
 Checklist for breaking changes:
 
 -   Rename the schema file to an increased version number
 -   Rename the authorative url inside the schema file to point to the new version number json
 -   Write the migrations from the last to the current version of the schema, including the migration of pointing to the URL of the new schema version
--   Update `DEFAULT_GRAPHER_CONFIG_SCHEMA` in `GrapherConstants.ts` to point to the new schema version number url
 -   Regenerate the default object from the schema and save it to `defaultGrapherConfig.ts` (see below)
 -   Write a migration to update the `chart_configs.full` column in the database for all stand-alone charts
 
