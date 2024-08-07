@@ -672,7 +672,7 @@ export class SiteBaker {
 
         await this.stageWrite(
             `${this.bakedSiteDir}/charts.html`,
-            await renderChartsPage(knex, this.explorerAdminServer)
+            await renderChartsPage(knex)
         )
         this.progressBar.tick({ name: "✅ baked special pages" })
     }

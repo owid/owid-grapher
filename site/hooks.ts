@@ -136,3 +136,41 @@ export const useElementBounds = (
 
     return bounds
 }
+
+export const useFocusTrap = (
+    ref: React.RefObject<HTMLElement>,
+    isActive: boolean
+): void => {
+    useEffect(() => {
+        if (!ref || !ref.current) return
+        const element = ref.current
+
+        const focusableElements = element.querySelectorAll<HTMLElement>(
+            'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select'
+        )
+        const firstFocusableElement = focusableElements[0]
+        const lastFocusableElement =
+            focusableElements[focusableElements.length - 1]
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Tab") {
+                if (e.shiftKey) {
+                    if (document.activeElement === firstFocusableElement) {
+                        e.preventDefault()
+                        lastFocusableElement.focus()
+                    }
+                } else {
+                    if (document.activeElement === lastFocusableElement) {
+                        e.preventDefault()
+                        firstFocusableElement.focus()
+                    }
+                }
+            }
+        }
+
+        document.addEventListener("keydown", handleKeyDown)
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown)
+        }
+    }, [ref, isActive])
+}

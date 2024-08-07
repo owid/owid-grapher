@@ -1,6 +1,6 @@
 import { LongFormPage, PageOverrides } from "../site/LongFormPage.js"
 import { BlogIndexPage } from "../site/BlogIndexPage.js"
-import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage.js"
+import { DataCatalogPage } from "../site/DataCatalogPage.js"
 import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
 import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.js"
 import { SearchPage } from "../site/search/SearchPage.js"
@@ -10,7 +10,6 @@ import { ThankYouPage } from "../site/ThankYouPage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
-import * as lodash from "lodash"
 import { formatCountryProfile, isCanonicalInternalUrl } from "./formatting.js"
 import {
     bakeGrapherUrls,
@@ -44,6 +43,7 @@ import {
     OwidGdocType,
     OwidGdoc,
     OwidGdocDataInsightInterface,
+    createTagGraph,
 } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
@@ -54,6 +54,7 @@ import {
     KnexReadWriteTransaction,
     KnexReadonlyTransaction,
     getHomepageId,
+    getFlatTagGraph,
 } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
@@ -94,59 +95,11 @@ import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
-export const renderChartsPage = async (
-    knex: KnexReadonlyTransaction,
-    explorerAdminServer: ExplorerAdminServer
-) => {
-    const explorers = await explorerAdminServer.getAllPublishedExplorers()
-
-    const chartItems = await knexRaw<ChartIndexItem>(
-        knex,
-        `-- sql
-        SELECT
-            id,
-            config->>"$.slug" AS slug,
-            config->>"$.title" AS title,
-            config->>"$.variantName" AS variantName
-        FROM charts
-        WHERE
-            isIndexable IS TRUE
-            AND publishedAt IS NOT NULL
-            AND config->>"$.isPublished" = "true"
-    `
-    )
-
-    const chartTags = await knexRaw<{
-        chartId: number
-        tagId: number
-        tagName: string
-        tagParentId: number
-    }>(
-        knex,
-        `-- sql
-        SELECT ct.chartId, ct.tagId, t.name as tagName, t.parentId as tagParentId FROM chart_tags ct
-        JOIN charts c ON c.id=ct.chartId
-        JOIN tags t ON t.id=ct.tagId
-    `
-    )
-
-    for (const c of chartItems) {
-        c.tags = []
-    }
-
-    const chartsById = lodash.keyBy(chartItems, (c) => c.id)
-
-    for (const ct of chartTags) {
-        const c = chartsById[ct.chartId]
-        if (c) c.tags.push({ id: ct.tagId, name: ct.tagName })
-    }
-
+export const renderChartsPage = async (knex: KnexReadonlyTransaction) => {
+    const { __rootId, ...flatTagGraph } = await getFlatTagGraph(knex)
+    const rootTagGraph = createTagGraph(flatTagGraph, __rootId)
     return renderToHtmlPage(
-        <ChartsIndexPage
-            explorers={explorers}
-            chartItems={chartItems}
-            baseUrl={BAKED_BASE_URL}
-        />
+        <DataCatalogPage baseUrl={BAKED_BASE_URL} tagGraph={rootTagGraph} />
     )
 }
 

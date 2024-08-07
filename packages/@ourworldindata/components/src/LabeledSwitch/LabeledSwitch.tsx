@@ -2,6 +2,7 @@ import React from "react"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
+import cx from "classnames"
 import { Tippy } from "@ourworldindata/utils"
 
 @observer
@@ -11,12 +12,13 @@ export class LabeledSwitch extends React.Component<{
     tooltip?: string
     tracking?: string
     onToggle: () => any
+    className?: string
 }> {
     render(): React.ReactElement {
-        const { label, value, tooltip, tracking } = this.props
+        const { className, label, value, tooltip, tracking } = this.props
 
         return (
-            <div className="labeled-switch">
+            <div className={cx("labeled-switch", className)}>
                 <label>
                     <input
                         type="checkbox"
