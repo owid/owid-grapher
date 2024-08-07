@@ -3,7 +3,7 @@ import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { SiteFooterContext, TagGraphRoot } from "@ourworldindata/utils"
-import { DataCatalog } from "./DataCatalog.js"
+import { DataCatalogInstantSearchWrapper } from "./DataCatalog.js"
 
 declare global {
     interface Window {
@@ -39,7 +39,7 @@ export const DataCatalogPage = (props: {
                     id="charts-index-page-root"
                     className="grid grid-cols-12-full-width"
                 >
-                    <DataCatalog tagGraph={tagGraph} />
+                    <DataCatalogInstantSearchWrapper tagGraph={tagGraph} />
                 </main>
                 <SiteFooter
                     context={SiteFooterContext.chartsPage}

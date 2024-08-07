@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useEffect, useMemo, useReducer, useRef, useState } from "react"
+import { simple } from "instantsearch.js/es/lib/stateMappings"
+import { history } from "instantsearch.js/es/lib/routers"
 import ReactDOM from "react-dom"
 import cx from "classnames"
 import {
@@ -9,6 +11,8 @@ import {
     countriesByName,
     Country,
     Region,
+    cloneDeep,
+    debounce,
 } from "@ourworldindata/utils"
 import { LabeledSwitch } from "@ourworldindata/components"
 import {
@@ -16,6 +20,8 @@ import {
     Hits,
     Index,
     InstantSearch,
+    SearchBox,
+    useConfigure,
     useInstantSearch,
     useSearchBox,
 } from "react-instantsearch"
@@ -37,8 +43,10 @@ import {
     useTriggerWhenClickOutside,
 } from "./hooks.js"
 import { ChartHit } from "./search/ChartHit.js"
+import { RouterProps } from "instantsearch.js/es/middlewares/createRouterMiddleware.js"
 
 type FacetFilters = string | undefined | readonly (string | readonly string[])[]
+
 function getRegionsFromSelectedEntitiesFacets(
     facetFilters: FacetFilters
 ): Region[] {
@@ -54,14 +62,19 @@ const DataCatalogRibbon = ({
     addGlobalTagFilter: (x: string) => void
 }) => {
     const { scopedResults, uiState } = useInstantSearch()
+    const nBHits = getNbHitsForTag(tagName, scopedResults)
     const genericState = uiState[""]
     const countrySelections = getRegionsFromSelectedEntitiesFacets(
         genericState.configure?.facetFilters
     )
 
+    if (nBHits === 0) {
+        return null
+    }
+
     return (
-        <Index indexName={getIndexName(SearchIndexName.Charts)}>
-            <Configure facetFilters={[`tags:${tagName}`]} hitsPerPage={4} />
+        <Index indexName={CHARTS_INDEX}>
+            {/* <Configure facetFilters={[`tags:${tagName}`]} hitsPerPage={4} /> */}
             <div className="data-catalog-ribbon">
                 <a
                     href={`/charts?topics=${tagName}`}
@@ -73,7 +86,7 @@ const DataCatalogRibbon = ({
                     <div className="data-catalog-ribbon__header">
                         <h2 className="body-1-regular">{tagName}</h2>
                         <span className="data-catalog-ribbon__hit-count body-2-semibold">
-                            {getNbHitsForTag(tagName, scopedResults)} indicators
+                            {nBHits} indicators
                             <FontAwesomeIcon icon={faArrowRight} />
                         </span>
                     </div>
@@ -159,6 +172,7 @@ function transformRouteCountriesToFacetFilters(
 // takes the chaotically-typed facetFilters from instantsearch's UI state
 // and returns a list of tags
 // e.g. [["tags:Energy"], ["tags:Air Pollution"], ["availableEntities": "New Zealand"]] => { topics: ["Energy", "Air Pollution"], countries: ["New Zealand"] }
+// TODO: is this handling the disjunctive case correctly?
 function parseFacetFilters(facetFilters: FacetFilters): {
     topics: string[]
     countries: string[]
@@ -233,7 +247,7 @@ const DataCatalogResults = ({
         )
 
     return (
-        <Index indexName={getIndexName(SearchIndexName.Charts)}>
+        <Index indexName={CHARTS_INDEX}>
             <Hits
                 classNames={{
                     root: cx(
@@ -280,17 +294,20 @@ const DataCatalogLoadingSpinner = () => {
 
 const TopicsRefinementList = ({
     tagGraph,
-    addGlobalTagFilter,
-    removeGlobalTagFilter,
+    // addGlobalTagFilter,
+    // removeGlobalTagFilter,
 }: {
     tagGraph: TagGraphRoot
-    addGlobalTagFilter: (tag: string) => void
-    removeGlobalTagFilter: (tag: string) => void
+    // addGlobalTagFilter: (tag: string) => void
+    // removeGlobalTagFilter: (tag: string) => void
 }) => {
-    const { uiState, scopedResults, status } = useInstantSearch()
-    const genericState = uiState[""]
+    const { uiState, scopedResults, status, setIndexUiState } =
+        useInstantSearch()
+    console.log("TopicsRefinementList uiState", uiState)
+    const genericState = uiState[CHARTS_INDEX]
     const areaNames = tagGraph.children.map((child) => child.name)
     const facetFilters = parseFacetFilters(genericState.configure?.facetFilters)
+    console.log("TopicsRefinementList facetFilters", facetFilters)
     const isLoading = status === "loading" || status === "stalled"
     const isShowingRibbons = checkShouldShowRibbonView(
         genericState.query,
@@ -308,7 +325,40 @@ const TopicsRefinementList = ({
                     <button
                         className="data-catalog-applied-filters-button body-3-medium"
                         onClick={() => {
-                            removeGlobalTagFilter(facetFilter)
+                            setIndexUiState((prev) => {
+                                console.log("returning prev", prev)
+                                return prev
+                                const newUiState = cloneDeep(prev)
+                                const globalConfigure = newUiState.configure
+                                if (
+                                    !globalConfigure ||
+                                    !globalConfigure.facetFilters ||
+                                    !isArray(globalConfigure.facetFilters)
+                                ) {
+                                    return newUiState
+                                }
+
+                                newUiState.configure = {
+                                    ...globalConfigure,
+                                    facetFilters:
+                                        globalConfigure.facetFilters.filter(
+                                            (f: string | string[]) => {
+                                                if (isArray(f)) {
+                                                    return (
+                                                        f[0].slice(5) !==
+                                                        facetFilter
+                                                    )
+                                                }
+                                                return (
+                                                    f.slice(5) !== facetFilter
+                                                )
+                                            }
+                                        ),
+                                }
+                                return newUiState
+                            })
+
+                            // removeGlobalTagFilter(facetFilter)
                         }}
                     >
                         {facetFilter}
@@ -318,56 +368,53 @@ const TopicsRefinementList = ({
             ))}
         </ul>
     )
-    if (isShowingRibbons) {
-        const areas = getAreaChildrenFromTag(tagGraph, facetFilters.topics[0])
-        return (
-            <React.Fragment>
-                {appliedFiltersSection}
-                <ul
-                    className={cx(
-                        "span-cols-12 col-start-2 data-catalog-facets-list",
-                        {
-                            "data-catalog-facets-list--is-loading": isLoading,
-                        }
-                    )}
-                >
-                    {areas.map((area, i) => {
-                        const isLast = i === areas.length - 1
-                        return (
-                            <React.Fragment key={area.name}>
-                                <li
-                                    key={area.name}
-                                    className="data-catalog-facets-list-item"
-                                    tabIndex={0}
-                                    onClick={() => {
-                                        addGlobalTagFilter(area.name)
-                                    }}
-                                >
-                                    <span>{area.name}</span>
-                                    <span className="data-catalog-facets-list-item__hit-count">
-                                        (
-                                        {getNbHitsForTag(
-                                            area.name,
-                                            scopedResults
-                                        )}
-                                        )
-                                    </span>
-                                </li>
-                                {!isLast ? (
-                                    <li
-                                        className="data-catalog-facets-list-separator"
-                                        // including an empty space so that the list has spaces in it when copied to clipboard
-                                    >
-                                        {" "}
-                                    </li>
-                                ) : null}
-                            </React.Fragment>
-                        )
-                    })}
-                </ul>
-            </React.Fragment>
-        )
-    }
+    // if (isShowingRibbons) {
+    //     const areas = getAreaChildrenFromTag(tagGraph, facetFilters.topics[0])
+    //     return (
+    //         <React.Fragment>
+    //             {appliedFiltersSection}
+    //             <ul
+    //                 className={cx(
+    //                     "span-cols-12 col-start-2 data-catalog-facets-list",
+    //                     {
+    //                         "data-catalog-facets-list--is-loading": isLoading,
+    //                     }
+    //                 )}
+    //             >
+    //                 {areas.map((area, i) => {
+    //                     const isLast = i === areas.length - 1
+    //                     const nBHits = getNbHitsForTag(area.name, scopedResults)
+    //                     if (nBHits === 0) return null
+    //                     return (
+    //                         <React.Fragment key={area.name}>
+    //                             <li
+    //                                 key={area.name}
+    //                                 className="data-catalog-facets-list-item"
+    //                                 tabIndex={0}
+    //                                 onClick={() => {
+    //                                     addGlobalTagFilter(area.name)
+    //                                 }}
+    //                             >
+    //                                 <span>{area.name}</span>
+    //                                 <span className="data-catalog-facets-list-item__hit-count">
+    //                                     ({nBHits})
+    //                                 </span>
+    //                             </li>
+    //                             {!isLast ? (
+    //                                 <li
+    //                                     className="data-catalog-facets-list-separator"
+    //                                     // including an empty space so that the list has spaces in it when copied to clipboard
+    //                                 >
+    //                                     {" "}
+    //                                 </li>
+    //                             ) : null}
+    //                         </React.Fragment>
+    //                     )
+    //                 })}
+    //             </ul>
+    //         </React.Fragment>
+    //     )
+    // }
     return (
         <div className="span-cols-12 col-start-2">{appliedFiltersSection}</div>
     )
@@ -556,7 +603,7 @@ const SelectedCountriesPills = ({
 
 const DataCatalogSearchBox = () => {
     const { uiState } = useInstantSearch()
-    const initValue = get(uiState, ["", "query"], "")
+    const initValue = get(uiState, [CHARTS_INDEX, "query"], "")
     const [query, setQuery] = useState(initValue)
     const sb = useSearchBox()
 
@@ -586,7 +633,6 @@ const DataCatalogSearchBox = () => {
 const REQUIRE_ALL_COUNTRIES_QUERY_PARAM = "requireAllCountries"
 
 export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
-    const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
     const [countrySelections, setCountrySelections] = useState<Set<string>>(
         new Set()
     )
@@ -616,104 +662,74 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
             `${window.location.pathname}?${urlParams}`
         )
     }
+
     // globalFacetFilters apply to all indexes, unless they're overridden by a nested Configure component.
     // They're only relevant when we're not showing the ribbon view (because each ribbon has its own Configure.)
     // They're stored as ["Energy", "Air Pollution"] which is easier to work with in other components,
     // then are formatted into [["tags:Energy"], ["tags:Air Pollution"]] to be used in this component's Configure.
-    const [globalTagFilters, setGlobalTagFilters] = useState<string[]>([])
-    function addGlobalTagFilter(tag: string) {
-        setGlobalTagFilters((prev) => {
-            if (!prev) return [tag]
-            if (prev.includes(tag)) return prev
-            return prev.concat(tag)
-        })
-    }
-    function removeGlobalTagFilter(tag: string) {
-        setGlobalTagFilters((prev) => {
-            if (!prev) return []
-            return prev.filter((t) => t !== tag)
-        })
-    }
 
-    const facetFilters = globalTagFilters.map((f) => [`tags:${f}`])
-    // conjunction mode (A AND B): [[attribute:"A"], [attribute:"B"]]
-    if (mustHaveDataForAllSelectedCountries) {
-        for (const c of countrySelections) {
-            facetFilters.push([`availableEntities:${c}`])
-        }
-    } else {
-        // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
-        const orFacets: string[] = []
-        for (const c of countrySelections) {
-            orFacets.push(`availableEntities:${c}`)
-        }
-        facetFilters.push(orFacets)
-    }
+    // const [globalTagFilters, setGlobalTagFilters] = useState<string[]>([])
+    // function addGlobalTagFilter(tag: string) {
+    //     setGlobalTagFilters((prev) => {
+    //         if (!prev) return [tag]
+    //         if (prev.includes(tag)) return prev
+    //         return prev.concat(tag)
+    //     })
+    // }
+    // function removeGlobalTagFilter(tag: string) {
+    //     setGlobalTagFilters((prev) => {
+    //         if (!prev) return []
+    //         return prev.filter((t) => t !== tag)
+    //     })
+    // }
 
-    useEffect(() => {
-        const handlePopState = () => {
-            const urlParams = new URLSearchParams(window.location.search)
-            const topics = urlParams.get("topics") || ""
-            setGlobalTagFilters(topics ? topics.split(",") : [])
-            const countries = urlParams.get("countries") || ""
-            setCountrySelections(new Set(countries ? countries.split(",") : []))
-        }
-        window.addEventListener("popstate", handlePopState)
-        handlePopState()
-        return () => {
-            window.removeEventListener("popstate", handlePopState)
-        }
-    }, [])
+    // const facetFilters = globalTagFilters.map((f) => [`tags:${f}`])
+    // // conjunction mode (A AND B): [[attribute:"A"], [attribute:"B"]]
+    // if (mustHaveDataForAllSelectedCountries) {
+    //     for (const c of countrySelections) {
+    //         facetFilters.push([`availableEntities:${c}`])
+    //     }
+    // } else {
+    //     // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
+    //     const orFacets: string[] = []
+    //     for (const c of countrySelections) {
+    //         orFacets.push(`availableEntities:${c}`)
+    //     }
+    //     if (orFacets.length) {
+    //         facetFilters.push(orFacets)
+    //     }
+    // }
+
+    // const { setIndexUiState } = useInstantSearch()
+
+    // useEffect(() => {
+    //     const handlePopState = () => {
+    //         const urlParams = new URLSearchParams(window.location.search)
+    //         const topics = urlParams.get("topics") || ""
+    //         console.log("topics", topics)
+    //         // const countries = urlParams.get("countries") || ""
+    //         // setCountrySelections(new Set(countries ? countries.split(",") : []))
+    //         // setIndexUiState((prev) => {
+    //         //     const newState = cloneDeep(prev)
+    //         //     newState.configure = {
+    //         //         ...newState.configure,
+    //         //         facetFilters: [
+    //         //             ...transformRouteTopicsToFacetFilters(topics),
+    //         //             // ...transformRouteCountriesToFacetFilters(countries),
+    //         //         ],
+    //         //     }
+    //         //     return newState
+    //         // })
+    //     }
+    //     window.addEventListener("popstate", handlePopState)
+    //     return () => {
+    //         window.removeEventListener("popstate", handlePopState)
+    //     }
+    // }, [])
 
     return (
-        <InstantSearch
-            searchClient={searchClient}
-            routing={{
-                stateMapping: {
-                    stateToRoute(uiStates) {
-                        // uiStates are keyed by indexName, which is an empty string at this level
-                        const genericState = uiStates[""]
-                        const q = genericState.query
-                        const facetFilters = parseFacetFilters(
-                            genericState.configure?.facetFilters
-                        )
-                        const topics: string = facetFilters.topics.join(",")
-                        const countries = facetFilters.countries.join(",")
-
-                        return {
-                            q,
-                            topics: topics.length ? topics : undefined,
-                            countries: countries.length ? countries : undefined,
-                            requireAllCountries:
-                                mustHaveDataForAllSelectedCountries
-                                    ? "true"
-                                    : undefined,
-                        }
-                    },
-                    routeToState(routeState): UiState {
-                        const facetFilters = [
-                            ...transformRouteTopicsToFacetFilters(
-                                routeState.topics
-                            ),
-                            ...transformRouteCountriesToFacetFilters(
-                                routeState.countries
-                            ),
-                        ]
-                        return {
-                            "": {
-                                configure: {
-                                    facetFilters: facetFilters.length
-                                        ? facetFilters
-                                        : undefined,
-                                },
-                                query: routeState.q,
-                            },
-                        }
-                    },
-                },
-            }}
-        >
-            <Configure facetFilters={facetFilters} />
+        <>
+            {/* <Configure facetFilters={facetFilters} /> */}
             <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
                 <header className="data-catalog-heading span-cols-12 col-start-2">
                     <h1 className="h1-semibold">Data Catalog</h1>
@@ -724,7 +740,8 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                     </p>
                 </header>
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
-                    {/* Uses CSS to fake an input bar that will highlight correctly using focus-within
+                    {/* 
+                        Uses CSS to fake an input bar that will highlight correctly using :focus-within
                         without highlighting when the country selector is focused
                      */}
                     <div className="data-catalog-pseudoform">
@@ -748,14 +765,151 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
             </div>
             <TopicsRefinementList
                 tagGraph={props.tagGraph}
-                addGlobalTagFilter={addGlobalTagFilter}
-                removeGlobalTagFilter={removeGlobalTagFilter}
+                // addGlobalTagFilter={addGlobalTagFilter}
+                // removeGlobalTagFilter={removeGlobalTagFilter}
             />
-            <DataCatalogResults
+            {/* <DataCatalogResults
                 tagGraph={props.tagGraph}
                 addGlobalTagFilter={addGlobalTagFilter}
-            />
-            <DataCatalogLoadingSpinner />
+            /> */}
+            {/* <DataCatalogLoadingSpinner /> */}
+        </>
+    )
+}
+
+function SetIndexUiStateTest() {
+    const { setUiState } = useInstantSearch()
+    const c = useConfigure({
+        // index: CHARTS_INDEX,
+    })
+
+    return (
+        <button
+            className="span-cols-12 col-start-2"
+            onClick={() => {
+                c.refine({
+                    facetFilters: [["tags:Energy"]],
+                })
+                // setUiState((prev) => {
+                //     console.log("prev", prev)
+                //     console.log("prev[CHARTS_INDEX]", prev[CHARTS_INDEX])
+                //     return {
+                //         ...prev,
+                //         [CHARTS_INDEX]: {
+                //             ...prev[CHARTS_INDEX],
+                //             query: "new query",
+                //         },
+                //     }
+                // })
+            }}
+        >
+            Update query
+        </button>
+    )
+}
+
+// const routing: RouterProps<any, any> = {
+//     router: history(),
+//     // stateMapping: simple(),
+//     stateMapping: {
+//         stateToRoute(uiState) {
+//             const chartsState = uiState[CHARTS_INDEX]
+//             return {
+//                 q: chartsState.query,
+//                 topics: parseFacetFilters(chartsState.configure?.facetFilters)
+//                     .topics,
+//             }
+//         },
+//         routeToState(routeState) {
+//             const facetFilters = [
+//                 ...transformRouteTopicsToFacetFilters(routeState.topics),
+//                 ...transformRouteCountriesToFacetFilters(routeState.countries),
+//             ]
+//             return {
+//                 [CHARTS_INDEX]: {
+//                     query: get(routeState, ["q"], "query was undefined"),
+//                     configure: {
+//                         facetFilters: facetFilters.length
+//                             ? facetFilters
+//                             : undefined,
+//                     },
+//                 },
+//             }
+//         },
+//     },
+// }
+
+const CHARTS_INDEX = getIndexName(SearchIndexName.Charts)
+
+export function DataCatalogInstantSearchWrapper({
+    tagGraph,
+}: {
+    tagGraph: TagGraphRoot
+}) {
+    const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+
+    return (
+        <InstantSearch
+            indexName={CHARTS_INDEX}
+            searchClient={searchClient}
+            onStateChange={({ uiState, setUiState }) => {
+                console.log("state", uiState)
+                setUiState(uiState)
+            }}
+            routing={{
+                stateMapping: {
+                    stateToRoute(uiState) {
+                        console.log("calling stateToRoute")
+                        console.log("uiState", uiState)
+                        const chartIndexState = uiState[CHARTS_INDEX]
+                        const q = chartIndexState.query
+                        const facetFilters = parseFacetFilters(
+                            chartIndexState.configure?.facetFilters
+                        )
+                        console.log("facetFilters", facetFilters)
+                        const topics: string = facetFilters.topics.join(",")
+                        console.log("topics", topics)
+                        const countries = facetFilters.countries.join(",")
+                        return {
+                            q,
+                            topics: topics.length ? topics : undefined,
+                            countries: countries.length ? countries : undefined,
+                            // requireAllCountries:
+                            //     mustHaveDataForAllSelectedCountries
+                            //         ? "true"
+                            //         : undefined,
+                        }
+                    },
+                    routeToState(routeState) {
+                        console.log("calling routeToState")
+                        console.log("routeState", routeState)
+                        const facetFilters = [
+                            ...transformRouteTopicsToFacetFilters(
+                                routeState.topics
+                            ),
+                            ...transformRouteCountriesToFacetFilters(
+                                routeState.countries
+                            ),
+                        ]
+                        console.log("facetFilters", facetFilters)
+                        return {
+                            [CHARTS_INDEX]: {
+                                configure: {
+                                    facetFilters: facetFilters.length
+                                        ? facetFilters
+                                        : undefined,
+                                },
+                                query: routeState.q,
+                            },
+                        }
+                    },
+                },
+            }}
+        >
+            <SetIndexUiStateTest />
+            <Index indexName={CHARTS_INDEX}>
+                <DataCatalog tagGraph={tagGraph} />
+            </Index>
         </InstantSearch>
     )
 }
@@ -764,6 +918,9 @@ export function hydrateChartsPage() {
     const root = document.getElementById("charts-index-page-root")
     const tagGraph = window._OWID_TAG_GRAPH as TagGraphRoot
     if (root) {
-        ReactDOM.hydrate(<DataCatalog tagGraph={tagGraph} />, root)
+        ReactDOM.hydrate(
+            <DataCatalogInstantSearchWrapper tagGraph={tagGraph} />,
+            root
+        )
     }
 }
