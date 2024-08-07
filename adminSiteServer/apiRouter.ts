@@ -275,7 +275,7 @@ const expectChartById = async (
 const saveNewChart = async (
     knex: db.KnexReadWriteTransaction,
     { config, user }: { config: GrapherInterface; user: DbPlainUser }
-): Promise<{ patchConfig: GrapherInterface; fullConfig: GrapherInterface }> => {
+): Promise<GrapherInterface> => {
     // if the schema version is missing, assume it's the latest
     if (!config["$schema"]) {
         config["$schema"] = defaultGrapherConfig["$schema"]
@@ -324,7 +324,7 @@ const saveNewChart = async (
         [chartId, chartId, chartId]
     )
 
-    return { patchConfig, fullConfig }
+    return patchConfig
 }
 
 const updateExistingChart = async (
@@ -334,7 +334,7 @@ const updateExistingChart = async (
         user,
         chartId,
     }: { config: GrapherInterface; user: DbPlainUser; chartId: number }
-): Promise<{ patchConfig: GrapherInterface; fullConfig: GrapherInterface }> => {
+): Promise<GrapherInterface> => {
     // make sure that the id of the incoming config matches the chart id
     config.id = chartId
 
@@ -373,10 +373,7 @@ const updateExistingChart = async (
         [new Date(), user.id, chartId]
     )
 
-    return {
-        patchConfig,
-        fullConfig,
-    }
+    return patchConfig
 }
 
 const saveGrapher = async (
@@ -460,23 +457,18 @@ const saveGrapher = async (
 
     // Execute the actual database update or creation
     let chartId: number
-    let newFullConfig: GrapherInterface
     if (existingConfig) {
         chartId = existingConfig.id!
-        const newConfigPair = await updateExistingChart(knex, {
+        newConfig = await updateExistingChart(knex, {
             config: newConfig,
             user,
             chartId,
         })
-        newConfig = newConfigPair.patchConfig
-        newFullConfig = newConfigPair.fullConfig
     } else {
-        const newConfigPair = await saveNewChart(knex, {
+        newConfig = await saveNewChart(knex, {
             config: newConfig,
             user,
         })
-        newConfig = newConfigPair.patchConfig
-        newFullConfig = newConfigPair.fullConfig
         chartId = newConfig.id!
     }
 
@@ -484,7 +476,7 @@ const saveGrapher = async (
     const chartRevisionLog = {
         chartId: chartId as number,
         userId: user.id,
-        config: serializeChartConfig(newFullConfig),
+        config: serializeChartConfig(newConfig),
         createdAt: new Date(),
         updatedAt: new Date(),
     } satisfies DbInsertChartRevision
