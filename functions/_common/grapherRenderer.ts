@@ -150,11 +150,21 @@ async function fetchAndRenderGrapherToSvg({
 
     const url = new URL(`/grapher/${slug}`, env.url)
     const slugOnly = url.pathname.split("/").pop()
+
+    // The top level directory is either the bucket path (should be set in dev environments and production)
+    // or the branch name on preview staging environments
+    console.log("branch", env.CF_PAGES_BRANCH)
+    const topLevelDirectory = env.GRAPHER_CONFIG_R2_BUCKET_PATH
+        ? [env.GRAPHER_CONFIG_R2_BUCKET_PATH]
+        : ["by-branch", env.CF_PAGES_BRANCH]
+
     const key = excludeUndefined([
-        env.GRAPHER_CONFIG_R2_BUCKET_PATH,
+        ...topLevelDirectory,
         R2GrapherConfigDirectory.publishedGrapherBySlug,
         `${slugOnly}.json`,
     ]).join("/")
+
+    console.log("fetching grapher config from this key", key)
 
     // Fetch grapher config
     const fetchResponse = await env.r2ChartConfigs.get(key)
@@ -164,7 +174,7 @@ async function fetchAndRenderGrapherToSvg({
     }
 
     const grapherConfig: GrapherInterface = await fetchResponse.json()
-    console.log("grapher interface", grapherConfig)
+    console.log("grapher title", grapherConfig.title)
 
     const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
     const grapher = new Grapher({

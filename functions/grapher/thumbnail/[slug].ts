@@ -10,6 +10,7 @@ export interface Env {
     }
     url: URL
     GRAPHER_CONFIG_R2_BUCKET_PATH: string
+    CF_PAGES_BRANCH: string
 }
 
 const router = Router<IRequestStrict, [URL, Env, ExecutionContext]>()
