@@ -5,6 +5,7 @@ import React from "react"
 
 import { renderToHtmlPage, expectInt } from "../serverUtils/serverUtil.js"
 import {
+    getChartConfigById,
     getChartConfigBySlug,
     getChartVariableData,
 } from "../db/model/Chart.js"
@@ -25,6 +26,7 @@ import { grapherToSVG } from "../baker/GrapherImageBaker.js"
 import {
     ChartTypeName,
     ChartsTableName,
+    ColorSchemeName,
     DbRawChart,
     EntitySelectionMode,
     GrapherTabOption,
@@ -35,6 +37,11 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerChartCreationMode } from "../explorer/ExplorerConstants.js"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
+import {
+    ColorScheme,
+    ColorSchemes,
+    GrapherProgrammaticInterface,
+} from "@ourworldindata/grapher"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"
@@ -108,6 +115,7 @@ interface EmbedTestPageQueryParams {
     readonly datasetIds?: string
     readonly namespace?: string
     readonly namespaces?: string
+    readonly allColorSchemes?: string
 }
 
 interface ExplorerTestPageQueryParams {
@@ -635,6 +643,88 @@ function EmbedVariantsTestPage(
     )
 }
 
+function ColorSchemesTestPage(props: {
+    slug: string
+    tab: GrapherTabOption | undefined
+}) {
+    const style = `
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        figure, iframe {
+            border: 0;
+            flex: 1;
+            height: 550px;
+            margin: 10px;
+        }
+
+        .row {
+            padding: 10px;
+            margin: 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .side-by-side {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        h3 {
+            margin: 0;
+        }
+    `
+    return (
+        <html>
+            <head>
+                <meta
+                    name="viewport"
+                    content="width=device-width, initial-scale=1"
+                />
+                <title>Test Color schemes</title>
+                <style dangerouslySetInnerHTML={{ __html: style }} />
+            </head>
+            <body>
+                {Object.keys(ColorSchemeName).map((colorSchemeKey) => {
+                    const scheme = ColorSchemes.get(
+                        colorSchemeKey as ColorSchemeName
+                    )
+                    const overrideColorScale = {
+                        baseColorScheme: colorSchemeKey as ColorSchemeName,
+                    }
+                    const overrideConfig: Partial<GrapherProgrammaticInterface> =
+                        {
+                            baseColorScheme: colorSchemeKey as ColorSchemeName,
+                            colorScale: overrideColorScale,
+                            map: { colorScale: overrideColorScale } as any,
+                            tab: props.tab,
+                        }
+                    return (
+                        <div key={colorSchemeKey} className="row">
+                            <h3>
+                                {scheme.name} ({colorSchemeKey})
+                            </h3>
+                            <div className="side-by-side">
+                                <figure
+                                    data-grapher-src={`${BAKED_GRAPHER_URL}/${props.slug}`}
+                                    data-grapher-config={JSON.stringify(
+                                        overrideConfig
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    )
+                })}
+                <script src={`${BAKED_BASE_URL}/assets/embedCharts.js`} />
+            </body>
+        </html>
+    )
+}
+
 getPlainRouteWithROTransaction(
     testPageRouter,
     "/previews",
@@ -667,6 +757,24 @@ getPlainRouteWithROTransaction(
                     hasComparisonView={viewProps.hasComparisonView}
                 />
             )
+        )
+    }
+)
+
+getPlainRouteWithROTransaction(
+    testPageRouter,
+    "/colorSchemes",
+    async (req, res, _trx) => {
+        const slug = req.query.slug as string | undefined
+        const tab = req.query.tab as GrapherTabOption | undefined
+
+        if (!slug) {
+            res.send("No slug provided")
+            return
+        }
+
+        res.send(
+            renderToHtmlPage(<ColorSchemesTestPage slug={slug} tab={tab} />)
         )
     }
 )
