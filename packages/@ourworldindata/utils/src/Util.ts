@@ -590,7 +590,7 @@ export const fetchText = async (url: string): Promise<string> => {
 const _getUserCountryInformation = async (): Promise<
     UserCountryInformation | undefined
 > =>
-    await fetch("/detect-country")
+    await fetch("https://detect-country.owid.io")
         .then((res) => res.json())
         .then((res) => res.country)
         .catch(() => undefined)

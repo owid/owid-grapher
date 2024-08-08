@@ -51,6 +51,7 @@ import { ColumnSlug, OwidColumnDef } from "@ourworldindata/types"
 import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { loadVariableDataAndMetadata } from "../core/loadVariable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
+import { P, match } from "ts-pattern"
 
 export interface EntitySelectorState {
     searchInput: string
@@ -1070,23 +1071,65 @@ function SelectableEntity({
     }[type]
 
     const nameWords = name.split(" ")
-    const label = local ? (
-        <span className="label-with-location-icon">
-            {nameWords.slice(0, -1).join(" ")}{" "}
-            <span className="label-with-location-icon label-with-location-icon--no-line-break">
-                {nameWords[nameWords.length - 1]}
-                <Tippy
-                    content="Your current location"
-                    theme="grapher-explanation--short"
-                    placement="top"
-                >
-                    <FontAwesomeIcon icon={faLocationArrow} />
-                </Tippy>
+    let label: React.ReactNode
+    if (local) {
+        const regionInfo = regions.find((region) => region.name === name)
+        const tooltipContent = match(regionInfo?.regionType)
+            .with("country", () => "Your current country")
+            .with(
+                P.union("continent", "aggregate"),
+                () => "Your current region"
+            )
+            .with("income_group", () => (
+                <>
+                    <p>
+                        The income group that your current country belongs to.
+                    </p>
+                    <p>
+                        See the{" "}
+                        <a href="/grapher/world-bank-income-groups">
+                            World Bank income group classification
+                        </a>
+                        .
+                        {/* <img
+                            src="/grapher/exports/world-bank-income-groups.svg"
+                            height={600}
+                            width={850}
+                        /> */}
+                    </p>
+                </>
+            ))
+            .with(P.union("other", undefined), () => "Your current location")
+            .exhaustive()
+
+        const dodId = match(regionInfo?.regionType)
+            .with("country", () => "location__country")
+            .with(P.union("continent", "aggregate"), () => "location__region")
+            .with("income_group", () => "location__income_group")
+            .with(P.union("other", undefined), () => "location__other")
+            .exhaustive()
+
+        label = (
+            <span className="label-with-location-icon">
+                {nameWords.slice(0, -1).join(" ")}{" "}
+                <span className="label-with-location-icon label-with-location-icon--no-line-break">
+                    {nameWords[nameWords.length - 1]}
+                    <Tippy
+                        content={tooltipContent}
+                        placement="top"
+                        theme="grapher-explanation--short"
+                        interactive
+                        appendTo={() => document.body}
+                    >
+                        <FontAwesomeIcon icon={faLocationArrow} />
+                    </Tippy>
+                    <span className="dod-span" data-id={dodId}>
+                        DoD
+                    </span>
+                </span>
             </span>
-        </span>
-    ) : (
-        name
-    )
+        )
+    } else label = name
 
     return (
         <div

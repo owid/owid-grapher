@@ -13,7 +13,7 @@ import _ from "lodash"
 
 const ETL_REGIONS_URL =
         process.env.ETL_REGIONS_URL ||
-        "https://catalog.ourworldindata.org/grapher/regions/latest/regions/regions.csv",
+        "https://catalog.ourworldindata.org/external/owid_grapher/latest/regions/regions.csv",
     GEO_JSON_URL =
         "https://raw.githubusercontent.com/alexabruck/worldmap-sensitive/master/dist/world.geo.json",
     GRAPHER_ROOT = __dirname.replace(/\/(itsJustJavascript\/)?devTools.*/, ""),
@@ -31,6 +31,10 @@ const ETL_REGIONS_URL =
         MKD: ["Macedonia"],
         SWZ: ["Swaziland"],
         USA: ["US", "USA"],
+        OWID_LIC: ["Low-income"],
+        OWID_LMC: ["Lower-middle income"],
+        OWID_UMC: ["Upper-middle income"],
+        OWID_HIC: ["High-income"],
     }
 
 interface Entity {
