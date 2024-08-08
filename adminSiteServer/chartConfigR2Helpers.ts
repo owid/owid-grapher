@@ -13,11 +13,7 @@ import {
     PutObjectCommandInput,
     S3Client,
 } from "@aws-sdk/client-s3"
-import {
-    Base64String,
-    excludeUndefined,
-    JsonError,
-} from "@ourworldindata/utils"
+import { Base64String, JsonError } from "@ourworldindata/utils"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { createHash } from "crypto"
 
@@ -163,7 +159,7 @@ export async function deleteGrapherConfigFromR2(
     } catch (err) {
         await logErrorAndMaybeSendToBugsnag(err)
         throw new JsonError(
-            `Failed to delete the grapher config to R2 at ${path}. Inner error: ${err}`
+            `Failed to delete the grapher config to R2 at ${directory}/${filename}. Inner error: ${err}`
         )
     }
 }
