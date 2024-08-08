@@ -4,12 +4,17 @@ import cx from "classnames"
 import {
     countriesByName,
     Country,
-    debounce,
+    get,
+    isArray,
+    Region,
+    TagGraphNode,
     TagGraphRoot,
     Url,
 } from "@ourworldindata/utils"
 import {
+    Configure,
     Hits,
+    Index,
     InstantSearch,
     useConfigure,
     useInstantSearch,
@@ -17,12 +22,13 @@ import {
 } from "react-instantsearch"
 import algoliasearch from "algoliasearch"
 import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "../settings/clientSettings.js"
-import { SearchIndexName } from "./search/searchTypes.js"
+import { IChartHit, SearchIndexName } from "./search/searchTypes.js"
 import { getIndexName } from "./search/searchClient.js"
 import { ChartHit } from "./search/ChartHit.js"
-import { UiState } from "instantsearch.js"
+import { ScopedResult, UiState } from "instantsearch.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
+    faArrowRight,
     faClose,
     faMagnifyingGlass,
     faMapMarkerAlt,
@@ -103,6 +109,11 @@ type ToggleRequireAllCountriesAction = {
     type: "toggleRequireAllCountries"
 }
 
+type ResetStateAction = {
+    type: "resetState"
+    state: DataCatalogState
+}
+
 type DataCatalogAction =
     | AddTopicAction
     | RemoveTopicAction
@@ -110,6 +121,7 @@ type DataCatalogAction =
     | AddCountryAction
     | RemoveCountryAction
     | ToggleRequireAllCountriesAction
+    | ResetStateAction
 
 const dataCatalogReducer = (
     state: DataCatalogState,
@@ -147,6 +159,8 @@ const dataCatalogReducer = (
                 ...state,
                 requireAllCountries: !state.requireAllCountries,
             }
+        case "resetState":
+            return action.state
         default:
             return state
     }
@@ -327,63 +341,232 @@ const SelectedCountriesPills = ({
     )
 }
 
-// const DataCatalogResults = ({
-//     tagGraph,
-//     addGlobalTagFilter,
-// }: {
-//     tagGraph: TagGraphRoot
-//     addGlobalTagFilter: (tag: string) => void
-// }) => {
-//     const { uiState, status } = useInstantSearch()
-//     const genericState = uiState[""]
-//     const query = genericState.query
-//     const countrySelections = getRegionsFromSelectedEntitiesFacets(
-//         genericState.configure?.facetFilters
-//     )
-//     const facetFilters = parseFacetFilters(genericState.configure?.facetFilters)
-//     const areaNames = tagGraph.children.map((child) => child.name)
-//     const isLoading = status === "loading" || status === "stalled"
-//     const shouldShowRibbons = checkShouldShowRibbonView(
-//         query,
-//         facetFilters.topics,
-//         areaNames
-//     )
+function checkIfNoTopicsOrOneAreaTopicApplied(
+    topics: Set<string>,
+    areas: Set<string>
+) {
+    if (topics.size === 0) return true
+    if (topics.size > 1) return false
 
-//     if (shouldShowRibbons)
-//         return (
-//             <DataCatalogRibbonView
-//                 isLoading={isLoading}
-//                 tagGraph={tagGraph}
-//                 tagToShow={facetFilters.topics[0]}
-//                 addGlobalTagFilter={addGlobalTagFilter}
-//             />
-//         )
+    const [tag] = topics.values()
+    return areas.has(tag)
+}
 
-//     return (
-//         <Index indexName={CHARTS_INDEX}>
-//             <Hits
-//                 classNames={{
-//                     root: cx(
-//                         "data-catalog-search-hits span-cols-12 col-start-2",
-//                         {
-//                             "data-catalog-search-hits--is-loading": isLoading,
-//                         }
-//                     ),
-//                     item: "data-catalog-search-hit",
-//                     list: "data-catalog-search-list grid grid-cols-4",
-//                 }}
-//                 hitComponent={({ hit }: any) => (
-//                     <ChartHit
-//                         hit={hit}
-//                         searchQueryRegionsMatches={countrySelections}
-//                     />
-//                 )}
-//             />
-//         </Index>
-//     )
-// }
+function checkShouldShowRibbonView(
+    query: string,
+    topics: Set<string>,
+    areaNames: Set<string>
+): boolean {
+    return (
+        query === "" && checkIfNoTopicsOrOneAreaTopicApplied(topics, areaNames)
+    )
+}
 
-function dataCatalogStateToQueryParams(state: DataCatalogState) {
+type FacetFilters = string | undefined | readonly (string | readonly string[])[]
+
+// takes the chaotically-typed facetFilters from instantsearch's UI state
+// and returns a list of tags
+// e.g. [["tags:Energy"], ["tags:Air Pollution"], ["availableEntities": "New Zealand"]] => { topics: ["Energy", "Air Pollution"], countries: ["New Zealand"] }
+// TODO: is this handling the disjunctive case correctly?
+function parseFacetFilters(facetFilters: FacetFilters): {
+    topics: string[]
+    countries: string[]
+} {
+    if (!isArray(facetFilters)) return { topics: [], countries: [] }
+    return facetFilters.flat<string[]>().reduce(
+        (facets, filter: string) => {
+            const match = filter.match(/^(tags|availableEntities):(.*)$/)
+            if (match) {
+                if (match[1] === "tags") facets.topics.push(match[2])
+                if (match[1] === "availableEntities")
+                    facets.countries.push(match[2])
+            }
+            return facets
+        },
+        { topics: [] as string[], countries: [] as string[] }
+    )
+}
+
+function getNbHitsForTag(tag: string, results: ScopedResult[]) {
+    const result = results.find((r) => {
+        // for some reason I can only find facetFilters in the internal _state object
+        const facets = parseFacetFilters(
+            get(r, ["results", "_state", "facetFilters"])
+        )
+        return facets.topics.includes(tag)
+    })
+    return result ? result.results.nbHits : undefined
+}
+
+const DataCatalogRibbon = ({
+    tagName,
+    addTopic,
+    countries,
+}: {
+    tagName: string
+    addTopic: (x: string) => void
+    countries: Set<string>
+}) => {
+    const { scopedResults } = useInstantSearch()
+    const nBHits = getNbHitsForTag(tagName, scopedResults)
+    const countryData = [...countries].map(
+        (country) => countriesByName()[country]
+    )
+
+    if (nBHits === 0) {
+        return null
+    }
+
+    return (
+        <Index indexName={CHARTS_INDEX}>
+            <Configure facetFilters={[`tags:${tagName}`]} />
+            <div className="data-catalog-ribbon">
+                <a
+                    // TODO: update this with the rest of the query params
+                    href={`/charts?topics=${tagName}`}
+                    onClick={(e) => {
+                        e.preventDefault()
+                        addTopic(tagName)
+                    }}
+                >
+                    <div className="data-catalog-ribbon__header">
+                        <h2 className="body-1-regular">{tagName}</h2>
+                        <span className="data-catalog-ribbon__hit-count body-2-semibold">
+                            {nBHits} indicators
+                            <FontAwesomeIcon icon={faArrowRight} />
+                        </span>
+                    </div>
+                </a>
+                <Hits
+                    classNames={{
+                        root: "data-catalog-ribbon-hits",
+                        item: "data-catalog-ribbon-hit",
+                        list: "data-catalog-ribbon-list grid grid-cols-4",
+                    }}
+                    hitComponent={({ hit }: { hit: IChartHit }) => (
+                        <ChartHit
+                            hit={hit}
+                            searchQueryRegionsMatches={countryData}
+                        />
+                    )}
+                />
+            </div>
+        </Index>
+    )
+}
+
+function getAreaChildrenFromTag(
+    tagGraph: TagGraphRoot,
+    tag: string | undefined
+) {
+    const areas: TagGraphNode[] = []
+    if (tag) {
+        const tagNode = tagGraph.children.find((child) => child.name === tag)
+        if (tagNode) areas.push(...tagNode.children)
+    } else {
+        areas.push(...tagGraph.children)
+    }
+    return areas
+}
+
+const DataCatalogRibbonView = ({
+    tagGraph,
+    tagToShow,
+    addTopic,
+    isLoading,
+    countries,
+}: {
+    tagGraph: TagGraphRoot
+    tagToShow: string | undefined
+    addTopic: (x: string) => void
+    isLoading: boolean
+    countries: Set<string>
+}) => {
+    console.log("rendering ribbon view")
+    const areas = getAreaChildrenFromTag(tagGraph, tagToShow)
+    // For some reason, setting this in the DataCatalogRibbon Configure component doesn't work
+    const __ = useConfigure({
+        hitsPerPage: 4,
+    })
+
+    return (
+        <div
+            className={cx("span-cols-12 col-start-2 data-catalog-ribbons", {
+                "data-catalog-ribbons--is-loading": isLoading,
+            })}
+        >
+            {areas.map((area) => (
+                <DataCatalogRibbon
+                    tagName={area.name}
+                    key={area.name}
+                    addTopic={addTopic}
+                    countries={countries}
+                />
+            ))}
+        </div>
+    )
+}
+
+const DataCatalogResults = ({
+    query,
+    topics,
+    tagGraph,
+    addTopic,
+    countries,
+}: {
+    tagGraph: TagGraphRoot
+    addTopic: (tag: string) => void
+    query: string
+    topics: Set<string>
+    countries: Set<string>
+}) => {
+    console.log("rendering results")
+    // const { status } = useInstantSearch()
+    const areaNames = new Set(tagGraph.children.map((child) => child.name))
+    const isLoading = false
+
+    const shouldShowRibbons = checkShouldShowRibbonView(
+        query,
+        topics,
+        areaNames
+    )
+    const countryData = [...countries].map(
+        (country) => countriesByName()[country]
+    )
+
+    return shouldShowRibbons ? (
+        <DataCatalogRibbonView
+            isLoading={isLoading}
+            tagGraph={tagGraph}
+            tagToShow={topics.values().next().value}
+            addTopic={addTopic}
+            countries={countries}
+        />
+    ) : (
+        <Index indexName={CHARTS_INDEX}>
+            <Hits
+                classNames={{
+                    root: cx(
+                        "data-catalog-search-hits span-cols-12 col-start-2",
+                        {
+                            "data-catalog-search-hits--is-loading": isLoading,
+                        }
+                    ),
+                    item: "data-catalog-search-hit",
+                    list: "data-catalog-search-list grid grid-cols-4",
+                }}
+                hitComponent={({ hit }: any) => (
+                    <ChartHit
+                        hit={hit}
+                        searchQueryRegionsMatches={countryData}
+                    />
+                )}
+            />
+        </Index>
+    )
+}
+
+function dataCatalogStateToUrl(state: DataCatalogState) {
     let url = Url.fromURL(window.location.href)
     const serializeSet = (set: Set<string>) =>
         set.size ? [...set].join(",") : undefined
@@ -413,47 +596,23 @@ export const DataCatalog = (props: {
     const _ = useSearchBox()
     const __ = useConfigure({})
 
-    const debouncedIO = useMemo(() => {
-        return debounce((query, topics, countries, requireAllCountries) => {
-            console.log("searching for", query)
-            console.log("topics", topics)
-            stableSetUiState(
-                dataCatalogStateToUiState({
-                    query,
-                    topics,
-                    countries,
-                    requireAllCountries,
-                })
-            )
-
-            // set query params
-            const newUrl = dataCatalogStateToQueryParams({
-                query,
-                topics,
-                countries,
-                requireAllCountries,
-            })
-            window.history.pushState({}, "", newUrl)
-        }, 50)
-    }, [stableSetUiState])
+    useEffect(() => {
+        // set instantsearch state
+        stableSetUiState(dataCatalogStateToUiState(state))
+        // set url
+        window.history.pushState({}, "", dataCatalogStateToUrl(state))
+    }, [state, stableSetUiState])
 
     useEffect(() => {
-        debouncedIO(
-            state.query,
-            state.topics,
-            state.countries,
-            state.requireAllCountries
-        )
-        return () => {
-            debouncedIO.cancel()
+        const handlePopState = () => {
+            const url = Url.fromURL(window.location.href)
+            dispatch({ type: "resetState", state: urlToDataCatalogState(url) })
         }
-    }, [
-        state.query,
-        state.topics,
-        state.countries,
-        state.requireAllCountries,
-        debouncedIO,
-    ])
+        window.addEventListener("popstate", handlePopState)
+        return () => {
+            window.removeEventListener("popstate", handlePopState)
+        }
+    }, [])
 
     return (
         <>
@@ -500,16 +659,15 @@ export const DataCatalog = (props: {
                     />
                 </div>
             </div>
-            <div className="grid">
-                <Hits
-                    classNames={{
-                        root: "grid span-cols-12",
-                        list: "grid span-cols-12 list-style-none",
-                        item: "span-cols-4",
-                    }}
-                    hitComponent={ChartHit}
-                />
-            </div>
+            <DataCatalogResults
+                query={state.query}
+                topics={state.topics}
+                tagGraph={props.tagGraph}
+                addTopic={(topic: string) =>
+                    dispatch({ type: "addTopic", topic })
+                }
+                countries={state.countries}
+            />
         </>
     )
 }
@@ -537,6 +695,15 @@ function dataCatalogStateToUiState(state: DataCatalogState): UiState {
     }
 }
 
+function urlToDataCatalogState(url: Url): DataCatalogState {
+    return {
+        query: url.queryParams.q || "",
+        topics: new Set(url.queryParams.topics?.split(",") || []),
+        countries: new Set(url.queryParams.countries?.split(",") || []),
+        requireAllCountries: url.queryParams.requireAllCountries === "true",
+    }
+}
+
 function getInitialDatacatalogState(): DataCatalogState {
     if (typeof window === "undefined")
         return {
@@ -547,12 +714,7 @@ function getInitialDatacatalogState(): DataCatalogState {
         }
 
     const url = Url.fromURL(window.location.href)
-    return {
-        query: url.queryParams.q || "",
-        topics: new Set(url.queryParams.topics?.split(",") || []),
-        countries: new Set(url.queryParams.countries?.split(",") || []),
-        requireAllCountries: url.queryParams.requireAllCountries === "true",
-    }
+    return urlToDataCatalogState(url)
 }
 
 export function DataCatalogInstantSearchWrapper({
