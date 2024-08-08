@@ -13,6 +13,11 @@ properties:
         description: Url of the concrete schema version to use to validate this document
         format: uri
         default: "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
+        # for now, we only use the schema to validate configs in our database.
+        # since we expect all configs in our database to be valid against the latest schema,
+        # we restrict the $schema field to a single value, the latest schema version.
+        # if we ever need to validate configs against multiple schema versions,
+        # we can remove this const constraint.
         const: "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
     id:
         type: integer
