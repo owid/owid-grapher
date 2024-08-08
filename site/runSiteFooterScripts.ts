@@ -21,7 +21,7 @@ import {
 } from "./DataInsightsIndexPageContent.js"
 import { runAllGraphersLoadedListener } from "./runAllGraphersLoadedListener.js"
 import { hydrateMultiDimDataPageContent } from "./multiDim/MultiDimDataPageContent.js"
-import { hydrateChartsPage } from "./DataCatalog.js"
+import { hydrateChartsPage } from "./DataCatalogWithReducer.js"
 
 export const runSiteFooterScripts = (
     args:

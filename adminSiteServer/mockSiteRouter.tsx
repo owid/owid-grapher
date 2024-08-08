@@ -329,6 +329,7 @@ getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/charts*",
     async (req, res, trx) => {
+        console.log("returning charts page")
         res.send(await renderChartsPage(trx))
     }
 )
