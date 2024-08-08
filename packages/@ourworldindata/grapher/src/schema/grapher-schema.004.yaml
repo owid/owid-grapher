@@ -1,5 +1,7 @@
 $schema: "http://json-schema.org/draft-07/schema#"
 $id: "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
+# if you update the required keys, make sure that the mergeGrapherConfigs and
+# diffGrapherConfigs functions reflects the change
 required:
     - $schema
     - dimensions
