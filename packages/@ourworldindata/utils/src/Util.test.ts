@@ -29,12 +29,17 @@ import {
     traverseEnrichedBlock,
     cartesian,
     formatInlineList,
+    base64ToBytes,
+    bytesToBase64,
+    hexToBytes,
+    bytesToHex,
 } from "./Util.js"
 import {
     BlockImageSize,
     OwidEnrichedGdocBlock,
     SortOrder,
 } from "@ourworldindata/types"
+import { webcrypto as crypto } from "node:crypto"
 
 describe(findClosestTime, () => {
     describe("without tolerance", () => {
@@ -793,5 +798,26 @@ describe(formatInlineList, () => {
         expect(formatInlineList(["a", "b", "c", "d"], "or")).toEqual(
             "a, b, c or d"
         )
+    })
+})
+
+function generateRandomBytes(length: number): Uint8Array {
+    const bytes = new Uint8Array(length)
+    crypto.getRandomValues(bytes)
+    return bytes
+}
+
+describe("hex/base64 conversion is reversible", () => {
+    const originalBytes = generateRandomBytes(33)
+    const base64String = bytesToBase64(originalBytes)
+    const roundTrippedBytes = base64ToBytes(base64String)
+    it("is the same after converting to base64 and back", () => {
+        expect(originalBytes).toEqual(roundTrippedBytes)
+    })
+
+    const hexString = bytesToHex(originalBytes)
+    const roundTrippedBytesHex = hexToBytes(hexString)
+    it("is the same after converting to hex and back", () => {
+        expect(originalBytes).toEqual(roundTrippedBytesHex)
     })
 })
