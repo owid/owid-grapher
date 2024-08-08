@@ -97,9 +97,7 @@ it("can group data by entity and time", () => {
 
     const timeValues = Array.from(
         table.get("Population").valueByEntityNameAndOriginalTime.values()
-    )
-        .map((value) => Array.from(value.values()))
-        .flat()
+    ).flatMap((value) => Array.from(value.values()))
 
     expect(timeValues.length).toEqual(50)
     expect(timeValues.filter((value) => isNaN(value as number))).toEqual([])

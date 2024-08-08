@@ -812,10 +812,8 @@ const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
         (item): item is EnrichedBlockText => item.type === "text"
     )
 
-    const otherBlockErrors = otherBlocks
-        .map((block) => block.parseErrors)
-        .flat()
-    const textBlockErrors = textBlocks.map((block) => block.parseErrors).flat()
+    const otherBlockErrors = otherBlocks.flatMap((block) => block.parseErrors)
+    const textBlockErrors = textBlocks.flatMap((block) => block.parseErrors)
 
     const simpleTextSpans: SpanSimpleText[] = []
     const unexpectedTextSpanErrors: ParseError[] = []

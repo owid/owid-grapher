@@ -641,7 +641,7 @@ export class ScatterPlotChart
                     }))
 
                 // sample points from line segments with a fixed step size
-                return pairs(points, (a, b) => {
+                return pairs(points).flatMap(([a, b]) => {
                     const numPoints =
                             2 + // always include endpoints
                             Math.floor(
@@ -662,7 +662,7 @@ export class ScatterPlotChart
                         x: point.x,
                         y: point.y,
                     }))
-                }).flat()
+                })
             }
         )
 

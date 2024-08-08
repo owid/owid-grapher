@@ -4,20 +4,18 @@
 import { SiteNavigationStatic } from "../../site/SiteNavigation.js"
 
 const testSiteNavigation = async () => {
-    const slugs = SiteNavigationStatic.categories
-        .map((category) => {
-            const categorySlugs = category.entries
-                .map((entry) => entry.slug)
-                .concat(
-                    (category.subcategories?.length &&
-                        category.subcategories.flatMap((subcategory) =>
-                            subcategory.entries.map((entry) => entry.slug)
-                        )) ||
-                        []
-                )
-            return categorySlugs
-        })
-        .flat()
+    const slugs = SiteNavigationStatic.categories.flatMap((category) => {
+        const categorySlugs = category.entries
+            .map((entry) => entry.slug)
+            .concat(
+                (category.subcategories?.length &&
+                    category.subcategories.flatMap((subcategory) =>
+                        subcategory.entries.map((entry) => entry.slug)
+                    )) ||
+                    []
+            )
+        return categorySlugs
+    })
 
     let promises = slugs.map((slug) => {
         return fetch(`https://ourworldindata.org/${slug}`, {
