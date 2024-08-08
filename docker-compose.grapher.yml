@@ -28,7 +28,6 @@ services:
     # Stock mysql database. Root password is hardcoded for now
     db:
         image: mysql/mysql-server:latest
-        command: --default-authentication-plugin=mysql_native_password
         restart: always
         volumes:
             - ./devTools/docker/my.cnf:/etc/my.cnf:ro
