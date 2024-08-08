@@ -5,7 +5,6 @@ import {
     range,
     difference,
     intersection,
-    flatten,
     sum,
     uniqBy,
     intersectionOfSets,
@@ -341,7 +340,7 @@ export class CoreTable<
     }
 
     toOneDimensionalArray(): any {
-        return flatten(this.toTypedMatrix().slice(1))
+        return this.toTypedMatrix().slice(1).flat()
     }
 
     private setColumn(def: COL_DEF_TYPE): void {
@@ -1431,7 +1430,7 @@ export class CoreTable<
 
     concat(tables: CoreTable[], message: string = `Combined tables`): this {
         const all = [this, ...tables] as CoreTable[]
-        const defs = flatten(all.map((table) => table.defs)) as COL_DEF_TYPE[]
+        const defs = all.flatMap((table) => table.defs) as COL_DEF_TYPE[]
         const uniqDefs = uniqBy(defs, (def) => def.slug)
         return this.transform(
             concatColumnStores(

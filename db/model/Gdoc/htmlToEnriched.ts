@@ -47,14 +47,7 @@ import {
     EnrichedBlockAllCharts,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
-import {
-    compact,
-    flatten,
-    get,
-    isArray,
-    isPlainObject,
-    partition,
-} from "lodash"
+import { compact, get, isArray, isPlainObject, partition } from "lodash"
 import cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
 
@@ -1811,8 +1804,8 @@ export function withoutEmptyOrWhitespaceOnlyTextBlocks(
 export function joinBlockParseResults<T>(
     results: BlockParseResult<T>[]
 ): BlockParseResult<T> {
-    const errors = flatten(results.map((r) => r.errors))
-    const content = flatten(results.map((r) => r.content))
+    const errors = results.flatMap((r) => r.errors)
+    const content = results.flatMap((r) => r.content)
     return { errors, content }
 }
 

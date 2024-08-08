@@ -1,10 +1,4 @@
-import {
-    flatten,
-    ColumnSlug,
-    zip,
-    uniq,
-    cloneDeep,
-} from "@ourworldindata/utils"
+import { ColumnSlug, zip, uniq, cloneDeep } from "@ourworldindata/utils"
 import {
     ErrorValue,
     CoreColumnDef,
@@ -209,7 +203,7 @@ const rollingAverage: Transform = {
             currentValues.push(value)
             currentTimes.push(time)
         }
-        return flatten(groups)
+        return groups.flat()
     },
 }
 

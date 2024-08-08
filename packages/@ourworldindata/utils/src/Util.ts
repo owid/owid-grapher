@@ -13,7 +13,6 @@ import {
     dropWhile,
     escapeRegExp,
     extend,
-    flatten,
     get,
     groupBy,
     identity,
@@ -85,7 +84,6 @@ export {
     dropWhile,
     escapeRegExp,
     extend,
-    flatten,
     get,
     groupBy,
     identity,
@@ -1084,7 +1082,7 @@ export function getClosestTimePairs(
         indexB = closestIndexInB
     }
 
-    const seenTimes = new Set(flatten(decidedPairs))
+    const seenTimes = new Set(decidedPairs.flat())
 
     sortBy(undecidedPairs, (pair) => Math.abs(pair[0] - pair[1])).forEach(
         (pair) => {

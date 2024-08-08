@@ -37,7 +37,7 @@ export const ChartsIndexPage = (props: {
 
     const allTags = lodash.sortBy(
         lodash.uniqBy(
-            lodash.flatten(chartItems.map((item) => item.tags)),
+            chartItems.flatMap((item) => item.tags),
             (tag) => tag.id
         ),
         (tag) => tag.name

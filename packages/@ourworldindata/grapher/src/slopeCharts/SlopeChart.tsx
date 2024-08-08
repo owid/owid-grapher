@@ -9,7 +9,6 @@ import {
     last,
     sortBy,
     max,
-    flatten,
     getRelativeMouse,
     domainExtent,
     minBy,
@@ -783,7 +782,7 @@ class LabelledSlopes
     }
 
     @computed private get allValues() {
-        return flatten(this.props.seriesArr.map((g) => g.values))
+        return this.props.seriesArr.flatMap((g) => g.values)
     }
 
     @computed private get xDomainDefault(): [number, number] {

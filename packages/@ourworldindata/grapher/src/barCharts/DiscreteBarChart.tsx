@@ -6,7 +6,6 @@ import {
     sortBy,
     exposeInstanceOnWindow,
     uniq,
-    flatten,
     Bounds,
     DEFAULT_BOUNDS,
     Time,
@@ -683,10 +682,8 @@ export class DiscreteBarChart
     }
 
     @computed private get columnsAsSeries(): DiscreteBarItem[] {
-        return flatten(
-            this.yColumns.map((col) =>
-                this.constructSeries(col, col.validRowIndices.slice(0, 1))
-            )
+        return this.yColumns.flatMap((col) =>
+            this.constructSeries(col, col.validRowIndices.slice(0, 1))
         )
     }
 

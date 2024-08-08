@@ -10,7 +10,6 @@ import {
     getRelativeMouse,
     pointsToPath,
     minBy,
-    flatten,
     last,
     exposeInstanceOnWindow,
     round,
@@ -369,7 +368,7 @@ export class LineChart
     }
 
     @computed private get allValues(): LinePoint[] {
-        return flatten(this.placedSeries.map((series) => series.points))
+        return this.placedSeries.flatMap((series) => series.points)
     }
 
     @observable tooltipState = new TooltipState<{
@@ -1130,19 +1129,17 @@ export class LineChart
     }
 
     @computed get series(): readonly LineChartSeries[] {
-        return flatten(
-            this.yColumns.map((col) =>
-                col.uniqEntityNames.map(
-                    (entityName): LineChartSeries =>
-                        this.constructSingleSeries(entityName, col)
-                )
+        return this.yColumns.flatMap((col) =>
+            col.uniqEntityNames.map(
+                (entityName): LineChartSeries =>
+                    this.constructSingleSeries(entityName, col)
             )
         )
     }
 
     // TODO: remove, seems unused
     @computed get allPoints(): LinePoint[] {
-        return flatten(this.series.map((series) => series.points))
+        return this.series.flatMap((series) => series.points)
     }
 
     @computed get placedSeries(): PlacedLineChartSeries[] {

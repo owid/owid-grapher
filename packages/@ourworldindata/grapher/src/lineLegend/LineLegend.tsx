@@ -8,7 +8,6 @@ import {
     min,
     sortBy,
     sumBy,
-    flatten,
     makeIdForHumanConsumption,
     excludeUndefined,
     sortedIndexBy,
@@ -376,7 +375,7 @@ export class LineLegend extends React.Component<{
             }
         }
 
-        return flatten(groups)
+        return groups.flat()
     }
 
     @computed get sortedSeriesByImportance(): PlacedSeries[] | undefined {

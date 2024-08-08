@@ -19,7 +19,6 @@ import {
 import {
     diffDateISOStringInDays,
     difference,
-    flatten,
     getYearFromISOStringAndDayOffset,
     intersection,
     isNumber,
@@ -46,10 +45,8 @@ export const legacyToOwidTableAndDimensions = (
 ): { dimensions: OwidChartDimensionInterface[]; table: OwidTable } => {
     // Entity meta map
 
-    const entityMeta = flatten(
-        [...json.values()].map(
-            (value) => value.metadata.dimensions.entities.values
-        )
+    const entityMeta = [...json.values()].flatMap(
+        (value) => value.metadata.dimensions.entities.values
     )
     const entityMetaById: OwidEntityKey = Object.fromEntries(
         entityMeta.map((entity) => [entity.id.toString(), entity])

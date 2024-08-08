@@ -10,7 +10,6 @@ import {
     getRelativeMouse,
     intersection,
     last,
-    flatten,
     first,
     isEmpty,
     guid,
@@ -226,7 +225,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                 .filter((x) => x) as ScatterLabel[]
         }
 
-        const labels = flatten(renderData.map((series) => series.allLabels))
+        const labels = renderData.flatMap((series) => series.allLabels)
 
         // Ensure labels fit inside bounds
         // Must do before collision detection since it'll change the positions

@@ -1,4 +1,3 @@
-import { flatten } from "@ourworldindata/utils"
 import chunk from "chunk-text"
 
 export const chunkWords = (text: string, maxChunkLength: number): string[] =>
@@ -11,13 +10,12 @@ export const chunkSentences = (
     // See https://stackoverflow.com/a/25736082/1983739
     // Not perfect, just works in most cases
     const sentenceRegex = /(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\n)\s/g
-    const sentences = flatten(
-        text
-            .split(sentenceRegex)
-            .map((s) =>
-                s.length > maxChunkLength ? chunkWords(s, maxChunkLength) : s
-            )
-    )
+    const sentences = text
+        .split(sentenceRegex)
+        .flatMap((s) =>
+            s.length > maxChunkLength ? chunkWords(s, maxChunkLength) : s
+        )
+
         .map((s) => s.trim())
         .filter((s) => s)
         .reverse() as string[]
@@ -49,15 +47,11 @@ export const chunkParagraphs = (
     text: string,
     maxChunkLength: number
 ): string[] => {
-    const paragraphs = flatten(
-        text
-            .split("\n\n")
-            .map((p) =>
-                p.length > maxChunkLength
-                    ? chunkSentences(p, maxChunkLength)
-                    : p
-            )
-    )
+    const paragraphs = text
+        .split("\n\n")
+        .flatMap((p) =>
+            p.length > maxChunkLength ? chunkSentences(p, maxChunkLength) : p
+        )
         .map((p) => p.trim())
         .filter((p) => p)
         .reverse() as string[]

@@ -156,7 +156,6 @@ export {
     dropRightWhile,
     dropWhile,
     extend,
-    flatten,
     get,
     groupBy,
     identity,

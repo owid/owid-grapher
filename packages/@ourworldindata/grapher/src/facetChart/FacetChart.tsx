@@ -4,7 +4,6 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     excludeUndefined,
-    flatten,
     getIdealGridParams,
     max,
     maxBy,
@@ -719,11 +718,11 @@ export class FacetChart
 
     @computed get numericLegendData(): ColorScaleBin[] {
         if (!this.isNumericLegend || !this.hideFacetLegends) return []
-        const allBins: ColorScaleBin[] = flatten(
-            this.externalLegends.map((legend) => [
+        const allBins: ColorScaleBin[] = this.externalLegends.flatMap(
+            (legend) => [
                 ...(legend.numericLegendData ?? []),
                 ...(legend.categoricalLegendData ?? []),
-            ])
+            ]
         )
         const uniqBins = this.getUniqBins(allBins)
         const sortedBins = sortBy(
@@ -735,12 +734,12 @@ export class FacetChart
 
     @computed get categoricalLegendData(): CategoricalBin[] {
         if (this.isNumericLegend || !this.hideFacetLegends) return []
-        const allBins: CategoricalBin[] = flatten(
-            this.externalLegends.map((legend) => [
+        const allBins: CategoricalBin[] = this.externalLegends
+            .flatMap((legend) => [
                 ...(legend.numericLegendData ?? []),
                 ...(legend.categoricalLegendData ?? []),
             ])
-        ).filter((bin) => bin instanceof CategoricalBin) as CategoricalBin[]
+            .filter((bin) => bin instanceof CategoricalBin) as CategoricalBin[]
         const uniqBins = this.getUniqBins(allBins)
         const newBins = uniqBins.map(
             // remap index to ensure it's unique (the above procedure can lead to duplicates)

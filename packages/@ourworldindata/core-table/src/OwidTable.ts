@@ -4,7 +4,6 @@ import {
     intersectionOfSets,
     findClosestTimeIndex,
     sumBy,
-    flatten,
     uniq,
     sortNumeric,
     last,
@@ -155,11 +154,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         // todo: should be easy to speed up if necessary.
         return sortNumeric(
             uniq(
-                flatten(
-                    this.getColumns(columnSlugs)
-                        .filter((col) => col)
-                        .map((col) => col.uniqTimesAsc)
-                )
+                this.getColumns(columnSlugs)
+                    .filter((col) => col)
+                    .flatMap((col) => col.uniqTimesAsc)
             )
         )
     }
@@ -441,50 +438,45 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 )
             return def
         })
-        const newRows = flatten(
-            Object.values(
-                groupBy(
-                    this.sortedByTime.rows,
-                    (row) => row[this.entityNameSlug]
-                )
-            ).map((rowsForSingleEntity) => {
-                columnSlugs.forEach((valueSlug) => {
-                    let comparisonValue: number
-                    rowsForSingleEntity = rowsForSingleEntity.map(
-                        (row: Readonly<OwidRow>) => {
-                            const newRow = {
-                                ...row,
-                            }
-
-                            const value = row[valueSlug]
-
-                            if (row[timeColumnSlug] < startTimeBound) {
-                                newRow[valueSlug] =
-                                    ErrorValueTypes.MissingValuePlaceholder
-                            } else if (!isNumber(value)) {
-                                newRow[valueSlug] =
-                                    ErrorValueTypes.NaNButShouldBeNumber
-                            } else if (comparisonValue !== undefined) {
-                                // Note: comparisonValue can be negative!
-                                // +value / -comparisonValue = negative growth, which is incorrect.
-                                newRow[valueSlug] =
-                                    (100 * (value - comparisonValue)) /
-                                    Math.abs(comparisonValue)
-                            } else if (value === 0) {
-                                newRow[valueSlug] =
-                                    ErrorValueTypes.MissingValuePlaceholder
-                            } else {
-                                comparisonValue = value
-                                newRow[valueSlug] = 0
-                            }
-
-                            return newRow
+        const newRows = Object.values(
+            groupBy(this.sortedByTime.rows, (row) => row[this.entityNameSlug])
+        ).flatMap((rowsForSingleEntity) => {
+            columnSlugs.forEach((valueSlug) => {
+                let comparisonValue: number
+                rowsForSingleEntity = rowsForSingleEntity.map(
+                    (row: Readonly<OwidRow>) => {
+                        const newRow = {
+                            ...row,
                         }
-                    )
-                })
-                return rowsForSingleEntity
+
+                        const value = row[valueSlug]
+
+                        if (row[timeColumnSlug] < startTimeBound) {
+                            newRow[valueSlug] =
+                                ErrorValueTypes.MissingValuePlaceholder
+                        } else if (!isNumber(value)) {
+                            newRow[valueSlug] =
+                                ErrorValueTypes.NaNButShouldBeNumber
+                        } else if (comparisonValue !== undefined) {
+                            // Note: comparisonValue can be negative!
+                            // +value / -comparisonValue = negative growth, which is incorrect.
+                            newRow[valueSlug] =
+                                (100 * (value - comparisonValue)) /
+                                Math.abs(comparisonValue)
+                        } else if (value === 0) {
+                            newRow[valueSlug] =
+                                ErrorValueTypes.MissingValuePlaceholder
+                        } else {
+                            comparisonValue = value
+                            newRow[valueSlug] = 0
+                        }
+
+                        return newRow
+                    }
+                )
             })
-        )
+            return rowsForSingleEntity
+        })
 
         return this.transform(
             newRows,

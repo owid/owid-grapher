@@ -6,7 +6,6 @@ import {
     max,
     maxBy,
     last,
-    flatten,
     excludeUndefined,
     sumBy,
     partition,
@@ -573,7 +572,7 @@ export class MarimekkoChart
     }
 
     @computed private get allPoints(): StackedPoint<EntityName>[] {
-        return flatten(this.series.map((series) => series.points))
+        return this.series.flatMap((series) => series.points)
     }
 
     @computed private get yDomainDefault(): [number, number] {

@@ -5,7 +5,6 @@ import {
     LoadingIndicator,
 } from "@ourworldindata/grapher"
 import {
-    flatten,
     PostReference,
     RelatedChart,
     serializeJSONForHTML,
@@ -92,21 +91,19 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 `}</style>
                 </noscript>
                 <link rel="preconnect" href={dataApiOrigin} />
-                {flatten(
-                    variableIds.map((variableId) =>
-                        [
-                            getVariableDataRoute(DATA_API_URL, variableId),
-                            getVariableMetadataRoute(DATA_API_URL, variableId),
-                        ].map((href) => (
-                            <link
-                                key={href}
-                                rel="preload"
-                                href={href}
-                                as="fetch"
-                                crossOrigin="anonymous"
-                            />
-                        ))
-                    )
+                {variableIds.flatMap((variableId) =>
+                    [
+                        getVariableDataRoute(DATA_API_URL, variableId),
+                        getVariableMetadataRoute(DATA_API_URL, variableId),
+                    ].map((href) => (
+                        <link
+                            key={href}
+                            rel="preload"
+                            href={href}
+                            as="fetch"
+                            crossOrigin="anonymous"
+                        />
+                    ))
                 )}
                 <link
                     rel="preload"

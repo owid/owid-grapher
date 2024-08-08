@@ -1,5 +1,4 @@
 import {
-    flatten,
     keyBy,
     sortNumeric,
     uniq,
@@ -68,9 +67,9 @@ export const withMissingValuesAsZeroes = <
 ): StackedSeries<PositionType>[] => {
     let allXValuesSorted = sortNumeric(
         uniq(
-            flatten(seriesArr.map((series) => series.points)).map(
-                (point) => point.position
-            )
+            seriesArr
+                .flatMap((series) => series.points)
+                .map((point) => point.position)
         )
     )
 

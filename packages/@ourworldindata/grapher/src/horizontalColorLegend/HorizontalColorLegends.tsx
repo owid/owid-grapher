@@ -7,7 +7,6 @@ import {
     min,
     max,
     last,
-    flatten,
     sum,
     dyFromAlign,
     removeAllWhitespace,
@@ -781,7 +780,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
             })
         })
 
-        return flatten(lines.map((l) => l.marks))
+        return lines.flatMap((l) => l.marks)
     }
 
     @computed get height(): number {

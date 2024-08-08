@@ -35,7 +35,6 @@ import {
     DimensionProperty,
     excludeUndefined,
     exposeInstanceOnWindow,
-    flatten,
     identity,
     isInIFrame,
     keyBy,
@@ -1131,9 +1130,9 @@ export class Explorer
 
     @computed get entityPickerColumnDefs(): CoreColumnDef[] {
         const allColumnDefs = uniqBy(
-            flatten(
-                Array.from(this.explorerProgram.columnDefsByTableSlug.values())
-            ),
+            Array.from(
+                this.explorerProgram.columnDefsByTableSlug.values()
+            ).flat(),
             (def) => def.slug
         )
 

@@ -13,7 +13,6 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     exposeInstanceOnWindow,
-    flatten,
     guid,
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
@@ -304,7 +303,7 @@ export class AbstractStackedChart
 
     @computed
     protected get allStackedPoints(): readonly StackedPoint<number>[] {
-        return flatten(this.series.map((series) => series.points))
+        return this.series.flatMap((series) => series.points)
     }
 
     @computed get failMessage(): string {

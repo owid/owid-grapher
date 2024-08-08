@@ -26,7 +26,6 @@ import {
     pairs,
     clone,
     excludeUndefined,
-    flatten,
     isEmpty,
     isNumber,
     domainExtent,
@@ -598,7 +597,7 @@ export class ScatterPlotChart
             series = series.filter((g) => activeKeys.includes(g.seriesName))
 
         const colorValues = uniq(
-            flatten(series.map((s) => s.points.map((p) => p.color)))
+            series.flatMap((s) => s.points.map((p) => p.color))
         )
         return excludeUndefined(
             colorValues.map((color) => this.colorScale.getColor(color))
@@ -1149,7 +1148,7 @@ export class ScatterPlotChart
     }
 
     @computed get allPoints(): SeriesPoint[] {
-        return flatten(this.series.map((series) => series.points))
+        return this.series.flatMap((series) => series.points)
     }
 
     // domains across the entire timeline

@@ -2,7 +2,6 @@ import React from "react"
 import {
     Bounds,
     DEFAULT_BOUNDS,
-    flatten,
     getRelativeMouse,
     sortBy,
     guid,
@@ -456,7 +455,7 @@ export class MapChart
                     patternRef: Patterns.noDataPattern,
                 }
 
-        return flatten([bins[bins.length - 1], bins.slice(0, -1)])
+        return [bins[bins.length - 1], ...bins.slice(0, -1)]
     }
 
     @computed get hasNumeric(): boolean {

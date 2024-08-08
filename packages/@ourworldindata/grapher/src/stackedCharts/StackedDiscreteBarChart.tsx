@@ -6,7 +6,6 @@ import {
     max,
     maxBy,
     last,
-    flatten,
     excludeUndefined,
     sortBy,
     numberMagnitude,
@@ -250,7 +249,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get allPoints(): StackedPoint<EntityName>[] {
-        return flatten(this.series.map((series) => series.points))
+        return this.series.flatMap((series) => series.points)
     }
 
     // Now we can work out the main x axis scale
