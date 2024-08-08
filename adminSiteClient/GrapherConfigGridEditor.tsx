@@ -31,7 +31,6 @@ import { match, P } from "ts-pattern"
 //import * as lodash from "lodash"
 import {
     cloneDeep,
-    findLastIndex,
     isArray,
     isEmpty,
     isEqual,
@@ -1447,8 +1446,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             (item) => item.key === itemKey
         )
         if (itemIndex !== -1) {
-            const lastVisibleIndex = findLastIndex(
-                columnSelection,
+            const lastVisibleIndex = columnSelection.findLastIndex(
                 (item) => item.visible
             )
 

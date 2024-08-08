@@ -8,7 +8,6 @@ import {
     findGreatestCommonDivisorOfArray,
     rollingMap,
     omitUndefinedValues,
-    findLast,
 } from "@ourworldindata/utils"
 import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
 
@@ -42,8 +41,8 @@ export const stackSeriesInBothDirections = <
                 .map((s) => s.points[pointIndex])
             const pointBelowThisOne =
                 point.value < 0
-                    ? findLast(pointsBelowThisOne, (p) => p.value < 0)
-                    : findLast(pointsBelowThisOne, (p) => p.value >= 0)
+                    ? pointsBelowThisOne.findLast((p) => p.value < 0)
+                    : pointsBelowThisOne.findLast((p) => p.value >= 0)
             point.valueOffset = pointBelowThisOne
                 ? pointBelowThisOne.value + pointBelowThisOne.valueOffset
                 : 0
