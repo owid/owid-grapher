@@ -1,15 +1,17 @@
-// See https://cdnjs.cloudflare.com/polyfill/v3/url-builder/ for a list of all supported features
+// See https://cdnjs.cloudflare.com/polyfill/ for a list of all supported features
 const polyfillFeatures = [
     "es2019", // Array.flat, Array.flatMap, Object.fromEntries, ...
     "es2020", // String.matchAll, Promise.allSettled, ...
     "es2021", // String.replaceAll, Promise.any, ...
     "es2022", // Array.at, String.at, ...
+    "es2023", // Array.findLast, Array.toReversed, Array.toSorted, Array.with, ...
     "IntersectionObserver",
     "IntersectionObserverEntry",
     "ResizeObserver",
     "globalThis", // some dependencies use this
 ]
-export const POLYFILL_URL: string = `https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=${polyfillFeatures.join(
+const POLYFILL_VERSION = "4.8.0"
+export const POLYFILL_URL: string = `https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?version=${POLYFILL_VERSION}&features=${polyfillFeatures.join(
     ","
 )}`
 
