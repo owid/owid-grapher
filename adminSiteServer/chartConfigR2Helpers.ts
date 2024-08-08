@@ -90,17 +90,15 @@ export async function saveGrapherConfigToR2(
         }
 
         const bucket = GRAPHER_CONFIG_R2_BUCKET
-        // On prod, GRAPHER_CONFIG_R2_BUCKET_PATH might be an empty string and in this case we need to exclude it
-        const path = excludeUndefined([
-            GRAPHER_CONFIG_R2_BUCKET_PATH,
-            directory,
-        ]).join("/")
+        const path = [GRAPHER_CONFIG_R2_BUCKET_PATH, directory, filename].join(
+            "/"
+        )
 
         const MIMEType = "application/json"
 
         const params: PutObjectCommandInput = {
             Bucket: bucket,
-            Key: `${path}/${filename}`,
+            Key: path,
             Body: config_stringified,
             ContentType: MIMEType,
             ContentMD5: configMd5,
@@ -149,15 +147,13 @@ export async function deleteGrapherConfigFromR2(
         }
 
         const bucket = GRAPHER_CONFIG_R2_BUCKET
-        // On prod, GRAPHER_CONFIG_R2_BUCKET_PATH might be an empty string and in this case we need to exclude it
-        const path = excludeUndefined([
-            GRAPHER_CONFIG_R2_BUCKET_PATH,
-            directory,
-        ]).join("/")
+        const path = [GRAPHER_CONFIG_R2_BUCKET_PATH, directory, filename].join(
+            "/"
+        )
 
         const params: DeleteObjectCommandInput = {
             Bucket: bucket,
-            Key: `${path}/${filename}`,
+            Key: path,
         }
 
         await s3Client.send(new DeleteObjectCommand(params))
@@ -167,7 +163,7 @@ export async function deleteGrapherConfigFromR2(
     } catch (err) {
         await logErrorAndMaybeSendToBugsnag(err)
         throw new JsonError(
-            `Failed to delete the grapher config to R2 at ${directory}/${filename}. Inner error: ${err}`
+            `Failed to delete the grapher config to R2 at ${path}. Inner error: ${err}`
         )
     }
 }

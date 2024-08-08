@@ -39,6 +39,15 @@ import ProgressBar from "progress"
 
 type HashAndId = Pick<DbRawChartConfig, "fullMd5" | "id">
 
+/** Sync a set of chart configs with R2. Pass in a map of the keys to their md5 hashes and UUIDs
+    and this function will upsert all missing/outdated ones and delete any that are no longer needed.
+
+    @param s3Client The S3 client to use
+    @param pathPrefix The path prefix to use for the files (e.g. "config/by-uuid" then everything inside it will be synced)
+    @param hashesOfFilesToToUpsert A map of the keys to their md5 hashes and UUIDs
+    @param trx The transaction to use for querying the DB for full configs
+    @param dryRun Whether to actually make changes to R2 or just log what would
+ */
 async function syncWithR2(
     s3Client: S3Client,
     pathPrefix: string,
@@ -46,6 +55,12 @@ async function syncWithR2(
     trx: KnexReadonlyTransaction,
     dryRun: boolean = false
 ) {
+    // We'll first get all the files in the R2 bucket under the path prefix
+    // and check if the hash of each file that exist in R2 matches the hash
+    // of the file we want to upsert. If it does, we'll remove it from the
+    // list of files to upsert. If it doesn't, we'll add it to the list of
+    // files to delete.
+
     const hashesOfFilesToDelete = new Map<string, string>()
 
     // list the files in the R2 bucket. There may be more files in the
@@ -69,13 +84,19 @@ async function syncWithR2(
                     const md5 = object.ETag.replace(/"/g, "") as HexString
                     const md5Base64 = bytesToBase64(hexToBytes(md5))
 
-                    if (
-                        hashesOfFilesToToUpsert.has(object.Key) &&
-                        hashesOfFilesToToUpsert.get(object.Key)?.fullMd5 ===
+                    if (hashesOfFilesToToUpsert.has(object.Key)) {
+                        if (
+                            hashesOfFilesToToUpsert.get(object.Key)?.fullMd5 ===
                             md5Base64
-                    ) {
-                        hashesOfFilesToToUpsert.delete(object.Key)
+                        ) {
+                            hashesOfFilesToToUpsert.delete(object.Key)
+                        }
+                        // If the existing full config in R2 is different then
+                        // we just keep the hashesOfFilesToToUpsert entry around
+                        // which will upsert the new full config later on
                     } else {
+                        // if the file in R2 is not in the list of files to upsert
+                        // then we should delete it
                         hashesOfFilesToDelete.set(object.Key, md5Base64)
                     }
                 }
@@ -88,12 +109,13 @@ async function syncWithR2(
     console.log("Number of files to delete", hashesOfFilesToDelete.size)
 
     let progressBar = new ProgressBar(
-        "--- Deleting obsolote configs [:bar] :current/:total :elapseds\n",
+        "--- Deleting obsolete configs [:bar] :current/:total :elapseds\n",
         {
             total: hashesOfFilesToDelete.size,
         }
     )
 
+    // We could parallelize the deletes but it's not worth the complexity for most cases IMHO
     for (const [key, _] of hashesOfFilesToDelete.entries()) {
         const deleteObjectCommandInput: DeleteObjectCommandInput = {
             Bucket: GRAPHER_CONFIG_R2_BUCKET,
@@ -120,6 +142,7 @@ async function syncWithR2(
 
     // Chunk the inserts so that we don't need to keep all the full configs in memory
     for (const batch of chunk([...hashesOfFilesToToUpsert.entries()], 100)) {
+        // Get the full configs for the batch
         const fullConfigs = await knexRaw<
             Pick<DbRawChartConfig, "id" | "full">
         >(trx, `select id, full from chart_configs where id in (?)`, [
@@ -128,31 +151,28 @@ async function syncWithR2(
         const fullConfigMap = new Map<string, string>(
             fullConfigs.map(({ id, full }) => [id, full])
         )
+
+        // Upload the full configs to R2 in parallel
         const uploadPromises = batch.map(async ([key, val]) => {
             const id = val.id
             const fullMd5 = val.fullMd5
             const full = fullConfigMap.get(id)
             if (full === undefined) {
-                console.error(`Full config not found for id ${id}`)
-                return null
+                return Promise.reject(
+                    new Error(`Full config not found for id ${id}`)
+                )
             }
-            try {
-                const putObjectCommandInput: PutObjectCommandInput = {
-                    Bucket: GRAPHER_CONFIG_R2_BUCKET,
-                    Key: key,
-                    Body: full,
-                    ContentMD5: fullMd5,
-                }
-                if (!dryRun)
-                    await s3Client.send(
-                        new PutObjectCommand(putObjectCommandInput)
-                    )
-                else console.log("Would have upserted", key)
-                progressBar.tick()
-                return null
-            } catch (err) {
-                return err
+            const putObjectCommandInput: PutObjectCommandInput = {
+                Bucket: GRAPHER_CONFIG_R2_BUCKET,
+                Key: key,
+                Body: full,
+                ContentMD5: fullMd5,
             }
+            if (!dryRun)
+                await s3Client.send(new PutObjectCommand(putObjectCommandInput))
+            else console.log("Would have upserted", key)
+            progressBar.tick()
+            return
         })
         const promiseResults = await Promise.allSettled(uploadPromises)
         const batchErrors = promiseResults
@@ -163,7 +183,9 @@ async function syncWithR2(
 
     console.log("Finished upserts")
     if (errors.length > 0) {
-        console.error("Errors during upserts", errors)
+        console.error(`${errors.length} Errors during upserts`)
+        for (const error of errors) {
+            console.error(error)
     }
 }
 
@@ -199,7 +221,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
     ]).join("/")
 
     await knexReadonlyTransaction(async (trx) => {
-        // Ensure that the published charts exist by slug
+        // Sync charts published by slug
         const slugsAndHashesFromDb = await knexRaw<
             Pick<DbRawChartConfig, "slug" | "fullMd5" | "id">
         >(
@@ -225,7 +247,8 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
             dryRun
         )
 
-        // Ensure that all chart configs exist by id
+
+        // Sync charts by UUID
         const slugsAndHashesFromDbByUuid = await knexRaw<
             Pick<DbRawChartConfig, "fullMd5" | "id">
         >(trx, `select fullMd5, id from chart_configs`)
@@ -252,7 +275,11 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
 
 const parsedArgs = parseArgs(process.argv.slice(2))
 if (parsedArgs["h"]) {
-    console.log(`syncGraphersToR2.js - sync graphers to R2`)
+    console.log(
+        `syncGraphersToR2.js - sync grapher configs from the chart_configs table to R2
+
+--dry-run: Don't make any actual changes to R2`
+    )
 } else {
     main(parsedArgs, parsedArgs["dry-run"])
 }
