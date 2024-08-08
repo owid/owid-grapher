@@ -186,6 +186,7 @@ async function syncWithR2(
         console.error(`${errors.length} Errors during upserts`)
         for (const error of errors) {
             console.error(error)
+        }
     }
 }
 
@@ -246,7 +247,6 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
             trx,
             dryRun
         )
-
 
         // Sync charts by UUID
         const slugsAndHashesFromDbByUuid = await knexRaw<
