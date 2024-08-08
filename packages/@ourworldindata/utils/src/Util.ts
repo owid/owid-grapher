@@ -188,6 +188,10 @@ export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
 }
 
+export type DeepNullable<T> = {
+    [P in keyof T]: DeepNullable<T[P]> | null
+}
+
 type OptionalKeysOf<T> = Exclude<
     {
         [K in keyof T]: T extends Record<K, T[K]> ? never : K
@@ -1131,6 +1135,24 @@ export function omitUndefinedValuesRecursive<T extends Record<string, any>>(
             result[key] = omitUndefinedValuesRecursive(obj[key])
         } else if (obj[key] === undefined) {
             // omit undefined values
+        } else {
+            // otherwise, keep the value
+            result[key] = obj[key]
+        }
+    }
+    return result
+}
+
+export function omitNullValuesRecursive<T extends Record<string, any>>(
+    obj: T
+): NoUndefinedValues<T> {
+    const result: any = {}
+    for (const key in obj) {
+        if (isPlainObject(obj[key])) {
+            // re-apply the function if we encounter a non-empty object
+            result[key] = omitNullValuesRecursive(obj[key])
+        } else if (obj[key] === null) {
+            // omit null values
         } else {
             // otherwise, keep the value
             result[key] = obj[key]
