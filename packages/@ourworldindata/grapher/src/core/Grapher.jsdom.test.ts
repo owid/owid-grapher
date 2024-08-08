@@ -94,6 +94,11 @@ it("does not preserve defaults in the object (except for the schema)", () => {
     })
 })
 
+it("does preserve all defaults in the full config", () => {
+    // TODO: write tests
+    // expect(new Grapher().toFullObject()).toEqual()
+})
+
 const unit = "% of children under 5"
 const name = "Some display name"
 const data = {

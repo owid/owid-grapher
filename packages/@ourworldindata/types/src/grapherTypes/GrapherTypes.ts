@@ -560,7 +560,7 @@ export interface GrapherInterface extends SortConfig {
     hasMapTab?: boolean
     tab?: GrapherTabOption
     relatedQuestions?: RelatedQuestionsConfig[]
-    details?: DetailDictionary
+    // details?: DetailDictionary
     internalNotes?: string
     variantName?: string
     originUrl?: string
@@ -582,6 +582,8 @@ export interface GrapherInterface extends SortConfig {
     facet?: FacetStrategy
     missingDataStrategy?: MissingDataStrategy
     hideFacetControl?: boolean
+    facettingLabelByYVariables?: string
+    selectedFacetStrategy?: FacetStrategy
 
     xAxis?: Partial<AxisConfigInterface>
     yAxis?: Partial<AxisConfigInterface>
@@ -683,11 +685,15 @@ export const grapherKeysToSerialize = [
     "hideFacetControl",
     "comparisonLines",
     "relatedQuestions",
+    "missingDataStrategy",
+
+    // serialised keys that are not in the schema
     "topicIds",
     "details",
+
+    // internals
     "adminBaseUrl",
     "bakedGrapherURL",
-    "missingDataStrategy",
     "dataApiUrl",
 ]
 

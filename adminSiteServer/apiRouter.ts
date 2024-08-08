@@ -290,8 +290,12 @@ const saveNewChart = async (
 
     // compute patch and full configs
     const parentConfig = await getParentConfigForChartFromConfig(knex, config)
-    const patchConfig = diffGrapherConfigs(config, parentConfig)
-    const fullConfig = mergeGrapherConfigs(parentConfig, patchConfig)
+    const fullParentConfig = mergeGrapherConfigs(
+        defaultGrapherConfig,
+        parentConfig ?? {}
+    )
+    const patchConfig = diffGrapherConfigs(config, fullParentConfig)
+    const fullConfig = mergeGrapherConfigs(fullParentConfig, patchConfig)
 
     // insert patch & full configs into the chart_configs table
     const configId = uuidv7()
@@ -352,8 +356,12 @@ const updateExistingChart = async (
 
     // compute patch and full configs
     const parentConfig = await getParentConfigForChart(knex, chartId)
-    const patchConfig = diffGrapherConfigs(config, parentConfig)
-    const fullConfig = mergeGrapherConfigs(parentConfig, patchConfig)
+    const fullParentConfig = mergeGrapherConfigs(
+        defaultGrapherConfig,
+        parentConfig ?? {}
+    )
+    const patchConfig = diffGrapherConfigs(config, fullParentConfig)
+    const fullConfig = mergeGrapherConfigs(fullParentConfig, patchConfig)
 
     // update configs
     await db.knexRaw(
@@ -640,7 +648,8 @@ getRouteWithROTransaction(
     "/charts/:chartId.parentConfig.json",
     async (req, res, trx) => {
         const chartId = expectInt(req.params.chartId)
-        return getParentConfigForChart(trx, chartId)
+        const parentConfig = await getParentConfigForChart(trx, chartId)
+        return parentConfig ?? {}
     }
 )
 

@@ -4,6 +4,7 @@ import { isEqual } from "../Util.js"
 // Any classes that the user can edit, save, and then rehydrate should implement this interface
 export interface Persistable {
     toObject(): any // This should dehydrate any runtime instances to a plain object ready to be JSON stringified
+    // toFullObject(): any // TODO: implement for all
     updateFromObject(obj: any): any // This should parse an incoming object, extend the current instance, and create new instances for any non native class types
 }
 
@@ -77,6 +78,22 @@ export function deleteRuntimeAndUnchangedProps<T>(
         if (isEqual(currentValue, defaultValue)) {
             // Don't persist any values that weren't changed from the default
             delete obj[key]
+        }
+    })
+    return obj
+}
+
+// Don't keep properties not on the comparable class
+export function deleteRuntimeProps<T>(changedObj: T, defaultObject: T): T {
+    const obj = changedObj as any
+    const defaultObj = defaultObject as any
+    const defaultKeys = new Set(Object.keys(defaultObj))
+    Object.keys(obj).forEach((prop) => {
+        const key = prop as any
+        if (!defaultKeys.has(key)) {
+            // Don't persist any runtime props not in the persistable instance
+            delete obj[key]
+            return
         }
     })
     return obj

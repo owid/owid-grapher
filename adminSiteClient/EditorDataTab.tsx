@@ -84,15 +84,21 @@ class EntityItem extends React.Component<EntityItemProps> {
 }
 
 @observer
-export class KeysSection extends React.Component<{ grapher: Grapher }> {
+export class KeysSection extends React.Component<{
+    editor: AbstractChartEditor
+}> {
     @observable.ref dragKey?: EntityName
 
+    @computed get grapher() {
+        return this.props.editor.grapher
+    }
+
     @action.bound onAddKey(entityName: EntityName) {
-        this.props.grapher.selection.selectEntity(entityName)
+        this.grapher.selection.selectEntity(entityName)
     }
 
     @action.bound onDragEnd(result: DropResult) {
-        const { selection } = this.props.grapher
+        const { selection } = this.grapher
         const { source, destination } = result
         if (!destination) return
 
@@ -105,12 +111,16 @@ export class KeysSection extends React.Component<{ grapher: Grapher }> {
     }
 
     render() {
-        const { grapher } = this.props
+        const { grapher } = this
         const { selection } = grapher
         const { unselectedEntityNames, selectedEntityNames } = selection
 
         return (
             <Section name="Data to show">
+                from parent config:{" "}
+                {this.props.editor
+                    .isPropertyInherited("selectedEntityNames")
+                    .toString()}
                 <SelectField
                     onValue={this.onAddKey}
                     value="Select data"
@@ -142,11 +152,14 @@ export class KeysSection extends React.Component<{ grapher: Grapher }> {
                                                         key={entityName}
                                                         grapher={grapher}
                                                         entityName={entityName}
-                                                        onRemove={() =>
+                                                        onRemove={() => {
                                                             selection.deselectEntity(
                                                                 entityName
                                                             )
-                                                        }
+                                                            console.log(
+                                                                selection.numSelectedEntities
+                                                            )
+                                                        }}
                                                     />
                                                 </div>
                                             )}
@@ -278,7 +291,7 @@ export class EditorDataTab<
                         </label>
                     </div>
                 </Section>
-                <KeysSection grapher={editor.grapher} />
+                <KeysSection editor={editor} />
                 {features.canSpecifyMissingDataStrategy && (
                     <MissingDataSection editor={this.props.editor} />
                 )}

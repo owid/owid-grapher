@@ -82,7 +82,12 @@ class DimensionSlotView<
 
         this.isSelectingVariables = false
 
-        this.updateDimensionsAndRebuildTable(dimensionConfigs)
+        // TODO: why does this sometimes fail?
+        try {
+            this.updateDimensionsAndRebuildTable(dimensionConfigs)
+        } catch {
+            console.log("updateDimensionsAndRebuildTable failed")
+        }
         this.updateParentConfig()
     }
 
@@ -138,6 +143,7 @@ class DimensionSlotView<
     }
 
     componentDidMount() {
+        // TODO: re-enable
         // We want to add the reaction only after the grapher is loaded, so we don't update the initial chart (as configured) by accident.
         when(
             () => this.grapher.isReady,
