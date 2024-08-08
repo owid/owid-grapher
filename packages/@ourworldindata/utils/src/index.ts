@@ -269,6 +269,7 @@ export {
     objectWithPersistablesToObject,
     updatePersistables,
     deleteRuntimeAndUnchangedProps,
+    deleteRuntimeProps,
 } from "./persistable/Persistable.js"
 
 export { PointVector } from "./PointVector.js"

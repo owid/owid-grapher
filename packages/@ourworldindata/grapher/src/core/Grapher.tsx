@@ -44,6 +44,7 @@ import {
     timeBoundToTimeBoundString,
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
+    deleteRuntimeProps,
     updatePersistables,
     strToQueryParams,
     queryParamsToStr,
@@ -516,31 +517,57 @@ export class Grapher
         if (getGrapherInstance) getGrapherInstance(this) // todo: possibly replace with more idiomatic ref
     }
 
-    toObject(): GrapherInterface {
-        const obj: GrapherInterface = objectWithPersistablesToObject(
-            this,
-            grapherKeysToSerialize
-        )
-
-        obj.selectedEntityNames = this.selection.selectedEntityNames
-
-        deleteRuntimeAndUnchangedProps(obj, defaultObject)
-
-        // always include the schema, even if it's the default
-        obj.$schema = this.$schema || defaultGrapherConfig.$schema
+    private static ensureValidObject(obj: GrapherInterface): GrapherInterface {
+        // always include the schema and version, even if it's the default
+        obj.$schema = obj.$schema || defaultGrapherConfig.$schema
+        obj.version = obj.version || 1
 
         // todo: nulls got into the DB for this one. we can remove after moving Graphers from DB.
         if (obj.stackMode === null) delete obj.stackMode
 
         // JSON doesn't support Infinity, so we use strings instead.
-        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
-        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
+        if (obj.minTime) obj.minTime = minTimeToJSON(obj.minTime) as any
+        if (obj.maxTime) obj.maxTime = maxTimeToJSON(obj.maxTime) as any
 
         // todo: remove dimensions concept
         // if (this.legacyConfigAsAuthored?.dimensions)
         //     obj.dimensions = this.legacyConfigAsAuthored.dimensions
 
         return obj
+    }
+
+    toObject(): GrapherInterface {
+        const obj: GrapherInterface = objectWithPersistablesToObject(
+            this,
+            grapherKeysToSerialize
+        )
+
+        // TODO: use toJS here?
+        obj.selectedEntityNames = this.selection.selectedEntityNames
+
+        deleteRuntimeAndUnchangedProps(obj, defaultObject)
+
+        return Grapher.ensureValidObject(obj)
+    }
+
+    // TODO: stronger type?
+    toFullObject(): GrapherInterface {
+        const obj: GrapherInterface = objectWithPersistablesToObject(
+            this,
+            grapherKeysToSerialize
+        )
+
+        // TODO: use toJS here?
+        obj.selectedEntityNames = this.selection.selectedEntityNames
+
+        deleteRuntimeProps(obj, defaultObject)
+
+        return Grapher.ensureValidObject(obj)
+    }
+
+    // todo: make into prop
+    static defaultObject(): GrapherInterface {
+        return Grapher.ensureValidObject(defaultObject)
     }
 
     @action.bound downloadData(): void {
@@ -1799,6 +1826,11 @@ export class Grapher
         return this.toObject()
     }
 
+    // TODO: remove?
+    @computed get fullObject(): GrapherInterface {
+        return this.toFullObject()
+    }
+
     @computed
     get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): ChartTypeName {
         // Switch to bar chart if a single year is selected. Todo: do we want to do this?
@@ -3027,35 +3059,40 @@ export class Grapher
     // won't overwrite defaults (like type == LineChart). RAII would probably be better, but this works for now.
     @action.bound reset(): void {
         const grapher = new Grapher()
-        this.title = grapher.title
-        this.subtitle = grapher.subtitle
-        this.note = grapher.note
-        this.type = grapher.type
-        this.ySlugs = grapher.ySlugs
-        this.xSlug = grapher.xSlug
-        this.colorSlug = grapher.colorSlug
-        this.sizeSlug = grapher.sizeSlug
-        this.hasMapTab = grapher.hasMapTab
-        this.selectedFacetStrategy = FacetStrategy.none
-        this.hasChartTab = grapher.hasChartTab
-        this.map = grapher.map
-        this.yAxis.scaleType = grapher.yAxis.scaleType
-        this.yAxis.min = grapher.yAxis.min
-        this.sortBy = grapher.sortBy
-        this.sortOrder = grapher.sortOrder
-        this.sortColumnSlug = grapher.sortColumnSlug
-        this.hideRelativeToggle = grapher.hideRelativeToggle
-        this.dimensions = grapher.dimensions
-        this.stackMode = grapher.stackMode
-        this.hideTotalValueLabel = grapher.hideTotalValueLabel
-        this.hideAnnotationFieldsInTitle = grapher.hideAnnotationFieldsInTitle
-        this.timelineMinTime = grapher.timelineMinTime
-        this.timelineMaxTime = grapher.timelineMaxTime
-        this.relatedQuestions = grapher.relatedQuestions
-        this.sourceDesc = grapher.sourceDesc
-        this.missingDataStrategy = grapher.missingDataStrategy
-        this.minTime = grapher.minTime
-        this.maxTime = grapher.maxTime
+        // TODO: could this be a problem elsewhere?
+        for (const key of grapherKeysToSerialize) {
+            // @ts-expect-error TODO
+            this[key] = grapher[key]
+        }
+        // this.title = grapher.title
+        // this.subtitle = grapher.subtitle
+        // this.note = grapher.note
+        // this.type = grapher.type
+        // this.ySlugs = grapher.ySlugs
+        // this.xSlug = grapher.xSlug
+        // this.colorSlug = grapher.colorSlug
+        // this.sizeSlug = grapher.sizeSlug
+        // this.hasMapTab = grapher.hasMapTab
+        // this.selectedFacetStrategy = grapher.selectedFacetStrategy
+        // this.hasChartTab = grapher.hasChartTab
+        // this.map = grapher.map
+        // this.yAxis.scaleType = grapher.yAxis.scaleType
+        // this.yAxis.min = grapher.yAxis.min
+        // this.sortBy = grapher.sortBy
+        // this.sortOrder = grapher.sortOrder
+        // this.sortColumnSlug = grapher.sortColumnSlug
+        // this.hideRelativeToggle = grapher.hideRelativeToggle
+        // this.dimensions = grapher.dimensions
+        // this.stackMode = grapher.stackMode
+        // this.hideTotalValueLabel = grapher.hideTotalValueLabel
+        // this.hideAnnotationFieldsInTitle = grapher.hideAnnotationFieldsInTitle
+        // this.timelineMinTime = grapher.timelineMinTime
+        // this.timelineMaxTime = grapher.timelineMaxTime
+        // this.relatedQuestions = grapher.relatedQuestions
+        // this.sourceDesc = grapher.sourceDesc
+        // this.missingDataStrategy = grapher.missingDataStrategy
+        // this.minTime = grapher.minTime
+        // this.maxTime = grapher.maxTime
     }
 
     debounceMode = false
@@ -3387,6 +3424,8 @@ const defaultObject = objectWithPersistablesToObject(
     new Grapher(),
     grapherKeysToSerialize
 )
+
+console.log("default grapher object", defaultObject)
 
 export const getErrorMessageRelatedQuestionUrl = (
     question: RelatedQuestionsConfig

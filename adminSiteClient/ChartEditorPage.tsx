@@ -16,6 +16,7 @@ import {
 } from "./ChartEditor.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
+import { isEmpty } from "../gridLang/GrammarUtils.js"
 
 @observer
 export class ChartEditorPage
@@ -46,9 +47,13 @@ export class ChartEditorPage
     async fetchParentConfig(): Promise<void> {
         const { grapherId, grapherConfig } = this.props
         if (grapherId !== undefined) {
-            this.parentConfig = await this.context.admin.getJSON(
+            const parentConfig = await this.context.admin.getJSON(
                 `/api/charts/${grapherId}.parentConfig.json`
             )
+            this.parentConfig =
+                Object.keys(parentConfig).length === 0
+                    ? undefined
+                    : parentConfig
         } else if (grapherConfig) {
             const parentIndicatorId =
                 getParentIndicatorIdFromChartConfig(grapherConfig)

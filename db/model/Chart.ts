@@ -259,7 +259,7 @@ export async function getChartConfigBySlug(
 export async function getParentConfigForChart(
     trx: db.KnexReadonlyTransaction,
     chartId: number
-): Promise<GrapherInterface> {
+): Promise<GrapherInterface | undefined> {
     // check if the chart inherits settings from an indicator
     const parentVariable = await db.knexRawFirst<{ id: number }>(
         trx,
@@ -271,29 +271,20 @@ export async function getParentConfigForChart(
         [chartId]
     )
 
-    // all charts inherit from the default config
-    if (!parentVariable) return defaultGrapherConfig
+    if (!parentVariable) return undefined
 
     const variable = await getGrapherConfigsForVariable(trx, parentVariable.id)
-    return mergeGrapherConfigs(
-        defaultGrapherConfig,
-        variable?.etl?.patchConfig ?? {},
-        variable?.admin?.patchConfig ?? {}
-    )
+    return variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
 }
 
 export async function getParentConfigForChartFromConfig(
     trx: db.KnexReadonlyTransaction,
     config: GrapherInterface
-): Promise<GrapherInterface> {
+): Promise<GrapherInterface | undefined> {
     const parentVariableId = getParentIndicatorIdFromChartConfig(config)
-    if (!parentVariableId) return defaultGrapherConfig
+    if (!parentVariableId) return undefined
     const variable = await getGrapherConfigsForVariable(trx, parentVariableId)
-    return mergeGrapherConfigs(
-        defaultGrapherConfig,
-        variable?.etl?.patchConfig ?? {},
-        variable?.admin?.patchConfig ?? {}
-    )
+    return variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
 }
 
 export async function setChartTags(

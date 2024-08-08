@@ -12,19 +12,18 @@ import {
     ChartRedirect,
     Json,
     GrapherInterface,
-    diffGrapherConfigs,
     getParentIndicatorIdFromChartConfig,
     mergeGrapherConfigs,
 } from "@ourworldindata/utils"
 import { action, computed, observable, runInAction } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
-import { defaultGrapherConfig } from "@ourworldindata/grapher"
 import {
     AbstractChartEditor,
     AbstractChartEditorManager,
     EditorTab,
 } from "./AbstractChartEditor.js"
 import { Admin } from "./Admin.js"
+import { isEmpty } from "../gridLang/GrammarUtils.js"
 
 export interface Log {
     userId: number
@@ -96,31 +95,34 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     }
 
     @action.bound async updateParentConfig() {
-        const newIndicatorId = getParentIndicatorIdFromChartConfig(
-            this.liveConfig
-        )
         const currentIndicatorId = this.parentConfig?.dimensions?.[0].variableId
-        if (newIndicatorId !== currentIndicatorId) {
-            this.parentConfig = newIndicatorId
-                ? await fetchParentConfigForChart(
-                      this.manager.admin,
-                      newIndicatorId
-                  )
-                : undefined
+        const newIndicatorId = getParentIndicatorIdFromChartConfig(
+            this.fullConfig
+        )
+
+        // fetch the new parent config if the indicator has changed
+        let newParentConfig: GrapherInterface | undefined
+        if (
+            newIndicatorId &&
+            (currentIndicatorId === undefined ||
+                newIndicatorId !== currentIndicatorId)
+        ) {
+            newParentConfig = await fetchParentConfigForChart(
+                this.manager.admin,
+                newIndicatorId
+            )
         }
 
-        // it's intentional that we don't use this.patchConfig here
-        const patchConfig = diffGrapherConfigs(
-            this.liveConfig,
-            this.parentConfig ?? {}
+        const newConfig = mergeGrapherConfigs(
+            newParentConfig ?? {},
+            this.patchConfig
         )
-        const config = mergeGrapherConfigs(this.parentConfig ?? {}, patchConfig)
 
-        this.grapher.updateFromObject(config)
-        // TODO(inheritance): what does this do? is this necessary?
-        this.grapher.updateAuthoredVersion({
-            ...this.grapher.toObject(),
-        })
+        this.grapher.reset()
+        this.grapher.updateFromObject(newConfig)
+        this.grapher.updateAuthoredVersion(newConfig)
+
+        this.parentConfig = newParentConfig
     }
 
     async saveGrapher({
@@ -207,11 +209,17 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 export async function fetchParentConfigForChart(
     admin: Admin,
     indicatorId: number
-): Promise<GrapherInterface> {
+): Promise<GrapherInterface | undefined> {
     const indicatorChart = await admin.getJSON(
         `/api/variables/mergedGrapherConfig/${indicatorId}.json`
     )
-    return mergeGrapherConfigs(defaultGrapherConfig, indicatorChart)
+    // TODO: why doesn't isEmpty work here?
+    console.log(
+        indicatorChart,
+        isEmpty(indicatorChart),
+        Object.keys(indicatorChart).length === 0
+    )
+    return Object.keys(indicatorChart).length === 0 ? undefined : indicatorChart
 }
 
 export function isChartEditorInstance(
