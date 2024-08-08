@@ -114,11 +114,7 @@ export default function Chart({
                 }}
             >
                 {isExplorer ? (
-                    <noscript>
-                        <p className="align-center">
-                            Interactive visualization requires JavaScript.
-                        </p>
-                    </noscript>
+                    <div className="js--show-warning-block-if-js-disabled" />
                 ) : (
                     resolvedSlug && (
                         <a href={resolvedUrl} target="_blank" rel="noopener">

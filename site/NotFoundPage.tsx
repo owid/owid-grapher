@@ -4,10 +4,11 @@ import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
+import { Html } from "./Html.js"
 
 export const NotFoundPage = (props: { baseUrl: string }) => {
     return (
-        <html>
+        <Html>
             <Head
                 canonicalUrl={`${props.baseUrl}/search`}
                 pageTitle="404 Not Found"
@@ -51,6 +52,6 @@ export const NotFoundPage = (props: { baseUrl: string }) => {
                     }}
                 />
             </body>
-        </html>
+        </Html>
     )
 }

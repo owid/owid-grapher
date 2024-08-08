@@ -86,7 +86,7 @@ if (BUGSNAG_API_KEY) {
 
 const analytics = new SiteAnalytics(ENV)
 
-document.querySelector("html")?.classList.add("js")
+document.documentElement?.classList.add("js-loaded")
 
 try {
     // Cookie access can be restricted by iframe sandboxing, in which case the below code will throw an error

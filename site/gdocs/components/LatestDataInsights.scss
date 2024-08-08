@@ -17,7 +17,7 @@
     margin: -24px 0 -24px -24px;
 }
 
-html:not(.js) .latest-data-insights__viewport {
+html:not(.js-enabled) .latest-data-insights__viewport {
     overflow: auto;
 }
 
@@ -41,7 +41,7 @@ html:not(.js) .latest-data-insights__viewport {
     }
 }
 
-html:not(.js) .latest-data-insights__card,
+html:not(.js-enabled) .latest-data-insights__card,
 .latest-data-insights__card.is-snapped {
     opacity: 1;
 }

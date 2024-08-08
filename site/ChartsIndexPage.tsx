@@ -9,6 +9,7 @@ import { slugify } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
+import { Html } from "./Html.js"
 
 export interface ChartIndexItem {
     id: number
@@ -81,7 +82,7 @@ export const ChartsIndexPage = (props: {
     )
 
     return (
-        <html>
+        <Html>
             <Head
                 canonicalUrl={`${baseUrl}/charts`}
                 pageTitle="Charts"
@@ -167,6 +168,6 @@ export const ChartsIndexPage = (props: {
                     }}
                 />
             </body>
-        </html>
+        </Html>
     )
 }

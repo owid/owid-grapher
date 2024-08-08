@@ -10,6 +10,7 @@ import {
 import { DynamicCollection } from "./DynamicCollection.js"
 import { ObservableMap } from "mobx"
 import { Grapher } from "@ourworldindata/grapher"
+import { Html } from "../Html.js"
 
 type OriginalSlug = string
 
@@ -40,7 +41,7 @@ export const DynamicCollectionPage = (props: { baseUrl: string }) => {
     const { baseUrl } = props
 
     return (
-        <html>
+        <Html>
             <Head
                 canonicalUrl={`${baseUrl}/collection/custom`}
                 pageTitle="Chart Collection"
@@ -76,6 +77,6 @@ export const DynamicCollectionPage = (props: { baseUrl: string }) => {
                     context={SiteFooterContext.dynamicCollectionPage}
                 />
             </body>
-        </html>
+        </Html>
     )
 }

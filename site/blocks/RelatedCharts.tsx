@@ -53,14 +53,14 @@ export const RelatedCharts = ({
             key={activeChartSlug}
             data-grapher-src={grapherUrl}
         >
-            <noscript>
+            <div className="js--hide-if-js-enabled">
                 <a href={grapherUrl}>
                     <GrapherImage
                         slug={activeChartSlug}
                         alt={activeChart?.title}
                     />
                 </a>
-            </noscript>
+            </div>
         </figure>
     )
 

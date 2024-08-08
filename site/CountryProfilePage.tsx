@@ -4,6 +4,7 @@ import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import urljoin from "url-join"
 import { Country } from "@ourworldindata/utils"
+import { Html } from "./Html.js"
 
 export interface CountryProfileIndicator {
     name: string
@@ -35,7 +36,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
     const script = `window.runCountryProfilePage()`
 
     return (
-        <html>
+        <Html>
             <Head
                 canonicalUrl={`${baseUrl}/country/${country.slug}`}
                 pageTitle={`${country.name}`}
@@ -101,6 +102,6 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                     dangerouslySetInnerHTML={{ __html: script }}
                 />
             </body>
-        </html>
+        </Html>
     )
 }

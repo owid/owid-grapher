@@ -18,6 +18,7 @@ import { BackToTopic } from "./BackToTopic.js"
 import StickyNav from "./blocks/StickyNav.js"
 import { CodeSnippet } from "@ourworldindata/components"
 import { formatAuthors } from "./clientFormatting.js"
+import { Html } from "./Html.js"
 
 export interface PageOverrides {
     pageTitle?: string
@@ -109,7 +110,7 @@ export const LongFormPage = (props: {
     note = {${citationCanonicalUrl}}
 }`
     return (
-        <html>
+        <Html>
             <Head
                 pageTitle={pageTitleSEO}
                 pageDesc={pageDesc}
@@ -426,6 +427,6 @@ export const LongFormPage = (props: {
                     }}
                 />
             </body>
-        </html>
+        </Html>
     )
 }
