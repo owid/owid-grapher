@@ -4,6 +4,7 @@ import {
     GrapherInterface,
     diffGrapherConfigs,
     mergeGrapherConfigs,
+    merge,
 } from "@ourworldindata/utils"
 import { computed, observable, when } from "mobx"
 import { EditorFeatures } from "./EditorFeatures.js"
@@ -60,29 +61,34 @@ export abstract class AbstractChartEditor<
         )
     }
 
+    /** default object with all possible keys */
+    private fullDefaultObject = merge(
+        {},
+        Grapher.defaultObject(), // contains all keys
+        defaultGrapherConfig // contains a subset of keys
+    )
+
     @computed get originalGrapherConfig(): GrapherInterface {
         const { patchConfig, parentConfig } = this.manager
         if (!parentConfig) return patchConfig
         return mergeGrapherConfigs(parentConfig, patchConfig)
     }
 
-    @computed get liveConfig(): GrapherInterface {
-        return this.grapher.object
+    @computed get fullConfig(): GrapherInterface {
+        return mergeGrapherConfigs(this.fullDefaultObject, this.grapher.object)
     }
 
     @computed get patchConfig(): GrapherInterface {
-        const { liveConfig, parentConfig } = this
-        if (!parentConfig) return liveConfig
-        // Grapher's toObject method doesn't include default values,
-        // but the patch config might need to overwrite non-default values
-        // from the parent layer. That's why we merge the default grapher config
-        // in here. The parent config also contains defaults, meaning we're
-        // getting rid of the defaults when we diff against the parent config below.
-        const liveConfigWithDefaults = mergeGrapherConfigs(
-            defaultGrapherConfig,
-            liveConfig
+        const { fullConfig, parentConfigWithDefaults, fullDefaultObject } = this
+        return diffGrapherConfigs(
+            fullConfig,
+            parentConfigWithDefaults ?? fullDefaultObject
         )
-        return diffGrapherConfigs(liveConfigWithDefaults, parentConfig)
+    }
+
+    @computed get parentConfigWithDefaults(): GrapherInterface | undefined {
+        if (!this.parentConfig) return undefined
+        return mergeGrapherConfigs(this.fullDefaultObject, this.parentConfig)
     }
 
     @computed get isModified(): boolean {
@@ -94,6 +100,15 @@ export abstract class AbstractChartEditor<
 
     @computed get features(): EditorFeatures {
         return new EditorFeatures(this)
+    }
+
+    // TODO: only works for first level at the moment
+    isPropertyInherited(property: keyof GrapherInterface): boolean {
+        if (!this.parentConfig) return false
+        return (
+            !Object.hasOwn(this.patchConfig, property) &&
+            Object.hasOwn(this.parentConfig, property)
+        )
     }
 
     abstract get isNewGrapher(): boolean
