@@ -11,12 +11,15 @@ import {
     TransactionCloseMode,
 } from "../db.js"
 import { deleteUser, insertUser, updateUser } from "../model/User.js"
+import { uuidv7 } from "uuidv7"
 import {
     ChartsTableName,
+    ChartConfigsTableName,
     DbInsertChart,
     DbPlainUser,
-    DbRawChart,
+    DbPlainChart,
     UsersTableName,
+    DbInsertChartConfig,
 } from "@ourworldindata/types"
 import { cleanTestDb, sleep } from "./testHelpers.js"
 
@@ -68,15 +71,22 @@ test("timestamps are automatically created and updated", async () => {
                 .first<DbPlainUser>()
             expect(user).toBeTruthy()
             expect(user.email).toBe("admin@example.com")
+            const configId = uuidv7()
+            const chartConfig: DbInsertChartConfig = {
+                id: configId,
+                patch: "{}",
+                full: "{}",
+            }
             const chart: DbInsertChart = {
-                config: "{}",
+                configId,
                 lastEditedAt: new Date(),
                 lastEditedByUserId: user.id,
                 isIndexable: 0,
             }
+            await trx.table(ChartConfigsTableName).insert(chartConfig)
             const res = await trx.table(ChartsTableName).insert(chart)
             const chartId = res[0]
-            const created = await knexRawFirst<DbRawChart>(
+            const created = await knexRawFirst<DbPlainChart>(
                 trx,
                 "select * from charts where id = ?",
                 [chartId]
@@ -90,7 +100,7 @@ test("timestamps are automatically created and updated", async () => {
                     .table(ChartsTableName)
                     .where({ id: chartId })
                     .update({ isIndexable: 1 })
-                const updated = await knexRawFirst<DbRawChart>(
+                const updated = await knexRawFirst<DbPlainChart>(
                     trx,
                     "select * from charts where id = ?",
                     [chartId]
