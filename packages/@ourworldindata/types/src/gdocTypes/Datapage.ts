@@ -149,6 +149,10 @@ export type FaqEntryData = {
     faqs: OwidEnrichedGdocBlock[]
 }
 
+export type FaqEntryKeyedByGdocIdAndFragmentId = {
+    faqs: Record<string, Record<string, OwidEnrichedGdocBlock[]>>
+}
+
 export interface DataPageV2ContentFields {
     datapageData: DataPageDataV2
     faqEntries: FaqEntryData | undefined
@@ -158,6 +162,12 @@ export interface DataPageV2ContentFields {
     tagToSlugMap: Record<string, string>
     imageMetadata: Record<string, ImageMetadata>
 }
+
+export type MultiDimDataPageContentFields = DataPageV2ContentFields & {
+    faqEntries: FaqEntryKeyedByGdocIdAndFragmentId
+    primaryTopic?: PrimaryTopic | undefined
+}
+
 export interface DisplaySource {
     label: string
     description?: string

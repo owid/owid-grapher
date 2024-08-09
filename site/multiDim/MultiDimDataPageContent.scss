@@ -1,0 +1,43 @@
+$light-stroke: #e7e7e7;
+$dark-stroke: #2d2d2d;
+$active-stroke: #a4b6ca;
+
+$light-fill: #dadada;
+$active-fill: #dbe5f0;
+$hover-fill: #f2f2f2;
+$selected-fill: #c7ced7;
+
+$info-icon: #a1a1a1;
+$active-switch: #6e87a2;
+
+$medium: 400;
+$bold: 700;
+$lato: $sans-serif-font-stack;
+
+$indent: 15px;
+$control-row-height: 32px;
+
+$light-text: #858585;
+$secondary-text: $blue-50;
+$primary-text: $blue-90;
+$active-text: $blue-90;
+
+$zindex-controls-backdrop: 130;
+$zindex-controls-popup: 140;
+
+.MultiDimDataPageContent {
+    @import "./MultiDimDataPageSettingsPanel.scss";
+
+    .header__left {
+        padding-bottom: 20px;
+    }
+
+    .settings-row__wrapper {
+        padding-bottom: 20px;
+        border-top: 1px solid $blue-20;
+    }
+
+    .topic-tag {
+        background: $blue-20;
+    }
+}

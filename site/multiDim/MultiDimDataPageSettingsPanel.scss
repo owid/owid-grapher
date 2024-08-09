@@ -1,0 +1,132 @@
+$radio-button-padding-y: 16px;
+$indent: 16px;
+
+$toggle-height: 40px;
+
+.md-settings-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    column-gap: 15px;
+    row-gap: 5px;
+    margin-top: 20px;
+
+    .md-settings__configure-data {
+        color: $blue-60;
+    }
+
+    .md-settings__dropdown-toggle {
+        display: flex;
+        align-items: center;
+        color: $secondary-text;
+        background: white;
+        border: 1px solid $light-stroke;
+        font: $medium 13px/16px $lato;
+        letter-spacing: 0.01em;
+        border-radius: 4px;
+        padding: 8px 12px;
+        height: $toggle-height;
+        cursor: pointer;
+
+        svg {
+            margin-left: 5px;
+        }
+
+        &:hover,
+        &:focus {
+            // background: $gray-5;
+            border-color: $blue-30;
+        }
+
+        &.active,
+        &:active {
+            background: $active-fill;
+            border: 1px solid $active-fill;
+        }
+
+        &.active {
+            cursor: default;
+            color: $active-text;
+        }
+    }
+
+    .md-settings__dropdown-label {
+        &::after {
+            content: ":";
+            margin-right: 3px;
+        }
+
+        .active & {
+            color: $primary-text;
+        }
+    }
+
+    .md-settings__dropdown-current-choice {
+        color: $primary-text;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.md-settings__dropdown {
+    position: relative;
+}
+
+.md-menu {
+    $primary-text: $gray-80;
+    $secondary-text: $gray-60;
+
+    position: absolute;
+    width: 400px;
+    left: 0;
+    top: calc($toggle-height + 5px);
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0px 4px 23px 4px #0000000f;
+    z-index: $zindex-controls-popup;
+
+    .overlay-header {
+        padding-bottom: 0;
+    }
+
+    .md-description {
+        color: $secondary-text;
+        font-size: 0.8em;
+    }
+
+    .menu-dimension__description {
+        margin: 0 $indent;
+    }
+
+    .md-menu__options {
+        padding: 0 $indent;
+        overflow-y: auto;
+        max-height: 50vh;
+    }
+
+    .md-menu__group {
+        .md-menu__group-label {
+            color: $light-text;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        margin-bottom: 0.25em;
+    }
+
+    .md-menu__radio-button {
+        padding: $radio-button-padding-y 0;
+
+        border-bottom: 1px solid $gray-20;
+
+        &:first-child {
+            padding-top: calc($radio-button-padding-y - 4px);
+        }
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+}

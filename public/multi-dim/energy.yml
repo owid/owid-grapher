@@ -1,0 +1,271 @@
+title:
+    title: Energy use
+    titleVariant: by energy source
+defaultSelection:
+    - World
+    - Europe
+    - Mexico
+topicTags:
+    - Energy
+dimensions:
+    - slug: source
+      name: Energy source
+      choices:
+          - slug: all
+            name: All sources
+            group: Aggregates
+            description: Total energy use
+          - slug: fossil
+            name: Fossil fuels
+            group: Aggregates
+            description: The sum of coal, oil and gas
+          - slug: coal
+            name: Coal
+            group: Fossil fuels
+          - slug: oil
+            name: Oil
+            group: Fossil fuels
+          - slug: gas
+            name: Gas
+            group: Fossil fuels
+          - slug: low-carbon
+            name: Low-carbon
+            group: Aggregates
+            description: The sum of nuclear and renewable sources
+          - slug: nuclear
+            name: Nuclear
+            group: Low-carbon & renewables
+          - slug: renewable
+            name: Renewables (all)
+            group: Aggregates
+            description: Includes energy from hydropower, solar, wind, geothermal, wave and tidal, and bioenergy.
+          - slug: hydro
+            name: Hydropower
+            group: Low-carbon & renewables
+          - slug: solar-wind
+            name: Solar and wind
+            group: Low-carbon & renewables
+          - slug: solar
+            name: Solar
+            group: Low-carbon & renewables
+          - slug: wind
+            name: Wind
+            group: Low-carbon & renewables
+    - slug: metric
+      name: Metric
+      choices:
+          - slug: total
+            name: Total consumption
+            description: The amount of energy consumed nationally per year
+          - slug: per_capita
+            name: Consumption per capita
+            description: The average amount of energy each person consumes per year
+          - slug: share_total
+            name: Share of total
+            description: The share of total energy consumption that this source contributes
+          - slug: proportional_change
+            name: Proportional change
+            description: The percentage change from the previous year
+          - slug: absolute_change
+            name: Absolute change
+            description: The absolute change from the previous year
+views:
+    - dimensions:
+          source: all
+          metric: total
+      indicators:
+          y: grapher/energy/2024-05-08/primary_energy_consumption/primary_energy_consumption#primary_energy_consumption__twh
+    - dimensions:
+          source: all
+          metric: per_capita
+      indicators:
+          y: grapher/energy/2024-05-08/primary_energy_consumption/primary_energy_consumption#primary_energy_consumption_per_capita__kwh
+    - dimensions:
+          source: all
+          metric: share_total
+    - dimensions:
+          source: all
+          metric: proportional_change
+      indicators:
+          y: grapher/energy/2024-05-08/primary_energy_consumption/primary_energy_consumption#annual_change_in_primary_energy_consumption__pct
+    - dimensions:
+          source: all
+          metric: absolute_change
+      indicators:
+          y: grapher/energy/2024-05-08/primary_energy_consumption/primary_energy_consumption#annual_change_in_primary_energy_consumption__twh
+
+    - dimensions:
+          source: fossil
+          metric: total
+    - dimensions:
+          source: fossil
+          metric: per_capita
+    - dimensions:
+          source: fossil
+          metric: share_total
+    - dimensions:
+          source: fossil
+          metric: proportional_change
+    - dimensions:
+          source: fossil
+          metric: absolute_change
+
+    - dimensions:
+          source: coal
+          metric: total
+    - dimensions:
+          source: coal
+          metric: per_capita
+    - dimensions:
+          source: coal
+          metric: share_total
+    - dimensions:
+          source: coal
+          metric: proportional_change
+    - dimensions:
+          source: coal
+          metric: absolute_change
+
+    - dimensions:
+          source: oil
+          metric: total
+    - dimensions:
+          source: oil
+          metric: per_capita
+    - dimensions:
+          source: oil
+          metric: share_total
+    - dimensions:
+          source: oil
+          metric: proportional_change
+    - dimensions:
+          source: oil
+          metric: absolute_change
+
+    - dimensions:
+          source: gas
+          metric: total
+    - dimensions:
+          source: gas
+          metric: per_capita
+    - dimensions:
+          source: gas
+          metric: share_total
+    - dimensions:
+          source: gas
+          metric: proportional_change
+    - dimensions:
+          source: gas
+          metric: absolute_change
+
+    - dimensions:
+          source: low-carbon
+          metric: total
+    - dimensions:
+          source: low-carbon
+          metric: per_capita
+    - dimensions:
+          source: low-carbon
+          metric: share_total
+    - dimensions:
+          source: low-carbon
+          metric: proportional_change
+    - dimensions:
+          source: low-carbon
+          metric: absolute_change
+
+    - dimensions:
+          source: nuclear
+          metric: total
+    - dimensions:
+          source: nuclear
+          metric: per_capita
+    - dimensions:
+          source: nuclear
+          metric: share_total
+    - dimensions:
+          source: nuclear
+          metric: proportional_change
+    - dimensions:
+          source: nuclear
+          metric: absolute_change
+
+    - dimensions:
+          source: renewable
+          metric: total
+    - dimensions:
+          source: renewable
+          metric: per_capita
+    - dimensions:
+          source: renewable
+          metric: share_total
+    - dimensions:
+          source: renewable
+          metric: proportional_change
+    - dimensions:
+          source: renewable
+          metric: absolute_change
+
+    - dimensions:
+          source: hydro
+          metric: total
+    - dimensions:
+          source: hydro
+          metric: per_capita
+    - dimensions:
+          source: hydro
+          metric: share_total
+    - dimensions:
+          source: hydro
+          metric: proportional_change
+    - dimensions:
+          source: hydro
+          metric: absolute_change
+
+    - dimensions:
+          source: solar-wind
+          metric: total
+    - dimensions:
+          source: solar-wind
+          metric: per_capita
+    - dimensions:
+          source: solar-wind
+          metric: share_total
+    - dimensions:
+          source: solar-wind
+          metric: proportional_change
+    - dimensions:
+          source: solar-wind
+          metric: absolute_change
+
+    - dimensions:
+          source: solar
+          metric: total
+    - dimensions:
+          source: solar
+          metric: per_capita
+    - dimensions:
+          source: solar
+          metric: share_total
+    - dimensions:
+          source: solar
+          metric: proportional_change
+    - dimensions:
+          source: solar
+          metric: absolute_change
+
+    - dimensions:
+          source: wind
+          metric: total
+    - dimensions:
+          source: wind
+          metric: per_capita
+    - dimensions:
+          source: wind
+          metric: share_total
+    - dimensions:
+          source: wind
+          metric: proportional_change
+    - dimensions:
+          source: wind
+          metric: absolute_change
