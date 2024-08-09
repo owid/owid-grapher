@@ -57,15 +57,6 @@ declare global {
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 
-// https://blog.logrocket.com/accessing-previous-props-state-react-hooks/
-function usePrevious<T>(value: T) {
-    const ref = useRef<T>()
-    useEffect(() => {
-        ref.current = value
-    }, [value])
-    return ref.current
-}
-
 // We still have topic pages on WordPress, whose featured images are specified as absolute URLs which this component handles
 // Once we've migrated all WP topic pages to gdocs, we'll be able to remove this component and just use <Image />
 const DatapageResearchThumbnail = ({
@@ -156,12 +147,12 @@ export const MultiDimDataPageContent = ({
     // _datapageData,
     config,
     grapherConfig,
-    isPreviewing = false,
+    // isPreviewing = false,
     faqEntries,
     primaryTopic,
     canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
     tagToSlugMap,
-    imageMetadata,
+    // imageMetadata,
     initialQueryStr,
 }: DataPageV2ContentFields & {
     config: MultiDimDataPageConfig
@@ -338,8 +329,6 @@ export const MultiDimDataPageContent = ({
             )
         )
     }, [datapageDataFromVar?.faqs, faqEntries])
-
-    console.log(faqEntriesForView)
 
     return (
         <div className="DataPageContent MultiDimDataPageContent">
