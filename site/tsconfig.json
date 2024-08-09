@@ -1,6 +1,5 @@
 {
     "extends": "../devTools/tsconfigs/tsconfig.base.json",
-    "include": ["**/*.ts", "**/*.json", "**/*.tsx"],
     "compilerOptions": {
         "outDir": "../itsJustJavascript/site",
         "rootDir": "."
