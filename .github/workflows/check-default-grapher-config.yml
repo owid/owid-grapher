@@ -51,3 +51,4 @@ jobs:
             - uses: stefanzweifel/git-auto-commit-action@v5
               with:
                   commit_message: "🤖 update default grapher config"
+                  file_pattern: "packages/@ourworldindata/grapher/src/schema/defaultGrapherConfig.ts"
