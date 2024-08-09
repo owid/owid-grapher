@@ -67,6 +67,10 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
             WHERE grapherConfigETL IS NOT NULL
         `)
 
+        // early return if there are no configs to migrate
+        // (this can happen if the migration is run for an empty test database)
+        if (variables.length === 0) return
+
         // generate UUIDs for every config
         const ids = variables.map((v) => ({
             variableId: v.id,
