@@ -65,24 +65,25 @@ export abstract class AbstractChartEditor<
     private fullDefaultObject = merge(
         {},
         Grapher.defaultObject(), // contains all keys
-        defaultGrapherConfig // contains a subset of keys
+        defaultGrapherConfig // contains a subset of keys with the right defaults
     )
 
+    /** original grapher config used to init the grapher instance */
     @computed get originalGrapherConfig(): GrapherInterface {
         const { patchConfig, parentConfig } = this.manager
         if (!parentConfig) return patchConfig
         return mergeGrapherConfigs(parentConfig, patchConfig)
     }
 
+    /** live-updating full config */
     @computed get fullConfig(): GrapherInterface {
         return mergeGrapherConfigs(this.fullDefaultObject, this.grapher.object)
     }
 
     @computed get patchConfig(): GrapherInterface {
-        const { fullConfig, parentConfigWithDefaults, fullDefaultObject } = this
         return diffGrapherConfigs(
-            fullConfig,
-            parentConfigWithDefaults ?? fullDefaultObject
+            this.fullConfig,
+            this.parentConfigWithDefaults ?? this.fullDefaultObject
         )
     }
 

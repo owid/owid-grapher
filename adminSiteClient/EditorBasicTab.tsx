@@ -82,12 +82,7 @@ class DimensionSlotView<
 
         this.isSelectingVariables = false
 
-        // TODO: why does this sometimes fail?
-        try {
-            this.updateDimensionsAndRebuildTable(dimensionConfigs)
-        } catch {
-            console.log("updateDimensionsAndRebuildTable failed")
-        }
+        this.updateDimensionsAndRebuildTable(dimensionConfigs)
         this.updateParentConfig()
     }
 
@@ -109,6 +104,9 @@ class DimensionSlotView<
         const { grapher } = this.props.editor
         const { selection } = grapher
         const { availableEntityNames, availableEntityNameSet } = selection
+
+        // no-op if the grapher has no data
+        if (!grapher.hasData) return
 
         if (grapher.isScatter || grapher.isSlopeChart || grapher.isMarimekko) {
             // chart types that display all entities by default shouldn't select any by default
@@ -143,8 +141,8 @@ class DimensionSlotView<
     }
 
     componentDidMount() {
-        // TODO: re-enable
-        // We want to add the reaction only after the grapher is loaded, so we don't update the initial chart (as configured) by accident.
+        // We want to add the reaction only after the grapher is loaded,
+        // so we don't update the initial chart (as configured) by accident.
         when(
             () => this.grapher.isReady,
             () => {

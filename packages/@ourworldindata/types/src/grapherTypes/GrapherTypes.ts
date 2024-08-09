@@ -560,7 +560,7 @@ export interface GrapherInterface extends SortConfig {
     hasMapTab?: boolean
     tab?: GrapherTabOption
     relatedQuestions?: RelatedQuestionsConfig[]
-    // details?: DetailDictionary
+    details?: DetailDictionary
     internalNotes?: string
     variantName?: string
     originUrl?: string
@@ -579,7 +579,6 @@ export interface GrapherInterface extends SortConfig {
     includedEntities?: number[]
     selectedEntityNames?: EntityName[]
     selectedEntityColors?: { [entityName: string]: string | undefined }
-    facet?: FacetStrategy
     missingDataStrategy?: MissingDataStrategy
     hideFacetControl?: boolean
     facettingLabelByYVariables?: string
