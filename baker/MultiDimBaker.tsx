@@ -4,6 +4,7 @@ import path from "path"
 import findProjectBaseDir from "../settings/findBaseDir.js"
 import {
     IndicatorEntryBeforePreProcessing,
+    IndicatorsAfterPreProcessing,
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageConfigRaw,
 } from "../site/multiDim/MultiDimDataPageTypes.js"
@@ -19,7 +20,12 @@ import {
     getVariableMetadata,
 } from "../db/model/Variable.js"
 import pMap from "p-map"
-import { JsonError, keyBy, OwidVariableWithSource } from "@ourworldindata/utils"
+import {
+    JsonError,
+    keyBy,
+    mapValues,
+    OwidVariableWithSource,
+} from "@ourworldindata/utils"
 import {
     fetchAndParseFaqs,
     getPrimaryTopic,
@@ -84,7 +90,7 @@ const resolveMultiDimDataPageCatalogPathsToIndicatorIds = async (
 
     if (missingCatalogPaths.size > 0) {
         console.warn(
-            `Could not find the following catalog paths in the database: ${Array.from(
+            `Could not find the following catalog paths for MDD ${rawConfig.title} in the database: ${Array.from(
                 missingCatalogPaths
             ).join(", ")}`
         )
@@ -115,16 +121,14 @@ const resolveMultiDimDataPageCatalogPathsToIndicatorIds = async (
 
     for (const view of rawConfig.views) {
         if (view.indicators)
-            view.indicators = Object.fromEntries(
-                Object.entries(view.indicators).map(([key, value]) => [
-                    key,
-                    resolveField(value),
-                ])
-            ) as any
+            view.indicators = mapValues(
+                view.indicators,
+                resolveField
+            ) as IndicatorsAfterPreProcessing
 
+        // Ensure that `indicators.y` exists and is a (possibly empty) array
         if (!view.indicators?.y) view.indicators = { ...view.indicators, y: [] }
-
-        if (!Array.isArray(view.indicators.y))
+        else if (!Array.isArray(view.indicators.y))
             view.indicators.y = [view.indicators.y]
     }
 
