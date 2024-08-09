@@ -1,5 +1,35 @@
 import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
-import { Bounds, deserializeJSONFromHTML } from "@ourworldindata/utils"
+import {
+    Bounds,
+    deserializeJSONFromHTML,
+    excludeUndefined,
+    formatSourceDate,
+    getAttributionFragmentsFromVariable,
+    getLastUpdatedFromVariable,
+    getNextUpdateFromVariable,
+    getPhraseForProcessingLevel,
+    OwidColumnDef,
+    OwidTableSlugs,
+    getDateRange,
+    uniq,
+    getCitationShort,
+    getCitationLong,
+    prepareSourcesForDisplay,
+    uniqBy,
+} from "@ourworldindata/utils"
+import { OwidOrigin } from "@ourworldindata/types"
+import {
+    getAttribution,
+    getCitationLines,
+    getDataProcessingLines,
+    getDescription,
+    getDescriptionLines,
+    getKeyDataLines,
+    getSource,
+    getSources,
+    getTitle,
+    constructReadme,
+} from "./readmeTools"
 import { svg2png, initialize as initializeSvg2Png } from "svg2png-wasm"
 import { TimeLogger } from "./timeLogger"
 import { png } from "itty-router"
@@ -12,6 +42,9 @@ import LatoMedium from "../_common/fonts/LatoLatin-Medium.ttf.bin"
 import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
 import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "../grapher/thumbnail/[slug].js"
+import { CoreColumn } from "@ourworldindata/core-table"
+import { toJS } from "mobx"
+import { fromPairs } from "lodash"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -130,19 +163,20 @@ const extractOptions = (params: URLSearchParams): ImageOptions => {
     return options as ImageOptions
 }
 
-async function fetchAndRenderGrapherToSvg({
-    slug,
-    options,
-    searchParams,
-    env,
-}: {
-    slug: string
-    options: ImageOptions
-    searchParams: URLSearchParams
-    env: Env
-}) {
-    const grapherLogger = new TimeLogger("grapher")
-
+async function initGrapher(
+    {
+        slug,
+        options,
+        searchParams,
+        env,
+    }: {
+        slug: string
+        options: ImageOptions
+        searchParams: URLSearchParams
+        env: Env
+    },
+    grapherLogger: TimeLogger
+) {
     // Fetch grapher config and extract it from the HTML
     const grapherConfig: GrapherInterface = await env.ASSETS.fetch(
         new URL(`/grapher/${slug}`, env.url)
@@ -169,9 +203,338 @@ async function fetchAndRenderGrapherToSvg({
     grapher.shouldIncludeDetailsInStaticExport = options.details
 
     grapherLogger.log("grapherInit")
+    return grapher
+}
+
+export async function fetchMetadataForGrapher(
+    slug: string,
+    env: Env,
+    searchParams?: URLSearchParams
+) {
+    const grapherLogger = new TimeLogger("grapher")
+
+    const grapher = await initGrapher(
+        {
+            slug,
+            options: TWITTER_OPTIONS,
+            searchParams: searchParams ?? new URLSearchParams(""),
+            env,
+        },
+        grapherLogger
+    )
+
+    await grapher.downloadLegacyDataFromOwidVariableIds()
+
+    //const useShortNames = searchParams.get("useColumnShortNames") === "true"
+
+    const columnsToIgnore = new Set(
+        [
+            OwidTableSlugs.entityId,
+            OwidTableSlugs.time,
+            OwidTableSlugs.entityColor,
+            OwidTableSlugs.entityName,
+            OwidTableSlugs.entityCode,
+            OwidTableSlugs.year,
+            OwidTableSlugs.day,
+        ].map((slug) => slug.toString())
+    )
+
+    const columnsToGet = grapher.inputTable.columnSlugs.filter(
+        (col) => !columnsToIgnore.has(col)
+    )
+    const useShortNames = searchParams.get("useColumnShortNames") === "true"
+    console.log("useShortNames", useShortNames)
+
+    const columns: [
+        string,
+        {
+            title: string
+            titleProducer: string
+            titleVariant: string
+            descriptionShort: string
+            descriptionFromProducer: string
+            descriptionKey: string[]
+            descriptionProcessing: string
+            shortUnit: string
+            unit: string
+            timespan: string
+            tolerance: number
+            type: string
+            conversionFactor: number
+            owidVariableId: number
+            catalogPath: string
+            sources: Partial<
+                Pick<
+                    OwidOrigin,
+                    | "attribution"
+                    | "attributionShort"
+                    | "description"
+                    | "urlDownload"
+                    | "urlMain"
+                >
+            >[]
+            shortName: string
+        },
+    ][] = grapher.inputTable.getColumns(columnsToGet).map((col) => {
+        console.log("mapping col", col.name)
+        const {
+            descriptionShort,
+            descriptionFromProducer,
+            descriptionKey,
+            descriptionProcessing,
+            additionalInfo,
+            shortUnit,
+            unit,
+            timespan,
+            tolerance,
+            type,
+            display,
+            presentation,
+            origins,
+            sourceLink,
+            sourceName,
+            catalogPath,
+            owidVariableId,
+            shortName,
+        } = col.def as OwidColumnDef
+        const lastUpdated = getLastUpdatedFromVariable(col.def)
+        const nextUpdate = getNextUpdateFromVariable(col.def)
+
+        let consensedOrigins:
+            | Partial<
+                  Pick<
+                      OwidOrigin,
+                      | "attribution"
+                      | "attributionShort"
+                      | "description"
+                      | "urlDownload"
+                      | "urlMain"
+                  >
+              >[]
+            | undefined = origins?.map((origin) => {
+            const {
+                attribution,
+                attributionShort,
+                description,
+                citationFull,
+                urlDownload,
+                urlMain,
+                dateAccessed,
+            } = origin
+            return {
+                attribution,
+                attributionShort,
+                description,
+                urlDownload,
+                urlMain,
+                dateAccessed,
+                citationFull,
+            }
+        })
+
+        if (!consensedOrigins || consensedOrigins.length === 0) {
+            consensedOrigins = [
+                {
+                    attribution: sourceName,
+                    urlMain: sourceLink,
+                },
+            ]
+        }
+
+        const def = col.def as OwidColumnDef
+
+        const citationShort = getCitationShort(
+            def.origins,
+            getAttributionFragmentsFromVariable(def),
+            def.owidProcessingLevel
+        )
+
+        const citationLong = getCitationLong(
+            col.titlePublicOrDisplayName,
+            def.origins ?? [],
+            col.source ?? {},
+            getAttributionFragmentsFromVariable(def),
+            def.presentation?.attributionShort,
+            def.presentation?.titleVariant,
+            def.owidProcessingLevel,
+            undefined
+        )
+
+        return [
+            useShortNames ? shortName : col.name,
+            {
+                title: col.titlePublicOrDisplayName.title,
+                titleProducer: col.titlePublicOrDisplayName.attributionShort,
+                titleVariant: col.titlePublicOrDisplayName.titleVariant,
+                descriptionShort,
+                descriptionFromProducer,
+                descriptionKey,
+                descriptionProcessing,
+                shortUnit,
+                unit,
+                timespan,
+                tolerance,
+                type,
+                conversionFactor: col.display?.conversionFactor,
+                owidVariableId,
+                catalogPath,
+                sources: consensedOrigins,
+                shortName,
+                additionalInfo,
+                lastUpdated,
+                nextUpdate,
+                citationShort,
+                citationLong,
+            },
+        ]
+    })
+
+    const fullMetadata = {
+        chart: {
+            title: grapher.title,
+            subtitle: grapher.subtitle,
+            note: grapher.note,
+            xAxisLabel: grapher.xAxis.label,
+            yAxisLabel: grapher.yAxis.label,
+            citation: grapher.sourcesLine,
+            originalChartUrl: grapher.canonicalUrl,
+            selection: grapher.selectedEntityNames,
+        },
+        columns: fromPairs(columns),
+    }
+
+    return new Response(JSON.stringify(fullMetadata), {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+}
+
+export async function fetchZipForGrapher(
+    slug: string,
+    env: Env,
+    searchParams?: URLSearchParams
+) {
+    const grapherLogger = new TimeLogger("grapher")
+    const grapher = await initGrapher(
+        {
+            slug,
+            options: TWITTER_OPTIONS,
+            searchParams: searchParams ?? new URLSearchParams(""),
+            env,
+        },
+        grapherLogger
+    )
+    await grapher.downloadLegacyDataFromOwidVariableIds()
+    const defs = grapher.inputTable
+        .getColumns(grapher.inputTable.columnNames)
+        .map((col) => col.def)
+    const table =
+        searchParams.get("csvType") === "filtered"
+            ? grapher.transformedTable
+            : grapher.inputTable
+    const json = JSON.stringify(defs)
+    const zip = new JSZip()
+    zip.file("metadata.json", json)
+    zip.file("data.csv", table.toPrettyCsv())
+    const content = await zip.generateAsync({ type: "blob" })
+    return new Response(content, {
+        headers: {
+            "Content-Type": "application/zip",
+        },
+    })
+}
+
+export async function fetchCsvForGrapher(
+    slug: string,
+    env: Env,
+    searchParams?: URLSearchParams
+) {
+    const grapherLogger = new TimeLogger("grapher")
+    const grapher = await initGrapher(
+        {
+            slug,
+            options: TWITTER_OPTIONS,
+            searchParams: searchParams ?? new URLSearchParams(""),
+            env,
+        },
+        grapherLogger
+    )
+    await grapher.downloadLegacyDataFromOwidVariableIds()
+    const useShortNames = searchParams.get("useColumnShortNames") === "true"
+    const table =
+        searchParams.get("csvType") === "filtered"
+            ? grapher.transformedTable
+            : grapher.inputTable
+    return new Response(table.toPrettyCsv(useShortNames), {
+        headers: {
+            "Content-Type": "text/csv",
+        },
+    })
+}
+
+export async function fetchReadmeForGrapher(
+    slug: string,
+    env: Env,
+    searchParams?: URLSearchParams
+) {
+    const grapherLogger = new TimeLogger("grapher")
+    const grapher = await initGrapher(
+        {
+            slug,
+            options: TWITTER_OPTIONS,
+            searchParams: searchParams ?? new URLSearchParams(""),
+            env,
+        },
+        grapherLogger
+    )
+
+    await grapher.downloadLegacyDataFromOwidVariableIds()
+
+    const columnsToIgnore = new Set(
+        [
+            OwidTableSlugs.entityId,
+            OwidTableSlugs.time,
+            OwidTableSlugs.entityColor,
+            OwidTableSlugs.entityName,
+            OwidTableSlugs.entityCode,
+            OwidTableSlugs.year,
+            OwidTableSlugs.day,
+        ].map((slug) => slug.toString())
+    )
+
+    const columnsToGet = grapher.inputTable.columnSlugs.filter(
+        (col) => !columnsToIgnore.has(col)
+    )
+
+    const columns = grapher.inputTable.getColumns(columnsToGet)
+
+    const readme = constructReadme(grapher, columns)
+    return new Response(readme, {
+        headers: {
+            "Content-Type": "text/markdown",
+        },
+    })
+}
+
+async function fetchAndRenderGrapherToSvg({
+    slug,
+    options,
+    searchParams,
+    env,
+}: {
+    slug: string
+    options: ImageOptions
+    searchParams: URLSearchParams
+    env: Env
+}) {
+    const grapherLogger = new TimeLogger("grapher")
+    const grapher = await initGrapher(
+        { slug, options, searchParams, env },
+        grapherLogger
+    )
     const promises = []
     promises.push(grapher.downloadLegacyDataFromOwidVariableIds())
-
     if (options.details && grapher.detailsOrderedByReference.length) {
         promises.push(
             await fetch("https://ourworldindata.org/dods.json")
@@ -198,7 +561,6 @@ export const fetchAndRenderGrapher = async (
 ) => {
     const options = extractOptions(searchParams)
 
-    console.log("Rendering", slug, outType, options)
     const svg = await fetchAndRenderGrapherToSvg({
         slug,
         options,
