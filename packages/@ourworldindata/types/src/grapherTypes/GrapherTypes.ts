@@ -579,9 +579,10 @@ export interface GrapherInterface extends SortConfig {
     includedEntities?: number[]
     selectedEntityNames?: EntityName[]
     selectedEntityColors?: { [entityName: string]: string | undefined }
-    facet?: FacetStrategy
     missingDataStrategy?: MissingDataStrategy
     hideFacetControl?: boolean
+    facettingLabelByYVariables?: string
+    selectedFacetStrategy?: FacetStrategy
 
     xAxis?: Partial<AxisConfigInterface>
     yAxis?: Partial<AxisConfigInterface>
@@ -683,11 +684,15 @@ export const grapherKeysToSerialize = [
     "hideFacetControl",
     "comparisonLines",
     "relatedQuestions",
+    "missingDataStrategy",
+
+    // serialised keys that are not in the schema
     "topicIds",
     "details",
+
+    // internals
     "adminBaseUrl",
     "bakedGrapherURL",
-    "missingDataStrategy",
     "dataApiUrl",
 ]
 

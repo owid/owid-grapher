@@ -10,6 +10,8 @@ import {
     omitEmptyObjectsRecursive,
     traverseObjects,
     isEmpty,
+    omitNullValuesRecursive,
+    type DeepNullable,
 } from "./Util"
 
 const REQUIRED_KEYS = ["$schema", "dimensions"]
@@ -23,13 +25,14 @@ const KEYS_EXCLUDED_FROM_INHERITANCE = [
 ]
 
 export function mergeGrapherConfigs(
-    ...grapherConfigs: GrapherInterface[]
+    ...grapherConfigs: DeepNullable<GrapherInterface>[]
 ): GrapherInterface {
     const configsToMerge = grapherConfigs.filter((c) => !isEmpty(c))
 
     // return early if there are no configs to merge
     if (configsToMerge.length === 0) return {}
-    if (configsToMerge.length === 1) return configsToMerge[0]
+    if (configsToMerge.length === 1)
+        return omitNullValuesRecursive(configsToMerge[0]) as GrapherInterface
 
     // warn if one of the configs is missing a schema version
     const configsWithoutSchema = configsToMerge.filter(
@@ -60,7 +63,8 @@ export function mergeGrapherConfigs(
         return omit(config, KEYS_EXCLUDED_FROM_INHERITANCE)
     })
 
-    return mergeWith(
+    // merge all configs
+    const mergedConfig = mergeWith(
         {}, // mergeWith mutates the first argument
         ...cleanedConfigs,
         (_: unknown, childValue: unknown): any => {
@@ -70,6 +74,9 @@ export function mergeGrapherConfigs(
             }
         }
     )
+
+    // null values unset a property, so omit it from the final config
+    return omitNullValuesRecursive(mergedConfig)
 }
 
 export function diffGrapherConfigs(

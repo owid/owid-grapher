@@ -15,7 +15,7 @@ import { observer } from "mobx-react"
 import React from "react"
 import Select from "react-select"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
-import { ChartEditor, ChartEditorManager } from "./ChartEditor.js"
+import { isChartEditorInstance } from "./ChartEditor.js"
 import {
     AutoTextField,
     BindAutoString,
@@ -27,9 +27,15 @@ import {
     TextField,
     Toggle,
 } from "./Forms.js"
+import { ChartEditorContext } from "./ChartEditorContext.js"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 @observer
-export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
+export class EditorTextTab<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor }> {
+    static contextType = ChartEditorContext
+
     @action.bound onSlug(slug: string) {
         this.props.editor.grapher.slug = slugify(slug)
     }
@@ -74,8 +80,8 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         grapher.hideAnnotationFieldsInTitle.changeInPrefix = value || undefined
     }
 
-    @computed get errorMessages(): ChartEditorManager["errorMessages"] {
-        return this.props.editor.manager.errorMessages
+    @computed get errorMessages() {
+        return this.context.errorMessages
     }
 
     @computed get showAnyAnnotationFieldInTitleToggle() {
@@ -88,7 +94,8 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
     }
 
     render() {
-        const { grapher, references, features } = this.props.editor
+        const { editor } = this.props
+        const { grapher, features } = editor
         const { relatedQuestions } = grapher
 
         return (
@@ -186,15 +193,16 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         placeholder={grapher.originUrlWithProtocol}
                         helpText="The page containing this chart where more context can be found"
                     />
-                    {references &&
-                        (references.postsWordpress.length > 0 ||
-                            references.postsGdocs.length > 0) && (
+                    {isChartEditorInstance(editor) &&
+                        editor.references &&
+                        (editor.references.postsWordpress.length > 0 ||
+                            editor.references.postsGdocs.length > 0) && (
                             <div className="originSuggestions">
                                 <p>Origin url suggestions</p>
                                 <ul>
                                     {[
-                                        ...references.postsWordpress,
-                                        ...references.postsGdocs,
+                                        ...editor.references.postsWordpress,
+                                        ...editor.references.postsGdocs,
                                     ].map((post) => (
                                         <li key={post.id}>{post.url}</li>
                                     ))}
@@ -213,10 +221,12 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     />
                 </Section>
 
-                <TopicsSection
-                    allTopics={this.props.editor.allTopics}
-                    grapher={grapher}
-                />
+                {isChartEditorInstance(editor) && (
+                    <TopicsSection
+                        allTopics={editor.allTopics}
+                        grapher={grapher}
+                    />
+                )}
 
                 <Section name="Related">
                     {relatedQuestions.map(

@@ -283,7 +283,6 @@ export function grabMetadataForGdocLinkedIndicator(
         title:
             metadata.presentation?.titlePublic ||
             chartConfigTitle ||
-            metadata.presentation?.grapherConfigETL?.title ||
             metadata.display?.name ||
             metadata.name ||
             "",

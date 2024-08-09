@@ -198,13 +198,70 @@ describe(mergeGrapherConfigs, () => {
         })
     })
 
-    it("overwrites values with an empty string if requested", () => {
+    it("removes a property that is set to null", () => {
+        expect(mergeGrapherConfigs({ selectedEntityNames: null })).toEqual({})
+        expect(mergeGrapherConfigs({}, { selectedEntityNames: null })).toEqual(
+            {}
+        )
+        expect(
+            mergeGrapherConfigs(
+                {
+                    title: "Parent title",
+                    selectedEntityNames: ["France"],
+                    hasMapTab: false,
+                    map: {
+                        time: 2000,
+                        hideTimeline: true,
+                    },
+                    hideAnnotationFieldsInTitle: {
+                        time: true,
+                    },
+                },
+                {
+                    title: "Child title",
+                    selectedEntityNames: null,
+                    hasMapTab: null,
+                    map: {
+                        time: 2000,
+                        hideTimeline: null,
+                    },
+                    hideAnnotationFieldsInTitle: null,
+                    tab: null,
+                }
+            )
+        ).toEqual({ title: "Child title", map: { time: 2000 } })
+        expect(
+            mergeGrapherConfigs(
+                {
+                    title: "Parent title",
+                    selectedEntityNames: ["France"],
+                },
+                {
+                    title: "Child title",
+                    // intermediate nulls are ignored
+                    selectedEntityNames: null,
+                },
+                { title: "Grandchild title", selectedEntityNames: ["Germany"] }
+            )
+        ).toEqual({
+            title: "Grandchild title",
+            selectedEntityNames: ["Germany"],
+        })
+    })
+
+    it("overwrites values with an empty string or empty array if requested", () => {
         expect(
             mergeGrapherConfigs(
                 { title: "Parent title", subtitle: "Parent subtitle" },
                 { subtitle: "" }
             )
         ).toEqual({ title: "Parent title", subtitle: "" })
+        expect(
+            mergeGrapherConfigs(
+                { title: "Parent title", selectedEntityNames: ["France"] },
+                { title: "Child title", selectedEntityNames: [] }
+            )
+        ).toEqual({ title: "Child title", selectedEntityNames: [] })
     })
 
     it("is associative", () => {

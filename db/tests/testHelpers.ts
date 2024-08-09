@@ -1,13 +1,33 @@
+import {
+    ChartConfigsTableName,
+    ChartDimensionsTableName,
+    ChartRevisionsTableName,
+    ChartsTableName,
+    DatasetsTableName,
+    PostsGdocsTableName,
+    UsersTableName,
+    VariablesTableName,
+} from "@ourworldindata/types"
 import { Knex } from "knex"
+
+// the order is important here since we drop rows from the tables in this order
+export const TABLES_IN_USE = [
+    ChartDimensionsTableName,
+    ChartRevisionsTableName,
+    ChartsTableName,
+    ChartConfigsTableName,
+    VariablesTableName,
+    DatasetsTableName,
+    PostsGdocsTableName,
+    UsersTableName,
+]
 
 export async function cleanTestDb(
     knexInstance: Knex<any, unknown[]>
 ): Promise<void> {
-    await knexInstance.raw("DELETE FROM chart_dimensions")
-    await knexInstance.raw("DELETE FROM chart_revisions")
-    await knexInstance.raw("DELETE from charts")
-    await knexInstance.raw("DELETE FROM posts_gdocs")
-    await knexInstance.raw("DELETE FROM users")
+    for (const table of TABLES_IN_USE) {
+        await knexInstance.raw(`DELETE FROM ${table}`)
+    }
 }
 
 export function sleep(time: number, value: unknown): Promise<any> {

@@ -176,6 +176,9 @@ import {
     TagGraphRoot,
     TagGraphRootName,
     TagGraphNode,
+    GrapherInterface,
+    ChartTypeName,
+    DimensionProperty,
 } from "@ourworldindata/types"
 import { PointVector } from "./PointVector.js"
 import React from "react"
@@ -183,6 +186,10 @@ import { match, P } from "ts-pattern"
 
 export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
+}
+
+export type DeepNullable<T> = {
+    [P in keyof T]: DeepNullable<T[P]> | null
 }
 
 type OptionalKeysOf<T> = Exclude<
@@ -1136,6 +1143,24 @@ export function omitUndefinedValuesRecursive<T extends Record<string, any>>(
     return result
 }
 
+export function omitNullValuesRecursive<T extends Record<string, any>>(
+    obj: T
+): NoUndefinedValues<T> {
+    const result: any = {}
+    for (const key in obj) {
+        if (isPlainObject(obj[key])) {
+            // re-apply the function if we encounter a non-empty object
+            result[key] = omitNullValuesRecursive(obj[key])
+        } else if (obj[key] === null) {
+            // omit null values
+        } else {
+            // otherwise, keep the value
+            result[key] = obj[key]
+        }
+    }
+    return result
+}
+
 export function omitEmptyObjectsRecursive<T extends Record<string, any>>(
     obj: T
 ): Partial<T> {
@@ -1777,13 +1802,6 @@ export function filterValidStringValues<ValidValue extends string>(
     return filteredValues
 }
 
-// TODO(inheritance): remove in favour of mergeGrapherConfigs
-export function mergePartialGrapherConfigs<T extends Record<string, any>>(
-    ...grapherConfigs: (T | undefined)[]
-): T {
-    return merge({}, ...grapherConfigs)
-}
-
 /** Works for:
  * #dod:text
  * #dod:text-hyphenated
@@ -1970,4 +1988,21 @@ export function traverseObjects<T extends Record<string, any>>(
         }
     }
     return result
+}
+
+export function getParentIndicatorIdFromChartConfig(
+    config: GrapherInterface
+): number | undefined {
+    const { type, dimensions } = config
+
+    if (type === ChartTypeName.ScatterPlot) return undefined
+    if (!dimensions) return undefined
+
+    const yVariableIds = dimensions
+        .filter((d) => d.property === DimensionProperty.y)
+        .map((d) => d.variableId)
+
+    if (yVariableIds.length !== 1) return undefined
+
+    return yVariableIds[0]
 }

@@ -1,13 +1,13 @@
 import { IReactionDisposer, action, autorun, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { ChartEditor } from "./ChartEditor.js"
 import { Section, Toggle } from "./Forms.js"
 import { Grapher } from "@ourworldindata/grapher"
 import {
     triggerDownloadFromBlob,
     GrapherStaticFormat,
 } from "@ourworldindata/utils"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 type ExportSettings = Required<
     Pick<
@@ -55,18 +55,20 @@ const DEFAULT_SETTINGS: ExportSettings = {
     shouldIncludeDetailsInStaticExport: false,
 }
 
-interface EditorExportTabProps {
-    editor: ChartEditor
+interface EditorExportTabProps<Editor> {
+    editor: Editor
 }
 
 @observer
-export class EditorExportTab extends React.Component<EditorExportTabProps> {
+export class EditorExportTab<
+    Editor extends AbstractChartEditor,
+> extends React.Component<EditorExportTabProps<Editor>> {
     @observable private settings = DEFAULT_SETTINGS
     private originalSettings: Partial<ExportSettings> = DEFAULT_SETTINGS
     private originalGrapher: OriginalGrapher
     private disposers: IReactionDisposer[] = []
 
-    constructor(props: EditorExportTabProps) {
+    constructor(props: EditorExportTabProps<Editor>) {
         super(props)
         this.originalGrapher = this.grabRelevantPropertiesFromGrapher()
     }
