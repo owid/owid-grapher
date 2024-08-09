@@ -801,6 +801,7 @@ export const renderExplorerPage = async (
                       config: row.grapherConfigETL as string,
                   })
                 : {}
+            // TODO(inheritance): use mergeGrapherConfigs instead
             return mergePartialGrapherConfigs(etlConfig, adminConfig)
         })
 

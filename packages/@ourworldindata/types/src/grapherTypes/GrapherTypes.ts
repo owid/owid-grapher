@@ -106,6 +106,11 @@ export enum TimeBoundValue {
     positiveInfinity = Infinity,
 }
 
+export enum TimeBoundValueStr {
+    unboundedLeft = "earliest",
+    unboundedRight = "latest",
+}
+
 /**
  * Time tolerance strategy used for maps
  */
@@ -509,12 +514,12 @@ export enum MapProjectionName {
 
 export interface MapConfigInterface {
     columnSlug?: ColumnSlug
-    time?: Time
+    time?: Time | TimeBoundValueStr
     timeTolerance?: number
     toleranceStrategy?: ToleranceStrategy
     hideTimeline?: boolean
     projection?: MapProjectionName
-    colorScale?: ColorScaleConfigInterface
+    colorScale?: Partial<ColorScaleConfigInterface>
     tooltipUseCustomLabels?: boolean
 }
 
@@ -532,8 +537,8 @@ export interface GrapherInterface extends SortConfig {
     sourceDesc?: string
     note?: string
     hideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
-    minTime?: TimeBound
-    maxTime?: TimeBound
+    minTime?: TimeBound | TimeBoundValueStr
+    maxTime?: TimeBound | TimeBoundValueStr
     timelineMinTime?: Time
     timelineMaxTime?: Time
     dimensions?: OwidChartDimensionInterface[]

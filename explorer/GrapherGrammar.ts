@@ -224,8 +224,7 @@ export const GrapherGrammar: Grammar = {
     hideRelativeToggle: {
         ...BooleanCellDef,
         keyword: "hideRelativeToggle",
-        description:
-            "Whether to hide the relative mode UI toggle. Default depends on the chart type.",
+        description: "Whether to hide the relative mode UI toggle",
     },
     timelineMinTime: {
         ...IntegerCellDef,

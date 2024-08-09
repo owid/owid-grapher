@@ -53,6 +53,7 @@ export {
     type ValueRange,
     type Year,
     TimeBoundValue,
+    TimeBoundValueStr,
     type TimeRange,
     type Color,
     type ColumnSlug,
