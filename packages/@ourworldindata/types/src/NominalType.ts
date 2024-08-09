@@ -20,3 +20,11 @@ declare const __nominal__type: unique symbol
 export type Nominal<Type, Identifier> = Type & {
     readonly [__nominal__type]: Identifier
 }
+
+export function wrap<T, I>(obj: T): Nominal<T, I> {
+    return obj as Nominal<T, I>
+}
+
+export function unwrap<T, I>(obj: Nominal<T, I>): T {
+    return obj
+}
