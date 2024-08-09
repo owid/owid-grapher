@@ -156,19 +156,6 @@ const testChartConfig = {
     title: "Test chart",
     type: "LineChart",
 }
-// TODO(inheritance)
-// const testChartConfigWithDimensions = {
-//     id: 10,
-//     slug: "test-chart",
-//     title: "Test chart",
-//     type: "LineChart",
-//     dimensions: [
-//         {
-//             variableId: 123456,
-//             property: "y",
-//         },
-//     ],
-// }
 
 describe("OwidAdminApp", () => {
     it("should be able to create an app", () => {
@@ -189,6 +176,7 @@ describe("OwidAdminApp", () => {
     })
 
     it("should be able to edit a chart via the api", async () => {
+        // make sure the database is in a clean state
         const chartCount = await getCountForTable(ChartsTableName)
         expect(chartCount).toBe(0)
         const chartConfigsCount = await getCountForTable(ChartConfigsTableName)
@@ -196,6 +184,7 @@ describe("OwidAdminApp", () => {
 
         const chartId = 1 // since the chart is the first to be inserted
 
+        // make a request to create a chart
         const response = await fetch("http://localhost:8765/admin/api/charts", {
             method: "POST",
             headers: {
@@ -219,7 +208,13 @@ describe("OwidAdminApp", () => {
         )
         expect(chartConfigsCountAfter).toBe(1)
 
-        // fetch the full config and check if it's merged with the default
+        // fetch the parent config and verify it's empty
+        const parentConfig = await fetchJsonFromApi(
+            `/charts/${chartId}.parentConfig.json`
+        )
+        expect(parentConfig).toEqual({})
+
+        // fetch the full config and verify it's merged with the default
         const fullConfig = await fetchJsonFromApi(
             `/charts/${chartId}.config.json`
         )
@@ -231,7 +226,7 @@ describe("OwidAdminApp", () => {
         expect(fullConfig).toHaveProperty("type", "LineChart") // default property
         expect(fullConfig).toHaveProperty("tab", "chart") // default property
 
-        // fetch the patch config and check if it's diffed correctly
+        // fetch the patch config and verify it's diffed correctly
         const patchConfig = await fetchJsonFromApi(
             `/charts/${chartId}.patchConfig.json`
         )
@@ -241,13 +236,8 @@ describe("OwidAdminApp", () => {
             version: 1,
             slug: "test-chart",
             title: "Test chart",
+            // note that the type is not included
         })
-
-        // fetch the parent config and check if it's the default object
-        const parentConfig = await fetchJsonFromApi(
-            `/charts/${chartId}.parentConfig.json`
-        )
-        expect(parentConfig).toEqual(defaultGrapherConfig)
     })
 
     it("should be able to create a GDoc article", async () => {
@@ -275,7 +265,10 @@ describe("OwidAdminApp", () => {
 })
 
 describe("OwidAdminApp: indicator-level chart configs", () => {
+    const variableId = 1
+
     const dummyDataset = {
+        id: 1,
         name: "Dummy dataset",
         description: "Dataset description",
         namespace: "owid",
@@ -286,6 +279,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         dataEditedByUserId: 1,
     }
     const dummyVariable = {
+        id: variableId,
         unit: "kg",
         coverage: "Global by country",
         timespan: "2000-2020",
@@ -293,17 +287,34 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         display: '{ "unit": "kg", "shortUnit": "kg" }',
     }
 
-    const variableId = 1
     const testVariableConfig = {
         hasMapTab: true,
+        note: "Indicator note",
+        selectedEntityNames: ["France", "Italy", "Spain"],
+        hideRelativeToggle: false,
     }
 
-    beforeAll(async () => {
+    const testChartConfig = {
+        slug: "test-chart",
+        title: "Test chart",
+        type: "Marimekko",
+        selectedEntityNames: [],
+        hideRelativeToggle: false,
+        dimensions: [
+            {
+                variableId,
+                property: "y",
+            },
+        ],
+    }
+
+    beforeEach(async () => {
         await testKnexInstance!(DatasetsTableName).insert([dummyDataset])
         await testKnexInstance!(VariablesTableName).insert([dummyVariable])
     })
 
     it("should be able to edit ETL grapher configs via the api", async () => {
+        // make sure the database is in a clean state
         const chartConfigsCount = await getCountForTable(ChartConfigsTableName)
         expect(chartConfigsCount).toBe(0)
 
@@ -349,6 +360,15 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             ],
         })
 
+        // fetch the admin+etl merged grapher config
+        const mergedGrapherConfig = await fetchJsonFromApi(
+            `/variables/mergedGrapherConfig/${variableId}.json`
+        )
+
+        // since no admin-authored config exists, the merged config should be
+        // the same as the ETL config
+        expect(mergedGrapherConfig).toEqual(fullConfig)
+
         // delete the grapher config we just added
         response = await fetch(
             `http://localhost:8765/admin/api/variables/${variableId}/grapherConfigETL`,
@@ -369,5 +389,140 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             ChartConfigsTableName
         )
         expect(chartConfigsCountAfterDelete).toBe(0)
+    })
+
+    it("should update all charts that inherit from an indicator", async () => {
+        const chartId = 2 // since it's the second chart to be inserted into the test database
+
+        // setup: add grapherConfigETL for the variable
+        let response = await fetch(
+            `http://localhost:8765/admin/api/variables/${variableId}/grapherConfigETL`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    cookie: `sessionid=${cookieId}`,
+                },
+                body: JSON.stringify(testVariableConfig),
+            }
+        )
+        expect(response.status).toBe(200)
+        let text = await response.json()
+        expect(text.success).toBe(true)
+
+        // make a request to create a chart that inherits from the variable
+        response = await fetch("http://localhost:8765/admin/api/charts", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                cookie: `sessionid=${cookieId}`,
+            },
+            body: JSON.stringify(testChartConfig),
+        })
+        expect(response.status).toBe(200)
+        text = await response.json()
+        expect(text.success).toBe(true)
+        expect(text.chartId).toBe(chartId)
+
+        // get the ETL config from the database
+        const row = await testKnexInstance!(ChartConfigsTableName).first()
+        const fullConfigETL = JSON.parse(row.full)
+
+        // fetch the parent config of the chart and verify that it's the ETL config
+        const parentConfig = await fetchJsonFromApi(
+            `/charts/${chartId}.parentConfig.json`
+        )
+        expect(parentConfig).toEqual(fullConfigETL)
+
+        // fetch the full config of the chart and verify that it's been merged
+        // with the ETL config and the default config
+        const fullConfig = await fetchJsonFromApi(
+            `/charts/${chartId}.config.json`
+        )
+        expect(fullConfig).toHaveProperty("slug", "test-chart")
+        expect(fullConfig).toHaveProperty("title", "Test chart")
+        expect(fullConfig).toHaveProperty("type", "Marimekko")
+        expect(fullConfig).toHaveProperty("selectedEntityNames", [])
+        expect(fullConfig).toHaveProperty("hideRelativeToggle", false)
+        expect(fullConfig).toHaveProperty("note", "Indicator note") // inherited from variable
+        expect(fullConfig).toHaveProperty("hasMapTab", true) // inherited from variable
+        expect(fullConfig).toHaveProperty("tab", "chart") // default value
+
+        // fetch the patch config and verify it's diffed correctly
+        const patchConfig = await fetchJsonFromApi(
+            `/charts/${chartId}.patchConfig.json`
+        )
+        expect(patchConfig).toEqual({
+            $schema: defaultGrapherConfig["$schema"],
+            id: chartId,
+            version: 1,
+            slug: "test-chart",
+            title: "Test chart",
+            type: "Marimekko",
+            selectedEntityNames: [],
+            dimensions: [
+                {
+                    variableId,
+                    property: "y",
+                },
+            ],
+            // note that `hideRelativeToggle` is not included
+        })
+
+        // delete the ETL config
+        response = await fetch(
+            `http://localhost:8765/admin/api/variables/${variableId}/grapherConfigETL`,
+            {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    cookie: `sessionid=${cookieId}`,
+                },
+            }
+        )
+        expect(response.status).toBe(200)
+        text = await response.json()
+        expect(text.success).toBe(true)
+
+        // fetch the parent config of the chart and verify that it's empty
+        const parentConfigAfterDelete = await fetchJsonFromApi(
+            `/charts/${chartId}.parentConfig.json`
+        )
+        expect(parentConfigAfterDelete).toEqual({})
+
+        // fetch the full config of the chart and verify that it doesn't have
+        // values from the deleted ETL config
+        const fullConfigAfterDelete = await fetchJsonFromApi(
+            `/charts/${chartId}.config.json`
+        )
+        // was inherited from variable, should be unset now
+        expect(fullConfigAfterDelete).not.toHaveProperty("note")
+        // was inherited from variable, is now inherited from the default config
+        expect(fullConfigAfterDelete).toHaveProperty("hasMapTab", false)
+        // was inherited from variable, is now inherited from the default config
+        // (although the "original" chart config sets hideRelativeToggle to false)
+        expect(fullConfigAfterDelete).toHaveProperty("hideRelativeToggle", true)
+        expect(fullConfigAfterDelete).toHaveProperty("tab", "chart") // default value
+
+        // fetch the patch config and verify it's diffed correctly
+        const patchConfigAfterDelete = await fetchJsonFromApi(
+            `/charts/${chartId}.patchConfig.json`
+        )
+        expect(patchConfigAfterDelete).toEqual({
+            $schema: defaultGrapherConfig["$schema"],
+            id: chartId,
+            version: 1,
+            slug: "test-chart",
+            title: "Test chart",
+            type: "Marimekko",
+            selectedEntityNames: [],
+            dimensions: [
+                {
+                    variableId,
+                    property: "y",
+                },
+            ],
+            // note that hideRelativeToggle is not included
+        })
     })
 })
