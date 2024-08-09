@@ -4,6 +4,7 @@ import { observable, computed, runInAction, action } from "mobx"
 import {
     getParentIndicatorIdFromChartConfig,
     RawPageview,
+    isEmpty,
 } from "@ourworldindata/utils"
 import { Topic, GrapherInterface, ChartRedirect } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
@@ -16,7 +17,6 @@ import {
 } from "./ChartEditor.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
-import { isEmpty } from "../gridLang/GrammarUtils.js"
 
 @observer
 export class ChartEditorPage
@@ -50,10 +50,7 @@ export class ChartEditorPage
             const parentConfig = await this.context.admin.getJSON(
                 `/api/charts/${grapherId}.parentConfig.json`
             )
-            this.parentConfig =
-                Object.keys(parentConfig).length === 0
-                    ? undefined
-                    : parentConfig
+            this.parentConfig = isEmpty(parentConfig) ? undefined : parentConfig
         } else if (grapherConfig) {
             const parentIndicatorId =
                 getParentIndicatorIdFromChartConfig(grapherConfig)

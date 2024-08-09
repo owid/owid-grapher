@@ -86,8 +86,11 @@ export const legacyToOwidTableAndDimensions = (
     const variableTablesToJoinByYear: OwidTable[] = []
     const variableTablesToJoinByDay: OwidTable[] = []
     const variableTablesWithYearToJoinByEntityOnly: OwidTable[] = []
-    dimensionColumns.forEach((dimension) => {
-        const variable = json.get(dimension.variableId)!
+    for (const dimension of dimensionColumns) {
+        const variable = json.get(dimension.variableId)
+
+        // TODO: this shouldn't happen but does in the admin when adding a dimension
+        if (!variable) continue
 
         // Copy the base columnDef
         const columnDefs = new Map(baseColumnDefs)
@@ -219,7 +222,7 @@ export const legacyToOwidTableAndDimensions = (
         } else if (variable.metadata.display?.yearIsDay)
             variableTablesToJoinByDay.push(variableTable)
         else variableTablesToJoinByYear.push(variableTable)
-    })
+    }
 
     // If we only had years then all we would need to do is a single fullJoinTables call and
     // we'd be done with it. But since we also have days this is a bit trickier. The

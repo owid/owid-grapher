@@ -117,10 +117,9 @@ export class KeysSection extends React.Component<{
 
         return (
             <Section name="Data to show">
-                from parent config:{" "}
-                {this.props.editor
-                    .isPropertyInherited("selectedEntityNames")
-                    .toString()}
+                {this.props.editor.isPropertyInherited("selectedEntityNames")
+                    ? "inherited"
+                    : "not inherited"}
                 <SelectField
                     onValue={this.onAddKey}
                     value="Select data"
@@ -152,14 +151,11 @@ export class KeysSection extends React.Component<{
                                                         key={entityName}
                                                         grapher={grapher}
                                                         entityName={entityName}
-                                                        onRemove={() => {
+                                                        onRemove={() =>
                                                             selection.deselectEntity(
                                                                 entityName
                                                             )
-                                                            console.log(
-                                                                selection.numSelectedEntities
-                                                            )
-                                                        }}
+                                                        }
                                                     />
                                                 </div>
                                             )}
