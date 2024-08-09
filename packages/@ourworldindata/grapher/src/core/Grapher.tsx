@@ -44,7 +44,6 @@ import {
     timeBoundToTimeBoundString,
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
-    deleteRuntimeProps,
     updatePersistables,
     strToQueryParams,
     queryParamsToStr,
@@ -542,7 +541,6 @@ export class Grapher
             grapherKeysToSerialize
         )
 
-        // TODO: use toJS here?
         obj.selectedEntityNames = this.selection.selectedEntityNames
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
@@ -550,22 +548,6 @@ export class Grapher
         return Grapher.ensureValidObject(obj)
     }
 
-    // TODO: stronger type?
-    toFullObject(): GrapherInterface {
-        const obj: GrapherInterface = objectWithPersistablesToObject(
-            this,
-            grapherKeysToSerialize
-        )
-
-        // TODO: use toJS here?
-        obj.selectedEntityNames = this.selection.selectedEntityNames
-
-        deleteRuntimeProps(obj, defaultObject)
-
-        return Grapher.ensureValidObject(obj)
-    }
-
-    // todo: make into prop
     static defaultObject(): GrapherInterface {
         return Grapher.ensureValidObject(defaultObject)
     }
@@ -1826,11 +1808,6 @@ export class Grapher
         return this.toObject()
     }
 
-    // TODO: remove?
-    @computed get fullObject(): GrapherInterface {
-        return this.toFullObject()
-    }
-
     @computed
     get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): ChartTypeName {
         // Switch to bar chart if a single year is selected. Todo: do we want to do this?
@@ -3058,6 +3035,8 @@ export class Grapher
     // The idea here is to reset the Grapher to a blank slate, so that if you updateFromObject and the object contains some blanks, those blanks
     // won't overwrite defaults (like type == LineChart). RAII would probably be better, but this works for now.
     @action.bound reset(): void {
+        this.selection.clearSelection()
+
         const grapher = new Grapher()
         // TODO: could this be a problem elsewhere?
         for (const key of grapherKeysToSerialize) {
@@ -3424,8 +3403,6 @@ const defaultObject = objectWithPersistablesToObject(
     new Grapher(),
     grapherKeysToSerialize
 )
-
-console.log("default grapher object", defaultObject)
 
 export const getErrorMessageRelatedQuestionUrl = (
     question: RelatedQuestionsConfig

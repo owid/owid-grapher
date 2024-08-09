@@ -14,6 +14,7 @@ import {
     GrapherInterface,
     getParentIndicatorIdFromChartConfig,
     mergeGrapherConfigs,
+    isEmpty,
 } from "@ourworldindata/utils"
 import { action, computed, observable, runInAction } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
@@ -23,7 +24,6 @@ import {
     EditorTab,
 } from "./AbstractChartEditor.js"
 import { Admin } from "./Admin.js"
-import { isEmpty } from "../gridLang/GrammarUtils.js"
 
 export interface Log {
     userId: number
@@ -95,21 +95,22 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     }
 
     @action.bound async updateParentConfig() {
-        const currentIndicatorId = this.parentConfig?.dimensions?.[0].variableId
-        const newIndicatorId = getParentIndicatorIdFromChartConfig(
-            this.fullConfig
+        const currentParentIndicatorId =
+            this.parentConfig?.dimensions?.[0].variableId
+        const newParentIndicatorId = getParentIndicatorIdFromChartConfig(
+            this.grapher.object
         )
 
         // fetch the new parent config if the indicator has changed
         let newParentConfig: GrapherInterface | undefined
         if (
-            newIndicatorId &&
-            (currentIndicatorId === undefined ||
-                newIndicatorId !== currentIndicatorId)
+            newParentIndicatorId &&
+            (currentParentIndicatorId === undefined ||
+                newParentIndicatorId !== currentParentIndicatorId)
         ) {
             newParentConfig = await fetchParentConfigForChart(
                 this.manager.admin,
-                newIndicatorId
+                newParentIndicatorId
             )
         }
 
@@ -213,13 +214,7 @@ export async function fetchParentConfigForChart(
     const indicatorChart = await admin.getJSON(
         `/api/variables/mergedGrapherConfig/${indicatorId}.json`
     )
-    // TODO: why doesn't isEmpty work here?
-    console.log(
-        indicatorChart,
-        isEmpty(indicatorChart),
-        Object.keys(indicatorChart).length === 0
-    )
-    return Object.keys(indicatorChart).length === 0 ? undefined : indicatorChart
+    return isEmpty(indicatorChart) ? undefined : indicatorChart
 }
 
 export function isChartEditorInstance(
