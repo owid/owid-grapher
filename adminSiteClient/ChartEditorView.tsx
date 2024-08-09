@@ -35,6 +35,7 @@ import { EditorScatterTab } from "./EditorScatterTab.js"
 import { EditorMapTab } from "./EditorMapTab.js"
 import { EditorHistoryTab } from "./EditorHistoryTab.js"
 import { EditorReferencesTab } from "./EditorReferencesTab.js"
+import { EditorInheritanceTab } from "./EditorInheritanceTab.js"
 import {
     SaveButtonsForChart,
     SaveButtonsForIndicatorChart,
@@ -462,6 +463,9 @@ export class ChartEditorView<
                         )}
                         {chartEditor && chartEditor.tab === "refs" && (
                             <EditorReferencesTab editor={chartEditor} />
+                        )}
+                        {editor.tab === "inheritance" && (
+                            <EditorInheritanceTab editor={editor} />
                         )}
                         {editor.tab === "export" && (
                             <EditorExportTab editor={editor} />

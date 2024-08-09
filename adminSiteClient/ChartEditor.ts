@@ -86,6 +86,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         if (this.grapher.isMarimekko) tabs.push("marimekko")
         tabs.push("revisions")
         tabs.push("refs")
+        if (this.parentConfig) tabs.push("inheritance")
         tabs.push("export")
         return tabs
     }

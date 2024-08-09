@@ -3,15 +3,10 @@ import { observer } from "mobx-react"
 import { ChartEditor, Log } from "./ChartEditor.js"
 import { Section, Timeago } from "./Forms.js"
 import { computed, action, observable } from "mobx"
-import {
-    Json,
-    copyToClipboard,
-    diffGrapherConfigs,
-} from "@ourworldindata/utils"
+import { Json, copyToClipboard } from "@ourworldindata/utils"
 import YAML from "yaml"
 import { notification, Modal } from "antd"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
-import { defaultGrapherConfig } from "@ourworldindata/grapher"
 
 function LogCompareModal({
     log,
@@ -151,7 +146,7 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
     }
 
     render() {
-        const { patchConfig, fullConfig, parentConfig } = this.props.editor
+        const { patchConfig, fullConfig } = this.props.editor
         return (
             <div>
                 {this.logs.map((log, i) => (
@@ -177,24 +172,6 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
                         value={JSON.stringify(patchConfig, undefined, 2)}
                     />
                 </Section>
-                <Section name="Full Config">
-                    <textarea
-                        rows={7}
-                        readOnly
-                        className="form-control"
-                        value={JSON.stringify(fullConfig, undefined, 2)}
-                    />
-                </Section>
-                {parentConfig && (
-                    <Section name="Parent Config">
-                        <textarea
-                            rows={7}
-                            readOnly
-                            className="form-control"
-                            value={JSON.stringify(parentConfig, undefined, 2)}
-                        />
-                    </Section>
-                )}
             </div>
         )
     }
