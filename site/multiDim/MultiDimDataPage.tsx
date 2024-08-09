@@ -50,21 +50,6 @@ export const MultiDimDataPage = (props: {
                     figure[data-grapher-src] { display: none !important; }
                 `}</style>
                 </noscript>
-                {/* <link rel="preconnect" href={dataApiOrigin} />
-                {variableIds.flatMap((variableId) =>
-                    [
-                        getVariableDataRoute(DATA_API_URL, variableId),
-                        getVariableMetadataRoute(DATA_API_URL, variableId),
-                    ].map((href) => (
-                        <link
-                            key={href}
-                            rel="preload"
-                            href={href}
-                            as="fetch"
-                            crossOrigin="anonymous"
-                        />
-                    ))
-                )} */}
                 <link
                     rel="preload"
                     href="/fonts/PlayfairDisplayLatin-SemiBold.woff2"
