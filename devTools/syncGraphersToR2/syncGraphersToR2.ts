@@ -3,7 +3,6 @@ import parseArgs from "minimist"
 import {
     DeleteObjectCommand,
     DeleteObjectCommandInput,
-    ListObjectsCommand,
     ListObjectsV2Command,
     ListObjectsV2CommandOutput,
     PutObjectCommand,
@@ -20,22 +19,21 @@ import {
 } from "../../settings/serverSettings.js"
 import {
     knexRaw,
+    knexRawFirst,
     KnexReadonlyTransaction,
     knexReadonlyTransaction,
 } from "../../db/db.js"
 import {
-    base64ToBytes,
     bytesToBase64,
     DbRawChartConfig,
-    differenceOfSets,
     excludeUndefined,
     HexString,
     hexToBytes,
     R2GrapherConfigDirectory,
 } from "@ourworldindata/utils"
-import { string } from "ts-pattern/dist/patterns.js"
-import { chunk, take } from "lodash"
+import { chunk } from "lodash"
 import ProgressBar from "progress"
+import { exec } from "child_process"
 
 type HashAndId = Pick<DbRawChartConfig, "fullMd5" | "id">
 
@@ -194,7 +192,7 @@ async function syncWithR2(
     }
 }
 
-async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
+async function sync(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
     if (
         GRAPHER_CONFIG_R2_BUCKET === undefined ||
         GRAPHER_CONFIG_R2_BUCKET_PATH === undefined
@@ -280,13 +278,91 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
     })
 }
 
+async function storeDevBySlug(
+    parsedArgs: parseArgs.ParsedArgs,
+    dryRun: boolean
+) {
+    const slug = parsedArgs._[1]
+    if (!slug) {
+        console.error("No slug provided")
+        return
+    }
+
+    await knexReadonlyTransaction(async (trx) => {
+        // Fetch the chart config from the DB by slug
+        const chart = await knexRawFirst<DbRawChartConfig>(
+            trx,
+            `SELECT full FROM chart_configs WHERE slug = ? and full ->> '$.isPublished' = "true"`,
+            [slug]
+        )
+        if (!chart) {
+            console.error(`No chart found for slug ${slug}`)
+            return
+        }
+
+        console.log("Config retrieved for", slug)
+
+        const fullConfig = chart.full
+        const command = `npx wrangler r2 object put --local ${GRAPHER_CONFIG_R2_BUCKET}/${GRAPHER_CONFIG_R2_BUCKET_PATH}/${R2GrapherConfigDirectory.publishedGrapherBySlug}/${slug}.json --pipe --content-type application/json --persist-to ./cfstorage`
+
+        const process = exec(command, (error, stdout, stderr) => {
+            if (error) {
+                console.error(
+                    `Error executing wrangler command: ${error.message}`
+                )
+                return
+            }
+            if (stderr) {
+                console.error(`Wrangler stderr: ${stderr}`)
+                return
+            }
+            console.log(`Wrangler stdout: ${stdout}`)
+        })
+
+        if (process.stdin) {
+            process.stdin.write(fullConfig)
+            process.stdin.end()
+        }
+        // wait until the process exits
+        await new Promise((resolve) => {
+            process.on("exit", resolve)
+        })
+        console.log("Config stored for", slug)
+    })
+}
+
+async function main(parsedArgs: parseArgs.ParsedArgs) {
+    const dryRun = parsedArgs["dry-run"]
+
+    const command = parsedArgs._[0]
+
+    switch (command) {
+        case "sync":
+            await sync(parsedArgs, dryRun)
+            break
+        case "store-dev-by-slug":
+            await storeDevBySlug(parsedArgs, dryRun)
+            break
+        default:
+            console.log(
+                `Unknown command: ${command}\n\nAvailable commands:\n  sync\n  store-dev-by-slug`
+            )
+            break
+    }
+    process.exit(0)
+}
+
 const parsedArgs = parseArgs(process.argv.slice(2))
 if (parsedArgs["h"]) {
     console.log(
         `syncGraphersToR2.js - sync grapher configs from the chart_configs table to R2
 
---dry-run: Don't make any actual changes to R2`
+--dry-run: Don't make any actual changes to R2
+
+Commands:
+  sync: Sync grapher configs to R2
+  store-dev-by-slug: Fetch a grapher config by slug from the chart_configs table and store it the local dev R2 storage`
     )
 } else {
-    main(parsedArgs, parsedArgs["dry-run"])
+    main(parsedArgs)
 }
