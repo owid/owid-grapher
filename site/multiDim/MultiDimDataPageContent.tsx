@@ -9,13 +9,11 @@ import {
 import ReactDOM from "react-dom"
 import { RelatedCharts } from "../blocks/RelatedCharts.js"
 import {
-    DataPageV2ContentFields,
     formatAuthors,
     intersection,
     DataPageDataV2,
     GrapherInterface,
     joinTitleFragments,
-    ImageMetadata,
     DimensionProperty,
     OwidVariableWithSource,
     getLastUpdatedFromVariable,
@@ -34,7 +32,7 @@ import { DebugProvider } from "../gdocs/DebugContext.js"
 import { BAKED_BASE_URL, DATA_API_URL } from "../../settings/clientSettings.js"
 import Image from "../gdocs/components/Image.js"
 import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
-import { MultiDimDataPageConfigPreProcessed } from "./MultiDimDataPageTypes.js"
+import { MultiDimDataPageProps } from "./MultiDimDataPageTypes.js"
 import AboutThisData from "../AboutThisData.js"
 import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
@@ -45,14 +43,9 @@ import {
 import { reaction } from "mobx"
 import { useElementBounds } from "../hooks.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
-import {
-    FaqEntryKeyedByGdocIdAndFragmentId,
-    MultiDimDataPageContentFields,
-    PrimaryTopic,
-} from "@ourworldindata/types/dist/gdocTypes/Datapage.js"
 declare global {
     interface Window {
-        _OWID_MULTI_DIM_CONFIG: MultiDimDataPageConfigPreProcessed
+        _OWID_MULTI_DIM_PROPS: MultiDimDataPageProps
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
@@ -145,8 +138,7 @@ const cachedGetVariableMetadata = memoize(
 
 export const MultiDimDataPageContent = ({
     // _datapageData,
-    config,
-    grapherConfig,
+    configObj,
     // isPreviewing = false,
     faqEntries,
     primaryTopic,
@@ -154,15 +146,13 @@ export const MultiDimDataPageContent = ({
     tagToSlugMap,
     // imageMetadata,
     initialQueryStr,
-}: DataPageV2ContentFields & {
-    config: MultiDimDataPageConfig
-    grapherConfig?: GrapherInterface
-    faqEntries: FaqEntryKeyedByGdocIdAndFragmentId
-    imageMetadata: Record<string, ImageMetadata>
-    initialQueryStr?: string
-    primaryTopic?: PrimaryTopic | undefined
-}) => {
+}: MultiDimDataPageProps) => {
     const grapherFigureRef = useRef<HTMLDivElement>(null)
+
+    const config = useMemo(
+        () => MultiDimDataPageConfig.fromObject(configObj),
+        [configObj]
+    )
 
     const [initialChoices] = useState(() =>
         initialQueryStr
@@ -216,10 +206,10 @@ export const MultiDimDataPageContent = ({
         const variableMetadata = cachedGetVariableMetadata(variableId)
 
         variableMetadata
-            .then((json) => getDatapageDataV2(json, grapherConfig))
+            .then((json) => getDatapageDataV2(json, currentView?.config))
             .then(setDatapageDataFromVar)
             .catch(console.error)
-    }, [dimensionsConfig, currentView?.indicators, grapherConfig])
+    }, [dimensionsConfig, currentView?.indicators, currentView?.config])
 
     const titleFragments = joinTitleFragments(
         title.titleVariant,
@@ -325,7 +315,7 @@ export const MultiDimDataPageContent = ({
     const faqEntriesForView = useMemo(() => {
         return compact(
             datapageDataFromVar?.faqs?.flatMap(
-                (faq) => faqEntries.faqs?.[faq.gdocId]?.[faq.fragmentId]
+                (faq) => faqEntries?.faqs?.[faq.gdocId]?.[faq.fragmentId]
             )
         )
     }, [datapageDataFromVar?.faqs, faqEntries])
@@ -339,7 +329,7 @@ export const MultiDimDataPageContent = ({
                         <h1 className="header__title">{title.title}</h1>
                         <div className="header__source">{titleFragments}</div>
                     </div>
-                    {hasTopicTags && (
+                    {hasTopicTags && tagToSlugMap && (
                         <TopicTags
                             className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12"
                             topicTagsLinks={config.config.topicTags ?? []}
@@ -539,20 +529,13 @@ export const MultiDimDataPageContent = ({
 
 export const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
-    const props: MultiDimDataPageContentFields =
-        window._OWID_DATAPAGEV2_PROPS as MultiDimDataPageContentFields
-    const grapherConfig = window._OWID_GRAPHER_CONFIG
+    const props: MultiDimDataPageProps = window._OWID_MULTI_DIM_PROPS
     const initialQueryStr = getWindowQueryStr()
-    const config = MultiDimDataPageConfig.fromObject(
-        window._OWID_MULTI_DIM_CONFIG
-    )
 
     ReactDOM.hydrate(
         <DebugProvider debug={isPreviewing}>
             <MultiDimDataPageContent
                 {...props}
-                config={config}
-                grapherConfig={grapherConfig}
                 isPreviewing={isPreviewing}
                 initialQueryStr={initialQueryStr}
             />

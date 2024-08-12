@@ -1,37 +1,20 @@
 import React from "react"
-import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
 import { Head } from "../Head.js"
 import { IFrameDetector } from "../IframeDetector.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { OWID_DATAPAGE_CONTENT_ROOT_ID } from "../DataPageV2Content.js"
 import { SiteFooter } from "../SiteFooter.js"
-import {
-    SiteFooterContext,
-    pick,
-    serializeJSONForHTML,
-} from "@ourworldindata/utils"
-import {
-    FaqEntryKeyedByGdocIdAndFragmentId,
-    PrimaryTopic,
-} from "@ourworldindata/types/dist/gdocTypes/Datapage.js"
+import { SiteFooterContext, serializeJSONForHTML } from "@ourworldindata/utils"
+import { MultiDimDataPageProps } from "./MultiDimDataPageTypes.js"
 
 export const MultiDimDataPage = (props: {
     baseUrl: string
-    config: MultiDimDataPageConfig
-    tagToSlugMap?: Record<string, string>
-    faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
-    primaryTopic?: PrimaryTopic | undefined
+    multiDimProps: MultiDimDataPageProps
 }) => {
-    const { config, faqEntries } = props
+    const { multiDimProps } = props
 
     const canonicalUrl = "" // TODO
     const baseUrl = props.baseUrl // TODO
-
-    // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
-    const minimalTagToSlugMap = pick(
-        props.tagToSlugMap,
-        config.config.topicTags ?? []
-    )
 
     return (
         <html>
@@ -63,15 +46,8 @@ export const MultiDimDataPage = (props: {
                 <main>
                     <script
                         dangerouslySetInnerHTML={{
-                            __html: `window._OWID_DATAPAGEV2_PROPS = ${JSON.stringify(
-                                {
-                                    // datapageData,
-                                    canonicalUrl,
-                                    tagToSlugMap: minimalTagToSlugMap,
-                                    faqEntries,
-                                    primaryTopic: props.primaryTopic,
-                                    // imageMetadata,
-                                }
+                            __html: `window._OWID_MULTI_DIM_PROPS = ${serializeJSONForHTML(
+                                multiDimProps
                             )}`,
                         }}
                     />
@@ -93,13 +69,6 @@ export const MultiDimDataPage = (props: {
                     baseUrl={baseUrl}
                     context={SiteFooterContext.multiDimDataPage}
                     // isPreviewing={isPreviewing}
-                />
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `window._OWID_MULTI_DIM_CONFIG = ${serializeJSONForHTML(
-                            props.config.config
-                        )}`,
-                    }}
                 />
             </body>
         </html>

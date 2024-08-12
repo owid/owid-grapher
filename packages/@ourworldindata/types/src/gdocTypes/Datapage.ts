@@ -141,11 +141,6 @@ export interface DataPageV2ContentFields {
     imageMetadata: Record<string, ImageMetadata>
 }
 
-export type MultiDimDataPageContentFields = DataPageV2ContentFields & {
-    faqEntries: FaqEntryKeyedByGdocIdAndFragmentId
-    primaryTopic?: PrimaryTopic | undefined
-}
-
 export interface DisplaySource {
     label: string
     description?: string

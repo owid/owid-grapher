@@ -7,6 +7,7 @@ import {
     IndicatorsAfterPreProcessing,
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageConfigRaw,
+    MultiDimDataPageProps,
 } from "../site/multiDim/MultiDimDataPageTypes.js"
 import { MultiDimDataPageConfig } from "../site/multiDim/MultiDimDataPageConfig.js"
 import * as db from "../db/db.js"
@@ -25,6 +26,7 @@ import {
     keyBy,
     mapValues,
     OwidVariableWithSource,
+    pick,
 } from "@ourworldindata/utils"
 import {
     fetchAndParseFaqs,
@@ -32,10 +34,7 @@ import {
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-import {
-    FaqEntryKeyedByGdocIdAndFragmentId,
-    PrimaryTopic,
-} from "@ourworldindata/types/dist/gdocTypes/Datapage.js"
+import { FaqEntryKeyedByGdocIdAndFragmentId } from "@ourworldindata/types/dist/gdocTypes/Datapage.js"
 
 // TODO Make this dynamic
 const baseDir = findProjectBaseDir(__dirname)
@@ -54,12 +53,6 @@ const MULTI_DIM_SITES_BY_SLUG: Record<string, MultiDimDataPageConfigRaw> = {
     "mdd-life-expectancy": readMultiDimConfig("life-expectancy.json"),
     "mdd-plastic": readMultiDimConfig("plastic.json"),
     "mdd-poverty": readMultiDimConfig("poverty.yml"),
-}
-
-interface BakingAdditionalContext {
-    tagToSlugMap: Record<string, string>
-    faqEntries: FaqEntryKeyedByGdocIdAndFragmentId
-    primaryTopic: PrimaryTopic | undefined
 }
 
 const resolveMultiDimDataPageCatalogPathsToIndicatorIds = async (
@@ -223,12 +216,17 @@ export const renderMultiDimDataPageBySlug = async (
     const rawConfig = MULTI_DIM_SITES_BY_SLUG[slug]
     if (!rawConfig) throw new Error(`No multi-dim site found for slug: ${slug}`)
 
+    // TAGS
     const tagToSlugMap = await getTagToSlugMap(knex)
+    // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
+    const minimalTagToSlugMap = pick(tagToSlugMap, rawConfig.topicTags ?? [])
 
+    // PRE-PROCESS CONFIG
     const preProcessedConfig =
         await resolveMultiDimDataPageCatalogPathsToIndicatorIds(knex, rawConfig)
     const config = MultiDimDataPageConfig.fromObject(preProcessedConfig)
 
+    // FAQs
     const variableMetaDict =
         await getRelevantVariableMetadata(preProcessedConfig)
     const faqEntries = await getFaqEntries(
@@ -237,28 +235,25 @@ export const renderMultiDimDataPageBySlug = async (
         variableMetaDict
     )
 
+    // PRIMARY TOPIC
     const primaryTopic = await getPrimaryTopic(
         knex,
         preProcessedConfig.topicTags?.[0]
     )
 
-    const bakingContext = { tagToSlugMap, faqEntries, primaryTopic }
+    const props = {
+        configObj: config.config,
+        tagToSlugMap: minimalTagToSlugMap,
+        faqEntries,
+        primaryTopic,
+    }
 
-    return renderMultiDimDataPage(config, bakingContext)
+    return renderMultiDimDataPage(props)
 }
 
-export const renderMultiDimDataPage = async (
-    config: MultiDimDataPageConfig,
-    bakingContext?: BakingAdditionalContext
-) => {
+export const renderMultiDimDataPage = async (props: MultiDimDataPageProps) => {
     return renderToHtmlPage(
-        <MultiDimDataPage
-            baseUrl={BAKED_BASE_URL}
-            config={config}
-            tagToSlugMap={bakingContext?.tagToSlugMap}
-            faqEntries={bakingContext?.faqEntries}
-            primaryTopic={bakingContext?.primaryTopic}
-        />
+        <MultiDimDataPage baseUrl={BAKED_BASE_URL} multiDimProps={props} />
     )
 }
 

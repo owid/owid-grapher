@@ -1,4 +1,8 @@
 import { IndicatorTitleWithFragments } from "@ourworldindata/types"
+import {
+    FaqEntryKeyedByGdocIdAndFragmentId,
+    PrimaryTopic,
+} from "@ourworldindata/types/dist/gdocTypes/Datapage.js"
 
 // Indicator ID, catalog path, or maybe an array of those
 export type IndicatorEntryBeforePreProcessing = string | number | undefined
@@ -68,4 +72,15 @@ export interface View<IndicatorsType extends Record<string, any>> {
 export interface Config {
     title?: string
     subtitle?: string
+}
+
+export interface MultiDimDataPageProps {
+    configObj: MultiDimDataPageConfigPreProcessed
+    tagToSlugMap?: Record<string, string>
+    faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
+    primaryTopic?: PrimaryTopic | undefined
+
+    initialQueryStr?: string
+    canonicalUrl?: string
+    isPreviewing?: boolean
 }
