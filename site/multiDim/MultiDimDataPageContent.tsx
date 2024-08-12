@@ -7,14 +7,10 @@ import {
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import ReactDOM from "react-dom"
-import { RelatedCharts } from "../blocks/RelatedCharts.js"
 import {
-    formatAuthors,
-    intersection,
     DataPageDataV2,
     GrapherInterface,
     joinTitleFragments,
-    DimensionProperty,
     OwidVariableWithSource,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
@@ -29,8 +25,7 @@ import {
 } from "@ourworldindata/utils"
 import cx from "classnames"
 import { DebugProvider } from "../gdocs/DebugContext.js"
-import { BAKED_BASE_URL, DATA_API_URL } from "../../settings/clientSettings.js"
-import Image from "../gdocs/components/Image.js"
+import { DATA_API_URL } from "../../settings/clientSettings.js"
 import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
 import { MultiDimDataPageProps } from "./MultiDimDataPageTypes.js"
 import AboutThisData from "../AboutThisData.js"
@@ -49,34 +44,6 @@ declare global {
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
-
-// We still have topic pages on WordPress, whose featured images are specified as absolute URLs which this component handles
-// Once we've migrated all WP topic pages to gdocs, we'll be able to remove this component and just use <Image />
-const DatapageResearchThumbnail = ({
-    urlOrFilename,
-}: {
-    urlOrFilename: string | undefined | null
-}) => {
-    if (!urlOrFilename) {
-        urlOrFilename = `${BAKED_BASE_URL}/default-thumbnail.jpg`
-    }
-    if (urlOrFilename.startsWith("http")) {
-        return (
-            <img
-                src={urlOrFilename}
-                className="span-lg-cols-2 span-sm-cols-3"
-            />
-        )
-    }
-    return (
-        <Image
-            filename={urlOrFilename}
-            shouldLightbox={false}
-            containerType="thumbnail"
-            className="span-lg-cols-2 span-sm-cols-3"
-        />
-    )
-}
 
 // From DataPageUtils
 const getDatapageDataV2 = async (

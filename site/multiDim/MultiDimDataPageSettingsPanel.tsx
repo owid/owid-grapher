@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
 import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
-import { isEqual } from "@ourworldindata/utils"
+import { isEqual, mapValues } from "@ourworldindata/utils"
 import { OverlayHeader, RadioButton } from "@ourworldindata/components"
 import { useTriggerOnEscape, useTriggerWhenClickOutside } from "../hooks.js"
 
@@ -26,6 +26,10 @@ const DimensionDropdown = (props: {
     useTriggerWhenClickOutside(dropdownRef, active, hide)
 
     const currentChoice = dimension.choicesBySlug[props.currentChoiceSlug]
+    if (currentChoice === undefined)
+        throw new Error(
+            `Unexpected error: Invalid choice slug ${props.currentChoiceSlug} for dimension ${dimension.slug}`
+        )
 
     return (
         <div className="md-settings__dropdown" ref={dropdownRef}>
@@ -113,11 +117,6 @@ const DimensionDropdown = (props: {
 export const MultiDimSettingsPanel = (props: {
     config: MultiDimDataPageConfig
     currentSettings: Record<string, string>
-    onChange?: (
-        slug: string,
-        value: string,
-        currentSettings: Record<string, string>
-    ) => void
     updateSettings?: (currentSettings: Record<string, string>) => void
 }) => {
     const { config, currentSettings, updateSettings } = props
@@ -127,12 +126,11 @@ export const MultiDimSettingsPanel = (props: {
     // Non-partial version of `currentSettings` with all dimensions filled in
     const resolvedCurrentSettings = useMemo(
         () =>
-            Object.fromEntries(
-                Object.values(dimensions).map((dimension) => [
-                    dimension.slug,
-                    currentSettings[dimension.slug] ??
-                        Object.values(dimension.choices)[0].slug,
-                ])
+            mapValues(
+                dimensions,
+                (dim) =>
+                    currentSettings[dim.slug] ??
+                    Object.values(dim.choices)[0].slug
             ),
         [currentSettings, dimensions]
     )
