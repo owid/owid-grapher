@@ -180,7 +180,6 @@ export {
     minBy,
     noop,
     omit,
-    once,
     orderBy,
     partition,
     pick,
