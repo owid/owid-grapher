@@ -25,7 +25,7 @@ import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "../settings/clientSettings.js"
 import { IChartHit, SearchIndexName } from "./search/searchTypes.js"
 import { getIndexName } from "./search/searchClient.js"
 import { ChartHit } from "./search/ChartHit.js"
-import { ScopedResult, UiState } from "instantsearch.js"
+import { Connector, ScopedResult, UiState, Widget } from "instantsearch.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
@@ -343,19 +343,19 @@ const SelectedCountriesPills = ({
 
 function checkIfNoTopicsOrOneAreaTopicApplied(
     topics: Set<string>,
-    areas: Set<string>
+    areas: string[]
 ) {
     if (topics.size === 0) return true
     if (topics.size > 1) return false
 
     const [tag] = topics.values()
-    return areas.has(tag)
+    return areas.includes(tag)
 }
 
 function checkShouldShowRibbonView(
     query: string,
     topics: Set<string>,
-    areaNames: Set<string>
+    areaNames: string[]
 ): boolean {
     return (
         query === "" && checkIfNoTopicsOrOneAreaTopicApplied(topics, areaNames)
@@ -401,17 +401,14 @@ function getNbHitsForTag(tag: string, results: ScopedResult[]) {
 const DataCatalogRibbon = ({
     tagName,
     addTopic,
-    countries,
+    regionDataForSelectedCountries,
 }: {
     tagName: string
     addTopic: (x: string) => void
-    countries: Set<string>
+    regionDataForSelectedCountries: Region[]
 }) => {
     const { scopedResults } = useInstantSearch()
     const nBHits = getNbHitsForTag(tagName, scopedResults)
-    const countryData = [...countries].map(
-        (country) => countriesByName()[country]
-    )
 
     if (nBHits === 0) {
         return null
@@ -446,7 +443,9 @@ const DataCatalogRibbon = ({
                     hitComponent={({ hit }: { hit: IChartHit }) => (
                         <ChartHit
                             hit={hit}
-                            searchQueryRegionsMatches={countryData}
+                            searchQueryRegionsMatches={
+                                regionDataForSelectedCountries
+                            }
                         />
                     )}
                 />
@@ -469,20 +468,30 @@ function getAreaChildrenFromTag(
     return areas
 }
 
+function getRegionDataForSelectedCountries(
+    selectedCountries: Set<string>
+): Region[] {
+    const regionData: Region[] = []
+    const countries = countriesByName()
+    for (const selectedCountry of selectedCountries) {
+        regionData.push(countries[selectedCountry])
+    }
+    return regionData
+}
+
 const DataCatalogRibbonView = ({
     tagGraph,
     tagToShow,
     addTopic,
     isLoading,
-    countries,
+    regionDataForSelectedCountries,
 }: {
     tagGraph: TagGraphRoot
     tagToShow: string | undefined
     addTopic: (x: string) => void
     isLoading: boolean
-    countries: Set<string>
+    regionDataForSelectedCountries: Region[]
 }) => {
-    console.log("rendering ribbon view")
     const areas = getAreaChildrenFromTag(tagGraph, tagToShow)
     // For some reason, setting this in the DataCatalogRibbon Configure component doesn't work
     const __ = useConfigure({
@@ -500,7 +509,9 @@ const DataCatalogRibbonView = ({
                     tagName={area.name}
                     key={area.name}
                     addTopic={addTopic}
-                    countries={countries}
+                    regionDataForSelectedCountries={
+                        regionDataForSelectedCountries
+                    }
                 />
             ))}
         </div>
@@ -520,29 +531,31 @@ const DataCatalogResults = ({
     topics: Set<string>
     countries: Set<string>
 }) => {
-    console.log("rendering results")
     // const { status } = useInstantSearch()
-    const areaNames = new Set(tagGraph.children.map((child) => child.name))
     const isLoading = false
+    const areaNames = tagGraph.children.map((child) => child.name)
 
     const shouldShowRibbons = checkShouldShowRibbonView(
         query,
         topics,
         areaNames
     )
-    const countryData = [...countries].map(
-        (country) => countriesByName()[country]
-    )
+    const regionDataForSelectedCountries =
+        getRegionDataForSelectedCountries(countries)
 
-    return shouldShowRibbons ? (
-        <DataCatalogRibbonView
-            isLoading={isLoading}
-            tagGraph={tagGraph}
-            tagToShow={topics.values().next().value}
-            addTopic={addTopic}
-            countries={countries}
-        />
-    ) : (
+    if (shouldShowRibbons) {
+        return (
+            <DataCatalogRibbonView
+                tagGraph={tagGraph}
+                tagToShow={topics.values().next().value}
+                addTopic={addTopic}
+                isLoading={false}
+                regionDataForSelectedCountries={regionDataForSelectedCountries}
+            />
+        )
+    }
+
+    return (
         <Index indexName={CHARTS_INDEX}>
             <Hits
                 classNames={{
@@ -555,10 +568,12 @@ const DataCatalogResults = ({
                     item: "data-catalog-search-hit",
                     list: "data-catalog-search-list grid grid-cols-4",
                 }}
-                hitComponent={({ hit }: any) => (
+                hitComponent={(props: { hit: IChartHit }) => (
                     <ChartHit
-                        hit={hit}
-                        searchQueryRegionsMatches={countryData}
+                        hit={props.hit}
+                        searchQueryRegionsMatches={
+                            regionDataForSelectedCountries
+                        }
                     />
                 )}
             />
@@ -726,13 +741,7 @@ export function DataCatalogInstantSearchWrapper({
     const initialState = getInitialDatacatalogState()
 
     return (
-        <InstantSearch
-            indexName={CHARTS_INDEX}
-            searchClient={searchClient}
-            // Even though we end up managing the state inside the DataCatalog, we need to initialize it here
-            // so that we don't run a blank search on mount
-            initialUiState={dataCatalogStateToUiState(initialState)}
-        >
+        <InstantSearch indexName={CHARTS_INDEX} searchClient={searchClient}>
             <DataCatalog initialState={initialState} tagGraph={tagGraph} />
         </InstantSearch>
     )
