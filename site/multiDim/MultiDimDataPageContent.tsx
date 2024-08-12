@@ -159,39 +159,22 @@ export const MultiDimDataPageContent = ({
             ? extractDimensionChoicesFromQueryStr(initialQueryStr, config)
             : {}
     )
-
-    const title = config.config.title
-
     const [currentSettings, setCurrentSettings] = useState(() => {
         const { selectedChoices } =
             config.filterToAvailableChoices(initialChoices)
         return selectedChoices
     })
-
     const currentView = useMemo(() => {
         if (Object.keys(currentSettings).length === 0) return undefined
         return config.findViewByDimensions(currentSettings)
     }, [currentSettings, config])
 
-    const dimensionsConfig = useMemo(() => {
-        const dimObj = currentView?.indicators
-        if (!dimObj) return []
-        return Object.entries(dimObj)
-            .flatMap(([property, variableIds]) => {
-                if (Array.isArray(variableIds)) {
-                    return variableIds.flatMap((variableId) => ({
-                        property: property as DimensionProperty,
-                        variableId,
-                    }))
-                } else {
-                    return {
-                        property: property as DimensionProperty,
-                        variableId: variableIds,
-                    }
-                }
-            })
-            .filter((dim) => dim.variableId !== undefined)
-    }, [currentView])
+    const title = config.config.title
+
+    const dimensionsConfig = useMemo(
+        () => MultiDimDataPageConfig.viewToDimensionsConfig(currentView),
+        [currentView]
+    )
 
     const [datapageDataFromVar, setDatapageDataFromVar] =
         useState<DataPageDataV2 | null>(null)
@@ -277,40 +260,41 @@ export const MultiDimDataPageContent = ({
 
     const hasTopicTags = !!config.config.topicTags?.length
 
-    const relatedResearchCandidates = datapageDataFromVar?.relatedResearch ?? []
-    const relatedResearch =
-        relatedResearchCandidates.length > 3 && config.config.topicTags?.length
-            ? relatedResearchCandidates.filter((research) => {
-                  const shared = intersection(
-                      research.tags,
-                      config.config.topicTags ?? []
-                  )
-                  return shared.length > 0
-              })
-            : relatedResearchCandidates
-    for (const item of relatedResearch) {
-        // TODO: these are workarounds to not link to the (not really existing) template pages for energy or co2
-        // country profiles but instead to the topic page at the country selector.
-        if (item.url === "/co2-country-profile")
-            item.url =
-                "/co2-and-greenhouse-gas-emissions#co2-and-greenhouse-gas-emissions-country-profiles"
-        else if (item.url === "/energy-country-profile")
-            item.url = "/energy#country-profiles"
-        else if (item.url === "/coronavirus-country-profile")
-            item.url = "/coronavirus#coronavirus-country-profiles"
-    }
+    // TODO
+    // const relatedResearchCandidates = datapageDataFromVar?.relatedResearch ?? []
+    // const relatedResearch =
+    //     relatedResearchCandidates.length > 3 && config.config.topicTags?.length
+    //         ? relatedResearchCandidates.filter((research) => {
+    //               const shared = intersection(
+    //                   research.tags,
+    //                   config.config.topicTags ?? []
+    //               )
+    //               return shared.length > 0
+    //           })
+    //         : relatedResearchCandidates
+    // for (const item of relatedResearch) {
+    //     // TODO: these are workarounds to not link to the (not really existing) template pages for energy or co2
+    //     // country profiles but instead to the topic page at the country selector.
+    //     if (item.url === "/co2-country-profile")
+    //         item.url =
+    //             "/co2-and-greenhouse-gas-emissions#co2-and-greenhouse-gas-emissions-country-profiles"
+    //     else if (item.url === "/energy-country-profile")
+    //         item.url = "/energy#country-profiles"
+    //     else if (item.url === "/coronavirus-country-profile")
+    //         item.url = "/coronavirus#coronavirus-country-profiles"
+    // }
 
-    const hasRelatedDataFeatured = datapageDataFromVar?.relatedData?.some(
-        (data) => data.featured
-    )
-    const hasRelatedDataNonFeatured = datapageDataFromVar?.relatedData?.some(
-        (data) => !data.featured
-    )
-    const relatedDataCategoryClasses = `related-data__category ${
-        hasRelatedDataFeatured && hasRelatedDataNonFeatured
-            ? "related-data__category--grid span-cols-4 span-lg-cols-6 span-sm-cols-3"
-            : "related-data__category--columns span-cols-8 span-lg-cols-12"
-    } `
+    // const hasRelatedDataFeatured = datapageDataFromVar?.relatedData?.some(
+    //     (data) => data.featured
+    // )
+    // const hasRelatedDataNonFeatured = datapageDataFromVar?.relatedData?.some(
+    //     (data) => !data.featured
+    // )
+    // const relatedDataCategoryClasses = `related-data__category ${
+    //     hasRelatedDataFeatured && hasRelatedDataNonFeatured
+    //         ? "related-data__category--grid span-cols-4 span-lg-cols-6 span-sm-cols-3"
+    //         : "related-data__category--columns span-cols-8 span-lg-cols-12"
+    // } `
 
     const faqEntriesForView = useMemo(() => {
         return compact(
@@ -376,7 +360,7 @@ export const MultiDimDataPageContent = ({
                     )}
                 </div>
             </div>
-            <div className="col-start-2 span-cols-12">
+            {/* <div className="col-start-2 span-cols-12">
                 {relatedResearch && relatedResearch.length > 0 && (
                     <div className="section-wrapper grid">
                         <h2
@@ -503,7 +487,7 @@ export const MultiDimDataPageContent = ({
                         </div>
                     </div>
                 ) : null}
-            </div>
+            </div> */}
             {datapageDataFromVar && (
                 <MetadataSection
                     attributionShort={datapageDataFromVar.attributionShort}

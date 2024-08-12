@@ -6,7 +6,12 @@ import {
     MultiDimDataPageConfigPreProcessed,
     View,
 } from "./MultiDimDataPageTypes.js"
-import { groupBy, keyBy } from "@ourworldindata/utils"
+import {
+    DimensionProperty,
+    groupBy,
+    keyBy,
+    OwidChartDimensionInterface,
+} from "@ourworldindata/utils"
 
 export class MultiDimDataPageConfig {
     private constructor(
@@ -138,5 +143,29 @@ export class MultiDimDataPageConfig {
             selectedChoices: updatedSelectedChoices,
             dimensionsWithAvailableChoices,
         }
+    }
+
+    static viewToDimensionsConfig(
+        view: View<IndicatorsAfterPreProcessing> | undefined
+    ): OwidChartDimensionInterface[] {
+        if (!view?.indicators) return []
+
+        return Object.entries(view.indicators)
+            .flatMap(([property, variableIdOrIds]) => {
+                if (Array.isArray(variableIdOrIds)) {
+                    return variableIdOrIds.map((variableId) => ({
+                        property: property as DimensionProperty,
+                        variableId,
+                    }))
+                } else {
+                    return [
+                        {
+                            property: property as DimensionProperty,
+                            variableId: variableIdOrIds,
+                        },
+                    ]
+                }
+            })
+            .filter((dim) => dim.variableId !== undefined)
     }
 }
