@@ -193,7 +193,7 @@ async function syncWithR2(
     }
 }
 
-async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
+async function sync(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
     if (
         GRAPHER_CONFIG_R2_BUCKET === undefined ||
         GRAPHER_CONFIG_R2_BUCKET_PATH === undefined
@@ -279,13 +279,41 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
     })
 }
 
+async function storeDevBySlug(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
+    console.log("Dummy implementation for store-dev-by-slug")
+}
+
+async function main(parsedArgs: parseArgs.ParsedArgs) {
+    const dryRun = parsedArgs["dry-run"]
+
+    const command = parsedArgs._[0]
+
+    switch (command) {
+        case "sync":
+            await sync(parsedArgs, dryRun)
+            break
+        case "store-dev-by-slug":
+            await storeDevBySlug(parsedArgs, dryRun)
+            break
+        default:
+            console.log(
+                `Unknown command: ${command}\n\nAvailable commands:\n  sync\n  store-dev-by-slug`
+            )
+            break
+    }
+}
+
 const parsedArgs = parseArgs(process.argv.slice(2))
 if (parsedArgs["h"]) {
     console.log(
         `syncGraphersToR2.js - sync grapher configs from the chart_configs table to R2
 
---dry-run: Don't make any actual changes to R2`
+--dry-run: Don't make any actual changes to R2
+
+Commands:
+  sync: Sync grapher configs to R2
+  store-dev-by-slug: Dummy implementation for store-dev-by-slug`
     )
 } else {
-    main(parsedArgs, parsedArgs["dry-run"])
+    main(parsedArgs)
 }
