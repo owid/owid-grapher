@@ -7,7 +7,7 @@ If you want to develop on your local system without any Docker containers then y
 Remove the password for root by opening the MySQL shell with `mysql` and running:
 
 ```sql
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';
+ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY '';
 ```
 
 We do this for convenience so we can run `mysql` commands without providing a password each time. You can also set a password, just make sure you include it in your `.env` file later.

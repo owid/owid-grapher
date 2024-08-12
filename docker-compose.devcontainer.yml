@@ -43,7 +43,6 @@ services:
     # Stock mysql database. Used for grapher database. Root password is hardcoded for now
     db:
         image: mysql/mysql-server:latest
-        command: --default-authentication-plugin=mysql_native_password
         restart: always
         volumes:
             - mysql_data:/var/lib/mysql

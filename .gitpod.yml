@@ -18,7 +18,7 @@ tasks:
     # this is run in the prebuild state and should be ready when launching a new workspace
     - init: |
           gp await-port 3306 && ./db/downloadAndCreateDatabase.sh
-          mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';"
+          mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY '';"
           nvm install
           npm install -g yarn
           git clone https://github.com/owid/owid-content
