@@ -1,3 +1,14 @@
+// These styles apply on the sm-only breakpoint (i.e. on mobile), or when JavaScript is not enabled.
+// This is because the mobile version is friendly to JS being disabled, and the desktop version is not very functional without JS.
+@mixin sm-only-or-no-js {
+    @include sm-only {
+        @content;
+    }
+    @at-root html.js-disabled & {
+        @content;
+    }
+}
+
 .key-indicator-collection {
     $duration: 0.4s; // keep in sync with HEIGHT_ANIMATION_DURATION_IN_SECONDS in KeyIndicatorCollection.tsx
 
@@ -6,7 +17,7 @@
 
     margin: 24px 0;
 
-    @include sm-only {
+    @include sm-only-or-no-js {
         margin: 8px -16px;
     }
 
@@ -16,7 +27,7 @@
 
     .accordion-item .accordion-item__heading {
         margin: 0;
-        @include sm-only {
+        @include sm-only-or-no-js {
             display: none;
         }
     }
@@ -32,14 +43,14 @@
         background-color: $blue-5;
         padding: 16px var(--padding);
 
-        @include sm-only {
+        @include sm-only-or-no-js {
             padding-bottom: 0;
         }
     }
 
     // on desktop, show a clickable header that opens the accordion
     .accordion-item--closed .accordion-item__button {
-        @include sm-only {
+        @include sm-only-or-no-js {
             display: none;
         }
     }
@@ -48,16 +59,17 @@
     .accordion-item__link-mobile {
         padding: 12px 0;
         line-height: 1.2;
+        display: none;
 
-        @include sm-up {
-            display: none;
+        @include sm-only-or-no-js {
+            display: block;
         }
     }
 
     .accordion-item--open .accordion-item__button {
         background-color: $blue-20;
 
-        @include sm-only {
+        @include sm-only-or-no-js {
             background-color: $blue-5;
         }
     }
@@ -77,7 +89,7 @@
             color: $blue-90;
             margin: 0;
 
-            @include sm-only {
+            @include sm-only-or-no-js {
                 font-size: 1.5rem;
                 margin-bottom: 4px;
             }
@@ -88,7 +100,7 @@
             margin: 0;
         }
 
-        @include sm-only {
+        @include sm-only-or-no-js {
             padding: 16px 16px 0 16px;
             margin-bottom: 0;
         }
@@ -100,7 +112,7 @@
         align-self: center;
         justify-self: end;
 
-        @include sm-only {
+        @include sm-only-or-no-js {
             margin: 24px 16px;
             justify-self: unset;
             text-align: center;
@@ -131,13 +143,13 @@
         color: $blue-90;
         margin-right: 8px;
 
-        @include sm-only {
+        @include sm-only-or-no-js {
             line-height: 1.2;
         }
     }
 
     .accordion-item--closed .key-indicator-header__title {
-        @include sm-only {
+        @include sm-only-or-no-js {
             margin-left: 0;
         }
     }
@@ -155,7 +167,7 @@
     }
 
     .accordion-item--closed .key-indicator-header__source {
-        @include sm-only {
+        @include sm-only-or-no-js {
             display: block;
             margin-top: 2px;
         }
@@ -166,22 +178,23 @@
         font-size: 0.875rem;
         font-weight: 900;
 
-        @include sm-only {
+        @include sm-only-or-no-js {
             font-size: 0.75rem;
         }
     }
 
     // hidden on mobile
     .key-indicator-header__icon[data-icon="plus"] {
-        @include sm-only {
+        @include sm-only-or-no-js {
             display: none;
         }
     }
 
     // hidden on desktop
     .key-indicator-header__icon[data-icon="arrow-right"] {
-        @include sm-up {
-            display: none;
+        display: none;
+        @include sm-only-or-no-js {
+            display: inline-block;
         }
     }
 
@@ -196,7 +209,7 @@
         cursor: default;
     }
 
-    @include sm-only {
+    @include sm-only-or-no-js {
         --border: #{$blue-10};
 
         .accordion-item:first-of-type::after {
