@@ -158,6 +158,8 @@ function AccordionItem({
         contentRef.current.inert = !isOpen
     }, [isOpen, contentRef])
 
+    const contentHeight = isOpen ? height : 0
+
     return (
         <div
             ref={ref}
@@ -216,7 +218,7 @@ function AccordionItem({
                 id={contentId}
                 className="accordion-item__content"
                 style={{
-                    height: isOpen ? `${height}px` : "0px",
+                    height: contentHeight,
                 }}
                 role="region"
                 aria-labelledby={headerId}
@@ -322,7 +324,7 @@ function KeyIndicatorLink({
 const useHeight = () => {
     const ref = useRef<HTMLDivElement>(null)
 
-    const [height, setHeight] = useState(0)
+    const [height, setHeight] = useState<number | undefined>(undefined)
 
     useEffect(() => {
         const element = ref.current as HTMLDivElement
