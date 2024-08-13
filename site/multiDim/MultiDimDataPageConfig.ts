@@ -4,6 +4,7 @@ import {
     DimensionEnriched,
     IndicatorsAfterPreProcessing,
     MultiDimDataPageConfigPreProcessed,
+    MultiDimDimensionChoices,
     View,
 } from "./MultiDimDataPageTypes.js"
 import {
@@ -47,7 +48,7 @@ export class MultiDimDataPageConfig {
     }
 
     filterViewsByDimensions(
-        dimensions: Record<string, string>
+        dimensions: MultiDimDimensionChoices
     ): View<IndicatorsAfterPreProcessing>[] {
         return this.config.views.filter((view) => {
             for (const [dimensionSlug, choiceSlug] of Object.entries(
@@ -62,7 +63,7 @@ export class MultiDimDataPageConfig {
     // This'll only ever find one or zero views, and will throw an error
     // if more than one matching views were found
     findViewByDimensions(
-        dimensions: Record<string, string>
+        dimensions: MultiDimDimensionChoices
     ): View<IndicatorsAfterPreProcessing> | undefined {
         const matchingViews = this.filterViewsByDimensions(dimensions)
         if (matchingViews.length === 0) return undefined
@@ -89,8 +90,8 @@ export class MultiDimDataPageConfig {
      *
      * - @marcelgerber, 2024-07-22
      */
-    filterToAvailableChoices(selectedChoices: Record<string, string>) {
-        const updatedSelectedChoices: Record<string, string> = {}
+    filterToAvailableChoices(selectedChoices: MultiDimDimensionChoices) {
+        const updatedSelectedChoices: MultiDimDimensionChoices = {}
         const dimensionsWithAvailableChoices: Record<
             string,
             DimensionEnriched

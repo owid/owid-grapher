@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { DimensionEnriched } from "./MultiDimDataPageTypes.js"
+import {
+    DimensionEnriched,
+    MultiDimDimensionChoices,
+} from "./MultiDimDataPageTypes.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
@@ -116,8 +119,8 @@ const DimensionDropdown = (props: {
 
 export const MultiDimSettingsPanel = (props: {
     config: MultiDimDataPageConfig
-    currentSettings: Record<string, string>
-    updateSettings?: (currentSettings: Record<string, string>) => void
+    currentSettings: MultiDimDimensionChoices
+    updateSettings?: (currentSettings: MultiDimDimensionChoices) => void
 }) => {
     const { config, currentSettings, updateSettings } = props
 
@@ -149,23 +152,24 @@ export const MultiDimSettingsPanel = (props: {
             setAvailableSettings(dimensionsWithAvailableChoices)
     }, [resolvedCurrentSettings, config, updateSettings, availableSettings])
 
-    const settings = Object.values(availableSettings).map((dim) => (
-        <DimensionDropdown
-            key={dim.slug}
-            dimension={dim}
-            currentChoiceSlug={resolvedCurrentSettings[dim.slug]}
-            onChange={(slug, value) =>
-                updateSettings?.({ ...resolvedCurrentSettings, [slug]: value })
-            }
-        />
-    ))
-
     return (
         <div className="md-settings-row">
             <span className="h5-black-caps md-settings__configure-data">
                 Configure the data
             </span>
-            {settings}
+            {Object.values(availableSettings).map((dim) => (
+                <DimensionDropdown
+                    key={dim.slug}
+                    dimension={dim}
+                    currentChoiceSlug={resolvedCurrentSettings[dim.slug]}
+                    onChange={(slug, value) =>
+                        updateSettings?.({
+                            ...resolvedCurrentSettings,
+                            [slug]: value,
+                        })
+                    }
+                />
+            ))}
         </div>
     )
 }

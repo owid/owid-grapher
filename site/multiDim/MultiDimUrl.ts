@@ -1,10 +1,11 @@
 import { QueryParams } from "@ourworldindata/types"
 import { pick, Url } from "@ourworldindata/utils"
 import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
+import { MultiDimDimensionChoices } from "./MultiDimDataPageTypes.js"
 
 export const stateToQueryStr = (
     grapherQueryParams: QueryParams,
-    dimensionChoices: Record<string, string>
+    dimensionChoices: MultiDimDimensionChoices
 ) => {
     return Url.fromQueryParams(grapherQueryParams).updateQueryParams(
         dimensionChoices
@@ -14,13 +15,13 @@ export const stateToQueryStr = (
 export const extractDimensionChoicesFromQueryStr = (
     queryStr: string,
     config: MultiDimDataPageConfig
-): Record<string, string> => {
+): MultiDimDimensionChoices => {
     const queryParams = Url.fromQueryStr(queryStr).queryParams
     const dimensions = config.dimensions
     const dimensionChoices = pick(
         queryParams,
         Object.keys(dimensions)
-    ) as Record<string, string>
+    ) as MultiDimDimensionChoices
 
     return dimensionChoices
 }
