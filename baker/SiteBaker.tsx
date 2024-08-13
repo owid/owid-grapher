@@ -9,6 +9,7 @@ import {
     BASE_DIR,
     GDOCS_DETAILS_ON_DEMAND_ID,
     BAKED_GRAPHER_URL,
+    FEATURE_FLAGS,
 } from "../settings/serverSettings.js"
 
 import {
@@ -88,6 +89,7 @@ import {
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
+    FeatureFlagFeature,
 } from "../settings/clientSettings.js"
 import pMap from "p-map"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
@@ -756,6 +758,12 @@ export class SiteBaker {
 
     private async bakeMultiDimPages(knex: db.KnexReadWriteTransaction) {
         if (!this.bakeSteps.has("multiDimPages")) return
+        if (!FEATURE_FLAGS.has(FeatureFlagFeature.MultiDimDataPage)) {
+            console.log(
+                "Skipping baking multi-dim pages because feature flag is not set"
+            )
+            return
+        }
 
         await bakeAllMultiDimDataPages(knex, this.bakedSiteDir)
 

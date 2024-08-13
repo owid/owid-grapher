@@ -95,7 +95,10 @@ export const PUBLISHED_AT_FORMAT = "ddd, MMM D, YYYY HH:mm"
 export enum FeatureFlagFeature {
     MultiDimDataPage = "MultiDimDataPage",
 }
-const featureFlagsRaw = process.env.FEATURE_FLAGS?.trim().split(",") ?? []
+const featureFlagsRaw =
+    (typeof process.env.FEATURE_FLAGS === "string" &&
+        process.env.FEATURE_FLAGS.trim()?.split(",")) ||
+    []
 export const FEATURE_FLAGS: Set<FeatureFlagFeature> = new Set(
     Object.keys(FeatureFlagFeature).filter((key) =>
         featureFlagsRaw.includes(key)
