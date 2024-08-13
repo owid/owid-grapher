@@ -36,6 +36,8 @@ import {
 import { string } from "ts-pattern/dist/patterns.js"
 import { chunk, take } from "lodash"
 import ProgressBar from "progress"
+import { getEnrichedChartBySlug } from "../../db/model/Chart.js"
+import { exec } from "child_process"
 
 type HashAndId = Pick<DbRawChartConfig, "fullMd5" | "id">
 
@@ -283,7 +285,43 @@ async function storeDevBySlug(
     parsedArgs: parseArgs.ParsedArgs,
     dryRun: boolean
 ) {
-    console.log("Dummy implementation for store-dev-by-slug")
+    const slug = parsedArgs._[1]
+    if (!slug) {
+        console.error("No slug provided")
+        return
+    }
+
+    await knexReadonlyTransaction(async (trx) => {
+        const chart = await knexRawFirst<DbRawChartConfig>(
+            trx,
+            `SELECT full FROM chart_configs WHERE slug = ?`,
+            [slug]
+        )
+        if (!chart) {
+            console.error(`No chart found for slug ${slug}`)
+            return
+        }
+
+        const fullConfig = JSON.stringify(chart.full)
+        const command = `npx wrangler r2 object put --local $GRAPHER_CONFIG_R2_BUCKET/$GRAPHER_CONFIG_R2_BUCKET_PATH/grapher/by-slug/${slug}.json --pipe --content-type application/json --persist-to ./cfstorage`
+
+        const process = exec(command, (error, stdout, stderr) => {
+            if (error) {
+                console.error(
+                    `Error executing wrangler command: ${error.message}`
+                )
+                return
+            }
+            if (stderr) {
+                console.error(`Wrangler stderr: ${stderr}`)
+                return
+            }
+            console.log(`Wrangler stdout: ${stdout}`)
+        })
+
+        process.stdin.write(fullConfig)
+        process.stdin.end()
+    })
 }
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
