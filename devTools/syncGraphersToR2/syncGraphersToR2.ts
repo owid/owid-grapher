@@ -227,7 +227,10 @@ async function main(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
             Pick<DbRawChartConfig, "slug" | "fullMd5" | "id">
         >(
             trx,
-            `select slug, fullMd5, id from chart_configs where slug is not null`
+            `select slug, fullMd5, id
+             from chart_configs
+             where slug is not null
+             and full ->> '$.isPublished' = "true"`
         )
 
         slugsAndHashesFromDb.forEach((row) => {
