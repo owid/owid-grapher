@@ -464,8 +464,8 @@ export class ChartEditorView<
                         {chartEditor && chartEditor.tab === "refs" && (
                             <EditorReferencesTab editor={chartEditor} />
                         )}
-                        {editor.tab === "inheritance" && (
-                            <EditorInheritanceTab editor={editor} />
+                        {chartEditor && chartEditor.tab === "inheritance" && (
+                            <EditorInheritanceTab editor={chartEditor} />
                         )}
                         {editor.tab === "export" && (
                             <EditorExportTab editor={editor} />

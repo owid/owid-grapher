@@ -9,7 +9,6 @@ import {
     KeyChartLevel,
     MultipleOwidVariableDataDimensionsMap,
     DbChartTagJoin,
-    mergeGrapherConfigs,
     getParentVariableIdFromChartConfig,
 } from "@ourworldindata/utils"
 import {
@@ -24,7 +23,6 @@ import {
     DbRawChartConfig,
     DbEnrichedChartConfig,
 } from "@ourworldindata/types"
-import { defaultGrapherConfig } from "@ourworldindata/grapher"
 import { OpenAI } from "openai"
 import {
     BAKED_BASE_URL,

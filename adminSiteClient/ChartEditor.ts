@@ -16,7 +16,7 @@ import {
     mergeGrapherConfigs,
     isEmpty,
 } from "@ourworldindata/utils"
-import { action, computed, observable, runInAction, when } from "mobx"
+import { action, computed, observable, runInAction } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import {
     AbstractChartEditor,
@@ -157,12 +157,12 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
             if (isNewGrapher) {
                 this.newChartId = json.chartId
                 this.grapher.id = json.chartId
-                this.savedGrapherJson = JSON.stringify(this.grapher.object)
+                this.savedPatchConfig = json.savedPatch
             } else {
                 runInAction(() => {
                     grapher.version += 1
                     this.logs.unshift(json.newLog)
-                    this.savedGrapherJson = JSON.stringify(currentGrapherObject)
+                    this.savedPatchConfig = json.savedPatch
                 })
             }
         } else onError?.()

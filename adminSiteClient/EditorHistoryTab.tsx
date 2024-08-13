@@ -146,7 +146,7 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
     }
 
     render() {
-        const { patchConfig, fullConfig } = this.props.editor
+        const { patchConfig } = this.props.editor
         return (
             <div>
                 {this.logs.map((log, i) => (
