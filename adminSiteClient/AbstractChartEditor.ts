@@ -6,7 +6,7 @@ import {
     mergeGrapherConfigs,
     merge,
 } from "@ourworldindata/utils"
-import { computed, observable, when } from "mobx"
+import { action, computed, observable, when } from "mobx"
 import { EditorFeatures } from "./EditorFeatures.js"
 import { Admin } from "./Admin.js"
 import { defaultGrapherConfig, Grapher } from "@ourworldindata/grapher"
@@ -28,6 +28,7 @@ export interface AbstractChartEditorManager {
     admin: Admin
     patchConfig: GrapherInterface
     parentConfig?: GrapherInterface
+    isInheritanceEnabled?: boolean
 }
 
 export abstract class AbstractChartEditor<
@@ -42,7 +43,11 @@ export abstract class AbstractChartEditor<
     @observable.ref previewMode: "mobile" | "desktop"
     @observable.ref showStaticPreview = false
     @observable.ref savedPatchConfig: GrapherInterface = {}
+
+    // parent config derived from the current chart config (not necessarily in use)
     @observable.ref parentConfig: GrapherInterface | undefined = undefined
+    // if inheritance is enabled, the parent config is applied to grapher
+    @observable.ref isInheritanceEnabled: boolean | undefined = undefined
 
     constructor(props: { manager: Manager }) {
         this.manager = props.manager
@@ -57,13 +62,19 @@ export abstract class AbstractChartEditor<
         )
 
         when(
+            () => this.manager.isInheritanceEnabled !== undefined,
+            () =>
+                (this.isInheritanceEnabled = this.manager.isInheritanceEnabled)
+        )
+
+        when(
             () => this.grapher.hasData && this.grapher.isReady,
             () => (this.savedPatchConfig = this.patchConfig)
         )
     }
 
     /** default object with all possible keys */
-    private fullDefaultObject = merge(
+    fullDefaultObject = merge(
         {},
         Grapher.defaultObject(), // contains all keys
         defaultGrapherConfig // contains a subset of keys with the right defaults
@@ -81,16 +92,27 @@ export abstract class AbstractChartEditor<
         return mergeGrapherConfigs(this.fullDefaultObject, this.grapher.object)
     }
 
+    /** patch config of the chart that is written to the db on save */
     @computed get patchConfig(): GrapherInterface {
         return diffGrapherConfigs(
             this.fullConfig,
-            this.parentConfigWithDefaults ?? this.fullDefaultObject
+            this.activeParentConfigWithDefaults ?? this.fullDefaultObject
         )
     }
 
-    @computed get parentConfigWithDefaults(): GrapherInterface | undefined {
-        if (!this.parentConfig) return undefined
-        return mergeGrapherConfigs(this.fullDefaultObject, this.parentConfig)
+    /** parent config currently applied to grapher */
+    @computed get activeParentConfig(): GrapherInterface | undefined {
+        return this.isInheritanceEnabled ? this.parentConfig : undefined
+    }
+
+    @computed get activeParentConfigWithDefaults():
+        | GrapherInterface
+        | undefined {
+        if (!this.activeParentConfig) return undefined
+        return mergeGrapherConfigs(
+            this.fullDefaultObject,
+            this.activeParentConfig
+        )
     }
 
     @computed get isModified(): boolean {
@@ -104,12 +126,18 @@ export abstract class AbstractChartEditor<
         return new EditorFeatures(this)
     }
 
+    @action.bound updateLiveGrapher(config: GrapherInterface): void {
+        this.grapher.reset()
+        this.grapher.updateFromObject(config)
+        this.grapher.updateAuthoredVersion(config)
+    }
+
     // TODO: only works for first level at the moment
     isPropertyInherited(property: keyof GrapherInterface): boolean {
-        if (!this.parentConfig) return false
+        if (!this.activeParentConfig) return false
         return (
             !Object.hasOwn(this.patchConfig, property) &&
-            Object.hasOwn(this.parentConfig, property)
+            Object.hasOwn(this.activeParentConfig, property)
         )
     }
 

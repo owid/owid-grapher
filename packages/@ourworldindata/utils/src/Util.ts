@@ -1966,7 +1966,7 @@ export function traverseObjects<T extends Record<string, any>>(
     return result
 }
 
-export function getParentIndicatorIdFromChartConfig(
+export function getParentVariableIdFromChartConfig(
     config: GrapherInterface
 ): number | undefined {
     const { type, dimensions } = config

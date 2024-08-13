@@ -10,7 +10,7 @@ import {
     MultipleOwidVariableDataDimensionsMap,
     DbChartTagJoin,
     mergeGrapherConfigs,
-    getParentIndicatorIdFromChartConfig,
+    getParentVariableIdFromChartConfig,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -256,35 +256,54 @@ export async function getChartConfigBySlug(
     return { id: row.id, config: parseChartConfig(row.config) }
 }
 
-export async function getParentConfigForChart(
+export async function getParentVariableIdForChart(
     trx: db.KnexReadonlyTransaction,
     chartId: number
-): Promise<GrapherInterface | undefined> {
-    // check if the chart inherits settings from an indicator
-    const parentVariable = await db.knexRawFirst<{ id: number }>(
+): Promise<number | undefined> {
+    const parent = await db.knexRawFirst<{ variableId: number | undefined }>(
         trx,
         `-- sql
-            SELECT variableId AS id
-            FROM inheriting_charts
-            WHERE chartId = ?
+            SELECT parentVariableId AS variableId
+            FROM charts
+            WHERE id = ?
         `,
         [chartId]
     )
-
-    if (!parentVariable) return undefined
-
-    const variable = await getGrapherConfigsForVariable(trx, parentVariable.id)
-    return variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
+    return parent?.variableId
 }
 
-export async function getParentConfigForChartFromConfig(
+export async function getParentByChartId(
+    trx: db.KnexReadonlyTransaction,
+    chartId: number
+): Promise<{ variableId?: number; config?: GrapherInterface }> {
+    const parentVariableId = await getParentVariableIdForChart(trx, chartId)
+    if (!parentVariableId) return {}
+    const variable = await getGrapherConfigsForVariable(trx, parentVariableId)
+    const parentConfig =
+        variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
+    if (!parentConfig) return { variableId: parentVariableId }
+    return {
+        variableId: parentVariableId,
+        config: parentConfig,
+    }
+}
+
+export async function getParentByChartConfig(
     trx: db.KnexReadonlyTransaction,
     config: GrapherInterface
-): Promise<GrapherInterface | undefined> {
-    const parentVariableId = getParentIndicatorIdFromChartConfig(config)
-    if (!parentVariableId) return undefined
+): Promise<{
+    variableId?: number
+    config?: GrapherInterface
+}> {
+    const parentVariableId = getParentVariableIdFromChartConfig(config)
+    if (!parentVariableId) return {}
     const variable = await getGrapherConfigsForVariable(trx, parentVariableId)
-    return variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
+    const parentConfig =
+        variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
+    return {
+        variableId: parentVariableId,
+        config: parentConfig,
+    }
 }
 
 export async function setChartTags(

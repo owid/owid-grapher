@@ -13,15 +13,16 @@ import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import {
     OldChartFieldList,
     assignTagsForCharts,
-    getParentConfigForChart,
+    getParentByChartId,
     getChartConfigById,
     getChartSlugById,
     getGptTopicSuggestions,
     getRedirectsByChartId,
     oldChartFieldList,
     setChartTags,
-    getParentConfigForChartFromConfig,
+    getParentByChartConfig,
     getPatchConfigByChartId,
+    getParentVariableIdForChart,
 } from "../db/model/Chart.js"
 import { Request } from "./authentication.js"
 import {
@@ -54,6 +55,7 @@ import {
     checkIsPlainObjectWithGuard,
     mergeGrapherConfigs,
     diffGrapherConfigs,
+    omitUndefinedValues,
 } from "@ourworldindata/utils"
 import { applyPatch } from "../adminShared/patchHelper.js"
 import {
@@ -162,6 +164,8 @@ import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { GdocHomepage } from "../db/model/Gdoc/GdocHomepage.js"
 import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
 import path from "path"
+
+type InheritanceOptions = "auto" | "enable" | "disable"
 
 const apiRouter = new FunctionalRouter()
 
@@ -281,7 +285,10 @@ const expectChartById = async (
 
 const saveNewChart = async (
     knex: db.KnexReadWriteTransaction,
-    { config, user }: { config: GrapherInterface; user: DbPlainUser }
+    { config, user }: { config: GrapherInterface; user: DbPlainUser },
+    options: { inheritance: InheritanceOptions } = {
+        inheritance: "auto",
+    }
 ): Promise<GrapherInterface> => {
     // if the schema version is missing, assume it's the latest
     if (!config.$schema) {
@@ -293,8 +300,17 @@ const saveNewChart = async (
         config.isPublished = false
     }
 
+    // check if the chart should inherit settings from its parent indicator
+    let shouldInherit: boolean
+    if (options.inheritance === "enable") shouldInherit = true
+    else if (options.inheritance === "disable") shouldInherit = false
+    else shouldInherit = false // charts don't inherit indicator settings by default
+
     // compute patch and full configs
-    const parentConfig = await getParentConfigForChartFromConfig(knex, config)
+    const parent = shouldInherit
+        ? await getParentByChartConfig(knex, config)
+        : undefined
+    const parentConfig = parent?.config
     const fullParentConfig = mergeGrapherConfigs(
         defaultGrapherConfig,
         parentConfig ?? {}
@@ -317,10 +333,10 @@ const saveNewChart = async (
     const result = await db.knexRawInsert(
         knex,
         `-- sql
-            INSERT INTO charts (configId, lastEditedAt, lastEditedByUserId)
-            VALUES (?, ?, ?)
+            INSERT INTO charts (configId, parentVariableId, lastEditedAt, lastEditedByUserId)
+            VALUES (?, ?, ?, ?)
         `,
-        [configId, new Date(), user.id]
+        [configId, parent?.variableId ?? null, new Date(), user.id]
     )
 
     // The chart config itself has an id field that should store the id of the chart - update the chart now so this is true
@@ -349,7 +365,10 @@ const updateExistingChart = async (
         config,
         user,
         chartId,
-    }: { config: GrapherInterface; user: DbPlainUser; chartId: number }
+    }: { config: GrapherInterface; user: DbPlainUser; chartId: number },
+    options: { inheritance: InheritanceOptions } = {
+        inheritance: "auto",
+    }
 ): Promise<GrapherInterface> => {
     // make sure that the id of the incoming config matches the chart id
     config.id = chartId
@@ -364,8 +383,23 @@ const updateExistingChart = async (
         config.isPublished = false
     }
 
+    // check if the chart should inherit settings from its parent indicator
+    let shouldInherit: boolean
+    if (options.inheritance === "enable") shouldInherit = true
+    else if (options.inheritance === "disable") shouldInherit = false
+    else {
+        const parentVariableId = await getParentVariableIdForChart(
+            knex,
+            chartId
+        )
+        shouldInherit = parentVariableId !== undefined
+    }
+
     // compute patch and full configs
-    const parentConfig = await getParentConfigForChart(knex, chartId)
+    const parent = shouldInherit
+        ? await getParentByChartConfig(knex, config)
+        : undefined
+    const parentConfig = parent?.config
     const fullParentConfig = mergeGrapherConfigs(
         defaultGrapherConfig,
         parentConfig ?? {}
@@ -392,10 +426,10 @@ const updateExistingChart = async (
         knex,
         `-- sql
             UPDATE charts
-            SET lastEditedAt=?, lastEditedByUserId=?
+            SET parentVariableId=?, lastEditedAt=?, lastEditedByUserId=?
             WHERE id = ?
         `,
-        [new Date(), user.id, chartId]
+        [parent?.variableId ?? null, new Date(), user.id, chartId]
     )
 
     return patchConfig
@@ -403,12 +437,25 @@ const updateExistingChart = async (
 
 const saveGrapher = async (
     knex: db.KnexReadWriteTransaction,
-    user: DbPlainUser,
-    newConfig: GrapherInterface,
-    existingConfig?: GrapherInterface,
-    referencedVariablesMightChange = true // if the variables a chart uses can change then we need
-    // to update the latest country data which takes quite a long time (hundreds of ms)
+    params: {
+        user: DbPlainUser
+        newConfig: GrapherInterface
+        existingConfig?: GrapherInterface
+    },
+    {
+        referencedVariablesMightChange = true,
+        inheritance = "auto",
+    }: {
+        // if the variables a chart uses can change then we need
+        // to update the latest country data which takes quite a long time (hundreds of ms)
+        referencedVariablesMightChange?: boolean
+        // either enable or disable config inheritance for the given chart.
+        // if "auto", keep the inheritance as is
+        inheritance?: InheritanceOptions
+    }
 ) => {
+    let { user, newConfig, existingConfig } = params
+
     // Slugs need some special logic to ensure public urls remain consistent whenever possible
     async function isSlugUsedInRedirect() {
         const rows = await db.knexRaw<DbPlainChartSlugRedirect>(
@@ -484,16 +531,24 @@ const saveGrapher = async (
     let chartId: number
     if (existingConfig) {
         chartId = existingConfig.id!
-        newConfig = await updateExistingChart(knex, {
-            config: newConfig,
-            user,
-            chartId,
-        })
+        newConfig = await updateExistingChart(
+            knex,
+            {
+                config: newConfig,
+                user,
+                chartId,
+            },
+            { inheritance }
+        )
     } else {
-        newConfig = await saveNewChart(knex, {
-            config: newConfig,
-            user,
-        })
+        newConfig = await saveNewChart(
+            knex,
+            {
+                config: newConfig,
+                user,
+            },
+            { inheritance }
+        )
         chartId = newConfig.id!
     }
 
@@ -655,11 +710,30 @@ getRouteWithROTransaction(
 
 getRouteWithROTransaction(
     apiRouter,
-    "/charts/:chartId.parentConfig.json",
+    "/charts/:chartId.parent.json",
     async (req, res, trx) => {
         const chartId = expectInt(req.params.chartId)
-        const parentConfig = await getParentConfigForChart(trx, chartId)
-        return parentConfig ?? {}
+
+        // grab the active parent config in case inheritance is enabled
+        let parent = await getParentByChartId(trx, chartId)
+        if (parent.variableId)
+            return omitUndefinedValues({
+                variableId: parent.variableId,
+                config: parent.config,
+                isActive: true,
+            })
+
+        // grab the parent config although it isn't currently in use
+        const patchConfig = await getPatchConfigByChartId(trx, chartId)
+        if (!patchConfig) {
+            throw new JsonError(`Chart with id ${chartId} not found`, 500)
+        }
+        parent = await getParentByChartConfig(trx, patchConfig)
+        return omitUndefinedValues({
+            variableId: parent?.variableId,
+            config: parent?.config,
+            isActive: false,
+        })
     }
 )
 
@@ -869,7 +943,19 @@ apiRouter.get(
 )
 
 postRouteWithRWTransaction(apiRouter, "/charts", async (req, res, trx) => {
-    const { chartId } = await saveGrapher(trx, res.locals.user, req.body)
+    let inheritance: InheritanceOptions = "auto"
+    if (req.query.inheritance) {
+        inheritance = req.query.inheritance === "1" ? "enable" : "disable"
+    }
+
+    const { chartId } = await saveGrapher(
+        trx,
+        {
+            user: res.locals.user,
+            newConfig: req.body,
+        },
+        { inheritance }
+    )
 
     return { success: true, chartId: chartId }
 })
@@ -892,11 +978,19 @@ putRouteWithRWTransaction(
     async (req, res, trx) => {
         const existingConfig = await expectChartById(trx, req.params.chartId)
 
+        let inheritance: InheritanceOptions = "auto"
+        if (req.query.inheritance) {
+            inheritance = req.query.inheritance === "1" ? "enable" : "disable"
+        }
+
         const { chartId, savedPatch } = await saveGrapher(
             trx,
-            res.locals.user,
-            req.body,
-            existingConfig
+            {
+                user: res.locals.user,
+                newConfig: req.body,
+                existingConfig,
+            },
+            { inheritance }
         )
 
         const logs = await getLogsByChartId(trx, existingConfig.id as number)
@@ -1146,10 +1240,12 @@ patchRouteWithRWTransaction(
         for (const [id, newConfig] of configMap.entries()) {
             await saveGrapher(
                 trx,
-                res.locals.user,
-                newConfig,
-                oldValuesConfigMap.get(id),
-                false
+                {
+                    user: res.locals.user,
+                    newConfig,
+                    existingConfig: oldValuesConfigMap.get(id),
+                },
+                { referencedVariablesMightChange: false }
             )
         }
 
@@ -1465,7 +1561,7 @@ deleteRouteWithRWTransaction(
         }
 
         // update all charts that inherit from the indicator
-        const updatedChartIds = await updateAllChartsThatInheritFromIndicator(
+        const updatedCharts = await updateAllChartsThatInheritFromIndicator(
             trx,
             variableId,
             {
@@ -1474,7 +1570,7 @@ deleteRouteWithRWTransaction(
         )
 
         // trigger build if any chart has been updated
-        if (updatedChartIds.length > 0) {
+        if (updatedCharts.some((chart) => chart.isPublished)) {
             await triggerStaticBuild(
                 res.locals.user,
                 `Updating ETL config for variable ${variableId}`

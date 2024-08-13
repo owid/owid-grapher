@@ -1,5 +1,3 @@
-import { defaultGrapherConfig } from "@ourworldindata/grapher"
-import { mergeGrapherConfigs } from "@ourworldindata/utils"
 import { MigrationInterface, QueryRunner } from "typeorm"
 import { uuidv7 } from "uuidv7"
 
@@ -126,6 +124,16 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
                     ON UPDATE RESTRICT
         `)
 
+        await queryRunner.query(`-- sql
+            ALTER TABLE charts
+                ADD COLUMN parentVariableId int AFTER configId,
+                ADD CONSTRAINT fk_charts_parentVariableId
+                    FOREIGN KEY (parentVariableId)
+                    REFERENCES variables (id)
+                    ON DELETE RESTRICT
+                    ON UPDATE RESTRICT
+        `)
+
         // note that we copy the ETL-authored configs to the chart_configs table,
         // but drop the admin-authored configs
 
@@ -144,7 +152,7 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
 
         // add a view that lists all charts that inherit from an indicator
         await queryRunner.query(`-- sql
-          CREATE VIEW inheriting_charts AS (
+          CREATE VIEW inheritance_variables_x_charts AS (
             WITH y_dimensions AS (
               SELECT
                 *
@@ -178,48 +186,12 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
               variableId
           )
         `)
-
-        // update the full column of every chart that inherits from an indicator
-        const inheritancePairs = await queryRunner.query(`-- sql
-            SELECT
-                ic.chartId,
-                ic.variableId,
-                cc_chart.patch AS chartPatch,
-                cc_variable.patch AS variablePatch
-            FROM inheriting_charts ic
-            JOIN chart_configs cc_chart ON cc_chart.id = (
-                SELECT configId FROM charts
-                WHERE id = ic.chartId
-            )
-            JOIN chart_configs cc_variable ON cc_variable.id = (
-                SELECT grapherConfigIdETL FROM variables
-                WHERE id = ic.variableId
-            )
-        `)
-        for (const pair of inheritancePairs) {
-            const fullChartConfig = mergeGrapherConfigs(
-                defaultGrapherConfig,
-                JSON.parse(pair.variablePatch),
-                JSON.parse(pair.chartPatch)
-            )
-            await queryRunner.query(
-                `-- sql
-                    UPDATE chart_configs
-                    SET full = ?
-                    WHERE id = (
-                        SELECT configId FROM charts
-                        WHERE id = ?
-                    )
-                `,
-                [JSON.stringify(fullChartConfig), pair.chartId]
-            )
-        }
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         // drop view
         await queryRunner.query(`-- sql
-            DROP VIEW inheriting_charts
+            DROP VIEW inheritance_variables_x_charts
         `)
 
         // add back the `grapherConfigAdmin` and `grapherConfigETL` columns
@@ -258,24 +230,5 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
                 DROP COLUMN grapherConfigIdAdmin,
                 DROP COLUMN grapherConfigIdETL
         `)
-
-        // restore full configs of standalone charts
-        const charts = await queryRunner.query(`-- sql
-            SELECT id AS configId, patch FROM chart_configs
-        `)
-        for (const chart of charts) {
-            const fullConfig = mergeGrapherConfigs(
-                defaultGrapherConfig,
-                JSON.parse(chart.patch)
-            )
-            await queryRunner.query(
-                `-- sql
-                    UPDATE chart_configs
-                    SET full = ?
-                    WHERE id = ?
-                `,
-                [JSON.stringify(fullConfig), chart.configId]
-            )
-        }
     }
 }

@@ -208,10 +208,9 @@ async function findAllChartsThatInheritFromIndicator(
                 c.id as chartId,
                 cc.patch as patchConfig,
                 cc.full ->> "$.isPublished" as isPublished
-            FROM inheriting_charts ic
-                JOIN charts c ON c.id = ic.chartId
+            FROM charts c
                 JOIN chart_configs cc ON cc.id = c.configId
-            WHERE ic.variableId = ?
+            WHERE c.parentVariableId = ?
         `,
         [variableId]
     )
@@ -231,7 +230,7 @@ export async function updateAllChartsThatInheritFromIndicator(
         patchConfigETL?: GrapherInterface
         patchConfigAdmin?: GrapherInterface
     }
-): Promise<number[]> {
+): Promise<{ chartId: number; isPublished: boolean }[]> {
     const inheritingCharts = await findAllChartsThatInheritFromIndicator(
         trx,
         variableId
@@ -254,17 +253,15 @@ export async function updateAllChartsThatInheritFromIndicator(
             [JSON.stringify(fullConfig), chart.chartId]
         )
     }
-    // let the caller know if any published charts were updated
+    // let the caller know if any charts were updated
     return inheritingCharts
-        .filter((chart) => chart.isPublished)
-        .map((chart) => chart.chartId)
 }
 
 export async function updateGrapherConfigETLOfVariable(
     trx: db.KnexReadWriteTransaction,
     variable: VariableWithGrapherConfigs,
     config: GrapherInterface
-): Promise<number[]> {
+): Promise<{ chartId: number; isPublished: boolean }[]> {
     const { variableId } = variable
 
     const configETL = makeConfigValidForIndicator({
@@ -299,7 +296,7 @@ export async function updateGrapherConfigETLOfVariable(
         })
     }
 
-    const updatedChartIds = await updateAllChartsThatInheritFromIndicator(
+    const updatedCharts = await updateAllChartsThatInheritFromIndicator(
         trx,
         variableId,
         {
@@ -308,7 +305,7 @@ export async function updateGrapherConfigETLOfVariable(
         }
     )
 
-    return updatedChartIds
+    return updatedCharts
 }
 
 export async function updateGrapherConfigAdminOfVariable(

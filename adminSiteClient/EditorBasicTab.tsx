@@ -181,8 +181,9 @@ class DimensionSlotView<
     }
 
     @action.bound private updateParentConfig() {
-        if (isChartEditorInstance(this.props.editor)) {
-            void this.props.editor.updateParentConfig()
+        const { editor } = this.props
+        if (isChartEditorInstance(editor)) {
+            void editor.updateParentConfig()
         }
     }
 

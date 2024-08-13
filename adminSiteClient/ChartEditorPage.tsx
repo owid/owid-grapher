@@ -2,7 +2,7 @@ import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, action } from "mobx"
 import {
-    getParentIndicatorIdFromChartConfig,
+    getParentVariableIdFromChartConfig,
     RawPageview,
     isEmpty,
 } from "@ourworldindata/utils"
@@ -13,7 +13,7 @@ import {
     Log,
     References,
     ChartEditorManager,
-    fetchParentConfigForChart,
+    fetchMergedGrapherConfigByVariableId,
 } from "./ChartEditor.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
@@ -33,6 +33,8 @@ export class ChartEditorPage
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined
 
+    isInheritanceEnabled: boolean | undefined = undefined
+
     async fetchGrapherConfig(): Promise<void> {
         const { grapherId, grapherConfig } = this.props
         if (grapherId !== undefined) {
@@ -47,19 +49,21 @@ export class ChartEditorPage
     async fetchParentConfig(): Promise<void> {
         const { grapherId, grapherConfig } = this.props
         if (grapherId !== undefined) {
-            const parentConfig = await this.context.admin.getJSON(
-                `/api/charts/${grapherId}.parentConfig.json`
+            const parent = await this.context.admin.getJSON(
+                `/api/charts/${grapherId}.parent.json`
             )
-            this.parentConfig = isEmpty(parentConfig) ? undefined : parentConfig
+            this.parentConfig = parent?.config
+            this.isInheritanceEnabled = parent?.isActive ?? false
         } else if (grapherConfig) {
             const parentIndicatorId =
-                getParentIndicatorIdFromChartConfig(grapherConfig)
+                getParentVariableIdFromChartConfig(grapherConfig)
             if (parentIndicatorId) {
-                this.parentConfig = await fetchParentConfigForChart(
+                this.parentConfig = await fetchMergedGrapherConfigByVariableId(
                     this.context.admin,
                     parentIndicatorId
                 )
             }
+            this.isInheritanceEnabled = false
         }
     }
 

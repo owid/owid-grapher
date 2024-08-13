@@ -1,54 +1,84 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { Section } from "./Forms.js"
+import { Section, Toggle } from "./Forms.js"
+import { ChartEditor } from "./ChartEditor.js"
+import { action } from "mobx"
+import { mergeGrapherConfigs } from "@ourworldindata/utils"
 
 @observer
-export class EditorInheritanceTab<
-    Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
+export class EditorInheritanceTab extends React.Component<{
+    editor: ChartEditor
+}> {
+    @action.bound onToggleInheritance(newValue: boolean) {
+        const { patchConfig, parentConfig } = this.props.editor
+
+        // update live grapher
+        const newParentConfig = newValue ? parentConfig : undefined
+        const newConfig = mergeGrapherConfigs(
+            newParentConfig ?? {},
+            patchConfig
+        )
+        this.props.editor.updateLiveGrapher(newConfig)
+
+        this.props.editor.isInheritanceEnabled = newValue
+    }
+
     render() {
-        const { parentConfig, fullConfig, grapher } = this.props.editor
+        const {
+            parentConfig,
+            isInheritanceEnabled = false,
+            fullConfig,
+            grapher,
+        } = this.props.editor
 
-        if (!parentConfig)
-            return (
-                <div className="InheritanceTab">
-                    Doesn't inherit settings from any indicator
-                </div>
-            )
+        const parentIndicatorId = parentConfig?.dimensions?.[0].variableId
+        const column = parentIndicatorId
+            ? grapher.inputTable.get(parentIndicatorId.toString())
+            : undefined
 
-        const parentIndicatorId = parentConfig.dimensions?.[0].variableId
-
-        if (!parentIndicatorId)
-            return (
-                <div className="InheritanceTab">
-                    Does inherit settings from any indicator but can't find the
-                    indicator's id (shouldn't happen, please report this bug!)
-                </div>
-            )
-
-        const column = grapher.inputTable.get(parentIndicatorId.toString())
+        const parentVariableEditLink = (
+            <a
+                href={`/admin/variables/${parentIndicatorId}`}
+                target="_blank"
+                rel="noopener"
+            >
+                {column?.name ?? parentIndicatorId}
+            </a>
+        )
 
         return (
             <div className="InheritanceTab">
                 <Section name="Parent indicator">
-                    Inherits settings from indicator{" "}
-                    <a
-                        href={`/admin/variables/${parentIndicatorId}`}
-                        target="_blank"
-                        rel="noopener"
-                    >
-                        {column.name}.
-                    </a>
-                </Section>
-                <Section name="Inherited Config">
-                    <textarea
-                        rows={7}
-                        readOnly
-                        className="form-control"
-                        value={JSON.stringify(parentConfig, undefined, 2)}
+                    {isInheritanceEnabled ? (
+                        <p>
+                            This chart inherits settings from indicator{" "}
+                            {parentVariableEditLink}. Toggle the option below to
+                            disable inheritance.
+                        </p>
+                    ) : (
+                        <p>
+                            This chart may inherit settings from indicator{" "}
+                            {parentVariableEditLink}. Toggle the option below to
+                            enable inheritance and enrich this chart's config by
+                            indicator-level settings.
+                        </p>
+                    )}
+                    <Toggle
+                        label="Inherit settings from indicator"
+                        value={isInheritanceEnabled}
+                        onValue={this.onToggleInheritance}
                     />
                 </Section>
+                {isInheritanceEnabled && (
+                    <Section name="Inherited Config">
+                        <textarea
+                            rows={7}
+                            readOnly
+                            className="form-control"
+                            value={JSON.stringify(parentConfig, undefined, 2)}
+                        />
+                    </Section>
+                )}
                 <Section name="Full Config">
                     <textarea
                         rows={7}
