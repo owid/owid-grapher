@@ -14,10 +14,6 @@ import {
     ChartRedirect,
     DimensionProperty,
     Json,
-    GrapherInterface,
-    diffGrapherConfigs,
-    isEqual,
-    omit,
 } from "@ourworldindata/utils"
 import { computed, observable, runInAction, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
@@ -101,7 +97,6 @@ export interface ChartEditorManager {
     admin: Admin
     grapher: Grapher
     database: EditorDatabase
-    parentGrapherConfig: GrapherInterface
     logs: Log[]
     references: References | undefined
     redirects: ChartRedirect[]
@@ -129,7 +124,7 @@ export class ChartEditor {
     @observable.ref errorMessage?: { title: string; content: string }
     @observable.ref previewMode: "mobile" | "desktop"
     @observable.ref showStaticPreview = false
-    @observable.ref savedPatchConfig: GrapherInterface = {}
+    @observable.ref savedGrapherJson: string = ""
 
     // This gets set when we save a new chart for the first time
     // so the page knows to update the url
@@ -142,26 +137,13 @@ export class ChartEditor {
                 ? "mobile"
                 : "desktop"
         when(
-            () => this.grapher.hasData && this.grapher.isReady,
-            () => (this.savedPatchConfig = this.patchConfig)
+            () => this.grapher.isReady,
+            () => (this.savedGrapherJson = JSON.stringify(this.grapher.object))
         )
-    }
-
-    @computed get fullConfig(): GrapherInterface {
-        return this.grapher.object
-    }
-
-    @computed get patchConfig(): GrapherInterface {
-        const { parentGrapherConfig } = this.manager
-        if (!parentGrapherConfig) return this.fullConfig
-        return diffGrapherConfigs(this.fullConfig, parentGrapherConfig)
     }
 
     @computed get isModified(): boolean {
-        return !isEqual(
-            omit(this.patchConfig, "version"),
-            omit(this.savedPatchConfig, "version")
-        )
+        return JSON.stringify(this.grapher.object) !== this.savedGrapherJson
     }
 
     @computed get grapher() {
@@ -256,12 +238,12 @@ export class ChartEditor {
             if (isNewGrapher) {
                 this.newChartId = json.chartId
                 this.grapher.id = json.chartId
-                this.savedPatchConfig = json.savedPatch
+                this.savedGrapherJson = JSON.stringify(this.grapher.object)
             } else {
                 runInAction(() => {
                     grapher.version += 1
                     this.logs.unshift(json.newLog)
-                    this.savedPatchConfig = json.savedPatch
+                    this.savedGrapherJson = JSON.stringify(currentGrapherObject)
                 })
             }
         } else onError?.()
