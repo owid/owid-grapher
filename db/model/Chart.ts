@@ -342,7 +342,17 @@ export async function getGptTopicSuggestions(
     const json = completion.choices[0]?.message?.content
     if (!json) throw new JsonError("No response from GPT", 500)
 
-    const selectedTopics: unknown = JSON.parse(json)
+    let selectedTopics: unknown = undefined
+    // Sometimes GPT includes a preamble before the JSON, so we need to extract the JSON from the response
+    const jsonArrayRegex = /\[[^\]]*\]/g
+    try {
+        const match = jsonArrayRegex.exec(json)
+        if (match) {
+            selectedTopics = JSON.parse(match[0])
+        }
+    } catch (e) {
+        throw new JsonError(`GPT returned invalid JSON: "${json}"`, 500)
+    }
 
     if (lodash.isArray(selectedTopics)) {
         // We only want to return topics that are in the list of possible
@@ -353,8 +363,7 @@ export async function getGptTopicSuggestions(
 
         return confirmedTopics
     } else {
-        console.error("GPT returned invalid response", json)
-        return []
+        throw new JsonError(`GPT returned non-array JSON: "${json}"`, 500)
     }
 }
 
