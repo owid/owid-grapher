@@ -375,9 +375,9 @@ const TopicsRefinementList = ({
     //             {appliedFiltersSection}
     //             <ul
     //                 className={cx(
-    //                     "span-cols-12 col-start-2 data-catalog-facets-list",
+    //                     "span-cols-12 col-start-2 data-catalog-filters-list",
     //                     {
-    //                         "data-catalog-facets-list--is-loading": isLoading,
+    //                         "data-catalog-filters-list--is-loading": isLoading,
     //                     }
     //                 )}
     //             >
@@ -389,20 +389,20 @@ const TopicsRefinementList = ({
     //                         <React.Fragment key={area.name}>
     //                             <li
     //                                 key={area.name}
-    //                                 className="data-catalog-facets-list-item"
+    //                                 className="data-catalog-filters-list-item"
     //                                 tabIndex={0}
     //                                 onClick={() => {
     //                                     addGlobalTagFilter(area.name)
     //                                 }}
     //                             >
     //                                 <span>{area.name}</span>
-    //                                 <span className="data-catalog-facets-list-item__hit-count">
+    //                                 <span className="data-catalog-filters-list-item__hit-count">
     //                                     ({nBHits})
     //                                 </span>
     //                             </li>
     //                             {!isLast ? (
     //                                 <li
-    //                                     className="data-catalog-facets-list-separator"
+    //                                     className="data-catalog-filters-list-separator"
     //                                     // including an empty space so that the list has spaces in it when copied to clipboard
     //                                 >
     //                                     {" "}
