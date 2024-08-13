@@ -115,18 +115,21 @@ async function syncWithR2(
         }
     )
 
-    // We could parallelize the deletes but it's not worth the complexity for most cases IMHO
-    for (const [key, _] of hashesOfFilesToDelete.entries()) {
-        const deleteObjectCommandInput: DeleteObjectCommandInput = {
-            Bucket: GRAPHER_CONFIG_R2_BUCKET,
-            Key: key,
-        }
-        if (!dryRun)
-            await s3Client.send(
-                new DeleteObjectCommand(deleteObjectCommandInput)
-            )
-        else console.log("Would have deleted", key)
-        progressBar.tick()
+    // Delete the files in R2 that are no longer needed
+    for (const batch of chunk([...hashesOfFilesToDelete.entries()], 100)) {
+        const deletePromises = batch.map(async ([key, _]) => {
+            const deleteObjectCommandInput: DeleteObjectCommandInput = {
+                Bucket: GRAPHER_CONFIG_R2_BUCKET,
+                Key: key,
+            }
+            if (!dryRun)
+                await s3Client.send(
+                    new DeleteObjectCommand(deleteObjectCommandInput)
+                )
+            else console.log("Would have deleted", key)
+            progressBar.tick()
+        })
+        await Promise.allSettled(deletePromises)
     }
 
     console.log("Finished deletes")
