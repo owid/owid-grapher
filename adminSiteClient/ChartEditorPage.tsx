@@ -4,7 +4,6 @@ import { observable, computed, runInAction, action } from "mobx"
 import {
     getParentVariableIdFromChartConfig,
     RawPageview,
-    isEmpty,
 } from "@ourworldindata/utils"
 import { Topic, GrapherInterface, ChartRedirect } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
@@ -15,7 +14,7 @@ import {
     ChartEditorManager,
     fetchMergedGrapherConfigByVariableId,
 } from "./ChartEditor.js"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { AdminAppContext } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
 
 @observer
@@ -28,6 +27,10 @@ export class ChartEditorPage
 {
     @observable logs: Log[] = []
     @observable references: References | undefined = undefined
+    @observable redirects: ChartRedirect[] = []
+    @observable pageviews?: RawPageview = undefined
+    @observable allTopics: Topic[] = []
+
     static contextType = AdminAppContext
 
     patchConfig: GrapherInterface = {}

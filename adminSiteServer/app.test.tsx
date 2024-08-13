@@ -57,6 +57,11 @@ import { defaultGrapherConfig } from "@ourworldindata/grapher"
 import path from "path"
 import fs from "fs"
 
+const ADMIN_SERVER_HOST = "localhost"
+const ADMIN_SERVER_PORT = 8765
+
+const ADMIN_URL = `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}/admin/api`
+
 jest.setTimeout(10000) // wait for up to 10s for the app server to start
 let testKnexInstance: Knex<any, unknown[]> | undefined = undefined
 let serverKnexInstance: Knex<any, unknown[]> | undefined = undefined
@@ -94,7 +99,7 @@ beforeAll(async () => {
         gitCmsDir: "",
         quiet: true,
     })
-    await app.startListening(8765, "localhost")
+    await app.startListening(ADMIN_SERVER_PORT, ADMIN_SERVER_HOST)
     cookieId = (
         await logInAsUser({
             email: "admin@example.com",
@@ -141,13 +146,45 @@ async function getCountForTable(tableName: string): Promise<number> {
     return count[0]["count(*)"] as number
 }
 
-async function fetchJsonFromApi(path: string) {
-    const url = `http://localhost:8765/admin/api${path}`
+async function fetchJsonFromAdminApi(path: string) {
+    const url = ADMIN_URL + path
     const response = await fetch(url, {
         headers: { cookie: `sessionid=${cookieId}` },
     })
     expect(response.status).toBe(200)
     return await response.json()
+}
+
+async function makeRequestAgainstAdminApi(
+    {
+        method,
+        path,
+        body,
+    }: {
+        method: "POST" | "PUT" | "DELETE"
+        path: string
+        body?: string
+    },
+    { verifySuccess = true }: { verifySuccess?: boolean } = {}
+) {
+    const url = ADMIN_URL + path
+    const response = await fetch(url, {
+        method,
+        headers: {
+            "Content-Type": "application/json",
+            cookie: `sessionid=${cookieId}`,
+        },
+        body,
+    })
+    expect(response.status).toBe(200)
+
+    const json = await response.json()
+
+    if (verifySuccess) {
+        expect(json.success).toBe(true)
+    }
+
+    return json
 }
 
 const currentSchema = defaultGrapherConfig["$schema"]
@@ -185,18 +222,12 @@ describe("OwidAdminApp", () => {
         const chartId = 1 // since the chart is the first to be inserted
 
         // make a request to create a chart
-        const response = await fetch("http://localhost:8765/admin/api/charts", {
+        const response = await makeRequestAgainstAdminApi({
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                cookie: `sessionid=${cookieId}`,
-            },
+            path: "/charts",
             body: JSON.stringify(testChartConfig),
         })
-        expect(response.status).toBe(200)
-        const text = await response.json()
-        expect(text.success).toBe(true)
-        expect(text.chartId).toBe(chartId)
+        expect(response.chartId).toBe(chartId)
 
         // check that a row in the charts table has been added
         const chartCountAfter = await getCountForTable(ChartsTableName)
@@ -208,14 +239,14 @@ describe("OwidAdminApp", () => {
         )
         expect(chartConfigsCountAfter).toBe(1)
 
-        // fetch the parent config and verify it's empty
-        const parentConfig = await fetchJsonFromApi(
-            `/charts/${chartId}.parentConfig.json`
-        )
-        expect(parentConfig).toEqual({})
+        // fetch the parent config and verify there is none
+        const parentConfig = (
+            await fetchJsonFromAdminApi(`/charts/${chartId}.parent.json`)
+        )?.config
+        expect(parentConfig).toBeUndefined()
 
         // fetch the full config and verify it's merged with the default
-        const fullConfig = await fetchJsonFromApi(
+        const fullConfig = await fetchJsonFromAdminApi(
             `/charts/${chartId}.config.json`
         )
         expect(fullConfig).toHaveProperty("$schema", currentSchema)
@@ -227,7 +258,7 @@ describe("OwidAdminApp", () => {
         expect(fullConfig).toHaveProperty("tab", "chart") // default property
 
         // fetch the patch config and verify it's diffed correctly
-        const patchConfig = await fetchJsonFromApi(
+        const patchConfig = await fetchJsonFromAdminApi(
             `/charts/${chartId}.patchConfig.json`
         )
         expect(patchConfig).toEqual({
@@ -242,23 +273,17 @@ describe("OwidAdminApp", () => {
 
     it("should be able to create a GDoc article", async () => {
         const gdocId = "gdoc-test-create-1"
-        const response = await fetch(
-            `http://localhost:8765/admin/api/gdocs/${gdocId}`,
+        const response = await makeRequestAgainstAdminApi(
             {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    cookie: `sessionid=${cookieId}`,
-                },
-            }
+                path: `/gdocs/${gdocId}`,
+            },
+            { verifySuccess: false }
         )
-        expect(response.status).toBe(200)
-
-        const text = await response.json()
-        expect(text.id).toBe(gdocId)
+        expect(response.id).toBe(gdocId)
 
         // Fetch the GDoc to verify it was created
-        const gdoc = await fetchJsonFromApi(`/gdocs/${gdocId}`)
+        const gdoc = await fetchJsonFromAdminApi(`/gdocs/${gdocId}`)
         expect(gdoc.id).toBe(gdocId)
         expect(gdoc.content.title).toBe("Basic article")
     })
@@ -319,20 +344,11 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         expect(chartConfigsCount).toBe(0)
 
         // add a grapher config for a variable
-        let response = await fetch(
-            `http://localhost:8765/admin/api/variables/${variableId}/grapherConfigETL`,
-            {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    cookie: `sessionid=${cookieId}`,
-                },
-                body: JSON.stringify(testVariableConfig),
-            }
-        )
-        expect(response.status).toBe(200)
-        let text = await response.json()
-        expect(text.success).toBe(true)
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify(testVariableConfig),
+        })
 
         // check that a row in the chart_configs table has been added
         const chartConfigsCountAfter = await getCountForTable(
@@ -361,7 +377,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         })
 
         // fetch the admin+etl merged grapher config
-        const mergedGrapherConfig = await fetchJsonFromApi(
+        const mergedGrapherConfig = await fetchJsonFromAdminApi(
             `/variables/mergedGrapherConfig/${variableId}.json`
         )
 
@@ -370,19 +386,10 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         expect(mergedGrapherConfig).toEqual(fullConfig)
 
         // delete the grapher config we just added
-        response = await fetch(
-            `http://localhost:8765/admin/api/variables/${variableId}/grapherConfigETL`,
-            {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    cookie: `sessionid=${cookieId}`,
-                },
-            }
-        )
-        expect(response.status).toBe(200)
-        text = await response.json()
-        expect(text.success).toBe(true)
+        await makeRequestAgainstAdminApi({
+            method: "DELETE",
+            path: `/variables/${variableId}/grapherConfigETL`,
+        })
 
         // check that the row in the chart_configs table has been deleted
         const chartConfigsCountAfterDelete = await getCountForTable(
@@ -392,51 +399,34 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
     })
 
     it("should update all charts that inherit from an indicator", async () => {
-        const chartId = 2 // since it's the second chart to be inserted into the test database
-
         // setup: add grapherConfigETL for the variable
-        let response = await fetch(
-            `http://localhost:8765/admin/api/variables/${variableId}/grapherConfigETL`,
-            {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    cookie: `sessionid=${cookieId}`,
-                },
-                body: JSON.stringify(testVariableConfig),
-            }
-        )
-        expect(response.status).toBe(200)
-        let text = await response.json()
-        expect(text.success).toBe(true)
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify(testVariableConfig),
+        })
 
         // make a request to create a chart that inherits from the variable
-        response = await fetch("http://localhost:8765/admin/api/charts", {
+        const response = await makeRequestAgainstAdminApi({
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                cookie: `sessionid=${cookieId}`,
-            },
+            path: "/charts?inheritance=1",
             body: JSON.stringify(testChartConfig),
         })
-        expect(response.status).toBe(200)
-        text = await response.json()
-        expect(text.success).toBe(true)
-        expect(text.chartId).toBe(chartId)
+        const chartId = response.chartId
 
         // get the ETL config from the database
         const row = await testKnexInstance!(ChartConfigsTableName).first()
         const fullConfigETL = JSON.parse(row.full)
 
         // fetch the parent config of the chart and verify that it's the ETL config
-        const parentConfig = await fetchJsonFromApi(
-            `/charts/${chartId}.parentConfig.json`
-        )
+        const parentConfig = (
+            await fetchJsonFromAdminApi(`/charts/${chartId}.parent.json`)
+        )?.config
         expect(parentConfig).toEqual(fullConfigETL)
 
         // fetch the full config of the chart and verify that it's been merged
         // with the ETL config and the default config
-        const fullConfig = await fetchJsonFromApi(
+        const fullConfig = await fetchJsonFromAdminApi(
             `/charts/${chartId}.config.json`
         )
         expect(fullConfig).toHaveProperty("slug", "test-chart")
@@ -449,7 +439,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         expect(fullConfig).toHaveProperty("tab", "chart") // default value
 
         // fetch the patch config and verify it's diffed correctly
-        const patchConfig = await fetchJsonFromApi(
+        const patchConfig = await fetchJsonFromAdminApi(
             `/charts/${chartId}.patchConfig.json`
         )
         expect(patchConfig).toEqual({
@@ -470,29 +460,20 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         })
 
         // delete the ETL config
-        response = await fetch(
-            `http://localhost:8765/admin/api/variables/${variableId}/grapherConfigETL`,
-            {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    cookie: `sessionid=${cookieId}`,
-                },
-            }
-        )
-        expect(response.status).toBe(200)
-        text = await response.json()
-        expect(text.success).toBe(true)
+        await makeRequestAgainstAdminApi({
+            method: "DELETE",
+            path: `/variables/${variableId}/grapherConfigETL`,
+        })
 
-        // fetch the parent config of the chart and verify that it's empty
-        const parentConfigAfterDelete = await fetchJsonFromApi(
-            `/charts/${chartId}.parentConfig.json`
-        )
-        expect(parentConfigAfterDelete).toEqual({})
+        // fetch the parent config of the chart and verify there is none
+        const parentConfigAfterDelete = (
+            await fetchJsonFromAdminApi(`/charts/${chartId}.parent.json`)
+        )?.config
+        expect(parentConfigAfterDelete).toBeUndefined()
 
         // fetch the full config of the chart and verify that it doesn't have
         // values from the deleted ETL config
-        const fullConfigAfterDelete = await fetchJsonFromApi(
+        const fullConfigAfterDelete = await fetchJsonFromAdminApi(
             `/charts/${chartId}.config.json`
         )
         // was inherited from variable, should be unset now
@@ -505,7 +486,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         expect(fullConfigAfterDelete).toHaveProperty("tab", "chart") // default value
 
         // fetch the patch config and verify it's diffed correctly
-        const patchConfigAfterDelete = await fetchJsonFromApi(
+        const patchConfigAfterDelete = await fetchJsonFromAdminApi(
             `/charts/${chartId}.patchConfig.json`
         )
         expect(patchConfigAfterDelete).toEqual({
