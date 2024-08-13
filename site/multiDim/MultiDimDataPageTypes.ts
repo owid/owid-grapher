@@ -64,7 +64,7 @@ export interface IndicatorsAfterPreProcessing {
 }
 
 export interface View<IndicatorsType extends Record<string, any>> {
-    dimensions: Record<string, string> // Keys: dimension slugs, values: choice slugs
+    dimensions: MultiDimDimensionChoices
     indicators: IndicatorsType
     config?: Config
 }
@@ -73,6 +73,8 @@ export interface Config {
     title?: string
     subtitle?: string
 }
+
+export type MultiDimDimensionChoices = Record<string, string> // Keys: dimension slugs, values: choice slugs
 
 export interface MultiDimDataPageProps {
     configObj: MultiDimDataPageConfigPreProcessed

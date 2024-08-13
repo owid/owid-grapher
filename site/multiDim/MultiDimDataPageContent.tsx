@@ -27,7 +27,13 @@ import cx from "classnames"
 import { DebugProvider } from "../gdocs/DebugContext.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
 import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
-import { MultiDimDataPageProps } from "./MultiDimDataPageTypes.js"
+import {
+    IndicatorEntryAfterPreProcessing,
+    IndicatorsAfterPreProcessing,
+    MultiDimDataPageProps,
+    MultiDimDimensionChoices,
+    View,
+} from "./MultiDimDataPageTypes.js"
 import AboutThisData from "../AboutThisData.js"
 import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
@@ -102,6 +108,55 @@ const cachedGetVariableMetadata = memoize(
         )
 )
 
+const useTitleFragments = (config: MultiDimDataPageConfig) => {
+    const title = config.config.title
+    return useMemo(
+        () => joinTitleFragments(title.titleVariant, title.attributionShort),
+        [config]
+    )
+}
+
+const useView = (
+    currentSettings: MultiDimDimensionChoices,
+    config: MultiDimDataPageConfig
+) => {
+    const currentView = useMemo(() => {
+        if (Object.keys(currentSettings).length === 0) return undefined
+        return config.findViewByDimensions(currentSettings)
+    }, [currentSettings, config])
+
+    const dimensionsConfig = useMemo(
+        () => MultiDimDataPageConfig.viewToDimensionsConfig(currentView),
+        [currentView]
+    )
+
+    return { currentView, dimensionsConfig }
+}
+
+const useVarDatapageData = (
+    currentView: View<IndicatorsAfterPreProcessing> | undefined
+) => {
+    const [varDatapageData, setVarDatapageData] =
+        useState<DataPageDataV2 | null>(null)
+
+    useEffect(() => {
+        setVarDatapageData(null)
+        const yIndicatorOrIndicators = currentView?.indicators?.["y"]
+        const variableId = Array.isArray(yIndicatorOrIndicators)
+            ? yIndicatorOrIndicators[0]
+            : yIndicatorOrIndicators
+        if (!variableId) return
+        const variableMetadata = cachedGetVariableMetadata(variableId)
+
+        variableMetadata
+            .then((json) => getDatapageDataV2(json, currentView?.config))
+            .then(setVarDatapageData)
+            .catch(console.error)
+    }, [currentView?.indicators, currentView?.config])
+
+    return { varDatapageData }
+}
+
 export const MultiDimDataPageContent = ({
     // _datapageData,
     configObj,
@@ -119,6 +174,7 @@ export const MultiDimDataPageContent = ({
         () => MultiDimDataPageConfig.fromObject(configObj),
         [configObj]
     )
+    const titleFragments = useTitleFragments(config)
 
     const [initialChoices] = useState(() =>
         initialQueryStr
@@ -130,51 +186,15 @@ export const MultiDimDataPageContent = ({
             config.filterToAvailableChoices(initialChoices)
         return selectedChoices
     })
-    const currentView = useMemo(() => {
-        if (Object.keys(currentSettings).length === 0) return undefined
-        return config.findViewByDimensions(currentSettings)
-    }, [currentSettings, config])
 
-    const title = config.config.title
-
-    const dimensionsConfig = useMemo(
-        () => MultiDimDataPageConfig.viewToDimensionsConfig(currentView),
-        [currentView]
-    )
-
-    const [datapageDataFromVar, setDatapageDataFromVar] =
-        useState<DataPageDataV2 | null>(null)
-
-    useEffect(() => {
-        setDatapageDataFromVar(null)
-        const yIndicatorOrIndicators = currentView?.indicators?.["y"]
-        const variableId = Array.isArray(yIndicatorOrIndicators)
-            ? yIndicatorOrIndicators[0]
-            : yIndicatorOrIndicators
-        if (!variableId) return
-        const variableMetadata = cachedGetVariableMetadata(variableId)
-
-        variableMetadata
-            .then((json) => getDatapageDataV2(json, currentView?.config))
-            .then(setDatapageDataFromVar)
-            .catch(console.error)
-    }, [dimensionsConfig, currentView?.indicators, currentView?.config])
-
-    const titleFragments = joinTitleFragments(
-        title.titleVariant,
-        title.attributionShort
-    )
-
-    const selectionArray = useMemo(
-        () => new SelectionArray(config.config.defaultSelection),
-        [config]
-    )
+    const { currentView, dimensionsConfig } = useView(currentSettings, config)
+    const { varDatapageData } = useVarDatapageData(currentView)
 
     const grapherManager = useMemo(
         (): GrapherManager => ({
-            selection: selectionArray,
+            selection: new SelectionArray(config.config.defaultSelection),
         }),
-        [selectionArray]
+        [config]
     )
 
     // This is the ACTUAL grapher instance being used, because GrapherFigureView/GrapherWithFallback are doing weird things and are not actually using the grapher instance we pass into it
@@ -216,7 +236,7 @@ export const MultiDimDataPageContent = ({
     const hasTopicTags = !!config.config.topicTags?.length
 
     // TODO
-    // const relatedResearchCandidates = datapageDataFromVar?.relatedResearch ?? []
+    // const relatedResearchCandidates = varDatapageData?.relatedResearch ?? []
     // const relatedResearch =
     //     relatedResearchCandidates.length > 3 && config.config.topicTags?.length
     //         ? relatedResearchCandidates.filter((research) => {
@@ -241,11 +261,11 @@ export const MultiDimDataPageContent = ({
 
     const faqEntriesForView = useMemo(() => {
         return compact(
-            datapageDataFromVar?.faqs?.flatMap(
+            varDatapageData?.faqs?.flatMap(
                 (faq) => faqEntries?.faqs?.[faq.gdocId]?.[faq.fragmentId]
             )
         )
-    }, [datapageDataFromVar?.faqs, faqEntries])
+    }, [varDatapageData?.faqs, faqEntries])
 
     return (
         <div className="DataPageContent MultiDimDataPageContent">
@@ -253,7 +273,9 @@ export const MultiDimDataPageContent = ({
                 <div className="header__wrapper wrapper grid grid-cols-12 ">
                     <div className="header__left span-cols-8 span-sm-cols-12">
                         <div className="header__supertitle">Data</div>
-                        <h1 className="header__title">{title.title}</h1>
+                        <h1 className="header__title">
+                            {config.config.title.title}
+                        </h1>
                         <div className="header__source">{titleFragments}</div>
                     </div>
                     {hasTopicTags && tagToSlugMap && (
@@ -295,9 +317,9 @@ export const MultiDimDataPageContent = ({
                             />
                         </figure>
                     </div>
-                    {datapageDataFromVar && (
+                    {varDatapageData && (
                         <AboutThisData
-                            datapageData={datapageDataFromVar}
+                            datapageData={varDatapageData}
                             hasFaq={!!faqEntriesForView?.length}
                         />
                     )}
@@ -339,37 +361,35 @@ export const MultiDimDataPageContent = ({
                         </div>
                     </div>
                 )}
-                {datapageDataFromVar?.allCharts &&
-                datapageDataFromVar?.allCharts.length > 0 ? (
+                {varDatapageData?.allCharts &&
+                varDatapageData?.allCharts.length > 0 ? (
                     <div className="section-wrapper section-wrapper__related-charts">
                         <h2 className="related-charts__title" id="all-charts">
                             Explore charts that include this data
                         </h2>
                         <div>
                             <RelatedCharts
-                                charts={datapageDataFromVar.allCharts}
+                                charts={varDatapageData.allCharts}
                             />
                         </div>
                     </div>
                 ) : null}
             </div> */}
-            {datapageDataFromVar && (
+            {varDatapageData && (
                 <MetadataSection
-                    attributionShort={datapageDataFromVar.attributionShort}
-                    attributions={datapageDataFromVar.attributions}
+                    attributionShort={varDatapageData.attributionShort}
+                    attributions={varDatapageData.attributions}
                     canonicalUrl={canonicalUrl}
                     descriptionProcessing={
-                        datapageDataFromVar.descriptionProcessing
+                        varDatapageData.descriptionProcessing
                     }
                     faqEntries={{ faqs: faqEntriesForView }}
-                    origins={datapageDataFromVar.origins}
-                    owidProcessingLevel={
-                        datapageDataFromVar.owidProcessingLevel
-                    }
+                    origins={varDatapageData.origins}
+                    owidProcessingLevel={varDatapageData.owidProcessingLevel}
                     primaryTopic={primaryTopic}
-                    source={datapageDataFromVar.source}
-                    title={datapageDataFromVar.title}
-                    titleVariant={datapageDataFromVar.titleVariant}
+                    source={varDatapageData.source}
+                    title={varDatapageData.title}
+                    titleVariant={varDatapageData.titleVariant}
                 />
             )}
         </div>
