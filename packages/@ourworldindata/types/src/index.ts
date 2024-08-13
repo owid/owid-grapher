@@ -310,7 +310,6 @@ export {
     type DataPageParseError,
     type DataPageV2ContentFields,
     type DataPageDataV2,
-    type DataPageRelatedData,
     type DataPageRelatedResearch,
     type PrimaryTopic,
     type FaqLink,

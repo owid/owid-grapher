@@ -55,7 +55,6 @@ export const getDatapageDataV2 = async (
             dateRange: variableMetadata.timespan ?? "",
             lastUpdated: lastUpdated,
             nextUpdate: nextUpdate,
-            relatedData: [],
             allCharts: [],
             relatedResearch: [],
             source: variableMetadata.source,

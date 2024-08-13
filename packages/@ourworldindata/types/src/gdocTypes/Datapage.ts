@@ -39,7 +39,6 @@ export interface DataPageDataV2 {
     lastUpdated: string
     nextUpdate?: string
     relatedResearch: DataPageRelatedResearch[]
-    relatedData: DataPageRelatedData[]
     allCharts: RelatedChart[] // Chart slugs
     source: OwidSource | undefined
     origins: OwidOrigin[]
@@ -54,15 +53,6 @@ export interface DataPageRelatedResearch {
     authors: string[]
     imageUrl: string
     tags: string[]
-}
-
-export interface DataPageRelatedData {
-    type?: string
-    title: string
-    source?: string
-    url: string
-    content?: string
-    featured?: boolean
 }
 
 // This gives us a typed object we can use to validate datapage JSON files at runtime (see
@@ -97,18 +87,6 @@ export const DataPageJsonTypeObject = Type.Object(
                     url: Type.String(),
                     authors: Type.Array(Type.String()),
                     imageUrl: Type.String(),
-                })
-            )
-        ),
-        relatedData: Type.Optional(
-            Type.Array(
-                Type.Object({
-                    type: Type.Optional(Type.String()),
-                    title: Type.String(),
-                    source: Type.Optional(Type.String()),
-                    url: Type.String(),
-                    content: Type.Optional(Type.String()),
-                    featured: Type.Optional(Type.Boolean()),
                 })
             )
         ),
