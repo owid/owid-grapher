@@ -28,7 +28,7 @@ import {
     ChartRedirect,
     DimensionProperty,
 } from "@ourworldindata/types"
-import { defaultGrapherConfig, Grapher } from "@ourworldindata/grapher"
+import { Grapher } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import {
     ChartEditor,
@@ -104,7 +104,7 @@ export class ChartEditorPage
     extends React.Component<{
         grapherId?: number
         newGrapherIndex?: number
-        grapherConfig?: GrapherInterface
+        grapherConfig?: any
     }>
     implements ChartEditorManager
 {
@@ -124,9 +124,7 @@ export class ChartEditorPage
 
     @observable simulateVisionDeficiency?: VisionDeficiency
 
-    fetchedGrapherConfig?: GrapherInterface
-    // for now, every chart's parent config is the default layer
-    parentGrapherConfig = defaultGrapherConfig
+    fetchedGrapherConfig?: any
 
     async fetchGrapher(): Promise<void> {
         const { grapherId } = this.props
