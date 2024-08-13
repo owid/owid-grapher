@@ -159,24 +159,15 @@ async function fetchFromR2(
     return primaryResponse
 }
 
-async function fetchAndRenderGrapherToSvg({
+export async function fetchGrapherConfig({
     slug,
-    options,
-    searchParams,
     env,
     etag,
 }: {
     slug: string
-    options: ImageOptions
-    searchParams: URLSearchParams
     env: Env
-    etag?: string
-}) {
-    const grapherLogger = new TimeLogger("grapher")
-
-    const url = new URL(`/grapher/${slug}`, env.url)
-    const slugOnly = url.pathname.split("/").pop()
-
+    etag: string
+}): Promise<GrapherInterface | null> {
     // The top level directory is either the bucket path (should be set in dev environments and production)
     // or the branch name on preview staging environments
     console.log("branch", env.CF_PAGES_BRANCH)
@@ -187,7 +178,7 @@ async function fetchAndRenderGrapherToSvg({
     const key = excludeUndefined([
         ...topLevelDirectory,
         R2GrapherConfigDirectory.publishedGrapherBySlug,
-        `${slugOnly}.json`,
+        `${slug}.json`,
     ]).join("/")
 
     console.log("fetching grapher config from this key", key)
@@ -219,9 +210,26 @@ async function fetchAndRenderGrapherToSvg({
         console.log("Failed to fetch grapher config", fetchResponse.status)
         return null
     }
-
     const grapherConfig: GrapherInterface = await fetchResponse.json()
     console.log("grapher title", grapherConfig.title)
+    return grapherConfig
+}
+
+async function fetchAndRenderGrapherToSvg({
+    slug,
+    options,
+    searchParams,
+    env,
+}: {
+    slug: string
+    options: ImageOptions
+    searchParams: URLSearchParams
+    env: Env
+    etag?: string
+}) {
+    const grapherLogger = new TimeLogger("grapher")
+
+    const grapherConfig = await fetchGrapherConfig({ slug, env, etag })
 
     const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
     const grapher = new Grapher({
@@ -310,4 +318,28 @@ async function renderSvgToPng(svg: string, options: ImageOptions) {
     })
     pngLogger.log("svg2png")
     return pngData
+}
+
+export async function getOptionalRedirectForSlug(
+    slug: string,
+    baseUrl: URL,
+    env: Env
+) {
+    const redirects: Record<string, string> = await env.ASSETS.fetch(
+        new URL("/grapher/_grapherRedirects.json", baseUrl),
+        { cf: { cacheTtl: 2 * 60 } }
+    )
+        .then((r): Promise<Record<string, string>> => r.json())
+        .catch((e) => {
+            console.error("Error fetching redirects", e)
+            return {}
+        })
+    return redirects[slug]
+}
+
+export function createRedirectResponse(redirSlug: string, currentUrl: URL) {
+    new Response(null, {
+        status: 302,
+        headers: { Location: `/grapher/${redirSlug}${currentUrl.search}` },
+    })
 }
