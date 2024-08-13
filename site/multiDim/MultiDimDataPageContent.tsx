@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
     Grapher,
-    GrapherManager,
     GrapherProgrammaticInterface,
-    SelectionArray,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import ReactDOM from "react-dom"
@@ -18,7 +16,6 @@ import {
     getAttributionFragmentsFromVariable,
     OwidVariableWithSourceAndDimension,
     memoize,
-    QueryParams,
     setWindowQueryStr,
     getWindowQueryStr,
     compact,
@@ -28,7 +25,6 @@ import { DebugProvider } from "../gdocs/DebugContext.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
 import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
 import {
-    IndicatorEntryAfterPreProcessing,
     IndicatorsAfterPreProcessing,
     MultiDimDataPageProps,
     MultiDimDimensionChoices,
@@ -41,7 +37,6 @@ import {
     extractDimensionChoicesFromQueryStr,
     stateToQueryStr,
 } from "./MultiDimUrl.js"
-import { reaction } from "mobx"
 import { useElementBounds, useMobxStateToReactState } from "../hooks.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
 declare global {
@@ -112,7 +107,7 @@ const useTitleFragments = (config: MultiDimDataPageConfig) => {
     const title = config.config.title
     return useMemo(
         () => joinTitleFragments(title.titleVariant, title.attributionShort),
-        [config]
+        [title]
     )
 }
 
@@ -189,13 +184,6 @@ export const MultiDimDataPageContent = ({
 
     const { currentView, dimensionsConfig } = useView(currentSettings, config)
     const { varDatapageData } = useVarDatapageData(currentView)
-
-    const grapherManager = useMemo(
-        (): GrapherManager => ({
-            selection: new SelectionArray(config.config.defaultSelection),
-        }),
-        [config]
-    )
 
     // This is the ACTUAL grapher instance being used, because GrapherFigureView/GrapherWithFallback are doing weird things and are not actually using the grapher instance we pass into it
     // and therefore we can not access the grapher state (e.g. tab, selection) from the grapher instance we pass into it
@@ -312,7 +300,6 @@ export const MultiDimDataPageContent = ({
                                 key={JSON.stringify(currentView)}
                                 {...grapherConfigComputed}
                                 queryStr={queryStr}
-                                manager={grapherManager}
                                 getGrapherInstance={setGrapherInst}
                             />
                         </figure>
