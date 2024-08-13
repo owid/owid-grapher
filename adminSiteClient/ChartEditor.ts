@@ -12,11 +12,11 @@ import {
     ChartRedirect,
     Json,
     GrapherInterface,
-    getParentIndicatorIdFromChartConfig,
+    getParentVariableIdFromChartConfig,
     mergeGrapherConfigs,
     isEmpty,
 } from "@ourworldindata/utils"
-import { action, computed, observable, runInAction } from "mobx"
+import { action, computed, observable, runInAction, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import {
     AbstractChartEditor,
@@ -98,7 +98,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     @action.bound async updateParentConfig() {
         const currentParentIndicatorId =
             this.parentConfig?.dimensions?.[0].variableId
-        const newParentIndicatorId = getParentIndicatorIdFromChartConfig(
+        const newParentIndicatorId = getParentVariableIdFromChartConfig(
             this.grapher.object
         )
 
@@ -109,22 +109,25 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
             (currentParentIndicatorId === undefined ||
                 newParentIndicatorId !== currentParentIndicatorId)
         ) {
-            newParentConfig = await fetchParentConfigForChart(
+            newParentConfig = await fetchMergedGrapherConfigByVariableId(
                 this.manager.admin,
                 newParentIndicatorId
             )
         }
 
+        // update the live grapher object
         const newConfig = mergeGrapherConfigs(
             newParentConfig ?? {},
             this.patchConfig
         )
-
-        this.grapher.reset()
-        this.grapher.updateFromObject(newConfig)
-        this.grapher.updateAuthoredVersion(newConfig)
+        this.updateLiveGrapher(newConfig)
 
         this.parentConfig = newParentConfig
+
+        // disable inheritance if there is no parent config
+        if (!this.parentConfig) {
+            this.isInheritanceEnabled = false
+        }
     }
 
     async saveGrapher({
@@ -137,9 +140,12 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         if (!patchConfig.title) patchConfig.title = grapher.displayTitle
         if (!patchConfig.slug) patchConfig.slug = grapher.displaySlug
 
+        const query = new URLSearchParams({
+            inheritance: this.isInheritanceEnabled ? "1" : "0",
+        })
         const targetUrl = isNewGrapher
-            ? "/api/charts"
-            : `/api/charts/${grapher.id}`
+            ? `/api/charts?${query}`
+            : `/api/charts/${grapher.id}?${query}`
 
         const json = await this.manager.admin.requestJSON(
             targetUrl,
@@ -172,8 +178,13 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         // Need to open intermediary tab before AJAX to avoid popup blockers
         const w = window.open("/", "_blank") as Window
 
+        const query = new URLSearchParams({
+            inheritance: this.isInheritanceEnabled ? "1" : "0",
+        })
+        const targetUrl = `/api/charts?${query}`
+
         const json = await this.manager.admin.requestJSON(
-            "/api/charts",
+            targetUrl,
             chartJson,
             "POST"
         )
@@ -208,7 +219,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     }
 }
 
-export async function fetchParentConfigForChart(
+export async function fetchMergedGrapherConfigByVariableId(
     admin: Admin,
     indicatorId: number
 ): Promise<GrapherInterface | undefined> {

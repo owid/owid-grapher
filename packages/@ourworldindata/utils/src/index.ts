@@ -123,7 +123,7 @@ export {
     createTagGraph,
     formatInlineList,
     lazy,
-    getParentIndicatorIdFromChartConfig,
+    getParentVariableIdFromChartConfig,
 } from "./Util.js"
 
 export {
