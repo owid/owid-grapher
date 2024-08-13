@@ -17,7 +17,6 @@ import {
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
-import cx from "classnames"
 import { DebugProvider } from "./gdocs/DebugContext.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import Image from "./gdocs/components/Image.js"
@@ -103,7 +102,6 @@ export const DataPageV2Content = ({
             text: "Research & Writing",
             target: "#research-and-writing",
         },
-        { text: "Related Data", target: "#related-data" },
         { text: "All Charts", target: "#all-charts" },
         { text: "FAQs", target: "#faqs" },
         {
@@ -113,17 +111,6 @@ export const DataPageV2Content = ({
         { text: "Reuse This Work", target: "#" + REUSE_THIS_WORK_SECTION_ID },
     ]
 
-    const hasRelatedDataFeatured = datapageData.relatedData?.some(
-        (data) => data.featured
-    )
-    const hasRelatedDataNonFeatured = datapageData.relatedData?.some(
-        (data) => !data.featured
-    )
-    const relatedDataCategoryClasses = `related-data__category ${
-        hasRelatedDataFeatured && hasRelatedDataNonFeatured
-            ? "related-data__category--grid span-cols-4 span-lg-cols-6 span-sm-cols-3"
-            : "related-data__category--columns span-cols-8 span-lg-cols-12"
-    } `
     const relatedResearchCandidates = datapageData.relatedResearch
     const relatedResearch =
         relatedResearchCandidates.length > 3 &&
@@ -246,94 +233,6 @@ export const DataPageV2Content = ({
                                             </div>
                                         </a>
                                     ))}
-                                </div>
-                            </div>
-                        )}
-                        {!!datapageData.relatedData?.length && (
-                            <div className="section-wrapper grid">
-                                <h2
-                                    className="related-data__title span-cols-3 span-lg-cols-12"
-                                    id="related-data"
-                                >
-                                    Related data
-                                </h2>
-                                <div
-                                    className={cx(
-                                        "related-data__items",
-                                        {
-                                            "related-data__items--two-cols":
-                                                hasRelatedDataFeatured &&
-                                                hasRelatedDataNonFeatured,
-                                        },
-                                        "grid",
-                                        "grid-cols-9",
-                                        "grid-lg-cols-12",
-                                        "span-cols-9",
-                                        "span-lg-cols-12"
-                                    )}
-                                >
-                                    {hasRelatedDataFeatured && (
-                                        <div
-                                            className={
-                                                relatedDataCategoryClasses
-                                            }
-                                        >
-                                            {datapageData.relatedData
-                                                .filter((data) => data.featured)
-                                                .map((data) => (
-                                                    <a
-                                                        href={data.url}
-                                                        key={data.url}
-                                                        className="related-data-item related-data-item--medium col-start-1 col-end-limit"
-                                                    >
-                                                        {data.type && (
-                                                            <div className="related-data-item__type">
-                                                                {data.type}
-                                                            </div>
-                                                        )}
-                                                        <h3 className="related-data-item__title">
-                                                            {data.title}
-                                                        </h3>
-                                                        {data.source && (
-                                                            <div className="related-data-item__source">
-                                                                {data.source}
-                                                            </div>
-                                                        )}
-                                                        <div className="related-data-item__content">
-                                                            {data.content}
-                                                        </div>
-                                                    </a>
-                                                ))}
-                                        </div>
-                                    )}
-                                    {hasRelatedDataNonFeatured && (
-                                        <div
-                                            className={
-                                                relatedDataCategoryClasses
-                                            }
-                                        >
-                                            {datapageData.relatedData
-                                                .filter(
-                                                    (data) => !data.featured
-                                                )
-                                                .map((data) => (
-                                                    <a
-                                                        href={data.url}
-                                                        key={data.url}
-                                                        className="related-data-item related-data-item--small col-start-1 col-end-limit"
-                                                    >
-                                                        <h4 className="related-data-item__title">
-                                                            {data.title}
-                                                        </h4>
-                                                        {data.source && (
-                                                            <div className="related-data-item__source">
-                                                                {data.source}
-                                                            </div>
-                                                        )}
-                                                    </a>
-                                                ))}
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         )}
