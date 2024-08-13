@@ -16,7 +16,7 @@ import LatoRegular from "../_common/fonts/LatoLatin-Regular.ttf.bin"
 import LatoMedium from "../_common/fonts/LatoLatin-Medium.ttf.bin"
 import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
 import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
-import { Env } from "../grapher/thumbnail/[slug].js"
+import { Env } from "./env.js"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -158,14 +158,17 @@ async function fetchFromR2(
     return primaryResponse
 }
 
-async function fetchAndRenderGrapherToSvg(
-    slug: string,
-    options: ImageOptions,
-    searchParams: URLSearchParams,
-    env: Env
-) {
-    const grapherLogger = new TimeLogger("grapher")
+interface FetchGrapherConfigResult {
+    grapherConfig: GrapherInterface | null
+    status: number
+    etag: string | undefined
+}
 
+export async function fetchUnparsedGrapherConfig(
+    slug: string,
+    env: Env,
+    etag?: string
+) {
     // The top level directory is either the bucket path (should be set in dev environments and production)
     // or the branch name on preview staging environments
     console.log("branch", env.CF_PAGES_BRANCH)
@@ -202,19 +205,54 @@ async function fetchAndRenderGrapherToSvg(
     }
 
     // Fetch grapher config
-    const fetchResponse = await fetchFromR2(requestUrl, undefined, fallbackUrl)
+    return fetchFromR2(requestUrl, etag, fallbackUrl)
+}
+
+export async function fetchGrapherConfig(
+    slug: string,
+    env: Env,
+    etag?: string
+): Promise<FetchGrapherConfigResult> {
+    const fetchResponse = await fetchUnparsedGrapherConfig(slug, env, etag)
 
     if (fetchResponse.status !== 200) {
-        console.log("Failed to fetch grapher config", fetchResponse.status)
-        return null
+        console.log(
+            "Status code is not 200, returning empty response with status code",
+            fetchResponse.status
+        )
+        return {
+            grapherConfig: null,
+            status: fetchResponse.status,
+            etag: fetchResponse.headers.get("etag"),
+        }
     }
 
     const grapherConfig: GrapherInterface = await fetchResponse.json()
     console.log("grapher title", grapherConfig.title)
+    return {
+        grapherConfig,
+        status: 200,
+        etag: fetchResponse.headers.get("etag"),
+    }
+}
+
+async function fetchAndRenderGrapherToSvg(
+    slug: string,
+    options: ImageOptions,
+    searchParams: URLSearchParams,
+    env: Env
+) {
+    const grapherLogger = new TimeLogger("grapher")
+
+    const grapherConfigResponse = await fetchGrapherConfig(slug, env)
+
+    if (grapherConfigResponse.status !== 200) {
+        return null
+    }
 
     const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
     const grapher = new Grapher({
-        ...grapherConfig,
+        ...grapherConfigResponse.grapherConfig,
         bakedGrapherURL: grapherBaseUrl,
         queryStr: "?" + searchParams.toString(),
         bounds,
@@ -297,4 +335,28 @@ async function renderSvgToPng(svg: string, options: ImageOptions) {
     })
     pngLogger.log("svg2png")
     return pngData
+}
+
+export async function getOptionalRedirectForSlug(
+    slug: string,
+    baseUrl: URL,
+    env: Env
+) {
+    const redirects: Record<string, string> = await env.ASSETS.fetch(
+        new URL("/grapher/_grapherRedirects.json", baseUrl),
+        { cf: { cacheTtl: 2 * 60 } }
+    )
+        .then((r): Promise<Record<string, string>> => r.json())
+        .catch((e) => {
+            console.error("Error fetching redirects", e)
+            return {}
+        })
+    return redirects[slug]
+}
+
+export function createRedirectResponse(redirSlug: string, currentUrl: URL) {
+    new Response(null, {
+        status: 302,
+        headers: { Location: `/grapher/${redirSlug}${currentUrl.search}` },
+    })
 }
