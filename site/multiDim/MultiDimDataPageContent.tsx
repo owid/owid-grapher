@@ -215,7 +215,7 @@ export const MultiDimDataPageContent = ({
             ...currentView?.config,
             dimensions: dimensionsConfig,
             isEmbeddedInADataPage: true,
-            selectedEntityNames: config.config.defaultSelection,
+            selectedEntityNames: config.config.defaultSelection ?? [],
 
             bounds,
         } as GrapherProgrammaticInterface
