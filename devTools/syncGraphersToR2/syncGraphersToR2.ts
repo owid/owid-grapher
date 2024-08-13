@@ -279,7 +279,10 @@ async function sync(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
     })
 }
 
-async function storeDevBySlug(parsedArgs: parseArgs.ParsedArgs, dryRun: boolean) {
+async function storeDevBySlug(
+    parsedArgs: parseArgs.ParsedArgs,
+    dryRun: boolean
+) {
     console.log("Dummy implementation for store-dev-by-slug")
 }
 
@@ -301,6 +304,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             )
             break
     }
+    process.exit(0)
 }
 
 const parsedArgs = parseArgs(process.argv.slice(2))
