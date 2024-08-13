@@ -83,7 +83,6 @@ const getDatapageDataV2 = async (
             dateRange: variableMetadata.timespan ?? "",
             lastUpdated: lastUpdated,
             nextUpdate: nextUpdate,
-            relatedData: [],
             allCharts: [],
             relatedResearch: [],
             source: variableMetadata.source,
@@ -251,18 +250,6 @@ export const MultiDimDataPageContent = ({
     //         item.url = "/coronavirus#coronavirus-country-profiles"
     // }
 
-    // const hasRelatedDataFeatured = datapageDataFromVar?.relatedData?.some(
-    //     (data) => data.featured
-    // )
-    // const hasRelatedDataNonFeatured = datapageDataFromVar?.relatedData?.some(
-    //     (data) => !data.featured
-    // )
-    // const relatedDataCategoryClasses = `related-data__category ${
-    //     hasRelatedDataFeatured && hasRelatedDataNonFeatured
-    //         ? "related-data__category--grid span-cols-4 span-lg-cols-6 span-sm-cols-3"
-    //         : "related-data__category--columns span-cols-8 span-lg-cols-12"
-    // } `
-
     const faqEntriesForView = useMemo(() => {
         return compact(
             datapageDataFromVar?.faqs?.flatMap(
@@ -360,84 +347,6 @@ export const MultiDimDataPageContent = ({
                                     </div>
                                 </a>
                             ))}
-                        </div>
-                    </div>
-                )}
-                {!!datapageDataFromVar?.relatedData?.length && (
-                    <div className="section-wrapper grid">
-                        <h2
-                            className="related-data__title span-cols-3 span-lg-cols-12"
-                            id="related-data"
-                        >
-                            Related data
-                        </h2>
-                        <div
-                            className={cx(
-                                "related-data__items",
-                                {
-                                    "related-data__items--two-cols":
-                                        hasRelatedDataFeatured &&
-                                        hasRelatedDataNonFeatured,
-                                },
-                                "grid",
-                                "grid-cols-9",
-                                "grid-lg-cols-12",
-                                "span-cols-9",
-                                "span-lg-cols-12"
-                            )}
-                        >
-                            {hasRelatedDataFeatured && (
-                                <div className={relatedDataCategoryClasses}>
-                                    {datapageDataFromVar.relatedData
-                                        .filter((data) => data.featured)
-                                        .map((data) => (
-                                            <a
-                                                href={data.url}
-                                                key={data.url}
-                                                className="related-data-item related-data-item--medium col-start-1 col-end-limit"
-                                            >
-                                                {data.type && (
-                                                    <div className="related-data-item__type">
-                                                        {data.type}
-                                                    </div>
-                                                )}
-                                                <h3 className="related-data-item__title">
-                                                    {data.title}
-                                                </h3>
-                                                {data.source && (
-                                                    <div className="related-data-item__source">
-                                                        {data.source}
-                                                    </div>
-                                                )}
-                                                <div className="related-data-item__content">
-                                                    {data.content}
-                                                </div>
-                                            </a>
-                                        ))}
-                                </div>
-                            )}
-                            {hasRelatedDataNonFeatured && (
-                                <div className={relatedDataCategoryClasses}>
-                                    {datapageDataFromVar.relatedData
-                                        .filter((data) => !data.featured)
-                                        .map((data) => (
-                                            <a
-                                                href={data.url}
-                                                key={data.url}
-                                                className="related-data-item related-data-item--small col-start-1 col-end-limit"
-                                            >
-                                                <h4 className="related-data-item__title">
-                                                    {data.title}
-                                                </h4>
-                                                {data.source && (
-                                                    <div className="related-data-item__source">
-                                                        {data.source}
-                                                    </div>
-                                                )}
-                                            </a>
-                                        ))}
-                                </div>
-                            )}
                         </div>
                     </div>
                 )}
