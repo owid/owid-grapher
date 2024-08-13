@@ -59,6 +59,10 @@ export async function saveGrapherConfigToR2(
     filename: string,
     configMd5: Base64String
 ) {
+    if (process.env.NODE_ENV === "test") {
+        console.log("Skipping saving grapher config to R2 in test environment")
+        return
+    }
     if (
         GRAPHER_CONFIG_R2_BUCKET === undefined ||
         GRAPHER_CONFIG_R2_BUCKET_PATH === undefined
@@ -116,6 +120,10 @@ export async function deleteGrapherConfigFromR2(
     directory: R2GrapherConfigDirectory,
     filename: string
 ) {
+    if (process.env.NODE_ENV === "test") {
+        console.log("Skipping saving grapher config to R2 in test environment")
+        return
+    }
     if (
         GRAPHER_CONFIG_R2_BUCKET === undefined ||
         GRAPHER_CONFIG_R2_BUCKET_PATH === undefined

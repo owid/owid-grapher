@@ -519,9 +519,9 @@ const saveGrapher = async (
             config: newConfig,
             user,
         })
-        chartId = newConfig.id!
         patchConfig = configs.patchConfig
         fullConfig = configs.fullConfig
+        chartId = fullConfig.id!
     }
     newConfig = patchConfig
 
