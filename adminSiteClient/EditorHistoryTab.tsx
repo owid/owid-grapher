@@ -129,7 +129,7 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
     @action.bound copyYamlToClipboard() {
         // Use the Clipboard API to copy the config into the users clipboard
         const chartConfigObject = {
-            ...this.props.editor.patchConfig,
+            ...this.props.editor.grapher.object,
         }
         delete chartConfigObject.id
         delete chartConfigObject.dimensions
@@ -149,7 +149,7 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
         // Avoid modifying the original JSON object
         // Due to mobx memoizing computed values, the JSON can be mutated.
         const chartConfigObject = {
-            ...this.props.editor.patchConfig,
+            ...this.props.editor.grapher.object,
         }
         return (
             <div>
@@ -157,12 +157,7 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
                     <ul key={i} className="list-group">
                         <LogRenderer
                             log={log}
-                            // Needed for comparison, might be undefined
-                            previousLog={
-                                i + 1 < this.logs.length
-                                    ? this.logs[i + 1]
-                                    : undefined
-                            }
+                            previousLog={this.logs[i + 1]} // Needed for comparison, might be undefined
                             applyConfig={this.applyConfig}
                         ></LogRenderer>
                     </ul>
