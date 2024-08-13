@@ -236,6 +236,7 @@ function DataCatalogCountrySelector({
                             Select or search for a country
                         </h5>
                         <button
+                            aria-label="Close country selector"
                             className="data-catalog-country-selector-close-button"
                             onClick={() => setIsOpen(false)}
                         >
@@ -331,6 +332,7 @@ const SelectedCountriesPills = ({
                     />
                     <span className="body-3-medium">{country}</span>
                     <button
+                        aria-label={`Remove ${country}`}
                         onClick={() => {
                             removeCountry(country)
                         }}
@@ -582,41 +584,58 @@ const TopicsRefinementList = (props: {
         ? refinements.items.filter((item) => !props.topics.has(item.label))
         : []
 
-    const appliedRefinements = (
-        <ul className="span-cols-12 col-start-2 data-catalog-applied-filters-list">
-            {[...props.topics].map((topic) => {
-                return (
-                    <li
-                        className="data-catalog-applied-filters-item"
-                        key={topic}
-                    >
-                        <button
-                            className="data-catalog-applied-filters-button body-3-medium"
-                            onClick={() => props.removeTopic(topic)}
-                        >
-                            {topic}
-                            <FontAwesomeIcon icon={faClose} />
-                        </button>
-                    </li>
-                )
-            })}
-        </ul>
-    )
     return (
         <>
-            {appliedRefinements}
-            {
-                <ul className="span-cols-12 col-start-2 data-catalog-topic-refinement-list">
-                    {refinementsToShow.map((item) => (
+            <ul className="data-catalog-applied-filters-list span-cols-12 col-start-2 ">
+                {[...props.topics].map((topic) => {
+                    return (
                         <li
-                            className="data-catalog-topic-refinement-item"
-                            key={item.label}
+                            className="data-catalog-applied-filters-item"
+                            key={topic}
                         >
-                            {item.label} {item.count}
+                            <button
+                                aria-label={`Remove filter ${topic}`}
+                                className="data-catalog-applied-filters-button body-3-medium"
+                                onClick={() => props.removeTopic(topic)}
+                            >
+                                {topic}
+                                <FontAwesomeIcon icon={faClose} />
+                            </button>
                         </li>
-                    ))}
-                </ul>
-            }
+                    )
+                })}
+            </ul>
+            <ul className="data-catalog-filters-list span-cols-12 col-start-2">
+                {refinementsToShow.map((item, i) => {
+                    const isLast = i === refinementsToShow.length - 1
+                    return (
+                        <>
+                            <li
+                                className="data-catalog-filters-list-item"
+                                key={item.label}
+                            >
+                                <button
+                                    aria-label={`Filter by ${item.label}`}
+                                    onClick={() => props.addTopic(item.label)}
+                                >
+                                    {item.label}
+                                    <span className="data-catalog-filters-list-item__hit-count">
+                                        {item.count}
+                                    </span>
+                                </button>
+                            </li>
+                            {!isLast ? (
+                                <li
+                                    className="data-catalog-filters-list-separator"
+                                    // including an empty space so that the list has spaces in it when copied to clipboard
+                                >
+                                    {" "}
+                                </li>
+                            ) : null}
+                        </>
+                    )
+                })}
+            </ul>
         </>
     )
 }
