@@ -14,6 +14,7 @@ import {
     throttle,
 } from "@ourworldindata/utils"
 import { useResizeObserver } from "usehooks-ts"
+import { reaction } from "mobx"
 
 export const useTriggerWhenClickOutside = (
     container: RefObject<HTMLElement>,
@@ -135,4 +136,27 @@ export const useElementBounds = (
     useResizeObserver({ ref, onResize: updateBoundsThrottled })
 
     return bounds
+}
+
+// Transforms Mobx state into a functional React state, by setting up
+// a listener with Mobx's `reaction` and updating the React state.
+// Make sure that the `mobxStateGetter` function is wrapped in `useCallback`,
+// otherwise the listener will be set up on every render, causing
+// an infinite loop.
+export const useMobxStateToReactState = <T>(
+    mobxStateGetter: () => T,
+    enabled: boolean = true
+) => {
+    const [state, setState] = useState(() =>
+        enabled ? mobxStateGetter() : undefined
+    )
+
+    useEffect(() => {
+        if (!enabled) return
+        const disposer = reaction(() => mobxStateGetter(), setState, {
+            fireImmediately: true,
+        })
+        return disposer
+    }, [enabled, mobxStateGetter])
+    return state
 }

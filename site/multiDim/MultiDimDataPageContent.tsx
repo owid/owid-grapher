@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
     Grapher,
     GrapherManager,
@@ -36,7 +36,7 @@ import {
     stateToQueryStr,
 } from "./MultiDimUrl.js"
 import { reaction } from "mobx"
-import { useElementBounds } from "../hooks.js"
+import { useElementBounds, useMobxStateToReactState } from "../hooks.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
 declare global {
     interface Window {
@@ -182,21 +182,10 @@ export const MultiDimDataPageContent = ({
     // TODO we should probably fix that? seems sensible? change GrapherFigureView around a bit to use the actual grapher inst? or pass a GrapherProgrammaticInterface to it instead?
     const [grapherInst, setGrapherInst] = useState<Grapher | null>(null)
 
-    const [grapherChangedParams, setGrapherChangedParams] = useState<
-        QueryParams | undefined
-    >(undefined)
-
     // De-mobx grapher.changedParams by transforming it into React state
-    useEffect(
-        () =>
-            grapherInst
-                ? reaction(
-                      () => grapherInst.changedParams,
-                      setGrapherChangedParams,
-                      { fireImmediately: true }
-                  )
-                : undefined,
-        [grapherInst]
+    const grapherChangedParams = useMobxStateToReactState(
+        useCallback(() => grapherInst?.changedParams, [grapherInst]),
+        !!grapherInst
     )
 
     const bounds = useElementBounds(grapherFigureRef)
