@@ -18,6 +18,7 @@ import {
     InstantSearch,
     useConfigure,
     useInstantSearch,
+    useRefinementList,
     useSearchBox,
 } from "react-instantsearch"
 import algoliasearch from "algoliasearch"
@@ -25,7 +26,7 @@ import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "../settings/clientSettings.js"
 import { IChartHit, SearchIndexName } from "./search/searchTypes.js"
 import { getIndexName } from "./search/searchClient.js"
 import { ChartHit } from "./search/ChartHit.js"
-import { Connector, ScopedResult, UiState, Widget } from "instantsearch.js"
+import { ScopedResult, UiState } from "instantsearch.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
@@ -39,6 +40,7 @@ import {
     useTriggerOnEscape,
     useTriggerWhenClickOutside,
 } from "./hooks.js"
+import { match } from "ts-pattern"
 
 const DataCatalogSearchBox = ({
     value,
@@ -76,7 +78,7 @@ const DataCatalogSearchBox = ({
 type DataCatalogState = Readonly<{
     query: string
     topics: Set<string>
-    countries: Set<string>
+    selectedCountryNames: Set<string>
     requireAllCountries: boolean
 }>
 
@@ -126,44 +128,44 @@ type DataCatalogAction =
 const dataCatalogReducer = (
     state: DataCatalogState,
     action: DataCatalogAction
-) => {
-    switch (action.type) {
-        case "setQuery":
-            return { ...state, query: action.query }
-        case "addTopic":
-            return {
-                ...state,
-                topics: new Set(state.topics).add(action.topic),
-            }
-        case "removeTopic":
+): DataCatalogState => {
+    return match(action)
+        .with({ type: "setQuery" }, ({ query }) => ({
+            ...state,
+            query,
+        }))
+        .with({ type: "addTopic" }, ({ topic }) => ({
+            ...state,
+            topics: new Set(state.topics).add(topic),
+        }))
+        .with({ type: "removeTopic" }, ({ topic }) => {
             const newTopics = new Set(state.topics)
-            newTopics.delete(action.topic)
+            newTopics.delete(topic)
             return {
                 ...state,
                 topics: newTopics,
             }
-        case "addCountry":
+        })
+        .with({ type: "addCountry" }, ({ country }) => ({
+            ...state,
+            selectedCountryNames: new Set(state.selectedCountryNames).add(
+                country
+            ),
+        }))
+        .with({ type: "removeCountry" }, ({ country }) => {
+            const newCountries = new Set(state.selectedCountryNames)
+            newCountries.delete(country)
             return {
                 ...state,
-                countries: new Set(state.countries).add(action.country),
+                selectedCountryNames: newCountries,
             }
-        case "removeCountry":
-            const newCountries = new Set(state.countries)
-            newCountries.delete(action.country)
-            return {
-                ...state,
-                countries: newCountries,
-            }
-        case "toggleRequireAllCountries":
-            return {
-                ...state,
-                requireAllCountries: !state.requireAllCountries,
-            }
-        case "resetState":
-            return action.state
-        default:
-            return state
-    }
+        })
+        .with({ type: "toggleRequireAllCountries" }, () => ({
+            ...state,
+            requireAllCountries: !state.requireAllCountries,
+        }))
+        .with({ type: "resetState" }, ({ state }) => state)
+        .exhaustive()
 }
 
 function DataCatalogCountrySelector({
@@ -308,16 +310,16 @@ function DataCatalogCountrySelector({
 }
 
 const SelectedCountriesPills = ({
-    countrySelections,
+    selectedCountryNames,
     removeCountry,
 }: {
-    countrySelections: Set<string>
+    selectedCountryNames: Set<string>
     removeCountry: (country: string) => void
 }) => {
-    if (countrySelections.size === 0) return null
+    if (selectedCountryNames.size === 0) return null
     return (
         <div className="data-catalog-selected-countries-container">
-            {[...countrySelections].map((country) => (
+            {[...selectedCountryNames].map((country) => (
                 <div
                     key={country}
                     className="data-catalog-selected-country-pill"
@@ -401,11 +403,11 @@ function getNbHitsForTag(tag: string, results: ScopedResult[]) {
 const DataCatalogRibbon = ({
     tagName,
     addTopic,
-    regionDataForSelectedCountries,
+    selectedCountries,
 }: {
     tagName: string
     addTopic: (x: string) => void
-    regionDataForSelectedCountries: Region[]
+    selectedCountries: Region[]
 }) => {
     const { scopedResults } = useInstantSearch()
     const nBHits = getNbHitsForTag(tagName, scopedResults)
@@ -443,9 +445,7 @@ const DataCatalogRibbon = ({
                     hitComponent={({ hit }: { hit: IChartHit }) => (
                         <ChartHit
                             hit={hit}
-                            searchQueryRegionsMatches={
-                                regionDataForSelectedCountries
-                            }
+                            searchQueryRegionsMatches={selectedCountries}
                         />
                     )}
                 />
@@ -468,9 +468,7 @@ function getAreaChildrenFromTag(
     return areas
 }
 
-function getRegionDataForSelectedCountries(
-    selectedCountries: Set<string>
-): Region[] {
+function getCountryData(selectedCountries: Set<string>): Region[] {
     const regionData: Region[] = []
     const countries = countriesByName()
     for (const selectedCountry of selectedCountries) {
@@ -484,16 +482,16 @@ const DataCatalogRibbonView = ({
     tagToShow,
     addTopic,
     isLoading,
-    regionDataForSelectedCountries,
+    selectedCountries,
 }: {
     tagGraph: TagGraphRoot
     tagToShow: string | undefined
     addTopic: (x: string) => void
     isLoading: boolean
-    regionDataForSelectedCountries: Region[]
+    selectedCountries: Region[]
 }) => {
     const areas = getAreaChildrenFromTag(tagGraph, tagToShow)
-    // For some reason, setting this in the DataCatalogRibbon Configure component doesn't work
+    // // For some reason, setting this in the DataCatalogRibbon Configure component doesn't work
     const __ = useConfigure({
         hitsPerPage: 4,
     })
@@ -509,9 +507,7 @@ const DataCatalogRibbonView = ({
                     tagName={area.name}
                     key={area.name}
                     addTopic={addTopic}
-                    regionDataForSelectedCountries={
-                        regionDataForSelectedCountries
-                    }
+                    selectedCountries={selectedCountries}
                 />
             ))}
         </div>
@@ -519,29 +515,22 @@ const DataCatalogRibbonView = ({
 }
 
 const DataCatalogResults = ({
-    query,
+    shouldShowRibbons,
     topics,
     tagGraph,
     addTopic,
-    countries,
+    selectedCountryNames,
 }: {
     tagGraph: TagGraphRoot
     addTopic: (tag: string) => void
-    query: string
+    shouldShowRibbons: boolean
     topics: Set<string>
-    countries: Set<string>
+    selectedCountryNames: Set<string>
 }) => {
     // const { status } = useInstantSearch()
     const isLoading = false
-    const areaNames = tagGraph.children.map((child) => child.name)
 
-    const shouldShowRibbons = checkShouldShowRibbonView(
-        query,
-        topics,
-        areaNames
-    )
-    const regionDataForSelectedCountries =
-        getRegionDataForSelectedCountries(countries)
+    const selectedCountries = getCountryData(selectedCountryNames)
 
     if (shouldShowRibbons) {
         return (
@@ -550,7 +539,7 @@ const DataCatalogResults = ({
                 tagToShow={topics.values().next().value}
                 addTopic={addTopic}
                 isLoading={false}
-                regionDataForSelectedCountries={regionDataForSelectedCountries}
+                selectedCountries={selectedCountries}
             />
         )
     }
@@ -571,9 +560,7 @@ const DataCatalogResults = ({
                 hitComponent={(props: { hit: IChartHit }) => (
                     <ChartHit
                         hit={props.hit}
-                        searchQueryRegionsMatches={
-                            regionDataForSelectedCountries
-                        }
+                        searchQueryRegionsMatches={selectedCountries}
                     />
                 )}
             />
@@ -581,15 +568,72 @@ const DataCatalogResults = ({
     )
 }
 
+const TopicsRefinementList = (props: {
+    shouldShowSuggestions: boolean
+    topics: Set<string>
+    addTopic: (topic: string) => void
+    removeTopic: (topic: string) => void
+}) => {
+    const refinements = useRefinementList({
+        attribute: "tags",
+        limit: 10,
+    })
+    const refinementsToShow = props.shouldShowSuggestions
+        ? refinements.items.filter((item) => !props.topics.has(item.label))
+        : []
+
+    const appliedRefinements = (
+        <ul className="span-cols-12 col-start-2 data-catalog-applied-filters-list">
+            {[...props.topics].map((topic) => {
+                return (
+                    <li
+                        className="data-catalog-applied-filters-item"
+                        key={topic}
+                    >
+                        <button
+                            className="data-catalog-applied-filters-button body-3-medium"
+                            onClick={() => props.removeTopic(topic)}
+                        >
+                            {topic}
+                            <FontAwesomeIcon icon={faClose} />
+                        </button>
+                    </li>
+                )
+            })}
+        </ul>
+    )
+    return (
+        <>
+            {appliedRefinements}
+            {
+                <ul className="span-cols-12 col-start-2 data-catalog-topic-refinement-list">
+                    {refinementsToShow.map((item) => (
+                        <li
+                            className="data-catalog-topic-refinement-item"
+                            key={item.label}
+                        >
+                            {item.label} {item.count}
+                        </li>
+                    ))}
+                </ul>
+            }
+        </>
+    )
+}
+
+const serializeSet = (set: Set<string>) =>
+    set.size ? [...set].join(",") : undefined
+
+const deserializeSet = (str?: string): Set<string> =>
+    str ? new Set(str.split(",")) : new Set()
+
 function dataCatalogStateToUrl(state: DataCatalogState) {
     let url = Url.fromURL(window.location.href)
-    const serializeSet = (set: Set<string>) =>
-        set.size ? [...set].join(",") : undefined
 
     const params = {
         q: state.query || undefined,
         topics: serializeSet(state.topics),
-        countries: serializeSet(state.countries),
+        countries: serializeSet(state.selectedCountryNames),
         requireAllCountries: state.requireAllCountries ? "true" : undefined,
     }
 
@@ -610,6 +654,13 @@ export const DataCatalog = (props: {
     // necessary to call these so that calls to setUiState that set query and configure are listened to
     const _ = useSearchBox()
     const __ = useConfigure({})
+
+    const areaNames = props.tagGraph.children.map((child) => child.name)
+    const shouldShowRibbons = checkShouldShowRibbonView(
+        state.query,
+        state.topics,
+        areaNames
+    )
 
     useEffect(() => {
         // set instantsearch state
@@ -647,7 +698,7 @@ export const DataCatalog = (props: {
                      */}
                     <div className="data-catalog-pseudoform">
                         <SelectedCountriesPills
-                            countrySelections={state.countries}
+                            selectedCountryNames={state.selectedCountryNames}
                             removeCountry={(country: string) =>
                                 dispatch({ type: "removeCountry", country })
                             }
@@ -664,7 +715,7 @@ export const DataCatalog = (props: {
                         toggleRequireAllCountries={() =>
                             dispatch({ type: "toggleRequireAllCountries" })
                         }
-                        countrySelections={state.countries}
+                        countrySelections={state.selectedCountryNames}
                         addCountry={(country: string) =>
                             dispatch({ type: "addCountry", country })
                         }
@@ -674,14 +725,24 @@ export const DataCatalog = (props: {
                     />
                 </div>
             </div>
+            <TopicsRefinementList
+                shouldShowSuggestions={!shouldShowRibbons}
+                topics={state.topics}
+                addTopic={(topic: string) =>
+                    dispatch({ type: "addTopic", topic })
+                }
+                removeTopic={(topic: string) =>
+                    dispatch({ type: "removeTopic", topic })
+                }
+            />
             <DataCatalogResults
-                query={state.query}
+                shouldShowRibbons={shouldShowRibbons}
                 topics={state.topics}
                 tagGraph={props.tagGraph}
                 addTopic={(topic: string) =>
                     dispatch({ type: "addTopic", topic })
                 }
-                countries={state.countries}
+                selectedCountryNames={state.selectedCountryNames}
             />
         </>
     )
@@ -703,7 +764,10 @@ function dataCatalogStateToUiState(state: DataCatalogState): UiState {
             configure: {
                 facetFilters: [
                     ...setToFacetFilters(state.topics, "tags"),
-                    ...setToFacetFilters(state.countries, "availableEntities"),
+                    ...setToFacetFilters(
+                        state.selectedCountryNames,
+                        "availableEntities"
+                    ),
                 ],
             },
         },
@@ -713,8 +777,8 @@ function dataCatalogStateToUiState(state: DataCatalogState): UiState {
 function urlToDataCatalogState(url: Url): DataCatalogState {
     return {
         query: url.queryParams.q || "",
-        topics: new Set(url.queryParams.topics?.split(",") || []),
-        countries: new Set(url.queryParams.countries?.split(",") || []),
+        topics: deserializeSet(url.queryParams.topics),
+        selectedCountryNames: deserializeSet(url.queryParams.countries),
         requireAllCountries: url.queryParams.requireAllCountries === "true",
     }
 }
@@ -724,7 +788,7 @@ function getInitialDatacatalogState(): DataCatalogState {
         return {
             query: "",
             topics: new Set(),
-            countries: new Set(),
+            selectedCountryNames: new Set(),
             requireAllCountries: false,
         }
 
