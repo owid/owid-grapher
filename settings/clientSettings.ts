@@ -90,3 +90,14 @@ export const GDOCS_DETAILS_ON_DEMAND_ID: string =
     process.env.GDOCS_DETAILS_ON_DEMAND_ID ?? ""
 
 export const PUBLISHED_AT_FORMAT = "ddd, MMM D, YYYY HH:mm"
+
+// Feature flags: FEATURE_FLAGS is a comma-separated list of flags, and they need to be part of this enum to be considered
+export enum FeatureFlagFeature {
+    MultiDimDataPage = "MultiDimDataPage",
+}
+const featureFlagsRaw = process.env.FEATURE_FLAGS?.trim().split(",") ?? []
+export const FEATURE_FLAGS: Set<FeatureFlagFeature> = new Set(
+    Object.keys(FeatureFlagFeature).filter((key) =>
+        featureFlagsRaw.includes(key)
+    ) as FeatureFlagFeature[]
+)
