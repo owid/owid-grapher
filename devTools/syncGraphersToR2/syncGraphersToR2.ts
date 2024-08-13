@@ -288,9 +288,10 @@ async function storeDevBySlug(
     }
 
     await knexReadonlyTransaction(async (trx) => {
+        // Fetch the chart config from the DB by slug
         const chart = await knexRawFirst<DbRawChartConfig>(
             trx,
-            `SELECT full FROM chart_configs WHERE slug = ?`,
+            `SELECT full FROM chart_configs WHERE slug = ? and full ->> '$.isPublished' = "true"`,
             [slug]
         )
         if (!chart) {
@@ -352,7 +353,7 @@ if (parsedArgs["h"]) {
 
 Commands:
   sync: Sync grapher configs to R2
-  store-dev-by-slug: Dummy implementation for store-dev-by-slug`
+  store-dev-by-slug: Fetch a grapher config by slug from the chart_configs table and store it the local dev R2 storage`
     )
 } else {
     main(parsedArgs)
