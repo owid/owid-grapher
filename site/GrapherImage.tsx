@@ -10,10 +10,12 @@ export default function GrapherImage({
     alt,
     slug,
     noFormatting,
+    enablePopulatingUrlParams,
 }: {
     slug: string
     alt?: string
     noFormatting?: boolean
+    enablePopulatingUrlParams?: boolean
 }) {
     return (
         <img
@@ -27,6 +29,8 @@ export default function GrapherImage({
             loading="lazy"
             data-no-lightbox
             data-no-img-formatting={noFormatting}
+            // This tells our Cloudflare functions to replace the src with the dynamic thumbnail URL, including URL params like `?time=2020`
+            data-owid-populate-url-params={enablePopulatingUrlParams}
         />
     )
 }

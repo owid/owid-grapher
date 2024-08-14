@@ -80,6 +80,9 @@ export const onRequestGet: PagesFunction = async (context) => {
     const twitterThumbnailUrl = `/grapher/thumbnail/${lowerCaseSlug}.png?imType=twitter${
         url.search ? "&" + url.search.slice(1) : ""
     }`
+    const grapherThumbnailUrl = url.search.length
+        ? `/grapher/thumbnail/${lowerCaseSlug}.svg${url.search}`
+        : undefined
 
     // Take the origin (e.g. https://ourworldindata.org) from the canonical URL, which should appear before the image elements.
     // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
@@ -103,6 +106,12 @@ export const onRequestGet: PagesFunction = async (context) => {
         .on('meta[name="twitter:image"]', {
             element: (element) => {
                 element.setAttribute("content", origin + twitterThumbnailUrl)
+            },
+        })
+        .on("img[data-owid-populate-url-params]", {
+            element: (element) => {
+                if (grapherThumbnailUrl)
+                    element.setAttribute("src", grapherThumbnailUrl)
             },
         })
 
