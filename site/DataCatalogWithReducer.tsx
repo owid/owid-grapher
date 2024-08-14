@@ -31,12 +31,17 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
     faClose,
+    faGlobeAfrica,
+    faGlobeAmericas,
+    faGlobeAsia,
+    faGlobeEurope,
     faMagnifyingGlass,
     faMapMarkerAlt,
 } from "@fortawesome/free-solid-svg-icons"
 import { LabeledSwitch } from "@ourworldindata/components"
 import {
     useFocusTrap,
+    useOffsetTop,
     useTriggerOnEscape,
     useTriggerWhenClickOutside,
 } from "./hooks.js"
@@ -357,12 +362,12 @@ function checkIfNoTopicsOrOneAreaTopicApplied(
 }
 
 function checkShouldShowRibbonView(
-    query: string,
-    topics: Set<string>,
+    state: DataCatalogState,
     areaNames: string[]
 ): boolean {
     return (
-        query === "" && checkIfNoTopicsOrOneAreaTopicApplied(topics, areaNames)
+        state.query === "" &&
+        checkIfNoTopicsOrOneAreaTopicApplied(state.topics, areaNames)
     )
 }
 
@@ -428,6 +433,9 @@ const DataCatalogRibbon = ({
                     onClick={(e) => {
                         e.preventDefault()
                         addTopic(tagName)
+                        setTimeout(() => {
+                            window.scrollTo({ behavior: "smooth", top: 0 })
+                        }, 100)
                     }}
                 >
                     <div className="data-catalog-ribbon__header">
@@ -493,7 +501,7 @@ const DataCatalogRibbonView = ({
     selectedCountries: Region[]
 }) => {
     const areas = getAreaChildrenFromTag(tagGraph, tagToShow)
-    // // For some reason, setting this in the DataCatalogRibbon Configure component doesn't work
+    // For some reason, setting this in the DataCatalogRibbon Configure component doesn't work
     const __ = useConfigure({
         hitsPerPage: 4,
     })
@@ -522,25 +530,25 @@ const DataCatalogResults = ({
     tagGraph,
     addTopic,
     selectedCountryNames,
+    isLoading,
 }: {
     tagGraph: TagGraphRoot
     addTopic: (tag: string) => void
     shouldShowRibbons: boolean
     topics: Set<string>
     selectedCountryNames: Set<string>
+    isLoading: boolean
 }) => {
-    // const { status } = useInstantSearch()
-    const isLoading = false
-
     const selectedCountries = getCountryData(selectedCountryNames)
 
     if (shouldShowRibbons) {
+        const areaName: string = topics.values().next().value
         return (
             <DataCatalogRibbonView
                 tagGraph={tagGraph}
-                tagToShow={topics.values().next().value}
+                tagToShow={areaName}
                 addTopic={addTopic}
-                isLoading={false}
+                isLoading={isLoading}
                 selectedCountries={selectedCountries}
             />
         )
@@ -551,10 +559,8 @@ const DataCatalogResults = ({
             <Hits
                 classNames={{
                     root: cx(
-                        "data-catalog-search-hits span-cols-12 col-start-2",
-                        {
-                            "data-catalog-search-hits--is-loading": isLoading,
-                        }
+                        "span-cols-12 col-start-2 data-catalog-search-hits",
+                        { "data-catalog-search-hits--is-loading": isLoading }
                     ),
                     item: "data-catalog-search-hit",
                     list: "data-catalog-search-list grid grid-cols-4",
@@ -575,6 +581,7 @@ const TopicsRefinementList = (props: {
     topics: Set<string>
     addTopic: (topic: string) => void
     removeTopic: (topic: string) => void
+    isLoading?: boolean
 }) => {
     const refinements = useRefinementList({
         attribute: "tags",
@@ -583,6 +590,15 @@ const TopicsRefinementList = (props: {
     const refinementsToShow = props.shouldShowSuggestions
         ? refinements.items.filter((item) => !props.topics.has(item.label))
         : []
+
+    // Immediately hide the facets once the button is clicked, because otherwise they get updated with erroneous facets before isLoading kicks in
+    // See (https://github.com/algolia/instantsearch/issues/6323)
+    const [shouldHideFacets, setShouldHideFacets] = useState(props.isLoading)
+    useEffect(() => {
+        setTimeout(() => {
+            if (shouldHideFacets) setShouldHideFacets(false)
+        }, 100)
+    }, [shouldHideFacets])
 
     return (
         <>
@@ -596,6 +612,9 @@ const TopicsRefinementList = (props: {
                             <button
                                 aria-label={`Remove filter ${topic}`}
                                 className="data-catalog-applied-filters-button body-3-medium"
+                                onMouseUp={() => {
+                                    setShouldHideFacets(true)
+                                }}
                                 onClick={() => props.removeTopic(topic)}
                             >
                                 {topic}
@@ -605,38 +624,64 @@ const TopicsRefinementList = (props: {
                     )
                 })}
             </ul>
-            <ul className="data-catalog-filters-list span-cols-12 col-start-2">
+            <ul
+                className={cx(
+                    "data-catalog-filters-list span-cols-12 col-start-2",
+                    {
+                        "data-catalog-filters-list--is-loading":
+                            props.isLoading || shouldHideFacets,
+                    }
+                )}
+            >
                 {refinementsToShow.map((item, i) => {
                     const isLast = i === refinementsToShow.length - 1
                     return (
-                        <>
-                            <li
-                                className="data-catalog-filters-list-item"
-                                key={item.label}
-                            >
+                        <React.Fragment key={i}>
+                            <li className="data-catalog-filters-list-item">
                                 <button
                                     aria-label={`Filter by ${item.label}`}
+                                    onMouseUp={() => setShouldHideFacets(true)}
                                     onClick={() => props.addTopic(item.label)}
                                 >
-                                    {item.label}
-                                    <span className="data-catalog-filters-list-item__hit-count">
-                                        {item.count}
+                                    <span>{item.label}</span>
+                                    <span className="data-catalog-filters-list-item__hit-count body-3-medium">
+                                        ({item.count})
                                     </span>
                                 </button>
                             </li>
                             {!isLast ? (
-                                <li
-                                    className="data-catalog-filters-list-separator"
-                                    // including an empty space so that the list has spaces in it when copied to clipboard
-                                >
-                                    {" "}
+                                <li className="data-catalog-filters-list-separator">
+                                    {/* including an empty space so that the list has spaces in it when copied to clipboard */}{" "}
                                 </li>
                             ) : null}
-                        </>
+                        </React.Fragment>
                     )
                 })}
             </ul>
         </>
+    )
+}
+
+const DataCatalogLoadingSpinner = ({ isLoading }: { isLoading: boolean }) => {
+    const icons = [faGlobeEurope, faGlobeAmericas, faGlobeAsia, faGlobeAfrica]
+    const spinnerRef = useRef<HTMLDivElement>(null)
+    const offsetTop = useOffsetTop(spinnerRef)
+    return (
+        <div
+            style={{ minHeight: `calc(100vh - ${offsetTop}px)` }}
+            ref={spinnerRef}
+            className={cx("data-catalog-loading-spinner span-cols-14", {
+                "data-catalog-loading-spinner--is-loading": isLoading,
+            })}
+        >
+            {icons.map((icon) => (
+                <FontAwesomeIcon
+                    key={icon.iconName}
+                    icon={icon}
+                    className="data-catalog-loading-spinner__globe"
+                />
+            ))}
+        </div>
     )
 }
 
@@ -663,29 +708,58 @@ function dataCatalogStateToUrl(state: DataCatalogState) {
     return url.fullUrl
 }
 
+// Due to https://github.com/algolia/instantsearch/issues/6323, 2 queries are fired in quick succession when a new search is submitted.
+// This race condition causes status to flicker between "idle" and "loading".
+// To prevent this, this hook delays updating the isLoading state back to false, so that isLoading stays true even when the first query has finished.
+// Once the issue is fixed, we should remove this logic so that the correct results are shown immediately.
+function useDelayedIsLoading() {
+    const { status } = useInstantSearch()
+    const isLoading = status === "loading" || status === "stalled"
+    const [delayedIsLoading, setDelayedIsLoading] = useState(isLoading)
+
+    useEffect(() => {
+        let timeout: ReturnType<typeof setTimeout>
+        if (isLoading) {
+            setDelayedIsLoading(true)
+        } else if (delayedIsLoading) {
+            timeout = setTimeout(() => {
+                setDelayedIsLoading(false)
+            }, 400)
+        }
+
+        return () => clearTimeout(timeout)
+    }, [isLoading, delayedIsLoading])
+
+    return delayedIsLoading
+}
+
 export const DataCatalog = (props: {
     initialState: DataCatalogState
     tagGraph: TagGraphRoot
 }) => {
-    const [state, dispatch] = useReducer(dataCatalogReducer, props.initialState)
-    const { setUiState } = useInstantSearch()
-    const stableSetUiState = useMemo(() => setUiState, [setUiState])
     // necessary to call these so that calls to setUiState that set query and configure are listened to
     const _ = useSearchBox()
     const __ = useConfigure({})
 
+    const [state, dispatch] = useReducer(dataCatalogReducer, props.initialState)
+    const { setUiState } = useInstantSearch()
+    const stableSetUiState = useMemo(() => setUiState, [setUiState])
+    const delayedIsLoading = useDelayedIsLoading()
+
     const areaNames = props.tagGraph.children.map((child) => child.name)
-    const shouldShowRibbons = checkShouldShowRibbonView(
-        state.query,
-        state.topics,
-        areaNames
-    )
+    const shouldShowRibbons = checkShouldShowRibbonView(state, areaNames)
 
     useEffect(() => {
         // set instantsearch state
         stableSetUiState(dataCatalogStateToUiState(state))
-        // set url
-        window.history.pushState({}, "", dataCatalogStateToUrl(state))
+        // set url if it's different from the current url.
+        // when the user navigates back, we derive the state from the url and set it
+        // so the url is already identical to the state - we don't need to push it again (otherwise we'd get an infinite loop)
+        const currentUrl = window.location.href
+        const stateAsUrl = dataCatalogStateToUrl(state)
+        if (currentUrl !== stateAsUrl) {
+            window.history.pushState({}, "", dataCatalogStateToUrl(state))
+        }
     }, [state, stableSetUiState])
 
     useEffect(() => {
@@ -746,6 +820,7 @@ export const DataCatalog = (props: {
             </div>
             <TopicsRefinementList
                 shouldShowSuggestions={!shouldShowRibbons}
+                isLoading={delayedIsLoading}
                 topics={state.topics}
                 addTopic={(topic: string) =>
                     dispatch({ type: "addTopic", topic })
@@ -756,6 +831,7 @@ export const DataCatalog = (props: {
             />
             <DataCatalogResults
                 shouldShowRibbons={shouldShowRibbons}
+                isLoading={delayedIsLoading}
                 topics={state.topics}
                 tagGraph={props.tagGraph}
                 addTopic={(topic: string) =>
@@ -763,6 +839,7 @@ export const DataCatalog = (props: {
                 }
                 selectedCountryNames={state.selectedCountryNames}
             />
+            <DataCatalogLoadingSpinner isLoading={delayedIsLoading} />
         </>
     )
 }

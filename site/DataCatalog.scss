@@ -1,4 +1,8 @@
 #charts-index-page-root {
+    min-height: calc(100vh - $header-height-md);
+    @include sm-only {
+        min-height: calc(100vh - $header-height-sm);
+    }
 }
 
 .data-catalog-header {
@@ -220,6 +224,9 @@
     margin-bottom: 16px;
     line-height: 24px;
     list-style: none;
+    &.data-catalog-filters-list--is-loading {
+        display: none;
+    }
 }
 
 .data-catalog-filters-list-item {
@@ -336,13 +343,35 @@
     grid-gap: var(--grid-gap);
 }
 
-.data-catalog-loading-spinner {
-    min-height: 100vh;
+@keyframes hop {
+    0% {
+        transform: translateY(0);
+    }
+    20% {
+        transform: translateY(-4px);
+    }
+    40% {
+        transform: translateY(0);
+    }
 }
 
-.data-catalog-loading-spinner__spinner {
-    width: 100px;
-    height: 100px;
+.data-catalog-loading-spinner {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    &.data-catalog-loading-spinner--is-loading {
+        display: flex;
+    }
+    .data-catalog-loading-spinner__globe {
+        color: $blue-90;
+        margin: 0 8px;
+        animation: hop 0.5s ease-in-out infinite;
+        @for $i from 1 through 4 {
+            &:nth-child(#{$i}) {
+                animation-delay: #{$i * 0.125}s;
+            }
+        }
+    }
 }
 
 /* temp */
