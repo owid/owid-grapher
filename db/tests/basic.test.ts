@@ -81,7 +81,7 @@ test("timestamps are automatically created and updated", async () => {
                 configId,
                 lastEditedAt: new Date(),
                 lastEditedByUserId: user.id,
-                isIndexable: 0,
+                isIndexable: false,
             }
             await trx.table(ChartConfigsTableName).insert(chartConfig)
             const res = await trx.table(ChartsTableName).insert(chart)
@@ -99,7 +99,7 @@ test("timestamps are automatically created and updated", async () => {
                 await trx
                     .table(ChartsTableName)
                     .where({ id: chartId })
-                    .update({ isIndexable: 1 })
+                    .update({ isIndexable: true })
                 const updated = await knexRawFirst<DbPlainChart>(
                     trx,
                     "select * from charts where id = ?",

@@ -124,14 +124,10 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
                     ON UPDATE RESTRICT
         `)
 
+        // inheritance is opt-in
         await queryRunner.query(`-- sql
             ALTER TABLE charts
-                ADD COLUMN parentVariableId int AFTER configId,
-                ADD CONSTRAINT fk_charts_parentVariableId
-                    FOREIGN KEY (parentVariableId)
-                    REFERENCES variables (id)
-                    ON DELETE RESTRICT
-                    ON UPDATE RESTRICT
+                ADD COLUMN isInheritanceEnabled TINYINT(1) NOT NULL DEFAULT 0 AFTER configId
         `)
 
         // note that we copy the ETL-authored configs to the chart_configs table,

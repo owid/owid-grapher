@@ -13,7 +13,6 @@ import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import {
     OldChartFieldList,
     assignTagsForCharts,
-    getParentByChartId,
     getChartConfigById,
     getChartSlugById,
     getGptTopicSuggestions,
@@ -22,7 +21,8 @@ import {
     setChartTags,
     getParentByChartConfig,
     getPatchConfigByChartId,
-    getParentVariableIdForChart,
+    isInheritanceEnabledForChart,
+    getParentByChartId,
 } from "../db/model/Chart.js"
 import { Request } from "./authentication.js"
 import {
@@ -383,22 +383,16 @@ const updateExistingChart = async (
         config.isPublished = false
     }
 
-    // check if the chart should inherit settings from its parent indicator
-    let shouldInherit: boolean
-    if (options.inheritance === "enable") shouldInherit = true
-    else if (options.inheritance === "disable") shouldInherit = false
-    else {
-        const parentVariableId = await getParentVariableIdForChart(
-            knex,
-            chartId
-        )
-        shouldInherit = parentVariableId !== undefined
-    }
-
-    // compute patch and full configs
-    const parent = shouldInherit
+    // if inheritance is enabled, grab the parent from its config
+    const isInheritanceEnabled = await isInheritanceEnabledForChart(
+        knex,
+        chartId
+    )
+    const parent = isInheritanceEnabled
         ? await getParentByChartConfig(knex, config)
         : undefined
+
+    // compute patch and full configs
     const parentConfig = parent?.config
     const fullParentConfig = mergeGrapherConfigs(
         defaultGrapherConfig,
@@ -426,10 +420,10 @@ const updateExistingChart = async (
         knex,
         `-- sql
             UPDATE charts
-            SET parentVariableId=?, lastEditedAt=?, lastEditedByUserId=?
+            SET lastEditedAt=?, lastEditedByUserId=?
             WHERE id = ?
         `,
-        [parent?.variableId ?? null, new Date(), user.id, chartId]
+        [new Date(), user.id, chartId]
     )
 
     return patchConfig
@@ -713,26 +707,15 @@ getRouteWithROTransaction(
     "/charts/:chartId.parent.json",
     async (req, res, trx) => {
         const chartId = expectInt(req.params.chartId)
-
-        // grab the active parent config in case inheritance is enabled
-        let parent = await getParentByChartId(trx, chartId)
-        if (parent.variableId)
-            return omitUndefinedValues({
-                variableId: parent.variableId,
-                config: parent.config,
-                isActive: true,
-            })
-
-        // grab the parent config although it isn't currently in use
-        const patchConfig = await getPatchConfigByChartId(trx, chartId)
-        if (!patchConfig) {
-            throw new JsonError(`Chart with id ${chartId} not found`, 500)
-        }
-        parent = await getParentByChartConfig(trx, patchConfig)
+        const isInheritanceEnabled = await isInheritanceEnabledForChart(
+            trx,
+            chartId
+        )
+        const parent = await getParentByChartId(trx, chartId)
         return omitUndefinedValues({
             variableId: parent?.variableId,
             config: parent?.config,
-            isActive: false,
+            isActive: isInheritanceEnabled,
         })
     }
 )
