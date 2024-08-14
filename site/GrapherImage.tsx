@@ -29,7 +29,8 @@ export default function GrapherImage({
             loading="lazy"
             data-no-lightbox
             data-no-img-formatting={noFormatting}
-            // This tells our Cloudflare functions to replace the src with the dynamic thumbnail URL, including URL params like `?time=2020`
+            // This tells our Cloudflare functions to replace the src with the dynamic thumbnail URL, including URL params like `?time=2020`.
+            // Enabling this option only makes sense if this is the _main_ chart on a _standalone_ grapher/data page - it will pass on the URL params from the page to the thumbnail.
             data-owid-populate-url-params={enablePopulatingUrlParams}
         />
     )
