@@ -506,4 +506,156 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             // note that hideRelativeToggle is not included
         })
     })
+
+    it("should update chart configs when inheritance is enabled/disabled", async () => {
+        const checkInheritance = async ({
+            shouldBeEnabled,
+        }: {
+            shouldBeEnabled?: boolean
+        }): Promise<void> => {
+            const chartRow = await testKnexInstance!(ChartsTableName)
+                .where({
+                    id: chartId,
+                })
+                .first()
+
+            const fullConfig = await fetchJsonFromAdminApi(
+                `/charts/${chartId}.config.json`
+            )
+
+            if (shouldBeEnabled) {
+                expect(chartRow.isInheritanceEnabled).toBeTruthy()
+                expect(fullConfig).toHaveProperty("note", "Indicator note")
+                expect(fullConfig).toHaveProperty("hasMapTab", true)
+            } else {
+                expect(chartRow.isInheritanceEnabled).toBeFalsy()
+                expect(fullConfig).not.toHaveProperty("note")
+                expect(fullConfig).toHaveProperty("hasMapTab", false)
+            }
+        }
+
+        // setup: add grapherConfigETL for the variable
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify(testVariableConfig),
+        })
+
+        // create a chart whose parent is the given indicator
+        const response = await makeRequestAgainstAdminApi({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const chartId = response.chartId
+
+        // get the ETL config from the database
+        const row = await testKnexInstance!(ChartConfigsTableName).first()
+        const fullConfigETL = JSON.parse(row.full)
+
+        // check the parent of the chart
+        const parent = await fetchJsonFromAdminApi(
+            `/charts/${chartId}.parent.json`
+        )
+        expect(parent.variableId).toEqual(variableId)
+        expect(parent.config).toEqual(fullConfigETL)
+
+        // verify that inheritance is disabled by default
+        await checkInheritance({ shouldBeEnabled: false })
+
+        // enable inheritance
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/charts/${chartId}/configInheritance/enable`,
+        })
+        await checkInheritance({ shouldBeEnabled: true })
+
+        // update the config without making changes to the inheritance setting
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/charts/${chartId}`,
+            body: JSON.stringify(testChartConfig),
+        })
+        await checkInheritance({ shouldBeEnabled: true })
+
+        // disable inheritance
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/charts/${chartId}/configInheritance/disable`,
+        })
+        await checkInheritance({ shouldBeEnabled: false })
+    })
+
+    it("should recompute the full config when the parent changes", async () => {
+        // setup: add grapherConfigETL for the variables
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify(testVariableConfig),
+        })
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/variables/${otherVariableId}/grapherConfigETL`,
+            body: JSON.stringify(otherTestVariableConfig),
+        })
+
+        // create a chart whose parent is the first indicator
+        const response = await makeRequestAgainstAdminApi({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const chartId = response.chartId
+
+        // enable inheritance
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/charts/${chartId}/configInheritance/enable`,
+        })
+
+        // check that chart inherits from the first indicator
+        let fullConfig = await fetchJsonFromAdminApi(
+            `/charts/${chartId}.config.json`
+        )
+        expect(fullConfig).toHaveProperty("note", "Indicator note")
+
+        // update chart config so that it now inherits from the second indicator
+        const chartConfigWithOtherIndicatorAsParent = {
+            ...testChartConfig,
+            dimensions: [
+                {
+                    variableId: otherVariableId,
+                    property: "y",
+                },
+            ],
+        }
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/charts/${chartId}`,
+            body: JSON.stringify(chartConfigWithOtherIndicatorAsParent),
+        })
+
+        // check that chart inherits from the second indicator
+        fullConfig = await fetchJsonFromAdminApi(
+            `/charts/${chartId}.config.json`
+        )
+        expect(fullConfig).toHaveProperty("note", "Other indicator note")
+
+        // update chart config so that it doesn't inherit from an indicator
+        const chartConfigWithoutDimensions = omitUndefinedValues({
+            ...testChartConfig,
+            dimensions: undefined,
+        })
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/charts/${chartId}`,
+            body: JSON.stringify(chartConfigWithoutDimensions),
+        })
+
+        // check that chart doesn't inherit from any indicator
+        fullConfig = await fetchJsonFromAdminApi(
+            `/charts/${chartId}.config.json`
+        )
+        expect(fullConfig).not.toHaveProperty("note")
+    })
 })

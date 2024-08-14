@@ -254,16 +254,34 @@ export async function getChartConfigBySlug(
     return { id: row.id, config: parseChartConfig(row.config) }
 }
 
-export async function getParentVariableIdForChart(
+export async function isInheritanceEnabledForChart(
+    trx: db.KnexReadonlyTransaction,
+    chartId: number
+): Promise<boolean> {
+    const row = await db.knexRawFirst<
+        Pick<DbPlainChart, "isInheritanceEnabled">
+    >(
+        trx,
+        `-- sql
+          SELECT isInheritanceEnabled
+          FROM charts
+          WHERE id = ?
+      `,
+        [chartId]
+    )
+    return row?.isInheritanceEnabled ?? false
+}
+
+async function getParentVariableIdForChart(
     trx: db.KnexReadonlyTransaction,
     chartId: number
 ): Promise<number | undefined> {
     const parent = await db.knexRawFirst<{ variableId: number | undefined }>(
         trx,
         `-- sql
-            SELECT parentVariableId AS variableId
-            FROM charts
-            WHERE id = ?
+            SELECT variableId
+            FROM inheritance_variables_x_charts
+            WHERE chartId = ?
         `,
         [chartId]
     )
