@@ -10,12 +10,12 @@ const router = Router<IRequestStrict, [URL, Env]>()
 router
     .get(
         "/grapher/:slug.config.json",
-        async ({ params: { slug } }, { searchParams }, env) =>
+        async ({ params: { slug } }, { searchParams }, env: Env) =>
             handleConfigRequest(slug, searchParams, env)
     )
     .get(
         "/grapher/:slug",
-        async ({ params: { slug } }, { searchParams }, env) =>
+        async ({ params: { slug } }, { searchParams }, env: Env) =>
             handleHtmlPageRequest(slug, searchParams, env)
     )
     .all("*", () => error(404, "Route not defined"))
@@ -24,13 +24,13 @@ export const onRequestGet: PagesFunction = async (context) => {
     // Makes it so that if there's an error, we will just deliver the original page before the HTML rewrite.
     // Only caveat is that redirects will not be taken into account for some reason; but on the other hand the worker is so simple that it's unlikely to fail.
     context.passThroughOnException()
+    console.log("handlings request", context.request.url)
     const { request, env, params } = context
     const url = new URL(request.url)
-    const originalSlug = params.slug as string
 
     return (
         router
-            .fetch(request, url, { ...env, url, originalSlug }, context)
+            .fetch(request, url, { ...env, url }, context)
             // .then((resp: Response) => {
             //     if (shouldCache) {
             //         resp.headers.set(
@@ -55,6 +55,7 @@ async function handleHtmlPageRequest(
     env: Env
 ) {
     const url = env.url
+    console.log("processing", url)
     // Redirects handling is performed by the worker, and is done by fetching the (baked) _grapherRedirects.json file.
     // That file is a mapping from old slug to new slug.
 

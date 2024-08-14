@@ -171,6 +171,11 @@ export async function fetchGrapherConfig({
     // The top level directory is either the bucket path (should be set in dev environments and production)
     // or the branch name on preview staging environments
     console.log("branch", env.CF_PAGES_BRANCH)
+
+    // Sanity check that the slug is really only the slug of a grapher config and not a substring of the url with paths or queries
+    if (slug.includes("/") || slug.includes(".") || slug.includes("?"))
+        throw new Error(`Invalid slug: ${slug}`)
+
     const topLevelDirectory = env.GRAPHER_CONFIG_R2_BUCKET_PATH
         ? [env.GRAPHER_CONFIG_R2_BUCKET_PATH]
         : ["by-branch", env.CF_PAGES_BRANCH]
@@ -204,13 +209,28 @@ export async function fetchGrapherConfig({
     }
 
     // Fetch grapher config
-    const fetchResponse = await fetchFromR2(requestUrl, etag, fallbackUrl)
+    const fetchResponse = await env.r2ChartConfigs.get(key)
+    let grapherConfig: GrapherInterface
 
-    if (fetchResponse.status !== 200) {
-        console.log("Failed to fetch grapher config", fetchResponse.status)
-        return null
+    if (fetchResponse) {
+        grapherConfig = await fetchResponse.json()
+    } else {
+        // If we don't find the grapher config, we try to fall back to ourworldindata.org
+        // If we're already on ourworldindata.org, don't attempt a recursive fetch but return null
+        if (env.url.hostname === "ourworldindata.org") return null
+        else {
+            // If we are on a different host, try to see if the grapher config is available on ourworldindata.org
+            console.log(
+                "Could not find grapher config, falling back to ourworldindata.org for slug",
+                slug
+            )
+            const url = `https://ourworldindata.org/grapher/${slug}.config.json`
+
+            const fallbackResponse = await fetch(url.toString())
+            if (!fallbackResponse.ok) return null
+            grapherConfig = await fallbackResponse.json()
+        }
     }
-    const grapherConfig: GrapherInterface = await fetchResponse.json()
     console.log("grapher title", grapherConfig.title)
     return grapherConfig
 }
