@@ -148,7 +148,7 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
 
         // add a view that lists all charts that inherit from an indicator
         await queryRunner.query(`-- sql
-          CREATE VIEW inheritance_variables_x_charts AS (
+          CREATE VIEW charts_x_parents AS (
             WITH y_dimensions AS (
               SELECT
                 *
@@ -187,7 +187,7 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
     public async down(queryRunner: QueryRunner): Promise<void> {
         // drop view
         await queryRunner.query(`-- sql
-            DROP VIEW inheritance_variables_x_charts
+            DROP VIEW charts_x_parents
         `)
 
         // add back the `grapherConfigAdmin` and `grapherConfigETL` columns

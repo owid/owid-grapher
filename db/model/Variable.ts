@@ -208,7 +208,7 @@ async function findAllChartsThatInheritFromIndicator(
                 c.id as chartId,
                 cc.patch as patchConfig,
                 cc.full ->> "$.isPublished" as isPublished
-            FROM inheritance_variables_x_charts ivc
+            FROM charts_x_parents ivc
                 JOIN charts c ON c.id = ivc.chartId
                 JOIN chart_configs cc ON cc.id = c.configId
             WHERE ivc.variableId = ?

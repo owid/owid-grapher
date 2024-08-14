@@ -280,7 +280,7 @@ async function getParentVariableIdForChart(
         trx,
         `-- sql
             SELECT variableId
-            FROM inheritance_variables_x_charts
+            FROM charts_x_parents
             WHERE chartId = ?
         `,
         [chartId]
