@@ -1982,3 +1982,24 @@ export function getParentVariableIdFromChartConfig(
 
     return yVariableIds[0]
 }
+
+// Page numbers are 0-indexed - you'll have to +1 to them when rendering
+export function getPaginationPageNumbers(
+    currentPageNumber: number,
+    totalPageCount: number,
+    size: number = 5
+): number[] {
+    let start = Math.max(0, currentPageNumber - Math.floor(size / 2))
+
+    if (start + size > totalPageCount) {
+        start = Math.max(0, totalPageCount - size)
+    }
+
+    const pageNumbers = []
+
+    for (let i = start; i < Math.min(start + size, totalPageCount); i++) {
+        pageNumbers.push(i)
+    }
+
+    return pageNumbers
+}

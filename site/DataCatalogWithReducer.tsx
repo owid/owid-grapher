@@ -10,6 +10,7 @@ import {
     TagGraphNode,
     TagGraphRoot,
     Url,
+    getPaginationPageNumbers,
 } from "@ourworldindata/utils"
 import {
     Configure,
@@ -18,6 +19,7 @@ import {
     InstantSearch,
     useConfigure,
     useInstantSearch,
+    usePagination,
     useRefinementList,
     useSearchBox,
 } from "react-instantsearch"
@@ -29,6 +31,7 @@ import { ChartHit } from "./search/ChartHit.js"
 import { ScopedResult, UiState } from "instantsearch.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
+    faArrowLeft,
     faArrowRight,
     faClose,
     faGlobeAfrica,
@@ -85,6 +88,7 @@ type DataCatalogState = Readonly<{
     topics: Set<string>
     selectedCountryNames: Set<string>
     requireAllCountries: boolean
+    page: number
 }>
 
 type AddTopicAction = {
@@ -121,6 +125,11 @@ type ResetStateAction = {
     state: DataCatalogState
 }
 
+type SetPageAction = {
+    type: "setPage"
+    page: number
+}
+
 type DataCatalogAction =
     | AddTopicAction
     | RemoveTopicAction
@@ -129,6 +138,7 @@ type DataCatalogAction =
     | RemoveCountryAction
     | ToggleRequireAllCountriesAction
     | ResetStateAction
+    | SetPageAction
 
 const dataCatalogReducer = (
     state: DataCatalogState,
@@ -168,6 +178,10 @@ const dataCatalogReducer = (
         .with({ type: "toggleRequireAllCountries" }, () => ({
             ...state,
             requireAllCountries: !state.requireAllCountries,
+        }))
+        .with({ type: "setPage" }, ({ page }) => ({
+            ...state,
+            page,
         }))
         .with({ type: "resetState" }, ({ state }) => state)
         .exhaustive()
@@ -433,9 +447,6 @@ const DataCatalogRibbon = ({
                     onClick={(e) => {
                         e.preventDefault()
                         addTopic(tagName)
-                        setTimeout(() => {
-                            window.scrollTo({ behavior: "smooth", top: 0 })
-                        }, 100)
                     }}
                 >
                     <div className="data-catalog-ribbon__header">
@@ -685,6 +696,72 @@ const DataCatalogLoadingSpinner = ({ isLoading }: { isLoading: boolean }) => {
     )
 }
 
+const DataCatalogPagination = ({
+    isLoading,
+    setPage,
+    isOnRibbonsView,
+}: {
+    isLoading: boolean
+    setPage: (page: number) => void
+    isOnRibbonsView: boolean
+}) => {
+    const { nbPages, currentRefinement } = usePagination()
+    const pages = getPaginationPageNumbers(currentRefinement, nbPages)
+
+    useEffect(() => {
+        if (currentRefinement !== 0) {
+            if (isOnRibbonsView || currentRefinement >= nbPages) {
+                setPage(0)
+            }
+        }
+    }, [isOnRibbonsView, currentRefinement, nbPages, setPage])
+
+    if (isOnRibbonsView) return null
+
+    return (
+        <ol
+            className={cx({
+                "data-catalog-pagination span-cols-12 col-start-2": true,
+                "data-catalog-pagination--is-loading": isLoading,
+            })}
+        >
+            <li className="data-catalog-pagination__item">
+                <button
+                    onClick={() => setPage(currentRefinement - 1)}
+                    disabled={currentRefinement === 0}
+                >
+                    <FontAwesomeIcon icon={faArrowLeft} />
+                </button>
+            </li>
+            {pages.map((page) => (
+                <li
+                    key={page}
+                    className={cx({
+                        "data-catalog-pagination__item": true,
+                        "data-catalog-pagination__item--is-active":
+                            page === currentRefinement,
+                    })}
+                >
+                    <button
+                        onClick={() => setPage(page)}
+                        disabled={page === currentRefinement}
+                    >
+                        {page + 1}
+                    </button>
+                </li>
+            ))}
+            <li className="data-catalog-pagination__item">
+                <button
+                    onClick={() => setPage(currentRefinement + 1)}
+                    disabled={currentRefinement === nbPages - 1}
+                >
+                    <FontAwesomeIcon icon={faArrowRight} />
+                </button>
+            </li>
+        </ol>
+    )
+}
+
 const serializeSet = (set: Set<string>) =>
     set.size ? [...set].join(",") : undefined
 
@@ -699,6 +776,7 @@ function dataCatalogStateToUrl(state: DataCatalogState) {
         topics: serializeSet(state.topics),
         countries: serializeSet(state.selectedCountryNames),
         requireAllCountries: state.requireAllCountries ? "true" : undefined,
+        page: state.page > 0 ? (state.page + 1).toString() : undefined,
     }
 
     Object.entries(params).forEach(([key, value]) => {
@@ -760,6 +838,9 @@ export const DataCatalog = (props: {
         if (currentUrl !== stateAsUrl) {
             window.history.pushState({}, "", dataCatalogStateToUrl(state))
         }
+        setTimeout(() => {
+            window.scrollTo({ behavior: "smooth", top: 0 })
+        }, 100)
     }, [state, stableSetUiState])
 
     useEffect(() => {
@@ -840,6 +921,16 @@ export const DataCatalog = (props: {
                 selectedCountryNames={state.selectedCountryNames}
             />
             <DataCatalogLoadingSpinner isLoading={delayedIsLoading} />
+            <DataCatalogPagination
+                isLoading={delayedIsLoading}
+                isOnRibbonsView={shouldShowRibbons}
+                setPage={(page: number) =>
+                    dispatch({
+                        type: "setPage",
+                        page,
+                    })
+                }
+            />
         </>
     )
 }
@@ -865,6 +956,7 @@ function dataCatalogStateToUiState(state: DataCatalogState): UiState {
                         "availableEntities"
                     ),
                 ],
+                page: state.page,
             },
         },
     }
@@ -876,6 +968,7 @@ function urlToDataCatalogState(url: Url): DataCatalogState {
         topics: deserializeSet(url.queryParams.topics),
         selectedCountryNames: deserializeSet(url.queryParams.countries),
         requireAllCountries: url.queryParams.requireAllCountries === "true",
+        page: url.queryParams.page ? parseInt(url.queryParams.page) - 1 : 0,
     }
 }
 
@@ -886,6 +979,7 @@ function getInitialDatacatalogState(): DataCatalogState {
             topics: new Set(),
             selectedCountryNames: new Set(),
             requireAllCountries: false,
+            page: 0,
         }
 
     const url = Url.fromURL(window.location.href)
