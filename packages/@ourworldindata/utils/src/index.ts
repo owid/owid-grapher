@@ -100,6 +100,7 @@ export {
     traverseEnrichedBlock,
     checkNodeIsSpan,
     checkNodeIsSpanLink,
+    getPaginationPageNumbers,
     spansToUnformattedPlainText,
     findDuplicates,
     checkIsOwidGdocType,

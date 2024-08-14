@@ -374,6 +374,45 @@
     }
 }
 
+// Pagination
+.data-catalog-pagination {
+    display: flex;
+    list-style: none;
+    justify-content: center;
+    margin-top: 24px;
+    margin-bottom: 24px;
+    &.data-catalog-pagination--is-loading {
+        display: none;
+    }
+    .data-catalog-pagination__item {
+        button {
+            background-color: transparent;
+            color: $blue-60;
+            min-width: 40px;
+            min-height: 40px;
+            text-align: center;
+            line-height: 40px;
+            transition: 200ms;
+            &:hover {
+                background-color: $blue-10;
+            }
+            &:disabled {
+                pointer-events: none;
+                svg {
+                    color: $blue-30;
+                }
+            }
+        }
+    }
+    .data-catalog-pagination__item--is-active {
+        button {
+            background-color: $blue-20;
+            color: $blue-90;
+            pointer-events: none;
+        }
+    }
+}
+
 /* temp */
 .chart-hit-title-container {
     @include body-3-regular;
