@@ -84,21 +84,15 @@ class EntityItem extends React.Component<EntityItemProps> {
 }
 
 @observer
-export class KeysSection extends React.Component<{
-    editor: AbstractChartEditor
-}> {
+export class KeysSection extends React.Component<{ grapher: Grapher }> {
     @observable.ref dragKey?: EntityName
 
-    @computed get grapher() {
-        return this.props.editor.grapher
-    }
-
     @action.bound onAddKey(entityName: EntityName) {
-        this.grapher.selection.selectEntity(entityName)
+        this.props.grapher.selection.selectEntity(entityName)
     }
 
     @action.bound onDragEnd(result: DropResult) {
-        const { selection } = this.grapher
+        const { selection } = this.props.grapher
         const { source, destination } = result
         if (!destination) return
 
@@ -111,15 +105,12 @@ export class KeysSection extends React.Component<{
     }
 
     render() {
-        const { grapher } = this
+        const { grapher } = this.props
         const { selection } = grapher
         const { unselectedEntityNames, selectedEntityNames } = selection
 
         return (
             <Section name="Data to show">
-                {this.props.editor.isPropertyInherited("selectedEntityNames")
-                    ? "inherited"
-                    : "not inherited"}
                 <SelectField
                     onValue={this.onAddKey}
                     value="Select data"
@@ -287,7 +278,7 @@ export class EditorDataTab<
                         </label>
                     </div>
                 </Section>
-                <KeysSection editor={editor} />
+                <KeysSection grapher={editor.grapher} />
                 {features.canSpecifyMissingDataStrategy && (
                     <MissingDataSection editor={this.props.editor} />
                 )}

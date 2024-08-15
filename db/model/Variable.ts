@@ -31,6 +31,7 @@ import {
     parseChartConfig,
     DbEnrichedChartConfig,
     DbEnrichedVariable,
+    DbPlainChart,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import {
@@ -134,7 +135,7 @@ export async function insertNewGrapherConfigForVariable(
         fullConfig: GrapherInterface
     }
 ): Promise<void> {
-    // insert chart config into the database
+    // insert chart configs into the database
     const configId = uuidv7()
     await db.knexRaw(
         knex,
@@ -173,18 +174,21 @@ function makeConfigValidForIndicator({
         updatedConfig.$schema = defaultGrapherConfig.$schema
     }
 
-    // check if the given dimensions are correct
-    if (updatedConfig.dimensions && updatedConfig.dimensions.length >= 1) {
-        // make sure there is only a single entry
-        updatedConfig.dimensions = updatedConfig.dimensions.slice(0, 1)
-        // make sure the variable id matches
-        updatedConfig.dimensions[0].variableId = variableId
-    }
-
-    // fill dimensions if not given to make the updatedConfig plottable
-    if (!updatedConfig.dimensions || updatedConfig.dimensions.length === 0) {
+    // validate the given y-dimensions
+    const defaultDimension = { property: DimensionProperty.y, variableId }
+    const [yDimensions, otherDimensions] = _.partition(
+        updatedConfig.dimensions ?? [],
+        (dimension) => dimension.property === DimensionProperty.y
+    )
+    if (yDimensions.length === 0) {
+        updatedConfig.dimensions = [defaultDimension, ...otherDimensions]
+    } else if (yDimensions.length >= 0) {
+        const givenDimension = yDimensions.find(
+            (dimension) => dimension.variableId === variableId
+        )
         updatedConfig.dimensions = [
-            { property: DimensionProperty.y, variableId },
+            givenDimension ?? defaultDimension,
+            ...otherDimensions,
         ]
     }
 
@@ -198,8 +202,8 @@ async function findAllChartsThatInheritFromIndicator(
     { chartId: number; patchConfig: GrapherInterface; isPublished: boolean }[]
 > {
     const charts = await db.knexRaw<{
-        chartId: number
-        patchConfig: string
+        chartId: DbPlainChart["id"]
+        patchConfig: DbRawChartConfig["patch"]
         isPublished: boolean
     }>(
         trx,
@@ -208,10 +212,12 @@ async function findAllChartsThatInheritFromIndicator(
                 c.id as chartId,
                 cc.patch as patchConfig,
                 cc.full ->> "$.isPublished" as isPublished
-            FROM charts_x_parents ivc
-                JOIN charts c ON c.id = ivc.chartId
+            FROM charts c
                 JOIN chart_configs cc ON cc.id = c.configId
-            WHERE ivc.variableId = ?
+                JOIN charts_x_parents cxp ON c.id = cxp.chartId
+            WHERE
+                c.isInheritanceEnabled IS TRUE
+                AND cxp.variableId = ?
         `,
         [variableId]
     )
@@ -345,15 +351,6 @@ export async function updateGrapherConfigAdminOfVariable(
         patchConfigETL: variable.etl?.patchConfig ?? {},
         patchConfigAdmin: patchConfigAdmin,
     })
-}
-
-export async function getParentConfigForIndicatorChartAdmin(
-    trx: db.KnexReadonlyTransaction,
-    variableId: number
-): Promise<GrapherInterface | undefined> {
-    // check if there is an ETL-authored indicator chart
-    const variable = await getGrapherConfigsForVariable(trx, variableId)
-    return variable?.etl?.fullConfig
 }
 
 // TODO: these are domain functions and should live somewhere else

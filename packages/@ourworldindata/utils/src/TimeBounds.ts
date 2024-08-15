@@ -48,18 +48,14 @@ const parseTimeBound = (str: string): TimeBound | undefined => {
     return parseIntOrUndefined(str)
 }
 
-const isTimeBoundValueStr = (bound: unknown): bound is TimeBoundValueStr =>
-    Object.values(TimeBoundValueStr).includes(bound as TimeBoundValueStr)
-
 // Use this to not repeat logic
 const fromJSON = (value: TimeBound | string | undefined): number | undefined =>
     isString(value) ? parseTimeBound(value) : value
 
 const toJSON = (
-    bound: TimeBound | TimeBoundValueStr | undefined
+    bound: TimeBound | undefined
 ): TimeBoundValueStr | number | undefined => {
     if (bound === undefined) return undefined
-    if (isTimeBoundValueStr(bound)) return bound
     if (isNegativeInfinity(bound)) return TimeBoundValueStr.unboundedLeft
     if (isPositiveInfinity(bound)) return TimeBoundValueStr.unboundedRight
     return bound

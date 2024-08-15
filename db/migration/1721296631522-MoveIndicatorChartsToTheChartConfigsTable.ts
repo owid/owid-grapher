@@ -108,6 +108,13 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
     }
 
     public async up(queryRunner: QueryRunner): Promise<void> {
+        // inheritance is opt-in
+        await queryRunner.query(`-- sql
+            ALTER TABLE charts
+                ADD COLUMN isInheritanceEnabled TINYINT(1) NOT NULL DEFAULT 0 AFTER configId
+        `)
+
+        // add grapherConfigIdAdmin and grapherConfigIdETL to the variables table
         await queryRunner.query(`-- sql
             ALTER TABLE variables
                 ADD COLUMN grapherConfigIdAdmin char(36) UNIQUE AFTER sort,
@@ -122,12 +129,6 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
                     REFERENCES chart_configs (id)
                     ON DELETE RESTRICT
                     ON UPDATE RESTRICT
-        `)
-
-        // inheritance is opt-in
-        await queryRunner.query(`-- sql
-            ALTER TABLE charts
-                ADD COLUMN isInheritanceEnabled TINYINT(1) NOT NULL DEFAULT 0 AFTER configId
         `)
 
         // note that we copy the ETL-authored configs to the chart_configs table,
@@ -157,20 +158,23 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
               WHERE
                 property = 'y'
             ),
-            single_y_indicator_charts As (
+            single_y_indicator_charts AS (
               SELECT
                 c.id as chartId,
                 cc.patch as patchConfig,
+                -- should only be one
                 max(yd.variableId) as variableId
               FROM
                 charts c
                 JOIN chart_configs cc ON cc.id = c.configId
                 JOIN y_dimensions yd ON c.id = yd.chartId
               WHERE
+                -- scatter plots can't inherit settings
                 cc.full ->> '$.type' != 'ScatterPlot'
               GROUP BY
                 c.id
               HAVING
+                -- restrict to single y-variable charts
                 COUNT(distinct yd.variableId) = 1
             )
             SELECT
@@ -193,8 +197,8 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
         // add back the `grapherConfigAdmin` and `grapherConfigETL` columns
         await queryRunner.query(`-- sql
           ALTER TABLE variables
-              ADD COLUMN grapherConfigAdmin json AFTER sort,
-              ADD COLUMN grapherConfigETL json AFTER grapherConfigAdmin
+              ADD COLUMN grapherConfigAdmin JSON AFTER sort,
+              ADD COLUMN grapherConfigETL JSON AFTER grapherConfigAdmin
         `)
 
         // copy configs from the chart_configs table to the variables table

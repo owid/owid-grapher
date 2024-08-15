@@ -688,7 +688,6 @@ export const grapherKeysToSerialize = [
 
     // serialised keys that are not in the schema
     "topicIds",
-    "details",
 
     // internals
     "adminBaseUrl",

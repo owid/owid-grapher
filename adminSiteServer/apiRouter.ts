@@ -34,7 +34,6 @@ import {
     updateGrapherConfigAdminOfVariable,
     updateGrapherConfigETLOfVariable,
     updateAllChartsThatInheritFromIndicator,
-    getParentConfigForIndicatorChartAdmin,
 } from "../db/model/Variable.js"
 import { updateExistingFullConfig } from "../db/model/ChartConfigs.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
@@ -165,8 +164,6 @@ import { GdocHomepage } from "../db/model/Gdoc/GdocHomepage.js"
 import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
 import path from "path"
 
-type InheritanceOptions = "auto" | "enable" | "disable"
-
 const apiRouter = new FunctionalRouter()
 
 // Call this to trigger build and deployment of static charts on change
@@ -283,6 +280,17 @@ const expectChartById = async (
     throw new JsonError(`No chart found for id ${chartId}`, 404)
 }
 
+const expectPatchConfigByChartId = async (
+    knex: db.KnexReadonlyTransaction,
+    chartId: any
+): Promise<GrapherInterface> => {
+    const patchConfig = await getPatchConfigByChartId(knex, expectInt(chartId))
+    if (!patchConfig) {
+        throw new JsonError(`No chart found for id ${chartId}`, 404)
+    }
+    return patchConfig
+}
+
 const saveNewChart = async (
     knex: db.KnexReadWriteTransaction,
     {
@@ -302,15 +310,16 @@ const saveNewChart = async (
         config.isPublished = false
     }
 
-    // compute patch and full configs
+    // grab the parent of the chart if inheritance should be enabled
     const parent = shouldInherit
         ? await getParentByChartConfig(knex, config)
         : undefined
-    const parentConfig = parent?.config
     const fullParentConfig = mergeGrapherConfigs(
         defaultGrapherConfig,
-        parentConfig ?? {}
+        parent?.config ?? {}
     )
+
+    // compute patch and full configs
     const patchConfig = diffGrapherConfigs(config, fullParentConfig)
     const fullConfig = mergeGrapherConfigs(fullParentConfig, patchConfig)
 
@@ -388,12 +397,12 @@ const updateExistingChart = async (
     const parent = shouldInherit
         ? await getParentByChartConfig(knex, config)
         : undefined
-
-    // compute patch and full configs
     const fullParentConfig = mergeGrapherConfigs(
         defaultGrapherConfig,
         parent?.config ?? {}
     )
+
+    // compute patch and full configs
     const patchConfig = diffGrapherConfigs(config, fullParentConfig)
     const fullConfig = mergeGrapherConfigs(fullParentConfig, patchConfig)
 
@@ -515,6 +524,12 @@ const saveGrapher = async (
         // otherwise it can lead to clients receiving cached versions of the old data.
         newConfig.version += 1
     else newConfig.version = 1
+
+    // if the schema version is missing, assume it's the latest
+    newConfig.$schema =
+        newConfig.$schema ??
+        existingConfig?.$schema ??
+        defaultGrapherConfig.$schema
 
     // Execute the actual database update or creation
     let chartId: number
@@ -696,11 +711,11 @@ getRouteWithROTransaction(
     "/charts/:chartId.parent.json",
     async (req, res, trx) => {
         const chartId = expectInt(req.params.chartId)
+        const parent = await getParentByChartId(trx, chartId)
         const isInheritanceEnabled = await isInheritanceEnabledForChart(
             trx,
             chartId
         )
-        const parent = await getParentByChartId(trx, chartId)
         return omitUndefinedValues({
             variableId: parent?.variableId,
             config: parent?.config,
@@ -714,10 +729,7 @@ getRouteWithROTransaction(
     "/charts/:chartId.patchConfig.json",
     async (req, res, trx) => {
         const chartId = expectInt(req.params.chartId)
-        const config = await getPatchConfigByChartId(trx, chartId)
-        if (!config) {
-            throw new JsonError(`Chart with id ${chartId} not found`, 500)
-        }
+        const config = await expectPatchConfigByChartId(trx, chartId)
         return config
     }
 )
@@ -1365,19 +1377,6 @@ getRouteWithROTransaction(
 
 getRouteWithROTransaction(
     apiRouter,
-    "/variables/grapherConfigAdmin/:variableId.parentConfig.json",
-    async (req, res, trx) => {
-        const variableId = expectInt(req.params.variableId)
-        const parentConfig = await getParentConfigForIndicatorChartAdmin(
-            trx,
-            variableId
-        )
-        return parentConfig ?? {}
-    }
-)
-
-getRouteWithROTransaction(
-    apiRouter,
     "/variables/mergedGrapherConfig/:variableId.json",
     async (req, res, trx) => {
         const variableId = expectInt(req.params.variableId)
@@ -1425,9 +1424,26 @@ getRouteWithROTransaction(
             trx,
             variableId
         )
-        const grapherConfigETL = variableWithConfigs?.etl?.fullConfig
+        const grapherConfigETL = variableWithConfigs?.etl?.patchConfig
         const mergedGrapherConfig =
-            variableWithConfigs?.admin?.fullConfig ?? grapherConfigETL
+            variableWithConfigs?.admin?.fullConfig ??
+            variableWithConfigs?.etl?.fullConfig
+
+        // add the variable's display field to the merged grapher config
+        if (mergedGrapherConfig) {
+            const [varDims, otherDims] = lodash.partition(
+                mergedGrapherConfig.dimensions ?? [],
+                (dim) => dim.variableId === variableId
+            )
+            const varDimsWithDisplay = varDims.map((dim) => ({
+                display: variable.display,
+                ...dim,
+            }))
+            mergedGrapherConfig.dimensions = [
+                ...varDimsWithDisplay,
+                ...otherDims,
+            ]
+        }
 
         const variableWithCharts: OwidVariableWithSource & {
             charts: Record<string, any>
@@ -1458,14 +1474,14 @@ putRouteWithRWTransaction(
             throw new JsonError(`Variable with id ${variableId} not found`, 500)
         }
 
-        const updatedChartIds = await updateGrapherConfigETLOfVariable(
+        const updatedCharts = await updateGrapherConfigETLOfVariable(
             trx,
             variable,
             req.body
         )
 
-        // trigger build if any chart has been updated
-        if (updatedChartIds.length > 0) {
+        // trigger build if any published chart has been updated
+        if (updatedCharts.some((chart) => chart.isPublished)) {
             await triggerStaticBuild(
                 res.locals.user,
                 `Updating ETL config for variable ${variableId}`
@@ -1487,12 +1503,8 @@ deleteRouteWithRWTransaction(
             throw new JsonError(`Variable with id ${variableId} not found`, 500)
         }
 
-        if (!variable.etl) {
-            throw new JsonError(
-                `Variable with id ${variableId} doesn't have an ETL config`,
-                500
-            )
-        }
+        // no-op if the variable doesn't have an ETL config
+        if (!variable.etl) return { success: true }
 
         // remove reference in the variables table
         await db.knexRaw(
@@ -1532,7 +1544,7 @@ deleteRouteWithRWTransaction(
             }
         )
 
-        // trigger build if any chart has been updated
+        // trigger build if any published chart has been updated
         if (updatedCharts.some((chart) => chart.isPublished)) {
             await triggerStaticBuild(
                 res.locals.user,

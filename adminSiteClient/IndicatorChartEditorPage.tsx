@@ -1,9 +1,8 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action } from "mobx"
+import { computed, action } from "mobx"
 import { isEmpty } from "@ourworldindata/utils"
 import { GrapherInterface, DimensionProperty } from "@ourworldindata/types"
-import { Grapher } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
@@ -21,8 +20,6 @@ export class IndicatorChartEditorPage
         IndicatorChartEditorManager,
         ChartEditorViewManager<IndicatorChartEditor>
 {
-    @observable.ref grapher = new Grapher()
-
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -59,9 +56,8 @@ export class IndicatorChartEditorPage
         this.refresh()
     }
 
-    // TODO(inheritance)
     // This funny construction allows the "new chart" link to work by forcing an update
-    // even if the props don't change
+    // even if the props don't change. This fix used to work, but doesn't anymore.
     // UNSAFE_componentWillReceiveProps(): void {
     //     setTimeout(() => this.refresh(), 0)
     // }

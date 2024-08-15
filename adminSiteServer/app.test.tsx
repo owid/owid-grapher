@@ -116,7 +116,7 @@ async function cleanupDb() {
     await knexReadWriteTransaction(
         async (trx) => {
             for (const table of tables) {
-                await trx.raw(`DELETE FROM ${table}`)
+                await trx.raw(`DELETE FROM ??`, [table])
             }
         },
         TransactionCloseMode.KeepOpen,
@@ -189,14 +189,13 @@ async function makeRequestAgainstAdminApi(
     return json
 }
 
-const currentSchema = defaultGrapherConfig["$schema"]
-const testChartConfig = {
-    slug: "test-chart",
-    title: "Test chart",
-    type: "LineChart",
-}
-
 describe("OwidAdminApp", () => {
+    const testChartConfig = {
+        slug: "test-chart",
+        title: "Test chart",
+        type: "LineChart",
+    }
+
     it("should be able to create an app", () => {
         expect(app).toBeTruthy()
         expect(app!.server).toBeTruthy()
@@ -251,9 +250,12 @@ describe("OwidAdminApp", () => {
         const fullConfig = await fetchJsonFromAdminApi(
             `/charts/${chartId}.config.json`
         )
-        expect(fullConfig).toHaveProperty("$schema", currentSchema)
+        expect(fullConfig).toHaveProperty(
+            "$schema",
+            defaultGrapherConfig.$schema
+        )
         expect(fullConfig).toHaveProperty("id", chartId) // must match the db id
-        expect(fullConfig).toHaveProperty("version", 1) // added version
+        expect(fullConfig).toHaveProperty("version", 1) // automatically added
         expect(fullConfig).toHaveProperty("slug", "test-chart")
         expect(fullConfig).toHaveProperty("title", "Test chart")
         expect(fullConfig).toHaveProperty("type", "LineChart") // default property
@@ -366,24 +368,20 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             body: JSON.stringify(testVariableConfig),
         })
 
-        // check that a row in the chart_configs table has been added
-        const chartConfigsCountAfter = await getCountForTable(
-            ChartConfigsTableName
-        )
-        expect(chartConfigsCountAfter).toBe(1)
-
         // get inserted configs from the database
         const row = await testKnexInstance!(ChartConfigsTableName).first()
-        const patchConfig = JSON.parse(row.patch)
-        const fullConfig = JSON.parse(row.full)
+        const patchConfigETL = JSON.parse(row.patch)
+        const fullConfigETL = JSON.parse(row.full)
 
         // for ETL configs, patch and full configs should be the same
-        expect(patchConfig).toEqual(fullConfig)
+        expect(patchConfigETL).toEqual(fullConfigETL)
 
         // check that $schema and dimensions field were added to the config
-        expect(patchConfig).toEqual({
+        expect(patchConfigETL).toEqual({
             ...testVariableConfig,
-            $schema: currentSchema,
+
+            // automatically added
+            $schema: defaultGrapherConfig.$schema,
             dimensions: [
                 {
                     property: "y",
@@ -399,7 +397,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
 
         // since no admin-authored config exists, the merged config should be
         // the same as the ETL config
-        expect(mergedGrapherConfig).toEqual(fullConfig)
+        expect(mergedGrapherConfig).toEqual(fullConfigETL)
 
         // delete the grapher config we just added
         await makeRequestAgainstAdminApi({
@@ -415,6 +413,10 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
     })
 
     it("should update all charts that inherit from an indicator", async () => {
+        // make sure the database is in a clean state
+        const chartConfigsCount = await getCountForTable(ChartConfigsTableName)
+        expect(chartConfigsCount).toBe(0)
+
         // add grapherConfigETL for the variable
         await makeRequestAgainstAdminApi({
             method: "PUT",
@@ -530,9 +532,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             shouldBeEnabled?: boolean
         }): Promise<void> => {
             const chartRow = await testKnexInstance!(ChartsTableName)
-                .where({
-                    id: chartId,
-                })
+                .where({ id: chartId })
                 .first()
 
             const fullConfig = await fetchJsonFromAdminApi(
@@ -549,6 +549,10 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
                 expect(fullConfig).toHaveProperty("hasMapTab", false)
             }
         }
+
+        // make sure the database is in a clean state
+        const chartConfigsCount = await getCountForTable(ChartConfigsTableName)
+        expect(chartConfigsCount).toBe(0)
 
         // add grapherConfigETL for the variable
         await makeRequestAgainstAdminApi({
@@ -604,7 +608,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         await checkInheritance({ shouldBeEnabled: false })
     })
 
-    it("should recompute configs when the parent changes", async () => {
+    it("should recompute configs when the parent of a chart changes", async () => {
         // add grapherConfigETL for the variables
         await makeRequestAgainstAdminApi({
             method: "PUT",

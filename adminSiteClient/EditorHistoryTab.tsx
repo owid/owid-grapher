@@ -127,7 +127,8 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
     }
 
     @action.bound copyYamlToClipboard() {
-        // Use the Clipboard API to copy the config into the users clipboard
+        // Avoid modifying the original JSON object
+        // Due to mobx memoizing computed values, the JSON can be mutated.
         const patchConfig = {
             ...this.props.editor.patchConfig,
         }
@@ -136,6 +137,7 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
         delete patchConfig.version
         delete patchConfig.isPublished
         const chartConfigAsYaml = YAML.stringify(patchConfig)
+        // Use the Clipboard API to copy the config into the users clipboard
         void copyToClipboard(chartConfigAsYaml)
         notification["success"]({
             message: "Copied YAML to clipboard",

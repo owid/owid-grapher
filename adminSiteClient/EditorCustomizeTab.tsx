@@ -459,7 +459,6 @@ export class EditorCustomizeTab<
 > extends React.Component<{
     editor: Editor
 }> {
-    // TODO
     static contextType = ChartEditorContext
 
     @computed get errorMessages() {

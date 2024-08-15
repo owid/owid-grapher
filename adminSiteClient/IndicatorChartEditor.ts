@@ -27,8 +27,7 @@ export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEdit
     async saveGrapher({
         onError,
     }: { onError?: () => void } = {}): Promise<void> {
-        // TODO(inheritance)
-        console.log("save indicator chart")
+        console.log("Implementation missing")
         onError?.()
     }
 }

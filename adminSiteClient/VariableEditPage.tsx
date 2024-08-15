@@ -55,7 +55,7 @@ interface VariablePageData
     extends Omit<OwidVariableWithDataAndSource, "source"> {
     datasetNamespace: string
     charts: ChartListItem[]
-    grapherConfig: GrapherInterface | undefined // admin+ETL merged
+    grapherConfig: GrapherInterface | undefined
     grapherConfigETL: GrapherInterface | undefined
     source: { id: number; name: string }
     origins: OwidOrigin[]
@@ -124,7 +124,6 @@ class VariableEditable
 @observer
 class VariableEditor extends React.Component<{
     variable: VariablePageData
-    grapherConfigETL?: GrapherInterface
 }> {
     @observable newVariable!: VariableEditable
     @observable isDeleted: boolean = false
@@ -150,12 +149,8 @@ class VariableEditor extends React.Component<{
         )
     }
 
-    @computed get grapherConfigETL(): GrapherInterface | undefined {
-        return this.props.grapherConfigETL
-    }
-
     render() {
-        const { variable, grapherConfigETL } = this.props
+        const { variable } = this.props
         const { newVariable, isV2MetadataVariable } = this
 
         const pathFragments = variable.catalogPath
@@ -413,7 +408,9 @@ class VariableEditor extends React.Component<{
                                         label="Grapher Config ETL"
                                         field="v"
                                         store={{
-                                            v: YAML.stringify(grapherConfigETL),
+                                            v: YAML.stringify(
+                                                variable.grapherConfigETL
+                                            ),
                                         }}
                                         disabled
                                         textarea

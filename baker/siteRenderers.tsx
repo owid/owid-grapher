@@ -767,8 +767,8 @@ export const renderExplorerPage = async (
                     cc_etl.patch AS grapherConfigETL,
                     cc_admin.patch AS grapherConfigAdmin
                 FROM variables v
-                LEFT JOIN chart_configs cc_admin ON cc_admin.id=v.grapherConfigIdAdmin
-                LEFT JOIN chart_configs cc_etl ON cc_etl.id=v.grapherConfigIdETL
+                    LEFT JOIN chart_configs cc_admin ON cc_admin.id=v.grapherConfigIdAdmin
+                    LEFT JOIN chart_configs cc_etl ON cc_etl.id=v.grapherConfigIdETL
                 WHERE v.id IN (?)
             `,
             [requiredVariableIds]

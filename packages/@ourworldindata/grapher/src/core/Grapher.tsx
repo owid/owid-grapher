@@ -516,25 +516,6 @@ export class Grapher
         if (getGrapherInstance) getGrapherInstance(this) // todo: possibly replace with more idiomatic ref
     }
 
-    private static ensureValidObject(obj: GrapherInterface): GrapherInterface {
-        // always include the schema and version, even if it's the default
-        obj.$schema = obj.$schema || defaultGrapherConfig.$schema
-        obj.version = obj.version || 1
-
-        // todo: nulls got into the DB for this one. we can remove after moving Graphers from DB.
-        if (obj.stackMode === null) delete obj.stackMode
-
-        // JSON doesn't support Infinity, so we use strings instead.
-        if (obj.minTime) obj.minTime = minTimeToJSON(obj.minTime) as any
-        if (obj.maxTime) obj.maxTime = maxTimeToJSON(obj.maxTime) as any
-
-        // todo: remove dimensions concept
-        // if (this.legacyConfigAsAuthored?.dimensions)
-        //     obj.dimensions = this.legacyConfigAsAuthored.dimensions
-
-        return obj
-    }
-
     toObject(): GrapherInterface {
         const obj: GrapherInterface = objectWithPersistablesToObject(
             this,
@@ -545,11 +526,33 @@ export class Grapher
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
 
-        return Grapher.ensureValidObject(obj)
+        // always include the schema, even if it's the default
+        obj.$schema = this.$schema || defaultGrapherConfig.$schema
+
+        // todo: nulls got into the DB for this one. we can remove after moving Graphers from DB.
+        if (obj.stackMode === null) delete obj.stackMode
+
+        // JSON doesn't support Infinity, so we use strings instead.
+        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
+        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
+
+        // todo: remove dimensions concept
+        // if (this.legacyConfigAsAuthored?.dimensions)
+        //     obj.dimensions = this.legacyConfigAsAuthored.dimensions
+
+        return obj
     }
 
     static defaultObject(): GrapherInterface {
-        return Grapher.ensureValidObject(defaultObject)
+        // JSON doesn't support Infinity, so we use strings instead.
+        const minTime = minTimeToJSON(defaultObject.minTime)
+        const maxTime = maxTimeToJSON(defaultObject.maxTime)
+
+        return {
+            ...defaultObject,
+            minTime,
+            maxTime,
+        }
     }
 
     @action.bound downloadData(): void {
@@ -3039,43 +3042,18 @@ export class Grapher
     // The idea here is to reset the Grapher to a blank slate, so that if you updateFromObject and the object contains some blanks, those blanks
     // won't overwrite defaults (like type == LineChart). RAII would probably be better, but this works for now.
     @action.bound reset(): void {
-        this.selection.clearSelection()
-
         const grapher = new Grapher()
-        // TODO: could this be a problem elsewhere?
         for (const key of grapherKeysToSerialize) {
-            // @ts-expect-error TODO
+            // @ts-expect-error grapherKeysToSerialize is not properly typed
             this[key] = grapher[key]
         }
-        // this.title = grapher.title
-        // this.subtitle = grapher.subtitle
-        // this.note = grapher.note
-        // this.type = grapher.type
-        // this.ySlugs = grapher.ySlugs
-        // this.xSlug = grapher.xSlug
-        // this.colorSlug = grapher.colorSlug
-        // this.sizeSlug = grapher.sizeSlug
-        // this.hasMapTab = grapher.hasMapTab
-        // this.selectedFacetStrategy = grapher.selectedFacetStrategy
-        // this.hasChartTab = grapher.hasChartTab
-        // this.map = grapher.map
-        // this.yAxis.scaleType = grapher.yAxis.scaleType
-        // this.yAxis.min = grapher.yAxis.min
-        // this.sortBy = grapher.sortBy
-        // this.sortOrder = grapher.sortOrder
-        // this.sortColumnSlug = grapher.sortColumnSlug
-        // this.hideRelativeToggle = grapher.hideRelativeToggle
-        // this.dimensions = grapher.dimensions
-        // this.stackMode = grapher.stackMode
-        // this.hideTotalValueLabel = grapher.hideTotalValueLabel
-        // this.hideAnnotationFieldsInTitle = grapher.hideAnnotationFieldsInTitle
-        // this.timelineMinTime = grapher.timelineMinTime
-        // this.timelineMaxTime = grapher.timelineMaxTime
-        // this.relatedQuestions = grapher.relatedQuestions
-        // this.sourceDesc = grapher.sourceDesc
-        // this.missingDataStrategy = grapher.missingDataStrategy
-        // this.minTime = grapher.minTime
-        // this.maxTime = grapher.maxTime
+
+        this.ySlugs = grapher.ySlugs
+        this.xSlug = grapher.xSlug
+        this.colorSlug = grapher.colorSlug
+        this.sizeSlug = grapher.sizeSlug
+
+        this.selection.clearSelection()
     }
 
     debounceMode = false

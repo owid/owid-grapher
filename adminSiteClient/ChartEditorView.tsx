@@ -348,13 +348,6 @@ export class ChartEditorView<
         )
     }
 
-    // TODO(inheritance)
-    // This funny construction allows the "new chart" link to work by forcing an update
-    // even if the props don't change
-    // UNSAFE_componentWillReceiveProps(): void {
-    //     setTimeout(() => this.refresh(), 0)
-    // }
-
     disposers: IReactionDisposer[] = []
     componentWillUnmount(): void {
         this.disposers.forEach((dispose) => dispose())

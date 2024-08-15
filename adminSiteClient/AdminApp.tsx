@@ -41,7 +41,6 @@ import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
 import { GdocsIndexPage, GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsStoreProvider } from "./GdocsStore.js"
-import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -155,7 +154,7 @@ export class AdminApp extends React.Component<{
                                 path="/charts"
                                 component={ChartIndexPage}
                             />
-                            <Route
+                            {/* <Route
                                 exact
                                 path="/indicator-charts/:variableId/edit"
                                 render={({ match }) => (
@@ -165,7 +164,7 @@ export class AdminApp extends React.Component<{
                                         )}
                                     />
                                 )}
-                            />
+                            /> */}
                             <Route
                                 exact
                                 path={`/${EXPLORERS_ROUTE_FOLDER}/:slug`}
