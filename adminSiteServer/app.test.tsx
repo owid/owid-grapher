@@ -56,6 +56,7 @@ import {
 import { defaultGrapherConfig } from "@ourworldindata/grapher"
 import path from "path"
 import fs from "fs"
+import { omitUndefinedValues } from "@ourworldindata/utils"
 
 const ADMIN_SERVER_HOST = "localhost"
 const ADMIN_SERVER_PORT = 8765
@@ -176,6 +177,7 @@ async function makeRequestAgainstAdminApi(
         },
         body,
     })
+
     expect(response.status).toBe(200)
 
     const json = await response.json()
@@ -291,6 +293,7 @@ describe("OwidAdminApp", () => {
 
 describe("OwidAdminApp: indicator-level chart configs", () => {
     const variableId = 1
+    const otherVariableId = 2
 
     const dummyDataset = {
         id: 1,
@@ -303,6 +306,8 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         dataEditedAt: new Date(),
         dataEditedByUserId: 1,
     }
+
+    // dummy variable and its grapherConfigETL
     const dummyVariable = {
         id: variableId,
         unit: "kg",
@@ -311,12 +316,20 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         datasetId: 1,
         display: '{ "unit": "kg", "shortUnit": "kg" }',
     }
-
     const testVariableConfig = {
         hasMapTab: true,
         note: "Indicator note",
         selectedEntityNames: ["France", "Italy", "Spain"],
         hideRelativeToggle: false,
+    }
+
+    // second dummy variable and its grapherConfigETL
+    const otherDummyVariable = {
+        ...dummyVariable,
+        id: otherVariableId,
+    }
+    const otherTestVariableConfig = {
+        note: "Other indicator note",
     }
 
     const testChartConfig = {
@@ -335,7 +348,10 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
 
     beforeEach(async () => {
         await testKnexInstance!(DatasetsTableName).insert([dummyDataset])
-        await testKnexInstance!(VariablesTableName).insert([dummyVariable])
+        await testKnexInstance!(VariablesTableName).insert([
+            dummyVariable,
+            otherDummyVariable,
+        ])
     })
 
     it("should be able to edit ETL grapher configs via the api", async () => {
@@ -399,7 +415,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
     })
 
     it("should update all charts that inherit from an indicator", async () => {
-        // setup: add grapherConfigETL for the variable
+        // add grapherConfigETL for the variable
         await makeRequestAgainstAdminApi({
             method: "PUT",
             path: `/variables/${variableId}/grapherConfigETL`,
@@ -409,7 +425,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         // make a request to create a chart that inherits from the variable
         const response = await makeRequestAgainstAdminApi({
             method: "POST",
-            path: "/charts?inheritance=1",
+            path: "/charts?inheritance=enable",
             body: JSON.stringify(testChartConfig),
         })
         const chartId = response.chartId
@@ -534,7 +550,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             }
         }
 
-        // setup: add grapherConfigETL for the variable
+        // add grapherConfigETL for the variable
         await makeRequestAgainstAdminApi({
             method: "PUT",
             path: `/variables/${variableId}/grapherConfigETL`,
@@ -566,7 +582,8 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         // enable inheritance
         await makeRequestAgainstAdminApi({
             method: "PUT",
-            path: `/charts/${chartId}/configInheritance/enable`,
+            path: `/charts/${chartId}?inheritance=enable`,
+            body: JSON.stringify(testChartConfig),
         })
         await checkInheritance({ shouldBeEnabled: true })
 
@@ -581,13 +598,14 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         // disable inheritance
         await makeRequestAgainstAdminApi({
             method: "PUT",
-            path: `/charts/${chartId}/configInheritance/disable`,
+            path: `/charts/${chartId}?inheritance=disable`,
+            body: JSON.stringify(testChartConfig),
         })
         await checkInheritance({ shouldBeEnabled: false })
     })
 
-    it("should recompute the full config when the parent changes", async () => {
-        // setup: add grapherConfigETL for the variables
+    it("should recompute configs when the parent changes", async () => {
+        // add grapherConfigETL for the variables
         await makeRequestAgainstAdminApi({
             method: "PUT",
             path: `/variables/${variableId}/grapherConfigETL`,
@@ -602,16 +620,10 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         // create a chart whose parent is the first indicator
         const response = await makeRequestAgainstAdminApi({
             method: "POST",
-            path: "/charts",
+            path: "/charts?inheritance=enable",
             body: JSON.stringify(testChartConfig),
         })
         const chartId = response.chartId
-
-        // enable inheritance
-        await makeRequestAgainstAdminApi({
-            method: "PUT",
-            path: `/charts/${chartId}/configInheritance/enable`,
-        })
 
         // check that chart inherits from the first indicator
         let fullConfig = await fetchJsonFromAdminApi(

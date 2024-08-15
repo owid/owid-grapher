@@ -272,7 +272,7 @@ export async function isInheritanceEnabledForChart(
     return row?.isInheritanceEnabled ?? false
 }
 
-async function getParentVariableIdForChart(
+async function getParentVariableIdByChartId(
     trx: db.KnexReadonlyTransaction,
     chartId: number
 ): Promise<number | undefined> {
@@ -292,7 +292,7 @@ export async function getParentByChartId(
     trx: db.KnexReadonlyTransaction,
     chartId: number
 ): Promise<{ variableId?: number; config?: GrapherInterface }> {
-    const parentVariableId = await getParentVariableIdForChart(trx, chartId)
+    const parentVariableId = await getParentVariableIdByChartId(trx, chartId)
     if (!parentVariableId) return {}
     const variable = await getGrapherConfigsForVariable(trx, parentVariableId)
     const parentConfig =
