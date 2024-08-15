@@ -10,7 +10,6 @@ import { isChartEditorInstance } from "./ChartEditor.js"
 import {
     AutoTextField,
     BindAutoString,
-    BindAutoStringExt,
     BindString,
     Button,
     RadioGroup,
@@ -95,7 +94,10 @@ export class EditorTextTab<
                     <BindAutoString
                         field="title"
                         store={grapher}
-                        auto={grapher.displayTitle}
+                        auto={
+                            editor.activeParentConfig?.title ??
+                            grapher.displayTitle
+                        }
                         softCharacterLimit={100}
                     />
                     {features.showEntityAnnotationInTitleToggle && (
@@ -143,12 +145,14 @@ export class EditorTextTab<
                         }
                         helpText="Human-friendly URL for this chart"
                     />
-                    <BindAutoStringExt
-                        label={"Subtitle"}
-                        readFn={(g) => g.currentSubtitle}
-                        writeFn={(g, newVal) => (g.subtitle = newVal)}
-                        isAuto={grapher.subtitle === undefined}
+                    <BindAutoString
+                        label="Subtitle"
+                        field="subtitle"
                         store={grapher}
+                        auto={
+                            editor.activeParentConfig?.subtitle ??
+                            grapher.currentSubtitle
+                        }
                         placeholder="Briefly describe the context of the data. It's best to avoid duplicating any information which can be easily inferred from other visual elements of the chart."
                         textarea
                         softCharacterLimit={280}
@@ -173,7 +177,10 @@ export class EditorTextTab<
                         label="Source"
                         field="sourceDesc"
                         store={grapher}
-                        auto={grapher.sourcesLine}
+                        auto={
+                            editor.activeParentConfig?.sourceDesc ??
+                            grapher.sourcesLine
+                        }
                         helpText="Short comma-separated list of source names"
                         softCharacterLimit={60}
                     />
