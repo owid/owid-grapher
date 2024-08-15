@@ -7,7 +7,6 @@
 
 import {
     type RawPageview,
-    Topic,
     PostReference,
     ChartRedirect,
     Json,
@@ -51,7 +50,6 @@ export interface ChartEditorManager extends AbstractChartEditorManager {
     references: References | undefined
     redirects: ChartRedirect[]
     pageviews?: RawPageview
-    allTopics: Topic[]
 }
 
 export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
@@ -73,10 +71,6 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
     @computed get pageviews() {
         return this.manager.pageviews
-    }
-
-    @computed get allTopics() {
-        return this.manager.allTopics
     }
 
     @computed get availableTabs(): EditorTab[] {
@@ -115,13 +109,16 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
             )
         }
 
-        // update the live grapher object
-        const newConfig = mergeGrapherConfigs(
-            newParentConfig ?? {},
-            this.patchConfig
-        )
-        this.updateLiveGrapher(newConfig)
+        // if inheritance is enabled, update the live grapher object
+        if (this.isInheritanceEnabled) {
+            const newConfig = mergeGrapherConfigs(
+                newParentConfig ?? {},
+                this.patchConfig
+            )
+            this.updateLiveGrapher(newConfig)
+        }
 
+        // update the parent config in any case
         this.parentConfig = newParentConfig
 
         // disable inheritance if there is no parent config

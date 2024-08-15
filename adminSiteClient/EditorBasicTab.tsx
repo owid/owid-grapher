@@ -105,9 +105,6 @@ class DimensionSlotView<
         const { selection } = grapher
         const { availableEntityNames, availableEntityNameSet } = selection
 
-        // no-op if the grapher has no data
-        if (!grapher.hasData) return
-
         if (grapher.isScatter || grapher.isSlopeChart || grapher.isMarimekko) {
             // chart types that display all entities by default shouldn't select any by default
             selection.clearSelection()
@@ -144,7 +141,7 @@ class DimensionSlotView<
         // We want to add the reaction only after the grapher is loaded,
         // so we don't update the initial chart (as configured) by accident.
         when(
-            () => this.grapher.isReady,
+            () => this.grapher.isReady && this.grapher.hasData,
             () => {
                 this.disposers.push(
                     reaction(() => this.grapher.type, this.updateDefaults),

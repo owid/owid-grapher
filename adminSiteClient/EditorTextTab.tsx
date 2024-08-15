@@ -1,20 +1,11 @@
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import {
-    LogoOption,
-    RelatedQuestionsConfig,
-    Topic,
-} from "@ourworldindata/types"
-import {
-    Grapher,
-    getErrorMessageRelatedQuestionUrl,
-} from "@ourworldindata/grapher"
+import { LogoOption, RelatedQuestionsConfig } from "@ourworldindata/types"
+import { getErrorMessageRelatedQuestionUrl } from "@ourworldindata/grapher"
 import { slugify } from "@ourworldindata/utils"
-import { action, computed, runInAction } from "mobx"
+import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import Select from "react-select"
-import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 import { isChartEditorInstance } from "./ChartEditor.js"
 import {
     AutoTextField,
@@ -221,13 +212,6 @@ export class EditorTextTab<
                     />
                 </Section>
 
-                {isChartEditorInstance(editor) && (
-                    <TopicsSection
-                        allTopics={editor.allTopics}
-                        grapher={grapher}
-                    />
-                )}
-
                 <Section name="Related">
                     {relatedQuestions.map(
                         (question: RelatedQuestionsConfig, idx: number) => (
@@ -291,39 +275,6 @@ export class EditorTextTab<
                     />
                 </Section>
             </div>
-        )
-    }
-}
-@observer
-class TopicsSection extends React.Component<{
-    allTopics: Topic[]
-    grapher: Grapher
-}> {
-    render() {
-        const { grapher } = this.props
-
-        return (
-            <Section name="Topics">
-                <Select
-                    isDisabled={!TOPICS_CONTENT_GRAPH}
-                    options={this.props.allTopics}
-                    getOptionValue={(topic) => topic.id.toString()}
-                    getOptionLabel={(topic) => topic.name}
-                    isMulti={true}
-                    value={grapher.topicIds.map((topicId) => ({
-                        id: topicId,
-                        name:
-                            this.props.allTopics.find((t) => t.id === topicId)
-                                ?.name || "TOPIC NOT FOUND",
-                    }))}
-                    onChange={(topics) =>
-                        runInAction(() => {
-                            grapher.topicIds = topics.map((topic) => topic.id)
-                        })
-                    }
-                    menuPlacement="auto"
-                />
-            </Section>
         )
     }
 }

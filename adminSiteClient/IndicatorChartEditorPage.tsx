@@ -56,12 +56,6 @@ export class IndicatorChartEditorPage
         this.refresh()
     }
 
-    // This funny construction allows the "new chart" link to work by forcing an update
-    // even if the props don't change. This fix used to work, but doesn't anymore.
-    // UNSAFE_componentWillReceiveProps(): void {
-    //     setTimeout(() => this.refresh(), 0)
-    // }
-
     render(): React.ReactElement {
         return <ChartEditorView manager={this} />
     }
