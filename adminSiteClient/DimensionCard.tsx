@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { ChartDimension } from "@ourworldindata/grapher"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 import { startCase } from "@ourworldindata/utils"
-import { DimensionErrorMessage } from "./ChartEditorView.js"
+import { DimensionErrorMessage } from "./ChartEditorTypes.js"
 import {
     Toggle,
     BindAutoString,

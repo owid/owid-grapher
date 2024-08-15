@@ -17,15 +17,13 @@ import {
     TextField,
     Toggle,
 } from "./Forms.js"
-import { ChartEditorContext } from "./ChartEditorContext.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ErrorMessages } from "./ChartEditorTypes.js"
 
 @observer
 export class EditorTextTab<
     Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
-    static contextType = ChartEditorContext
-
+> extends React.Component<{ editor: Editor; errorMessages: ErrorMessages }> {
     @action.bound onSlug(slug: string) {
         this.props.editor.grapher.slug = slugify(slug)
     }
@@ -71,7 +69,7 @@ export class EditorTextTab<
     }
 
     @computed get errorMessages() {
-        return this.context.errorMessages
+        return this.props.errorMessages
     }
 
     @computed get showAnyAnnotationFieldInTitleToggle() {
