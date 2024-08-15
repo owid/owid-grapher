@@ -5,7 +5,7 @@ import {
     getParentVariableIdFromChartConfig,
     RawPageview,
 } from "@ourworldindata/utils"
-import { Topic, GrapherInterface, ChartRedirect } from "@ourworldindata/types"
+import { GrapherInterface, ChartRedirect } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
 import {
     ChartEditor,
@@ -32,7 +32,6 @@ export class ChartEditorPage
     @observable references: References | undefined = undefined
     @observable redirects: ChartRedirect[] = []
     @observable pageviews?: RawPageview = undefined
-    @observable allTopics: Topic[] = []
 
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined
@@ -113,12 +112,6 @@ export class ChartEditorPage
         runInAction(() => (this.pageviews = json.pageviews))
     }
 
-    async fetchTopics(): Promise<void> {
-        const { admin } = this.context
-        const json = await admin.getJSON(`/api/topics.json`)
-        runInAction(() => (this.allTopics = json.topics))
-    }
-
     @computed get admin(): Admin {
         return this.context.admin
     }
@@ -134,21 +127,11 @@ export class ChartEditorPage
         void this.fetchRefs()
         void this.fetchRedirects()
         void this.fetchPageviews()
-
-        // (2024-02-15) Disabled due to slow query performance
-        // https://github.com/owid/owid-grapher/issues/3198
-        // this.fetchTopics()
     }
 
     componentDidMount(): void {
         this.refresh()
     }
-
-    // This funny construction allows the "new chart" link to work by forcing an update
-    // even if the props don't change. This fix used to work, but doesn't anymore.
-    // UNSAFE_componentWillReceiveProps(): void {
-    //     setTimeout(() => this.refresh(), 0)
-    // }
 
     render(): React.ReactElement {
         return <ChartEditorView manager={this} />

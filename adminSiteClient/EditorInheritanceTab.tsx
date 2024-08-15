@@ -51,16 +51,16 @@ export class EditorInheritanceTab extends React.Component<{
                 <Section name="Parent indicator">
                     {isInheritanceEnabled ? (
                         <p>
-                            This chart inherits settings from indicator{" "}
+                            This chart inherits settings from the indicator{" "}
                             {parentVariableEditLink}. Toggle the option below to
                             disable inheritance.
                         </p>
                     ) : (
                         <p>
-                            This chart may inherit settings from indicator{" "}
-                            {parentVariableEditLink}. Toggle the option below to
-                            enable inheritance and enrich this chart's config by
-                            indicator-level settings.
+                            This chart may inherit chart settings from the
+                            indicator {parentVariableEditLink}. Toggle the
+                            option below to enable inheritance and enrich this
+                            chart's config by indicator-level chart settings.
                         </p>
                     )}
                     <Toggle
@@ -69,8 +69,14 @@ export class EditorInheritanceTab extends React.Component<{
                         onValue={this.onToggleInheritance}
                     />
                 </Section>
-                {isInheritanceEnabled && (
-                    <Section name="Inherited Config">
+                {parentConfig && (
+                    <Section
+                        name={
+                            isInheritanceEnabled
+                                ? "Parent Config"
+                                : "Parent config (not currently applied)"
+                        }
+                    >
                         <textarea
                             rows={7}
                             readOnly
