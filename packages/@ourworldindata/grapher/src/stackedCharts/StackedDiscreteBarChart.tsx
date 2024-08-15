@@ -130,15 +130,9 @@ export class StackedDiscreteBarChart
             // If MissingDataStrategy is explicitly set to hide, drop rows (= times) where one of
             // the y columns has no data
             return table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
-        } else if (this.missingDataStrategy === MissingDataStrategy.auto) {
-            // If MissingDataStrategy is set to auto, drop rows where there is only a single non-error value
-            if (this.yColumnSlugs.length > 1) {
-                return table.dropRowsWithAtLeastThisManyErrorValuesForColumns(
-                    this.yColumnSlugs,
-                    this.yColumnSlugs.length - 1
-                )
-            }
         }
+
+        // Otherwise, don't apply any special treatment
         return table
     }
 
