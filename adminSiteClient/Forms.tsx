@@ -854,6 +854,8 @@ export class BindAutoString<
     errorMessage?: string
     softCharacterLimit?: number
     onBlur?: () => void
+    placeholder?: string
+    textarea?: boolean
 }> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = value as any
