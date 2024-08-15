@@ -285,10 +285,12 @@ const expectChartById = async (
 
 const saveNewChart = async (
     knex: db.KnexReadWriteTransaction,
-    { config, user }: { config: GrapherInterface; user: DbPlainUser },
-    options: { inheritance: InheritanceOptions } = {
-        inheritance: "auto",
-    }
+    {
+        config,
+        user,
+        // charts don't inherit indicator settings by default
+        shouldInherit = false,
+    }: { config: GrapherInterface; user: DbPlainUser; shouldInherit?: boolean }
 ): Promise<GrapherInterface> => {
     // if the schema version is missing, assume it's the latest
     if (!config.$schema) {
@@ -299,12 +301,6 @@ const saveNewChart = async (
     if (!config.isPublished) {
         config.isPublished = false
     }
-
-    // check if the chart should inherit settings from its parent indicator
-    let shouldInherit: boolean
-    if (options.inheritance === "enable") shouldInherit = true
-    else if (options.inheritance === "disable") shouldInherit = false
-    else shouldInherit = false // charts don't inherit indicator settings by default
 
     // compute patch and full configs
     const parent = shouldInherit
@@ -333,10 +329,10 @@ const saveNewChart = async (
     const result = await db.knexRawInsert(
         knex,
         `-- sql
-            INSERT INTO charts (configId, parentVariableId, lastEditedAt, lastEditedByUserId)
+            INSERT INTO charts (configId, isInheritanceEnabled, lastEditedAt, lastEditedByUserId)
             VALUES (?, ?, ?, ?)
         `,
-        [configId, parent?.variableId ?? null, new Date(), user.id]
+        [configId, shouldInherit, new Date(), user.id]
     )
 
     // The chart config itself has an id field that should store the id of the chart - update the chart now so this is true
@@ -361,15 +357,17 @@ const saveNewChart = async (
 
 const updateExistingChart = async (
     knex: db.KnexReadWriteTransaction,
-    {
-        config,
-        user,
-        chartId,
-    }: { config: GrapherInterface; user: DbPlainUser; chartId: number },
-    options: { inheritance: InheritanceOptions } = {
-        inheritance: "auto",
+    params: {
+        config: GrapherInterface
+        user: DbPlainUser
+        chartId: number
+        // if undefined, keep inheritance as is.
+        // if true or false, enable or disable inheritance
+        shouldInherit?: boolean
     }
 ): Promise<GrapherInterface> => {
+    const { config, user, chartId } = params
+
     // make sure that the id of the incoming config matches the chart id
     config.id = chartId
 
@@ -384,19 +382,17 @@ const updateExistingChart = async (
     }
 
     // if inheritance is enabled, grab the parent from its config
-    const isInheritanceEnabled = await isInheritanceEnabledForChart(
-        knex,
-        chartId
-    )
-    const parent = isInheritanceEnabled
+    const shouldInherit =
+        params.shouldInherit ??
+        (await isInheritanceEnabledForChart(knex, chartId))
+    const parent = shouldInherit
         ? await getParentByChartConfig(knex, config)
         : undefined
 
     // compute patch and full configs
-    const parentConfig = parent?.config
     const fullParentConfig = mergeGrapherConfigs(
         defaultGrapherConfig,
-        parentConfig ?? {}
+        parent?.config ?? {}
     )
     const patchConfig = diffGrapherConfigs(config, fullParentConfig)
     const fullConfig = mergeGrapherConfigs(fullParentConfig, patchConfig)
@@ -420,10 +416,10 @@ const updateExistingChart = async (
         knex,
         `-- sql
             UPDATE charts
-            SET lastEditedAt=?, lastEditedByUserId=?
+            SET isInheritanceEnabled=?, lastEditedAt=?, lastEditedByUserId=?
             WHERE id = ?
         `,
-        [new Date(), user.id, chartId]
+        [shouldInherit, new Date(), user.id, chartId]
     )
 
     return patchConfig
@@ -431,25 +427,24 @@ const updateExistingChart = async (
 
 const saveGrapher = async (
     knex: db.KnexReadWriteTransaction,
-    params: {
+    {
+        user,
+        newConfig,
+        existingConfig,
+        referencedVariablesMightChange = true,
+        shouldInherit,
+    }: {
         user: DbPlainUser
         newConfig: GrapherInterface
         existingConfig?: GrapherInterface
-    },
-    {
-        referencedVariablesMightChange = true,
-        inheritance = "auto",
-    }: {
+        // if undefined, keep inheritance as is.
+        // if true or false, enable or disable inheritance
+        shouldInherit?: boolean
         // if the variables a chart uses can change then we need
         // to update the latest country data which takes quite a long time (hundreds of ms)
         referencedVariablesMightChange?: boolean
-        // either enable or disable config inheritance for the given chart.
-        // if "auto", keep the inheritance as is
-        inheritance?: InheritanceOptions
     }
 ) => {
-    let { user, newConfig, existingConfig } = params
-
     // Slugs need some special logic to ensure public urls remain consistent whenever possible
     async function isSlugUsedInRedirect() {
         const rows = await db.knexRaw<DbPlainChartSlugRedirect>(
@@ -525,24 +520,18 @@ const saveGrapher = async (
     let chartId: number
     if (existingConfig) {
         chartId = existingConfig.id!
-        newConfig = await updateExistingChart(
-            knex,
-            {
-                config: newConfig,
-                user,
-                chartId,
-            },
-            { inheritance }
-        )
+        newConfig = await updateExistingChart(knex, {
+            config: newConfig,
+            user,
+            chartId,
+            shouldInherit,
+        })
     } else {
-        newConfig = await saveNewChart(
-            knex,
-            {
-                config: newConfig,
-                user,
-            },
-            { inheritance }
-        )
+        newConfig = await saveNewChart(knex, {
+            config: newConfig,
+            user,
+            shouldInherit,
+        })
         chartId = newConfig.id!
     }
 
@@ -926,19 +915,16 @@ apiRouter.get(
 )
 
 postRouteWithRWTransaction(apiRouter, "/charts", async (req, res, trx) => {
-    let inheritance: InheritanceOptions = "auto"
+    let shouldInherit: boolean | undefined
     if (req.query.inheritance) {
-        inheritance = req.query.inheritance === "1" ? "enable" : "disable"
+        shouldInherit = req.query.inheritance === "enable"
     }
 
-    const { chartId } = await saveGrapher(
-        trx,
-        {
-            user: res.locals.user,
-            newConfig: req.body,
-        },
-        { inheritance }
-    )
+    const { chartId } = await saveGrapher(trx, {
+        user: res.locals.user,
+        newConfig: req.body,
+        shouldInherit,
+    })
 
     return { success: true, chartId: chartId }
 })
@@ -959,22 +945,19 @@ putRouteWithRWTransaction(
     apiRouter,
     "/charts/:chartId",
     async (req, res, trx) => {
-        const existingConfig = await expectChartById(trx, req.params.chartId)
-
-        let inheritance: InheritanceOptions = "auto"
+        let shouldInherit: boolean | undefined
         if (req.query.inheritance) {
-            inheritance = req.query.inheritance === "1" ? "enable" : "disable"
+            shouldInherit = req.query.inheritance === "enable"
         }
 
-        const { chartId, savedPatch } = await saveGrapher(
-            trx,
-            {
-                user: res.locals.user,
-                newConfig: req.body,
-                existingConfig,
-            },
-            { inheritance }
-        )
+        const existingConfig = await expectChartById(trx, req.params.chartId)
+
+        const { chartId, savedPatch } = await saveGrapher(trx, {
+            user: res.locals.user,
+            newConfig: req.body,
+            existingConfig,
+            shouldInherit,
+        })
 
         const logs = await getLogsByChartId(trx, existingConfig.id as number)
         return {
@@ -1221,15 +1204,12 @@ patchRouteWithRWTransaction(
         }
 
         for (const [id, newConfig] of configMap.entries()) {
-            await saveGrapher(
-                trx,
-                {
-                    user: res.locals.user,
-                    newConfig,
-                    existingConfig: oldValuesConfigMap.get(id),
-                },
-                { referencedVariablesMightChange: false }
-            )
+            await saveGrapher(trx, {
+                user: res.locals.user,
+                newConfig,
+                existingConfig: oldValuesConfigMap.get(id),
+                referencedVariablesMightChange: false,
+            })
         }
 
         return { success: true }

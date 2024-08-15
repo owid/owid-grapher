@@ -226,5 +226,11 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
                 DROP COLUMN grapherConfigIdAdmin,
                 DROP COLUMN grapherConfigIdETL
         `)
+
+        // drop isInheritanceEnabled from the charts table
+        await queryRunner.query(`-- sql
+            ALTER TABLE charts
+                DROP COLUMN isInheritanceEnabled
+        `)
     }
 }

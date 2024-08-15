@@ -141,7 +141,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         if (!patchConfig.slug) patchConfig.slug = grapher.displaySlug
 
         const query = new URLSearchParams({
-            inheritance: this.isInheritanceEnabled ? "1" : "0",
+            inheritance: this.isInheritanceEnabled ? "enable" : "disable",
         })
         const targetUrl = isNewGrapher
             ? `/api/charts?${query}`
@@ -179,7 +179,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         const w = window.open("/", "_blank") as Window
 
         const query = new URLSearchParams({
-            inheritance: this.isInheritanceEnabled ? "1" : "0",
+            inheritance: this.isInheritanceEnabled ? "enable" : "disable",
         })
         const targetUrl = `/api/charts?${query}`
 
