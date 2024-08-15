@@ -89,7 +89,8 @@ export const legacyToOwidTableAndDimensions = (
     for (const dimension of dimensionColumns) {
         const variable = json.get(dimension.variableId)
 
-        // TODO: this shouldn't happen but does in the admin when adding a dimension
+        // TODO: this shouldn't happen but it does sometimes
+        // when adding dimensions in the chart editor
         if (!variable) continue
 
         // Copy the base columnDef

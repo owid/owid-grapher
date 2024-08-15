@@ -44,7 +44,7 @@ export abstract class AbstractChartEditor<
     @observable.ref showStaticPreview = false
     @observable.ref savedPatchConfig: GrapherInterface = {}
 
-    // parent config derived from the current chart config (not necessarily in use)
+    // parent config derived from the current chart config
     @observable.ref parentConfig: GrapherInterface | undefined = undefined
     // if inheritance is enabled, the parent config is applied to grapher
     @observable.ref isInheritanceEnabled: boolean | undefined = undefined
@@ -92,14 +92,6 @@ export abstract class AbstractChartEditor<
         return mergeGrapherConfigs(this.fullDefaultObject, this.grapher.object)
     }
 
-    /** patch config of the chart that is written to the db on save */
-    @computed get patchConfig(): GrapherInterface {
-        return diffGrapherConfigs(
-            this.fullConfig,
-            this.activeParentConfigWithDefaults ?? this.fullDefaultObject
-        )
-    }
-
     /** parent config currently applied to grapher */
     @computed get activeParentConfig(): GrapherInterface | undefined {
         return this.isInheritanceEnabled ? this.parentConfig : undefined
@@ -112,6 +104,14 @@ export abstract class AbstractChartEditor<
         return mergeGrapherConfigs(
             this.fullDefaultObject,
             this.activeParentConfig
+        )
+    }
+
+    /** patch config of the chart that is written to the db on save */
+    @computed get patchConfig(): GrapherInterface {
+        return diffGrapherConfigs(
+            this.fullConfig,
+            this.activeParentConfigWithDefaults ?? this.fullDefaultObject
         )
     }
 
@@ -130,15 +130,6 @@ export abstract class AbstractChartEditor<
         this.grapher.reset()
         this.grapher.updateFromObject(config)
         this.grapher.updateAuthoredVersion(config)
-    }
-
-    // TODO: only works for first level at the moment
-    isPropertyInherited(property: keyof GrapherInterface): boolean {
-        if (!this.activeParentConfig) return false
-        return (
-            !Object.hasOwn(this.patchConfig, property) &&
-            Object.hasOwn(this.activeParentConfig, property)
-        )
     }
 
     abstract get isNewGrapher(): boolean

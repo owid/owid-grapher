@@ -26,7 +26,7 @@ export async function cleanTestDb(
     knexInstance: Knex<any, unknown[]>
 ): Promise<void> {
     for (const table of TABLES_IN_USE) {
-        await knexInstance.raw(`DELETE FROM ${table}`)
+        await knexInstance.raw(`DELETE FROM ??`, [table])
     }
 }
 

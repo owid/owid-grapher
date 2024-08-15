@@ -10,14 +10,11 @@ import { IndicatorChartEditor } from "./IndicatorChartEditor.js"
 export class SaveButtonsForChart extends React.Component<{
     editor: ChartEditor
 }> {
-    // TODO
     static contextType = ChartEditorContext
 
     @action.bound onSaveChart() {
         void this.props.editor.saveGrapher()
     }
-
-    // TODO
 
     @action.bound onSaveAsNew() {
         void this.props.editor.saveAsNewGrapher()
@@ -66,7 +63,7 @@ export class SaveButtonsForChart extends React.Component<{
                     disabled={isSavingDisabled}
                 >
                     Save as new
-                </button>
+                </button>{" "}
                 <button
                     className="btn btn-danger"
                     onClick={this.onPublishToggle}

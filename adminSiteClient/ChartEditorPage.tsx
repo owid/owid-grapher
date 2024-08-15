@@ -14,7 +14,7 @@ import {
     ChartEditorManager,
     fetchMergedGrapherConfigByVariableId,
 } from "./ChartEditor.js"
-import { AdminAppContext } from "./AdminAppContext.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
 
 @observer
@@ -25,13 +25,14 @@ export class ChartEditorPage
     }>
     implements ChartEditorManager, ChartEditorViewManager<ChartEditor>
 {
+    static contextType = AdminAppContext
+    context!: AdminAppContextType
+
     @observable logs: Log[] = []
     @observable references: References | undefined = undefined
     @observable redirects: ChartRedirect[] = []
     @observable pageviews?: RawPageview = undefined
     @observable allTopics: Topic[] = []
-
-    static contextType = AdminAppContext
 
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined
@@ -143,9 +144,8 @@ export class ChartEditorPage
         this.refresh()
     }
 
-    // TODO(inheritance)
     // This funny construction allows the "new chart" link to work by forcing an update
-    // even if the props don't change
+    // even if the props don't change. This fix used to work, but doesn't anymore.
     // UNSAFE_componentWillReceiveProps(): void {
     //     setTimeout(() => this.refresh(), 0)
     // }

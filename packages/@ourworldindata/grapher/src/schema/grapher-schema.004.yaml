@@ -1,7 +1,7 @@
 $schema: "http://json-schema.org/draft-07/schema#"
 $id: "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
 # if you update the required keys, make sure that the mergeGrapherConfigs and
-# diffGrapherConfigs functions reflects the change
+# diffGrapherConfigs functions both reflect this change
 required:
     - $schema
     - dimensions
@@ -19,7 +19,7 @@ properties:
         # since we expect all configs in our database to be valid against the latest schema,
         # we restrict the $schema field to a single value, the latest schema version.
         # if we ever need to validate configs against multiple schema versions,
-        # we can remove this const constraint.
+        # we can remove this constraint.
         const: "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
     id:
         type: integer

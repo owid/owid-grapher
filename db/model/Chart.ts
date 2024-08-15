@@ -263,10 +263,10 @@ export async function isInheritanceEnabledForChart(
     >(
         trx,
         `-- sql
-          SELECT isInheritanceEnabled
-          FROM charts
-          WHERE id = ?
-      `,
+            SELECT isInheritanceEnabled
+            FROM charts
+            WHERE id = ?
+        `,
         [chartId]
     )
     return row?.isInheritanceEnabled ?? false
@@ -297,7 +297,6 @@ export async function getParentByChartId(
     const variable = await getGrapherConfigsForVariable(trx, parentVariableId)
     const parentConfig =
         variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
-    if (!parentConfig) return { variableId: parentVariableId }
     return {
         variableId: parentVariableId,
         config: parentConfig,

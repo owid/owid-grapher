@@ -501,7 +501,6 @@ export class VariableSelector<
     dispose!: IReactionDisposer
     base: React.RefObject<HTMLDivElement> = React.createRef()
     componentDidMount() {
-        // void this.props.editor.loadVariableUsageCounts() // TODO???
         this.initChosenVariablesAndNamespaces()
     }
 
