@@ -144,9 +144,9 @@ export class StackedDiscreteBarChart
             table = table.interpolateColumnWithTolerance(slug)
         })
 
-        // If MissingDataStrategy is not explicitly set to show, drop rows (= times) where one of
+        // If MissingDataStrategy is explicitly set to hide, drop rows (= times) where one of
         // the y columns has no data
-        if (this.missingDataStrategy !== MissingDataStrategy.show) {
+        if (this.missingDataStrategy === MissingDataStrategy.hide) {
             table = table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
         }
 
@@ -165,7 +165,7 @@ export class StackedDiscreteBarChart
             .replaceNegativeCellsWithErrorValues(this.yColumnSlugs)
             .dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
 
-        if (this.missingDataStrategy !== MissingDataStrategy.show) {
+        if (this.missingDataStrategy === MissingDataStrategy.hide) {
             table = table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
         }
 
