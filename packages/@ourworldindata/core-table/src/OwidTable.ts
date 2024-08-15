@@ -277,6 +277,20 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
+    dropRowsWithAtLeastThisManyErrorValuesForColumns(
+        slugs: ColumnSlug[],
+        minErrorValues: number
+    ): this {
+        return this.rowFilter(
+            (row) =>
+                slugs.filter((slug) => !isNotErrorValue(row[slug])).length <
+                minErrorValues,
+            `Drop rows with at least ${minErrorValues} ErrorValues in every column: ${slugs.join(
+                ", "
+            )}`
+        )
+    }
+
     // Drop _all rows_ for an entity if there is any column that has no valid values for that entity.
     dropEntitiesThatHaveNoDataInSomeColumn(columnSlugs: ColumnSlug[]): this {
         const indexesByEntityName = this.rowIndicesByEntityName

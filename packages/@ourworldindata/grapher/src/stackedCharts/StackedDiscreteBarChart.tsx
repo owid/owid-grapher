@@ -125,6 +125,23 @@ export class StackedDiscreteBarChart
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 
+    private applyMissingDataStrategy(table: OwidTable): OwidTable {
+        if (this.missingDataStrategy === MissingDataStrategy.hide) {
+            // If MissingDataStrategy is explicitly set to hide, drop rows (= times) where one of
+            // the y columns has no data
+            return table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
+        } else if (this.missingDataStrategy === MissingDataStrategy.auto) {
+            // If MissingDataStrategy is set to auto, drop rows where there is only a single non-error value
+            if (this.yColumnSlugs.length > 1) {
+                return table.dropRowsWithAtLeastThisManyErrorValuesForColumns(
+                    this.yColumnSlugs,
+                    this.yColumnSlugs.length - 1
+                )
+            }
+        }
+        return table
+    }
+
     transformTable(table: OwidTable): OwidTable {
         if (!this.yColumnSlugs.length) return table
 
@@ -144,11 +161,7 @@ export class StackedDiscreteBarChart
             table = table.interpolateColumnWithTolerance(slug)
         })
 
-        // If MissingDataStrategy is explicitly set to hide, drop rows (= times) where one of
-        // the y columns has no data
-        if (this.missingDataStrategy === MissingDataStrategy.hide) {
-            table = table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
-        }
+        table = this.applyMissingDataStrategy(table)
 
         if (this.manager.isRelativeMode) {
             table = table.toPercentageFromEachColumnForEachEntityAndTime(
@@ -165,9 +178,7 @@ export class StackedDiscreteBarChart
             .replaceNegativeCellsWithErrorValues(this.yColumnSlugs)
             .dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
 
-        if (this.missingDataStrategy === MissingDataStrategy.hide) {
-            table = table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
-        }
+        table = this.applyMissingDataStrategy(table)
 
         return table
     }
