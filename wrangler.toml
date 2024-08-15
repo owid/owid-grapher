@@ -6,6 +6,10 @@ pages_build_output_dir = "./localBake"
 # Vars that should be available in all envs, including local dev
 [vars]
 ENV = "development"
+GRAPHER_CONFIG_R2_BUCKET_URL = "https://grapher-configs-staging.ourworldindata.org"
+GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL = "https://grapher-configs.ourworldindata.org"
+GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH = "v1"
+
 
 # Overrides for CF preview deployments
 [env.preview.vars]
@@ -13,26 +17,17 @@ MAILGUN_DOMAIN = "mg.ourworldindata.org"
 SLACK_ERROR_CHANNEL_ID = "C016H0BNNB1"
 ENV = "preview"
 
-[[r2_buckets]]
-binding = "r2ChartConfigs"
-bucket_name = "owid-grapher-configs-staging"
-
 # Overrides for CF production deployment
 [env.production]
 compatibility_date = "2024-04-29"
-
-[[env.production.r2_buckets]]
-binding = "r2ChartConfigs"
-bucket_name = "owid-grapher-configs"
 
 [env.production.vars]
 ENV = "production"
 MAILGUN_DOMAIN = "mg.ourworldindata.org"
 SLACK_ERROR_CHANNEL_ID = "C5JJW19PS"
+GRAPHER_CONFIG_R2_BUCKET_URL = "https://grapher-configs.ourworldindata.org"
+GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL = ""
+GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH = ""
 GRAPHER_CONFIG_R2_BUCKET_PATH = "v1"
 
-
-[[env.preview.r2_buckets]]
-binding = "r2ChartConfigs"
-bucket_name = "owid-grapher-configs-staging"
 

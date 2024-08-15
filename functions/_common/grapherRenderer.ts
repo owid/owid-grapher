@@ -17,6 +17,7 @@ import LatoMedium from "../_common/fonts/LatoLatin-Medium.ttf.bin"
 import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
 import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "../grapher/thumbnail/[slug].js"
+import { createProxy } from "./proxy.js"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -135,16 +136,41 @@ const extractOptions = (params: URLSearchParams): ImageOptions => {
     return options as ImageOptions
 }
 
+const WORKER_CACHE_TIME_IN_SECONDS = 60
+
+async function fetchFromR2(
+    url: URL,
+    etag: string | undefined,
+    fallbackUrl?: URL
+) {
+    const headers = new Headers()
+    if (etag) headers.set("If-None-Match", etag)
+    const init = {
+        cf: {
+            cacheEverything: true,
+            cacheTtl: WORKER_CACHE_TIME_IN_SECONDS,
+        },
+        headers,
+    }
+    const primaryResponse = await fetch(url.toString(), init)
+    if (primaryResponse.status === 404 && fallbackUrl) {
+        return fetch(fallbackUrl.toString(), init)
+    }
+    return primaryResponse
+}
+
 async function fetchAndRenderGrapherToSvg({
     slug,
     options,
     searchParams,
     env,
+    etag,
 }: {
     slug: string
     options: ImageOptions
     searchParams: URLSearchParams
     env: Env
+    etag?: string
 }) {
     const grapherLogger = new TimeLogger("grapher")
 
@@ -166,10 +192,31 @@ async function fetchAndRenderGrapherToSvg({
 
     console.log("fetching grapher config from this key", key)
 
-    // Fetch grapher config
-    const fetchResponse = await env.r2ChartConfigs.get(key)
+    const requestUrl = new URL(key, env.GRAPHER_CONFIG_R2_BUCKET_URL)
 
-    if (!fetchResponse) {
+    let fallbackUrl
+
+    if (
+        env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL &&
+        env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH
+    ) {
+        const topLevelDirectory = env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH
+        const fallbackKey = excludeUndefined([
+            ...topLevelDirectory,
+            R2GrapherConfigDirectory.publishedGrapherBySlug,
+            `${slugOnly}.json`,
+        ]).join("/")
+        fallbackUrl = new URL(
+            fallbackKey,
+            env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL
+        )
+    }
+
+    // Fetch grapher config
+    const fetchResponse = await fetchFromR2(requestUrl, etag, fallbackUrl)
+
+    if (fetchResponse.status !== 200) {
+        console.log("Failed to fetch grapher config", fetchResponse.status)
         return null
     }
 
@@ -213,7 +260,8 @@ export const fetchAndRenderGrapher = async (
     slug: string,
     searchParams: URLSearchParams,
     outType: "png" | "svg",
-    env: Env
+    env: Env,
+    etag?: string
 ) => {
     const options = extractOptions(searchParams)
 
@@ -223,7 +271,9 @@ export const fetchAndRenderGrapher = async (
         options,
         searchParams,
         env,
+        etag,
     })
+    console.log("fetched svg")
 
     if (!svg) {
         return new Response("Not found", { status: 404 })
