@@ -53,9 +53,13 @@ import {
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
 import { EditorExportTab } from "./EditorExportTab.js"
 import { runDetailsOnDemand } from "../site/detailsOnDemand.js"
-import { ChartEditorContext } from "./ChartEditorContext.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { isIndicatorChartEditorInstance } from "./IndicatorChartEditor.js"
+import {
+    ErrorMessages,
+    ErrorMessagesForDimensions,
+    FieldWithDetailReferences,
+} from "./ChartEditorTypes.js"
 
 interface Variable {
     id: number
@@ -93,16 +97,6 @@ export class EditorDatabase {
         this.namespaces = json.namespaces
     }
 }
-
-export interface DimensionErrorMessage {
-    displayName?: string
-}
-
-export type FieldWithDetailReferences =
-    | "subtitle"
-    | "note"
-    | "axisLabelX"
-    | "axisLabelY"
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
@@ -259,14 +253,10 @@ export class ChartEditorView<
         }
     }
 
-    @computed get errorMessages(): Partial<
-        Record<FieldWithDetailReferences, string>
-    > {
+    @computed get errorMessages(): ErrorMessages {
         const { invalidDetailReferences } = this
 
-        const errorMessages: Partial<
-            Record<FieldWithDetailReferences, string>
-        > = {}
+        const errorMessages: ErrorMessages = {}
 
         // add error messages for each field with invalid detail references
         getIndexableKeys(invalidDetailReferences).forEach(
@@ -283,14 +273,8 @@ export class ChartEditorView<
     }
 
     @computed
-    get errorMessagesForDimensions(): Record<
-        DimensionProperty,
-        DimensionErrorMessage[]
-    > {
-        const errorMessages: Record<
-            DimensionProperty,
-            DimensionErrorMessage[]
-        > = {
+    get errorMessagesForDimensions(): ErrorMessagesForDimensions {
+        const errorMessages: ErrorMessagesForDimensions = {
             [DimensionProperty.y]: [],
             [DimensionProperty.x]: [],
             [DimensionProperty.color]: [],
@@ -374,18 +358,21 @@ export class ChartEditorView<
             : undefined
 
         const saveButtons = chartEditor ? (
-            <SaveButtonsForChart editor={chartEditor} />
+            <SaveButtonsForChart
+                editor={chartEditor}
+                errorMessages={this.errorMessages}
+                errorMessagesForDimensions={this.errorMessagesForDimensions}
+            />
         ) : indicatorChartEditor ? (
-            <SaveButtonsForIndicatorChart editor={indicatorChartEditor} />
+            <SaveButtonsForIndicatorChart
+                editor={indicatorChartEditor}
+                errorMessages={this.errorMessages}
+                errorMessagesForDimensions={this.errorMessagesForDimensions}
+            />
         ) : null
 
         return (
-            <ChartEditorContext.Provider
-                value={{
-                    errorMessages: this.errorMessages,
-                    errorMessagesForDimensions: this.errorMessagesForDimensions,
-                }}
-            >
+            <>
                 {!editor.isNewGrapher && (
                     <Prompt
                         when={editor.isModified}
@@ -431,16 +418,25 @@ export class ChartEditorView<
                             <EditorBasicTab
                                 editor={editor}
                                 database={this.database}
+                                errorMessagesForDimensions={
+                                    this.errorMessagesForDimensions
+                                }
                             />
                         )}
                         {editor.tab === "text" && (
-                            <EditorTextTab editor={editor} />
+                            <EditorTextTab
+                                editor={editor}
+                                errorMessages={this.errorMessages}
+                            />
                         )}
                         {editor.tab === "data" && (
                             <EditorDataTab editor={editor} />
                         )}
                         {editor.tab === "customize" && (
-                            <EditorCustomizeTab editor={editor} />
+                            <EditorCustomizeTab
+                                editor={editor}
+                                errorMessages={this.errorMessages}
+                            />
                         )}
                         {editor.tab === "scatter" && (
                             <EditorScatterTab grapher={grapher} />
@@ -544,7 +540,7 @@ export class ChartEditorView<
                     {/* Include svg filters necessary for vision deficiency emulation */}
                     <VisionDeficiencySvgFilters />
                 </div>
-            </ChartEditorContext.Provider>
+            </>
         )
     }
 }

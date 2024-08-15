@@ -36,8 +36,8 @@ import {
 } from "./ColorSchemeDropdown.js"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import Select from "react-select"
-import { ChartEditorContext } from "./ChartEditorContext.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ErrorMessages } from "./ChartEditorTypes.js"
 
 @observer
 export class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
@@ -458,11 +458,10 @@ export class EditorCustomizeTab<
     Editor extends AbstractChartEditor,
 > extends React.Component<{
     editor: Editor
+    errorMessages: ErrorMessages
 }> {
-    static contextType = ChartEditorContext
-
     @computed get errorMessages() {
-        return this.context.errorMessages
+        return this.props.errorMessages
     }
 
     render() {

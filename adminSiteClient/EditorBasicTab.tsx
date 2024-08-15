@@ -37,10 +37,10 @@ import {
     Draggable,
     DropResult,
 } from "react-beautiful-dnd"
-import { ChartEditorContext } from "./ChartEditorContext.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { EditorDatabase } from "./ChartEditorView.js"
 import { isChartEditorInstance } from "./ChartEditor.js"
+import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
 
 @observer
 class DimensionSlotView<
@@ -49,9 +49,8 @@ class DimensionSlotView<
     slot: DimensionSlot
     editor: Editor
     database: EditorDatabase
+    errorMessagesForDimensions: ErrorMessagesForDimensions
 }> {
-    static contextType = ChartEditorContext
-
     disposers: IReactionDisposer[] = []
 
     @observable.ref isSelectingVariables: boolean = false
@@ -62,7 +61,7 @@ class DimensionSlotView<
 
     @computed
     get errorMessages() {
-        return this.context.errorMessagesForDimensions
+        return this.props.errorMessagesForDimensions
     }
 
     @action.bound private onAddVariables(variableIds: OwidVariableId[]) {
@@ -303,7 +302,11 @@ class DimensionSlotView<
 @observer
 class VariablesSection<
     Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor; database: EditorDatabase }> {
+> extends React.Component<{
+    editor: Editor
+    database: EditorDatabase
+    errorMessagesForDimensions: ErrorMessagesForDimensions
+}> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref isAddingVariable: boolean = false
 
@@ -320,6 +323,9 @@ class VariablesSection<
                             slot={slot}
                             editor={props.editor}
                             database={props.database}
+                            errorMessagesForDimensions={
+                                props.errorMessagesForDimensions
+                            }
                         />
                     ))}
                 </div>
@@ -331,7 +337,11 @@ class VariablesSection<
 @observer
 export class EditorBasicTab<
     Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor; database: EditorDatabase }> {
+> extends React.Component<{
+    editor: Editor
+    database: EditorDatabase
+    errorMessagesForDimensions: ErrorMessagesForDimensions
+}> {
     @action.bound onChartTypeChange(value: string) {
         const { grapher } = this.props.editor
         grapher.type = value as ChartTypeName
@@ -400,6 +410,9 @@ export class EditorBasicTab<
                 <VariablesSection
                     editor={editor}
                     database={this.props.database}
+                    errorMessagesForDimensions={
+                        this.props.errorMessagesForDimensions
+                    }
                 />
             </div>
         )

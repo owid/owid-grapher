@@ -3,15 +3,18 @@ import { ChartEditor } from "./ChartEditor.js"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { isEmpty } from "@ourworldindata/utils"
-import { ChartEditorContext } from "./ChartEditorContext.js"
 import { IndicatorChartEditor } from "./IndicatorChartEditor.js"
+import {
+    ErrorMessages,
+    ErrorMessagesForDimensions,
+} from "./ChartEditorTypes.js"
 
 @observer
 export class SaveButtonsForChart extends React.Component<{
     editor: ChartEditor
+    errorMessages: ErrorMessages
+    errorMessagesForDimensions: ErrorMessagesForDimensions
 }> {
-    static contextType = ChartEditorContext
-
     @action.bound onSaveChart() {
         void this.props.editor.saveGrapher()
     }
@@ -27,7 +30,7 @@ export class SaveButtonsForChart extends React.Component<{
     }
 
     @computed get hasEditingErrors(): boolean {
-        const { errorMessages, errorMessagesForDimensions } = this.context
+        const { errorMessages, errorMessagesForDimensions } = this.props
 
         if (!isEmpty(errorMessages)) return true
 
@@ -79,15 +82,15 @@ export class SaveButtonsForChart extends React.Component<{
 @observer
 export class SaveButtonsForIndicatorChart extends React.Component<{
     editor: IndicatorChartEditor
+    errorMessages: ErrorMessages
+    errorMessagesForDimensions: ErrorMessagesForDimensions
 }> {
-    static contextType = ChartEditorContext
-
     @action.bound onSaveChart() {
         void this.props.editor.saveGrapher()
     }
 
     @computed get hasEditingErrors(): boolean {
-        const { errorMessages, errorMessagesForDimensions } = this.context
+        const { errorMessages, errorMessagesForDimensions } = this.props
 
         if (!isEmpty(errorMessages)) return true
 
