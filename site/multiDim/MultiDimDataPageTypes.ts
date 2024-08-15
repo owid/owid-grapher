@@ -1,8 +1,8 @@
-import { IndicatorTitleWithFragments } from "@ourworldindata/types"
 import {
+    IndicatorTitleWithFragments,
     FaqEntryKeyedByGdocIdAndFragmentId,
     PrimaryTopic,
-} from "@ourworldindata/types/dist/gdocTypes/Datapage.js"
+} from "@ourworldindata/types"
 
 // Indicator ID, catalog path, or maybe an array of those
 export type IndicatorEntryBeforePreProcessing = string | number | undefined
