@@ -132,6 +132,22 @@ export abstract class AbstractChartEditor<
         this.grapher.updateAuthoredVersion(config)
     }
 
+    // only works for top-level properties
+    isPropertyInherited(property: keyof GrapherInterface): boolean {
+        if (!this.isInheritanceEnabled || !this.activeParentConfigWithDefaults)
+            return false
+        return (
+            !Object.hasOwn(this.patchConfig, property) &&
+            Object.hasOwn(this.activeParentConfigWithDefaults, property)
+        )
+    }
+
+    // only works for top-level properties
+    couldPropertyBeInherited(property: keyof GrapherInterface): boolean {
+        if (!this.isInheritanceEnabled || !this.activeParentConfig) return false
+        return Object.hasOwn(this.activeParentConfig, property)
+    }
+
     abstract get isNewGrapher(): boolean
     abstract get availableTabs(): EditorTab[]
 

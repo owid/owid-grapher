@@ -8,7 +8,7 @@ import {
     EntityName,
 } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
-import { ColorBox, SelectField, Section } from "./Forms.js"
+import { ColorBox, SelectField, Section, FieldsRow } from "./Forms.js"
 import { faArrowsAltV, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -84,15 +84,21 @@ class EntityItem extends React.Component<EntityItemProps> {
 }
 
 @observer
-export class KeysSection extends React.Component<{ grapher: Grapher }> {
+export class KeysSection extends React.Component<{
+    editor: AbstractChartEditor
+}> {
     @observable.ref dragKey?: EntityName
 
+    @computed get editor() {
+        return this.props.editor
+    }
+
     @action.bound onAddKey(entityName: EntityName) {
-        this.props.grapher.selection.selectEntity(entityName)
+        this.editor.grapher.selection.selectEntity(entityName)
     }
 
     @action.bound onDragEnd(result: DropResult) {
-        const { selection } = this.props.grapher
+        const { selection } = this.editor.grapher
         const { source, destination } = result
         if (!destination) return
 
@@ -104,20 +110,46 @@ export class KeysSection extends React.Component<{ grapher: Grapher }> {
         selection.setSelectedEntities(newSelection)
     }
 
+    @action.bound setEntitySelectionToParentValue() {
+        const { grapher, activeParentConfig } = this.editor
+        if (!activeParentConfig || !activeParentConfig.selectedEntityNames)
+            return
+        grapher.selection.setSelectedEntities(
+            activeParentConfig.selectedEntityNames
+        )
+    }
+
     render() {
-        const { grapher } = this.props
+        const { editor } = this
+        const { grapher } = editor
         const { selection } = grapher
         const { unselectedEntityNames, selectedEntityNames } = selection
 
         return (
             <Section name="Data to show">
-                <SelectField
-                    onValue={this.onAddKey}
-                    value="Select data"
-                    options={["Select data"]
-                        .concat(unselectedEntityNames)
-                        .map((key) => ({ value: key }))}
-                />
+                <FieldsRow>
+                    <SelectField
+                        onValue={this.onAddKey}
+                        value="Select data"
+                        options={["Select data"]
+                            .concat(unselectedEntityNames)
+                            .map((key) => ({ value: key }))}
+                    />
+                    {editor.couldPropertyBeInherited("selectedEntityNames") && (
+                        <button
+                            className="btn btn-outline-secondary"
+                            type="button"
+                            style={{ maxWidth: "62px" }}
+                            title="Reset to parent selection"
+                            onClick={this.setEntitySelectionToParentValue}
+                            disabled={editor.isPropertyInherited(
+                                "selectedEntityNames"
+                            )}
+                        >
+                            Reset
+                        </button>
+                    )}
+                </FieldsRow>
                 <DragDropContext onDragEnd={this.onDragEnd}>
                     <Droppable droppableId="droppable">
                         {(provided) => (
@@ -278,7 +310,7 @@ export class EditorDataTab<
                         </label>
                     </div>
                 </Section>
-                <KeysSection grapher={editor.grapher} />
+                <KeysSection editor={editor} />
                 {features.canSpecifyMissingDataStrategy && (
                     <MissingDataSection editor={this.props.editor} />
                 )}
