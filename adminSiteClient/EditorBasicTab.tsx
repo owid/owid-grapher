@@ -140,7 +140,7 @@ class DimensionSlotView<
         // We want to add the reaction only after the grapher is loaded,
         // so we don't update the initial chart (as configured) by accident.
         when(
-            () => this.grapher.isReady && this.grapher.hasData,
+            () => this.grapher.isReady,
             () => {
                 this.disposers.push(
                     reaction(() => this.grapher.type, this.updateDefaults),
