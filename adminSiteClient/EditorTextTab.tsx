@@ -9,7 +9,7 @@ import React from "react"
 import { isChartEditorInstance } from "./ChartEditor.js"
 import {
     AutoTextField,
-    BindAutoString,
+    BindAutoStringExt,
     BindString,
     Button,
     RadioGroup,
@@ -39,6 +39,7 @@ export class EditorTextTab<
 
     @action.bound onAddRelatedQuestion() {
         const { grapher } = this.props.editor
+        if (!grapher.relatedQuestions) grapher.relatedQuestions = []
         grapher.relatedQuestions.push({
             text: "",
             url: "",
@@ -47,6 +48,7 @@ export class EditorTextTab<
 
     @action.bound onRemoveRelatedQuestion(idx: number) {
         const { grapher } = this.props.editor
+        if (!grapher.relatedQuestions) grapher.relatedQuestions = []
         grapher.relatedQuestions.splice(idx, 1)
     }
 
@@ -84,18 +86,27 @@ export class EditorTextTab<
     render() {
         const { editor } = this.props
         const { grapher, features } = editor
-        const { relatedQuestions } = grapher
+        const { relatedQuestions = [] } = grapher
 
         return (
             <div className="EditorTextTab">
                 <Section name="Header">
-                    <BindAutoString
-                        field="title"
-                        store={grapher}
-                        auto={
-                            editor.activeParentConfig?.title ??
-                            grapher.displayTitle
+                    <BindAutoStringExt
+                        label="Title"
+                        readFn={({ grapher }) => grapher.currentTitle}
+                        writeFn={({ grapher }, newVal) =>
+                            (grapher.title = newVal)
                         }
+                        readAutoFn={({ editor }) =>
+                            editor.couldPropertyBeInherited("title")
+                                ? editor.activeParentConfig!.title
+                                : undefined
+                        }
+                        isAuto={
+                            editor.isPropertyInherited("title") ||
+                            grapher.title === undefined
+                        }
+                        store={{ grapher, editor }}
                         softCharacterLimit={100}
                     />
                     {features.showEntityAnnotationInTitleToggle && (
@@ -143,14 +154,22 @@ export class EditorTextTab<
                         }
                         helpText="Human-friendly URL for this chart"
                     />
-                    <BindAutoString
+                    <BindAutoStringExt
                         label="Subtitle"
-                        field="subtitle"
-                        store={grapher}
-                        auto={
-                            editor.activeParentConfig?.subtitle ??
-                            grapher.currentSubtitle
+                        readFn={({ grapher }) => grapher.currentSubtitle}
+                        writeFn={({ grapher }, newVal) =>
+                            (grapher.subtitle = newVal)
                         }
+                        readAutoFn={({ editor }) =>
+                            editor.couldPropertyBeInherited("subtitle")
+                                ? editor.activeParentConfig!.subtitle
+                                : undefined
+                        }
+                        isAuto={
+                            editor.isPropertyInherited("subtitle") ||
+                            grapher.subtitle === undefined
+                        }
+                        store={{ grapher, editor }}
                         placeholder="Briefly describe the context of the data. It's best to avoid duplicating any information which can be easily inferred from other visual elements of the chart."
                         textarea
                         softCharacterLimit={280}
@@ -171,14 +190,22 @@ export class EditorTextTab<
                     />
                 </Section>
                 <Section name="Footer">
-                    <BindAutoString
+                    <BindAutoStringExt
                         label="Source"
-                        field="sourceDesc"
-                        store={grapher}
-                        auto={
-                            editor.activeParentConfig?.sourceDesc ??
-                            grapher.sourcesLine
+                        readFn={({ grapher }) => grapher.sourcesLine}
+                        writeFn={({ grapher }, newVal) =>
+                            (grapher.sourceDesc = newVal)
                         }
+                        readAutoFn={({ editor }) =>
+                            editor.couldPropertyBeInherited("sourceDesc")
+                                ? editor.activeParentConfig!.sourceDesc
+                                : undefined
+                        }
+                        isAuto={
+                            editor.isPropertyInherited("sourceDesc") ||
+                            grapher.sourceDesc === undefined
+                        }
+                        store={{ grapher, editor }}
                         helpText="Short comma-separated list of source names"
                         softCharacterLimit={60}
                     />

@@ -921,6 +921,7 @@ export class BindAutoStringExt<
 > extends React.Component<
     {
         readFn: (x: T) => string
+        readAutoFn?: (x: T) => string | undefined
         writeFn: (x: T, value: string | undefined) => void
         store: T
     } & Omit<
@@ -942,13 +943,17 @@ export class BindAutoStringExt<
     @action.bound onToggleAuto(value: boolean) {
         this.props.writeFn(
             this.props.store,
-            value ? undefined : this.props.readFn(this.props.store)
+            value
+                ? this.props.readAutoFn?.(this.props.store)
+                : this.props.readFn(this.props.store)
         )
     }
 
     render() {
-        const { readFn, store, ...rest } = this.props
-        const currentReadValue = readFn(store)
+        const { readFn, readAutoFn, store, ...rest } = this.props
+        const currentReadValue = this.props.isAuto
+            ? readAutoFn?.(store) ?? readFn(store)
+            : readFn(store)
         return (
             <AutoTextField
                 value={currentReadValue || ""}
