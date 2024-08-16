@@ -401,16 +401,18 @@ class ComparisonLineSection<
 
     @action.bound onAddComparisonLine() {
         const { grapher } = this.props.editor
+        if (!grapher.comparisonLines) grapher.comparisonLines = []
         grapher.comparisonLines.push({})
     }
 
     @action.bound onRemoveComparisonLine(index: number) {
         const { grapher } = this.props.editor
-        grapher.comparisonLines!.splice(index, 1)
+        if (!grapher.comparisonLines) grapher.comparisonLines = []
+        grapher.comparisonLines.splice(index, 1)
     }
 
     render() {
-        const { comparisonLines } = this.props.editor.grapher
+        const { comparisonLines = [] } = this.props.editor.grapher
 
         return (
             <Section name="Comparison line">

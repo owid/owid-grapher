@@ -74,7 +74,7 @@ it("can get dimension slots", () => {
     expect(grapher.dimensionSlots.length).toBe(4)
 })
 
-it("an empty Grapher serializes to an object that includes only the schema and version", () => {
+it("an empty Grapher serializes to an object that includes only the schema", () => {
     expect(new Grapher().toObject()).toEqual({
         $schema: defaultGrapherConfig.$schema,
     })
@@ -88,7 +88,7 @@ it("a bad chart type does not crash grapher", () => {
     expect(new Grapher(input).toObject()).toEqual(input)
 })
 
-it("does not preserve defaults in the object (except for the schema and version)", () => {
+it("does not preserve defaults in the object (except for the schema)", () => {
     expect(new Grapher({ tab: GrapherTabOption.chart }).toObject()).toEqual({
         $schema: defaultGrapherConfig.$schema,
     })

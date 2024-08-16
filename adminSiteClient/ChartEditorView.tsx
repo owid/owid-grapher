@@ -216,7 +216,7 @@ export class ChartEditorView<
         const { grapher } = this.manager.editor
         return {
             subtitle: extractDetailsFromSyntax(grapher.currentSubtitle),
-            note: extractDetailsFromSyntax(grapher.note),
+            note: extractDetailsFromSyntax(grapher.note ?? ""),
             axisLabelX: extractDetailsFromSyntax(
                 grapher.xAxisConfig.label ?? ""
             ),
@@ -402,6 +402,9 @@ export class ChartEditorView<
                                         }}
                                     >
                                         {capitalize(tab)}
+                                        {tab === "inheritance" &&
+                                            editor.isInheritanceEnabled &&
+                                            " (enabled)"}
                                         {tab === "refs" &&
                                         chartEditor?.references
                                             ? ` (${getFullReferencesCount(

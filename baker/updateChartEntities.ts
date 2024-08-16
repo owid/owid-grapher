@@ -110,7 +110,7 @@ const obtainAvailableEntitiesForGrapherConfig = async (
 
         if (canChangeEntities || chartTypeShowsUnselectedEntities)
             return grapher.tableForSelection.availableEntityNames as string[]
-        else return grapher.selectedEntityNames
+        else return grapher.selectedEntityNames ?? []
     } else if (grapher.hasMapTab) {
         grapher.tab = GrapherTabOption.map
         // On a map tab, tableAfterAuthorTimelineAndActiveChartTransform contains all
