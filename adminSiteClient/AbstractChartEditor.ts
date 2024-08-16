@@ -4,7 +4,6 @@ import {
     GrapherInterface,
     diffGrapherConfigs,
     mergeGrapherConfigs,
-    merge,
 } from "@ourworldindata/utils"
 import { action, computed, observable, when } from "mobx"
 import { EditorFeatures } from "./EditorFeatures.js"
@@ -73,13 +72,6 @@ export abstract class AbstractChartEditor<
         )
     }
 
-    /** default object with all possible keys */
-    fullDefaultObject = merge(
-        {},
-        Grapher.defaultObject(), // contains all keys
-        defaultGrapherConfig // contains a subset of keys with the right defaults
-    )
-
     /** original grapher config used to init the grapher instance */
     @computed get originalGrapherConfig(): GrapherInterface {
         const { patchConfig, parentConfig } = this.manager
@@ -89,7 +81,7 @@ export abstract class AbstractChartEditor<
 
     /** live-updating full config */
     @computed get fullConfig(): GrapherInterface {
-        return mergeGrapherConfigs(this.fullDefaultObject, this.grapher.object)
+        return mergeGrapherConfigs(defaultGrapherConfig, this.grapher.object)
     }
 
     /** parent config currently applied to grapher */
@@ -102,7 +94,7 @@ export abstract class AbstractChartEditor<
         | undefined {
         if (!this.activeParentConfig) return undefined
         return mergeGrapherConfigs(
-            this.fullDefaultObject,
+            defaultGrapherConfig,
             this.activeParentConfig
         )
     }
@@ -111,7 +103,7 @@ export abstract class AbstractChartEditor<
     @computed get patchConfig(): GrapherInterface {
         return diffGrapherConfigs(
             this.fullConfig,
-            this.activeParentConfigWithDefaults ?? this.fullDefaultObject
+            this.activeParentConfigWithDefaults ?? defaultGrapherConfig
         )
     }
 

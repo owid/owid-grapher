@@ -541,18 +541,6 @@ export class Grapher
         return obj
     }
 
-    static defaultObject(): GrapherInterface {
-        // JSON doesn't support Infinity, so we use strings instead.
-        const minTime = minTimeToJSON(defaultObject.minTime)
-        const maxTime = maxTimeToJSON(defaultObject.maxTime)
-
-        return {
-            ...defaultObject,
-            minTime,
-            maxTime,
-        }
-    }
-
     @action.bound downloadData(): void {
         if (this.manuallyProvideData) {
         } else if (this.owidDataset) {

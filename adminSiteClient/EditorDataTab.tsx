@@ -9,7 +9,12 @@ import {
 } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
 import { ColorBox, SelectField, Section, FieldsRow } from "./Forms.js"
-import { faArrowsAltV, faTimes } from "@fortawesome/free-solid-svg-icons"
+import {
+    faArrowsAltV,
+    faLink,
+    faTimes,
+    faUnlink,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     DragDropContext,
@@ -125,6 +130,10 @@ export class KeysSection extends React.Component<{
         const { selection } = grapher
         const { unselectedEntityNames, selectedEntityNames } = selection
 
+        const isEntitySelectionInherited = editor.isPropertyInherited(
+            "selectedEntityNames"
+        )
+
         return (
             <Section name="Data to show">
                 <FieldsRow>
@@ -139,14 +148,18 @@ export class KeysSection extends React.Component<{
                         <button
                             className="btn btn-outline-secondary"
                             type="button"
-                            style={{ maxWidth: "62px" }}
+                            style={{ maxWidth: "min-content" }}
                             title="Reset to parent selection"
                             onClick={this.setEntitySelectionToParentValue}
-                            disabled={editor.isPropertyInherited(
-                                "selectedEntityNames"
-                            )}
+                            disabled={isEntitySelectionInherited}
                         >
-                            Reset
+                            <FontAwesomeIcon
+                                icon={
+                                    isEntitySelectionInherited
+                                        ? faLink
+                                        : faUnlink
+                                }
+                            />
                         </button>
                     )}
                 </FieldsRow>
@@ -190,6 +203,14 @@ export class KeysSection extends React.Component<{
                         )}
                     </Droppable>
                 </DragDropContext>
+                {isEntitySelectionInherited && (
+                    <p style={{ marginTop: "0.5em" }}>
+                        <i>
+                            The entity selection is currently inherited from the
+                            parent indicator.
+                        </i>
+                    </p>
+                )}
             </Section>
         )
     }
