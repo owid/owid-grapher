@@ -166,8 +166,20 @@ interface FetchGrapherConfigResult {
     etag: string | undefined
 }
 
+interface GrapherSlug {
+    type: "slug"
+    id: string
+}
+
+interface GrapherUuid {
+    type: "uuid"
+    id: string
+}
+
+type GrapherIdentifier = GrapherSlug | GrapherUuid
+
 export async function fetchUnparsedGrapherConfig(
-    slug: string,
+    identifier: GrapherIdentifier,
     env: Env,
     etag?: string
 ) {
@@ -178,10 +190,15 @@ export async function fetchUnparsedGrapherConfig(
         ? [env.GRAPHER_CONFIG_R2_BUCKET_PATH]
         : ["by-branch", env.CF_PAGES_BRANCH]
 
+    const directory =
+        identifier.type === "slug"
+            ? R2GrapherConfigDirectory.publishedGrapherBySlug
+            : R2GrapherConfigDirectory.byUUID
+
     const key = excludeUndefined([
         ...topLevelDirectory,
-        R2GrapherConfigDirectory.publishedGrapherBySlug,
-        `${slug}.json`,
+        directory,
+        `${identifier.id}.json`,
     ]).join("/")
 
     console.log("fetching grapher config from this key", key)
@@ -197,8 +214,8 @@ export async function fetchUnparsedGrapherConfig(
         const topLevelDirectory = env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH
         const fallbackKey = excludeUndefined([
             topLevelDirectory,
-            R2GrapherConfigDirectory.publishedGrapherBySlug,
-            `${slug}.json`,
+            directory,
+            `${identifier.id}.json`,
         ]).join("/")
         fallbackUrl = new URL(
             fallbackKey,
@@ -211,11 +228,15 @@ export async function fetchUnparsedGrapherConfig(
 }
 
 export async function fetchGrapherConfig(
-    slug: string,
+    identifier: GrapherIdentifier,
     env: Env,
     etag?: string
 ): Promise<FetchGrapherConfigResult> {
-    const fetchResponse = await fetchUnparsedGrapherConfig(slug, env, etag)
+    const fetchResponse = await fetchUnparsedGrapherConfig(
+        identifier,
+        env,
+        etag
+    )
 
     if (fetchResponse.status === 404) {
         // we throw 404 errors instead of returning a 404 response so that the router
@@ -253,7 +274,10 @@ async function fetchAndRenderGrapherToSvg(
 ): Promise<string> {
     const grapherLogger = new TimeLogger("grapher")
 
-    const grapherConfigResponse = await fetchGrapherConfig(slug, env)
+    const grapherConfigResponse = await fetchGrapherConfig(
+        { type: "slug", id: slug },
+        env
+    )
 
     if (grapherConfigResponse.status === 404) {
         // we throw 404 errors instad of returning a 404 response so that the router
