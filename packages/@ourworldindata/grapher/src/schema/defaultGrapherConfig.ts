@@ -76,6 +76,6 @@ export const defaultGrapherConfig = {
     sortBy: "total",
     sortOrder: "desc",
     hideFacetControl: true,
-    entityTypePlural: "countries",
+    entityTypePlural: "countries and regions",
     missingDataStrategy: "auto",
 } as GrapherInterface
