@@ -1,13 +1,39 @@
 import { Env } from "../../_common/env.js"
 import { fetchGrapherConfig } from "../../_common/grapherRenderer.js"
 import { IRequestStrict, Router, error, StatusError } from "itty-router"
+import { handleThumbnailRequest } from "../../_common/reusableHandlers.js"
+import { extensions } from "../[slug].js"
 
 const router = Router<IRequestStrict, [URL, Env, string]>()
 router
     .get(
-        "/grapher/by-uuid/:uuid.config.json",
+        `/grapher/by-uuid/:uuid${extensions.configJson}`,
         async ({ params: { uuid } }, { searchParams }, env, etag) =>
             handleConfigRequest(uuid, searchParams, env, etag)
+    )
+    .get(
+        `/grapher/by-uuid/:uuid${extensions.png}`,
+        async ({ params: { uuid } }, { searchParams }, env, etag, ctx) =>
+            handleThumbnailRequest(
+                { type: "uuid", id: uuid },
+                searchParams,
+                env,
+                etag,
+                ctx,
+                "png"
+            )
+    )
+    .get(
+        `/grapher/by-uuid/:uuid${extensions.svg}`,
+        async ({ params: { uuid } }, { searchParams }, env, etag, ctx) =>
+            handleThumbnailRequest(
+                { type: "uuid", id: uuid },
+                searchParams,
+                env,
+                etag,
+                ctx,
+                "svg"
+            )
     )
     .all("*", () => error(404, "Route not defined"))
 
@@ -20,7 +46,8 @@ export const onRequest: PagesFunction = async (context) => {
             request,
             url,
             { ...env, url },
-            request.headers.get("if-none-match")
+            request.headers.get("if-none-match"),
+            context
         )
         .catch((e) => {
             if (e instanceof StatusError) {
@@ -56,7 +83,7 @@ async function handleConfigRequest(
         ? "public, s-maxage=3600, max-age=0, must-revalidate"
         : "public, s-maxage=0, max-age=0, must-revalidate"
 
-    return new Response(JSON.stringify(grapherPageResp.grapherConfig), {
+    return Response.json(grapherPageResp.grapherConfig, {
         headers: {
             "content-type": "application/json",
             "Cache-Control": cacheControl,

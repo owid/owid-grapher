@@ -159,7 +159,7 @@ function ChartHit({
     )
     const queryStr = useMemo(() => getEntityQueryStr(entities), [entities])
     const previewUrl = queryStr
-        ? `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}${queryStr}`
+        ? `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}.svg${queryStr}`
         : `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${hit.slug}.svg`
 
     useEffect(() => {

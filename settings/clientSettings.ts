@@ -35,8 +35,7 @@ export const BAKED_SITE_EXPORTS_BASE_URL: string =
     process.env.BAKED_SITE_EXPORTS_BASE_URL ?? `${BAKED_BASE_URL}/exports`
 
 export const GRAPHER_DYNAMIC_THUMBNAIL_URL: string =
-    process.env.GRAPHER_DYNAMIC_THUMBNAIL_URL ??
-    `${BAKED_GRAPHER_URL}/thumbnail`
+    process.env.GRAPHER_DYNAMIC_THUMBNAIL_URL ?? `${BAKED_GRAPHER_URL}`
 
 export const ADMIN_BASE_URL: string =
     process.env.ADMIN_BASE_URL ??
