@@ -1,6 +1,11 @@
 #! /usr/bin/env jest
 
-import { SortOrder, SortBy, ColumnTypeNames } from "@ourworldindata/utils"
+import {
+    SortOrder,
+    SortBy,
+    ColumnTypeNames,
+    MissingDataStrategy,
+} from "@ourworldindata/utils"
 import {
     OwidTable,
     SampleColumnSlugs,
@@ -105,6 +110,10 @@ it("can display a chart with missing variable data for some entities", () => {
 
     // Check that our absolute values get properly transformed into percentages
     expect(chart.failMessage).toEqual("")
+    expect(
+        chart.transformTableForSelection(table).availableEntityNames
+    ).toEqual(["France", "Spain"])
+
     expect(chart.series.length).toEqual(2)
     expect(chart.series[0].points).toEqual([
         {
@@ -134,6 +143,52 @@ it("can display a chart with missing variable data for some entities", () => {
             position: "Spain",
             value: 14,
             valueOffset: 0,
+            time: 2000,
+            fake: false,
+        },
+    ])
+})
+
+it("can display a chart with missing variable data for some entities, while hiding missing data", () => {
+    const csv = `coal,gas,year,entityName
+    20,,2000,France
+    10,20,2000,Italy
+    ,14,2000,Spain`
+    const table = new OwidTable(csv, [
+        { slug: "coal", type: ColumnTypeNames.Numeric },
+        { slug: "gas", type: ColumnTypeNames.Numeric },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+
+    const manager: ChartManager = {
+        table,
+        selection: table.availableEntityNames,
+        yColumnSlugs: ["coal", "gas"],
+        missingDataStrategy: MissingDataStrategy.hide,
+    }
+    const chart = new StackedDiscreteBarChart({ manager })
+
+    // Check that our absolute values get properly transformed into percentages
+    expect(chart.failMessage).toEqual("")
+    expect(
+        chart.transformTableForSelection(table).availableEntityNames
+    ).toEqual(["Italy"])
+
+    expect(chart.series.length).toEqual(2)
+    expect(chart.series[0].points).toEqual([
+        {
+            position: "Italy",
+            value: 10,
+            valueOffset: 0,
+            time: 2000,
+            fake: false,
+        },
+    ])
+    expect(chart.series[1].points).toEqual([
+        {
+            position: "Italy",
+            value: 20,
+            valueOffset: 10,
             time: 2000,
             fake: false,
         },

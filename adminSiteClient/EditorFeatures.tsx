@@ -110,7 +110,11 @@ export class EditorFeatures {
     @computed get canSpecifyMissingDataStrategy() {
         if (!this.grapher.hasMultipleYColumns) return false
 
-        if (this.grapher.isStackedArea || this.grapher.isStackedBar) {
+        if (
+            this.grapher.isStackedArea ||
+            this.grapher.isStackedBar ||
+            this.grapher.isStackedDiscreteBar
+        ) {
             return true
         }
 
