@@ -26,7 +26,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const allGraphers = [...graphersBySlug.values()]
         const saveJobs: utils.SaveGrapherSchemaAndDataJob[] = allGraphers.map(
             (grapher) => {
-                // since we're not baking defaults, we also exlcude them here
+                // since we're not baking defaults, we also exclude them here
                 return {
                     config: diffGrapherConfigs(grapher, defaultGrapherConfig),
                     outDir,

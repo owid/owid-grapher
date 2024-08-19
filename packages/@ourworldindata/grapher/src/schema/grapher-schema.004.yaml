@@ -663,7 +663,7 @@ properties:
             type: number
     entityTypePlural:
         description: Plural of the entity type (i.e. when entityType is 'country' this would be 'countries')
-        default: countries
+        default: countries and regions
         type: string
     missingDataStrategy:
         type: string
