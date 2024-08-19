@@ -716,7 +716,7 @@ const DataCatalogPagination = ({
         }
     }, [isOnRibbonsView, currentRefinement, nbPages, setPage])
 
-    if (isOnRibbonsView) return null
+    if (isOnRibbonsView || nbPages === 0) return null
 
     return (
         <ol
