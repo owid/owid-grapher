@@ -9,6 +9,7 @@ import { match, P } from "ts-pattern"
 export const AUTHOR_BYLINE_WIDTH = 48
 export const THUMBNAIL_WIDTH = 100
 export const LARGE_THUMBNAIL_WIDTH = 350
+export const LARGEST_IMAGE_WIDTH = 1350
 
 export function getSizes(
     originalWidth: ImageMetadata["originalWidth"]
@@ -18,7 +19,7 @@ export function getSizes(
     const widths = [AUTHOR_BYLINE_WIDTH, THUMBNAIL_WIDTH]
     // start at large thumbnail and go up by 500 to a max of 1350 before we just show the original image
     let width = LARGE_THUMBNAIL_WIDTH
-    while (width < originalWidth && width <= 1350) {
+    while (width < originalWidth && width <= LARGEST_IMAGE_WIDTH) {
         widths.push(width)
         width += 500
     }

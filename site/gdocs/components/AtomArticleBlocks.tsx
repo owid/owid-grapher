@@ -6,6 +6,11 @@ import { BAKED_BASE_URL } from "../../../settings/serverSettings.js"
 import { useImage } from "../utils.js"
 import ArticleBlock, { Container, getLayout } from "./ArticleBlock.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
+import {
+    LARGEST_IMAGE_WIDTH,
+    getFilenameExtension,
+    getFilenameWithoutExtension,
+} from "@ourworldindata/utils"
 
 export default function AtomArticleBlocks({
     blocks,
@@ -74,9 +79,13 @@ function Image({
     const smallImage = useImage(smallFilename)
     const image = smallImage || normalImage
     if (!image) return null
+    const filenameWithoutExtension = encodeURIComponent(
+        getFilenameWithoutExtension(image.filename)
+    )
+    const extension = getFilenameExtension(image.filename)
     return (
         <img
-            src={`${BAKED_BASE_URL}${IMAGES_DIRECTORY}${encodeURIComponent(image.filename)}`}
+            src={`${BAKED_BASE_URL}${IMAGES_DIRECTORY}${filenameWithoutExtension}_${LARGEST_IMAGE_WIDTH}.${extension}`}
             alt={alt ?? image.defaultAlt}
             width={image.originalWidth ?? undefined}
             height={image.originalHeight ?? undefined}
