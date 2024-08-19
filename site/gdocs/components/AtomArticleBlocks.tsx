@@ -7,9 +7,10 @@ import { useImage } from "../utils.js"
 import ArticleBlock, { Container, getLayout } from "./ArticleBlock.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import {
-    LARGEST_IMAGE_WIDTH,
     getFilenameExtension,
     getFilenameWithoutExtension,
+    isNull,
+    LARGEST_IMAGE_WIDTH,
 } from "@ourworldindata/utils"
 
 export default function AtomArticleBlocks({
@@ -82,10 +83,25 @@ function Image({
     const filenameWithoutExtension = encodeURIComponent(
         getFilenameWithoutExtension(image.filename)
     )
+    const resizedWidth = match(image.originalWidth)
+        .when(
+            (width) => isNull(width),
+            () => ""
+        )
+        .when(
+            (width) => width <= LARGEST_IMAGE_WIDTH,
+            () => ""
+        )
+        .when(
+            (width) => width > LARGEST_IMAGE_WIDTH,
+            () => `_${LARGEST_IMAGE_WIDTH}`
+        )
+        .otherwise(() => "")
+
     const extension = getFilenameExtension(image.filename)
     return (
         <img
-            src={`${BAKED_BASE_URL}${IMAGES_DIRECTORY}${filenameWithoutExtension}_${LARGEST_IMAGE_WIDTH}.${extension}`}
+            src={`${BAKED_BASE_URL}${IMAGES_DIRECTORY}${filenameWithoutExtension}${resizedWidth}.${extension}`}
             alt={alt ?? image.defaultAlt}
             width={image.originalWidth ?? undefined}
             height={image.originalHeight ?? undefined}
