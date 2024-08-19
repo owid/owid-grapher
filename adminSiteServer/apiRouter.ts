@@ -1366,7 +1366,6 @@ getRouteWithROTransaction(
     "/variables/grapherConfigAdmin/:variableId.patchConfig.json",
     async (req, res, trx) => {
         const variableId = expectInt(req.params.variableId)
-        console.log("here", variableId)
         const variable = await getGrapherConfigsForVariable(trx, variableId)
         if (!variable) {
             throw new JsonError(`Variable with id ${variableId} not found`, 500)

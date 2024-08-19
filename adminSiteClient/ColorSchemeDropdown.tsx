@@ -23,6 +23,7 @@ interface ColorSchemeDropdownProps {
     invertedColorScheme: boolean
     chartType: ChartTypeName
     onChange: (selected: ColorSchemeOption) => void
+    onBlur?: () => void
 }
 
 @observer
@@ -116,6 +117,7 @@ export class ColorSchemeDropdown extends React.Component<ColorSchemeDropdownProp
                 options={this.allOptions}
                 formatOptionLabel={this.formatOptionLabel}
                 onChange={this.onChange}
+                onBlur={this.props.onBlur}
                 value={this.allOptions.find(
                     (scheme) => scheme.value === this.props.value
                 )}
