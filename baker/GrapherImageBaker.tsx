@@ -16,6 +16,7 @@ import {
     grapherUrlToSlugAndQueryStr,
 } from "./GrapherBakingUtils.js"
 import pMap from "p-map"
+import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 
 interface SvgFilenameFragments {
     slug: string
@@ -25,15 +26,13 @@ interface SvgFilenameFragments {
     queryStr?: string
 }
 
-export async function bakeGraphersToPngs(
+export async function bakeGrapherToSvgAndPng(
     outDir: string,
     jsonConfig: GrapherInterface,
     vardata: MultipleOwidVariableDataDimensionsMap,
     optimizeSvgs = false
 ) {
-    const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
-    grapher.isExportingToSvgOrPng = true
-    grapher.shouldIncludeDetailsInStaticExport = false
+    const grapher = initGrapherForSvgExport(jsonConfig)
     grapher.receiveOwidData(vardata)
     const outPath = path.join(outDir, grapher.slug as string)
 
@@ -132,6 +131,7 @@ export function initGrapherForSvgExport(
     queryStr: string = ""
 ) {
     const grapher = new Grapher({
+        bakedGrapherURL: BAKED_GRAPHER_URL,
         ...jsonConfig,
         manuallyProvideData: true,
         queryStr,

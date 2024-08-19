@@ -15,7 +15,7 @@ import {
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import * as lodash from "lodash"
-import { bakeGraphersToPngs } from "./GrapherImageBaker.js"
+import { bakeGrapherToSvgAndPng } from "./GrapherImageBaker.js"
 import {
     OPTIMIZE_SVG_EXPORTS,
     BAKED_BASE_URL,
@@ -397,7 +397,7 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
         const variableDataMedadataMap = new Map(
             variableDataMetadata.map((item) => [item.metadata.id, item])
         )
-        await bakeGraphersToPngs(
+        await bakeGrapherToSvgAndPng(
             `${bakedSiteDir}/grapher/exports`,
             grapher,
             variableDataMedadataMap,
