@@ -307,6 +307,7 @@ interface SelectFieldProps {
     options: Option[]
     helpText?: string
     placeholder?: string
+    onBlur?: () => void
 }
 
 export class SelectField extends React.Component<SelectFieldProps> {
@@ -321,6 +322,7 @@ export class SelectField extends React.Component<SelectFieldProps> {
                     onChange={(e) =>
                         props.onValue(e.currentTarget.value as string)
                     }
+                    onBlur={this.props.onBlur}
                     value={props.value}
                     defaultValue={undefined}
                 >
@@ -733,6 +735,7 @@ export class BindString extends React.Component<{
     errorMessage?: string
     buttonContent?: React.ReactChild
     onButtonClick?: () => void
+    onBlur?: () => void
 }> {
     @action.bound onValue(value: string = "") {
         this.props.store[this.props.field] = value
@@ -741,6 +744,7 @@ export class BindString extends React.Component<{
     @action.bound onBlur() {
         const trimmedValue = this.props.store[this.props.field]?.trim()
         this.props.store[this.props.field] = trimmedValue
+        this.props.onBlur?.()
     }
 
     render() {

@@ -381,9 +381,7 @@ properties:
         default: false
         description: Indicates if the map tab should be shown
     stackMode:
-        type:
-            - string
-            - "null"
+        type: string
         description: Stack mode. Only absolute and relative are actively used.
         default: absolute
         enum:
@@ -391,7 +389,6 @@ properties:
             - relative
             - grouped
             - stacked
-            - null
     minTime:
         description: Start point of the initially selected time span.
         default: earliest

@@ -425,8 +425,8 @@ export class Grapher
     // the desired faceting strategy, which might not be possible if we change the data
     @observable selectedFacetStrategy?: FacetStrategy = undefined
 
-    @observable sortBy?: SortBy
-    @observable sortOrder?: SortOrder
+    @observable sortBy?: SortBy = SortBy.total
+    @observable sortOrder?: SortOrder = SortOrder.desc
     @observable sortColumnSlug?: string
 
     @observable.ref _isInFullScreenMode = false
@@ -520,17 +520,12 @@ export class Grapher
             grapherKeysToSerialize
         )
 
-        obj.selectedEntityNames = this.selectedEntityNames
-            ? this.selection.selectedEntityNames
-            : undefined
+        obj.selectedEntityNames = this.selection.selectedEntityNames
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
 
         // always include the schema, even if it's the default
         obj.$schema = this.$schema || defaultGrapherConfig.$schema
-
-        // todo: nulls got into the DB for this one. we can remove after moving Graphers from DB.
-        if (obj.stackMode === null) delete obj.stackMode
 
         // JSON doesn't support Infinity, so we use strings instead.
         if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
