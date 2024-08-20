@@ -13,16 +13,23 @@ import {
 import { groupBy, keyBy, pick } from "./Util.js"
 import { Url } from "./urls/Url.js"
 
+interface FilterToAvailableResult {
+    selectedChoices: MultiDimDimensionChoices
+    dimensionsWithAvailableChoices: Record<string, DimensionEnriched>
+}
+
 export class MultiDimDataPageConfig {
     private constructor(
         public readonly config: MultiDimDataPageConfigPreProcessed
     ) {}
 
-    static fromJson(jsonString: string) {
+    static fromJson(jsonString: string): MultiDimDataPageConfig {
         return new MultiDimDataPageConfig(JSON.parse(jsonString))
     }
 
-    static fromObject(obj: MultiDimDataPageConfigPreProcessed) {
+    static fromObject(
+        obj: MultiDimDataPageConfigPreProcessed
+    ): MultiDimDataPageConfig {
         return new MultiDimDataPageConfig(obj)
     }
 
@@ -89,7 +96,9 @@ export class MultiDimDataPageConfig {
      *
      * - @marcelgerber, 2024-07-22
      */
-    filterToAvailableChoices(selectedChoices: MultiDimDimensionChoices) {
+    filterToAvailableChoices(
+        selectedChoices: MultiDimDimensionChoices
+    ): FilterToAvailableResult {
         const updatedSelectedChoices: MultiDimDimensionChoices = {}
         const dimensionsWithAvailableChoices: Record<
             string,
@@ -174,7 +183,7 @@ export class MultiDimDataPageConfig {
 export const multiDimStateToQueryStr = (
     grapherQueryParams: QueryParams,
     dimensionChoices: MultiDimDimensionChoices
-) => {
+): string => {
     return Url.fromQueryParams(grapherQueryParams).updateQueryParams(
         dimensionChoices
     ).queryStr
