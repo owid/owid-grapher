@@ -41,7 +41,7 @@ export const MultiDimDataPage = (props: {
                     crossOrigin="anonymous"
                 />
             </Head>
-            <body className="DataPage">
+            <body className="DataPage MultiDimDataPage">
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <script
