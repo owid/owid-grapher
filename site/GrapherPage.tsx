@@ -66,7 +66,8 @@ export const GrapherPage = (props: {
     const imageHeight = "628"
 
     // We bake the Grapher config without defaults
-    const grapherToBake = diffGrapherConfigs(grapher, defaultGrapherConfig)
+    // const grapherToBake = diffGrapherConfigs(grapher, defaultGrapherConfig)
+    const grapherToBake = grapher
 
     const script = `const jsonConfig = ${serializeJSONForHTML({
         ...grapherToBake,
