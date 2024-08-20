@@ -6,8 +6,11 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
-import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
-import { isEqual, mapValues } from "@ourworldindata/utils"
+import {
+    MultiDimDataPageConfig,
+    isEqual,
+    mapValues,
+} from "@ourworldindata/utils"
 import { OverlayHeader, RadioButton } from "@ourworldindata/components"
 import { useTriggerOnEscape, useTriggerWhenClickOutside } from "../hooks.js"
 

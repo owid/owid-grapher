@@ -19,11 +19,13 @@ import {
     setWindowQueryStr,
     getWindowQueryStr,
     compact,
+    MultiDimDataPageConfig,
+    extractMultiDimChoicesFromQueryStr,
+    multiDimStateToQueryStr,
 } from "@ourworldindata/utils"
 import cx from "classnames"
 import { DebugProvider } from "../gdocs/DebugContext.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
-import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
 import {
     IndicatorsAfterPreProcessing,
     MultiDimDataPageProps,
@@ -33,10 +35,6 @@ import {
 import AboutThisData from "../AboutThisData.js"
 import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
-import {
-    extractDimensionChoicesFromQueryStr,
-    stateToQueryStr,
-} from "./MultiDimUrl.js"
 import { useElementBounds, useMobxStateToReactState } from "../hooks.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
 declare global {
@@ -173,7 +171,7 @@ export const MultiDimDataPageContent = ({
 
     const [currentSettings, setCurrentSettings] = useState(() => {
         const initialChoices = initialQueryStr
-            ? extractDimensionChoicesFromQueryStr(initialQueryStr, config)
+            ? extractMultiDimChoicesFromQueryStr(initialQueryStr, config)
             : {}
         const { selectedChoices } =
             config.filterToAvailableChoices(initialChoices)
@@ -199,7 +197,7 @@ export const MultiDimDataPageContent = ({
     const queryStr = useMemo(
         () =>
             grapherChangedParams !== undefined
-                ? stateToQueryStr(grapherChangedParams, currentSettings)
+                ? multiDimStateToQueryStr(grapherChangedParams, currentSettings)
                 : initialQueryStr,
         [grapherChangedParams, currentSettings, initialQueryStr]
     )

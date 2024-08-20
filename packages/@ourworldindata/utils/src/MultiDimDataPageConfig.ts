@@ -6,13 +6,12 @@ import {
     MultiDimDataPageConfigPreProcessed,
     MultiDimDimensionChoices,
     View,
-} from "@ourworldindata/types"
-import {
-    DimensionProperty,
-    groupBy,
-    keyBy,
+    QueryParams,
     OwidChartDimensionInterface,
-} from "@ourworldindata/utils"
+    DimensionProperty,
+} from "@ourworldindata/types"
+import { groupBy, keyBy, pick } from "./Util.js"
+import { Url } from "./urls/Url.js"
 
 export class MultiDimDataPageConfig {
     private constructor(
@@ -169,4 +168,28 @@ export class MultiDimDataPageConfig {
             })
             .filter((dim) => dim.variableId !== undefined)
     }
+}
+
+// Helpers to convert from and to query strings
+export const multiDimStateToQueryStr = (
+    grapherQueryParams: QueryParams,
+    dimensionChoices: MultiDimDimensionChoices
+) => {
+    return Url.fromQueryParams(grapherQueryParams).updateQueryParams(
+        dimensionChoices
+    ).queryStr
+}
+
+export const extractMultiDimChoicesFromQueryStr = (
+    queryStr: string,
+    config: MultiDimDataPageConfig
+): MultiDimDimensionChoices => {
+    const queryParams = Url.fromQueryStr(queryStr).queryParams
+    const dimensions = config.dimensions
+    const dimensionChoices = pick(
+        queryParams,
+        Object.keys(dimensions)
+    ) as MultiDimDimensionChoices
+
+    return dimensionChoices
 }

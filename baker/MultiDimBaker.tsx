@@ -10,7 +10,14 @@ import {
     MultiDimDataPageProps,
     FaqEntryKeyedByGdocIdAndFragmentId,
 } from "@ourworldindata/types"
-import { MultiDimDataPageConfig } from "../site/multiDim/MultiDimDataPageConfig.js"
+import {
+    MultiDimDataPageConfig,
+    JsonError,
+    keyBy,
+    mapValues,
+    OwidVariableWithSource,
+    pick,
+} from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import { renderToHtmlPage } from "./siteRenderers.js"
 import { MultiDimDataPage } from "../site/multiDim/MultiDimDataPage.js"
@@ -22,13 +29,6 @@ import {
     getVariableMetadata,
 } from "../db/model/Variable.js"
 import pMap from "p-map"
-import {
-    JsonError,
-    keyBy,
-    mapValues,
-    OwidVariableWithSource,
-    pick,
-} from "@ourworldindata/utils"
 import {
     fetchAndParseFaqs,
     getPrimaryTopic,

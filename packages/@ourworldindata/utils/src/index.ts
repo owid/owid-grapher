@@ -329,3 +329,9 @@ export {
 } from "./DonateUtils.js"
 
 export { isAndroid, isIOS } from "./BrowserUtils.js"
+
+export {
+    MultiDimDataPageConfig,
+    extractMultiDimChoicesFromQueryStr,
+    multiDimStateToQueryStr,
+} from "./MultiDimDataPageConfig.js"
