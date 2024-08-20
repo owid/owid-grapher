@@ -6,26 +6,26 @@
 name: Mark stale issues and pull requests
 
 on:
-    schedule:
-        - cron: "0 7 * * *"
+  schedule:
+    - cron: "0 7 * * *"
 
 jobs:
-    stale:
-        runs-on: ubuntu-latest
-        permissions:
-            issues: write
-            pull-requests: write
+  stale:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
 
-        steps:
-            - uses: actions/stale@v9
-              with:
-                  repo-token: ${{ secrets.GITHUB_TOKEN }}
-                  stale-issue-message: "This issue has had no activity within 10 months. It is considered stale and will be closed in 7 days unless it is worked on or tagged as pinned."
-                  stale-pr-message: "This PR has had no activity within the last two weeks. It is considered stale and will be closed in 3 days if no further activity is detected."
-                  stale-issue-label: "stale"
-                  stale-pr-label: "stale"
-                  days-before-stale: 300
-                  days-before-pr-stale: 14
-                  days-before-pr-close: 3
-                  exempt-issue-labels: "pinned,security,correctness"
-                  exempt-pr-labels: "pinned,staging"
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-issue-message: "This issue has had no activity within 10 months. It is considered stale and will be closed in 7 days unless it is worked on or tagged as pinned."
+          stale-pr-message: "This PR has had no activity within the last two weeks. It is considered stale and will be closed in 3 days if no further activity is detected."
+          stale-issue-label: "stale"
+          stale-pr-label: "stale"
+          days-before-stale: 300
+          days-before-pr-stale: 14
+          days-before-pr-close: 3
+          exempt-issue-labels: "pinned,security,correctness,external-contributor"
+          exempt-pr-labels: "pinned,staging,external-contributor"
