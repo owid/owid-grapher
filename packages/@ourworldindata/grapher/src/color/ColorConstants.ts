@@ -11,7 +11,7 @@ export const GRAY_10 = "#f2f2f2"
 export const GRAY_5 = "#f7f7f7"
 
 export const GRAPHER_BACKGROUND_DEFAULT = "#ffffff"
-export const GRAPHER_BACKGROUND_BEIGE = "#fbf9f3"
+export const GRAPHER_BACKGROUND_BEIGE = "#fffbf5"
 
 export const GRAPHER_DARK_TEXT = GRAY_80
 export const GRAPHER_LIGHT_TEXT = GRAY_70
