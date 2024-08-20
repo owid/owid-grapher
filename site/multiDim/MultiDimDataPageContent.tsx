@@ -171,12 +171,10 @@ export const MultiDimDataPageContent = ({
     )
     const titleFragments = useTitleFragments(config)
 
-    const [initialChoices] = useState(() =>
-        initialQueryStr
+    const [currentSettings, setCurrentSettings] = useState(() => {
+        const initialChoices = initialQueryStr
             ? extractDimensionChoicesFromQueryStr(initialQueryStr, config)
             : {}
-    )
-    const [currentSettings, setCurrentSettings] = useState(() => {
         const { selectedChoices } =
             config.filterToAvailableChoices(initialChoices)
         return selectedChoices
