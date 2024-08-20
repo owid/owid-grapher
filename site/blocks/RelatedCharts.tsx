@@ -96,7 +96,7 @@ export const RelatedCharts = ({
                     className="related-charts__chart span-cols-7 span-md-cols-12"
                     ref={refChartContainer}
                 >
-                    {figure}
+                    <div className="related-charts__figure">{figure}</div>
                     <div className="gallery-navigation">
                         <GalleryArrow
                             disabled={isFirstSlideActive}
