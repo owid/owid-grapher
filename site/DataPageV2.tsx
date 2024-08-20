@@ -107,10 +107,11 @@ export const DataPageV2 = (props: {
     }
 
     // We bake the Grapher config without defaults
-    const grapherConfigToBake = diffGrapherConfigs(
-        grapherConfig,
-        defaultGrapherConfig
-    )
+    // const grapherConfigToBake = diffGrapherConfigs(
+    //     grapherConfig,
+    //     defaultGrapherConfig
+    // )
+    const grapherConfigToBake = grapherConfig
 
     // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
     const minimalTagToSlugMap = pick(
