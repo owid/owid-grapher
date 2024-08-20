@@ -12,7 +12,7 @@ $defs:
                 description: Axis label
             min:
                 type: number
-                description: Minimum domain value of the axis
+                description: Minimum domain value of the axis. Inferred from data if not provided.
             scaleType:
                 type: string
                 description: Toggle linear/logarithmic
@@ -22,7 +22,7 @@ $defs:
                     - log
             max:
                 type: number
-                description: Maximum domain value of the axis
+                description: Maximum domain value of the axis. Inferred from data if not provided.
             canChangeScaleType:
                 type: boolean
                 description: Allow user to change lin/log
@@ -56,7 +56,9 @@ $defs:
                         type: string
             baseColorScheme:
                 type: string
-                description: One of the predefined base color schemes
+                description: |
+                    One of the predefined base color schemes.
+                    If not provided, a default is automatically chosen based on the chart type.
                 enum:
                     - YlGn
                     - YlGnBu
@@ -181,7 +183,7 @@ $defs:
                 minimum: 0
             customNumericMinValue:
                 type: number
-                description: The minimum bracket of the first bin
+                description: The minimum bracket of the first bin. Inferred from data if not provided.
         additionalProperties: false
 required:
     - title
@@ -225,11 +227,11 @@ properties:
                 $ref: "#/$defs/colorScale"
             timeTolerance:
                 type: integer
-                default: 0
                 description: |
                     Tolerance to use. If data points are missing for a time point, a match is accepted if it lies
                     within the specified time period. The unit is the dominating time unit, usually years but can be days for
-                    daily time series.
+                    daily time series. If not provided, the tolerance specified in the metadata of the indicator is used.
+                    If that's not specified, 0 is used.
                 minimum: 0
             toleranceStrategy:
                 type: string
@@ -282,7 +284,9 @@ properties:
                 - string
     baseColorScheme:
         type: string
-        description: The default color scheme if no color overrides are specified
+        description: |
+            The default color scheme if no color overrides are specified.
+            If not provided, a default is chosen based on the chart type.
     yAxis:
         $ref: "#/$defs/axis"
     tab:
@@ -311,10 +315,10 @@ properties:
         type: integer
         description: |
             The lowest year to show in the timeline. If this is set then the user is not able to see
-            any data before this year
+            any data before this year. Inferred from data if not provided.
     variantName:
         type: string
-        description: "Optional internal variant name for distinguishing charts with the same title"
+        description: Optional internal variant name for distinguishing charts with the same title
     hideTimeline:
         type: boolean
         default: false
@@ -348,7 +352,6 @@ properties:
         description: Short comma-separated list of source names
     isPublished:
         type: boolean
-        default: false
         description: Indicates if the chart is published on Our World In Data or still in draft
     invertColorScheme:
         type: boolean
@@ -604,7 +607,7 @@ properties:
         type: integer
         description: |
             The highest year to show in the timeline. If this is set then the user is not able to see
-            any data after this year
+            any data after this year. Inferred from data if not provided.
     hideConnectedScatterLines:
         type: boolean
         default: false
