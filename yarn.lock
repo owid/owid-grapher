@@ -7508,6 +7508,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"colorjs.io@npm:^0.5.2":
+  version: 0.5.2
+  resolution: "colorjs.io@npm:0.5.2"
+  checksum: 10/a6f6345865b177d19481008cb299c46ec9ff1fd206f472cd9ef69ddbca65832c81237b19fdcd24f3f9540c3e6343a22eb486cd800f5eab9815ce7c98c16a0f0e
+  languageName: node
+  linkType: hard
+
 "columnify@npm:1.6.0":
   version: 1.6.0
   resolution: "columnify@npm:1.6.0"
@@ -10967,6 +10974,7 @@ __metadata:
     classnames: "npm:^2.5.1"
     codemirror: "npm:5"
     colorbrewer: "npm:^1.3.0"
+    colorjs.io: "npm:^0.5.2"
     cookie-parser: "npm:^1.4.4"
     cypress: "npm:9.3.1"
     d3: "npm:^6.1.1"
