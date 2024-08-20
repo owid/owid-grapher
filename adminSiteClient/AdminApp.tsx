@@ -41,6 +41,7 @@ import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
 import { GdocsIndexPage, GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsStoreProvider } from "./GdocsStore.js"
+import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -154,17 +155,6 @@ export class AdminApp extends React.Component<{
                                 path="/charts"
                                 component={ChartIndexPage}
                             />
-                            {/* <Route
-                                exact
-                                path="/indicator-charts/:variableId/edit"
-                                render={({ match }) => (
-                                    <IndicatorChartEditorPage
-                                        variableId={parseInt(
-                                            match.params.variableId
-                                        )}
-                                    />
-                                )}
-                            /> */}
                             <Route
                                 exact
                                 path={`/${EXPLORERS_ROUTE_FOLDER}/:slug`}
@@ -210,6 +200,17 @@ export class AdminApp extends React.Component<{
                                 exact
                                 path="/users"
                                 component={UsersIndexPage}
+                            />
+                            <Route
+                                exact
+                                path="/variables/:variableId/config"
+                                render={({ match }) => (
+                                    <IndicatorChartEditorPage
+                                        variableId={parseInt(
+                                            match.params.variableId
+                                        )}
+                                    />
+                                )}
                             />
                             <Route
                                 exact

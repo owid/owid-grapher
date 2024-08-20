@@ -32,7 +32,7 @@ interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     label?: React.ReactNode
     secondaryLabel?: string
     value: string | undefined
-    onValue: (value: string) => void
+    onValue?: (value: string) => void
     onEnter?: () => void
     onEscape?: () => void
     onButtonClick?: () => void
@@ -68,7 +68,7 @@ export class TextField extends React.Component<TextFieldProps> {
     @bind onBlur(e: React.FocusEvent<HTMLInputElement>) {
         const { value = "" } = this.props
         const trimmedValue = value.trim()
-        this.props.onValue(trimmedValue)
+        this.props.onValue?.(trimmedValue)
         this.props.onBlur?.(e)
     }
 
@@ -114,7 +114,7 @@ export class TextField extends React.Component<TextFieldProps> {
                         type="text"
                         value={props.value || ""}
                         onChange={(e) =>
-                            this.props.onValue(e.currentTarget.value)
+                            this.props.onValue?.(e.currentTarget.value)
                         }
                         onBlur={this.onBlur}
                         onKeyDown={this.onKeyDown}
@@ -156,13 +156,13 @@ export class TextField extends React.Component<TextFieldProps> {
 export class TextAreaField extends React.Component<TextFieldProps> {
     @bind onChange(ev: React.FormEvent<HTMLTextAreaElement>) {
         const value = ev.currentTarget.value
-        this.props.onValue(value)
+        this.props.onValue?.(value)
     }
 
     @bind onBlur() {
         const { value = "" } = this.props
         const trimmedValue = value.trim()
-        this.props.onValue(trimmedValue)
+        this.props.onValue?.(trimmedValue)
     }
 
     render() {

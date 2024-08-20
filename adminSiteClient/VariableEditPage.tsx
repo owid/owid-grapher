@@ -20,6 +20,7 @@ import {
     BindDropdown,
     Toggle,
     SelectField,
+    TextAreaField,
 } from "./Forms.js"
 import {
     OwidVariableWithDataAndSource,
@@ -57,6 +58,7 @@ interface VariablePageData
     charts: ChartListItem[]
     grapherConfig: GrapherInterface | undefined
     grapherConfigETL: GrapherInterface | undefined
+    grapherConfigAdmin: GrapherInterface | undefined
     source: { id: number; name: string }
     origins: OwidOrigin[]
 }
@@ -404,35 +406,21 @@ class VariableEditor extends React.Component<{
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
-                                    <BindString
-                                        label="Grapher Config ETL"
-                                        field="v"
-                                        store={{
-                                            v: YAML.stringify(
-                                                variable.grapherConfigETL
-                                            ),
-                                        }}
-                                        disabled
-                                        textarea
-                                        rows={8}
-                                    />
                                     <BindStringArray
                                         label="Description key"
                                         field="descriptionKey"
                                         store={newVariable}
                                         rows={8}
                                     />
+                                    <BindString
+                                        label="Description processing"
+                                        field="descriptionProcessing"
+                                        store={newVariable}
+                                        textarea
+                                        rows={8}
+                                    />
                                 </FieldsRow>
                                 <FieldsRow>
-                                    <div className="col">
-                                        <BindString
-                                            label="Description processing"
-                                            field="descriptionProcessing"
-                                            store={newVariable}
-                                            textarea
-                                            rows={8}
-                                        />
-                                    </div>
                                     <div className="col">
                                         <BindDropdown
                                             label="Processing Level"
@@ -528,6 +516,54 @@ class VariableEditor extends React.Component<{
                         </form>
                     </section>
                 )}
+                <section className="partial-grapher-configs">
+                    <h3>Partial Grapher Config</h3>
+                    <FieldsRow>
+                        <TextAreaField
+                            label="Grapher Config (edited via the ETL)"
+                            value={YAML.stringify(variable.grapherConfigETL)}
+                            disabled
+                            rows={8}
+                        />
+                        <div>
+                            <TextAreaField
+                                label="Grapher Config (edited in the admin)"
+                                value={YAML.stringify(
+                                    variable.grapherConfigAdmin
+                                )}
+                                disabled
+                                rows={8}
+                            />
+                            <a
+                                className="btn btn-primary"
+                                href={`/admin/variables/${variable.id}/config`}
+                                target="_blank"
+                                rel="noopener"
+                            >
+                                {variable.grapherConfigAdmin
+                                    ? "Edit"
+                                    : "Create"}
+                            </a>
+                            {variable.grapherConfigAdmin && (
+                                <button
+                                    type="button"
+                                    className="btn btn-danger ml-2"
+                                    onClick={async () => {
+                                        await this.context.admin.rawRequest(
+                                            `/api/variables/${variable.id}/grapherConfigAdmin`,
+                                            undefined,
+                                            "DELETE"
+                                        )
+                                        window.location.reload()
+                                    }}
+                                >
+                                    Delete
+                                </button>
+                            )}
+                        </div>
+                    </FieldsRow>
+                </section>
+                <hr></hr>
                 <section>
                     <h3>Charts</h3>
                     <ChartList charts={variable.charts} />

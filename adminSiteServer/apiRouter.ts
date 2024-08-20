@@ -34,6 +34,7 @@ import {
     updateGrapherConfigAdminOfVariable,
     updateGrapherConfigETLOfVariable,
     updateAllChartsThatInheritFromIndicator,
+    getAllChartsForIndicator,
 } from "../db/model/Variable.js"
 import { updateExistingFullConfig } from "../db/model/ChartConfigs.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
@@ -1355,6 +1356,19 @@ getRouteWithROTransaction(
 
 getRouteWithROTransaction(
     apiRouter,
+    "/variables/grapherConfigETL/:variableId.patchConfig.json",
+    async (req, res, trx) => {
+        const variableId = expectInt(req.params.variableId)
+        const variable = await getGrapherConfigsForVariable(trx, variableId)
+        if (!variable) {
+            throw new JsonError(`Variable with id ${variableId} not found`, 500)
+        }
+        return variable.etl?.patchConfig ?? {}
+    }
+)
+
+getRouteWithROTransaction(
+    apiRouter,
     "/variables/grapherConfigAdmin/:variableId.patchConfig.json",
     async (req, res, trx) => {
         const variableId = expectInt(req.params.variableId)
@@ -1416,6 +1430,7 @@ getRouteWithROTransaction(
             variableId
         )
         const grapherConfigETL = variableWithConfigs?.etl?.patchConfig
+        const grapherConfigAdmin = variableWithConfigs?.admin?.patchConfig
         const mergedGrapherConfig =
             variableWithConfigs?.admin?.fullConfig ??
             variableWithConfigs?.etl?.fullConfig
@@ -1440,11 +1455,13 @@ getRouteWithROTransaction(
             charts: Record<string, any>
             grapherConfig: GrapherInterface | undefined
             grapherConfigETL: GrapherInterface | undefined
+            grapherConfigAdmin: GrapherInterface | undefined
         } = {
             ...variable,
             charts,
             grapherConfig: mergedGrapherConfig,
             grapherConfigETL,
+            grapherConfigAdmin,
         }
 
         return {
@@ -1465,11 +1482,8 @@ putRouteWithRWTransaction(
             throw new JsonError(`Variable with id ${variableId} not found`, 500)
         }
 
-        const updatedCharts = await updateGrapherConfigETLOfVariable(
-            trx,
-            variable,
-            req.body
-        )
+        const { savedPatch, updatedCharts } =
+            await updateGrapherConfigETLOfVariable(trx, variable, req.body)
 
         // trigger build if any published chart has been updated
         if (updatedCharts.some((chart) => chart.isPublished)) {
@@ -1479,7 +1493,7 @@ putRouteWithRWTransaction(
             )
         }
 
-        return { success: true }
+        return { success: true, savedPatch }
     }
 )
 
@@ -1544,6 +1558,106 @@ deleteRouteWithRWTransaction(
         }
 
         return { success: true }
+    }
+)
+
+// inserts a new config or updates an existing one
+putRouteWithRWTransaction(
+    apiRouter,
+    "/variables/:variableId/grapherConfigAdmin",
+    async (req, res, trx) => {
+        const variableId = expectInt(req.params.variableId)
+
+        const variable = await getGrapherConfigsForVariable(trx, variableId)
+        if (!variable) {
+            throw new JsonError(`Variable with id ${variableId} not found`, 500)
+        }
+
+        const { savedPatch, updatedCharts } =
+            await updateGrapherConfigAdminOfVariable(trx, variable, req.body)
+
+        // trigger build if any published chart has been updated
+        if (updatedCharts.some((chart) => chart.isPublished)) {
+            await triggerStaticBuild(
+                res.locals.user,
+                `Updating admin-authored config for variable ${variableId}`
+            )
+        }
+
+        return { success: true, savedPatch }
+    }
+)
+
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/variables/:variableId/grapherConfigAdmin",
+    async (req, res, trx) => {
+        const variableId = expectInt(req.params.variableId)
+
+        const variable = await getGrapherConfigsForVariable(trx, variableId)
+        if (!variable) {
+            throw new JsonError(`Variable with id ${variableId} not found`, 500)
+        }
+
+        // no-op if the variable doesn't have an admin-authored config
+        if (!variable.admin) return { success: true }
+
+        // remove reference in the variables table
+        await db.knexRaw(
+            trx,
+            `-- sql
+                UPDATE variables
+                SET grapherConfigIdAdmin = NULL
+                WHERE id = ?
+            `,
+            [variableId]
+        )
+
+        // delete row in the chart_configs table
+        await db.knexRaw(
+            trx,
+            `-- sql
+                DELETE FROM chart_configs
+                WHERE id = ?
+            `,
+            [variable.admin.configId]
+        )
+
+        // update all charts that inherit from the indicator
+        const updatedCharts = await updateAllChartsThatInheritFromIndicator(
+            trx,
+            variableId,
+            {
+                patchConfigETL: variable.etl?.patchConfig,
+            }
+        )
+
+        // trigger build if any published chart has been updated
+        if (updatedCharts.some((chart) => chart.isPublished)) {
+            await triggerStaticBuild(
+                res.locals.user,
+                `Updating admin-authored config for variable ${variableId}`
+            )
+        }
+
+        return { success: true }
+    }
+)
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables/:variableId/charts.json",
+    async (req, res, trx) => {
+        const variableId = expectInt(req.params.variableId)
+        const charts = await getAllChartsForIndicator(trx, variableId)
+        return charts.map((chart) => ({
+            id: chart.chartId,
+            title: chart.config.title,
+            variantName: chart.config.variantName,
+            isChild: chart.isChild,
+            isInheritanceEnabled: chart.isInheritanceEnabled,
+            isPublished: chart.isPublished,
+        }))
     }
 )
 

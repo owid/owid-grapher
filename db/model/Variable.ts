@@ -6,6 +6,7 @@ import {
     isEmpty,
     omitUndefinedValues,
     mergeGrapherConfigs,
+    diffGrapherConfigs,
 } from "@ourworldindata/utils"
 import {
     getVariableDataRoute,
@@ -268,7 +269,10 @@ export async function updateGrapherConfigETLOfVariable(
     trx: db.KnexReadWriteTransaction,
     variable: VariableWithGrapherConfigs,
     config: GrapherInterface
-): Promise<{ chartId: number; isPublished: boolean }[]> {
+): Promise<{
+    savedPatch: GrapherInterface
+    updatedCharts: { chartId: number; isPublished: boolean }[]
+}> {
     const { variableId } = variable
 
     const configETL = makeConfigValidForIndicator({
@@ -312,20 +316,31 @@ export async function updateGrapherConfigETLOfVariable(
         }
     )
 
-    return updatedCharts
+    return {
+        savedPatch: configETL,
+        updatedCharts,
+    }
 }
 
 export async function updateGrapherConfigAdminOfVariable(
     trx: db.KnexReadWriteTransaction,
     variable: VariableWithGrapherConfigs,
     config: GrapherInterface
-): Promise<{ chartId: number; isPublished: boolean }[]> {
+): Promise<{
+    savedPatch: GrapherInterface
+    updatedCharts: { chartId: number; isPublished: boolean }[]
+}> {
     const { variableId } = variable
 
-    const patchConfigAdmin = makeConfigValidForIndicator({
+    const validConfig = makeConfigValidForIndicator({
         config,
         variableId,
     })
+
+    const patchConfigAdmin = diffGrapherConfigs(
+        validConfig,
+        variable.etl?.fullConfig ?? {}
+    )
 
     const fullConfigAdmin = mergeGrapherConfigs(
         variable.etl?.patchConfig ?? {},
@@ -356,7 +371,56 @@ export async function updateGrapherConfigAdminOfVariable(
         }
     )
 
-    return updatedCharts
+    return {
+        savedPatch: patchConfigAdmin,
+        updatedCharts,
+    }
+}
+
+export async function getAllChartsForIndicator(
+    trx: db.KnexReadonlyTransaction,
+    variableId: number
+): Promise<
+    {
+        chartId: DbPlainChart["id"]
+        config: GrapherInterface
+        isPublished: boolean
+        isChild: boolean
+        isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
+    }[]
+> {
+    const charts = await db.knexRaw<{
+        chartId: DbPlainChart["id"]
+        config: DbRawChartConfig["full"]
+        isPublished: boolean
+        isChild: boolean
+        isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
+    }>(
+        trx,
+        `-- sql
+        SELECT
+            c.id AS chartId,
+            cc.full AS config,
+            cc.full ->> '$.isPublished' = "true" AS isPublished,
+            cxp.variableId = ? AS isChild,
+            c.isInheritanceEnabled
+        FROM charts c
+        JOIN chart_configs cc ON cc.id = c.configId
+        JOIN chart_dimensions cd ON cd.chartId = c.id
+        LEFT JOIN charts_x_parents cxp ON c.id = cxp.chartId
+        WHERE
+            cd.variableId = ?
+        `,
+        [variableId, variableId]
+    )
+
+    return charts.map((chart) => ({
+        chartId: chart.chartId,
+        config: parseChartConfig(chart.config),
+        isPublished: !!chart.isPublished,
+        isChild: !!chart.isChild,
+        isInheritanceEnabled: !!chart.isInheritanceEnabled,
+    }))
 }
 
 // TODO: these are domain functions and should live somewhere else
