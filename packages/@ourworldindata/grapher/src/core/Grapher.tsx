@@ -348,10 +348,16 @@ export class Grapher
     @observable.ref id?: number = undefined
     @observable.ref version = 1
     @observable.ref slug?: string = undefined
+
+    // Initializing text fields with `undefined` ensures that empty strings get serialised
     @observable.ref title?: string = undefined
     @observable.ref subtitle: string | undefined = undefined
     @observable.ref sourceDesc?: string = undefined
     @observable.ref note?: string = undefined
+    @observable.ref variantName?: string = undefined
+    @observable.ref internalNotes?: string = undefined
+    @observable.ref originUrl?: string = undefined
+
     @observable hideAnnotationFieldsInTitle?: AnnotationFieldsInTitle =
         undefined
     @observable.ref minTime?: TimeBound = undefined
@@ -375,9 +381,6 @@ export class Grapher
     @observable.ref hasChartTab = true
     @observable.ref hasMapTab = false
     @observable.ref tab = GrapherTabOption.chart
-    @observable.ref internalNotes?: string = undefined
-    @observable.ref variantName?: string = undefined
-    @observable.ref originUrl?: string = undefined
     @observable.ref isPublished?: boolean = undefined
     @observable.ref baseColorScheme?: ColorSchemeName = undefined
     @observable.ref invertColorScheme?: boolean = undefined
@@ -405,10 +408,12 @@ export class Grapher
     @observable tableSlugs?: ColumnSlugs = undefined
     @observable backgroundSeriesLimit?: number = undefined
 
-    @observable selectedEntityNames?: EntityName[] = undefined
     @observable selectedEntityColors: {
         [entityName: string]: string | undefined
     } = {}
+
+    // Initializing arrays with `undefined` ensures that empty arrays get serialised
+    @observable selectedEntityNames?: EntityName[] = undefined
     @observable excludedEntities?: number[] = undefined
     /** IncludedEntities are usually empty which means use all available entities. When
         includedEntities is set it means "only use these entities". excludedEntities
@@ -547,9 +552,6 @@ export class Grapher
 
     @action.bound updateFromObject(obj?: GrapherProgrammaticInterface): void {
         if (!obj) return
-
-        // we can remove when we purge current graphers which have this set.
-        if (obj.stackMode === null) delete obj.stackMode
 
         updatePersistables(this, obj)
 
