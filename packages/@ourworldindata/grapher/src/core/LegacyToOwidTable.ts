@@ -631,7 +631,7 @@ const columnDefFromOwidVariable = (
     return {
         name,
         slug,
-        isDailyMeasurement: variable.display?.yearIsDay,
+        isDailyMeasurement: display?.yearIsDay,
         unit,
         shortUnit,
         description,
@@ -643,6 +643,7 @@ const columnDefFromOwidVariable = (
         datasetId,
         datasetName,
         display,
+        color: display?.color,
         nonRedistributable,
         sourceLink: source?.link,
         sourceName: source?.name,
