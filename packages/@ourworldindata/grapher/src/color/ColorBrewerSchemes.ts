@@ -4,6 +4,8 @@ import {
     ColorSchemeInterface,
     ColorSchemeName,
 } from "@ourworldindata/types"
+import ColorJS from "colorjs.io"
+import { memoize } from "@ourworldindata/utils"
 
 type ColorSchemeProps = { displayName: string; singleColorScale: boolean }
 
@@ -59,6 +61,14 @@ const ColorBrewerSchemeIndex: {
     PuBu: { displayName: "Purple-Blue shades", singleColorScale: true },
 } as const
 
+const _darkenColorForContrast = (color: string) => {
+    const col = new ColorJS(color)
+    col.oklab.l *= 0.95
+    return col.toString({ format: "hex" })
+}
+
+const darkenColorForContrast = memoize(_darkenColorForContrast)
+
 export const getColorBrewerScheme: (
     name: string
 ) => ColorSchemeInterface | undefined = (name: string) => {
@@ -69,7 +79,10 @@ export const getColorBrewerScheme: (
 
     const colorSetsArray: Color[][] = []
     Object.keys(colorSets).forEach(
-        (numColors) => (colorSetsArray[+numColors] = colorSets[numColors])
+        (numColors) =>
+            (colorSetsArray[+numColors] = colorSets[numColors].map(
+                darkenColorForContrast
+            ))
     )
     return {
         name,
