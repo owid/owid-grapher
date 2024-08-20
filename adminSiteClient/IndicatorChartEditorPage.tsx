@@ -9,7 +9,9 @@ import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
 import {
     IndicatorChartEditor,
     IndicatorChartEditorManager,
+    type Chart,
 } from "./IndicatorChartEditor.js"
+import { defaultGrapherConfig } from "@ourworldindata/grapher"
 
 @observer
 export class IndicatorChartEditorPage
@@ -24,24 +26,50 @@ export class IndicatorChartEditorPage
     context!: AdminAppContextType
 
     patchConfig: GrapherInterface = {}
+    parentConfig: GrapherInterface | undefined = undefined
+
+    charts: Chart[] = []
 
     isNewGrapher = false
+    isInheritanceEnabled = true
 
-    async fetchGrapher(): Promise<void> {
-        const { variableId } = this.props
+    async fetchGrapherConfig(): Promise<void> {
+        const { variableId } = this
         const config = await this.context.admin.getJSON(
             `/api/variables/grapherConfigAdmin/${variableId}.patchConfig.json`
         )
         if (isEmpty(config)) {
             this.isNewGrapher = true
             this.patchConfig = {
+                $schema: defaultGrapherConfig.$schema,
                 dimensions: [{ variableId, property: DimensionProperty.y }],
             }
+        } else {
+            this.patchConfig = config
         }
+    }
+
+    async fetchParentConfig(): Promise<void> {
+        const { variableId } = this
+        const etlConfig = await this.context.admin.getJSON(
+            `/api/variables/grapherConfigETL/${variableId}.patchConfig.json`
+        )
+        this.parentConfig = isEmpty(etlConfig) ? undefined : etlConfig
+    }
+
+    async fetchCharts(): Promise<void> {
+        const { variableId } = this
+        this.charts = await this.context.admin.getJSON(
+            `/api/variables/${variableId}/charts.json`
+        )
     }
 
     @computed get admin(): Admin {
         return this.context.admin
+    }
+
+    @computed get variableId(): number {
+        return this.props.variableId
     }
 
     @computed get editor(): IndicatorChartEditor {
@@ -49,7 +77,9 @@ export class IndicatorChartEditorPage
     }
 
     @action.bound refresh(): void {
-        void this.fetchGrapher()
+        void this.fetchGrapherConfig()
+        void this.fetchParentConfig()
+        void this.fetchCharts()
     }
 
     componentDidMount(): void {

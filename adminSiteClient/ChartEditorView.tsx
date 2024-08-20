@@ -36,10 +36,8 @@ import { EditorMapTab } from "./EditorMapTab.js"
 import { EditorHistoryTab } from "./EditorHistoryTab.js"
 import { EditorReferencesTab } from "./EditorReferencesTab.js"
 import { EditorInheritanceTab } from "./EditorInheritanceTab.js"
-import {
-    SaveButtonsForChart,
-    SaveButtonsForIndicatorChart,
-} from "./SaveButtons.js"
+import { EditorDebugTab } from "./EditorDebugTab.js"
+import { SaveButtons } from "./SaveButtons.js"
 import { LoadingBlocker } from "./Forms.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -54,7 +52,6 @@ import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
 import { EditorExportTab } from "./EditorExportTab.js"
 import { runDetailsOnDemand } from "../site/detailsOnDemand.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { isIndicatorChartEditorInstance } from "./IndicatorChartEditor.js"
 import {
     ErrorMessages,
     ErrorMessagesForDimensions,
@@ -353,23 +350,6 @@ export class ChartEditorView<
         const { grapher, availableTabs } = editor
 
         const chartEditor = isChartEditorInstance(editor) ? editor : undefined
-        const indicatorChartEditor = isIndicatorChartEditorInstance(editor)
-            ? editor
-            : undefined
-
-        const saveButtons = chartEditor ? (
-            <SaveButtonsForChart
-                editor={chartEditor}
-                errorMessages={this.errorMessages}
-                errorMessagesForDimensions={this.errorMessagesForDimensions}
-            />
-        ) : indicatorChartEditor ? (
-            <SaveButtonsForIndicatorChart
-                editor={indicatorChartEditor}
-                errorMessages={this.errorMessages}
-                errorMessagesForDimensions={this.errorMessagesForDimensions}
-            />
-        ) : null
 
         return (
             <>
@@ -403,7 +383,8 @@ export class ChartEditorView<
                                     >
                                         {capitalize(tab)}
                                         {tab === "inheritance" &&
-                                            editor.isInheritanceEnabled &&
+                                            chartEditor &&
+                                            chartEditor.isInheritanceEnabled &&
                                             " (enabled)"}
                                         {tab === "refs" &&
                                         chartEditor?.references
@@ -456,14 +437,25 @@ export class ChartEditorView<
                         {chartEditor && chartEditor.tab === "refs" && (
                             <EditorReferencesTab editor={chartEditor} />
                         )}
-                        {chartEditor && chartEditor.tab === "inheritance" && (
-                            <EditorInheritanceTab editor={chartEditor} />
+                        {editor.tab === "inheritance" && (
+                            <EditorInheritanceTab editor={editor} />
                         )}
                         {editor.tab === "export" && (
                             <EditorExportTab editor={editor} />
                         )}
+                        {editor.tab === "debug" && (
+                            <EditorDebugTab editor={editor} />
+                        )}
                     </div>
-                    {editor.tab !== "export" && saveButtons}
+                    {editor.tab !== "export" && (
+                        <SaveButtons
+                            editor={editor}
+                            errorMessages={this.errorMessages}
+                            errorMessagesForDimensions={
+                                this.errorMessagesForDimensions
+                            }
+                        />
+                    )}
                 </div>
                 <div className="chart-editor-view">
                     <figure

@@ -73,6 +73,11 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         return this.manager.pageviews
     }
 
+    /** parent variable id, derived from the config */
+    @computed get parentVariableId(): number | undefined {
+        return getParentVariableIdFromChartConfig(this.fullConfig)
+    }
+
     @computed get availableTabs(): EditorTab[] {
         const tabs: EditorTab[] = ["basic", "data", "text", "customize"]
         if (this.grapher.hasMapTab) tabs.push("map")
@@ -80,8 +85,9 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         if (this.grapher.isMarimekko) tabs.push("marimekko")
         tabs.push("revisions")
         tabs.push("refs")
-        if (this.parentConfig) tabs.push("inheritance")
+        if (this.parentVariableId) tabs.push("inheritance")
         tabs.push("export")
+        tabs.push("debug")
         return tabs
     }
 

@@ -1,16 +1,44 @@
 import React from "react"
-import { ChartEditor } from "./ChartEditor.js"
+import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
-import { isEmpty } from "@ourworldindata/utils"
-import { IndicatorChartEditor } from "./IndicatorChartEditor.js"
+import { isEmpty, omit } from "@ourworldindata/utils"
+import {
+    IndicatorChartEditor,
+    isIndicatorChartEditorInstance,
+} from "./IndicatorChartEditor.js"
 import {
     ErrorMessages,
     ErrorMessagesForDimensions,
 } from "./ChartEditorTypes.js"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 @observer
-export class SaveButtonsForChart extends React.Component<{
+export class SaveButtons<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{
+    editor: Editor
+    errorMessages: ErrorMessages
+    errorMessagesForDimensions: ErrorMessagesForDimensions
+}> {
+    render() {
+        const { editor } = this.props
+        const passthroughProps = omit(this.props, "editor")
+        if (isChartEditorInstance(editor))
+            return <SaveButtonsForChart editor={editor} {...passthroughProps} />
+        else if (isIndicatorChartEditorInstance(editor))
+            return (
+                <SaveButtonsForIndicatorChart
+                    editor={editor}
+                    {...passthroughProps}
+                />
+            )
+        else return null
+    }
+}
+
+@observer
+class SaveButtonsForChart extends React.Component<{
     editor: ChartEditor
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions
@@ -80,7 +108,7 @@ export class SaveButtonsForChart extends React.Component<{
 }
 
 @observer
-export class SaveButtonsForIndicatorChart extends React.Component<{
+class SaveButtonsForIndicatorChart extends React.Component<{
     editor: IndicatorChartEditor
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions
@@ -114,7 +142,9 @@ export class SaveButtonsForIndicatorChart extends React.Component<{
                     onClick={this.onSaveChart}
                     disabled={isSavingDisabled}
                 >
-                    {editor.isNewGrapher ? "Create chart" : "Save chart"}
+                    {editor.isNewGrapher
+                        ? "Create indicator chart"
+                        : "Update indicator chart"}
                 </button>
             </div>
         )

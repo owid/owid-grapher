@@ -22,6 +22,7 @@ export type EditorTab =
     | "refs"
     | "export"
     | "inheritance"
+    | "debug"
 
 export interface AbstractChartEditorManager {
     admin: Admin

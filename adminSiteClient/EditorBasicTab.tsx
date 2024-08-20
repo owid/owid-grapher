@@ -41,6 +41,10 @@ import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { EditorDatabase } from "./ChartEditorView.js"
 import { isChartEditorInstance } from "./ChartEditor.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
+import {
+    IndicatorChartEditor,
+    isIndicatorChartEditorInstance,
+} from "./IndicatorChartEditor.js"
 
 @observer
 class DimensionSlotView<
@@ -383,8 +387,12 @@ export class EditorBasicTab<
             (chartType) => chartType !== ChartTypeName.WorldMap
         )
 
+        const isIndicatorChart = isIndicatorChartEditorInstance(editor)
+
         return (
             <div className="EditorBasicTab">
+                {isIndicatorChart && <IndicatorChartInfo editor={editor} />}
+
                 <Section name="Type of chart">
                     <SelectField
                         value={grapher.type}
@@ -407,14 +415,37 @@ export class EditorBasicTab<
                         />
                     </FieldsRow>
                 </Section>
-                <VariablesSection
-                    editor={editor}
-                    database={this.props.database}
-                    errorMessagesForDimensions={
-                        this.props.errorMessagesForDimensions
-                    }
-                />
+                {!isIndicatorChart && (
+                    <VariablesSection
+                        editor={editor}
+                        database={this.props.database}
+                        errorMessagesForDimensions={
+                            this.props.errorMessagesForDimensions
+                        }
+                    />
+                )}
             </div>
         )
     }
+}
+
+function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
+    const { variableId, grapher } = props.editor
+
+    const column = grapher.inputTable.get(variableId?.toString())
+    const variableLink = (
+        <a
+            href={`/admin/variables/${variableId}`}
+            target="_blank"
+            rel="noopener"
+        >
+            {column?.name ?? variableId}
+        </a>
+    )
+
+    return (
+        <Section name="Indicator chart">
+            <p>This is the Grapher config for indicator {variableLink}.</p>
+        </Section>
+    )
 }
