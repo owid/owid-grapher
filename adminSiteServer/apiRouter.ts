@@ -277,8 +277,13 @@ const saveNewChart = async (
     { config, user }: { config: GrapherInterface; user: DbPlainUser }
 ): Promise<GrapherInterface> => {
     // if the schema version is missing, assume it's the latest
-    if (!config["$schema"]) {
-        config["$schema"] = defaultGrapherConfig["$schema"]
+    if (!config.$schema) {
+        config.$schema = defaultGrapherConfig.$schema
+    }
+
+    // if isPublished is missing, add it
+    if (!config.isPublished) {
+        config.isPublished = false
     }
 
     // compute patch and full configs
@@ -339,8 +344,13 @@ const updateExistingChart = async (
     config.id = chartId
 
     // if the schema version is missing, assume it's the latest
-    if (!config["$schema"]) {
-        config["$schema"] = defaultGrapherConfig["$schema"]
+    if (!config.$schema) {
+        config.$schema = defaultGrapherConfig.$schema
+    }
+
+    // if isPublished is missing, add it
+    if (!config.isPublished) {
+        config.isPublished = false
     }
 
     // compute patch and full configs

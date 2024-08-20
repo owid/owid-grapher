@@ -16,8 +16,13 @@ export class MakeChartsInheritDefaults1720600092980
             const originalConfig = JSON.parse(chart.config)
 
             // if the schema version is missing, assume it's the latest
-            if (!originalConfig["$schema"]) {
-                originalConfig["$schema"] = defaultGrapherConfig["$schema"]
+            if (!originalConfig.$schema) {
+                originalConfig.$schema = defaultGrapherConfig.$schema
+            }
+
+            // if isPublished is missing, add it
+            if (!originalConfig.isPublished) {
+                originalConfig.isPublished = false
             }
 
             const patchConfig = diffGrapherConfigs(
