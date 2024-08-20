@@ -29,7 +29,7 @@ import {
     MultiDimDataPageProps,
     MultiDimDimensionChoices,
     View,
-} from "./MultiDimDataPageTypes.js"
+} from "@ourworldindata/types"
 import AboutThisData from "../AboutThisData.js"
 import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"

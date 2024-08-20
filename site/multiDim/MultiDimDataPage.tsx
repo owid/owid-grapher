@@ -5,7 +5,7 @@ import { SiteHeader } from "../SiteHeader.js"
 import { OWID_DATAPAGE_CONTENT_ROOT_ID } from "../DataPageV2Content.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { SiteFooterContext, serializeJSONForHTML } from "@ourworldindata/utils"
-import { MultiDimDataPageProps } from "./MultiDimDataPageTypes.js"
+import { MultiDimDataPageProps } from "@ourworldindata/types"
 
 export const MultiDimDataPage = (props: {
     baseUrl: string

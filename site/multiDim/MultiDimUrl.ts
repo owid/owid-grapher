@@ -1,7 +1,6 @@
-import { QueryParams } from "@ourworldindata/types"
+import { QueryParams, MultiDimDimensionChoices } from "@ourworldindata/types"
 import { pick, Url } from "@ourworldindata/utils"
 import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
-import { MultiDimDimensionChoices } from "./MultiDimDataPageTypes.js"
 
 export const stateToQueryStr = (
     grapherQueryParams: QueryParams,

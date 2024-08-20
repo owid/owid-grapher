@@ -8,7 +8,8 @@ import {
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageConfigRaw,
     MultiDimDataPageProps,
-} from "../site/multiDim/MultiDimDataPageTypes.js"
+    FaqEntryKeyedByGdocIdAndFragmentId,
+} from "@ourworldindata/types"
 import { MultiDimDataPageConfig } from "../site/multiDim/MultiDimDataPageConfig.js"
 import * as db from "../db/db.js"
 import { renderToHtmlPage } from "./siteRenderers.js"
@@ -34,7 +35,6 @@ import {
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-import { FaqEntryKeyedByGdocIdAndFragmentId } from "@ourworldindata/types/dist/gdocTypes/Datapage.js"
 
 // TODO Make this dynamic
 const baseDir = findProjectBaseDir(__dirname)

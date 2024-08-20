@@ -1,8 +1,6 @@
-import {
-    IndicatorTitleWithFragments,
-    FaqEntryKeyedByGdocIdAndFragmentId,
-    PrimaryTopic,
-} from "@ourworldindata/types"
+import { OwidEnrichedGdocBlock } from "../gdocTypes/ArchieMlComponents.js"
+import { PrimaryTopic } from "../gdocTypes/Datapage.js"
+import { IndicatorTitleWithFragments } from "../OwidVariable.js"
 
 // Indicator ID, catalog path, or maybe an array of those
 export type IndicatorEntryBeforePreProcessing = string | number | undefined
@@ -75,6 +73,10 @@ export interface Config {
 }
 
 export type MultiDimDimensionChoices = Record<string, string> // Keys: dimension slugs, values: choice slugs
+
+export type FaqEntryKeyedByGdocIdAndFragmentId = {
+    faqs: Record<string, Record<string, OwidEnrichedGdocBlock[]>>
+}
 
 export interface MultiDimDataPageProps {
     configObj: MultiDimDataPageConfigPreProcessed

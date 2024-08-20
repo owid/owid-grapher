@@ -127,10 +127,6 @@ export type FaqEntryData = {
     faqs: OwidEnrichedGdocBlock[]
 }
 
-export type FaqEntryKeyedByGdocIdAndFragmentId = {
-    faqs: Record<string, Record<string, OwidEnrichedGdocBlock[]>>
-}
-
 export interface DataPageV2ContentFields {
     datapageData: DataPageDataV2
     faqEntries: FaqEntryData | undefined

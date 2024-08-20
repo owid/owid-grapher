@@ -648,3 +648,17 @@ export {
     type DbEnrichedLatestWork,
     parseLatestWork,
 } from "./domainTypes/Author.js"
+
+export type {
+    IndicatorEntryBeforePreProcessing,
+    IndicatorsAfterPreProcessing,
+    MultiDimDataPageConfigPreProcessed,
+    MultiDimDataPageConfigRaw,
+    MultiDimDataPageProps,
+    FaqEntryKeyedByGdocIdAndFragmentId,
+    Choice,
+    ChoicesEnriched,
+    DimensionEnriched,
+    MultiDimDimensionChoices,
+    View,
+} from "./siteTypes/MultiDimDataPage.js"

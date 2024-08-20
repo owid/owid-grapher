@@ -6,7 +6,7 @@ import {
     MultiDimDataPageConfigPreProcessed,
     MultiDimDimensionChoices,
     View,
-} from "./MultiDimDataPageTypes.js"
+} from "@ourworldindata/types"
 import {
     DimensionProperty,
     groupBy,
