@@ -234,14 +234,11 @@ export class DiscreteBarChart
     @computed private get leftValueLabelWidth(): number {
         if (!this.hasNegative) return 0
 
-        const labelAndValueWidths = this.series
-            .filter((d) => d.value < 0)
-            .map((d) => {
-                const labelWidth = Bounds.forText(
-                    d.seriesName,
-                    this.legendLabelStyle
-                ).width
-                const valueWidth = this.formatValue(d).width
+        const labelAndValueWidths = this.sizedSeries
+            .filter((s) => s.value < 0)
+            .map((s) => {
+                const labelWidth = s.label?.width ?? 0
+                const valueWidth = this.formatValue(s).width
                 return labelWidth + valueWidth + labelToTextPadding
             })
 
