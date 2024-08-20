@@ -43,6 +43,11 @@ const polyfillPreload = (
         rel="preload"
         href={POLYFILL_URL}
         as="script"
+        // Cloudflare's Early Hints generation for this URL fumbles the `&amp;` contained in this link; so we disable this for "Early Hints" for now.
+        // See https://github.com/cloudflare/workers-sdk/issues/6527
+        // Cloudflare disables Early Hints generation for any <link> that doesn't just contain `rel`, `href`, `as` - so the actual name of this
+        // attr doesn't actually matter.
+        data-cloudflare-disable-early-hints
     />
 )
 
