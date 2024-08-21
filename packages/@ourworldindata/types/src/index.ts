@@ -503,6 +503,12 @@ export {
     ImagesTableName,
 } from "./dbTypes/Images.js"
 export {
+    type DbEnrichedMultiDimDataPage,
+    type DbInsertMultiDimDataPage,
+    type DbPlainMultiDimDataPage,
+    MultiDimDataPagesTableName,
+} from "./dbTypes/MultiDimDataPages.js"
+export {
     type DbPlainNamespace,
     type DbInsertNamespace,
     NamespacesTableName,
