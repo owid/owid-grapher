@@ -319,7 +319,7 @@ export async function updateGrapherConfigAdminOfVariable(
     trx: db.KnexReadWriteTransaction,
     variable: VariableWithGrapherConfigs,
     config: GrapherInterface
-): Promise<void> {
+): Promise<{ chartId: number; isPublished: boolean }[]> {
     const { variableId } = variable
 
     const patchConfigAdmin = makeConfigValidForIndicator({
@@ -347,10 +347,16 @@ export async function updateGrapherConfigAdminOfVariable(
         })
     }
 
-    await updateAllChartsThatInheritFromIndicator(trx, variableId, {
-        patchConfigETL: variable.etl?.patchConfig ?? {},
-        patchConfigAdmin: patchConfigAdmin,
-    })
+    const updatedCharts = await updateAllChartsThatInheritFromIndicator(
+        trx,
+        variableId,
+        {
+            patchConfigETL: variable.etl?.patchConfig ?? {},
+            patchConfigAdmin: patchConfigAdmin,
+        }
+    )
+
+    return updatedCharts
 }
 
 // TODO: these are domain functions and should live somewhere else

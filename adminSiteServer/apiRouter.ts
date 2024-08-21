@@ -300,16 +300,6 @@ const saveNewChart = async (
         shouldInherit = false,
     }: { config: GrapherInterface; user: DbPlainUser; shouldInherit?: boolean }
 ): Promise<GrapherInterface> => {
-    // if the schema version is missing, assume it's the latest
-    if (!config.$schema) {
-        config.$schema = defaultGrapherConfig.$schema
-    }
-
-    // if isPublished is missing, add it
-    if (!config.isPublished) {
-        config.isPublished = false
-    }
-
     // grab the parent of the chart if inheritance should be enabled
     const parent = shouldInherit
         ? await getParentByChartConfig(knex, config)
@@ -379,16 +369,6 @@ const updateExistingChart = async (
 
     // make sure that the id of the incoming config matches the chart id
     config.id = chartId
-
-    // if the schema version is missing, assume it's the latest
-    if (!config.$schema) {
-        config.$schema = defaultGrapherConfig.$schema
-    }
-
-    // if isPublished is missing, add it
-    if (!config.isPublished) {
-        config.isPublished = false
-    }
 
     // if inheritance is enabled, grab the parent from its config
     const shouldInherit =
@@ -530,6 +510,10 @@ const saveGrapher = async (
         newConfig.$schema ??
         existingConfig?.$schema ??
         defaultGrapherConfig.$schema
+
+    // add the isPublished field if is missing
+    newConfig.isPublished =
+        newConfig.isPublished ?? existingConfig?.isPublished ?? false
 
     // Execute the actual database update or creation
     let chartId: number
