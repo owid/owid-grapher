@@ -9,6 +9,7 @@ import {
     BASE_DIR,
     GDOCS_DETAILS_ON_DEMAND_ID,
     BAKED_GRAPHER_URL,
+    FEATURE_FLAGS,
 } from "../settings/serverSettings.js"
 
 import {
@@ -88,6 +89,7 @@ import {
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
+    FeatureFlagFeature,
 } from "../settings/clientSettings.js"
 import pMap from "p-map"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
@@ -105,6 +107,7 @@ import { getBakePath } from "@ourworldindata/components"
 import { GdocAuthor, getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
 import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
+import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
 
 type PrefetchedAttachments = {
     linkedAuthors: LinkedAuthor[]
@@ -134,6 +137,7 @@ const nonWordpressSteps = [
     "countryProfiles",
     "explorers",
     "charts",
+    "multiDimPages",
     "gdocPosts",
     "gdriveImages",
     "dods",
@@ -752,6 +756,20 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ validated grapher dods" })
     }
 
+    private async bakeMultiDimPages(knex: db.KnexReadWriteTransaction) {
+        if (!this.bakeSteps.has("multiDimPages")) return
+        if (!FEATURE_FLAGS.has(FeatureFlagFeature.MultiDimDataPage)) {
+            console.log(
+                "Skipping baking multi-dim pages because feature flag is not set"
+            )
+            return
+        }
+
+        await bakeAllMultiDimDataPages(knex, this.bakedSiteDir)
+
+        this.progressBar.tick({ name: "✅ baked multi-dim pages" })
+    }
+
     private async bakeDetailsOnDemand(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("dods")) return
         if (!GDOCS_DETAILS_ON_DEMAND_ID) {
@@ -1059,6 +1077,7 @@ export class SiteBaker {
                 name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
             })
         }
+        await this.bakeMultiDimPages(knex)
         await this.bakeDetailsOnDemand(knex)
         await this.validateGrapherDodReferences(knex)
         await this.bakeGDocPosts(knex)

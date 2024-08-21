@@ -62,6 +62,7 @@ import {
 } from "./plainRouterHelpers.js"
 import { DEFAULT_LOCAL_BAKE_DIR } from "../site/SiteConstants.js"
 import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
+import { renderMultiDimDataPageBySlug } from "../baker/MultiDimBaker.js"
 
 require("express-async-errors")
 
@@ -201,15 +202,29 @@ getPlainRouteNonIdempotentWithRWTransaction(
     mockSiteRouter,
     "/grapher/:slug",
     async (req, res, trx) => {
-        const entity = await getChartConfigBySlug(trx, req.params.slug)
-        if (!entity) throw new JsonError("No such chart", 404)
+        const chartRow = await getChartConfigBySlug(trx, req.params.slug).catch(
+            console.error
+        )
+        if (chartRow) {
+            // XXX add dev-prod parity for this
+            res.set("Access-Control-Allow-Origin", "*")
 
-        // XXX add dev-prod parity for this
-        res.set("Access-Control-Allow-Origin", "*")
+            const previewDataPageOrGrapherPage =
+                await renderPreviewDataPageOrGrapherPage(chartRow.config, trx)
+            res.send(previewDataPageOrGrapherPage)
+            return
+        } else {
+            const page = await renderMultiDimDataPageBySlug(
+                trx,
+                req.params.slug
+            ).catch(console.error)
+            if (page) {
+                res.send(page)
+                return
+            }
+        }
 
-        const previewDataPageOrGrapherPage =
-            await renderPreviewDataPageOrGrapherPage(entity.config, trx)
-        res.send(previewDataPageOrGrapherPage)
+        throw new JsonError("No such chart", 404)
     }
 )
 

@@ -173,6 +173,8 @@ export const IMAGE_HOSTING_R2_REGION: string =
 
 export const DATA_API_URL: string = clientSettings.DATA_API_URL
 
+export const FEATURE_FLAGS = clientSettings.FEATURE_FLAGS
+
 export const BUILDKITE_API_ACCESS_TOKEN: string =
     serverSettings.BUILDKITE_API_ACCESS_TOKEN ?? ""
 export const BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG: string =

@@ -136,6 +136,7 @@ export interface DataPageV2ContentFields {
     tagToSlugMap: Record<string, string>
     imageMetadata: Record<string, ImageMetadata>
 }
+
 export interface DisplaySource {
     label: string
     description?: string
