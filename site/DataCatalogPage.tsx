@@ -3,7 +3,7 @@ import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { SiteFooterContext, TagGraphRoot } from "@ourworldindata/utils"
-import { DataCatalogInstantSearchWrapper } from "./DataCatalogWithReducer.js"
+import { DataCatalogInstantSearchWrapper } from "./DataCatalogRestAPI.js"
 
 declare global {
     interface Window {
