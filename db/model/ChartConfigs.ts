@@ -46,7 +46,7 @@ export async function updateExistingFullConfig(
     await updateExistingConfig(knex, { ...params, column: "full" })
 }
 
-export async function updateExistingConfig(
+async function updateExistingConfig(
     knex: db.KnexReadWriteTransaction,
     {
         column,

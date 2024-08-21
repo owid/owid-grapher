@@ -555,6 +555,9 @@ export class Grapher
 
         updatePersistables(this, obj)
 
+        // Regression fix: some legacies have this set to Null. Todo: clean DB.
+        if (obj.originUrl === null) this.originUrl = ""
+
         // update selection
         if (obj.selectedEntityNames)
             this.selection.setSelectedEntities(obj.selectedEntityNames)
