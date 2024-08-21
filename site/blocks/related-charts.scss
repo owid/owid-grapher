@@ -101,8 +101,14 @@
 }
 
 .related-charts__chart {
+    .related-charts__figure {
+        height: $grapher-height;
+        margin-bottom: 1rem;
+    }
+
     figure {
         @include figure-grapher-reset;
+        margin-bottom: 0;
     }
 
     .gallery-navigation {
