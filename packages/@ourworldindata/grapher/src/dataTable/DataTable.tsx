@@ -789,15 +789,18 @@ export class DataTable extends React.Component<{
         targetTimes: number[]
         targetTimeMode: TargetTimeMode
     }): DimensionColumn[] {
-        // Inject delta columns if we have start & end values to compare in the table.
-        // One column for absolute difference, another for % difference.
+        // Inject delta columns if the data is numerical and we have start & end
+        // values to compare in the table. One column for absolute difference,
+        // another for % difference.
         const deltaColumns: DimensionColumn[] = []
-        if (targetTimeMode === TargetTimeMode.range) {
-            const { tableDisplay = {} } = sourceColumn.display ?? {}
-            if (!tableDisplay.hideAbsoluteChange)
-                deltaColumns.push({ key: RangeValueKey.delta })
-            if (!tableDisplay.hideRelativeChange)
-                deltaColumns.push({ key: RangeValueKey.deltaRatio })
+        if (sourceColumn.hasNumberFormatting) {
+            if (targetTimeMode === TargetTimeMode.range) {
+                const { tableDisplay = {} } = sourceColumn.display ?? {}
+                if (!tableDisplay.hideAbsoluteChange)
+                    deltaColumns.push({ key: RangeValueKey.delta })
+                if (!tableDisplay.hideRelativeChange)
+                    deltaColumns.push({ key: RangeValueKey.deltaRatio })
+            }
         }
 
         const valueColumns = targetTimes.map((targetTime, index) => ({

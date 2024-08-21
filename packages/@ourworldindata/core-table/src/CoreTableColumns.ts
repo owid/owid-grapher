@@ -247,7 +247,8 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get unit(): string | undefined {
-        return this.display?.unit ?? this.def.unit
+        const unit = this.display?.unit ?? this.def.unit
+        return unit?.trim()
     }
 
     @imemo get shortUnit(): string | undefined {
