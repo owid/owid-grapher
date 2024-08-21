@@ -256,6 +256,7 @@ describe("OwidAdminApp", () => {
         )
         expect(fullConfig).toHaveProperty("id", chartId) // must match the db id
         expect(fullConfig).toHaveProperty("version", 1) // automatically added
+        expect(fullConfig).toHaveProperty("isPublished", false) // automatically added
         expect(fullConfig).toHaveProperty("slug", "test-chart")
         expect(fullConfig).toHaveProperty("title", "Test chart")
         expect(fullConfig).toHaveProperty("type", "LineChart") // default property
@@ -269,6 +270,7 @@ describe("OwidAdminApp", () => {
             $schema: defaultGrapherConfig["$schema"],
             id: chartId,
             version: 1,
+            isPublished: false,
             slug: "test-chart",
             title: "Test chart",
             // note that the type is not included
@@ -464,6 +466,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             $schema: defaultGrapherConfig["$schema"],
             id: chartId,
             version: 1,
+            isPublished: false,
             slug: "test-chart",
             title: "Test chart",
             type: "Marimekko",
@@ -511,6 +514,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             $schema: defaultGrapherConfig["$schema"],
             id: chartId,
             version: 1,
+            isPublished: false,
             slug: "test-chart",
             title: "Test chart",
             type: "Marimekko",
