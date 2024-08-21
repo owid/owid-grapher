@@ -47,6 +47,7 @@ import {
 import { makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
+import { match } from "ts-pattern"
 
 interface DataTableState {
     sort: DataTableSortState
@@ -411,6 +412,7 @@ export class DataTable extends React.Component<{
                         contentMaxWidth={
                             this.singleDataColumnStyle?.contentMaxWidth
                         }
+                        dimension={dim}
                     />
                 )
             })
@@ -944,6 +946,8 @@ export class DataTable extends React.Component<{
                     sortable: entityCount > 1,
                 })),
                 display: { columnName, unit },
+                yearIsDay: d.sourceColumn.def.display?.yearIsDay,
+                displayName: d.sourceColumn.displayName,
             }
         })
     }
@@ -1001,6 +1005,7 @@ function ColumnHeader(props: {
     lastSubdimension?: boolean
     minWidth?: number
     contentMaxWidth?: number
+    dimension?: DataTableDimension
 }): React.ReactElement {
     const { sortable, sortedCol, colType, subdimensionType, lastSubdimension } =
         props
@@ -1018,8 +1023,37 @@ function ColumnHeader(props: {
         />
     )
 
+    const ariaSortDesc = match([sortedCol, props.sortOrder])
+        .with([true, SortOrder.asc], () => "ascending" as const)
+        .with([true, SortOrder.desc], () => "descending" as const)
+        .otherwise(() => "none" as const)
+
+    const ariaLabel = match(subdimensionType)
+        .with(RangeValueKey.start, () => `Values at start range`)
+        .with(RangeValueKey.end, () => `Values at end range`)
+        .with(RangeValueKey.delta, () => `Absolute change`)
+        .with(RangeValueKey.deltaRatio, () => `Relative change`)
+        .otherwise(() => undefined)
+
+    const ariaDescription = match(subdimensionType)
+        .with(
+            RangeValueKey.start,
+            () =>
+                `${props.dimension?.displayName} at ${props.dimension?.yearIsDay ? "day" : "year"} ${props.headerText}`
+        )
+        .with(
+            RangeValueKey.end,
+            () =>
+                `${props.dimension?.displayName} at ${props.dimension?.yearIsDay ? "day" : "year"} ${props.headerText}`
+        )
+        .otherwise(() => undefined)
+
     return (
         <th
+            scope={props.colSpan === 1 ? "col" : "colgroup"}
+            aria-sort={ariaSortDesc}
+            aria-label={ariaLabel}
+            aria-description={ariaDescription}
             className={classnames(colType, {
                 sortable,
                 sorted: sortedCol,
@@ -1162,6 +1196,8 @@ interface DataTableDimension {
     coreTableColumn: CoreColumn
     sortable: boolean
     display: { columnName: IndicatorTitleWithFragments; unit?: string }
+    yearIsDay: boolean | undefined
+    displayName: string
 }
 
 interface DataTableRow {
