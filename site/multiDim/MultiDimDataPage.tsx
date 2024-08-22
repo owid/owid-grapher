@@ -6,6 +6,7 @@ import { OWID_DATAPAGE_CONTENT_ROOT_ID } from "../DataPageV2Content.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { SiteFooterContext, serializeJSONForHTML } from "@ourworldindata/utils"
 import { MultiDimDataPageProps } from "@ourworldindata/types"
+import { Html } from "../Html.js"
 
 export const MultiDimDataPage = (props: {
     baseUrl: string
@@ -17,7 +18,7 @@ export const MultiDimDataPage = (props: {
     const baseUrl = props.baseUrl // TODO
 
     return (
-        <html>
+        <Html>
             <Head
                 canonicalUrl={canonicalUrl}
                 // pageTitle={pageTitle}
@@ -71,6 +72,6 @@ export const MultiDimDataPage = (props: {
                     // isPreviewing={isPreviewing}
                 />
             </body>
-        </html>
+        </Html>
     )
 }
