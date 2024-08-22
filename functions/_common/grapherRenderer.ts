@@ -7,7 +7,7 @@ import {
 } from "@ourworldindata/utils"
 import { svg2png, initialize as initializeSvg2Png } from "svg2png-wasm"
 import { TimeLogger } from "./timeLogger"
-import { png } from "itty-router"
+import { png, StatusError } from "itty-router"
 
 import svg2png_wasm from "../../node_modules/svg2png-wasm/svg2png_wasm_bg.wasm"
 
@@ -152,6 +152,8 @@ async function fetchFromR2(
         headers,
     }
     const primaryResponse = await fetch(url.toString(), init)
+    // The fallback URL here is used so that on staging or dev we can fallback
+    // to the production bucket if the file is not found in the branch bucket
     if (primaryResponse.status === 404 && fallbackUrl) {
         return fetch(fallbackUrl.toString(), init)
     }
@@ -215,6 +217,13 @@ export async function fetchGrapherConfig(
 ): Promise<FetchGrapherConfigResult> {
     const fetchResponse = await fetchUnparsedGrapherConfig(slug, env, etag)
 
+    if (fetchResponse.status === 404) {
+        // we throw 404 errors instead of returning a 404 response so that the router
+        // catch handler can do a lookup in the redirects file and maybe send
+        // a 302 redirect response
+        throw new StatusError(404)
+    }
+
     if (fetchResponse.status !== 200) {
         console.log(
             "Status code is not 200, returning empty response with status code",
@@ -241,13 +250,16 @@ async function fetchAndRenderGrapherToSvg(
     options: ImageOptions,
     searchParams: URLSearchParams,
     env: Env
-) {
+): Promise<string> {
     const grapherLogger = new TimeLogger("grapher")
 
     const grapherConfigResponse = await fetchGrapherConfig(slug, env)
 
-    if (grapherConfigResponse.status !== 200) {
-        return null
+    if (grapherConfigResponse.status === 404) {
+        // we throw 404 errors instad of returning a 404 response so that the router
+        // catch handler can do a lookup in the redirects file and maybe send
+        // a 302 redirect response
+        throw new StatusError(grapherConfigResponse.status)
     }
 
     const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
@@ -300,10 +312,6 @@ export const fetchAndRenderGrapher = async (
     )
     console.log("fetched svg")
 
-    if (!svg) {
-        return new Response("Not found", { status: 404 })
-    }
-
     switch (outType) {
         case "png":
             return png(await renderSvgToPng(svg, options))
@@ -341,7 +349,7 @@ export async function getOptionalRedirectForSlug(
     slug: string,
     baseUrl: URL,
     env: Env
-) {
+): Promise<string | undefined> {
     const redirects: Record<string, string> = await env.ASSETS.fetch(
         new URL("/grapher/_grapherRedirects.json", baseUrl),
         { cf: { cacheTtl: 2 * 60 } }
@@ -354,8 +362,11 @@ export async function getOptionalRedirectForSlug(
     return redirects[slug]
 }
 
-export function createRedirectResponse(redirSlug: string, currentUrl: URL) {
-    new Response(null, {
+export function createRedirectResponse(
+    redirSlug: string,
+    currentUrl: URL
+): Response {
+    return new Response(null, {
         status: 302,
         headers: { Location: `/grapher/${redirSlug}${currentUrl.search}` },
     })
