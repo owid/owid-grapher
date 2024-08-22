@@ -14,7 +14,7 @@ const enrichRow = (
 
 export const getAllMultiDimDataPages = async (
     knex: KnexReadonlyTransaction,
-    onlyPublished = true
+    { onlyPublished = true }: { onlyPublished?: boolean } = {}
 ): Promise<Map<string, DbEnrichedMultiDimDataPage>> => {
     const rows = await knex<DbPlainMultiDimDataPage>(
         MultiDimDataPagesTableName
@@ -27,10 +27,11 @@ export const getAllMultiDimDataPages = async (
 
 export const getMultiDimDataPageBySlug = async (
     knex: KnexReadonlyTransaction,
-    slug: string
+    slug: string,
+    { onlyPublished = true }: { onlyPublished?: boolean } = {}
 ): Promise<DbEnrichedMultiDimDataPage | undefined> => {
     const row = await knex<DbPlainMultiDimDataPage>(MultiDimDataPagesTableName)
-        .where({ slug })
+        .where({ slug, published: onlyPublished ? true : undefined })
         .first()
 
     return row ? enrichRow(row) : undefined

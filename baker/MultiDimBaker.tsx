@@ -1,7 +1,5 @@
-import yaml from "yaml"
 import fs from "fs-extra"
 import path from "path"
-import findProjectBaseDir from "../settings/findBaseDir.js"
 import {
     IndicatorEntryBeforePreProcessing,
     IndicatorsAfterPreProcessing,
@@ -35,25 +33,10 @@ import {
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-
-// TODO Make this dynamic
-const baseDir = findProjectBaseDir(__dirname)
-if (!baseDir) throw new Error("Could not find project base directory")
-const MULTI_DIM_CONFIG_DIR = path.join(baseDir, "public/multi-dim")
-
-const readMultiDimConfig = (filename: string) =>
-    yaml.parse(
-        fs.readFileSync(path.join(MULTI_DIM_CONFIG_DIR, filename), "utf8")
-    )
-
-const MULTI_DIM_SITES_BY_SLUG: Record<string, MultiDimDataPageConfigRaw> = {
-    "mdd-causes-of-death": readMultiDimConfig("causes-of-death.yml"),
-    "mdd-energy": readMultiDimConfig("energy.yml"),
-    "mdd-mixed": readMultiDimConfig("mixed.yml"),
-    "mdd-life-expectancy": readMultiDimConfig("life-expectancy.json"),
-    "mdd-plastic": readMultiDimConfig("plastic.json"),
-    "mdd-poverty": readMultiDimConfig("poverty.yml"),
-}
+import {
+    getAllMultiDimDataPages,
+    getMultiDimDataPageBySlug,
+} from "../db/model/MultiDimDataPage.js"
 
 const resolveMultiDimDataPageCatalogPathsToIndicatorIds = async (
     knex: db.KnexReadonlyTransaction,
@@ -209,13 +192,10 @@ const getFaqEntries = async (
     }
 }
 
-export const renderMultiDimDataPageBySlug = async (
+export const renderMultiDimDataPageFromConfig = async (
     knex: db.KnexReadWriteTransaction,
-    slug: string
+    rawConfig: MultiDimDataPageConfigRaw
 ) => {
-    const rawConfig = MULTI_DIM_SITES_BY_SLUG[slug]
-    if (!rawConfig) throw new Error(`No multi-dim site found for slug: ${slug}`)
-
     // TAGS
     const tagToSlugMap = await getTagToSlugMap(knex)
     // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
@@ -248,10 +228,23 @@ export const renderMultiDimDataPageBySlug = async (
         primaryTopic,
     }
 
-    return renderMultiDimDataPage(props)
+    return renderMultiDimDataPageFromProps(props)
 }
 
-export const renderMultiDimDataPage = async (props: MultiDimDataPageProps) => {
+export const renderMultiDimDataPageBySlug = async (
+    knex: db.KnexReadWriteTransaction,
+    slug: string,
+    { onlyPublished = true }: { onlyPublished?: boolean } = {}
+) => {
+    const dbRow = await getMultiDimDataPageBySlug(knex, slug, { onlyPublished })
+    if (!dbRow) throw new Error(`No multi-dim site found for slug: ${slug}`)
+
+    return renderMultiDimDataPageFromConfig(knex, dbRow.config)
+}
+
+export const renderMultiDimDataPageFromProps = async (
+    props: MultiDimDataPageProps
+) => {
     return renderToHtmlPage(
         <MultiDimDataPage baseUrl={BAKED_BASE_URL} multiDimProps={props} />
     )
@@ -260,9 +253,10 @@ export const renderMultiDimDataPage = async (props: MultiDimDataPageProps) => {
 export const bakeMultiDimDataPage = async (
     knex: db.KnexReadWriteTransaction,
     bakedSiteDir: string,
-    slug: string
+    slug: string,
+    rawConfig: MultiDimDataPageConfigRaw
 ) => {
-    const renderedHtml = await renderMultiDimDataPageBySlug(knex, slug)
+    const renderedHtml = await renderMultiDimDataPageFromConfig(knex, rawConfig)
     const outPath = path.join(bakedSiteDir, `grapher/${slug}.html`)
     await fs.writeFile(outPath, renderedHtml)
 }
@@ -271,7 +265,8 @@ export const bakeAllMultiDimDataPages = async (
     knex: db.KnexReadWriteTransaction,
     bakedSiteDir: string
 ) => {
-    for (const slug of Object.keys(MULTI_DIM_SITES_BY_SLUG)) {
-        await bakeMultiDimDataPage(knex, bakedSiteDir, slug)
+    const multiDimsBySlug = await getAllMultiDimDataPages(knex)
+    for (const [slug, row] of multiDimsBySlug.entries()) {
+        await bakeMultiDimDataPage(knex, bakedSiteDir, slug, row.config)
     }
 }
