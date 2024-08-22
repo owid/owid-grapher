@@ -5,8 +5,9 @@ import {
     DbEnrichedMultiDimDataPage,
 } from "@ourworldindata/types"
 
-const createOnlyPublishedFilter = (onlyPublished: boolean) =>
-    onlyPublished ? { published: true } : {}
+const createOnlyPublishedFilter = (
+    onlyPublished: boolean
+): Record<string, any> => (onlyPublished ? { published: true } : {})
 
 const enrichRow = (
     row: DbPlainMultiDimDataPage
