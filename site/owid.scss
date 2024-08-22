@@ -36,6 +36,7 @@
 @import "css/grid.scss";
 @import "css/layout.scss";
 @import "css/general.scss";
+@import "css/noscript.scss";
 @import "./collections/CollectionsPage.scss";
 @import "./SiteSearchNavigation.scss";
 @import "./site/search/Autocomplete.scss";
@@ -683,12 +684,6 @@ a.ref sup {
 
 .print-only {
     display: none !important;
-}
-
-html:not(.js) {
-    .js-only {
-        display: none;
-    }
 }
 
 @media print {

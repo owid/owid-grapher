@@ -3,6 +3,7 @@ import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { Country, sortBy } from "@ourworldindata/utils"
+import { Html } from "./Html.js"
 
 export const CountriesIndexPage = (props: {
     countries: Country[]
@@ -13,7 +14,7 @@ export const CountriesIndexPage = (props: {
     const sortedCountries = sortBy(countries, (country) => country.name)
 
     return (
-        <html>
+        <Html>
             <Head
                 canonicalUrl={`${baseUrl}/countries`}
                 pageTitle="Countries"
@@ -42,6 +43,6 @@ export const CountriesIndexPage = (props: {
                 <SiteFooter baseUrl={baseUrl} />
                 {/* <script>{`window.runChartsIndexPage()`}</script> */}
             </body>
-        </html>
+        </Html>
     )
 }

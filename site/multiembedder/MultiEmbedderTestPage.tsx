@@ -7,6 +7,7 @@ import { EXPLORER_EMBEDDED_FIGURE_SELECTOR } from "../../explorer/ExplorerConsta
 import { Head } from "../../site/Head.js"
 import { SiteFooter } from "../../site/SiteFooter.js"
 import { SiteHeader } from "../../site/SiteHeader.js"
+import { Html } from "../Html.js"
 
 export const MultiEmbedderTestPage = (
     globalEntitySelector = false,
@@ -24,7 +25,7 @@ export const MultiEmbedderTestPage = (
         height: "600px",
     }
     return (
-        <html>
+        <Html>
             <Head canonicalUrl={slug} pageTitle={title} baseUrl="/" />
             <body>
                 <SiteHeader baseUrl={""} />
@@ -121,6 +122,6 @@ Chart embedded on
                 </main>
                 <SiteFooter baseUrl={""} />
             </body>
-        </html>
+        </Html>
     )
 }

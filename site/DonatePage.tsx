@@ -6,13 +6,14 @@ import { IMAGES_DIRECTORY, OwidGdocPostInterface } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
+import { Html } from "./Html.js"
 
 export const DonatePage = (props: {
     baseUrl: string
     faqsGdoc: OwidGdocPostInterface
     recaptchaKey: string
 }) => (
-    <html>
+    <Html>
         <Head
             canonicalUrl={`${props.baseUrl}/donate`}
             pageTitle="Donate"
@@ -97,5 +98,5 @@ export const DonatePage = (props: {
                 }}
             />
         </body>
-    </html>
+    </Html>
 )

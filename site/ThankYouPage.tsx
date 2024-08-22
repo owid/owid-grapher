@@ -5,13 +5,14 @@ import { SiteFooter } from "./SiteFooter.js"
 import { IMAGES_DIRECTORY } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faFacebook, faXTwitter } from "@fortawesome/free-brands-svg-icons"
+import { Html } from "./Html.js"
 
 const shareMessage =
     "I’m proud to be a supporter of Our World in Data! Their team builds a public resource, free for everyone, that makes the research and data on the world’s largest problems easier to access and understand. You can donate here:"
 const donateLink = "https://ourworldindata.org/donate"
 
 export const ThankYouPage = (props: { baseUrl: string }) => (
-    <html>
+    <Html>
         <Head
             canonicalUrl={`${props.baseUrl}/thank-you`}
             pageTitle="Thank you"
@@ -101,5 +102,5 @@ export const ThankYouPage = (props: { baseUrl: string }) => (
 
             <SiteFooter hideDonate={true} baseUrl={props.baseUrl} />
         </body>
-    </html>
+    </Html>
 )

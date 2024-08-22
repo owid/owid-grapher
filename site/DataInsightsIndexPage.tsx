@@ -13,6 +13,7 @@ import {
 } from "./DataInsightsIndexPageContent.js"
 import { DATA_INSIGHT_ATOM_FEED_PROPS } from "./gdocs/utils.js"
 import { DebugProvider } from "./gdocs/DebugContext.js"
+import { Html } from "./Html.js"
 
 export interface DataInsightsIndexPageProps {
     dataInsights: OwidGdocDataInsightInterface[]
@@ -25,7 +26,7 @@ export interface DataInsightsIndexPageProps {
 export const DataInsightsIndexPage = (props: DataInsightsIndexPageProps) => {
     const { baseUrl, isPreviewing } = props
     return (
-        <html>
+        <Html>
             <Head
                 canonicalUrl={`${baseUrl}/data-insights`}
                 pageTitle="Daily Data Insights"
@@ -56,6 +57,6 @@ export const DataInsightsIndexPage = (props: DataInsightsIndexPageProps) => {
                     }}
                 />
             </body>
-        </html>
+        </Html>
     )
 }

@@ -126,7 +126,12 @@ export const createTagsForManifestEntry = (
             if (manifestEntry?.isEntry) {
                 assets = [
                     ...assets,
-                    <script key={entry} type="module" src={assetUrl} />,
+                    <script
+                        key={entry}
+                        type="module"
+                        src={assetUrl}
+                        data-attach-owid-error-handler
+                    />,
                 ]
             }
 
