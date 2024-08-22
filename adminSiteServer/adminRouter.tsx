@@ -49,6 +49,10 @@ import {
     getPlainRouteNonIdempotentWithRWTransaction,
     getPlainRouteWithROTransaction,
 } from "./plainRouterHelpers.js"
+import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
+import { renderMultiDimDataPageFromConfig } from "../baker/MultiDimBaker.js"
+
+require("express-async-errors")
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
@@ -347,11 +351,27 @@ getPlainRouteNonIdempotentWithRWTransaction(
     adminRouter,
     "/grapher/:slug",
     async (req, res, trx) => {
-        const entity = await getChartConfigBySlug(trx, req.params.slug)
-        if (!entity) throw new JsonError("No such chart", 404)
-        const previewDataPageOrGrapherPage =
-            await renderPreviewDataPageOrGrapherPage(entity.config, trx)
-        res.send(previewDataPageOrGrapherPage)
+        const entity = await getChartConfigBySlug(trx, req.params.slug).catch(
+            () => undefined
+        )
+        if (entity) {
+            const previewDataPageOrGrapherPage =
+                await renderPreviewDataPageOrGrapherPage(entity.config, trx)
+            res.send(previewDataPageOrGrapherPage)
+        }
+
+        const mdd = await getMultiDimDataPageBySlug(trx, req.params.slug, {
+            onlyPublished: false,
+        })
+        if (mdd) {
+            const renderedPage = await renderMultiDimDataPageFromConfig(
+                trx,
+                mdd.config
+            )
+            res.send(renderedPage)
+        }
+
+        throw new JsonError("No such chart", 404)
     }
 )
 

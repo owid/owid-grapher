@@ -5,6 +5,9 @@ import {
     DbEnrichedMultiDimDataPage,
 } from "@ourworldindata/types"
 
+const createOnlyPublishedFilter = (onlyPublished: boolean) =>
+    onlyPublished ? { published: true } : {}
+
 const enrichRow = (
     row: DbPlainMultiDimDataPage
 ): DbEnrichedMultiDimDataPage => ({
@@ -19,7 +22,7 @@ export const getAllMultiDimDataPages = async (
     const rows = await knex<DbPlainMultiDimDataPage>(
         MultiDimDataPagesTableName
     ).where({
-        published: onlyPublished ? true : undefined,
+        ...createOnlyPublishedFilter(onlyPublished),
     })
 
     return new Map(rows.map((row) => [row.slug, enrichRow(row)]))
@@ -31,7 +34,7 @@ export const getMultiDimDataPageBySlug = async (
     { onlyPublished = true }: { onlyPublished?: boolean } = {}
 ): Promise<DbEnrichedMultiDimDataPage | undefined> => {
     const row = await knex<DbPlainMultiDimDataPage>(MultiDimDataPagesTableName)
-        .where({ slug, published: onlyPublished ? true : undefined })
+        .where({ slug, ...createOnlyPublishedFilter(onlyPublished) })
         .first()
 
     return row ? enrichRow(row) : undefined
