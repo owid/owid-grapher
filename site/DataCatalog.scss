@@ -224,9 +224,6 @@
     margin-bottom: 16px;
     line-height: 24px;
     list-style: none;
-    &.data-catalog-filters-list--is-loading {
-        display: none;
-    }
 }
 
 .data-catalog-filters-list-item {
@@ -294,12 +291,6 @@
     }
 }
 
-.data-catalog-search-hits--is-loading,
-.data-catalog-ribbons--is-loading,
-.data-catalog-filters-list--is-loading {
-    display: none;
-}
-
 .data-catalog-ribbon {
     background-color: $blue-5;
     padding: 24px;
@@ -356,12 +347,9 @@
 }
 
 .data-catalog-loading-spinner {
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
-    &.data-catalog-loading-spinner--is-loading {
-        display: flex;
-    }
     .data-catalog-loading-spinner__globe {
         color: $blue-90;
         margin: 0 8px;
@@ -381,9 +369,6 @@
     justify-content: center;
     margin-top: 24px;
     margin-bottom: 24px;
-    &.data-catalog-pagination--is-loading {
-        display: none;
-    }
     .data-catalog-pagination__item {
         button {
             background-color: transparent;
