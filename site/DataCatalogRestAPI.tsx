@@ -11,6 +11,7 @@ import {
     TagGraphRoot,
     Url,
     getPaginationPageNumbers,
+    memoize,
 } from "@ourworldindata/utils"
 import algoliasearch, { SearchClient } from "algoliasearch"
 import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "../settings/clientSettings.js"
@@ -319,30 +320,29 @@ function DataCatalogCountrySelector({
 }
 
 const SelectedCountriesPills = ({
-    selectedCountryNames,
+    selectedCountries,
     removeCountry,
 }: {
-    selectedCountryNames: Set<string>
+    selectedCountries: Region[]
     removeCountry: (country: string) => void
 }) => {
-    if (selectedCountryNames.size === 0) return null
     return (
         <div className="data-catalog-selected-countries-container">
-            {[...selectedCountryNames].map((country) => (
+            {selectedCountries.map((country) => (
                 <div
-                    key={country}
+                    key={country.code}
                     className="data-catalog-selected-country-pill"
                 >
                     <img
                         width={20}
                         height={16}
-                        src={`/images/flags/${countriesByName()[country].code}.svg`}
+                        src={`/images/flags/${country.code}.svg`}
                     />
-                    <span className="body-3-medium">{country}</span>
+                    <span className="body-3-medium">{country.name}</span>
                     <button
-                        aria-label={`Remove ${country}`}
+                        aria-label={`Remove ${country.name}`}
                         onClick={() => {
-                            removeCountry(country)
+                            removeCountry(country.name)
                         }}
                     >
                         <FontAwesomeIcon icon={faClose} />
@@ -374,108 +374,52 @@ function checkShouldShowRibbonView(
     )
 }
 
-type FacetFilters = string | undefined | readonly (string | readonly string[])[]
-
-// takes the chaotically-typed facetFilters from instantsearch's UI state
-// and returns a list of tags
-// e.g. [["tags:Energy"], ["tags:Air Pollution"], ["availableEntities": "New Zealand"]] => { topics: ["Energy", "Air Pollution"], countries: ["New Zealand"] }
-// TODO: is this handling the disjunctive case correctly?
-function parseFacetFilters(facetFilters: FacetFilters): {
-    topics: string[]
-    countries: string[]
-} {
-    if (!isArray(facetFilters)) return { topics: [], countries: [] }
-    return facetFilters.flat<string[]>().reduce(
-        (facets, filter: string) => {
-            const match = filter.match(/^(tags|availableEntities):(.*)$/)
-            if (match) {
-                if (match[1] === "tags") facets.topics.push(match[2])
-                if (match[1] === "availableEntities")
-                    facets.countries.push(match[2])
-            }
-            return facets
-        },
-        { topics: [] as string[], countries: [] as string[] }
-    )
-}
-
-// function getNbHitsForTag(tag: string, results: ScopedResult[]) {
-//     const result = results.find((r) => {
-//         // for some reason I can only find facetFilters in the internal _state object
-//         const facets = parseFacetFilters(
-//             get(r, ["results", "_state", "facetFilters"])
-//         )
-//         return facets.topics.includes(tag)
-//     })
-//     return result ? result.results.nbHits : undefined
-// }
-
 const DataCatalogRibbon = ({
-    tagName,
+    result,
     addTopic,
     selectedCountries,
 }: {
-    tagName: string
+    result: DataCatalogRibbonResult
     addTopic: (x: string) => void
     selectedCountries: Region[]
 }) => {
-    // const nBHits = getNbHitsForTag(tagName, scopedResults)
-
-    // if (nBHits === 0) {
-    //     return null
-    // }
+    if (result.nbHits === 0) return null
 
     return (
-        <div>ribbon</div>
-        // <Index indexName={CHARTS_INDEX}>
-        //     <Configure facetFilters={[`tags:${tagName}`]} />
-        //     <div className="data-catalog-ribbon">
-        //         <a
-        //             // TODO: update this with the rest of the query params
-        //             href={`/charts?topics=${tagName}`}
-        //             onClick={(e) => {
-        //                 e.preventDefault()
-        //                 addTopic(tagName)
-        //             }}
-        //         >
-        //             <div className="data-catalog-ribbon__header">
-        //                 <h2 className="body-1-regular">{tagName}</h2>
-        //                 <span className="data-catalog-ribbon__hit-count body-2-semibold">
-        //                     {nBHits} indicators
-        //                     <FontAwesomeIcon icon={faArrowRight} />
-        //                 </span>
-        //             </div>
-        //         </a>
-        //         <Hits
-        //             classNames={{
-        //                 root: "data-catalog-ribbon-hits",
-        //                 item: "data-catalog-ribbon-hit",
-        //                 list: "data-catalog-ribbon-list grid grid-cols-4",
-        //             }}
-        //             hitComponent={({ hit }: { hit: IChartHit }) => (
-        //                 <ChartHit
-        //                     hit={hit}
-        //                     searchQueryRegionsMatches={selectedCountries}
-        //                 />
-        //             )}
-        //         />
-        //     </div>
-        // </Index>
+        <div className="data-catalog-ribbon">
+            <a
+                // TODO: update this with the rest of the query params
+                href={`/charts?topics=${result.title}`}
+                onClick={(e) => {
+                    e.preventDefault()
+                    addTopic(result.title)
+                }}
+            >
+                <div className="data-catalog-ribbon__header">
+                    <h2 className="body-1-regular">{result.title}</h2>
+                    <span className="data-catalog-ribbon__hit-count body-2-semibold">
+                        {result.nbHits} indicators
+                        <FontAwesomeIcon icon={faArrowRight} />
+                    </span>
+                </div>
+            </a>
+            <div className="data-catalog-ribbon-hits">
+                <ul className="data-catalog-ribbon-list grid grid-cols-4">
+                    {result.hits.map((hit) => (
+                        <li
+                            className="data-catalog-ribbon-hit"
+                            key={hit.objectID}
+                        >
+                            <ChartHit
+                                hit={hit}
+                                searchQueryRegionsMatches={selectedCountries}
+                            />
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
     )
-}
-
-function getAreaChildrenFromTag(
-    tagGraph: TagGraphRoot,
-    tag: string | undefined
-) {
-    const areas: TagGraphNode[] = []
-    if (tag) {
-        const tagNode = tagGraph.children.find((child) => child.name === tag)
-        if (tagNode) areas.push(...tagNode.children)
-    } else {
-        areas.push(...tagGraph.children)
-    }
-    return areas
 }
 
 function getCountryData(selectedCountries: Set<string>): Region[] {
@@ -488,24 +432,20 @@ function getCountryData(selectedCountries: Set<string>): Region[] {
 }
 
 const DataCatalogRibbonView = ({
-    tagGraph,
-    tagToShow,
+    results,
     addTopic,
     selectedCountries,
 }: {
-    tagGraph: TagGraphRoot
-    tagToShow: string | undefined
+    results?: DataCatalogRibbonResult[]
     addTopic: (x: string) => void
     selectedCountries: Region[]
 }) => {
-    const areas = getAreaChildrenFromTag(tagGraph, tagToShow)
-
     return (
         <div className="span-cols-12 col-start-2 data-catalog-ribbons">
-            {areas.map((area) => (
+            {results?.map((result) => (
                 <DataCatalogRibbon
-                    tagName={area.name}
-                    key={area.name}
+                    key={result.title}
+                    result={result}
                     addTopic={addTopic}
                     selectedCountries={selectedCountries}
                 />
@@ -515,71 +455,44 @@ const DataCatalogRibbonView = ({
 }
 
 const DataCatalogResults = ({
-    shouldShowRibbons,
-    topics,
-    tagGraph,
-    addTopic,
-    selectedCountryNames,
+    selectedCountries,
     results,
+    setPage,
 }: {
-    tagGraph: TagGraphRoot
-    results?: DataCatalogResults
-    addTopic: (tag: string) => void
-    shouldShowRibbons: boolean
-    topics: Set<string>
-    selectedCountryNames: Set<string>
+    results?: DataCatalogSearchResult
+    selectedCountries: Region[]
+    setPage: (page: number) => void
 }) => {
-    return (
-        <div className="span-cols-12 col-start-2">
-            <p>results:</p>
-            {results?.map((result) => (
-                <div key={result.title}>
-                    {result.title}
-                    <ul>
-                        {result.hits.map((hit) => (
-                            <li key={hit.slug}>{hit.title}</li>
+    const hits = results?.hits
+    if (hits && hits.length) {
+        return (
+            <>
+                <div className="span-cols-12 col-start-2 data-catalog-search-hits">
+                    <ul className="data-catalog-search-list grid grid-cols-4">
+                        {hits.map((hit) => (
+                            <li
+                                className="data-catalog-search-hit"
+                                key={hit.objectID}
+                            >
+                                <ChartHit
+                                    hit={hit}
+                                    searchQueryRegionsMatches={
+                                        selectedCountries
+                                    }
+                                />
+                            </li>
                         ))}
                     </ul>
                 </div>
-            ))}
-        </div>
-    )
-
-    // const selectedCountries = getCountryData(selectedCountryNames)
-
-    // if (shouldShowRibbons) {
-    //     const areaName: string = topics.values().next().value
-    //     return (
-    //         <DataCatalogRibbonView
-    //             tagGraph={tagGraph}
-    //             tagToShow={areaName}
-    //             addTopic={addTopic}
-    //             selectedCountries={selectedCountries}
-    //         />
-    //     )
-    // }
-
-    return (
-        <div>all results</div>
-        // <Index indexName={CHARTS_INDEX}>
-        //     <Hits
-        //         classNames={{
-        //             root: cx(
-        //                 "span-cols-12 col-start-2 data-catalog-search-hits",
-        //                 { "data-catalog-search-hits--is-loading": isLoading }
-        //             ),
-        //             item: "data-catalog-search-hit",
-        //             list: "data-catalog-search-list grid grid-cols-4",
-        //         }}
-        //         hitComponent={(props: { hit: IChartHit }) => (
-        //             <ChartHit
-        //                 hit={props.hit}
-        //                 searchQueryRegionsMatches={selectedCountries}
-        //             />
-        //         )}
-        //     />
-        // </Index>
-    )
+                <DataCatalogPagination
+                    currentPage={results.page}
+                    setPage={setPage}
+                    nbPages={results.nbPages || 0}
+                />
+            </>
+        )
+    }
+    return null
 }
 
 const TopicsRefinementList = (props: {
@@ -589,75 +502,63 @@ const TopicsRefinementList = (props: {
     removeTopic: (topic: string) => void
     isLoading?: boolean
 }) => {
-    // const refinements = useRefinementList({
-    //     attribute: "tags",
-    //     limit: 10,
-    // })
-    // const refinementsToShow = props.shouldShowSuggestions
-    //     ? refinements.items.filter((item) => !props.topics.has(item.label))
-    //     : []
-
-    return <div>refinements list</div>
-    // return (
-    //     <>
-    //         <ul className="data-catalog-applied-filters-list span-cols-12 col-start-2 ">
-    //             {[...props.topics].map((topic) => {
-    //                 return (
-    //                     <li
-    //                         className="data-catalog-applied-filters-item"
-    //                         key={topic}
-    //                     >
-    //                         <button
-    //                             aria-label={`Remove filter ${topic}`}
-    //                             className="data-catalog-applied-filters-button body-3-medium"
-    //                             onMouseUp={() => {
-    //                                 setShouldHideFacets(true)
-    //                             }}
-    //                             onClick={() => props.removeTopic(topic)}
-    //                         >
-    //                             {topic}
-    //                             <FontAwesomeIcon icon={faClose} />
-    //                         </button>
-    //                     </li>
-    //                 )
-    //             })}
-    //         </ul>
-    //         <ul
-    //             className={cx(
-    //                 "data-catalog-filters-list span-cols-12 col-start-2",
-    //                 {
-    //                     "data-catalog-filters-list--is-loading":
-    //                         props.isLoading || shouldHideFacets,
-    //                 }
-    //             )}
-    //         >
-    //             {refinementsToShow.map((item, i) => {
-    //                 const isLast = i === refinementsToShow.length - 1
-    //                 return (
-    //                     <React.Fragment key={i}>
-    //                         <li className="data-catalog-filters-list-item">
-    //                             <button
-    //                                 aria-label={`Filter by ${item.label}`}
-    //                                 onMouseUp={() => setShouldHideFacets(true)}
-    //                                 onClick={() => props.addTopic(item.label)}
-    //                             >
-    //                                 <span>{item.label}</span>
-    //                                 <span className="data-catalog-filters-list-item__hit-count body-3-medium">
-    //                                     ({item.count})
-    //                                 </span>
-    //                             </button>
-    //                         </li>
-    //                         {!isLast ? (
-    //                             <li className="data-catalog-filters-list-separator">
-    //                                 {/* including an empty space so that the list has spaces in it when copied to clipboard */}{" "}
-    //                             </li>
-    //                         ) : null}
-    //                     </React.Fragment>
-    //                 )
-    //             })}
-    //         </ul>
-    //     </>
-    // )
+    return (
+        <>
+            <ul className="data-catalog-applied-filters-list span-cols-12 col-start-2 ">
+                {[...props.topics].map((topic) => {
+                    return (
+                        <li
+                            className="data-catalog-applied-filters-item"
+                            key={topic}
+                        >
+                            <button
+                                aria-label={`Remove filter ${topic}`}
+                                className="data-catalog-applied-filters-button body-3-medium"
+                                onClick={() => props.removeTopic(topic)}
+                            >
+                                {topic}
+                                <FontAwesomeIcon icon={faClose} />
+                            </button>
+                        </li>
+                    )
+                })}
+            </ul>
+        </>
+        //<ul
+        //     className={cx(
+        //         "data-catalog-filters-list span-cols-12 col-start-2",
+        //         {
+        //             "data-catalog-filters-list--is-loading":
+        //                 props.isLoading,
+        //         }
+        //     )}
+        // >
+        //     {refinementsToShow.map((item, i) => {
+        //         const isLast = i === refinementsToShow.length - 1
+        //         return (
+        //             <React.Fragment key={i}>
+        //                 <li className="data-catalog-filters-list-item">
+        //                     <button
+        //                         aria-label={`Filter by ${item.label}`}
+        //                         onMouseUp={() => setShouldHideFacets(true)}
+        //                         onClick={() => props.addTopic(item.label)}
+        //                     >
+        //                         <span>{item.label}</span>
+        //                         <span className="data-catalog-filters-list-item__hit-count body-3-medium">
+        //                             ({item.count})
+        //                         </span>
+        //                     </button>
+        //                 </li>
+        //                 {!isLast ? (
+        //                     <li className="data-catalog-filters-list-separator">
+        //                         {/* including an empty space so that the list has spaces in it when copied to clipboard */}{" "}
+        //                     </li>
+        //                 ) : null}
+        //             </React.Fragment>
+        //         )
+        //     })}
+        // </ul>
+    )
 }
 
 const DataCatalogLoadingSpinner = () => {
@@ -682,40 +583,32 @@ const DataCatalogLoadingSpinner = () => {
 }
 
 const DataCatalogPagination = ({
-    isLoading,
     setPage,
-    isOnRibbonsView,
+    nbPages,
+    currentPage,
 }: {
-    isLoading: boolean
     setPage: (page: number) => void
-    isOnRibbonsView: boolean
+    currentPage: number
+    nbPages: number
 }) => {
-    // TODO
-    const nbPages: number = 10
-    const currentRefinement = 0
-    const pages = getPaginationPageNumbers(currentRefinement, nbPages)
-
     useEffect(() => {
-        if (currentRefinement !== 0) {
-            if (isOnRibbonsView || currentRefinement >= nbPages) {
+        if (currentPage !== 0) {
+            if (currentPage >= nbPages) {
                 setPage(0)
             }
         }
-    }, [isOnRibbonsView, currentRefinement, nbPages, setPage])
+    }, [currentPage, nbPages, setPage])
 
-    if (isOnRibbonsView || nbPages === 0) return null
+    if (nbPages === 0) return null
+
+    const pages = getPaginationPageNumbers(currentPage, nbPages)
 
     return (
-        <ol
-            className={cx({
-                "data-catalog-pagination span-cols-12 col-start-2": true,
-                "data-catalog-pagination--is-loading": isLoading,
-            })}
-        >
+        <ol className="data-catalog-pagination span-cols-12 col-start-2">
             <li className="data-catalog-pagination__item">
                 <button
-                    onClick={() => setPage(currentRefinement - 1)}
-                    disabled={currentRefinement === 0}
+                    onClick={() => setPage(currentPage - 1)}
+                    disabled={currentPage === 0}
                 >
                     <FontAwesomeIcon icon={faArrowLeft} />
                 </button>
@@ -726,12 +619,12 @@ const DataCatalogPagination = ({
                     className={cx({
                         "data-catalog-pagination__item": true,
                         "data-catalog-pagination__item--is-active":
-                            page === currentRefinement,
+                            page === currentPage,
                     })}
                 >
                     <button
                         onClick={() => setPage(page)}
-                        disabled={page === currentRefinement}
+                        disabled={page === currentPage}
                     >
                         {page + 1}
                     </button>
@@ -739,8 +632,8 @@ const DataCatalogPagination = ({
             ))}
             <li className="data-catalog-pagination__item">
                 <button
-                    onClick={() => setPage(currentRefinement + 1)}
-                    disabled={currentRefinement === nbPages - 1}
+                    onClick={() => setPage(currentPage + 1)}
+                    disabled={currentPage === nbPages - 1}
                 >
                     <FontAwesomeIcon icon={faArrowRight} />
                 </button>
@@ -775,12 +668,50 @@ function dataCatalogStateToUrl(state: DataCatalogState) {
     return url.fullUrl
 }
 
-type DataCatalogResults = Array<
-    SearchResponse<DataCatalogHit> & {
-        title: string
-    }
->
-type DataCatalogCache = Map<string, DataCatalogResults>
+type DataCatalogSearchResult = SearchResponse<IChartHit>
+type DataCatalogRibbonResult = SearchResponse<IChartHit> & {
+    title: string
+}
+
+type DataCatalogCache = {
+    ribbons: Map<string, DataCatalogRibbonResult[]>
+    search: Map<string, DataCatalogSearchResult>
+}
+
+async function queryRibbonsWithCache(
+    searchClient: SearchClient,
+    state: DataCatalogState,
+    tagGraph: TagGraphRoot,
+    cache: React.MutableRefObject<DataCatalogCache>
+): Promise<void> {
+    const topicsForRibbons = getTopicsForRibbons(state.topics, tagGraph)
+    const searchParams = dataCatalogStateToAlgoliaQueries(
+        state,
+        topicsForRibbons
+    )
+    return searchClient
+        .search<DataCatalogRibbonResult>(searchParams)
+        .then((response) =>
+            formatAlgoliaRibbonsResponse(response, topicsForRibbons)
+        )
+        .then((formatted) => {
+            cache.current.ribbons.set(dataCatalogStateToUrl(state), formatted)
+        })
+}
+
+async function querySearchWithCache(
+    searchClient: SearchClient,
+    state: DataCatalogState,
+    cache: React.MutableRefObject<DataCatalogCache>
+): Promise<void> {
+    const searchParams = dataCatalogStateToAlgoliaQuery(state)
+    return searchClient
+        .search<DataCatalogHit>(searchParams)
+        .then(formatAlgoliaSearchResponse)
+        .then((formatted) => {
+            cache.current.search.set(dataCatalogStateToUrl(state), formatted)
+        })
+}
 
 export const DataCatalog = ({
     initialState,
@@ -792,9 +723,11 @@ export const DataCatalog = ({
     searchClient: SearchClient
 }) => {
     const [state, dispatch] = useReducer(dataCatalogReducer, initialState)
-
     const [isLoading, setIsLoading] = useState(false)
-    const cache = useRef<DataCatalogCache>(new Map())
+    const cache = useRef<DataCatalogCache>({
+        ribbons: new Map(),
+        search: new Map(),
+    })
     const AREA_NAMES = useMemo(
         () => tagGraph.children.map((child) => child.name),
         [tagGraph]
@@ -803,42 +736,28 @@ export const DataCatalog = ({
         () => checkShouldShowRibbonView(state.query, state.topics, AREA_NAMES),
         [state.query, state.topics, AREA_NAMES]
     )
-    const topicsForRibbons = useMemo(
-        () => getTopicsForRibbons(shouldShowRibbons, state.topics, tagGraph),
-        [state.topics, tagGraph, shouldShowRibbons]
+    const selectedCountries = useMemo(
+        () => getCountryData(state.selectedCountryNames),
+        [state.selectedCountryNames]
     )
 
     const stateAsUrl = dataCatalogStateToUrl(state)
-    const currentResults = cache.current.get(stateAsUrl)
-    console.log("currentResults", currentResults)
+    const cacheKey = shouldShowRibbons ? "ribbons" : "search"
+    const currentResults = cache.current[cacheKey].get(stateAsUrl)
+
     useEffect(() => {
+        async function fetchData() {
+            return shouldShowRibbons
+                ? queryRibbonsWithCache(searchClient, state, tagGraph, cache)
+                : querySearchWithCache(searchClient, state, cache)
+        }
         syncDataCatalogURL(stateAsUrl)
-        if (cache.current.has(stateAsUrl)) return
+        if (cache.current[cacheKey].has(stateAsUrl)) return
         setIsLoading(true)
-        const searchParams = shouldShowRibbons
-            ? dataCatalogStateToAlgoliaQueries(state, topicsForRibbons)
-            : dataCatalogStateToAlgoliaQuery(state)
-        searchClient
-            .search<DataCatalogHit>(searchParams)
-            .then((data) => {
-                const formatted = formatAlgoliaResponse(data, topicsForRibbons)
-                cache.current.set(stateAsUrl, formatted)
-            })
-            .catch((e) => {
-                console.error(e)
-                // TODO: handle error
-            })
-            .finally(() => {
-                setIsLoading(false)
-            })
-    }, [
-        state,
-        searchClient,
-        shouldShowRibbons,
-        tagGraph,
-        stateAsUrl,
-        topicsForRibbons,
-    ])
+        fetchData()
+            .catch(console.error)
+            .finally(() => setIsLoading(false))
+    }, [state, searchClient, shouldShowRibbons, tagGraph, stateAsUrl, cacheKey])
 
     useEffect(() => {
         const handlePopState = () => {
@@ -869,7 +788,7 @@ export const DataCatalog = ({
                      */}
                     <div className="data-catalog-pseudoform">
                         <SelectedCountriesPills
-                            selectedCountryNames={state.selectedCountryNames}
+                            selectedCountries={selectedCountries}
                             removeCountry={(country: string) =>
                                 dispatch({ type: "removeCountry", country })
                             }
@@ -896,7 +815,7 @@ export const DataCatalog = ({
                     />
                 </div>
             </div>
-            {/* <TopicsRefinementList
+            <TopicsRefinementList
                 shouldShowSuggestions={!shouldShowRibbons}
                 isLoading={isLoading}
                 topics={state.topics}
@@ -906,32 +825,25 @@ export const DataCatalog = ({
                 removeTopic={(topic: string) =>
                     dispatch({ type: "removeTopic", topic })
                 }
-            /> */}
+            />
             {isLoading ? (
                 <DataCatalogLoadingSpinner />
+            ) : shouldShowRibbons ? (
+                <DataCatalogRibbonView
+                    results={currentResults as DataCatalogRibbonResult[]}
+                    addTopic={(topic: string) =>
+                        dispatch({ type: "addTopic", topic })
+                    }
+                    selectedCountries={selectedCountries}
+                />
             ) : (
-                <>
-                    <DataCatalogResults
-                        results={currentResults}
-                        shouldShowRibbons={shouldShowRibbons}
-                        topics={state.topics}
-                        tagGraph={tagGraph}
-                        addTopic={(topic: string) =>
-                            dispatch({ type: "addTopic", topic })
-                        }
-                        selectedCountryNames={state.selectedCountryNames}
-                    />
-                    {/* <DataCatalogPagination
-                        isLoading={isLoading}
-                        isOnRibbonsView={shouldShowRibbons}
-                        setPage={(page: number) =>
-                            dispatch({
-                                type: "setPage",
-                                page,
-                            })
-                        }
-                    /> */}
-                </>
+                <DataCatalogResults
+                    results={currentResults as DataCatalogSearchResult}
+                    selectedCountries={selectedCountries}
+                    setPage={(page: number) =>
+                        dispatch({ type: "setPage", page })
+                    }
+                />
             )}
         </>
     )
@@ -942,26 +854,24 @@ const CHARTS_INDEX = getIndexName(SearchIndexName.Charts)
 type DataCatalogHit = {
     title: string
     slug: string
+    availableEntities: string[]
 }
 
-function formatAlgoliaResponse(
+function formatAlgoliaRibbonsResponse(
     response: any,
     ribbonTopics: string[]
-): DataCatalogResults {
-    if (!response.results) return []
-    // this was a ribbon search
-    if (ribbonTopics.length) {
-        return response.results.map(
-            (res: SearchResponse<DataCatalogHit>, i: number) => ({
-                ...res,
-                title: ribbonTopics[i],
-            })
-        )
-    } else {
-        return response.results.map((res: SearchResponse<DataCatalogHit>) => ({
+): DataCatalogRibbonResult[] {
+    return response.results.map(
+        (res: SearchResponse<DataCatalogHit>, i: number) => ({
             ...res,
-            title: "All results",
-        }))
+            title: ribbonTopics[i],
+        })
+    )
+}
+
+function formatAlgoliaSearchResponse(response: any): DataCatalogSearchResult {
+    return {
+        ...response.results[0],
     }
 }
 
@@ -982,15 +892,10 @@ function setToFacetFilters(
     facetSet: Set<string>,
     attribute: "tags" | "availableEntities"
 ) {
-    return Array.from(facetSet).map((facet) => [`${attribute}:${facet}`])
+    return Array.from(facetSet).map((facet) => `${attribute}:${facet}`)
 }
 
-function getTopicsForRibbons(
-    shouldShowRibbons: boolean,
-    topics: Set<string>,
-    tagGraph: TagGraphRoot
-) {
-    if (!shouldShowRibbons) return []
+function getTopicsForRibbons(topics: Set<string>, tagGraph: TagGraphRoot) {
     if (topics.size === 0) return tagGraph.children.map((child) => child.name)
     if (topics.size === 1) {
         const area = tagGraph.children.find((child) => topics.has(child.name))
@@ -999,39 +904,65 @@ function getTopicsForRibbons(
     return []
 }
 
+function formatCountryFacetFilters(
+    countries: Set<string>,
+    requireAllCountries: boolean
+) {
+    const facetFilters: (string | string[])[] = []
+    if (requireAllCountries) {
+        // conjunction mode (A AND B): [attribute:"A", attribute:"B"]
+        facetFilters.push(...setToFacetFilters(countries, "availableEntities"))
+    } else {
+        // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
+        facetFilters.push(setToFacetFilters(countries, "availableEntities"))
+    }
+    return facetFilters
+}
+
 function dataCatalogStateToAlgoliaQueries(
     state: DataCatalogState,
     topicNames: string[]
 ) {
-    return topicNames.map((topic) => ({
-        indexName: CHARTS_INDEX,
-        query: state.query,
-        facetFilters: [
-            [`tags:${topic}`],
-            ...setToFacetFilters(
-                state.selectedCountryNames,
-                "availableEntities"
-            ),
-        ],
-        attributesToRetrieve: ["title", "slug"],
-        hitsPerPage: 4,
-        page: state.page,
-    }))
+    const countryFacetFilters = formatCountryFacetFilters(
+        state.selectedCountryNames,
+        state.requireAllCountries
+    )
+    return topicNames.map((topic) => {
+        const facetFilters = [[`tags:${topic}`], ...countryFacetFilters]
+        return {
+            indexName: CHARTS_INDEX,
+            query: state.query,
+            facetFilters: facetFilters,
+            attributesToRetrieve: [
+                "title",
+                "slug",
+                "availableEntities",
+                "variantName",
+            ],
+            hitsPerPage: 4,
+            page: state.page,
+        }
+    })
 }
 
 function dataCatalogStateToAlgoliaQuery(state: DataCatalogState) {
+    const facetFilters = formatCountryFacetFilters(
+        state.selectedCountryNames,
+        state.requireAllCountries
+    )
+    facetFilters.push(...setToFacetFilters(state.topics, "tags"))
+
     return [
         {
             indexName: CHARTS_INDEX,
             query: state.query,
-            facetFilters: [
-                ...setToFacetFilters(state.topics, "tags"),
-                ...setToFacetFilters(
-                    state.selectedCountryNames,
-                    "availableEntities"
-                ),
+            facetFilters: facetFilters,
+            attributesToRetrieve: [
+                "title",
+                "slug",
+                "availableEntities",
+                "variantName",
             ],
-            attributesToRetrieve: ["title", "slug"],
             facets: ["tags"],
             hitsPerPage: 20,
             page: state.page,
@@ -1069,7 +1000,6 @@ export function DataCatalogInstantSearchWrapper({
     tagGraph: TagGraphRoot
 }) {
     const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
-
     const initialState = getInitialDatacatalogState()
 
     return (
