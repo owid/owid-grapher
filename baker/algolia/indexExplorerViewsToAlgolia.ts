@@ -14,7 +14,7 @@ import {
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
-import { groupBy, keyBy, orderBy } from "lodash"
+import { groupBy, keyBy, orderBy, partition } from "lodash"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { DbRawVariable } from "@ourworldindata/utils"
 import { logErrorAndMaybeSendToBugsnag } from "../../serverUtils/errorLog.js"
@@ -118,7 +118,7 @@ const getExplorerViewRecordsForExplorerSlug = async (
 
     const defaultSettings = explorerDecisionMatrix.defaultSettings
 
-    let records = explorerDecisionMatrix
+    const records = explorerDecisionMatrix
         .allDecisionsAsQueryParams()
         .map((choice, i) => {
             explorerDecisionMatrix.setValuesFromChoiceParams(choice)
@@ -270,11 +270,11 @@ const getExplorerViewRecordsForExplorerSlug = async (
     }
 
     // Drop any views where we couldn't obtain a title, for whatever reason
-    records = records.filter((record) => record.viewTitle !== undefined)
-
-    const recordsWithNoViewTitle = records.filter(
-        (record) => record.viewTitle === undefined
+    const [recordsWithViewTitle, recordsWithNoViewTitle] = partition(
+        records,
+        (record) => record.viewTitle !== undefined
     )
+
     for (const record of recordsWithNoViewTitle) {
         await logErrorAndMaybeSendToBugsnag({
             name: "ExplorerViewTitleMissing",
@@ -283,7 +283,7 @@ const getExplorerViewRecordsForExplorerSlug = async (
     }
 
     // Remove Markdown from viewSubtitle; do this after fetching grapher info above, as it might also contain Markdown
-    const recordsWithTitleLength = records.map((record) => {
+    const recordsWithTitleLength = recordsWithViewTitle.map((record) => {
         if (record.viewSubtitle) {
             record.viewSubtitle = new MarkdownTextWrap({
                 text: record.viewSubtitle,
