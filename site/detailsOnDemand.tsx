@@ -58,6 +58,10 @@ export async function runDetailsOnDemand() {
             tippy(element, {
                 content,
                 allowHTML: true,
+                // Add hide delay to allow users reaching the tooltip with
+                // a mouse before it hides in tricky edge cases, e.g. when
+                // the DOD spans multiple lines.
+                delay: [null, 200],
                 interactive: true,
                 hideOnClick: false,
                 arrow: false,
