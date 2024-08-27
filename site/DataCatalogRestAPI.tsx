@@ -661,10 +661,10 @@ const DataCatalogPagination = ({
 }
 
 const serializeSet = (set: Set<string>) =>
-    set.size ? [...set].join(",") : undefined
+    set.size ? [...set].join("~") : undefined
 
 const deserializeSet = (str?: string): Set<string> =>
-    str ? new Set(str.split(",")) : new Set()
+    str ? new Set(str.split("~")) : new Set()
 
 function dataCatalogStateToUrl(state: DataCatalogState) {
     let url = Url.fromURL(
@@ -1010,6 +1010,7 @@ function getInitialDatacatalogState(): DataCatalogState {
         }
 
     const url = Url.fromURL(window.location.href)
+    console.log("url.queryParams", url.queryParams)
     return urlToDataCatalogState(url)
 }
 
