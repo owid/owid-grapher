@@ -220,13 +220,46 @@
     margin-bottom: 16px;
 }
 
-.data-catalog-filters-list {
+.data-catalog-refinement-list {
     margin-bottom: 16px;
-    line-height: 24px;
-    list-style: none;
+    @include sm-only {
+        display: block;
+        border-top: 1px solid $gray-20;
+        border-bottom: 1px solid $gray-20;
+    }
 }
 
-.data-catalog-filters-list-item {
+.data-catalog-refinements-expand-button {
+    display: none;
+    cursor: pointer;
+    @include sm-only {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        background-color: transparent;
+        padding: 16px 8px;
+        h5 {
+            margin: 0;
+        }
+    }
+}
+
+.data-catalog-refinement-list__list {
+    line-height: 24px;
+    list-style: none;
+    @include sm-only {
+        display: none;
+        line-height: 32px;
+    }
+}
+
+.data-catalog-refinement-list__list--is-expanded {
+    @include sm-only {
+        display: block;
+    }
+}
+
+.data-catalog-refinement-list__list-item {
     @include body-3-medium;
     display: inline;
     button {
@@ -237,14 +270,21 @@
             text-decoration: underline;
         }
     }
+    @include sm-only {
+        display: inline-block;
+        width: 100%;
+        &:last-child {
+            margin-bottom: 16px;
+        }
+    }
 }
 
-.data-catalog-filters-list-item__hit-count {
+.data-catalog-refinement-list__list-item-hit-count {
     color: $blue-60;
     margin-left: 4px;
 }
 
-.data-catalog-filters-list-separator {
+.data-catalog-refinement-list__separator {
     display: inline-block;
     pointer-events: none;
     margin: 0 8px;
@@ -252,16 +292,26 @@
     &::after {
         content: "•";
     }
+    @include sm-only {
+        display: none;
+    }
 }
 
 .data-catalog-applied-filters-list {
     list-style: none;
     margin-bottom: 8px;
+
+    @include sm-only {
+        overflow-x: auto;
+        display: flex;
+        flex-wrap: nowrap;
+    }
 }
 .data-catalog-applied-filters-item {
     display: inline-block;
     margin-right: 8px;
     margin-bottom: 8px;
+    white-space: nowrap;
 }
 .data-catalog-applied-filters-button {
     background-color: $blue-20;
@@ -295,6 +345,20 @@
     background-color: $blue-5;
     padding: 24px;
     margin-bottom: 24px;
+
+    @include sm-only {
+        background: transparent;
+        padding: 0;
+    }
+}
+
+.data-catalog-ribbon-list {
+    @include sm-only {
+        overflow: scroll;
+        .data-catalog-ribbon-hit {
+            width: 294px;
+        }
+    }
 }
 
 .data-catalog-ribbon__header {
@@ -306,17 +370,25 @@
         font-weight: bold;
         color: $blue-90;
     }
-    a {
-        line-height: 38.4px;
-        margin-right: 16px;
+    @include sm-only {
+        margin-bottom: 16px;
+    }
+}
+
+.data-catalog-ribbon__header-button {
+    background-color: transparent;
+    width: 100%;
+    line-height: 38.4px;
+    margin-right: 16px;
+    cursor: pointer;
+    &:hover {
+        text-decoration: underline;
     }
 }
 
 .data-catalog-ribbon__hit-count {
     color: $blue-65;
-    &:hover {
-        text-decoration: underline;
-    }
+
     svg {
         height: 10px;
         width: 10px;
@@ -325,6 +397,26 @@
         padding: 2px;
         color: $blue-10;
         margin-left: 8px;
+    }
+    @include sm-only {
+        display: none;
+    }
+}
+
+.data-catalog-ribbon__see-all-button {
+    @include body-3-medium;
+    display: none;
+    background-color: $blue-20;
+    color: $blue-60;
+    padding: 8px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    &:hover {
+        text-decoration: underline;
+    }
+    @include sm-only {
+        display: block;
     }
 }
 

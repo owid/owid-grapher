@@ -29,6 +29,7 @@ import {
     faGlobeEurope,
     faMagnifyingGlass,
     faMapMarkerAlt,
+    faPlus,
 } from "@fortawesome/free-solid-svg-icons"
 import { LabeledSwitch } from "@ourworldindata/components"
 import {
@@ -384,16 +385,16 @@ const DataCatalogRibbon = ({
     selectedCountries: Region[]
 }) => {
     if (result.nbHits === 0) return null
+    const handleAddTopicClick = (e: React.MouseEvent) => {
+        e.preventDefault()
+        addTopic(result.title)
+    }
 
     return (
         <div className="data-catalog-ribbon">
-            <a
-                // TODO: update this with the rest of the query params
-                href={`/charts?topics=${result.title}`}
-                onClick={(e) => {
-                    e.preventDefault()
-                    addTopic(result.title)
-                }}
+            <button
+                className="data-catalog-ribbon__header-button"
+                onClick={handleAddTopicClick}
             >
                 <div className="data-catalog-ribbon__header">
                     <h2 className="body-1-regular">{result.title}</h2>
@@ -402,7 +403,7 @@ const DataCatalogRibbon = ({
                         <FontAwesomeIcon icon={faArrowRight} />
                     </span>
                 </div>
-            </a>
+            </button>
             <div className="data-catalog-ribbon-hits">
                 <ul className="data-catalog-ribbon-list grid grid-cols-4">
                     {result.hits.map((hit) => (
@@ -418,6 +419,13 @@ const DataCatalogRibbon = ({
                     ))}
                 </ul>
             </div>
+            <button
+                className="data-catalog-ribbon__see-all-button"
+                onClick={handleAddTopicClick}
+            >
+                See all {result.nbHits} indicators{" "}
+                <FontAwesomeIcon icon={faArrowRight} />
+            </button>
         </div>
     )
 }
@@ -477,7 +485,7 @@ const DataCatalogResults = ({
                     addTopic={addTopic}
                 />
                 <div className="span-cols-12 col-start-2 data-catalog-search-hits">
-                    <ul className="data-catalog-search-list grid grid-cols-4">
+                    <ul className="data-catalog-search-list grid grid-cols-4 grid-sm-cols-1">
                         {hits.map((hit) => (
                             <li
                                 className="data-catalog-search-hit"
@@ -543,42 +551,60 @@ const TopicsRefinementList = ({
     facets?: Record<string, number>
     addTopic: (topic: string) => void
 }) => {
-    if (!facets)
+    const [isExpanded, setIsExpanded] = useState(false)
+    const entries = facets
+        ? Object.entries(facets).filter(([facetName]) => {
+              return !topics.has(facetName)
+          })
+        : []
+    if (!entries.length)
         return (
-            <ul className="data-catalog-filters-list span-cols-12 col-start-2" />
+            <div className="data-catalog-refinement-list span-cols-12 col-start-2" />
         )
-    const entries = Object.entries(facets).filter(([facetName]) => {
-        return !topics.has(facetName)
-    })
+
     return (
-        <ul className="data-catalog-filters-list span-cols-12 col-start-2">
-            {entries.map(([facetName, count], i) => {
-                const isLast = i === entries.length - 1
-                return (
-                    <React.Fragment key={i}>
-                        <li className="data-catalog-filters-list-item">
-                            <button
-                                aria-label={`Filter by ${facetName}`}
-                                onClick={() => addTopic(facetName)}
-                            >
-                                <span>{facetName}</span>
-                                <span className="data-catalog-filters-list-item__hit-count body-3-medium">
-                                    ({count})
-                                </span>
-                            </button>
-                        </li>
-                        {!isLast ? (
-                            <li
-                                className="data-catalog-filters-list-separator"
-                                aria-hidden="true"
-                            >
-                                {/* including an empty space so that the list has spaces in it when copied to clipboard */}{" "}
+        <div className="data-catalog-refinement-list span-cols-12 col-start-2">
+            <button
+                className="data-catalog-refinements-expand-button"
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
+                <h5 className="h5-black-caps">Topics</h5>
+                <FontAwesomeIcon icon={faPlus} />
+            </button>
+            <ul
+                className={cx("data-catalog-refinement-list__list", {
+                    "data-catalog-refinement-list__list--is-expanded":
+                        isExpanded,
+                })}
+            >
+                {entries.map(([facetName, count], i) => {
+                    const isLast = i === entries.length - 1
+                    return (
+                        <React.Fragment key={i}>
+                            <li className="data-catalog-refinement-list__list-item">
+                                <button
+                                    aria-label={`Filter by ${facetName}`}
+                                    onClick={() => addTopic(facetName)}
+                                >
+                                    <span>{facetName}</span>
+                                    <span className="data-catalog-refinement-list__list-item-hit-count body-3-medium">
+                                        ({count})
+                                    </span>
+                                </button>
                             </li>
-                        ) : null}
-                    </React.Fragment>
-                )
-            })}
-        </ul>
+                            {!isLast ? (
+                                <li
+                                    className="data-catalog-refinement-list__separator"
+                                    aria-hidden="true"
+                                >
+                                    {/* including an empty space so that the list has spaces in it when copied to clipboard */}{" "}
+                                </li>
+                            ) : null}
+                        </React.Fragment>
+                    )
+                })}
+            </ul>
+        </div>
     )
 }
 

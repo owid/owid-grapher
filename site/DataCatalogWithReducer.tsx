@@ -637,9 +637,9 @@ const TopicsRefinementList = (props: {
             </ul>
             <ul
                 className={cx(
-                    "data-catalog-filters-list span-cols-12 col-start-2",
+                    "data-catalog-refinement-list span-cols-12 col-start-2",
                     {
-                        "data-catalog-filters-list--is-loading":
+                        "data-catalog-refinement-list__is-loading":
                             props.isLoading || shouldHideFacets,
                     }
                 )}
@@ -648,20 +648,20 @@ const TopicsRefinementList = (props: {
                     const isLast = i === refinementsToShow.length - 1
                     return (
                         <React.Fragment key={i}>
-                            <li className="data-catalog-filters-list-item">
+                            <li className="data-catalog-refinement-list__list-item">
                                 <button
                                     aria-label={`Filter by ${item.label}`}
                                     onMouseUp={() => setShouldHideFacets(true)}
                                     onClick={() => props.addTopic(item.label)}
                                 >
                                     <span>{item.label}</span>
-                                    <span className="data-catalog-filters-list-item__hit-count body-3-medium">
+                                    <span className="data-catalog-refinement-list__list-item-hit-count body-3-medium">
                                         ({item.count})
                                     </span>
                                 </button>
                             </li>
                             {!isLast ? (
-                                <li className="data-catalog-filters-list-separator">
+                                <li className="data-catalog-refinement-list__separator">
                                     {/* including an empty space so that the list has spaces in it when copied to clipboard */}{" "}
                                 </li>
                             ) : null}

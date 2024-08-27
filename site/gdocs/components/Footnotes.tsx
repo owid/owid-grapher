@@ -19,7 +19,7 @@ export default function Footnotes({
                 <h3 id={ENDNOTES_ID}>Endnotes</h3>
                 <ol
                     className={cx("footnote-list", {
-                        "footnote-list--single-column":
+                        "footnote-list__single-column":
                             definitionsArray.length === 1,
                     })}
                 >

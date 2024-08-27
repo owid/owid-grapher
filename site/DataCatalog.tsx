@@ -375,9 +375,9 @@ const TopicsRefinementList = ({
     //             {appliedFiltersSection}
     //             <ul
     //                 className={cx(
-    //                     "span-cols-12 col-start-2 data-catalog-filters-list",
+    //                     "span-cols-12 col-start-2 data-catalog-refinement-list",
     //                     {
-    //                         "data-catalog-filters-list--is-loading": isLoading,
+    //                         "data-catalog-refinement-list__is-loading": isLoading,
     //                     }
     //                 )}
     //             >
@@ -389,20 +389,20 @@ const TopicsRefinementList = ({
     //                         <React.Fragment key={area.name}>
     //                             <li
     //                                 key={area.name}
-    //                                 className="data-catalog-filters-list-item"
+    //                                 className="data-catalog-refinement-list__list-item"
     //                                 tabIndex={0}
     //                                 onClick={() => {
     //                                     addGlobalTagFilter(area.name)
     //                                 }}
     //                             >
     //                                 <span>{area.name}</span>
-    //                                 <span className="data-catalog-filters-list-item__hit-count">
+    //                                 <span className="data-catalog-refinement-list__list-item-hit-count">
     //                                     ({nBHits})
     //                                 </span>
     //                             </li>
     //                             {!isLast ? (
     //                                 <li
-    //                                     className="data-catalog-filters-list-separator"
+    //                                     className="data-catalog-refinement-list__separator"
     //                                     // including an empty space so that the list has spaces in it when copied to clipboard
     //                                 >
     //                                     {" "}
