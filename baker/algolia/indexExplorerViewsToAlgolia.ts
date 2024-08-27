@@ -13,6 +13,7 @@ import { getIndexName } from "../../site/search/searchClient.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
 import { groupBy, keyBy, orderBy } from "lodash"
 import { MarkdownTextWrap } from "@ourworldindata/components"
+import { DbRawVariable } from "@ourworldindata/utils"
 
 export type ExplorerBlockGraphers = {
     type: "graphers"
@@ -30,6 +31,7 @@ interface ExplorerViewEntry {
     viewQueryParams: string
 
     viewGrapherId?: number
+    viewFirstYIndicator?: string | number // Variable ID or ETL path
 
     /**
      * We often have several views with the same title within an explorer, e.g. "Population".
@@ -111,7 +113,7 @@ const getExplorerViewRecordsForExplorerSlug = async (
 
     const defaultSettings = explorerDecisionMatrix.defaultSettings
 
-    const records = explorerDecisionMatrix
+    let records = explorerDecisionMatrix
         .allDecisionsAsQueryParams()
         .map((choice, i) => {
             explorerDecisionMatrix.setValuesFromChoiceParams(choice)
@@ -133,7 +135,7 @@ const getExplorerViewRecordsForExplorerSlug = async (
 
             const record: Omit<
                 ExplorerViewEntry,
-                "viewTitleIndexWithinExplorer"
+                "viewTitleIndexWithinExplorer" | "titleLength"
             > = {
                 viewTitle: explorerDecisionMatrix.selectedRow.title,
                 viewSubtitle: explorerDecisionMatrix.selectedRow.subtitle,
@@ -142,10 +144,14 @@ const getExplorerViewRecordsForExplorerSlug = async (
                     explorerDecisionMatrix
                 ),
                 viewGrapherId: explorerDecisionMatrix.selectedRow.grapherId,
+                viewFirstYIndicator:
+                    explorerDecisionMatrix.selectedRow.yVariableIds
+                        ?.trim()
+                        .split(" ")
+                        .at(0),
                 viewQueryParams: explorerDecisionMatrix.toString(),
 
                 viewIndexWithinExplorer: i,
-                titleLength: explorerDecisionMatrix.selectedRow.title?.length,
                 numNonDefaultSettings: nonDefaultSettings.length,
             }
             return record
@@ -158,7 +164,7 @@ const getExplorerViewRecordsForExplorerSlug = async (
 
     if (grapherIds.length) {
         console.log(
-            `Fetching grapher info from ${grapherIds.length} graphers for explorer ${slug}`
+            `Fetching grapher configs from ${grapherIds.length} graphers for explorer ${slug}`
         )
         const grapherIdToTitle = await trx
             .table("charts")
@@ -182,27 +188,102 @@ const getExplorerViewRecordsForExplorerSlug = async (
                 }
                 record.viewTitle = grapherInfo.title
                 record.viewSubtitle = grapherInfo.subtitle
-                record.titleLength = grapherInfo.title?.length
             }
         }
     }
 
+    // Resolve the `yIndicatorIds` field
+    const yIndicatorIds = records
+        .map((record) => record.viewFirstYIndicator)
+        .filter((id) => id !== undefined)
+        .filter((id) => id !== "")
+
+    if (yIndicatorIds.length) {
+        console.log(
+            `Fetching indicator metadata from ${yIndicatorIds.length} indicators for explorer ${slug}`
+        )
+
+        type IndicatorRecord = Pick<
+            DbRawVariable,
+            | "id"
+            | "catalogPath"
+            | "titlePublic"
+            | "display"
+            | "name"
+            | "descriptionShort"
+        >
+        // The `yIndicatorId` can be a variable ID or a catalog path, and we want to resolve both
+        const indicatorIdToTitle: IndicatorRecord[] = await trx
+            .table("variables")
+            .select(
+                "id",
+                "catalogPath",
+                "name",
+                "titlePublic",
+                "display",
+                "name",
+                "descriptionShort"
+            )
+            .whereIn("id", yIndicatorIds)
+            .orWhereIn("catalogPath", yIndicatorIds)
+
+        const indicatorsKeyedByIdAndCatalogPath = indicatorIdToTitle.reduce(
+            (acc, indicator) => {
+                acc[indicator.id] = indicator
+                if (indicator.catalogPath)
+                    acc[indicator.catalogPath] = indicator
+                return acc
+            },
+            {} as Record<string | number, IndicatorRecord>
+        )
+
+        for (const record of records) {
+            if (record.viewFirstYIndicator !== undefined) {
+                const indicatorInfo =
+                    indicatorsKeyedByIdAndCatalogPath[
+                        record.viewFirstYIndicator
+                    ]
+                if (indicatorInfo === undefined) {
+                    console.warn(
+                        `Indicator id ${record.viewFirstYIndicator} not found for explorer ${slug}`
+                    )
+                    continue
+                }
+
+                // This is the fallback chain for the grapher title. it's complicated.
+                record.viewTitle =
+                    record.viewTitle ??
+                    indicatorInfo.titlePublic ??
+                    (indicatorInfo.display
+                        ? JSON.parse(indicatorInfo.display).name
+                        : undefined) ??
+                    indicatorInfo.name
+                record.viewSubtitle =
+                    record.viewSubtitle ?? indicatorInfo.descriptionShort
+            }
+        }
+    }
+
+    // Drop any views where we couldn't obtain a title, for whatever reason
+    records = records.filter((record) => record.viewTitle !== undefined)
+
     // Remove Markdown from viewSubtitle; do this after fetching grapher info above, as it might also contain Markdown
-    records.forEach((record) => {
+    const recordsWithTitleLength = records.map((record) => {
         if (record.viewSubtitle) {
             record.viewSubtitle = new MarkdownTextWrap({
                 text: record.viewSubtitle,
                 fontSize: 10, // doesn't matter, but is a mandatory field
             }).plaintext
         }
-    })
+        return { ...record, titleLength: record.viewTitle.length }
+    }) as Omit<ExplorerViewEntry, "viewTitleIndexWithinExplorer">[]
 
     // Compute viewTitleIndexWithinExplorer:
     // First, sort by score descending (ignoring views_7d, which is not relevant _within_ an explorer).
     // Then, group by viewTitle.
     // Finally, ungroup again, and keep track of the index of each element within the group.
     const recordsSortedByScore = orderBy(
-        records,
+        recordsWithTitleLength,
         (record) => computeScore(record),
         "desc"
     )
@@ -215,8 +296,6 @@ const getExplorerViewRecordsForExplorerSlug = async (
             viewTitleIndexWithinExplorer: i,
         }))
     )
-
-    // TODO: Handle indicator-based explorers
 
     return recordsWithIndexWithinExplorer
 }
