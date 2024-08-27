@@ -568,7 +568,10 @@ const TopicsRefinementList = ({
                             </button>
                         </li>
                         {!isLast ? (
-                            <li className="data-catalog-filters-list-separator">
+                            <li
+                                className="data-catalog-filters-list-separator"
+                                aria-hidden="true"
+                            >
                                 {/* including an empty space so that the list has spaces in it when copied to clipboard */}{" "}
                             </li>
                         ) : null}
