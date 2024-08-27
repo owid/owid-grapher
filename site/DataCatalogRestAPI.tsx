@@ -458,15 +458,24 @@ const DataCatalogResults = ({
     selectedCountries,
     results,
     setPage,
+    addTopic,
+    topics,
 }: {
     results?: DataCatalogSearchResult
     selectedCountries: Region[]
     setPage: (page: number) => void
+    addTopic: (topic: string) => void
+    topics: Set<string>
 }) => {
     const hits = results?.hits
     if (hits && hits.length) {
         return (
             <>
+                <TopicsRefinementList
+                    topics={topics}
+                    facets={results.facets?.tags}
+                    addTopic={addTopic}
+                />
                 <div className="span-cols-12 col-start-2 data-catalog-search-hits">
                     <ul className="data-catalog-search-list grid grid-cols-4">
                         {hits.map((hit) => (
@@ -495,69 +504,78 @@ const DataCatalogResults = ({
     return null
 }
 
-const TopicsRefinementList = (props: {
-    shouldShowSuggestions: boolean
+const AppliedTopicFiltersList = ({
+    topics,
+    removeTopic,
+}: {
     topics: Set<string>
-    addTopic: (topic: string) => void
     removeTopic: (topic: string) => void
-    isLoading?: boolean
 }) => {
     return (
-        <>
-            <ul className="data-catalog-applied-filters-list span-cols-12 col-start-2 ">
-                {[...props.topics].map((topic) => {
-                    return (
-                        <li
-                            className="data-catalog-applied-filters-item"
-                            key={topic}
+        <ul className="data-catalog-applied-filters-list span-cols-12 col-start-2 ">
+            {[...topics].map((topic) => {
+                return (
+                    <li
+                        className="data-catalog-applied-filters-item"
+                        key={topic}
+                    >
+                        <button
+                            aria-label={`Remove filter ${topic}`}
+                            className="data-catalog-applied-filters-button body-3-medium"
+                            onClick={() => removeTopic(topic)}
                         >
+                            {topic}
+                            <FontAwesomeIcon icon={faClose} />
+                        </button>
+                    </li>
+                )
+            })}
+        </ul>
+    )
+}
+
+const TopicsRefinementList = ({
+    topics,
+    facets,
+    addTopic,
+}: {
+    topics: Set<string>
+    facets?: Record<string, number>
+    addTopic: (topic: string) => void
+}) => {
+    if (!facets)
+        return (
+            <ul className="data-catalog-filters-list span-cols-12 col-start-2" />
+        )
+    const entries = Object.entries(facets).filter(([facetName]) => {
+        return !topics.has(facetName)
+    })
+    return (
+        <ul className="data-catalog-filters-list span-cols-12 col-start-2">
+            {entries.map(([facetName, count], i) => {
+                const isLast = i === entries.length - 1
+                return (
+                    <React.Fragment key={i}>
+                        <li className="data-catalog-filters-list-item">
                             <button
-                                aria-label={`Remove filter ${topic}`}
-                                className="data-catalog-applied-filters-button body-3-medium"
-                                onClick={() => props.removeTopic(topic)}
+                                aria-label={`Filter by ${facetName}`}
+                                onClick={() => addTopic(facetName)}
                             >
-                                {topic}
-                                <FontAwesomeIcon icon={faClose} />
+                                <span>{facetName}</span>
+                                <span className="data-catalog-filters-list-item__hit-count body-3-medium">
+                                    ({count})
+                                </span>
                             </button>
                         </li>
-                    )
-                })}
-            </ul>
-        </>
-        //<ul
-        //     className={cx(
-        //         "data-catalog-filters-list span-cols-12 col-start-2",
-        //         {
-        //             "data-catalog-filters-list--is-loading":
-        //                 props.isLoading,
-        //         }
-        //     )}
-        // >
-        //     {refinementsToShow.map((item, i) => {
-        //         const isLast = i === refinementsToShow.length - 1
-        //         return (
-        //             <React.Fragment key={i}>
-        //                 <li className="data-catalog-filters-list-item">
-        //                     <button
-        //                         aria-label={`Filter by ${item.label}`}
-        //                         onMouseUp={() => setShouldHideFacets(true)}
-        //                         onClick={() => props.addTopic(item.label)}
-        //                     >
-        //                         <span>{item.label}</span>
-        //                         <span className="data-catalog-filters-list-item__hit-count body-3-medium">
-        //                             ({item.count})
-        //                         </span>
-        //                     </button>
-        //                 </li>
-        //                 {!isLast ? (
-        //                     <li className="data-catalog-filters-list-separator">
-        //                         {/* including an empty space so that the list has spaces in it when copied to clipboard */}{" "}
-        //                     </li>
-        //                 ) : null}
-        //             </React.Fragment>
-        //         )
-        //     })}
-        // </ul>
+                        {!isLast ? (
+                            <li className="data-catalog-filters-list-separator">
+                                {/* including an empty space so that the list has spaces in it when copied to clipboard */}{" "}
+                            </li>
+                        ) : null}
+                    </React.Fragment>
+                )
+            })}
+        </ul>
     )
 }
 
@@ -815,20 +833,16 @@ export const DataCatalog = ({
                     />
                 </div>
             </div>
-            <TopicsRefinementList
-                shouldShowSuggestions={!shouldShowRibbons}
-                isLoading={isLoading}
-                topics={state.topics}
-                addTopic={(topic: string) =>
-                    dispatch({ type: "addTopic", topic })
-                }
-                removeTopic={(topic: string) =>
-                    dispatch({ type: "removeTopic", topic })
-                }
-            />
-            {isLoading ? (
-                <DataCatalogLoadingSpinner />
-            ) : shouldShowRibbons ? (
+            {isLoading && <DataCatalogLoadingSpinner />}
+            {!isLoading && (
+                <AppliedTopicFiltersList
+                    topics={state.topics}
+                    removeTopic={(topic) =>
+                        dispatch({ type: "removeTopic", topic })
+                    }
+                />
+            )}
+            {!isLoading && shouldShowRibbons && (
                 <DataCatalogRibbonView
                     results={currentResults as DataCatalogRibbonResult[]}
                     addTopic={(topic: string) =>
@@ -836,10 +850,15 @@ export const DataCatalog = ({
                     }
                     selectedCountries={selectedCountries}
                 />
-            ) : (
+            )}
+            {!isLoading && !shouldShowRibbons && (
                 <DataCatalogResults
+                    topics={state.topics}
                     results={currentResults as DataCatalogSearchResult}
                     selectedCountries={selectedCountries}
+                    addTopic={(topic: string) =>
+                        dispatch({ type: "addTopic", topic })
+                    }
                     setPage={(page: number) =>
                         dispatch({ type: "setPage", page })
                     }
