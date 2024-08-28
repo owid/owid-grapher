@@ -106,12 +106,12 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return min(this.allTimes) as Time
     }
 
-    @imemo get maxTime(): number | undefined {
-        return max(this.allTimes)
+    @imemo get maxTime(): Time {
+        return max(this.allTimes) as Time
     }
 
     @imemo private get allTimes(): Time[] {
-        return this.get(this.timeColumn.slug).values.slice().sort()
+        return this.get(this.timeColumn.slug).values
     }
 
     @imemo get rowIndicesByEntityName(): Map<string, number[]> {
