@@ -335,13 +335,15 @@ export function toleranceInterpolation(
 }
 
 // A dumb function for making a function that makes a key for a row given certain columns.
-export const makeKeyFn =
-    (columnStore: CoreColumnStore, columnSlugs: ColumnSlug[]) =>
-    (rowIndex: number): string =>
+export const makeKeyFn = (
+    columnStore: CoreColumnStore,
+    columnSlugs: ColumnSlug[]
+): ((rowIndex: number) => string) => {
+    const cols = columnSlugs.map((slug) => columnStore[slug])
+    return (rowIndex: number): string =>
         // toString() handles `undefined` and `null` values, which can be in the table.
-        columnSlugs
-            .map((slug) => toString(columnStore[slug][rowIndex]))
-            .join(" ")
+        cols.map((col) => toString(col[rowIndex])).join(" ")
+}
 
 const getColumnStoreLength = (store: CoreColumnStore): number => {
     return max(Object.values(store).map((v) => v.length)) ?? 0
