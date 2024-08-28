@@ -191,6 +191,25 @@ export class CoreTable<
         return originalInput as CoreColumnStore
     }
 
+    @imemo get canReuseInputColumnStore(): boolean {
+        const { inputColumnDefs, valuesFromColumnDefs, columnSlugs } = this
+
+        const storeHasAllColumns = columnSlugs.every(
+            (slug) => slug in this.inputColumnStore
+        )
+
+        const columnsFromTransforms = inputColumnDefs.filter(
+            (def) => def.transform && !def.transformHasRun
+        )
+
+        return (
+            !this.colsToParse.length &&
+            storeHasAllColumns &&
+            !Object.keys(valuesFromColumnDefs).length &&
+            !columnsFromTransforms.length
+        )
+    }
+
     @imemo get columnStore(): CoreColumnStore {
         const {
             inputColumnStore,
@@ -199,6 +218,14 @@ export class CoreTable<
             inputColumnDefs,
             advancedOptions,
         } = this
+
+        // todo: sort by graph dependency order
+
+        if (this.canReuseInputColumnStore) {
+            if (advancedOptions.filterMask)
+                return advancedOptions.filterMask.apply(inputColumnStore)
+            else return inputColumnStore
+        }
 
         // Set blank columns
         let columnStore = Object.assign(
@@ -504,6 +531,12 @@ export class CoreTable<
 
     @imemo get numValidCells(): number {
         return sum(this.columnsAsArray.map((col) => col.numValues))
+    }
+
+    @imemo get colStoreIsEqualToParent(): boolean {
+        return this.parent
+            ? this.columnStore === this.parent.columnStore
+            : false
     }
 
     get rootTable(): this {
@@ -866,6 +899,7 @@ export class CoreTable<
             numValidCells,
             numErrorValues,
             numColumnsWithErrorValues,
+            colStoreIsEqualToParent,
         } = this
         return {
             tableDescription: truncate(tableDescription, 40),
@@ -879,6 +913,7 @@ export class CoreTable<
             numValidCells,
             numErrorValues,
             numColumnsWithErrorValues,
+            colStoreIsEqualToParent,
         }
     }
 
