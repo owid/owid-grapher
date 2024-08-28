@@ -47,6 +47,15 @@
     &:focus {
         outline: none;
     }
+
+    &:placeholder-shown {
+        text-overflow: ellipsis;
+    }
+
+    @include sm-only {
+        padding-right: 40px;
+        height: 48px;
+    }
 }
 
 .data-catalog-selected-countries-container {
@@ -56,18 +65,20 @@
     display: flex;
     align-items: center;
     margin-left: 8px;
+    @include sm-only {
+        height: 48px;
+    }
 }
 
 .data-catalog-selected-country-pill {
     background-color: $blue-5;
     padding: 8px;
+    white-space: nowrap;
     &:not(:last-child) {
         margin-right: 8px;
     }
-    img {
-        margin-right: 8px;
-    }
     span {
+        margin-left: 8px;
         color: $blue-90;
     }
     button {
@@ -82,6 +93,23 @@
             margin-bottom: -3px;
             display: block;
         }
+    }
+    &.data-catalog-selected-country-pill--hide-on-desktop {
+        display: none;
+    }
+    @include sm-only {
+        display: none;
+    }
+}
+
+.data-catalog-selected-country-pill__mini {
+    &:not(.data-catalog-selected-country-pill__mini--show-on-desktop) {
+        @include sm-up {
+            display: none;
+        }
+    }
+    @include sm-only {
+        display: block ruby;
     }
 }
 
@@ -103,6 +131,24 @@
     }
     svg {
         margin-right: 4px;
+    }
+    @include sm-only {
+        margin-right: 8px;
+        margin-top: 8px;
+        width: 32px;
+        height: 32px;
+
+        svg {
+            margin-right: 0;
+            font-size: 13px;
+            line-height: 13px;
+        }
+    }
+}
+
+.data-catalog-country-selector-button__text {
+    @include sm-only {
+        display: none;
     }
 }
 
@@ -140,6 +186,10 @@
     right: 0;
     margin-top: 16px;
     box-shadow: 4px 0 30px 0 #00000020;
+
+    @include sm-only {
+        width: calc(100vw - 32px);
+    }
 }
 
 .data-catalog-country-selector-header {
@@ -354,7 +404,9 @@
 
 .data-catalog-ribbon-list {
     @include sm-only {
-        overflow: scroll;
+        overflow-x: scroll;
+        scrollbar-width: thin;
+        margin-bottom: 8px;
         .data-catalog-ribbon-hit {
             width: 294px;
         }

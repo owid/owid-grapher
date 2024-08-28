@@ -41,13 +41,11 @@ import {
 import { match } from "ts-pattern"
 import { SearchResponse } from "instantsearch.js"
 
-const DataCatalogSearchBox = ({
-    value,
-    setQuery,
-}: {
+const DataCatalogSearchBox = (props: {
     value: string
     setQuery: (query: string) => void
 }) => {
+    const { value, setQuery } = props
     // Storing this in local state so that query params don't update during typing
     const [localValue, setLocalValue] = useState(value)
 
@@ -234,7 +232,9 @@ function DataCatalogCountrySelector({
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <FontAwesomeIcon icon={faMapMarkerAlt} />
-                Country selector
+                <span className="data-catalog-country-selector-button__text">
+                    Country selector
+                </span>
             </button>
             {isOpen ? (
                 <div
@@ -327,12 +327,53 @@ const SelectedCountriesPills = ({
     selectedCountries: Region[]
     removeCountry: (country: string) => void
 }) => {
+    const countryNameWidth = selectedCountries.reduce(
+        (total, cur) => total + cur.name.length,
+        0
+    )
+    // A rough heuristic to determine if we should consolidate the selected countries into a single button on desktop
+    // We always show the consolidated button on mobile
+    const shouldMinifyOnDesktop = countryNameWidth > 30
+    const minifiedButton = selectedCountries.length ? (
+        <div
+            className={cx(
+                "data-catalog-selected-country-pill data-catalog-selected-country-pill__mini",
+                {
+                    "data-catalog-selected-country-pill__mini--show-on-desktop":
+                        shouldMinifyOnDesktop,
+                }
+            )}
+        >
+            <img
+                width={20}
+                height={16}
+                src={`/images/flags/${selectedCountries[0].code}.svg`}
+            />
+            {selectedCountries.length - 1 ? (
+                <span>+ {selectedCountries.length - 1} more</span>
+            ) : null}
+            <button
+                aria-label={`Remove all country filters`}
+                onClick={() => {
+                    selectedCountries.forEach((country) => {
+                        removeCountry(country.name)
+                    })
+                }}
+            >
+                <FontAwesomeIcon icon={faClose} />
+            </button>
+        </div>
+    ) : null
+
     return (
         <div className="data-catalog-selected-countries-container">
             {selectedCountries.map((country) => (
                 <div
                     key={country.code}
-                    className="data-catalog-selected-country-pill"
+                    className={cx("data-catalog-selected-country-pill", {
+                        "data-catalog-selected-country-pill--hide-on-desktop":
+                            shouldMinifyOnDesktop,
+                    })}
                 >
                     <img
                         width={20}
@@ -350,6 +391,7 @@ const SelectedCountriesPills = ({
                     </button>
                 </div>
             ))}
+            {minifiedButton}
         </div>
     )
 }
@@ -689,6 +731,34 @@ const DataCatalogPagination = ({
     )
 }
 
+{
+    /* 
+        Uses CSS to fake an input bar that will highlight correctly using :focus-within
+        without highlighting when the country selector is focused
+     */
+}
+const DataCatalogPseudoInput = ({
+    selectedCountries,
+    query,
+    setQuery,
+    removeCountry,
+}: {
+    selectedCountries: Region[]
+    query: string
+    setQuery: (query: string) => void
+    removeCountry: (country: string) => void
+}) => {
+    return (
+        <div className="data-catalog-pseudoform">
+            <SelectedCountriesPills
+                selectedCountries={selectedCountries}
+                removeCountry={removeCountry}
+            />
+            <DataCatalogSearchBox value={query} setQuery={setQuery} />
+        </div>
+    )
+}
+
 const serializeSet = (set: Set<string>) =>
     set.size ? [...set].join("~") : undefined
 
@@ -829,24 +899,16 @@ export const DataCatalog = ({
                     </p>
                 </header>
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
-                    {/* 
-                        Uses CSS to fake an input bar that will highlight correctly using :focus-within
-                        without highlighting when the country selector is focused
-                     */}
-                    <div className="data-catalog-pseudoform">
-                        <SelectedCountriesPills
-                            selectedCountries={selectedCountries}
-                            removeCountry={(country: string) =>
-                                dispatch({ type: "removeCountry", country })
-                            }
-                        />
-                        <DataCatalogSearchBox
-                            value={state.query}
-                            setQuery={(query: string) =>
-                                dispatch({ type: "setQuery", query })
-                            }
-                        />
-                    </div>
+                    <DataCatalogPseudoInput
+                        selectedCountries={selectedCountries}
+                        query={state.query}
+                        setQuery={(query) =>
+                            dispatch({ type: "setQuery", query })
+                        }
+                        removeCountry={(country) =>
+                            dispatch({ type: "removeCountry", country })
+                        }
+                    />
                     <DataCatalogCountrySelector
                         requireAllCountries={state.requireAllCountries}
                         toggleRequireAllCountries={() =>
@@ -1039,7 +1101,6 @@ function getInitialDatacatalogState(): DataCatalogState {
         }
 
     const url = Url.fromURL(window.location.href)
-    console.log("url.queryParams", url.queryParams)
     return urlToDataCatalogState(url)
 }
 
