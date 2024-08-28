@@ -36,6 +36,7 @@ import {
     EPOCH_DATE,
     OwidChartDimensionInterface,
     OwidVariableType,
+    memoize,
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
 
@@ -261,12 +262,13 @@ export const legacyToOwidTableAndDimensions = (
         const daysColumn = variablesJoinedByDay.getColumns([
             OwidTableSlugs.day,
         ])[0]
-        const yearsForDaysValues = []
-        for (const dayValue of daysColumn.values) {
-            yearsForDaysValues.push(
-                getYearFromISOStringAndDayOffset(EPOCH_DATE, dayValue as number)
-            )
-        }
+        const getYearFromISOStringMemoized = memoize((dayValue: number) =>
+            getYearFromISOStringAndDayOffset(EPOCH_DATE, dayValue)
+        )
+        const yearsForDaysValues = daysColumn.values.map((dayValue) =>
+            getYearFromISOStringMemoized(dayValue as number)
+        )
+
         const newYearColumn = {
             ...daysColumn,
             slug: OwidTableSlugs.year,
