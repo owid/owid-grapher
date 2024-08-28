@@ -604,7 +604,7 @@ export const sortColumnStore = (
     // Check if column store is already sorted (which is the case if newOrder is equal to range(0, startLen)).
     // If it's not sorted, we will detect that within the first few iterations usually.
     let isSorted = true
-    for (let i = 0; i <= len; i++) {
+    for (let i = 0; i < len; i++) {
         if (newOrder[i] !== i) {
             isSorted = false
             break
@@ -624,14 +624,15 @@ const makeSortByFn = (
     columnStore: CoreColumnStore,
     columnSlugs: ColumnSlug[]
 ): ((indexA: number, indexB: number) => 1 | 0 | -1) => {
-    const numSlugs = columnSlugs.length
+    const cols = columnSlugs.map((slug) => columnStore[slug])
+
     return (indexA: number, indexB: number): 1 | 0 | -1 => {
         const nodeAFirst = -1
         const nodeBFirst = 1
 
-        for (let slugIndex = 0; slugIndex < numSlugs; slugIndex++) {
-            const slug = columnSlugs[slugIndex]
-            const col = columnStore[slug]
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let colIndex = 0; colIndex < cols.length; colIndex++) {
+            const col = cols[colIndex]
             const av = col[indexA]
             const bv = col[indexB]
             if (av < bv) return nodeAFirst
