@@ -870,7 +870,7 @@ export const DataCatalog = (props: {
                         Uses CSS to fake an input bar that will highlight correctly using :focus-within
                         without highlighting when the country selector is focused
                      */}
-                    <div className="data-catalog-pseudoform">
+                    <div className="data-catalog-pseudo-input">
                         <SelectedCountriesPills
                             selectedCountryNames={state.selectedCountryNames}
                             removeCountry={(country: string) =>
