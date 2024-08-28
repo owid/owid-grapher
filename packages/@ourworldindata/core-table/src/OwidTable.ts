@@ -111,7 +111,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     @imemo private get allTimes(): Time[] {
-        return this.get(this.timeColumn.slug).values
+        return this.get(this.timeColumn.slug).values.slice().sort()
     }
 
     @imemo get rowIndicesByEntityName(): Map<string, number[]> {
@@ -214,7 +214,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const timeColumnSlug = this.timeColumn?.slug || OwidTableSlugs.time
         // Sorting by time, because incidentally some parts of the code depended on this method
         // returning sorted rows.
-        return this.sortedByTime.columnFilter(
+        return this.columnFilter(
             timeColumnSlug,
             (time) =>
                 (time as number) >= adjustedStart &&
