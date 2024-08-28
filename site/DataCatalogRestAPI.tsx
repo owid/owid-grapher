@@ -30,6 +30,7 @@ import {
     faMagnifyingGlass,
     faMapMarkerAlt,
     faPlus,
+    faSearch,
 } from "@fortawesome/free-solid-svg-icons"
 import { LabeledSwitch } from "@ourworldindata/components"
 import {
@@ -41,32 +42,45 @@ import {
 import { match } from "ts-pattern"
 import { SearchResponse } from "instantsearch.js"
 
-const DataCatalogSearchBox = (props: {
+const DataCatalogSearchInput = ({
+    value,
+    setQuery,
+    onSubmit,
+}: {
     value: string
     setQuery: (query: string) => void
+    onSubmit: () => void
 }) => {
-    const { value, setQuery } = props
-    // Storing this in local state so that query params don't update during typing
-    const [localValue, setLocalValue] = useState(value)
-
     return (
         <div className="data-catalog-search-box-container">
             <form
                 className="data-catalog-search-form"
                 onSubmit={(e) => {
                     e.preventDefault()
-                    setQuery(localValue)
+                    onSubmit()
                 }}
             >
                 <input
                     type="text"
                     className="data-catalog-search-input body-3-regular"
                     placeholder="Search for an indicator, a topic, or a keyword &hellip;"
-                    value={localValue}
+                    value={value}
                     onChange={(e) => {
-                        setLocalValue(e.target.value)
+                        setQuery(e.target.value)
                     }}
                 />
+                <button
+                    className="data-catalog-clear-input-button"
+                    disabled={!value}
+                    aria-label="Clear search"
+                    type="button"
+                    onClick={(e) => {
+                        e.preventDefault()
+                        setQuery("")
+                    }}
+                >
+                    <FontAwesomeIcon icon={faClose} />
+                </button>
             </form>
         </div>
     )
@@ -177,13 +191,13 @@ const dataCatalogReducer = (
 }
 
 function DataCatalogCountrySelector({
-    countrySelections,
+    selectedCountryNames,
     requireAllCountries,
     addCountry,
     removeCountry,
     toggleRequireAllCountries,
 }: {
-    countrySelections: Set<string>
+    selectedCountryNames: Set<string>
     requireAllCountries: boolean
     addCountry: (country: string) => void
     removeCountry: (country: string) => void
@@ -199,7 +213,7 @@ function DataCatalogCountrySelector({
         setIsOpen(false)
     )
     const toggleCountry = (country: string) => {
-        if (countrySelections.has(country)) {
+        if (selectedCountryNames.has(country)) {
             removeCountry(country)
         } else {
             addCountry(country)
@@ -214,12 +228,12 @@ function DataCatalogCountrySelector({
     const filteredCountriesByName = useMemo(() => {
         return alphabetizedCountriesByName.filter(
             (country) =>
-                countrySelections.has(country.name) ||
+                selectedCountryNames.has(country.name) ||
                 country.name
                     .toLowerCase()
                     .includes(countrySearchQuery.toLowerCase())
         )
-    }, [countrySearchQuery, countrySelections, alphabetizedCountriesByName])
+    }, [countrySearchQuery, selectedCountryNames, alphabetizedCountriesByName])
 
     return (
         <div className="data-catalog-country-selector" ref={countrySelectorRef}>
@@ -281,7 +295,7 @@ function DataCatalogCountrySelector({
                                         "data-catalog-country-selector-list__item",
                                         {
                                             "data-catalog-country-selector-list__item--selected":
-                                                countrySelections.has(
+                                                selectedCountryNames.has(
                                                     country.name
                                                 ),
                                         }
@@ -303,7 +317,7 @@ function DataCatalogCountrySelector({
                                     <input
                                         type="checkbox"
                                         id={`country-${country.name}`}
-                                        checked={countrySelections.has(
+                                        checked={selectedCountryNames.has(
                                             country.name
                                         )}
                                         onChange={() => {
@@ -731,31 +745,58 @@ const DataCatalogPagination = ({
     )
 }
 
-{
-    /* 
-        Uses CSS to fake an input bar that will highlight correctly using :focus-within
-        without highlighting when the country selector is focused
-     */
-}
-const DataCatalogPseudoInput = ({
+const DataCatalogSearchbar = ({
     selectedCountries,
     query,
     setQuery,
     removeCountry,
+    addCountry,
+    requireAllCountries,
+    selectedCountryNames,
+    toggleRequireAllCountries,
 }: {
     selectedCountries: Region[]
+    selectedCountryNames: Set<string>
     query: string
     setQuery: (query: string) => void
     removeCountry: (country: string) => void
+    addCountry: (country: string) => void
+    requireAllCountries: boolean
+    toggleRequireAllCountries: () => void
 }) => {
+    // Storing this in local state so that query params don't update during typing
+    const [localValue, setLocalValue] = useState(query)
+    const submit = () => setQuery(localValue)
+
+    // Uses CSS to fake an input bar that will highlight correctly using :focus-within
+    // without highlighting when the country selector is focused
     return (
-        <div className="data-catalog-pseudoform">
-            <SelectedCountriesPills
-                selectedCountries={selectedCountries}
+        <>
+            <div className="data-catalog-pseudo-input">
+                <button
+                    className="data-catalog-pseudo-input__submit-button"
+                    onClick={submit}
+                >
+                    <FontAwesomeIcon icon={faSearch} />
+                </button>
+                <SelectedCountriesPills
+                    selectedCountries={selectedCountries}
+                    removeCountry={removeCountry}
+                />
+                <DataCatalogSearchInput
+                    value={localValue}
+                    setQuery={setLocalValue}
+                    onSubmit={submit}
+                />
+            </div>
+            <DataCatalogCountrySelector
+                requireAllCountries={requireAllCountries}
+                toggleRequireAllCountries={toggleRequireAllCountries}
+                selectedCountryNames={selectedCountryNames}
+                addCountry={addCountry}
                 removeCountry={removeCountry}
             />
-            <DataCatalogSearchBox value={query} setQuery={setQuery} />
-        </div>
+        </>
     )
 }
 
@@ -899,27 +940,22 @@ export const DataCatalog = ({
                     </p>
                 </header>
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
-                    <DataCatalogPseudoInput
+                    <DataCatalogSearchbar
+                        selectedCountryNames={state.selectedCountryNames}
                         selectedCountries={selectedCountries}
+                        requireAllCountries={state.requireAllCountries}
                         query={state.query}
+                        toggleRequireAllCountries={() =>
+                            dispatch({ type: "toggleRequireAllCountries" })
+                        }
                         setQuery={(query) =>
                             dispatch({ type: "setQuery", query })
                         }
                         removeCountry={(country) =>
                             dispatch({ type: "removeCountry", country })
                         }
-                    />
-                    <DataCatalogCountrySelector
-                        requireAllCountries={state.requireAllCountries}
-                        toggleRequireAllCountries={() =>
-                            dispatch({ type: "toggleRequireAllCountries" })
-                        }
-                        countrySelections={state.selectedCountryNames}
-                        addCountry={(country: string) =>
+                        addCountry={(country) =>
                             dispatch({ type: "addCountry", country })
-                        }
-                        removeCountry={(country: string) =>
-                            dispatch({ type: "removeCountry", country })
                         }
                     />
                 </div>

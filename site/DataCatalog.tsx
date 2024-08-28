@@ -744,7 +744,7 @@ export const DataCatalog = (props: { tagGraph: TagGraphRoot }) => {
                         Uses CSS to fake an input bar that will highlight correctly using :focus-within
                         without highlighting when the country selector is focused
                      */}
-                    <div className="data-catalog-pseudoform">
+                    <div className="data-catalog-pseudo-input">
                         <SelectedCountriesPills
                             countrySelections={countrySelections}
                             setCountrySelections={setCountrySelections}

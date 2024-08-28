@@ -13,15 +13,60 @@
 
 .data-catalog-search-form {
     position: relative;
+    display: flex;
+    // The approximate width of the country-selector button
+    padding-right: 146px;
+    @include sm-only {
+        padding-right: 48px;
+    }
 }
 
-.data-catalog-pseudoform {
+.data-catalog-pseudo-input {
     display: flex;
     flex-grow: 1;
     outline: 1px solid $blue-20;
     background-color: #fff;
     &:focus-within {
         outline: 1px solid $blue-40;
+    }
+}
+
+.data-catalog-pseudo-input__submit-button {
+    background-color: transparent;
+    width: 32px;
+    height: 32px;
+    margin-top: 12px;
+    margin-left: 8px;
+    cursor: pointer;
+    color: $blue-50;
+}
+
+.data-catalog-clear-input-button {
+    width: 16px;
+    border-radius: 16px;
+    height: 16px;
+    line-height: 16px;
+    margin-top: 20px;
+    color: #fff;
+    background: $blue-50;
+    cursor: pointer;
+    font-size: 12px;
+    margin-right: 16px;
+    display: none;
+    &:after {
+        content: "";
+        border-right: 1px solid $blue-20;
+        position: absolute;
+        height: 26px;
+        margin-left: 14px;
+        margin-top: -6px;
+    }
+    @include sm-only {
+        display: block;
+        margin-top: 16px;
+        &:disabled {
+            display: none;
+        }
     }
 }
 
@@ -36,12 +81,11 @@
 
 .data-catalog-search-input {
     background-color: white;
-    width: 100%;
     height: 56px;
     padding-left: 16px;
-    // the approximate width of the country selector button
-    padding-right: 140px;
     border: none;
+    flex-grow: 1;
+    width: 100%;
     outline-offset: 0px;
 
     &:focus {
@@ -53,7 +97,6 @@
     }
 
     @include sm-only {
-        padding-right: 40px;
         height: 48px;
     }
 }
@@ -74,6 +117,7 @@
     background-color: $blue-5;
     padding: 8px;
     white-space: nowrap;
+    display: flex;
     &:not(:last-child) {
         margin-right: 8px;
     }
@@ -88,6 +132,7 @@
         color: $blue-60;
         padding: 0;
         cursor: pointer;
+        margin-bottom: 2px;
         svg {
             width: 10px;
             margin-bottom: -3px;
@@ -109,7 +154,11 @@
         }
     }
     @include sm-only {
-        display: block ruby;
+        display: flex;
+        padding: 8px;
+        span {
+            display: none;
+        }
     }
 }
 
@@ -137,11 +186,13 @@
         margin-top: 8px;
         width: 32px;
         height: 32px;
+        background-color: $blue-10;
 
         svg {
-            margin-right: 0;
-            font-size: 13px;
-            line-height: 13px;
+            font-size: 14px;
+            line-height: 14px;
+            margin-left: 3px;
+            margin-bottom: 1px;
         }
     }
 }
@@ -188,7 +239,7 @@
     box-shadow: 4px 0 30px 0 #00000020;
 
     @include sm-only {
-        width: calc(100vw - 32px);
+        width: calc(100vw - 48px);
     }
 }
 
