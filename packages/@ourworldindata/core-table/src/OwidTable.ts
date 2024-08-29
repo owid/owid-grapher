@@ -6,7 +6,6 @@ import {
     sumBy,
     uniq,
     sortNumeric,
-    last,
     groupBy,
     isNumber,
     isEmpty,
@@ -100,10 +99,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         ) as Map<string, string>
     }
 
-    @imemo get maxTime(): number | undefined {
-        return last(this.allTimes)
-    }
-
     @imemo get entityIdColumn(): CoreColumn {
         return (
             this.getFirstColumnWithType(ColumnTypeNames.EntityId) ??
@@ -126,11 +121,15 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     @imemo get minTime(): Time {
-        return this.allTimes[0]
+        return min(this.allTimes) as Time
+    }
+
+    @imemo get maxTime(): number | undefined {
+        return max(this.allTimes)
     }
 
     @imemo private get allTimes(): Time[] {
-        return this.sortedByTime.get(this.timeColumn.slug).values
+        return this.get(this.timeColumn.slug).values
     }
 
     @imemo get rowIndicesByEntityName(): Map<string, number[]> {
