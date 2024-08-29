@@ -9,7 +9,6 @@ import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import {
     getFilenameExtension,
     getFilenameWithoutExtension,
-    isNull,
     LARGEST_IMAGE_WIDTH,
 } from "@ourworldindata/utils"
 
@@ -83,28 +82,25 @@ function Image({
     const filenameWithoutExtension = encodeURIComponent(
         getFilenameWithoutExtension(image.filename)
     )
-    const resizedWidth = match(image.originalWidth)
-        .when(
-            (width) => isNull(width),
-            () => ""
-        )
-        .when(
-            (width) => width <= LARGEST_IMAGE_WIDTH,
-            () => ""
-        )
-        .when(
-            (width) => width > LARGEST_IMAGE_WIDTH,
-            () => `_${LARGEST_IMAGE_WIDTH}`
-        )
-        .otherwise(() => "")
+    const widthSuffix =
+        image.originalWidth && image.originalWidth > LARGEST_IMAGE_WIDTH
+            ? `_${LARGEST_IMAGE_WIDTH}`
+            : ""
+    const aspectRatio =
+        image.originalWidth && image.originalHeight
+            ? image.originalWidth / image.originalHeight
+            : null
+    const height = aspectRatio
+        ? Math.round(LARGEST_IMAGE_WIDTH / aspectRatio)
+        : undefined
 
     const extension = getFilenameExtension(image.filename)
     return (
         <img
-            src={`${BAKED_BASE_URL}${IMAGES_DIRECTORY}${filenameWithoutExtension}${resizedWidth}.${extension}`}
+            src={`${BAKED_BASE_URL}${IMAGES_DIRECTORY}${filenameWithoutExtension}${widthSuffix}.${extension}`}
             alt={alt ?? image.defaultAlt}
-            width={image.originalWidth ?? undefined}
-            height={image.originalHeight ?? undefined}
+            width={LARGEST_IMAGE_WIDTH}
+            height={height}
         />
     )
 }
