@@ -205,7 +205,8 @@ export function useOffsetTop(ref: React.RefObject<HTMLElement>) {
         if (ref.current) {
             setOffsetTop(ref.current.offsetTop)
             const observer = new ResizeObserver(() => {
-                setOffsetTop(ref.current!.offsetTop)
+                if (!ref.current) return
+                setOffsetTop(ref.current.offsetTop)
             })
             observer.observe(ref.current)
             return () => observer.disconnect()
