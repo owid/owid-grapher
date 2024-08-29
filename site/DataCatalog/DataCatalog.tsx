@@ -4,21 +4,18 @@ import cx from "classnames"
 import {
     countriesByName,
     Country,
-    get,
-    isArray,
     Region,
-    TagGraphNode,
     TagGraphRoot,
     Url,
     getPaginationPageNumbers,
-    memoize,
 } from "@ourworldindata/utils"
 import algoliasearch, { SearchClient } from "algoliasearch"
-import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "../settings/clientSettings.js"
-import { IChartHit, SearchIndexName } from "./search/searchTypes.js"
-import { getIndexName } from "./search/searchClient.js"
-import { ChartHit } from "./search/ChartHit.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import {
+    ALGOLIA_ID,
+    ALGOLIA_SEARCH_KEY,
+} from "../../settings/clientSettings.js"
+import { ChartHit } from "../search/ChartHit.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faArrowLeft,
     faArrowRight,
@@ -38,9 +35,25 @@ import {
     useOffsetTop,
     useTriggerOnEscape,
     useTriggerWhenClickOutside,
-} from "./hooks.js"
-import { match } from "ts-pattern"
-import { SearchResponse } from "instantsearch.js"
+} from "../hooks.js"
+import {
+    checkShouldShowRibbonView,
+    DataCatalogCache,
+    DataCatalogRibbonResult,
+    DataCatalogSearchResult,
+    getCountryData,
+    queryRibbonsWithCache,
+    querySearchWithCache,
+    syncDataCatalogURL,
+} from "./DataCatalogUtils.js"
+import {
+    dataCatalogStateToUrl,
+    getInitialDatacatalogState,
+    urlToDataCatalogState,
+    dataCatalogReducer,
+    DataCatalogState,
+    createActions,
+} from "./DataCatalogState.js"
 
 const DataCatalogSearchInput = ({
     value,
@@ -84,111 +97,6 @@ const DataCatalogSearchInput = ({
             </form>
         </div>
     )
-}
-
-type DataCatalogState = Readonly<{
-    query: string
-    topics: Set<string>
-    selectedCountryNames: Set<string>
-    requireAllCountries: boolean
-    page: number
-}>
-
-type AddTopicAction = {
-    type: "addTopic"
-    topic: string
-}
-
-type RemoveTopicAction = {
-    type: "removeTopic"
-    topic: string
-}
-
-type SetQueryAction = {
-    type: "setQuery"
-    query: string
-}
-
-type AddCountryAction = {
-    type: "addCountry"
-    country: string
-}
-
-type RemoveCountryAction = {
-    type: "removeCountry"
-    country: string
-}
-
-type ToggleRequireAllCountriesAction = {
-    type: "toggleRequireAllCountries"
-}
-
-type ResetStateAction = {
-    type: "resetState"
-    state: DataCatalogState
-}
-
-type SetPageAction = {
-    type: "setPage"
-    page: number
-}
-
-type DataCatalogAction =
-    | AddTopicAction
-    | RemoveTopicAction
-    | SetQueryAction
-    | AddCountryAction
-    | RemoveCountryAction
-    | ToggleRequireAllCountriesAction
-    | ResetStateAction
-    | SetPageAction
-
-const dataCatalogReducer = (
-    state: DataCatalogState,
-    action: DataCatalogAction
-): DataCatalogState => {
-    return match(action)
-        .with({ type: "setQuery" }, ({ query }) => ({
-            ...state,
-            query,
-        }))
-        .with({ type: "addTopic" }, ({ topic }) => ({
-            ...state,
-            page: 0,
-            topics: new Set(state.topics).add(topic),
-        }))
-        .with({ type: "removeTopic" }, ({ topic }) => {
-            const newTopics = new Set(state.topics)
-            newTopics.delete(topic)
-            return {
-                ...state,
-                topics: newTopics,
-            }
-        })
-        .with({ type: "addCountry" }, ({ country }) => ({
-            ...state,
-            selectedCountryNames: new Set(state.selectedCountryNames).add(
-                country
-            ),
-        }))
-        .with({ type: "removeCountry" }, ({ country }) => {
-            const newCountries = new Set(state.selectedCountryNames)
-            newCountries.delete(country)
-            return {
-                ...state,
-                selectedCountryNames: newCountries,
-            }
-        })
-        .with({ type: "toggleRequireAllCountries" }, () => ({
-            ...state,
-            requireAllCountries: !state.requireAllCountries,
-        }))
-        .with({ type: "setPage" }, ({ page }) => ({
-            ...state,
-            page,
-        }))
-        .with({ type: "resetState" }, ({ state }) => state)
-        .exhaustive()
 }
 
 function DataCatalogCountrySelector({
@@ -411,27 +319,6 @@ const SelectedCountriesPills = ({
     )
 }
 
-function checkIfNoTopicsOrOneAreaTopicApplied(
-    topics: Set<string>,
-    areas: string[]
-) {
-    if (topics.size === 0) return true
-    if (topics.size > 1) return false
-
-    const [tag] = topics.values()
-    return areas.includes(tag)
-}
-
-function checkShouldShowRibbonView(
-    query: string,
-    topics: Set<string>,
-    areaNames: string[]
-): boolean {
-    return (
-        query === "" && checkIfNoTopicsOrOneAreaTopicApplied(topics, areaNames)
-    )
-}
-
 const DataCatalogRibbon = ({
     result,
     addTopic,
@@ -485,15 +372,6 @@ const DataCatalogRibbon = ({
             </button>
         </div>
     )
-}
-
-function getCountryData(selectedCountries: Set<string>): Region[] {
-    const regionData: Region[] = []
-    const countries = countriesByName()
-    for (const selectedCountry of selectedCountries) {
-        regionData.push(countries[selectedCountry])
-    }
-    return regionData
 }
 
 const DataCatalogRibbonView = ({
@@ -801,77 +679,6 @@ const DataCatalogSearchbar = ({
     )
 }
 
-const serializeSet = (set: Set<string>) =>
-    set.size ? [...set].join("~") : undefined
-
-const deserializeSet = (str?: string): Set<string> =>
-    str ? new Set(str.split("~")) : new Set()
-
-function dataCatalogStateToUrl(state: DataCatalogState) {
-    let url = Url.fromURL(
-        typeof window === "undefined" ? "" : window.location.href
-    )
-
-    const params = {
-        q: state.query || undefined,
-        topics: serializeSet(state.topics),
-        countries: serializeSet(state.selectedCountryNames),
-        requireAllCountries: state.requireAllCountries ? "true" : undefined,
-        page: state.page > 0 ? (state.page + 1).toString() : undefined,
-    }
-
-    Object.entries(params).forEach(([key, value]) => {
-        url = url.updateQueryParams({ [key]: value })
-    })
-
-    return url.fullUrl
-}
-
-type DataCatalogSearchResult = SearchResponse<IChartHit>
-type DataCatalogRibbonResult = SearchResponse<IChartHit> & {
-    title: string
-}
-
-type DataCatalogCache = {
-    ribbons: Map<string, DataCatalogRibbonResult[]>
-    search: Map<string, DataCatalogSearchResult>
-}
-
-async function queryRibbonsWithCache(
-    searchClient: SearchClient,
-    state: DataCatalogState,
-    tagGraph: TagGraphRoot,
-    cache: React.MutableRefObject<DataCatalogCache>
-): Promise<void> {
-    const topicsForRibbons = getTopicsForRibbons(state.topics, tagGraph)
-    const searchParams = dataCatalogStateToAlgoliaQueries(
-        state,
-        topicsForRibbons
-    )
-    return searchClient
-        .search<DataCatalogRibbonResult>(searchParams)
-        .then((response) =>
-            formatAlgoliaRibbonsResponse(response, topicsForRibbons)
-        )
-        .then((formatted) => {
-            cache.current.ribbons.set(dataCatalogStateToUrl(state), formatted)
-        })
-}
-
-async function querySearchWithCache(
-    searchClient: SearchClient,
-    state: DataCatalogState,
-    cache: React.MutableRefObject<DataCatalogCache>
-): Promise<void> {
-    const searchParams = dataCatalogStateToAlgoliaQuery(state)
-    return searchClient
-        .search<DataCatalogHit>(searchParams)
-        .then(formatAlgoliaSearchResponse)
-        .then((formatted) => {
-            cache.current.search.set(dataCatalogStateToUrl(state), formatted)
-        })
-}
-
 export const DataCatalog = ({
     initialState,
     tagGraph,
@@ -882,6 +689,7 @@ export const DataCatalog = ({
     searchClient: SearchClient
 }) => {
     const [state, dispatch] = useReducer(dataCatalogReducer, initialState)
+    const actions = createActions(dispatch)
     const [isLoading, setIsLoading] = useState(false)
     const cache = useRef<DataCatalogCache>({
         ribbons: new Map(),
@@ -921,7 +729,7 @@ export const DataCatalog = ({
     useEffect(() => {
         const handlePopState = () => {
             const url = Url.fromURL(window.location.href)
-            dispatch({ type: "resetState", state: urlToDataCatalogState(url) })
+            actions.resetState(urlToDataCatalogState(url))
         }
         window.addEventListener("popstate", handlePopState)
         return () => {
@@ -946,18 +754,12 @@ export const DataCatalog = ({
                         selectedCountries={selectedCountries}
                         requireAllCountries={state.requireAllCountries}
                         query={state.query}
-                        toggleRequireAllCountries={() =>
-                            dispatch({ type: "toggleRequireAllCountries" })
+                        toggleRequireAllCountries={
+                            actions.toggleRequireAllCountries
                         }
-                        setQuery={(query) =>
-                            dispatch({ type: "setQuery", query })
-                        }
-                        removeCountry={(country) =>
-                            dispatch({ type: "removeCountry", country })
-                        }
-                        addCountry={(country) =>
-                            dispatch({ type: "addCountry", country })
-                        }
+                        setQuery={actions.setQuery}
+                        removeCountry={actions.removeCountry}
+                        addCountry={actions.addCountry}
                     />
                 </div>
             </div>
@@ -965,17 +767,13 @@ export const DataCatalog = ({
             {!isLoading && (
                 <AppliedTopicFiltersList
                     topics={state.topics}
-                    removeTopic={(topic) =>
-                        dispatch({ type: "removeTopic", topic })
-                    }
+                    removeTopic={actions.removeTopic}
                 />
             )}
             {!isLoading && shouldShowRibbons && (
                 <DataCatalogRibbonView
                     results={currentResults as DataCatalogRibbonResult[]}
-                    addTopic={(topic: string) =>
-                        dispatch({ type: "addTopic", topic })
-                    }
+                    addTopic={actions.addTopic}
                     selectedCountries={selectedCountries}
                 />
             )}
@@ -984,163 +782,12 @@ export const DataCatalog = ({
                     topics={state.topics}
                     results={currentResults as DataCatalogSearchResult}
                     selectedCountries={selectedCountries}
-                    addTopic={(topic: string) =>
-                        dispatch({ type: "addTopic", topic })
-                    }
-                    setPage={(page: number) =>
-                        dispatch({ type: "setPage", page })
-                    }
+                    addTopic={actions.addTopic}
+                    setPage={actions.setPage}
                 />
             )}
         </>
     )
-}
-
-const CHARTS_INDEX = getIndexName(SearchIndexName.Charts)
-
-type DataCatalogHit = {
-    title: string
-    slug: string
-    availableEntities: string[]
-}
-
-function formatAlgoliaRibbonsResponse(
-    response: any,
-    ribbonTopics: string[]
-): DataCatalogRibbonResult[] {
-    return response.results.map(
-        (res: SearchResponse<DataCatalogHit>, i: number) => ({
-            ...res,
-            title: ribbonTopics[i],
-        })
-    )
-}
-
-function formatAlgoliaSearchResponse(response: any): DataCatalogSearchResult {
-    return {
-        ...response.results[0],
-    }
-}
-
-// set url if it's different from the current url.
-// when the user navigates back, we derive the state from the url and set it
-// so the url is already identical to the state - we don't need to push it again (otherwise we'd get an infinite loop)
-function syncDataCatalogURL(stateAsUrl: string) {
-    const currentUrl = window.location.href
-    if (currentUrl !== stateAsUrl) {
-        window.history.pushState({}, "", stateAsUrl)
-    }
-    setTimeout(() => {
-        window.scrollTo({ behavior: "smooth", top: 0 })
-    }, 100)
-}
-
-function setToFacetFilters(
-    facetSet: Set<string>,
-    attribute: "tags" | "availableEntities"
-) {
-    return Array.from(facetSet).map((facet) => `${attribute}:${facet}`)
-}
-
-function getTopicsForRibbons(topics: Set<string>, tagGraph: TagGraphRoot) {
-    if (topics.size === 0) return tagGraph.children.map((child) => child.name)
-    if (topics.size === 1) {
-        const area = tagGraph.children.find((child) => topics.has(child.name))
-        if (area) return area.children.map((child) => child.name)
-    }
-    return []
-}
-
-function formatCountryFacetFilters(
-    countries: Set<string>,
-    requireAllCountries: boolean
-) {
-    const facetFilters: (string | string[])[] = []
-    if (requireAllCountries) {
-        // conjunction mode (A AND B): [attribute:"A", attribute:"B"]
-        facetFilters.push(...setToFacetFilters(countries, "availableEntities"))
-    } else {
-        // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
-        facetFilters.push(setToFacetFilters(countries, "availableEntities"))
-    }
-    return facetFilters
-}
-
-function dataCatalogStateToAlgoliaQueries(
-    state: DataCatalogState,
-    topicNames: string[]
-) {
-    const countryFacetFilters = formatCountryFacetFilters(
-        state.selectedCountryNames,
-        state.requireAllCountries
-    )
-    return topicNames.map((topic) => {
-        const facetFilters = [[`tags:${topic}`], ...countryFacetFilters]
-        return {
-            indexName: CHARTS_INDEX,
-            query: state.query,
-            facetFilters: facetFilters,
-            attributesToRetrieve: [
-                "title",
-                "slug",
-                "availableEntities",
-                "variantName",
-            ],
-            hitsPerPage: 4,
-            page: state.page,
-        }
-    })
-}
-
-function dataCatalogStateToAlgoliaQuery(state: DataCatalogState) {
-    const facetFilters = formatCountryFacetFilters(
-        state.selectedCountryNames,
-        state.requireAllCountries
-    )
-    facetFilters.push(...setToFacetFilters(state.topics, "tags"))
-
-    return [
-        {
-            indexName: CHARTS_INDEX,
-            query: state.query,
-            facetFilters: facetFilters,
-            attributesToRetrieve: [
-                "title",
-                "slug",
-                "availableEntities",
-                "variantName",
-            ],
-            highlightPostTag: "</mark>",
-            highlightPreTag: "<mark>",
-            facets: ["tags"],
-            hitsPerPage: 20,
-            page: state.page,
-        },
-    ]
-}
-
-function urlToDataCatalogState(url: Url): DataCatalogState {
-    return {
-        query: url.queryParams.q || "",
-        topics: deserializeSet(url.queryParams.topics),
-        selectedCountryNames: deserializeSet(url.queryParams.countries),
-        requireAllCountries: url.queryParams.requireAllCountries === "true",
-        page: url.queryParams.page ? parseInt(url.queryParams.page) - 1 : 0,
-    }
-}
-
-function getInitialDatacatalogState(): DataCatalogState {
-    if (typeof window === "undefined")
-        return {
-            query: "",
-            topics: new Set(),
-            selectedCountryNames: new Set(),
-            requireAllCountries: false,
-            page: 0,
-        }
-
-    const url = Url.fromURL(window.location.href)
-    return urlToDataCatalogState(url)
 }
 
 export function DataCatalogInstantSearchWrapper({
@@ -1161,7 +808,7 @@ export function DataCatalogInstantSearchWrapper({
 }
 
 export function hydrateChartsPage() {
-    const root = document.getElementById("charts-index-page-root")
+    const root = document.getElementById("data-catalog-page-root")
     const tagGraph = window._OWID_TAG_GRAPH as TagGraphRoot
     if (root) {
         ReactDOM.hydrate(

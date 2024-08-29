@@ -1,9 +1,9 @@
 import React from "react"
-import { Head } from "./Head.js"
-import { SiteHeader } from "./SiteHeader.js"
-import { SiteFooter } from "./SiteFooter.js"
+import { Head } from "../Head.js"
+import { SiteHeader } from "../SiteHeader.js"
+import { SiteFooter } from "../SiteFooter.js"
 import { SiteFooterContext, TagGraphRoot } from "@ourworldindata/utils"
-import { DataCatalogInstantSearchWrapper } from "./DataCatalogRestAPI.js"
+import { DataCatalogInstantSearchWrapper } from "./DataCatalog.js"
 
 declare global {
     interface Window {
@@ -36,7 +36,7 @@ export const DataCatalogPage = (props: {
             <body className="ChartsIndexPage">
                 <SiteHeader baseUrl={baseUrl} hideDonationFlag />
                 <main
-                    id="charts-index-page-root"
+                    id="data-catalog-page-root"
                     className="grid grid-cols-12-full-width"
                 >
                     <DataCatalogInstantSearchWrapper tagGraph={tagGraph} />
