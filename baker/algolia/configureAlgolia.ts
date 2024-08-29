@@ -56,8 +56,6 @@ export const configureAlgolia = async () => {
         exactOnSingleWordQuery: "none",
         removeStopWords: ["en"],
         snippetEllipsisText: "…",
-        highlightPreTag: "<strong>",
-        highlightPostTag: "</strong>",
         distinct: true,
         advancedSyntax: true,
         advancedSyntaxFeatures: ["exactPhrase"],
