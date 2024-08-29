@@ -66,6 +66,7 @@ export function dataCatalogReducer(
     return match(action)
         .with({ type: "setQuery" }, ({ query }) => ({
             ...state,
+            page: 0,
             query,
         }))
         .with({ type: "addTopic" }, ({ topic }) => ({
@@ -78,11 +79,13 @@ export function dataCatalogReducer(
             newTopics.delete(topic)
             return {
                 ...state,
+                page: 0,
                 topics: newTopics,
             }
         })
         .with({ type: "addCountry" }, ({ country }) => ({
             ...state,
+            page: 0,
             selectedCountryNames: new Set(state.selectedCountryNames).add(
                 country
             ),
@@ -92,6 +95,7 @@ export function dataCatalogReducer(
             newCountries.delete(country)
             return {
                 ...state,
+                page: 0,
                 selectedCountryNames: newCountries,
             }
         })
