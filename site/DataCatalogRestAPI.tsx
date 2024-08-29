@@ -1109,6 +1109,8 @@ function dataCatalogStateToAlgoliaQuery(state: DataCatalogState) {
                 "availableEntities",
                 "variantName",
             ],
+            highlightPostTag: "</mark>",
+            highlightPreTag: "<mark>",
             facets: ["tags"],
             hitsPerPage: 20,
             page: state.page,
