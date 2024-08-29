@@ -154,6 +154,7 @@ const dataCatalogReducer = (
         }))
         .with({ type: "addTopic" }, ({ topic }) => ({
             ...state,
+            page: 0,
             topics: new Set(state.topics).add(topic),
         }))
         .with({ type: "removeTopic" }, ({ topic }) => {
