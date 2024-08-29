@@ -379,11 +379,24 @@ describe(trimEmptyRows, () => {
 
 describe(sortColumnStore, () => {
     it("can sort", () => {
-        const result = sortColumnStore(
-            { countries: ["usa", "can", "mex"], pops: [123, 21, 99] },
-            ["pops"]
-        )
+        const columnStore = {
+            countries: ["usa", "can", "mex"],
+            pops: [123, 21, 99],
+        }
+        const result = sortColumnStore(columnStore, ["pops"])
         expect(result["pops"]).toEqual([21, 99, 123])
+        expect(result["countries"]).toEqual(["can", "mex", "usa"])
+        expect(result).not.toBe(columnStore)
+    })
+
+    it("can detect a sorted array and leave it untouched", () => {
+        const columnStore = {
+            countries: ["usa", "can", "mex"],
+            pops: [21, 99, 123],
+        }
+        const result = sortColumnStore(columnStore, ["pops"])
+        expect(result["pops"]).toEqual([21, 99, 123])
+        expect(result).toBe(columnStore)
     })
 })
 

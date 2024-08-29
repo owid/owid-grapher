@@ -335,13 +335,15 @@ export function toleranceInterpolation(
 }
 
 // A dumb function for making a function that makes a key for a row given certain columns.
-export const makeKeyFn =
-    (columnStore: CoreColumnStore, columnSlugs: ColumnSlug[]) =>
-    (rowIndex: number): string =>
+export const makeKeyFn = (
+    columnStore: CoreColumnStore,
+    columnSlugs: ColumnSlug[]
+): ((rowIndex: number) => string) => {
+    const cols = columnSlugs.map((slug) => columnStore[slug])
+    return (rowIndex: number): string =>
         // toString() handles `undefined` and `null` values, which can be in the table.
-        columnSlugs
-            .map((slug) => toString(columnStore[slug][rowIndex]))
-            .join(" ")
+        cols.map((col) => toString(col[rowIndex])).join(" ")
+}
 
 const getColumnStoreLength = (store: CoreColumnStore): number => {
     return max(Object.values(store).map((v) => v.length)) ?? 0
@@ -602,7 +604,7 @@ export const sortColumnStore = (
     // Check if column store is already sorted (which is the case if newOrder is equal to range(0, startLen)).
     // If it's not sorted, we will detect that within the first few iterations usually.
     let isSorted = true
-    for (let i = 0; i <= len; i++) {
+    for (let i = 0; i < len; i++) {
         if (newOrder[i] !== i) {
             isSorted = false
             break
@@ -622,14 +624,15 @@ const makeSortByFn = (
     columnStore: CoreColumnStore,
     columnSlugs: ColumnSlug[]
 ): ((indexA: number, indexB: number) => 1 | 0 | -1) => {
-    const numSlugs = columnSlugs.length
+    const cols = columnSlugs.map((slug) => columnStore[slug])
+
     return (indexA: number, indexB: number): 1 | 0 | -1 => {
         const nodeAFirst = -1
         const nodeBFirst = 1
 
-        for (let slugIndex = 0; slugIndex < numSlugs; slugIndex++) {
-            const slug = columnSlugs[slugIndex]
-            const col = columnStore[slug]
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let colIndex = 0; colIndex < cols.length; colIndex++) {
+            const col = cols[colIndex]
             const av = col[indexA]
             const bv = col[indexB]
             if (av < bv) return nodeAFirst

@@ -24,6 +24,8 @@ import {
     imemo,
     ToleranceStrategy,
     IndicatorTitleWithFragments,
+    max,
+    min,
 } from "@ourworldindata/utils"
 import { CoreTable } from "./CoreTable.js"
 import {
@@ -499,12 +501,12 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: remove. should not be on coretable
     @imemo get maxTime(): Time {
-        return last(this.uniqTimesAsc) as Time
+        return max(this.allTimes) as Time
     }
 
     // todo: remove. should not be on coretable
     @imemo get minTime(): Time {
-        return this.uniqTimesAsc[0]
+        return min(this.allTimes) as Time
     }
 
     // todo: remove? Should not be on CoreTable
