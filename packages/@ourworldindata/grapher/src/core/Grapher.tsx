@@ -758,7 +758,16 @@ export class Grapher
     get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
         const table = this.tableAfterAuthorTimelineFilter
         if (!this.isReady || !this.isOnChartOrMapTab) return table
-        return this.chartInstance.transformTable(table)
+
+        const startMark = performance.now()
+
+        const transformedTable = this.chartInstance.transformTable(table)
+
+        this.createPerformanceMeasurement(
+            "chartInstance.transformTable",
+            startMark
+        )
+        return transformedTable
     }
 
     @computed get chartInstance(): ChartInterface {
@@ -888,6 +897,34 @@ export class Grapher
         )
     }
 
+    // Exclusively used for the performance.measurement API, so that DevTools can show some context
+    private createPerformanceMeasurement(
+        name: string,
+        startMark: number
+    ): void {
+        const endMark = performance.now()
+        const detail = {
+            devtools: {
+                track: "Grapher",
+                properties: [
+                    ["slug", this.slug],
+                    ["chartType", this.type],
+                    ["tab", this.tab],
+                ],
+            },
+        }
+
+        try {
+            performance.measure(name, {
+                start: startMark,
+                end: endMark,
+                detail,
+            })
+        } catch {
+            // In old browsers, the above may throw an error - just ignore it
+        }
+    }
+
     @action.bound
     async downloadLegacyDataFromOwidVariableIds(
         inputTableTransformer?: ChartTableTransformer
@@ -898,6 +935,8 @@ export class Grapher
 
         try {
             let variablesDataMap: MultipleOwidVariableDataDimensionsMap
+
+            const startMark = performance.now()
             if (this.useAdminAPI) {
                 // TODO grapher model: switch this to downloading multiple data and metadata files
                 variablesDataMap = await loadVariablesDataAdmin(
@@ -910,6 +949,10 @@ export class Grapher
                     this.dataApiUrl
                 )
             }
+            this.createPerformanceMeasurement(
+                "downloadVariablesData",
+                startMark
+            )
 
             this._receiveOwidDataAndApplySelection(
                 variablesDataMap,
@@ -940,9 +983,15 @@ export class Grapher
         inputTableTransformer?: ChartTableTransformer
     ): void {
         // TODO grapher model: switch this to downloading multiple data and metadata files
+
+        const startMark = performance.now()
         const { dimensions, table } = legacyToOwidTableAndDimensions(
             json,
             legacyConfig
+        )
+        this.createPerformanceMeasurement(
+            "legacyToOwidTableAndDimensions",
+            startMark
         )
 
         if (inputTableTransformer)
