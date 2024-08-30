@@ -28,6 +28,8 @@ import {
     faMapMarkerAlt,
     faPlus,
     faSearch,
+    faTimes,
+    faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons"
 import { LabeledSwitch } from "@ourworldindata/components"
 import {
@@ -92,7 +94,7 @@ const DataCatalogSearchInput = ({
                         setQuery("")
                     }}
                 >
-                    <FontAwesomeIcon icon={faClose} />
+                    <FontAwesomeIcon icon={faTimesCircle} />
                 </button>
             </form>
         </div>
@@ -729,7 +731,7 @@ export const DataCatalog = ({
     useEffect(() => {
         const handlePopState = () => {
             const url = Url.fromURL(window.location.href)
-            actions.resetState(urlToDataCatalogState(url))
+            actions.setState(urlToDataCatalogState(url))
         }
         window.addEventListener("popstate", handlePopState)
         return () => {
