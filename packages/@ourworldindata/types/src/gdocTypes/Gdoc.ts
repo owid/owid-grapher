@@ -285,6 +285,7 @@ export interface OwidGdocPostContent {
     excerpt?: string
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
     summary?: EnrichedBlockText[]
+    "deprecation-notice"?: EnrichedBlockText[]
     "hide-citation"?: boolean
     toc?: TocHeadingWithTitleSupertitle[]
     "cover-image"?: string

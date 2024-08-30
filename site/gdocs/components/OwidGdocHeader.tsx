@@ -18,10 +18,12 @@ function OwidArticleHeader({
     content,
     publishedAt,
     breadcrumbs,
+    isDeprecated,
 }: {
     content: OwidGdocPostContent
     publishedAt: Date | null
     breadcrumbs?: BreadcrumbItem[]
+    isDeprecated?: boolean
 }) {
     const coverStyle = content["cover-color"]
         ? { backgroundColor: `var(--${content["cover-color"]})` }
@@ -75,7 +77,13 @@ function OwidArticleHeader({
                     </h2>
                 ) : null}
                 <div className="centered-article-header__meta-container col-start-2 span-cols-6 span-md-cols-10 col-md-start-2 grid grid-cols-2 ">
-                    <div className="span-cols-1 span-sm-cols-2">
+                    <div
+                        className={
+                            isDeprecated
+                                ? "span-cols-2"
+                                : "span-cols-1 span-sm-cols-2"
+                        }
+                    >
                         {content.authors.length > 0 && (
                             <div className="centered-article-header__byline">
                                 <Byline names={content.authors} />
@@ -86,25 +94,27 @@ function OwidArticleHeader({
                                 (publishedAt && formatDate(publishedAt))}
                         </div>
                     </div>
-                    <div className="span-cols-1 span-sm-cols-2">
-                        {!content["hide-citation"] && (
-                            <a
-                                href="#article-citation"
-                                className="body-1-regular display-block"
-                            >
-                                <FontAwesomeIcon icon={faBook} />
-                                Cite this article
-                            </a>
-                        )}
+                    {!isDeprecated && (
+                        <div className="span-cols-1 span-sm-cols-2">
+                            {!content["hide-citation"] && (
+                                <a
+                                    href="#article-citation"
+                                    className="body-1-regular display-block"
+                                >
+                                    <FontAwesomeIcon icon={faBook} />
+                                    Cite this article
+                                </a>
+                            )}
 
-                        <a
-                            href="#article-licence"
-                            className="body-3-medium display-block"
-                        >
-                            <FontAwesomeIcon icon={faCreativeCommons} />
-                            Reuse our work freely
-                        </a>
-                    </div>
+                            <a
+                                href="#article-licence"
+                                className="body-3-medium display-block"
+                            >
+                                <FontAwesomeIcon icon={faCreativeCommons} />
+                                Reuse our work freely
+                            </a>
+                        </div>
+                    )}
                 </div>
             </header>
         </>
@@ -158,6 +168,7 @@ export function OwidGdocHeader(props: {
     content: OwidGdocPostContent
     publishedAt: Date | null
     breadcrumbs?: BreadcrumbItem[]
+    isDeprecated?: boolean
 }) {
     if (props.content.type === OwidGdocType.Article)
         return <OwidArticleHeader {...props} />

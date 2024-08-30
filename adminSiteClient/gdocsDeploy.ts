@@ -86,6 +86,7 @@ export const checkIsLightningUpdate = (
         "atom-excerpt": false, // requires updating the atom feed / blog roll
         "atom-title": false, // requires updating the atom feed / blog roll
         "featured-image": false, // requires updating references to this article
+        "deprecation-notice": false, // requires updating references to this article
         authors: false, // requires updating references to this article
         excerpt: false, // requires updating references to this article
         faqs: false, // requires updating datapages

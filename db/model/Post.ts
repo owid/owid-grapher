@@ -307,6 +307,16 @@ export const getBlogIndex = memoize(
     }
 )
 
+function gdocThumbnail(gdoc: OwidGdocPostInterface): string {
+    let thumbnailPath = "/default-thumbnail.jpg"
+    if (gdoc.content["deprecation-notice"]) {
+        thumbnailPath = "/archived-thumbnail.jpg"
+    } else if (gdoc.content["featured-image"]) {
+        thumbnailPath = `${IMAGES_DIRECTORY}${gdoc.content["featured-image"]}`
+    }
+    return `${BAKED_BASE_URL}${thumbnailPath}`
+}
+
 export const mapGdocsToWordpressPosts = (
     gdocs: OwidGdocPostInterface[]
 ): IndexPost[] => {
@@ -318,9 +328,7 @@ export const mapGdocsToWordpressPosts = (
         modifiedDate: gdoc.updatedAt as Date,
         authors: gdoc.content.authors,
         excerpt: gdoc.content["atom-excerpt"] || gdoc.content.excerpt,
-        imageUrl: gdoc.content["featured-image"]
-            ? `${BAKED_BASE_URL}${IMAGES_DIRECTORY}${gdoc.content["featured-image"]}`
-            : `${BAKED_BASE_URL}/default-thumbnail.jpg`,
+        imageUrl: gdocThumbnail(gdoc),
     }))
 }
 
@@ -619,6 +627,7 @@ export const getLatestWorkByAuthor = async (
             pg.content->>'$.subtitle' AS subtitle,
             pg.content->>'$.authors' AS authors,
             pg.content->>'$."featured-image"' AS "featured-image",
+            (pg.content->>'$."deprecation-notice"' IS NOT NULL) AS isDeprecated,
             pg.publishedAt
         FROM
             posts_gdocs pg

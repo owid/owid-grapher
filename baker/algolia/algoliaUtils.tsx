@@ -157,6 +157,16 @@ async function generateWordpressRecords(
     return records
 }
 
+function gdocThumbnailUrl(gdoc: OwidGdocPostInterface): string {
+    if (gdoc.content["deprecation-notice"]) {
+        return "/archived-thumbnail.jpg"
+    }
+    if (gdoc.content["featured-image"]) {
+        return getThumbnailPath(gdoc.content["featured-image"])
+    }
+    return "/default-thumbnail.jpg"
+}
+
 function generateGdocRecords(
     gdocs: OwidGdocPostInterface[],
     pageviews: Record<string, RawPageview>
@@ -199,10 +209,7 @@ function generateGdocRecords(
         const chunks = generateChunksFromHtmlText(renderedPostContent)
         const postTypeAndImportance = getPostTypeAndImportance(gdoc)
         let i = 0
-
-        const thumbnailUrl = gdoc.content["featured-image"]
-            ? getThumbnailPath(gdoc.content["featured-image"])
-            : "/default-thumbnail.jpg"
+        const thumbnailUrl = gdocThumbnailUrl(gdoc)
 
         for (const chunk of chunks) {
             const record = {

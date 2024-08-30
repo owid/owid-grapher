@@ -66,6 +66,7 @@ export const ProminentLink = (props: {
     const Thumbnail = ({ thumbnail }: { thumbnail: string }) => {
         if (
             thumbnail.startsWith(BAKED_GRAPHER_EXPORTS_BASE_URL) ||
+            thumbnail.endsWith("archived-thumbnail.jpg") ||
             thumbnail.endsWith("default-thumbnail.jpg")
         ) {
             return <img src={thumbnail} />

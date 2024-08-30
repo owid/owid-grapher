@@ -5,6 +5,7 @@ export interface DbRawLatestWork {
     subtitle: string | null
     authors: string
     "featured-image": string | null
+    isDeprecated: number
     publishedAt: string | null
 }
 
@@ -24,5 +25,8 @@ export const parseLatestWork = (
     return {
         ...latestWork,
         authors: JSON.parse(latestWork.authors),
+        "featured-image": latestWork.isDeprecated
+            ? "/archived-thumbnail.jpg"
+            : latestWork["featured-image"],
     }
 }

@@ -197,6 +197,7 @@ export async function getAllMinimalGdocBaseObjects(
         excerpt: string
         type: string
         "featured-image": string
+        isDeprecated: number
     }>(
         knex,
         `-- sql
@@ -210,7 +211,8 @@ export async function getAllMinimalGdocBaseObjects(
                 content ->> '$.subtitle' as subtitle,
                 content ->> '$.excerpt' as excerpt,
                 type,
-                content ->> '$."featured-image"' as "featured-image"
+                content ->> '$."featured-image"' as "featured-image",
+                (content ->> '$."deprecation-notice"' IS NOT NULL) as isDeprecated
             FROM posts_gdocs
             WHERE published = 1
             AND publishedAt <= NOW()`,
@@ -227,7 +229,9 @@ export async function getAllMinimalGdocBaseObjects(
             subtitle: row.subtitle,
             excerpt: row.excerpt,
             type: row.type as OwidGdocType,
-            "featured-image": row["featured-image"],
+            "featured-image": row.isDeprecated
+                ? "/archived-thumbnail.jpg"
+                : row["featured-image"],
         } satisfies OwidGdocMinimalPostInterface
     })
 }
