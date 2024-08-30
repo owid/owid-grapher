@@ -36,6 +36,23 @@
     }
 }
 
+@mixin dod-container {
+    padding: 16px;
+    max-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+
+    > p.article-block__text:first-child {
+        font-weight: bold;
+        font-size: 1rem;
+    }
+
+    > p.article-block__text:not(:first-child) {
+        margin-top: 8px;
+        font-size: 0.875rem;
+    }
+}
+
 @mixin dod-span {
     border-bottom: 1px dotted $blue-90;
     cursor: help;
