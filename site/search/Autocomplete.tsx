@@ -1,6 +1,7 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { render } from "react-dom"
 import {
+    AutocompleteApi,
     AutocompleteSource,
     Render,
     autocomplete,
@@ -27,6 +28,7 @@ import {
 } from "./searchClient.js"
 import { queryParamsToStr } from "@ourworldindata/utils"
 import { SiteAnalytics } from "../SiteAnalytics.js"
+import Mousetrap from "mousetrap"
 
 const siteAnalytics = new SiteAnalytics()
 
@@ -242,11 +244,17 @@ export function Autocomplete({
     detachedMediaQuery?: string
     panelClassName?: string
 }) {
+    const containerRef = useRef<HTMLDivElement>(null)
+
+    const [search, setSearch] = useState<AutocompleteApi<BaseItem> | null>(null)
+
     useEffect(() => {
+        if (!containerRef.current) return
+
         const search = autocomplete({
             placeholder,
             detachedMediaQuery,
-            container: AUTOCOMPLETE_CONTAINER_ID,
+            container: containerRef.current,
             classNames: {
                 panel: panelClassName,
             },
@@ -282,31 +290,51 @@ export function Autocomplete({
             plugins: [recentSearchesPlugin],
         })
 
-        const container = document.querySelector(AUTOCOMPLETE_CONTAINER_ID)
-        if (container) {
-            const input = container.querySelector<HTMLInputElement>("input")
-            if (input) {
-                const inputId = input.id
-                const button = container.querySelector(
-                    `label[for='${inputId}'] button`
-                )
-                // Disable the button on mount. We know there's no input because the element is created by JS
-                // and thus isn't persisted between navigations
-                button?.setAttribute("disabled", "true")
+        setSearch(search)
 
-                input.addEventListener("input", () => {
-                    const isFormValid = input.checkValidity()
-                    if (isFormValid) {
-                        button?.removeAttribute("disabled")
-                    } else {
-                        button?.setAttribute("disabled", "true")
-                    }
-                })
-            }
+        const input =
+            containerRef.current.querySelector<HTMLInputElement>("input")
+        if (input) {
+            const inputId = input.id
+            const button = containerRef.current.querySelector(
+                `label[for='${inputId}'] button`
+            )
+            // Disable the button on mount. We know there's no input because the element is created by JS
+            // and thus isn't persisted between navigations
+            button?.setAttribute("disabled", "true")
+
+            input.addEventListener("input", () => {
+                const isFormValid = input.checkValidity()
+                if (isFormValid) {
+                    button?.removeAttribute("disabled")
+                } else {
+                    button?.setAttribute("disabled", "true")
+                }
+            })
         }
 
         return () => search.destroy()
-    }, [onActivate, onClose, placeholder, detachedMediaQuery, panelClassName])
+    }, [
+        onActivate,
+        onClose,
+        placeholder,
+        detachedMediaQuery,
+        panelClassName,
+        containerRef,
+    ])
 
-    return <div className={className} id="autocomplete" />
+    // Register a global shortcut to open the search box on typing "/"
+    useEffect(() => {
+        if (!search) return
+        Mousetrap.bind("/", (e) => {
+            e.preventDefault() // don't type "/" into input
+            search.setIsOpen(true)
+        })
+
+        return () => {
+            Mousetrap.unbind("/")
+        }
+    }, [search, containerRef])
+
+    return <div className={className} ref={containerRef} id="autocomplete" />
 }
