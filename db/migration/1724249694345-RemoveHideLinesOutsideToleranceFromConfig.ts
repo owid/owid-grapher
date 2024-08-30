@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RemoveHideLinesOutsideToleranceFromConfig1722419367805
+export class RemoveHideLinesOutsideToleranceFromConfig1724249694345
     implements MigrationInterface
 {
     public async up(queryRunner: QueryRunner): Promise<void> {
