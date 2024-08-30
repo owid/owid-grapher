@@ -39,8 +39,8 @@ type ToggleRequireAllCountriesAction = {
     type: "toggleRequireAllCountries"
 }
 
-type ResetStateAction = {
-    type: "resetState"
+type SetStateAction = {
+    type: "setState"
     state: DataCatalogState
 }
 
@@ -50,14 +50,14 @@ type SetPageAction = {
 }
 
 export type DataCatalogAction =
-    | AddTopicAction
-    | RemoveTopicAction
-    | SetQueryAction
     | AddCountryAction
+    | AddTopicAction
     | RemoveCountryAction
-    | ToggleRequireAllCountriesAction
-    | ResetStateAction
+    | RemoveTopicAction
     | SetPageAction
+    | SetQueryAction
+    | SetStateAction
+    | ToggleRequireAllCountriesAction
 
 export function dataCatalogReducer(
     state: DataCatalogState,
@@ -107,25 +107,21 @@ export function dataCatalogReducer(
             ...state,
             page,
         }))
-        .with({ type: "resetState" }, ({ state }) => state)
+        .with({ type: "setState" }, ({ state }) => state)
         .exhaustive()
 }
 
 export function createActions(dispatch: (action: DataCatalogAction) => void) {
+    // prettier-ignore
     return {
-        setQuery: (query: string) => dispatch({ type: "setQuery", query }),
+        addCountry: (country: string) => dispatch({ type: "addCountry", country }),
         addTopic: (topic: string) => dispatch({ type: "addTopic", topic }),
-        removeTopic: (topic: string) =>
-            dispatch({ type: "removeTopic", topic }),
-        addCountry: (country: string) =>
-            dispatch({ type: "addCountry", country }),
-        removeCountry: (country: string) =>
-            dispatch({ type: "removeCountry", country }),
-        toggleRequireAllCountries: () =>
-            dispatch({ type: "toggleRequireAllCountries" }),
+        removeCountry: (country: string) => dispatch({ type: "removeCountry", country }),
+        removeTopic: (topic: string) => dispatch({ type: "removeTopic", topic }),
         setPage: (page: number) => dispatch({ type: "setPage", page }),
-        resetState: (state: DataCatalogState) =>
-            dispatch({ type: "resetState", state }),
+        setQuery: (query: string) => dispatch({ type: "setQuery", query }),
+        setState: (state: DataCatalogState) => dispatch({ type: "setState", state }),
+        toggleRequireAllCountries: () => dispatch({ type: "toggleRequireAllCountries" }),
     }
 }
 

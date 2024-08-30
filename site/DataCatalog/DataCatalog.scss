@@ -11,6 +11,16 @@
     padding-bottom: 24px;
 }
 
+.data-catalog-heading {
+    h1 {
+        margin-bottom: 8px;
+    }
+    p {
+        margin-top: 0;
+        color: $blue-65;
+    }
+}
+
 .data-catalog-search-form {
     position: relative;
     display: flex;
@@ -35,40 +45,46 @@
     background-color: transparent;
     width: 32px;
     height: 32px;
-    margin-top: 12px;
+    margin-top: 8px;
     margin-left: 8px;
+    margin-right: 8px;
     cursor: pointer;
     color: $blue-50;
-    @include sm-only {
-        margin-top: 8px;
+    &:hover {
+        color: $blue-90;
     }
 }
 
 .data-catalog-clear-input-button {
-    width: 16px;
-    border-radius: 16px;
-    height: 16px;
-    line-height: 16px;
-    margin-top: 20px;
+    background-color: transparent;
     color: #fff;
-    background: $blue-50;
     cursor: pointer;
-    font-size: 12px;
     margin-right: 16px;
-    display: none;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    margin-top: 8px;
+    svg {
+        color: $blue-50;
+        border-radius: 16px;
+        width: 16px;
+        height: 16px;
+        margin-top: 1px;
+    }
+    &:disabled {
+        display: none;
+    }
     &:after {
         content: "";
         border-right: 1px solid $blue-20;
         position: absolute;
         height: 26px;
         margin-left: 14px;
-        margin-top: -6px;
+        margin-top: -4px;
     }
-    @include sm-only {
-        display: block;
-        margin-top: 16px;
-        &:disabled {
-            display: none;
+    &:hover {
+        svg {
+            color: $blue-90;
         }
     }
 }
@@ -84,12 +100,13 @@
 
 .data-catalog-search-input {
     background-color: white;
-    height: 56px;
-    padding-left: 16px;
+    height: 48px;
     border: none;
+    padding: 0;
     flex-grow: 1;
     width: 100%;
     outline-offset: 0px;
+    color: $blue-90;
 
     &:focus {
         outline: none;
@@ -97,6 +114,7 @@
 
     &:placeholder-shown {
         text-overflow: ellipsis;
+        color: $blue-60;
     }
 
     @include sm-only {
@@ -107,13 +125,9 @@
 .data-catalog-selected-countries-container {
     background: #fff;
     z-index: 2;
-    height: 56px;
+    height: 48px;
     display: flex;
     align-items: center;
-    margin-left: 8px;
-    @include sm-only {
-        height: 48px;
-    }
 }
 
 .data-catalog-selected-country-pill {
@@ -176,8 +190,9 @@
     cursor: pointer;
     color: $blue-90;
     padding: 8px;
-    margin-right: 10px;
-    margin-top: 10px;
+    margin-right: 8px;
+    margin-top: 8px;
+    line-height: 16px;
     &:hover {
         background-color: $accent-pale-blue;
     }
@@ -185,8 +200,6 @@
         margin-right: 4px;
     }
     @include sm-only {
-        margin-right: 8px;
-        margin-top: 8px;
         width: 32px;
         height: 32px;
         background-color: $blue-10;
@@ -262,15 +275,21 @@
 .data-catalog-country-selector-close-button {
     background-color: transparent;
     border: 1px solid $gray-20;
-    border-radius: 50px;
+    border-radius: 16px;
     width: 32px;
     height: 32px;
-    line-height: 32px;
+    line-height: 13.5px;
     padding: 0;
     cursor: pointer;
+    color: $gray-80;
+    &:focus {
+        border-color: $gray-70;
+        outline: none;
+    }
     svg {
-        height: 16px;
-        width: 16px;
+        height: 13px;
+        width: 13px;
+        margin-right: 1px;
     }
 }
 
@@ -462,7 +481,6 @@
 .data-catalog-ribbon__header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 24px;
     h2 {
         margin: 0;
         font-weight: bold;
@@ -478,6 +496,7 @@
     width: 100%;
     line-height: 38.4px;
     margin-right: 16px;
+    margin-bottom: 24px;
     cursor: pointer;
     &:hover {
         text-decoration: underline;
