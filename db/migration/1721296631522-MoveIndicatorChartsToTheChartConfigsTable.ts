@@ -69,41 +69,39 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
         // (this can happen if the migration is run for an empty test database)
         if (variables.length === 0) return
 
-        // generate UUIDs for every config
-        const ids = variables.map((v) => ({
-            variableId: v.id,
-            uuid: uuidv7(),
-        }))
-
-        // insert a new row for each config with dummy values for the config fields
+        // add a temporary table that maps variable IDs to config UUIDs
+        await queryRunner.query(`-- sql
+            CREATE TABLE tmpUUIDxVariableId (
+                uuid char(36) NOT NULL PRIMARY KEY,
+                variableId INT NOT NULL
+            )
+        `)
         await queryRunner.query(
             `-- sql
-                INSERT INTO chart_configs (id, patch, full)
+                INSERT INTO tmpUUIDxVariableId (uuid, variableId)
                 VALUES ?
             `,
-            [ids.map(({ uuid }) => [uuid, "{}", "{}"])]
+            [variables.map((v) => [uuidv7(), v.id])]
         )
 
-        // add a reference to the chart_configs uuid in the variables table
-        const variablesUpdateValues = ids
-            .map(
-                ({ variableId, uuid }) =>
-                    `(${variableId},'${uuid}',unit,coverage,timespan,datasetId,display)`
-            )
-            .join(",")
+        // insert configs into the chart_configs table
         await queryRunner.query(`-- sql
-            INSERT INTO variables (id, grapherConfigIdETL, unit, coverage, timespan, datasetId, display)
-            VALUES ${variablesUpdateValues}
-            ON DUPLICATE KEY UPDATE grapherConfigIdETL=VALUES(grapherConfigIdETL)
+            INSERT INTO chart_configs (id, patch, full)
+            SELECT tmp.uuid, v.grapherConfigETL, v.grapherConfigETL
+            FROM tmpUUIDxVariableId tmp
+            JOIN variables v ON v.id = tmp.variableId
         `)
 
-        // copy configs from the variables table to the chart_configs table
+        // add a reference to the chart_configs uuid in the variables table
         await queryRunner.query(`-- sql
-            UPDATE chart_configs
-            JOIN variables ON variables.grapherConfigIdETL = chart_configs.id
-            SET
-                patch = variables.grapherConfigETL,
-                full = variables.grapherConfigETL
+            UPDATE variables v
+            JOIN tmpUUIDxVariableId tmp ON tmp.variableId = v.id
+            SET v.grapherConfigIdETL = tmp.uuid
+        `)
+
+        // drop temp table
+        await queryRunner.query(`-- sql
+            DROP TABLE tmpUUIDxVariableId
         `)
     }
 
