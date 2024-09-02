@@ -52,6 +52,7 @@ import {
     TooltipValue,
     TooltipState,
     makeTooltipRoundingNotice,
+    makeTooltipToleranceNotice,
 } from "../tooltip/Tooltip"
 import {
     HorizontalCategoricalColorLegend,
@@ -992,7 +993,10 @@ export class MarimekkoChart
                 ? timeColumn.formatValue(endTime)
                 : undefined
         const toleranceNotice = targetNotice
-            ? { icon: TooltipFooterIcon.notice, text: targetNotice }
+            ? {
+                  icon: TooltipFooterIcon.notice,
+                  text: makeTooltipToleranceNotice(targetNotice),
+              }
             : undefined
 
         const columns = excludeUndefined([xColumn, yColumn])
