@@ -56,7 +56,7 @@ export class ChartEditorPage
                 `/api/charts/${grapherId}.parent.json`
             )
             this.parentConfig = parent?.config
-            this.isInheritanceEnabled = parent?.isActive ?? false
+            this.isInheritanceEnabled = parent?.isActive ?? true
         } else if (grapherConfig) {
             const parentIndicatorId =
                 getParentVariableIdFromChartConfig(grapherConfig)
@@ -66,7 +66,9 @@ export class ChartEditorPage
                     parentIndicatorId
                 )
             }
-            this.isInheritanceEnabled = false
+            this.isInheritanceEnabled = true
+        } else {
+            this.isInheritanceEnabled = true
         }
     }
 

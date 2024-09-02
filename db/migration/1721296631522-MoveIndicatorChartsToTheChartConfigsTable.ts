@@ -108,10 +108,14 @@ export class MoveIndicatorChartsToTheChartConfigsTable1721296631522
     }
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        // inheritance is opt-in
+        // inheritance is opt-out, but all existing charts opt-out for now
         await queryRunner.query(`-- sql
             ALTER TABLE charts
-                ADD COLUMN isInheritanceEnabled TINYINT(1) NOT NULL DEFAULT 0 AFTER configId
+                ADD COLUMN isInheritanceEnabled TINYINT(1) NOT NULL DEFAULT 1 AFTER configId
+        `)
+        await queryRunner.query(`-- sql
+            UPDATE charts
+            SET isInheritanceEnabled = 0
         `)
 
         // add grapherConfigIdAdmin and grapherConfigIdETL to the variables table
