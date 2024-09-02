@@ -8,6 +8,7 @@ import {
     TagGraphRoot,
     Url,
     getPaginationPageNumbers,
+    identity,
 } from "@ourworldindata/utils"
 import algoliasearch, { SearchClient } from "algoliasearch"
 import {
@@ -43,6 +44,8 @@ import {
     DataCatalogCache,
     DataCatalogRibbonResult,
     DataCatalogSearchResult,
+    getAreaFacetsFromRibbonsResults,
+    getChildrenOfCurrentlySelectedArea,
     getCountryData,
     queryRibbonsWithCache,
     querySearchWithCache,
@@ -377,25 +380,48 @@ const DataCatalogRibbon = ({
 }
 
 const DataCatalogRibbonView = ({
-    results,
     addTopic,
+    removeTopic,
+    results,
     selectedCountries,
+    topics,
+    tagGraph,
 }: {
-    results?: DataCatalogRibbonResult[]
     addTopic: (x: string) => void
+    removeTopic: (topic: string) => void
+    results?: DataCatalogRibbonResult[]
     selectedCountries: Region[]
+    topics: Set<string>
+    tagGraph: TagGraphRoot
 }) => {
+    const ribbonFacets = results
+        ? Object.fromEntries(
+              results.map((result) => [result.title, result.nbHits])
+          )
+        : {}
+
     return (
-        <div className="span-cols-12 col-start-2 data-catalog-ribbons">
-            {results?.map((result) => (
-                <DataCatalogRibbon
-                    key={result.title}
-                    result={result}
-                    addTopic={addTopic}
-                    selectedCountries={selectedCountries}
-                />
-            ))}
-        </div>
+        <>
+            <AppliedTopicFiltersList
+                topics={topics}
+                removeTopic={removeTopic}
+            />
+            <TopicsRefinementList
+                topics={topics}
+                facets={ribbonFacets}
+                addTopic={addTopic}
+            />
+            <div className="span-cols-12 col-start-2 data-catalog-ribbons">
+                {results?.map((result) => (
+                    <DataCatalogRibbon
+                        key={result.title}
+                        result={result}
+                        addTopic={addTopic}
+                        selectedCountries={selectedCountries}
+                    />
+                ))}
+            </div>
+        </>
     )
 }
 
@@ -405,17 +431,23 @@ const DataCatalogResults = ({
     setPage,
     addTopic,
     topics,
+    removeTopic,
 }: {
     results?: DataCatalogSearchResult
     selectedCountries: Region[]
     setPage: (page: number) => void
     addTopic: (topic: string) => void
     topics: Set<string>
+    removeTopic: (topic: string) => void
 }) => {
     const hits = results?.hits
     if (hits && hits.length) {
         return (
             <>
+                <AppliedTopicFiltersList
+                    topics={topics}
+                    removeTopic={removeTopic}
+                />
                 <TopicsRefinementList
                     topics={topics}
                     facets={results.facets?.tags}
@@ -576,14 +608,12 @@ const DataCatalogPagination = ({
     nbPages: number
 }) => {
     useEffect(() => {
-        if (currentPage !== 0) {
-            if (currentPage >= nbPages) {
-                setPage(0)
-            }
+        if (currentPage > nbPages) {
+            setPage(0)
         }
     }, [currentPage, nbPages, setPage])
 
-    if (nbPages === 0) return null
+    if (nbPages < 2) return null
 
     const pages = getPaginationPageNumbers(currentPage, nbPages)
 
@@ -752,40 +782,38 @@ export const DataCatalog = ({
                 </header>
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
                     <DataCatalogSearchbar
-                        selectedCountryNames={state.selectedCountryNames}
-                        selectedCountries={selectedCountries}
-                        requireAllCountries={state.requireAllCountries}
+                        addCountry={actions.addCountry}
                         query={state.query}
+                        removeCountry={actions.removeCountry}
+                        requireAllCountries={state.requireAllCountries}
+                        selectedCountries={selectedCountries}
+                        selectedCountryNames={state.selectedCountryNames}
+                        setQuery={actions.setQuery}
                         toggleRequireAllCountries={
                             actions.toggleRequireAllCountries
                         }
-                        setQuery={actions.setQuery}
-                        removeCountry={actions.removeCountry}
-                        addCountry={actions.addCountry}
                     />
                 </div>
             </div>
             {isLoading && <DataCatalogLoadingSpinner />}
-            {!isLoading && (
-                <AppliedTopicFiltersList
-                    topics={state.topics}
-                    removeTopic={actions.removeTopic}
-                />
-            )}
             {!isLoading && shouldShowRibbons && (
                 <DataCatalogRibbonView
-                    results={currentResults as DataCatalogRibbonResult[]}
                     addTopic={actions.addTopic}
+                    tagGraph={tagGraph}
+                    removeTopic={actions.removeTopic}
+                    results={currentResults as DataCatalogRibbonResult[]}
                     selectedCountries={selectedCountries}
+                    topics={state.topics}
                 />
             )}
             {!isLoading && !shouldShowRibbons && (
                 <DataCatalogResults
-                    topics={state.topics}
+                    addTopic={actions.addTopic}
+                    removeTopic={actions.removeTopic}
                     results={currentResults as DataCatalogSearchResult}
                     selectedCountries={selectedCountries}
-                    addTopic={actions.addTopic}
                     setPage={actions.setPage}
+                    topics={state.topics}
                 />
             )}
         </>

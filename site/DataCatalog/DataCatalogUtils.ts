@@ -3,7 +3,7 @@ import { getIndexName } from "../search/searchClient.js"
 import { IChartHit, SearchIndexName } from "../search/searchTypes.js"
 import { TagGraphRoot } from "@ourworldindata/types"
 import { DataCatalogState, dataCatalogStateToUrl } from "./DataCatalogState.js"
-import { countriesByName, Region } from "@ourworldindata/utils"
+import { countriesByName, pick, Region } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 
 /**
@@ -34,7 +34,6 @@ export type DataCatalogRibbonResult = SearchResponse<IChartHit> & {
 /**
  * Utils
  */
-
 function checkIfNoTopicsOrOneAreaTopicApplied(
     topics: Set<string>,
     areas: string[]
@@ -141,6 +140,7 @@ export function dataCatalogStateToAlgoliaQueries(
                 "variantName",
             ],
             hitsPerPage: 4,
+            facets: ["tags"],
             page: state.page,
         }
     })
