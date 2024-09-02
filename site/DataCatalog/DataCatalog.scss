@@ -25,7 +25,7 @@
     position: relative;
     display: flex;
     // The approximate width of the country-selector button
-    padding-right: 146px;
+    padding-right: 162px;
     @include sm-only {
         padding-right: 48px;
     }
@@ -165,17 +165,16 @@
 }
 
 .data-catalog-selected-country-pill__mini {
+    margin-right: 8px;
     &:not(.data-catalog-selected-country-pill__mini--show-on-desktop) {
         @include sm-up {
             display: none;
         }
     }
     @include sm-only {
-        display: flex;
+        // ruby instead of block because it stops it from shrinking for some reason
+        display: ruby;
         padding: 8px;
-        span {
-            display: none;
-        }
     }
 }
 
@@ -188,27 +187,31 @@
 .data-catalog-country-selector-button {
     background-color: #fff;
     cursor: pointer;
+    font-weight: bold;
     color: $blue-90;
-    padding: 8px;
+    padding: 8px 16px;
     margin-right: 8px;
     margin-top: 8px;
     line-height: 16px;
+    display: flex;
+    justify-content: center;
     &:hover {
         background-color: $accent-pale-blue;
     }
+
     svg {
-        margin-right: 4px;
+        margin-right: 6px;
     }
+
     @include sm-only {
         width: 32px;
         height: 32px;
         background-color: $blue-10;
 
         svg {
+            margin-right: 0;
             font-size: 14px;
             line-height: 14px;
-            margin-left: 3px;
-            margin-bottom: 1px;
         }
     }
 }
@@ -250,7 +253,8 @@
     background-color: #fff;
     position: absolute;
     padding: 16px;
-    width: 334px;
+    // wide enough for the toggle label text not to wrap
+    width: 368px;
     right: 0;
     margin-top: 16px;
     box-shadow: 4px 0 30px 0 #00000020;
@@ -307,10 +311,11 @@
         border-bottom: none;
     }
     &:hover {
-        background-color: $blue-5;
+        background-color: $blue-10;
     }
     img {
         margin: 0 8px;
+        outline: 1px solid $blue-20;
     }
     input {
         @include owid-checkbox;
@@ -329,7 +334,7 @@
 }
 
 .data-catalog-country-selector-list__item--selected {
-    background-color: $blue-5;
+    background-color: $accent-pale-blue;
     &:hover {
         background-color: $accent-pale-blue;
     }
@@ -432,13 +437,17 @@
     background-color: $blue-20;
     color: $blue-90;
     padding: 5.5px 16px;
-    border: none;
+    border: 1px solid $blue-20;
     border-radius: 50px;
     cursor: pointer;
     svg {
         height: 16px;
         margin-bottom: -2px;
         margin-left: 4px;
+    }
+    &:focus {
+        outline: none;
+        border-color: $blue-40;
     }
     &:hover {
         color: $blue-100;
@@ -496,10 +505,11 @@
     width: 100%;
     line-height: 38.4px;
     margin-right: 16px;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
     cursor: pointer;
     &:hover {
         text-decoration: underline;
+        text-decoration-color: $blue-90;
     }
 }
 
