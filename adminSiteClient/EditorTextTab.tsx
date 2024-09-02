@@ -93,7 +93,7 @@ export class EditorTextTab<
                 <Section name="Header">
                     <BindAutoStringExt
                         label="Title"
-                        readFn={({ grapher }) => grapher.currentTitle}
+                        readFn={({ grapher }) => grapher.displayTitle}
                         writeFn={({ grapher }, newVal) =>
                             (grapher.title = newVal)
                         }
