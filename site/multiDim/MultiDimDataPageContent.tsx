@@ -22,6 +22,7 @@ import {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromQueryStr,
     multiDimStateToQueryStr,
+    omit,
 } from "@ourworldindata/utils"
 import cx from "classnames"
 import { DebugProvider } from "../gdocs/DebugContext.js"
@@ -101,6 +102,13 @@ const cachedGetVariableMetadata = memoize(
         )
 )
 
+const cachedGetGrapherConfigByUuid = memoize(
+    (grapherConfigUuid: string): Promise<GrapherInterface> =>
+        fetch(`/grapher/by-uuid/${grapherConfigUuid}.config.json`).then(
+            (resp) => resp.json()
+        )
+)
+
 const useTitleFragments = (config: MultiDimDataPageConfig) => {
     const title = config.config.title
     return useMemo(
@@ -127,27 +135,62 @@ const useView = (
 }
 
 const useVarDatapageData = (
-    currentView: View<IndicatorsAfterPreProcessing> | undefined
+    currentView: View<IndicatorsAfterPreProcessing> | undefined,
+    variableIdToGrapherConfigMap: Record<number, string | null> | undefined
 ) => {
     const [varDatapageData, setVarDatapageData] =
         useState<DataPageDataV2 | null>(null)
+    const [grapherConfig, setGrapherConfig] = useState<GrapherInterface | null>(
+        null
+    )
+    const [grapherConfigIsReady, setGrapherConfigIsReady] = useState(false)
 
     useEffect(() => {
+        setGrapherConfigIsReady(false)
+        setGrapherConfig(null)
         setVarDatapageData(null)
         const yIndicatorOrIndicators = currentView?.indicators?.["y"]
         const variableId = Array.isArray(yIndicatorOrIndicators)
             ? yIndicatorOrIndicators[0]
             : yIndicatorOrIndicators
         if (!variableId) return
-        const variableMetadata = cachedGetVariableMetadata(variableId)
 
-        variableMetadata
-            .then((json) => getDatapageDataV2(json, currentView?.config))
-            .then(setVarDatapageData)
+        const datapageDataPromise = cachedGetVariableMetadata(variableId).then(
+            (json) => getDatapageDataV2(json, currentView?.config)
+        )
+        const grapherConfigUuid = variableIdToGrapherConfigMap?.[variableId]
+        const grapherConfigPromise = grapherConfigUuid
+            ? cachedGetGrapherConfigByUuid(grapherConfigUuid)
+            : null
+
+        Promise.allSettled([datapageDataPromise, grapherConfigPromise])
+            .then(([datapageData, grapherConfig]) => {
+                if (datapageData.status === "rejected")
+                    throw new Error(
+                        `Fetching variable by uuid failed: ${grapherConfigUuid}`,
+                        { cause: datapageData.reason }
+                    )
+
+                setVarDatapageData(datapageData.value)
+                setGrapherConfig(
+                    grapherConfig.status === "fulfilled"
+                        ? grapherConfig.value
+                        : null
+                )
+                setGrapherConfigIsReady(true)
+            })
             .catch(console.error)
-    }, [currentView?.indicators, currentView?.config])
+    }, [
+        currentView?.indicators,
+        currentView?.config,
+        variableIdToGrapherConfigMap,
+    ])
 
-    return { varDatapageData }
+    return {
+        varDatapageData,
+        varGrapherConfig: grapherConfig,
+        grapherConfigIsReady,
+    }
 }
 
 export const MultiDimDataPageContent = ({
@@ -155,6 +198,7 @@ export const MultiDimDataPageContent = ({
     configObj,
     // isPreviewing = false,
     faqEntries,
+    variableIdToGrapherConfigMap,
     primaryTopic,
     canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
     tagToSlugMap,
@@ -179,7 +223,8 @@ export const MultiDimDataPageContent = ({
     })
 
     const { currentView, dimensionsConfig } = useView(currentSettings, config)
-    const { varDatapageData } = useVarDatapageData(currentView)
+    const { varDatapageData, varGrapherConfig, grapherConfigIsReady } =
+        useVarDatapageData(currentView, variableIdToGrapherConfigMap)
 
     // This is the ACTUAL grapher instance being used, because GrapherFigureView/GrapherWithFallback are doing weird things and are not actually using the grapher instance we pass into it
     // and therefore we can not access the grapher state (e.g. tab, selection) from the grapher instance we pass into it
@@ -207,15 +252,27 @@ export const MultiDimDataPageContent = ({
     }, [queryStr])
 
     const grapherConfigComputed = useMemo(() => {
+        const baseConfig: GrapherProgrammaticInterface = {
+            isEmbeddedInAnOwidPage: true,
+            selectedEntityNames: config.config.defaultSelection ?? [],
+            bounds,
+        }
+
+        if (!grapherConfigIsReady) return baseConfig
         return {
+            ...varGrapherConfig,
             ...currentView?.config,
             dimensions: dimensionsConfig,
-            isEmbeddedInADataPage: true,
-            selectedEntityNames: config.config.defaultSelection ?? [],
-
-            bounds,
+            ...baseConfig,
         } as GrapherProgrammaticInterface
-    }, [currentView, dimensionsConfig, bounds, config])
+    }, [
+        varGrapherConfig,
+        grapherConfigIsReady,
+        currentView,
+        dimensionsConfig,
+        bounds,
+        config,
+    ])
 
     const hasTopicTags = !!config.config.topicTags?.length
 
@@ -293,7 +350,9 @@ export const MultiDimDataPageContent = ({
                     >
                         <figure data-grapher-src ref={grapherFigureRef}>
                             <Grapher
-                                key={JSON.stringify(currentView)}
+                                key={JSON.stringify(
+                                    omit(grapherConfigComputed, ["bounds"])
+                                )}
                                 {...grapherConfigComputed}
                                 queryStr={queryStr}
                                 getGrapherInstance={setGrapherInst}
