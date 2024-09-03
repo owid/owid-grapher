@@ -321,7 +321,11 @@ const saveNewChart = async (
             INSERT INTO chart_configs (id, patch, full)
             VALUES (?, ?, ?)
         `,
-        [configId, JSON.stringify(patchConfig), JSON.stringify(fullConfig)]
+        [
+            configId,
+            serializeChartConfig(patchConfig),
+            serializeChartConfig(fullConfig),
+        ]
     )
 
     // add a new chart to the charts table
@@ -397,7 +401,11 @@ const updateExistingChart = async (
                 cc.full=?
             WHERE c.id = ?
         `,
-        [JSON.stringify(patchConfig), JSON.stringify(fullConfig), chartId]
+        [
+            serializeChartConfig(patchConfig),
+            serializeChartConfig(fullConfig),
+            chartId,
+        ]
     )
 
     // update charts row
