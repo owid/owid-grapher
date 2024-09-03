@@ -92,4 +92,16 @@ $lato: $sans-serif-font-stack;
     &:hover input:checked + .outer .inner {
         background: darken($active-switch, 13%);
     }
+
+    &.labeled-switch--is-disabled {
+        opacity: 0.5;
+        label {
+            cursor: default;
+        }
+        &:hover {
+            .inner {
+                background: $gray-70;
+            }
+        }
+    }
 }

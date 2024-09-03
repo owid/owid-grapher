@@ -44,8 +44,6 @@ import {
     DataCatalogCache,
     DataCatalogRibbonResult,
     DataCatalogSearchResult,
-    getAreaFacetsFromRibbonsResults,
-    getChildrenOfCurrentlySelectedArea,
     getCountryData,
     queryRibbonsWithCache,
     querySearchWithCache,
@@ -152,7 +150,12 @@ function DataCatalogCountrySelector({
     return (
         <div className="data-catalog-country-selector" ref={countrySelectorRef}>
             <button
-                className="data-catalog-country-selector-button body-3-medium"
+                className={cx(
+                    "data-catalog-country-selector-button body-3-medium",
+                    {
+                        "data-catalog-country-selector-button--is-open": isOpen,
+                    }
+                )}
                 aria-expanded={isOpen}
                 aria-label={
                     isOpen ? "Close country selector" : "Open country selector"
@@ -184,11 +187,15 @@ function DataCatalogCountrySelector({
                     <LabeledSwitch
                         className="data-catalog-country-selector-switch"
                         value={requireAllCountries}
+                        disabled={selectedCountryNames.size === 0}
                         onToggle={toggleRequireAllCountries}
                         label="Only show charts with data for selected countries"
                     />
                     <div className="data-catalog-country-selector-search-container">
-                        <FontAwesomeIcon icon={faMagnifyingGlass} />
+                        <FontAwesomeIcon
+                            className="data-catalog-country-selector__search-icon"
+                            icon={faMagnifyingGlass}
+                        />
                         <input
                             type="text"
                             placeholder="Search for a country"
@@ -198,6 +205,14 @@ function DataCatalogCountrySelector({
                                 setCountrySearchQuery(e.target.value)
                             }
                         />
+                        {countrySearchQuery && (
+                            <button
+                                onClick={() => setCountrySearchQuery("")}
+                                className="data-catalog-country-selector__clear-button"
+                            >
+                                <FontAwesomeIcon icon={faTimesCircle} />
+                            </button>
+                        )}
                     </div>
                     <ol className="data-catalog-country-selector-list">
                         {Object.values(filteredCountriesByName).map(
@@ -340,7 +355,7 @@ const DataCatalogRibbon = ({
     }
 
     return (
-        <div className="data-catalog-ribbon">
+        <div className="data-catalog-ribbon col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-13">
             <button
                 className="data-catalog-ribbon__header-button"
                 onClick={handleAddTopicClick}
@@ -411,7 +426,7 @@ const DataCatalogRibbonView = ({
                 facets={ribbonFacets}
                 addTopic={addTopic}
             />
-            <div className="span-cols-12 col-start-2 data-catalog-ribbons">
+            <div className="span-cols-14 grid grid-cols-12-full-width data-catalog-ribbons">
                 {results?.map((result) => (
                     <DataCatalogRibbon
                         key={result.title}
@@ -441,6 +456,7 @@ const DataCatalogResults = ({
     removeTopic: (topic: string) => void
 }) => {
     const hits = results?.hits
+    const totalHits = results?.nbHits
     if (hits && hits.length) {
         return (
             <>
@@ -454,6 +470,12 @@ const DataCatalogResults = ({
                     addTopic={addTopic}
                 />
                 <div className="span-cols-12 col-start-2 data-catalog-search-hits">
+                    {totalHits && (
+                        <p className="data-catalog-search-list__results-count body-3-medium">
+                            {totalHits}{" "}
+                            {totalHits === 1 ? "indicator" : "indicators"}
+                        </p>
+                    )}
                     <ul className="data-catalog-search-list grid grid-cols-4 grid-sm-cols-1">
                         {hits.map((hit) => (
                             <li
