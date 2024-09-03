@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import { Section } from "./Forms.js"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { action } from "mobx"
-import { copyToClipboard } from "@ourworldindata/utils"
+import { copyToClipboard, mergeGrapherConfigs } from "@ourworldindata/utils"
 import YAML from "yaml"
 import { notification } from "antd"
 import {
@@ -53,46 +53,115 @@ class EditorDebugTabForChart extends React.Component<{
         })
     }
 
+    @action.bound enableInheritance() {
+        const { patchConfig, parentConfig } = this.props.editor
+
+        // update live grapher
+        const newConfig = mergeGrapherConfigs(parentConfig ?? {}, patchConfig)
+        this.props.editor.updateLiveGrapher(newConfig)
+
+        this.props.editor.isInheritanceEnabled = true
+    }
+
     render() {
         const {
             patchConfig,
             parentConfig,
             isInheritanceEnabled = false,
             fullConfig,
+            parentVariableId,
+            grapher,
         } = this.props.editor
+
+        const column = parentVariableId
+            ? grapher.inputTable.get(parentVariableId.toString())
+            : undefined
+
+        const variableLink = (
+            <a
+                href={`/admin/variables/${parentVariableId}`}
+                target="_blank"
+                rel="noopener"
+            >
+                {column?.name ?? parentVariableId}
+            </a>
+        )
 
         return (
             <div>
                 <Section name="Config">
-                    <button
-                        className="btn btn-primary"
-                        onClick={this.copyYamlToClipboard}
-                    >
-                        Copy YAML for ETL
-                    </button>
                     <textarea
                         rows={7}
                         readOnly
                         className="form-control"
                         value={JSON.stringify(patchConfig, undefined, 2)}
                     />
+                    <button
+                        className="btn btn-primary mt-2"
+                        onClick={this.copyYamlToClipboard}
+                    >
+                        Copy YAML for ETL
+                    </button>
                 </Section>
 
-                {parentConfig && (
-                    <Section
-                        name={
-                            isInheritanceEnabled
-                                ? "Parent config (applied)"
-                                : "Parent config (not currently applied)"
-                        }
-                    >
-                        <textarea
-                            rows={7}
-                            readOnly
-                            className="form-control"
-                            value={JSON.stringify(parentConfig, undefined, 2)}
-                        />
-                    </Section>
+                {parentVariableId && (
+                    <>
+                        <Section
+                            name={
+                                isInheritanceEnabled
+                                    ? "Parent indicator"
+                                    : "Parent indicator (inheritance currently disabled)"
+                            }
+                        >
+                            {isInheritanceEnabled ? (
+                                <p>
+                                    This chart inherits settings from the
+                                    indicator {variableLink}.
+                                </p>
+                            ) : (
+                                <p>
+                                    This chart may inherit chart settings from
+                                    the indicator {variableLink}.
+                                </p>
+                            )}
+                            {!isInheritanceEnabled && (
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={this.enableInheritance}
+                                    disabled={isInheritanceEnabled}
+                                >
+                                    Enable inheritance
+                                </button>
+                            )}
+                        </Section>
+                        <Section
+                            name={
+                                isInheritanceEnabled
+                                    ? "Parent config"
+                                    : "Parent config (not currently applied)"
+                            }
+                        >
+                            <textarea
+                                rows={7}
+                                readOnly
+                                className="form-control"
+                                value={JSON.stringify(
+                                    parentConfig ?? {},
+                                    undefined,
+                                    2
+                                )}
+                            />
+                            <p className="mt-2">
+                                <a
+                                    href={`/admin/variables/${parentVariableId}/config`}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    Edit parent config in the admin
+                                </a>
+                            </p>
+                        </Section>
+                    </>
                 )}
 
                 <Section name="Full Config">
