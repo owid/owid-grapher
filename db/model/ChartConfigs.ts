@@ -1,4 +1,8 @@
-import { DbInsertChartConfig, GrapherInterface } from "@ourworldindata/types"
+import {
+    DbInsertChartConfig,
+    GrapherInterface,
+    serializeChartConfig,
+} from "@ourworldindata/types"
 
 import * as db from "../db.js"
 
@@ -28,7 +32,11 @@ export async function updateExistingConfigPair(
                 full = ?
             WHERE id = ?
         `,
-        [JSON.stringify(patchConfig), JSON.stringify(fullConfig), configId]
+        [
+            serializeChartConfig(patchConfig),
+            serializeChartConfig(fullConfig),
+            configId,
+        ]
     )
 }
 
@@ -63,6 +71,6 @@ async function updateExistingConfig(
             SET ?? = ?
             WHERE id = ?
         `,
-        [column, JSON.stringify(config), configId]
+        [column, serializeChartConfig(config), configId]
     )
 }
