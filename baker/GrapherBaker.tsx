@@ -142,6 +142,7 @@ export async function renderDataPageV2(
     // this is true for preview pages for datapages on the indicator level but false
     // if we are on Grapher pages. Once we have a good way in the grapher admin for how
     // to use indicator level defaults, we should reconsider how this works here.
+    // TODO(inheritance): use mergeGrapherConfigs instead
     const grapher = useIndicatorGrapherConfigs
         ? mergePartialGrapherConfigs(grapherConfigForVariable, pageGrapher)
         : pageGrapher ?? {}
