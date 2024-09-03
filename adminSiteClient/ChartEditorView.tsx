@@ -57,6 +57,7 @@ import {
     ErrorMessagesForDimensions,
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
+import { isIndicatorChartEditorInstance } from "./IndicatorChartEditor.js"
 
 interface Variable {
     id: number
@@ -350,6 +351,9 @@ export class ChartEditorView<
         const { grapher, availableTabs } = editor
 
         const chartEditor = isChartEditorInstance(editor) ? editor : undefined
+        const indicatorChartEditor = isIndicatorChartEditorInstance(editor)
+            ? editor
+            : undefined
 
         return (
             <>
@@ -437,9 +441,12 @@ export class ChartEditorView<
                         {chartEditor && chartEditor.tab === "refs" && (
                             <EditorReferencesTab editor={chartEditor} />
                         )}
-                        {editor.tab === "inheritance" && (
-                            <EditorInheritanceTab editor={editor} />
-                        )}
+                        {indicatorChartEditor &&
+                            indicatorChartEditor.tab === "inheritance" && (
+                                <EditorInheritanceTab
+                                    editor={indicatorChartEditor}
+                                />
+                            )}
                         {editor.tab === "export" && (
                             <EditorExportTab editor={editor} />
                         )}
