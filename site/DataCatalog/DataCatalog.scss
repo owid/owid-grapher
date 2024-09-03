@@ -196,9 +196,11 @@
     display: flex;
     justify-content: center;
     &:hover {
+        background-color: $gray-10;
+    }
+    &.data-catalog-country-selector-button--is-open {
         background-color: $accent-pale-blue;
     }
-
     svg {
         margin-right: 6px;
     }
@@ -224,18 +226,40 @@
 
 .data-catalog-country-selector-search-container {
     position: relative;
-    margin-bottom: 8px;
-    svg {
-        color: $gray-70;
-        pointer-events: none;
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        margin-left: 8px;
+    margin-bottom: 16px;
+}
+
+.data-catalog-country-selector__search-icon {
+    color: $gray-70;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 8px;
+    height: 12px;
+}
+
+.data-catalog-country-selector__clear-button {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 0;
+    background-color: transparent;
+    color: $gray-70;
+    &:hover {
+        color: $gray-90;
     }
 }
 
 .data-catalog-country-selector-switch {
+    margin-bottom: 16px;
     label {
         white-space: wrap;
     }
@@ -244,9 +268,22 @@
 .data-catalog-country-selector-search-input {
     background-color: #fff;
     border: 1px solid $gray-20;
-    padding: 8px;
+    height: 32px;
+    line-height: 32px;
+    font-size: 13px;
     padding-left: 32px;
+    padding-right: 32px;
     width: 100%;
+
+    &:focus {
+        outline: none;
+        border-color: $blue-30;
+    }
+
+    &::placeholder {
+        @include label-2-regular;
+        color: $gray-60;
+    }
 }
 
 .data-catalog-country-selector-list-container {
@@ -286,14 +323,21 @@
     padding: 0;
     cursor: pointer;
     color: $gray-80;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     &:focus {
         border-color: $gray-70;
         outline: none;
     }
+    &:hover {
+        background-color: $gray-10;
+        border-color: $gray-10;
+    }
     svg {
         height: 13px;
         width: 13px;
-        margin-right: 1px;
+        margin-bottom: 1px;
     }
 }
 
@@ -301,10 +345,13 @@
     list-style: none;
     max-height: 300px;
     overflow-y: scroll;
+    &:focus-visible {
+        outline: 1px solid $gray-60;
+    }
 }
 
 .data-catalog-country-selector-list__item {
-    border-bottom: 1px solid $gray-20;
+    border-bottom: 1px solid $gray-10;
     position: relative;
     transition: 100ms background-color;
     &:last-child {
@@ -324,6 +371,10 @@
         top: 50%;
         transform: translateY(-50%);
         cursor: pointer;
+        &:focus {
+            outline: none;
+            border-color: $gray-60;
+        }
     }
     label {
         width: 100%;
@@ -407,7 +458,7 @@
 .data-catalog-refinement-list__separator {
     display: inline-block;
     pointer-events: none;
-    margin: 0 8px;
+    margin: 0;
     color: $blue-30;
     &::after {
         content: "•";
@@ -420,19 +471,15 @@
 .data-catalog-applied-filters-list {
     list-style: none;
     margin-bottom: 8px;
-
-    @include sm-only {
-        overflow-x: auto;
-        display: flex;
-        flex-wrap: nowrap;
-    }
 }
+
 .data-catalog-applied-filters-item {
     display: inline-block;
     margin-right: 8px;
     margin-bottom: 8px;
     white-space: nowrap;
 }
+
 .data-catalog-applied-filters-button {
     background-color: $blue-20;
     color: $blue-90;
@@ -440,9 +487,10 @@
     border: 1px solid $blue-20;
     border-radius: 50px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
     svg {
-        height: 16px;
-        margin-bottom: -2px;
+        height: 12px;
         margin-left: 4px;
     }
     &:focus {
@@ -451,17 +499,30 @@
     }
     &:hover {
         color: $blue-100;
+        background-color: $blue-10;
+        border-color: $blue-10;
     }
 }
 
 .data-catalog-search-hits {
     margin-bottom: 24px;
 }
+.data-catalog-search-list__results-count {
+    font-style: italic;
+    color: $blue-60;
+    margin-bottom: 8px;
+    margin-top: 0;
+}
 
-.data-catalog-search-hit:hover,
-.data-catalog-ribbon-hit:hover {
-    .ais-Highlight {
-        text-decoration: underline;
+.data-catalog-search-hit,
+.data-catalog-ribbon-hit {
+    .chart-hit-title-container .chart-hit-variant {
+        font-size: 1em;
+    }
+    &:hover {
+        .ais-Highlight {
+            text-decoration: underline;
+        }
     }
 }
 
@@ -472,7 +533,9 @@
 
     @include sm-only {
         background: transparent;
+        overflow: hidden;
         padding: 0;
+        margin-bottom: 32px;
     }
 }
 
@@ -480,7 +543,7 @@
     @include sm-only {
         overflow-x: scroll;
         scrollbar-width: thin;
-        margin-bottom: 8px;
+        margin-bottom: 12px;
         .data-catalog-ribbon-hit {
             width: 294px;
         }
@@ -496,7 +559,7 @@
         color: $blue-90;
     }
     @include sm-only {
-        margin-bottom: 16px;
+        width: calc(100% - 16px);
     }
 }
 
@@ -507,6 +570,10 @@
     margin-right: 16px;
     margin-bottom: 16px;
     cursor: pointer;
+    padding: 0;
+    &:focus {
+        text-decoration: none;
+    }
     &:hover {
         text-decoration: underline;
         text-decoration-color: $blue-90;
@@ -534,16 +601,28 @@
     @include body-3-medium;
     display: none;
     background-color: $blue-20;
-    color: $blue-60;
-    padding: 8px;
+    color: $blue-90;
+    padding: 0 8px;
+    height: 40px;
+    line-height: 40px;
     border: none;
     cursor: pointer;
-    width: 100%;
+    justify-content: center;
+    align-items: center;
+    // the ribbon container is flush with the right edge so that the thumbnail horizontal scroll is also flush,
+    // but we want the see all button to be inset as if the container were only 12 columns wide
+    width: calc(100% - 16px);
+    margin-right: 16px;
     &:hover {
         text-decoration: underline;
     }
     @include sm-only {
-        display: block;
+        display: flex;
+    }
+    svg {
+        height: 10px;
+        margin-left: 8px;
+        margin-bottom: 1px;
     }
 }
 

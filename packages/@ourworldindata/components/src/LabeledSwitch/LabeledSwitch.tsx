@@ -13,17 +13,35 @@ export class LabeledSwitch extends React.Component<{
     tracking?: string
     onToggle: () => any
     className?: string
+    disabled?: boolean
 }> {
     render(): React.ReactElement {
-        const { className, label, value, tooltip, tracking } = this.props
+        const {
+            className,
+            label,
+            value,
+            tooltip,
+            tracking,
+            disabled,
+            onToggle,
+        } = this.props
 
         return (
-            <div className={cx("labeled-switch", className)}>
+            <div
+                className={cx(
+                    {
+                        "labeled-switch": true,
+                        "labeled-switch--is-disabled": disabled,
+                    },
+                    className
+                )}
+            >
                 <label>
                     <input
                         type="checkbox"
                         checked={value}
-                        onChange={this.props.onToggle}
+                        disabled={disabled}
+                        onChange={onToggle}
                         data-track-note={tracking}
                     />
                     <div data-track-note="" className="outer">
