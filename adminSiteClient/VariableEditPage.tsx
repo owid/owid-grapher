@@ -162,6 +162,10 @@ class VariableEditor extends React.Component<{
         if (this.isDeleted)
             return <Redirect to={`/datasets/${variable.datasetId}`} />
 
+        const grapherConfigAdminYAML = YAML.stringify(
+            variable.grapherConfigAdmin
+        )
+
         return (
             <main className="VariableEditPage">
                 <Prompt
@@ -527,10 +531,9 @@ class VariableEditor extends React.Component<{
                         />
                         <div>
                             <TextAreaField
+                                key={grapherConfigAdminYAML}
                                 label="Grapher Config (edited in the admin)"
-                                value={YAML.stringify(
-                                    variable.grapherConfigAdmin
-                                )}
+                                value={grapherConfigAdminYAML}
                                 disabled
                                 rows={8}
                             />
@@ -549,12 +552,27 @@ class VariableEditor extends React.Component<{
                                     type="button"
                                     className="btn btn-danger ml-2"
                                     onClick={async () => {
-                                        await this.context.admin.rawRequest(
-                                            `/api/variables/${variable.id}/grapherConfigAdmin`,
-                                            undefined,
-                                            "DELETE"
+                                        if (
+                                            !window.confirm(
+                                                `Are you sure you want to delete the admin-authored Grapher config for variable ${variable.id}? This action cannot be undone!`
+                                            )
                                         )
-                                        window.location.reload()
+                                            return
+
+                                        const json =
+                                            await this.context.admin.requestJSON(
+                                                `/api/variables/${variable.id}/grapherConfigAdmin`,
+                                                {},
+                                                "DELETE"
+                                            )
+
+                                        if (json.success) {
+                                            runInAction(
+                                                () =>
+                                                    (this.props.variable.grapherConfigAdmin =
+                                                        undefined)
+                                            )
+                                        }
                                     }}
                                 >
                                     Delete

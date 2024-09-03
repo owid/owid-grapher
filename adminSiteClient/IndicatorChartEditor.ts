@@ -1,4 +1,4 @@
-import { computed, runInAction } from "mobx"
+import { computed, observable, runInAction, when } from "mobx"
 import {
     AbstractChartEditor,
     AbstractChartEditorManager,
@@ -22,6 +22,17 @@ export interface IndicatorChartEditorManager
 }
 
 export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEditorManager> {
+    @observable.ref _isNewGrapher: boolean | undefined = undefined
+
+    constructor(props: { manager: IndicatorChartEditorManager }) {
+        super(props)
+
+        when(
+            () => this.manager.isNewGrapher !== undefined,
+            () => (this._isNewGrapher = this.manager.isNewGrapher)
+        )
+    }
+
     @computed
     get availableTabs(): EditorTab[] {
         const tabs: EditorTab[] = ["basic", "data", "text", "customize"]
@@ -38,7 +49,7 @@ export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEdit
     }
 
     @computed get isNewGrapher(): boolean {
-        return this.manager.isNewGrapher
+        return this._isNewGrapher ?? false
     }
 
     @computed get charts(): Chart[] {
@@ -59,6 +70,7 @@ export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEdit
         if (json.success) {
             runInAction(() => {
                 this.savedPatchConfig = json.savedPatch
+                this._isNewGrapher = false
             })
         } else {
             onError?.()

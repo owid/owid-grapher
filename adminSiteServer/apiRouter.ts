@@ -515,14 +515,14 @@ const saveGrapher = async (
     else newConfig.version = 1
 
     // if the schema version is missing, assume it's the latest
-    newConfig.$schema =
-        newConfig.$schema ??
-        existingConfig?.$schema ??
-        defaultGrapherConfig.$schema
+    if (newConfig.$schema === undefined) {
+        newConfig.$schema = defaultGrapherConfig.$schema
+    }
 
     // add the isPublished field if is missing
-    newConfig.isPublished =
-        newConfig.isPublished ?? existingConfig?.isPublished ?? false
+    if (newConfig.isPublished === undefined) {
+        newConfig.isPublished = false
+    }
 
     // Execute the actual database update or creation
     let chartId: number

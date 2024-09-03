@@ -94,7 +94,7 @@ class EditorDebugTabForChart extends React.Component<{
                         rows={7}
                         readOnly
                         className="form-control"
-                        value={JSON.stringify(patchConfig, undefined, 2)}
+                        value={YAML.stringify(patchConfig)}
                     />
                     <button
                         className="btn btn-primary mt-2"
@@ -115,8 +115,23 @@ class EditorDebugTabForChart extends React.Component<{
                         >
                             {isInheritanceEnabled ? (
                                 <p>
-                                    This chart inherits settings from the
-                                    indicator {variableLink}.
+                                    This chart is configured to inherit settings
+                                    from its parent indicator, {variableLink}.
+                                    {!parentConfig && (
+                                        <>
+                                            {" "}
+                                            But the parent indicator does not
+                                            yet have an associated Grapher
+                                            config. You can{" "}
+                                            <a
+                                                href={`/admin/variables/${parentVariableId}/config`}
+                                                target="_blank"
+                                                rel="noopener"
+                                            >
+                                                create one in the admin.
+                                            </a>
+                                        </>
+                                    )}
                                 </p>
                             ) : (
                                 <p>
@@ -134,33 +149,31 @@ class EditorDebugTabForChart extends React.Component<{
                                 </button>
                             )}
                         </Section>
-                        <Section
-                            name={
-                                isInheritanceEnabled
-                                    ? "Parent config"
-                                    : "Parent config (not currently applied)"
-                            }
-                        >
-                            <textarea
-                                rows={7}
-                                readOnly
-                                className="form-control"
-                                value={JSON.stringify(
-                                    parentConfig ?? {},
-                                    undefined,
-                                    2
-                                )}
-                            />
-                            <p className="mt-2">
-                                <a
-                                    href={`/admin/variables/${parentVariableId}/config`}
-                                    target="_blank"
-                                    rel="noopener"
-                                >
-                                    Edit parent config in the admin
-                                </a>
-                            </p>
-                        </Section>
+                        {parentConfig && (
+                            <Section
+                                name={
+                                    isInheritanceEnabled
+                                        ? "Parent config"
+                                        : "Parent config (not currently applied)"
+                                }
+                            >
+                                <textarea
+                                    rows={7}
+                                    readOnly
+                                    className="form-control"
+                                    value={YAML.stringify(parentConfig ?? {})}
+                                />
+                                <p className="mt-2">
+                                    <a
+                                        href={`/admin/variables/${parentVariableId}/config`}
+                                        target="_blank"
+                                        rel="noopener"
+                                    >
+                                        Edit parent config in the admin
+                                    </a>
+                                </p>
+                            </Section>
+                        )}
                     </>
                 )}
 
@@ -169,7 +182,7 @@ class EditorDebugTabForChart extends React.Component<{
                         rows={7}
                         readOnly
                         className="form-control"
-                        value={JSON.stringify(fullConfig, undefined, 2)}
+                        value={YAML.stringify(fullConfig)}
                     />
                 </Section>
             </div>
@@ -191,7 +204,7 @@ class EditorDebugTabForIndicatorChart extends React.Component<{
                         rows={7}
                         readOnly
                         className="form-control"
-                        value={JSON.stringify(patchConfig, undefined, 2)}
+                        value={YAML.stringify(patchConfig)}
                     />
                 </Section>
                 {parentConfig && (
@@ -201,11 +214,7 @@ class EditorDebugTabForIndicatorChart extends React.Component<{
                                 rows={7}
                                 readOnly
                                 className="form-control"
-                                value={JSON.stringify(
-                                    parentConfig,
-                                    undefined,
-                                    2
-                                )}
+                                value={YAML.stringify(parentConfig)}
                             />
                         </Section>
                         <Section name="Merged config">
@@ -213,7 +222,7 @@ class EditorDebugTabForIndicatorChart extends React.Component<{
                                 rows={7}
                                 readOnly
                                 className="form-control"
-                                value={JSON.stringify(fullConfig, undefined, 2)}
+                                value={YAML.stringify(fullConfig)}
                             />
                         </Section>
                     </>

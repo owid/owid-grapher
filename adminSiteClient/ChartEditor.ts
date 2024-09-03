@@ -125,11 +125,6 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
         // update the parent config in any case
         this.parentConfig = newParentConfig
-
-        // disable inheritance if there is no parent config
-        if (!this.parentConfig) {
-            this.isInheritanceEnabled = false
-        }
     }
 
     async saveGrapher({
@@ -142,8 +137,12 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         if (!patchConfig.title) patchConfig.title = grapher.displayTitle
         if (!patchConfig.slug) patchConfig.slug = grapher.displaySlug
 
+        // it only makes sense to enable inheritance if the chart has a parent
+        const shouldEnableInheritance =
+            !!this.parentVariableId && this.isInheritanceEnabled
+
         const query = new URLSearchParams({
-            inheritance: this.isInheritanceEnabled ? "enable" : "disable",
+            inheritance: shouldEnableInheritance ? "enable" : "disable",
         })
         const targetUrl = isNewGrapher
             ? `/api/charts?${query}`
@@ -160,11 +159,13 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
                 this.newChartId = json.chartId
                 this.grapher.id = json.chartId
                 this.savedPatchConfig = json.savedPatch
+                this.isInheritanceEnabled = shouldEnableInheritance
             } else {
                 runInAction(() => {
                     grapher.version += 1
                     this.logs.unshift(json.newLog)
                     this.savedPatchConfig = json.savedPatch
+                    this.isInheritanceEnabled = shouldEnableInheritance
                 })
             }
         } else onError?.()

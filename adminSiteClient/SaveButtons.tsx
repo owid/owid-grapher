@@ -133,7 +133,9 @@ class SaveButtonsForIndicatorChart extends React.Component<{
         const { editor } = this.props
         const { grapher } = editor
 
-        const isSavingDisabled = grapher.hasFatalErrors || hasEditingErrors
+        const isTrivial = editor.isNewGrapher && !editor.isModified
+        const isSavingDisabled =
+            grapher.hasFatalErrors || hasEditingErrors || isTrivial
 
         return (
             <div className="SaveButtons">
