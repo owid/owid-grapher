@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { Section } from "./Forms.js"
+import { Section, Toggle } from "./Forms.js"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { action } from "mobx"
 import { copyToClipboard, mergeGrapherConfigs } from "@ourworldindata/utils"
@@ -53,14 +53,18 @@ class EditorDebugTabForChart extends React.Component<{
         })
     }
 
-    @action.bound enableInheritance() {
+    @action.bound onToggleInheritance(newValue: boolean) {
         const { patchConfig, parentConfig } = this.props.editor
 
         // update live grapher
-        const newConfig = mergeGrapherConfigs(parentConfig ?? {}, patchConfig)
+        const newParentConfig = newValue ? parentConfig : undefined
+        const newConfig = mergeGrapherConfigs(
+            newParentConfig ?? {},
+            patchConfig
+        )
         this.props.editor.updateLiveGrapher(newConfig)
 
-        this.props.editor.isInheritanceEnabled = true
+        this.props.editor.isInheritanceEnabled = newValue
     }
 
     render() {
@@ -106,13 +110,7 @@ class EditorDebugTabForChart extends React.Component<{
 
                 {parentVariableId && (
                     <>
-                        <Section
-                            name={
-                                isInheritanceEnabled
-                                    ? "Parent indicator"
-                                    : "Parent indicator (inheritance currently disabled)"
-                            }
-                        >
+                        <Section name="Parent indicator">
                             {isInheritanceEnabled ? (
                                 <p>
                                     This chart is configured to inherit settings
@@ -136,18 +134,15 @@ class EditorDebugTabForChart extends React.Component<{
                             ) : (
                                 <p>
                                     This chart may inherit chart settings from
-                                    the indicator {variableLink}.
+                                    the indicator {variableLink}. Toggle the
+                                    option below to enable inheritance.
                                 </p>
                             )}
-                            {!isInheritanceEnabled && (
-                                <button
-                                    className="btn btn-primary"
-                                    onClick={this.enableInheritance}
-                                    disabled={isInheritanceEnabled}
-                                >
-                                    Enable inheritance
-                                </button>
-                            )}
+                            <Toggle
+                                label="Enable inheritance"
+                                value={isInheritanceEnabled}
+                                onValue={this.onToggleInheritance}
+                            />
                         </Section>
                         {parentConfig && (
                             <Section
