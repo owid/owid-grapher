@@ -14,7 +14,11 @@ import {
 import { getCanonicalUrl, getPageTitle } from "@ourworldindata/components"
 import { DebugProvider } from "./DebugContext.js"
 import { match, P } from "ts-pattern"
-import { EnrichedBlockText, IMAGES_DIRECTORY } from "@ourworldindata/types"
+import {
+    ARCHVED_THUMBNAIL_FILENAME,
+    EnrichedBlockText,
+    IMAGES_DIRECTORY,
+} from "@ourworldindata/types"
 import { DATA_INSIGHT_ATOM_FEED_PROPS } from "./utils.js"
 import { Html } from "../Html.js"
 
@@ -94,7 +98,7 @@ export default function OwidGdocPage({
         gdoc.content.type === OwidGdocType.Article &&
         gdoc.content["deprecation-notice"]
     ) {
-        imageUrl = `${baseUrl}/archived-thumbnail.jpg`
+        imageUrl = `${baseUrl}/${ARCHVED_THUMBNAIL_FILENAME}`
     } else if (featuredImageFilename) {
         imageUrl = `${baseUrl}${IMAGES_DIRECTORY}${featuredImageFilename}`
     }

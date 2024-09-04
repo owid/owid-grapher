@@ -2,6 +2,7 @@ import React from "react"
 import { viteAssetsForSite } from "./viteUtils.js"
 import { GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.js"
 import { NoJSDetector } from "./NoJSDetector.js"
+import { DEFAULT_THUMBNAIL_FILENAME } from "@ourworldindata/types"
 
 export const GTMScriptTags = ({ gtmId }: { gtmId: string }) => {
     if (!gtmId || /["']/.test(gtmId)) return null
@@ -51,7 +52,8 @@ export const Head = (props: {
     const pageDesc =
         props.pageDesc ||
         "Research and data to make progress against the world’s largest problems"
-    const imageUrl = props.imageUrl || `${baseUrl}/default-thumbnail.jpg`
+    const imageUrl =
+        props.imageUrl || `${baseUrl}/${DEFAULT_THUMBNAIL_FILENAME}`
     const atom = props.atom ?? {
         title: "Atom feed for Our World in Data",
         href: "/atom.xml",

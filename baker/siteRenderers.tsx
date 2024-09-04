@@ -46,7 +46,11 @@ import {
     OwidGdocDataInsightInterface,
 } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
-import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
+import {
+    DEFAULT_THUMBNAIL_FILENAME,
+    FormattingOptions,
+    GrapherInterface,
+} from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
 import {
@@ -860,6 +864,6 @@ const renderGrapherThumbnailByResolvedChartSlug = (
 
 const renderExplorerDefaultThumbnail = (): string => {
     return ReactDOMServer.renderToStaticMarkup(
-        <img src={`${BAKED_BASE_URL}/default-thumbnail.jpg`} />
+        <img src={`${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`} />
     )
 }

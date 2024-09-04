@@ -1,5 +1,6 @@
 import Stripe from "stripe"
 import {
+    DEFAULT_THUMBNAIL_FILENAME,
     DonationRequest,
     getErrorMessageDonation,
     JsonError,
@@ -92,7 +93,7 @@ export async function createCheckoutSession(
                     product_data: {
                         name: "Monthly donation",
                         images: [
-                            "https://ourworldindata.org/default-thumbnail.jpg",
+                            `https://ourworldindata.org/${DEFAULT_THUMBNAIL_FILENAME}`,
                         ],
                     },
                     recurring: {

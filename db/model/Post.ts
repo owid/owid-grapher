@@ -23,6 +23,8 @@ import {
     DbEnrichedLatestWork,
     parseLatestWork,
     DbPlainTag,
+    DEFAULT_THUMBNAIL_FILENAME,
+    ARCHVED_THUMBNAIL_FILENAME,
 } from "@ourworldindata/types"
 import { uniqBy, sortBy, memoize, orderBy } from "@ourworldindata/utils"
 import { Knex } from "knex"
@@ -262,10 +264,12 @@ export const getFullPost = async (
     content: excludeContent ? "" : postApi.content.rendered,
     excerpt: decodeHTML(postApi.excerpt.rendered),
     imageUrl: `${BAKED_BASE_URL}${
-        postApi.featured_media_paths.medium_large ?? "/default-thumbnail.jpg"
+        postApi.featured_media_paths.medium_large ??
+        `/${DEFAULT_THUMBNAIL_FILENAME}`
     }`,
     thumbnailUrl: `${BAKED_BASE_URL}${
-        postApi.featured_media_paths?.thumbnail ?? "/default-thumbnail.jpg"
+        postApi.featured_media_paths?.thumbnail ??
+        `/${DEFAULT_THUMBNAIL_FILENAME}`
     }`,
     imageId: postApi.featured_media,
     relatedCharts:
@@ -308,9 +312,9 @@ export const getBlogIndex = memoize(
 )
 
 function getGdocThumbnail(gdoc: OwidGdocPostInterface): string {
-    let thumbnailPath = "/default-thumbnail.jpg"
+    let thumbnailPath = `/${DEFAULT_THUMBNAIL_FILENAME}`
     if (gdoc.content["deprecation-notice"]) {
-        thumbnailPath = "/archived-thumbnail.jpg"
+        thumbnailPath = `/${ARCHVED_THUMBNAIL_FILENAME}`
     } else if (gdoc.content["featured-image"]) {
         thumbnailPath = `${IMAGES_DIRECTORY}${gdoc.content["featured-image"]}`
     }
@@ -617,7 +621,7 @@ export const getLatestWorkByAuthor = async (
     knex: Knex<any, any[]>,
     author: string
 ): Promise<DbEnrichedLatestWork[]> => {
-    const rawLatestWorkLinks: DbRawLatestWork[] = await db.knexRaw(
+    const rawLatestWorkLinks = await db.knexRaw<DbRawLatestWork>(
         knex,
         `-- sql
         SELECT
@@ -626,8 +630,10 @@ export const getLatestWorkByAuthor = async (
             pg.content->>'$.title' AS title,
             pg.content->>'$.subtitle' AS subtitle,
             pg.content->>'$.authors' AS authors,
-            pg.content->>'$."featured-image"' AS "featured-image",
-            (pg.content->>'$."deprecation-notice"' IS NOT NULL) AS isDeprecated,
+            CASE 
+                WHEN content ->> '$."deprecation-notice"' IS NOT NULL THEN '${ARCHVED_THUMBNAIL_FILENAME}'
+                ELSE content ->> '$."featured-image"'
+            END as "featured-image"
             pg.publishedAt
         FROM
             posts_gdocs pg

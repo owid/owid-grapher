@@ -1,6 +1,7 @@
 import { get, groupBy } from "lodash"
 import { match, P } from "ts-pattern"
 import {
+    ARCHVED_THUMBNAIL_FILENAME,
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
     DbEnrichedPostGdoc,
     DbInsertPostGdocLink,
@@ -197,7 +198,6 @@ export async function getAllMinimalGdocBaseObjects(
         excerpt: string
         type: string
         "featured-image": string
-        isDeprecated: 0 | 1
     }>(
         knex,
         `-- sql
@@ -211,8 +211,10 @@ export async function getAllMinimalGdocBaseObjects(
                 content ->> '$.subtitle' as subtitle,
                 content ->> '$.excerpt' as excerpt,
                 type,
-                content ->> '$."featured-image"' as "featured-image",
-                (content ->> '$."deprecation-notice"' IS NOT NULL) as isDeprecated
+                CASE 
+                    WHEN content ->> '$."deprecation-notice"' IS NOT NULL THEN '${ARCHVED_THUMBNAIL_FILENAME}'
+                    ELSE content ->> '$."featured-image"'
+                END as "featured-image"
             FROM posts_gdocs
             WHERE published = 1
             AND publishedAt <= NOW()`,
@@ -229,9 +231,7 @@ export async function getAllMinimalGdocBaseObjects(
             subtitle: row.subtitle,
             excerpt: row.excerpt,
             type: row.type as OwidGdocType,
-            "featured-image": row.isDeprecated
-                ? "/archived-thumbnail.jpg"
-                : row["featured-image"],
+            "featured-image": row["featured-image"],
         } satisfies OwidGdocMinimalPostInterface
     })
 }

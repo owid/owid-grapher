@@ -50,6 +50,8 @@ import {
 } from "../Variable.js"
 import { createLinkFromUrl } from "../Link.js"
 import {
+    ARCHVED_THUMBNAIL_FILENAME,
+    DEFAULT_THUMBNAIL_FILENAME,
     LatestDataInsight,
     LinkedAuthor,
     OwidGdoc,
@@ -623,7 +625,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     title: explorer?.title ?? "",
                     subtitle: explorer?.subtitle ?? "",
                     resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${originalSlug}`,
-                    thumbnail: `${BAKED_BASE_URL}/default-thumbnail.jpg`,
+                    thumbnail: `${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`,
                     tags: explorer.tags,
                 }
                 return linkedChart
@@ -866,7 +868,6 @@ export async function getMinimalGdocPostsByIds(
         excerpt: string
         type: string
         "featured-image": string
-        isDeprecated: 0 | 1
     }>(
         knex,
         `-- sql
@@ -880,8 +881,10 @@ export async function getMinimalGdocPostsByIds(
                 content ->> '$.subtitle' as subtitle,
                 content ->> '$.excerpt' as excerpt,
                 type,
-                content ->> '$."featured-image"' as "featured-image",
-                (content ->> '$."deprecation-notice"' IS NOT NULL) as isDeprecated
+                CASE 
+                    WHEN content ->> '$."deprecation-notice"' IS NOT NULL THEN '${ARCHVED_THUMBNAIL_FILENAME}'
+                    ELSE content ->> '$."featured-image"'
+                END as "featured-image"
             FROM posts_gdocs
             WHERE id in (:ids)`,
         { ids }
@@ -897,9 +900,7 @@ export async function getMinimalGdocPostsByIds(
             subtitle: row.subtitle,
             excerpt: row.excerpt,
             type: row.type as OwidGdocType,
-            "featured-image": row.isDeprecated
-                ? "/archived-thumbnail.jpg"
-                : row["featured-image"],
+            "featured-image": row["featured-image"],
         } satisfies OwidGdocMinimalPostInterface
     })
 }

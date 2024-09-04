@@ -151,15 +151,13 @@ export function getFeaturedImageFilename(gdoc: OwidGdoc): string | undefined {
                 content: {
                     type: P.union(
                         OwidGdocType.Fragment,
-                        // undefined so that we use default-thumbnail.jpg as defined in Head.tsx
                         OwidGdocType.Homepage,
                         undefined
                     ),
                 },
             },
-            () => {
-                return undefined
-            }
+            // This will fallback to DEFAULT_THUMBNAIL_FILENAME in Head.tsx
+            () => undefined
         )
         .exhaustive()
 }

@@ -347,6 +347,8 @@ export {
     gdocUrlRegex,
     gdocIdRegex,
     DEFAULT_GDOC_FEATURED_IMAGE,
+    DEFAULT_THUMBNAIL_FILENAME,
+    ARCHVED_THUMBNAIL_FILENAME,
 } from "./gdocTypes/GdocConstants.js"
 export {
     type OwidVariableWithSource,
