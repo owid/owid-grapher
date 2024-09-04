@@ -101,13 +101,12 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
             this.grapher.object
         )
 
-        // fetch the new parent config if the indicator has changed
+        // no-op if the parent indicator hasn't changed
+        if (currentParentIndicatorId === newParentIndicatorId) return
+
+        // fetch the new parent config
         let newParentConfig: GrapherInterface | undefined
-        if (
-            newParentIndicatorId &&
-            (currentParentIndicatorId === undefined ||
-                newParentIndicatorId !== currentParentIndicatorId)
-        ) {
+        if (newParentIndicatorId) {
             newParentConfig = await fetchMergedGrapherConfigByVariableId(
                 this.manager.admin,
                 newParentIndicatorId
@@ -181,8 +180,12 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         // Need to open intermediary tab before AJAX to avoid popup blockers
         const w = window.open("/", "_blank") as Window
 
+        // it only makes sense to enable inheritance if the chart has a parent
+        const shouldEnableInheritance =
+            !!this.parentVariableId && this.isInheritanceEnabled
+
         const query = new URLSearchParams({
-            inheritance: this.isInheritanceEnabled ? "enable" : "disable",
+            inheritance: shouldEnableInheritance ? "enable" : "disable",
         })
         const targetUrl = `/api/charts?${query}`
 

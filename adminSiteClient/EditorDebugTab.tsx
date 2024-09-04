@@ -53,25 +53,25 @@ class EditorDebugTabForChart extends React.Component<{
         })
     }
 
-    @action.bound onToggleInheritance(newValue: boolean) {
+    @action.bound onToggleInheritance(shouldBeEnabled: boolean) {
         const { patchConfig, parentConfig } = this.props.editor
 
         // update live grapher
-        const newParentConfig = newValue ? parentConfig : undefined
+        const newParentConfig = shouldBeEnabled ? parentConfig : undefined
         const newConfig = mergeGrapherConfigs(
             newParentConfig ?? {},
             patchConfig
         )
         this.props.editor.updateLiveGrapher(newConfig)
 
-        this.props.editor.isInheritanceEnabled = newValue
+        this.props.editor.isInheritanceEnabled = shouldBeEnabled
     }
 
     render() {
         const {
             patchConfig,
             parentConfig,
-            isInheritanceEnabled = false,
+            isInheritanceEnabled,
             fullConfig,
             parentVariableId,
             grapher,
@@ -134,13 +134,14 @@ class EditorDebugTabForChart extends React.Component<{
                             ) : (
                                 <p>
                                     This chart may inherit chart settings from
-                                    the indicator {variableLink}. Toggle the
-                                    option below to enable inheritance.
+                                    the indicator {variableLink}, but
+                                    inheritance is currently disabled. Toggle
+                                    the option below to enable inheritance.
                                 </p>
                             )}
                             <Toggle
                                 label="Enable inheritance"
-                                value={isInheritanceEnabled}
+                                value={!!isInheritanceEnabled}
                                 onValue={this.onToggleInheritance}
                             />
                         </Section>
@@ -156,7 +157,7 @@ class EditorDebugTabForChart extends React.Component<{
                                     rows={7}
                                     readOnly
                                     className="form-control"
-                                    value={YAML.stringify(parentConfig ?? {})}
+                                    value={YAML.stringify(parentConfig)}
                                 />
                                 <p className="mt-2">
                                     <a

@@ -386,10 +386,6 @@ export class ChartEditorView<
                                         }}
                                     >
                                         {capitalize(tab)}
-                                        {tab === "inheritance" &&
-                                            chartEditor &&
-                                            chartEditor.isInheritanceEnabled &&
-                                            " (enabled)"}
                                         {tab === "refs" &&
                                         chartEditor?.references
                                             ? ` (${getFullReferencesCount(

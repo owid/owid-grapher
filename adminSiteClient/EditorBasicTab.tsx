@@ -346,6 +346,13 @@ export class EditorBasicTab<
     database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }> {
+    @action.bound private updateParentConfig() {
+        const { editor } = this.props
+        if (isChartEditorInstance(editor)) {
+            void editor.updateParentConfig()
+        }
+    }
+
     @action.bound onChartTypeChange(value: string) {
         const { grapher } = this.props.editor
         grapher.type = value as ChartTypeName
@@ -378,6 +385,11 @@ export class EditorBasicTab<
                     property: DimensionProperty.size,
                 })
         }
+
+        // since the parent config depends on the chart type
+        // (scatters don't have a parent), we might need to update
+        // the parent config when the type changes
+        this.updateParentConfig()
     }
 
     render() {

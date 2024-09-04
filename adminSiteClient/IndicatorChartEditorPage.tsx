@@ -30,8 +30,8 @@ export class IndicatorChartEditorPage
 
     charts: Chart[] = []
 
-    isNewGrapher = false
-    isInheritanceEnabled = true
+    isNewGrapher: boolean | undefined = undefined
+    isInheritanceEnabled: boolean | undefined = undefined
 
     async fetchGrapherConfig(): Promise<void> {
         const { variableId } = this
@@ -39,13 +39,14 @@ export class IndicatorChartEditorPage
             `/api/variables/grapherConfigAdmin/${variableId}.patchConfig.json`
         )
         if (isEmpty(config)) {
-            this.isNewGrapher = true
             this.patchConfig = {
                 $schema: defaultGrapherConfig.$schema,
                 dimensions: [{ variableId, property: DimensionProperty.y }],
             }
+            this.isNewGrapher = true
         } else {
             this.patchConfig = config
+            this.isNewGrapher = false
         }
     }
 
@@ -55,6 +56,7 @@ export class IndicatorChartEditorPage
             `/api/variables/grapherConfigETL/${variableId}.patchConfig.json`
         )
         this.parentConfig = isEmpty(etlConfig) ? undefined : etlConfig
+        this.isInheritanceEnabled = true
     }
 
     async fetchCharts(): Promise<void> {

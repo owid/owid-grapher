@@ -17,7 +17,7 @@ export interface Chart {
 export interface IndicatorChartEditorManager
     extends AbstractChartEditorManager {
     variableId: number
-    isNewGrapher: boolean
+    isNewGrapher?: boolean
     charts: Chart[]
 }
 
