@@ -320,11 +320,15 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         datasetId: 1,
         display: '{ "unit": "kg", "shortUnit": "kg" }',
     }
-    const testVariableConfig = {
+    const testVariableConfigETL = {
         hasMapTab: true,
         note: "Indicator note",
         selectedEntityNames: ["France", "Italy", "Spain"],
         hideRelativeToggle: false,
+    }
+    const testVariableConfigAdmin = {
+        title: "Admin title",
+        subtitle: "Admin subtitle",
     }
 
     // second dummy variable and its grapherConfigETL
@@ -367,7 +371,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         await makeRequestAgainstAdminApi({
             method: "PUT",
             path: `/variables/${variableId}/grapherConfigETL`,
-            body: JSON.stringify(testVariableConfig),
+            body: JSON.stringify(testVariableConfigETL),
         })
 
         // get inserted configs from the database
@@ -379,8 +383,8 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         expect(patchConfigETL).toEqual(fullConfigETL)
 
         // check that $schema and dimensions field were added to the config
-        expect(patchConfigETL).toEqual({
-            ...testVariableConfig,
+        const processedTestVariableConfigETL = {
+            ...testVariableConfigETL,
 
             // automatically added
             $schema: defaultGrapherConfig.$schema,
@@ -390,10 +394,11 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
                     variableId,
                 },
             ],
-        })
+        }
+        expect(patchConfigETL).toEqual(processedTestVariableConfigETL)
 
         // fetch the admin+etl merged grapher config
-        const mergedGrapherConfig = await fetchJsonFromAdminApi(
+        let mergedGrapherConfig = await fetchJsonFromAdminApi(
             `/variables/mergedGrapherConfig/${variableId}.json`
         )
 
@@ -401,7 +406,35 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         // the same as the ETL config
         expect(mergedGrapherConfig).toEqual(fullConfigETL)
 
-        // delete the grapher config we just added
+        // add an admin-authored config for the variable
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigAdmin`,
+            body: JSON.stringify(testVariableConfigAdmin),
+        })
+
+        // fetch the merged grapher config and verify that the admin-authored
+        // config has been merged in
+        mergedGrapherConfig = await fetchJsonFromAdminApi(
+            `/variables/mergedGrapherConfig/${variableId}.json`
+        )
+        expect(mergedGrapherConfig).toEqual({
+            ...processedTestVariableConfigETL,
+            ...testVariableConfigAdmin,
+        })
+
+        // delete the admin-authored grapher config we just added
+        // and verify that the merged config is now the same as the ETL config
+        await makeRequestAgainstAdminApi({
+            method: "DELETE",
+            path: `/variables/${variableId}/grapherConfigAdmin`,
+        })
+        mergedGrapherConfig = await fetchJsonFromAdminApi(
+            `/variables/mergedGrapherConfig/${variableId}.json`
+        )
+        expect(mergedGrapherConfig).toEqual(fullConfigETL)
+
+        // delete the ETL-authored grapher config we just added
         await makeRequestAgainstAdminApi({
             method: "DELETE",
             path: `/variables/${variableId}/grapherConfigETL`,
@@ -423,7 +456,14 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         await makeRequestAgainstAdminApi({
             method: "PUT",
             path: `/variables/${variableId}/grapherConfigETL`,
-            body: JSON.stringify(testVariableConfig),
+            body: JSON.stringify(testVariableConfigETL),
+        })
+
+        // add grapherConfigAdmin for the variable
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigAdmin`,
+            body: JSON.stringify(testVariableConfigAdmin),
         })
 
         // make a request to create a chart that inherits from the variable
@@ -434,18 +474,17 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         })
         const chartId = response.chartId
 
-        // get the ETL config from the database
-        const row = await testKnexInstance!(ChartConfigsTableName).first()
-        const fullConfigETL = JSON.parse(row.full)
-
-        // fetch the parent config of the chart and verify that it's the ETL config
+        // fetch the parent config of the chart and verify that it's the merged etl+admin config
         const parentConfig = (
             await fetchJsonFromAdminApi(`/charts/${chartId}.parent.json`)
         )?.config
-        expect(parentConfig).toEqual(fullConfigETL)
+        const mergedGrapherConfig = await fetchJsonFromAdminApi(
+            `/variables/mergedGrapherConfig/${variableId}.json`
+        )
+        expect(parentConfig).toEqual(mergedGrapherConfig)
 
         // fetch the full config of the chart and verify that it's been merged
-        // with the ETL config and the default config
+        // with the indicator config and the default config
         const fullConfig = await fetchJsonFromAdminApi(
             `/charts/${chartId}.config.json`
         )
@@ -456,6 +495,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         expect(fullConfig).toHaveProperty("hideRelativeToggle", false)
         expect(fullConfig).toHaveProperty("note", "Indicator note") // inherited from variable
         expect(fullConfig).toHaveProperty("hasMapTab", true) // inherited from variable
+        expect(fullConfig).toHaveProperty("subtitle", "Admin subtitle") // inherited from variable
         expect(fullConfig).toHaveProperty("tab", "chart") // default value
 
         // fetch the patch config and verify it's diffed correctly
@@ -486,6 +526,12 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             path: `/variables/${variableId}/grapherConfigETL`,
         })
 
+        // delete the admin config
+        await makeRequestAgainstAdminApi({
+            method: "DELETE",
+            path: `/variables/${variableId}/grapherConfigAdmin`,
+        })
+
         // fetch the parent config of the chart and verify there is none
         const parentConfigAfterDelete = (
             await fetchJsonFromAdminApi(`/charts/${chartId}.parent.json`)
@@ -499,6 +545,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         )
         // was inherited from variable, should be unset now
         expect(fullConfigAfterDelete).not.toHaveProperty("note")
+        expect(fullConfigAfterDelete).not.toHaveProperty("subtitle")
         // was inherited from variable, is now inherited from the default config
         expect(fullConfigAfterDelete).toHaveProperty("hasMapTab", false)
         // was inherited from variable, is now inherited from the default config
@@ -562,7 +609,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         await makeRequestAgainstAdminApi({
             method: "PUT",
             path: `/variables/${variableId}/grapherConfigETL`,
-            body: JSON.stringify(testVariableConfig),
+            body: JSON.stringify(testVariableConfigETL),
         })
 
         // create a chart whose parent is the given indicator
@@ -617,7 +664,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         await makeRequestAgainstAdminApi({
             method: "PUT",
             path: `/variables/${variableId}/grapherConfigETL`,
-            body: JSON.stringify(testVariableConfig),
+            body: JSON.stringify(testVariableConfigETL),
         })
         await makeRequestAgainstAdminApi({
             method: "PUT",
