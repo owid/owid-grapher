@@ -157,7 +157,7 @@ async function generateWordpressRecords(
     return records
 }
 
-function gdocThumbnailUrl(gdoc: OwidGdocPostInterface): string {
+function getGdocThumbnailUrl(gdoc: OwidGdocPostInterface): string {
     if (gdoc.content["deprecation-notice"]) {
         return "/archived-thumbnail.jpg"
     }
@@ -209,7 +209,7 @@ function generateGdocRecords(
         const chunks = generateChunksFromHtmlText(renderedPostContent)
         const postTypeAndImportance = getPostTypeAndImportance(gdoc)
         let i = 0
-        const thumbnailUrl = gdocThumbnailUrl(gdoc)
+        const thumbnailUrl = getGdocThumbnailUrl(gdoc)
 
         for (const chunk of chunks) {
             const record = {

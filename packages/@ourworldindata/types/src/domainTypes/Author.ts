@@ -5,7 +5,7 @@ export interface DbRawLatestWork {
     subtitle: string | null
     authors: string
     "featured-image": string | null
-    isDeprecated: number
+    isDeprecated: 0 | 1
     publishedAt: string | null
 }
 

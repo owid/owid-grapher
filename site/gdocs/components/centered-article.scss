@@ -206,6 +206,7 @@ $banner-height: 200px;
     padding: 16px;
     padding-bottom: 0;
     margin-bottom: 24px;
+    z-index: $zindex-deprecation-notice;
 
     &::before {
         content: "";

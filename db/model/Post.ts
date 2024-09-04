@@ -307,7 +307,7 @@ export const getBlogIndex = memoize(
     }
 )
 
-function gdocThumbnail(gdoc: OwidGdocPostInterface): string {
+function getGdocThumbnail(gdoc: OwidGdocPostInterface): string {
     let thumbnailPath = "/default-thumbnail.jpg"
     if (gdoc.content["deprecation-notice"]) {
         thumbnailPath = "/archived-thumbnail.jpg"
@@ -328,7 +328,7 @@ export const mapGdocsToWordpressPosts = (
         modifiedDate: gdoc.updatedAt as Date,
         authors: gdoc.content.authors,
         excerpt: gdoc.content["atom-excerpt"] || gdoc.content.excerpt,
-        imageUrl: gdocThumbnail(gdoc),
+        imageUrl: getGdocThumbnail(gdoc),
     }))
 }
 

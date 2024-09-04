@@ -197,7 +197,7 @@ export async function getAllMinimalGdocBaseObjects(
         excerpt: string
         type: string
         "featured-image": string
-        isDeprecated: number
+        isDeprecated: 0 | 1
     }>(
         knex,
         `-- sql

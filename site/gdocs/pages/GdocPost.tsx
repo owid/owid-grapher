@@ -60,7 +60,9 @@ export function GdocPost({
     )
     const citationText = `${shortPageCitation} Published online at OurWorldInData.org. Retrieved from: '${`${BAKED_BASE_URL}/${slug}`}' [Online Resource]`
     const hasSidebarToc = content["sidebar-toc"]
-    const isDeprecated = Boolean(content["deprecation-notice"])
+    const isDeprecated =
+        postType === OwidGdocType.Article &&
+        Boolean(content["deprecation-notice"])
 
     const bibtex = `@article{owid-${slug.replace(/\//g, "-")},
     author = {${formatAuthors({
@@ -92,7 +94,7 @@ export function GdocPost({
                 breadcrumbs={breadcrumbs ?? undefined}
                 isDeprecated={isDeprecated}
             />
-            {content["deprecation-notice"] && (
+            {isDeprecated && content["deprecation-notice"] && (
                 <DeprecationNotice blocks={content["deprecation-notice"]} />
             )}
             {hasSidebarToc && content.toc ? (
@@ -102,7 +104,7 @@ export function GdocPost({
                     pageTitle={content.title || ""}
                 />
             ) : null}
-            {content.type === "topic-page" && stickyNavLinks?.length ? (
+            {postType === OwidGdocType.TopicPage && stickyNavLinks?.length ? (
                 <nav className="sticky-nav sticky-nav--dark span-cols-14 grid grid-cols-12-full-width">
                     <StickyNav
                         links={stickyNavLinks}
