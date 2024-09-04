@@ -47,14 +47,14 @@ export class ChartRow extends React.Component<{
         return (
             <tr>
                 <td style={{ minWidth: "140px", width: "12.5%" }}>
-                    {chart.isPublished && (
+                    {chart.isPublished ? (
                         <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>
                             <img
                                 src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart.slug}.svg`}
                                 className="chartPreview"
                             />
                         </a>
-                    )}
+                    ) : null}
                 </td>
                 <td style={{ minWidth: "180px" }}>
                     {chart.isPublished ? (
