@@ -27,6 +27,7 @@ import {
     faGlobeEurope,
     faMagnifyingGlass,
     faMapMarkerAlt,
+    faMinus,
     faPlus,
     faSearch,
     faTimes,
@@ -560,7 +561,7 @@ const TopicsRefinementList = ({
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 <h5 className="h5-black-caps">Topics</h5>
-                <FontAwesomeIcon icon={faPlus} />
+                <FontAwesomeIcon icon={isExpanded ? faMinus : faPlus} />
             </button>
             <ul
                 className={cx("data-catalog-refinement-list__list", {

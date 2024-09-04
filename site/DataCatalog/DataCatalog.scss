@@ -48,6 +48,7 @@
     margin-top: 8px;
     margin-left: 8px;
     margin-right: 8px;
+    padding: 0;
     cursor: pointer;
     color: $blue-50;
     &:hover {
@@ -403,6 +404,10 @@
 .data-catalog-refinements-expand-button {
     display: none;
     cursor: pointer;
+    color: $blue-60;
+    svg {
+        color: $blue-90;
+    }
     @include sm-only {
         display: flex;
         justify-content: space-between;
@@ -433,9 +438,12 @@
 .data-catalog-refinement-list__list-item {
     @include body-3-medium;
     display: inline;
+    margin: 0 4px;
     button {
+        cursor: pointer;
         font-weight: bold;
         color: $blue-90;
+        padding: 0;
         background-color: transparent;
         &:hover {
             text-decoration: underline;
@@ -444,6 +452,7 @@
     @include sm-only {
         display: inline-block;
         width: 100%;
+        margin-left: 8px;
         &:last-child {
             margin-bottom: 16px;
         }
@@ -609,7 +618,7 @@
     cursor: pointer;
     justify-content: center;
     align-items: center;
-    // the ribbon container is flush with the right edge so that the thumbnail horizontal scroll is also flush,
+    // the ribbon container is 13 columns wide to be flush with the right edge so that the thumbnail horizontal scroll is also flush,
     // but we want the see all button to be inset as if the container were only 12 columns wide
     width: calc(100% - 16px);
     margin-right: 16px;
