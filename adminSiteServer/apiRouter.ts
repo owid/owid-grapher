@@ -56,6 +56,8 @@ import {
     mergeGrapherConfigs,
     diffGrapherConfigs,
     omitUndefinedValues,
+    getParentVariableIdFromChartConfig,
+    omit,
 } from "@ourworldindata/utils"
 import { applyPatch } from "../adminShared/patchHelper.js"
 import {
@@ -94,6 +96,7 @@ import {
     DbInsertUser,
     FlatTagGraph,
     DbRawChartConfig,
+    parseChartConfig,
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
 import {
@@ -1408,10 +1411,15 @@ getRouteWithROTransaction(
             variable.catalogPath += `#${variable.shortName}`
         }
 
-        const charts = await db.knexRaw<OldChartFieldList>(
+        const rawCharts = await db.knexRaw<
+            OldChartFieldList & {
+                isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
+                config: DbRawChartConfig["full"]
+            }
+        >(
             trx,
             `-- sql
-                SELECT ${oldChartFieldList}
+                SELECT ${oldChartFieldList}, charts.isInheritanceEnabled, chart_configs.full AS config
                 FROM charts
                 JOIN chart_configs ON chart_configs.id = charts.configId
                 JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
@@ -1422,6 +1430,15 @@ getRouteWithROTransaction(
             `,
             [variableId]
         )
+
+        // check for parent indicators
+        const charts = rawCharts.map((chart) => {
+            const parentIndicatorId = getParentVariableIdFromChartConfig(
+                parseChartConfig(chart.config)
+            )
+            const hasParentIndicator = parentIndicatorId !== undefined
+            return omit({ ...chart, hasParentIndicator }, "config")
+        })
 
         await assignTagsForCharts(trx, charts)
 
