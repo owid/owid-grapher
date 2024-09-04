@@ -149,9 +149,9 @@ export function GdocPost({
                             <p className="citation-deprecated-notice">
                                 <span className="citation-deprecated-notice__highlight">
                                     This content is outdated
-                                </span>{" "}
-                                but if you would still like to use it, here is
-                                how to cite it.
+                                </span>
+                                , but if you would still like to use it, here is
+                                how to cite it:
                                 <br />
                             </p>
                         )}
