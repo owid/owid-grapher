@@ -635,11 +635,11 @@ export const getLatestWorkByAuthor = async (
             pg.content->>'$.title' AS title,
             pg.content->>'$.subtitle' AS subtitle,
             pg.content->>'$.authors' AS authors,
+            pg.publishedAt,
             CASE 
                 WHEN content ->> '$."deprecation-notice"' IS NOT NULL THEN '${ARCHVED_THUMBNAIL_FILENAME}'
                 ELSE content ->> '$."featured-image"'
             END as "featured-image"
-            pg.publishedAt
         FROM
             posts_gdocs pg
         WHERE
