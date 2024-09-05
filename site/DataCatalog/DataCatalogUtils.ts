@@ -3,7 +3,7 @@ import { getIndexName } from "../search/searchClient.js"
 import { IChartHit, SearchIndexName } from "../search/searchTypes.js"
 import { TagGraphRoot } from "@ourworldindata/types"
 import { DataCatalogState, dataCatalogStateToUrl } from "./DataCatalogState.js"
-import { countriesByName, pick, Region } from "@ourworldindata/utils"
+import { countriesByName, Region } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 
 /**
