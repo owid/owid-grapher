@@ -15,7 +15,7 @@ import {
 import {
     renderFrontPage,
     renderBlogByPageNum,
-    renderChartsPage,
+    renderDataCatalogPage,
     renderSearchPage,
     renderDonatePage,
     makeAtomFeed,
@@ -677,7 +677,7 @@ export class SiteBaker {
 
         await this.stageWrite(
             `${this.bakedSiteDir}/charts.html`,
-            await renderChartsPage(knex)
+            await renderDataCatalogPage(knex)
         )
         this.progressBar.tick({ name: "✅ baked special pages" })
     }

@@ -55,6 +55,7 @@ import {
     DataCatalogResultsSkeleton,
     DataCatalogRibbonViewSkeleton,
 } from "./DataCatalogSkeletons.js"
+import { useMediaQuery } from "usehooks-ts"
 
 const DataCatalogSearchInput = ({
     value,
@@ -117,6 +118,7 @@ function DataCatalogCountrySelector({
 }) {
     const [isOpen, setIsOpen] = useState(false)
     const [countrySearchQuery, setCountrySearchQuery] = useState("")
+    const isMobile = useMediaQuery("(max-width: 768px)")
     const countrySelectorRef = useRef<HTMLDivElement>(null)
     const listContainerRef = useRef<HTMLDivElement>(null)
     useFocusTrap(listContainerRef, isOpen)
@@ -138,12 +140,20 @@ function DataCatalogCountrySelector({
     }, [])
 
     const toggleOpen = () => {
-        setIsOpen(!isOpen)
-        // if on mobile, scroll down a little
-        window.scrollBy({
-            top: 100,
-            behavior: "smooth",
-        })
+        setIsOpen((isOpen) => !isOpen)
+        // if opening on mobile, scroll down a little
+        if (isMobile && !isOpen) {
+            setTimeout(() => {
+                const listContainer = listContainerRef.current
+                if (listContainer) {
+                    const rect = listContainer.getBoundingClientRect()
+                    window.scrollBy({
+                        top: rect.top - 100,
+                        behavior: "smooth",
+                    })
+                }
+            }, 100)
+        }
     }
 
     const filteredCountriesByName = useMemo(() => {
