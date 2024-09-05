@@ -227,6 +227,7 @@
             }
 
             td.time-notice {
+                white-space: nowrap;
                 font-weight: $medium;
                 text-indent: 20px;
                 text-align: right;
