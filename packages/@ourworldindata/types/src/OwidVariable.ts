@@ -1,7 +1,6 @@
 import { OwidOrigin } from "./OwidOrigin.js"
 import { OwidSource } from "./OwidSource.js"
 import { OwidVariableDisplayConfigInterface } from "./OwidVariableDisplayConfigInterface.js"
-import { GrapherInterface } from "./grapherTypes/GrapherTypes.js"
 
 export interface OwidVariableWithSource {
     id: number
@@ -73,7 +72,6 @@ export interface OwidVariablePresentation {
     attribution?: string
     topicTagsLinks?: string[]
     faqs?: FaqLink[]
-    grapherConfigETL?: GrapherInterface
 }
 
 export type OwidProcessingLevel = "minor" | "major"

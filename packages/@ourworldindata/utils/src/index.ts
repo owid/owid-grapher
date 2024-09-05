@@ -109,7 +109,6 @@ export {
     type NodeWithUrl,
     filterValidStringValues,
     traverseEnrichedSpan,
-    mergePartialGrapherConfigs,
     copyToClipboard,
     checkIsGdocPost,
     checkIsGdocPostExcludingFragments,
@@ -124,6 +123,7 @@ export {
     createTagGraph,
     formatInlineList,
     lazy,
+    getParentVariableIdFromChartConfig,
 } from "./Util.js"
 
 export {
@@ -330,6 +330,11 @@ export {
 } from "./DonateUtils.js"
 
 export { isAndroid, isIOS } from "./BrowserUtils.js"
+
+export {
+    diffGrapherConfigs,
+    mergeGrapherConfigs,
+} from "./grapherConfigUtils.js"
 
 export {
     MultiDimDataPageConfig,

@@ -19,6 +19,10 @@ import {
     getRedirectsByChartId,
     oldChartFieldList,
     setChartTags,
+    getParentByChartConfig,
+    getPatchConfigByChartId,
+    isInheritanceEnabledForChart,
+    getParentByChartId,
 } from "../db/model/Chart.js"
 import { Request } from "./authentication.js"
 import {
@@ -26,7 +30,13 @@ import {
     fetchS3MetadataByPath,
     fetchS3DataValuesByPath,
     searchVariables,
+    getGrapherConfigsForVariable,
+    updateGrapherConfigAdminOfVariable,
+    updateGrapherConfigETLOfVariable,
+    updateAllChartsThatInheritFromIndicator,
+    getAllChartsForIndicator,
 } from "../db/model/Variable.js"
+import { updateExistingFullConfig } from "../db/model/ChartConfigs.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     camelCaseProperties,
@@ -37,14 +47,17 @@ import {
     parseIntOrUndefined,
     DbRawPostWithGdocPublishStatus,
     OwidVariableWithSource,
-    OwidChartDimensionInterface,
-    DimensionProperty,
     TaggableType,
     DbChartTagJoin,
     pick,
     Json,
     checkIsGdocPostExcludingFragments,
     checkIsPlainObjectWithGuard,
+    mergeGrapherConfigs,
+    diffGrapherConfigs,
+    omitUndefinedValues,
+    getParentVariableIdFromChartConfig,
+    omit,
 } from "@ourworldindata/utils"
 import { applyPatch } from "../adminShared/patchHelper.js"
 import {
@@ -71,7 +84,7 @@ import {
     PostsTableName,
     DbRawPost,
     DbPlainChartSlugRedirect,
-    DbRawChart,
+    DbPlainChart,
     DbInsertChartRevision,
     serializeChartConfig,
     DbRawOrigin,
@@ -82,8 +95,12 @@ import {
     DbPlainDataset,
     DbInsertUser,
     FlatTagGraph,
+    DbRawChartConfig,
+    parseChartConfig,
 } from "@ourworldindata/types"
+import { uuidv7 } from "uuidv7"
 import {
+    defaultGrapherConfig,
     getVariableDataRoute,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
@@ -267,13 +284,167 @@ const expectChartById = async (
     throw new JsonError(`No chart found for id ${chartId}`, 404)
 }
 
+const expectPatchConfigByChartId = async (
+    knex: db.KnexReadonlyTransaction,
+    chartId: any
+): Promise<GrapherInterface> => {
+    const patchConfig = await getPatchConfigByChartId(knex, expectInt(chartId))
+    if (!patchConfig) {
+        throw new JsonError(`No chart found for id ${chartId}`, 404)
+    }
+    return patchConfig
+}
+
+const saveNewChart = async (
+    knex: db.KnexReadWriteTransaction,
+    {
+        config,
+        user,
+        // new charts inherit by default
+        shouldInherit = true,
+    }: { config: GrapherInterface; user: DbPlainUser; shouldInherit?: boolean }
+): Promise<GrapherInterface> => {
+    // grab the parent of the chart if inheritance should be enabled
+    const parent = shouldInherit
+        ? await getParentByChartConfig(knex, config)
+        : undefined
+    const fullParentConfig = mergeGrapherConfigs(
+        defaultGrapherConfig,
+        parent?.config ?? {}
+    )
+
+    // compute patch and full configs
+    const patchConfig = diffGrapherConfigs(config, fullParentConfig)
+    const fullConfig = mergeGrapherConfigs(fullParentConfig, patchConfig)
+
+    // insert patch & full configs into the chart_configs table
+    const configId = uuidv7()
+    await db.knexRaw(
+        knex,
+        `-- sql
+            INSERT INTO chart_configs (id, patch, full)
+            VALUES (?, ?, ?)
+        `,
+        [
+            configId,
+            serializeChartConfig(patchConfig),
+            serializeChartConfig(fullConfig),
+        ]
+    )
+
+    // add a new chart to the charts table
+    const result = await db.knexRawInsert(
+        knex,
+        `-- sql
+            INSERT INTO charts (configId, isInheritanceEnabled, lastEditedAt, lastEditedByUserId)
+            VALUES (?, ?, ?, ?)
+        `,
+        [configId, shouldInherit, new Date(), user.id]
+    )
+
+    // The chart config itself has an id field that should store the id of the chart - update the chart now so this is true
+    const chartId = result.insertId
+    patchConfig.id = chartId
+    fullConfig.id = chartId
+    await db.knexRaw(
+        knex,
+        `-- sql
+            UPDATE chart_configs cc
+            JOIN charts c ON c.configId = cc.id
+            SET
+                cc.patch=JSON_SET(cc.patch, '$.id', ?),
+                cc.full=JSON_SET(cc.full, '$.id', ?)
+            WHERE c.id = ?
+        `,
+        [chartId, chartId, chartId]
+    )
+
+    return patchConfig
+}
+
+const updateExistingChart = async (
+    knex: db.KnexReadWriteTransaction,
+    params: {
+        config: GrapherInterface
+        user: DbPlainUser
+        chartId: number
+        // if undefined, keep inheritance as is.
+        // if true or false, enable or disable inheritance
+        shouldInherit?: boolean
+    }
+): Promise<GrapherInterface> => {
+    const { config, user, chartId } = params
+
+    // make sure that the id of the incoming config matches the chart id
+    config.id = chartId
+
+    // if inheritance is enabled, grab the parent from its config
+    const shouldInherit =
+        params.shouldInherit ??
+        (await isInheritanceEnabledForChart(knex, chartId))
+    const parent = shouldInherit
+        ? await getParentByChartConfig(knex, config)
+        : undefined
+    const fullParentConfig = mergeGrapherConfigs(
+        defaultGrapherConfig,
+        parent?.config ?? {}
+    )
+
+    // compute patch and full configs
+    const patchConfig = diffGrapherConfigs(config, fullParentConfig)
+    const fullConfig = mergeGrapherConfigs(fullParentConfig, patchConfig)
+
+    // update configs
+    await db.knexRaw(
+        knex,
+        `-- sql
+            UPDATE chart_configs cc
+            JOIN charts c ON c.configId = cc.id
+            SET
+                cc.patch=?,
+                cc.full=?
+            WHERE c.id = ?
+        `,
+        [
+            serializeChartConfig(patchConfig),
+            serializeChartConfig(fullConfig),
+            chartId,
+        ]
+    )
+
+    // update charts row
+    await db.knexRaw(
+        knex,
+        `-- sql
+            UPDATE charts
+            SET isInheritanceEnabled=?, lastEditedAt=?, lastEditedByUserId=?
+            WHERE id = ?
+        `,
+        [shouldInherit, new Date(), user.id, chartId]
+    )
+
+    return patchConfig
+}
+
 const saveGrapher = async (
     knex: db.KnexReadWriteTransaction,
-    user: DbPlainUser,
-    newConfig: GrapherInterface,
-    existingConfig?: GrapherInterface,
-    referencedVariablesMightChange = true // if the variables a chart uses can change then we need
-    // to update the latest country data which takes quite a long time (hundreds of ms)
+    {
+        user,
+        newConfig,
+        existingConfig,
+        shouldInherit,
+        referencedVariablesMightChange = true,
+    }: {
+        user: DbPlainUser
+        newConfig: GrapherInterface
+        existingConfig?: GrapherInterface
+        // if undefined, keep inheritance as is.
+        // if true or false, enable or disable inheritance
+        shouldInherit?: boolean
+        // if the variables a chart uses can change then we need
+        // to update the latest country data which takes quite a long time (hundreds of ms)
+        referencedVariablesMightChange?: boolean
+    }
 ) => {
     // Slugs need some special logic to ensure public urls remain consistent whenever possible
     async function isSlugUsedInRedirect() {
@@ -288,9 +459,17 @@ const saveGrapher = async (
     }
 
     async function isSlugUsedInOtherGrapher() {
-        const rows = await db.knexRaw<Pick<DbRawChart, "id">>(
+        const rows = await db.knexRaw<Pick<DbPlainChart, "id">>(
             knex,
-            `SELECT id FROM charts WHERE id != ? AND config->>"$.isPublished" = "true" AND JSON_EXTRACT(config, "$.slug") = ?`,
+            `-- sql
+                SELECT c.id
+                FROM charts c
+                JOIN chart_configs cc ON cc.id = c.configId
+                WHERE
+                    c.id != ?
+                    AND cc.full ->> "$.isPublished" = "true"
+                    AND cc.slug = ?
+            `,
             // -1 is a placeholder ID that will never exist; but we cannot use NULL because
             // in that case we would always get back an empty resultset
             [existingConfig ? existingConfig.id : -1, newConfig.slug]
@@ -338,33 +517,36 @@ const saveGrapher = async (
         newConfig.version += 1
     else newConfig.version = 1
 
+    // if the schema version is missing, assume it's the latest
+    if (newConfig.$schema === undefined) {
+        newConfig.$schema = defaultGrapherConfig.$schema
+    }
+
+    // add the isPublished field if is missing
+    if (newConfig.isPublished === undefined) {
+        newConfig.isPublished = false
+    }
+
     // Execute the actual database update or creation
-    const now = new Date()
-    let chartId = existingConfig && existingConfig.id
-    const newJsonConfig = JSON.stringify(newConfig)
-    if (existingConfig)
-        await db.knexRaw(
-            knex,
-            `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=? WHERE id = ?`,
-            [newJsonConfig, now, now, user.id, chartId]
-        )
-    else {
-        const result = await db.knexRawInsert(
-            knex,
-            `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId) VALUES (?, ?, ?, ?, ?)`,
-            [newJsonConfig, now, now, now, user.id]
-        )
-        chartId = result.insertId
-        // The chart config itself has an id field that should store the id of the chart - update the chart now so this is true
-        newConfig.id = chartId
-        await db.knexRaw(knex, `UPDATE charts SET config=? WHERE id = ?`, [
-            JSON.stringify(newConfig),
+    let chartId: number
+    if (existingConfig) {
+        chartId = existingConfig.id!
+        newConfig = await updateExistingChart(knex, {
+            config: newConfig,
+            user,
             chartId,
-        ])
+            shouldInherit,
+        })
+    } else {
+        newConfig = await saveNewChart(knex, {
+            config: newConfig,
+            user,
+            shouldInherit,
+        })
+        chartId = newConfig.id!
     }
 
     // Record this change in version history
-
     const chartRevisionLog = {
         chartId: chartId as number,
         userId: user.id,
@@ -415,7 +597,7 @@ const saveGrapher = async (
         await db.knexRaw(
             knex,
             `UPDATE charts SET publishedAt=?, publishedByUserId=? WHERE id = ? `,
-            [now, user.id, chartId]
+            [new Date(), user.id, chartId]
         )
         await triggerStaticBuild(user, `Publishing chart ${newConfig.slug}`)
     } else if (
@@ -433,7 +615,10 @@ const saveGrapher = async (
     } else if (newConfig.isPublished)
         await triggerStaticBuild(user, `Updating chart ${newConfig.slug}`)
 
-    return chartId
+    return {
+        chartId,
+        savedPatch: newConfig,
+    }
 }
 
 getRouteWithROTransaction(apiRouter, "/charts.json", async (req, res, trx) => {
@@ -441,11 +626,12 @@ getRouteWithROTransaction(apiRouter, "/charts.json", async (req, res, trx) => {
     const charts = await db.knexRaw<OldChartFieldList>(
         trx,
         `-- sql
-        SELECT ${oldChartFieldList} FROM charts
-        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-        ORDER BY charts.lastEditedAt DESC LIMIT ?
-    `,
+            SELECT ${oldChartFieldList} FROM charts
+            JOIN chart_configs ON chart_configs.id = charts.configId
+            JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+            LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+            ORDER BY charts.lastEditedAt DESC LIMIT ?
+        `,
         [limit]
     )
 
@@ -461,36 +647,37 @@ getRouteWithROTransaction(apiRouter, "/charts.csv", async (req, res, trx) => {
     const charts = await db.knexRaw(
         trx,
         `-- sql
-        SELECT
-            charts.id,
-            charts.config->>"$.version" AS version,
-            CONCAT("${BAKED_BASE_URL}/grapher/", charts.config->>"$.slug") AS url,
-            CONCAT("${ADMIN_BASE_URL}", "/admin/charts/", charts.id, "/edit") AS editUrl,
-            charts.config->>"$.slug" AS slug,
-            charts.config->>"$.title" AS title,
-            charts.config->>"$.subtitle" AS subtitle,
-            charts.config->>"$.sourceDesc" AS sourceDesc,
-            charts.config->>"$.note" AS note,
-            charts.config->>"$.type" AS type,
-            charts.config->>"$.internalNotes" AS internalNotes,
-            charts.config->>"$.variantName" AS variantName,
-            charts.config->>"$.isPublished" AS isPublished,
-            charts.config->>"$.tab" AS tab,
-            JSON_EXTRACT(charts.config, "$.hasChartTab") = true AS hasChartTab,
-            JSON_EXTRACT(charts.config, "$.hasMapTab") = true AS hasMapTab,
-            charts.config->>"$.originUrl" AS originUrl,
-            charts.lastEditedAt,
-            charts.lastEditedByUserId,
-            lastEditedByUser.fullName AS lastEditedBy,
-            charts.publishedAt,
-            charts.publishedByUserId,
-            publishedByUser.fullName AS publishedBy
-        FROM charts
-        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-        ORDER BY charts.lastEditedAt DESC
-        LIMIT ?
-    `,
+            SELECT
+                charts.id,
+                chart_configs.full->>"$.version" AS version,
+                CONCAT("${BAKED_BASE_URL}/grapher/", chart_configs.full->>"$.slug") AS url,
+                CONCAT("${ADMIN_BASE_URL}", "/admin/charts/", charts.id, "/edit") AS editUrl,
+                chart_configs.full->>"$.slug" AS slug,
+                chart_configs.full->>"$.title" AS title,
+                chart_configs.full->>"$.subtitle" AS subtitle,
+                chart_configs.full->>"$.sourceDesc" AS sourceDesc,
+                chart_configs.full->>"$.note" AS note,
+                chart_configs.full->>"$.type" AS type,
+                chart_configs.full->>"$.internalNotes" AS internalNotes,
+                chart_configs.full->>"$.variantName" AS variantName,
+                chart_configs.full->>"$.isPublished" AS isPublished,
+                chart_configs.full->>"$.tab" AS tab,
+                JSON_EXTRACT(chart_configs.full, "$.hasChartTab") = true AS hasChartTab,
+                JSON_EXTRACT(chart_configs.full, "$.hasMapTab") = true AS hasMapTab,
+                chart_configs.full->>"$.originUrl" AS originUrl,
+                charts.lastEditedAt,
+                charts.lastEditedByUserId,
+                lastEditedByUser.fullName AS lastEditedBy,
+                charts.publishedAt,
+                charts.publishedByUserId,
+                publishedByUser.fullName AS publishedBy
+            FROM charts
+            JOIN chart_configs ON chart_configs.id = charts.configId
+            JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+            LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+            ORDER BY charts.lastEditedAt DESC
+            LIMIT ?
+        `,
         [limit]
     )
     // note: retrieving references is VERY slow.
@@ -513,6 +700,34 @@ getRouteWithROTransaction(
     apiRouter,
     "/charts/:chartId.config.json",
     async (req, res, trx) => expectChartById(trx, req.params.chartId)
+)
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId.parent.json",
+    async (req, res, trx) => {
+        const chartId = expectInt(req.params.chartId)
+        const parent = await getParentByChartId(trx, chartId)
+        const isInheritanceEnabled = await isInheritanceEnabledForChart(
+            trx,
+            chartId
+        )
+        return omitUndefinedValues({
+            variableId: parent?.variableId,
+            config: parent?.config,
+            isActive: isInheritanceEnabled,
+        })
+    }
+)
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/charts/:chartId.patchConfig.json",
+    async (req, res, trx) => {
+        const chartId = expectInt(req.params.chartId)
+        const config = await expectPatchConfigByChartId(trx, chartId)
+        return config
+    }
 )
 
 getRouteWithROTransaction(
@@ -708,7 +923,16 @@ apiRouter.get(
 )
 
 postRouteWithRWTransaction(apiRouter, "/charts", async (req, res, trx) => {
-    const chartId = await saveGrapher(trx, res.locals.user, req.body)
+    let shouldInherit: boolean | undefined
+    if (req.query.inheritance) {
+        shouldInherit = req.query.inheritance === "enable"
+    }
+
+    const { chartId } = await saveGrapher(trx, {
+        user: res.locals.user,
+        newConfig: req.body,
+        shouldInherit,
+    })
 
     return { success: true, chartId: chartId }
 })
@@ -729,12 +953,27 @@ putRouteWithRWTransaction(
     apiRouter,
     "/charts/:chartId",
     async (req, res, trx) => {
+        let shouldInherit: boolean | undefined
+        if (req.query.inheritance) {
+            shouldInherit = req.query.inheritance === "enable"
+        }
+
         const existingConfig = await expectChartById(trx, req.params.chartId)
 
-        await saveGrapher(trx, res.locals.user, req.body, existingConfig)
+        const { chartId, savedPatch } = await saveGrapher(trx, {
+            user: res.locals.user,
+            newConfig: req.body,
+            existingConfig,
+            shouldInherit,
+        })
 
         const logs = await getLogsByChartId(trx, existingConfig.id as number)
-        return { success: true, chartId: existingConfig.id, newLog: logs[0] }
+        return {
+            success: true,
+            chartId,
+            savedPatch,
+            newLog: logs[0],
+        }
     }
 )
 
@@ -759,7 +998,18 @@ deleteRouteWithRWTransaction(
             `DELETE FROM chart_slug_redirects WHERE chart_id=?`,
             [chart.id]
         )
-        await db.knexRaw(trx, `DELETE FROM charts WHERE id=?`, [chart.id])
+
+        const row = await db.knexRawFirst<{ configId: number }>(
+            trx,
+            `SELECT configId FROM charts WHERE id = ?`,
+            [chart.id]
+        )
+        if (row) {
+            await db.knexRaw(trx, `DELETE FROM charts WHERE id=?`, [chart.id])
+            await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id=?`, [
+                row.configId,
+            ])
+        }
 
         if (chart.isPublished)
             await triggerStaticBuild(
@@ -871,7 +1121,7 @@ getRouteWithROTransaction(
         trx
     ): Promise<BulkGrapherConfigResponse<BulkChartEditResponseRow>> => {
         const context: OperationContext = {
-            grapherConfigFieldName: "config",
+            grapherConfigFieldName: "chart_configs.full",
             whitelistedColumnNamesAndTypes:
                 chartBulkUpdateAllowedColumnNamesAndTypes,
         }
@@ -889,21 +1139,25 @@ getRouteWithROTransaction(
         const whereClause = filterSExpr?.toSql() ?? "true"
         const resultsWithStringGrapherConfigs = await db.knexRaw(
             trx,
-            `SELECT charts.id as id,
-            charts.config as config,
-            charts.createdAt as createdAt,
-            charts.updatedAt as updatedAt,
-            charts.lastEditedAt as lastEditedAt,
-            charts.publishedAt as publishedAt,
-            lastEditedByUser.fullName as lastEditedByUser,
-            publishedByUser.fullName as publishedByUser
-FROM charts
-LEFT JOIN users lastEditedByUser ON lastEditedByUser.id=charts.lastEditedByUserId
-LEFT JOIN users publishedByUser ON publishedByUser.id=charts.publishedByUserId
-WHERE ${whereClause}
-ORDER BY charts.id DESC
-LIMIT 50
-OFFSET ${offset.toString()}`
+            `-- sql
+                SELECT
+                    charts.id as id,
+                    chart_configs.full as config,
+                    charts.createdAt as createdAt,
+                    charts.updatedAt as updatedAt,
+                    charts.lastEditedAt as lastEditedAt,
+                    charts.publishedAt as publishedAt,
+                    lastEditedByUser.fullName as lastEditedByUser,
+                    publishedByUser.fullName as publishedByUser
+                FROM charts
+                LEFT JOIN chart_configs ON chart_configs.id = charts.configId
+                LEFT JOIN users lastEditedByUser ON lastEditedByUser.id=charts.lastEditedByUserId
+                LEFT JOIN users publishedByUser ON publishedByUser.id=charts.publishedByUserId
+                WHERE ${whereClause}
+                ORDER BY charts.id DESC
+                LIMIT 50
+                OFFSET ${offset.toString()}
+            `
         )
 
         const results = resultsWithStringGrapherConfigs.map((row: any) => ({
@@ -912,9 +1166,12 @@ OFFSET ${offset.toString()}`
         }))
         const resultCount = await db.knexRaw<{ count: number }>(
             trx,
-            `SELECT count(*) as count
-FROM charts
-WHERE ${whereClause}`
+            `-- sql
+                SELECT count(*) as count
+                FROM charts
+                JOIN chart_configs ON chart_configs.id = charts.configId
+                WHERE ${whereClause}
+            `
         )
         return { rows: results, numTotalRows: resultCount[0].count }
     }
@@ -928,10 +1185,17 @@ patchRouteWithRWTransaction(
         const chartIds = new Set(patchesList.map((patch) => patch.id))
 
         const configsAndIds = await db.knexRaw<
-            Pick<DbRawChart, "id" | "config">
-        >(trx, `SELECT id, config FROM charts where id IN (?)`, [
-            [...chartIds.values()],
-        ])
+            Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+        >(
+            trx,
+            `-- sql
+                SELECT c.id, cc.full as config
+                FROM charts c
+                JOIN chart_configs cc ON cc.id = c.configId
+                WHERE c.id IN (?)
+            `,
+            [[...chartIds.values()]]
+        )
         const configMap = new Map<number, GrapherInterface>(
             configsAndIds.map((item: any) => [
                 item.id,
@@ -948,13 +1212,12 @@ patchRouteWithRWTransaction(
         }
 
         for (const [id, newConfig] of configMap.entries()) {
-            await saveGrapher(
-                trx,
-                res.locals.user,
+            await saveGrapher(trx, {
+                user: res.locals.user,
                 newConfig,
-                oldValuesConfigMap.get(id),
-                false
-            )
+                existingConfig: oldValuesConfigMap.get(id),
+                referencedVariablesMightChange: false,
+            })
         }
 
         return { success: true }
@@ -988,21 +1251,25 @@ getRouteWithROTransaction(
         const whereClause = filterSExpr?.toSql() ?? "true"
         const resultsWithStringGrapherConfigs = await db.knexRaw(
             trx,
-            `SELECT variables.id as id,
-            variables.name as name,
-            variables.grapherConfigAdmin as config,
-            d.name as datasetname,
-            namespaces.name as namespacename,
-            variables.createdAt as createdAt,
-            variables.updatedAt as updatedAt,
-            variables.description as description
-FROM variables
-LEFT JOIN active_datasets as d on variables.datasetId = d.id
-LEFT JOIN namespaces on d.namespace = namespaces.name
-WHERE ${whereClause}
-ORDER BY variables.id DESC
-LIMIT 50
-OFFSET ${offset.toString()}`
+            `-- sql
+                SELECT
+                    variables.id as id,
+                    variables.name as name,
+                    chart_configs.patch as config,
+                    d.name as datasetname,
+                    namespaces.name as namespacename,
+                    variables.createdAt as createdAt,
+                    variables.updatedAt as updatedAt,
+                    variables.description as description
+                FROM variables
+                LEFT JOIN active_datasets as d on variables.datasetId = d.id
+                LEFT JOIN namespaces on d.namespace = namespaces.name
+                LEFT JOIN chart_configs on variables.grapherConfigIdAdmin = chart_configs.id
+                WHERE ${whereClause}
+                ORDER BY variables.id DESC
+                LIMIT 50
+                OFFSET ${offset.toString()}
+            `
         )
 
         const results = resultsWithStringGrapherConfigs.map((row: any) => ({
@@ -1011,11 +1278,14 @@ OFFSET ${offset.toString()}`
         }))
         const resultCount = await db.knexRaw<{ count: number }>(
             trx,
-            `SELECT count(*) as count
-FROM variables
-LEFT JOIN active_datasets as d on variables.datasetId = d.id
-LEFT JOIN namespaces on d.namespace = namespaces.name
-WHERE ${whereClause}`
+            `-- sql
+                SELECT count(*) as count
+                FROM variables
+                LEFT JOIN active_datasets as d on variables.datasetId = d.id
+                LEFT JOIN namespaces on d.namespace = namespaces.name
+                LEFT JOIN chart_configs on variables.grapherConfigIdAdmin = chart_configs.id
+                WHERE ${whereClause}
+            `
         )
         return { rows: results, numTotalRows: resultCount[0].count }
     }
@@ -1029,14 +1299,25 @@ patchRouteWithRWTransaction(
         const variableIds = new Set(patchesList.map((patch) => patch.id))
 
         const configsAndIds = await db.knexRaw<
-            Pick<DbRawVariable, "id" | "grapherConfigAdmin">
-        >(trx, `SELECT id, grapherConfigAdmin FROM variables where id IN (?)`, [
-            [...variableIds.values()],
-        ])
+            Pick<DbRawVariable, "id"> & {
+                grapherConfigAdmin: DbRawChartConfig["patch"]
+            }
+        >(
+            trx,
+            `-- sql
+              SELECT v.id, cc.patch AS grapherConfigAdmin
+              FROM variables v
+              LEFT JOIN chart_configs cc ON v.grapherConfigIdAdmin = cc.id
+              WHERE v.id IN (?)
+          `,
+            [[...variableIds.values()]]
+        )
         const configMap = new Map(
             configsAndIds.map((item: any) => [
                 item.id,
-                item.grapherConfigAdmin ? JSON.parse(item.grapherConfig) : {},
+                item.grapherConfigAdmin
+                    ? JSON.parse(item.grapherConfigAdmin)
+                    : {},
             ])
         )
         // console.log("ids", configsAndIds.map((item : any) => item.id))
@@ -1046,11 +1327,9 @@ patchRouteWithRWTransaction(
         }
 
         for (const [variableId, newConfig] of configMap.entries()) {
-            await db.knexRaw(
-                trx,
-                `UPDATE variables SET grapherConfigAdmin = ? where id = ?`,
-                [JSON.stringify(newConfig), variableId]
-            )
+            const variable = await getGrapherConfigsForVariable(trx, variableId)
+            if (!variable) continue
+            await updateGrapherConfigAdminOfVariable(trx, variable, newConfig)
         }
 
         return { success: true }
@@ -1078,6 +1357,42 @@ getRouteWithROTransaction(
     }
 )
 
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables/grapherConfigETL/:variableId.patchConfig.json",
+    async (req, res, trx) => {
+        const variableId = expectInt(req.params.variableId)
+        const variable = await getGrapherConfigsForVariable(trx, variableId)
+        if (!variable) {
+            throw new JsonError(`Variable with id ${variableId} not found`, 500)
+        }
+        return variable.etl?.patchConfig ?? {}
+    }
+)
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables/grapherConfigAdmin/:variableId.patchConfig.json",
+    async (req, res, trx) => {
+        const variableId = expectInt(req.params.variableId)
+        const variable = await getGrapherConfigsForVariable(trx, variableId)
+        if (!variable) {
+            throw new JsonError(`Variable with id ${variableId} not found`, 500)
+        }
+        return variable.admin?.patchConfig ?? {}
+    }
+)
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables/mergedGrapherConfig/:variableId.json",
+    async (req, res, trx) => {
+        const variableId = expectInt(req.params.variableId)
+        const config = await getMergedGrapherConfigForVariable(trx, variableId)
+        return config ?? {}
+    }
+)
+
 // Used in VariableEditPage
 getRouteWithROTransaction(
     apiRouter,
@@ -1096,52 +1411,270 @@ getRouteWithROTransaction(
             variable.catalogPath += `#${variable.shortName}`
         }
 
-        const charts = await db.knexRaw<OldChartFieldList>(
+        const rawCharts = await db.knexRaw<
+            OldChartFieldList & {
+                isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
+                config: DbRawChartConfig["full"]
+            }
+        >(
             trx,
             `-- sql
-            SELECT ${oldChartFieldList}
-            FROM charts
-            JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-            LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-            JOIN chart_dimensions cd ON cd.chartId = charts.id
-            WHERE cd.variableId = ?
-            GROUP BY charts.id
+                SELECT ${oldChartFieldList}, charts.isInheritanceEnabled, chart_configs.full AS config
+                FROM charts
+                JOIN chart_configs ON chart_configs.id = charts.configId
+                JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+                LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+                JOIN chart_dimensions cd ON cd.chartId = charts.id
+                WHERE cd.variableId = ?
+                GROUP BY charts.id
             `,
             [variableId]
         )
 
+        // check for parent indicators
+        const charts = rawCharts.map((chart) => {
+            const parentIndicatorId = getParentVariableIdFromChartConfig(
+                parseChartConfig(chart.config)
+            )
+            const hasParentIndicator = parentIndicatorId !== undefined
+            return omit({ ...chart, hasParentIndicator }, "config")
+        })
+
         await assignTagsForCharts(trx, charts)
 
-        const grapherConfig = await getMergedGrapherConfigForVariable(
-            variableId,
-            trx
+        const variableWithConfigs = await getGrapherConfigsForVariable(
+            trx,
+            variableId
         )
-        if (
-            grapherConfig &&
-            (!grapherConfig.dimensions || grapherConfig.dimensions.length === 0)
-        ) {
-            const dimensions: OwidChartDimensionInterface[] = [
-                {
-                    variableId: variableId,
-                    property: DimensionProperty.y,
-                    display: variable.display,
-                },
+        const grapherConfigETL = variableWithConfigs?.etl?.patchConfig
+        const grapherConfigAdmin = variableWithConfigs?.admin?.patchConfig
+        const mergedGrapherConfig =
+            variableWithConfigs?.admin?.fullConfig ??
+            variableWithConfigs?.etl?.fullConfig
+
+        // add the variable's display field to the merged grapher config
+        if (mergedGrapherConfig) {
+            const [varDims, otherDims] = lodash.partition(
+                mergedGrapherConfig.dimensions ?? [],
+                (dim) => dim.variableId === variableId
+            )
+            const varDimsWithDisplay = varDims.map((dim) => ({
+                display: variable.display,
+                ...dim,
+            }))
+            mergedGrapherConfig.dimensions = [
+                ...varDimsWithDisplay,
+                ...otherDims,
             ]
-            grapherConfig.dimensions = dimensions
         }
 
-        const variablesWithCharts: OwidVariableWithSource & {
+        const variableWithCharts: OwidVariableWithSource & {
             charts: Record<string, any>
             grapherConfig: GrapherInterface | undefined
+            grapherConfigETL: GrapherInterface | undefined
+            grapherConfigAdmin: GrapherInterface | undefined
         } = {
             ...variable,
             charts,
-            grapherConfig,
+            grapherConfig: mergedGrapherConfig,
+            grapherConfigETL,
+            grapherConfigAdmin,
         }
 
         return {
-            variable: variablesWithCharts,
+            variable: variableWithCharts,
         } /*, vardata: await getVariableData([variableId]) }*/
+    }
+)
+
+// inserts a new config or updates an existing one
+putRouteWithRWTransaction(
+    apiRouter,
+    "/variables/:variableId/grapherConfigETL",
+    async (req, res, trx) => {
+        const variableId = expectInt(req.params.variableId)
+
+        const variable = await getGrapherConfigsForVariable(trx, variableId)
+        if (!variable) {
+            throw new JsonError(`Variable with id ${variableId} not found`, 500)
+        }
+
+        const { savedPatch, updatedCharts } =
+            await updateGrapherConfigETLOfVariable(trx, variable, req.body)
+
+        // trigger build if any published chart has been updated
+        if (updatedCharts.some((chart) => chart.isPublished)) {
+            await triggerStaticBuild(
+                res.locals.user,
+                `Updating ETL config for variable ${variableId}`
+            )
+        }
+
+        return { success: true, savedPatch }
+    }
+)
+
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/variables/:variableId/grapherConfigETL",
+    async (req, res, trx) => {
+        const variableId = expectInt(req.params.variableId)
+
+        const variable = await getGrapherConfigsForVariable(trx, variableId)
+        if (!variable) {
+            throw new JsonError(`Variable with id ${variableId} not found`, 500)
+        }
+
+        // no-op if the variable doesn't have an ETL config
+        if (!variable.etl) return { success: true }
+
+        // remove reference in the variables table
+        await db.knexRaw(
+            trx,
+            `-- sql
+                UPDATE variables
+                SET grapherConfigIdETL = NULL
+                WHERE id = ?
+            `,
+            [variableId]
+        )
+
+        // delete row in the chart_configs table
+        await db.knexRaw(
+            trx,
+            `-- sql
+                DELETE FROM chart_configs
+                WHERE id = ?
+            `,
+            [variable.etl.configId]
+        )
+
+        // update admin config if there is one
+        if (variable.admin) {
+            await updateExistingFullConfig(trx, {
+                configId: variable.admin.configId,
+                config: variable.admin.patchConfig,
+            })
+        }
+
+        // update all charts that inherit from the indicator
+        const updatedCharts = await updateAllChartsThatInheritFromIndicator(
+            trx,
+            variableId,
+            {
+                patchConfigAdmin: variable.admin?.patchConfig,
+            }
+        )
+
+        // trigger build if any published chart has been updated
+        if (updatedCharts.some((chart) => chart.isPublished)) {
+            await triggerStaticBuild(
+                res.locals.user,
+                `Updating ETL config for variable ${variableId}`
+            )
+        }
+
+        return { success: true }
+    }
+)
+
+// inserts a new config or updates an existing one
+putRouteWithRWTransaction(
+    apiRouter,
+    "/variables/:variableId/grapherConfigAdmin",
+    async (req, res, trx) => {
+        const variableId = expectInt(req.params.variableId)
+
+        const variable = await getGrapherConfigsForVariable(trx, variableId)
+        if (!variable) {
+            throw new JsonError(`Variable with id ${variableId} not found`, 500)
+        }
+
+        const { savedPatch, updatedCharts } =
+            await updateGrapherConfigAdminOfVariable(trx, variable, req.body)
+
+        // trigger build if any published chart has been updated
+        if (updatedCharts.some((chart) => chart.isPublished)) {
+            await triggerStaticBuild(
+                res.locals.user,
+                `Updating admin-authored config for variable ${variableId}`
+            )
+        }
+
+        return { success: true, savedPatch }
+    }
+)
+
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/variables/:variableId/grapherConfigAdmin",
+    async (req, res, trx) => {
+        const variableId = expectInt(req.params.variableId)
+
+        const variable = await getGrapherConfigsForVariable(trx, variableId)
+        if (!variable) {
+            throw new JsonError(`Variable with id ${variableId} not found`, 500)
+        }
+
+        // no-op if the variable doesn't have an admin-authored config
+        if (!variable.admin) return { success: true }
+
+        // remove reference in the variables table
+        await db.knexRaw(
+            trx,
+            `-- sql
+                UPDATE variables
+                SET grapherConfigIdAdmin = NULL
+                WHERE id = ?
+            `,
+            [variableId]
+        )
+
+        // delete row in the chart_configs table
+        await db.knexRaw(
+            trx,
+            `-- sql
+                DELETE FROM chart_configs
+                WHERE id = ?
+            `,
+            [variable.admin.configId]
+        )
+
+        // update all charts that inherit from the indicator
+        const updatedCharts = await updateAllChartsThatInheritFromIndicator(
+            trx,
+            variableId,
+            {
+                patchConfigETL: variable.etl?.patchConfig,
+            }
+        )
+
+        // trigger build if any published chart has been updated
+        if (updatedCharts.some((chart) => chart.isPublished)) {
+            await triggerStaticBuild(
+                res.locals.user,
+                `Updating admin-authored config for variable ${variableId}`
+            )
+        }
+
+        return { success: true }
+    }
+)
+
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables/:variableId/charts.json",
+    async (req, res, trx) => {
+        const variableId = expectInt(req.params.variableId)
+        const charts = await getAllChartsForIndicator(trx, variableId)
+        return charts.map((chart) => ({
+            id: chart.chartId,
+            title: chart.config.title,
+            variantName: chart.config.variantName,
+            isChild: chart.isChild,
+            isInheritanceEnabled: chart.isInheritanceEnabled,
+            isPublished: chart.isPublished,
+        }))
     }
 )
 
@@ -1325,15 +1858,16 @@ getRouteWithROTransaction(
         const charts = await db.knexRaw<OldChartFieldList>(
             trx,
             `-- sql
-        SELECT ${oldChartFieldList}
-        FROM charts
-        JOIN chart_dimensions AS cd ON cd.chartId = charts.id
-        JOIN variables AS v ON cd.variableId = v.id
-        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-        WHERE v.datasetId = ?
-        GROUP BY charts.id
-    `,
+                SELECT ${oldChartFieldList}
+                FROM charts
+                JOIN chart_configs ON chart_configs.id = charts.configId
+                JOIN chart_dimensions AS cd ON cd.chartId = charts.id
+                JOIN variables AS v ON cd.variableId = v.id
+                JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+                LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+                WHERE v.datasetId = ?
+                GROUP BY charts.id
+            `,
             [datasetId]
         )
 
@@ -1506,16 +2040,18 @@ postRouteWithRWTransaction(
         if (req.body.republish) {
             await db.knexRaw(
                 trx,
-                `
-            UPDATE charts
-            SET config = JSON_SET(config, "$.version", config->"$.version" + 1)
-            WHERE id IN (
-                SELECT DISTINCT chart_dimensions.chartId
-                FROM chart_dimensions
-                JOIN variables ON variables.id = chart_dimensions.variableId
-                WHERE variables.datasetId = ?
-            )
-            `,
+                `-- sql
+                    UPDATE chart_configs cc
+                    JOIN charts c ON c.configId = cc.id
+                    SET
+                        cc.patch = JSON_SET(cc.patch, "$.version", cc.patch->"$.version" + 1),
+                        cc.full = JSON_SET(cc.full, "$.version", cc.full->"$.version" + 1)
+                    WHERE c.id IN (
+                        SELECT DISTINCT chart_dimensions.chartId
+                        FROM chart_dimensions
+                        JOIN variables ON variables.id = chart_dimensions.variableId
+                        WHERE variables.datasetId = ?
+                    )`,
                 [datasetId]
             )
         }
@@ -1537,9 +2073,16 @@ getRouteWithROTransaction(
         redirects: await db.knexRaw(
             trx,
             `-- sql
-        SELECT r.id, r.slug, r.chart_id as chartId, JSON_UNQUOTE(JSON_EXTRACT(charts.config, "$.slug")) AS chartSlug
-        FROM chart_slug_redirects AS r JOIN charts ON charts.id = r.chart_id
-        ORDER BY r.id DESC`
+                SELECT
+                    r.id,
+                    r.slug,
+                    r.chart_id as chartId,
+                    chart_configs.slug AS chartSlug
+                FROM chart_slug_redirects AS r
+                JOIN charts ON charts.id = r.chart_id
+                JOIN chart_configs ON chart_configs.id = charts.configId
+                ORDER BY r.id DESC
+            `
         ),
     })
 )
@@ -1714,14 +2257,15 @@ getRouteWithROTransaction(
         const charts = await db.knexRaw<OldChartFieldList>(
             trx,
             `-- sql
-        SELECT ${oldChartFieldList} FROM charts
-        LEFT JOIN chart_tags ct ON ct.chartId=charts.id
-        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-        WHERE ct.tagId ${tagId === UNCATEGORIZED_TAG_ID ? "IS NULL" : "= ?"}
-        GROUP BY charts.id
-        ORDER BY charts.updatedAt DESC
-    `,
+                SELECT ${oldChartFieldList} FROM charts
+                JOIN chart_configs ON chart_configs.id = charts.configId
+                LEFT JOIN chart_tags ct ON ct.chartId=charts.id
+                JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+                LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+                WHERE ct.tagId ${tagId === UNCATEGORIZED_TAG_ID ? "IS NULL" : "= ?"}
+                GROUP BY charts.id
+                ORDER BY charts.updatedAt DESC
+            `,
             uncategorized ? [] : [tagId]
         )
         tag.charts = charts

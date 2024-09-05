@@ -1,7 +1,6 @@
 import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ChartEditor } from "./ChartEditor.js"
 import {
     ComparisonLineConfig,
     ColorSchemeName,
@@ -37,9 +36,14 @@ import {
 } from "./ColorSchemeDropdown.js"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import Select from "react-select"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ErrorMessages } from "./ChartEditorTypes.js"
 
 @observer
-export class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
+export class ColorSchemeSelector extends React.Component<{
+    grapher: Grapher
+    defaultValue?: ColorSchemeName
+}> {
     @action.bound onChange(selected: ColorSchemeOption) {
         // The onChange method can return an array of values (when multiple
         // items can be selected) or a single value. Since we are certain that
@@ -52,6 +56,15 @@ export class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
 
         // clear out saved, pre-computed colors so the color scheme change is immediately visible
         this.props.grapher.seriesColorMap?.clear()
+    }
+
+    @action.bound onBlur() {
+        if (this.props.grapher.baseColorScheme === undefined) {
+            this.props.grapher.baseColorScheme = this.props.defaultValue
+
+            // clear out saved, pre-computed colors so the color scheme change is immediately visible
+            this.props.grapher.seriesColorMap?.clear()
+        }
     }
 
     @action.bound onInvertColorScheme(value: boolean) {
@@ -69,8 +82,9 @@ export class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
                     <div className="form-group">
                         <label>Color scheme</label>
                         <ColorSchemeDropdown
-                            value={grapher.baseColorScheme || "default"}
+                            value={grapher.baseColorScheme}
                             onChange={this.onChange}
+                            onBlur={this.onBlur}
                             chartType={this.props.grapher.type}
                             invertedColorScheme={!!grapher.invertColorScheme}
                             additionalOptions={[
@@ -103,7 +117,9 @@ interface SortOrderDropdownOption {
 }
 
 @observer
-class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
+class SortOrderSection<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor }> {
     @computed get sortConfig(): SortConfig {
         return this.grapher._sortConfig
     }
@@ -203,7 +219,9 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-class FacetSection extends React.Component<{ editor: ChartEditor }> {
+class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
+    editor: Editor
+}> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get grapher() {
@@ -280,11 +298,17 @@ class FacetSection extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-class TimelineSection extends React.Component<{ editor: ChartEditor }> {
+class TimelineSection<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get grapher() {
         return this.props.editor.grapher
+    }
+
+    @computed get activeParentConfig() {
+        return this.props.editor.activeParentConfig
     }
 
     @computed get minTime() {
@@ -313,8 +337,22 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
         this.grapher.timelineMinTime = value
     }
 
+    @action.bound onBlurTimelineMinTime() {
+        if (this.grapher.timelineMinTime === undefined) {
+            this.grapher.timelineMinTime =
+                this.activeParentConfig?.timelineMinTime
+        }
+    }
+
     @action.bound onTimelineMaxTime(value: number | undefined) {
         this.grapher.timelineMaxTime = value
+    }
+
+    @action.bound onBlurTimelineMaxTime() {
+        if (this.grapher.timelineMaxTime === undefined) {
+            this.grapher.timelineMaxTime =
+                this.activeParentConfig?.timelineMaxTime
+        }
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {
@@ -356,13 +394,23 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                         <NumberField
                             label="Timeline min"
                             value={this.timelineMinTime}
-                            onValue={debounce(this.onTimelineMinTime)}
+                            // invoke on the leading edge to avoid interference with onBlur
+                            onValue={debounce(this.onTimelineMinTime, 0, {
+                                leading: true,
+                                trailing: false,
+                            })}
+                            onBlur={this.onBlurTimelineMinTime}
                             allowNegative
                         />
                         <NumberField
                             label="Timeline max"
                             value={this.timelineMaxTime}
-                            onValue={debounce(this.onTimelineMaxTime)}
+                            // invoke on the leading edge to avoid interference with onBlur
+                            onValue={debounce(this.onTimelineMaxTime, 0, {
+                                leading: true,
+                                trailing: false,
+                            })}
+                            onBlur={this.onBlurTimelineMaxTime}
                             allowNegative
                         />
                     </FieldsRow>
@@ -387,21 +435,25 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
+class ComparisonLineSection<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor }> {
     @observable comparisonLines: ComparisonLineConfig[] = []
 
     @action.bound onAddComparisonLine() {
         const { grapher } = this.props.editor
+        if (!grapher.comparisonLines) grapher.comparisonLines = []
         grapher.comparisonLines.push({})
     }
 
     @action.bound onRemoveComparisonLine(index: number) {
         const { grapher } = this.props.editor
-        grapher.comparisonLines!.splice(index, 1)
+        if (!grapher.comparisonLines) grapher.comparisonLines = []
+        grapher.comparisonLines.splice(index, 1)
     }
 
     render() {
-        const { comparisonLines } = this.props.editor.grapher
+        const { comparisonLines = [] } = this.props.editor.grapher
 
         return (
             <Section name="Comparison line">
@@ -445,18 +497,21 @@ class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-export class EditorCustomizeTab extends React.Component<{
-    editor: ChartEditor
+export class EditorCustomizeTab<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{
+    editor: Editor
+    errorMessages: ErrorMessages
 }> {
     @computed get errorMessages() {
-        return this.props.editor.manager.errorMessages
+        return this.props.errorMessages
     }
 
     render() {
         const xAxisConfig = this.props.editor.grapher.xAxis
         const yAxisConfig = this.props.editor.grapher.yAxis
 
-        const { features } = this.props.editor
+        const { features, activeParentConfig } = this.props.editor
         const { grapher } = this.props.editor
 
         return (
@@ -472,6 +527,12 @@ export class EditorCustomizeTab extends React.Component<{
                                         onValue={(value) =>
                                             (yAxisConfig.min = value)
                                         }
+                                        onBlur={() => {
+                                            if (yAxisConfig.min === undefined) {
+                                                yAxisConfig.min =
+                                                    activeParentConfig?.yAxis?.min
+                                            }
+                                        }}
                                         allowDecimal
                                         allowNegative
                                     />
@@ -481,6 +542,12 @@ export class EditorCustomizeTab extends React.Component<{
                                         onValue={(value) =>
                                             (yAxisConfig.max = value)
                                         }
+                                        onBlur={() => {
+                                            if (yAxisConfig.max === undefined) {
+                                                yAxisConfig.max =
+                                                    activeParentConfig?.yAxis?.max
+                                            }
+                                        }}
                                         allowDecimal
                                         allowNegative
                                     />
@@ -521,6 +588,15 @@ export class EditorCustomizeTab extends React.Component<{
                                 field="label"
                                 store={yAxisConfig}
                                 errorMessage={this.errorMessages.axisLabelY}
+                                onBlur={() => {
+                                    if (
+                                        yAxisConfig.label === "" &&
+                                        activeParentConfig?.yAxis?.label
+                                    ) {
+                                        yAxisConfig.label =
+                                            activeParentConfig.yAxis.label
+                                    }
+                                }}
                             />
                         )}
                     </Section>
@@ -536,6 +612,12 @@ export class EditorCustomizeTab extends React.Component<{
                                         onValue={(value) =>
                                             (xAxisConfig.min = value)
                                         }
+                                        onBlur={() => {
+                                            if (xAxisConfig.min === undefined) {
+                                                xAxisConfig.min =
+                                                    activeParentConfig?.yAxis?.min
+                                            }
+                                        }}
                                         allowDecimal
                                         allowNegative
                                     />
@@ -545,6 +627,12 @@ export class EditorCustomizeTab extends React.Component<{
                                         onValue={(value) =>
                                             (xAxisConfig.max = value)
                                         }
+                                        onBlur={() => {
+                                            if (xAxisConfig.max === undefined) {
+                                                xAxisConfig.max =
+                                                    activeParentConfig?.yAxis?.max
+                                            }
+                                        }}
                                         allowDecimal
                                         allowNegative
                                     />
@@ -585,6 +673,15 @@ export class EditorCustomizeTab extends React.Component<{
                                 field="label"
                                 store={xAxisConfig}
                                 errorMessage={this.errorMessages.axisLabelX}
+                                onBlur={() => {
+                                    if (
+                                        xAxisConfig.label === "" &&
+                                        activeParentConfig?.xAxis?.label
+                                    ) {
+                                        xAxisConfig.label =
+                                            activeParentConfig.xAxis.label
+                                    }
+                                }}
                             />
                         )}
                     </Section>
@@ -592,7 +689,13 @@ export class EditorCustomizeTab extends React.Component<{
                 <TimelineSection editor={this.props.editor} />
                 <FacetSection editor={this.props.editor} />
                 <Section name="Color scheme">
-                    <ColorSchemeSelector grapher={grapher} />
+                    <ColorSchemeSelector
+                        grapher={grapher}
+                        defaultValue={
+                            this.props.editor.activeParentConfig
+                                ?.baseColorScheme
+                        }
+                    />
                 </Section>
                 {features.canSpecifySortOrder && (
                     <SortOrderSection editor={this.props.editor} />

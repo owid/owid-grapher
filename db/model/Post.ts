@@ -235,15 +235,16 @@ export const getPostRelatedCharts = async (
         knex,
         `-- sql
         SELECT DISTINCT
-            charts.config->>"$.slug" AS slug,
-            charts.config->>"$.title" AS title,
-            charts.config->>"$.variantName" AS variantName,
+            chart_configs.slug,
+            chart_configs.full->>"$.title" AS title,
+            chart_configs.full->>"$.variantName" AS variantName,
             chart_tags.keyChartLevel
         FROM charts
+        JOIN chart_configs ON charts.configId=chart_configs.id
         INNER JOIN chart_tags ON charts.id=chart_tags.chartId
         INNER JOIN post_tags ON chart_tags.tagId=post_tags.tag_id
         WHERE post_tags.post_id=${postId}
-        AND charts.config->>"$.isPublished" = "true"
+        AND chart_configs.full->>"$.isPublished" = "true"
         ORDER BY title ASC
     `
     )
@@ -369,7 +370,8 @@ export const getWordpressPostReferencesByChartId = async (
             FROM
                 posts p
                 JOIN posts_links pl ON p.id = pl.sourceId
-                JOIN charts c ON pl.target = c.slug
+                JOIN chart_configs cc ON pl.target = cc.slug
+                JOIN charts c ON c.configId = cc.id
                 OR pl.target IN (
                     SELECT
                         cr.slug
@@ -417,7 +419,8 @@ export const getGdocsPostReferencesByChartId = async (
             FROM
                 posts_gdocs pg
                 JOIN posts_gdocs_links pgl ON pg.id = pgl.sourceId
-                JOIN charts c ON pgl.target = c.slug
+                JOIN chart_configs cc ON pgl.target = cc.slug
+                JOIN charts c ON c.configId = cc.id
                 OR pgl.target IN (
                     SELECT
                         cr.slug
@@ -502,7 +505,7 @@ export const getRelatedResearchAndWritingForVariable = async (
             SELECT DISTINCT
                 pl.target AS linkTargetSlug,
                 pl.componentType AS componentType,
-                COALESCE(csr.slug, c.slug) AS chartSlug,
+                COALESCE(csr.slug, cc.slug) AS chartSlug,
                 p.title AS title,
                 p.slug AS postSlug,
                 COALESCE(csr.chart_id, c.id) AS chartId,
@@ -522,7 +525,8 @@ export const getRelatedResearchAndWritingForVariable = async (
             FROM
                 posts_links pl
                 JOIN posts p ON pl.sourceId = p.id
-                LEFT JOIN charts c ON pl.target = c.slug
+                LEFT JOIN chart_configs cc on pl.target = cc.slug
+                LEFT JOIN charts c ON cc.id = c.configId
                 LEFT JOIN chart_slug_redirects csr ON pl.target = csr.slug
                 LEFT JOIN chart_dimensions cd ON cd.chartId = COALESCE(csr.chart_id, c.id)
                 LEFT JOIN analytics_pageviews pv ON pv.url = CONCAT('https://ourworldindata.org/', p.slug)
@@ -557,7 +561,7 @@ export const getRelatedResearchAndWritingForVariable = async (
         SELECT DISTINCT
             pl.target AS linkTargetSlug,
             pl.componentType AS componentType,
-            COALESCE(csr.slug, c.slug) AS chartSlug,
+            COALESCE(csr.slug, cc.slug) AS chartSlug,
             p.content ->> '$.title' AS title,
             p.slug AS postSlug,
             COALESCE(csr.chart_id, c.id) AS chartId,
@@ -577,7 +581,8 @@ export const getRelatedResearchAndWritingForVariable = async (
         FROM
             posts_gdocs_links pl
             JOIN posts_gdocs p ON pl.sourceId = p.id
-            LEFT JOIN charts c ON pl.target = c.slug
+            LEFT JOIN chart_configs cc ON pl.target = cc.slug
+            LEFT JOIN charts c ON c.configId = cc.id
             LEFT JOIN chart_slug_redirects csr ON pl.target = csr.slug
             JOIN chart_dimensions cd ON cd.chartId = COALESCE(csr.chart_id, c.id)
             LEFT JOIN analytics_pageviews pv ON pv.url = CONCAT('https://ourworldindata.org/', p.slug)

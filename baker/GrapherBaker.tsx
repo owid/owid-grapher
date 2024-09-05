@@ -9,8 +9,8 @@ import {
     deserializeJSONFromHTML,
     uniq,
     keyBy,
-    mergePartialGrapherConfigs,
     compact,
+    mergeGrapherConfigs,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import * as lodash from "lodash"
@@ -38,6 +38,8 @@ import {
     OwidChartDimensionInterface,
     FaqEntryData,
     ImageMetadata,
+    DbPlainChart,
+    DbRawChartConfig,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -133,15 +135,15 @@ export async function renderDataPageV2(
     knex: db.KnexReadWriteTransaction
 ) {
     const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
-        variableId,
-        knex
+        knex,
+        variableId
     )
     // Only merge the grapher config on the indicator if the caller tells us to do so -
     // this is true for preview pages for datapages on the indicator level but false
     // if we are on Grapher pages. Once we have a good way in the grapher admin for how
     // to use indicator level defaults, we should reconsider how this works here.
     const grapher = useIndicatorGrapherConfigs
-        ? mergePartialGrapherConfigs(grapherConfigForVariable, pageGrapher)
+        ? mergeGrapherConfigs(grapherConfigForVariable ?? {}, pageGrapher ?? {})
         : pageGrapher ?? {}
 
     const faqDocIds = compact(
@@ -399,16 +401,24 @@ export const bakeSingleGrapherChart = async (
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
     // TODO: this transaction is only RW because somewhere inside it we fetch images
     async (bakedSiteDir: string, knex: db.KnexReadWriteTransaction) => {
-        const chartsToBake: { id: number; config: string; slug: string }[] =
-            await knexRaw(
-                knex,
-                `-- sql
-                SELECT
-                    id, config, config->>'$.slug' as slug
-                FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
-                ORDER BY JSON_EXTRACT(config, "$.slug") ASC
+        const chartsToBake = await knexRaw<
+            Pick<DbPlainChart, "id"> & {
+                config: DbRawChartConfig["full"]
+                slug: string
+            }
+        >(
+            knex,
+            `-- sql
+                    SELECT
+                        c.id,
+                        cc.full as config,
+                        cc.slug
+                    FROM charts c
+                    JOIN chart_configs cc ON c.configId = cc.id
+                    WHERE JSON_EXTRACT(cc.full, "$.isPublished")=true
+                    ORDER BY cc.slug ASC
                 `
-            )
+        )
 
         const newSlugs = chartsToBake.map((row) => row.slug)
         await fs.mkdirp(bakedSiteDir + "/grapher")

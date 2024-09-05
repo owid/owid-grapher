@@ -138,7 +138,6 @@
         "react-move": "^6.5.0",
         "react-recaptcha": "^2.3.10",
         "react-remark": "^2.1.0",
-        "react-responsive": "^10.0.0",
         "react-router-dom": "^5.3.1",
         "react-select": "^5.8.0",
         "react-tag-autocomplete": "^7.1.0",
@@ -165,6 +164,7 @@
         "url-parse": "^1.5.10",
         "url-slug": "^3.0.2",
         "usehooks-ts": "^3.1.0",
+        "uuidv7": "^1.0.1",
         "webfontloader": "^1.6.28",
         "workerpool": "^6.2.0",
         "yaml": "^2.4.2"
@@ -233,13 +233,13 @@
         "lerna": "^8.1.6",
         "lint-staged": "^15.2.2",
         "prettier": "^3.3.2",
-        "sass": "^1.69.5",
+        "sass": "^1.77.8",
         "tmex": "^1.0.8",
         "topojson-server": "^3.0.1",
         "tsx": "^4.16.2",
-        "vite": "^5.3.4",
+        "vite": "^5.4.2",
         "vite-plugin-checker": "^0.7.2",
-        "wrangler": "^3.68.0"
+        "wrangler": "^3.73.0"
     },
     "prettier": {
         "trailingComma": "es5",

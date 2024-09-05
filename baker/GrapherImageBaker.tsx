@@ -1,7 +1,8 @@
 import {
     DbPlainChartSlugRedirect,
-    DbRawChart,
+    DbPlainChart,
     GrapherInterface,
+    DbRawChartConfig,
 } from "@ourworldindata/types"
 import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { MultipleOwidVariableDataDimensionsMap } from "@ourworldindata/utils"
@@ -78,9 +79,16 @@ export async function getPublishedGraphersBySlug(
     const graphersById: Map<number, GrapherInterface> = new Map()
 
     // Select all graphers that are published
-    const sql = `SELECT id, config FROM charts WHERE config->>"$.isPublished" = "true"`
+    const sql = `-- sql
+        SELECT c.id, cc.full as config
+        FROM charts c
+        JOIN chart_configs cc ON c.configId = cc.id
+        WHERE cc.full ->> "$.isPublished" = 'true'
+    `
 
-    const query = db.knexRaw<Pick<DbRawChart, "id" | "config">>(knex, sql)
+    const query = db.knexRaw<
+        Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+    >(knex, sql)
     for (const row of await query) {
         const grapher = JSON.parse(row.config)
 

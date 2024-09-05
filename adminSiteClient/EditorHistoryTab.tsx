@@ -1,11 +1,10 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { ChartEditor, Log } from "./ChartEditor.js"
-import { Section, Timeago } from "./Forms.js"
+import { Timeago } from "./Forms.js"
 import { computed, action, observable } from "mobx"
-import { Json, copyToClipboard } from "@ourworldindata/utils"
-import YAML from "yaml"
-import { notification, Modal } from "antd"
+import { Json } from "@ourworldindata/utils"
+import { Modal } from "antd"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 
 function LogCompareModal({
@@ -126,31 +125,7 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
         grapher.rebuildInputOwidTable()
     }
 
-    @action.bound copyYamlToClipboard() {
-        // Use the Clipboard API to copy the config into the users clipboard
-        const chartConfigObject = {
-            ...this.props.editor.grapher.object,
-        }
-        delete chartConfigObject.id
-        delete chartConfigObject.dimensions
-        delete chartConfigObject.version
-        delete chartConfigObject.isPublished
-        const chartConfigAsYaml = YAML.stringify(chartConfigObject)
-        void copyToClipboard(chartConfigAsYaml)
-        notification["success"]({
-            message: "Copied YAML to clipboard",
-            description: "You can now paste this into the ETL",
-            placement: "bottomRight",
-            closeIcon: <></>,
-        })
-    }
-
     render() {
-        // Avoid modifying the original JSON object
-        // Due to mobx memoizing computed values, the JSON can be mutated.
-        const chartConfigObject = {
-            ...this.props.editor.grapher.object,
-        }
         return (
             <div>
                 {this.logs.map((log, i) => (
@@ -162,20 +137,6 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
                         ></LogRenderer>
                     </ul>
                 ))}
-                <Section name="Debug Version">
-                    <button
-                        className="btn btn-primary"
-                        onClick={this.copyYamlToClipboard}
-                    >
-                        Copy YAML for ETL
-                    </button>
-                    <textarea
-                        rows={7}
-                        readOnly
-                        className="form-control"
-                        value={JSON.stringify(chartConfigObject, undefined, 2)}
-                    />
-                </Section>
             </div>
         )
     }

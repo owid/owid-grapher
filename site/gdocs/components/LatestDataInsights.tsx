@@ -7,7 +7,7 @@ import {
     useMemo,
     ComponentPropsWithRef,
 } from "react"
-import { useMediaQuery } from "react-responsive"
+import { useMediaQuery } from "usehooks-ts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faArrowRight,
@@ -49,7 +49,7 @@ export default function LatestDataInsights({
             }),
         [latestDataInsights]
     )
-    const isSmallScreen = useMediaQuery({ maxWidth: 768 })
+    const isSmallScreen = useMediaQuery("(max-width: 768px)")
     const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start" }, [
         ClassNames(),
     ])

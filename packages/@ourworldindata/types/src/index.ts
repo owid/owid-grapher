@@ -13,7 +13,6 @@ export {
     type SerializedGridProgram,
     SiteFooterContext,
     TaggableType,
-    type TopicId,
     type OwidVariableId,
     type RawPageview,
     type UserCountryInformation,
@@ -53,6 +52,7 @@ export {
     type ValueRange,
     type Year,
     TimeBoundValue,
+    TimeBoundValueStr,
     type TimeRange,
     type Color,
     type ColumnSlug,
@@ -83,7 +83,6 @@ export {
     MissingDataStrategy,
     SeriesStrategy,
     type GrapherInterface,
-    type Topic,
     grapherKeysToSerialize,
     type GrapherQueryParams,
     type LegacyGrapherInterface,
@@ -416,6 +415,15 @@ export {
     AnalyticsPageviewsTableName,
 } from "./dbTypes/AnalyticsPageviews.js"
 export {
+    type DbInsertChartConfig,
+    type DbRawChartConfig,
+    type DbEnrichedChartConfig,
+    parseChartConfigsRow,
+    parseChartConfig,
+    serializeChartConfig,
+    ChartConfigsTableName,
+} from "./dbTypes/ChartConfigs.js"
+export {
     type DbPlainChartDimension,
     type DbInsertChartDimension,
     ChartDimensionsTableName,
@@ -430,13 +438,8 @@ export {
 } from "./dbTypes/ChartRevisions.js"
 export {
     type DbInsertChart,
-    type DbRawChart,
-    type DbEnrichedChart,
+    type DbPlainChart,
     ChartsTableName,
-    parseChartConfig,
-    serializeChartConfig,
-    parseChartsRow,
-    serializeChartsRow,
 } from "./dbTypes/Charts.js"
 export {
     type DbPlainChartSlugRedirect,
@@ -638,10 +641,6 @@ export {
     serializeVariableOriginalMetadata,
     parseVariableLicenses,
     serializeVariableLicenses,
-    parseVariableGrapherConfigAdmin,
-    serializeVariableGrapherConfigAdmin,
-    parseVariableGrapherConfigETL,
-    serializeVariableGrapherConfigETL,
     parseVariableProcessingLog,
     serializeVariableProcessingLog,
     type License,

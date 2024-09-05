@@ -5,37 +5,24 @@
  *
  */
 
-import { Grapher } from "@ourworldindata/grapher"
 import {
-    type DetailDictionary,
     type RawPageview,
-    Topic,
     PostReference,
     ChartRedirect,
-    DimensionProperty,
     Json,
+    GrapherInterface,
+    getParentVariableIdFromChartConfig,
+    mergeGrapherConfigs,
+    isEmpty,
 } from "@ourworldindata/utils"
-import { computed, observable, runInAction, when } from "mobx"
+import { action, computed, observable, runInAction } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
+import {
+    AbstractChartEditor,
+    AbstractChartEditorManager,
+    EditorTab,
+} from "./AbstractChartEditor.js"
 import { Admin } from "./Admin.js"
-import { EditorFeatures } from "./EditorFeatures.js"
-
-type EditorTab = string
-
-interface Variable {
-    id: number
-    name: string
-}
-
-export interface Dataset {
-    id: number
-    name: string
-    namespace: string
-    version: string | undefined
-    variables: Variable[]
-    isPrivate: boolean
-    nonRedistributable: boolean
-}
 
 export interface Log {
     userId: number
@@ -58,101 +45,17 @@ export const getFullReferencesCount = (references: References): number => {
     )
 }
 
-export interface Namespace {
-    name: string
-    description?: string
-    isArchived: boolean
-}
-
-// This contains the dataset/variable metadata for the entire database
-// Used for variable selector interface
-
-export interface NamespaceData {
-    datasets: Dataset[]
-}
-
-export class EditorDatabase {
-    @observable.ref namespaces: Namespace[]
-    @observable.ref variableUsageCounts: Map<number, number> = new Map()
-    @observable dataByNamespace: Map<string, NamespaceData> = new Map()
-
-    constructor(json: any) {
-        this.namespaces = json.namespaces
-    }
-}
-
-export type FieldWithDetailReferences =
-    | "subtitle"
-    | "note"
-    | "axisLabelX"
-    | "axisLabelY"
-
-export type DetailReferences = Record<FieldWithDetailReferences, string[]>
-
-export interface DimensionErrorMessage {
-    displayName?: string
-}
-
-export interface ChartEditorManager {
-    admin: Admin
-    grapher: Grapher
-    database: EditorDatabase
+export interface ChartEditorManager extends AbstractChartEditorManager {
     logs: Log[]
     references: References | undefined
     redirects: ChartRedirect[]
     pageviews?: RawPageview
-    allTopics: Topic[]
-    details: DetailDictionary
-    invalidDetailReferences: DetailReferences
-    errorMessages: Partial<Record<FieldWithDetailReferences, string>>
-    errorMessagesForDimensions: Record<
-        DimensionProperty,
-        DimensionErrorMessage[]
-    >
 }
 
-interface VariableIdUsageRecord {
-    variableId: number
-    usageCount: number
-}
-
-export class ChartEditor {
-    manager: ChartEditorManager
-    // Whether the current chart state is saved or not
-    @observable.ref currentRequest: Promise<any> | undefined
-    @observable.ref tab: EditorTab = "basic"
-    @observable.ref errorMessage?: { title: string; content: string }
-    @observable.ref previewMode: "mobile" | "desktop"
-    @observable.ref showStaticPreview = false
-    @observable.ref savedGrapherJson: string = ""
-
+export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     // This gets set when we save a new chart for the first time
     // so the page knows to update the url
     @observable.ref newChartId?: number
-
-    constructor(props: { manager: ChartEditorManager }) {
-        this.manager = props.manager
-        this.previewMode =
-            localStorage.getItem("editorPreviewMode") === "mobile"
-                ? "mobile"
-                : "desktop"
-        when(
-            () => this.grapher.isReady,
-            () => (this.savedGrapherJson = JSON.stringify(this.grapher.object))
-        )
-    }
-
-    @computed get isModified(): boolean {
-        return JSON.stringify(this.grapher.object) !== this.savedGrapherJson
-    }
-
-    @computed get grapher() {
-        return this.manager.grapher
-    }
-
-    @computed get database() {
-        return this.manager.database
-    }
 
     @computed get logs() {
         return this.manager.logs
@@ -170,12 +73,9 @@ export class ChartEditor {
         return this.manager.pageviews
     }
 
-    @computed get allTopics() {
-        return this.manager.allTopics
-    }
-
-    @computed get details() {
-        return this.manager.details
+    /** parent variable id, derived from the config */
+    @computed get parentVariableId(): number | undefined {
+        return getParentVariableIdFromChartConfig(this.fullConfig)
     }
 
     @computed get availableTabs(): EditorTab[] {
@@ -186,6 +86,7 @@ export class ChartEditor {
         tabs.push("revisions")
         tabs.push("refs")
         tabs.push("export")
+        tabs.push("debug")
         return tabs
     }
 
@@ -193,44 +94,62 @@ export class ChartEditor {
         return this.grapher.id === undefined
     }
 
-    @computed get features() {
-        return new EditorFeatures(this)
-    }
-
-    async loadVariableUsageCounts(): Promise<void> {
-        const data = (await this.manager.admin.getJSON(
-            `/api/variables.usages.json`
-        )) as VariableIdUsageRecord[]
-        const finalData = new Map(
-            data.map(({ variableId, usageCount }: VariableIdUsageRecord) => [
-                variableId,
-                +usageCount,
-            ])
+    @action.bound async updateParentConfig() {
+        const currentParentIndicatorId =
+            this.parentConfig?.dimensions?.[0].variableId
+        const newParentIndicatorId = getParentVariableIdFromChartConfig(
+            this.grapher.object
         )
-        runInAction(() => (this.database.variableUsageCounts = finalData))
+
+        // no-op if the parent indicator hasn't changed
+        if (currentParentIndicatorId === newParentIndicatorId) return
+
+        // fetch the new parent config
+        let newParentConfig: GrapherInterface | undefined
+        if (newParentIndicatorId) {
+            newParentConfig = await fetchMergedGrapherConfigByVariableId(
+                this.manager.admin,
+                newParentIndicatorId
+            )
+        }
+
+        // if inheritance is enabled, update the live grapher object
+        if (this.isInheritanceEnabled) {
+            const newConfig = mergeGrapherConfigs(
+                newParentConfig ?? {},
+                this.patchConfig
+            )
+            this.updateLiveGrapher(newConfig)
+        }
+
+        // update the parent config in any case
+        this.parentConfig = newParentConfig
     }
 
     async saveGrapher({
         onError,
     }: { onError?: () => void } = {}): Promise<void> {
-        const { grapher, isNewGrapher } = this
-        const currentGrapherObject = this.grapher.object
+        const { grapher, isNewGrapher, patchConfig } = this
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
         // But the server will need to know what we calculated in order to do its job
-        if (!currentGrapherObject.title)
-            currentGrapherObject.title = grapher.displayTitle
+        if (!patchConfig.title) patchConfig.title = grapher.displayTitle
+        if (!patchConfig.slug) patchConfig.slug = grapher.displaySlug
 
-        if (!currentGrapherObject.slug)
-            currentGrapherObject.slug = grapher.displaySlug
+        // it only makes sense to enable inheritance if the chart has a parent
+        const shouldEnableInheritance =
+            !!this.parentVariableId && this.isInheritanceEnabled
 
+        const query = new URLSearchParams({
+            inheritance: shouldEnableInheritance ? "enable" : "disable",
+        })
         const targetUrl = isNewGrapher
-            ? "/api/charts"
-            : `/api/charts/${grapher.id}`
+            ? `/api/charts?${query}`
+            : `/api/charts/${grapher.id}?${query}`
 
         const json = await this.manager.admin.requestJSON(
             targetUrl,
-            currentGrapherObject,
+            patchConfig,
             isNewGrapher ? "POST" : "PUT"
         )
 
@@ -238,29 +157,40 @@ export class ChartEditor {
             if (isNewGrapher) {
                 this.newChartId = json.chartId
                 this.grapher.id = json.chartId
-                this.savedGrapherJson = JSON.stringify(this.grapher.object)
+                this.savedPatchConfig = json.savedPatch
+                this.isInheritanceEnabled = shouldEnableInheritance
             } else {
                 runInAction(() => {
                     grapher.version += 1
                     this.logs.unshift(json.newLog)
-                    this.savedGrapherJson = JSON.stringify(currentGrapherObject)
+                    this.savedPatchConfig = json.savedPatch
+                    this.isInheritanceEnabled = shouldEnableInheritance
                 })
             }
         } else onError?.()
     }
 
     async saveAsNewGrapher(): Promise<void> {
-        const currentGrapherObject = this.grapher.object
+        const { patchConfig } = this
 
-        const chartJson = { ...currentGrapherObject }
+        const chartJson = { ...patchConfig }
         delete chartJson.id
         delete chartJson.isPublished
 
         // Need to open intermediary tab before AJAX to avoid popup blockers
         const w = window.open("/", "_blank") as Window
 
+        // it only makes sense to enable inheritance if the chart has a parent
+        const shouldEnableInheritance =
+            !!this.parentVariableId && this.isInheritanceEnabled
+
+        const query = new URLSearchParams({
+            inheritance: shouldEnableInheritance ? "enable" : "disable",
+        })
+        const targetUrl = `/api/charts?${query}`
+
         const json = await this.manager.admin.requestJSON(
-            "/api/charts",
+            targetUrl,
             chartJson,
             "POST"
         )
@@ -293,4 +223,20 @@ export class ChartEditor {
             })
         }
     }
+}
+
+export async function fetchMergedGrapherConfigByVariableId(
+    admin: Admin,
+    indicatorId: number
+): Promise<GrapherInterface | undefined> {
+    const indicatorChart = await admin.getJSON(
+        `/api/variables/mergedGrapherConfig/${indicatorId}.json`
+    )
+    return isEmpty(indicatorChart) ? undefined : indicatorChart
+}
+
+export function isChartEditorInstance(
+    editor: AbstractChartEditor
+): editor is ChartEditor {
+    return editor instanceof ChartEditor
 }

@@ -1,12 +1,20 @@
 import _ from "lodash"
 import { Writable } from "stream"
 import * as db from "../db.js"
-import { retryPromise, isEmpty } from "@ourworldindata/utils"
+import {
+    retryPromise,
+    isEmpty,
+    omitUndefinedValues,
+    mergeGrapherConfigs,
+    diffGrapherConfigs,
+} from "@ourworldindata/utils"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
+    defaultGrapherConfig,
 } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
+import { uuidv7 } from "uuidv7"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
 import { escape } from "mysql2"
 import {
@@ -20,32 +28,399 @@ import {
     GrapherInterface,
     DbRawVariable,
     VariablesTableName,
+    DbRawChartConfig,
+    parseChartConfig,
+    DbEnrichedChartConfig,
+    DbEnrichedVariable,
+    DbPlainChart,
 } from "@ourworldindata/types"
-import { knexRaw } from "../db.js"
+import { knexRaw, knexRawFirst } from "../db.js"
+import {
+    updateExistingConfigPair,
+    updateExistingFullConfig,
+} from "./ChartConfigs.js"
 
-//export type Field = keyof VariableRow
+interface ChartConfigPair {
+    configId: DbEnrichedChartConfig["id"]
+    patchConfig: DbEnrichedChartConfig["patch"]
+    fullConfig: DbEnrichedChartConfig["full"]
+}
 
-export async function getMergedGrapherConfigForVariable(
-    variableId: number,
-    knex: db.KnexReadonlyTransaction
-): Promise<GrapherInterface | undefined> {
-    const rows: Pick<
-        DbRawVariable,
-        "grapherConfigAdmin" | "grapherConfigETL"
-    >[] = await knexRaw(
+interface VariableWithGrapherConfigs {
+    variableId: DbEnrichedVariable["id"]
+    admin?: ChartConfigPair
+    etl?: ChartConfigPair
+}
+
+export async function getGrapherConfigsForVariable(
+    knex: db.KnexReadonlyTransaction,
+    variableId: number
+): Promise<VariableWithGrapherConfigs | undefined> {
+    const variable = await knexRawFirst<
+        Pick<
+            DbRawVariable,
+            "id" | "grapherConfigIdAdmin" | "grapherConfigIdETL"
+        > & {
+            patchConfigAdmin?: DbRawChartConfig["patch"]
+            patchConfigETL?: DbRawChartConfig["patch"]
+            fullConfigAdmin?: DbRawChartConfig["full"]
+            fullConfigETL?: DbRawChartConfig["full"]
+        }
+    >(
         knex,
-        `SELECT grapherConfigAdmin, grapherConfigETL FROM variables WHERE id = ?`,
+        `-- sql
+            SELECT
+                v.id,
+                v.grapherConfigIdAdmin,
+                v.grapherConfigIdETL,
+                cc_admin.patch AS patchConfigAdmin,
+                cc_admin.full AS fullConfigAdmin,
+                cc_etl.patch AS patchConfigETL,
+                cc_etl.full AS fullConfigETL
+            FROM variables v
+            LEFT JOIN chart_configs cc_admin ON v.grapherConfigIdAdmin = cc_admin.id
+            LEFT JOIN chart_configs cc_etl ON v.grapherConfigIdETL = cc_etl.id
+            WHERE v.id = ?
+        `,
         [variableId]
     )
-    if (!rows.length) return
-    const row = rows[0]
-    const grapherConfigAdmin = row.grapherConfigAdmin
-        ? JSON.parse(row.grapherConfigAdmin)
+
+    if (!variable) return
+
+    const maybeParseChartConfig = (
+        config: string | undefined
+    ): GrapherInterface => (config ? parseChartConfig(config) : {})
+
+    const admin = variable.grapherConfigIdAdmin
+        ? {
+              configId: variable.grapherConfigIdAdmin,
+              patchConfig: maybeParseChartConfig(variable.patchConfigAdmin),
+              fullConfig: maybeParseChartConfig(variable.fullConfigAdmin),
+          }
         : undefined
-    const grapherConfigETL = row.grapherConfigETL
-        ? JSON.parse(row.grapherConfigETL)
+
+    const etl = variable.grapherConfigIdETL
+        ? {
+              configId: variable.grapherConfigIdETL,
+              patchConfig: maybeParseChartConfig(variable.patchConfigETL),
+              fullConfig: maybeParseChartConfig(variable.fullConfigETL),
+          }
         : undefined
-    return _.merge({}, grapherConfigAdmin, grapherConfigETL)
+
+    return omitUndefinedValues({
+        variableId: variable.id,
+        admin,
+        etl,
+    })
+}
+
+export async function getMergedGrapherConfigForVariable(
+    knex: db.KnexReadonlyTransaction,
+    variableId: number
+): Promise<GrapherInterface | undefined> {
+    const variable = await getGrapherConfigsForVariable(knex, variableId)
+    return variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
+}
+
+export async function insertNewGrapherConfigForVariable(
+    knex: db.KnexReadonlyTransaction,
+    {
+        type,
+        variableId,
+        patchConfig,
+        fullConfig,
+    }: {
+        type: "admin" | "etl"
+        variableId: number
+        patchConfig: GrapherInterface
+        fullConfig: GrapherInterface
+    }
+): Promise<void> {
+    // insert chart configs into the database
+    const configId = uuidv7()
+    await db.knexRaw(
+        knex,
+        `-- sql
+            INSERT INTO chart_configs (id, patch, full)
+            VALUES (?, ?, ?)
+        `,
+        [configId, JSON.stringify(patchConfig), JSON.stringify(fullConfig)]
+    )
+
+    // make a reference to the config from the variables table
+    const column =
+        type === "admin" ? "grapherConfigIdAdmin" : "grapherConfigIdETL"
+    await db.knexRaw(
+        knex,
+        `-- sql
+            UPDATE variables
+            SET ?? = ?
+            WHERE id = ?
+        `,
+        [column, configId, variableId]
+    )
+}
+
+function makeConfigValidForIndicator({
+    config,
+    variableId,
+}: {
+    config: GrapherInterface
+    variableId: number
+}): GrapherInterface {
+    const updatedConfig = { ...config }
+
+    // if no schema is given, assume it's the latest
+    if (!updatedConfig.$schema) {
+        updatedConfig.$schema = defaultGrapherConfig.$schema
+    }
+
+    // validate the given y-dimensions
+    const defaultDimension = { property: DimensionProperty.y, variableId }
+    const [yDimensions, otherDimensions] = _.partition(
+        updatedConfig.dimensions ?? [],
+        (dimension) => dimension.property === DimensionProperty.y
+    )
+    if (yDimensions.length === 0) {
+        updatedConfig.dimensions = [defaultDimension, ...otherDimensions]
+    } else if (yDimensions.length >= 0) {
+        const givenDimension = yDimensions.find(
+            (dimension) => dimension.variableId === variableId
+        )
+        updatedConfig.dimensions = [
+            givenDimension ?? defaultDimension,
+            ...otherDimensions,
+        ]
+    }
+
+    return updatedConfig
+}
+
+async function findAllChartsThatInheritFromIndicator(
+    trx: db.KnexReadonlyTransaction,
+    variableId: number
+): Promise<
+    { chartId: number; patchConfig: GrapherInterface; isPublished: boolean }[]
+> {
+    const charts = await db.knexRaw<{
+        chartId: DbPlainChart["id"]
+        patchConfig: DbRawChartConfig["patch"]
+        isPublished: boolean
+    }>(
+        trx,
+        `-- sql
+            SELECT
+                c.id as chartId,
+                cc.patch as patchConfig,
+                cc.full ->> "$.isPublished" as isPublished
+            FROM charts c
+                JOIN chart_configs cc ON cc.id = c.configId
+                JOIN charts_x_parents cxp ON c.id = cxp.chartId
+            WHERE
+                c.isInheritanceEnabled IS TRUE
+                AND cxp.variableId = ?
+        `,
+        [variableId]
+    )
+    return charts.map((chart) => ({
+        ...chart,
+        patchConfig: parseChartConfig(chart.patchConfig),
+    }))
+}
+
+export async function updateAllChartsThatInheritFromIndicator(
+    trx: db.KnexReadWriteTransaction,
+    variableId: number,
+    {
+        patchConfigETL,
+        patchConfigAdmin,
+    }: {
+        patchConfigETL?: GrapherInterface
+        patchConfigAdmin?: GrapherInterface
+    }
+): Promise<{ chartId: number; isPublished: boolean }[]> {
+    const inheritingCharts = await findAllChartsThatInheritFromIndicator(
+        trx,
+        variableId
+    )
+    for (const chart of inheritingCharts) {
+        const fullConfig = mergeGrapherConfigs(
+            defaultGrapherConfig,
+            patchConfigETL ?? {},
+            patchConfigAdmin ?? {},
+            chart.patchConfig
+        )
+        await db.knexRaw(
+            trx,
+            `-- sql
+                UPDATE chart_configs cc
+                JOIN charts c ON c.configId = cc.id
+                SET cc.full = ?
+                WHERE c.id = ?
+            `,
+            [JSON.stringify(fullConfig), chart.chartId]
+        )
+    }
+    // let the caller know if any charts were updated
+    return inheritingCharts
+}
+
+export async function updateGrapherConfigETLOfVariable(
+    trx: db.KnexReadWriteTransaction,
+    variable: VariableWithGrapherConfigs,
+    config: GrapherInterface
+): Promise<{
+    savedPatch: GrapherInterface
+    updatedCharts: { chartId: number; isPublished: boolean }[]
+}> {
+    const { variableId } = variable
+
+    const configETL = makeConfigValidForIndicator({
+        config,
+        variableId,
+    })
+
+    if (variable.etl) {
+        await updateExistingConfigPair(trx, {
+            configId: variable.etl.configId,
+            patchConfig: configETL,
+            fullConfig: configETL,
+        })
+    } else {
+        await insertNewGrapherConfigForVariable(trx, {
+            type: "etl",
+            variableId,
+            patchConfig: configETL,
+            fullConfig: configETL,
+        })
+    }
+
+    // update admin-authored full config it is exists
+    if (variable.admin) {
+        const fullConfig = mergeGrapherConfigs(
+            configETL,
+            variable.admin.patchConfig
+        )
+        await updateExistingFullConfig(trx, {
+            configId: variable.admin.configId,
+            config: fullConfig,
+        })
+    }
+
+    const updatedCharts = await updateAllChartsThatInheritFromIndicator(
+        trx,
+        variableId,
+        {
+            patchConfigETL: configETL,
+            patchConfigAdmin: variable.admin?.patchConfig,
+        }
+    )
+
+    return {
+        savedPatch: configETL,
+        updatedCharts,
+    }
+}
+
+export async function updateGrapherConfigAdminOfVariable(
+    trx: db.KnexReadWriteTransaction,
+    variable: VariableWithGrapherConfigs,
+    config: GrapherInterface
+): Promise<{
+    savedPatch: GrapherInterface
+    updatedCharts: { chartId: number; isPublished: boolean }[]
+}> {
+    const { variableId } = variable
+
+    const validConfig = makeConfigValidForIndicator({
+        config,
+        variableId,
+    })
+
+    const patchConfigAdmin = diffGrapherConfigs(
+        validConfig,
+        variable.etl?.fullConfig ?? {}
+    )
+
+    const fullConfigAdmin = mergeGrapherConfigs(
+        variable.etl?.patchConfig ?? {},
+        patchConfigAdmin
+    )
+
+    if (variable.admin) {
+        await updateExistingConfigPair(trx, {
+            configId: variable.admin.configId,
+            patchConfig: patchConfigAdmin,
+            fullConfig: fullConfigAdmin,
+        })
+    } else {
+        await insertNewGrapherConfigForVariable(trx, {
+            type: "admin",
+            variableId,
+            patchConfig: patchConfigAdmin,
+            fullConfig: fullConfigAdmin,
+        })
+    }
+
+    const updatedCharts = await updateAllChartsThatInheritFromIndicator(
+        trx,
+        variableId,
+        {
+            patchConfigETL: variable.etl?.patchConfig ?? {},
+            patchConfigAdmin: patchConfigAdmin,
+        }
+    )
+
+    return {
+        savedPatch: patchConfigAdmin,
+        updatedCharts,
+    }
+}
+
+export async function getAllChartsForIndicator(
+    trx: db.KnexReadonlyTransaction,
+    variableId: number
+): Promise<
+    {
+        chartId: DbPlainChart["id"]
+        config: GrapherInterface
+        isPublished: boolean
+        isChild: boolean
+        isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
+    }[]
+> {
+    const charts = await db.knexRaw<{
+        chartId: DbPlainChart["id"]
+        config: DbRawChartConfig["full"]
+        isPublished: boolean
+        isChild: boolean
+        isInheritanceEnabled: DbPlainChart["isInheritanceEnabled"]
+    }>(
+        trx,
+        `-- sql
+        SELECT
+            c.id AS chartId,
+            cc.full AS config,
+            cc.full ->> '$.isPublished' = "true" AS isPublished,
+            cxp.variableId = ? AS isChild,
+            c.isInheritanceEnabled
+        FROM charts c
+        JOIN chart_configs cc ON cc.id = c.configId
+        JOIN chart_dimensions cd ON cd.chartId = c.id
+        LEFT JOIN charts_x_parents cxp ON c.id = cxp.chartId
+        WHERE
+            cd.variableId = ?
+        `,
+        [variableId, variableId]
+    )
+
+    return charts.map((chart) => ({
+        chartId: chart.chartId,
+        config: parseChartConfig(chart.config),
+        isPublished: !!chart.isPublished,
+        isChild: !!chart.isChild,
+        isInheritanceEnabled: !!chart.isInheritanceEnabled,
+    }))
 }
 
 // TODO: these are domain functions and should live somewhere else

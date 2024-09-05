@@ -27,6 +27,9 @@ export interface ChartListItem {
     publishedAt: string
     publishedBy: string
 
+    hasParentIndicator?: boolean
+    isInheritanceEnabled?: boolean
+
     tags: DbChartTagJoin[]
 }
 
@@ -101,6 +104,11 @@ export class ChartList extends React.Component<{
     render() {
         const { charts, searchHighlight } = this.props
         const { availableTags } = this
+
+        // if the first chart has inheritance information, we assume all charts have it
+        const showInheritanceColumn =
+            charts[0]?.isInheritanceEnabled !== undefined
+
         return (
             <table className="table table-bordered">
                 <thead>
@@ -109,6 +117,7 @@ export class ChartList extends React.Component<{
                         <th>Chart</th>
                         <th>Id</th>
                         <th>Type</th>
+                        {showInheritanceColumn && <th>Inheritance</th>}
                         <th>Tags</th>
                         <th>Published</th>
                         <th>Last Updated</th>
@@ -124,6 +133,7 @@ export class ChartList extends React.Component<{
                             availableTags={availableTags}
                             searchHighlight={searchHighlight}
                             onDelete={this.onDeleteChart}
+                            showInheritanceColumn={showInheritanceColumn}
                         />
                     ))}
                 </tbody>

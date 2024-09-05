@@ -247,3 +247,7 @@ $zindex-controls-drawer: 150;
         @include dod-span;
     }
 }
+
+.dod-container {
+    @include dod-container;
+}

@@ -351,13 +351,14 @@ getPlainRouteNonIdempotentWithRWTransaction(
     adminRouter,
     "/grapher/:slug",
     async (req, res, trx) => {
-        const entity = await getChartConfigBySlug(trx, req.params.slug).catch(
+        const chart = await getChartConfigBySlug(trx, req.params.slug).catch(
             () => undefined
         )
-        if (entity) {
+        if (chart) {
             const previewDataPageOrGrapherPage =
-                await renderPreviewDataPageOrGrapherPage(entity.config, trx)
+                await renderPreviewDataPageOrGrapherPage(chart.config, trx)
             res.send(previewDataPageOrGrapherPage)
+            return
         }
 
         const mdd = await getMultiDimDataPageBySlug(trx, req.params.slug, {
@@ -369,6 +370,7 @@ getPlainRouteNonIdempotentWithRWTransaction(
                 mdd.config
             )
             res.send(renderedPage)
+            return
         }
 
         throw new JsonError("No such chart", 404)

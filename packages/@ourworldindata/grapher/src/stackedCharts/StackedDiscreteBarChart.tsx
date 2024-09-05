@@ -56,6 +56,7 @@ import {
     TooltipState,
     TooltipTable,
     makeTooltipRoundingNotice,
+    makeTooltipToleranceNotice,
 } from "../tooltip/Tooltip"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
@@ -813,7 +814,10 @@ export class StackedDiscreteBarChart
                 : undefined
 
         const toleranceNotice = targetNotice
-            ? { icon: TooltipFooterIcon.notice, text: targetNotice }
+            ? {
+                  icon: TooltipFooterIcon.notice,
+                  text: makeTooltipToleranceNotice(targetNotice),
+              }
             : undefined
         const roundingNotice = this.formatColumn.roundsToSignificantFigures
             ? {

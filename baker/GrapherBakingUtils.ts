@@ -82,7 +82,12 @@ export const bakeGrapherUrls = async (
 
         const rows = await db.knexRaw<{ version: number }>(
             knex,
-            `SELECT charts.config->>"$.version" AS version FROM charts WHERE charts.id=?`,
+            `-- sql
+                SELECT cc.full->>"$.version" AS version
+                FROM charts c
+                JOIN chart_configs cc ON c.configId = cc.id
+                WHERE c.id=?
+            `,
             [chartId]
         )
         if (!rows.length) {

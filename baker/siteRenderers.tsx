@@ -40,14 +40,16 @@ import {
     JsonError,
     Url,
     IndexPost,
-    mergePartialGrapherConfigs,
     OwidGdocType,
     OwidGdoc,
     OwidGdocDataInsightInterface,
+    mergeGrapherConfigs,
 } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import {
     DEFAULT_THUMBNAIL_FILENAME,
+    DbPlainChart,
+    DbRawChartConfig,
     FormattingOptions,
     GrapherInterface,
 } from "@ourworldindata/types"
@@ -108,15 +110,16 @@ export const renderChartsPage = async (
         knex,
         `-- sql
         SELECT
-            id,
-            config->>"$.slug" AS slug,
-            config->>"$.title" AS title,
-            config->>"$.variantName" AS variantName
-        FROM charts
+            c.id,
+            cc.slug,
+            cc.full->>"$.title" AS title,
+            cc.full->>"$.variantName" AS variantName
+        FROM charts c
+        JOIN chart_configs cc ON c.configId=cc.id
         WHERE
-            isIndexable IS TRUE
-            AND publishedAt IS NOT NULL
-            AND config->>"$.isPublished" = "true"
+            c.isIndexable IS TRUE
+            AND c.publishedAt IS NOT NULL
+            AND cc.full->>"$.isPublished" = "true"
     `
     )
 
@@ -738,9 +741,16 @@ export const renderExplorerPage = async (
     type ChartRow = { id: number; config: string }
     let grapherConfigRows: ChartRow[] = []
     if (requiredGrapherIds.length)
-        grapherConfigRows = await knexRaw(
+        grapherConfigRows = await knexRaw<
+            Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+        >(
             knex,
-            `SELECT id, config FROM charts WHERE id IN (?)`,
+            `-- sql
+                SELECT c.id, cc.full as config
+                FROM charts c
+                JOIN chart_configs cc ON c.configId=cc.id
+                WHERE c.id IN (?)
+            `,
             [requiredGrapherIds]
         )
 
@@ -752,7 +762,16 @@ export const renderExplorerPage = async (
     if (requiredVariableIds.length) {
         partialGrapherConfigRows = await knexRaw(
             knex,
-            `SELECT id, grapherConfigETL, grapherConfigAdmin FROM variables WHERE id IN (?)`,
+            `-- sql
+                SELECT
+                    v.id,
+                    cc_etl.patch AS grapherConfigETL,
+                    cc_admin.patch AS grapherConfigAdmin
+                FROM variables v
+                    LEFT JOIN chart_configs cc_admin ON cc_admin.id=v.grapherConfigIdAdmin
+                    LEFT JOIN chart_configs cc_etl ON cc_etl.id=v.grapherConfigIdETL
+                WHERE v.id IN (?)
+            `,
             [requiredVariableIds]
         )
 
@@ -792,7 +811,7 @@ export const renderExplorerPage = async (
                       config: row.grapherConfigETL as string,
                   })
                 : {}
-            return mergePartialGrapherConfigs(etlConfig, adminConfig)
+            return mergeGrapherConfigs(etlConfig, adminConfig)
         })
 
     const wpContent = transformedProgram.wpBlockId

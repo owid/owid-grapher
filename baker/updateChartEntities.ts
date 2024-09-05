@@ -6,13 +6,13 @@
 
 import { Grapher } from "@ourworldindata/grapher"
 import {
-    ChartsTableName,
     ChartsXEntitiesTableName,
-    DbRawChart,
+    DbPlainChart,
     GrapherInterface,
     GrapherTabOption,
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
+    DbRawChartConfig,
 } from "@ourworldindata/types"
 import * as db from "../db/db.js"
 import pMap from "p-map"
@@ -41,13 +41,15 @@ const preFetchCommonVariables = async (
     const commonVariables = (await db.knexRaw(
         trx,
         `-- sql
-        SELECT variableId, COUNT(variableId) AS useCount
-        FROM chart_dimensions cd
-        JOIN charts c ON cd.chartId = c.id
-        WHERE config ->> "$.isPublished" = "true"
-        GROUP BY variableId
-        ORDER BY COUNT(variableId) DESC
-        LIMIT ??`,
+            SELECT variableId, COUNT(variableId) AS useCount
+            FROM chart_dimensions cd
+            JOIN charts c ON cd.chartId = c.id
+            JOIN chart_configs cc ON c.configId = cc.id
+            WHERE cc.full ->> "$.isPublished" = "true"
+            GROUP BY variableId
+            ORDER BY COUNT(variableId) DESC
+            LIMIT ??
+        `,
         [VARIABLES_TO_PREFETCH]
     )) as { variableId: number; useCount: number }[]
 
@@ -108,7 +110,7 @@ const obtainAvailableEntitiesForGrapherConfig = async (
 
         if (canChangeEntities || chartTypeShowsUnselectedEntities)
             return grapher.tableForSelection.availableEntityNames as string[]
-        else return grapher.selectedEntityNames
+        else return grapher.selectedEntityNames ?? []
     } else if (grapher.hasMapTab) {
         grapher.tab = GrapherTabOption.map
         // On a map tab, tableAfterAuthorTimelineAndActiveChartTransform contains all
@@ -123,13 +125,17 @@ const obtainAvailableEntitiesForAllGraphers = async (
 ) => {
     const entityNameToIdMap = await mapEntityNamesToEntityIds(trx)
 
-    const allPublishedGraphers = (await trx
-        .select("id", "config")
-        .from(ChartsTableName)
-        .whereRaw("config ->> '$.isPublished' = 'true'")) as Pick<
-        DbRawChart,
-        "id" | "config"
-    >[]
+    const allPublishedGraphers = await db.knexRaw<
+        Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+    >(
+        trx,
+        `-- sql
+            SELECT c.id, cc.full as config
+            FROM charts c
+            JOIN chart_configs cc ON c.configId = cc.id
+            WHERE cc.full ->> "$.isPublished" = 'true'
+        `
+    )
 
     const availableEntitiesByChartId = new Map<number, number[]>()
     await pMap(

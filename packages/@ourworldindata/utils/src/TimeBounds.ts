@@ -3,6 +3,7 @@ import {
     Time,
     TimeBound,
     TimeBoundValue,
+    TimeBoundValueStr,
 } from "@ourworldindata/types"
 import {
     parseIntOrUndefined,
@@ -12,11 +13,6 @@ import {
     isNegativeInfinity,
     isPositiveInfinity,
 } from "./Util.js"
-
-enum TimeBoundValueStr {
-    unboundedLeft = "earliest",
-    unboundedRight = "latest",
-}
 
 export const timeFromTimebounds = (
     timeBound: TimeBound,
@@ -56,7 +52,9 @@ const parseTimeBound = (str: string): TimeBound | undefined => {
 const fromJSON = (value: TimeBound | string | undefined): number | undefined =>
     isString(value) ? parseTimeBound(value) : value
 
-const toJSON = (bound: TimeBound | undefined): string | number | undefined => {
+const toJSON = (
+    bound: TimeBound | undefined
+): TimeBoundValueStr | number | undefined => {
     if (bound === undefined) return undefined
     if (isNegativeInfinity(bound)) return TimeBoundValueStr.unboundedLeft
     if (isPositiveInfinity(bound)) return TimeBoundValueStr.unboundedRight

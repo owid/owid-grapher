@@ -35,6 +35,7 @@ import {
     maxBy,
     memoize,
     merge,
+    mergeWith,
     min,
     minBy,
     noop,
@@ -95,6 +96,7 @@ export {
     isNil,
     isNull,
     isNumber,
+    isPlainObject,
     isString,
     isUndefined,
     keyBy,
@@ -103,6 +105,7 @@ export {
     maxBy,
     memoize,
     merge,
+    mergeWith,
     min,
     minBy,
     noop,
@@ -171,6 +174,9 @@ import {
     TagGraphRoot,
     TagGraphRootName,
     TagGraphNode,
+    GrapherInterface,
+    ChartTypeName,
+    DimensionProperty,
 } from "@ourworldindata/types"
 import { PointVector } from "./PointVector.js"
 import React from "react"
@@ -1113,6 +1119,39 @@ export const omitNullableValues = <T>(object: T): NoUndefinedValues<T> => {
     return result
 }
 
+export function omitUndefinedValuesRecursive<T extends Record<string, any>>(
+    obj: T
+): NoUndefinedValues<T> {
+    const result: any = {}
+    for (const key in obj) {
+        if (isPlainObject(obj[key])) {
+            // re-apply the function if we encounter a non-empty object
+            result[key] = omitUndefinedValuesRecursive(obj[key])
+        } else if (obj[key] === undefined) {
+            // omit undefined values
+        } else {
+            // otherwise, keep the value
+            result[key] = obj[key]
+        }
+    }
+    return result
+}
+
+export function omitEmptyObjectsRecursive<T extends Record<string, any>>(
+    obj: T
+): Partial<T> {
+    const result: any = {}
+    for (const key in obj) {
+        if (isPlainObject(obj[key])) {
+            const isObjectEmpty = isEmpty(omitEmptyObjectsRecursive(obj[key]))
+            if (!isObjectEmpty) result[key] = obj[key]
+        } else {
+            result[key] = obj[key]
+        }
+    }
+    return result
+}
+
 export const isInIFrame = (): boolean => {
     try {
         return window.self !== window.top
@@ -1739,13 +1778,6 @@ export function filterValidStringValues<ValidValue extends string>(
     return filteredValues
 }
 
-// TODO: type this correctly once we have moved types into their own top level package
-export function mergePartialGrapherConfigs<T extends Record<string, any>>(
-    ...grapherConfigs: (T | undefined)[]
-): T {
-    return merge({}, ...grapherConfigs)
-}
-
 /** Works for:
  * #dod:text
  * #dod:text-hyphenated
@@ -1916,4 +1948,37 @@ export function lazy<T>(fn: () => T): () => T {
         }
         return _value
     }
+}
+
+export function traverseObjects<T extends Record<string, any>>(
+    obj: T,
+    ref: Record<string, any>,
+    cb: (objValue: unknown, refValue: unknown, key: string) => unknown
+): Partial<T> {
+    const result: any = {}
+    for (const key in obj) {
+        if (isPlainObject(obj[key]) && isPlainObject(ref[key])) {
+            result[key] = traverseObjects(obj[key], ref[key], cb)
+        } else {
+            result[key] = cb(obj[key], ref[key], key)
+        }
+    }
+    return result
+}
+
+export function getParentVariableIdFromChartConfig(
+    config: GrapherInterface // could be a patch config
+): number | undefined {
+    const { type = ChartTypeName.LineChart, dimensions } = config
+
+    if (type === ChartTypeName.ScatterPlot) return undefined
+    if (!dimensions) return undefined
+
+    const yVariableIds = dimensions
+        .filter((d) => d.property === DimensionProperty.y)
+        .map((d) => d.variableId)
+
+    if (yVariableIds.length !== 1) return undefined
+
+    return yVariableIds[0]
 }
