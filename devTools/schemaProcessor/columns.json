@@ -653,10 +653,10 @@
         "editor": "checkbox"
     },
     {
-        "type": ["string", "null"],
+        "type": "string",
         "pointer": "/stackMode",
         "editor": "textfield",
-        "enumOptions": ["absolute", "relative", "grouped", "stacked", null]
+        "enumOptions": ["absolute", "relative"]
     },
     {
         "type": ["string", "number"],
