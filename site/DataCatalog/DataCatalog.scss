@@ -1,4 +1,5 @@
 #data-catalog-page-root {
+    --thumbnail-width-sm: 294px;
     min-height: calc(100vh - $header-height-md);
     @include sm-only {
         min-height: calc(100vh - $header-height-sm);
@@ -298,7 +299,7 @@
     box-shadow: 4px 0 30px 0 #00000020;
 
     @include sm-only {
-        width: calc(100vw - 48px);
+        width: calc(100vw - 32px);
     }
 }
 
@@ -521,6 +522,8 @@
 
 .data-catalog-search-hit,
 .data-catalog-ribbon-hit {
+    img {
+    }
     .chart-hit-title-container .chart-hit-variant {
         font-size: 1em;
     }
@@ -550,7 +553,7 @@
         scrollbar-width: thin;
         margin-bottom: 12px;
         .data-catalog-ribbon-hit {
-            width: 294px;
+            width: var(--thumbnail-width-sm);
         }
     }
 }
@@ -649,22 +652,6 @@
     }
 }
 
-.data-catalog-loading-spinner {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    .data-catalog-loading-spinner__globe {
-        color: $blue-90;
-        margin: 0 8px;
-        animation: hop 0.5s ease-in-out infinite;
-        @for $i from 1 through 4 {
-            &:nth-child(#{$i}) {
-                animation-delay: #{$i * 0.125}s;
-            }
-        }
-    }
-}
-
 // Pagination
 .data-catalog-pagination {
     display: flex;
@@ -710,9 +697,15 @@
 .data-catalog-refinement-list--skeleton {
     margin-bottom: 16px;
     background-color: $blue-10;
-}
-.data-catalog-ribbon--skeleton {
-    height: 320px;
+    height: 48px;
+    // Most areas have more than 2 lines of topics, so when we're in an area we set the height to 96px and hope for the best
+    &.data-catalog-refinement-list--skeleton-large {
+        height: 96px;
+        @include sm-only {
+            // On mobile, topics are nested under an accordion that is always 48px tall
+            height: 48px;
+        }
+    }
 }
 .data-catalog-search-list__results-count--skeleton {
     display: block;
@@ -721,12 +714,13 @@
     height: 21px;
     margin-bottom: 8px;
 }
-.data-catalog-search-hit__thumbnail-skeleton {
+
+.data-catalog-search-hit__thumbnail--skeleton {
     background-color: $gray-10;
     padding-bottom: calc(100% * 210 / 297);
 }
 
-.data-catalog-search-hit__thumbnail-title {
+.data-catalog-search-hit__thumbnail-title--skeleton {
     background-color: $gray-10;
     height: 20px;
     margin-bottom: 0;
@@ -735,5 +729,32 @@
     &:last-child {
         margin-top: 0px;
         width: 50%;
+    }
+}
+
+.data-catalog-ribbon-list--skeleton {
+    @include sm-only {
+        display: flex;
+        .data-catalog-search-hit--skeleton {
+            min-width: var(--thumbnail-width-sm);
+        }
+    }
+}
+
+.data-catalog-ribbon__header--skeleton {
+    height: 28px;
+    background-color: $blue-10;
+    width: 200px;
+    margin-bottom: 16px;
+}
+
+.data-catalog-ribbon__see-all-button--skeleton {
+    display: none;
+    background-color: $blue-20;
+    height: 40px;
+    width: 100%;
+    margin-right: 16px;
+    @include sm-only {
+        display: block;
     }
 }

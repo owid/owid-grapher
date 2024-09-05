@@ -51,6 +51,10 @@ import {
     DataCatalogState,
     createActions,
 } from "./DataCatalogState.js"
+import {
+    DataCatalogResultsSkeleton,
+    DataCatalogRibbonViewSkeleton,
+} from "./DataCatalogSkeletons.js"
 
 const DataCatalogSearchInput = ({
     value,
@@ -389,24 +393,6 @@ const DataCatalogRibbon = ({
     )
 }
 
-const DataCatalogRibbonViewSkeleton = ({ topics }: { topics: Set<string> }) => {
-    return (
-        <>
-            <div
-                className="data-catalog-refinement-list data-catalog-refinement-list--skeleton span-cols-12 col-start-2"
-                // Most areas have more than 2 lines of topics, so when we're in an area we set the height to 96px as a very rough heuristic
-                style={{ height: topics.size ? 96 : 48 }}
-            />
-            <div className="data-catalog-ribbons span-cols-14 grid grid-cols-12-full-width">
-                <div className="data-catalog-ribbon data-catalog-ribbon--skeleton span-cols-12 col-start-2" />
-                <div className="data-catalog-ribbon data-catalog-ribbon--skeleton span-cols-12 col-start-2" />
-                <div className="data-catalog-ribbon data-catalog-ribbon--skeleton span-cols-12 col-start-2" />
-                <div className="data-catalog-ribbon data-catalog-ribbon--skeleton span-cols-12 col-start-2" />
-            </div>
-        </>
-    )
-}
-
 const DataCatalogRibbonView = ({
     addTopic,
     results,
@@ -450,32 +436,6 @@ const DataCatalogRibbonView = ({
                 ))}
             </div>
         </>
-    )
-}
-
-const DataCatalogResultsSkeleton = () => {
-    return (
-        <div className="data-catalog-results-skeleton grid grid-cols-12-full-width span-cols-14">
-            <div
-                className="data-catalog-refinement-list data-catalog-refinement-list--skeleton span-cols-12 col-start-2"
-                style={{ height: 24 }}
-            />
-            <div className="span-cols-12 col-start-2 data-catalog-search-hits">
-                <span className="data-catalog-search-list__results-count--skeleton body-3-medium" />
-                <ul className="data-catalog-search-list grid grid-cols-4 grid-sm-cols-1">
-                    {[...Array(20)].map((_, i) => (
-                        <li
-                            className="data-catalog-search-hit span-cols-1 span-sm-cols-4"
-                            key={i}
-                        >
-                            <div className="data-catalog-search-hit__thumbnail-skeleton" />
-                            <div className="data-catalog-search-hit__thumbnail-title" />
-                            <div className="data-catalog-search-hit__thumbnail-title" />
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        </div>
     )
 }
 
