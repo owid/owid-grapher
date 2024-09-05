@@ -4,7 +4,7 @@ import {
     renderFrontPage,
     renderGdocsPageBySlug,
     renderPageBySlug,
-    renderChartsPage,
+    renderDataCatalogPage,
     renderSearchPage,
     renderDonatePage,
     makeAtomFeed,
@@ -330,7 +330,7 @@ getPlainRouteWithROTransaction(
     "/charts*",
     async (req, res, trx) => {
         console.log("returning charts page")
-        res.send(await renderChartsPage(trx))
+        res.send(await renderDataCatalogPage(trx))
     }
 )
 
