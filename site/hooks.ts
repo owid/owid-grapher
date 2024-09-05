@@ -198,20 +198,3 @@ export const useFocusTrap = (
         }
     }, [ref, isActive])
 }
-
-export function useOffsetTop(ref: React.RefObject<HTMLElement>) {
-    const [offsetTop, setOffsetTop] = useState(0)
-    useEffect(() => {
-        if (ref.current) {
-            setOffsetTop(ref.current.offsetTop)
-            const observer = new ResizeObserver(() => {
-                if (!ref.current) return
-                setOffsetTop(ref.current.offsetTop)
-            })
-            observer.observe(ref.current)
-            return () => observer.disconnect()
-        }
-        return
-    }, [ref])
-    return offsetTop
-}

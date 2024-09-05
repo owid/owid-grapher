@@ -63,9 +63,6 @@ export function syncDataCatalogURL(stateAsUrl: string) {
     if (currentUrl !== stateAsUrl) {
         window.history.pushState({}, "", stateAsUrl)
     }
-    setTimeout(() => {
-        window.scrollTo({ behavior: "smooth", top: 0 })
-    }, 100)
 }
 
 export function setToFacetFilters(

@@ -8,7 +8,6 @@ import {
     TagGraphRoot,
     Url,
     getPaginationPageNumbers,
-    identity,
 } from "@ourworldindata/utils"
 import algoliasearch, { SearchClient } from "algoliasearch"
 import {
@@ -21,22 +20,16 @@ import {
     faArrowLeft,
     faArrowRight,
     faClose,
-    faGlobeAfrica,
-    faGlobeAmericas,
-    faGlobeAsia,
-    faGlobeEurope,
     faMagnifyingGlass,
     faMapMarkerAlt,
     faMinus,
     faPlus,
     faSearch,
-    faTimes,
     faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons"
 import { LabeledSwitch } from "@ourworldindata/components"
 import {
     useFocusTrap,
-    useOffsetTop,
     useTriggerOnEscape,
     useTriggerWhenClickOutside,
 } from "../hooks.js"
@@ -94,6 +87,7 @@ const DataCatalogSearchInput = ({
                     onClick={(e) => {
                         e.preventDefault()
                         setQuery("")
+                        onSubmit()
                     }}
                 >
                     <FontAwesomeIcon icon={faTimesCircle} />
@@ -395,13 +389,30 @@ const DataCatalogRibbon = ({
     )
 }
 
+const DataCatalogRibbonViewSkeleton = ({ topics }: { topics: Set<string> }) => {
+    return (
+        <>
+            <div
+                className="data-catalog-refinement-list data-catalog-refinement-list--skeleton span-cols-12 col-start-2"
+                // Most areas have more than 2 lines of topics, so when we're in an area we set the height to 96px as a very rough heuristic
+                style={{ height: topics.size ? 96 : 48 }}
+            />
+            <div className="data-catalog-ribbons span-cols-14 grid grid-cols-12-full-width">
+                <div className="data-catalog-ribbon data-catalog-ribbon--skeleton span-cols-12 col-start-2" />
+                <div className="data-catalog-ribbon data-catalog-ribbon--skeleton span-cols-12 col-start-2" />
+                <div className="data-catalog-ribbon data-catalog-ribbon--skeleton span-cols-12 col-start-2" />
+                <div className="data-catalog-ribbon data-catalog-ribbon--skeleton span-cols-12 col-start-2" />
+            </div>
+        </>
+    )
+}
+
 const DataCatalogRibbonView = ({
     addTopic,
-    removeTopic,
     results,
     selectedCountries,
     topics,
-    tagGraph,
+    isLoading,
 }: {
     addTopic: (x: string) => void
     removeTopic: (topic: string) => void
@@ -409,7 +420,12 @@ const DataCatalogRibbonView = ({
     selectedCountries: Region[]
     topics: Set<string>
     tagGraph: TagGraphRoot
+    isLoading: boolean
 }) => {
+    if (isLoading) {
+        return <DataCatalogRibbonViewSkeleton topics={topics} />
+    }
+
     const ribbonFacets = results
         ? Object.fromEntries(
               results.map((result) => [result.title, result.nbHits])
@@ -418,10 +434,6 @@ const DataCatalogRibbonView = ({
 
     return (
         <>
-            <AppliedTopicFiltersList
-                topics={topics}
-                removeTopic={removeTopic}
-            />
             <TopicsRefinementList
                 topics={topics}
                 facets={ribbonFacets}
@@ -441,30 +453,54 @@ const DataCatalogRibbonView = ({
     )
 }
 
+const DataCatalogResultsSkeleton = () => {
+    return (
+        <div className="data-catalog-results-skeleton grid grid-cols-12-full-width span-cols-14">
+            <div
+                className="data-catalog-refinement-list data-catalog-refinement-list--skeleton span-cols-12 col-start-2"
+                style={{ height: 24 }}
+            />
+            <div className="span-cols-12 col-start-2 data-catalog-search-hits">
+                <span className="data-catalog-search-list__results-count--skeleton body-3-medium" />
+                <ul className="data-catalog-search-list grid grid-cols-4 grid-sm-cols-1">
+                    {[...Array(20)].map((_, i) => (
+                        <li
+                            className="data-catalog-search-hit span-cols-1 span-sm-cols-4"
+                            key={i}
+                        >
+                            <div className="data-catalog-search-hit__thumbnail-skeleton" />
+                            <div className="data-catalog-search-hit__thumbnail-title" />
+                            <div className="data-catalog-search-hit__thumbnail-title" />
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+    )
+}
+
 const DataCatalogResults = ({
     selectedCountries,
     results,
     setPage,
     addTopic,
     topics,
-    removeTopic,
+    isLoading,
 }: {
     results?: DataCatalogSearchResult
     selectedCountries: Region[]
     setPage: (page: number) => void
     addTopic: (topic: string) => void
     topics: Set<string>
-    removeTopic: (topic: string) => void
+    isLoading: boolean
 }) => {
+    if (isLoading) return <DataCatalogResultsSkeleton />
+
     const hits = results?.hits
     const totalHits = results?.nbHits
     if (hits && hits.length) {
         return (
             <>
-                <AppliedTopicFiltersList
-                    topics={topics}
-                    removeTopic={removeTopic}
-                />
                 <TopicsRefinementList
                     topics={topics}
                     facets={results.facets?.tags}
@@ -512,7 +548,7 @@ const AppliedTopicFiltersList = ({
     removeTopic: (topic: string) => void
 }) => {
     return (
-        <ul className="data-catalog-applied-filters-list span-cols-12 col-start-2 ">
+        <ul className="data-catalog-applied-filters-list span-cols-12 col-start-2">
             {[...topics].map((topic) => {
                 return (
                     <li
@@ -545,8 +581,9 @@ const TopicsRefinementList = ({
 }) => {
     const [isExpanded, setIsExpanded] = useState(false)
     const entries = facets
-        ? Object.entries(facets).filter(([facetName]) => {
-              return !topics.has(facetName)
+        ? Object.entries(facets).filter(([facetName, matches]) => {
+              // Only show topics that haven't already been selected that have matches
+              return !topics.has(facetName) && !!matches
           })
         : []
     if (!entries.length)
@@ -596,27 +633,6 @@ const TopicsRefinementList = ({
                     )
                 })}
             </ul>
-        </div>
-    )
-}
-
-const DataCatalogLoadingSpinner = () => {
-    const icons = [faGlobeEurope, faGlobeAmericas, faGlobeAsia, faGlobeAfrica]
-    const spinnerRef = useRef<HTMLDivElement>(null)
-    const offsetTop = useOffsetTop(spinnerRef)
-    return (
-        <div
-            style={{ minHeight: `calc(100vh - ${offsetTop}px)` }}
-            ref={spinnerRef}
-            className={cx("data-catalog-loading-spinner span-cols-14")}
-        >
-            {icons.map((icon) => (
-                <FontAwesomeIcon
-                    key={icon.iconName}
-                    icon={icon}
-                    className="data-catalog-loading-spinner__globe"
-                />
-            ))}
         </div>
     )
 }
@@ -773,8 +789,10 @@ export const DataCatalog = ({
                 ? queryRibbonsWithCache(searchClient, state, tagGraph, cache)
                 : querySearchWithCache(searchClient, state, cache)
         }
+
         syncDataCatalogURL(stateAsUrl)
         if (cache.current[cacheKey].has(stateAsUrl)) return
+
         setIsLoading(true)
         fetchData()
             .catch(console.error)
@@ -790,7 +808,7 @@ export const DataCatalog = ({
         return () => {
             window.removeEventListener("popstate", handlePopState)
         }
-    }, [])
+    }, [actions])
 
     return (
         <>
@@ -818,21 +836,24 @@ export const DataCatalog = ({
                     />
                 </div>
             </div>
-            {isLoading && <DataCatalogLoadingSpinner />}
-            {!isLoading && shouldShowRibbons && (
+            <AppliedTopicFiltersList
+                topics={state.topics}
+                removeTopic={actions.removeTopic}
+            />
+            {shouldShowRibbons ? (
                 <DataCatalogRibbonView
                     addTopic={actions.addTopic}
-                    tagGraph={tagGraph}
+                    isLoading={isLoading}
                     removeTopic={actions.removeTopic}
                     results={currentResults as DataCatalogRibbonResult[]}
                     selectedCountries={selectedCountries}
+                    tagGraph={tagGraph}
                     topics={state.topics}
                 />
-            )}
-            {!isLoading && !shouldShowRibbons && (
+            ) : (
                 <DataCatalogResults
                     addTopic={actions.addTopic}
-                    removeTopic={actions.removeTopic}
+                    isLoading={isLoading}
                     results={currentResults as DataCatalogSearchResult}
                     selectedCountries={selectedCountries}
                     setPage={actions.setPage}
