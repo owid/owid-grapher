@@ -469,7 +469,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         // make a request to create a chart that inherits from the variable
         const response = await makeRequestAgainstAdminApi({
             method: "POST",
-            path: "/charts?inheritance=enable",
+            path: "/charts",
             body: JSON.stringify(testChartConfig),
         })
         const chartId = response.chartId
@@ -631,7 +631,15 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         expect(parent.variableId).toEqual(variableId)
         expect(parent.config).toEqual(fullConfigETL)
 
-        // verify that inheritance is disabled by default
+        // verify that inheritance is enabled by default
+        await checkInheritance({ shouldBeEnabled: true })
+
+        // disable inheritance
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/charts/${chartId}?inheritance=disable`,
+            body: JSON.stringify(testChartConfig),
+        })
         await checkInheritance({ shouldBeEnabled: false })
 
         // enable inheritance
@@ -649,14 +657,6 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             body: JSON.stringify(testChartConfig),
         })
         await checkInheritance({ shouldBeEnabled: true })
-
-        // disable inheritance
-        await makeRequestAgainstAdminApi({
-            method: "PUT",
-            path: `/charts/${chartId}?inheritance=disable`,
-            body: JSON.stringify(testChartConfig),
-        })
-        await checkInheritance({ shouldBeEnabled: false })
     })
 
     it("should recompute configs when the parent of a chart changes", async () => {
