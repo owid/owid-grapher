@@ -121,12 +121,13 @@
 
     @include sm-only {
         height: 48px;
+        // Prevents auto-zoom on Safari
+        font-size: 16px;
     }
 }
 
 .data-catalog-selected-countries-container {
     background: #fff;
-    z-index: 2;
     height: 48px;
     display: flex;
     align-items: center;
@@ -270,6 +271,7 @@
 .data-catalog-country-selector-search-input {
     background-color: #fff;
     border: 1px solid $gray-20;
+    border-radius: 0;
     height: 32px;
     line-height: 32px;
     font-size: 13px;
@@ -285,6 +287,10 @@
     &::placeholder {
         @include label-2-regular;
         color: $gray-60;
+    }
+    @include sm-only {
+        // Prevents auto-zoom on Safari
+        font-size: 16px;
     }
 }
 

@@ -96,7 +96,8 @@ export function dataCatalogReducer(
             return {
                 ...state,
                 page: 0,
-                requireAllCountries: newCountries.size > 0,
+                requireAllCountries:
+                    newCountries.size === 0 ? false : state.requireAllCountries,
                 selectedCountryNames: newCountries,
             }
         })

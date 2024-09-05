@@ -470,6 +470,7 @@
     width: 16px;
     height: 16px;
     outline: 1px solid $gray-30;
+    border-radius: 0;
     &:focus {
         outline-color: $blue-60;
     }

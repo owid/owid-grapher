@@ -78,6 +78,7 @@ const DataCatalogSearchInput = ({
                     type="text"
                     className="data-catalog-search-input body-3-regular"
                     placeholder="Search for an indicator, a topic, or a keyword &hellip;"
+                    enterKeyHint="search"
                     value={value}
                     onChange={(e) => {
                         setQuery(e.target.value)
@@ -136,6 +137,15 @@ function DataCatalogCountrySelector({
         })
     }, [])
 
+    const toggleOpen = () => {
+        setIsOpen(!isOpen)
+        // if on mobile, scroll down a little
+        window.scrollBy({
+            top: 100,
+            behavior: "smooth",
+        })
+    }
+
     const filteredCountriesByName = useMemo(() => {
         return alphabetizedCountriesByName.filter(
             (country) =>
@@ -159,7 +169,7 @@ function DataCatalogCountrySelector({
                 aria-label={
                     isOpen ? "Close country selector" : "Open country selector"
                 }
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={toggleOpen}
             >
                 <FontAwesomeIcon icon={faMapMarkerAlt} />
                 <span className="data-catalog-country-selector-button__text">
