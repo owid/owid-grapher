@@ -185,6 +185,11 @@ $nav-height: 45px;
         color: #b8c7ce;
     }
 
+    li > a.active {
+        font-weight: bold;
+        background: #1a2226;
+    }
+
     li > a:hover {
         color: #fff;
         background: #1e282c;
