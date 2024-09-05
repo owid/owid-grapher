@@ -7,7 +7,8 @@ set -o pipefail  # treats pipeline command as failed when one command in the pip
 SVGS_REPO=../owid-grapher-svgs
 CONFIGS_DIR=$SVGS_REPO/configs
 REFERENCES_DIR=$SVGS_REPO/svg
-ALL_VIEWS_DIR=$SVGS_REPO/all-views/svg
+ALL_VIEWS_DIR=$SVGS_REPO/all-views
+ALL_VIEWS_SVG_DIR=$SVGS_REPO/all-views/svg
 CHART_IDS_FILE=$SVGS_REPO/most-viewed-charts.txt
 
 usage() {
@@ -39,7 +40,7 @@ main() {
         -o $REFERENCES_DIR
     node itsJustJavascript/devTools/svgTester/export-graphs.js\
         -i $CONFIGS_DIR\
-        -o $ALL_VIEWS_DIR\
+        -o $ALL_VIEWS_SVG_DIR\
         -f $CHART_IDS_FILE\
         --all-views
 }
