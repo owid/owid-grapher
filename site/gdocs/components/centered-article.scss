@@ -195,6 +195,63 @@ $banner-height: 200px;
     margin-bottom: 32px;
 }
 
+.deprecation-notice {
+    --bg-color: #fff5d8;
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-color);
+    border-radius: 4px;
+    padding: 16px;
+    padding-bottom: 0;
+    margin-bottom: 24px;
+    z-index: $zindex-deprecation-notice;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 50%;
+        right: 50%;
+        height: 100%;
+        background-color: var(--bg-color);
+        transition: all 0.3s ease;
+        z-index: -1;
+    }
+
+    &--sticky::before {
+        left: -50vw;
+        right: -50vw;
+    }
+
+    .article-block__text,
+    .article-block__list,
+    .article-block__html,
+    .article-block__numbered-list {
+        @include body-3-regular;
+    }
+}
+
+.deprecation-notice__heading {
+    @include h4-semibold;
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: $vermillion;
+}
+
+.deprecation-notice__icon {
+    margin-right: 8px;
+}
+
+.citation-deprecated-notice {
+    font-weight: 700;
+
+    &__highlight {
+        color: $vermillion;
+    }
+}
+
 .centered-article-header {
     background: $white;
     margin: 80px 0 24px;
@@ -470,14 +527,14 @@ h3.article-block__heading.has-supertitle {
     }
 
     @include sm-up {
-        > div:first-child {
+        > div:not(:last-child) {
             border-right: 1px solid $blue-10;
         }
     }
 
     @include sm-only {
         padding: 16px 0;
-        > div:first-child {
+        > div:not(:last-child) {
             border-bottom: 1px solid $blue-10;
             padding-bottom: 16px;
             margin-bottom: 16px;
@@ -557,7 +614,6 @@ h3.article-block__heading.has-supertitle {
     padding-top: 48px;
     h3 {
         margin-top: 0;
-        text-align: center;
     }
     p {
         margin-bottom: 16px;

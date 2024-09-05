@@ -68,6 +68,11 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             enrichedBlocks.push(...refBlocks)
         }
 
+        const deprecationNotice = gdoc.content["deprecation-notice"]
+        if (deprecationNotice) {
+            enrichedBlocks.push(...deprecationNotice)
+        }
+
         return enrichedBlocks
     }
 

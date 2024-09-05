@@ -14,7 +14,11 @@ import {
 import { getCanonicalUrl, getPageTitle } from "@ourworldindata/components"
 import { DebugProvider } from "./DebugContext.js"
 import { match, P } from "ts-pattern"
-import { EnrichedBlockText, IMAGES_DIRECTORY } from "@ourworldindata/types"
+import {
+    ARCHVED_THUMBNAIL_FILENAME,
+    EnrichedBlockText,
+    IMAGES_DIRECTORY,
+} from "@ourworldindata/types"
 import { DATA_INSIGHT_ATOM_FEED_PROPS } from "./utils.js"
 import { Html } from "../Html.js"
 
@@ -89,18 +93,23 @@ export default function OwidGdocPage({
     const isDataInsight = gdoc.content.type === OwidGdocType.DataInsight
     const isAuthor = gdoc.content.type === OwidGdocType.Author
 
+    let imageUrl
+    if (
+        gdoc.content.type === OwidGdocType.Article &&
+        gdoc.content["deprecation-notice"]
+    ) {
+        imageUrl = `${baseUrl}/${ARCHVED_THUMBNAIL_FILENAME}`
+    } else if (featuredImageFilename) {
+        imageUrl = `${baseUrl}${IMAGES_DIRECTORY}${featuredImageFilename}`
+    }
+
     return (
         <Html>
             <Head
                 pageTitle={pageTitle}
                 pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
-                imageUrl={
-                    // uriEncoding is taken care of inside the Head component
-                    featuredImageFilename
-                        ? `${baseUrl}${IMAGES_DIRECTORY}${featuredImageFilename}`
-                        : undefined
-                }
+                imageUrl={imageUrl} // uriEncoding is taken care of inside the Head component
                 atom={isDataInsight ? DATA_INSIGHT_ATOM_FEED_PROPS : undefined}
                 baseUrl={baseUrl}
             >

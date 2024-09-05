@@ -13,6 +13,9 @@ import {
     DbPlainTag,
     OwidGdocPostInterface,
     getThumbnailPath,
+    ARCHVED_THUMBNAIL_FILENAME,
+    DEFAULT_GDOC_FEATURED_IMAGE,
+    DEFAULT_THUMBNAIL_FILENAME,
 } from "@ourworldindata/utils"
 import { formatPost } from "../formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
@@ -65,7 +68,7 @@ function generateCountryRecords(
             content: `All available indicators for ${country.name}.`,
             views_7d: pageviews[`/country/${country.slug}`]?.views_7d ?? 0,
             documentType: "country-page" as const,
-            thumbnailUrl: "/default-thumbnail.jpg",
+            thumbnailUrl: `/${DEFAULT_THUMBNAIL_FILENAME}`,
         }
         const score = computeScore(record)
         return { ...record, score }
@@ -144,7 +147,7 @@ async function generateWordpressRecords(
                 content: c,
                 tags: tags.map((t) => t.name),
                 thumbnailUrl: formatUrls(
-                    post.thumbnailUrl ?? "/default-thumbnail.jpg"
+                    post.thumbnailUrl ?? `/${DEFAULT_THUMBNAIL_FILENAME}`
                 ),
                 views_7d: pageviews[`/${post.path}`]?.views_7d ?? 0,
                 documentType: "wordpress" as const,
@@ -155,6 +158,16 @@ async function generateWordpressRecords(
         }
     }
     return records
+}
+
+function getGdocThumbnailUrl(gdoc: OwidGdocPostInterface): string {
+    if (gdoc.content["deprecation-notice"]) {
+        return `/${ARCHVED_THUMBNAIL_FILENAME}`
+    }
+    if (gdoc.content["featured-image"]) {
+        return getThumbnailPath(gdoc.content["featured-image"])
+    }
+    return `/${DEFAULT_GDOC_FEATURED_IMAGE}`
 }
 
 function generateGdocRecords(
@@ -199,10 +212,7 @@ function generateGdocRecords(
         const chunks = generateChunksFromHtmlText(renderedPostContent)
         const postTypeAndImportance = getPostTypeAndImportance(gdoc)
         let i = 0
-
-        const thumbnailUrl = gdoc.content["featured-image"]
-            ? getThumbnailPath(gdoc.content["featured-image"])
-            : "/default-thumbnail.jpg"
+        const thumbnailUrl = getGdocThumbnailUrl(gdoc)
 
         for (const chunk of chunks) {
             const record = {

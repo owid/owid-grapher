@@ -1,5 +1,8 @@
 import React from "react"
 import cx from "classnames"
+import { useIntersectionObserver } from "usehooks-ts"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faBoxArchive } from "@fortawesome/free-solid-svg-icons"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import Footnotes from "../components/Footnotes.js"
 import {
@@ -9,6 +12,7 @@ import {
     isEmpty,
     OwidGdocType,
     formatAuthors,
+    EnrichedBlockText,
 } from "@ourworldindata/utils"
 import { CodeSnippet } from "@ourworldindata/components"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
@@ -56,6 +60,9 @@ export function GdocPost({
     )
     const citationText = `${shortPageCitation} Published online at OurWorldInData.org. Retrieved from: '${`${BAKED_BASE_URL}/${slug}`}' [Online Resource]`
     const hasSidebarToc = content["sidebar-toc"]
+    const isDeprecated =
+        postType === OwidGdocType.Article &&
+        Boolean(content["deprecation-notice"])
 
     const bibtex = `@article{owid-${slug.replace(/\//g, "-")},
     author = {${formatAuthors({
@@ -85,7 +92,11 @@ export function GdocPost({
                 content={content}
                 publishedAt={publishedAt}
                 breadcrumbs={breadcrumbs ?? undefined}
+                isDeprecated={isDeprecated}
             />
+            {isDeprecated && content["deprecation-notice"] && (
+                <DeprecationNotice blocks={content["deprecation-notice"]} />
+            )}
             {hasSidebarToc && content.toc ? (
                 <TableOfContents
                     headings={content.toc}
@@ -93,7 +104,7 @@ export function GdocPost({
                     pageTitle={content.title || ""}
                 />
             ) : null}
-            {content.type === "topic-page" && stickyNavLinks?.length ? (
+            {postType === OwidGdocType.TopicPage && stickyNavLinks?.length ? (
                 <nav className="sticky-nav sticky-nav--dark span-cols-14 grid grid-cols-12-full-width">
                     <StickyNav
                         links={stickyNavLinks}
@@ -129,7 +140,23 @@ export function GdocPost({
                     className="grid grid-cols-12-full-width col-start-1 col-end-limit"
                 >
                     <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
-                        <h3>Cite this work</h3>
+                        <h3
+                            className={
+                                isDeprecated ? "align-left" : "align-center"
+                            }
+                        >
+                            Cite this work
+                        </h3>
+                        {isDeprecated && (
+                            <p className="citation-deprecated-notice">
+                                <span className="citation-deprecated-notice__highlight">
+                                    This content is outdated
+                                </span>
+                                , but if you would still like to use it, here is
+                                how to cite it:
+                                <br />
+                            </p>
+                        )}
                         <p>{citationDescription}</p>
                         <div>
                             <CodeSnippet code={citationText} />
@@ -147,12 +174,16 @@ export function GdocPost({
                 className="grid grid-cols-12-full-width col-start-1 col-end-limit"
             >
                 <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
-                    <img
-                        src={`${BAKED_BASE_URL}/owid-logo.svg`}
-                        className="img-raw"
-                        alt="Our World in Data logo"
-                    />
-                    <h3>Reuse this work freely</h3>
+                    {!isDeprecated && (
+                        <>
+                            <img
+                                src={`${BAKED_BASE_URL}/owid-logo.svg`}
+                                className="img-raw"
+                                alt="Our World in Data logo"
+                            />
+                            <h3>Reuse this work freely</h3>
+                        </>
+                    )}
 
                     <p>
                         All visualizations, data, and code produced by Our World
@@ -176,15 +207,44 @@ export function GdocPost({
                         documentation, so you should always check the license of
                         any such third-party data before use and redistribution.
                     </p>
-                    <p>
-                        All of{" "}
-                        <a href="/faqs#how-can-i-embed-one-of-your-interactive-charts-in-my-website">
-                            our charts can be embedded
-                        </a>{" "}
-                        in any site.
-                    </p>
+                    {!isDeprecated && (
+                        <p>
+                            All of{" "}
+                            <a href="/faqs#how-can-i-embed-one-of-your-interactive-charts-in-my-website">
+                                our charts can be embedded
+                            </a>{" "}
+                            in any site.
+                        </p>
+                    )}
                 </div>
             </section>
         </article>
+    )
+}
+
+function DeprecationNotice({ blocks }: { blocks: EnrichedBlockText[] }) {
+    const { isIntersecting, ref } = useIntersectionObserver()
+    return (
+        <>
+            {/* Non-sticky sentinel element for observing intersection. */}
+            <div className="col-start-1 span-cols-14" ref={ref} />
+            <div
+                className={cx(
+                    "deprecation-notice col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12",
+                    {
+                        "deprecation-notice--sticky": !isIntersecting,
+                    }
+                )}
+            >
+                <h4 className="deprecation-notice__heading">
+                    <FontAwesomeIcon
+                        className="deprecation-notice__icon"
+                        icon={faBoxArchive}
+                    />
+                    This article is outdated
+                </h4>
+                <ArticleBlocks blocks={blocks} />
+            </div>
+        </>
     )
 }

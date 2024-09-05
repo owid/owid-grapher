@@ -53,6 +53,22 @@ function validateContentType(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
     }
 }
 
+function validateDeprecationNotice(
+    gdoc: OwidGdoc,
+    errors: OwidGdocErrorMessage[]
+) {
+    if (
+        "deprecation-notice" in gdoc.content &&
+        gdoc.content.type !== OwidGdocType.Article
+    ) {
+        errors.push({
+            property: "deprecation-notice",
+            type: OwidGdocErrorMessageType.Error,
+            message: "Deprecation notice is only supported in articles.",
+        })
+    }
+}
+
 function validateBody(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
     if (!gdoc.content.body) {
         errors.push(getMissingContentPropertyError("body"))
@@ -236,6 +252,7 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
     validateBody(gdoc, errors)
     validatePublishedAt(gdoc, errors)
     validateContentType(gdoc, errors)
+    validateDeprecationNotice(gdoc, errors)
 
     if (checkIsGdocPost(gdoc)) {
         validateRefs(gdoc, errors)

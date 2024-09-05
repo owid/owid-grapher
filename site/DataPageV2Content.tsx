@@ -14,6 +14,7 @@ import {
     GrapherInterface,
     joinTitleFragments,
     ImageMetadata,
+    DEFAULT_THUMBNAIL_FILENAME,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -40,7 +41,7 @@ const DatapageResearchThumbnail = ({
     urlOrFilename: string | undefined | null
 }) => {
     if (!urlOrFilename) {
-        urlOrFilename = `${BAKED_BASE_URL}/default-thumbnail.jpg`
+        urlOrFilename = `${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`
     }
     if (urlOrFilename.startsWith("http")) {
         return (

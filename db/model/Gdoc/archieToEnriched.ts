@@ -24,7 +24,11 @@ import {
     isEmpty,
 } from "@ourworldindata/utils"
 import { convertHeadingTextToId } from "@ourworldindata/components"
-import { parseRawBlocksToEnrichedBlocks, parseRefs } from "./rawToEnriched.js"
+import {
+    parseRawBlocksToEnrichedBlocks,
+    parseRefs,
+    parseText,
+} from "./rawToEnriched.js"
 import urlSlug from "url-slug"
 import { extractUrl, parseAuthors, spansToSimpleString } from "./gdocUtils.js"
 import { htmlToSimpleTextBlock } from "./htmlToEnriched.js"
@@ -316,6 +320,10 @@ export const archieToEnriched = (
 
     // Parse elements of the ArchieML into enrichedBlocks
     parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
+    const deprecationNotice = parsed["deprecation-notice"]
+    if (deprecationNotice) {
+        parsed["deprecation-notice"] = compact(deprecationNotice.map(parseText))
+    }
 
     const parsedRefs = parseRefs({
         refs: [...(parsed.refs ?? []), ...rawInlineRefs],

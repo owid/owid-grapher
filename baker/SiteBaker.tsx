@@ -55,6 +55,7 @@ import {
     excludeUndefined,
     grabMetadataForGdocLinkedIndicator,
     GrapherTabOption,
+    DEFAULT_THUMBNAIL_FILENAME,
 } from "@ourworldindata/utils"
 
 import { execWrapper } from "../db/execWrapper.js"
@@ -344,7 +345,7 @@ export class SiteBaker {
                         title: cur.title || "",
                         thumbnail:
                             cur.thumbnail ||
-                            `${BAKED_BASE_URL}/default-thumbnail.jpg`,
+                            `${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`,
                         tags: [],
                     }))
                 )

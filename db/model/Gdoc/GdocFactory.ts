@@ -1,6 +1,7 @@
 import { get, groupBy } from "lodash"
 import { match, P } from "ts-pattern"
 import {
+    ARCHVED_THUMBNAIL_FILENAME,
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
     DbEnrichedPostGdoc,
     DbInsertPostGdocLink,
@@ -210,7 +211,10 @@ export async function getAllMinimalGdocBaseObjects(
                 content ->> '$.subtitle' as subtitle,
                 content ->> '$.excerpt' as excerpt,
                 type,
-                content ->> '$."featured-image"' as "featured-image"
+                CASE 
+                    WHEN content ->> '$."deprecation-notice"' IS NOT NULL THEN '${ARCHVED_THUMBNAIL_FILENAME}'
+                    ELSE content ->> '$."featured-image"'
+                END as "featured-image"
             FROM posts_gdocs
             WHERE published = 1
             AND publishedAt <= NOW()`,

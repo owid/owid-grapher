@@ -47,6 +47,7 @@ import {
 } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import {
+    DEFAULT_THUMBNAIL_FILENAME,
     DbPlainChart,
     DbRawChartConfig,
     FormattingOptions,
@@ -882,6 +883,6 @@ const renderGrapherThumbnailByResolvedChartSlug = (
 
 const renderExplorerDefaultThumbnail = (): string => {
     return ReactDOMServer.renderToStaticMarkup(
-        <img src={`${BAKED_BASE_URL}/default-thumbnail.jpg`} />
+        <img src={`${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`} />
     )
 }
