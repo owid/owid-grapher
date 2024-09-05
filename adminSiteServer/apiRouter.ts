@@ -300,8 +300,8 @@ const saveNewChart = async (
     {
         config,
         user,
-        // charts don't inherit indicator settings by default
-        shouldInherit = false,
+        // new charts inherit by default
+        shouldInherit = true,
     }: { config: GrapherInterface; user: DbPlainUser; shouldInherit?: boolean }
 ): Promise<GrapherInterface> => {
     // grab the parent of the chart if inheritance should be enabled
@@ -432,8 +432,8 @@ const saveGrapher = async (
         user,
         newConfig,
         existingConfig,
-        referencedVariablesMightChange = true,
         shouldInherit,
+        referencedVariablesMightChange = true,
     }: {
         user: DbPlainUser
         newConfig: GrapherInterface
