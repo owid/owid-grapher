@@ -1,11 +1,15 @@
 import * as lodash from "lodash"
 import * as db from "../db.js"
-import { getDataForMultipleVariables } from "./Variable.js"
+import {
+    getDataForMultipleVariables,
+    getGrapherConfigsForVariable,
+} from "./Variable.js"
 import {
     JsonError,
     KeyChartLevel,
     MultipleOwidVariableDataDimensionsMap,
     DbChartTagJoin,
+    getParentVariableIdFromChartConfig,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -154,6 +158,24 @@ export async function getRawChartById(
     return chart
 }
 
+export async function getPatchConfigByChartId(
+    knex: db.KnexReadonlyTransaction,
+    id: number
+): Promise<GrapherInterface | undefined> {
+    const chart = await db.knexRawFirst<Pick<DbRawChartConfig, "patch">>(
+        knex,
+        `-- sql
+            SELECT patch
+            FROM chart_configs cc
+            JOIN charts c ON c.configId = cc.id
+            WHERE c.id = ?
+        `,
+        [id]
+    )
+    if (!chart) return undefined
+    return parseChartConfig(chart.patch)
+}
+
 export async function getEnrichedChartById(
     knex: db.KnexReadonlyTransaction,
     id: number
@@ -230,6 +252,73 @@ export async function getChartConfigBySlug(
     if (!row) throw new JsonError(`No chart found for slug ${slug}`, 404)
 
     return { id: row.id, config: parseChartConfig(row.config) }
+}
+
+export async function isInheritanceEnabledForChart(
+    trx: db.KnexReadonlyTransaction,
+    chartId: number
+): Promise<boolean> {
+    const row = await db.knexRawFirst<
+        Pick<DbPlainChart, "isInheritanceEnabled">
+    >(
+        trx,
+        `-- sql
+            SELECT isInheritanceEnabled
+            FROM charts
+            WHERE id = ?
+        `,
+        [chartId]
+    )
+    return row?.isInheritanceEnabled ?? false
+}
+
+async function getParentVariableIdByChartId(
+    trx: db.KnexReadonlyTransaction,
+    chartId: number
+): Promise<number | undefined> {
+    const parent = await db.knexRawFirst<{ variableId: number | undefined }>(
+        trx,
+        `-- sql
+            SELECT variableId
+            FROM charts_x_parents
+            WHERE chartId = ?
+        `,
+        [chartId]
+    )
+    return parent?.variableId
+}
+
+export async function getParentByChartId(
+    trx: db.KnexReadonlyTransaction,
+    chartId: number
+): Promise<{ variableId?: number; config?: GrapherInterface }> {
+    const parentVariableId = await getParentVariableIdByChartId(trx, chartId)
+    if (!parentVariableId) return {}
+    const variable = await getGrapherConfigsForVariable(trx, parentVariableId)
+    const parentConfig =
+        variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
+    return {
+        variableId: parentVariableId,
+        config: parentConfig,
+    }
+}
+
+export async function getParentByChartConfig(
+    trx: db.KnexReadonlyTransaction,
+    config: GrapherInterface
+): Promise<{
+    variableId?: number
+    config?: GrapherInterface
+}> {
+    const parentVariableId = getParentVariableIdFromChartConfig(config)
+    if (!parentVariableId) return {}
+    const variable = await getGrapherConfigsForVariable(trx, parentVariableId)
+    const parentConfig =
+        variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
+    return {
+        variableId: parentVariableId,
+        config: parentConfig,
+    }
 }
 
 export async function setChartTags(

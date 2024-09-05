@@ -40,10 +40,10 @@ import {
     JsonError,
     Url,
     IndexPost,
-    mergePartialGrapherConfigs,
     OwidGdocType,
     OwidGdoc,
     OwidGdocDataInsightInterface,
+    mergeGrapherConfigs,
 } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import {
@@ -761,7 +761,16 @@ export const renderExplorerPage = async (
     if (requiredVariableIds.length) {
         partialGrapherConfigRows = await knexRaw(
             knex,
-            `SELECT id, grapherConfigETL, grapherConfigAdmin FROM variables WHERE id IN (?)`,
+            `-- sql
+                SELECT
+                    v.id,
+                    cc_etl.patch AS grapherConfigETL,
+                    cc_admin.patch AS grapherConfigAdmin
+                FROM variables v
+                    LEFT JOIN chart_configs cc_admin ON cc_admin.id=v.grapherConfigIdAdmin
+                    LEFT JOIN chart_configs cc_etl ON cc_etl.id=v.grapherConfigIdETL
+                WHERE v.id IN (?)
+            `,
             [requiredVariableIds]
         )
 
@@ -801,8 +810,7 @@ export const renderExplorerPage = async (
                       config: row.grapherConfigETL as string,
                   })
                 : {}
-            // TODO(inheritance): use mergeGrapherConfigs instead
-            return mergePartialGrapherConfigs(etlConfig, adminConfig)
+            return mergeGrapherConfigs(etlConfig, adminConfig)
         })
 
     const wpContent = transformedProgram.wpBlockId

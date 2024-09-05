@@ -22,17 +22,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArchive } from "@fortawesome/free-solid-svg-icons"
 
 import {
-    ChartEditor,
     Dataset,
     EditorDatabase,
     Namespace,
     NamespaceData,
-} from "./ChartEditor.js"
+} from "./ChartEditorView.js"
 import { TextField, Toggle, Modal } from "./Forms.js"
 import { DimensionSlot } from "@ourworldindata/grapher"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
-interface VariableSelectorProps {
-    editor: ChartEditor
+interface VariableSelectorProps<Editor> {
+    database: EditorDatabase
+    editor: Editor
     slot: DimensionSlot
     onDismiss: () => void
     onComplete: (variableIds: OwidVariableId[]) => void
@@ -49,7 +50,9 @@ interface Variable {
 }
 
 @observer
-export class VariableSelector extends React.Component<VariableSelectorProps> {
+export class VariableSelector<
+    Editor extends AbstractChartEditor,
+> extends React.Component<VariableSelectorProps<Editor>> {
     @observable.ref chosenNamespaces: Namespace[] = []
     @observable.ref searchInput?: string
     @observable.ref isProjection?: boolean
@@ -63,7 +66,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     @observable rowHeight: number = 32
 
     @computed get database(): EditorDatabase {
-        return this.props.editor.database
+        return this.props.database
     }
 
     @computed get searchWords(): SearchWord[] {
@@ -200,7 +203,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
 
     render() {
         const { slot } = this.props
-        const { database } = this.props.editor
+        const { database } = this.props
         const {
             searchInput,
             chosenVariables,
@@ -498,7 +501,6 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     dispose!: IReactionDisposer
     base: React.RefObject<HTMLDivElement> = React.createRef()
     componentDidMount() {
-        void this.props.editor.loadVariableUsageCounts()
         this.initChosenVariablesAndNamespaces()
     }
 

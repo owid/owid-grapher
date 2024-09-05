@@ -13,6 +13,7 @@ import {
     formatValue,
     ChartRedirect,
 } from "@ourworldindata/utils"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")
 
@@ -214,8 +215,10 @@ export class EditorReferencesTab extends React.Component<{
 }
 
 @observer
-class AddRedirectForm extends React.Component<{
-    editor: ChartEditor
+class AddRedirectForm<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{
+    editor: Editor
     onSuccess: (redirect: ChartRedirect) => void
 }> {
     static contextType = AdminAppContext

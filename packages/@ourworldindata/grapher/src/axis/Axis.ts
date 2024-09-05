@@ -134,7 +134,7 @@ abstract class AbstractAxis {
     }
 
     @computed get label(): string {
-        return this._label ?? this.config.label
+        return this._label ?? this.config.label ?? ""
     }
 
     set label(value: string) {

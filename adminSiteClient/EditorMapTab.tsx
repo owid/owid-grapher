@@ -1,4 +1,8 @@
-import { ChartTypeName, MapProjectionName } from "@ourworldindata/types"
+import {
+    ChartTypeName,
+    GrapherInterface,
+    MapProjectionName,
+} from "@ourworldindata/types"
 import {
     ChartDimension,
     MapChart,
@@ -9,17 +13,25 @@ import { ColumnSlug, isEmpty, ToleranceStrategy } from "@ourworldindata/utils"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { ChartEditor } from "./ChartEditor.js"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 @observer
 class VariableSection extends React.Component<{
     mapConfig: MapConfig
     filledDimensions: ChartDimension[]
+    parentConfig?: GrapherInterface
 }> {
     @action.bound onColumnSlug(columnSlug: ColumnSlug) {
         this.props.mapConfig.columnSlug = columnSlug
+    }
+
+    @action.bound onBlurColumnSlug() {
+        if (this.props.mapConfig.columnSlug === undefined) {
+            this.props.mapConfig.columnSlug =
+                this.props.parentConfig?.map?.columnSlug
+        }
     }
 
     @action.bound onProjection(projection: string | undefined) {
@@ -49,6 +61,7 @@ class VariableSection extends React.Component<{
                         label: d.column.displayName,
                     }))}
                     onValue={this.onColumnSlug}
+                    onBlur={this.onBlurColumnSlug}
                 />
                 <SelectField
                     label="Region"
@@ -161,7 +174,9 @@ class TooltipSection extends React.Component<{ mapConfig: MapConfig }> {
 }
 
 @observer
-export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
+export class EditorMapTab<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor }> {
     @computed get grapher() {
         return this.props.editor.grapher
     }
@@ -180,6 +195,7 @@ export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
                 <VariableSection
                     mapConfig={mapConfig}
                     filledDimensions={grapher.filledDimensions}
+                    parentConfig={this.props.editor.activeParentConfig}
                 />
                 {isReady && (
                     <React.Fragment>

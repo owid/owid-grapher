@@ -1,11 +1,48 @@
 import React from "react"
-import { ChartEditor } from "./ChartEditor.js"
+import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
-import { isEmpty } from "@ourworldindata/utils"
+import { isEmpty, omit } from "@ourworldindata/utils"
+import {
+    IndicatorChartEditor,
+    isIndicatorChartEditorInstance,
+} from "./IndicatorChartEditor.js"
+import {
+    ErrorMessages,
+    ErrorMessagesForDimensions,
+} from "./ChartEditorTypes.js"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 @observer
-export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
+export class SaveButtons<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{
+    editor: Editor
+    errorMessages: ErrorMessages
+    errorMessagesForDimensions: ErrorMessagesForDimensions
+}> {
+    render() {
+        const { editor } = this.props
+        const passthroughProps = omit(this.props, "editor")
+        if (isChartEditorInstance(editor))
+            return <SaveButtonsForChart editor={editor} {...passthroughProps} />
+        else if (isIndicatorChartEditorInstance(editor))
+            return (
+                <SaveButtonsForIndicatorChart
+                    editor={editor}
+                    {...passthroughProps}
+                />
+            )
+        else return null
+    }
+}
+
+@observer
+class SaveButtonsForChart extends React.Component<{
+    editor: ChartEditor
+    errorMessages: ErrorMessages
+    errorMessagesForDimensions: ErrorMessagesForDimensions
+}> {
     @action.bound onSaveChart() {
         void this.props.editor.saveGrapher()
     }
@@ -21,8 +58,7 @@ export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
     }
 
     @computed get hasEditingErrors(): boolean {
-        const { editor } = this.props
-        const { errorMessages, errorMessagesForDimensions } = editor.manager
+        const { errorMessages, errorMessagesForDimensions } = this.props
 
         if (!isEmpty(errorMessages)) return true
 
@@ -68,14 +104,51 @@ export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
                 </button>
             </div>
         )
+    }
+}
 
-        /*return <section className="form-section-submit">
-            <button type="button" className="btn btn-lg btn-success btn-primary" onClick={this.onSaveChart}>
-                {editor.isSaved ? "Saved" :
-                    chart.isPublished ? "Update chart" : "Save draft"}
-            </button>
-            {" "}<button type="button" className="btn btn-lg btn-primary" onClick={this.onSaveAsNew}>Save as new</button>
-            {" "}<button type="button" className="btn btn-lg btn-danger" onClick={this.onPublishToggle}>{chart.isPublished ? "Unpublish" : "Publish"}</button>
-        </section>*/
+@observer
+class SaveButtonsForIndicatorChart extends React.Component<{
+    editor: IndicatorChartEditor
+    errorMessages: ErrorMessages
+    errorMessagesForDimensions: ErrorMessagesForDimensions
+}> {
+    @action.bound onSaveChart() {
+        void this.props.editor.saveGrapher()
+    }
+
+    @computed get hasEditingErrors(): boolean {
+        const { errorMessages, errorMessagesForDimensions } = this.props
+
+        if (!isEmpty(errorMessages)) return true
+
+        const allErrorMessagesForDimensions = Object.values(
+            errorMessagesForDimensions
+        ).flat()
+        return allErrorMessagesForDimensions.some((error) => error)
+    }
+
+    render() {
+        const { hasEditingErrors } = this
+        const { editor } = this.props
+        const { grapher } = editor
+
+        const isTrivial = editor.isNewGrapher && !editor.isModified
+        const isSavingDisabled =
+            grapher.hasFatalErrors || hasEditingErrors || isTrivial
+
+        return (
+            <div className="SaveButtons">
+                <button
+                    className="btn btn-success"
+                    onClick={this.onSaveChart}
+                    disabled={isSavingDisabled}
+                >
+                    {editor.isNewGrapher
+                        ? "Create indicator chart"
+                        : "Update indicator chart"}
+                </button>
+            </div>
+        )
     }
 }

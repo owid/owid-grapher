@@ -56,7 +56,6 @@ import {
     SortBy,
     SortConfig,
     SortOrder,
-    TopicId,
     OwidChartDimensionInterface,
     firstOfNonEmptyArray,
     spansToUnformattedPlainText,
@@ -349,10 +348,16 @@ export class Grapher
     @observable.ref id?: number = undefined
     @observable.ref version = 1
     @observable.ref slug?: string = undefined
+
+    // Initializing text fields with `undefined` ensures that empty strings get serialised
     @observable.ref title?: string = undefined
     @observable.ref subtitle: string | undefined = undefined
     @observable.ref sourceDesc?: string = undefined
-    @observable.ref note = ""
+    @observable.ref note?: string = undefined
+    @observable.ref variantName?: string = undefined
+    @observable.ref internalNotes?: string = undefined
+    @observable.ref originUrl?: string = undefined
+
     @observable hideAnnotationFieldsInTitle?: AnnotationFieldsInTitle =
         undefined
     @observable.ref minTime?: TimeBound = undefined
@@ -376,10 +381,6 @@ export class Grapher
     @observable.ref hasChartTab = true
     @observable.ref hasMapTab = false
     @observable.ref tab = GrapherTabOption.chart
-    @observable.ref internalNotes = ""
-    @observable.ref variantName?: string = undefined
-    @observable.ref originUrl = ""
-    @observable.ref topicIds: TopicId[] = []
     @observable.ref isPublished?: boolean = undefined
     @observable.ref baseColorScheme?: ColorSchemeName = undefined
     @observable.ref invertColorScheme?: boolean = undefined
@@ -407,18 +408,20 @@ export class Grapher
     @observable tableSlugs?: ColumnSlugs = undefined
     @observable backgroundSeriesLimit?: number = undefined
 
-    @observable selectedEntityNames: EntityName[] = []
     @observable selectedEntityColors: {
         [entityName: string]: string | undefined
     } = {}
+
+    // Initializing arrays with `undefined` ensures that empty arrays get serialised
+    @observable selectedEntityNames?: EntityName[] = undefined
     @observable excludedEntities?: number[] = undefined
-    /** IncludedEntities are ususally empty which means use all available entites. When
+    /** IncludedEntities are usually empty which means use all available entities. When
         includedEntities is set it means "only use these entities". excludedEntities
         are evaluated afterwards and can still remove entities even if they were included before.
      */
     @observable includedEntities?: number[] = undefined
-    @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
-    @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
+    @observable comparisonLines?: ComparisonLineConfig[] = undefined // todo: Persistables?
+    @observable relatedQuestions?: RelatedQuestionsConfig[] = undefined // todo: Persistables?
 
     @observable.ref annotation?: Annotation = undefined
 
@@ -427,8 +430,8 @@ export class Grapher
     // the desired faceting strategy, which might not be possible if we change the data
     @observable selectedFacetStrategy?: FacetStrategy = undefined
 
-    @observable sortBy?: SortBy
-    @observable sortOrder?: SortOrder
+    @observable sortBy?: SortBy = SortBy.total
+    @observable sortOrder?: SortOrder = SortOrder.desc
     @observable sortColumnSlug?: string
 
     @observable.ref _isInFullScreenMode = false
@@ -529,9 +532,6 @@ export class Grapher
         // always include the schema, even if it's the default
         obj.$schema = this.$schema || defaultGrapherConfig.$schema
 
-        // todo: nulls got into the DB for this one. we can remove after moving Graphers from DB.
-        if (obj.stackMode === null) delete obj.stackMode
-
         // JSON doesn't support Infinity, so we use strings instead.
         if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
         if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
@@ -553,13 +553,14 @@ export class Grapher
     @action.bound updateFromObject(obj?: GrapherProgrammaticInterface): void {
         if (!obj) return
 
-        // we can remove when we purge current graphers which have this set.
-        if (obj.stackMode === null) delete obj.stackMode
-
         updatePersistables(this, obj)
 
         // Regression fix: some legacies have this set to Null. Todo: clean DB.
         if (obj.originUrl === null) this.originUrl = ""
+
+        // update selection
+        if (obj.selectedEntityNames)
+            this.selection.setSelectedEntities(obj.selectedEntityNames)
 
         // JSON doesn't support Infinity, so we use strings instead.
         this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
@@ -1045,7 +1046,7 @@ export class Grapher
     }
 
     @action.bound private applyOriginalSelectionAsAuthored(): void {
-        if (this.selectedEntityNames.length)
+        if (this.selectedEntityNames?.length)
             this.selection.setSelectedEntities(this.selectedEntityNames)
     }
 
@@ -1196,7 +1197,8 @@ export class Grapher
 
     // todo: did this name get botched in a merge?
     @computed get hasFatalErrors(): boolean {
-        return this.relatedQuestions.some(
+        const { relatedQuestions = [] } = this
+        return relatedQuestions.some(
             (question) => !!getErrorMessageRelatedQuestionUrl(question)
         )
     }
@@ -1255,6 +1257,7 @@ export class Grapher
 
     // todo: do we need this?
     @computed get originUrlWithProtocol(): string {
+        if (!this.originUrl) return ""
         let url = this.originUrl
         if (!url.startsWith("http")) url = `https://${url}`
         return url
@@ -1354,7 +1357,7 @@ export class Grapher
             ? extractDetailsFromSyntax(this.currentSubtitle)
             : []
         const noteDetails = !this.hideNote
-            ? extractDetailsFromSyntax(this.note)
+            ? extractDetailsFromSyntax(this.note ?? "")
             : []
 
         // extract details from axis labels
@@ -2969,7 +2972,11 @@ export class Grapher
     @observable isShareMenuActive = false
 
     @computed get hasRelatedQuestion(): boolean {
-        if (this.hideRelatedQuestion || !this.relatedQuestions.length)
+        if (
+            this.hideRelatedQuestion ||
+            !this.relatedQuestions ||
+            !this.relatedQuestions.length
+        )
             return false
         const question = this.relatedQuestions[0]
         return !!question && !!question.text && !!question.url
@@ -2983,11 +2990,13 @@ export class Grapher
         // "ourworldindata.org" and yet should still yield a match.
         // - Note that this won't work on production previews (where the
         //   path is /admin/posts/preview/ID)
-        const { hasRelatedQuestion } = this
+        const { hasRelatedQuestion, relatedQuestions = [] } = this
+        const relatedQuestion = relatedQuestions[0]
         return (
             hasRelatedQuestion &&
+            !!relatedQuestion &&
             getWindowUrl().pathname !==
-                Url.fromURL(this.relatedQuestions[0]?.url).pathname
+                Url.fromURL(relatedQuestion.url).pathname
         )
     }
 
@@ -3027,35 +3036,17 @@ export class Grapher
     // won't overwrite defaults (like type == LineChart). RAII would probably be better, but this works for now.
     @action.bound reset(): void {
         const grapher = new Grapher()
-        this.title = grapher.title
-        this.subtitle = grapher.subtitle
-        this.note = grapher.note
-        this.type = grapher.type
+        for (const key of grapherKeysToSerialize) {
+            // @ts-expect-error grapherKeysToSerialize is not properly typed
+            this[key] = grapher[key]
+        }
+
         this.ySlugs = grapher.ySlugs
         this.xSlug = grapher.xSlug
         this.colorSlug = grapher.colorSlug
         this.sizeSlug = grapher.sizeSlug
-        this.hasMapTab = grapher.hasMapTab
-        this.selectedFacetStrategy = FacetStrategy.none
-        this.hasChartTab = grapher.hasChartTab
-        this.map = grapher.map
-        this.yAxis.scaleType = grapher.yAxis.scaleType
-        this.yAxis.min = grapher.yAxis.min
-        this.sortBy = grapher.sortBy
-        this.sortOrder = grapher.sortOrder
-        this.sortColumnSlug = grapher.sortColumnSlug
-        this.hideRelativeToggle = grapher.hideRelativeToggle
-        this.dimensions = grapher.dimensions
-        this.stackMode = grapher.stackMode
-        this.hideTotalValueLabel = grapher.hideTotalValueLabel
-        this.hideAnnotationFieldsInTitle = grapher.hideAnnotationFieldsInTitle
-        this.timelineMinTime = grapher.timelineMinTime
-        this.timelineMaxTime = grapher.timelineMaxTime
-        this.relatedQuestions = grapher.relatedQuestions
-        this.sourceDesc = grapher.sourceDesc
-        this.missingDataStrategy = grapher.missingDataStrategy
-        this.minTime = grapher.minTime
-        this.maxTime = grapher.maxTime
+
+        this.selection.clearSelection()
     }
 
     debounceMode = false

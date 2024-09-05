@@ -1,24 +1,14 @@
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import {
-    LogoOption,
-    RelatedQuestionsConfig,
-    Topic,
-} from "@ourworldindata/types"
-import {
-    Grapher,
-    getErrorMessageRelatedQuestionUrl,
-} from "@ourworldindata/grapher"
+import { LogoOption, RelatedQuestionsConfig } from "@ourworldindata/types"
+import { getErrorMessageRelatedQuestionUrl } from "@ourworldindata/grapher"
 import { slugify } from "@ourworldindata/utils"
-import { action, computed, runInAction } from "mobx"
+import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import Select from "react-select"
-import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
-import { ChartEditor, ChartEditorManager } from "./ChartEditor.js"
+import { isChartEditorInstance } from "./ChartEditor.js"
 import {
     AutoTextField,
-    BindAutoString,
     BindAutoStringExt,
     BindString,
     Button,
@@ -27,9 +17,13 @@ import {
     TextField,
     Toggle,
 } from "./Forms.js"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ErrorMessages } from "./ChartEditorTypes.js"
 
 @observer
-export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
+export class EditorTextTab<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor; errorMessages: ErrorMessages }> {
     @action.bound onSlug(slug: string) {
         this.props.editor.grapher.slug = slugify(slug)
     }
@@ -45,6 +39,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
 
     @action.bound onAddRelatedQuestion() {
         const { grapher } = this.props.editor
+        if (!grapher.relatedQuestions) grapher.relatedQuestions = []
         grapher.relatedQuestions.push({
             text: "",
             url: "",
@@ -53,6 +48,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
 
     @action.bound onRemoveRelatedQuestion(idx: number) {
         const { grapher } = this.props.editor
+        if (!grapher.relatedQuestions) grapher.relatedQuestions = []
         grapher.relatedQuestions.splice(idx, 1)
     }
 
@@ -74,8 +70,8 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         grapher.hideAnnotationFieldsInTitle.changeInPrefix = value || undefined
     }
 
-    @computed get errorMessages(): ChartEditorManager["errorMessages"] {
-        return this.props.editor.manager.errorMessages
+    @computed get errorMessages() {
+        return this.props.errorMessages
     }
 
     @computed get showAnyAnnotationFieldInTitleToggle() {
@@ -88,16 +84,29 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
     }
 
     render() {
-        const { grapher, references, features } = this.props.editor
-        const { relatedQuestions } = grapher
+        const { editor } = this.props
+        const { grapher, features } = editor
+        const { relatedQuestions = [] } = grapher
 
         return (
             <div className="EditorTextTab">
                 <Section name="Header">
-                    <BindAutoString
-                        field="title"
-                        store={grapher}
-                        auto={grapher.displayTitle}
+                    <BindAutoStringExt
+                        label="Title"
+                        readFn={({ grapher }) => grapher.displayTitle}
+                        writeFn={({ grapher }, newVal) =>
+                            (grapher.title = newVal)
+                        }
+                        readAutoFn={({ editor }) =>
+                            editor.couldPropertyBeInherited("title")
+                                ? editor.activeParentConfig!.title
+                                : undefined
+                        }
+                        isAuto={
+                            editor.isPropertyInherited("title") ||
+                            grapher.title === undefined
+                        }
+                        store={{ grapher, editor }}
                         softCharacterLimit={100}
                     />
                     {features.showEntityAnnotationInTitleToggle && (
@@ -146,11 +155,21 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         helpText="Human-friendly URL for this chart"
                     />
                     <BindAutoStringExt
-                        label={"Subtitle"}
-                        readFn={(g) => g.currentSubtitle}
-                        writeFn={(g, newVal) => (g.subtitle = newVal)}
-                        isAuto={grapher.subtitle === undefined}
-                        store={grapher}
+                        label="Subtitle"
+                        readFn={({ grapher }) => grapher.currentSubtitle}
+                        writeFn={({ grapher }, newVal) =>
+                            (grapher.subtitle = newVal)
+                        }
+                        readAutoFn={({ editor }) =>
+                            editor.couldPropertyBeInherited("subtitle")
+                                ? editor.activeParentConfig!.subtitle
+                                : undefined
+                        }
+                        isAuto={
+                            editor.isPropertyInherited("subtitle") ||
+                            grapher.subtitle === undefined
+                        }
+                        store={{ grapher, editor }}
                         placeholder="Briefly describe the context of the data. It's best to avoid duplicating any information which can be easily inferred from other visual elements of the chart."
                         textarea
                         softCharacterLimit={280}
@@ -171,11 +190,22 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     />
                 </Section>
                 <Section name="Footer">
-                    <BindAutoString
+                    <BindAutoStringExt
                         label="Source"
-                        field="sourceDesc"
-                        store={grapher}
-                        auto={grapher.sourcesLine}
+                        readFn={({ grapher }) => grapher.sourcesLine}
+                        writeFn={({ grapher }, newVal) =>
+                            (grapher.sourceDesc = newVal)
+                        }
+                        readAutoFn={({ editor }) =>
+                            editor.couldPropertyBeInherited("sourceDesc")
+                                ? editor.activeParentConfig!.sourceDesc
+                                : undefined
+                        }
+                        isAuto={
+                            editor.isPropertyInherited("sourceDesc") ||
+                            grapher.sourceDesc === undefined
+                        }
+                        store={{ grapher, editor }}
                         helpText="Short comma-separated list of source names"
                         softCharacterLimit={60}
                     />
@@ -186,15 +216,16 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         placeholder={grapher.originUrlWithProtocol}
                         helpText="The page containing this chart where more context can be found"
                     />
-                    {references &&
-                        (references.postsWordpress.length > 0 ||
-                            references.postsGdocs.length > 0) && (
+                    {isChartEditorInstance(editor) &&
+                        editor.references &&
+                        (editor.references.postsWordpress.length > 0 ||
+                            editor.references.postsGdocs.length > 0) && (
                             <div className="originSuggestions">
                                 <p>Origin url suggestions</p>
                                 <ul>
                                     {[
-                                        ...references.postsWordpress,
-                                        ...references.postsGdocs,
+                                        ...editor.references.postsWordpress,
+                                        ...editor.references.postsGdocs,
                                     ].map((post) => (
                                         <li key={post.id}>{post.url}</li>
                                     ))}
@@ -212,11 +243,6 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         textarea
                     />
                 </Section>
-
-                <TopicsSection
-                    allTopics={this.props.editor.allTopics}
-                    grapher={grapher}
-                />
 
                 <Section name="Related">
                     {relatedQuestions.map(
@@ -281,39 +307,6 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     />
                 </Section>
             </div>
-        )
-    }
-}
-@observer
-class TopicsSection extends React.Component<{
-    allTopics: Topic[]
-    grapher: Grapher
-}> {
-    render() {
-        const { grapher } = this.props
-
-        return (
-            <Section name="Topics">
-                <Select
-                    isDisabled={!TOPICS_CONTENT_GRAPH}
-                    options={this.props.allTopics}
-                    getOptionValue={(topic) => topic.id.toString()}
-                    getOptionLabel={(topic) => topic.name}
-                    isMulti={true}
-                    value={grapher.topicIds.map((topicId) => ({
-                        id: topicId,
-                        name:
-                            this.props.allTopics.find((t) => t.id === topicId)
-                                ?.name || "TOPIC NOT FOUND",
-                    }))}
-                    onChange={(topics) =>
-                        runInAction(() => {
-                            grapher.topicIds = topics.map((topic) => topic.id)
-                        })
-                    }
-                    menuPlacement="auto"
-                />
-            </Section>
         )
     }
 }

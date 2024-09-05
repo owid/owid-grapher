@@ -32,7 +32,7 @@ interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     label?: React.ReactNode
     secondaryLabel?: string
     value: string | undefined
-    onValue: (value: string) => void
+    onValue?: (value: string) => void
     onEnter?: () => void
     onEscape?: () => void
     onButtonClick?: () => void
@@ -68,7 +68,7 @@ export class TextField extends React.Component<TextFieldProps> {
     @bind onBlur(e: React.FocusEvent<HTMLInputElement>) {
         const { value = "" } = this.props
         const trimmedValue = value.trim()
-        this.props.onValue(trimmedValue)
+        this.props.onValue?.(trimmedValue)
         this.props.onBlur?.(e)
     }
 
@@ -114,7 +114,7 @@ export class TextField extends React.Component<TextFieldProps> {
                         type="text"
                         value={props.value || ""}
                         onChange={(e) =>
-                            this.props.onValue(e.currentTarget.value)
+                            this.props.onValue?.(e.currentTarget.value)
                         }
                         onBlur={this.onBlur}
                         onKeyDown={this.onKeyDown}
@@ -156,13 +156,13 @@ export class TextField extends React.Component<TextFieldProps> {
 export class TextAreaField extends React.Component<TextFieldProps> {
     @bind onChange(ev: React.FormEvent<HTMLTextAreaElement>) {
         const value = ev.currentTarget.value
-        this.props.onValue(value)
+        this.props.onValue?.(value)
     }
 
     @bind onBlur() {
         const { value = "" } = this.props
         const trimmedValue = value.trim()
-        this.props.onValue(trimmedValue)
+        this.props.onValue?.(trimmedValue)
     }
 
     render() {
@@ -307,6 +307,7 @@ interface SelectFieldProps {
     options: Option[]
     helpText?: string
     placeholder?: string
+    onBlur?: () => void
 }
 
 export class SelectField extends React.Component<SelectFieldProps> {
@@ -321,6 +322,7 @@ export class SelectField extends React.Component<SelectFieldProps> {
                     onChange={(e) =>
                         props.onValue(e.currentTarget.value as string)
                     }
+                    onBlur={this.props.onBlur}
                     value={props.value}
                     defaultValue={undefined}
                 >
@@ -733,6 +735,7 @@ export class BindString extends React.Component<{
     errorMessage?: string
     buttonContent?: React.ReactChild
     onButtonClick?: () => void
+    onBlur?: () => void
 }> {
     @action.bound onValue(value: string = "") {
         this.props.store[this.props.field] = value
@@ -741,6 +744,7 @@ export class BindString extends React.Component<{
     @action.bound onBlur() {
         const trimmedValue = this.props.store[this.props.field]?.trim()
         this.props.store[this.props.field] = trimmedValue
+        this.props.onBlur?.()
     }
 
     render() {
@@ -854,6 +858,8 @@ export class BindAutoString<
     errorMessage?: string
     softCharacterLimit?: number
     onBlur?: () => void
+    placeholder?: string
+    textarea?: boolean
 }> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = value as any
@@ -919,6 +925,7 @@ export class BindAutoStringExt<
 > extends React.Component<
     {
         readFn: (x: T) => string
+        readAutoFn?: (x: T) => string | undefined
         writeFn: (x: T, value: string | undefined) => void
         store: T
     } & Omit<
@@ -940,13 +947,17 @@ export class BindAutoStringExt<
     @action.bound onToggleAuto(value: boolean) {
         this.props.writeFn(
             this.props.store,
-            value ? undefined : this.props.readFn(this.props.store)
+            value
+                ? this.props.readAutoFn?.(this.props.store)
+                : this.props.readFn(this.props.store)
         )
     }
 
     render() {
-        const { readFn, store, ...rest } = this.props
-        const currentReadValue = readFn(store)
+        const { readFn, readAutoFn, store, ...rest } = this.props
+        const currentReadValue = this.props.isAuto
+            ? readAutoFn?.(store) ?? readFn(store)
+            : readFn(store)
         return (
             <AutoTextField
                 value={currentReadValue || ""}

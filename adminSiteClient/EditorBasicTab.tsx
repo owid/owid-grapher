@@ -30,7 +30,6 @@ import {
 } from "@ourworldindata/utils"
 import { FieldsRow, Section, SelectField, Toggle } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
-import { ChartEditor, ChartEditorManager } from "./ChartEditor.js"
 import { DimensionCard } from "./DimensionCard.js"
 import {
     DragDropContext,
@@ -38,11 +37,23 @@ import {
     Draggable,
     DropResult,
 } from "react-beautiful-dnd"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { EditorDatabase } from "./ChartEditorView.js"
+import { isChartEditorInstance } from "./ChartEditor.js"
+import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
+import {
+    IndicatorChartEditor,
+    isIndicatorChartEditorInstance,
+} from "./IndicatorChartEditor.js"
 
 @observer
-class DimensionSlotView extends React.Component<{
+class DimensionSlotView<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{
     slot: DimensionSlot
-    editor: ChartEditor
+    editor: Editor
+    database: EditorDatabase
+    errorMessagesForDimensions: ErrorMessagesForDimensions
 }> {
     disposers: IReactionDisposer[] = []
 
@@ -53,8 +64,8 @@ class DimensionSlotView extends React.Component<{
     }
 
     @computed
-    get errorMessages(): ChartEditorManager["errorMessagesForDimensions"] {
-        return this.props.editor.manager.errorMessagesForDimensions
+    get errorMessages() {
+        return this.props.errorMessagesForDimensions
     }
 
     @action.bound private onAddVariables(variableIds: OwidVariableId[]) {
@@ -75,6 +86,7 @@ class DimensionSlotView extends React.Component<{
         this.isSelectingVariables = false
 
         this.updateDimensionsAndRebuildTable(dimensionConfigs)
+        this.updateParentConfig()
     }
 
     @action.bound private onRemoveDimension(variableId: OwidVariableId) {
@@ -83,10 +95,12 @@ class DimensionSlotView extends React.Component<{
                 (d) => d.variableId !== variableId
             )
         )
+        this.updateParentConfig()
     }
 
     @action.bound private onChangeDimension() {
         this.updateDimensionsAndRebuildTable()
+        this.updateParentConfig()
     }
 
     @action.bound private updateDefaults() {
@@ -127,7 +141,8 @@ class DimensionSlotView extends React.Component<{
     }
 
     componentDidMount() {
-        // We want to add the reaction only after the grapher is loaded, so we don't update the initial chart (as configured) by accident.
+        // We want to add the reaction only after the grapher is loaded,
+        // so we don't update the initial chart (as configured) by accident.
         when(
             () => this.grapher.isReady,
             () => {
@@ -165,6 +180,13 @@ class DimensionSlotView extends React.Component<{
         this.grapher.rebuildInputOwidTable()
     }
 
+    @action.bound private updateParentConfig() {
+        const { editor } = this.props
+        if (isChartEditorInstance(editor)) {
+            void editor.updateParentConfig()
+        }
+    }
+
     @action.bound private onDragEnd(result: DropResult) {
         const { source, destination } = result
         if (!destination) return
@@ -176,6 +198,7 @@ class DimensionSlotView extends React.Component<{
         )
 
         this.updateDimensionsAndRebuildTable(dimensions)
+        this.updateParentConfig()
     }
 
     @computed get isDndEnabled() {
@@ -267,6 +290,7 @@ class DimensionSlotView extends React.Component<{
                 {isSelectingVariables && (
                     <VariableSelector
                         editor={editor}
+                        database={this.props.database}
                         slot={slot}
                         onDismiss={action(
                             () => (this.isSelectingVariables = false)
@@ -280,7 +304,13 @@ class DimensionSlotView extends React.Component<{
 }
 
 @observer
-class VariablesSection extends React.Component<{ editor: ChartEditor }> {
+class VariablesSection<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{
+    editor: Editor
+    database: EditorDatabase
+    errorMessagesForDimensions: ErrorMessagesForDimensions
+}> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref isAddingVariable: boolean = false
 
@@ -296,6 +326,10 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
                             key={slot.name}
                             slot={slot}
                             editor={props.editor}
+                            database={props.database}
+                            errorMessagesForDimensions={
+                                props.errorMessagesForDimensions
+                            }
                         />
                     ))}
                 </div>
@@ -305,7 +339,20 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
+export class EditorBasicTab<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{
+    editor: Editor
+    database: EditorDatabase
+    errorMessagesForDimensions: ErrorMessagesForDimensions
+}> {
+    @action.bound private updateParentConfig() {
+        const { editor } = this.props
+        if (isChartEditorInstance(editor)) {
+            void editor.updateParentConfig()
+        }
+    }
+
     @action.bound onChartTypeChange(value: string) {
         const { grapher } = this.props.editor
         grapher.type = value as ChartTypeName
@@ -338,6 +385,11 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
                     property: DimensionProperty.size,
                 })
         }
+
+        // since the parent config depends on the chart type
+        // (scatters don't have a parent), we might need to update
+        // the parent config when the type changes
+        this.updateParentConfig()
     }
 
     render() {
@@ -347,8 +399,12 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
             (chartType) => chartType !== ChartTypeName.WorldMap
         )
 
+        const isIndicatorChart = isIndicatorChartEditorInstance(editor)
+
         return (
             <div className="EditorBasicTab">
+                {isIndicatorChart && <IndicatorChartInfo editor={editor} />}
+
                 <Section name="Type of chart">
                     <SelectField
                         value={grapher.type}
@@ -371,8 +427,37 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
                         />
                     </FieldsRow>
                 </Section>
-                <VariablesSection editor={editor} />
+                {!isIndicatorChart && (
+                    <VariablesSection
+                        editor={editor}
+                        database={this.props.database}
+                        errorMessagesForDimensions={
+                            this.props.errorMessagesForDimensions
+                        }
+                    />
+                )}
             </div>
         )
     }
+}
+
+function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
+    const { variableId, grapher } = props.editor
+
+    const column = grapher.inputTable.get(variableId?.toString())
+    const variableLink = (
+        <a
+            href={`/admin/variables/${variableId}`}
+            target="_blank"
+            rel="noopener"
+        >
+            {column?.name ?? variableId}
+        </a>
+    )
+
+    return (
+        <Section name="Indicator chart">
+            <p>This is the Grapher config for indicator {variableLink}.</p>
+        </Section>
+    )
 }

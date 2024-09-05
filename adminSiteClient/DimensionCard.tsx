@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { ChartDimension } from "@ourworldindata/grapher"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 import { startCase } from "@ourworldindata/utils"
-import { ChartEditor, DimensionErrorMessage } from "./ChartEditor.js"
+import { DimensionErrorMessage } from "./ChartEditorTypes.js"
 import {
     Toggle,
     BindAutoString,
@@ -22,11 +22,14 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidTable } from "@ourworldindata/core-table"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 @observer
-export class DimensionCard extends React.Component<{
+export class DimensionCard<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{
     dimension: ChartDimension
-    editor: ChartEditor
+    editor: Editor
     isDndEnabled?: boolean
     onChange: (dimension: ChartDimension) => void
     onEdit?: () => void

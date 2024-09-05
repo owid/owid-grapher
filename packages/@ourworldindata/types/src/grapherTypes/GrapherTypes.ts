@@ -4,7 +4,7 @@ import {
 } from "../OwidVariableDisplayConfigInterface.js"
 import { ColumnSlugs, EntityName } from "../domainTypes/CoreTableTypes.js"
 import { AxisAlign, Position } from "../domainTypes/Layout.js"
-import { Integer, QueryParams, TopicId } from "../domainTypes/Various.js"
+import { Integer, QueryParams } from "../domainTypes/Various.js"
 import { DetailDictionary } from "../gdocTypes/Gdoc.js"
 import { observable } from "mobx"
 
@@ -173,14 +173,10 @@ export enum GrapherTabOption {
     map = "map",
     table = "table",
 }
+
 export interface RelatedQuestionsConfig {
     text: string
     url: string
-}
-
-export interface Topic {
-    id: TopicId
-    name: string
 }
 
 export enum MissingDataStrategy {
@@ -564,7 +560,6 @@ export interface GrapherInterface extends SortConfig {
     internalNotes?: string
     variantName?: string
     originUrl?: string
-    topicIds?: TopicId[]
     isPublished?: boolean
     baseColorScheme?: ColorSchemeName
     invertColorScheme?: boolean
@@ -579,9 +574,10 @@ export interface GrapherInterface extends SortConfig {
     includedEntities?: number[]
     selectedEntityNames?: EntityName[]
     selectedEntityColors?: { [entityName: string]: string | undefined }
-    facet?: FacetStrategy
     missingDataStrategy?: MissingDataStrategy
     hideFacetControl?: boolean
+    facettingLabelByYVariables?: string
+    selectedFacetStrategy?: FacetStrategy
 
     xAxis?: Partial<AxisConfigInterface>
     yAxis?: Partial<AxisConfigInterface>
@@ -683,11 +679,11 @@ export const grapherKeysToSerialize = [
     "hideFacetControl",
     "comparisonLines",
     "relatedQuestions",
-    "topicIds",
-    "details",
+    "missingDataStrategy",
+
+    // internals
     "adminBaseUrl",
     "bakedGrapherURL",
-    "missingDataStrategy",
     "dataApiUrl",
 ]
 

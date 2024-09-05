@@ -803,6 +803,10 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         width: 100%;
         height: 500px;
     }
+
+    .partial-grapher-configs .FieldsRow {
+        align-items: flex-start;
+    }
 }
 
 .topbar {

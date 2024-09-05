@@ -40,7 +40,7 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref facetDomain?: FacetAxisDomain = undefined
     @observable.ref ticks?: Tickmark[] = undefined
     @observable.ref singleValueAxisPointAlign?: AxisAlign = undefined
-    @observable.ref label: string = ""
+    @observable.ref label?: string = undefined
     @observable.ref domainValues?: number[] = undefined
 }
 
