@@ -372,10 +372,6 @@
         top: 50%;
         transform: translateY(-50%);
         cursor: pointer;
-        &:focus {
-            outline: none;
-            border-color: $gray-60;
-        }
     }
     label {
         width: 100%;
@@ -492,7 +488,7 @@
 .data-catalog-applied-filters-button {
     background-color: $blue-20;
     color: $blue-90;
-    padding: 5.5px 16px;
+    padding: 4.5px 16px;
     border: 1px solid $blue-20;
     border-radius: 50px;
     cursor: pointer;
@@ -705,8 +701,39 @@
     }
 }
 
-/* temp */
 .chart-hit-title-container {
     @include body-3-regular;
     line-height: 18px;
+}
+
+// Skeletons
+.data-catalog-refinement-list--skeleton {
+    margin-bottom: 16px;
+    background-color: $blue-10;
+}
+.data-catalog-ribbon--skeleton {
+    height: 320px;
+}
+.data-catalog-search-list__results-count--skeleton {
+    display: block;
+    background-color: $gray-10;
+    width: 192px;
+    height: 21px;
+    margin-bottom: 8px;
+}
+.data-catalog-search-hit__thumbnail-skeleton {
+    background-color: $gray-10;
+    padding-bottom: calc(100% * 210 / 297);
+}
+
+.data-catalog-search-hit__thumbnail-title {
+    background-color: $gray-10;
+    height: 20px;
+    margin-bottom: 0;
+    margin-top: 8px;
+    width: 100%;
+    &:last-child {
+        margin-top: 0px;
+        width: 50%;
+    }
 }
