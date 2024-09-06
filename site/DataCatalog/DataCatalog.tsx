@@ -56,6 +56,10 @@ import {
     DataCatalogRibbonViewSkeleton,
 } from "./DataCatalogSkeletons.js"
 import { useMediaQuery } from "usehooks-ts"
+import {
+    SMALL_BREAKPOINT_MEDIA_QUERY,
+    TOUCH_DEVICE_MEDIA_QUERY,
+} from "../SiteConstants.js"
 
 const DataCatalogSearchInput = ({
     value,
@@ -66,19 +70,36 @@ const DataCatalogSearchInput = ({
     setQuery: (query: string) => void
     onSubmit: () => void
 }) => {
+    const isTouchDevice = useMediaQuery(TOUCH_DEVICE_MEDIA_QUERY)
+    const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
+    const inputRef = useRef<HTMLInputElement | null>(null)
+    let placeholder = ""
+    if (inputRef.current) {
+        // Only set the placeholder once the component has rendered so that useMediaQuery has a chance to initialize
+        // Otherwise on mobile it will flash from the desktop version to the mobile placeholder
+        placeholder = isSmallScreen
+            ? "Search data, topics, or keywords…"
+            : "Search for an indicator, a topic, or a keyword…"
+    }
     return (
         <div className="data-catalog-search-box-container">
             <form
                 className="data-catalog-search-form"
                 onSubmit={(e) => {
                     e.preventDefault()
+                    // unfocus input to hide mobile keyboard
+                    if (isTouchDevice) {
+                        const input = e.currentTarget.querySelector("input")
+                        if (input) input.blur()
+                    }
                     onSubmit()
                 }}
             >
                 <input
                     type="text"
                     className="data-catalog-search-input body-3-regular"
-                    placeholder="Search for an indicator, a topic, or a keyword &hellip;"
+                    ref={inputRef}
+                    placeholder={placeholder}
                     enterKeyHint="search"
                     value={value}
                     onChange={(e) => {
@@ -118,7 +139,7 @@ function DataCatalogCountrySelector({
 }) {
     const [isOpen, setIsOpen] = useState(false)
     const [countrySearchQuery, setCountrySearchQuery] = useState("")
-    const isMobile = useMediaQuery("(max-width: 768px)")
+    const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const countrySelectorRef = useRef<HTMLDivElement>(null)
     const listContainerRef = useRef<HTMLDivElement>(null)
     useFocusTrap(listContainerRef, isOpen)
@@ -142,7 +163,7 @@ function DataCatalogCountrySelector({
     const toggleOpen = () => {
         setIsOpen((isOpen) => !isOpen)
         // if opening on mobile, scroll down a little
-        if (isMobile && !isOpen) {
+        if (isSmallScreen && !isOpen) {
             setTimeout(() => {
                 const listContainer = listContainerRef.current
                 if (listContainer) {

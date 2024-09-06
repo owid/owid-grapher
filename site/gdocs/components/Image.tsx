@@ -16,6 +16,7 @@ import { DocumentContext } from "../OwidGdoc.js"
 import { Container } from "./ArticleBlock.js"
 import { useImage } from "../utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
+import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
 
 // generates rules that tell the browser:
 // below the medium breakpoint, the image will be 95vw wide
@@ -124,7 +125,7 @@ export default function Image(props: {
             return (
                 <source
                     srcSet={`${makePreviewUrl(i.filename)} ${i.originalWidth}w`}
-                    media={sm ? "(max-width: 768px)" : undefined}
+                    media={sm ? SMALL_BREAKPOINT_MEDIA_QUERY : undefined}
                     type={getFilenameMIMEType(i.filename)}
                     sizes={
                         containerSizes[containerType] ?? containerSizes.default
