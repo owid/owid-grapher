@@ -114,6 +114,7 @@
         outline: none;
     }
 
+    &::placeholder,
     &:placeholder-shown {
         text-overflow: ellipsis;
         color: $blue-60;
@@ -439,7 +440,6 @@
 }
 
 .data-catalog-refinement-list__list-item {
-    @include body-3-medium;
     display: inline;
     margin: 0 4px;
     button {
@@ -450,6 +450,7 @@
         background-color: transparent;
         &:hover {
             text-decoration: underline;
+            text-underline-offset: 3px;
         }
     }
     @include sm-only {
@@ -463,7 +464,6 @@
 }
 
 .data-catalog-refinement-list__list-item-hit-count {
-    color: $blue-60;
     margin-left: 4px;
 }
 
@@ -674,6 +674,7 @@
             text-align: center;
             line-height: 40px;
             transition: 200ms;
+            cursor: pointer;
             &:hover {
                 background-color: $blue-10;
             }

@@ -595,9 +595,8 @@ const TopicsRefinementList = ({
                                     aria-label={`Filter by ${facetName}`}
                                     onClick={() => addTopic(facetName)}
                                 >
-                                    <span>{facetName}</span>
-                                    <span className="data-catalog-refinement-list__list-item-hit-count body-3-medium">
-                                        ({count})
+                                    <span className="body-3-medium">
+                                        {facetName} ({count})
                                     </span>
                                 </button>
                             </li>
