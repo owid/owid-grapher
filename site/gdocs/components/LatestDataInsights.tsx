@@ -29,6 +29,7 @@ import { dataInsightIndexToIdMap } from "../pages/DataInsight.js"
 import Image from "./Image.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import DataInsightDateline from "./DataInsightDateline.js"
+import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
 
 export default function LatestDataInsights({
     className,
@@ -49,7 +50,7 @@ export default function LatestDataInsights({
             }),
         [latestDataInsights]
     )
-    const isSmallScreen = useMediaQuery("(max-width: 768px)")
+    const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start" }, [
         ClassNames(),
     ])

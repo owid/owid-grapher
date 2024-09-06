@@ -131,6 +131,7 @@
     background: #fff;
     height: 48px;
     display: flex;
+    flex-shrink: 0;
     align-items: center;
 }
 
@@ -176,8 +177,7 @@
         }
     }
     @include sm-only {
-        // ruby instead of block because it stops it from shrinking for some reason
-        display: ruby;
+        display: block;
         padding: 8px;
     }
 }
