@@ -8,12 +8,13 @@
 
 .data-catalog-header {
     background-color: $blue-5;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
     padding-bottom: 24px;
 }
 
 .data-catalog-heading {
     h1 {
+        margin-top: 24px;
         margin-bottom: 8px;
     }
     p {
@@ -231,6 +232,10 @@
 .data-catalog-country-selector-search-container {
     position: relative;
     margin-bottom: 16px;
+    svg {
+        width: 14px;
+        height: 14px;
+    }
 }
 
 .data-catalog-country-selector__search-icon {
@@ -265,6 +270,8 @@
 .data-catalog-country-selector-switch {
     margin-bottom: 16px;
     label {
+        @include label-2-medium;
+        color: $gray-80;
         white-space: wrap;
     }
 }
@@ -285,10 +292,12 @@
         border-color: $blue-30;
     }
 
+    &:placeholder-shown,
     &::placeholder {
         @include label-2-regular;
         color: $gray-60;
     }
+
     @include sm-only {
         // Prevents auto-zoom on Safari
         font-size: 16px;
@@ -482,7 +491,9 @@
 
 .data-catalog-applied-filters-list {
     list-style: none;
-    margin-bottom: 8px;
+    &:has(.data-catalog-applied-filters-item) {
+        margin-bottom: 8px;
+    }
 }
 
 .data-catalog-applied-filters-item {
@@ -504,6 +515,7 @@
     svg {
         height: 12px;
         margin-left: 4px;
+        margin-top: 1px;
     }
     &:focus {
         outline: none;

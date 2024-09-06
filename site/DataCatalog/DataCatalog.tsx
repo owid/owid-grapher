@@ -392,6 +392,14 @@ const DataCatalogRibbon = ({
     const handleAddTopicClick = (e: React.MouseEvent) => {
         e.preventDefault()
         addTopic(result.title)
+        // Small delay to ensure new screen is rendered before scrolling
+        // Otherwise it doesn't scroll sometimes
+        setTimeout(() => {
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth",
+            })
+        }, 100)
     }
 
     return (
@@ -403,7 +411,8 @@ const DataCatalogRibbon = ({
                 <div className="data-catalog-ribbon__header">
                     <h2 className="body-1-regular">{result.title}</h2>
                     <span className="data-catalog-ribbon__hit-count body-2-semibold">
-                        {result.nbHits} indicators
+                        {result.nbHits}{" "}
+                        {result.nbHits === 1 ? "indicator" : "indicators"}
                         <FontAwesomeIcon icon={faArrowRight} />
                     </span>
                 </div>
@@ -427,7 +436,9 @@ const DataCatalogRibbon = ({
                 className="data-catalog-ribbon__see-all-button"
                 onClick={handleAddTopicClick}
             >
-                See all {result.nbHits} indicators{" "}
+                {result.nbHits === 1
+                    ? `See 1 indicator`
+                    : `See ${result.nbHits} indicators`}
                 <FontAwesomeIcon icon={faArrowRight} />
             </button>
         </div>
@@ -654,13 +665,20 @@ const DataCatalogPagination = ({
 
     if (nbPages < 2) return null
 
+    function handlePageClick(page: number) {
+        setPage(page)
+        window.scrollTo({
+            top: 0,
+        })
+    }
+
     const pages = getPaginationPageNumbers(currentPage, nbPages)
 
     return (
         <ol className="data-catalog-pagination span-cols-12 col-start-2">
             <li className="data-catalog-pagination__item">
                 <button
-                    onClick={() => setPage(currentPage - 1)}
+                    onClick={() => handlePageClick(currentPage - 1)}
                     disabled={currentPage === 0}
                 >
                     <FontAwesomeIcon icon={faArrowLeft} />
@@ -676,7 +694,7 @@ const DataCatalogPagination = ({
                     })}
                 >
                     <button
-                        onClick={() => setPage(page)}
+                        onClick={() => handlePageClick(page)}
                         disabled={page === currentPage}
                     >
                         {page + 1}
@@ -685,7 +703,7 @@ const DataCatalogPagination = ({
             ))}
             <li className="data-catalog-pagination__item">
                 <button
-                    onClick={() => setPage(currentPage + 1)}
+                    onClick={() => handlePageClick(currentPage + 1)}
                     disabled={currentPage === nbPages - 1}
                 >
                     <FontAwesomeIcon icon={faArrowRight} />
