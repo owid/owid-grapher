@@ -94,7 +94,10 @@ function Image({
         ? Math.round(LARGEST_IMAGE_WIDTH / aspectRatio)
         : undefined
 
-    const extension = getFilenameExtension(image.filename)
+    // If we're using a resized image (i.e. it has a width suffix), the file extension is ALWAYS png
+    // If we're using the original image, we need to check the original file extension (which SHOULD be png, but might not be)
+    const extension = widthSuffix ? "png" : getFilenameExtension(filename)
+
     return (
         <img
             src={`${BAKED_BASE_URL}${IMAGES_DIRECTORY}${filenameWithoutExtension}${widthSuffix}.${extension}`}
