@@ -68,7 +68,6 @@ export const defaultGrapherConfig = {
     showNoDataArea: true,
     zoomToSelection: false,
     showYearLabels: false,
-    hideLinesOutsideTolerance: false,
     hideTotalValueLabel: false,
     hideScatterLabels: false,
     sortBy: "total",
