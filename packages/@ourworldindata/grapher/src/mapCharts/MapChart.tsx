@@ -92,14 +92,18 @@ const geoBoundsFor = (): Bounds[] => {
     if (geoBoundsCache.has("cartogramm"))
         return geoBoundsCache.get("cartogramm")!
     const bounds = CartogrammFeatures.map((feature) => {
-        if (feature.geometry.type !== "Polygon" && feature.geometry.type !== "MultiPolygon") {
-            return new Bounds(0, 0, 0, 0); // Return a default Bounds for unsupported geometries
+        if (
+            feature.geometry.type !== "Polygon" &&
+            feature.geometry.type !== "MultiPolygon"
+        ) {
+            return new Bounds(0, 0, 0, 0) // Return a default Bounds for unsupported geometries
         }
-        const coordinates = feature.geometry.type === "Polygon"
-            ? feature.geometry.coordinates[0]
-            : feature.geometry.coordinates[0][0];
-        const xValues = coordinates.map((coord: number[]) => coord[0]);
-        const yValues = coordinates.map((coord: number[]) => coord[1]);
+        const coordinates =
+            feature.geometry.type === "Polygon"
+                ? feature.geometry.coordinates[0]
+                : feature.geometry.coordinates[0][0]
+        const xValues = coordinates.map((coord: number[]) => coord[0])
+        const yValues = coordinates.map((coord: number[]) => coord[1])
         return new Bounds(
             Math.min(...xValues),
             Math.min(...yValues),
@@ -567,13 +571,13 @@ export class MapChart
     private getPathFromGeometry(geometry: GeoJSON.Geometry): string {
         switch (geometry.type) {
             case "Polygon":
-                return `M ${geometry.coordinates[0].join(" L ")} Z`;
+                return `M ${geometry.coordinates[0].join(" L ")} Z`
             case "MultiPolygon":
                 return geometry.coordinates
-                    .map(poly => `M ${poly[0].join(" L ")} Z`)
-                    .join(" ");
+                    .map((poly) => `M ${poly[0].join(" L ")} Z`)
+                    .join(" ")
             default:
-                return "";
+                return ""
         }
     }
 
@@ -719,10 +723,7 @@ class ChoroplethMap extends React.Component<{
 
     // Features that aren't part of the current projection (e.g. India if we're showing Africa)
     @computed private get featuresOutsideProjection(): RenderFeature[] {
-        return difference(
-            renderFeaturesFor(),
-            this.featuresInProjection
-        )
+        return difference(renderFeaturesFor(), this.featuresInProjection)
     }
 
     @computed private get featuresInProjection(): RenderFeature[] {
@@ -958,7 +959,9 @@ class ChoroplethMap extends React.Component<{
                                 : 1
 
                             // Generate path from feature coordinates
-                            const path = this.getPathFromGeometry(feature.geo.geometry);
+                            const path = this.getPathFromGeometry(
+                                feature.geo.geometry
+                            )
 
                             return (
                                 <path
@@ -998,13 +1001,13 @@ class ChoroplethMap extends React.Component<{
     private getPathFromGeometry(geometry: GeoJSON.Geometry): string {
         switch (geometry.type) {
             case "Polygon":
-                return `M ${geometry.coordinates[0].join(" L ")} Z`;
+                return `M ${geometry.coordinates[0].join(" L ")} Z`
             case "MultiPolygon":
                 return geometry.coordinates
-                    .map(poly => `M ${poly[0].join(" L ")} Z`)
-                    .join(" ");
+                    .map((poly) => `M ${poly[0].join(" L ")} Z`)
+                    .join(" ")
             default:
-                return "";
+                return ""
         }
     }
 }
