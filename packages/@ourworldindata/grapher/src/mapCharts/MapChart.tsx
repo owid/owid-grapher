@@ -20,7 +20,6 @@ import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
-import { MapProjectionGeos } from "./MapProjections"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
@@ -49,8 +48,7 @@ import {
     NumericBin,
 } from "../color/ColorScaleBin"
 import * as topojson from "topojson-client"
-import { MapTopology } from "./MapTopology"
-import { getCountriesByProjection } from "./WorldRegionsToProjection"
+import { CartogrammTopology } from "./CartogrammTopology"
 import {
     ColorSchemeName,
     MapProjectionName,
@@ -78,81 +76,57 @@ interface MapChartProps {
     containerElement?: HTMLDivElement
 }
 
-// Get the underlying geographical topology elements we're going to display
-const GeoFeatures: GeoFeature[] = (
+// Replace the GeoFeatures definition
+const CartogrammFeatures: GeoFeature[] = (
     topojson.feature(
-        MapTopology as any,
-        MapTopology.objects.world as any
+        CartogrammTopology as any,
+        CartogrammTopology.objects.countries as any
     ) as any
 ).features
 
-// Get the svg path specification string for every feature
-const geoPathCache = new Map<MapProjectionName, string[]>()
-const geoPathsFor = (projectionName: MapProjectionName): string[] => {
-    if (geoPathCache.has(projectionName))
-        return geoPathCache.get(projectionName)!
+// Remove or comment out the geoPathCache and geoPathsFor functions
 
-    // Use this context to round the path coordinates to a set number of decimal places
-    const ctx = new GeoPathRoundingContext()
-    const projectionGeo = MapProjectionGeos[projectionName].context(ctx)
-    const strs = GeoFeatures.map((feature) => {
-        ctx.beginPath() // restart the path
-        projectionGeo(feature)
-        return ctx.result()
-    })
-
-    projectionGeo.context(null) // reset the context for future calls
-
-    geoPathCache.set(projectionName, strs)
-    return geoPathCache.get(projectionName)!
-}
-
-// Get the bounding box for every geographical feature
-const geoBoundsCache = new Map<MapProjectionName, Bounds[]>()
-const geoBoundsFor = (projectionName: MapProjectionName): Bounds[] => {
-    if (geoBoundsCache.has(projectionName))
-        return geoBoundsCache.get(projectionName)!
-    const projectionGeo = MapProjectionGeos[projectionName]
-    const bounds = GeoFeatures.map((feature) => {
-        const corners = projectionGeo.bounds(feature)
-
-        const bounds = Bounds.fromCorners(
-            new PointVector(...corners[0]),
-            new PointVector(...corners[1])
+// Replace geoBoundsCache and geoBoundsFor with a simpler version
+const geoBoundsCache = new Map<string, Bounds[]>()
+const geoBoundsFor = (): Bounds[] => {
+    if (geoBoundsCache.has("cartogramm"))
+        return geoBoundsCache.get("cartogramm")!
+    const bounds = CartogrammFeatures.map((feature) => {
+        if (feature.geometry.type !== "Polygon" && feature.geometry.type !== "MultiPolygon") {
+            return new Bounds(0, 0, 0, 0); // Return a default Bounds for unsupported geometries
+        }
+        const coordinates = feature.geometry.type === "Polygon"
+            ? feature.geometry.coordinates[0]
+            : feature.geometry.coordinates[0][0];
+        const xValues = coordinates.map((coord: number[]) => coord[0]);
+        const yValues = coordinates.map((coord: number[]) => coord[1]);
+        return new Bounds(
+            Math.min(...xValues),
+            Math.min(...yValues),
+            Math.max(...xValues) - Math.min(...xValues),
+            Math.max(...yValues) - Math.min(...yValues)
         )
-
-        // HACK (Mispy): The path generator calculates weird bounds for Fiji (probably it wraps around the map)
-        if (feature.id === "Fiji")
-            return bounds.set({
-                x: bounds.right - bounds.height,
-                width: bounds.height,
-            })
-        return bounds
     })
-
-    geoBoundsCache.set(projectionName, bounds)
-    return geoBoundsCache.get(projectionName)!
+    geoBoundsCache.set("cartogramm", bounds)
+    return geoBoundsCache.get("cartogramm")!
 }
 
-// Bundle GeoFeatures with the calculated info needed to render them
-const renderFeaturesCache = new Map<MapProjectionName, RenderFeature[]>()
-const renderFeaturesFor = (
-    projectionName: MapProjectionName
-): RenderFeature[] => {
-    if (renderFeaturesCache.has(projectionName))
-        return renderFeaturesCache.get(projectionName)!
-    const geoBounds = geoBoundsFor(projectionName)
-    const geoPaths = geoPathsFor(projectionName)
-    const feats = GeoFeatures.map((geo, index) => ({
+// Update renderFeaturesCache and renderFeaturesFor
+const renderFeaturesCache = new Map<string, RenderFeature[]>()
+const renderFeaturesFor = (): RenderFeature[] => {
+    if (renderFeaturesCache.has("cartogramm"))
+        return renderFeaturesCache.get("cartogramm")!
+    const geoBounds = geoBoundsFor()
+    const feats = CartogrammFeatures.map((geo, index) => ({
         id: geo.id as string,
         geo: geo,
-        path: geoPaths[index],
+        path: "", // We'll generate the path when rendering
         bounds: geoBounds[index],
         center: geoBounds[index].centerPos,
     }))
 
-    renderFeaturesCache.set(projectionName, feats)
-    return renderFeaturesCache.get(projectionName)!
+    renderFeaturesCache.set("cartogramm", feats)
+    return renderFeaturesCache.get("cartogramm")!
 }
 
 @observer
@@ -428,7 +402,7 @@ export class MapChart
     }
 
     @computed get projection(): MapProjectionName {
-        return this.mapConfig.projection
+        return MapProjectionName.World // CartogrammTopology is always in World projection
     }
 
     @computed get numericLegendData(): ColorScaleBin[] {
@@ -589,6 +563,20 @@ export class MapChart
         )
     }
 
+    // Add this helper function above the render method
+    private getPathFromGeometry(geometry: GeoJSON.Geometry): string {
+        switch (geometry.type) {
+            case "Polygon":
+                return `M ${geometry.coordinates[0].join(" L ")} Z`;
+            case "MultiPolygon":
+                return geometry.coordinates
+                    .map(poly => `M ${poly[0].join(" L ")} Z`)
+                    .join(" ");
+            default:
+                return "";
+        }
+    }
+
     render(): React.ReactElement {
         if (this.failMessage)
             return (
@@ -661,7 +649,7 @@ class ChoroplethMap extends React.Component<{
 
     // Combine bounding boxes to get the extents of the entire map
     @computed private get mapBounds(): Bounds {
-        return Bounds.merge(geoBoundsFor(this.manager.projection))
+        return Bounds.merge(geoBoundsFor())
     }
 
     @computed private get focusBracket(): ColorScaleBin | undefined {
@@ -719,48 +707,26 @@ class ChoroplethMap extends React.Component<{
     }
 
     @computed private get matrixTransform(): string {
-        const { bounds, mapBounds, viewport, viewportScale } = this
+        const { bounds, mapBounds, viewportScale } = this
 
-        // Calculate our reference dimensions. These values are independent of the current
-        // map translation and scaling.
-        const mapX = mapBounds.x + 1
-        const mapY = mapBounds.y + 1
-
-        // Work out how to center the map, accounting for the new scaling we've worked out
         const newWidth = mapBounds.width * viewportScale
         const newHeight = mapBounds.height * viewportScale
-        const boundsCenterX = bounds.left + bounds.width / 2
-        const boundsCenterY = bounds.top + bounds.height / 2
-        const newCenterX =
-            mapX + (viewportScale - 1) * mapBounds.x + viewport.x * newWidth
-        const newCenterY =
-            mapY + (viewportScale - 1) * mapBounds.y + viewport.y * newHeight
-        const newOffsetX = boundsCenterX - newCenterX
-        const newOffsetY = boundsCenterY - newCenterY
+        const newOffsetX = bounds.x - mapBounds.x * viewportScale
+        const newOffsetY = bounds.y - mapBounds.y * viewportScale
 
-        const matrixStr = `matrix(${viewportScale},0,0,${viewportScale},${newOffsetX},${newOffsetY})`
-        return matrixStr
+        return `matrix(${viewportScale},0,0,${viewportScale},${newOffsetX},${newOffsetY})`
     }
 
     // Features that aren't part of the current projection (e.g. India if we're showing Africa)
     @computed private get featuresOutsideProjection(): RenderFeature[] {
         return difference(
-            renderFeaturesFor(this.manager.projection),
+            renderFeaturesFor(),
             this.featuresInProjection
         )
     }
 
     @computed private get featuresInProjection(): RenderFeature[] {
-        const { projection } = this.manager
-        const features = renderFeaturesFor(projection)
-        if (projection === MapProjectionName.World) return features
-
-        const countriesByProjection = getCountriesByProjection(projection)
-        if (countriesByProjection === undefined) return []
-
-        return features.filter((feature) =>
-            countriesByProjection.has(feature.id)
-        )
+        return renderFeaturesFor()
     }
 
     @computed private get featuresWithNoData(): RenderFeature[] {
@@ -991,10 +957,13 @@ class ChoroplethMap extends React.Component<{
                                 ? blurStrokeOpacity
                                 : 1
 
+                            // Generate path from feature coordinates
+                            const path = this.getPathFromGeometry(feature.geo.geometry);
+
                             return (
                                 <path
                                     key={feature.id}
-                                    d={feature.path}
+                                    d={path}
                                     strokeWidth={
                                         (isFocus
                                             ? focusStrokeWidth
@@ -1023,5 +992,19 @@ class ChoroplethMap extends React.Component<{
                 </g>
             </g>
         )
+    }
+
+    // Add this helper function above the render method
+    private getPathFromGeometry(geometry: GeoJSON.Geometry): string {
+        switch (geometry.type) {
+            case "Polygon":
+                return `M ${geometry.coordinates[0].join(" L ")} Z`;
+            case "MultiPolygon":
+                return geometry.coordinates
+                    .map(poly => `M ${poly[0].join(" L ")} Z`)
+                    .join(" ");
+            default:
+                return "";
+        }
     }
 }
