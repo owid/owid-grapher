@@ -249,6 +249,7 @@ function DataCatalogCountrySelector({
                         {countrySearchQuery && (
                             <button
                                 onClick={() => setCountrySearchQuery("")}
+                                data-label="Clear country search"
                                 className="data-catalog-country-selector__clear-button"
                             >
                                 <FontAwesomeIcon icon={faTimesCircle} />
@@ -337,7 +338,7 @@ const SelectedCountriesPills = ({
                 <span>+ {selectedCountries.length - 1} more</span>
             ) : null}
             <button
-                aria-label={`Remove all country filters`}
+                aria-label="Remove all country filters"
                 onClick={() => {
                     selectedCountries.forEach((country) => {
                         removeCountry(country.name)
@@ -407,6 +408,7 @@ const DataCatalogRibbon = ({
         <div className="data-catalog-ribbon col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-13">
             <button
                 className="data-catalog-ribbon__header-button"
+                aria-label={`Add topic ${result.title} to filters`}
                 onClick={handleAddTopicClick}
             >
                 <div className="data-catalog-ribbon__header">
@@ -435,6 +437,7 @@ const DataCatalogRibbon = ({
             </div>
             <button
                 className="data-catalog-ribbon__see-all-button"
+                aria-label={`Add ${result.title} to filters`}
                 onClick={handleAddTopicClick}
             >
                 {result.nbHits === 1
@@ -621,6 +624,8 @@ const TopicsRefinementList = ({
     return (
         <div className="data-catalog-refinement-list span-cols-12 col-start-2">
             <button
+                aria-expanded={isExpanded}
+                aria-label={isExpanded ? "Collapse topics" : "Expand topics"}
                 className="data-catalog-refinements-expand-button"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
@@ -694,6 +699,7 @@ const DataCatalogPagination = ({
             <li className="data-catalog-pagination__item">
                 <button
                     onClick={() => handlePageClick(currentPage - 1)}
+                    aria-label="Go to previous page"
                     disabled={currentPage === 0}
                 >
                     <FontAwesomeIcon icon={faArrowLeft} />
@@ -710,6 +716,7 @@ const DataCatalogPagination = ({
                 >
                     <button
                         onClick={() => handlePageClick(page)}
+                        aria-label={`Go to page ${page + 1}`}
                         disabled={page === currentPage}
                     >
                         {page + 1}
@@ -719,6 +726,7 @@ const DataCatalogPagination = ({
             <li className="data-catalog-pagination__item">
                 <button
                     onClick={() => handlePageClick(currentPage + 1)}
+                    aria-label="Go to next page"
                     disabled={currentPage === nbPages - 1}
                 >
                     <FontAwesomeIcon icon={faArrowRight} />
@@ -761,6 +769,7 @@ const DataCatalogSearchbar = ({
             <div className="data-catalog-pseudo-input">
                 <button
                     className="data-catalog-pseudo-input__submit-button"
+                    aria-label="Submit search"
                     onClick={() => setQuery(localQuery)}
                 >
                     <FontAwesomeIcon icon={faSearch} />
