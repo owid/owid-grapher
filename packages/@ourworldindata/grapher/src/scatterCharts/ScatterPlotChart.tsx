@@ -317,7 +317,6 @@ export class ScatterPlotChart
     @computed get transformedTable(): OwidTable {
         let table = this.transformedTableFromGrapher
         if (
-            this.manager.hideLinesOutsideTolerance &&
             this.manager.startTime !== undefined &&
             this.manager.endTime !== undefined
         ) {

@@ -5,7 +5,7 @@
 import { GrapherInterface } from "@ourworldindata/types"
 
 export const defaultGrapherConfig = {
-    $schema: "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+    $schema: "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
     map: {
         projection: "World",
         hideTimeline: false,
@@ -68,7 +68,6 @@ export const defaultGrapherConfig = {
     showNoDataArea: true,
     zoomToSelection: false,
     showYearLabels: false,
-    hideLinesOutsideTolerance: false,
     hideTotalValueLabel: false,
     hideScatterLabels: false,
     sortBy: "total",

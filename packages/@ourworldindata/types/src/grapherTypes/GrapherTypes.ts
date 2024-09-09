@@ -563,7 +563,6 @@ export interface GrapherInterface extends SortConfig {
     isPublished?: boolean
     baseColorScheme?: ColorSchemeName
     invertColorScheme?: boolean
-    hideLinesOutsideTolerance?: boolean
     hideConnectedScatterLines?: boolean // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
     hideScatterLabels?: boolean
     scatterPointLabelStrategy?: ScatterPointLabelStrategy
@@ -656,7 +655,6 @@ export const grapherKeysToSerialize = [
     "isPublished",
     "baseColorScheme",
     "invertColorScheme",
-    "hideLinesOutsideTolerance",
     "hideConnectedScatterLines",
     "hideScatterLabels",
     "scatterPointLabelStrategy",

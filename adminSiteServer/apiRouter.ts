@@ -436,7 +436,7 @@ const saveGrapher = async (
         referencedVariablesMightChange = true,
     }: {
         user: DbPlainUser
-        newConfig: GrapherInterface
+        newConfig: GrapherInterface // Note that it is valid for newConfig to be of an older schema version which means that GrapherInterface as a type is slightly misleading
         existingConfig?: GrapherInterface
         // if undefined, keep inheritance as is.
         // if true or false, enable or disable inheritance
@@ -520,6 +520,17 @@ const saveGrapher = async (
     // if the schema version is missing, assume it's the latest
     if (newConfig.$schema === undefined) {
         newConfig.$schema = defaultGrapherConfig.$schema
+    } else if (
+        newConfig.$schema ===
+        "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
+    ) {
+        // TODO: find a more principled way to do schema upgrades
+
+        // grapher-schema.004 -> grapher-schema.005 removed the obsolete hideLinesOutsideTolerance field
+        const configForMigration = newConfig as any
+        delete configForMigration.hideLinesOutsideTolerance
+        configForMigration.$schema = defaultGrapherConfig.$schema
+        newConfig = configForMigration
     }
 
     // add the isPublished field if is missing

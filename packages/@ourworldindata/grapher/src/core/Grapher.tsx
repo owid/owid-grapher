@@ -384,7 +384,6 @@ export class Grapher
     @observable.ref isPublished?: boolean = undefined
     @observable.ref baseColorScheme?: ColorSchemeName = undefined
     @observable.ref invertColorScheme?: boolean = undefined
-    @observable.ref hideLinesOutsideTolerance?: boolean = undefined
     @observable hideConnectedScatterLines?: boolean = undefined // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
     @observable
     scatterPointLabelStrategy?: ScatterPointLabelStrategy = undefined
