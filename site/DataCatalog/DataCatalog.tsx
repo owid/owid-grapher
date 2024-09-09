@@ -54,6 +54,7 @@ import {
 import {
     DataCatalogResultsSkeleton,
     DataCatalogRibbonViewSkeleton,
+    LandingPageRefinementsHeading,
 } from "./DataCatalogSkeletons.js"
 import { useMediaQuery } from "usehooks-ts"
 import {
@@ -472,6 +473,7 @@ const DataCatalogRibbonView = ({
 
     return (
         <>
+            <LandingPageRefinementsHeading topics={topics} />
             <TopicsRefinementList
                 topics={topics}
                 facets={ribbonFacets}
