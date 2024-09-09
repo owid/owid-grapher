@@ -589,13 +589,18 @@ export class Explorer
         // set given variable IDs as dimensions to make Grapher
         // download the data and metadata for these variables
         const dimensions = config.dimensions ?? []
-
-        yVariableIdsList.forEach((yVariableId) => {
-            dimensions.push({
+        const variablesToLoad = yVariableIdsList
+            // Filter out variableIds that are already present in the dimensions array
+            .filter(
+                (yVariableId) =>
+                    !dimensions.some((d) => d.variableId === yVariableId)
+            )
+            .map((yVariableId) => ({
                 variableId: yVariableId,
                 property: DimensionProperty.y,
-            })
-        })
+            }))
+        dimensions.push(...variablesToLoad)
+
         if (xVariableId) {
             const maybeXVariableId = parseIntOrUndefined(xVariableId)
             if (maybeXVariableId !== undefined)
