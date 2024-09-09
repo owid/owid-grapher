@@ -10,6 +10,19 @@ export const ChartSkeleton = () => (
     </li>
 )
 
+export const LandingPageRefinementsHeading = ({
+    topics,
+}: {
+    topics: Set<string>
+}) => {
+    if (topics.size) return null
+    return (
+        <h3 className="data-catalog-ribbons__refinements-heading h5-black-caps span-cols-12 col-start-2">
+            All areas of research
+        </h3>
+    )
+}
+
 export const DataCatalogRibbonViewSkeleton = ({
     topics,
 }: {
@@ -28,6 +41,7 @@ export const DataCatalogRibbonViewSkeleton = ({
     )
     return (
         <>
+            <LandingPageRefinementsHeading topics={topics} />
             <div
                 className={cx(
                     "data-catalog-refinement-list data-catalog-refinement-list--skeleton span-cols-12 col-start-2",
