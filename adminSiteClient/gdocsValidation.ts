@@ -13,6 +13,7 @@ import {
     OwidGdocDataInsightInterface,
     checkIsAuthor,
     OwidGdocAuthorInterface,
+    getFilenameExtension,
 } from "@ourworldindata/utils"
 
 function validateTitle(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
@@ -198,6 +199,40 @@ function validateGrapherUrl(
     }
 }
 
+function validateDataInsightImage(
+    gdoc: OwidGdocDataInsightInterface,
+    errors: OwidGdocErrorMessage[]
+) {
+    const image = gdoc.content.body.find((block) => block.type === "image")
+    if (!image) {
+        errors.push({
+            property: "body",
+            type: OwidGdocErrorMessageType.Warning,
+            message: `Data insight is missing an image.`,
+        })
+    } else {
+        for (const property of ["filename", "smallFilename"] as const) {
+            if (!image[property]) {
+                errors.push({
+                    property: "body",
+                    type: OwidGdocErrorMessageType.Error,
+                    message: `Data insight image is missing ${property}`,
+                })
+            }
+            if (
+                image[property] &&
+                getFilenameExtension(image[property]) !== "png"
+            ) {
+                errors.push({
+                    property: "body",
+                    type: OwidGdocErrorMessageType.Warning,
+                    message: `Data insight ${property} should be a PNG`,
+                })
+            }
+        }
+    }
+}
+
 function validateAtomFields(
     gdoc: OwidGdocPostInterface,
     errors: OwidGdocErrorMessage[]
@@ -262,6 +297,7 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
     } else if (checkIsDataInsight(gdoc)) {
         validateApprovedBy(gdoc, errors)
         validateGrapherUrl(gdoc, errors)
+        validateDataInsightImage(gdoc, errors)
     } else if (checkIsAuthor(gdoc)) {
         validateSocials(gdoc, errors)
     }
