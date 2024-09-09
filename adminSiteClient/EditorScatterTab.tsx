@@ -24,6 +24,10 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
         this.props.grapher.hideTimeline = value || undefined
     }
 
+    @action.bound onToggleHideLinesOutsideTolerance(value: boolean) {
+        this.props.grapher.hideLinesOutsideTolerance = value || undefined
+    }
+
     @action.bound onToggleHideScatterLabels(value: boolean) {
         this.props.grapher.hideScatterLabels = value || undefined
     }
@@ -141,6 +145,11 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                         label="Hide timeline"
                         value={!!grapher.hideTimeline}
                         onValue={this.onToggleHideTimeline}
+                    />
+                    <Toggle
+                        label="Hide entities without data for full time span (within tolerance)"
+                        value={!!grapher.hideLinesOutsideTolerance}
+                        onValue={this.onToggleHideLinesOutsideTolerance}
                     />
                     <Toggle
                         label="Hide connected scatter lines"

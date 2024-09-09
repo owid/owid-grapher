@@ -745,6 +745,12 @@
     },
     {
         "type": "boolean",
+        "pointer": "/hideLinesOutsideTolerance",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "boolean",
         "pointer": "/hideTotalValueLabel",
         "default": false,
         "editor": "checkbox"

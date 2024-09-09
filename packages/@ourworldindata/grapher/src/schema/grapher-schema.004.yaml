@@ -1,7 +1,7 @@
 $schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
 # if you update the required keys, make sure that the mergeGrapherConfigs and
 # diffGrapherConfigs functions both reflect this change
-$id: "https://files.ourworldindata.org/schemas/grapher-schema.005.json"
 required:
     - $schema
     - dimensions
@@ -14,13 +14,13 @@ properties:
         type: string
         description: Url of the concrete schema version to use to validate this document
         format: uri
-        default: "https://files.ourworldindata.org/schemas/grapher-schema.005.json"
+        default: "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
         # for now, we only validate configs in our database using this schema.
         # since we expect all configs in our database to be valid against the latest schema,
         # we restrict the $schema field to a single value, the latest schema version.
         # if we ever need to validate configs against multiple schema versions,
         # we can remove this constraint.
-        const: "https://files.ourworldindata.org/schemas/grapher-schema.005.json"
+        const: "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
     id:
         type: integer
         description: Internal DB id. Useful internally for OWID but not required if just using grapher directly.
@@ -443,6 +443,10 @@ properties:
         type: boolean
         default: false
         description: Whether to show year labels in bar charts
+    hideLinesOutsideTolerance:
+        type: boolean
+        default: false
+        description: Hide entities without data for full time span (within tolerance)
     hideTotalValueLabel:
         type: boolean
         default: false

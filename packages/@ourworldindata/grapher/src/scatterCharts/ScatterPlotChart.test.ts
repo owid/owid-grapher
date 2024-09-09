@@ -622,6 +622,7 @@ describe("series transformations", () => {
         const chart = new ScatterPlotChart({
             manager: {
                 ...manager,
+                hideLinesOutsideTolerance: true,
                 startTime: 2000,
                 endTime: 2003,
             },
