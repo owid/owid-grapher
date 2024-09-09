@@ -576,6 +576,9 @@
         margin-bottom: 12px;
         .data-catalog-ribbon-hit {
             width: var(--thumbnail-width-sm);
+            .chart-hit-img-container img {
+                margin-top: 16px;
+            }
         }
     }
 }
@@ -607,6 +610,10 @@
     &:hover {
         text-decoration: underline;
         text-decoration-color: $blue-90;
+    }
+    @include sm-only {
+        // Remove margin and instead add a margin-top to the ChartHits, so that their box shadows don't clip
+        margin-bottom: 0;
     }
 }
 

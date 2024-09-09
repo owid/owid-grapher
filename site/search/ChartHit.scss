@@ -42,11 +42,7 @@
         transition: box-shadow 0.1s;
 
         &.loaded {
-            box-shadow:
-                0px 0px 0px 0px rgba(49, 37, 2, 0.04),
-                0px 6px 13px 0px rgba(49, 37, 2, 0.04),
-                0px 93px 37px 0px rgba(49, 37, 2, 0.02),
-                0px 145px 41px 0px rgba(49, 37, 2, 0);
+            box-shadow: 0px 0px 12px 0px rgba(49, 37, 2, 0.05);
         }
 
         &.error {
