@@ -316,21 +316,6 @@ export class ScatterPlotChart
     // TODO chunk this up into multiple computeds for better performance?
     @computed get transformedTable(): OwidTable {
         let table = this.transformedTableFromGrapher
-        if (
-            this.manager.startTime !== undefined &&
-            this.manager.endTime !== undefined
-        ) {
-            const entityNames = Array.from(
-                intersectionOfSets(
-                    [this.manager.startTime, this.manager.endTime].map(
-                        (targetTime) =>
-                            table.filterByTargetTimes([targetTime], 0)
-                                .availableEntityNameSet
-                    )
-                )
-            )
-            table = table.filterByEntityNames(entityNames)
-        }
         // We don't want to apply this transform when relative mode is also enabled, it has a
         // sligthly different endpoints logic that drops initial zeroes to avoid DivideByZero error.
         if (this.compareEndPointsOnly && !this.manager.isRelativeMode) {
