@@ -64,12 +64,12 @@ import {
 
 const DataCatalogSearchInput = ({
     value,
-    setQuery,
-    onSubmit,
+    setLocalQuery,
+    setGlobalQuery,
 }: {
     value: string
-    setQuery: (query: string) => void
-    onSubmit: () => void
+    setLocalQuery: (query: string) => void
+    setGlobalQuery: (query: string) => void
 }) => {
     const isTouchDevice = useMediaQuery(TOUCH_DEVICE_MEDIA_QUERY)
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
@@ -93,7 +93,7 @@ const DataCatalogSearchInput = ({
                         const input = e.currentTarget.querySelector("input")
                         if (input) input.blur()
                     }
-                    onSubmit()
+                    setGlobalQuery(value)
                 }}
             >
                 <input
@@ -104,7 +104,7 @@ const DataCatalogSearchInput = ({
                     enterKeyHint="search"
                     value={value}
                     onChange={(e) => {
-                        setQuery(e.target.value)
+                        setLocalQuery(e.target.value)
                     }}
                 />
                 <button
@@ -112,10 +112,8 @@ const DataCatalogSearchInput = ({
                     disabled={!value}
                     aria-label="Clear search"
                     type="button"
-                    onClick={(e) => {
-                        e.preventDefault()
-                        setQuery("")
-                        onSubmit()
+                    onClick={() => {
+                        setGlobalQuery("")
                     }}
                 >
                     <FontAwesomeIcon icon={faTimesCircle} />
@@ -735,8 +733,11 @@ const DataCatalogSearchbar = ({
     toggleRequireAllCountries: () => void
 }) => {
     // Storing this in local state so that query params don't update during typing
-    const [localValue, setLocalValue] = useState(query)
-    const submit = () => setQuery(localValue)
+    const [localQuery, setLocalQuery] = useState(query)
+    // sync local query with global query when browser navigation occurs
+    useEffect(() => {
+        setLocalQuery(query)
+    }, [query])
 
     // Uses CSS to fake an input bar that will highlight correctly using :focus-within
     // without highlighting when the country selector is focused
@@ -745,7 +746,7 @@ const DataCatalogSearchbar = ({
             <div className="data-catalog-pseudo-input">
                 <button
                     className="data-catalog-pseudo-input__submit-button"
-                    onClick={submit}
+                    onClick={() => setQuery(localQuery)}
                 >
                     <FontAwesomeIcon icon={faSearch} />
                 </button>
@@ -754,9 +755,9 @@ const DataCatalogSearchbar = ({
                     removeCountry={removeCountry}
                 />
                 <DataCatalogSearchInput
-                    value={localValue}
-                    setQuery={setLocalValue}
-                    onSubmit={submit}
+                    value={localQuery}
+                    setLocalQuery={setLocalQuery}
+                    setGlobalQuery={setQuery}
                 />
             </div>
             <DataCatalogCountrySelector
