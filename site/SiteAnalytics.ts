@@ -1,5 +1,7 @@
 import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
 import { SearchCategoryFilter } from "./search/searchTypes.js"
+import { DataCatalogState } from "./DataCatalog/DataCatalogState.js"
+import { IDataCatalogHit } from "./DataCatalog/DataCatalogUtils.js"
 
 export class SiteAnalytics extends GrapherAnalytics {
     logCountryProfileSearch(country: string) {
@@ -87,6 +89,33 @@ export class SiteAnalytics extends GrapherAnalytics {
             event: EventCategory.DetailOnDemand,
             eventAction: "show",
             eventTarget: id,
+        })
+    }
+
+    logDataCatalogSearch(state: DataCatalogState) {
+        this.logToGA({
+            event: EventCategory.DataCatalogSearch,
+            eventAction: "search",
+            eventContext: JSON.stringify({
+                ...state,
+                topics: Array.from(state.topics),
+                selectedCountryNames: Array.from(state.selectedCountryNames),
+            }),
+        })
+    }
+
+    logDataCatalogResultClick(
+        hit: IDataCatalogHit,
+        source: "ribbon" | "search"
+    ) {
+        this.logToGA({
+            event: EventCategory.DataCatalogResultClick,
+            eventAction: "click",
+            eventContext: JSON.stringify({
+                position: hit.__position,
+                source,
+            }),
+            eventTarget: hit.slug,
         })
     }
 }

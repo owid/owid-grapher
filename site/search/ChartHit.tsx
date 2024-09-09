@@ -20,13 +20,18 @@ import {
     DEFAULT_GRAPHER_WIDTH,
 } from "@ourworldindata/grapher"
 import { Highlight } from "react-instantsearch"
+import { IDataCatalogHit } from "../DataCatalog/DataCatalogUtils.js"
 
 export function ChartHit({
     hit,
     searchQueryRegionsMatches,
+    onClick,
 }: {
-    hit: IChartHit
+    hit: IChartHit | IDataCatalogHit
     searchQueryRegionsMatches?: Region[] | undefined
+    // Search uses a global onClick handler to track analytics
+    // But the data catalog passes a function to this component explicitly
+    onClick?: () => void
 }) {
     const [imgLoaded, setImgLoaded] = useState(false)
     const [imgError, setImgError] = useState(false)
@@ -60,6 +65,7 @@ export function ChartHit({
         <a
             href={`${BAKED_GRAPHER_URL}/${hit.slug}${queryStr}`}
             className="chart-hit"
+            onClick={onClick}
             data-algolia-index={getIndexName(SearchIndexName.Charts)}
             data-algolia-object-id={hit.objectID}
             data-algolia-position={hit.__position}

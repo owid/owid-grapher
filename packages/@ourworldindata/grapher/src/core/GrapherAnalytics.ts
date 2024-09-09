@@ -24,6 +24,8 @@ export enum EventCategory {
     SiteInstantSearchClick = "owid.site_instantsearch_click",
     SiteFormSubmit = "owid.site_form_submit",
     DetailOnDemand = "owid.detail_on_demand",
+    DataCatalogSearch = "owid.data_catalog_search",
+    DataCatalogResultClick = "owid.data_catalog_result_click",
 }
 
 enum EventAction {
