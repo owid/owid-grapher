@@ -491,6 +491,23 @@ const DataCatalogRibbonView = ({
     )
 }
 
+const DataCatalogNoResults = () => {
+    return (
+        <div className="data-catalog-search-no-results span-cols-12 col-start-2">
+            <FontAwesomeIcon
+                className="data-catalog-search-no-results__icon"
+                icon={faSearch}
+            />
+            <h2 className="body-1-regular">
+                There are no results for this query.
+            </h2>
+            <p className="body-3-medium">
+                Try searching for something else or removing some filters.
+            </p>
+        </div>
+    )
+}
+
 const DataCatalogResults = ({
     selectedCountries,
     results,
@@ -509,47 +526,43 @@ const DataCatalogResults = ({
     if (isLoading) return <DataCatalogResultsSkeleton />
 
     const hits = results?.hits
-    const totalHits = results?.nbHits
-    if (hits && hits.length) {
-        return (
-            <>
-                <TopicsRefinementList
-                    topics={topics}
-                    facets={results.facets?.tags}
-                    addTopic={addTopic}
-                />
-                <div className="span-cols-12 col-start-2 data-catalog-search-hits">
-                    {totalHits && (
-                        <p className="data-catalog-search-list__results-count body-3-medium">
-                            {totalHits}{" "}
-                            {totalHits === 1 ? "indicator" : "indicators"}
-                        </p>
-                    )}
-                    <ul className="data-catalog-search-list grid grid-cols-4 grid-sm-cols-1">
-                        {hits.map((hit) => (
-                            <li
-                                className="data-catalog-search-hit"
-                                key={hit.objectID}
-                            >
-                                <ChartHit
-                                    hit={hit}
-                                    searchQueryRegionsMatches={
-                                        selectedCountries
-                                    }
-                                />
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-                <DataCatalogPagination
-                    currentPage={results.page}
-                    setPage={setPage}
-                    nbPages={results.nbPages || 0}
-                />
-            </>
-        )
-    }
-    return null
+    if (!hits || !hits.length) return <DataCatalogNoResults />
+
+    const { facets, page, nbPages, nbHits } = results
+    return (
+        <>
+            <TopicsRefinementList
+                topics={topics}
+                facets={facets?.tags}
+                addTopic={addTopic}
+            />
+            <div className="span-cols-12 col-start-2 data-catalog-search-hits">
+                {nbHits && (
+                    <p className="data-catalog-search-list__results-count body-3-medium">
+                        {nbHits} {nbHits === 1 ? "indicator" : "indicators"}
+                    </p>
+                )}
+                <ul className="data-catalog-search-list grid grid-cols-4 grid-sm-cols-1">
+                    {hits.map((hit) => (
+                        <li
+                            className="data-catalog-search-hit"
+                            key={hit.objectID}
+                        >
+                            <ChartHit
+                                hit={hit}
+                                searchQueryRegionsMatches={selectedCountries}
+                            />
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <DataCatalogPagination
+                currentPage={page}
+                setPage={setPage}
+                nbPages={nbPages}
+            />
+        </>
+    )
 }
 
 const AppliedTopicFiltersList = ({
