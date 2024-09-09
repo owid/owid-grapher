@@ -9,7 +9,11 @@ import {
     ADMIN_BASE_URL,
     DATA_API_URL,
 } from "../settings/serverSettings.js"
-import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
+import {
+    Base64String,
+    expectInt,
+    isValidSlug,
+} from "../serverUtils/serverUtil.js"
 import {
     OldChartFieldList,
     assignTagsForCharts,
@@ -167,6 +171,13 @@ import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { GdocHomepage } from "../db/model/Gdoc/GdocHomepage.js"
 import { GdocAuthor } from "../db/model/Gdoc/GdocAuthor.js"
 import path from "path"
+import {
+    deleteGrapherConfigFromR2,
+    deleteGrapherConfigFromR2ByUUID,
+    R2GrapherConfigDirectory,
+    saveGrapherConfigToR2,
+    saveGrapherConfigToR2ByUUID,
+} from "./chartConfigR2Helpers.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -303,7 +314,7 @@ const saveNewChart = async (
         // new charts inherit by default
         shouldInherit = true,
     }: { config: GrapherInterface; user: DbPlainUser; shouldInherit?: boolean }
-): Promise<GrapherInterface> => {
+): Promise<{ patchConfig: GrapherInterface; fullConfig: GrapherInterface }> => {
     // grab the parent of the chart if inheritance should be enabled
     const parent = shouldInherit
         ? await getParentByChartConfig(knex, config)
@@ -316,9 +327,10 @@ const saveNewChart = async (
     // compute patch and full configs
     const patchConfig = diffGrapherConfigs(config, fullParentConfig)
     const fullConfig = mergeGrapherConfigs(fullParentConfig, patchConfig)
+    const fullConfigStringified = serializeChartConfig(fullConfig)
 
     // insert patch & full configs into the chart_configs table
-    const configId = uuidv7()
+    const chartConfigId = uuidv7()
     await db.knexRaw(
         knex,
         `-- sql
@@ -326,9 +338,9 @@ const saveNewChart = async (
             VALUES (?, ?, ?)
         `,
         [
-            configId,
+            chartConfigId,
             serializeChartConfig(patchConfig),
-            serializeChartConfig(fullConfig),
+            fullConfigStringified,
         ]
     )
 
@@ -339,7 +351,7 @@ const saveNewChart = async (
             INSERT INTO charts (configId, isInheritanceEnabled, lastEditedAt, lastEditedByUserId)
             VALUES (?, ?, ?, ?)
         `,
-        [configId, shouldInherit, new Date(), user.id]
+        [chartConfigId, shouldInherit, new Date(), user.id]
     )
 
     // The chart config itself has an id field that should store the id of the chart - update the chart now so this is true
@@ -359,7 +371,25 @@ const saveNewChart = async (
         [chartId, chartId, chartId]
     )
 
-    return patchConfig
+    // We need to get the full config and the md5 hash from the database instead of
+    // computing our own md5 hash because MySQL normalizes JSON and our
+    // client computed md5 would be different from the ones computed by and stored in R2
+    const fullConfigMd5 = await db.knexRawFirst<
+        Pick<DbRawChartConfig, "full" | "fullMd5">
+    >(
+        knex,
+        `-- sql
+            select full, fullMd5 from chart_configs where id = ?`,
+        [chartConfigId]
+    )
+
+    await saveGrapherConfigToR2ByUUID(
+        chartConfigId,
+        fullConfigMd5!.full,
+        fullConfigMd5!.fullMd5 as Base64String
+    )
+
+    return { patchConfig, fullConfig }
 }
 
 const updateExistingChart = async (
@@ -372,7 +402,7 @@ const updateExistingChart = async (
         // if true or false, enable or disable inheritance
         shouldInherit?: boolean
     }
-): Promise<GrapherInterface> => {
+): Promise<{ patchConfig: GrapherInterface; fullConfig: GrapherInterface }> => {
     const { config, user, chartId } = params
 
     // make sure that the id of the incoming config matches the chart id
@@ -393,22 +423,31 @@ const updateExistingChart = async (
     // compute patch and full configs
     const patchConfig = diffGrapherConfigs(config, fullParentConfig)
     const fullConfig = mergeGrapherConfigs(fullParentConfig, patchConfig)
+    const fullConfigStringified = serializeChartConfig(fullConfig)
+
+    const chartConfigId = await db.knexRawFirst<Pick<DbPlainChart, "configId">>(
+        knex,
+        `SELECT configId FROM charts WHERE id = ?`,
+        [chartId]
+    )
+
+    if (!chartConfigId)
+        throw new JsonError(`No chart config found for id ${chartId}`, 404)
 
     // update configs
     await db.knexRaw(
         knex,
         `-- sql
-            UPDATE chart_configs cc
-            JOIN charts c ON c.configId = cc.id
+            UPDATE chart_configs
             SET
-                cc.patch=?,
-                cc.full=?
-            WHERE c.id = ?
+                patch=?,
+                full=?
+            WHERE id = ?
         `,
         [
             serializeChartConfig(patchConfig),
-            serializeChartConfig(fullConfig),
-            chartId,
+            fullConfigStringified,
+            chartConfigId.configId,
         ]
     )
 
@@ -423,7 +462,25 @@ const updateExistingChart = async (
         [shouldInherit, new Date(), user.id, chartId]
     )
 
-    return patchConfig
+    // We need to get the full config and the md5 hash from the database instead of
+    // computing our own md5 hash because MySQL normalizes JSON and our
+    // client computed md5 would be different from the ones computed by and stored in R2
+    const fullConfigMd5 = await db.knexRawFirst<
+        Pick<DbRawChartConfig, "full" | "fullMd5">
+    >(
+        knex,
+        `-- sql
+            select full, fullMd5 from chart_configs where id = ?`,
+        [chartConfigId.configId]
+    )
+
+    await saveGrapherConfigToR2ByUUID(
+        chartConfigId.configId,
+        fullConfigMd5!.full,
+        fullConfigMd5!.fullMd5 as Base64String
+    )
+
+    return { patchConfig, fullConfig }
 }
 
 const saveGrapher = async (
@@ -505,6 +562,11 @@ const saveGrapher = async (
                 `INSERT INTO chart_slug_redirects (chart_id, slug) VALUES (?, ?)`,
                 [existingConfig.id, existingConfig.slug]
             )
+            // When we rename grapher configs, make sure to delete the old one (the new one will be saved below)
+            await deleteGrapherConfigFromR2(
+                R2GrapherConfigDirectory.publishedGrapherBySlug,
+                `${existingConfig.slug}.json`
+            )
         }
     }
 
@@ -540,28 +602,34 @@ const saveGrapher = async (
 
     // Execute the actual database update or creation
     let chartId: number
+    let patchConfig: GrapherInterface
+    let fullConfig: GrapherInterface
     if (existingConfig) {
         chartId = existingConfig.id!
-        newConfig = await updateExistingChart(knex, {
+        const configs = await updateExistingChart(knex, {
             config: newConfig,
             user,
             chartId,
             shouldInherit,
         })
+        patchConfig = configs.patchConfig
+        fullConfig = configs.fullConfig
     } else {
-        newConfig = await saveNewChart(knex, {
+        const configs = await saveNewChart(knex, {
             config: newConfig,
             user,
             shouldInherit,
         })
-        chartId = newConfig.id!
+        patchConfig = configs.patchConfig
+        fullConfig = configs.fullConfig
+        chartId = fullConfig.id!
     }
 
     // Record this change in version history
     const chartRevisionLog = {
         chartId: chartId as number,
         userId: user.id,
-        config: serializeChartConfig(newConfig),
+        config: serializeChartConfig(patchConfig),
         createdAt: new Date(),
         updatedAt: new Date(),
     } satisfies DbInsertChartRevision
@@ -583,7 +651,7 @@ const saveGrapher = async (
         chartId,
     ])
 
-    const newDimensions = newConfig.dimensions ?? []
+    const newDimensions = fullConfig.dimensions ?? []
     for (const [i, dim] of newDimensions.entries()) {
         await db.knexRaw(
             knex,
@@ -593,15 +661,38 @@ const saveGrapher = async (
     }
 
     // So we can generate country profiles including this chart data
-    if (newConfig.isPublished && referencedVariablesMightChange)
+    if (fullConfig.isPublished && referencedVariablesMightChange)
         // TODO: remove this ad hoc knex transaction context when we switch the function to knex
         await denormalizeLatestCountryData(
             knex,
             newDimensions.map((d) => d.variableId)
         )
 
+    if (fullConfig.isPublished) {
+        // We need to get the full config and the md5 hash from the database instead of
+        // computing our own md5 hash because MySQL normalizes JSON and our
+        // client computed md5 would be different from the ones computed by and stored in R2
+        const fullConfigMd5 = await db.knexRawFirst<
+            Pick<DbRawChartConfig, "full" | "fullMd5">
+        >(
+            knex,
+            `-- sql
+            select cc.full, cc.fullMd5 from chart_configs cc
+            join charts c on c.configId = cc.id
+            where c.id = ?`,
+            [chartId]
+        )
+
+        await saveGrapherConfigToR2(
+            fullConfigMd5!.full,
+            R2GrapherConfigDirectory.publishedGrapherBySlug,
+            `${fullConfig.slug}.json`,
+            fullConfigMd5!.fullMd5 as Base64String
+        )
+    }
+
     if (
-        newConfig.isPublished &&
+        fullConfig.isPublished &&
         (!existingConfig || !existingConfig.isPublished)
     ) {
         // Newly published, set publication info
@@ -610,9 +701,9 @@ const saveGrapher = async (
             `UPDATE charts SET publishedAt=?, publishedByUserId=? WHERE id = ? `,
             [new Date(), user.id, chartId]
         )
-        await triggerStaticBuild(user, `Publishing chart ${newConfig.slug}`)
+        await triggerStaticBuild(user, `Publishing chart ${fullConfig.slug}`)
     } else if (
-        !newConfig.isPublished &&
+        !fullConfig.isPublished &&
         existingConfig &&
         existingConfig.isPublished
     ) {
@@ -622,13 +713,17 @@ const saveGrapher = async (
             `DELETE FROM chart_slug_redirects WHERE chart_id = ?`,
             [existingConfig.id]
         )
-        await triggerStaticBuild(user, `Unpublishing chart ${newConfig.slug}`)
-    } else if (newConfig.isPublished)
-        await triggerStaticBuild(user, `Updating chart ${newConfig.slug}`)
+        await deleteGrapherConfigFromR2(
+            R2GrapherConfigDirectory.publishedGrapherBySlug,
+            `${existingConfig.slug}.json`
+        )
+        await triggerStaticBuild(user, `Unpublishing chart ${fullConfig.slug}`)
+    } else if (fullConfig.isPublished)
+        await triggerStaticBuild(user, `Updating chart ${fullConfig.slug}`)
 
     return {
         chartId,
-        savedPatch: newConfig,
+        savedPatch: patchConfig,
     }
 }
 
@@ -1010,11 +1105,13 @@ deleteRouteWithRWTransaction(
             [chart.id]
         )
 
-        const row = await db.knexRawFirst<{ configId: number }>(
+        const row = await db.knexRawFirst<Pick<DbPlainChart, "configId">>(
             trx,
             `SELECT configId FROM charts WHERE id = ?`,
             [chart.id]
         )
+        if (!row || !row.configId)
+            throw new JsonError(`No chart config found for id ${chart.id}`, 404)
         if (row) {
             await db.knexRaw(trx, `DELETE FROM charts WHERE id=?`, [chart.id])
             await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id=?`, [
@@ -1026,6 +1123,13 @@ deleteRouteWithRWTransaction(
             await triggerStaticBuild(
                 res.locals.user,
                 `Deleting chart ${chart.slug}`
+            )
+
+        await deleteGrapherConfigFromR2ByUUID(row.configId)
+        if (chart.isPublished)
+            await deleteGrapherConfigFromR2(
+                R2GrapherConfigDirectory.publishedGrapherBySlug,
+                `${chart.slug}.json`
             )
 
         return { success: true }
