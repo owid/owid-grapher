@@ -61,6 +61,9 @@ import {
     SMALL_BREAKPOINT_MEDIA_QUERY,
     TOUCH_DEVICE_MEDIA_QUERY,
 } from "../SiteConstants.js"
+import { SiteAnalytics } from "../SiteAnalytics.js"
+
+const analytics = new SiteAnalytics()
 
 const DataCatalogSearchInput = ({
     value,
@@ -429,6 +432,12 @@ const DataCatalogRibbon = ({
                         >
                             <ChartHit
                                 hit={hit}
+                                onClick={() => {
+                                    analytics.logDataCatalogResultClick(
+                                        hit,
+                                        "ribbon"
+                                    )
+                                }}
                                 searchQueryRegionsMatches={selectedCountries}
                             />
                         </li>
@@ -554,6 +563,12 @@ const DataCatalogResults = ({
                             key={hit.objectID}
                         >
                             <ChartHit
+                                onClick={() => {
+                                    analytics.logDataCatalogResultClick(
+                                        hit,
+                                        "search"
+                                    )
+                                }}
                                 hit={hit}
                                 searchQueryRegionsMatches={selectedCountries}
                             />
@@ -836,6 +851,7 @@ export const DataCatalog = ({
         }
 
         syncDataCatalogURL(stateAsUrl)
+        analytics.logDataCatalogSearch(state)
         if (cache.current[cacheKey].has(stateAsUrl)) return
 
         setIsLoading(true)

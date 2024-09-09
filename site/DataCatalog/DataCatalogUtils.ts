@@ -1,6 +1,12 @@
-import { SearchResponse } from "instantsearch.js"
+import {
+    HitAttributeHighlightResult,
+    HitAttributeSnippetResult,
+    HitHighlightResult,
+    SearchForFacetValuesResponse,
+    SearchResponse,
+} from "instantsearch.js"
 import { getIndexName } from "../search/searchClient.js"
-import { IChartHit, SearchIndexName } from "../search/searchTypes.js"
+import { SearchIndexName } from "../search/searchTypes.js"
 import { TagGraphRoot } from "@ourworldindata/types"
 import { DataCatalogState, dataCatalogStateToUrl } from "./DataCatalogState.js"
 import { countriesByName, Region } from "@ourworldindata/utils"
@@ -11,24 +17,46 @@ import { SearchClient } from "algoliasearch"
  */
 const CHARTS_INDEX = getIndexName(SearchIndexName.Charts)
 
+const DATA_CATALOG_ATTRIBUTES = [
+    "title",
+    "slug",
+    "availableEntities",
+    "variantName",
+]
+
 /**
  * Types
  */
-export type DataCatalogHit = {
+// This is a type that algolia doesn't export but is necessary to work with the algolia client
+// Effectively the same as Awaited<ReturnType<SearchClient["search"]>>, but generic
+type MultipleQueriesResponse<TObject> = {
+    results: Array<SearchResponse<TObject> | SearchForFacetValuesResponse>
+}
+
+// This is the type for the hits that we get back from algolia when we search
+// response.results[0].hits is an array of these
+export type IDataCatalogHit = {
     title: string
     slug: string
     availableEntities: string[]
+    objectID: string
+    variantName: string | null
+    __position: number
+    _highlightResult?: HitHighlightResult
+    _snippetResult?: HitHighlightResult
+}
+
+// SearchResponse adds the extra fields from Algolia: page, nbHits, etc
+export type DataCatalogSearchResult = SearchResponse<IDataCatalogHit>
+
+// We add a title field to the SearchResponse for the ribbons
+export type DataCatalogRibbonResult = SearchResponse<IDataCatalogHit> & {
+    title: string
 }
 
 export type DataCatalogCache = {
     ribbons: Map<string, DataCatalogRibbonResult[]>
     search: Map<string, DataCatalogSearchResult>
-}
-
-export type DataCatalogSearchResult = SearchResponse<IChartHit>
-
-export type DataCatalogRibbonResult = SearchResponse<IChartHit> & {
-    title: string
 }
 
 /**
@@ -128,14 +156,9 @@ export function dataCatalogStateToAlgoliaQueries(
         const facetFilters = [[`tags:${topic}`], ...countryFacetFilters]
         return {
             indexName: CHARTS_INDEX,
+            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
             query: state.query,
             facetFilters: facetFilters,
-            attributesToRetrieve: [
-                "title",
-                "slug",
-                "availableEntities",
-                "variantName",
-            ],
             hitsPerPage: 4,
             facets: ["tags"],
             page: state.page,
@@ -153,14 +176,9 @@ export function dataCatalogStateToAlgoliaQuery(state: DataCatalogState) {
     return [
         {
             indexName: CHARTS_INDEX,
+            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
             query: state.query,
             facetFilters: facetFilters,
-            attributesToRetrieve: [
-                "title",
-                "slug",
-                "availableEntities",
-                "variantName",
-            ],
             highlightPostTag: "</mark>",
             highlightPreTag: "<mark>",
             facets: ["tags"],
@@ -172,22 +190,25 @@ export function dataCatalogStateToAlgoliaQuery(state: DataCatalogState) {
 }
 
 export function formatAlgoliaRibbonsResponse(
-    response: any,
+    response: MultipleQueriesResponse<IDataCatalogHit>,
     ribbonTopics: string[]
 ): DataCatalogRibbonResult[] {
-    return response.results.map(
-        (res: SearchResponse<DataCatalogHit>, i: number) => ({
-            ...res,
-            title: ribbonTopics[i],
-        })
-    )
+    return response.results.map((res, i: number) => ({
+        ...(res as SearchResponse<IDataCatalogHit>),
+        title: ribbonTopics[i],
+    }))
 }
 
 export function formatAlgoliaSearchResponse(
-    response: any
+    response: MultipleQueriesResponse<IDataCatalogHit>
 ): DataCatalogSearchResult {
+    const result = response.results[0] as SearchResponse<IDataCatalogHit>
     return {
-        ...response.results[0],
+        ...result,
+        hits: result.hits.map((hit, i) => ({
+            ...hit,
+            __position: i + 1,
+        })),
     }
 }
 
@@ -206,7 +227,7 @@ export async function queryRibbonsWithCache(
         topicsForRibbons
     )
     return searchClient
-        .search<DataCatalogRibbonResult>(searchParams)
+        .search<IDataCatalogHit>(searchParams)
         .then((response) =>
             formatAlgoliaRibbonsResponse(response, topicsForRibbons)
         )
@@ -222,7 +243,7 @@ export async function querySearchWithCache(
 ): Promise<void> {
     const searchParams = dataCatalogStateToAlgoliaQuery(state)
     return searchClient
-        .search<DataCatalogHit>(searchParams)
+        .search<IDataCatalogHit>(searchParams)
         .then(formatAlgoliaSearchResponse)
         .then((formatted) => {
             cache.current.search.set(dataCatalogStateToUrl(state), formatted)
