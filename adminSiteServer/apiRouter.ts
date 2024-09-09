@@ -520,6 +520,15 @@ const saveGrapher = async (
     // if the schema version is missing, assume it's the latest
     if (newConfig.$schema === undefined) {
         newConfig.$schema = defaultGrapherConfig.$schema
+    } else if (
+        newConfig.$schema ===
+        "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
+    ) {
+        // TODO: find a more principled way to do schema upgrades
+
+        // grapher-schema.004 -> grapher-schema.005 removed the obsolete hideLinesOutsideTolerance field
+        delete newConfig.hideLinesOutsideTolerance
+        newConfig.$schema = defaultGrapherConfig.$schema
     }
 
     // add the isPublished field if is missing
