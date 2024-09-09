@@ -327,9 +327,8 @@ getPlainRouteNonIdempotentWithRWTransaction(
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
-    "/charts*",
+    "/data*",
     async (req, res, trx) => {
-        console.log("returning charts page")
         res.send(await renderDataCatalogPage(trx))
     }
 )
