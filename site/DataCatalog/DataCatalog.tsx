@@ -113,6 +113,8 @@ const DataCatalogSearchInput = ({
                     aria-label="Clear search"
                     type="button"
                     onClick={() => {
+                        // We have to set both because the user might not have submitted the search yet
+                        setLocalQuery("")
                         setGlobalQuery("")
                     }}
                 >
