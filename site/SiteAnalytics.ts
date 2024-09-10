@@ -19,10 +19,10 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logChartsPageSearchQuery(query: string) {
+    logCountryPageSearchQuery(query: string) {
         this.logToGA({
             event: EventCategory.Filter,
-            eventAction: "charts_page",
+            eventAction: "country_page_search",
             eventContext: query,
         })
     }

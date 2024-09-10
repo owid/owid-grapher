@@ -64,7 +64,7 @@ class ChartFilter {
     analytics = new SiteAnalytics()
 
     @action.bound logSearchQuery() {
-        this.analytics.logChartsPageSearchQuery(this.query)
+        this.analytics.logCountryPageSearchQuery(this.query)
     }
 
     timeout?: NodeJS.Timeout

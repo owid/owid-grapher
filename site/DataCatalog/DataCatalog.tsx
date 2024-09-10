@@ -942,7 +942,7 @@ export function DataCatalogInstantSearchWrapper({
     )
 }
 
-export function hydrateChartsPage() {
+export function hydrateDataCatalogPage() {
     const root = document.getElementById("data-catalog-page-root")
     const tagGraph = window._OWID_TAG_GRAPH as TagGraphRoot
     if (root) {
