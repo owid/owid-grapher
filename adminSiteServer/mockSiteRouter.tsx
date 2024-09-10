@@ -42,7 +42,11 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { grapherToSVG } from "../baker/GrapherImageBaker.js"
 import { getVariableData, getVariableMetadata } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
-import { JsonError } from "@ourworldindata/utils"
+import {
+    DbRawChartConfig,
+    JsonError,
+    parseChartConfig,
+} from "@ourworldindata/utils"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects.js"
@@ -197,6 +201,29 @@ mockSiteRouter.get("/collection/custom", async (_, res) => {
     return res.send(await renderDynamicCollectionPage())
 })
 
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/grapher/by-uuid/:uuid.config.json",
+    async (req, res, trx) => {
+        const chartRow = await db.knexRawFirst<Pick<DbRawChartConfig, "full">>(
+            trx,
+            "SELECT full FROM chart_configs WHERE id = ?",
+            [req.params.uuid]
+        )
+        if (!chartRow) throw new JsonError("No such chart", 404)
+        const config = parseChartConfig(chartRow.full)
+        res.json(config)
+    }
+)
+
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/grapher/:slug.config.json",
+    async (req, res, trx) => {
+        const chartRow = await getChartConfigBySlug(trx, req.params.slug)
+        res.json(chartRow.config)
+    }
+)
 // TODO: this transaction is only RW because somewhere inside it we fetch images
 getPlainRouteNonIdempotentWithRWTransaction(
     mockSiteRouter,

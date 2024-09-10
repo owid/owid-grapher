@@ -37,6 +37,9 @@ export const BAKED_SITE_EXPORTS_BASE_URL: string =
 export const GRAPHER_DYNAMIC_THUMBNAIL_URL: string =
     process.env.GRAPHER_DYNAMIC_THUMBNAIL_URL ?? `${BAKED_GRAPHER_URL}`
 
+export const GRAPHER_DYNAMIC_CONFIG_URL: string =
+    process.env.GRAPHER_DYNAMIC_CONFIG_URL ?? `${BAKED_GRAPHER_URL}`
+
 export const ADMIN_BASE_URL: string =
     process.env.ADMIN_BASE_URL ??
     `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`

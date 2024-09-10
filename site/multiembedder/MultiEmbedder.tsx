@@ -36,6 +36,7 @@ import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
     DATA_API_URL,
+    GRAPHER_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.js"
 import Bugsnag from "@bugsnag/js"
 import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
@@ -159,9 +160,8 @@ class MultiEmbedder {
             dataApiUrl: DATA_API_URL,
         }
 
-        const html = await fetchText(fullUrl)
-
         if (isExplorer) {
+            const html = await fetchText(fullUrl)
             let grapherConfigs = deserializeJSONFromHTML(
                 html,
                 EMBEDDED_EXPLORER_GRAPHER_CONFIGS
@@ -201,8 +201,13 @@ class MultiEmbedder {
             ReactDOM.render(<Explorer {...props} />, figure)
         } else {
             figure.classList.remove(GRAPHER_PREVIEW_CLASS)
+            const url = new URL(fullUrl)
+            const slug = url.pathname.split("/").pop()
+            const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
 
-            const grapherPageConfig = deserializeJSONFromHTML(html)
+            const grapherPageConfig = await fetch(configUrl).then((res) =>
+                res.json()
+            )
 
             const figureConfigAttr = figure.getAttribute(
                 GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR
