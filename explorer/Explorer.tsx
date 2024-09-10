@@ -593,7 +593,11 @@ export class Explorer
             // Filter out variableIds that are already present in the dimensions array
             .filter(
                 (yVariableId) =>
-                    !dimensions.some((d) => d.variableId === yVariableId)
+                    !dimensions.some(
+                        (d) =>
+                            d.property === DimensionProperty.y &&
+                            d.variableId === yVariableId
+                    )
             )
             .map((yVariableId) => ({
                 variableId: yVariableId,
