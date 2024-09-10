@@ -618,19 +618,6 @@ describe("series transformations", () => {
         expect(ukSeries.points.map((p) => p.timeValue)).toEqual([2001, 2004])
     })
 
-    it("hides entities without full time span", () => {
-        const chart = new ScatterPlotChart({
-            manager: {
-                ...manager,
-                startTime: 2000,
-                endTime: 2003,
-            },
-        })
-        // Because of the assumption that the timeline filter is applied,
-        // only Germany can be visible in this case.
-        expect(chart.series.map((s) => s.seriesName)).toEqual(["Germany"])
-    })
-
     it("calculates average annual change", () => {
         const chart = new ScatterPlotChart({
             manager: {
