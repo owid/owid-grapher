@@ -34,7 +34,6 @@ import {
     exposeInstanceOnWindow,
     groupBy,
     sampleFrom,
-    intersectionOfSets,
     min,
     max,
     PointVector,
