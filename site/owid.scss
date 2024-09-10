@@ -793,69 +793,98 @@ a.ref sup {
     }
 }
 
-.NotFoundPage > main {
-    > form {
-        @include content-wrapper;
-        max-width: $wrapper-max-width;
-        margin-top: 20px;
-        display: flex;
-        margin-bottom: 30px;
-    }
-
-    > form > .inputWrapper {
-        width: 100%;
-        position: relative;
-        padding-right: 5px;
-    }
-
-    > form > .inputWrapper input {
-        width: 100%;
-        height: 40px;
-        padding-left: 35px;
-    }
-
-    > form > .inputWrapper svg {
-        position: absolute;
-        left: 10px;
-        top: 12px;
-    }
-
-    > form > button {
-        width: 160px;
-        height: 40px;
-        margin: 0px;
-        position: relative;
-        align-items: center;
-        justify-content: center;
-        padding-top: 0px;
-        padding-bottom: 0px;
-        padding-left: 16px;
-        padding-right: 16px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        outline: none;
-        text-decoration: none;
-        box-sizing: border-box;
-        touch-action: manipulation;
-        background: #1865f2;
-        color: #ffffff;
-    }
-}
-
 .NotFoundPage {
+    color: $blue-60;
+    background-color: $gray-10;
+
     main {
         display: flex;
         flex-direction: column;
         justify-content: center;
         text-align: center;
+        min-height: 600px;
+        padding: 0 16px;
+
+        p {
+            margin: 0;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: underline;
+        }
+    }
+}
+
+.NotFoundPage__heading {
+    color: $blue-90;
+}
+
+.NotFoundPageForm {
+    position: relative;
+    width: 100%;
+    max-width: 412px;
+    margin: 32px auto;
+}
+
+.NotFoundPageForm__input {
+    @include body-3-medium;
+    color: $blue-90;
+    width: 100%;
+    height: 48px;
+    padding: 0 16px;
+    border: 1px solid $blue-20;
+    padding-right: 48px;
+
+    &:focus {
+        outline: none;
+        border: 1px solid $blue-40;
     }
 
-    footer {
-        // Hide the header, we need to include it for scripts but don't want to
-        // show it because it does not go to the bottom of the page and looks weird
-        display: none;
+    &::placeholder {
+        color: $blue-50;
     }
+}
+
+.NotFoundPageForm__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    width: 48px;
+    height: 100%;
+    color: $blue-50;
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+
+    &:hover {
+        color: $blue-90;
+    }
+}
+
+.NotFoundPageForm__reset-button {
+    right: 48px;
+
+    &::after {
+        content: "";
+        display: block;
+        position: absolute;
+        right: 0;
+        height: 26px;
+        width: 1px;
+        background-color: $blue-20;
+    }
+}
+
+.NotFoundPageForm__submit-button {
+    right: 0;
+}
+
+.NotFoundPageIcon {
+    margin: 0 auto;
 }
 
 .variantName {
