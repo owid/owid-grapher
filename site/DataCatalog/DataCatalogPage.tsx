@@ -21,8 +21,8 @@ export const DataCatalogPage = (props: {
         <html>
             <Head
                 canonicalUrl={`${baseUrl}/charts`}
-                pageTitle="Charts"
-                pageDesc="All of the interactive charts on Our World in Data."
+                pageTitle="Data Catalog"
+                pageDesc="A searchable database of all our charts."
                 baseUrl={baseUrl}
             >
                 <script
@@ -33,7 +33,7 @@ export const DataCatalogPage = (props: {
                     }}
                 ></script>
             </Head>
-            <body className="ChartsIndexPage">
+            <body className="DataCatalogPage">
                 <SiteHeader baseUrl={baseUrl} hideDonationFlag />
                 <main
                     id="data-catalog-page-root"

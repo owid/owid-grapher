@@ -5,7 +5,6 @@ import "./owid.scss"
 // from a very large icon down to a properly sized one a moment later."
 import "@fortawesome/fontawesome-svg-core/styles.css"
 
-import { runChartsIndexPage } from "./runChartsIndexPage.js"
 import { runSearchPage } from "./search/SearchPanel.js"
 import { runNotFoundPage } from "./NotFoundPageMain.js"
 import { runFeedbackPage } from "./Feedback.js"
@@ -35,7 +34,6 @@ declare let window: any
 window.Grapher = Grapher
 window.Explorer = Explorer
 window.CoreTable = CoreTable
-window.runChartsIndexPage = runChartsIndexPage
 window.runSearchPage = runSearchPage
 window.runNotFoundPage = runNotFoundPage
 window.runFeedbackPage = runFeedbackPage
