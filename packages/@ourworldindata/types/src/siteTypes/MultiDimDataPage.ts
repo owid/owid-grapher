@@ -1,5 +1,6 @@
 import { OwidEnrichedGdocBlock } from "../gdocTypes/ArchieMlComponents.js"
 import { PrimaryTopic } from "../gdocTypes/Datapage.js"
+import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
 import { IndicatorTitleWithFragments } from "../OwidVariable.js"
 
 // Indicator ID, catalog path, or maybe an array of those
@@ -64,14 +65,8 @@ export interface IndicatorsAfterPreProcessing {
 export interface View<IndicatorsType extends Record<string, any>> {
     dimensions: MultiDimDimensionChoices
     indicators: IndicatorsType
-    config?: Config
+    config?: GrapherInterface
 }
-
-export interface Config {
-    title?: string
-    subtitle?: string
-}
-
 export type MultiDimDimensionChoices = Record<string, string> // Keys: dimension slugs, values: choice slugs
 
 export type FaqEntryKeyedByGdocIdAndFragmentId = {
