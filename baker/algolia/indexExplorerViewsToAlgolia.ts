@@ -7,13 +7,18 @@ import {
 } from "../../explorer/ExplorerConstants.js"
 import { GridBoolean } from "../../gridLang/GridLangConstants.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
-import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
+import {
+    ALGOLIA_INDEXING,
+    BUGSNAG_NODE_API_KEY,
+} from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
-import { groupBy, keyBy, orderBy } from "lodash"
+import { groupBy, keyBy, orderBy, partition } from "lodash"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { DbRawVariable } from "@ourworldindata/utils"
+import { logErrorAndMaybeSendToBugsnag } from "../../serverUtils/errorLog.js"
+import Bugsnag from "@bugsnag/js"
 
 export type ExplorerBlockGraphers = {
     type: "graphers"
@@ -113,7 +118,7 @@ const getExplorerViewRecordsForExplorerSlug = async (
 
     const defaultSettings = explorerDecisionMatrix.defaultSettings
 
-    let records = explorerDecisionMatrix
+    const records = explorerDecisionMatrix
         .allDecisionsAsQueryParams()
         .map((choice, i) => {
             explorerDecisionMatrix.setValuesFromChoiceParams(choice)
@@ -265,10 +270,20 @@ const getExplorerViewRecordsForExplorerSlug = async (
     }
 
     // Drop any views where we couldn't obtain a title, for whatever reason
-    records = records.filter((record) => record.viewTitle !== undefined)
+    const [recordsWithViewTitle, recordsWithNoViewTitle] = partition(
+        records,
+        (record) => record.viewTitle !== undefined
+    )
+
+    for (const record of recordsWithNoViewTitle) {
+        await logErrorAndMaybeSendToBugsnag({
+            name: "ExplorerViewTitleMissing",
+            message: `Explorer ${slug} has a view with no title: ${record.viewQueryParams}.`,
+        })
+    }
 
     // Remove Markdown from viewSubtitle; do this after fetching grapher info above, as it might also contain Markdown
-    const recordsWithTitleLength = records.map((record) => {
+    const recordsWithTitleLength = recordsWithViewTitle.map((record) => {
         if (record.viewSubtitle) {
             record.viewSubtitle = new MarkdownTextWrap({
                 text: record.viewSubtitle,
@@ -344,10 +359,17 @@ const getExplorerViewRecords = async (
 
 const indexExplorerViewsToAlgolia = async () => {
     if (!ALGOLIA_INDEXING) return
-
+    if (BUGSNAG_NODE_API_KEY) {
+        Bugsnag.start({
+            apiKey: BUGSNAG_NODE_API_KEY,
+            context: "index-explorer-views-to-algolia",
+            autoTrackSessions: false,
+        })
+    }
     const client = getAlgoliaClient()
+
     if (!client) {
-        console.error(
+        await logErrorAndMaybeSendToBugsnag(
             `Failed indexing explorer views (Algolia client not initialized)`
         )
         return
@@ -364,7 +386,10 @@ const indexExplorerViewsToAlgolia = async () => {
         )
         await index.replaceAllObjects(records)
     } catch (e) {
-        console.log("Error indexing explorer views to Algolia:", e)
+        await logErrorAndMaybeSendToBugsnag({
+            name: `IndexExplorerViewsToAlgoliaError`,
+            message: `${e}`,
+        })
     }
 }
 
