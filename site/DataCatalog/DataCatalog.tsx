@@ -62,6 +62,7 @@ import {
     TOUCH_DEVICE_MEDIA_QUERY,
 } from "../SiteConstants.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
+import Bugsnag from "@bugsnag/js"
 
 const analytics = new SiteAnalytics()
 
@@ -397,14 +398,9 @@ const DataCatalogRibbon = ({
     const handleAddTopicClick = (e: React.MouseEvent) => {
         e.preventDefault()
         addTopic(result.title)
-        // Small delay to ensure new screen is rendered before scrolling
-        // Otherwise it doesn't scroll sometimes
-        setTimeout(() => {
-            window.scrollTo({
-                top: 0,
-                behavior: "smooth",
-            })
-        }, 100)
+        window.scrollTo({
+            top: 0,
+        })
     }
 
     return (
@@ -822,6 +818,7 @@ export const DataCatalog = ({
     const [state, dispatch] = useReducer(dataCatalogReducer, initialState)
     const actions = createActions(dispatch)
     const [isLoading, setIsLoading] = useState(false)
+    // Using useRef because updating isLoading already triggers a re-render
     const cache = useRef<DataCatalogCache>({
         ribbons: new Map(),
         search: new Map(),
@@ -846,7 +843,8 @@ export const DataCatalog = ({
     useEffect(() => {
         async function fetchData() {
             return shouldShowRibbons
-                ? queryRibbonsWithCache(searchClient, state, tagGraph, cache)
+                ? // TODO: what happens when 2 requests race?
+                  queryRibbonsWithCache(searchClient, state, tagGraph, cache)
                 : querySearchWithCache(searchClient, state, cache)
         }
 
@@ -856,7 +854,7 @@ export const DataCatalog = ({
 
         setIsLoading(true)
         fetchData()
-            .catch(console.error)
+            .catch(Bugsnag.notify)
             .finally(() => setIsLoading(false))
     }, [state, searchClient, shouldShowRibbons, tagGraph, stateAsUrl, cacheKey])
 

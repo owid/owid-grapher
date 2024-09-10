@@ -161,7 +161,7 @@ export function dataCatalogStateToAlgoliaQueries(
             facetFilters: facetFilters,
             hitsPerPage: 4,
             facets: ["tags"],
-            page: state.page,
+            page: state.page < 0 ? 0 : state.page,
         }
     })
 }
@@ -184,7 +184,7 @@ export function dataCatalogStateToAlgoliaQuery(state: DataCatalogState) {
             facets: ["tags"],
             maxValuesPerFacet: 15,
             hitsPerPage: 20,
-            page: state.page,
+            page: state.page < 0 ? 0 : state.page,
         },
     ]
 }
@@ -207,6 +207,7 @@ export function formatAlgoliaSearchResponse(
         ...result,
         hits: result.hits.map((hit, i) => ({
             ...hit,
+            // TODO: not necessary anymore
             __position: i + 1,
         })),
     }
