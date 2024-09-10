@@ -1,6 +1,4 @@
 import {
-    HitAttributeHighlightResult,
-    HitAttributeSnippetResult,
     HitHighlightResult,
     SearchForFacetValuesResponse,
     SearchResponse,
@@ -8,7 +6,7 @@ import {
 import { getIndexName } from "../search/searchClient.js"
 import { SearchIndexName } from "../search/searchTypes.js"
 import { TagGraphRoot } from "@ourworldindata/types"
-import { DataCatalogState, dataCatalogStateToUrl } from "./DataCatalogState.js"
+import { DataCatalogState } from "./DataCatalogState.js"
 import { countriesByName, Region } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 
@@ -216,12 +214,11 @@ export function formatAlgoliaSearchResponse(
 /**
  * Async
  */
-export async function queryRibbonsWithCache(
+export async function queryRibbons(
     searchClient: SearchClient,
     state: DataCatalogState,
-    tagGraph: TagGraphRoot,
-    cache: React.MutableRefObject<DataCatalogCache>
-): Promise<void> {
+    tagGraph: TagGraphRoot
+): Promise<DataCatalogRibbonResult[]> {
     const topicsForRibbons = getTopicsForRibbons(state.topics, tagGraph)
     const searchParams = dataCatalogStateToAlgoliaQueries(
         state,
@@ -232,21 +229,14 @@ export async function queryRibbonsWithCache(
         .then((response) =>
             formatAlgoliaRibbonsResponse(response, topicsForRibbons)
         )
-        .then((formatted) => {
-            cache.current.ribbons.set(dataCatalogStateToUrl(state), formatted)
-        })
 }
 
-export async function querySearchWithCache(
+export async function querySearch(
     searchClient: SearchClient,
-    state: DataCatalogState,
-    cache: React.MutableRefObject<DataCatalogCache>
-): Promise<void> {
+    state: DataCatalogState
+): Promise<DataCatalogSearchResult> {
     const searchParams = dataCatalogStateToAlgoliaQuery(state)
     return searchClient
         .search<IDataCatalogHit>(searchParams)
         .then(formatAlgoliaSearchResponse)
-        .then((formatted) => {
-            cache.current.search.set(dataCatalogStateToUrl(state), formatted)
-        })
 }

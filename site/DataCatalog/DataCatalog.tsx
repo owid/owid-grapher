@@ -39,8 +39,8 @@ import {
     DataCatalogRibbonResult,
     DataCatalogSearchResult,
     getCountryData,
-    queryRibbonsWithCache,
-    querySearchWithCache,
+    queryRibbons,
+    querySearch,
     syncDataCatalogURL,
 } from "./DataCatalogUtils.js"
 import {
@@ -818,8 +818,7 @@ export const DataCatalog = ({
     const [state, dispatch] = useReducer(dataCatalogReducer, initialState)
     const actions = createActions(dispatch)
     const [isLoading, setIsLoading] = useState(false)
-    // Using useRef because updating isLoading already triggers a re-render
-    const cache = useRef<DataCatalogCache>({
+    const [cache, setCache] = useState<DataCatalogCache>({
         ribbons: new Map(),
         search: new Map(),
     })
@@ -838,25 +837,37 @@ export const DataCatalog = ({
 
     const stateAsUrl = dataCatalogStateToUrl(state)
     const cacheKey = shouldShowRibbons ? "ribbons" : "search"
-    const currentResults = cache.current[cacheKey].get(stateAsUrl)
+    const currentResults = cache[cacheKey].get(stateAsUrl)
 
     useEffect(() => {
         async function fetchData() {
-            return shouldShowRibbons
-                ? // TODO: what happens when 2 requests race?
-                  queryRibbonsWithCache(searchClient, state, tagGraph, cache)
-                : querySearchWithCache(searchClient, state, cache)
+            const results = shouldShowRibbons
+                ? await queryRibbons(searchClient, state, tagGraph)
+                : await querySearch(searchClient, state)
+            setCache((cache) => ({
+                ...cache,
+                [cacheKey]: cache[cacheKey].set(stateAsUrl, results as any),
+            }))
         }
 
         syncDataCatalogURL(stateAsUrl)
         analytics.logDataCatalogSearch(state)
-        if (cache.current[cacheKey].has(stateAsUrl)) return
+        if (cache[cacheKey].has(stateAsUrl)) return
 
         setIsLoading(true)
         fetchData()
             .catch(Bugsnag.notify)
             .finally(() => setIsLoading(false))
-    }, [state, searchClient, shouldShowRibbons, tagGraph, stateAsUrl, cacheKey])
+        return () => setIsLoading(false)
+    }, [
+        state,
+        searchClient,
+        shouldShowRibbons,
+        tagGraph,
+        stateAsUrl,
+        cacheKey,
+        cache,
+    ])
 
     useEffect(() => {
         const handlePopState = () => {
