@@ -19,7 +19,7 @@ import { Base64String } from "../serverUtils/serverUtil.js"
 
 export enum R2GrapherConfigDirectory {
     byUUID = "config/by-uuid",
-    publishedGrapherBySlug = "grapher/by-slug",
+    publishedGrapherBySlug = "config/by-slug-published",
 }
 
 const getS3Client: () => S3Client = lazy(
