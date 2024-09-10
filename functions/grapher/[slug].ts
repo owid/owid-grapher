@@ -4,11 +4,14 @@ import {
     createRedirectResponse,
     fetchUnparsedGrapherConfig,
 } from "../_common/grapherRenderer.js"
-import { IRequestStrict, Router, error, cors } from "itty-router"
+import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
 
 const { preflight, corsify } = cors({
     allowMethods: ["GET", "OPTIONS", "HEAD"],
 })
+const extensions = {
+    configJson: ".config.json",
+}
 
 const router = Router<IRequestStrict, [URL, Env, string]>({
     before: [preflight],
@@ -16,7 +19,7 @@ const router = Router<IRequestStrict, [URL, Env, string]>({
 })
 router
     .get(
-        "/grapher/:slug.config.json",
+        `/grapher/:slug${extensions.configJson}`,
         async ({ params: { slug } }, { searchParams }, env, etag) =>
             handleConfigRequest(slug, searchParams, env, etag)
     )
@@ -41,39 +44,64 @@ export const onRequest: PagesFunction = async (context) => {
             { ...env, url },
             request.headers.get("if-none-match")
         )
-        .catch((e) => error(500, e))
+        .catch(async (e) => {
+            // Here we do a unified after the fact handling of 404s to check
+            // if we have a redirect in the _grapherRedirects.json file.
+            // This is done as a catch handler that checks for 404 pages
+            // so that the common, happy path does not have to fetch the redirects file.
+            if (e instanceof StatusError && e.status === 404) {
+                console.log("Handling 404 for ", url.pathname)
+
+                const fullslug = url.pathname.split("/").pop() as string
+
+                const allExtensions = Object.values(extensions)
+                    .map((ext) => ext.replace(".", "\\.")) // for the regex make sure we match only a single dot, not any character
+                    .join("|")
+                const regexForKnownExtensions = new RegExp(
+                    `^(?<slug>.*?)(?<extension>${allExtensions})?$`
+                )
+
+                const matchResult = fullslug.match(regexForKnownExtensions)
+                const slug = matchResult?.groups?.slug ?? fullslug
+                const extension = matchResult?.groups?.extension ?? ""
+
+                if (slug.toLowerCase() !== slug)
+                    return createRedirectResponse(
+                        `${slug.toLowerCase()}${extension}`,
+                        url
+                    )
+
+                console.log("Looking up slug and extension", {
+                    slug,
+                    extension,
+                })
+
+                const redirectSlug = await getOptionalRedirectForSlug(
+                    slug,
+                    url,
+                    {
+                        ...env,
+                        url,
+                    } as Env
+                )
+                console.log("Redirect slug", redirectSlug)
+                if (redirectSlug && redirectSlug !== slug) {
+                    return createRedirectResponse(
+                        `${redirectSlug}${extension}`,
+                        url
+                    )
+                } else return error(404, "Not found")
+            }
+            return error(500, e)
+        })
 }
 
 async function handleHtmlPageRequest(
     slug: string,
-    searchParams: URLSearchParams,
+    _searchParams: URLSearchParams,
     env: Env
 ) {
     const url = env.url
-    // Redirects handling is performed by the worker, and is done by fetching the (baked) _grapherRedirects.json file.
-    // That file is a mapping from old slug to new slug.
-
-    /**
-     * REDIRECTS HANDLING:
-     * We want to optimize for the case where the user visits a page using the correct slug, i.e. there's no redirect.
-     * That's why:
-     * 1. We first check if the slug is lowercase. If it's not, we convert it to lowercase _and check for any redirects already_, and send a redirect already.
-     * 2. If the slug is lowercase, we check if we can find the page at the requested slug. If we can find it, we return it already.
-     * 3. If we can't find it, we _then_ check if there's a redirect for it. If there is, we redirect to the new page.
-     */
-
-    // All our grapher slugs are lowercase by convention.
-    // To allow incoming links that may contain uppercase characters to work, we redirect to the lowercase version.
-    const lowerCaseSlug = slug.toLowerCase()
-    if (lowerCaseSlug !== slug) {
-        const redirectSlug = await getOptionalRedirectForSlug(
-            lowerCaseSlug,
-            url,
-            env
-        )
-
-        return createRedirectResponse(redirectSlug ?? lowerCaseSlug, url)
-    }
 
     // For local testing
     // const grapherPageResp = await fetch(
@@ -84,25 +112,17 @@ async function handleHtmlPageRequest(
     const grapherPageResp = await env.ASSETS.fetch(url, { redirect: "manual" })
 
     if (grapherPageResp.status === 404) {
-        // If the request is a 404, we check if there's a redirect for it.
-        // If there is, we redirect to the new page.
-        const redirectSlug = await getOptionalRedirectForSlug(slug, url, env)
-        if (redirectSlug && redirectSlug !== slug) {
-            return createRedirectResponse(redirectSlug, url)
-        } else {
-            // Otherwise we just return the 404 page.
-            return grapherPageResp
-        }
+        throw new StatusError(404)
     }
 
-    // A non-200 status code is most likely a redirect (301 or 302) or a 404, all of which we want to pass through as-is.
+    // A non-200 status code is most likely a redirect (301 or 302), all of which we want to pass through as-is.
     // In the case of the redirect, the browser will then request the new URL which will again be handled by this worker.
     if (grapherPageResp.status !== 200) return grapherPageResp
 
-    const openGraphThumbnailUrl = `/grapher/thumbnail/${lowerCaseSlug}.png?imType=og${
+    const openGraphThumbnailUrl = `/grapher/thumbnail/${slug}.png?imType=og${
         url.search ? "&" + url.search.slice(1) : ""
     }`
-    const twitterThumbnailUrl = `/grapher/thumbnail/${lowerCaseSlug}.png?imType=twitter${
+    const twitterThumbnailUrl = `/grapher/thumbnail/${slug}.png?imType=twitter${
         url.search ? "&" + url.search.slice(1) : ""
     }`
 
@@ -146,21 +166,6 @@ async function handleConfigRequest(
 ) {
     const shouldCache = searchParams.get("nocache") === null
     console.log("Preparing json response for ", slug)
-    // All our grapher slugs are lowercase by convention.
-    // To allow incoming links that may contain uppercase characters to work, we redirect to the lowercase version.
-    const lowerCaseSlug = slug.toLowerCase()
-    if (lowerCaseSlug !== slug) {
-        const redirectSlug = await getOptionalRedirectForSlug(
-            lowerCaseSlug,
-            env.url,
-            env
-        )
-
-        return createRedirectResponse(
-            `${redirectSlug ?? lowerCaseSlug}.config.json`,
-            env.url
-        )
-    }
 
     const grapherPageResp = await fetchUnparsedGrapherConfig(slug, env, etag)
 
@@ -169,28 +174,9 @@ async function handleConfigRequest(
         return new Response(null, { status: 304 })
     }
 
-    if (grapherPageResp.status !== 200) {
-        // If the request is a 404, we check if there's a redirect for it.
-        // If there is, we redirect to the new page.
-        const redirectSlug = await getOptionalRedirectForSlug(
-            slug,
-            env.url,
-            env
-        )
-        if (redirectSlug && redirectSlug !== slug) {
-            console.log("Redirecting to ", redirectSlug)
-            return createRedirectResponse(
-                `${redirectSlug}.config.json`,
-                env.url
-            )
-        } else {
-            console.log("Returning 404 for ", slug)
-            // Otherwise we just return the status code.
-            return new Response(null, { status: grapherPageResp.status })
-        }
+    if (grapherPageResp.status === 404) {
+        throw new StatusError(404)
     }
-
-    console.log("Returning 200 for ", slug)
 
     const cacheControl = shouldCache
         ? "public, s-maxage=3600, max-age=0, must-revalidate"
