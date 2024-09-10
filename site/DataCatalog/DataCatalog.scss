@@ -178,7 +178,8 @@
         }
     }
     @include sm-only {
-        display: block;
+        display: flex;
+        align-items: center;
         padding: 8px;
     }
 }
@@ -395,6 +396,8 @@
         display: block;
         padding: 8px 0;
         color: $blue-90;
+        display: flex;
+        align-items: center;
     }
 }
 
