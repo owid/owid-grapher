@@ -68,7 +68,7 @@ sync_to_r2_rclone() {
 sync_to_r2_aws() {
     local target=$1
     echo "--- Syncing ${target}..."
-    R2_ENDPOINT_URL=$(rclone config show owid-r2 | grep endpoint | cut -d'=' -f2 | tr -d ' ')
+    R2_ENDPOINT_URL=$(rclone config show r2 | grep endpoint | cut -d'=' -f2 | tr -d ' ')
     aws --profile r2 --endpoint-url "${R2_ENDPOINT_URL}" s3 sync live-data/bakedSite/${target} s3://owid-assets/${target} --acl public-read
 }
 
