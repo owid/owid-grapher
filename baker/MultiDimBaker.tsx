@@ -23,6 +23,7 @@ import React from "react"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { getTagToSlugMap } from "./GrapherBakingUtils.js"
 import {
+    getGrapherConfigIdsForVariables,
     getVariableIdsByCatalogPath,
     getVariableMetadata,
 } from "../db/model/Variable.js"
@@ -37,6 +38,20 @@ import {
     getAllMultiDimDataPages,
     getMultiDimDataPageBySlug,
 } from "../db/model/MultiDimDataPage.js"
+
+const getGrapherConfigIdsByVariableIds = async (
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<Record<number, string | null>> => {
+    const rows = await getGrapherConfigIdsForVariables(knex, variableIds)
+
+    return Object.fromEntries(
+        rows.map((row) => [
+            row.id,
+            row.grapherConfigIdAdmin ?? row.grapherConfigIdETL,
+        ])
+    )
+}
 
 const resolveMultiDimDataPageCatalogPathsToIndicatorIds = async (
     knex: db.KnexReadonlyTransaction,
@@ -206,6 +221,13 @@ export const renderMultiDimDataPageFromConfig = async (
         await resolveMultiDimDataPageCatalogPathsToIndicatorIds(knex, rawConfig)
     const config = MultiDimDataPageConfig.fromObject(preProcessedConfig)
 
+    // GET VARIABLE GRAPHER CONFIG UUIDS
+    const relevantVariableIds = getRelevantVariableIds(preProcessedConfig)
+    const variableIdToGrapherConfigMap = await getGrapherConfigIdsByVariableIds(
+        knex,
+        Array.from(relevantVariableIds)
+    )
+
     // FAQs
     const variableMetaDict =
         await getRelevantVariableMetadata(preProcessedConfig)
@@ -224,6 +246,7 @@ export const renderMultiDimDataPageFromConfig = async (
     const props = {
         configObj: config.config,
         tagToSlugMap: minimalTagToSlugMap,
+        variableIdToGrapherConfigMap,
         faqEntries,
         primaryTopic,
     }

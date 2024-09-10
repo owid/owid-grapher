@@ -52,6 +52,25 @@ interface VariableWithGrapherConfigs {
     etl?: ChartConfigPair
 }
 
+type VariableWithGrapherConfigIds = Pick<
+    DbRawVariable,
+    "id" | "grapherConfigIdAdmin" | "grapherConfigIdETL"
+>
+export async function getGrapherConfigIdsForVariables(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<VariableWithGrapherConfigIds[]> {
+    const rows: VariableWithGrapherConfigIds[] = await knex(VariablesTableName)
+        .select([
+            "id",
+            "grapherConfigIdAdmin",
+            "grapherConfigIdETL",
+        ] as (keyof DbRawVariable)[])
+        .whereIn("id", variableIds)
+
+    return rows
+}
+
 export async function getGrapherConfigsForVariable(
     knex: db.KnexReadonlyTransaction,
     variableId: number

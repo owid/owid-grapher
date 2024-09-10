@@ -28,7 +28,7 @@ export interface Dimension {
     name: string
     group?: string
     description?: string
-    multi_select?: boolean
+    // multi_select?: boolean
     choices: Choice[]
 }
 
@@ -83,6 +83,7 @@ export interface MultiDimDataPageProps {
     tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic | undefined
+    variableIdToGrapherConfigMap?: Record<number, string | null>
 
     initialQueryStr?: string
     canonicalUrl?: string
