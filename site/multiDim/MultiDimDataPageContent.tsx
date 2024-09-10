@@ -40,7 +40,7 @@ import { useElementBounds, useMobxStateToReactState } from "../hooks.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
 declare global {
     interface Window {
-        _OWID_MULTI_DIM_PROPS: MultiDimDataPageProps
+        _OWID_MULTI_DIM_PROPS?: MultiDimDataPageProps
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
@@ -264,6 +264,12 @@ export const MultiDimDataPageContent = ({
             ...currentView?.config,
             dimensions: dimensionsConfig,
             ...baseConfig,
+            // TODO: The way manager and slug are set here are just workarounds to make the edit button in the
+            // share menu work. They should be removed before we publish MDims!
+            manager: {
+                canonicalUrl,
+            },
+            slug: "DUMMY",
         } as GrapherProgrammaticInterface
     }, [
         varGrapherConfig,
@@ -272,6 +278,7 @@ export const MultiDimDataPageContent = ({
         dimensionsConfig,
         bounds,
         config,
+        canonicalUrl,
     ])
 
     const hasTopicTags = !!config.config.topicTags?.length
@@ -440,7 +447,7 @@ export const MultiDimDataPageContent = ({
 
 export const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
-    const props: MultiDimDataPageProps = window._OWID_MULTI_DIM_PROPS
+    const props: MultiDimDataPageProps = window._OWID_MULTI_DIM_PROPS!
     const initialQueryStr = getWindowQueryStr()
 
     ReactDOM.hydrate(
