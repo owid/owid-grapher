@@ -61,14 +61,14 @@ sync_to_r2_rclone() {
     # sync based on modtime and size
     # rclone is 3x slower than using aws sync (unless we use `--size-only`, which has performance then, but doesn't compare modtime)
     # this won't be such a problem after we remove /uploads from the sync (syncing grapher/exports only takes 15s
-    # with rclone, and 5s with aws). Then we can remove aws credentials from the machine and R2_ENDPOINT_URL from .env
+    # with rclone, and 5s with aws)
     rclone sync live-data/bakedSite/${target} r2:owid-assets/${target} --checkers=64 --transfers=64
 }
 
 sync_to_r2_aws() {
     local target=$1
     echo "--- Syncing ${target}..."
-    R2_ENDPOINT_URL=$(grep 'R2_ENDPOINT_URL=' owid-grapher/.env | cut -d '=' -f 2-)
+    R2_ENDPOINT_URL=$(rclone config show owid-r2 | grep endpoint | cut -d'=' -f2 | tr -d ' ')
     aws --profile r2 --endpoint-url "${R2_ENDPOINT_URL}" s3 sync live-data/bakedSite/${target} s3://owid-assets/${target} --acl public-read
 }
 
