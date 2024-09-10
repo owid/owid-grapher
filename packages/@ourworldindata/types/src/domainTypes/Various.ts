@@ -64,3 +64,8 @@ export class JsonError extends Error {
 export interface QueryParams {
     [key: string]: string | undefined
 }
+
+export enum R2GrapherConfigDirectory {
+    byUUID = "config/by-uuid",
+    publishedGrapherBySlug = "config/by-slug-published",
+}
