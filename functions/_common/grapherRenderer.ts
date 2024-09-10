@@ -23,6 +23,8 @@ declare global {
     var window: any
 }
 
+export type Etag = string
+
 const grapherBaseUrl = "https://ourworldindata.org/grapher"
 
 // Lots of defaults; these are mostly the same as they are in owid-grapher.
@@ -166,17 +168,17 @@ interface FetchGrapherConfigResult {
     etag: string | undefined
 }
 
-interface GrapherSlug {
+export interface GrapherSlug {
     type: "slug"
     id: string
 }
 
-interface GrapherUuid {
+export interface GrapherUuid {
     type: "uuid"
     id: string
 }
 
-type GrapherIdentifier = GrapherSlug | GrapherUuid
+export type GrapherIdentifier = GrapherSlug | GrapherUuid
 
 export async function fetchUnparsedGrapherConfig(
     identifier: GrapherIdentifier,
@@ -267,17 +269,14 @@ export async function fetchGrapherConfig(
 }
 
 async function fetchAndRenderGrapherToSvg(
-    slug: string,
+    id: GrapherIdentifier,
     options: ImageOptions,
     searchParams: URLSearchParams,
     env: Env
 ): Promise<string> {
     const grapherLogger = new TimeLogger("grapher")
 
-    const grapherConfigResponse = await fetchGrapherConfig(
-        { type: "slug", id: slug },
-        env
-    )
+    const grapherConfigResponse = await fetchGrapherConfig(id, env)
 
     if (grapherConfigResponse.status === 404) {
         // we throw 404 errors instad of returning a 404 response so that the router
@@ -320,20 +319,15 @@ async function fetchAndRenderGrapherToSvg(
 }
 
 export const fetchAndRenderGrapher = async (
-    slug: string,
+    id: GrapherIdentifier,
     searchParams: URLSearchParams,
     outType: "png" | "svg",
     env: Env
 ) => {
     const options = extractOptions(searchParams)
 
-    console.log("Rendering", slug, outType, options)
-    const svg = await fetchAndRenderGrapherToSvg(
-        slug,
-        options,
-        searchParams,
-        env
-    )
+    console.log("Rendering", id.id, outType, options)
+    const svg = await fetchAndRenderGrapherToSvg(id, options, searchParams, env)
     console.log("fetched svg")
 
     switch (outType) {

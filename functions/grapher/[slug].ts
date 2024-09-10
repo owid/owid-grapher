@@ -2,18 +2,27 @@ import { Env } from "../_common/env.js"
 import {
     getOptionalRedirectForSlug,
     createRedirectResponse,
+    Etag,
     fetchUnparsedGrapherConfig,
 } from "../_common/grapherRenderer.js"
 import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
+import { handleThumbnailRequest } from "../_common/reusableHandlers.js"
 
 const { preflight, corsify } = cors({
     allowMethods: ["GET", "OPTIONS", "HEAD"],
 })
-const extensions = {
+// We collect the possible extensions here so we can easily take them into account
+// when handling redirects
+export const extensions = {
     configJson: ".config.json",
+    png: ".png",
+    svg: ".svg",
 }
 
-const router = Router<IRequestStrict, [URL, Env, string]>({
+const router = Router<
+    IRequestStrict,
+    [URL, Env, Etag, EventContext<unknown, any, Record<string, unknown>>]
+>({
     before: [preflight],
     finally: [corsify],
 })
@@ -22,6 +31,30 @@ router
         `/grapher/:slug${extensions.configJson}`,
         async ({ params: { slug } }, { searchParams }, env, etag) =>
             handleConfigRequest(slug, searchParams, env, etag)
+    )
+    .get(
+        `/grapher/:slug${extensions.png}`,
+        async ({ params: { slug } }, { searchParams }, env, etag, ctx) =>
+            handleThumbnailRequest(
+                { type: "slug", id: slug },
+                searchParams,
+                env,
+                etag,
+                ctx,
+                "png"
+            )
+    )
+    .get(
+        `/grapher/:slug${extensions.svg}`,
+        async ({ params: { slug } }, { searchParams }, env, etag, ctx) =>
+            handleThumbnailRequest(
+                { type: "slug", id: slug },
+                searchParams,
+                env,
+                etag,
+                ctx,
+                "svg"
+            )
     )
     .get(
         "/grapher/:slug",
@@ -42,7 +75,8 @@ export const onRequest: PagesFunction = async (context) => {
             request,
             url,
             { ...env, url },
-            request.headers.get("if-none-match")
+            request.headers.get("if-none-match"),
+            context
         )
         .catch(async (e) => {
             // Here we do a unified after the fact handling of 404s to check
@@ -119,10 +153,10 @@ async function handleHtmlPageRequest(
     // In the case of the redirect, the browser will then request the new URL which will again be handled by this worker.
     if (grapherPageResp.status !== 200) return grapherPageResp
 
-    const openGraphThumbnailUrl = `/grapher/thumbnail/${slug}.png?imType=og${
+    const openGraphThumbnailUrl = `/grapher/${slug}.png?imType=og${
         url.search ? "&" + url.search.slice(1) : ""
     }`
-    const twitterThumbnailUrl = `/grapher/thumbnail/${slug}.png?imType=twitter${
+    const twitterThumbnailUrl = `/grapher/${slug}.png?imType=twitter${
         url.search ? "&" + url.search.slice(1) : ""
     }`
 

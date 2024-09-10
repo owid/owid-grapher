@@ -2,22 +2,39 @@ import { Env } from "../../_common/env.js"
 import { fetchAndRenderGrapher } from "../../_common/grapherRenderer.js"
 import { IRequestStrict, Router, error } from "itty-router"
 
+// TODO: remove the /grapher/thumbnail route two weeks or so after the change to use /grapher/:slug.png is deployed
+// We keep this around for another two weeks so that cached html pages etc can still fetch the correct thumbnail
 const router = Router<IRequestStrict, [URL, Env, ExecutionContext]>()
 router
     .get(
         "/grapher/thumbnail/:slug.png",
         async ({ params: { slug } }, { searchParams }, env) =>
-            fetchAndRenderGrapher(slug, searchParams, "png", env)
+            fetchAndRenderGrapher(
+                { type: "slug", id: slug },
+                searchParams,
+                "png",
+                env
+            )
     )
     .get(
         "/grapher/thumbnail/:slug.svg",
         async ({ params: { slug } }, { searchParams }, env) =>
-            fetchAndRenderGrapher(slug, searchParams, "svg", env)
+            fetchAndRenderGrapher(
+                { type: "slug", id: slug },
+                searchParams,
+                "svg",
+                env
+            )
     )
     .get(
         "/grapher/thumbnail/:slug",
         async ({ params: { slug } }, { searchParams }, env) =>
-            fetchAndRenderGrapher(slug, searchParams, "svg", env)
+            fetchAndRenderGrapher(
+                { type: "slug", id: slug },
+                searchParams,
+                "svg",
+                env
+            )
     )
     .all("*", () => error(404, "Route not defined"))
 
