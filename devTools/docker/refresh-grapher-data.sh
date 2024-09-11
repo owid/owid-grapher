@@ -20,7 +20,7 @@ _mysql() {
 }
 
 import_db() {
-    cat $1 | gunzip | sed s/.\*DEFINER\=\`.\*// | _mysql $GRAPHER_DB_NAME
+    cat $1 | gunzip | sed s/.\*DEFINER\=\`.\*// | grep -vF GLOBAL.GTID_PURGED | _mysql $GRAPHER_DB_NAME
 }
 
 fillGrapherDb() {
