@@ -453,7 +453,8 @@
 
 .data-catalog-refinement-list__list-item {
     display: inline;
-    margin: 0 4px;
+    margin: 0;
+    margin-right: 4px;
     button {
         cursor: pointer;
         font-weight: bold;
@@ -483,6 +484,7 @@
     display: inline-block;
     pointer-events: none;
     margin: 0;
+    margin-right: 4px;
     color: $blue-30;
     &::after {
         content: "•";
