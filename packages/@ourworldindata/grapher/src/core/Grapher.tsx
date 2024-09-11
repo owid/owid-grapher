@@ -102,6 +102,7 @@ import {
     DetailsMarker,
     DetailDictionary,
     GrapherWindowType,
+    MultiDimDataPageProps,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -210,6 +211,7 @@ declare global {
     interface Window {
         details?: DetailDictionary
         admin?: any // TODO: use stricter type
+        _OWID_MULTI_DIM_PROPS?: MultiDimDataPageProps
     }
 }
 
@@ -854,10 +856,18 @@ export class Grapher
     }
 
     @computed get editUrl(): string | undefined {
+        const yColumnSlugs = this.yColumnSlugs
         if (this.showAdminControls) {
-            return `${this.adminBaseUrl}/admin/${
-                this.manager?.editUrl ?? `charts/${this.id}/edit`
-            }`
+            // This is a workaround to make the edit button work for MDims. We
+            // probably want to do this in a more general way.
+            if (window._OWID_MULTI_DIM_PROPS) {
+                const varId = yColumnSlugs[0]
+
+                return `${this.adminBaseUrl ?? ""}/admin/variables/${varId}/config`
+            } else
+                return `${this.adminBaseUrl}/admin/${
+                    this.manager?.editUrl ?? `charts/${this.id}/edit`
+                }`
         }
         return undefined
     }
