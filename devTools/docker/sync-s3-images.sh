@@ -28,6 +28,10 @@ else
     echo "Access Denied to owid-image-upload, fetching from owid-image-upload-staging..."
 fi
 
+echo "Debug: [$GRAPHER_BRANCH]"
+echo "Debug: [$PROD_BUCKET]"
+echo "Debug: [$IMAGE_HOSTING_R2_BUCKET_PATH]"
+
 # Log if LF is present in the bucket path
 if [[ $IMAGE_HOSTING_R2_BUCKET_PATH == *$'\n'* ]]; then
   echo "LF present in IMAGE_HOSTING_R2_BUCKET_PATH"
