@@ -28,4 +28,12 @@ else
     echo "Access Denied to owid-image-upload, fetching from owid-image-upload-staging..."
 fi
 
+# Log if LF is present in the bucket path
+if [[ $IMAGE_HOSTING_R2_BUCKET_PATH == *$'\n'* ]]; then
+  echo "LF present in IMAGE_HOSTING_R2_BUCKET_PATH"
+fi
+
+# Strip LF from the end of the bucket path
+IMAGE_HOSTING_R2_BUCKET_PATH=$(echo $IMAGE_HOSTING_R2_BUCKET_PATH | tr -d '\n')
+
 rclone sync owid-r2:$PROD_BUCKET/production/ owid-r2:$IMAGE_HOSTING_R2_BUCKET_PATH/ --verbose --transfers=32 --checkers=32 --fast-list
