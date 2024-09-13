@@ -181,7 +181,7 @@ export function dataCatalogStateToAlgoliaQuery(state: DataCatalogState) {
             highlightPreTag: "<mark>",
             facets: ["tags"],
             maxValuesPerFacet: 15,
-            hitsPerPage: 20,
+            hitsPerPage: 60,
             page: state.page < 0 ? 0 : state.page,
         },
     ]
