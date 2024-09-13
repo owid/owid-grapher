@@ -234,7 +234,7 @@ function DataCatalogCountrySelector({
                         value={requireAllCountries}
                         disabled={selectedCountryNames.size === 0}
                         onToggle={toggleRequireAllCountries}
-                        label="Only show charts with data for selected countries"
+                        label="Only show charts with data for all selected countries"
                     />
                     <div className="data-catalog-country-selector-search-container">
                         <FontAwesomeIcon
