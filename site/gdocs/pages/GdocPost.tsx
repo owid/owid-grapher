@@ -58,7 +58,7 @@ export function GdocPost({
         content.title ?? "",
         publishedAt
     )
-    const citationText = `${shortPageCitation} Published online at OurWorldInData.org. Retrieved from: '${`${BAKED_BASE_URL}/${slug}`}' [Online Resource]`
+    const citationText = `${shortPageCitation} Published online at OurWorldinData.org. Retrieved from: '${`${BAKED_BASE_URL}/${slug}`}' [Online Resource]`
     const hasSidebarToc = content["sidebar-toc"]
     const isDeprecated =
         postType === OwidGdocType.Article &&
