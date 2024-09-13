@@ -176,6 +176,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         const chartJson = { ...patchConfig }
         delete chartJson.id
         delete chartJson.isPublished
+        delete chartJson.slug
 
         // Need to open intermediary tab before AJAX to avoid popup blockers
         const w = window.open("/", "_blank") as Window
