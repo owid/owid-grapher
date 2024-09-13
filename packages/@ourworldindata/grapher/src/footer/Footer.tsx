@@ -142,7 +142,7 @@ export class Footer<
 
         const url = parseUrl(originUrl)
         return `${url.hostname}${url.pathname}`
-            .replace("ourworldindata.org", "OurWorldInData.org")
+            .replace("ourworldindata.org", "OurWorldinData.org")
             .replace(/\/$/, "") // remove trailing slash
     }
 
