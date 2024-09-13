@@ -810,8 +810,8 @@ a.ref sup {
         }
 
         a {
+            @include owid-link-90;
             color: inherit;
-            text-decoration: underline;
         }
     }
 }
