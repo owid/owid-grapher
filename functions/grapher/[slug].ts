@@ -145,7 +145,11 @@ async function handleHtmlPageRequest(
 
     const grapherPageResp = await env.ASSETS.fetch(url, { redirect: "manual" })
 
-    // A non-200 status code is most likely a redirect (301 or 302) or 404, all of which we want to pass through as-is.
+    if (grapherPageResp.status === 404) {
+        throw new StatusError(404)
+    }
+
+    // A non-200 status code is most likely a redirect (301 or 302), all of which we want to pass through as-is.
     // In the case of the redirect, the browser will then request the new URL which will again be handled by this worker.
     if (grapherPageResp.status !== 200) return grapherPageResp
 
