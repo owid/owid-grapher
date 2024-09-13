@@ -96,7 +96,7 @@ export const LongFormPage = (props: {
     const citationText = `${formatAuthors({
         authors: citationAuthors,
         requireMax: true,
-    })} (${citationPublishedYear}) - "${citationTitle}". Published online at OurWorldInData.org. Retrieved from: '${citationCanonicalUrl}' [Online Resource]`
+    })} (${citationPublishedYear}) - "${citationTitle}". Published online at OurWorldinData.org. Retrieved from: '${citationCanonicalUrl}' [Online Resource]`
 
     const bibtex = `@article{owid${citationSlug.replace(/-/g, "")},
     author = {${formatAuthors({
