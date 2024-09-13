@@ -180,7 +180,7 @@ function generateGdocRecords(
         return match(gdoc.content.type)
             .with(OwidGdocType.Article, () => ({
                 type: "article" as const,
-                importance: 0,
+                importance: "deprecation-notice" in gdoc.content ? -0.5 : 0,
             }))
             .with(OwidGdocType.AboutPage, () => ({
                 type: "about" as const,
