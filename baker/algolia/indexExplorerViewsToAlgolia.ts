@@ -172,14 +172,15 @@ const getExplorerViewRecordsForExplorerSlug = async (
             `Fetching grapher configs from ${grapherIds.length} graphers for explorer ${slug}`
         )
         const grapherIdToTitle = await trx
-            .table("charts")
             .select(
-                "id",
-                trx.raw("config->>'$.title' as title"),
-                trx.raw("config->>'$.subtitle' as subtitle")
+                trx.raw("charts.id as id"),
+                trx.raw("chart_configs.full->>'$.title' as title"),
+                trx.raw("chart_configs.full->>'$.subtitle' as subtitle")
             )
-            .whereIn("id", grapherIds)
-            .andWhereRaw("config->>'$.isPublished' = 'true'")
+            .from("charts")
+            .join("chart_configs", { "charts.configId": "chart_configs.id" })
+            .whereIn("charts.id", grapherIds)
+            .andWhereRaw("chart_configs.full->>'$.isPublished' = 'true'")
             .then((rows) => keyBy(rows, "id"))
 
         for (const record of records) {
