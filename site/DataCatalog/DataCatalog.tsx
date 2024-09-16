@@ -414,7 +414,7 @@ const DataCatalogRibbon = ({
                     <h2 className="body-1-regular">{result.title}</h2>
                     <span className="data-catalog-ribbon__hit-count body-2-semibold">
                         {result.nbHits}{" "}
-                        {result.nbHits === 1 ? "indicator" : "indicators"}
+                        {result.nbHits === 1 ? "chart" : "charts"}
                         <FontAwesomeIcon icon={faArrowRight} />
                     </span>
                 </div>
@@ -446,8 +446,8 @@ const DataCatalogRibbon = ({
                 onClick={handleAddTopicClick}
             >
                 {result.nbHits === 1
-                    ? `See 1 indicator`
-                    : `See ${result.nbHits} indicators`}
+                    ? `See 1 chart`
+                    : `See ${result.nbHits} charts`}
                 <FontAwesomeIcon icon={faArrowRight} />
             </button>
         </div>
@@ -473,9 +473,14 @@ const DataCatalogRibbonView = ({
         return <DataCatalogRibbonViewSkeleton topics={topics} />
     }
 
-    const ribbonFacets = results
+    const resultsSortedByHitCount = results?.sort((a, b) => b.nbHits - a.nbHits)
+
+    const ribbonFacets = resultsSortedByHitCount
         ? Object.fromEntries(
-              results.map((result) => [result.title, result.nbHits])
+              resultsSortedByHitCount.map((result) => [
+                  result.title,
+                  result.nbHits,
+              ])
           )
         : {}
 
@@ -488,7 +493,7 @@ const DataCatalogRibbonView = ({
                 addTopic={addTopic}
             />
             <div className="span-cols-14 grid grid-cols-12-full-width data-catalog-ribbons">
-                {results?.map((result) => (
+                {resultsSortedByHitCount?.map((result) => (
                     <DataCatalogRibbon
                         key={result.title}
                         result={result}
@@ -886,9 +891,8 @@ export const DataCatalog = ({
                 <header className="data-catalog-heading span-cols-12 col-start-2">
                     <h1 className="h1-semibold">Data Catalog</h1>
                     <p className="body-2-regular">
-                        Select a country or an area of research to customize the
-                        data catalogue or search for a specific indicator or
-                        keyword to find what you’re looking for.
+                        Search for a specific chart, or browse all our charts by
+                        area and topic.
                     </p>
                 </header>
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
