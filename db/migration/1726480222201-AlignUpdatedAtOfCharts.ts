@@ -10,7 +10,7 @@ export class AlignUpdatedAtOfCharts1726480222201 implements MigrationInterface {
         `)
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
+    public async down(): Promise<void> {
         throw new Error(
             "Cannot automatically revert migration 'AlignUpdatedAtOfCharts1726480222201'"
         )
