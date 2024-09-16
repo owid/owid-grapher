@@ -536,6 +536,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             slug: "nuclear-energy",
                             title: "Nuclear Energy",
                         },
+                        {
+                            slug: "metals-minerals",
+                            title: "Metals and Minerals",
+                        },
                     ],
                 },
                 {
