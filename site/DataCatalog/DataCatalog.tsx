@@ -93,9 +93,8 @@ const DataCatalogSearchInput = ({
                 onSubmit={(e) => {
                     e.preventDefault()
                     // unfocus input to hide mobile keyboard
-                    if (isTouchDevice) {
-                        const input = e.currentTarget.querySelector("input")
-                        if (input) input.blur()
+                    if (isTouchDevice && inputRef.current) {
+                        inputRef.current.blur()
                     }
                     setGlobalQuery(value)
                 }}
@@ -421,7 +420,7 @@ const DataCatalogRibbon = ({
             </button>
             <div className="data-catalog-ribbon-hits">
                 <ul className="data-catalog-ribbon-list grid grid-cols-4">
-                    {result.hits.map((hit) => (
+                    {result.hits.map((hit, i) => (
                         <li
                             className="data-catalog-ribbon-hit"
                             key={hit.objectID}
@@ -431,7 +430,9 @@ const DataCatalogRibbon = ({
                                 onClick={() => {
                                     analytics.logDataCatalogResultClick(
                                         hit,
-                                        "ribbon"
+                                        i + 1,
+                                        "ribbon",
+                                        result.title
                                     )
                                 }}
                                 searchQueryRegionsMatches={selectedCountries}
@@ -558,7 +559,7 @@ const DataCatalogResults = ({
                     </p>
                 )}
                 <ul className="data-catalog-search-list grid grid-cols-4 grid-sm-cols-1">
-                    {hits.map((hit) => (
+                    {hits.map((hit, i) => (
                         <li
                             className="data-catalog-search-hit"
                             key={hit.objectID}
@@ -567,6 +568,7 @@ const DataCatalogResults = ({
                                 onClick={() => {
                                     analytics.logDataCatalogResultClick(
                                         hit,
+                                        i + 1,
                                         "search"
                                     )
                                 }}

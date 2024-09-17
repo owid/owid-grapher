@@ -25,14 +25,19 @@ const DATA_CATALOG_ATTRIBUTES = [
 /**
  * Types
  */
-// This is a type that algolia doesn't export but is necessary to work with the algolia client
-// Effectively the same as Awaited<ReturnType<SearchClient["search"]>>, but generic
+
+/**
+ * This is a type that algolia doesn't export but is necessary to work with the algolia client
+ * Effectively the same as Awaited<ReturnType<SearchClient["search"]>>, but generic
+ */
 type MultipleQueriesResponse<TObject> = {
     results: Array<SearchResponse<TObject> | SearchForFacetValuesResponse>
 }
 
-// This is the type for the hits that we get back from algolia when we search
-// response.results[0].hits is an array of these
+/**
+ * This is the type for the hits that we get back from algolia when we search
+ * response.results[0].hits is an array of these
+ */
 export type IDataCatalogHit = {
     title: string
     slug: string
@@ -81,9 +86,11 @@ export function checkShouldShowRibbonView(
     )
 }
 
-// set url if it's different from the current url.
-// when the user navigates back, we derive the state from the url and set it
-// so the url is already identical to the state - we don't need to push it again (otherwise we'd get an infinite loop)
+/**
+ * Set url if it's different from the current url.
+ * When the user navigates back, we derive the state from the url and set it
+ * so the url is already identical to the state - we don't need to push it again (otherwise we'd get an infinite loop)
+ */
 export function syncDataCatalogURL(stateAsUrl: string) {
     const currentUrl = window.location.href
     if (currentUrl !== stateAsUrl) {
@@ -201,14 +208,7 @@ export function formatAlgoliaSearchResponse(
     response: MultipleQueriesResponse<IDataCatalogHit>
 ): DataCatalogSearchResult {
     const result = response.results[0] as SearchResponse<IDataCatalogHit>
-    return {
-        ...result,
-        hits: result.hits.map((hit, i) => ({
-            ...hit,
-            // TODO: not necessary anymore
-            __position: i + 1,
-        })),
-    }
+    return result
 }
 
 /**
