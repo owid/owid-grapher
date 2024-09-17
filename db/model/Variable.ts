@@ -279,23 +279,11 @@ export async function updateAllChartsThatInheritFromIndicator(
                 JOIN charts c ON c.configId = cc.id
                 SET
                     cc.full = ?,
-                    cc.updatedAt = ?
+                    cc.updatedAt = ?,
+                    c.updatedAt = ?
                 WHERE c.id = ?
             `,
-            [JSON.stringify(fullConfig), updatedAt, chart.chartId]
-        )
-    }
-
-    // update timestamp of all updated charts
-    if (inheritingCharts.length > 0) {
-        await db.knexRaw(
-            trx,
-            `-- sql
-                UPDATE charts
-                SET updatedAt = ?
-                WHERE id IN (?)
-            `,
-            [updatedAt, inheritingCharts.map((chart) => chart.chartId)]
+            [JSON.stringify(fullConfig), updatedAt, updatedAt, chart.chartId]
         )
     }
 
