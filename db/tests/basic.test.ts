@@ -21,7 +21,7 @@ import {
     UsersTableName,
     DbInsertChartConfig,
 } from "@ourworldindata/types"
-import { cleanTestDb, sleep } from "./testHelpers.js"
+import { cleanTestDb } from "./testHelpers.js"
 
 let knexInstance: Knex<any, unknown[]> | undefined = undefined
 

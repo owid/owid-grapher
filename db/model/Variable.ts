@@ -291,10 +291,10 @@ export async function updateAllChartsThatInheritFromIndicator(
         await db.knexRaw(
             trx,
             `-- sql
-              UPDATE charts
-              SET updatedAt = ?
-              WHERE id IN (?)
-          `,
+                UPDATE charts
+                SET updatedAt = ?
+                WHERE id IN (?)
+            `,
             [updatedAt, inheritingCharts.map((chart) => chart.chartId)]
         )
     }

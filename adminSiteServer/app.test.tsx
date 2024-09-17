@@ -51,8 +51,6 @@ import {
     ChartConfigsTableName,
     ChartsTableName,
     DatasetsTableName,
-    DbPlainChart,
-    DbRawChartConfig,
     VariablesTableName,
 } from "@ourworldindata/types"
 import { defaultGrapherConfig } from "@ourworldindata/grapher"
