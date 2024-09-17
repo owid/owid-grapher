@@ -62,7 +62,7 @@ test("it can query a user created in fixture via TypeORM", async () => {
     expect(user.email).toBe("admin@example.com")
 })
 
-test("timestamps are automatically created and updated", async () => {
+test("createdAt timestamp is automatically created", async () => {
     await knexReadWriteTransaction(
         async (trx) => {
             const user = await knexInstance!
@@ -95,29 +95,6 @@ test("timestamps are automatically created and updated", async () => {
             if (created) {
                 expect(created.createdAt).not.toBeNull()
                 expect(created.updatedAt).toBeNull()
-                await sleep(1000, undefined)
-                await trx
-                    .table(ChartsTableName)
-                    .where({ id: chartId })
-                    .update({ isIndexable: true })
-                const updated = await knexRawFirst<DbPlainChart>(
-                    trx,
-                    "select * from charts where id = ?",
-                    [chartId]
-                )
-                expect(updated).not.toBeNull()
-                if (updated) {
-                    expect(updated.createdAt).not.toBeNull()
-                    expect(updated.updatedAt).not.toBeNull()
-                    expect(
-                        updated.updatedAt!.getTime() -
-                            updated.createdAt.getTime()
-                    ).toBeGreaterThan(800)
-                    expect(
-                        updated.updatedAt!.getTime() -
-                            updated.createdAt.getTime()
-                    ).toBeLessThanOrEqual(2000)
-                }
             }
         },
         TransactionCloseMode.KeepOpen,

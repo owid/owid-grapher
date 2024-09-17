@@ -8,11 +8,27 @@ export class AlignUpdatedAtOfCharts1726480222201 implements MigrationInterface {
             SET cf.updatedAt = LEAST(cf.updatedAt, c.updatedAt)
             WHERE c.updatedAt IS NOT NULL;
         `)
+
+        await queryRunner.query(`
+            ALTER TABLE charts
+            MODIFY updatedAt datetime DEFAULT NULL;
+        `)
+        await queryRunner.query(`
+            ALTER TABLE chart_configs
+            MODIFY updatedAt datetime DEFAULT NULL;
+        `)
     }
 
-    public async down(): Promise<void> {
-        throw new Error(
-            "Cannot automatically revert migration 'AlignUpdatedAtOfCharts1726480222201'"
-        )
+    public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`
+            ALTER TABLE charts
+            MODIFY updatedAt datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP;
+        `)
+        await queryRunner.query(`
+            ALTER TABLE chart_configs
+            MODIFY updatedAt datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP;
+        `)
+
+        // We can't automatically revert the data changes
     }
 }

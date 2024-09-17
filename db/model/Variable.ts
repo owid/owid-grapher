@@ -251,9 +251,11 @@ export async function updateAllChartsThatInheritFromIndicator(
     trx: db.KnexReadWriteTransaction,
     variableId: number,
     {
+        updatedAt,
         patchConfigETL,
         patchConfigAdmin,
     }: {
+        updatedAt: Date
         patchConfigETL?: GrapherInterface
         patchConfigAdmin?: GrapherInterface
     }
@@ -262,6 +264,7 @@ export async function updateAllChartsThatInheritFromIndicator(
         trx,
         variableId
     )
+
     for (const chart of inheritingCharts) {
         const fullConfig = mergeGrapherConfigs(
             defaultGrapherConfig,
@@ -274,12 +277,28 @@ export async function updateAllChartsThatInheritFromIndicator(
             `-- sql
                 UPDATE chart_configs cc
                 JOIN charts c ON c.configId = cc.id
-                SET cc.full = ?
+                SET
+                    cc.full = ?,
+                    cc.updatedAt = ?
                 WHERE c.id = ?
             `,
-            [JSON.stringify(fullConfig), chart.chartId]
+            [JSON.stringify(fullConfig), updatedAt, chart.chartId]
         )
     }
+
+    // update timestamp of all updated charts
+    if (inheritingCharts.length > 0) {
+        await db.knexRaw(
+            trx,
+            `-- sql
+              UPDATE charts
+              SET updatedAt = ?
+              WHERE id IN (?)
+          `,
+            [updatedAt, inheritingCharts.map((chart) => chart.chartId)]
+        )
+    }
+
     // let the caller know if any charts were updated
     return inheritingCharts
 }
@@ -299,11 +318,14 @@ export async function updateGrapherConfigETLOfVariable(
         variableId,
     })
 
+    const now = new Date()
+
     if (variable.etl) {
         await updateExistingConfigPair(trx, {
             configId: variable.etl.configId,
             patchConfig: configETL,
             fullConfig: configETL,
+            updatedAt: now,
         })
     } else {
         await insertNewGrapherConfigForVariable(trx, {
@@ -323,6 +345,7 @@ export async function updateGrapherConfigETLOfVariable(
         await updateExistingFullConfig(trx, {
             configId: variable.admin.configId,
             config: fullConfig,
+            updatedAt: now,
         })
     }
 
@@ -332,6 +355,7 @@ export async function updateGrapherConfigETLOfVariable(
         {
             patchConfigETL: configETL,
             patchConfigAdmin: variable.admin?.patchConfig,
+            updatedAt: now,
         }
     )
 
@@ -366,11 +390,14 @@ export async function updateGrapherConfigAdminOfVariable(
         patchConfigAdmin
     )
 
+    const now = new Date()
+
     if (variable.admin) {
         await updateExistingConfigPair(trx, {
             configId: variable.admin.configId,
             patchConfig: patchConfigAdmin,
             fullConfig: fullConfigAdmin,
+            updatedAt: now,
         })
     } else {
         await insertNewGrapherConfigForVariable(trx, {
@@ -387,6 +414,7 @@ export async function updateGrapherConfigAdminOfVariable(
         {
             patchConfigETL: variable.etl?.patchConfig ?? {},
             patchConfigAdmin: patchConfigAdmin,
+            updatedAt: now,
         }
     )
 
