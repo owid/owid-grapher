@@ -811,7 +811,13 @@ export const renderExplorerPage = async (
                       config: row.grapherConfigETL as string,
                   })
                 : {}
-            return mergeGrapherConfigs(etlConfig, adminConfig)
+            const mergedConfig = mergeGrapherConfigs(etlConfig, adminConfig)
+            // explorers set their own dimensions, so we don't need to include them here
+            const mergedConfigWithoutDimensions = lodash.omit(
+                mergedConfig,
+                "dimensions"
+            )
+            return mergedConfigWithoutDimensions
         })
 
     const wpContent = transformedProgram.wpBlockId
