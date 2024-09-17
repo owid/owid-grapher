@@ -2,6 +2,7 @@ import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
 import { SearchCategoryFilter } from "./search/searchTypes.js"
 import { DataCatalogState } from "./DataCatalog/DataCatalogState.js"
 import { IDataCatalogHit } from "./DataCatalog/DataCatalogUtils.js"
+import { set } from "lodash"
 
 export class SiteAnalytics extends GrapherAnalytics {
     logCountryProfileSearch(country: string) {
@@ -106,15 +107,19 @@ export class SiteAnalytics extends GrapherAnalytics {
 
     logDataCatalogResultClick(
         hit: IDataCatalogHit,
-        source: "ribbon" | "search"
+        position: number,
+        source: "ribbon" | "search",
+        ribbonTag?: string
     ) {
+        const eventContext = {
+            position,
+            source,
+        }
+        if (ribbonTag) set(eventContext, "ribbonTag", ribbonTag)
         this.logToGA({
             event: EventCategory.DataCatalogResultClick,
             eventAction: "click",
-            eventContext: JSON.stringify({
-                position: hit.__position,
-                source,
-            }),
+            eventContext: JSON.stringify(eventContext),
             eventTarget: hit.slug,
         })
     }
