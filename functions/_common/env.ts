@@ -1,7 +1,5 @@
 export interface Env {
-    ASSETS: {
-        fetch: typeof fetch
-    }
+    ASSETS: Fetcher
     url: URL
     GRAPHER_CONFIG_R2_BUCKET_URL: string
     GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL: string

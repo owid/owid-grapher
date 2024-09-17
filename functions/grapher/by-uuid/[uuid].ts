@@ -1,8 +1,10 @@
 import { Env } from "../../_common/env.js"
-import { fetchGrapherConfig } from "../../_common/grapherRenderer.js"
+import {
+    extensions,
+    fetchGrapherConfig,
+} from "../../_common/grapherRenderer.js"
 import { IRequestStrict, Router, error, StatusError } from "itty-router"
 import { handleThumbnailRequest } from "../../_common/reusableHandlers.js"
-import { extensions } from "../[slug].js"
 
 const router = Router<IRequestStrict, [URL, Env, string]>()
 router

@@ -1,9 +1,10 @@
 import { Env } from "../_common/env.js"
 import {
-    getOptionalRedirectForSlug,
-    createRedirectResponse,
     Etag,
+    extensions,
+    handlePageNotFound,
     fetchUnparsedGrapherConfig,
+    getRedirectForUrl,
 } from "../_common/grapherRenderer.js"
 import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
 import { handleThumbnailRequest } from "../_common/reusableHandlers.js"
@@ -11,13 +12,6 @@ import { handleThumbnailRequest } from "../_common/reusableHandlers.js"
 const { preflight, corsify } = cors({
     allowMethods: ["GET", "OPTIONS", "HEAD"],
 })
-// We collect the possible extensions here so we can easily take them into account
-// when handling redirects
-export const extensions = {
-    configJson: ".config.json",
-    png: ".png",
-    svg: ".svg",
-}
 
 const router = Router<
     IRequestStrict,
@@ -63,7 +57,7 @@ router
     )
     .all("*", () => error(404, "Route not defined"))
 
-export const onRequest: PagesFunction = async (context) => {
+export const onRequest: PagesFunction<Env> = async (context) => {
     // Makes it so that if there's an error, we will just deliver the original page before the HTML rewrite.
     // Only caveat is that redirects will not be taken into account for some reason; but on the other hand the worker is so simple that it's unlikely to fail.
     context.passThroughOnException()
@@ -84,47 +78,9 @@ export const onRequest: PagesFunction = async (context) => {
             // This is done as a catch handler that checks for 404 pages
             // so that the common, happy path does not have to fetch the redirects file.
             if (e instanceof StatusError && e.status === 404) {
-                console.log("Handling 404 for ", url.pathname)
-
-                const fullslug = url.pathname.split("/").pop() as string
-
-                const allExtensions = Object.values(extensions)
-                    .map((ext) => ext.replace(".", "\\.")) // for the regex make sure we match only a single dot, not any character
-                    .join("|")
-                const regexForKnownExtensions = new RegExp(
-                    `^(?<slug>.*?)(?<extension>${allExtensions})?$`
-                )
-
-                const matchResult = fullslug.match(regexForKnownExtensions)
-                const slug = matchResult?.groups?.slug ?? fullslug
-                const extension = matchResult?.groups?.extension ?? ""
-
-                if (slug.toLowerCase() !== slug)
-                    return createRedirectResponse(
-                        `${slug.toLowerCase()}${extension}`,
-                        url
-                    )
-
-                console.log("Looking up slug and extension", {
-                    slug,
-                    extension,
-                })
-
-                const redirectSlug = await getOptionalRedirectForSlug(
-                    slug,
-                    url,
-                    {
-                        ...env,
-                        url,
-                    } as Env
-                )
-                console.log("Redirect slug", redirectSlug)
-                if (redirectSlug && redirectSlug !== slug) {
-                    return createRedirectResponse(
-                        `${redirectSlug}${extension}`,
-                        url
-                    )
-                } else return error(404, "Not found")
+                console.log("Handling 404 for", url.pathname)
+                const redirect = await getRedirectForUrl(env, url)
+                return redirect || error(404, "Not found")
             }
             return error(500, e)
         })
@@ -146,7 +102,7 @@ async function handleHtmlPageRequest(
     const grapherPageResp = await env.ASSETS.fetch(url, { redirect: "manual" })
 
     if (grapherPageResp.status === 404) {
-        throw new StatusError(404)
+        return handlePageNotFound(env, grapherPageResp)
     }
 
     // A non-200 status code is most likely a redirect (301 or 302), all of which we want to pass through as-is.

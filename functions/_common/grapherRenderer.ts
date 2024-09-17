@@ -37,6 +37,14 @@ const MIN_ASPECT_RATIO = 0.5
 const MAX_ASPECT_RATIO = 2
 const MAX_NUM_PNG_PIXELS = 4250 * 3000 // 12.75 megapixels, or 5x the initial resolution, is the maximum png size we generate
 
+// We collect the possible extensions here so we can easily take them into account
+// when handling redirects
+export const extensions = {
+    configJson: ".config.json",
+    png: ".png",
+    svg: ".svg",
+}
+
 interface ImageOptions {
     pngWidth: number
     pngHeight: number
@@ -388,4 +396,46 @@ export function createRedirectResponse(
         status: 302,
         headers: { Location: `/grapher/${redirSlug}${currentUrl.search}` },
     })
+}
+
+export async function getRedirectForUrl(env: Env, url: URL): Promise<Response> {
+    const fullslug = url.pathname.split("/").pop()
+
+    const allExtensions = Object.values(extensions)
+        .map((ext) => ext.replace(".", "\\.")) // for the regex make sure we match only a single dot, not any character
+        .join("|")
+    const regexForKnownExtensions = new RegExp(
+        `^(?<slug>.*?)(?<extension>${allExtensions})?$`
+    )
+
+    const matchResult = fullslug.match(regexForKnownExtensions)
+    const slug = matchResult?.groups?.slug ?? fullslug
+    const extension = matchResult?.groups?.extension ?? ""
+
+    if (slug.toLowerCase() !== slug)
+        return createRedirectResponse(`${slug.toLowerCase()}${extension}`, url)
+
+    console.log("Looking up slug and extension", {
+        slug,
+        extension,
+    })
+
+    const redirectSlug = await getOptionalRedirectForSlug(slug, url, {
+        ...env,
+        url,
+    })
+    console.log("Redirect slug", redirectSlug)
+    if (redirectSlug && redirectSlug !== slug) {
+        return createRedirectResponse(`${redirectSlug}${extension}`, url)
+    }
+}
+
+export async function handlePageNotFound(
+    env: Env,
+    response: Response
+): Promise<Response> {
+    const url = new URL(response.url)
+    console.log("Handling 404 for", url.pathname)
+    const redirect = await getRedirectForUrl(env, url)
+    return redirect || response
 }
