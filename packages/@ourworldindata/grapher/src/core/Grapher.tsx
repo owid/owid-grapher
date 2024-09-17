@@ -65,6 +65,7 @@ import {
     getOriginAttributionFragments,
     sortBy,
     extractDetailsFromSyntax,
+    omit,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -505,7 +506,14 @@ export class Grapher
 
         if (props) this.setAuthoredVersion(props)
 
-        this.updateFromObject(props)
+        // prefer the manager's selection over the config's selectedEntityNames
+        // if both are passed in and the manager's selection is not empty.
+        // this is necessary for the global entity selector to work correctly.
+        if (props.manager?.selection?.hasSelection) {
+            this.updateFromObject(omit(props, "selectedEntityNames"))
+        } else {
+            this.updateFromObject(props)
+        }
 
         if (!props.table) this.downloadData()
 
