@@ -202,6 +202,8 @@ export class EditorExportTab<
                 grapher = new Grapher({
                     ...this.grapher,
                     staticFormat: format,
+                    selectedEntityNames:
+                        this.grapher.selection.selectedEntityNames,
                 })
             }
             const { blob: pngBlob, svgBlob } = await grapher.rasterize()
