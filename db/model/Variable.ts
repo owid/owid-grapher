@@ -189,11 +189,6 @@ function makeConfigValidForIndicator({
 }): GrapherInterface {
     const updatedConfig = { ...config }
 
-    // if no schema is given, assume it's the latest
-    if (!updatedConfig.$schema) {
-        updatedConfig.$schema = defaultGrapherConfig.$schema
-    }
-
     // validate the given y-dimensions
     const defaultDimension = { property: DimensionProperty.y, variableId }
     const [yDimensions, otherDimensions] = _.partition(

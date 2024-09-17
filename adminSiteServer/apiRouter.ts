@@ -106,6 +106,7 @@ import {
 import { uuidv7 } from "uuidv7"
 import {
     defaultGrapherConfig,
+    migrateGrapherConfigToLatestVersion,
     getVariableDataRoute,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
@@ -497,7 +498,7 @@ const saveGrapher = async (
         referencedVariablesMightChange = true,
     }: {
         user: DbPlainUser
-        newConfig: GrapherInterface // Note that it is valid for newConfig to be of an older schema version which means that GrapherInterface as a type is slightly misleading
+        newConfig: GrapherInterface
         existingConfig?: GrapherInterface
         // if undefined, keep inheritance as is.
         // if true or false, enable or disable inheritance
@@ -582,22 +583,6 @@ const saveGrapher = async (
         // otherwise it can lead to clients receiving cached versions of the old data.
         newConfig.version += 1
     else newConfig.version = 1
-
-    // if the schema version is missing, assume it's the latest
-    if (newConfig.$schema === undefined) {
-        newConfig.$schema = defaultGrapherConfig.$schema
-    } else if (
-        newConfig.$schema ===
-        "https://files.ourworldindata.org/schemas/grapher-schema.004.json"
-    ) {
-        // TODO: find a more principled way to do schema upgrades
-
-        // grapher-schema.004 -> grapher-schema.005 removed the obsolete hideLinesOutsideTolerance field
-        const configForMigration = newConfig as any
-        delete configForMigration.hideLinesOutsideTolerance
-        configForMigration.$schema = defaultGrapherConfig.$schema
-        newConfig = configForMigration
-    }
 
     // add the isPublished field if is missing
     if (newConfig.isPublished === undefined) {
@@ -1038,9 +1023,19 @@ postRouteWithRWTransaction(apiRouter, "/charts", async (req, res, trx) => {
         shouldInherit = req.query.inheritance === "enable"
     }
 
+    let validConfig: GrapherInterface
+    try {
+        validConfig = migrateGrapherConfigToLatestVersion(req.body)
+    } catch (err) {
+        return {
+            success: false,
+            error: String(err),
+        }
+    }
+
     const { chartId } = await saveGrapher(trx, {
         user: res.locals.user,
-        newConfig: req.body,
+        newConfig: validConfig,
         shouldInherit,
     })
 
@@ -1068,11 +1063,21 @@ putRouteWithRWTransaction(
             shouldInherit = req.query.inheritance === "enable"
         }
 
+        let validConfig: GrapherInterface
+        try {
+            validConfig = migrateGrapherConfigToLatestVersion(req.body)
+        } catch (err) {
+            return {
+                success: false,
+                error: String(err),
+            }
+        }
+
         const existingConfig = await expectChartById(trx, req.params.chartId)
 
         const { chartId, savedPatch } = await saveGrapher(trx, {
             user: res.locals.user,
-            newConfig: req.body,
+            newConfig: validConfig,
             existingConfig,
             shouldInherit,
         })
@@ -1613,13 +1618,23 @@ putRouteWithRWTransaction(
     async (req, res, trx) => {
         const variableId = expectInt(req.params.variableId)
 
+        let validConfig: GrapherInterface
+        try {
+            validConfig = migrateGrapherConfigToLatestVersion(req.body)
+        } catch (err) {
+            return {
+                success: false,
+                error: String(err),
+            }
+        }
+
         const variable = await getGrapherConfigsForVariable(trx, variableId)
         if (!variable) {
             throw new JsonError(`Variable with id ${variableId} not found`, 500)
         }
 
         const { savedPatch, updatedCharts } =
-            await updateGrapherConfigETLOfVariable(trx, variable, req.body)
+            await updateGrapherConfigETLOfVariable(trx, variable, validConfig)
 
         // trigger build if any published chart has been updated
         if (updatedCharts.some((chart) => chart.isPublished)) {
@@ -1708,13 +1723,23 @@ putRouteWithRWTransaction(
     async (req, res, trx) => {
         const variableId = expectInt(req.params.variableId)
 
+        let validConfig: GrapherInterface
+        try {
+            validConfig = migrateGrapherConfigToLatestVersion(req.body)
+        } catch (err) {
+            return {
+                success: false,
+                error: String(err),
+            }
+        }
+
         const variable = await getGrapherConfigsForVariable(trx, variableId)
         if (!variable) {
             throw new JsonError(`Variable with id ${variableId} not found`, 500)
         }
 
         const { savedPatch, updatedCharts } =
-            await updateGrapherConfigAdminOfVariable(trx, variable, req.body)
+            await updateGrapherConfigAdminOfVariable(trx, variable, validConfig)
 
         // trigger build if any published chart has been updated
         if (updatedCharts.some((chart) => chart.isPublished)) {
