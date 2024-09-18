@@ -108,6 +108,12 @@ const DataCatalogSearchInput = ({
                     value={value}
                     onChange={(e) => {
                         setLocalQuery(e.target.value)
+                        if (e.target.value === "") {
+                            setGlobalQuery("")
+                        }
+                    }}
+                    onBlur={() => {
+                        setGlobalQuery(value)
                     }}
                 />
                 <button
