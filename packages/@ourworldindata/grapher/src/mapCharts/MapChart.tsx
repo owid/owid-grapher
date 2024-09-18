@@ -515,6 +515,9 @@ export class MapChart
     }
 
     @computed get legendX(): number {
+        if (this.legendAlign === HorizontalAlign.left) {
+            return this.bounds.x + 1
+        }
         return this.bounds.x + (this.bounds.width - this.legendMaxWidth) / 2
     }
 
@@ -552,7 +555,9 @@ export class MapChart
     }
 
     @computed get legendAlign(): HorizontalAlign {
-        return HorizontalAlign.center
+        return this.numericLegend
+            ? HorizontalAlign.center
+            : HorizontalAlign.left
     }
 
     @computed get numericLegendY(): number {
