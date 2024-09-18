@@ -102,6 +102,7 @@ async function handleHtmlPageRequest(
     const grapherPageResp = await env.ASSETS.fetch(url, { redirect: "manual" })
 
     if (grapherPageResp.status === 404) {
+        // grapherPageResp should be a static 404 HTML page.
         return handlePageNotFound(env, grapherPageResp)
     }
 
