@@ -682,19 +682,21 @@ export class StackedDiscreteBarChart
                     fill="rgba(255,255,255,0)"
                 />
                 {this.showHorizontalAxis && (
-                    <HorizontalAxisComponent
-                        bounds={bounds}
-                        axis={yAxis}
-                        preferredAxisPosition={innerBounds.bottom}
-                        labelColor={manager.secondaryColorInStaticCharts}
-                        tickMarkWidth={axisLineWidth}
-                    />
+                    <>
+                        <HorizontalAxisComponent
+                            bounds={bounds}
+                            axis={yAxis}
+                            preferredAxisPosition={innerBounds.bottom}
+                            labelColor={manager.secondaryColorInStaticCharts}
+                            tickMarkWidth={axisLineWidth}
+                        />
+                        <HorizontalAxisGridLines
+                            horizontalAxis={yAxis}
+                            bounds={innerBounds}
+                            strokeWidth={axisLineWidth}
+                        />
+                    </>
                 )}
-                <HorizontalAxisGridLines
-                    horizontalAxis={yAxis}
-                    bounds={innerBounds}
-                    strokeWidth={axisLineWidth}
-                />
                 {this.showLegend && (
                     <HorizontalCategoricalColorLegend manager={this} />
                 )}
