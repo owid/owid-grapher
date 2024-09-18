@@ -725,4 +725,44 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         )
         expect(fullConfig).not.toHaveProperty("note")
     })
+
+    it("should update timestamps on chart update", async () => {
+        // make sure the database is in a clean state
+        const chartCount = await getCountForTable(ChartsTableName)
+        expect(chartCount).toBe(0)
+        const chartConfigsCount = await getCountForTable(ChartConfigsTableName)
+        expect(chartConfigsCount).toBe(0)
+
+        // make a request to create a chart
+        const response = await makeRequestAgainstAdminApi({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const chartId = response.chartId
+
+        // helper functions to get the updatedAt timestamp of the chart and its config
+        const chartUpdatedAt = async (): Promise<Date> =>
+            (await testKnexInstance!(ChartsTableName).first()).updatedAt
+        const configUpdatedAt = async (): Promise<Date> =>
+            (await testKnexInstance!(ChartConfigsTableName).first()).updatedAt
+
+        // verify that both updatedAt timestamps are null initially
+        expect(await chartUpdatedAt()).toBeNull()
+        expect(await configUpdatedAt()).toBeNull()
+
+        // update the chart
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/charts/${chartId}`,
+            body: JSON.stringify({ ...testChartConfig, title: "New title" }),
+        })
+
+        // verify that the updatedAt timestamps are the same
+        const chartAfterUpdate = await chartUpdatedAt()
+        const configAfterUpdate = await configUpdatedAt()
+        expect(chartAfterUpdate).not.toBeNull()
+        expect(configAfterUpdate).not.toBeNull()
+        expect(chartAfterUpdate).toEqual(configAfterUpdate)
+    })
 })

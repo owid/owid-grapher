@@ -434,6 +434,8 @@ const updateExistingChart = async (
     if (!chartConfigId)
         throw new JsonError(`No chart config found for id ${chartId}`, 404)
 
+    const now = new Date()
+
     // update configs
     await db.knexRaw(
         knex,
@@ -441,12 +443,14 @@ const updateExistingChart = async (
             UPDATE chart_configs
             SET
                 patch=?,
-                full=?
+                full=?,
+                updatedAt=?
             WHERE id = ?
         `,
         [
             serializeChartConfig(patchConfig),
             fullConfigStringified,
+            now,
             chartConfigId.configId,
         ]
     )
@@ -456,10 +460,10 @@ const updateExistingChart = async (
         knex,
         `-- sql
             UPDATE charts
-            SET isInheritanceEnabled=?, lastEditedAt=?, lastEditedByUserId=?
+            SET isInheritanceEnabled=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=?
             WHERE id = ?
         `,
-        [shouldInherit, new Date(), user.id, chartId]
+        [shouldInherit, now, now, user.id, chartId]
     )
 
     // We need to get the full config and the md5 hash from the database instead of
@@ -1643,6 +1647,8 @@ deleteRouteWithRWTransaction(
         // no-op if the variable doesn't have an ETL config
         if (!variable.etl) return { success: true }
 
+        const now = new Date()
+
         // remove reference in the variables table
         await db.knexRaw(
             trx,
@@ -1669,6 +1675,7 @@ deleteRouteWithRWTransaction(
             await updateExistingFullConfig(trx, {
                 configId: variable.admin.configId,
                 config: variable.admin.patchConfig,
+                updatedAt: now,
             })
         }
 
@@ -1678,6 +1685,7 @@ deleteRouteWithRWTransaction(
             variableId,
             {
                 patchConfigAdmin: variable.admin?.patchConfig,
+                updatedAt: now,
             }
         )
 
@@ -1734,6 +1742,8 @@ deleteRouteWithRWTransaction(
         // no-op if the variable doesn't have an admin-authored config
         if (!variable.admin) return { success: true }
 
+        const now = new Date()
+
         // remove reference in the variables table
         await db.knexRaw(
             trx,
@@ -1761,6 +1771,7 @@ deleteRouteWithRWTransaction(
             variableId,
             {
                 patchConfigETL: variable.etl?.patchConfig,
+                updatedAt: now,
             }
         )
 

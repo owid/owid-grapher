@@ -6,21 +6,18 @@ import {
 
 import * as db from "../db.js"
 
-interface ConfigWithId {
-    configId: DbInsertChartConfig["id"]
-    config: GrapherInterface
-}
-
 export async function updateExistingConfigPair(
     knex: db.KnexReadWriteTransaction,
     {
         configId,
         patchConfig,
         fullConfig,
+        updatedAt,
     }: {
         configId: DbInsertChartConfig["id"]
         patchConfig: GrapherInterface
         fullConfig: GrapherInterface
+        updatedAt: Date
     }
 ): Promise<void> {
     await db.knexRaw(
@@ -29,27 +26,35 @@ export async function updateExistingConfigPair(
             UPDATE chart_configs
             SET
                 patch = ?,
-                full = ?
+                full = ?,
+                updatedAt = ?
             WHERE id = ?
         `,
         [
             serializeChartConfig(patchConfig),
             serializeChartConfig(fullConfig),
+            updatedAt,
             configId,
         ]
     )
 }
 
+type ConfigId = DbInsertChartConfig["id"]
+interface UpdateFields {
+    config: GrapherInterface
+    updatedAt: Date
+}
+
 export async function updateExistingPatchConfig(
     knex: db.KnexReadWriteTransaction,
-    params: ConfigWithId
+    params: UpdateFields & { configId: ConfigId }
 ): Promise<void> {
     await updateExistingConfig(knex, { ...params, column: "patch" })
 }
 
 export async function updateExistingFullConfig(
     knex: db.KnexReadWriteTransaction,
-    params: ConfigWithId
+    params: UpdateFields & { configId: ConfigId }
 ): Promise<void> {
     await updateExistingConfig(knex, { ...params, column: "full" })
 }
@@ -60,7 +65,9 @@ async function updateExistingConfig(
         column,
         configId,
         config,
-    }: ConfigWithId & {
+        updatedAt,
+    }: UpdateFields & {
+        configId: ConfigId
         column: "patch" | "full"
     }
 ): Promise<void> {
@@ -68,9 +75,11 @@ async function updateExistingConfig(
         knex,
         `-- sql
             UPDATE chart_configs
-            SET ?? = ?
+            SET
+                ?? = ?,
+                updatedAt = ?
             WHERE id = ?
         `,
-        [column, serializeChartConfig(config), configId]
+        [column, serializeChartConfig(config), updatedAt, configId]
     )
 }
