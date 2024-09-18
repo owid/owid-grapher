@@ -15,7 +15,6 @@ type ExportSettings = Required<
         | "hideTitle"
         | "forceHideAnnotationFieldsInTitle"
         | "hideSubtitle"
-        | "hideLogo"
         | "hideNote"
         | "hideOriginUrl"
         | "shouldIncludeDetailsInStaticExport"
@@ -28,7 +27,6 @@ type OriginalGrapher = Pick<
     | "shouldAddEntitySuffixToTitle"
     | "shouldAddTimeSuffixToTitle"
     | "currentSubtitle"
-    | "hideLogo"
     | "note"
     | "originUrl"
     | "shouldIncludeDetailsInStaticExport"
@@ -49,7 +47,6 @@ const DEFAULT_SETTINGS: ExportSettings = {
         time: false,
     },
     hideSubtitle: false,
-    hideLogo: false,
     hideNote: false,
     hideOriginUrl: false,
     shouldIncludeDetailsInStaticExport: false,
@@ -118,7 +115,6 @@ export class EditorExportTab<
             forceHideAnnotationFieldsInTitle:
                 this.grapher.forceHideAnnotationFieldsInTitle,
             hideSubtitle: this.grapher.hideSubtitle,
-            hideLogo: this.grapher.hideLogo,
             hideNote: this.grapher.hideNote,
             hideOriginUrl: this.grapher.hideOriginUrl,
             shouldIncludeDetailsInStaticExport:
@@ -134,7 +130,6 @@ export class EditorExportTab<
                 this.grapher.shouldAddEntitySuffixToTitle,
             shouldAddTimeSuffixToTitle: this.grapher.shouldAddTimeSuffixToTitle,
             currentSubtitle: this.grapher.currentSubtitle,
-            hideLogo: this.grapher.hideLogo,
             note: this.grapher.note,
             originUrl: this.grapher.originUrl,
             shouldIncludeDetailsInStaticExport:
@@ -265,15 +260,6 @@ export class EditorExportTab<
                             value={!this.settings.hideSubtitle}
                             onValue={(value) =>
                                 (this.settings.hideSubtitle = !value)
-                            }
-                        />
-                    )}
-                    {!this.originalGrapher.hideLogo && (
-                        <Toggle
-                            label="Logo"
-                            value={!this.settings.hideLogo}
-                            onValue={(value) =>
-                                (this.settings.hideLogo = !value)
                             }
                         />
                     )}
