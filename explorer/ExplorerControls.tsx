@@ -57,7 +57,9 @@ interface ExplorerDropdownOption {
     value: string
 }
 
-const ExplorerSingleValue = (props: SingleValueProps) => {
+const ExplorerSingleValue = (
+    props: SingleValueProps<ExplorerDropdownOption>
+) => {
     if (props.selectProps.isSearchable && props.selectProps.menuIsOpen)
         return (
             <components.SingleValue {...props}>
@@ -79,7 +81,7 @@ const ExplorerDropdown = (props: {
     const styles = getStylesForTargetHeight(30)
 
     return (
-        <Select
+        <Select<ExplorerDropdownOption>
             className={EXPLORER_DROPDOWN_CLASS}
             classNamePrefix={EXPLORER_DROPDOWN_CLASS}
             isDisabled={options.length < 2}
@@ -88,9 +90,9 @@ const ExplorerDropdown = (props: {
             menuPosition="absolute"
             options={options}
             value={value}
-            onChange={(option: ExplorerDropdownOption) =>
-                onChange(option.value)
-            }
+            onChange={(option: ExplorerDropdownOption | null) => {
+                if (option) onChange(option.value)
+            }}
             components={{
                 IndicatorSeparator: null,
                 SingleValue: ExplorerSingleValue,
