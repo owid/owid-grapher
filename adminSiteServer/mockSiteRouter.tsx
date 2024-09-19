@@ -4,7 +4,7 @@ import {
     renderFrontPage,
     renderGdocsPageBySlug,
     renderPageBySlug,
-    renderChartsPage,
+    renderDataCatalogPage,
     renderSearchPage,
     renderDonatePage,
     makeAtomFeed,
@@ -327,10 +327,9 @@ getPlainRouteNonIdempotentWithRWTransaction(
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
-    "/charts",
+    "/data*",
     async (req, res, trx) => {
-        const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
-        res.send(await renderChartsPage(trx, explorerAdminServer))
+        res.send(await renderDataCatalogPage(trx))
     }
 )
 

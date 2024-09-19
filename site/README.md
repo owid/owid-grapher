@@ -71,3 +71,7 @@ secret_access_key = xxx
 region = auto
 endpoint = https://078fcdfed9955087315dd86792e71a7e.r2.cloudflarestorage.com
 ```
+
+## Data Catalog
+
+The data catalog is located at `/data`. You'll need to set `ALGOLIA_ID` and `ALGOLIA_SEARCH_KEY` in your .env file to run it locally. Optionally, if you want to work with a custom set of indices, you can set a `ALGOLIA_INDEX_PREFIX` which will be appended to any index you query if you use `getIndexName`. This will generally only be useful if you're an OWID member who has access to the `ALGOLIA_SECRET_KEY` and can create new indices, or if you're running your own Algolia application.

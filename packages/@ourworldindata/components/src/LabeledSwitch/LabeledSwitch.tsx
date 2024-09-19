@@ -2,6 +2,7 @@ import React from "react"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
+import cx from "classnames"
 import { Tippy } from "@ourworldindata/utils"
 
 @observer
@@ -11,17 +12,36 @@ export class LabeledSwitch extends React.Component<{
     tooltip?: string
     tracking?: string
     onToggle: () => any
+    className?: string
+    disabled?: boolean
 }> {
     render(): React.ReactElement {
-        const { label, value, tooltip, tracking } = this.props
+        const {
+            className,
+            label,
+            value,
+            tooltip,
+            tracking,
+            disabled,
+            onToggle,
+        } = this.props
 
         return (
-            <div className="labeled-switch">
+            <div
+                className={cx(
+                    {
+                        "labeled-switch": true,
+                        "labeled-switch--is-disabled": disabled,
+                    },
+                    className
+                )}
+            >
                 <label>
                     <input
                         type="checkbox"
                         checked={value}
-                        onChange={this.props.onToggle}
+                        disabled={disabled}
+                        onChange={onToggle}
                         data-track-note={tracking}
                     />
                     <div data-track-note="" className="outer">

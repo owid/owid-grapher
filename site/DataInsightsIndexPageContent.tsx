@@ -8,6 +8,7 @@ import {
     merge,
     LinkedAuthor,
     uniqBy,
+    getPaginationPageNumbers,
 } from "@ourworldindata/utils"
 import {
     DataInsightBody,
@@ -41,11 +42,7 @@ const Pagination = (props: { pageNumber: number; totalPageCount: number }) => {
     const isRightArrowDisabled = pageNumber === totalPageCount - 1
 
     // Select 5 values around the current page number
-    const pageNumbers = []
-    const start = Math.max(0, pageNumber - 2)
-    for (let i = start; i < Math.min(start + 5, totalPageCount); i++) {
-        pageNumbers.push(i)
-    }
+    const pageNumbers = getPaginationPageNumbers(pageNumber, totalPageCount)
 
     return (
         <div className="data-insights-index-page__pagination span-cols-8 col-start-4 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">

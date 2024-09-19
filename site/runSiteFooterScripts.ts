@@ -21,6 +21,7 @@ import {
 } from "./DataInsightsIndexPageContent.js"
 import { runAllGraphersLoadedListener } from "./runAllGraphersLoadedListener.js"
 import { hydrateMultiDimDataPageContent } from "./multiDim/MultiDimDataPageContent.js"
+import { hydrateDataCatalogPage } from "./DataCatalog/DataCatalog.js"
 
 export const runSiteFooterScripts = (
     args:
@@ -81,6 +82,8 @@ export const runSiteFooterScripts = (
         case SiteFooterContext.dataInsightsIndexPage:
             // Don't break, run default case too
             hydrateDataInsightsIndexPage()
+        case SiteFooterContext.dataCatalogPage:
+            hydrateDataCatalogPage()
         default:
             // Features that were not ported over to gdocs, are only being run on WP pages:
             // - global entity selector

@@ -1,5 +1,8 @@
 import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
 import { SearchCategoryFilter } from "./search/searchTypes.js"
+import { DataCatalogState } from "./DataCatalog/DataCatalogState.js"
+import { IDataCatalogHit } from "./DataCatalog/DataCatalogUtils.js"
+import { set } from "lodash"
 
 export class SiteAnalytics extends GrapherAnalytics {
     logCountryProfileSearch(country: string) {
@@ -17,10 +20,10 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logChartsPageSearchQuery(query: string) {
+    logCountryPageSearchQuery(query: string) {
         this.logToGA({
             event: EventCategory.Filter,
-            eventAction: "charts_page",
+            eventAction: "country_page_search",
             eventContext: query,
         })
     }
@@ -87,6 +90,37 @@ export class SiteAnalytics extends GrapherAnalytics {
             event: EventCategory.DetailOnDemand,
             eventAction: "show",
             eventTarget: id,
+        })
+    }
+
+    logDataCatalogSearch(state: DataCatalogState) {
+        this.logToGA({
+            event: EventCategory.DataCatalogSearch,
+            eventAction: "search",
+            eventContext: JSON.stringify({
+                ...state,
+                topics: Array.from(state.topics),
+                selectedCountryNames: Array.from(state.selectedCountryNames),
+            }),
+        })
+    }
+
+    logDataCatalogResultClick(
+        hit: IDataCatalogHit,
+        position: number,
+        source: "ribbon" | "search",
+        ribbonTag?: string
+    ) {
+        const eventContext = {
+            position,
+            source,
+        }
+        if (ribbonTag) set(eventContext, "ribbonTag", ribbonTag)
+        this.logToGA({
+            event: EventCategory.DataCatalogResultClick,
+            eventAction: "click",
+            eventContext: JSON.stringify(eventContext),
+            eventTarget: hit.slug,
         })
     }
 }

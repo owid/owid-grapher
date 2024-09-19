@@ -149,7 +149,7 @@ body {
 @mixin h2-bold {
     font-family: $serif-font-stack;
     font-size: 1.25rem;
-    line-height: 1.33;
+    line-height: calc(4 / 3);
     font-weight: 700;
     display: block;
     margin-top: 48px;
@@ -183,7 +183,7 @@ body {
 @mixin h3-bold {
     font-family: $serif-font-stack;
     font-size: 1.125rem;
-    line-height: 1.33;
+    line-height: calc(4 / 3);
     font-weight: 700;
     display: block;
     margin-top: 48px;
@@ -214,7 +214,7 @@ body {
     font-family: $sans-serif-font-stack;
     font-size: 0.75rem;
     font-weight: 900;
-    line-height: 1.33;
+    line-height: calc(4 / 3);
     letter-spacing: 0.1em;
     text-transform: uppercase;
 }
@@ -239,7 +239,7 @@ body {
 @mixin subtitle-1 {
     font-family: $sans-serif-font-stack;
     font-size: 1.5rem;
-    line-height: 1.33;
+    line-height: calc(4 / 3);
     font-weight: 400;
     letter-spacing: 0;
 }
@@ -274,7 +274,7 @@ body {
 @mixin overline-black-caps {
     font-family: $sans-serif-font-stack;
     font-size: 0.75rem;
-    line-height: 1.33;
+    line-height: calc(4 / 3);
     font-weight: 900;
     letter-spacing: 0.1rem;
     text-transform: uppercase;
@@ -419,12 +419,24 @@ body {
     @include label-2-medium;
 }
 
+@mixin label-2-regular {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 0.833;
+}
+
+.label-2-regular {
+    @include label-2-regular;
+}
+
 @mixin note-1-medium {
     font-family: $sans-serif-font-stack;
     font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.01em;
-    line-height: 1.33;
+    line-height: calc(4 / 3);
 }
 
 .note-1-medium {

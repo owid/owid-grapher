@@ -56,8 +56,6 @@ export const configureAlgolia = async () => {
         exactOnSingleWordQuery: "none",
         removeStopWords: ["en"],
         snippetEllipsisText: "…",
-        highlightPreTag: "<strong>",
-        highlightPostTag: "</strong>",
         distinct: true,
         advancedSyntax: true,
         advancedSyntaxFeatures: ["exactPhrase"],
@@ -303,6 +301,8 @@ export const configureAlgolia = async () => {
         ["solar", "photovoltaic", "photovoltaics", "pv"],
         ["tb", "tuberculosis"],
         ["ntd", "neglected tropical diseases", "neglected tropical disease"],
+        ["people", "population"],
+        ["production", "generation"],
     ]
 
     const algoliaSynonyms = synonyms.map((s) => {

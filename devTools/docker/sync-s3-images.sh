@@ -28,4 +28,13 @@ else
     echo "Access Denied to owid-image-upload, fetching from owid-image-upload-staging..."
 fi
 
+echo "Debug: [$GRAPHER_BRANCH]"
+echo "Debug: [$PROD_BUCKET]"
+echo "Debug: [$IMAGE_HOSTING_R2_BUCKET_PATH]"
+
+# Strip CR from the end of the bucket path
+IMAGE_HOSTING_R2_BUCKET_PATH=$(echo $IMAGE_HOSTING_R2_BUCKET_PATH | tr -d '\r')
+
+echo "Debug after tr: [$IMAGE_HOSTING_R2_BUCKET_PATH]"
+
 rclone sync owid-r2:$PROD_BUCKET/production/ owid-r2:$IMAGE_HOSTING_R2_BUCKET_PATH/ --verbose --transfers=32 --checkers=32 --fast-list
