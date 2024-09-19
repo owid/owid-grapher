@@ -326,9 +326,14 @@ export function Autocomplete({
     // Register a global shortcut to open the search box on typing "/"
     useEffect(() => {
         if (!search) return
+
         Mousetrap.bind("/", (e) => {
             e.preventDefault() // don't type "/" into input
             search.setIsOpen(true)
+
+            const input =
+                containerRef.current?.querySelector<HTMLInputElement>("input")
+            input?.focus()
         })
 
         return () => {
