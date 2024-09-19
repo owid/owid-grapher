@@ -2935,6 +2935,19 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     const gdoc = await getGdocBaseObjectById(trx, id, false)
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
+    const gdocSlug = getCanonicalUrl("", gdoc)
+    const { tombstone } = req.body
+
+    if (tombstone) {
+        const slug = gdocSlug.replace("/", "")
+        await trx
+            .table("posts_gdocs_tombstones")
+            .insert({ ...tombstone, gdocId: id, slug })
+        await trx
+            .table("redirects")
+            .insert({ source: gdocSlug, target: `/deleted${gdocSlug}` })
+    }
+
     await trx
         .table("posts")
         .where({ gdocSuccessorId: gdoc.id })
@@ -2946,12 +2959,11 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     if (gdoc.published && checkIsGdocPostExcludingFragments(gdoc)) {
         await removeIndividualGdocPostFromIndex(gdoc)
     }
-    // Assets have TTL of one week in Cloudflare. Add a redirect to make sure
-    // the page is no longer accessible.
-    // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
-    const gdocSlug = getCanonicalUrl("", gdoc)
     if (gdoc.published) {
-        if (gdocSlug && gdocSlug !== "/") {
+        if (!tombstone && gdocSlug && gdocSlug !== "/") {
+            // Assets have TTL of one week in Cloudflare. Add a redirect to make sure
+            // the page is no longer accessible.
+            // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
             console.log(`Creating redirect for "${gdocSlug}" to "/"`)
             await db.knexRawInsert(
                 trx,

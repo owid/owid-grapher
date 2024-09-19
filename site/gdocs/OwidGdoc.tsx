@@ -22,7 +22,7 @@ import { Fragment } from "./pages/Fragment.js"
 import { Homepage } from "./pages/Homepage.js"
 import { Author } from "./pages/Author.js"
 
-export const AttachmentsContext = createContext<{
+export type Attachments = {
     linkedAuthors?: LinkedAuthor[]
     linkedCharts: Record<string, LinkedChart>
     linkedIndicators: Record<number, LinkedIndicator>
@@ -32,7 +32,9 @@ export const AttachmentsContext = createContext<{
     latestDataInsights?: LatestDataInsight[]
     homepageMetadata?: OwidGdocHomepageMetadata
     latestWorkLinks?: DbEnrichedLatestWork[]
-}>({
+}
+
+export const AttachmentsContext = createContext<Attachments>({
     linkedAuthors: [],
     linkedDocuments: {},
     imageMetadata: {},

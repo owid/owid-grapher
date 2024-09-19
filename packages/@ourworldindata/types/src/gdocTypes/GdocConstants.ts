@@ -24,6 +24,9 @@ export const IMAGES_DIRECTORY = "/images/published/"
 export const gdocUrlRegex =
     /https:\/\/docs\.google\.com\/document(?:\/u\/\d)?\/d\/([\-\w]+)\/?(edit)?#?/
 
+export const GDOCS_URL_PLACEHOLDER =
+    "https://docs.google.com/document/d/****/edit"
+
 export const gdocIdRegex = /^[0-9A-Za-z\-_]{44}$/
 
 // This file is saved in Drive in the Unattributed Images folder

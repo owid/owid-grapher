@@ -31,6 +31,7 @@ import {
     renderDataInsightsIndexPage,
     renderThankYouPage,
     makeDataInsightsAtomFeed,
+    renderGdocTombstone,
 } from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
@@ -56,6 +57,7 @@ import {
     grabMetadataForGdocLinkedIndicator,
     GrapherTabOption,
     DEFAULT_THUMBNAIL_FILENAME,
+    TombstonePageData,
 } from "@ourworldindata/utils"
 
 import { execWrapper } from "../db/execWrapper.js"
@@ -108,6 +110,7 @@ import { getBakePath } from "@ourworldindata/components"
 import { GdocAuthor, getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
 import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
+import { getTombstones } from "../db/model/GdocTombstone.js"
 import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
 
 type PrefetchedAttachments = {
@@ -140,6 +143,7 @@ const nonWordpressSteps = [
     "charts",
     "multiDimPages",
     "gdocPosts",
+    "gdocTombstones",
     "gdriveImages",
     "dods",
     "dataInsights",
@@ -171,6 +175,7 @@ function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
     // Add 6 ticks for prefetching attachments, which will only run if any of these steps are enabled
     if (
         bakeSteps.has("gdocPosts") ||
+        bakeSteps.has("gdocTombstones") ||
         bakeSteps.has("dataInsights") ||
         bakeSteps.has("authors")
     ) {
@@ -258,6 +263,23 @@ export class SiteBaker {
         const html = renderGdoc(gdoc)
         const outPath = `${getBakePath(this.bakedSiteDir, gdoc)}.html`
         await fs.mkdirp(path.dirname(outPath))
+        await this.stageWrite(outPath, html)
+    }
+
+    private async bakeOwidGdocTombstone(
+        tombstone: TombstonePageData,
+        attachments: PrefetchedAttachments
+    ) {
+        const html = renderGdocTombstone(tombstone, {
+            ...attachments,
+            linkedCharts: {},
+            relatedCharts: [],
+        })
+        const outPath = path.join(
+            this.bakedSiteDir,
+            "deleted",
+            `${tombstone.slug}.html`
+        )
         await this.stageWrite(outPath, html)
     }
 
@@ -631,6 +653,24 @@ export class SiteBaker {
         }
 
         this.progressBar.tick({ name: "✅ baked google doc posts" })
+    }
+
+    async bakeGDocTombstones(knex: db.KnexReadonlyTransaction) {
+        if (!this.bakeSteps.has("gdocTombstones")) return
+        const tombstones = await getTombstones(knex)
+
+        for (const tombstone of tombstones) {
+            const attachments = await this.getPrefetchedGdocAttachments(knex)
+            try {
+                await this.bakeOwidGdocTombstone(tombstone, attachments)
+            } catch (e) {
+                await logErrorAndMaybeSendToBugsnag(
+                    `Error baking gdoc tombstone with id "${tombstone.id}" and slug "${tombstone.slug}": ${e}`
+                )
+            }
+        }
+
+        this.progressBar.tick({ name: "✅ baked google doc tombstones" })
     }
 
     // Bake unique individual pages
@@ -1084,6 +1124,7 @@ export class SiteBaker {
         await this.bakeDetailsOnDemand(knex)
         await this.validateGrapherDodReferences(knex)
         await this.bakeGDocPosts(knex)
+        await this.bakeGDocTombstones(knex)
         await this.bakeDataInsights(knex)
         await this.bakeAuthors(knex)
         await this.bakeDriveImages(knex)

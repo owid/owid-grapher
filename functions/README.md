@@ -51,6 +51,10 @@ https://[PREVIEW_BRANCH].owid-staging.pages.dev.
 
 # Our dynamic routes
 
+## `/deleted/:slug`
+
+This route is used to handle deleted pages. They are fully baked we just want them to return a 404 status code instead of a 200.
+
 ## `/donation/donate`
 
 This route is used to create a Stripe Checkout session for a donation.
