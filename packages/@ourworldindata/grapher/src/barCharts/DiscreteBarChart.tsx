@@ -450,19 +450,21 @@ export class DiscreteBarChart
                     <HorizontalNumericColorLegend manager={this} />
                 )}
                 {this.showHorizontalAxis && (
-                    <HorizontalAxisComponent
-                        bounds={boundsWithoutColorLegend}
-                        axis={yAxis}
-                        preferredAxisPosition={innerBounds.bottom}
-                        labelColor={manager.secondaryColorInStaticCharts}
-                        tickMarkWidth={axisLineWidth}
-                    />
+                    <>
+                        <HorizontalAxisComponent
+                            bounds={boundsWithoutColorLegend}
+                            axis={yAxis}
+                            preferredAxisPosition={innerBounds.bottom}
+                            labelColor={manager.secondaryColorInStaticCharts}
+                            tickMarkWidth={axisLineWidth}
+                        />
+                        <HorizontalAxisGridLines
+                            horizontalAxis={yAxis}
+                            bounds={innerBounds}
+                            strokeWidth={axisLineWidth}
+                        />
+                    </>
                 )}
-                <HorizontalAxisGridLines
-                    horizontalAxis={yAxis}
-                    bounds={innerBounds}
-                    strokeWidth={axisLineWidth}
-                />
                 {sizedSeries.map((series) => {
                     // Todo: add a "placedSeries" getter to get the transformed series, then just loop over the placedSeries and render a bar for each
                     const isNegative = series.value < 0
