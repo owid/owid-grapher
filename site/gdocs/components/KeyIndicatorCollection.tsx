@@ -75,7 +75,7 @@ export default function KeyIndicatorCollection({
                 )}
             </header>
             <Button
-                href="/charts"
+                href="/data"
                 className="key-indicator-collection__all-charts-button body-3-medium span-cols-4 col-start-9 col-sm-start-1 span-sm-cols-12"
                 text="See all our data"
                 theme="outline-vermillion"

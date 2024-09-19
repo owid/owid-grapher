@@ -126,10 +126,10 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             </li>
                             <li>
                                 <a
-                                    href="/charts"
+                                    href="/data"
                                     data-track-note="footer_navigation"
                                 >
-                                    All charts
+                                    Data Catalog
                                 </a>
                             </li>
                         </ul>

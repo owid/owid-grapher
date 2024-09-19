@@ -10,7 +10,7 @@ export function HomepageSearch(props: { className?: string }) {
     const message =
         chartCount && topicCount ? (
             <>
-                <a href="/charts">{commafyNumber(chartCount)} charts</a> across{" "}
+                <a href="/data">{commafyNumber(chartCount)} charts</a> across{" "}
                 <a
                     href="#all-topics"
                     className="homepage-search__all-topics-link"
