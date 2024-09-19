@@ -22,7 +22,7 @@ export const DataCatalogPage = (props: {
             <Head
                 canonicalUrl={`${baseUrl}/charts`}
                 pageTitle="Data Catalog"
-                pageDesc="A searchable database of all our charts."
+                pageDesc="Explore Our World in Data's extensive collection of charts. Use the search bar to find specific data visualizations or browse by topic. Filter by country or subject area to discover insights on global issues supported by reliable data."
                 baseUrl={baseUrl}
             >
                 <script
