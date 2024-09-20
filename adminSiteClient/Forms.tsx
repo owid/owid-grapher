@@ -286,6 +286,7 @@ interface NumberFieldProps {
     buttonContent?: React.ReactNode
     onButtonClick?: () => void
     buttonDisabled?: boolean
+    resetButton?: Omit<WithResetButtonProps, "children">
 }
 
 interface NumberFieldState {
@@ -331,7 +332,44 @@ export class NumberField extends React.Component<
             },
         }
 
-        return <TextField {...textFieldProps} />
+        if (props.resetButton) {
+            return (
+                <WithResetButton {...props.resetButton}>
+                    <TextField {...textFieldProps} />
+                </WithResetButton>
+            )
+        } else {
+            return <TextField {...textFieldProps} />
+        }
+    }
+}
+
+interface WithResetButtonProps {
+    children: React.ReactElement
+    onClick: () => void
+    content?: React.ReactNode
+    disabled?: boolean
+}
+
+class WithResetButton extends React.Component<WithResetButtonProps> {
+    render() {
+        const { props } = this
+
+        return (
+            <div className="WithResetButton">
+                {props.children}
+                <button
+                    className="btn btn-link ResetToDefaultButton"
+                    onClick={props.onClick}
+                    disabled={props.disabled}
+                >
+                    {props.content ??
+                        (props.disabled
+                            ? "Bound to data. Edit to unbind"
+                            : "Bind to data")}
+                </button>
+            </div>
+        )
     }
 }
 
@@ -991,6 +1029,7 @@ interface AutoFloatFieldProps {
     onValue: (value: number | undefined) => void
     onToggleAuto: (value: boolean) => void
     onBlur?: () => void
+    resetButton?: Omit<WithResetButtonProps, "children">
 }
 
 class AutoFloatField extends React.Component<AutoFloatFieldProps> {
@@ -1026,6 +1065,7 @@ class AutoFloatField extends React.Component<AutoFloatFieldProps> {
                 }
                 onButtonClick={() => props.onToggleAuto(!props.isAuto)}
                 buttonDisabled={props.isAuto}
+                resetButton={props.resetButton}
             />
         )
     }
@@ -1109,6 +1149,44 @@ export class BindAutoFloat<
                 label={label || capitalize(field)}
                 value={value === undefined ? auto : value}
                 isAuto={value === undefined}
+                onValue={this.onValue}
+                onToggleAuto={this.onToggleAuto}
+                {...rest}
+            />
+        )
+    }
+}
+
+@observer
+export class BindAutoFloatExt<
+    T extends Record<string, any>,
+> extends React.Component<
+    {
+        readFn: (x: T) => number
+        writeFn: (x: T, value: number | undefined) => void
+        store: T
+        auto?: number
+    } & Omit<AutoFloatFieldProps, "onValue" | "onToggleAuto" | "value">
+> {
+    @action.bound onValue(value: number | undefined) {
+        this.props.writeFn(this.props.store, value)
+    }
+
+    @action.bound onToggleAuto(value: boolean) {
+        this.props.writeFn(
+            this.props.store,
+            value ? this.props.auto : this.props.readFn(this.props.store)
+        )
+    }
+
+    render() {
+        const { readFn, auto, store, ...rest } = this.props
+        const currentReadValue = this.props.isAuto
+            ? auto ?? readFn(store)
+            : readFn(store)
+        return (
+            <AutoFloatField
+                value={currentReadValue}
                 onValue={this.onValue}
                 onToggleAuto={this.onToggleAuto}
                 {...rest}
