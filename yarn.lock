@@ -1437,25 +1437,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bugsnag/browser@npm:^7.20.2":
-  version: 7.20.2
-  resolution: "@bugsnag/browser@npm:7.20.2"
+"@bugsnag/browser@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@bugsnag/browser@npm:8.0.0"
   dependencies:
-    "@bugsnag/core": "npm:^7.19.0"
-  checksum: 10/87805bc7b007446a61577d7c7218017dbda4b28c3f69091f1504057d3522c91d280888c6f11d2524e7423ee71ba7aebe8e28caee081e9f3ec2ab1cf47a1e9e39
+    "@bugsnag/core": "npm:^8.0.0"
+  checksum: 10/f8ae2c41d0892b1a3b53dc34c65d43e4936f9770a19810d9b290cb2754ccf690a88e65b2882cbb7dba6d41b59d513321c516b005b3523955ffec8228cff00016
   languageName: node
   linkType: hard
 
-"@bugsnag/core@npm:^7.19.0":
-  version: 7.19.0
-  resolution: "@bugsnag/core@npm:7.19.0"
+"@bugsnag/core@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@bugsnag/core@npm:8.0.0"
   dependencies:
     "@bugsnag/cuid": "npm:^3.0.0"
     "@bugsnag/safe-json-stringify": "npm:^6.0.0"
     error-stack-parser: "npm:^2.0.3"
     iserror: "npm:0.0.2"
     stack-generator: "npm:^2.0.3"
-  checksum: 10/d70106675a974ace1cff4a0a1a65cc75d345c7649582d5c76cc61774b91ecfcd4964c76780f116de36093747930818939299c8a06b19961fbeb45f21bf2ca782
+  checksum: 10/69c0ad04156fa87dcb73ee53c38e0cb58e452d94764000ce4dc92cb4c5ed8fd1009795951950a85657b8271d723d2fc681040d20667a98991b007d06aa9226d9
   languageName: node
   linkType: hard
 
@@ -1466,50 +1466,48 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bugsnag/js@npm:^7.20.0":
-  version: 7.20.2
-  resolution: "@bugsnag/js@npm:7.20.2"
+"@bugsnag/js@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@bugsnag/js@npm:8.0.0"
   dependencies:
-    "@bugsnag/browser": "npm:^7.20.2"
-    "@bugsnag/node": "npm:^7.19.0"
-  checksum: 10/dffdce1191fe72bf483408b0273eb4e0e80a7e1565fb9d48457f894ef3cff11fa8ae38156009e69de4f045cb779a91b3dbbd5059b096491ee5034d6e4b77517b
+    "@bugsnag/browser": "npm:^8.0.0"
+    "@bugsnag/node": "npm:^8.0.0"
+  checksum: 10/b6b9b98f5c7a05ebde081e95f8fce98a4f08773313d94d40907390c282cfbfa10c7dac7e7b47c84022a3dd670cf139f0c0e77df44bf72d029b747d1ca8b37a56
   languageName: node
   linkType: hard
 
-"@bugsnag/node@npm:^7.19.0":
-  version: 7.19.0
-  resolution: "@bugsnag/node@npm:7.19.0"
+"@bugsnag/node@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@bugsnag/node@npm:8.0.0"
   dependencies:
-    "@bugsnag/core": "npm:^7.19.0"
+    "@bugsnag/core": "npm:^8.0.0"
     byline: "npm:^5.0.0"
     error-stack-parser: "npm:^2.0.2"
     iserror: "npm:^0.0.2"
     pump: "npm:^3.0.0"
     stack-generator: "npm:^2.0.3"
-  checksum: 10/2dc61f8182ee6b647284fcae8daec9bead08c8141e64b7ebe16e3e976866f9bf76e2fa00fe958d67c5bedacf8f1d129a657df22a43da2f260555b4ca73b4a704
+  checksum: 10/c260414807b0231a90e07941bc718f3026f366d5130ba713f447bf8b08682e6c2edfaaa09d197662b7fb834add58064ef26cdf2fc4bec2e9bff80b598fe051f6
   languageName: node
   linkType: hard
 
-"@bugsnag/plugin-express@npm:^7.19.0":
-  version: 7.19.0
-  resolution: "@bugsnag/plugin-express@npm:7.19.0"
-  dependencies:
-    iserror: "npm:^0.0.2"
+"@bugsnag/plugin-express@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@bugsnag/plugin-express@npm:8.0.0"
   peerDependencies:
-    "@bugsnag/core": ^7.0.0
-  checksum: 10/6fe6a489fbec342c263f42670b35251bd586f9a545cfb2b3bfacaa764fab83246a9cc1bc271c2a98570ebb936b1f8e62d6f968380b7a6d0bd0a6b86bba774cb5
+    "@bugsnag/core": ^8.0.0-alpha.1
+  checksum: 10/7aff1cb28f8afe77ee1d80f3024086d2a3bff08a9ead6b1998d032d98f85ac61622b5da52276dc83c8ff2f926d09aa9aa5af0c469b403782c7fb468de597f2bb
   languageName: node
   linkType: hard
 
-"@bugsnag/plugin-react@npm:^7.19.0":
-  version: 7.19.0
-  resolution: "@bugsnag/plugin-react@npm:7.19.0"
+"@bugsnag/plugin-react@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@bugsnag/plugin-react@npm:8.0.0"
   peerDependencies:
-    "@bugsnag/core": ^7.0.0
+    "@bugsnag/core": ^8.0.0-alpha.1
   peerDependenciesMeta:
     "@bugsnag/core":
       optional: true
-  checksum: 10/5771221af57dfbe42c4e111af1effadce7b0551d94ac1c4063e15d8623c3c237a37e5de5316969799d8122d5a38f8c7595a49f2bafeec51a59ceabd80b1dd3aa
+  checksum: 10/908f6dcdbacdb6677d3a22fb6e7546aa95a51e876e2a8c7239f540f734417e1654e8a2bcfd7bed9d9eeb15023e69b49427ed38746608fc8de7d9121cc371fefb
   languageName: node
   linkType: hard
 
@@ -3307,9 +3305,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@ourworldindata/grapher@workspace:packages/@ourworldindata/grapher"
   dependencies:
-    "@bugsnag/core": "npm:^7.19.0"
-    "@bugsnag/js": "npm:^7.20.0"
-    "@bugsnag/plugin-react": "npm:^7.19.0"
+    "@bugsnag/core": "npm:^8.0.0"
+    "@bugsnag/js": "npm:^8.0.0"
+    "@bugsnag/plugin-react": "npm:^8.0.0"
     "@fortawesome/fontawesome-svg-core": "npm:^6.5.2"
     "@fortawesome/free-brands-svg-icons": "npm:^6.5.2"
     "@fortawesome/free-solid-svg-icons": "npm:^6.5.2"
@@ -10889,10 +10887,10 @@ __metadata:
     "@algolia/autocomplete-plugin-recent-searches": "npm:^1.17.2"
     "@algolia/autocomplete-theme-classic": "npm:^1.17.2"
     "@aws-sdk/client-s3": "npm:^3.626.0"
-    "@bugsnag/core": "npm:^7.19.0"
-    "@bugsnag/js": "npm:^7.20.0"
-    "@bugsnag/plugin-express": "npm:^7.19.0"
-    "@bugsnag/plugin-react": "npm:^7.19.0"
+    "@bugsnag/core": "npm:^8.0.0"
+    "@bugsnag/js": "npm:^8.0.0"
+    "@bugsnag/plugin-express": "npm:^8.0.0"
+    "@bugsnag/plugin-react": "npm:^8.0.0"
     "@dnd-kit/core": "npm:^6.1.0"
     "@fortawesome/fontawesome-svg-core": "npm:^6.5.2"
     "@fortawesome/free-brands-svg-icons": "npm:^6.5.2"
