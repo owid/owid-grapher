@@ -545,6 +545,11 @@ export class Grapher
         if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
         if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
 
+        if (obj.timelineMinTime)
+            obj.timelineMinTime = minTimeToJSON(this.timelineMinTime) as any
+        if (obj.timelineMaxTime)
+            obj.timelineMaxTime = maxTimeToJSON(this.timelineMaxTime) as any
+
         // todo: remove dimensions concept
         // if (this.legacyConfigAsAuthored?.dimensions)
         //     obj.dimensions = this.legacyConfigAsAuthored.dimensions
@@ -574,6 +579,13 @@ export class Grapher
         // JSON doesn't support Infinity, so we use strings instead.
         this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
         this.maxTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.maxTime)
+
+        this.timelineMinTime = minTimeBoundFromJSONOrNegativeInfinity(
+            obj.timelineMinTime
+        )
+        this.timelineMaxTime = maxTimeBoundFromJSONOrPositiveInfinity(
+            obj.timelineMaxTime
+        )
 
         // Todo: remove once we are more RAII.
         if (obj?.dimensions?.length)

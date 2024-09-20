@@ -93,11 +93,9 @@ export class EditorTextTab<
                 <Section name="Header">
                     <BindAutoStringExt
                         label="Title"
-                        readFn={({ grapher }) => grapher.displayTitle}
-                        writeFn={({ grapher }, newVal) =>
-                            (grapher.title = newVal)
-                        }
-                        readAutoFn={({ editor }) =>
+                        readFn={(grapher) => grapher.displayTitle}
+                        writeFn={(grapher, newVal) => (grapher.title = newVal)}
+                        auto={
                             editor.couldPropertyBeInherited("title")
                                 ? editor.activeParentConfig!.title
                                 : undefined
@@ -106,7 +104,7 @@ export class EditorTextTab<
                             editor.isPropertyInherited("title") ||
                             grapher.title === undefined
                         }
-                        store={{ grapher, editor }}
+                        store={grapher}
                         softCharacterLimit={100}
                     />
                     {features.showEntityAnnotationInTitleToggle && (
@@ -156,11 +154,11 @@ export class EditorTextTab<
                     />
                     <BindAutoStringExt
                         label="Subtitle"
-                        readFn={({ grapher }) => grapher.currentSubtitle}
-                        writeFn={({ grapher }, newVal) =>
+                        readFn={(grapher) => grapher.currentSubtitle}
+                        writeFn={(grapher, newVal) =>
                             (grapher.subtitle = newVal)
                         }
-                        readAutoFn={({ editor }) =>
+                        auto={
                             editor.couldPropertyBeInherited("subtitle")
                                 ? editor.activeParentConfig!.subtitle
                                 : undefined
@@ -169,7 +167,7 @@ export class EditorTextTab<
                             editor.isPropertyInherited("subtitle") ||
                             grapher.subtitle === undefined
                         }
-                        store={{ grapher, editor }}
+                        store={grapher}
                         placeholder="Briefly describe the context of the data. It's best to avoid duplicating any information which can be easily inferred from other visual elements of the chart."
                         textarea
                         softCharacterLimit={280}
@@ -192,11 +190,11 @@ export class EditorTextTab<
                 <Section name="Footer">
                     <BindAutoStringExt
                         label="Source"
-                        readFn={({ grapher }) => grapher.sourcesLine}
-                        writeFn={({ grapher }, newVal) =>
+                        readFn={(grapher) => grapher.sourcesLine}
+                        writeFn={(grapher, newVal) =>
                             (grapher.sourceDesc = newVal)
                         }
-                        readAutoFn={({ editor }) =>
+                        auto={
                             editor.couldPropertyBeInherited("sourceDesc")
                                 ? editor.activeParentConfig!.sourceDesc
                                 : undefined
@@ -205,7 +203,7 @@ export class EditorTextTab<
                             editor.isPropertyInherited("sourceDesc") ||
                             grapher.sourceDesc === undefined
                         }
-                        store={{ grapher, editor }}
+                        store={grapher}
                         helpText="Short comma-separated list of source names"
                         softCharacterLimit={60}
                     />
@@ -233,9 +231,16 @@ export class EditorTextTab<
                             </div>
                         )}
 
-                    <BindString
+                    <BindAutoStringExt
                         label="Footer note"
-                        field="note"
+                        readFn={(grapher) => grapher.note ?? ""}
+                        writeFn={(grapher, newVal) => (grapher.note = newVal)}
+                        auto={
+                            editor.couldPropertyBeInherited("note")
+                                ? editor.activeParentConfig?.note
+                                : undefined
+                        }
+                        isAuto={editor.isPropertyInherited("note")}
                         store={grapher}
                         helpText="Any important clarification needed to avoid miscommunication"
                         softCharacterLimit={140}

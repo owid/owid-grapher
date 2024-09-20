@@ -134,10 +134,15 @@ properties:
         type: boolean
         default: false
     timelineMinTime:
-        type: integer
         description: |
             The lowest year to show in the timeline. If this is set then the user is not able to see
-            any data before this year. Inferred from data if not provided.
+            any data before this year. If set to "earliest", then the earliest year in the data is used.
+        default: earliest
+        oneOf:
+            - type: number
+            - type: string
+              enum:
+                  - earliest
     variantName:
         type: string
         description: Optional internal variant name for distinguishing charts with the same title
@@ -423,10 +428,15 @@ properties:
     xAxis:
         $ref: "#/$defs/axis"
     timelineMaxTime:
-        type: integer
         description: |
             The highest year to show in the timeline. If this is set then the user is not able to see
-            any data after this year. Inferred from data if not provided.
+            any data after this year. If set to "latest", then the latest year in the data is used.
+        default: latest
+        oneOf:
+            - type: number
+            - type: string
+              enum:
+                  - latest
     hideConnectedScatterLines:
         type: boolean
         default: false
@@ -504,8 +514,13 @@ $defs:
                 type: string
                 description: Axis label
             min:
-                type: number
-                description: Minimum domain value of the axis. Inferred from data if not provided.
+                description: Minimum domain value of the axis. Inferred from data if set to "auto".
+                default: auto
+                oneOf:
+                    - type: number
+                    - type: string
+                      enum:
+                          - auto
             scaleType:
                 type: string
                 description: Toggle linear/logarithmic
@@ -514,8 +529,13 @@ $defs:
                     - linear
                     - log
             max:
-                type: number
-                description: Maximum domain value of the axis. Inferred from data if not provided.
+                description: Maximum domain value of the axis. Inferred from data if set to "auto".
+                default: auto
+                oneOf:
+                    - type: number
+                    - type: string
+                      enum:
+                          - auto
             canChangeScaleType:
                 type: boolean
                 description: Allow user to change lin/log

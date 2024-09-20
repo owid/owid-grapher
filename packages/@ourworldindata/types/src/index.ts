@@ -99,6 +99,7 @@ export {
     type ChartRedirect,
     type DetailsMarker,
     GrapherWindowType,
+    AxisMinMaxValueStr,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {

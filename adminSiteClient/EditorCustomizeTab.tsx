@@ -39,6 +39,9 @@ import Select from "react-select"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
 
+const debounceOnLeadingEdge = (fn: (...args: any[]) => void) =>
+    debounce(fn, 0, { leading: true, trailing: false })
+
 @observer
 export class ColorSchemeSelector extends React.Component<{
     grapher: Grapher
@@ -307,10 +310,6 @@ class TimelineSection<
         return this.props.editor.grapher
     }
 
-    @computed get activeParentConfig() {
-        return this.props.editor.activeParentConfig
-    }
-
     @computed get minTime() {
         return this.grapher.minTime
     }
@@ -333,14 +332,25 @@ class TimelineSection<
         this.grapher.maxTime = value ?? TimeBoundValue.positiveInfinity
     }
 
+    @action.bound onBlurMinTime() {
+        if (this.minTime === undefined) {
+            this.grapher.minTime = TimeBoundValue.negativeInfinity
+        }
+    }
+
+    @action.bound onBlurMaxTime() {
+        if (this.maxTime === undefined) {
+            this.grapher.maxTime = TimeBoundValue.positiveInfinity
+        }
+    }
+
     @action.bound onTimelineMinTime(value: number | undefined) {
         this.grapher.timelineMinTime = value
     }
 
     @action.bound onBlurTimelineMinTime() {
         if (this.grapher.timelineMinTime === undefined) {
-            this.grapher.timelineMinTime =
-                this.activeParentConfig?.timelineMinTime
+            this.grapher.timelineMinTime = TimeBoundValue.negativeInfinity
         }
     }
 
@@ -350,8 +360,7 @@ class TimelineSection<
 
     @action.bound onBlurTimelineMaxTime() {
         if (this.grapher.timelineMaxTime === undefined) {
-            this.grapher.timelineMaxTime =
-                this.activeParentConfig?.timelineMaxTime
+            this.grapher.timelineMaxTime = TimeBoundValue.positiveInfinity
         }
     }
 
@@ -374,7 +383,9 @@ class TimelineSection<
                         <NumberField
                             label="Selection start"
                             value={this.minTime}
-                            onValue={debounce(this.onMinTime)}
+                            // invoke on the leading edge to avoid interference with onBlur
+                            onValue={debounceOnLeadingEdge(this.onMinTime)}
+                            onBlur={this.onBlurMinTime}
                             allowNegative
                         />
                     )}
@@ -385,7 +396,9 @@ class TimelineSection<
                                 : "Selected year"
                         }
                         value={this.maxTime}
-                        onValue={debounce(this.onMaxTime)}
+                        // invoke on the leading edge to avoid interference with onBlur
+                        onValue={debounceOnLeadingEdge(this.onMaxTime)}
+                        onBlur={this.onBlurMaxTime}
                         allowNegative
                     />
                 </FieldsRow>
@@ -395,10 +408,9 @@ class TimelineSection<
                             label="Timeline min"
                             value={this.timelineMinTime}
                             // invoke on the leading edge to avoid interference with onBlur
-                            onValue={debounce(this.onTimelineMinTime, 0, {
-                                leading: true,
-                                trailing: false,
-                            })}
+                            onValue={debounceOnLeadingEdge(
+                                this.onTimelineMinTime
+                            )}
                             onBlur={this.onBlurTimelineMinTime}
                             allowNegative
                         />
@@ -406,10 +418,9 @@ class TimelineSection<
                             label="Timeline max"
                             value={this.timelineMaxTime}
                             // invoke on the leading edge to avoid interference with onBlur
-                            onValue={debounce(this.onTimelineMaxTime, 0, {
-                                leading: true,
-                                trailing: false,
-                            })}
+                            onValue={debounceOnLeadingEdge(
+                                this.onTimelineMaxTime
+                            )}
                             onBlur={this.onBlurTimelineMaxTime}
                             allowNegative
                         />
@@ -527,12 +538,6 @@ export class EditorCustomizeTab<
                                         onValue={(value) =>
                                             (yAxisConfig.min = value)
                                         }
-                                        onBlur={() => {
-                                            if (yAxisConfig.min === undefined) {
-                                                yAxisConfig.min =
-                                                    activeParentConfig?.yAxis?.min
-                                            }
-                                        }}
                                         allowDecimal
                                         allowNegative
                                     />
@@ -542,12 +547,6 @@ export class EditorCustomizeTab<
                                         onValue={(value) =>
                                             (yAxisConfig.max = value)
                                         }
-                                        onBlur={() => {
-                                            if (yAxisConfig.max === undefined) {
-                                                yAxisConfig.max =
-                                                    activeParentConfig?.yAxis?.max
-                                            }
-                                        }}
                                         allowDecimal
                                         allowNegative
                                     />
@@ -612,12 +611,6 @@ export class EditorCustomizeTab<
                                         onValue={(value) =>
                                             (xAxisConfig.min = value)
                                         }
-                                        onBlur={() => {
-                                            if (xAxisConfig.min === undefined) {
-                                                xAxisConfig.min =
-                                                    activeParentConfig?.yAxis?.min
-                                            }
-                                        }}
                                         allowDecimal
                                         allowNegative
                                     />
@@ -627,12 +620,6 @@ export class EditorCustomizeTab<
                                         onValue={(value) =>
                                             (xAxisConfig.max = value)
                                         }
-                                        onBlur={() => {
-                                            if (xAxisConfig.max === undefined) {
-                                                xAxisConfig.max =
-                                                    activeParentConfig?.yAxis?.max
-                                            }
-                                        }}
                                         allowDecimal
                                         allowNegative
                                     />

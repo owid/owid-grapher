@@ -46,6 +46,8 @@ interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     softCharacterLimit?: number
     errorMessage?: string
     buttonContent?: React.ReactNode
+    buttonTooltipContent?: React.ReactNode
+    buttonDisabled?: boolean
 }
 
 export class TextField extends React.Component<TextFieldProps> {
@@ -77,6 +79,34 @@ export class TextField extends React.Component<TextFieldProps> {
             const input = this.base.current!.querySelector("input")!
             input.focus()
         }
+    }
+
+    renderButton() {
+        const { props } = this
+        if (!props.buttonContent) return null
+
+        const button = (
+            <div className="input-group-append">
+                <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    onClick={props.onButtonClick}
+                    disabled={props.buttonDisabled}
+                >
+                    {props.buttonContent}
+                </button>
+            </div>
+        )
+
+        if (props.buttonTooltipContent) {
+            return (
+                <Tippy content={props.buttonTooltipContent} maxWidth={180}>
+                    {button}
+                </Tippy>
+            )
+        }
+
+        return button
     }
 
     render() {
@@ -120,19 +150,7 @@ export class TextField extends React.Component<TextFieldProps> {
                         onKeyDown={this.onKeyDown}
                         {...passthroughProps}
                     />
-                    {props.buttonContent && (
-                        <div className="input-group-append">
-                            <button
-                                className="btn btn-outline-secondary"
-                                type="button"
-                                onClick={() =>
-                                    props.onButtonClick && props.onButtonClick()
-                                }
-                            >
-                                {props.buttonContent}
-                            </button>
-                        </div>
-                    )}
+                    {this.renderButton()}
                 </div>
                 {props.helpText && (
                     <small className="form-text text-muted">
@@ -163,6 +181,34 @@ export class TextAreaField extends React.Component<TextFieldProps> {
         const { value = "" } = this.props
         const trimmedValue = value.trim()
         this.props.onValue?.(trimmedValue)
+    }
+
+    renderButton() {
+        const { props } = this
+        if (!props.buttonContent) return null
+
+        const button = (
+            <div className="input-group-append">
+                <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    onClick={props.onButtonClick}
+                    disabled={props.buttonDisabled}
+                >
+                    {props.buttonContent}
+                </button>
+            </div>
+        )
+
+        if (props.buttonTooltipContent) {
+            return (
+                <Tippy content={props.buttonTooltipContent} maxWidth={180}>
+                    {button}
+                </Tippy>
+            )
+        }
+
+        return button
     }
 
     render() {
@@ -201,19 +247,7 @@ export class TextAreaField extends React.Component<TextFieldProps> {
                         rows={5}
                         {...passthroughProps}
                     />
-                    {props.buttonContent && (
-                        <div className="input-group-append">
-                            <button
-                                className="btn btn-outline-secondary"
-                                type="button"
-                                onClick={() =>
-                                    props.onButtonClick && props.onButtonClick()
-                                }
-                            >
-                                {props.buttonContent}
-                            </button>
-                        </div>
-                    )}
+                    {this.renderButton()}
                 </div>
                 {props.helpText && (
                     <small className="form-text text-muted">
@@ -251,6 +285,7 @@ interface NumberFieldProps {
     helpText?: string
     buttonContent?: React.ReactNode
     onButtonClick?: () => void
+    buttonDisabled?: boolean
 }
 
 interface NumberFieldState {
@@ -673,50 +708,30 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
         const props = this.props
         const { textarea } = props
 
-        if (textarea)
-            return (
-                <TextAreaField
-                    {...props}
-                    buttonContent={
-                        <div
-                            title={
-                                props.isAuto
-                                    ? "Automatic default"
-                                    : "Manual input"
-                            }
-                        >
-                            {props.isAuto ? (
-                                <FontAwesomeIcon icon={faLink} />
-                            ) : (
-                                <FontAwesomeIcon icon={faUnlink} />
-                            )}
-                        </div>
-                    }
-                    onButtonClick={() => props.onToggleAuto(!props.isAuto)}
-                />
-            )
-        else
-            return (
-                <TextField
-                    {...props}
-                    buttonContent={
-                        <div
-                            title={
-                                props.isAuto
-                                    ? "Automatic default"
-                                    : "Manual input"
-                            }
-                        >
-                            {props.isAuto ? (
-                                <FontAwesomeIcon icon={faLink} />
-                            ) : (
-                                <FontAwesomeIcon icon={faUnlink} />
-                            )}
-                        </div>
-                    }
-                    onButtonClick={() => props.onToggleAuto(!props.isAuto)}
-                />
-            )
+        const Field = textarea ? TextAreaField : TextField
+        return (
+            <Field
+                {...props}
+                buttonContent={
+                    <div>
+                        {props.isAuto ? (
+                            <FontAwesomeIcon icon={faLink} />
+                        ) : (
+                            <FontAwesomeIcon icon={faUnlink} />
+                        )}
+                    </div>
+                }
+                buttonTooltipContent={
+                    <div style={{ textAlign: "center" }}>
+                        {props.isAuto
+                            ? "Automatic default. Edit to override"
+                            : "Automatic default overwritten. Click to reset"}
+                    </div>
+                }
+                onButtonClick={() => props.onToggleAuto(!props.isAuto)}
+                buttonDisabled={props.isAuto}
+            />
+        )
     }
 }
 
@@ -925,9 +940,9 @@ export class BindAutoStringExt<
 > extends React.Component<
     {
         readFn: (x: T) => string
-        readAutoFn?: (x: T) => string | undefined
         writeFn: (x: T, value: string | undefined) => void
         store: T
+        auto?: string
     } & Omit<
         AutoTextFieldProps,
         "onValue" | "onToggleAuto" | "value" | "isBlur"
@@ -947,16 +962,14 @@ export class BindAutoStringExt<
     @action.bound onToggleAuto(value: boolean) {
         this.props.writeFn(
             this.props.store,
-            value
-                ? this.props.readAutoFn?.(this.props.store)
-                : this.props.readFn(this.props.store)
+            value ? this.props.auto : this.props.readFn(this.props.store)
         )
     }
 
     render() {
-        const { readFn, readAutoFn, store, ...rest } = this.props
+        const { readFn, auto, store, ...rest } = this.props
         const currentReadValue = this.props.isAuto
-            ? readAutoFn?.(store) ?? readFn(store)
+            ? auto ?? readFn(store)
             : readFn(store)
         return (
             <AutoTextField
@@ -990,21 +1003,29 @@ class AutoFloatField extends React.Component<AutoFloatFieldProps> {
                 allowNegative
                 {...props}
                 value={props.isAuto ? undefined : props.value}
-                placeholder={props.isAuto ? props.value.toString() : undefined}
+                placeholder={props.isAuto ? props.value?.toString() : undefined}
                 buttonContent={
-                    <div
-                        title={
-                            props.isAuto ? "Automatic default" : "Manual input"
+                    <Tippy
+                        content={
+                            <div style={{ textAlign: "center" }}>
+                                {props.isAuto
+                                    ? "Automatic default. Edit to override"
+                                    : "Automatic default overwritten. Click to reset"}
+                            </div>
                         }
+                        maxWidth={180}
                     >
-                        {props.isAuto ? (
-                            <FontAwesomeIcon icon={faLink} />
-                        ) : (
-                            <FontAwesomeIcon icon={faUnlink} />
-                        )}
-                    </div>
+                        <div>
+                            {props.isAuto ? (
+                                <FontAwesomeIcon icon={faLink} />
+                            ) : (
+                                <FontAwesomeIcon icon={faUnlink} />
+                            )}
+                        </div>
+                    </Tippy>
                 }
                 onButtonClick={() => props.onToggleAuto(!props.isAuto)}
+                buttonDisabled={props.isAuto}
             />
         )
     }

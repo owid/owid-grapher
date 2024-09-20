@@ -23,7 +23,9 @@ export const defaultGrapherConfig = {
     maxTime: "latest",
     yAxis: {
         removePointsOutsideDomain: false,
+        min: "auto",
         scaleType: "linear",
+        max: "auto",
         canChangeScaleType: false,
         facetDomain: "shared",
     },
@@ -32,6 +34,7 @@ export const defaultGrapherConfig = {
     hasChartTab: true,
     hideLegend: false,
     hideLogo: false,
+    timelineMinTime: "earliest",
     hideTimeline: false,
     colorScale: {
         equalSizeBins: true,
@@ -60,10 +63,13 @@ export const defaultGrapherConfig = {
     },
     xAxis: {
         removePointsOutsideDomain: false,
+        min: "auto",
         scaleType: "linear",
+        max: "auto",
         canChangeScaleType: false,
         facetDomain: "shared",
     },
+    timelineMaxTime: "latest",
     hideConnectedScatterLines: false,
     showNoDataArea: true,
     zoomToSelection: false,
