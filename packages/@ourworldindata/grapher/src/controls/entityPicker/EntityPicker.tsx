@@ -197,7 +197,7 @@ export class EntityPicker extends React.Component<{
             ).map((region) => region.name)
 
             if (userRegionNames) this.localEntityNames = userRegionNames
-        } catch (err) {}
+        } catch {}
     }
 
     @computed

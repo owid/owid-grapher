@@ -31,14 +31,14 @@ it("promise is discarded if it rejects", async () => {
     try {
         await firstPromise
         fail()
-    } catch (error) {}
+    } catch {}
 
     expect(cache.has("key")).toBeFalsy()
 
     try {
         await cache.get("key")
         fail()
-    } catch (error) {}
+    } catch {}
 
     const thirdPromise = cache.get("key")
     expect(thirdPromise).not.toBe(firstPromise)
@@ -46,5 +46,5 @@ it("promise is discarded if it rejects", async () => {
     try {
         await thirdPromise
         fail()
-    } catch (error) {}
+    } catch {}
 })

@@ -19,9 +19,9 @@ export const LazyTippy = (props: TippyProps): React.ReactElement => {
     const [mounted, setMounted] = React.useState(false)
 
     const lazyPlugin = {
-        fn: () => ({
-            onMount: () => setMounted(true),
-            onHidden: () => setMounted(false),
+        fn: (): { onMount: () => void; onHidden: () => void } => ({
+            onMount: (): void => setMounted(true),
+            onHidden: (): void => setMounted(false),
         }),
     }
 

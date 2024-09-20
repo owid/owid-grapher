@@ -52,6 +52,7 @@ import {
 import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
 import { renderMultiDimDataPageFromConfig } from "../baker/MultiDimBaker.js"
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 require("express-async-errors")
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks

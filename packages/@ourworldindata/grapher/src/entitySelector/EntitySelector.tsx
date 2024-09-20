@@ -220,7 +220,7 @@ export class EntitySelector extends React.Component<{
             )
 
             if (localEntityNames) this.set({ localEntityNames })
-        } catch (err) {}
+        } catch {}
     }
 
     private clearSearchInput(): void {

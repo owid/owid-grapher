@@ -1,4 +1,5 @@
-const path = require('node:path');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const path = require("node:path")
 
 module.exports = {
     extends: [
@@ -59,7 +60,7 @@ module.exports = {
         "react/no-unescaped-entities": ["warn", { forbid: [">", "}"] }],
         "react/prop-types": "warn",
         "@typescript-eslint/no-floating-promises": "error",
-        "no-constant-binary-expression": "error"
+        "no-constant-binary-expression": "error",
     },
     settings: {
         "import/resolver": {

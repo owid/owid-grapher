@@ -485,7 +485,7 @@ export async function getGptTopicSuggestions(
         if (match) {
             selectedTopics = JSON.parse(match[0])
         }
-    } catch (e) {
+    } catch {
         throw new JsonError(`GPT returned invalid JSON: "${json}"`, 500)
     }
 

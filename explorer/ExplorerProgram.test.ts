@@ -172,7 +172,7 @@ graphers
         )
         const def = program.getTableDef()!
         expect(def.url).toBeFalsy()
-        expect(def.inlineData).toBeTruthy
+        expect(def.inlineData).toBeTruthy()
     })
 })
 
@@ -302,7 +302,7 @@ usa,Life expectancy
 france,Life expectancy`
             )
             expect(true).toBe(false)
-        } catch (err) {
+        } catch {
             expect(true).toBe(true)
         }
     })
