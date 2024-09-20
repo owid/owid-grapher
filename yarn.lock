@@ -6012,17 +6012,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"algoliasearch-helper@npm:3.22.1":
-  version: 3.22.1
-  resolution: "algoliasearch-helper@npm:3.22.1"
-  dependencies:
-    "@algolia/events": "npm:^4.0.1"
-  peerDependencies:
-    algoliasearch: ">= 3.1 < 6"
-  checksum: 10/86e763cfbfcc332f55baeb5bccaa7a0093d4bfd5e00cc0baec60c1391d47b93a0c15639bc91481b47451c15ed0da964306b06c4caa90947159a28772709e0872
-  languageName: node
-  linkType: hard
-
 "algoliasearch-helper@npm:3.22.3":
   version: 3.22.3
   resolution: "algoliasearch-helper@npm:3.22.3"
@@ -11731,7 +11720,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"instantsearch.js@npm:4.73.2":
+"instantsearch.js@npm:4.73.2, instantsearch.js@npm:^4.72.1":
   version: 4.73.2
   resolution: "instantsearch.js@npm:4.73.2"
   dependencies:
@@ -11750,28 +11739,6 @@ __metadata:
   peerDependencies:
     algoliasearch: ">= 3.1 < 6"
   checksum: 10/685a5a131590d987ce6352cbda12c1faed7f6c92da6dee6d8a8c4d3f8d100f2e40d042329c67be784a3dff6e69dffb2d06f47f26765176b5e30daafe15b9432e
-  languageName: node
-  linkType: hard
-
-"instantsearch.js@npm:^4.72.1":
-  version: 4.72.1
-  resolution: "instantsearch.js@npm:4.72.1"
-  dependencies:
-    "@algolia/events": "npm:^4.0.1"
-    "@types/dom-speech-recognition": "npm:^0.0.1"
-    "@types/google.maps": "npm:^3.45.3"
-    "@types/hogan.js": "npm:^3.0.0"
-    "@types/qs": "npm:^6.5.3"
-    algoliasearch-helper: "npm:3.22.1"
-    hogan.js: "npm:^3.0.2"
-    htm: "npm:^3.0.0"
-    instantsearch-ui-components: "npm:0.7.0"
-    preact: "npm:^10.10.0"
-    qs: "npm:^6.5.1 < 6.10"
-    search-insights: "npm:^2.13.0"
-  peerDependencies:
-    algoliasearch: ">= 3.1 < 6"
-  checksum: 10/90a0c6b17fdfe4eefb01ee35ac2861b9e98e9996d2ad6ae7515ee618bcf5c8ca28e43aa3c10ed241d8940b7cff3152319c9ebac8cb8f9a06665a654eec68ced7
   languageName: node
   linkType: hard
 
@@ -17940,14 +17907,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"search-insights@npm:^2.13.0, search-insights@npm:^2.14.0":
-  version: 2.14.0
-  resolution: "search-insights@npm:2.14.0"
-  checksum: 10/0e49dc49ee750e89e0254eaf37d831a0872e713b3ebbc096f46989397c3539f81765ab9bae019a77b1810cc5d972318b1ee4032e8f34db07a286fcb9dcd5db41
-  languageName: node
-  linkType: hard
-
-"search-insights@npm:^2.15.0":
+"search-insights@npm:^2.14.0, search-insights@npm:^2.15.0":
   version: 2.15.0
   resolution: "search-insights@npm:2.15.0"
   checksum: 10/87b5ca470d1fbdd7aebfedc0cefbe671b68e60176648135e077c43a3d9dc00fea95908857d2a3ee482cdcfb00e2141b3817e43e998ee58e463e166e10c306104
