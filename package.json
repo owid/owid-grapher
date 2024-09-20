@@ -240,7 +240,7 @@
         "tsx": "^4.16.2",
         "vite": "^5.4.2",
         "vite-plugin-checker": "^0.7.2",
-        "wrangler": "^3.73.0"
+        "wrangler": "^3.78.6"
     },
     "prettier": {
         "trailingComma": "es5",
