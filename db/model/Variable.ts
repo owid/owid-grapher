@@ -861,71 +861,80 @@ const buildWhereClauses = (query: string): string[] => {
         }
         if (part.startsWith("name:")) {
             const q = part.substring("name:".length)
-            q &&
+            if (q) {
                 whereClauses.push(
                     `${not} REGEXP_LIKE(v.name, ${escape(q)}, 'i')`
                 )
+            }
         } else if (part.startsWith("path:")) {
             const q = part.substring("path:".length)
-            q &&
+            if (q) {
                 whereClauses.push(
                     `${not} REGEXP_LIKE(v.catalogPath, ${escape(q)}, 'i')`
                 )
+            }
         } else if (part.startsWith("namespace:")) {
             const q = part.substring("namespace:".length)
-            q &&
+            if (q) {
                 whereClauses.push(
                     `${not} REGEXP_LIKE(d.name, ${escape(q)}, 'i')`
                 )
+            }
         } else if (part.startsWith("version:")) {
             const q = part.substring("version:".length)
-            q &&
+            if (q) {
                 whereClauses.push(
                     `${not} REGEXP_LIKE(d.version, ${escape(q)}, 'i')`
                 )
+            }
         } else if (part.startsWith("dataset:")) {
             const q = part.substring("dataset:".length)
-            q &&
+            if (q) {
                 whereClauses.push(
                     `${not} REGEXP_LIKE(d.shortName, ${escape(q)}, 'i')`
                 )
+            }
         } else if (part.startsWith("table:")) {
             const q = part.substring("table:".length)
             // NOTE: we don't have the table name in any db field, it's horrible to query
-            q &&
+            if (q) {
                 whereClauses.push(
                     `${not} REGEXP_LIKE(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', 5), '/', -1), ${escape(
                         q
                     )}, 'i')`
                 )
+            }
         } else if (part.startsWith("short:")) {
             const q = part.substring("short:".length)
-            q &&
+            if (q) {
                 whereClauses.push(
                     `${not} REGEXP_LIKE(v.shortName, ${escape(q)}, 'i')`
                 )
+            }
         } else if (part.startsWith("before:")) {
             const q = part.substring("before:".length)
-            q &&
+            if (q) {
                 whereClauses.push(
                     `${not} IF(d.version is not null, d.version < ${escape(
                         q
                     )}, cast(date(d.createdAt) as char) < ${escape(q)})`
                 )
+            }
         } else if (part.startsWith("after:")) {
             const q = part.substring("after:".length)
-            q &&
+            if (q) {
                 whereClauses.push(
                     `${not} (IF (d.version is not null, d.version = "latest" OR d.version > ${escape(
                         q
                     )}, cast(date(d.createdAt) as char) > ${escape(q)}))`
                 )
+            }
         } else if (part === "is:published") {
             whereClauses.push(`${not} (NOT d.isPrivate)`)
         } else if (part === "is:private") {
             whereClauses.push(`${not} d.isPrivate`)
         } else {
-            part &&
+            if (part) {
                 whereClauses.push(
                     `${not} (REGEXP_LIKE(v.name, ${escape(
                         part
@@ -933,6 +942,7 @@ const buildWhereClauses = (query: string): string[] => {
                         part
                     )}, 'i'))`
                 )
+            }
         }
     }
     return whereClauses

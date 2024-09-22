@@ -607,7 +607,7 @@ class VariableEditor extends React.Component<{
                 "include"
             )
             return true
-        } catch (err) {
+        } catch {
             return false
         }
     }

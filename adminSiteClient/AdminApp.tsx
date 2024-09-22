@@ -53,9 +53,11 @@ class AdminErrorMessage extends React.Component<{ admin: Admin }> {
             <Modal
                 className="errorMessage"
                 onClose={action(() => {
-                    error.isFatal
-                        ? window.location.reload()
-                        : (admin.errorMessage = undefined)
+                    if (error.isFatal) {
+                        window.location.reload()
+                    } else {
+                        admin.errorMessage = undefined
+                    }
                 })}
             >
                 <div className="modal-header">

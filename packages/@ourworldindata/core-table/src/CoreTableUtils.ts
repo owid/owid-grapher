@@ -185,7 +185,7 @@ export const makeRowFromColumnStore = (
     return row
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-interface, @typescript-eslint/no-empty-object-type
 export interface InterpolationContext {}
 
 export interface LinearInterpolationContext extends InterpolationContext {

@@ -1155,7 +1155,7 @@ export function omitEmptyObjectsRecursive<T extends Record<string, any>>(
 export const isInIFrame = (): boolean => {
     try {
         return window.self !== window.top
-    } catch (e) {
+    } catch {
         return false
     }
 }
@@ -1360,7 +1360,7 @@ export const canWriteToClipboard = async (): Promise<boolean> => {
 
             // Asking permission was successful, we may use clipboard-write methods if permission wasn't denied.
             return ["granted", "prompt"].includes(res.state)
-        } catch (err) {}
+        } catch {}
     }
     // navigator.clipboard is available, but we couldn't check for permissions -- assume we can use it.
     return true

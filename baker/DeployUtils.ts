@@ -207,7 +207,7 @@ export const deployIfQueueIsNotEmpty = async (
                 parsedQueue.every(isLightningChange) ? parsedQueue : undefined
             )
             await deployQueueServer.deletePendingFile()
-        } catch (err) {
+        } catch {
             failures++
             // The error is already sent to Slack inside the deploy() function.
             // The deploy will be retried unless we've reached MAX_SUCCESSIVE_FAILURES.

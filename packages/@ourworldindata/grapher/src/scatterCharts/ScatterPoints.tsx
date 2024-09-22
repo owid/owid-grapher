@@ -43,12 +43,12 @@ export class ScatterPoint extends React.Component<{
                 )}
                 key={series.displayKey}
                 className={series.displayKey}
-                onMouseEnter={(): void => {
-                    onMouseEnter && onMouseEnter(series.seriesName)
-                }}
-                onMouseLeave={(): void => {
-                    onMouseLeave && onMouseLeave()
-                }}
+                onMouseEnter={
+                    onMouseEnter
+                        ? (): void => onMouseEnter(series.seriesName)
+                        : undefined
+                }
+                onMouseLeave={onMouseLeave}
             >
                 {series.isFocus && (
                     <circle

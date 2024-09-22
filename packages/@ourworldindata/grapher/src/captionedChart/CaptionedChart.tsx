@@ -542,7 +542,7 @@ export class StaticCaptionedChart extends CaptionedChart {
         try {
             if (this.manager.bakedGrapherURL)
                 origin = new URL(this.manager.bakedGrapherURL).origin
-        } catch (e) {}
+        } catch {}
         const css = `@import url(${origin}/fonts.css)`
         return (
             <defs>

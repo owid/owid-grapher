@@ -6,7 +6,7 @@ import { isArray, tail, without } from "@ourworldindata/utils"
 // transforms lists in S-Expressions into array, strings inside double quotes
 // as String (note the uppercase! It really uses the rarely used String object) and
 // all other tokes like numbers or symbols as normal string.
-export type SExprAtom = string | String | SExprAtom[] // eslint-disable-line @typescript-eslint/ban-types
+export type SExprAtom = string | String | SExprAtom[] // eslint-disable-line @typescript-eslint/no-wrapper-object-types
 
 export type JSONPreciselyTyped =
     | string

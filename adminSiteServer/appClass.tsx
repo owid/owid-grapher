@@ -1,6 +1,7 @@
 import React from "react"
 import { simpleGit } from "simple-git"
 import express, { NextFunction } from "express"
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 require("express-async-errors") // todo: why the require?
 import cookieParser from "cookie-parser"
 import http from "http"

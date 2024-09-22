@@ -45,7 +45,7 @@ function evalExpression<D>(
     if (expr === undefined) return defaultOnError
     try {
         return expr.evaluate(context) as number
-    } catch (e) {
+    } catch {
         return defaultOnError
     }
 }

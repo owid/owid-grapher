@@ -77,7 +77,7 @@ if (BUGSNAG_API_KEY) {
             collectUserIp: false,
             ...bugsnagUserInformation,
         })
-    } catch (error) {
+    } catch {
         console.error("Failed to initialize Bugsnag")
     }
 }

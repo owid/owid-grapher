@@ -551,7 +551,7 @@ const renderPostThumbnailBySlug = async (
     let post
     try {
         post = await getFullPostBySlugFromSnapshot(knex, slug)
-    } catch (err) {
+    } catch {
         // if no post is found, then we return early instead of throwing
     }
 

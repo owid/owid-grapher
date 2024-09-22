@@ -197,7 +197,7 @@ export const getPrimaryTopic = async (
     let topicSlug: string
     try {
         topicSlug = await getSlugForTopicTag(knex, firstTopicTag)
-    } catch (e) {
+    } catch {
         await logErrorAndMaybeSendToBugsnag(
             `Data page is using "${firstTopicTag}" as its primary tag, which we are unable to resolve to a tag in the grapher DB`
         )

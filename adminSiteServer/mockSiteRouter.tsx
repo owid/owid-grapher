@@ -68,6 +68,7 @@ import { DEFAULT_LOCAL_BAKE_DIR } from "../site/SiteConstants.js"
 import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
 import { renderMultiDimDataPageBySlug } from "../baker/MultiDimBaker.js"
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 require("express-async-errors")
 
 // todo: switch to an object literal where the key is the path and the value is the request handler? easier to test, reflect on, and manipulate
