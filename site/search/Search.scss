@@ -48,10 +48,6 @@ $reset-button-margin: 16px;
     border: none;
     outline: $blue-20 1px solid;
     outline-offset: 0px;
-
-    &::-webkit-search-cancel-button {
-        -webkit-appearance: none;
-    }
 }
 
 .search-panel-reset-button {

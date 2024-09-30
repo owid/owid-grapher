@@ -122,6 +122,12 @@
 @import "css/donate.scss";
 @import "./ThankYouPage.scss";
 
+// Remove default Webkit search cancel button.
+// https://stackoverflow.com/a/77190241/9846837
+[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+}
+
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
 http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
