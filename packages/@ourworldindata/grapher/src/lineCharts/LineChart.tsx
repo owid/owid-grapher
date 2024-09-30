@@ -804,6 +804,29 @@ export class LineChart
                 </g>
             )
 
+        const chartElements = (
+            <>
+                {comparisonLines.map((line, index) => (
+                    <ComparisonLine
+                        key={index}
+                        dualAxis={dualAxis}
+                        comparisonLine={line}
+                        baseFontSize={this.fontSize}
+                    />
+                ))}
+                {manager.showLegend && <LineLegend manager={this} />}
+                <Lines
+                    dualAxis={dualAxis}
+                    placedSeries={this.placedSeries}
+                    hidePoints={manager.hidePoints}
+                    focusedSeriesNames={this.focusedSeriesNames}
+                    lineStrokeWidth={this.lineStrokeWidth}
+                    lineOutlineWidth={this.lineOutlineWidth}
+                    markerRadius={this.markerRadius}
+                />
+            </>
+        )
+
         // The tiny bit of extra space in the clippath is to ensure circles centered on the very edge are still fully visible
         return (
             <g
@@ -817,7 +840,7 @@ export class LineChart
                 onTouchStart={this.onCursorMove}
                 onTouchMove={this.onCursorMove}
             >
-                {clipPath.element}
+                {/* {clipPath.element} */}
                 <rect {...this.bounds.toProps()} fill="none">
                     {/* This <rect> ensures that the parent <g> is big enough such that we get mouse hover events for the
                     whole charting area, including the axis, the entity labels, and the whitespace next to them.
@@ -827,26 +850,7 @@ export class LineChart
                     <HorizontalNumericColorLegend manager={this} />
                 )}
                 {dualAxisComponent}
-                <g clipPath={clipPath.id}>
-                    {comparisonLines.map((line, index) => (
-                        <ComparisonLine
-                            key={index}
-                            dualAxis={dualAxis}
-                            comparisonLine={line}
-                            baseFontSize={this.fontSize}
-                        />
-                    ))}
-                    {manager.showLegend && <LineLegend manager={this} />}
-                    <Lines
-                        dualAxis={dualAxis}
-                        placedSeries={this.placedSeries}
-                        hidePoints={manager.hidePoints}
-                        focusedSeriesNames={this.focusedSeriesNames}
-                        lineStrokeWidth={this.lineStrokeWidth}
-                        lineOutlineWidth={this.lineOutlineWidth}
-                        markerRadius={this.markerRadius}
-                    />
-                </g>
+                {chartElements}
                 {activeXVerticalLine}
 
                 {tooltip}
