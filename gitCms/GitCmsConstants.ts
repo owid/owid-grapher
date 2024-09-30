@@ -1,7 +1,9 @@
 import * as path from "path"
 import * as fs from "node:fs"
 
-export const GIT_CMS_DEFAULT_BRANCH = "master"
+export const GIT_CMS_DEFAULT_BRANCH =
+    process.env.GIT_CMS_DEFAULT_BRANCH ?? "master"
+
 export const GIT_CMS_READ_ROUTE = "/git-cms-read"
 export const GIT_CMS_WRITE_ROUTE = "/git-cms-write"
 export const GIT_CMS_DELETE_ROUTE = "/git-cms-delete"
