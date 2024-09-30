@@ -326,14 +326,14 @@ getPlainRouteNonIdempotentWithRWTransaction(
             return res.send(await renderIndexPage(pageNumber))
         }
 
-        const slug = pageNumberOrSlug
         try {
-            return res.send(await renderGdocsPageBySlug(trx, slug, true))
+            return res.send(
+                await renderGdocsPageBySlug(trx, pageNumberOrSlug, true)
+            )
         } catch (e) {
             console.error(e)
+            return res.status(404).send(renderNotFoundPage())
         }
-
-        return new JsonError(`Data insight with slug "${slug}" not found`, 404)
     }
 )
 

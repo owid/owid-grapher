@@ -23,3 +23,8 @@ export const SMALL_BREAKPOINT_MEDIA_QUERY = "(max-width: 768px)"
 
 export const TOUCH_DEVICE_MEDIA_QUERY =
     "(hover: none), (pointer: coarse), (pointer: none)"
+
+export const DEFAULT_TOMBSTONE_REASON =
+    "Our World in Data is meant to be an evergreen publication. This means " +
+    "that when we cannot update a page because we are lacking updated data " +
+    "or information, we would rather not present it to our readers at all."

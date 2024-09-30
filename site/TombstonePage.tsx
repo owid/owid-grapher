@@ -3,6 +3,7 @@ import * as React from "react"
 import urljoin from "url-join"
 
 import { TombstonePageData } from "@ourworldindata/types"
+import { DEFAULT_TOMBSTONE_REASON } from "./SiteConstants.js"
 import { Head } from "./Head"
 import { Html } from "./Html"
 import { SiteFooter } from "./SiteFooter"
@@ -39,17 +40,9 @@ export default function TombstonePage({
                             We’re sorry, but the page “{oldUrl}” does not exist
                             anymore.
                         </p>
-                        {reason ? (
-                            <p className="body-3-medium">{reason}</p>
-                        ) : (
-                            <p className="body-3-medium">
-                                Our World in Data is meant to be an evergreen
-                                publication. This means that when we cannot
-                                update a page because we are lacking updated
-                                data or information, we would rather not present
-                                it to our readers at all.
-                            </p>
-                        )}
+                        <p className="body-3-medium">
+                            {reason || DEFAULT_TOMBSTONE_REASON}
+                        </p>
                         {!relatedLink && (
                             <p className="body-3-medium">
                                 If you’d still like to view this page, you can

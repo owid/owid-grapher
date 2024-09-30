@@ -62,6 +62,7 @@ import {
     omitUndefinedValues,
     getParentVariableIdFromChartConfig,
     omit,
+    gdocUrlRegex,
 } from "@ourworldindata/utils"
 import { applyPatch } from "../adminShared/patchHelper.js"
 import {
@@ -154,6 +155,7 @@ import {
     getRedirects,
     redirectWithSourceExists,
 } from "../db/model/Redirect.js"
+import { getMinimalGdocPostsByIds } from "../db/model/Gdoc/GdocBase.js"
 import {
     GdocLinkUpdateMode,
     createOrLoadGdocById,
@@ -2929,6 +2931,24 @@ putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     return nextGdoc
 })
 
+async function validateTombstoneRelatedLink(
+    trx: db.KnexReadonlyTransaction,
+    relatedLink?: string
+) {
+    if (!relatedLink) return
+    const id = relatedLink.match(gdocUrlRegex)?.[1]
+    if (!id) {
+        throw new JsonError(`Invalid related link: ${relatedLink}`)
+    }
+    const [gdoc] = await getMinimalGdocPostsByIds(trx, [id])
+    if (!gdoc) {
+        throw new JsonError(`Google Doc with ID ${id} not found`)
+    }
+    if (!gdoc.published) {
+        throw new JsonError(`Google Doc with ID ${id} is not published`)
+    }
+}
+
 deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     const { id } = req.params
 
@@ -2939,6 +2959,7 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     const { tombstone } = req.body
 
     if (tombstone) {
+        await validateTombstoneRelatedLink(trx, tombstone.relatedLink)
         const slug = gdocSlug.replace("/", "")
         await trx
             .table("posts_gdocs_tombstones")

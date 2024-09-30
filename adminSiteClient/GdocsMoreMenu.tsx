@@ -15,6 +15,8 @@ import {
     OwidGdoc,
 } from "@ourworldindata/utils"
 
+import { DEFAULT_TOMBSTONE_REASON } from "../site/SiteConstants.js"
+
 enum GdocsMoreMenuAction {
     Debug = "debug",
     Unpublish = "unpublish",
@@ -194,7 +196,10 @@ function DeleteModal({
                             label="Reason for removing the article"
                             extra="Will use a generic default message if left blank."
                         >
-                            <Input.TextArea rows={3} />
+                            <Input.TextArea
+                                placeholder={DEFAULT_TOMBSTONE_REASON}
+                                rows={4}
+                            />
                         </Form.Item>
                         <Form.Item
                             name="relatedLink"

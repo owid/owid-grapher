@@ -58,6 +58,7 @@ import {
     GrapherTabOption,
     DEFAULT_THUMBNAIL_FILENAME,
     TombstonePageData,
+    gdocUrlRegex,
 } from "@ourworldindata/utils"
 
 import { execWrapper } from "../db/execWrapper.js"
@@ -661,6 +662,15 @@ export class SiteBaker {
 
         for (const tombstone of tombstones) {
             const attachments = await this.getPrefetchedGdocAttachments(knex)
+            const linkedGdocId = tombstone.relatedLink?.match(gdocUrlRegex)?.[1]
+            if (linkedGdocId) {
+                const linkedDocument = attachments.linkedDocuments[linkedGdocId]
+                if (!linkedDocument) {
+                    await logErrorAndMaybeSendToBugsnag(
+                        `Tombstone with id "${tombstone.id}" references a gdoc with id "${linkedGdocId}" which was not found`
+                    )
+                }
+            }
             try {
                 await this.bakeOwidGdocTombstone(tombstone, attachments)
             } catch (e) {
