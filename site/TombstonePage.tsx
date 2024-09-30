@@ -59,13 +59,18 @@ export default function TombstonePage({
                     {/* Needs to be outside the NotFoundPage__copy to not have
                     styles overridden. */}
                     {relatedLink && (
-                        <ProminentLink
-                            className={cx(
-                                getLayout("prominent-link"),
-                                "NotFoundPage__prominent-link"
-                            )}
-                            url={relatedLink}
-                        />
+                        <>
+                            <h2 className="NotFoundPage__prominent-link-heading">
+                                You may be interested in:
+                            </h2>
+                            <ProminentLink
+                                className={cx(
+                                    getLayout("prominent-link"),
+                                    "NotFoundPage__prominent-link"
+                                )}
+                                url={relatedLink}
+                            />
+                        </>
                     )}
                 </main>
                 <SiteFooter hideDonate={true} baseUrl={baseUrl} />

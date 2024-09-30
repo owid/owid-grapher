@@ -744,6 +744,10 @@ a.ref sup {
         padding: 0 16px;
         max-width: 628px;
         margin: 102px auto 80px;
+
+        @include sm-only {
+            margin: 32px auto;
+        }
     }
 }
 
@@ -763,6 +767,13 @@ a.ref sup {
         @include owid-link-90;
         color: inherit;
     }
+}
+
+.NotFoundPage__prominent-link-heading {
+    @include h5-black-caps;
+    color: $blue-90;
+    margin: 0 0 16px;
+    text-align: center;
 }
 
 .NotFoundPage__prominent-link {
@@ -840,6 +851,11 @@ a.ref sup {
 
 .NotFoundPageIcon {
     margin: 0 auto;
+
+    @include sm-only {
+        max-width: 120px;
+        height: auto;
+    }
 }
 
 .variantName {
