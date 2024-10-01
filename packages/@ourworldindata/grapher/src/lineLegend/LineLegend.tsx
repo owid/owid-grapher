@@ -27,6 +27,8 @@ import { darkenColorForText } from "../color/ColorUtils"
 const LEGEND_ITEM_MIN_SPACING = 2
 // Horizontal distance from the end of the chart to the start of the marker
 const MARKER_MARGIN = 4
+// Space between the label and the annotation
+const ANNOTATION_PADDING = 2
 
 const DEFAULT_FONT_WEIGHT = 400
 
@@ -144,7 +146,9 @@ class Label extends React.Component<{
                 {series.annotationTextWrap &&
                     series.annotationTextWrap.render(
                         needsLines ? markerX2 + MARKER_MARGIN : markerX1,
-                        series.bounds.y + series.textWrap.height,
+                        series.bounds.y +
+                            series.textWrap.height +
+                            ANNOTATION_PADDING,
                         {
                             id: makeIdForHumanConsumption("annotation"),
                             textProps: {
@@ -226,7 +230,9 @@ export class LineLegend extends React.Component<{
                     ),
                 height:
                     textWrap.height +
-                    (annotationTextWrap ? annotationTextWrap.height : 0),
+                    (annotationTextWrap
+                        ? ANNOTATION_PADDING + annotationTextWrap.height
+                        : 0),
             }
         })
     }
