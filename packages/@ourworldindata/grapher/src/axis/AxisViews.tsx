@@ -138,11 +138,27 @@ export class HorizontalAxisZeroLine extends React.Component<{
     horizontalAxis: HorizontalAxis
     bounds: Bounds
     strokeWidth?: number
+    align?: HorizontalAlign
 }> {
     render(): React.ReactElement {
-        const { bounds, horizontalAxis, strokeWidth } = this.props
+        const {
+            bounds,
+            horizontalAxis,
+            align = HorizontalAlign.center,
+            strokeWidth = 1,
+        } = this.props
         const axis = horizontalAxis.clone()
         axis.range = bounds.xRange()
+
+        // the zero line is either drawn at the center of the zero tick
+        // or at the edge of the tick, either to the left or to the right
+        const offset =
+            align === HorizontalAlign.center
+                ? 0
+                : align === HorizontalAlign.right
+                  ? -strokeWidth / 2
+                  : strokeWidth / 2
+        const x = axis.place(0) + offset
 
         return (
             <g
@@ -154,9 +170,9 @@ export class HorizontalAxisZeroLine extends React.Component<{
                 )}
             >
                 <line
-                    x1={axis.place(0)}
+                    x1={x.toFixed(2)}
                     y1={bounds.bottom.toFixed(2)}
-                    x2={axis.place(0)}
+                    x2={x.toFixed(2)}
                     y2={bounds.top.toFixed(2)}
                     stroke={SOLID_TICK_COLOR}
                     strokeWidth={strokeWidth}
