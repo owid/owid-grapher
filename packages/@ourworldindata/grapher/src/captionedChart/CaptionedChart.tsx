@@ -20,6 +20,7 @@ import {
     Patterns,
     STATIC_EXPORT_DETAIL_SPACING,
     DEFAULT_GRAPHER_FRAME_PADDING,
+    GRAPHER_BACKGROUND_DEFAULT,
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
@@ -36,6 +37,7 @@ import {
     FacetStrategy,
     GrapherTabOption,
     RelatedQuestionsConfig,
+    Color,
 } from "@ourworldindata/types"
 import { DataTable, DataTableManager } from "../dataTable/DataTable"
 import {
@@ -66,12 +68,13 @@ export interface CaptionedChartManager
     staticBounds?: Bounds
     staticBoundsWithDetails?: Bounds
 
-    // layout
+    // layout & style
     isSmall?: boolean
     isMedium?: boolean
     framePaddingHorizontal?: number
     framePaddingVertical?: number
     fontSize?: number
+    backgroundColor?: string
 
     // state
     tab?: GrapherTabOption
@@ -80,6 +83,7 @@ export interface CaptionedChartManager
     type: ChartTypeName
     typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart?: ChartTypeName
     showEntitySelectionToggle?: boolean
+    isExportingForSocialMedia?: boolean
 
     // timeline
     hasTimeline?: boolean
@@ -403,7 +407,12 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         //    #5 Footer
         //    #6 [Related question]
         return (
-            <div className="CaptionedChart">
+            <div
+                className="CaptionedChart"
+                style={{
+                    backgroundColor: this.backgroundColor,
+                }}
+            >
                 {/* #1 Header */}
                 <Header manager={this.manager} maxWidth={this.maxWidth} />
                 <VerticalSpace height={this.verticalPadding} />
@@ -435,6 +444,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
+    @computed protected get backgroundColor(): Color {
+        return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
+    }
+
     @computed protected get svgProps(): React.SVGProps<SVGSVGElement> {
         return {
             xmlns: "http://www.w3.org/2000/svg",
@@ -443,7 +456,8 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 fontFamily:
                     "Lato, 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif",
                 fontSize: this.manager.fontSize ?? BASE_FONT_SIZE,
-                backgroundColor: "white",
+                // needs to be set here or else pngs will have a black background
+                backgroundColor: this.backgroundColor,
                 textRendering: "geometricPrecision",
                 WebkitFontSmoothing: "antialiased",
             },
@@ -571,12 +585,14 @@ export class StaticCaptionedChart extends CaptionedChart {
             >
                 {this.fonts}
                 {this.patterns}
-                <rect
-                    className="background-fill"
-                    fill="white"
-                    width={width}
-                    height={height}
-                />
+                {!this.manager.isExportingForSocialMedia && (
+                    <rect
+                        className="background-fill"
+                        fill={this.backgroundColor}
+                        width={width}
+                        height={height}
+                    />
+                )}
                 <StaticHeader
                     manager={manager}
                     maxWidth={maxWidth}

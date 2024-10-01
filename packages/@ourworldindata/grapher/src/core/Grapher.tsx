@@ -104,6 +104,7 @@ import {
     DetailDictionary,
     GrapherWindowType,
     MultiDimDataPageProps,
+    Color,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -126,6 +127,8 @@ import {
     GRAPHER_LOADED_EVENT_NAME,
     isContinentsVariableId,
     isPopulationVariableETLPath,
+    GRAPHER_BACKGROUND_BEIGE,
+    GRAPHER_BACKGROUND_DEFAULT,
 } from "../core/GrapherConstants"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig"
 import { loadVariableDataAndMetadata } from "./loadVariable"
@@ -848,6 +851,7 @@ export class Grapher
 
     @observable.ref renderToStatic = false
     @observable.ref isExportingToSvgOrPng = false
+    @observable.ref isSocialMediaExport = false
 
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
     @observable isPlaying = false
@@ -2903,8 +2907,22 @@ export class Grapher
         return staticPixelCount < 0.66 * idealPixelCount
     }
 
-    @computed get secondaryColorInStaticCharts(): string {
+    @computed get secondaryColorInStaticCharts(): Color {
         return this.isStaticAndSmall ? GRAPHER_LIGHT_TEXT : GRAPHER_DARK_TEXT
+    }
+
+    @computed get isExportingForSocialMedia(): boolean {
+        return (
+            this.isExportingToSvgOrPng &&
+            this.isStaticAndSmall &&
+            this.isSocialMediaExport
+        )
+    }
+
+    @computed get backgroundColor(): Color {
+        return this.isExportingForSocialMedia
+            ? GRAPHER_BACKGROUND_BEIGE
+            : GRAPHER_BACKGROUND_DEFAULT
     }
 
     // Binds chart properties to global window title and URL. This should only
