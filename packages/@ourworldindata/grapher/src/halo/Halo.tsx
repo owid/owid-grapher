@@ -1,4 +1,5 @@
 import React from "react"
+import { Color } from "@ourworldindata/types"
 
 const defaultHaloStyle: React.CSSProperties = {
     fill: "#fff",
@@ -12,10 +13,19 @@ const defaultHaloStyle: React.CSSProperties = {
 export function Halo(props: {
     id: React.Key
     children: React.ReactElement
+    background?: Color
     style?: React.CSSProperties
 }): React.ReactElement {
+    const defaultStyle = {
+        ...defaultHaloStyle,
+        fill: props.background ?? defaultHaloStyle.fill,
+        stroke: props.background ?? defaultHaloStyle.stroke,
+    }
     const halo = React.cloneElement(props.children, {
-        style: { ...defaultHaloStyle, ...props.style },
+        style: {
+            ...defaultStyle,
+            ...props.style,
+        },
     })
     return (
         <React.Fragment key={props.id}>

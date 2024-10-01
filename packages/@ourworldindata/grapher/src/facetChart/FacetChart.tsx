@@ -263,6 +263,7 @@ export class FacetChart
             startTime,
             endTime,
             missingDataStrategy,
+            backgroundColor,
         } = manager
 
         // Use compact labels, e.g. 50k instead of 50,000.
@@ -316,6 +317,7 @@ export class FacetChart
                 startTime,
                 endTime,
                 missingDataStrategy,
+                backgroundColor,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,

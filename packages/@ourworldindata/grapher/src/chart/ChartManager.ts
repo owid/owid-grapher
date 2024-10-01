@@ -11,6 +11,7 @@ import {
     ColorSchemeName,
     EntityName,
     DetailsMarker,
+    Color,
 } from "@ourworldindata/types"
 import { TooltipManager } from "../tooltip/TooltipProps"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -95,7 +96,9 @@ export interface ChartManager {
     isStatic?: boolean
     isSemiNarrow?: boolean
     isStaticAndSmall?: boolean
+    isExportingForSocialMedia?: boolean
     secondaryColorInStaticCharts?: string
+    backgroundColor?: Color
 
     detailsOrderedByReference?: string[]
     detailsMarkerInSvg?: DetailsMarker

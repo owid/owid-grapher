@@ -678,6 +678,7 @@ export class ScatterPlotChart
                 onMouseLeave={this.onScatterMouseLeave}
                 onClick={this.onScatterClick}
                 quadtree={this.quadtree}
+                backgroundColor={this.manager.backgroundColor}
             />
         )
     }
@@ -829,6 +830,7 @@ export class ScatterPlotChart
                             dualAxis={dualAxis}
                             comparisonLine={line}
                             baseFontSize={this.fontSize}
+                            backgroundColor={this.manager.backgroundColor}
                         />
                     ))}
                 {this.points}

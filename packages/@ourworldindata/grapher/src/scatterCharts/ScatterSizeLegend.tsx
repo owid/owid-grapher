@@ -3,6 +3,7 @@ import { computed } from "mobx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { TextWrap } from "@ourworldindata/components"
 import {
+    Color,
     first,
     last,
     makeIdForHumanConsumption,
@@ -10,6 +11,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     BASE_FONT_SIZE,
+    GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_DARK_TEXT,
     GRAPHER_FONT_SCALE_10,
     GRAPHER_FONT_SCALE_11,
@@ -32,6 +34,7 @@ export interface ScatterSizeLegendManager {
     sizeScale: ScaleLinear<number, number>
     fontSize?: number
     tooltipSeries?: ScatterSeries
+    backgroundColor?: Color
 }
 
 const LEGEND_PADDING = 3
@@ -190,6 +193,7 @@ export class ScatterSizeLegend {
                             }
                             labelFontSize={this.fontSizeFromRadius(radius)}
                             labelFill={highlight ? "#bbb" : LEGEND_VALUE_COLOR}
+                            backgroundColor={this.manager.backgroundColor}
                         />
                     )
                 })}
@@ -214,6 +218,7 @@ export class ScatterSizeLegend {
                         labelFill={darkenColorForText(highlight.color)}
                         labelFontWeight={700}
                         outsideLabel={true}
+                        backgroundColor={this.manager.backgroundColor}
                     />
                 )}
             </React.Fragment>
@@ -271,6 +276,7 @@ const LegendItem = ({
     labelFontSize,
     labelFontWeight = 400,
     outsideLabel = false,
+    backgroundColor = GRAPHER_BACKGROUND_DEFAULT,
 }: {
     label: string
     cx: number
@@ -284,6 +290,7 @@ const LegendItem = ({
     labelFontSize: number
     labelFontWeight?: number
     outsideLabel?: boolean
+    backgroundColor?: Color
 }): React.ReactElement => {
     const style: React.CSSProperties = {
         fontSize: labelFontSize,
@@ -301,7 +308,11 @@ const LegendItem = ({
                 strokeWidth={circleStrokeWidth}
                 opacity={circleOpacity}
             />
-            <Halo id={label} style={{ ...style, strokeWidth: 3.5 }}>
+            <Halo
+                id={label}
+                background={backgroundColor}
+                style={{ ...style, strokeWidth: 3.5 }}
+            >
                 <text
                     x={cx}
                     y={cy - circleRadius}
