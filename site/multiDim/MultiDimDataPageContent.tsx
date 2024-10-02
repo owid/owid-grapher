@@ -264,6 +264,7 @@ export const MultiDimDataPageContent = ({
             ...currentView?.config,
             dimensions: dimensionsConfig,
             ...baseConfig,
+            dataApiUrl: DATA_API_URL,
             // TODO: The way manager and slug are set here are just workarounds to make the edit button in the
             // share menu work. They should be removed before we publish MDims!
             manager: {
