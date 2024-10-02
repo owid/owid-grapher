@@ -155,7 +155,7 @@ export default function MetadataSection({
                                 <a
                                     href="https://creativecommons.org/licenses/by/4.0/"
                                     target="_blank"
-                                    rel="noopener noreferrer"
+                                    rel="noopener"
                                     className="reuse__link"
                                 >
                                     Creative Commons BY license

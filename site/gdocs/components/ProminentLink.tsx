@@ -80,9 +80,7 @@ export const ProminentLink = (props: {
     }
 
     const anchorTagProps =
-        linkType === "url"
-            ? { target: "_blank", rel: "noopener noreferrer" }
-            : undefined
+        linkType === "url" ? { target: "_blank", rel: "noopener" } : undefined
 
     const textContainerClassName = thumbnail
         ? "col-sm-start-4 col-md-start-3 col-start-2 col-end-limit"

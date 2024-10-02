@@ -72,7 +72,7 @@ const vaccineNotice = (
         key="vaccineNotice"
         href={`${BAKED_BASE_URL}/covid-vaccinations#frequently-asked-questions`}
         target="_blank"
-        rel="noreferrer"
+        rel="noopener"
     >
         Covid Vaccines Questions
     </a>
@@ -83,7 +83,7 @@ const copyrightNotice = (
         key="copyrightNotice"
         href={`${BAKED_BASE_URL}/faqs#how-is-your-work-copyrighted`}
         target="_blank"
-        rel="noreferrer"
+        rel="noopener"
     >
         Copyright Queries
     </a>
@@ -93,7 +93,7 @@ const citationNotice = (
         key="citationNotice"
         href={`${BAKED_BASE_URL}/faqs#how-should-i-cite-your-work`}
         target="_blank"
-        rel="noreferrer"
+        rel="noopener"
     >
         How to Cite our Work
     </a>
@@ -103,7 +103,7 @@ const translateNotice = (
         key="translateNotice"
         href={`${BAKED_BASE_URL}/faqs#can-i-translate-your-work-into-another-language`}
         target="_blank"
-        rel="noreferrer"
+        rel="noopener"
     >
         Translating our work
     </a>
@@ -210,7 +210,7 @@ export class FeedbackForm extends React.Component<{
                         <a
                             href={`${BAKED_BASE_URL}/faqs`}
                             target="_blank"
-                            rel="noreferrer"
+                            rel="noopener"
                         >
                             <strong>General FAQ</strong>
                         </a>{" "}
@@ -218,7 +218,7 @@ export class FeedbackForm extends React.Component<{
                         <a
                             href={`${BAKED_BASE_URL}/covid-vaccinations#frequently-asked-questions`}
                             target="_blank"
-                            rel="noreferrer"
+                            rel="noopener"
                         >
                             <strong>Vaccinations FAQ</strong>
                         </a>
