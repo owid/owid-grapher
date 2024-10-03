@@ -1,9 +1,14 @@
 import React from "react"
-import { Box } from "@ourworldindata/utils"
+import { Box, getCountryByName } from "@ourworldindata/utils"
 import { SeriesStrategy, EntityName } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartManager } from "./ChartManager"
+import {
+    GRAPHER_SIDE_PANEL_CLASS,
+    GRAPHER_TIMELINE_CLASS,
+    GRAPHER_SETTINGS_CLASS,
+} from "../core/GrapherConstants"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)
@@ -83,3 +88,22 @@ export const makeSelectionArray = (
     selection instanceof SelectionArray
         ? selection
         : new SelectionArray(selection ?? [])
+
+export function isElementInteractive(element: HTMLElement): boolean {
+    const interactiveTags = ["a", "button", "input"]
+    const interactiveClassNames = [
+        GRAPHER_TIMELINE_CLASS,
+        GRAPHER_SIDE_PANEL_CLASS,
+        GRAPHER_SETTINGS_CLASS,
+    ].map((className) => `.${className}`)
+
+    const selector = [...interactiveTags, ...interactiveClassNames].join(", ")
+
+    // check if the target is an interactive element or contained within one
+    return element.closest(selector) !== null
+}
+
+export function getShortNameForEntity(entityName: string): string | undefined {
+    const country = getCountryByName(entityName)
+    return country?.shortName
+}

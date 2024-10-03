@@ -21,7 +21,6 @@ import {
     ColorSchemeName,
     EntitySelectionMode,
     makeIdForHumanConsumption,
-    getCountryByName,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -43,7 +42,11 @@ import {
     colorScaleConfigDefaults,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
-import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import {
+    autoDetectYColumnSlugs,
+    getShortNameForEntity,
+    makeSelectionArray,
+} from "../chart/ChartUtils"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
@@ -1769,9 +1772,4 @@ export class MarimekkoChart
 
         return yColumns.every((col) => col.isEmpty) ? "No matching data" : ""
     }
-}
-
-function getShortNameForEntity(entityName: string): string | undefined {
-    const country = getCountryByName(entityName)
-    return country?.shortName
 }
