@@ -776,4 +776,36 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         expect(configAfterUpdate).not.toBeNull()
         expect(chartAfterUpdate).toEqual(configAfterUpdate)
     })
+
+    it("should return an error if the schema is missing", async () => {
+        const invalidConfig = {
+            title: "Title",
+            // note that the $schema field is missing
+        }
+        const json = await makeRequestAgainstAdminApi(
+            {
+                method: "PUT",
+                path: `/variables/${variableId}/grapherConfigETL`,
+                body: JSON.stringify(invalidConfig),
+            },
+            { verifySuccess: false }
+        )
+        expect(json.success).toBe(false)
+    })
+
+    it("should return an error if the schema is invalid", async () => {
+        const invalidConfig = {
+            $schema: "invalid", // note that the $schema field is invalid
+            title: "Title",
+        }
+        const json = await makeRequestAgainstAdminApi(
+            {
+                method: "PUT",
+                path: `/variables/${variableId}/grapherConfigETL`,
+                body: JSON.stringify(invalidConfig),
+            },
+            { verifySuccess: false }
+        )
+        expect(json.success).toBe(false)
+    })
 })
