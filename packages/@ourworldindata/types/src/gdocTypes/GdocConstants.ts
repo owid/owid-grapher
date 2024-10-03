@@ -24,8 +24,8 @@ export const IMAGES_DIRECTORY = "/images/published/"
 export const gdocUrlRegex =
     /https:\/\/docs\.google\.com\/document(?:\/u\/\d)?\/d\/([\-\w]+)\/?(edit)?#?/
 
-export const GDOCS_URL_PLACEHOLDER =
-    "https://docs.google.com/document/d/****/edit"
+export const GDOCS_BASE_URL = "https://docs.google.com"
+export const GDOCS_URL_PLACEHOLDER = `${GDOCS_BASE_URL}/document/d/****/edit`
 
 export const gdocIdRegex = /^[0-9A-Za-z\-_]{44}$/
 

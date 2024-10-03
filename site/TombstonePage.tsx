@@ -14,7 +14,15 @@ import { getLayout } from "./gdocs/components/ArticleBlock.js"
 
 export default function TombstonePage({
     baseUrl,
-    tombstone: { reason, relatedLink, slug },
+    tombstone: {
+        reason,
+        includeArchiveLink,
+        relatedLinkUrl,
+        relatedLinkTitle,
+        relatedLinkDescription,
+        relatedLinkThumbnail,
+        slug,
+    },
 }: {
     baseUrl: string
     tombstone: TombstonePageData
@@ -43,10 +51,11 @@ export default function TombstonePage({
                         <p className="body-3-medium">
                             {reason || DEFAULT_TOMBSTONE_REASON}
                         </p>
-                        {!relatedLink && (
+                        {includeArchiveLink && (
                             <p className="body-3-medium">
                                 If you’d still like to view this page, you can
-                                find it{" "}
+                                find it via the Internet Archive's Wayback
+                                Machine{" "}
                                 <a
                                     href={`https://web.archive.org/web/*/${oldUrl}`}
                                 >
@@ -58,7 +67,7 @@ export default function TombstonePage({
                     </div>
                     {/* Needs to be outside the NotFoundPage__copy to not have
                     styles overridden. */}
-                    {relatedLink && (
+                    {relatedLinkUrl && (
                         <>
                             <h2 className="NotFoundPage__prominent-link-heading">
                                 You may be interested in:
@@ -68,7 +77,14 @@ export default function TombstonePage({
                                     getLayout("prominent-link"),
                                     "NotFoundPage__prominent-link"
                                 )}
-                                url={relatedLink}
+                                url={relatedLinkUrl}
+                                // Use undefined to avoid overriding defaults
+                                // from linked GDoc with empty strings.
+                                title={relatedLinkTitle || undefined}
+                                description={
+                                    relatedLinkDescription || undefined
+                                }
+                                thumbnail={relatedLinkThumbnail || undefined}
                             />
                         </>
                     )}

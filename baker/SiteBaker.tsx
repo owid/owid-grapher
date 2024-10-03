@@ -662,7 +662,8 @@ export class SiteBaker {
 
         for (const tombstone of tombstones) {
             const attachments = await this.getPrefetchedGdocAttachments(knex)
-            const linkedGdocId = tombstone.relatedLink?.match(gdocUrlRegex)?.[1]
+            const linkedGdocId =
+                tombstone.relatedLinkUrl?.match(gdocUrlRegex)?.[1]
             if (linkedGdocId) {
                 const linkedDocument = attachments.linkedDocuments[linkedGdocId]
                 if (!linkedDocument) {

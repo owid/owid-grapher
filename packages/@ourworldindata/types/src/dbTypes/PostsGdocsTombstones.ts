@@ -2,7 +2,11 @@ export type DbInsertPostGdocTombstone = {
     gdocId: string
     slug: string
     reason?: string
-    relatedLink?: string
+    includeArchiveLink?: boolean
+    relatedLinkUrl?: string
+    relatedLinkTitle?: string
+    relatedLinkDescription?: string
+    relatedLinkThumbnail?: string
 }
 
 export type DbPlainPostGdocTombstone = Required<DbInsertPostGdocTombstone> & {

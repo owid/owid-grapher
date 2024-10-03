@@ -1000,6 +1000,18 @@ div.raw-html-table__container {
     > .prominent-link__image {
         height: 100%;
         width: 100%;
+        margin-top: 4px;
+    }
+
+    .prominent-link__heading-wrapper {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .prominent-link__icon-external {
+        color: $blue-60;
+        margin-top: 4px;
     }
 
     p {

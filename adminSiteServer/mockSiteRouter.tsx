@@ -532,22 +532,21 @@ getPlainRouteNonIdempotentWithRWTransaction(
 
 async function getTombstoneAttachments(
     knex: KnexReadonlyTransaction,
-    tombstone: TombstonePageData
+    { relatedLinkUrl, relatedLinkThumbnail }: TombstonePageData
 ) {
-    const linkedGdocId = tombstone.relatedLink?.match(gdocUrlRegex)?.[1]
+    const linkedGdocId = relatedLinkUrl?.match(gdocUrlRegex)?.[1]
     const linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
+    let linkedDocument: OwidGdocMinimalPostInterface | undefined
     let imageMetadata: Record<string, ImageMetadata> = {}
     if (linkedGdocId) {
-        const [linkedDocument] = await getMinimalGdocPostsByIds(knex, [
-            linkedGdocId,
-        ])
+        const posts = await getMinimalGdocPostsByIds(knex, [linkedGdocId])
+        linkedDocument = posts[0]
         linkedDocuments[linkedGdocId] = linkedDocument
-        const imageFilename = linkedDocument["featured-image"]
-        if (imageFilename) {
-            imageMetadata = await getImageMetadataByFilenames(knex, [
-                imageFilename,
-            ])
-        }
+    }
+    const imageFilename =
+        relatedLinkThumbnail || linkedDocument?.["featured-image"]
+    if (imageFilename) {
+        imageMetadata = await getImageMetadataByFilenames(knex, [imageFilename])
     }
     return {
         imageMetadata,

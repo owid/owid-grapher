@@ -1,10 +1,18 @@
 export type CreateTombstoneData = {
     reason?: string
-    relatedLink?: string
+    includeArchiveLink?: boolean
+    relatedLinkUrl?: string
+    relatedLinkTitle?: string
+    relatedLinkDescription?: string
+    relatedLinkThumbnail?: string
 }
 
 export type TombstonePageData = {
     slug: string
     reason: string
-    relatedLink: string
+    includeArchiveLink: boolean
+    relatedLinkUrl: string
+    relatedLinkTitle: string
+    relatedLinkDescription: string
+    relatedLinkThumbnail: string
 }

@@ -11,8 +11,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     CreateTombstoneData,
     GDOCS_URL_PLACEHOLDER,
+    GDOCS_BASE_URL,
     gdocUrlRegex,
     OwidGdoc,
+    Url,
+    omit,
 } from "@ourworldindata/utils"
 
 import { DEFAULT_TOMBSTONE_REASON } from "../site/SiteConstants.js"
@@ -32,7 +35,7 @@ export const GdocsMoreMenu = ({
     gdoc: OwidGdoc
     onDebug: VoidFunction
     onUnpublish: VoidFunction
-    onDelete: (tombstone?: CreateTombstoneData) => void
+    onDelete: (tombstone?: CreateTombstoneData) => Promise<void>
 }) => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
@@ -108,7 +111,11 @@ export const GdocsMoreMenu = ({
 type DeleteFields = {
     shouldCreateTombstone: boolean
     reason?: string
-    relatedLink?: string
+    includeArchiveLink: boolean
+    relatedLinkUrl?: string
+    relatedLinkTitle?: string
+    relatedLinkDescription?: string
+    relatedLinkThumbnail?: string
 }
 
 function DeleteModal({
@@ -120,17 +127,21 @@ function DeleteModal({
     gdoc: OwidGdoc
     isOpen: boolean
     setIsOpen: (isOpen: boolean) => void
-    onOk: (tombstone?: CreateTombstoneData) => void
+    onOk: (tombstone?: CreateTombstoneData) => Promise<void>
 }) {
+    const [isSubmitting, setIsSubmitting] = useState(false)
     // We need to keep track of this state ourselves because antd form data
     // isn't reactive.
     const [shouldCreateTombstone, setShouldCreateTombstone] = useState(false)
+    const [hasRelatedLink, setHasRelatedLink] = useState(false)
 
-    function handleOnFinish({ reason, relatedLink }: DeleteFields) {
+    async function handleOnFinish(fields: DeleteFields) {
         const tombstone = shouldCreateTombstone
-            ? { reason, relatedLink }
+            ? omit(fields, "shouldCreateTombstone")
             : undefined
-        onOk(tombstone)
+        setIsSubmitting(true)
+        await onOk(tombstone)
+        setIsSubmitting(false)
         setIsOpen(false)
     }
 
@@ -146,6 +157,7 @@ function DeleteModal({
                 // disable the button based on the form state, so we don't
                 // use the disabled prop.
             }}
+            confirmLoading={isSubmitting}
             cancelText="Cancel"
             onCancel={() => setIsOpen(false)}
             destroyOnClose
@@ -202,28 +214,102 @@ function DeleteModal({
                             />
                         </Form.Item>
                         <Form.Item
-                            name="relatedLink"
-                            label="Related link"
-                            rules={[
-                                {
-                                    pattern: gdocUrlRegex,
-                                    message: (
-                                        <>
-                                            Invalid Google Doc URL. It should
-                                            look like this:
-                                            <br />
-                                            {GDOCS_URL_PLACEHOLDER}
-                                        </>
-                                    ),
-                                },
-                            ]}
-                            extra="Point user to a related page to help them find what they need."
+                            name="includeArchiveLink"
+                            valuePropName="checked"
+                            extra="Adds a paragraphs with automatically generated link to the Internet Archive's Wayback Machine."
                         >
-                            <Input
-                                type="url"
-                                placeholder={GDOCS_URL_PLACEHOLDER}
-                            />
+                            <Checkbox>Include Wayback Machine link</Checkbox>
                         </Form.Item>
+                        <fieldset>
+                            <legend>Related prominent link</legend>
+                            <Form.Item
+                                name="relatedLinkUrl"
+                                label="URL"
+                                rules={[
+                                    // NOTE: It's not easy to extract this to a
+                                    // separate function because the exported
+                                    // FormInstance type is incorrect in antd.
+                                    (form) => {
+                                        return form
+                                            .getFieldValue("relatedLinkUrl")
+                                            ?.startsWith(GDOCS_BASE_URL)
+                                            ? {
+                                                  pattern: gdocUrlRegex,
+                                                  message: (
+                                                      <>
+                                                          Invalid Google Doc
+                                                          URL. It should look
+                                                          like this:
+                                                          <br />
+                                                          {
+                                                              GDOCS_URL_PLACEHOLDER
+                                                          }
+                                                      </>
+                                                  ),
+                                              }
+                                            : {
+                                                  type: "url",
+                                                  message: "Invalid URL.",
+                                              }
+                                    },
+                                ]}
+                                extra="Point user to a related page to help them find what they need."
+                            >
+                                <Input
+                                    type="url"
+                                    placeholder={GDOCS_URL_PLACEHOLDER}
+                                    onChange={(e) =>
+                                        setHasRelatedLink(
+                                            Boolean(e.target.value)
+                                        )
+                                    }
+                                />
+                            </Form.Item>
+                            {hasRelatedLink && (
+                                <>
+                                    <Form.Item
+                                        name="relatedLinkTitle"
+                                        label="Title"
+                                        rules={[
+                                            (form) => {
+                                                const value =
+                                                    form.getFieldValue(
+                                                        "relatedLinkUrl"
+                                                    )
+                                                if (!value) {
+                                                    return { type: "string" }
+                                                }
+                                                const url = Url.fromURL(value)
+                                                if (url.isGoogleDoc) {
+                                                    return { type: "string" }
+                                                }
+                                                return {
+                                                    required: true,
+                                                    message:
+                                                        "Title is required.",
+                                                }
+                                            },
+                                        ]}
+                                        extra="Required for non-Google Doc URLs."
+                                    >
+                                        <Input type="text" />
+                                    </Form.Item>
+                                    <Form.Item
+                                        name="relatedLinkDescription"
+                                        label="Description"
+                                    >
+                                        <Input.TextArea />
+                                    </Form.Item>
+                                    <Form.Item
+                                        name="relatedLinkThumbnail"
+                                        label="Thumbnail file name"
+                                        extra="The image must be already in Google Drive."
+                                    >
+                                        <Input type="text" />
+                                    </Form.Item>
+                                </>
+                            )}
+                        </fieldset>
                     </>
                 )}
             </>

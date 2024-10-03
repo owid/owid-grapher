@@ -43,6 +43,7 @@ import {
 import { updateExistingFullConfig } from "../db/model/ChartConfigs.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
+    GDOCS_BASE_URL,
     camelCaseProperties,
     GdocsContentSource,
     isEmpty,
@@ -180,6 +181,7 @@ import {
     saveGrapherConfigToR2,
     saveGrapherConfigToR2ByUUID,
 } from "./chartConfigR2Helpers.js"
+import { fetchImagesFromDriveAndSyncToS3 } from "../db/model/Image.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -2931,11 +2933,11 @@ putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     return nextGdoc
 })
 
-async function validateTombstoneRelatedLink(
+async function validateTombstoneRelatedLinkUrl(
     trx: db.KnexReadonlyTransaction,
     relatedLink?: string
 ) {
-    if (!relatedLink) return
+    if (!relatedLink || !relatedLink.startsWith(GDOCS_BASE_URL)) return
     const id = relatedLink.match(gdocUrlRegex)?.[1]
     if (!id) {
         throw new JsonError(`Invalid related link: ${relatedLink}`)
@@ -2959,8 +2961,12 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     const { tombstone } = req.body
 
     if (tombstone) {
-        await validateTombstoneRelatedLink(trx, tombstone.relatedLink)
+        await validateTombstoneRelatedLinkUrl(trx, tombstone.relatedLinkUrl)
         const slug = gdocSlug.replace("/", "")
+        const { relatedLinkThumbnail } = tombstone
+        if (relatedLinkThumbnail) {
+            await fetchImagesFromDriveAndSyncToS3(trx, [relatedLinkThumbnail])
+        }
         await trx
             .table("posts_gdocs_tombstones")
             .insert({ ...tombstone, gdocId: id, slug })

@@ -10,7 +10,11 @@ export class CreatePostsGdocsTombstones1726665850000
                 gdocId VARCHAR(255) UNIQUE,
                 slug VARCHAR(255) NOT NULL UNIQUE,
                 reason TEXT NOT NULL DEFAULT (''),
-                relatedLink TEXT NOT NULL DEFAULT (''),
+                includeArchiveLink BOOLEAN NOT NULL DEFAULT (false),
+                relatedLinkUrl TEXT NOT NULL DEFAULT (''),
+                relatedLinkTitle VARCHAR(255) NOT NULL DEFAULT (''),
+                relatedLinkDescription TEXT NOT NULL DEFAULT (''),
+                relatedLinkThumbnail VARCHAR(255) NOT NULL DEFAULT (''),
                 createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )
