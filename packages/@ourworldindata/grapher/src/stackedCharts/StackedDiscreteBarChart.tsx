@@ -720,6 +720,14 @@ export class StackedDiscreteBarChart
                         />
                     </>
                 )}
+                <HorizontalAxisZeroLine
+                    horizontalAxis={yAxis}
+                    bounds={innerBounds}
+                    strokeWidth={axisLineWidth}
+                    // moves the zero line a little to the left to avoid
+                    // overlap with the bars
+                    align={HorizontalAlign.right}
+                />
                 {this.showLegend && (
                     <HorizontalCategoricalColorLegend manager={this} />
                 )}
@@ -733,11 +741,6 @@ export class StackedDiscreteBarChart
                         <g>{nodes.map((node) => renderRow(node))}</g>
                     )}
                 </NodeGroup>
-                <HorizontalAxisZeroLine
-                    horizontalAxis={yAxis}
-                    bounds={innerBounds}
-                    strokeWidth={axisLineWidth}
-                />
                 {this.Tooltip}
             </g>
         )

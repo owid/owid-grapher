@@ -469,6 +469,21 @@ export class DiscreteBarChart
                         />
                     </>
                 )}
+                {!this.isLogScale && (
+                    <HorizontalAxisZeroLine
+                        horizontalAxis={yAxis}
+                        bounds={innerBounds}
+                        strokeWidth={axisLineWidth}
+                        // if the chart doesn't have negative values, then we
+                        // move the zero line a little to the left to avoid
+                        // overlap with the bars
+                        align={
+                            this.hasNegative
+                                ? HorizontalAlign.center
+                                : HorizontalAlign.right
+                        }
+                    />
+                )}
                 {sizedSeries.map((series) => {
                     // Todo: add a "placedSeries" getter to get the transformed series, then just loop over the placedSeries and render a bar for each
                     const isNegative = series.value < 0
@@ -560,13 +575,6 @@ export class DiscreteBarChart
 
                     return result
                 })}
-                {!this.isLogScale && (
-                    <HorizontalAxisZeroLine
-                        horizontalAxis={yAxis}
-                        bounds={innerBounds}
-                        strokeWidth={axisLineWidth}
-                    />
-                )}
             </g>
         )
     }
