@@ -640,17 +640,13 @@ export class SiteBaker {
             }
 
             await publishedGdoc.validate(knex)
-            if (
-                publishedGdoc.errors.filter(
-                    (e) => e.type === OwidGdocErrorMessageType.Error
-                ).length
-            ) {
+            for (const errorOrWarning of publishedGdoc.errors) {
+                const announcement =
+                    errorOrWarning.type === OwidGdocErrorMessageType.Error
+                        ? `Error baking "${publishedGdoc.slug}"`
+                        : `Warning baking "${publishedGdoc.slug}"`
                 await logErrorAndMaybeSendToBugsnag(
-                    `Error(s) baking "${
-                        publishedGdoc.slug
-                    }" :\n  ${publishedGdoc.errors
-                        .map((error) => error.message)
-                        .join("\n  ")}`
+                    `${announcement}: ${errorOrWarning.message}`
                 )
             }
             try {
