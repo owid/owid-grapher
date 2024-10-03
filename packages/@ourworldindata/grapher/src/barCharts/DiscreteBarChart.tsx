@@ -17,6 +17,7 @@ import {
     AxisAlign,
     uniqBy,
     makeIdForHumanConsumption,
+    dyFromAlign,
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -27,6 +28,7 @@ import {
     ColorScaleConfigInterface,
     CoreValueType,
     ColorSchemeName,
+    VerticalAlign,
 } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
@@ -49,6 +51,7 @@ import {
     BACKGROUND_COLOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
+    PlacedDiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
 import {
     OwidTable,
@@ -73,7 +76,6 @@ import {
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { BaseType, Selection } from "d3"
-import { Halo } from "../halo/Halo"
 import { TextWrap } from "@ourworldindata/components"
 
 const labelToTextPadding = 10
@@ -401,55 +403,110 @@ export class DiscreteBarChart
         if (!this.manager.disableIntroAnimation) this.animateBarWidth()
     }
 
-    render(): React.ReactElement {
-        if (this.failMessage)
-            return (
-                <NoDataModal
-                    manager={this.manager}
-                    bounds={this.bounds}
-                    message={this.failMessage}
-                />
-            )
+    renderEntityLabels(): React.ReactElement {
+        const style = { fill: "#555", textAnchor: "end" }
+        return (
+            <g id={makeIdForHumanConsumption("entity-labels")}>
+                {this.placedSeries.map((series) => {
+                    return (
+                        series.label &&
+                        series.label.render(
+                            series.entityLabelX,
+                            series.barY - series.label.height / 2,
+                            { textProps: style }
+                        )
+                    )
+                })}
+            </g>
+        )
+    }
 
-        const {
-            manager,
-            sizedSeries,
-            boundsWithoutColorLegend,
-            yAxis,
-            innerBounds,
-            barHeight,
-            barSpacing,
-        } = this
+    renderValueLabels(): React.ReactElement {
+        return (
+            <g id={makeIdForHumanConsumption("value-labels")}>
+                {this.placedSeries.map((series) => {
+                    const formattedLabel = this.formatValue(series)
+                    return (
+                        <text
+                            key={series.seriesName}
+                            x={0}
+                            y={0}
+                            transform={`translate(${series.valueLabelX}, ${series.barY})`}
+                            fill={GRAPHER_DARK_TEXT}
+                            dy={dyFromAlign(VerticalAlign.middle)}
+                            textAnchor={series.value < 0 ? "end" : "start"}
+                            {...this.valueLabelStyle}
+                        >
+                            {formattedLabel.valueString}
+                            <tspan fill="#999">
+                                {formattedLabel.timeString}
+                            </tspan>
+                        </text>
+                    )
+                })}
+            </g>
+        )
+    }
 
-        let yOffset = innerBounds.top + barHeight / 2 + barSpacing / 2
+    renderBars(): React.ReactElement {
+        return (
+            <g id={makeIdForHumanConsumption("bars")}>
+                {this.placedSeries.map((series) => {
+                    const barColor = series.yColumn.isProjection
+                        ? `url(#${makeProjectedDataPatternId(series.color)})`
+                        : series.color
+
+                    // Using transforms for positioning to enable better (subpixel) transitions
+                    // Width transitions don't work well on iOS Safari – they get interrupted and
+                    // it appears very slow. Also be careful with negative bar charts.
+                    return (
+                        <rect
+                            id={makeIdForHumanConsumption(series.seriesName)}
+                            key={series.seriesName}
+                            x={0}
+                            y={0}
+                            transform={`translate(${series.barX}, ${series.barY - this.barHeight / 2})`}
+                            width={series.barWidth}
+                            height={this.barHeight}
+                            fill={barColor}
+                            opacity={GRAPHER_AREA_OPACITY_DEFAULT}
+                            style={{ transition: "height 200ms ease" }}
+                        />
+                    )
+                })}
+            </g>
+        )
+    }
+
+    renderDefs(): React.ReactElement | void {
+        const projections = this.series.filter(
+            (series) => series.yColumn.isProjection
+        )
+        const uniqProjections = uniqBy(projections, (series) => series.color)
+        if (projections.length === 0) return
+
+        return (
+            <defs>
+                {/* passed to the legend as pattern for the projected data legend item */}
+                {makeProjectedDataPattern(this.projectedDataColorInLegend)}
+                {/* make a pattern for every series with a unique color */}
+                {uniqProjections.map((series) =>
+                    makeProjectedDataPattern(series.color)
+                )}
+            </defs>
+        )
+    }
+
+    renderChartArea(): React.ReactElement {
+        const { manager, boundsWithoutColorLegend, yAxis, innerBounds } = this
 
         const axisLineWidth = manager.isStaticAndSmall
             ? GRAPHER_AXIS_LINE_WIDTH_THICK
             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
 
         return (
-            <g
-                ref={this.base}
-                id={makeIdForHumanConsumption("discrete-bar-chart")}
-                className="DiscreteBarChart"
-            >
-                {this.hasProjectedData && (
-                    <defs>
-                        {/* passed to the legend as pattern for the
-                        projected data legend item */}
-                        {makeProjectedDataPattern(
-                            this.projectedDataColorInLegend
-                        )}
-                    </defs>
-                )}
-                <rect
-                    x={boundsWithoutColorLegend.left}
-                    y={boundsWithoutColorLegend.top}
-                    width={boundsWithoutColorLegend.width}
-                    height={boundsWithoutColorLegend.height}
-                    opacity={0}
-                    fill="rgba(255,255,255,0)"
-                />
+            <>
+                {this.renderDefs()}
                 {this.showColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
@@ -474,110 +531,34 @@ export class DiscreteBarChart
                         horizontalAxis={yAxis}
                         bounds={innerBounds}
                         strokeWidth={axisLineWidth}
-                        // if the chart doesn't have negative values, then we
-                        // move the zero line a little to the left to avoid
-                        // overlap with the bars
-                        align={
-                            this.hasNegative
-                                ? HorizontalAlign.center
-                                : HorizontalAlign.right
-                        }
                     />
                 )}
-                {sizedSeries.map((series) => {
-                    // Todo: add a "placedSeries" getter to get the transformed series, then just loop over the placedSeries and render a bar for each
-                    const isNegative = series.value < 0
-                    const isProjection = series.yColumn.isProjection
-                    const barX = isNegative
-                        ? yAxis.place(series.value)
-                        : yAxis.place(this.x0)
-                    const barWidth = isNegative
-                        ? yAxis.place(this.x0) - barX
-                        : yAxis.place(series.value) - barX
-                    const barColor = series.color
-                    const label = this.formatValue(series)
-                    const labelX = isNegative
-                        ? barX - label.width - labelToTextPadding
-                        : barX - labelToBarPadding
+                {this.renderBars()}
+                {this.renderValueLabels()}
+                {this.renderEntityLabels()}
+            </>
+        )
+    }
 
-                    // Using transforms for positioning to enable better (subpixel) transitions
-                    // Width transitions don't work well on iOS Safari – they get interrupted and
-                    // it appears very slow. Also be careful with negative bar charts.
-                    const result = (
-                        <g
-                            key={series.seriesName}
-                            id={makeIdForHumanConsumption(
-                                "bar",
-                                series.seriesName
-                            )}
-                            className="bar"
-                            transform={`translate(0, ${yOffset})`}
-                        >
-                            {isProjection && (
-                                <defs>
-                                    {makeProjectedDataPattern(barColor)}
-                                </defs>
-                            )}
-                            {series.label &&
-                                series.label.render(
-                                    labelX,
-                                    -series.label.height / 2,
-                                    {
-                                        textProps: {
-                                            fill: "#555",
-                                            textAnchor: "end",
-                                        },
-                                    }
-                                )}
-                            <rect
-                                x={0}
-                                y={0}
-                                transform={`translate(${barX}, ${
-                                    -barHeight / 2
-                                })`}
-                                width={barWidth}
-                                height={barHeight}
-                                fill={
-                                    isProjection
-                                        ? `url(#${makeProjectedDataPatternId(
-                                              barColor
-                                          )})`
-                                        : barColor
-                                }
-                                opacity={GRAPHER_AREA_OPACITY_DEFAULT}
-                                style={{ transition: "height 200ms ease" }}
-                            />
-                            <Halo
-                                id={series.seriesName + "-label"}
-                                background={this.manager.backgroundColor}
-                            >
-                                <text
-                                    x={0}
-                                    y={0}
-                                    transform={`translate(${
-                                        yAxis.place(series.value) +
-                                        (isNegative
-                                            ? -labelToBarPadding
-                                            : labelToBarPadding)
-                                    }, 0)`}
-                                    fill={GRAPHER_DARK_TEXT}
-                                    dominantBaseline="middle"
-                                    textAnchor={isNegative ? "end" : "start"}
-                                    {...this.valueLabelStyle}
-                                >
-                                    {label.valueString}
-                                    <tspan fill="#999">
-                                        {label.timeString}
-                                    </tspan>
-                                </text>
-                            </Halo>
-                        </g>
-                    )
+    render(): React.ReactElement {
+        if (this.failMessage)
+            return (
+                <NoDataModal
+                    manager={this.manager}
+                    bounds={this.bounds}
+                    message={this.failMessage}
+                />
+            )
 
-                    yOffset += barHeight + barSpacing
-
-                    return result
-                })}
+        return this.manager.isStatic ? (
+            this.renderChartArea()
+        ) : (
+            <g
+                ref={this.base}
+                id={makeIdForHumanConsumption("discrete-bar-chart")}
+                className="DiscreteBarChart"
+            >
+                {this.renderChartArea()}
             </g>
         )
     }
@@ -963,6 +944,37 @@ export class DiscreteBarChart
             }
 
             return { ...series, label }
+        })
+    }
+
+    @computed get placedSeries(): PlacedDiscreteBarSeries[] {
+        const yOffset =
+            this.innerBounds.top + this.barHeight / 2 + this.barSpacing / 2
+        return this.sizedSeries.map((series, index) => {
+            const barY = yOffset + index * (this.barHeight + this.barSpacing)
+            const isNegative = series.value < 0
+            const barX = isNegative
+                ? this.yAxis.place(series.value)
+                : this.yAxis.place(this.x0)
+            const barWidth = isNegative
+                ? this.yAxis.place(this.x0) - barX
+                : this.yAxis.place(series.value) - barX
+            const label = this.formatValue(series)
+            const entityLabelX = isNegative
+                ? barX - label.width - labelToTextPadding
+                : barX - labelToBarPadding
+            const valueLabelX =
+                this.yAxis.place(series.value) +
+                (isNegative ? -labelToBarPadding : labelToBarPadding)
+
+            return {
+                ...series,
+                barX,
+                barY,
+                barWidth,
+                entityLabelX,
+                valueLabelX,
+            }
         })
     }
 }
