@@ -58,6 +58,7 @@ import {
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    getShortNameForEntity,
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import { HorizontalAxis } from "../axis/Axis"
@@ -80,6 +81,9 @@ const labelToBarPadding = 5
 
 const LEGEND_PADDING = 25
 const DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND = "#787878"
+
+// if an entity name exceeds this width, we use the short name instead (if available)
+const SOFT_MAX_LABEL_WIDTH = 90
 
 export interface Label {
     valueString: string
@@ -890,6 +894,8 @@ export class DiscreteBarChart
                 time,
                 colorValue,
                 seriesName,
+                entityName: seriesName,
+                shortEntityName: getShortNameForEntity(seriesName),
                 // the error color should never be used but I prefer it here instead of throwing an exception if something goes wrong
                 color:
                     color ??
@@ -908,11 +914,13 @@ export class DiscreteBarChart
 
         return this.series.map((series) => {
             // make sure we're dealing with a single-line text fragment
-            const seriesName = series.seriesName.replace(/\n/g, " ").trim()
+            const entityName = series.entityName.replace(/\n/g, " ").trim()
+
+            const maxLegendWidth = 0.3 * this.boundsWithoutColorLegend.width
 
             let label = new TextWrap({
-                text: seriesName,
-                maxWidth: this.boundsWithoutColorLegend.width * 0.3,
+                text: entityName,
+                maxWidth: maxLegendWidth,
                 ...this.legendLabelStyle,
             })
 
@@ -924,11 +932,23 @@ export class DiscreteBarChart
                 step < 10 // safety net
             ) {
                 label = new TextWrap({
-                    text: seriesName,
+                    text: entityName,
                     maxWidth: label.maxWidth + 20,
                     ...this.legendLabelStyle,
                 })
                 step += 1
+            }
+
+            // if the label is too long, use the short name instead
+            const tooLong =
+                label.width > SOFT_MAX_LABEL_WIDTH ||
+                label.width > maxLegendWidth
+            if (tooLong && series.shortEntityName) {
+                label = new TextWrap({
+                    text: series.shortEntityName,
+                    maxWidth: label.maxWidth,
+                    ...this.legendLabelStyle,
+                })
             }
 
             return { ...series, label }

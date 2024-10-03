@@ -53,7 +53,11 @@ import {
     SlopeEntryProps,
 } from "./SlopeChartConstants"
 import { OwidTable } from "@ourworldindata/core-table"
-import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import {
+    autoDetectYColumnSlugs,
+    makeSelectionArray,
+    isElementInteractive,
+} from "../chart/ChartUtils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { VerticalAxis } from "../axis/Axis"
 import { VerticalAxisComponent } from "../axis/AxisViews"
@@ -63,7 +67,6 @@ import {
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { NoDataSection } from "../scatterCharts/NoDataSection"
-import { isElementInteractive } from "../utils"
 
 export interface SlopeChartManager extends ChartManager {
     isModalOpen?: boolean

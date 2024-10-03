@@ -5,6 +5,8 @@ import { CoreValueType, Time } from "@ourworldindata/types"
 import { TextWrap } from "@ourworldindata/components"
 
 export interface DiscreteBarSeries extends ChartSeries {
+    entityName: string
+    shortEntityName?: string
     yColumn: CoreColumn
     value: number
     time: Time

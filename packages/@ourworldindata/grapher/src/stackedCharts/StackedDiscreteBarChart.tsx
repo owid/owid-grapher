@@ -44,7 +44,11 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
-import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import {
+    autoDetectYColumnSlugs,
+    getShortNameForEntity,
+    makeSelectionArray,
+} from "../chart/ChartUtils"
 import {
     stackSeries,
     withMissingValuesAsZeroes,
@@ -76,6 +80,9 @@ import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 import { Halo } from "../halo/Halo"
 import { TextWrap } from "@ourworldindata/components"
 
+// if an entity name exceeds this width, we use the short name instead (if available)
+const SOFT_MAX_LABEL_WIDTH = 90
+
 const labelToBarPadding = 5
 
 export interface StackedDiscreteBarChartManager extends ChartManager {
@@ -85,6 +92,7 @@ export interface StackedDiscreteBarChartManager extends ChartManager {
 
 interface Item {
     entityName: string
+    shortEntityName?: string
     label: TextWrap
     bars: Bar[]
     totalValue: number
@@ -357,6 +365,7 @@ export class StackedDiscreteBarChart
 
                 return {
                     entityName,
+                    shortEntityName: getShortNameForEntity(entityName),
                     bars,
                     totalValue,
                 }
@@ -374,9 +383,11 @@ export class StackedDiscreteBarChart
             // make sure we're dealing with a single-line text fragment
             const entityName = item.entityName.replace(/\n/g, " ").trim()
 
+            const maxLegendWidth = 0.3 * this.boundsWithoutLegend.width
+
             let label = new TextWrap({
                 text: entityName,
-                maxWidth: this.boundsWithoutLegend.width * 0.3,
+                maxWidth: maxLegendWidth,
                 ...this.labelStyle,
             })
 
@@ -393,6 +404,18 @@ export class StackedDiscreteBarChart
                     ...this.labelStyle,
                 })
                 step += 1
+            }
+
+            // if the label is too long, use the short name instead
+            const tooLong =
+                label.width > SOFT_MAX_LABEL_WIDTH ||
+                label.width > maxLegendWidth
+            if (tooLong && item.shortEntityName) {
+                label = new TextWrap({
+                    text: item.shortEntityName,
+                    maxWidth: label.maxWidth,
+                    ...this.labelStyle,
+                })
             }
 
             return { ...item, label }
