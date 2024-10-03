@@ -19,6 +19,7 @@ import {
     EntityName,
     getRelativeMouse,
     makeIdForHumanConsumption,
+    dyFromAlign,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -27,6 +28,7 @@ import {
     FacetStrategy,
     MissingDataStrategy,
     SeriesName,
+    VerticalAlign,
 } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
@@ -218,6 +220,10 @@ export class StackedDiscreteBarChart
 
     @computed private get baseFontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
+    }
+
+    @computed get isStatic(): boolean {
+        return this.manager.isStatic ?? false
     }
 
     @computed private get showLegend(): boolean {
@@ -678,7 +684,7 @@ export class StackedDiscreteBarChart
                                 transform={`translate(${
                                     yAxis.place(totalValue) + labelToBarPadding
                                 }, 0)`}
-                                dominantBaseline="middle"
+                                dy={dyFromAlign(VerticalAlign.middle)}
                                 {...this.totalValueLabelStyle}
                             >
                                 {totalLabel}
@@ -747,6 +753,15 @@ export class StackedDiscreteBarChart
                 {this.Tooltip}
             </g>
         )
+    }
+
+    @computed get activeColors(): string[] | undefined {
+        const { focusSeriesName } = this
+        if (!focusSeriesName) return undefined
+        const activeColors = this.series
+            .filter((series) => series.seriesName === focusSeriesName)
+            .map((series) => series.color)
+        return activeColors.length === 0 ? undefined : activeColors
     }
 
     private static Bar(props: {
@@ -818,7 +833,7 @@ export class StackedDiscreteBarChart
                         opacity={isFaint ? 0 : 1}
                         fontSize={labelFontSize}
                         textAnchor="middle"
-                        dominantBaseline="middle"
+                        dy={dyFromAlign(VerticalAlign.middle)}
                     >
                         {barLabel}
                     </text>
