@@ -58,6 +58,7 @@ import {
     OwidGdocContent,
     OwidGdocType,
 } from "@ourworldindata/types"
+import { getRedirectsFromDb, resolveRedirects } from "../Redirect.js"
 
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
@@ -750,6 +751,8 @@ export class GdocBase implements OwidGdocBaseInterface {
         const chartIdsBySlug = await mapSlugsToIds(knex)
         const publishedExplorersBySlug =
             await db.getPublishedExplorersBySlug(knex)
+        const redirects = await getRedirectsFromDb(knex)
+        const resolvedRedirects = resolveRedirects(redirects)
 
         const linkErrors: OwidGdocErrorMessage[] = this.links.reduce(
             (errors: OwidGdocErrorMessage[], link): OwidGdocErrorMessage[] => {
@@ -780,7 +783,9 @@ export class GdocBase implements OwidGdocBaseInterface {
                 }
 
                 if (link.linkType === "explorer") {
-                    if (!publishedExplorersBySlug[link.target]) {
+                    const resolvedTarget =
+                        resolvedRedirects.get(link.target) ?? link.target
+                    if (!publishedExplorersBySlug[resolvedTarget]) {
                         errors.push({
                             property: "content",
                             message: `Explorer chart with slug ${link.target} does not exist or is not published`,

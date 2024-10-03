@@ -16,6 +16,29 @@ export async function getRedirects(
     )
 }
 
+/**
+ * Takes a list of redirects and returns a map of source -> target
+ * such that if you have [A -> B, B -> C], the map will be { A -> C, B -> C }
+ */
+export function resolveRedirects(
+    redirects: Pick<DbPlainRedirect, "source" | "target">[]
+): Map<string, string> {
+    const asMap = new Map<string, string>(
+        redirects.map(({ source, target }) => [source, target])
+    )
+    const resolved = new Map<string, string>()
+
+    for (const [source, target] of asMap) {
+        let current = target
+        while (asMap.has(current)) {
+            current = asMap.get(current)!
+        }
+        resolved.set(source, current)
+    }
+
+    return resolved
+}
+
 export async function getRedirectById(
     knex: db.KnexReadonlyTransaction,
     id: number
