@@ -17,6 +17,7 @@ import {
     TextField,
     Button,
     RadioGroup,
+    BindAutoFloatExt,
 } from "./Forms.js"
 import {
     debounce,
@@ -27,6 +28,8 @@ import {
     SortOrder,
     SortBy,
     SortConfig,
+    minTimeBoundFromJSONOrNegativeInfinity,
+    maxTimeBoundFromJSONOrPositiveInfinity,
 } from "@ourworldindata/utils"
 import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -38,6 +41,76 @@ import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import Select from "react-select"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
+
+const debounceOnLeadingEdge = (fn: (...args: any[]) => void) =>
+    debounce(fn, 0, { leading: true, trailing: false })
+
+@observer
+class TimeField<
+    T extends { [field: string]: any },
+    K extends Extract<keyof T, string>,
+> extends React.Component<{
+    field: K
+    store: T
+    label: string
+    defaultValue: number
+    parentValue: number
+    isInherited: boolean
+    allowLinking: boolean
+}> {
+    private setValue(value: number) {
+        this.props.store[this.props.field] = value as any
+    }
+
+    @computed get currentValue(): number | undefined {
+        return this.props.store[this.props.field]
+    }
+
+    @action.bound onChange(value: number | undefined) {
+        this.setValue(value ?? this.props.defaultValue)
+    }
+
+    @action.bound onBlur() {
+        if (this.currentValue === undefined) {
+            this.setValue(this.props.defaultValue)
+        }
+    }
+
+    render() {
+        const { label, field, defaultValue } = this.props
+
+        // the reset button resets the value to its default
+        const resetButton = {
+            onClick: action(() => this.setValue(defaultValue)),
+            disabled: this.currentValue === defaultValue,
+        }
+
+        return this.props.allowLinking ? (
+            <BindAutoFloatExt
+                label={label}
+                readFn={(store) => store[field]}
+                writeFn={(store, newVal) =>
+                    (store[this.props.field] = newVal as any)
+                }
+                auto={this.props.parentValue}
+                isAuto={this.props.isInherited}
+                store={this.props.store}
+                onBlur={this.onBlur}
+                resetButton={resetButton}
+            />
+        ) : (
+            <NumberField
+                label={label}
+                value={this.currentValue}
+                // invoke on the leading edge to avoid interference with onBlur
+                onValue={debounceOnLeadingEdge(this.onChange)}
+                onBlur={this.onBlur}
+                allowNegative
+                resetButton={resetButton}
+            />
+        )
+    }
+}
 
 @observer
 export class ColorSchemeSelector extends React.Component<{
@@ -307,54 +380,6 @@ class TimelineSection<
         return this.props.editor.grapher
     }
 
-    @computed get activeParentConfig() {
-        return this.props.editor.activeParentConfig
-    }
-
-    @computed get minTime() {
-        return this.grapher.minTime
-    }
-    @computed get maxTime() {
-        return this.grapher.maxTime
-    }
-
-    @computed get timelineMinTime() {
-        return this.grapher.timelineMinTime
-    }
-    @computed get timelineMaxTime() {
-        return this.grapher.timelineMaxTime
-    }
-
-    @action.bound onMinTime(value: number | undefined) {
-        this.grapher.minTime = value ?? TimeBoundValue.negativeInfinity
-    }
-
-    @action.bound onMaxTime(value: number | undefined) {
-        this.grapher.maxTime = value ?? TimeBoundValue.positiveInfinity
-    }
-
-    @action.bound onTimelineMinTime(value: number | undefined) {
-        this.grapher.timelineMinTime = value
-    }
-
-    @action.bound onBlurTimelineMinTime() {
-        if (this.grapher.timelineMinTime === undefined) {
-            this.grapher.timelineMinTime =
-                this.activeParentConfig?.timelineMinTime
-        }
-    }
-
-    @action.bound onTimelineMaxTime(value: number | undefined) {
-        this.grapher.timelineMaxTime = value
-    }
-
-    @action.bound onBlurTimelineMaxTime() {
-        if (this.grapher.timelineMaxTime === undefined) {
-            this.grapher.timelineMaxTime =
-                this.activeParentConfig?.timelineMaxTime
-        }
-    }
-
     @action.bound onToggleHideTimeline(value: boolean) {
         this.grapher.hideTimeline = value || undefined
     }
@@ -364,54 +389,77 @@ class TimelineSection<
     }
 
     render() {
-        const { features } = this.props.editor
+        const { editor } = this.props
+        const { features } = editor
         const { grapher } = this
 
         return (
             <Section name="Timeline selection">
                 <FieldsRow>
                     {features.timeDomain && (
-                        <NumberField
+                        <TimeField
+                            store={this.grapher}
+                            field="minTime"
                             label="Selection start"
-                            value={this.minTime}
-                            onValue={debounce(this.onMinTime)}
-                            allowNegative
+                            defaultValue={TimeBoundValue.negativeInfinity}
+                            parentValue={minTimeBoundFromJSONOrNegativeInfinity(
+                                editor.activeParentConfig?.minTime
+                            )}
+                            isInherited={editor.isPropertyInherited("minTime")}
+                            allowLinking={editor.couldPropertyBeInherited(
+                                "minTime"
+                            )}
                         />
                     )}
-                    <NumberField
+                    <TimeField
+                        store={this.grapher}
+                        field="maxTime"
                         label={
                             features.timeDomain
                                 ? "Selection end"
                                 : "Selected year"
                         }
-                        value={this.maxTime}
-                        onValue={debounce(this.onMaxTime)}
-                        allowNegative
+                        defaultValue={TimeBoundValue.positiveInfinity}
+                        parentValue={maxTimeBoundFromJSONOrPositiveInfinity(
+                            editor.activeParentConfig?.maxTime
+                        )}
+                        isInherited={editor.isPropertyInherited("maxTime")}
+                        allowLinking={editor.couldPropertyBeInherited(
+                            "maxTime"
+                        )}
                     />
                 </FieldsRow>
                 {features.timelineRange && (
                     <FieldsRow>
-                        <NumberField
+                        <TimeField
+                            store={this.grapher}
+                            field="timelineMinTime"
                             label="Timeline min"
-                            value={this.timelineMinTime}
-                            // invoke on the leading edge to avoid interference with onBlur
-                            onValue={debounce(this.onTimelineMinTime, 0, {
-                                leading: true,
-                                trailing: false,
-                            })}
-                            onBlur={this.onBlurTimelineMinTime}
-                            allowNegative
+                            defaultValue={TimeBoundValue.negativeInfinity}
+                            parentValue={minTimeBoundFromJSONOrNegativeInfinity(
+                                editor.activeParentConfig?.timelineMinTime
+                            )}
+                            isInherited={editor.isPropertyInherited(
+                                "timelineMinTime"
+                            )}
+                            allowLinking={editor.couldPropertyBeInherited(
+                                "timelineMinTime"
+                            )}
                         />
-                        <NumberField
+                        <TimeField
+                            store={this.grapher}
+                            field="timelineMaxTime"
                             label="Timeline max"
-                            value={this.timelineMaxTime}
-                            // invoke on the leading edge to avoid interference with onBlur
-                            onValue={debounce(this.onTimelineMaxTime, 0, {
-                                leading: true,
-                                trailing: false,
-                            })}
-                            onBlur={this.onBlurTimelineMaxTime}
-                            allowNegative
+                            defaultValue={TimeBoundValue.positiveInfinity}
+                            parentValue={maxTimeBoundFromJSONOrPositiveInfinity(
+                                editor.activeParentConfig?.timelineMaxTime
+                            )}
+                            isInherited={editor.isPropertyInherited(
+                                "timelineMaxTime"
+                            )}
+                            allowLinking={editor.couldPropertyBeInherited(
+                                "timelineMaxTime"
+                            )}
                         />
                     </FieldsRow>
                 )}
@@ -527,11 +575,11 @@ export class EditorCustomizeTab<
                                         onValue={(value) =>
                                             (yAxisConfig.min = value)
                                         }
-                                        onBlur={() => {
-                                            if (yAxisConfig.min === undefined) {
-                                                yAxisConfig.min =
-                                                    activeParentConfig?.yAxis?.min
-                                            }
+                                        resetButton={{
+                                            onClick: () =>
+                                                (yAxisConfig.min = undefined),
+                                            disabled:
+                                                yAxisConfig.min === undefined,
                                         }}
                                         allowDecimal
                                         allowNegative
@@ -542,11 +590,11 @@ export class EditorCustomizeTab<
                                         onValue={(value) =>
                                             (yAxisConfig.max = value)
                                         }
-                                        onBlur={() => {
-                                            if (yAxisConfig.max === undefined) {
-                                                yAxisConfig.max =
-                                                    activeParentConfig?.yAxis?.max
-                                            }
+                                        resetButton={{
+                                            onClick: () =>
+                                                (yAxisConfig.max = undefined),
+                                            disabled:
+                                                yAxisConfig.max === undefined,
                                         }}
                                         allowDecimal
                                         allowNegative
@@ -612,11 +660,11 @@ export class EditorCustomizeTab<
                                         onValue={(value) =>
                                             (xAxisConfig.min = value)
                                         }
-                                        onBlur={() => {
-                                            if (xAxisConfig.min === undefined) {
-                                                xAxisConfig.min =
-                                                    activeParentConfig?.yAxis?.min
-                                            }
+                                        resetButton={{
+                                            onClick: () =>
+                                                (xAxisConfig.min = undefined),
+                                            disabled:
+                                                xAxisConfig.min === undefined,
                                         }}
                                         allowDecimal
                                         allowNegative
@@ -627,11 +675,11 @@ export class EditorCustomizeTab<
                                         onValue={(value) =>
                                             (xAxisConfig.max = value)
                                         }
-                                        onBlur={() => {
-                                            if (xAxisConfig.max === undefined) {
-                                                xAxisConfig.max =
-                                                    activeParentConfig?.yAxis?.max
-                                            }
+                                        resetButton={{
+                                            onClick: () =>
+                                                (xAxisConfig.max = undefined),
+                                            disabled:
+                                                xAxisConfig.max === undefined,
                                         }}
                                         allowDecimal
                                         allowNegative

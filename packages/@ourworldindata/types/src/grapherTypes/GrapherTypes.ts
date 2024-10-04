@@ -132,6 +132,10 @@ export enum ChartTypeName {
     WorldMap = "WorldMap",
 }
 
+export enum AxisMinMaxValueStr {
+    auto = "auto",
+}
+
 // We currently have the notion of "modes", where you can either select 1 entity, or select multiple entities, or not change the selection at all.
 // Todo: can we remove?
 export enum EntitySelectionMode {
@@ -222,8 +226,8 @@ export interface TickFormattingOptions {
 export interface AxisConfigInterface {
     scaleType?: ScaleType
     label?: string
-    min?: number
-    max?: number
+    min?: number | AxisMinMaxValueStr.auto
+    max?: number | AxisMinMaxValueStr.auto
     canChangeScaleType?: boolean
     removePointsOutsideDomain?: boolean
     hideAxis?: boolean
@@ -535,8 +539,8 @@ export interface GrapherInterface extends SortConfig {
     hideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     minTime?: TimeBound | TimeBoundValueStr
     maxTime?: TimeBound | TimeBoundValueStr
-    timelineMinTime?: Time
-    timelineMaxTime?: Time
+    timelineMinTime?: Time | TimeBoundValueStr
+    timelineMaxTime?: Time | TimeBoundValueStr
     dimensions?: OwidChartDimensionInterface[]
     addCountryMode?: EntitySelectionMode
     comparisonLines?: ComparisonLineConfig[]

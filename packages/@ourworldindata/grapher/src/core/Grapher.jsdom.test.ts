@@ -62,7 +62,8 @@ const TestGrapherConfig = (): {
 it("regression fix: container options are not serialized", () => {
     const grapher = new Grapher({ xAxis: { min: 1 } })
     const obj = grapher.toObject().xAxis!
-    expect(obj.max).toBe(undefined)
+    expect(obj.min).toBe(1)
+    expect(obj.scaleType).toBe(undefined)
     expect((obj as any).containerOptions).toBe(undefined) // Regression test: should never be a containerOptions
 })
 

@@ -11,6 +11,7 @@ import {
 import { observable, computed } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
 import {
+    AxisMinMaxValueStr,
     AxisConfigInterface,
     FacetAxisDomain,
     ScaleType,
@@ -44,6 +45,13 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref domainValues?: number[] = undefined
 }
 
+function parseAutoOrNumberFromJSON(
+    value: AxisMinMaxValueStr.auto | number | undefined
+): number | undefined {
+    if (value === AxisMinMaxValueStr.auto) return undefined
+    return value
+}
+
 export class AxisConfig
     extends AxisConfigDefaults
     implements AxisConfigInterface, Persistable
@@ -59,6 +67,8 @@ export class AxisConfig
     // todo: test/refactor
     updateFromObject(props?: AxisConfigInterface): void {
         if (props) extend(this, props)
+        if (props?.min) this.min = parseAutoOrNumberFromJSON(props?.min)
+        if (props?.max) this.max = parseAutoOrNumberFromJSON(props?.max)
     }
 
     toObject(): AxisConfigInterface {
@@ -82,9 +92,12 @@ export class AxisConfig
             ticks: this.ticks,
             singleValueAxisPointAlign: this.singleValueAxisPointAlign,
             domainValues: this.domainValues,
-        })
+        }) as AxisConfigInterface
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())
+
+        if (obj.min === undefined) obj.min = AxisMinMaxValueStr.auto
+        if (obj.max === undefined) obj.max = AxisMinMaxValueStr.auto
 
         return obj
     }

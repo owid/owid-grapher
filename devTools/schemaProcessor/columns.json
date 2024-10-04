@@ -207,9 +207,9 @@
         "editor": "textfield"
     },
     {
-        "type": "number",
+        "type": ["string", "number"],
         "pointer": "/yAxis/min",
-        "editor": "numeric"
+        "editor": "textfield"
     },
     {
         "type": "string",
@@ -219,9 +219,9 @@
         "enumOptions": ["linear", "log"]
     },
     {
-        "type": "number",
+        "type": ["string", "number"],
         "pointer": "/yAxis/max",
-        "editor": "numeric"
+        "editor": "textfield"
     },
     {
         "type": "boolean",
@@ -267,9 +267,9 @@
         "editor": "checkbox"
     },
     {
-        "type": "integer",
+        "type": ["string", "number"],
         "pointer": "/timelineMinTime",
-        "editor": "numeric"
+        "editor": "textfield"
     },
     {
         "type": "string",
@@ -686,9 +686,9 @@
         "editor": "textfield"
     },
     {
-        "type": "number",
+        "type": ["string", "number"],
         "pointer": "/xAxis/min",
-        "editor": "numeric"
+        "editor": "textfield"
     },
     {
         "type": "string",
@@ -698,9 +698,9 @@
         "enumOptions": ["linear", "log"]
     },
     {
-        "type": "number",
+        "type": ["string", "number"],
         "pointer": "/xAxis/max",
-        "editor": "numeric"
+        "editor": "textfield"
     },
     {
         "type": "boolean",
@@ -715,9 +715,9 @@
         "enumOptions": ["independent", "shared"]
     },
     {
-        "type": "integer",
+        "type": ["string", "number"],
         "pointer": "/timelineMaxTime",
-        "editor": "numeric"
+        "editor": "textfield"
     },
     {
         "type": "boolean",
