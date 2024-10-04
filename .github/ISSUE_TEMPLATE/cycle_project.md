@@ -1,3 +1,11 @@
+---
+name: Cycle project issue
+about: For the cycle long tracking of a project during implementation
+title: "Cycle xxxx.x: "
+labels: "big project"
+assignees: ""
+---
+
 _One sentence project summary_
 
 ## Motivation
