@@ -292,3 +292,46 @@ export function grabMetadataForGdocLinkedIndicator(
         ),
     }
 }
+
+export const getDateRange = (dateRange: string): string | null => {
+    // This regex matches:
+    //   Beginning of string
+    //   Ignore whitespace
+    //   a named group called start that matches:
+    //     hyphen aka minus
+    //     1 or more digits
+    //   Ignore whitespace
+    //   hyphen aka minus OR en dash
+    //   Ignore whitespace
+    //   a named group called end that matches:
+    //     hyphen aka minus
+    //     1 or more digits
+    //   Ignore whitespace
+    //   End of string
+    const dateRangeRegex = /^\s*(?<start>(-)?\d+)\s*(-|–)\s*(?<end>(-)?\d+)\s*$/
+    const match = dateRange.match(dateRangeRegex)
+    if (match) {
+        const firstYearString = match.groups?.start
+        const lastYearString = match.groups?.end
+        if (!firstYearString || !lastYearString) return null
+
+        const firstYear = parseInt(firstYearString, 10)
+        const lastYear = parseInt(lastYearString, 10)
+        let formattedFirstYear
+
+        // if start year is before year 0, add BCE to the end
+        if (firstYear < 0) formattedFirstYear = `${Math.abs(firstYear)} BCE`
+        else formattedFirstYear = firstYear
+
+        // if end year is before year 0, add BCE to the end or, if start year is after year 0, add CE to the end
+        let formattedLastYear
+        if (lastYear < 0) formattedLastYear = `${Math.abs(lastYear)} BCE`
+        else if (firstYear < 0) formattedLastYear = `${lastYear} CE`
+        else formattedLastYear = lastYear
+
+        if (lastYear < 0 || firstYear < 0)
+            return `${formattedFirstYear} – ${formattedLastYear}`
+        else return `${formattedFirstYear}–${formattedLastYear}`
+    }
+    return null
+}

@@ -138,6 +138,7 @@ export {
     splitSourceTextIntoFragments,
     prepareSourcesForDisplay,
     formatSourceDate,
+    getDateRange,
     getCitationLong,
     getCitationShort,
     grabMetadataForGdocLinkedIndicator,
