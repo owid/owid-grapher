@@ -183,6 +183,7 @@ export class VerticalColorLegend extends React.Component<{
 
                     return (
                         <rect
+                            id={makeIdForHumanConsumption(series.textWrap.text)}
                             key={index}
                             x={this.legendX}
                             y={renderedTextPosition[1] - rectSize}
