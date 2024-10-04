@@ -21,7 +21,6 @@ import {
     ColorSchemeName,
     EntitySelectionMode,
     makeIdForHumanConsumption,
-    getCountryByName,
     dyFromAlign,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
@@ -564,6 +563,10 @@ export class MarimekkoChart
             .padBottom(labelLinesHeight)
             .padTop(this.legend.height + this.legendPaddingTop)
             .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)
+    }
+
+    @computed get isStatic(): boolean {
+        return this.manager.isStatic ?? false
     }
 
     @computed private get baseFontSize(): number {

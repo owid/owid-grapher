@@ -79,7 +79,6 @@ import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { bind } from "decko"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
-import { Halo } from "../halo/Halo"
 import { TextWrap } from "@ourworldindata/components"
 
 // if an entity name exceeds this width, we use the short name instead (if available)
@@ -606,10 +605,14 @@ export class StackedDiscreteBarChart
                 />
             )
 
-        const { manager, bounds, yAxis, innerBounds } = this
+        return this.manager.isStatic
+            ? this.renderStatic()
+            : this.renderInteractive()
+    }
 
-        const chartContext: StackedBarChartContext = {
-            yAxis,
+    @computed get chartContext(): StackedBarChartContext {
+        return {
+            yAxis: this.yAxis,
             targetTime: this.manager.endTime,
             timeColumn: this.inputTable.timeColumn,
             formatColumn: this.formatColumn,
@@ -621,98 +624,76 @@ export class StackedDiscreteBarChart
             x0: this.x0,
             baseFontSize: this.baseFontSize,
         }
+    }
 
-        const handlePositionUpdate = (d: PlacedItem): HashMap => ({
-            translateY: [d.yPosition],
-            timing: { duration: 350, ease: easeQuadOut },
-        })
+    renderRow({
+        data,
+        state,
+    }: {
+        data: PlacedItem
+        state: { translateY: number }
+    }): React.ReactElement {
+        const { yAxis } = this
+        const { entityName, label, bars, totalValue } = data
 
-        const renderRow = ({
-            data,
-            state,
-        }: {
-            data: PlacedItem
-            state: { translateY: number }
-        }): React.ReactElement => {
-            const { entityName, label, bars, totalValue } = data
+        const totalLabel = this.formatValueForLabel(totalValue)
+        const showLabelInsideBar = bars.length > 1
 
-            const totalLabel = this.formatValueForLabel(totalValue)
-            const showLabelInsideBar = bars.length > 1
+        return (
+            <g
+                key={entityName}
+                id={makeIdForHumanConsumption(entityName)}
+                className="bar"
+                transform={`translate(0, ${state.translateY ?? 0})`}
+            >
+                {bars.map((bar) => (
+                    <StackedDiscreteBarChart.Bar
+                        key={bar.seriesName}
+                        entity={entityName}
+                        bar={bar}
+                        chartContext={this.chartContext}
+                        showLabelInsideBar={showLabelInsideBar}
+                        onMouseEnter={this.onEntityMouseEnter}
+                        onMouseLeave={this.onEntityMouseLeave}
+                    />
+                ))}
+                {label.render(
+                    yAxis.place(this.x0) - labelToBarPadding,
+                    -label.height / 2,
+                    {
+                        textProps: {
+                            textAnchor: "end",
+                            fill: "#555",
+                            onMouseEnter: (): void =>
+                                this.onEntityMouseEnter(label.text),
+                            onMouseLeave: this.onEntityMouseLeave,
+                        },
+                    }
+                )}
+                {this.showTotalValueLabel && (
+                    <text
+                        transform={`translate(${
+                            yAxis.place(totalValue) + labelToBarPadding
+                        }, 0)`}
+                        dy={dyFromAlign(VerticalAlign.middle)}
+                        {...this.totalValueLabelStyle}
+                    >
+                        {totalLabel}
+                    </text>
+                )}
+            </g>
+        )
+    }
 
-            return (
-                <g
-                    key={entityName}
-                    id={makeIdForHumanConsumption("bar", entityName)}
-                    className="bar"
-                    transform={`translate(0, ${state.translateY})`}
-                >
-                    {label.render(
-                        yAxis.place(this.x0) - labelToBarPadding,
-                        -label.height / 2,
-                        {
-                            textProps: {
-                                textAnchor: "end",
-                                fill: "#555",
-                                onMouseEnter: (): void =>
-                                    this.onEntityMouseEnter(label.text),
-                                onMouseLeave: this.onEntityMouseLeave,
-                            },
-                        }
-                    )}
-
-                    {bars.map((bar) => (
-                        <StackedDiscreteBarChart.Bar
-                            key={bar.seriesName}
-                            entity={entityName}
-                            bar={bar}
-                            chartContext={chartContext}
-                            showLabelInsideBar={showLabelInsideBar}
-                            onMouseEnter={this.onEntityMouseEnter}
-                            onMouseLeave={this.onEntityMouseLeave}
-                        />
-                    ))}
-                    {this.showTotalValueLabel && (
-                        <Halo
-                            id={entityName + "-value-label"}
-                            background={this.manager.backgroundColor}
-                        >
-                            <text
-                                id={makeIdForHumanConsumption(
-                                    "total",
-                                    entityName
-                                )}
-                                transform={`translate(${
-                                    yAxis.place(totalValue) + labelToBarPadding
-                                }, 0)`}
-                                dy={dyFromAlign(VerticalAlign.middle)}
-                                {...this.totalValueLabelStyle}
-                            >
-                                {totalLabel}
-                            </text>
-                        </Halo>
-                    )}
-                </g>
-            )
-        }
+    renderAxis(): React.ReactElement {
+        const { manager, bounds, yAxis, innerBounds } = this
 
         const axisLineWidth = manager.isStaticAndSmall
             ? GRAPHER_AXIS_LINE_WIDTH_THICK
             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
 
         return (
-            <g
-                ref={this.base}
-                className="StackedDiscreteBarChart"
-                onMouseMove={this.onMouseMove}
-            >
-                <rect
-                    x={bounds.left}
-                    y={bounds.top}
-                    width={bounds.width}
-                    height={bounds.height}
-                    opacity={0}
-                    fill="rgba(255,255,255,0)"
-                />
+            <>
                 {this.showHorizontalAxis && (
                     <>
                         <HorizontalAxisComponent
@@ -737,9 +718,60 @@ export class StackedDiscreteBarChart
                     // overlap with the bars
                     align={HorizontalAlign.right}
                 />
-                {this.showLegend && (
-                    <HorizontalCategoricalColorLegend manager={this} />
-                )}
+            </>
+        )
+    }
+
+    renderLegend(): React.ReactElement | void {
+        if (!this.showLegend) return
+        return <HorizontalCategoricalColorLegend manager={this} />
+    }
+
+    renderStatic(): React.ReactElement {
+        return (
+            <>
+                {this.renderAxis()}
+                {this.renderLegend()}
+                <g id={makeIdForHumanConsumption("bars")}>
+                    {this.placedItems.map((item) =>
+                        this.renderRow({
+                            data: item,
+                            state: { translateY: item.yPosition },
+                        })
+                    )}
+                </g>
+            </>
+        )
+    }
+
+    renderInteractive(): React.ReactElement {
+        const { bounds } = this
+
+        const handlePositionUpdate = (d: PlacedItem): HashMap => ({
+            translateY: [d.yPosition],
+            timing: { duration: 350, ease: easeQuadOut },
+        })
+
+        // needs to be referenced here, otherwise it's not updated in the renderRow function
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        this.focusSeriesName
+
+        return (
+            <g
+                ref={this.base}
+                className="StackedDiscreteBarChart"
+                onMouseMove={this.onMouseMove}
+            >
+                <rect
+                    x={bounds.left}
+                    y={bounds.top}
+                    width={bounds.width}
+                    height={bounds.height}
+                    opacity={0}
+                    fill="rgba(255,255,255,0)"
+                />
+                {this.renderAxis()}
+                {this.renderLegend()}
                 <NodeGroup
                     data={this.placedItems}
                     keyAccessor={(d: PlacedItem): string => d.entityName}
@@ -747,21 +779,12 @@ export class StackedDiscreteBarChart
                     update={handlePositionUpdate}
                 >
                     {(nodes): React.ReactElement => (
-                        <g>{nodes.map((node) => renderRow(node))}</g>
+                        <g>{nodes.map((node) => this.renderRow(node))}</g>
                     )}
                 </NodeGroup>
-                {this.Tooltip}
+                {this.tooltip}
             </g>
         )
-    }
-
-    @computed get activeColors(): string[] | undefined {
-        const { focusSeriesName } = this
-        if (!focusSeriesName) return undefined
-        const activeColors = this.series
-            .filter((series) => series.seriesName === focusSeriesName)
-            .map((series) => series.color)
-        return activeColors.length === 0 ? undefined : activeColors
     }
 
     private static Bar(props: {
@@ -799,13 +822,14 @@ export class StackedDiscreteBarChart
 
         return (
             <g
-                id={makeIdForHumanConsumption("stacked-bar", bar.seriesName)}
+                id={makeIdForHumanConsumption(bar.seriesName)}
                 onMouseEnter={(): void =>
                     props?.onMouseEnter(entity, bar.seriesName)
                 }
                 onMouseLeave={props?.onMouseLeave}
             >
                 <rect
+                    id={makeIdForHumanConsumption("bar")}
                     x={0}
                     y={0}
                     transform={`translate(${barX}, ${-barHeight / 2})`}
@@ -842,7 +866,7 @@ export class StackedDiscreteBarChart
         )
     }
 
-    @computed private get Tooltip(): React.ReactElement | undefined {
+    @computed private get tooltip(): React.ReactElement | undefined {
         const {
                 tooltipState: { target, position, fading },
                 formatColumn: { unit, shortUnit },

@@ -842,6 +842,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
 
                     return (
                         <rect
+                            id={makeIdForHumanConsumption(mark.label.text)}
                             key={`${mark.label}-${index}`}
                             x={this.legendX + mark.x}
                             y={this.categoryLegendY + mark.y}
