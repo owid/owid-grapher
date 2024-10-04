@@ -1,14 +1,20 @@
 import React from "react"
-import { observable, computed, action } from "mobx"
-import { observer } from "mobx-react"
 import {
+    Url,
     Bounds,
     DEFAULT_BOUNDS,
     isEmpty,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "@ourworldindata/utils"
-import { Checkbox, OverlayHeader } from "@ourworldindata/components"
+import { observable, computed, action } from "mobx"
+import { observer } from "mobx-react"
+import {
+    Checkbox,
+    CodeSnippet,
+    OverlayHeader,
+    MarkdownTextWrap,
+} from "@ourworldindata/components"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
@@ -20,6 +26,7 @@ import {
 } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
+import classnames from "classnames"
 
 export interface DownloadModalManager {
     displaySlug: string
@@ -39,10 +46,18 @@ export interface DownloadModalManager {
     isOnChartOrMapTab?: boolean
     framePaddingVertical?: number
     showAdminControls?: boolean
+    bakedGrapherURL?: string
+    sourcesLine?: string
+    isSourcesModalOpen?: boolean
 }
 
 interface DownloadModalProps {
     manager: DownloadModalManager
+}
+
+enum CsvFilterMode {
+    full,
+    visible,
 }
 
 @observer
@@ -97,6 +112,8 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
 
     @observable private isReady: boolean = false
 
+    @observable private csvFilterMode: CsvFilterMode = CsvFilterMode.full
+
     @action.bound private export(): void {
         // render the graphic then cache data-urls for display & blobs for downloads
         this.manager
@@ -134,6 +151,15 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
     @computed private get baseFilename(): string {
         return this.manager.displaySlug
+    }
+
+    @action.bound private onToggleCsvFilterMode(): () => void {
+        return (): void => {
+            this.csvFilterMode =
+                this.csvFilterMode === CsvFilterMode.full
+                    ? CsvFilterMode.visible
+                    : CsvFilterMode.full
+        }
     }
 
     @computed private get inputTable(): OwidTable {
@@ -194,7 +220,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         if (manager.externalCsvLink) {
             triggerDownloadFromUrl(filename, manager.externalCsvLink)
         } else {
-            triggerDownloadFromBlob(filename, this.csvBlob)
+            triggerDownloadFromUrl(filename, this.csvFileUrl)
         }
     }
 
@@ -217,6 +243,49 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.hasDetails || !!this.manager.showAdminControls
     }
 
+    @computed protected get sourcesLine(): string {
+        return this.manager.sourcesLine?.replace(/\r\n|\n|\r/g, "") ?? ""
+    }
+
+    @computed protected get sourcesText(): string {
+        return `**Data source:** ${this.sourcesLine}`
+    }
+
+    @computed protected get csvFileUrl(): string {
+        const baseUrl = `${this.manager.bakedGrapherURL || ""}/${this.manager.displaySlug}.csv`
+        const searchParams = new URLSearchParams([
+            ...Object.entries({ csvType: "filtered" }),
+            ...Array.from(new URLSearchParams(this.manager.queryStr).entries()),
+        ]).toString()
+        return this.csvFilterMode === CsvFilterMode.visible
+            ? `${baseUrl}?${searchParams}`
+            : baseUrl
+    }
+    private renderSources(): JSX.Element | null {
+        const sources = new MarkdownTextWrap({
+            text: `**Data source:** ${this.sourcesLine}`,
+            fontSize: 13,
+        })
+
+        return (
+            <p className="sources" style={sources.style}>
+                {sources.renderHTML()}
+                {" – "}
+                <a
+                    className="learn-more-about-data"
+                    data-track-note="chart_click_sources"
+                    onClick={action((e) => {
+                        e.stopPropagation()
+
+                        this.manager.isDownloadModalOpen = false
+                        this.manager.isSourcesModalOpen = true
+                    })}
+                >
+                    Learn more about this data and citations
+                </a>
+            </p>
+        )
+    }
     private renderReady(): React.ReactElement {
         const {
             manager,
@@ -255,6 +324,21 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             opacity: this.isReady ? 1 : 0,
         }
 
+        const csvUrl = this.csvFileUrl
+        const metadataUrl = csvUrl.replace(".csv", ".metadata.json")
+
+        const googleDocsCode = `=IMPORTDATA("${csvUrl}")`
+
+        const pandasCode = `import pandas as pd
+import requests
+
+# Fetch the data
+df = pd.read_csv("${csvUrl}")
+
+# Fetch the metadata
+metadata = requests.get("${metadataUrl}").json()`
+
+        const rCode = `df <- read.csv("${csvUrl}")`
         return (
             <div className="grouped-menu">
                 {manager.isOnChartOrMapTab && (
@@ -338,14 +422,92 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                             </div>
                         </div>
                     ) : (
-                        <div className="grouped-menu-list">
-                            <DownloadButton
-                                title="Full data (CSV)"
-                                description="The full dataset used in this chart."
-                                onClick={this.onCsvDownload}
-                                tracking="chart_download_csv"
+                        <>
+                            <h4>Source</h4>
+                            <p>
+                                Whenever you use this data in a public context,
+                                please make sure to credit the original source
+                                and to verify that your use is permitted as per
+                                the source's license.
+                            </p>
+                            <p>{this.renderSources()}</p>
+                            <h4 className="grapher_h4-semibold">
+                                Download options
+                            </h4>
+
+                            <div className="grouped-menu-list">
+                                <button
+                                    title="Full data (CSV)"
+                                    className={classnames("grouped-menu-item", {
+                                        active:
+                                            this.csvFilterMode ===
+                                            CsvFilterMode.full,
+                                    })}
+                                    onClick={this.onToggleCsvFilterMode()}
+                                >
+                                    <div className="grouped-menu-content">
+                                        <p className="grapher_label-1-medium grapher_light">
+                                            Download the full dataset used in
+                                            this chart.
+                                        </p>
+                                    </div>
+                                </button>
+                                <button
+                                    title="Visible data (CSV)"
+                                    className={classnames("grouped-menu-item", {
+                                        active:
+                                            this.csvFilterMode ===
+                                            CsvFilterMode.visible,
+                                    })}
+                                    onClick={this.onToggleCsvFilterMode()}
+                                >
+                                    <div className="grouped-menu-content">
+                                        <p className="grapher_label-1-medium grapher_light">
+                                            Download only the currently selected
+                                            data visible in the chart
+                                        </p>
+                                    </div>
+                                </button>
+                            </div>
+                            <h4>Download</h4>
+                            <div className="grouped-menu-list">
+                                <DownloadButton
+                                    title="Data and metadata as a ZIP file"
+                                    description="Download the data csv, metadata json and a readme as a ZIP file."
+                                    onClick={this.onCsvDownload}
+                                    tracking="chart_download_csv"
+                                />
+                                <DownloadButton
+                                    title="Data only (CSV)"
+                                    description="Download only the data in CSV format."
+                                    onClick={this.onCsvDownload}
+                                    tracking="chart_download_csv"
+                                />
+                            </div>
+                            <h4>Code examples</h4>
+                            <p>
+                                Below are examples of how to load this data into
+                                different data analysis tools.
+                            </p>
+                            <p>Excel/Google Sheets</p>
+                            <CodeSnippet
+                                code={googleDocsCode}
+                                theme="light"
+                                useMarkdown={false}
                             />
-                        </div>
+                            <p>Python with Pandas</p>
+                            <CodeSnippet
+                                code={pandasCode}
+                                theme="light"
+                                useMarkdown={false}
+                            />
+                            <p>R</p>
+                            <CodeSnippet
+                                code={rCode}
+                                theme="light"
+                                useMarkdown={false}
+                            />
+                        </>
                     )}
                 </div>
             </div>
