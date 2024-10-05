@@ -508,6 +508,9 @@ const saveGrapher = async (
         referencedVariablesMightChange?: boolean
     }
 ) => {
+    // Try to migrate the new config to the latest version
+    newConfig = migrateGrapherConfigToLatestVersion(newConfig)
+
     // Slugs need some special logic to ensure public urls remain consistent whenever possible
     async function isSlugUsedInRedirect() {
         const rows = await db.knexRaw<DbPlainChartSlugRedirect>(
@@ -1023,23 +1026,17 @@ postRouteWithRWTransaction(apiRouter, "/charts", async (req, res, trx) => {
         shouldInherit = req.query.inheritance === "enable"
     }
 
-    let validConfig: GrapherInterface
     try {
-        validConfig = migrateGrapherConfigToLatestVersion(req.body)
+        const { chartId } = await saveGrapher(trx, {
+            user: res.locals.user,
+            newConfig: req.body,
+            shouldInherit,
+        })
+
+        return { success: true, chartId: chartId }
     } catch (err) {
-        return {
-            success: false,
-            error: String(err),
-        }
+        return { success: false, error: String(err) }
     }
-
-    const { chartId } = await saveGrapher(trx, {
-        user: res.locals.user,
-        newConfig: validConfig,
-        shouldInherit,
-    })
-
-    return { success: true, chartId: chartId }
 })
 
 postRouteWithRWTransaction(
@@ -1063,31 +1060,31 @@ putRouteWithRWTransaction(
             shouldInherit = req.query.inheritance === "enable"
         }
 
-        let validConfig: GrapherInterface
+        const existingConfig = await expectChartById(trx, req.params.chartId)
+
         try {
-            validConfig = migrateGrapherConfigToLatestVersion(req.body)
+            const { chartId, savedPatch } = await saveGrapher(trx, {
+                user: res.locals.user,
+                newConfig: req.body,
+                existingConfig,
+                shouldInherit,
+            })
+
+            const logs = await getLogsByChartId(
+                trx,
+                existingConfig.id as number
+            )
+            return {
+                success: true,
+                chartId,
+                savedPatch,
+                newLog: logs[0],
+            }
         } catch (err) {
             return {
                 success: false,
                 error: String(err),
             }
-        }
-
-        const existingConfig = await expectChartById(trx, req.params.chartId)
-
-        const { chartId, savedPatch } = await saveGrapher(trx, {
-            user: res.locals.user,
-            newConfig: validConfig,
-            existingConfig,
-            shouldInherit,
-        })
-
-        const logs = await getLogsByChartId(trx, existingConfig.id as number)
-        return {
-            success: true,
-            chartId,
-            savedPatch,
-            newLog: logs[0],
         }
     }
 )
