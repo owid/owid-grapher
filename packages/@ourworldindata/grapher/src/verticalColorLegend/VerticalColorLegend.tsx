@@ -21,6 +21,7 @@ export interface VerticalColorLegendManager {
     legendY?: number
     activeColors: Color[]
     focusColors?: Color[]
+    isStatic?: boolean
 }
 
 export interface LegendItem {
@@ -35,6 +36,7 @@ interface SizedLegendSeries {
     color: Color
     width: number
     height: number
+    yOffset: number
 }
 
 @observer
@@ -78,10 +80,17 @@ export class VerticalColorLegend extends React.Component<{
     }
 
     @computed private get series(): SizedLegendSeries[] {
-        const { manager, fontSize, rectSize, rectPadding } = this
+        const {
+            manager,
+            fontSize,
+            rectSize,
+            rectPadding,
+            titleHeight,
+            lineHeight,
+        } = this
 
         return manager.legendItems
-            .map((series) => {
+            .map((series, index) => {
                 let label = series.label
                 // infer label for numeric bins
                 if (!label && series.minText && series.maxText) {
@@ -93,11 +102,15 @@ export class VerticalColorLegend extends React.Component<{
                     lineHeight: 1,
                     text: label ?? "",
                 })
+                const width = rectSize + rectPadding + textWrap.width
+                const height = Math.max(textWrap.height, rectSize)
+                const yOffset = titleHeight + index * (height + lineHeight)
                 return {
                     textWrap,
                     color: series.color,
-                    width: rectSize + rectPadding + textWrap.width,
-                    height: Math.max(textWrap.height, rectSize),
+                    width,
+                    height,
+                    yOffset,
                 }
             })
             .filter((v) => !!v) as SizedLegendSeries[]
@@ -117,106 +130,133 @@ export class VerticalColorLegend extends React.Component<{
         )
     }
 
-    render(): React.ReactElement {
-        const {
-            title,
-            titleHeight,
-            series,
-            rectSize,
-            rectPadding,
-            lineHeight,
-            manager,
-        } = this
-        const {
-            focusColors,
-            activeColors,
-            onLegendMouseOver,
-            onLegendMouseLeave,
-            onLegendClick,
-        } = manager
+    @computed get legendX(): number {
+        return this.manager.legendX ?? 0
+    }
 
-        const x = manager.legendX ?? 0
-        const y = manager.legendY ?? 0
+    @computed get legendY(): number {
+        return this.manager.legendY ?? 0
+    }
 
-        let markOffset = titleHeight
+    renderLabels(): React.ReactElement {
+        const { series, manager, rectSize, rectPadding } = this
+        const { focusColors } = manager
 
         return (
-            <>
-                {title &&
-                    title.render(x, y, { textProps: { fontWeight: 700 } })}
-                <g
-                    id={makeIdForHumanConsumption("vertical-color-legend")}
-                    className="ScatterColorLegend clickable"
-                    style={{ cursor: "pointer" }}
-                >
-                    {series.map((series, index) => {
-                        const isActive = activeColors.includes(series.color)
-                        const isFocus =
-                            focusColors?.includes(series.color) ?? false
-                        const mouseOver = onLegendMouseOver
-                            ? (): void => onLegendMouseOver(series.color)
+            <g id={makeIdForHumanConsumption("labels")}>
+                {series.map((series) => {
+                    const isFocus = focusColors?.includes(series.color) ?? false
+
+                    const textX = this.legendX + rectSize + rectPadding
+                    const textY = this.legendY + series.yOffset
+
+                    return series.textWrap.render(
+                        textX,
+                        textY,
+                        isFocus
+                            ? {
+                                  textProps: {
+                                      style: { fontWeight: "bold" },
+                                  },
+                              }
                             : undefined
-                        const mouseLeave = onLegendMouseLeave || undefined
-                        const click = onLegendClick
-                            ? (): void => onLegendClick(series.color)
-                            : undefined
+                    )
+                })}
+            </g>
+        )
+    }
 
-                        const textX = x + rectSize + rectPadding
-                        const textY = y + markOffset
+    renderSwatches(): React.ReactElement {
+        const { manager, series, rectSize, rectPadding } = this
+        const { activeColors } = manager
 
-                        const renderedTextPosition =
-                            series.textWrap.getPositionForSvgRendering(
-                                textX,
-                                textY
-                            )
+        return (
+            <g>
+                {series.map((series, index) => {
+                    const isActive = activeColors.includes(series.color)
 
-                        const result = (
-                            <g
-                                key={index}
-                                id={makeIdForHumanConsumption(
-                                    "mark",
-                                    series.textWrap.text
-                                )}
-                                className="legendMark"
-                                onMouseOver={mouseOver}
-                                onMouseLeave={mouseLeave}
-                                onClick={click}
-                                fill={!isActive ? "#ccc" : undefined}
-                            >
-                                <rect
-                                    x={x}
-                                    y={y + markOffset - lineHeight / 2}
-                                    width={series.width}
-                                    height={series.height + lineHeight}
-                                    fill="#fff"
-                                    opacity={0}
-                                />
-                                <rect
-                                    x={x}
-                                    y={renderedTextPosition[1] - rectSize}
-                                    width={rectSize}
-                                    height={rectSize}
-                                    fill={isActive ? series.color : undefined}
-                                />
-                                {series.textWrap.render(
-                                    textX,
-                                    textY,
-                                    isFocus
-                                        ? {
-                                              textProps: {
-                                                  style: { fontWeight: "bold" },
-                                              },
-                                          }
-                                        : undefined
-                                )}
-                            </g>
-                        )
+                    const textX = this.legendX + rectSize + rectPadding
+                    const textY = this.legendY + series.yOffset
 
-                        markOffset += series.height + lineHeight
-                        return result
+                    const renderedTextPosition =
+                        series.textWrap.getPositionForSvgRendering(textX, textY)
+
+                    return (
+                        <rect
+                            id={makeIdForHumanConsumption(series.textWrap.text)}
+                            key={index}
+                            x={this.legendX}
+                            y={renderedTextPosition[1] - rectSize}
+                            width={rectSize}
+                            height={rectSize}
+                            fill={isActive ? series.color : "#ccc"}
+                        />
+                    )
+                })}
+            </g>
+        )
+    }
+
+    renderInteractiveElements(): React.ReactElement {
+        const { series, manager, lineHeight } = this
+        const { onLegendClick, onLegendMouseOver, onLegendMouseLeave } = manager
+        return (
+            <g>
+                {series.map((series, index) => {
+                    const mouseOver = onLegendMouseOver
+                        ? (): void => onLegendMouseOver(series.color)
+                        : undefined
+                    const mouseLeave = onLegendMouseLeave || undefined
+                    const click = onLegendClick
+                        ? (): void => onLegendClick(series.color)
+                        : undefined
+
+                    const cursor = click ? "pointer" : "default"
+
+                    return (
+                        <g
+                            key={index}
+                            className="legendMark"
+                            onMouseOver={mouseOver}
+                            onMouseLeave={mouseLeave}
+                            onClick={click}
+                            style={{ cursor }}
+                        >
+                            <rect
+                                x={this.legendX}
+                                y={
+                                    this.legendY +
+                                    series.yOffset -
+                                    lineHeight / 2
+                                }
+                                width={series.width}
+                                height={series.height + lineHeight}
+                                fill="#fff"
+                                fillOpacity={0}
+                            />
+                        </g>
+                    )
+                })}
+            </g>
+        )
+    }
+
+    render(): React.ReactElement {
+        return (
+            <g
+                id={makeIdForHumanConsumption("vertical-color-legend")}
+                className="ScatterColorLegend clickable"
+            >
+                {this.title &&
+                    this.title.render(this.legendX, this.legendY, {
+                        textProps: {
+                            fontWeight: 700,
+                        },
                     })}
-                </g>
-            </>
+                {this.renderLabels()}
+                {this.renderSwatches()}
+                {!this.manager.isStatic && this.renderInteractiveElements()}
+            </g>
         )
     }
 }

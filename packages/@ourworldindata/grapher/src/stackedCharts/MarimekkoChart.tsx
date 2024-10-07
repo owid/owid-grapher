@@ -21,6 +21,7 @@ import {
     ColorSchemeName,
     EntitySelectionMode,
     makeIdForHumanConsumption,
+    dyFromAlign,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -40,6 +41,7 @@ import {
     OwidVariableRow,
     OwidTableSlugs,
     colorScaleConfigDefaults,
+    VerticalAlign,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
@@ -561,6 +563,10 @@ export class MarimekkoChart
             .padBottom(labelLinesHeight)
             .padTop(this.legend.height + this.legendPaddingTop)
             .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)
+    }
+
+    @computed get isStatic(): boolean {
+        return this.manager.isStatic ?? false
     }
 
     @computed private get baseFontSize(): number {
@@ -1156,7 +1162,7 @@ export class MarimekkoChart
                     opacity={1}
                     fontSize={GRAPHER_FONT_SCALE_12 * fontSize}
                     textAnchor="middle"
-                    dominantBaseline="middle"
+                    dy={dyFromAlign(VerticalAlign.middle)}
                     style={{ pointerEvents: "none" }}
                 >
                     no data
@@ -1748,7 +1754,7 @@ export class MarimekkoChart
                         opacity={1}
                         fontSize={this.entityLabelFontSize}
                         textAnchor="right"
-                        dominantBaseline="middle"
+                        dy={dyFromAlign(VerticalAlign.middle)}
                         onMouseOver={(): void =>
                             this.onEntityMouseOver(candidate.item.entityName)
                         }

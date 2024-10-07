@@ -574,6 +574,10 @@ export class MapChart
         return this.manager.isStaticAndSmall ? 2 : undefined
     }
 
+    @computed get isStatic(): boolean {
+        return this.manager.isStatic ?? false
+    }
+
     renderMapLegend(): React.ReactElement {
         const { numericLegend, categoryLegend } = this
 

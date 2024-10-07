@@ -155,23 +155,15 @@ export class HorizontalAxisZeroLine extends React.Component<{
         const x = axis.place(0) + offset
 
         return (
-            <g
+            <line
                 id={makeIdForHumanConsumption("vertical-zero-line")}
-                className={classNames(
-                    "AxisGridLines",
-                    "verticalLines",
-                    "zeroLine"
-                )}
-            >
-                <line
-                    x1={x.toFixed(2)}
-                    y1={bounds.bottom.toFixed(2)}
-                    x2={x.toFixed(2)}
-                    y2={bounds.top.toFixed(2)}
-                    stroke={SOLID_TICK_COLOR}
-                    strokeWidth={strokeWidth}
-                />
-            </g>
+                x1={x.toFixed(2)}
+                y1={bounds.bottom.toFixed(2)}
+                x2={x.toFixed(2)}
+                y2={bounds.top.toFixed(2)}
+                stroke={SOLID_TICK_COLOR}
+                strokeWidth={strokeWidth}
+            />
         )
     }
 }
