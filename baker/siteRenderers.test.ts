@@ -2,7 +2,7 @@
 
 import {} from "../site/blocks/ProminentLink.js"
 import { renderExplorerPage } from "./siteRenderers.js"
-import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+import { ExplorerProgram } from "@ourworldindata/explorer"
 import { KnexReadonlyTransaction } from "../db/db.js"
 
 // Note: renderProminentLinks() tests are now e2e (see kitchenSink.js)

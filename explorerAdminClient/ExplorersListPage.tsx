@@ -23,8 +23,8 @@ import {
     EXPLORERS_ROUTE_FOLDER,
     GetAllExplorersRoute,
     UNSAVED_EXPLORER_DRAFT,
-} from "../explorer/ExplorerConstants.js"
-import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+    ExplorerProgram,
+} from "@ourworldindata/explorer"
 import { GitCmsClient } from "../gitCms/GitCmsClient.js"
 import {
     GIT_CMS_BASE_ROUTE,

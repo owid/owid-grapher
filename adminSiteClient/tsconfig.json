@@ -5,7 +5,6 @@
         "rootDir": "."
     },
     "references": [
-        { "path": "../explorer" },
         { "path": "../explorerAdminClient" },
         { "path": "../settings" },
         { "path": "../site" },

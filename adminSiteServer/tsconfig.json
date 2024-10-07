@@ -7,7 +7,6 @@
     "references": [
         { "path": "../site" },
         { "path": "../db" },
-        { "path": "../explorer" },
         { "path": "../explorerAdminServer" },
         { "path": "../gitCms" },
         { "path": "../adminSiteClient" },

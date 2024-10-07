@@ -15,7 +15,7 @@ import {
     SlugDeclarationCellDef,
     StringCellDef,
     UrlCellDef,
-} from "../gridLang/GridLangConstants.js"
+} from "./gridLang/GridLangConstants.js"
 
 export const ColumnGrammar: Grammar = {
     variableId: {
