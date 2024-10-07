@@ -4,6 +4,9 @@
 
 import { GrapherInterface } from "@ourworldindata/types"
 
+export const latestSchemaVersion = "005" as const
+export const outdatedSchemaVersions = ["001", "002", "003", "004"] as const
+
 export const defaultGrapherConfig = {
     $schema: "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
     map: {

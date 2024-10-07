@@ -53,7 +53,6 @@ import {
     DatasetsTableName,
     VariablesTableName,
 } from "@ourworldindata/types"
-import { defaultGrapherConfig } from "@ourworldindata/grapher"
 import path from "path"
 import fs from "fs"
 import { omitUndefinedValues } from "@ourworldindata/utils"
@@ -191,6 +190,8 @@ async function makeRequestAgainstAdminApi(
 
 describe("OwidAdminApp", () => {
     const testChartConfig = {
+        $schema:
+            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
         slug: "test-chart",
         title: "Test chart",
         type: "LineChart",
@@ -252,7 +253,7 @@ describe("OwidAdminApp", () => {
         )
         expect(fullConfig).toHaveProperty(
             "$schema",
-            defaultGrapherConfig.$schema
+            "https://files.ourworldindata.org/schemas/grapher-schema.005.json"
         )
         expect(fullConfig).toHaveProperty("id", chartId) // must match the db id
         expect(fullConfig).toHaveProperty("version", 1) // automatically added
@@ -267,7 +268,8 @@ describe("OwidAdminApp", () => {
             `/charts/${chartId}.patchConfig.json`
         )
         expect(patchConfig).toEqual({
-            $schema: defaultGrapherConfig["$schema"],
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
             id: chartId,
             version: 1,
             isPublished: false,
@@ -321,12 +323,16 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         display: '{ "unit": "kg", "shortUnit": "kg" }',
     }
     const testVariableConfigETL = {
+        $schema:
+            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
         hasMapTab: true,
         note: "Indicator note",
         selectedEntityNames: ["France", "Italy", "Spain"],
         hideRelativeToggle: false,
     }
     const testVariableConfigAdmin = {
+        $schema:
+            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
         title: "Admin title",
         subtitle: "Admin subtitle",
     }
@@ -337,10 +343,14 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         id: otherVariableId,
     }
     const otherTestVariableConfig = {
+        $schema:
+            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
         note: "Other indicator note",
     }
 
     const testChartConfig = {
+        $schema:
+            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
         slug: "test-chart",
         title: "Test chart",
         type: "Marimekko",
@@ -382,12 +392,11 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         // for ETL configs, patch and full configs should be the same
         expect(patchConfigETL).toEqual(fullConfigETL)
 
-        // check that $schema and dimensions field were added to the config
+        // check that the dimensions field were added to the config
         const processedTestVariableConfigETL = {
             ...testVariableConfigETL,
 
             // automatically added
-            $schema: defaultGrapherConfig.$schema,
             dimensions: [
                 {
                     property: "y",
@@ -503,7 +512,8 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             `/charts/${chartId}.patchConfig.json`
         )
         expect(patchConfig).toEqual({
-            $schema: defaultGrapherConfig["$schema"],
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
             id: chartId,
             version: 1,
             isPublished: false,
@@ -558,7 +568,8 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             `/charts/${chartId}.patchConfig.json`
         )
         expect(patchConfigAfterDelete).toEqual({
-            $schema: defaultGrapherConfig["$schema"],
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
             id: chartId,
             version: 1,
             isPublished: false,
@@ -764,5 +775,37 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         expect(chartAfterUpdate).not.toBeNull()
         expect(configAfterUpdate).not.toBeNull()
         expect(chartAfterUpdate).toEqual(configAfterUpdate)
+    })
+
+    it("should return an error if the schema is missing", async () => {
+        const invalidConfig = {
+            title: "Title",
+            // note that the $schema field is missing
+        }
+        const json = await makeRequestAgainstAdminApi(
+            {
+                method: "PUT",
+                path: `/variables/${variableId}/grapherConfigETL`,
+                body: JSON.stringify(invalidConfig),
+            },
+            { verifySuccess: false }
+        )
+        expect(json.success).toBe(false)
+    })
+
+    it("should return an error if the schema is invalid", async () => {
+        const invalidConfig = {
+            $schema: "invalid", // note that the $schema field is invalid
+            title: "Title",
+        }
+        const json = await makeRequestAgainstAdminApi(
+            {
+                method: "PUT",
+                path: `/variables/${variableId}/grapherConfigETL`,
+                body: JSON.stringify(invalidConfig),
+            },
+            { verifySuccess: false }
+        )
+        expect(json.success).toBe(false)
     })
 })
