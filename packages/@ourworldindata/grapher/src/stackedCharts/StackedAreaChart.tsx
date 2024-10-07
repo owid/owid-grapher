@@ -61,8 +61,8 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
     seriesArr: readonly StackedSeries<Time>[]
     focusedSeriesNames: SeriesName[]
     hoveredAreaName?: SeriesName
-    onAreaMouseEnter: (seriesName: SeriesName) => void
-    onAreaMouseLeave: () => void
+    onAreaMouseEnter?: (seriesName: SeriesName) => void
+    onAreaMouseLeave?: () => void
 }
 
 const BLUR_COLOR = "#ddd"
@@ -175,7 +175,7 @@ class Areas extends React.Component<AreasProps> {
 
             return (
                 <path
-                    id={makeIdForHumanConsumption("area", series.seriesName)}
+                    id={makeIdForHumanConsumption(series.seriesName)}
                     className={makeSafeForCSS(series.seriesName) + "-area"}
                     key={series.seriesName + "-area"}
                     strokeLinecap="round"
@@ -184,10 +184,10 @@ class Areas extends React.Component<AreasProps> {
                     fillOpacity={opacity}
                     clipPath={this.props.clipPath}
                     onMouseEnter={(): void => {
-                        this.props.onAreaMouseEnter(series.seriesName)
+                        this.props.onAreaMouseEnter?.(series.seriesName)
                     }}
                     onMouseLeave={(): void => {
-                        this.props.onAreaMouseLeave()
+                        this.props.onAreaMouseLeave?.()
                     }}
                 />
             )
@@ -208,10 +208,7 @@ class Areas extends React.Component<AreasProps> {
 
             return (
                 <path
-                    id={makeIdForHumanConsumption(
-                        "border",
-                        placedSeries.seriesName
-                    )}
+                    id={makeIdForHumanConsumption(placedSeries.seriesName)}
                     className={
                         makeSafeForCSS(placedSeries.seriesName) + "-border"
                     }
@@ -230,10 +227,10 @@ class Areas extends React.Component<AreasProps> {
                     fill="none"
                     clipPath={this.props.clipPath}
                     onMouseEnter={(): void => {
-                        this.props.onAreaMouseEnter(placedSeries.seriesName)
+                        this.props.onAreaMouseEnter?.(placedSeries.seriesName)
                     }}
                     onMouseLeave={(): void => {
-                        this.props.onAreaMouseLeave()
+                        this.props.onAreaMouseLeave?.()
                     }}
                 />
             )
@@ -241,24 +238,13 @@ class Areas extends React.Component<AreasProps> {
     }
 
     render(): React.ReactElement {
-        const { dualAxis } = this.props
-        const { horizontalAxis, verticalAxis } = dualAxis
-
         return (
             <g
                 className="Areas"
                 id={makeIdForHumanConsumption("stacked-areas")}
             >
-                <rect
-                    x={horizontalAxis.range[0]}
-                    y={verticalAxis.range[1]}
-                    width={horizontalAxis.range[1] - horizontalAxis.range[0]}
-                    height={verticalAxis.range[0] - verticalAxis.range[1]}
-                    opacity={0}
-                    fill="rgba(255,255,255,0)"
-                />
-                {this.areas}
-                {this.borders}
+                <g id={makeIdForHumanConsumption("areas")}>{this.areas}</g>
+                <g id={makeIdForHumanConsumption("borders")}>{this.borders}</g>
             </g>
         )
     }
@@ -593,14 +579,11 @@ export class StackedAreaChart
         )
     }
 
-    render(): React.ReactElement {
-        const { manager, bounds, dualAxis, renderUid, series } = this
-        const { target } = this.tooltipState
-        const showLegend = this.manager.showLegend
-
-        const dualAxisComponent = (
+    renderAxis(): React.ReactElement {
+        const { manager } = this
+        return (
             <DualAxisComponent
-                dualAxis={dualAxis}
+                dualAxis={this.dualAxis}
                 showTickMarks={true}
                 labelColor={manager.secondaryColorInStaticCharts}
                 lineWidth={
@@ -611,18 +594,30 @@ export class StackedAreaChart
                 detailsMarker={manager.detailsMarkerInSvg}
             />
         )
+    }
 
-        if (this.failMessage)
-            return (
-                <g className="StackedArea">
-                    {dualAxisComponent}
-                    <NoDataModal
-                        manager={this.manager}
-                        bounds={dualAxis.bounds}
-                        message={this.failMessage}
-                    />
-                </g>
-            )
+    renderLegend(): React.ReactElement | void {
+        if (!this.manager.showLegend) return
+        return <LineLegend manager={this} />
+    }
+
+    renderStatic(): React.ReactElement {
+        return (
+            <>
+                {this.renderAxis()}
+                {this.renderLegend()}
+                <Areas
+                    dualAxis={this.dualAxis}
+                    seriesArr={this.series}
+                    focusedSeriesNames={this.focusedSeriesNames}
+                />
+            </>
+        )
+    }
+
+    renderInteractive(): React.ReactElement {
+        const { bounds, dualAxis, renderUid, series } = this
+        const { target } = this.tooltipState
 
         const clipPath = makeClipPath(renderUid, {
             ...bounds,
@@ -633,7 +628,6 @@ export class StackedAreaChart
         return (
             <g
                 ref={this.base}
-                id={makeIdForHumanConsumption("stacked-area-chart")}
                 className="StackedArea"
                 onMouseLeave={this.onCursorLeave}
                 onTouchEnd={this.onCursorLeave}
@@ -648,9 +642,9 @@ export class StackedAreaChart
                     whole charting area, including the axis, the entity labels, and the whitespace next to them.
                     We need these to be able to show the tooltip for the first/last year even if the mouse is outside the charting area. */}
                 </rect>
-                {dualAxisComponent}
+                {this.renderAxis()}
                 <g clipPath={clipPath.id}>
-                    {showLegend && <LineLegend manager={this} />}
+                    {this.renderLegend()}
                     <Areas
                         dualAxis={dualAxis}
                         seriesArr={series}
@@ -664,6 +658,24 @@ export class StackedAreaChart
                 {this.tooltip}
             </g>
         )
+    }
+
+    render(): React.ReactElement {
+        if (this.failMessage)
+            return (
+                <g className="StackedArea">
+                    {this.renderAxis()}
+                    <NoDataModal
+                        manager={this.manager}
+                        bounds={this.dualAxis.bounds}
+                        message={this.failMessage}
+                    />
+                </g>
+            )
+
+        return this.manager.isStatic
+            ? this.renderStatic()
+            : this.renderInteractive()
     }
 
     @computed get lineLegendX(): number {
