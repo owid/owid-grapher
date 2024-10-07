@@ -5,7 +5,7 @@ import {
     CommentCellDef,
     FrontierCellClass,
     GridBoolean,
-} from "../gridLang/GridLangConstants.js"
+} from "./gridLang/GridLangConstants.js"
 import { ExplorerGrammar } from "./ExplorerGrammar.js"
 import { GrapherGrammar } from "./GrapherGrammar.js"
 import { DecisionMatrix } from "./ExplorerDecisionMatrix.js"

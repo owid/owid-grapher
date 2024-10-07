@@ -4,9 +4,5 @@
         "outDir": "../itsJustJavascript/explorerAdminClient",
         "rootDir": "."
     },
-    "references": [
-        { "path": "../explorer" },
-        { "path": "../gridLang" },
-        { "path": "../gitCms" }
-    ]
+    "references": [{ "path": "../gitCms" }]
 }

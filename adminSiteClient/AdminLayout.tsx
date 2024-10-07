@@ -11,7 +11,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     DefaultNewExplorerSlug,
     EXPLORERS_ROUTE_FOLDER,
-} from "../explorer/ExplorerConstants.js"
+} from "@ourworldindata/explorer"
 import classNames from "classnames"
 
 @observer

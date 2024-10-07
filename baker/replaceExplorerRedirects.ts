@@ -1,7 +1,7 @@
 import {
     explorerUrlMigrationsById,
     migrateExplorerUrl,
-} from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
+} from "@ourworldindata/explorer"
 import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects.js"
 import { Url } from "@ourworldindata/utils"
 
