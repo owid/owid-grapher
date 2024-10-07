@@ -54,7 +54,7 @@ export default function TombstonePage({
                         {includeArchiveLink && (
                             <p className="body-3-medium">
                                 If you’d still like to view this page, you can
-                                find it via the{" "}
+                                check its archived copy via the{" "}
                                 <a
                                     href={`https://web.archive.org/web/*/${oldUrl}`}
                                 >
