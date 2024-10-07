@@ -36,6 +36,7 @@ export interface LinesProps {
     markerRadius?: number
     isStatic?: boolean
     multiColor?: boolean
+    backgroundColor?: string
 }
 
 export interface LineChartManager extends ChartManager {

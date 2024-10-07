@@ -62,6 +62,7 @@ import {
     GRAPHER_AXIS_LINE_WIDTH_THICK,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     BASE_FONT_SIZE,
+    GRAPHER_BACKGROUND_DEFAULT,
 } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
@@ -101,8 +102,6 @@ import {
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 
-// background
-const BACKGROUND_COLOR = "#fff"
 // line color
 const BLUR_LINE_COLOR = "#eee"
 const DEFAULT_LINE_COLOR = "#000"
@@ -207,7 +206,9 @@ class Lines extends React.Component<LinesProps> {
                                     "outline",
                                     series.seriesName
                                 ),
-                                stroke: BACKGROUND_COLOR,
+                                stroke:
+                                    this.props.backgroundColor ??
+                                    GRAPHER_BACKGROUND_DEFAULT,
                                 strokeWidth:
                                     this.strokeWidth +
                                     this.lineOutlineWidth * 2,
@@ -585,7 +586,10 @@ export class LineChart
                                       )
                                     : series.color
                             }
-                            stroke="#fff"
+                            stroke={
+                                this.manager.backgroundColor ??
+                                GRAPHER_BACKGROUND_DEFAULT
+                            }
                             strokeWidth={0.5}
                         />
                     )
@@ -854,7 +858,9 @@ export class LineChart
         const lineWidth = manager.isStaticAndSmall
             ? GRAPHER_AXIS_LINE_WIDTH_THICK
             : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
-        const dashPattern = manager.isStaticAndSmall ? "7, 7" : undefined
+        const dashPattern = manager.isExportingForSocialMedia
+            ? "7, 7"
+            : undefined
 
         return (
             <DualAxisComponent
@@ -887,6 +893,7 @@ export class LineChart
                         dualAxis={this.dualAxis}
                         comparisonLine={line}
                         baseFontSize={this.fontSize}
+                        backgroundColor={this.manager.backgroundColor}
                     />
                 ))}
                 {manager.showLegend && <LineLegend manager={this} />}
@@ -898,6 +905,7 @@ export class LineChart
                     focusedSeriesNames={this.focusedSeriesNames}
                     lineStrokeWidth={this.lineStrokeWidth}
                     lineOutlineWidth={this.lineOutlineWidth}
+                    backgroundColor={this.manager.backgroundColor}
                     markerRadius={this.markerRadius}
                     isStatic={manager.isStatic}
                 />
@@ -1067,10 +1075,13 @@ export class LineChart
     }
 
     numericBinSize = 6
-    numericBinStroke = BACKGROUND_COLOR
     numericBinStrokeWidth = 1
     legendTextColor = "#555"
     legendTickSize = 1
+
+    @computed get numericBinStroke(): Color {
+        return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
+    }
 
     @computed get numericLegend(): HorizontalNumericColorLegend | undefined {
         return this.hasColorScale && this.manager.showLegend

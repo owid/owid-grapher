@@ -425,6 +425,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             <Halo
                                 key={series.displayKey + "-endLabel"}
                                 id={series.displayKey + "-endLabel"}
+                                background={this.props.backgroundColor}
                             >
                                 <text
                                     id={makeIdForHumanConsumption(
@@ -560,6 +561,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                     <Halo
                         key={`${series.displayKey}-label-${index}`}
                         id={`${series.displayKey}-label-${index}`}
+                        background={this.props.backgroundColor}
                     >
                         <text
                             id={makeIdForHumanConsumption(

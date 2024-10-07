@@ -39,6 +39,7 @@ export interface DownloadModalManager {
     isOnChartOrMapTab?: boolean
     framePaddingVertical?: number
     showAdminControls?: boolean
+    isSocialMediaExport?: boolean
 }
 
 interface DownloadModalProps {
@@ -61,6 +62,10 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
 
     @computed private get isExportingSquare(): boolean {
         return this.manager.staticFormat === GrapherStaticFormat.square
+    }
+
+    @computed private get isSocialMediaExport(): boolean {
+        return this.manager.isSocialMediaExport ?? false
     }
 
     @computed private get shouldIncludeDetails(): boolean {
@@ -204,6 +209,10 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             : GrapherStaticFormat.square
     }
 
+    @action.bound private toggleExportForUseInSocialMedia(): void {
+        this.manager.isSocialMediaExport = !this.isSocialMediaExport
+    }
+
     @action.bound private toggleIncludeDetails(): void {
         this.manager.shouldIncludeDetailsInStaticExport =
             !this.manager.shouldIncludeDetailsInStaticExport
@@ -295,11 +304,37 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                                     <Checkbox
                                         checked={this.isExportingSquare}
                                         label="Square format"
-                                        onChange={(): void => {
+                                        onChange={action((): void => {
                                             this.reset()
                                             this.toggleExportFormat()
+
+                                            if (!this.isExportingSquare) {
+                                                this.manager.isSocialMediaExport =
+                                                    false
+                                            }
+
                                             this.export()
-                                        }}
+                                        })}
+                                    />
+                                )}
+                                {this.manager.showAdminControls && (
+                                    <Checkbox
+                                        checked={this.isSocialMediaExport}
+                                        label="For use in social media (internal)"
+                                        onChange={action((): void => {
+                                            this.reset()
+                                            this.toggleExportForUseInSocialMedia()
+
+                                            // set reasonable defaults for social media exports
+                                            if (this.isSocialMediaExport) {
+                                                this.manager.staticFormat =
+                                                    GrapherStaticFormat.square
+                                                this.manager.shouldIncludeDetailsInStaticExport =
+                                                    false
+                                            }
+
+                                            this.export()
+                                        })}
                                     />
                                 )}
                             </div>

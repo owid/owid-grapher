@@ -11,7 +11,7 @@ import { observer } from "mobx-react"
 import { DualAxis } from "../axis/Axis"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 import { Halo } from "../halo/Halo"
-import { ComparisonLineConfig } from "@ourworldindata/types"
+import { Color, ComparisonLineConfig } from "@ourworldindata/types"
 import { GRAPHER_FONT_SCALE_10_5 } from "../core/GrapherConstants"
 
 @observer
@@ -19,6 +19,7 @@ export class ComparisonLine extends React.Component<{
     dualAxis: DualAxis
     comparisonLine: ComparisonLineConfig
     baseFontSize: number
+    backgroundColor?: Color
 }> {
     private renderUid = guid()
 
@@ -122,7 +123,10 @@ export class ComparisonLine extends React.Component<{
                         }}
                         clipPath={`url(#axisBounds-${renderUid})`}
                     >
-                        <Halo id={`path-${renderUid}`}>
+                        <Halo
+                            id={`path-${renderUid}`}
+                            background={this.props.backgroundColor}
+                        >
                             <textPath
                                 baselineShift="-0.2rem"
                                 href={`#path-${renderUid}`}
