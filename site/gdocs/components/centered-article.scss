@@ -1014,6 +1014,10 @@ div.raw-html-table__container {
         margin-top: 4px;
     }
 
+    &:hover .prominent-link__icon-external {
+        color: $blue-90;
+    }
+
     p {
         margin: 0;
         @include sm-only {
