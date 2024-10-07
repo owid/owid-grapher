@@ -1,4 +1,4 @@
-import { gdocUrlRegex } from "@ourworldindata/utils"
+import { GDOCS_URL_PLACEHOLDER, gdocUrlRegex } from "@ourworldindata/utils"
 import React from "react"
 import {
     GDOCS_BASIC_ARTICLE_TEMPLATE_URL,
@@ -64,12 +64,12 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
                         onChange={(e) => setDocumentUrl(e.target.value)}
                         value={documentUrl}
                         required
-                        placeholder="https://docs.google.com/document/d/****/edit"
+                        placeholder={GDOCS_URL_PLACEHOLDER}
                         pattern={gdocUrlRegex.toString().slice(1, -1)}
                     />
                     <span className="validation-notice">
                         Invalid URL - it should look like this:{" "}
-                        <pre>https://docs.google.com/document/d/****/edit</pre>
+                        <pre>{GDOCS_URL_PLACEHOLDER}</pre>
                     </span>
                 </div>
             </div>

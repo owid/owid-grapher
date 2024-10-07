@@ -7,6 +7,7 @@ import { SearchPage } from "../site/search/SearchPage.js"
 import NotFoundPage from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
+import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
@@ -43,6 +44,7 @@ import {
     OwidGdocType,
     OwidGdoc,
     OwidGdocDataInsightInterface,
+    TombstonePageData,
     mergeGrapherConfigs,
     createTagGraph,
 } from "@ourworldindata/utils"
@@ -95,7 +97,7 @@ import {
     getAndLoadPublishedDataInsightsPage,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerBaker.js"
-import { AttachmentsContext } from "../site/gdocs/OwidGdoc.js"
+import { Attachments, AttachmentsContext } from "../site/gdocs/OwidGdoc.js"
 import AtomArticleBlocks from "../site/gdocs/components/AtomArticleBlocks.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
@@ -161,6 +163,17 @@ export const renderGdoc = (gdoc: OwidGdoc, isPreviewing: boolean = false) => {
             gdoc={gdoc}
             isPreviewing={isPreviewing}
         />
+    )
+}
+
+export function renderGdocTombstone(
+    tombstone: TombstonePageData,
+    attachments: Attachments
+) {
+    return renderToHtmlPage(
+        <AttachmentsContext.Provider value={attachments}>
+            <TombstonePage baseUrl={BAKED_BASE_URL} tombstone={tombstone} />
+        </AttachmentsContext.Provider>
     )
 }
 

@@ -19,6 +19,7 @@ import {
     renderDataInsightsIndexPage,
     renderThankYouPage,
     makeDataInsightsAtomFeed,
+    renderGdocTombstone,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -46,6 +47,10 @@ import {
     DbRawChartConfig,
     JsonError,
     parseChartConfig,
+    TombstonePageData,
+    gdocUrlRegex,
+    OwidGdocMinimalPostInterface,
+    ImageMetadata,
 } from "@ourworldindata/utils"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
@@ -58,6 +63,7 @@ import {
 } from "../baker/GrapherBaker.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
+import { getTombstoneBySlug } from "../db/model/GdocTombstone.js"
 import * as db from "../db/db.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import {
@@ -67,6 +73,11 @@ import {
 import { DEFAULT_LOCAL_BAKE_DIR } from "../site/SiteConstants.js"
 import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
 import { renderMultiDimDataPageBySlug } from "../baker/MultiDimBaker.js"
+import {
+    KnexReadonlyTransaction,
+    getImageMetadataByFilenames,
+} from "../db/db.js"
+import { getMinimalGdocPostsByIds } from "../db/model/Gdoc/GdocBase.js"
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require("express-async-errors")
@@ -315,14 +326,14 @@ getPlainRouteNonIdempotentWithRWTransaction(
             return res.send(await renderIndexPage(pageNumber))
         }
 
-        const slug = pageNumberOrSlug
         try {
-            return res.send(await renderGdocsPageBySlug(trx, slug, true))
+            return res.send(
+                await renderGdocsPageBySlug(trx, pageNumberOrSlug, true)
+            )
         } catch (e) {
             console.error(e)
+            return res.status(404).send(renderNotFoundPage())
         }
-
-        return new JsonError(`Data insight with slug "${slug}" not found`, 404)
     }
 )
 
@@ -516,6 +527,50 @@ getPlainRouteNonIdempotentWithRWTransaction(
             console.error(e)
             res.status(404).send(renderNotFoundPage())
         }
+    }
+)
+
+async function getTombstoneAttachments(
+    knex: KnexReadonlyTransaction,
+    { relatedLinkUrl, relatedLinkThumbnail }: TombstonePageData
+) {
+    const linkedGdocId = relatedLinkUrl?.match(gdocUrlRegex)?.[1]
+    const linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
+    let linkedDocument: OwidGdocMinimalPostInterface | undefined
+    let imageMetadata: Record<string, ImageMetadata> = {}
+    if (linkedGdocId) {
+        const posts = await getMinimalGdocPostsByIds(knex, [linkedGdocId])
+        linkedDocument = posts[0]
+        linkedDocuments[linkedGdocId] = linkedDocument
+    }
+    const imageFilename =
+        relatedLinkThumbnail || linkedDocument?.["featured-image"]
+    if (imageFilename) {
+        imageMetadata = await getImageMetadataByFilenames(knex, [imageFilename])
+    }
+    return {
+        imageMetadata,
+        linkedCharts: {},
+        linkedDocuments,
+        linkedIndicators: {},
+        relatedCharts: [],
+    }
+}
+
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/deleted/:tombstoneSlug",
+    async (req, res, trx) => {
+        const tombstone = await getTombstoneBySlug(
+            trx,
+            req.params.tombstoneSlug
+        )
+        if (!tombstone) {
+            res.status(404).send(renderNotFoundPage())
+            return
+        }
+        const attachments = await getTombstoneAttachments(trx, tombstone)
+        res.status(404).send(await renderGdocTombstone(tombstone, attachments))
     }
 )
 

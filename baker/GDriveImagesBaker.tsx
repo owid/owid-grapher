@@ -25,7 +25,10 @@ export const bakeDriveImages = async (
     const images: Image[] = await db
         .knexRaw<DbRawImage>(
             knex,
-            `SELECT * FROM images WHERE id IN (SELECT DISTINCT imageId FROM posts_gdocs_x_images)`
+            `SELECT DISTINCT *
+             FROM images
+             WHERE id IN (SELECT DISTINCT imageId FROM posts_gdocs_x_images)
+                OR filename IN (SELECT DISTINCT relatedLinkThumbnail FROM posts_gdocs_tombstones)`
         )
         .then((results) =>
             results.map((result) => new Image(parseImageRow(result)))

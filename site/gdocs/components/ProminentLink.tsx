@@ -1,5 +1,7 @@
 import React, { useContext } from "react"
 import cx from "classnames"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons"
 import { getLinkType } from "@ourworldindata/components"
 
 import Image from "./Image.js"
@@ -11,6 +13,18 @@ import {
     ARCHVED_THUMBNAIL_FILENAME,
     DEFAULT_THUMBNAIL_FILENAME,
 } from "@ourworldindata/types"
+
+const Thumbnail = ({ thumbnail }: { thumbnail: string }) => {
+    if (
+        thumbnail.startsWith(BAKED_GRAPHER_EXPORTS_BASE_URL) ||
+        thumbnail.endsWith(ARCHVED_THUMBNAIL_FILENAME) ||
+        thumbnail.endsWith(DEFAULT_THUMBNAIL_FILENAME)
+    ) {
+        return <img src={thumbnail} />
+    } else {
+        return <Image filename={thumbnail} containerType="thumbnail" />
+    }
+}
 
 export const ProminentLink = (props: {
     url: string
@@ -67,18 +81,6 @@ export const ProminentLink = (props: {
         description = description ?? linkedChart?.subtitle
     }
 
-    const Thumbnail = ({ thumbnail }: { thumbnail: string }) => {
-        if (
-            thumbnail.startsWith(BAKED_GRAPHER_EXPORTS_BASE_URL) ||
-            thumbnail.endsWith(ARCHVED_THUMBNAIL_FILENAME) ||
-            thumbnail.endsWith(DEFAULT_THUMBNAIL_FILENAME)
-        ) {
-            return <img src={thumbnail} />
-        } else {
-            return <Image filename={thumbnail} containerType="thumbnail" />
-        }
-    }
-
     const anchorTagProps =
         linkType === "url"
             ? { target: "_blank", rel: "noopener noreferrer" }
@@ -100,7 +102,15 @@ export const ProminentLink = (props: {
                 </div>
             ) : null}
             <div className={textContainerClassName}>
-                <h3 className="h3-bold">{title}</h3>
+                <div className="prominent-link__heading-wrapper">
+                    <h3 className="h3-bold">{title}</h3>
+                    {linkType === "url" && (
+                        <FontAwesomeIcon
+                            className="prominent-link__icon-external"
+                            icon={faArrowUpRightFromSquare}
+                        />
+                    )}
+                </div>
                 {description ? (
                     <p className="body-3-medium">{description}</p>
                 ) : null}

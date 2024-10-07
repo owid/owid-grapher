@@ -734,75 +734,19 @@ a.ref sup {
     }
 }
 
-.NotFoundPage > main {
-    > form {
-        @include content-wrapper;
-        max-width: $wrapper-max-width;
-        margin-top: 20px;
-        display: flex;
-        margin-bottom: 30px;
-    }
-
-    > form > .inputWrapper {
-        width: 100%;
-        position: relative;
-        padding-right: 5px;
-    }
-
-    > form > .inputWrapper input {
-        width: 100%;
-        height: 40px;
-        padding-left: 35px;
-    }
-
-    > form > .inputWrapper svg {
-        position: absolute;
-        left: 10px;
-        top: 12px;
-    }
-
-    > form > button {
-        width: 160px;
-        height: 40px;
-        margin: 0px;
-        position: relative;
-        align-items: center;
-        justify-content: center;
-        padding-top: 0px;
-        padding-bottom: 0px;
-        padding-left: 16px;
-        padding-right: 16px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        outline: none;
-        text-decoration: none;
-        box-sizing: border-box;
-        touch-action: manipulation;
-        background: #1865f2;
-        color: #ffffff;
-    }
-}
-
 .NotFoundPage {
     color: $blue-60;
-    background-color: $gray-10;
+    background-color: $gray-5;
 
     main {
         display: flex;
         flex-direction: column;
-        justify-content: center;
-        text-align: center;
-        min-height: 600px;
         padding: 0 16px;
+        max-width: 628px;
+        margin: 102px auto 80px;
 
-        p {
-            margin: 0;
-        }
-
-        a {
-            @include owid-link-90;
-            color: inherit;
+        @include sm-only {
+            margin: 32px auto;
         }
     }
 }
@@ -811,11 +755,36 @@ a.ref sup {
     color: $blue-90;
 }
 
+.NotFoundPage__copy {
+    text-align: center;
+
+    p {
+        margin-top: 0;
+        margin-bottom: 24px;
+    }
+
+    a {
+        @include owid-link-90;
+        color: inherit;
+    }
+}
+
+.NotFoundPage__prominent-link-heading {
+    @include h5-black-caps;
+    color: $blue-90;
+    margin: 0 0 16px;
+    text-align: center;
+}
+
+.NotFoundPage__prominent-link {
+    background: $blue-10;
+}
+
 .NotFoundPageForm {
     position: relative;
     width: 100%;
     max-width: 412px;
-    margin: 32px auto;
+    margin: 8px auto;
 }
 
 .NotFoundPageForm__input {
@@ -882,6 +851,11 @@ a.ref sup {
 
 .NotFoundPageIcon {
     margin: 0 auto;
+
+    @include sm-only {
+        max-width: 120px;
+        height: auto;
+    }
 }
 
 .variantName {

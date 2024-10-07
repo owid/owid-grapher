@@ -43,6 +43,7 @@ import {
 import { updateExistingFullConfig } from "../db/model/ChartConfigs.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
+    GDOCS_BASE_URL,
     camelCaseProperties,
     GdocsContentSource,
     isEmpty,
@@ -62,6 +63,7 @@ import {
     omitUndefinedValues,
     getParentVariableIdFromChartConfig,
     omit,
+    gdocUrlRegex,
 } from "@ourworldindata/utils"
 import { applyPatch } from "../adminShared/patchHelper.js"
 import {
@@ -154,6 +156,7 @@ import {
     getRedirects,
     redirectWithSourceExists,
 } from "../db/model/Redirect.js"
+import { getMinimalGdocPostsByIds } from "../db/model/Gdoc/GdocBase.js"
 import {
     GdocLinkUpdateMode,
     createOrLoadGdocById,
@@ -178,6 +181,7 @@ import {
     saveGrapherConfigToR2,
     saveGrapherConfigToR2ByUUID,
 } from "./chartConfigR2Helpers.js"
+import { fetchImagesFromDriveAndSyncToS3 } from "../db/model/Image.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -2929,11 +2933,47 @@ putRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     return nextGdoc
 })
 
+async function validateTombstoneRelatedLinkUrl(
+    trx: db.KnexReadonlyTransaction,
+    relatedLink?: string
+) {
+    if (!relatedLink || !relatedLink.startsWith(GDOCS_BASE_URL)) return
+    const id = relatedLink.match(gdocUrlRegex)?.[1]
+    if (!id) {
+        throw new JsonError(`Invalid related link: ${relatedLink}`)
+    }
+    const [gdoc] = await getMinimalGdocPostsByIds(trx, [id])
+    if (!gdoc) {
+        throw new JsonError(`Google Doc with ID ${id} not found`)
+    }
+    if (!gdoc.published) {
+        throw new JsonError(`Google Doc with ID ${id} is not published`)
+    }
+}
+
 deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     const { id } = req.params
 
     const gdoc = await getGdocBaseObjectById(trx, id, false)
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+
+    const gdocSlug = getCanonicalUrl("", gdoc)
+    const { tombstone } = req.body
+
+    if (tombstone) {
+        await validateTombstoneRelatedLinkUrl(trx, tombstone.relatedLinkUrl)
+        const slug = gdocSlug.replace("/", "")
+        const { relatedLinkThumbnail } = tombstone
+        if (relatedLinkThumbnail) {
+            await fetchImagesFromDriveAndSyncToS3(trx, [relatedLinkThumbnail])
+        }
+        await trx
+            .table("posts_gdocs_tombstones")
+            .insert({ ...tombstone, gdocId: id, slug })
+        await trx
+            .table("redirects")
+            .insert({ source: gdocSlug, target: `/deleted${gdocSlug}` })
+    }
 
     await trx
         .table("posts")
@@ -2946,12 +2986,11 @@ deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", async (req, res, trx) => {
     if (gdoc.published && checkIsGdocPostExcludingFragments(gdoc)) {
         await removeIndividualGdocPostFromIndex(gdoc)
     }
-    // Assets have TTL of one week in Cloudflare. Add a redirect to make sure
-    // the page is no longer accessible.
-    // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
-    const gdocSlug = getCanonicalUrl("", gdoc)
     if (gdoc.published) {
-        if (gdocSlug && gdocSlug !== "/") {
+        if (!tombstone && gdocSlug && gdocSlug !== "/") {
+            // Assets have TTL of one week in Cloudflare. Add a redirect to make sure
+            // the page is no longer accessible.
+            // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
             console.log(`Creating redirect for "${gdocSlug}" to "/"`)
             await db.knexRawInsert(
                 trx,

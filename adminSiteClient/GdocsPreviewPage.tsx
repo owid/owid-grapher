@@ -26,6 +26,7 @@ import {
     OwidGdocType,
     OwidGdoc,
     Tippy,
+    CreateTombstoneData,
 } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -170,9 +171,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         openSuccessNotification("unpublished")
     }
 
-    const onDelete = async () => {
+    const onDelete = async (tombstone?: CreateTombstoneData) => {
         if (!currentGdoc) return
-        await store.delete(currentGdoc)
+        await store.delete(currentGdoc, tombstone)
         history.push("/gdocs")
     }
 

@@ -10,7 +10,10 @@ import {
 } from "@ourworldindata/utils"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
-import { extractGdocIndexItem } from "@ourworldindata/types"
+import {
+    CreateTombstoneData,
+    extractGdocIndexItem,
+} from "@ourworldindata/types"
 
 /**
  * This was originally a MobX data domain store (see
@@ -62,8 +65,9 @@ export class GdocsStore {
     }
 
     @action
-    async delete(gdoc: OwidGdoc) {
-        await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, {}, "DELETE")
+    async delete(gdoc: OwidGdoc, tombstone?: CreateTombstoneData) {
+        const body = tombstone ? { tombstone } : {}
+        await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, body, "DELETE")
     }
 
     @action

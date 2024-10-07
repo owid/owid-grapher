@@ -346,6 +346,8 @@ export {
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
     IMAGES_DIRECTORY,
     gdocUrlRegex,
+    GDOCS_URL_PLACEHOLDER,
+    GDOCS_BASE_URL,
     gdocIdRegex,
     DEFAULT_GDOC_FEATURED_IMAGE,
     DEFAULT_THUMBNAIL_FILENAME,
@@ -412,6 +414,10 @@ export {
     type CoreColumnDef,
     ErrorValue,
 } from "./domainTypes/CoreTableTypes.js"
+export {
+    type CreateTombstoneData,
+    type TombstonePageData,
+} from "./domainTypes/Tombstone.js"
 export {
     type DbPlainAnalyticsPageview,
     AnalyticsPageviewsTableName,
@@ -568,6 +574,10 @@ export {
     type DbInsertPostGdocLink,
     PostsGdocsLinksTableName,
 } from "./dbTypes/PostsGdocsLinks.js"
+export {
+    type DbInsertPostGdocTombstone,
+    type DbPlainPostGdocTombstone,
+} from "./dbTypes/PostsGdocsTombstones.js"
 export {
     type DbPlainPostGdocVariableFaq,
     type DbInsertPostGdocVariableFaq,
