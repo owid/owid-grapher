@@ -33,6 +33,6 @@ export const gdocIdRegex = /^[0-9A-Za-z\-_]{44}$/
 // Somewhat fragile, should be fixed as part of https://github.com/owid/owid-grapher/issues/2485
 export const DEFAULT_GDOC_FEATURED_IMAGE = "default-featured-image.png"
 
-export const DEFAULT_THUMBNAIL_FILENAME = "default-thumbnail.jpg"
+export const DEFAULT_THUMBNAIL_FILENAME = "default-thumbnail.png"
 
 export const ARCHVED_THUMBNAIL_FILENAME = "archived-thumbnail.jpg"
