@@ -1,19 +1,21 @@
 import fs from "fs-extra"
 import path from "path"
-import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
+import {
+    ExplorerProgram,
+    ExplorerGrammar,
+    ColumnGrammar,
+    explorerUrlMigrationsById,
+} from "@ourworldindata/explorer"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { explorerRedirectTable } from "../explorerAdminServer/ExplorerRedirects.js"
 import { renderExplorerPage } from "./siteRenderers.js"
 import * as db from "../db/db.js"
 import { getVariableIdsByCatalogPath } from "../db/model/Variable.js"
-import { ExplorerGrammar } from "../explorer/ExplorerGrammar.js"
 import {
     CoreTable,
     ErrorValueTypes,
     isNotErrorValueOrEmptyCell,
 } from "@ourworldindata/core-table"
-import { ColumnGrammar } from "../explorer/ColumnGrammar.js"
 import { ColumnTypeNames } from "@ourworldindata/types"
 
 export const transformExplorerProgramToResolveCatalogPaths = async (

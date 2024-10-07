@@ -11,7 +11,7 @@ import { runFeedbackPage } from "./Feedback.js"
 import { runDonateForm } from "./DonateForm.js"
 import { runCountryProfilePage } from "./runCountryProfilePage.js"
 import { runTableOfContents } from "./TableOfContents.js"
-import { Explorer } from "../explorer/Explorer.js"
+import { Explorer } from "@ourworldindata/explorer"
 import {
     ENV,
     BUGSNAG_API_KEY,

@@ -33,6 +33,9 @@
 @import "../packages/@ourworldindata/components/src/Button/Button.scss";
 @import "../packages/@ourworldindata/components/src/TextInput";
 
+@import "../packages/@ourworldindata/explorer/src/Explorer.scss";
+@import "../packages/@ourworldindata/explorer/src/ExplorerControls.scss";
+
 @import "css/grid.scss";
 @import "css/layout.scss";
 @import "css/general.scss";
@@ -65,9 +68,6 @@
 @import "css/newsletter-subscription.scss";
 @import "css/lightbox.scss";
 @import "css/alert-banner.scss";
-
-@import "explorer/Explorer.scss";
-@import "explorer/ExplorerControls.scss";
 
 @import "./blocks/front-matter.scss";
 @import "./blocks/expandable-paragraph.scss";

@@ -8,9 +8,9 @@ import { DbChartTagJoin } from "@ourworldindata/utils"
 import {
     GetAllExplorersRoute,
     GetAllExplorersTagsRoute,
-} from "../explorer/ExplorerConstants.js"
+    ExplorerProgram,
+} from "@ourworldindata/explorer"
 import { EditableTags } from "./EditableTags.js"
-import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import cx from "classnames"
 
 type ExplorerWithTags = {

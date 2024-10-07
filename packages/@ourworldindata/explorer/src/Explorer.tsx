@@ -61,12 +61,6 @@ import ReactDOM from "react-dom"
 import { ExplorerControlBar, ExplorerControlPanel } from "./ExplorerControls.js"
 import { ExplorerProgram } from "./ExplorerProgram.js"
 import {
-    ADMIN_BASE_URL,
-    BAKED_BASE_URL,
-    BAKED_GRAPHER_URL,
-    DATA_API_URL,
-} from "../settings/clientSettings.js"
-import {
     ExplorerChartCreationMode,
     ExplorerChoiceParams,
     ExplorerContainerId,
@@ -92,6 +86,10 @@ export interface ExplorerProps extends SerializedGridProgram {
     isPreview?: boolean
     canonicalUrl?: string
     selection?: SelectionArray
+    adminBaseUrl: string
+    bakedBaseUrl: string
+    bakedGrapherUrl: string
+    dataApiUrl: string
 }
 
 const LivePreviewComponent = (props: ExplorerProps) => {
@@ -197,10 +195,12 @@ export class Explorer
         program: ExplorerProps,
         grapherConfigs: GrapherInterface[],
         partialGrapherConfigs: GrapherInterface[],
+        explorerConstants: Record<string, string>,
         urlMigrationSpec?: ExplorerPageUrlMigrationSpec
     ) {
         const props: ExplorerProps = {
             ...program,
+            ...explorerConstants,
             grapherConfigs,
             partialGrapherConfigs,
             isEmbeddedInAnOwidPage: false,
@@ -252,6 +252,11 @@ export class Explorer
 
     // only used for the checkbox at the bottom of the embed dialog
     @observable embedDialogHideControls = true
+
+    bakedBaseUrl = this.props.bakedBaseUrl
+    dataApiUrl = this.props.dataApiUrl
+    adminBaseUrl = this.props.adminBaseUrl
+    bakedGrapherUrl = this.props.bakedGrapherUrl
 
     selection = this.props.selection?.hasSelection
         ? this.props.selection
@@ -532,8 +537,8 @@ export class Explorer
                 grapherConfig,
                 this.explorerProgram.grapherConfig
             ),
-            bakedGrapherURL: BAKED_GRAPHER_URL,
-            dataApiUrl: DATA_API_URL,
+            bakedGrapherURL: this.bakedBaseUrl,
+            dataApiUrl: this.dataApiUrl,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: false,
         }
@@ -577,8 +582,8 @@ export class Explorer
                 partialGrapherConfig,
                 this.explorerProgram.grapherConfig
             ),
-            bakedGrapherURL: BAKED_GRAPHER_URL,
-            dataApiUrl: DATA_API_URL,
+            bakedGrapherURL: this.bakedBaseUrl,
+            dataApiUrl: this.dataApiUrl,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: false,
         }
@@ -727,8 +732,8 @@ export class Explorer
 
         const config: GrapherProgrammaticInterface = {
             ...this.explorerProgram.grapherConfig,
-            bakedGrapherURL: BAKED_GRAPHER_URL,
-            dataApiUrl: DATA_API_URL,
+            bakedGrapherURL: this.bakedBaseUrl,
+            dataApiUrl: this.dataApiUrl,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: true,
         }
@@ -996,7 +1001,7 @@ export class Explorer
                     this.mobileCustomizeButton}
                 <div className="ExplorerFigure" ref={this.grapherContainerRef}>
                     <Grapher
-                        adminBaseUrl={ADMIN_BASE_URL}
+                        adminBaseUrl={this.adminBaseUrl}
                         bounds={this.grapherBounds}
                         enableKeyboardShortcuts={true}
                         manager={this}
@@ -1015,7 +1020,7 @@ export class Explorer
     }
 
     @computed get baseUrl() {
-        return `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${this.props.slug}`
+        return `${this.bakedBaseUrl}/${EXPLORERS_ROUTE_FOLDER}/${this.props.slug}`
     }
 
     @computed get canonicalUrl() {

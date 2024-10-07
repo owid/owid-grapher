@@ -28,8 +28,8 @@ import {
     GRID_CELL_DELIMITER,
     GRID_NODE_DELIMITER,
     RootKeywordCellDef,
-} from "../gridLang/GridLangConstants.js"
-import { GridProgram } from "../gridLang/GridProgram.js"
+} from "./gridLang/GridLangConstants.js"
+import { GridProgram } from "./gridLang/GridProgram.js"
 import { ColumnGrammar } from "./ColumnGrammar.js"
 import {
     DefaultNewExplorerSlug,

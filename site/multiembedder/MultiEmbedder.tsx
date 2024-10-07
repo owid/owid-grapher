@@ -24,16 +24,18 @@ import {
 import { action } from "mobx"
 import React from "react"
 import ReactDOM from "react-dom"
-import { Explorer, ExplorerProps } from "../../explorer/Explorer.js"
 import {
+    Explorer,
+    ExplorerProps,
     EMBEDDED_EXPLORER_DELIMITER,
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EMBEDDED_EXPLORER_PARTIAL_GRAPHER_CONFIGS,
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
-} from "../../explorer/ExplorerConstants.js"
+} from "@ourworldindata/explorer"
 import { GRAPHER_PREVIEW_CLASS } from "../SiteConstants.js"
 import {
     ADMIN_BASE_URL,
+    BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     DATA_API_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
@@ -189,6 +191,10 @@ class MultiEmbedder {
             const props: ExplorerProps = {
                 ...common,
                 ...deserializeJSONFromHTML(html, EMBEDDED_EXPLORER_DELIMITER),
+                adminBaseUrl: ADMIN_BASE_URL,
+                bakedBaseUrl: BAKED_BASE_URL,
+                bakedGrapherUrl: BAKED_GRAPHER_URL,
+                dataApiUrl: DATA_API_URL,
                 grapherConfigs,
                 partialGrapherConfigs,
                 queryStr,
