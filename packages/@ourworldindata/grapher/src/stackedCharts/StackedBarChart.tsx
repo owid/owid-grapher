@@ -13,6 +13,7 @@ import {
     min,
     max,
     partition,
+    makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -49,12 +50,13 @@ import {
 } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
-import { ColumnTypeMap } from "@ourworldindata/core-table"
+import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
 import { HorizontalCategoricalColorLegend } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { AxisConfig } from "../axis/AxisConfig.js"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
+    id: string
     bar: StackedPoint<Time>
     series: StackedSeries<Time>
     color: string
@@ -117,6 +119,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 
         return (
             <rect
+                id={this.props.id}
                 ref={this.base}
                 x={xOffset}
                 y={yPos}
@@ -317,12 +320,17 @@ export class StackedBarChart
         return new HorizontalCategoricalColorLegend({ manager: this })
     }
 
+    @computed get formatColumn(): CoreColumn {
+        // we can just use the first column for formatting, b/c we assume all columns have same type
+        return this.yColumns[0]
+    }
+
     @computed get tooltip(): React.ReactElement | undefined {
         const {
             tooltipState: { target, position, fading },
-            yColumns,
             series,
             hoveredTick,
+            formatColumn,
         } = this
 
         const { bar: hoverBar, series: hoverSeries } = target ?? {}
@@ -333,8 +341,7 @@ export class StackedBarChart
             hoverTime = hoveredTick.time
         } else return
 
-        const formatColumn = yColumns[0], // we can just use the first column for formatting, b/c we assume all columns have same type
-            { unit, shortUnit } = formatColumn
+        const { unit, shortUnit } = formatColumn
 
         const totalValue = sum(
             series.map(
@@ -445,56 +452,117 @@ export class StackedBarChart
         this.tooltipState.target = null
     }
 
-    render(): React.ReactElement {
+    renderLegend(): React.ReactElement | void {
         const {
-            manager,
-            dualAxis,
-            renderUid,
-            bounds,
-            tooltip,
-            barWidth,
-            tooltipState: { target },
+            manager: { showLegend },
+            showHorizontalLegend,
         } = this
-        const { series } = this
-        const { innerBounds, verticalAxis, horizontalAxis } = dualAxis
 
-        const dualAxisComponent = (
-            <DualAxisComponent
-                dualAxis={dualAxis}
-                showTickMarks={true}
-                labelColor={manager.secondaryColorInStaticCharts}
-                lineWidth={
-                    manager.isStaticAndSmall
-                        ? GRAPHER_AXIS_LINE_WIDTH_THICK
-                        : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
-                }
-                detailsMarker={manager.detailsMarkerInSvg}
-            />
-        )
+        if (!showLegend) return
 
-        if (this.failMessage)
-            return (
-                <g
-                    className="StackedBarChart"
-                    width={bounds.width}
-                    height={bounds.height}
-                >
-                    {dualAxisComponent}
-                    <NoDataModal
-                        manager={this.manager}
-                        bounds={dualAxis.innerBounds}
-                        message={this.failMessage}
-                    />
-                </g>
-            )
-
-        const clipPath = makeClipPath(renderUid, innerBounds)
-
-        const legend = this.showHorizontalLegend ? (
+        return showHorizontalLegend ? (
             <HorizontalCategoricalColorLegend manager={this} />
         ) : (
             <VerticalColorLegend manager={this} />
         )
+    }
+
+    renderAxis(): React.ReactElement {
+        const { manager } = this
+
+        const lineWidth = manager.isStaticAndSmall
+            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+
+        return (
+            <DualAxisComponent
+                dualAxis={this.dualAxis}
+                showTickMarks={true}
+                labelColor={manager.secondaryColorInStaticCharts}
+                lineWidth={lineWidth}
+                detailsMarker={manager.detailsMarkerInSvg}
+            />
+        )
+    }
+
+    renderBars(): React.ReactElement {
+        const {
+            dualAxis,
+            barWidth,
+            tooltipState: { target },
+        } = this
+        const { verticalAxis, horizontalAxis } = dualAxis
+
+        return (
+            <>
+                {this.series.map((series, index) => {
+                    const isLegendHovered = this.hoverKeys.includes(
+                        series.seriesName
+                    )
+                    const opacity =
+                        isLegendHovered || this.hoverKeys.length === 0
+                            ? GRAPHER_AREA_OPACITY_DEFAULT
+                            : 0.2
+
+                    return (
+                        <g
+                            key={index}
+                            id={makeIdForHumanConsumption(series.seriesName)}
+                            className={
+                                makeSafeForCSS(series.seriesName) + "-segments"
+                            }
+                        >
+                            {series.points.map((bar, index) => {
+                                const xPos =
+                                    horizontalAxis.place(bar.position) -
+                                    this.barWidth / 2
+                                const barOpacity =
+                                    bar === target?.bar ? 1 : opacity
+
+                                return (
+                                    <StackedBarSegment
+                                        key={index}
+                                        id={makeIdForHumanConsumption(
+                                            this.formatColumn.formatTime(
+                                                bar.time
+                                            )
+                                        )}
+                                        bar={bar}
+                                        color={bar.color ?? series.color}
+                                        xOffset={xPos}
+                                        opacity={barOpacity}
+                                        yAxis={verticalAxis}
+                                        series={series}
+                                        onBarMouseOver={this.onBarMouseOver}
+                                        onBarMouseLeave={this.onBarMouseLeave}
+                                        barWidth={barWidth}
+                                    />
+                                )
+                            })}
+                        </g>
+                    )
+                })}
+            </>
+        )
+    }
+
+    renderStatic(): React.ReactElement {
+        return (
+            <>
+                {this.renderAxis()}
+                <g id={makeIdForHumanConsumption("bars")}>
+                    {this.renderBars()}
+                </g>
+                {this.renderLegend()}
+            </>
+        )
+    }
+
+    renderInteractive(): React.ReactElement {
+        const { dualAxis, renderUid, bounds } = this
+        const { innerBounds } = dualAxis
+
+        const clipPath = makeClipPath(renderUid, innerBounds)
 
         return (
             <g
@@ -504,7 +572,6 @@ export class StackedBarChart
                 onMouseMove={this.onMouseMove}
             >
                 {clipPath.element}
-
                 <rect
                     x={bounds.left}
                     y={bounds.top}
@@ -513,60 +580,36 @@ export class StackedBarChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-
-                {dualAxisComponent}
-
-                <g clipPath={clipPath.id}>
-                    {series.map((series, index) => {
-                        const isLegendHovered = this.hoverKeys.includes(
-                            series.seriesName
-                        )
-                        const opacity =
-                            isLegendHovered || this.hoverKeys.length === 0
-                                ? GRAPHER_AREA_OPACITY_DEFAULT
-                                : 0.2
-
-                        return (
-                            <g
-                                key={index}
-                                className={
-                                    makeSafeForCSS(series.seriesName) +
-                                    "-segments"
-                                }
-                            >
-                                {series.points.map((bar, index) => {
-                                    const xPos =
-                                        horizontalAxis.place(bar.position) -
-                                        this.barWidth / 2
-                                    const barOpacity =
-                                        bar === target?.bar ? 1 : opacity
-
-                                    return (
-                                        <StackedBarSegment
-                                            key={index}
-                                            bar={bar}
-                                            color={bar.color ?? series.color}
-                                            xOffset={xPos}
-                                            opacity={barOpacity}
-                                            yAxis={verticalAxis}
-                                            series={series}
-                                            onBarMouseOver={this.onBarMouseOver}
-                                            onBarMouseLeave={
-                                                this.onBarMouseLeave
-                                            }
-                                            barWidth={barWidth}
-                                        />
-                                    )
-                                })}
-                            </g>
-                        )
-                    })}
-                </g>
-
-                {this.manager.showLegend && legend}
-                {tooltip}
+                {this.renderAxis()}
+                <g clipPath={clipPath.id}>{this.renderBars()}</g>
+                {this.renderLegend()}
+                {this.tooltip}
             </g>
         )
+    }
+
+    render(): React.ReactElement {
+        const { dualAxis, bounds } = this
+
+        if (this.failMessage)
+            return (
+                <g
+                    className="StackedBarChart"
+                    width={bounds.width}
+                    height={bounds.height}
+                >
+                    {this.renderAxis()}
+                    <NoDataModal
+                        manager={this.manager}
+                        bounds={dualAxis.innerBounds}
+                        message={this.failMessage}
+                    />
+                </g>
+            )
+
+        return this.manager.isStatic
+            ? this.renderStatic()
+            : this.renderInteractive()
     }
 
     @computed get categoryLegendY(): number {
