@@ -62,9 +62,9 @@ export function gdocFromJSON(
         )
     }
 
-    json.createdAt = new Date(json.createdAt)
+    json.createdAt = json.createdAt ? new Date(json.createdAt) : null
     json.publishedAt = json.publishedAt ? new Date(json.publishedAt) : null
-    json.updatedAt = new Date(json.updatedAt)
+    json.updatedAt = json.updatedAt ? new Date(json.updatedAt) : null
 
     return match(type)
         .with(
@@ -211,7 +211,7 @@ export async function getAllMinimalGdocBaseObjects(
                 content ->> '$.subtitle' as subtitle,
                 content ->> '$.excerpt' as excerpt,
                 type,
-                CASE 
+                CASE
                     WHEN content ->> '$."deprecation-notice"' IS NOT NULL THEN '${ARCHVED_THUMBNAIL_FILENAME}'
                     ELSE content ->> '$."featured-image"'
                 END as "featured-image"

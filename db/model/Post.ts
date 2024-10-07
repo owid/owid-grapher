@@ -330,7 +330,9 @@ export const mapGdocsToWordpressPosts = (
         slug: gdoc.slug,
         type: gdoc.content.type,
         date: gdoc.publishedAt as Date,
-        modifiedDate: gdoc.updatedAt as Date,
+        modifiedDate: gdoc.updatedAt
+            ? new Date(gdoc.updatedAt)
+            : new Date(gdoc.publishedAt as Date),
         authors: gdoc.content.authors,
         excerpt: gdoc.content["atom-excerpt"] || gdoc.content.excerpt,
         imageUrl: getGdocThumbnail(gdoc),
@@ -636,7 +638,7 @@ export const getLatestWorkByAuthor = async (
             pg.content->>'$.subtitle' AS subtitle,
             pg.content->>'$.authors' AS authors,
             pg.publishedAt,
-            CASE 
+            CASE
                 WHEN content ->> '$."deprecation-notice"' IS NOT NULL THEN '${ARCHVED_THUMBNAIL_FILENAME}'
                 ELSE content ->> '$."featured-image"'
             END as "featured-image"
