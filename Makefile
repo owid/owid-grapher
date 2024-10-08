@@ -156,6 +156,11 @@ sync-images: sync-images.preflight-check
 
 refresh.full: refresh refresh.pageviews sync-images
 	@echo '==> Full refresh completed'
+	@make bake-images
+
+bake-images: itsJustJavascript
+	@echo '==> Baking images'
+	@yarn buildLocalBake --steps gdriveImages
 
 sync-images.preflight-check:
 	@echo '==> Checking for rclone'
