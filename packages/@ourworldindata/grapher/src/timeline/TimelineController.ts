@@ -10,7 +10,8 @@ export interface TimelineManager {
     disablePlay?: boolean
     formatTimeFn?: (time: Time) => string
     isPlaying?: boolean
-    userHasSetTimeline?: boolean
+    isTimelineAnimationActive?: boolean
+    animationStartTime?: Time
     times: Time[]
     startHandleTimeBound: TimeBound
     endHandleTimeBound: TimeBound
@@ -80,19 +81,24 @@ export class TimelineController {
         return this.endTime === this.maxTime
     }
 
-    private resetToBeginning(): void {
+    private get beginning(): number {
         const { manager } = this
-        const beginning =
-            manager.endHandleTimeBound !== manager.startHandleTimeBound
-                ? manager.startHandleTimeBound
-                : this.minTime
-        manager.endHandleTimeBound = beginning
-        manager.startHandleTimeBound = beginning
+        return manager.endHandleTimeBound !== manager.startHandleTimeBound
+            ? manager.startHandleTimeBound
+            : this.minTime
+    }
+
+    private resetToBeginning(): void {
+        const { beginning } = this
+        this.manager.endHandleTimeBound = beginning
+        this.manager.startHandleTimeBound = beginning
     }
 
     async play(numberOfTicks?: number): Promise<number> {
         const { manager } = this
+
         manager.isPlaying = true
+        manager.isTimelineAnimationActive = true
 
         if (this.isAtEnd()) this.resetToBeginning()
 
@@ -137,13 +143,25 @@ export class TimelineController {
 
     private stop(): void {
         this.manager.isPlaying = false
+        this.manager.isTimelineAnimationActive = false
+        this.manager.animationStartTime = undefined
     }
 
     private pause(): void {
         this.manager.isPlaying = false
     }
 
+    onDrag(): void {
+        this.stop()
+    }
+
     async togglePlay(): Promise<void> {
+        if (!this.manager.isTimelineAnimationActive) {
+            this.manager.animationStartTime = this.isAtEnd()
+                ? findClosestTime(this.timesAsc, this.beginning)!
+                : this.startTime
+        }
+
         if (this.manager.isPlaying) this.pause()
         else await this.play()
     }
