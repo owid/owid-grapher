@@ -14,6 +14,7 @@ import {
     GdocAuthorSettings,
 } from "./GdocsSettingsForms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
+import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     checkIsPlainObjectWithGuard,
     dayjs,
@@ -245,7 +246,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                         new Date() ? (
                                             <>
                                                 <a
-                                                    href={`${BAKED_BASE_URL}/${currentGdoc.slug}`}
+                                                    href={getCanonicalUrl(
+                                                        BAKED_BASE_URL,
+                                                        currentGdoc
+                                                    )}
                                                 >
                                                     View live
                                                 </a>
