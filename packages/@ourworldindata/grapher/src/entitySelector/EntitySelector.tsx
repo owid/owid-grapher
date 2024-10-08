@@ -56,10 +56,8 @@ export interface EntitySelectorState {
     searchInput: string
     sortConfig: SortConfig
     localEntityNames?: string[]
-    mostRecentlySelectedEntityName?: string
     externalSortColumnsByIndicatorId?: Record<number, CoreColumn>
     isLoadingExternalSortColumn?: boolean
-    isAnimationDisabledInSingleMode?: boolean
 }
 
 export interface EntitySelectorManager {
@@ -148,16 +146,6 @@ export class EntitySelector extends React.Component<{
 
         if (this.props.autoFocus && !isTouchDevice())
             this.searchField.current?.focus()
-
-        // disable animation in single mode when all entities are visible
-        if (this.contentRef.current && this.scrollableContainer.current) {
-            const shouldAnimationBeDisabled =
-                this.contentRef.current.clientHeight <=
-                this.scrollableContainer.current.clientHeight - 56 // 56px is the height of the sort bar
-            this.set({
-                isAnimationDisabledInSingleMode: shouldAnimationBeDisabled,
-            })
-        }
 
         // scroll to the top when the search input changes
         reaction(
@@ -265,10 +253,6 @@ export class EntitySelector extends React.Component<{
         return this.manager.entitySelectorState.searchInput ?? ""
     }
 
-    @computed private get mostRecentlySelectedEntityName(): string | undefined {
-        return this.manager.entitySelectorState.mostRecentlySelectedEntityName
-    }
-
     @computed private get sortConfig(): SortConfig {
         return (
             this.manager.entitySelectorState.sortConfig ??
@@ -297,13 +281,6 @@ export class EntitySelector extends React.Component<{
     @computed private get isLoadingExternalSortColumn(): boolean {
         return (
             this.manager.entitySelectorState.isLoadingExternalSortColumn ??
-            false
-        )
-    }
-
-    @computed private get isAnimationDisabledInSingleMode(): boolean {
-        return (
-            this.manager.entitySelectorState.isAnimationDisabledInSingleMode ??
             false
         )
     }
@@ -615,8 +592,6 @@ export class EntitySelector extends React.Component<{
             this.selectionArray.setSelectedEntities([entityName])
         }
 
-        this.set({ mostRecentlySelectedEntityName: entityName })
-
         this.clearSearchInput()
     }
 
@@ -807,76 +782,22 @@ export class EntitySelector extends React.Component<{
 
     private renderAllEntitiesInSingleMode(): React.ReactElement {
         const { sortedAvailableEntities } = this
-        const { selected, unselected } = this.partitionedAvailableEntities
-
-        if (this.isAnimationDisabledInSingleMode) {
-            return (
-                <ul>
-                    {sortedAvailableEntities.map((entity) => (
-                        <li key={entity.name}>
-                            <SelectableEntity
-                                name={entity.name}
-                                type="radio"
-                                checked={this.isEntitySelected(entity)}
-                                bar={this.getBarConfigForEntity(entity)}
-                                onChange={() => this.onChange(entity.name)}
-                                local={entity.local}
-                            />
-                        </li>
-                    ))}
-                </ul>
-            )
-        }
 
         return (
-            <Flipper
-                spring={{
-                    stiffness: 300,
-                    damping: 33,
-                }}
-                flipKey={this.selectionArray.selectedEntityNames.join(",")}
-            >
-                <ul>
-                    {selected.map((entity, entityIndex) => (
-                        <FlippedListItem
-                            index={entityIndex}
-                            key={entity.name}
-                            flipId={entity.name}
-                            mostRecentlySelectedFlipId={
-                                this.mostRecentlySelectedEntityName
-                            }
-                        >
-                            <SelectableEntity
-                                name={entity.name}
-                                type="radio"
-                                checked={true}
-                                bar={this.getBarConfigForEntity(entity)}
-                                onChange={() => this.onChange(entity.name)}
-                                local={entity.local}
-                            />
-                        </FlippedListItem>
-                    ))}
-                    {unselected.map((entity, entityIndex) => (
-                        <FlippedListItem
-                            index={entityIndex}
-                            key={entity.name}
-                            flipId={entity.name}
-                            mostRecentlySelectedFlipId={
-                                this.mostRecentlySelectedEntityName
-                            }
-                        >
-                            <SelectableEntity
-                                name={entity.name}
-                                type="radio"
-                                checked={false}
-                                bar={this.getBarConfigForEntity(entity)}
-                                onChange={() => this.onChange(entity.name)}
-                                local={entity.local}
-                            />
-                        </FlippedListItem>
-                    ))}
-                </ul>
-            </Flipper>
+            <ul>
+                {sortedAvailableEntities.map((entity) => (
+                    <li key={entity.name}>
+                        <SelectableEntity
+                            name={entity.name}
+                            type="radio"
+                            checked={this.isEntitySelected(entity)}
+                            bar={this.getBarConfigForEntity(entity)}
+                            onChange={() => this.onChange(entity.name)}
+                            local={entity.local}
+                        />
+                    </li>
+                ))}
+            </ul>
         )
     }
 
@@ -915,6 +836,7 @@ export class EntitySelector extends React.Component<{
     }
 
     private renderAllEntitiesInMultiMode(): React.ReactElement {
+        const { sortedAvailableEntities } = this
         const { selected, unselected } = this.partitionedAvailableEntities
 
         return (
@@ -938,10 +860,7 @@ export class EntitySelector extends React.Component<{
                             <FlippedListItem
                                 index={entityIndex}
                                 key={entity.name}
-                                flipId={entity.name}
-                                mostRecentlySelectedFlipId={
-                                    this.mostRecentlySelectedEntityName
-                                }
+                                flipId={"selected_" + entity.name}
                             >
                                 <SelectableEntity
                                     name={entity.name}
@@ -966,19 +885,16 @@ export class EntitySelector extends React.Component<{
                     )}
 
                     <ul>
-                        {unselected.map((entity, entityIndex) => (
+                        {sortedAvailableEntities.map((entity, entityIndex) => (
                             <FlippedListItem
                                 index={entityIndex}
                                 key={entity.name}
-                                flipId={entity.name}
-                                mostRecentlySelectedFlipId={
-                                    this.mostRecentlySelectedEntityName
-                                }
+                                flipId={"available_" + entity.name}
                             >
                                 <SelectableEntity
                                     name={entity.name}
                                     type="checkbox"
-                                    checked={false}
+                                    checked={this.isEntitySelected(entity)}
                                     bar={this.getBarConfigForEntity(entity)}
                                     onChange={() => this.onChange(entity.name)}
                                     local={entity.local}
@@ -1093,15 +1009,6 @@ function SelectableEntity({
             className={cx("selectable-entity", {
                 "selectable-entity--with-bar": bar && bar.width !== undefined,
             })}
-            // can't use :hover because an element keeps its hover style while it's animated
-            onMouseEnter={(e) => e.currentTarget.classList.add("hovered")}
-            onMouseLeave={(e) => e.currentTarget.classList.remove("hovered")}
-            // make the whole row clickable
-            onClickCapture={(e) => {
-                e.stopPropagation()
-                e.preventDefault()
-                onChange()
-            }}
         >
             {bar && bar.width !== undefined && (
                 <div className="bar" style={{ width: `${bar.width * 100}%` }} />
@@ -1118,12 +1025,10 @@ function SelectableEntity({
 
 function FlippedListItem({
     flipId,
-    mostRecentlySelectedFlipId,
     index = 0,
     children,
 }: {
     flipId: string
-    mostRecentlySelectedFlipId?: string
     index?: number
     children: React.ReactNode
 }) {
@@ -1137,14 +1042,7 @@ function FlippedListItem({
                 damping: 33,
             }}
         >
-            <li
-                className={cx("flipped", {
-                    "most-recently-selected":
-                        mostRecentlySelectedFlipId === flipId,
-                })}
-            >
-                {children}
-            </li>
+            <li className={cx("flipped")}>{children}</li>
         </Flipped>
     )
 }
