@@ -191,7 +191,6 @@ export interface CoreColumnDef extends ColumnColorScale {
     // Core
     slug: ColumnSlug
     type?: ColumnTypeNames
-    catalogPath?: string
 
     // Computational
     transform?: string // Code that maps to a CoreTable transform

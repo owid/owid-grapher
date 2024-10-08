@@ -2,7 +2,7 @@ import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartDimension } from "@ourworldindata/grapher"
-import { OwidVariableRoundingMode } from "@ourworldindata/types"
+import { OwidColumnDef, OwidVariableRoundingMode } from "@ourworldindata/types"
 import { copyToClipboard, startCase } from "@ourworldindata/utils"
 import { DimensionErrorMessage } from "./ChartEditorTypes.js"
 import {
@@ -110,6 +110,7 @@ export class DimensionCard<
         const { dimension, editor, isDndEnabled } = this.props
         const { grapher } = editor
         const { column } = dimension
+        const columnDef = column.def as OwidColumnDef
 
         return (
             <div className="DimensionCard list-group-item">
@@ -166,17 +167,15 @@ export class DimensionCard<
                     <div>
                         <TextAreaField
                             label="Catalog path"
-                            value={column.def.catalogPath ?? "(none)"}
+                            value={columnDef.catalogPath ?? "(none)"}
                             disabled
                             rows={undefined}
                             buttonContent={<FontAwesomeIcon icon={faCopy} />}
                             onButtonClick={async () => {
-                                if (column.def.catalogPath)
-                                    await copyToClipboard(
-                                        column.def.catalogPath
-                                    )
+                                if (columnDef.catalogPath)
+                                    await copyToClipboard(columnDef.catalogPath)
                             }}
-                            buttonDisabled={!column.def.catalogPath}
+                            buttonDisabled={!columnDef.catalogPath}
                         />
                         <BindAutoString
                             label="Display name"
