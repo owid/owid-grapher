@@ -2,8 +2,8 @@ import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartDimension } from "@ourworldindata/grapher"
-import { OwidVariableRoundingMode } from "@ourworldindata/types"
-import { startCase } from "@ourworldindata/utils"
+import { OwidColumnDef, OwidVariableRoundingMode } from "@ourworldindata/types"
+import { copyToClipboard, startCase } from "@ourworldindata/utils"
 import { DimensionErrorMessage } from "./ChartEditorTypes.js"
 import {
     Toggle,
@@ -11,6 +11,7 @@ import {
     BindAutoFloat,
     ColorBox,
     SelectField,
+    TextAreaField,
 } from "./Forms.js"
 import { Link } from "./Link.js"
 import {
@@ -19,6 +20,7 @@ import {
     faRightLeft,
     faTimes,
     faArrowsAltV,
+    faCopy,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidTable } from "@ourworldindata/core-table"
@@ -108,6 +110,7 @@ export class DimensionCard<
         const { dimension, editor, isDndEnabled } = this.props
         const { grapher } = editor
         const { column } = dimension
+        const columnDef = column.def as OwidColumnDef
 
         return (
             <div className="DimensionCard list-group-item">
@@ -162,6 +165,18 @@ export class DimensionCard<
                 </header>
                 {this.isExpanded && (
                     <div>
+                        <TextAreaField
+                            label="Catalog path"
+                            value={columnDef.catalogPath ?? "(none)"}
+                            disabled
+                            rows={undefined}
+                            buttonContent={<FontAwesomeIcon icon={faCopy} />}
+                            onButtonClick={async () => {
+                                if (columnDef.catalogPath)
+                                    await copyToClipboard(columnDef.catalogPath)
+                            }}
+                            buttonDisabled={!columnDef.catalogPath}
+                        />
                         <BindAutoString
                             label="Display name"
                             field="name"
