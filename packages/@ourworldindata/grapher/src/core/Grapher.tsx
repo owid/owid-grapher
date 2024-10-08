@@ -850,7 +850,10 @@ export class Grapher
     @observable.ref isExportingToSvgOrPng = false
 
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
-    @observable isPlaying = false
+
+    @observable.ref isPlaying = false
+    @observable.ref isTimelineAnimationActive = false // true if the timeline animation is either playing or paused but not finished
+    @observable.ref animationStartTime: Time | undefined = undefined
 
     @observable.ref isEntitySelectorModalOrDrawerOpen = false
 
@@ -1190,6 +1193,10 @@ export class Grapher
     }
 
     @computed private get onlySingleTimeSelectionPossible(): boolean {
+        // scatter plots should not be animated as time scatter
+        if (this.isPlaying && this.isScatter && !this.isRelativeMode)
+            return true
+
         return (
             this.isDiscreteBar ||
             this.isStackedDiscreteBar ||
@@ -3249,6 +3256,17 @@ export class Grapher
 
     @computed get disablePlay(): boolean {
         return this.isSlopeChart
+    }
+
+    @computed get animationEndTime(): Time {
+        const { timeColumn } = this.tableAfterAuthorTimelineFilter
+        if (this.timelineMaxTime) {
+            return (
+                findClosestTime(timeColumn.uniqValues, this.timelineMaxTime) ??
+                timeColumn.maxTime
+            )
+        }
+        return timeColumn.maxTime
     }
 
     formatTime(value: Time): string {
