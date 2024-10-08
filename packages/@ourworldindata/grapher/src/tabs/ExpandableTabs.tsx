@@ -9,14 +9,14 @@ export const ExpandableTabs = ({
     activeIndex,
     setActiveIndex,
     isExpandedDefault = false,
-    getVisibleLabels = (labels: string[]) => labels.slice(0, 3),
+    getVisibleLabels = (labels: React.ReactElement[]) => labels.slice(0, 3),
     maxTabWidth = 240,
 }: {
-    labels: string[]
+    labels: React.ReactElement[]
     activeIndex: number
     setActiveIndex: (index: number) => void
     isExpandedDefault?: boolean
-    getVisibleLabels?: (tabLabels: string[]) => string[]
+    getVisibleLabels?: (tabLabels: React.ReactElement[]) => React.ReactElement[]
     maxTabWidth?: number | null // if null, don't clip labels
 }) => {
     const [isExpanded, setExpanded] = useState(isExpandedDefault)

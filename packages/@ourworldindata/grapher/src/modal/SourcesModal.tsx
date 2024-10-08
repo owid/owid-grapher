@@ -25,7 +25,7 @@ import {
     CLOSE_BUTTON_WIDTH,
     CloseButton,
 } from "@ourworldindata/components"
-import React from "react"
+import React, { ReactElement } from "react"
 import cx from "classnames"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
@@ -46,6 +46,7 @@ const MAX_CONTENT_WIDTH = 640
 const TAB_PADDING = 16
 const TAB_FONT_SIZE = 13
 const TAB_GAP = 8
+const TAB_TITLE_SPACING = 8
 
 export interface SourcesModalManager {
     isReady?: boolean
@@ -112,10 +113,32 @@ export class SourcesModal extends React.Component<
         return this.manager.columnsWithSourcesExtensive
     }
 
-    @computed private get tabLabels(): string[] {
-        return this.columns.map(
-            (column) => column.titlePublicOrDisplayName.title
-        )
+    @computed private get tabLabels(): ReactElement[] {
+        return this.columns.map((column) => {
+            const attribution = joinTitleFragments(
+                column.titlePublicOrDisplayName.attributionShort,
+                column.titlePublicOrDisplayName.titleVariant
+            )
+            return (
+                <React.Fragment key={column.slug}>
+                    {column.titlePublicOrDisplayName.title}
+                    {attribution && (
+                        <span className="attribution">{attribution}</span>
+                    )}
+                </React.Fragment>
+            )
+        })
+    }
+
+    @computed private get tabLabelWidths(): number[] {
+        return this.columns.map((column) => {
+            const title = `${column.titlePublicOrDisplayName.title}`
+            const fragments = joinTitleFragments(
+                column.titlePublicOrDisplayName.attributionShort,
+                column.titlePublicOrDisplayName.titleVariant
+            )
+            return measureTabWidth(title, fragments) + TAB_GAP
+        })
     }
 
     private renderSource(
@@ -162,12 +185,8 @@ export class SourcesModal extends React.Component<
             this.modalBounds.width - 2 * this.modalPadding - 10 // wiggle room
         )
 
-        const labelWidths = this.tabLabels.map(
-            (label) => measureTabWidth(label) + TAB_GAP
-        )
-
         // check if all tab labels fit into a single line
-        if (sum(labelWidths) <= maxWidth) {
+        if (sum(this.tabLabelWidths) <= maxWidth) {
             return (
                 <Tabs
                     labels={this.tabLabels}
@@ -178,8 +197,8 @@ export class SourcesModal extends React.Component<
             )
         }
 
-        const clippedLabelWidths = this.tabLabels.map(
-            (label) => Math.min(measureTabWidth(label), maxTabWidth) + TAB_GAP
+        const clippedLabelWidths = this.tabLabelWidths.map((labelWidth) =>
+            Math.min(labelWidth, maxTabWidth + TAB_GAP)
         )
 
         // check if all tab labels fit into a single line when they are clipped
@@ -195,18 +214,20 @@ export class SourcesModal extends React.Component<
         }
 
         // compute the subset of tabs that fit into a single line
-        const getVisibleLabels = (labels: string[]) => {
+        const getVisibleLabels = (
+            labels: React.ReactElement[]
+        ): React.ReactElement[] => {
             // take width of the "Show more" button into account
             let width =
                 measureTabWidth("Show more") +
                 13 + // icon width
                 6 // icon padding
 
-            const visibleLabels: string[] = []
+            const visibleLabels: React.ReactElement[] = []
             for (const [label, labelWidth] of zip(labels, clippedLabelWidths)) {
                 width += labelWidth as number
                 if (width > maxWidth) break
-                visibleLabels.push(label as string)
+                visibleLabels.push(label as React.ReactElement)
             }
 
             return visibleLabels
@@ -493,10 +514,16 @@ export class Source extends React.Component<{
     }
 }
 
-const measureTabWidth = (label: string): number => {
-    return (
-        2 * TAB_PADDING +
-        Bounds.forText(label, { fontSize: TAB_FONT_SIZE }).width +
-        2 // border
-    )
+const measureTabWidth = (label: string, secondary?: string): number => {
+    const getWidth = (text: string) =>
+        Bounds.forText(text, { fontSize: TAB_FONT_SIZE }).width
+
+    const labelWidth = getWidth(label)
+    const secondaryTextWidth = secondary
+        ? getWidth(secondary) + TAB_TITLE_SPACING
+        : 0
+    const padding = 2 * TAB_PADDING
+    const borderWidth = 2
+
+    return labelWidth + secondaryTextWidth + padding + borderWidth
 }
