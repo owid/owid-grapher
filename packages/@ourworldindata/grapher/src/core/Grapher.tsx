@@ -712,12 +712,10 @@ export class Grapher
             const seriesStrategy =
                 this.chartInstance.seriesStrategy ||
                 autoDetectSeriesStrategy(this, true)
-            const hasSingleEntity =
-                this.selection.selectedEntityNames.length === 1 &&
-                (this.hideEntityControls || !this.canAddEntities)
+            const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
+            const hasSingleEntity = this.selection.numSelectedEntities === 1
             const hideLegend =
-                this.hideLegend ||
-                (seriesStrategy === SeriesStrategy.entity && hasSingleEntity)
+                this.hideLegend || (isEntityStrategy && hasSingleEntity)
             return !hideLegend
         }
 
@@ -3294,6 +3292,7 @@ export class Grapher
             this.canSelectMultipleEntities &&
             (this.isLineChart ||
                 this.isStackedArea ||
+                this.isStackedBar ||
                 this.isDiscreteBar ||
                 this.isStackedDiscreteBar)
         )
