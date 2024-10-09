@@ -78,14 +78,6 @@ export const WithComparisonLinesAndSelection = (): React.ReactElement => {
             <svg {...size}>
                 <ScatterPlotChart manager={manager} />
             </svg>
-            <svg {...size}>
-                <ScatterPlotChart
-                    manager={{
-                        ...manager,
-                        backgroundSeriesLimit: 10,
-                    }}
-                />
-            </svg>
         </>
     )
 }
