@@ -2584,6 +2584,13 @@ export class Grapher
         )
             return this.selectedFacetStrategy
 
+        if (
+            this.addCountryMode === EntitySelectionMode.SingleEntity &&
+            this.selection.selectedEntityNames.length > 1
+        ) {
+            return FacetStrategy.entity
+        }
+
         return firstOfNonEmptyArray(this.availableFacetStrategies)
     }
 
