@@ -1,5 +1,6 @@
 import fs from "fs-extra"
 import path from "path"
+import Bugsnag from "@bugsnag/js"
 import { glob } from "glob"
 import { keyBy, without, uniq, mapValues, pick, chunk } from "lodash"
 import ProgressBar from "progress"
@@ -10,6 +11,7 @@ import {
     GDOCS_DETAILS_ON_DEMAND_ID,
     BAKED_GRAPHER_URL,
     FEATURE_FLAGS,
+    BUGSNAG_NODE_API_KEY,
 } from "../settings/serverSettings.js"
 
 import {
@@ -209,6 +211,13 @@ export class SiteBaker {
             }
         )
         this.explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+        if (BUGSNAG_NODE_API_KEY) {
+            Bugsnag.start({
+                apiKey: BUGSNAG_NODE_API_KEY,
+                context: "site-baker",
+                autoTrackSessions: false,
+            })
+        }
     }
 
     private async bakeEmbeds(knex: db.KnexReadonlyTransaction) {
@@ -631,17 +640,13 @@ export class SiteBaker {
             }
 
             await publishedGdoc.validate(knex)
-            if (
-                publishedGdoc.errors.filter(
-                    (e) => e.type === OwidGdocErrorMessageType.Error
-                ).length
-            ) {
+            for (const errorOrWarning of publishedGdoc.errors) {
+                const announcement =
+                    errorOrWarning.type === OwidGdocErrorMessageType.Error
+                        ? `Error baking "${publishedGdoc.slug}"`
+                        : `Warning baking "${publishedGdoc.slug}"`
                 await logErrorAndMaybeSendToBugsnag(
-                    `Error(s) baking "${
-                        publishedGdoc.slug
-                    }" :\n  ${publishedGdoc.errors
-                        .map((error) => error.message)
-                        .join("\n  ")}`
+                    `${announcement}: ${errorOrWarning.message}`
                 )
             }
             try {
