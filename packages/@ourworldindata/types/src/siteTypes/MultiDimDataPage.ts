@@ -1,11 +1,16 @@
 import { OwidEnrichedGdocBlock } from "../gdocTypes/ArchieMlComponents.js"
 import { PrimaryTopic } from "../gdocTypes/Datapage.js"
 import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
-import { IndicatorTitleWithFragments } from "../OwidVariable.js"
+import {
+    IndicatorTitleWithFragments,
+    OwidVariableWithSource,
+} from "../OwidVariable.js"
 
 // Indicator ID, catalog path, or maybe an array of those
 export type IndicatorEntryBeforePreProcessing = string | number | undefined
 export type IndicatorEntryAfterPreProcessing = number | undefined // catalog paths have been resolved to indicator IDs
+
+type Metadata = Omit<OwidVariableWithSource, "id">
 
 interface MultiDimDataPageConfigType<
     IndicatorType extends Record<string, any>,
@@ -16,6 +21,7 @@ interface MultiDimDataPageConfigType<
     // commonIndicatorPathPrefix?: string
     dimensions: Dimension[]
     views: View<IndicatorType>[]
+    metadata?: Metadata
 }
 
 export type MultiDimDataPageConfigRaw =
@@ -66,6 +72,7 @@ export interface View<IndicatorsType extends Record<string, any>> {
     dimensions: MultiDimDimensionChoices
     indicators: IndicatorsType
     config?: GrapherInterface
+    metadata?: Metadata
 }
 export type MultiDimDimensionChoices = Record<string, string> // Keys: dimension slugs, values: choice slugs
 
