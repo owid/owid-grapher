@@ -23,7 +23,7 @@ async function downloadAndInsertCSV(
     // exists because `make refresh` uses MySQL dump that excludes analytics_pageviews
     // table. That's why it's necessary to call `make refresh.pageviews` separately.
     const csvUrl =
-        "http://datasette-private/owid/analytics_pageviews.csv?_size=max"
+        "http://analytics/private/analytics_pageviews.csv?_stream=on&_size=max"
     const response = await fetch(csvUrl)
 
     if (!response.ok) {
