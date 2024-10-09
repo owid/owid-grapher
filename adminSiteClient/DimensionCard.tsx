@@ -3,7 +3,7 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartDimension } from "@ourworldindata/grapher"
 import { OwidColumnDef, OwidVariableRoundingMode } from "@ourworldindata/types"
-import { copyToClipboard, startCase } from "@ourworldindata/utils"
+import { startCase } from "@ourworldindata/utils"
 import { DimensionErrorMessage } from "./ChartEditorTypes.js"
 import {
     Toggle,
@@ -11,7 +11,7 @@ import {
     BindAutoFloat,
     ColorBox,
     SelectField,
-    TextAreaField,
+    CatalogPathField,
 } from "./Forms.js"
 import { Link } from "./Link.js"
 import {
@@ -20,7 +20,6 @@ import {
     faRightLeft,
     faTimes,
     faArrowsAltV,
-    faCopy,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidTable } from "@ourworldindata/core-table"
@@ -165,18 +164,7 @@ export class DimensionCard<
                 </header>
                 {this.isExpanded && (
                     <div>
-                        <TextAreaField
-                            label="Catalog path"
-                            value={columnDef.catalogPath ?? "(none)"}
-                            disabled
-                            rows={undefined}
-                            buttonContent={<FontAwesomeIcon icon={faCopy} />}
-                            onButtonClick={async () => {
-                                if (columnDef.catalogPath)
-                                    await copyToClipboard(columnDef.catalogPath)
-                            }}
-                            buttonDisabled={!columnDef.catalogPath}
-                        />
+                        <CatalogPathField catalogPath={columnDef.catalogPath} />
                         <BindAutoString
                             label="Display name"
                             field="name"

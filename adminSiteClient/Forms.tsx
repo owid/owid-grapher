@@ -10,7 +10,13 @@ import { action } from "mobx"
 import { observer } from "mobx-react"
 import cx from "classnames"
 
-import { pick, capitalize, dayjs, Tippy } from "@ourworldindata/utils"
+import {
+    pick,
+    capitalize,
+    dayjs,
+    Tippy,
+    copyToClipboard,
+} from "@ourworldindata/utils"
 import { Colorpicker } from "./Colorpicker.js"
 import {
     faCog,
@@ -19,6 +25,7 @@ import {
     faUnlink,
     faExclamationTriangle,
     faCircleInfo,
+    faCopy,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
@@ -1238,6 +1245,71 @@ export class Modal extends React.Component<{
             </div>
         )
     }
+}
+
+export const CatalogPathField = ({
+    catalogPath,
+}: {
+    catalogPath: string | undefined
+}) => {
+    let tokenizedCatalogPath: React.ReactNode
+
+    if (!catalogPath)
+        tokenizedCatalogPath = <span style={{ color: "gray" }}>(none)</span>
+    else {
+        const [datasetName, indicatorName] = catalogPath.split("#")
+
+        if (!datasetName || !indicatorName) tokenizedCatalogPath = catalogPath
+
+        // Tokenize, color and word-break any slashes, underscores, and hashes
+        tokenizedCatalogPath = (
+            <>
+                {[...datasetName].map((char, i) => {
+                    if (char === "/")
+                        return (
+                            <span key={i} style={{ color: "gray" }}>
+                                <wbr />/
+                            </span>
+                        )
+                    return char
+                })}
+                <span style={{ color: "#91577c" }}>
+                    <wbr />#
+                </span>
+                <span style={{ color: "#2162e6" }}>
+                    {[...indicatorName].map((char, i) => {
+                        if (char === "_")
+                            return (
+                                <span key={i}>
+                                    <wbr />_
+                                </span>
+                            )
+                        return char
+                    })}
+                </span>
+            </>
+        )
+    }
+
+    return (
+        <div className="form-group catalog-path-field">
+            <label>Catalog path</label>
+            <div className="input-group">
+                <pre className="form-control">{tokenizedCatalogPath}</pre>
+                <div className="input-group-append">
+                    <button
+                        className="btn btn-outline-secondary"
+                        onClick={async () =>
+                            catalogPath && (await copyToClipboard(catalogPath))
+                        }
+                        disabled={!catalogPath}
+                    >
+                        <FontAwesomeIcon icon={faCopy} />
+                    </button>
+                </div>
+            </div>
+        </div>
+    )
 }
 
 @observer

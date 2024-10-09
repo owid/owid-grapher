@@ -355,6 +355,15 @@ $nav-height: 45px;
     margin-bottom: 0.5em;
 }
 
+.catalog-path-field {
+    pre {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        height: auto;
+        background: #e9ecef;
+    }
+}
+
 .EditorBasicTab {
     .DimensionCard {
         header {
@@ -370,12 +379,6 @@ $nav-height: 45px;
                 align-items: center;
                 gap: 0.5em;
             }
-        }
-
-        textarea {
-            min-height: 1.5rem;
-            field-sizing: content;
-            word-break: break-all;
         }
 
         > div {

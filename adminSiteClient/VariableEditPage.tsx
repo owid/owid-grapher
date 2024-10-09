@@ -21,6 +21,7 @@ import {
     Toggle,
     SelectField,
     TextAreaField,
+    CatalogPathField,
 } from "./Forms.js"
 import {
     OwidVariableWithDataAndSource,
@@ -241,11 +242,8 @@ class VariableEditor extends React.Component<{
                                     store={newVariable}
                                     label="Indicator Name"
                                 />
-                                <BindString
-                                    field="catalogPath"
-                                    store={variable}
-                                    label="ETL path"
-                                    disabled={true}
+                                <CatalogPathField
+                                    catalogPath={variable.catalogPath}
                                 />
                                 <BindString
                                     label="Display name"
