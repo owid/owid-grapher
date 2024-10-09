@@ -375,6 +375,7 @@ $nav-height: 45px;
         textarea {
             min-height: 1.5rem;
             field-sizing: content;
+            word-break: break-all;
         }
 
         > div {
