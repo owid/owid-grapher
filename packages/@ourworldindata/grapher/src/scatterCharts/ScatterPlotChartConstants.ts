@@ -32,7 +32,6 @@ export interface ScatterPlotManager extends ChartManager {
     tableAfterAuthorTimelineAndActiveChartTransform?: OwidTable
     includedEntities?: EntityId[]
     excludedEntities?: EntityId[]
-    backgroundSeriesLimit?: number
     startTime?: Time
     endTime?: Time
     hasTimeline?: boolean

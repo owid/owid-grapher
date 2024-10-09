@@ -143,12 +143,6 @@ export const GrapherGrammar: Grammar = {
             }
         },
     },
-    backgroundSeriesLimit: {
-        ...IntegerCellDef,
-        description:
-            "Set this to limit the number of background series shown on ScatterPlots.",
-        keyword: "backgroundSeriesLimit",
-    },
     yScaleToggle: {
         ...BooleanCellDef,
         keyword: "yScaleToggle",
