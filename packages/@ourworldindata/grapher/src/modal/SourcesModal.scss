@@ -4,6 +4,7 @@
     $tab-padding: 16px;
     $tab-font-size: 13px;
     $tab-gap: 8px;
+    $tab-title-spacing: 8px;
 
     $border: $gray-20;
 
@@ -64,6 +65,16 @@
         font-size: $tab-font-size;
         padding: 8px $tab-padding;
         margin-right: $tab-gap;
+
+        .attribution {
+            color: $gray-60;
+            display: inline-block;
+            margin-left: $tab-title-spacing;
+        }
+
+        &[aria-selected="true"] .attribution {
+            color: $blue-50;
+        }
     }
 
     .source {

@@ -9,7 +9,7 @@ export const Tabs = ({
     maxTabWidth = 240,
     slot,
 }: {
-    labels: string[]
+    labels: React.ReactElement[]
     activeIndex: number
     setActiveIndex: (label: number) => void
     horizontalScroll?: boolean
@@ -68,7 +68,7 @@ export const Tabs = ({
                 const isActive = index === activeIndex
                 return (
                     <button
-                        key={label}
+                        key={index}
                         className="Tabs__tab"
                         style={style}
                         type="button"
