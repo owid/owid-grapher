@@ -463,7 +463,6 @@ function assembleMetadata(grapher: Grapher, searchParams: URLSearchParams) {
                 : attributionShort || titleVariant
         const titleModifier = attributionString ? ` - ${attributionString}` : ""
         const titleLong = `${col.titlePublicOrDisplayName.title}${titleModifier}`
-        const dateDownloaded = new Date()
 
         return [
             useShortNames ? shortName : col.name,
@@ -487,12 +486,11 @@ function assembleMetadata(grapher: Grapher, searchParams: URLSearchParams) {
                 citationShort,
                 citationLong,
                 fullMetadata: `https://api.ourworldindata.org/v1/indicators/${owidVariableId}.metadata.json`,
-                // date downloaded should be YYYY-MM-DD
-                dateDownloaded: dateDownloaded.toISOString().split("T")[0],
             },
         ]
     })
 
+    const dateDownloaded = new Date()
     const fullMetadata = {
         chart: {
             title: grapher.title,
@@ -505,6 +503,8 @@ function assembleMetadata(grapher: Grapher, searchParams: URLSearchParams) {
             selection: grapher.selectedEntityNames,
         },
         columns: Object.fromEntries(columns),
+        // date downloaded should be YYYY-MM-DD
+        dateDownloaded: dateDownloaded.toISOString().split("T")[0],
     }
 
     return fullMetadata
