@@ -259,6 +259,7 @@ export interface OwidColumnDef extends CoreColumnDef {
     catalogPath?: string
     owidProcessingLevel?: OwidProcessingLevel
     owidSchemaVersion?: number
+    shortName?: string
 }
 
 export const OwidEntityNameColumnDef = {

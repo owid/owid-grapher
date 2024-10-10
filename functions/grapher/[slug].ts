@@ -4,6 +4,10 @@ import {
     extensions,
     handlePageNotFound,
     fetchUnparsedGrapherConfig,
+    fetchCsvForGrapher,
+    fetchMetadataForGrapher,
+    fetchReadmeForGrapher,
+    fetchZipForGrapher,
     getRedirectForUrl,
 } from "../_common/grapherRenderer.js"
 import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
@@ -51,6 +55,30 @@ router
             )
     )
     .get(
+        `/grapher/:slug${extensions.csv}`,
+        async ({ params: { slug } }, { searchParams }, env) =>
+            fetchCsvForGrapher({ type: "slug", id: slug }, env, searchParams)
+    )
+    .get(
+        `/grapher/:slug${extensions.metadata}`,
+        async ({ params: { slug } }, { searchParams }, env) =>
+            fetchMetadataForGrapher(
+                { type: "slug", id: slug },
+                env,
+                searchParams
+            )
+    )
+    .get(
+        `/grapher/:slug${extensions.readme}`,
+        async ({ params: { slug } }, { searchParams }, env) =>
+            fetchReadmeForGrapher({ type: "slug", id: slug }, env, searchParams)
+    )
+    .get(
+        `/grapher/:slug${extensions.zip}`,
+        async ({ params: { slug } }, { searchParams }, env) =>
+            fetchZipForGrapher({ type: "slug", id: slug }, env, searchParams)
+    )
+    .get(
         "/grapher/:slug",
         async ({ params: { slug } }, { searchParams }, env) =>
             handleHtmlPageRequest(slug, searchParams, env)
@@ -77,12 +105,14 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             // if we have a redirect in the _grapherRedirects.json file.
             // This is done as a catch handler that checks for 404 pages
             // so that the common, happy path does not have to fetch the redirects file.
+            console.log("Handling error", e)
             if (e instanceof StatusError && e.status === 404) {
                 console.log("Handling 404 for", url.pathname)
                 const redirect = await getRedirectForUrl(env, url)
                 return redirect || error(404, "Not found")
-            }
-            return error(500, e)
+            } else if (e instanceof StatusError) {
+                return error(e.status, e.message)
+            } else return error(500, e)
         })
 }
 
@@ -99,7 +129,9 @@ async function handleHtmlPageRequest(
     //     { redirect: "manual" }
     // )
 
-    const grapherPageResp = await env.ASSETS.fetch(url, { redirect: "manual" })
+    const grapherPageResp = await env.ASSETS.fetch(env.url, {
+        redirect: "manual",
+    })
 
     if (grapherPageResp.status === 404) {
         // grapherPageResp should be a static 404 HTML page.
