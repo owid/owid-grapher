@@ -86,33 +86,6 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
     }
 }
 
-const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
-    sourceId: "suggestedSearch",
-    onSelect,
-    getItemUrl,
-    getItems() {
-        return ["CO2", "Energy", "Education", "Poverty", "Democracy"].map(
-            (term) => ({
-                title: term,
-                slug: `/search${queryParamsToStr({ q: term })}`,
-            })
-        )
-    },
-
-    templates: {
-        header: () => (
-            <h5 className="overline-black-caps">Featured Searches</h5>
-        ),
-        item: ({ item }) => {
-            return (
-                <div>
-                    <span>{item.title}</span>
-                </div>
-            )
-        },
-    },
-}
-
 const AlgoliaSource: AutocompleteSource<BaseItem> = {
     sourceId: "autocomplete",
     onSelect({ navigator, item, state }) {
@@ -253,12 +226,13 @@ export function Autocomplete({
 
         const search = autocomplete({
             placeholder,
+            autoFocus: true,
             detachedMediaQuery,
             container: containerRef.current,
             classNames: {
                 panel: panelClassName,
             },
-            openOnFocus: true,
+            openOnFocus: false,
             onStateChange({ state, prevState }) {
                 if (onActivate && !prevState.isOpen && state.isOpen) {
                     onActivate()
@@ -282,8 +256,6 @@ export function Autocomplete({
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query) {
                     sources.push(AlgoliaSource, AllResultsSource)
-                } else {
-                    sources.push(FeaturedSearchesSource)
                 }
                 return sources
             },
