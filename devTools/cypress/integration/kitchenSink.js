@@ -1,4 +1,4 @@
-const DEFAULT_THUMBNAIL_URL = "http://localhost:3030/default-thumbnail.jpg"
+const DEFAULT_THUMBNAIL_URL = "http://localhost:3030/default-thumbnail.png"
 const OVERRIDE_THUMBNAIL_URL =
     "http://localhost:3030/uploads/2021/01/covid-country-profiles-768x404.png"
 

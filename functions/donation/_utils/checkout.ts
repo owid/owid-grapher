@@ -136,7 +136,7 @@ export async function createCheckoutSession(
                     product_data: {
                         name: "One-time donation",
                         images: [
-                            "https://ourworldindata.org/default-thumbnail.jpg",
+                            "https://ourworldindata.org/default-thumbnail.png",
                         ],
                     },
                     unit_amount: amountRoundedCents,
