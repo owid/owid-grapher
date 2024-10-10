@@ -1,5 +1,5 @@
 /*
-    Cache-Control: public, max-age=0, must-revalidate
+    Cache-Control: no-cache
     Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
     Access-Control-Allow-Origin: https://owid.cloud
 
