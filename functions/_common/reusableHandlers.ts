@@ -1,9 +1,6 @@
 import { Env } from "./env.js"
-import {
-    Etag,
-    GrapherIdentifier,
-    fetchAndRenderGrapher,
-} from "./grapherRenderer.js"
+import { Etag, fetchAndRenderGrapher } from "./grapherRenderer.js"
+import { GrapherIdentifier } from "./grapherTools.js"
 
 export async function handleThumbnailRequest(
     id: GrapherIdentifier,
