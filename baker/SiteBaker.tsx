@@ -647,7 +647,9 @@ export class SiteBaker {
                         ? `Error baking "${publishedGdoc.slug}"`
                         : `Warning baking "${publishedGdoc.slug}"`
                 await logErrorAndMaybeSendToBugsnag(
-                    `${announcement}: ${errorOrWarning.message}`
+                    `${announcement}: ${errorOrWarning.message}`,
+                    undefined,
+                    errorOrWarning.message
                 )
             }
             try {
@@ -890,17 +892,15 @@ export class SiteBaker {
             dataInsight.latestDataInsights = latestDataInsights
 
             await dataInsight.validate(knex)
-            if (
-                dataInsight.errors.filter(
-                    (e) => e.type === OwidGdocErrorMessageType.Error
-                ).length
-            ) {
+            for (const errorOrWarning of dataInsight.errors) {
+                const announcement =
+                    errorOrWarning.type === OwidGdocErrorMessageType.Error
+                        ? `Error baking "data-insight/${dataInsight.slug}"`
+                        : `Warning baking "data-insight/${dataInsight.slug}"`
                 await logErrorAndMaybeSendToBugsnag(
-                    `Error(s) baking data insight "${
-                        dataInsight.slug
-                    }" :\n  ${dataInsight.errors
-                        .map((error) => error.message)
-                        .join("\n  ")}`
+                    `${announcement}: ${errorOrWarning.message}`,
+                    undefined,
+                    errorOrWarning.message
                 )
             }
             try {
