@@ -4,7 +4,7 @@
     "@ourworldindata/grapher": "workspace:^",
     "@ourworldindata/utils": "workspace:^",
     "itty-router": "^5.0.17",
-    "jszip": "^3.10.1",
+    "littlezipper": "^0.1.4",
     "stripe": "^14.20.0",
     "svg2png-wasm": "^1.4.1"
   },

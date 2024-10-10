@@ -17,7 +17,7 @@ import { constructReadme } from "./readmeTools"
 import { svg2png, initialize as initializeSvg2Png } from "svg2png-wasm"
 import { TimeLogger } from "./timeLogger"
 import { png, StatusError } from "itty-router"
-import JSZip from "jszip"
+import { createZip, File } from "littlezipper"
 
 import svg2png_wasm from "../../node_modules/svg2png-wasm/svg2png_wasm_bg.wasm"
 
@@ -27,7 +27,6 @@ import LatoMedium from "../_common/fonts/LatoLatin-Medium.ttf.bin"
 import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
 import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "./env.js"
-import { fromPairs } from "lodash"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -318,7 +317,7 @@ async function initGrapher(
     return grapher
 }
 
-function assembleMetadata(grapher: Grapher, searchParams: URLSearchParams) {
+const getColumnsForMetadata = (grapher: Grapher) => {
     const columnsToIgnore = new Set(
         [
             OwidTableSlugs.entityId,
@@ -331,11 +330,18 @@ function assembleMetadata(grapher: Grapher, searchParams: URLSearchParams) {
         ].map((slug) => slug.toString())
     )
 
-    const columnsToGet = grapher.inputTable.columnSlugs.filter(
+    const colsToGet = grapher.inputTable.columnSlugs.filter(
         (col) => !columnsToIgnore.has(col)
     )
+
+    return grapher.inputTable.getColumns(colsToGet)
+}
+
+function assembleMetadata(grapher: Grapher, searchParams: URLSearchParams) {
     const useShortNames = searchParams.get("useColumnShortNames") === "true"
     console.log("useShortNames", useShortNames)
+
+    const metadataCols = getColumnsForMetadata(grapher)
 
     const columns: [
         string,
@@ -367,7 +373,7 @@ function assembleMetadata(grapher: Grapher, searchParams: URLSearchParams) {
             >[]
             shortName: string
         },
-    ][] = grapher.inputTable.getColumns(columnsToGet).map((col) => {
+    ][] = metadataCols.map((col) => {
         console.log("mapping col", col.name)
         const {
             descriptionShort,
@@ -498,7 +504,7 @@ function assembleMetadata(grapher: Grapher, searchParams: URLSearchParams) {
             originalChartUrl: grapher.canonicalUrl,
             selection: grapher.selectedEntityNames,
         },
-        columns: fromPairs(columns),
+        columns: Object.fromEntries(columns),
     }
 
     return fullMetadata
@@ -545,14 +551,16 @@ export async function fetchZipForGrapher(
     const readme = assembleReadme(grapher)
     const csv = assembleCsv(grapher, searchParams)
     console.log("Fetched the parts, creating zip file")
-    const zip = new JSZip()
-    zip.file(
-        `${identifier.id}.metadata.json`,
-        JSON.stringify(metadata, undefined, 2)
-    )
-    zip.file(`${identifier.id}.csv`, csv)
-    zip.file("readme.md", readme)
-    const content = await zip.generateAsync({ type: "arraybuffer" })
+
+    const zipContent: File[] = [
+        {
+            path: `${identifier.id}.metadata.json`,
+            data: JSON.stringify(metadata, undefined, 2),
+        },
+        { path: `${identifier.id}.csv`, data: csv },
+        { path: "readme.md", data: readme },
+    ]
+    const content = await createZip(zipContent)
     console.log("Generated content, returning response")
     return new Response(content, {
         headers: {
@@ -623,32 +631,16 @@ export async function fetchReadmeForGrapher(
     const readme = assembleReadme(grapher)
     return new Response(readme, {
         headers: {
-            "Content-Type": "text/markdown",
+            "Content-Type": "text/markdown; charset=utf-8",
         },
     })
 }
 
 function assembleReadme(grapher: Grapher): string {
-    const columnsToIgnore = new Set(
-        [
-            OwidTableSlugs.entityId,
-            OwidTableSlugs.time,
-            OwidTableSlugs.entityColor,
-            OwidTableSlugs.entityName,
-            OwidTableSlugs.entityCode,
-            OwidTableSlugs.year,
-            OwidTableSlugs.day,
-        ].map((slug) => slug.toString())
-    )
-
-    const columnsToGet = grapher.inputTable.columnSlugs.filter(
-        (col) => !columnsToIgnore.has(col)
-    )
-
-    const columns = grapher.inputTable.getColumns(columnsToGet)
-
-    return constructReadme(grapher, columns)
+    const metadataCols = getColumnsForMetadata(grapher)
+    return constructReadme(grapher, metadataCols)
 }
+
 async function fetchAndRenderGrapherToSvg(
     identifier: GrapherIdentifier,
     options: ImageOptions,

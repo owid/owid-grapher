@@ -246,7 +246,7 @@ export function constructReadme(
     if (isSingleColumn)
         readme = `# ${grapher.title} - Data package
 
-This data package contains the data that powers the chart ["${grapher.title}"](${grapher.originUrl}) on the Our World in Data website. It was downloaded on ${downloadDate}.
+This data package contains the data that powers the chart ["${grapher.title}"](${grapher.canonicalUrl}) on the Our World in Data website. It was downloaded on ${downloadDate}.
 
 ## CSV Structure
 
@@ -274,7 +274,7 @@ ${sources.join("\n")}
     else
         readme = `# ${grapher.title} - Data package
 
-This data package contains the data that powers the chart ["${grapher.title}"](${grapher.originUrl}) on the Our World in Data website.
+This data package contains the data that powers the chart ["${grapher.title}"](${grapher.canonicalUrl}) on the Our World in Data website.
 
 ## CSV Structure
 
