@@ -82,8 +82,8 @@ async function handleConfigRequest(
     console.log("Grapher page response", grapherPageResp.grapherConfig.title)
 
     const cacheControl = shouldCache
-        ? "public, s-maxage=3600, max-age=0, must-revalidate"
-        : "public, s-maxage=0, max-age=0, must-revalidate"
+        ? "s-maxage=3600, max-age=0, must-revalidate"
+        : "no-cache"
 
     return Response.json(grapherPageResp.grapherConfig, {
         headers: {
