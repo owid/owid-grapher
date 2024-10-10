@@ -22,6 +22,7 @@ import {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromQueryStr,
     multiDimStateToQueryStr,
+    merge,
     omit,
 } from "@ourworldindata/utils"
 import cx from "classnames"
@@ -135,6 +136,7 @@ const useView = (
 }
 
 const useVarDatapageData = (
+    config: MultiDimDataPageConfig,
     currentView: View<IndicatorsAfterPreProcessing> | undefined,
     variableIdToGrapherConfigMap: Record<number, string | null> | undefined
 ) => {
@@ -156,7 +158,11 @@ const useVarDatapageData = (
         if (!variableId) return
 
         const datapageDataPromise = cachedGetVariableMetadata(variableId).then(
-            (json) => getDatapageDataV2(json, currentView?.config)
+            (json) =>
+                getDatapageDataV2(
+                    merge(json, config.config?.metadata, currentView?.metadata),
+                    currentView?.config
+                )
         )
         const grapherConfigUuid = variableIdToGrapherConfigMap?.[variableId]
         const grapherConfigPromise = grapherConfigUuid
@@ -181,8 +187,10 @@ const useVarDatapageData = (
             })
             .catch(console.error)
     }, [
+        config.config?.metadata,
         currentView?.indicators,
         currentView?.config,
+        currentView?.metadata,
         variableIdToGrapherConfigMap,
     ])
 
@@ -224,7 +232,7 @@ export const MultiDimDataPageContent = ({
 
     const { currentView, dimensionsConfig } = useView(currentSettings, config)
     const { varDatapageData, varGrapherConfig, grapherConfigIsReady } =
-        useVarDatapageData(currentView, variableIdToGrapherConfigMap)
+        useVarDatapageData(config, currentView, variableIdToGrapherConfigMap)
 
     // This is the ACTUAL grapher instance being used, because GrapherFigureView/GrapherWithFallback are doing weird things and are not actually using the grapher instance we pass into it
     // and therefore we can not access the grapher state (e.g. tab, selection) from the grapher instance we pass into it
