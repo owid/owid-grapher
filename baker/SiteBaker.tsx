@@ -1,6 +1,5 @@
 import fs from "fs-extra"
 import path from "path"
-import Bugsnag from "@bugsnag/js"
 import { glob } from "glob"
 import { keyBy, without, uniq, mapValues, pick, chunk } from "lodash"
 import ProgressBar from "progress"
@@ -11,7 +10,6 @@ import {
     GDOCS_DETAILS_ON_DEMAND_ID,
     BAKED_GRAPHER_URL,
     FEATURE_FLAGS,
-    BUGSNAG_NODE_API_KEY,
 } from "../settings/serverSettings.js"
 
 import {
@@ -211,13 +209,16 @@ export class SiteBaker {
             }
         )
         this.explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
-        if (BUGSNAG_NODE_API_KEY) {
-            Bugsnag.start({
-                apiKey: BUGSNAG_NODE_API_KEY,
-                context: "site-baker",
-                autoTrackSessions: false,
-            })
-        }
+        // As of 10-10-2024, baking sends too many events to Bugsnag which causes us to hit the rate limit.
+        // We'll have to find a way to be more selective about how we log baking errors/warnings.
+        // (Only sending errors probably isn't sufficient, because there are some warnings that we want to know about.)
+        // if (BUGSNAG_NODE_API_KEY) {
+        //     Bugsnag.start({
+        //         apiKey: BUGSNAG_NODE_API_KEY,
+        //         context: "site-baker",
+        //         autoTrackSessions: false,
+        //     })
+        // }
     }
 
     private async bakeEmbeds(knex: db.KnexReadonlyTransaction) {
