@@ -9,7 +9,6 @@ import {
     EntityName,
     OwidTableSlugs,
     ColorSchemeName,
-    colorScaleConfigDefaults,
 } from "@ourworldindata/types"
 import { ComparisonLine } from "../scatterCharts/ComparisonLine"
 import { observable, computed, action } from "mobx"
@@ -984,10 +983,8 @@ export class ScatterPlotChart
 
     @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
         return (
-            ColorScaleConfig.fromDSL(this.colorColumn.def) ?? {
-                ...colorScaleConfigDefaults,
-                ...this.manager.colorScale,
-            }
+            ColorScaleConfig.fromDSL(this.colorColumn.def) ??
+            this.manager.colorScale
         )
     }
 
