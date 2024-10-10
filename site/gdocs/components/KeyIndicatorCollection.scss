@@ -198,13 +198,6 @@
         }
     }
 
-    button {
-        border: 0;
-        padding: 0;
-        cursor: pointer;
-        background-color: transparent;
-    }
-
     button[disabled] {
         cursor: default;
     }
