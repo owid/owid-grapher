@@ -9,6 +9,7 @@ import {
     EntityName,
     OwidTableSlugs,
     ColorSchemeName,
+    ValueRange,
 } from "@ourworldindata/types"
 import { ComparisonLine } from "../scatterCharts/ComparisonLine"
 import { observable, computed, action } from "mobx"
@@ -129,8 +130,6 @@ export class ScatterPlotChart
     @observable tooltipState = new TooltipState<{
         series: ScatterSeries
     }>()
-
-    private hasInteractedWithChart = false
 
     private filterManuallySelectedEntities(table: OwidTable): OwidTable {
         const { includedEntities, excludedEntities } = this.manager
@@ -286,7 +285,7 @@ export class ScatterPlotChart
     @computed get transformedTable(): OwidTable {
         let table = this.transformedTableFromGrapher
         // We don't want to apply this transform when relative mode is also enabled, it has a
-        // sligthly different endpoints logic that drops initial zeroes to avoid DivideByZero error.
+        // slightly different endpoints logic that drops initial zeroes to avoid DivideByZero error.
         if (this.compareEndPointsOnly && !this.manager.isRelativeMode) {
             table = table.keepMinTimeAndMaxTimeForEachEntityOnly()
         }
@@ -297,6 +296,57 @@ export class ScatterPlotChart
             ])
         }
         return table
+    }
+
+    @computed private get domainsForAnimation(): {
+        x?: ValueRange
+        y?: ValueRange
+    } {
+        const { inputTable } = this
+        const {
+            animationStartTime,
+            animationEndTime,
+            includedEntities,
+            excludedEntities,
+            addCountryMode,
+        } = this.manager
+
+        if (!animationStartTime || !animationEndTime) return {}
+
+        let table = inputTable.filterByTimeRange(
+            animationStartTime,
+            animationEndTime
+        )
+
+        if (
+            addCountryMode === EntitySelectionMode.Disabled ||
+            addCountryMode === EntitySelectionMode.SingleEntity
+        ) {
+            table = table.filterByEntityNames(
+                this.selectionArray.selectedEntityNames
+            )
+        }
+
+        if (excludedEntities || includedEntities) {
+            table = this.filterManuallySelectedEntities(table)
+        }
+
+        // get x-values and exclude non-positive values if on log scale
+        let xValues = table.get(this.xColumnSlug).uniqValues
+        if (this.xScaleType === ScaleType.log) {
+            xValues = xValues.filter((value) => value > 0)
+        }
+
+        // get y-values and exclude non-positive values if on log scale
+        let yValues = table.get(this.yColumnSlug).uniqValues
+        if (this.yScaleType === ScaleType.log) {
+            yValues = yValues.filter((value) => value > 0)
+        }
+
+        return {
+            x: domainExtent(xValues, this.xScaleType),
+            y: domainExtent(yValues, this.yScaleType),
+        }
     }
 
     @computed private get manager(): ScatterPlotManager {
@@ -374,8 +424,6 @@ export class ScatterPlotChart
     @action.bound onLegendClick(color: string): void {
         const { selectionArray } = this
         if (!this.canAddCountry) return
-
-        this.hasInteractedWithChart = true
 
         const keysToToggle = this.series
             .filter((g) => g.color === color)
@@ -477,7 +525,6 @@ export class ScatterPlotChart
     }
 
     @action.bound private onScatterClick(): void {
-        this.hasInteractedWithChart = true
         const { target } = this.tooltipState
         if (target) this.onSelectEntity(target.series.seriesName)
     }
@@ -1222,7 +1269,13 @@ export class ScatterPlotChart
         axis.scaleType = this.yScaleType
         axis.label = this.currentVerticalAxisLabel
 
-        if (manager.isRelativeMode) {
+        if (
+            this.manager.isTimelineAnimationActive &&
+            this.domainsForAnimation.y &&
+            !this.manager.isRelativeMode
+        ) {
+            axis.domain = this.domainsForAnimation.y
+        } else if (manager.isRelativeMode) {
             axis.domain = yDomainDefault // Overwrite author's min/max
         } else {
             const isAnyValueOutsideUserDomain = validValuesForAxisDomainY.some(
@@ -1282,7 +1335,13 @@ export class ScatterPlotChart
         if (this.currentHorizontalAxisLabel)
             axis.label = this.currentHorizontalAxisLabel
 
-        if (manager.isRelativeMode) {
+        if (
+            this.manager.isTimelineAnimationActive &&
+            this.domainsForAnimation.x &&
+            !this.manager.isRelativeMode
+        ) {
+            axis.domain = this.domainsForAnimation.x
+        } else if (manager.isRelativeMode) {
             axis.domain = xDomainDefault // Overwrite author's min/max
         } else {
             const isAnyValueOutsideUserDomain = validValuesForAxisDomainX.some(
@@ -1298,6 +1357,7 @@ export class ScatterPlotChart
                 axis.updateDomainPreservingUserSettings(xDomainDefault)
             }
         }
+
         return axis
     }
 
