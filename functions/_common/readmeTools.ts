@@ -12,6 +12,7 @@ import {
     getCitationLong,
     prepareSourcesForDisplay,
     uniqBy,
+    formatDate,
 } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { Grapher } from "@ourworldindata/grapher"
@@ -241,10 +242,11 @@ export function constructReadme(
     const isSingleColumn = columns.length === 1
     const sources = columns.flatMap((col) => [...columnReadmeText(col)])
     let readme: string
+    const downloadDate = formatDate(new Date()) // formats the date as "October 10, 2024"
     if (isSingleColumn)
         readme = `# ${grapher.title} - Data package
 
-This data package contains the data that powers the chart ["${grapher.title}"](${grapher.originUrl}) on the Our World in Data website.
+This data package contains the data that powers the chart ["${grapher.title}"](${grapher.originUrl}) on the Our World in Data website. It was downloaded on ${downloadDate}.
 
 ## CSV Structure
 

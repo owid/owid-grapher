@@ -54,8 +54,11 @@ export const extensions = {
     configJson: ".config.json",
     png: ".png",
     svg: ".svg",
+    csv: ".csv",
+    metadata: ".metadata.json",
+    readme: ".readme.md",
+    zip: ".zip",
 }
-
 interface ImageOptions {
     pngWidth: number
     pngHeight: number
@@ -454,6 +457,7 @@ function assembleMetadata(grapher: Grapher, searchParams: URLSearchParams) {
                 : attributionShort || titleVariant
         const titleModifier = attributionString ? ` - ${attributionString}` : ""
         const titleLong = `${col.titlePublicOrDisplayName.title}${titleModifier}`
+        const dateDownloaded = new Date()
 
         return [
             useShortNames ? shortName : col.name,
@@ -477,6 +481,8 @@ function assembleMetadata(grapher: Grapher, searchParams: URLSearchParams) {
                 citationShort,
                 citationLong,
                 fullMetadata: `https://api.ourworldindata.org/v1/indicators/${owidVariableId}.metadata.json`,
+                // date downloaded should be YYYY-MM-DD
+                dateDownloaded: dateDownloaded.toISOString().split("T")[0],
             },
         ]
     })

@@ -1315,6 +1315,8 @@ export const getIndexableKeys = Object.keys as <T extends object>(
     obj: T
 ) => Array<keyof T>
 
+/** Formats a date like this: "October 10, 2024"
+ */
 export const formatDate = (date: Date): string => {
     return date.toLocaleDateString("en-US", {
         year: "numeric",

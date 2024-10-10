@@ -16,17 +16,6 @@ import { handleThumbnailRequest } from "../_common/reusableHandlers.js"
 const { preflight, corsify } = cors({
     allowMethods: ["GET", "OPTIONS", "HEAD"],
 })
-// We collect the possible extensions here so we can easily take them into account
-// when handling redirects
-export const extensions = {
-    configJson: ".config.json",
-    png: ".png",
-    svg: ".svg",
-    csv: ".csv",
-    metadata: ".metadata.json",
-    readme: ".readme.md",
-    zip: ".zip",
-}
 
 const router = Router<
     IRequestStrict,
