@@ -8,3 +8,14 @@ export interface Env {
     CF_PAGES_BRANCH: string
     ENV: string
 }
+// We collect the possible extensions here so we can easily take them into account
+// when handling redirects
+export const extensions = {
+    configJson: ".config.json",
+    png: ".png",
+    svg: ".svg",
+    csv: ".csv",
+    metadata: ".metadata.json",
+    readme: ".readme.md",
+    zip: ".zip",
+}
