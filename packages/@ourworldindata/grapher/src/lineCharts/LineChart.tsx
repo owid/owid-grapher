@@ -139,6 +139,8 @@ class Lines extends React.Component<LinesProps> {
 
     @computed private get backgroundLines(): PlacedLineChartSeries[] {
         const { focusedSeriesNames } = this.props
+        // if nothing is focused, everything is focused, so nothing is in the background
+        if (!focusedSeriesNames.length) return []
         return this.props.placedSeries.filter(
             (series) => !focusedSeriesNames.includes(series.seriesName)
         )
@@ -166,95 +168,161 @@ class Lines extends React.Component<LinesProps> {
         return this.props.lineOutlineWidth ?? DEFAULT_LINE_OUTLINE_WIDTH
     }
 
-    private renderFocusGroups(): React.ReactElement[] {
-        return this.focusedLines.map((series, index) => {
-            // If the series only contains one point, then we will always want to show a marker/circle
-            // because we can't draw a line.
-            const showMarkers =
-                (this.hasMarkers || series.placedPoints.length === 1) &&
-                !series.isProjection
-            const strokeDasharray = series.isProjection ? "2,3" : undefined
-
-            return (
-                <g
-                    id={makeIdForHumanConsumption("line", series.seriesName)}
-                    key={index}
-                >
-                    {/*
-                        Create a white outline around the lines so they're
-                        easier to follow when they overlap.
-                    */}
-                    <path
-                        id={makeIdForHumanConsumption("outline")}
-                        fill="none"
-                        strokeLinecap="butt"
-                        strokeLinejoin="round"
-                        stroke={BACKGROUND_COLOR}
-                        strokeWidth={
-                            this.strokeWidth + this.lineOutlineWidth * 2
-                        }
-                        strokeDasharray={strokeDasharray}
-                        d={pointsToPath(
-                            series.placedPoints.map((value) => [
-                                value.x,
-                                value.y,
-                            ]) as [number, number][]
-                        )}
-                    />
-                    <MultiColorPolyline
-                        id={makeIdForHumanConsumption("polyline")}
-                        points={series.placedPoints}
-                        strokeLinejoin="round"
-                        strokeWidth={this.strokeWidth}
-                        strokeDasharray={strokeDasharray}
-                    />
-                    {showMarkers && (
-                        <g id={makeIdForHumanConsumption("markers")}>
-                            {series.placedPoints.map((value, index) => (
-                                <circle
-                                    key={index}
-                                    cx={value.x}
-                                    cy={value.y}
-                                    r={this.markerRadius}
-                                    fill={value.color}
-                                />
-                            ))}
-                        </g>
-                    )}
-                </g>
-            )
-        })
-    }
-
-    private renderBackgroundGroups(): React.ReactElement[] {
-        return this.backgroundLines.map((series, index) => (
-            <g
-                id={makeIdForHumanConsumption("line", series.seriesName)}
-                key={index}
-            >
-                <path
-                    key={getSeriesKey(series, "line")}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    stroke="#ddd"
-                    d={pointsToPath(
-                        series.placedPoints.map((value) => [
-                            value.x,
-                            value.y,
-                        ]) as [number, number][]
-                    )}
-                    fill="none"
-                    strokeWidth={1}
-                />
-            </g>
-        ))
-    }
-
-    render(): React.ReactElement {
-        const { bounds } = this
-
+    private renderPathForSeries(
+        series: PlacedLineChartSeries,
+        props: Partial<React.SVGProps<SVGPathElement>>
+    ): React.ReactElement {
+        const strokeDasharray = series.isProjection ? "2,3" : undefined
         return (
-            <g id={makeIdForHumanConsumption("lines")} className="Lines">
+            <path
+                fill="none"
+                strokeLinecap="butt"
+                strokeLinejoin="round"
+                stroke={DEFAULT_LINE_COLOR}
+                strokeWidth={this.strokeWidth}
+                strokeDasharray={strokeDasharray}
+                {...props}
+                d={pointsToPath(
+                    series.placedPoints.map((value) => [value.x, value.y]) as [
+                        number,
+                        number,
+                    ][]
+                )}
+            />
+        )
+    }
+
+    private renderFocusLines(): React.ReactElement | void {
+        if (this.focusedLines.length === 0) return
+        return (
+            <g id={makeIdForHumanConsumption("lines")}>
+                {this.focusedLines.map((series) => {
+                    const strokeDasharray = series.isProjection
+                        ? "2,3"
+                        : undefined
+                    return (
+                        <React.Fragment key={getSeriesKey(series, "lines")}>
+                            {this.renderPathForSeries(series, {
+                                id: makeIdForHumanConsumption(
+                                    "outline",
+                                    series.seriesName
+                                ),
+                                stroke: BACKGROUND_COLOR,
+                                strokeWidth:
+                                    this.strokeWidth +
+                                    this.lineOutlineWidth * 2,
+                            })}
+                            {this.props.multiColor ? (
+                                <MultiColorPolyline
+                                    id={makeIdForHumanConsumption(
+                                        "multicolor-line",
+                                        series.seriesName
+                                    )}
+                                    points={series.placedPoints}
+                                    strokeLinejoin="round"
+                                    strokeWidth={this.strokeWidth}
+                                    strokeDasharray={strokeDasharray}
+                                />
+                            ) : (
+                                this.renderPathForSeries(series, {
+                                    id: makeIdForHumanConsumption(
+                                        "line",
+                                        series.seriesName
+                                    ),
+                                    stroke:
+                                        series.placedPoints[0]?.color ??
+                                        DEFAULT_LINE_COLOR,
+                                })
+                            )}
+                        </React.Fragment>
+                    )
+                })}
+            </g>
+        )
+    }
+
+    private renderLineMarkers(): React.ReactElement | void {
+        const { horizontalAxis } = this.props.dualAxis
+        if (this.focusedLines.length === 0) return
+        return (
+            <g id={makeIdForHumanConsumption("markers")}>
+                {this.focusedLines.map((series) => {
+                    // If the series only contains one point, then we will always want to show a marker/circle
+                    // because we can't draw a line.
+                    const showMarkers =
+                        (this.hasMarkers || series.placedPoints.length === 1) &&
+                        !series.isProjection
+                    return (
+                        showMarkers && (
+                            <g
+                                id={makeIdForHumanConsumption(
+                                    "markers",
+                                    series.seriesName
+                                )}
+                                key={getSeriesKey(series, "markers")}
+                            >
+                                {series.placedPoints.map((value, index) => (
+                                    <circle
+                                        id={makeIdForHumanConsumption(
+                                            horizontalAxis.formatTick(
+                                                value.time
+                                            )
+                                        )}
+                                        key={index}
+                                        cx={value.x}
+                                        cy={value.y}
+                                        r={this.markerRadius}
+                                        fill={value.color}
+                                    />
+                                ))}
+                            </g>
+                        )
+                    )
+                })}
+            </g>
+        )
+    }
+
+    private renderFocusGroups(): React.ReactElement | void {
+        return (
+            <>
+                {this.renderFocusLines()}
+                {this.renderLineMarkers()}
+            </>
+        )
+    }
+
+    private renderBackgroundGroups(): React.ReactElement | void {
+        if (this.backgroundLines.length === 0) return
+        return (
+            <g id={makeIdForHumanConsumption("background-lines")}>
+                {this.backgroundLines.map((series) =>
+                    this.renderPathForSeries(series, {
+                        id: makeIdForHumanConsumption(
+                            "background-line",
+                            series.seriesName
+                        ),
+                        stroke: "#ddd",
+                        strokeWidth: 1,
+                    })
+                )}
+            </g>
+        )
+    }
+
+    renderStatic(): React.ReactElement {
+        return (
+            <>
+                {this.renderBackgroundGroups()}
+                {this.renderFocusGroups()}
+            </>
+        )
+    }
+
+    renderInteractive(): React.ReactElement {
+        const { bounds } = this
+        return (
+            <g className="Lines">
                 <rect
                     x={Math.round(bounds.x)}
                     y={Math.round(bounds.y)}
@@ -267,6 +335,12 @@ class Lines extends React.Component<LinesProps> {
                 {this.renderFocusGroups()}
             </g>
         )
+    }
+
+    render(): React.ReactElement {
+        return this.props.isStatic
+            ? this.renderStatic()
+            : this.renderInteractive()
     }
 }
 
@@ -339,6 +413,10 @@ export class LineChart
 
     @computed get inputTable(): OwidTable {
         return this.manager.table
+    }
+
+    @computed get isStatic(): boolean {
+        return this.manager.isStatic ?? false
     }
 
     @computed private get transformedTableFromGrapher(): OwidTable {
@@ -449,8 +527,6 @@ export class LineChart
     }
 
     @computed private get markerRadius(): number {
-        // hide markers but don't remove them from the DOM
-        if (this.manager.isStaticAndSmall) return 0
         return this.hasColorScale
             ? VARIABLE_COLOR_MARKER_RADIUS
             : DEFAULT_MARKER_RADIUS
@@ -772,43 +848,77 @@ export class LineChart
         return strategies
     }
 
-    render(): React.ReactElement {
-        const { manager, tooltip, dualAxis, clipPath, activeXVerticalLine } =
-            this
+    renderDualAxis(): React.ReactElement {
+        const { manager, dualAxis } = this
 
-        const comparisonLines = manager.comparisonLines || []
+        const lineWidth = manager.isStaticAndSmall
+            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+        const dashPattern = manager.isStaticAndSmall ? "7, 7" : undefined
 
-        const dualAxisComponent = (
+        return (
             <DualAxisComponent
                 dualAxis={dualAxis}
                 showTickMarks={true}
                 labelColor={manager.secondaryColorInStaticCharts}
-                lineWidth={
-                    manager.isStaticAndSmall
-                        ? GRAPHER_AXIS_LINE_WIDTH_THICK
-                        : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
-                }
+                lineWidth={lineWidth}
+                gridDashPattern={dashPattern}
                 detailsMarker={manager.detailsMarkerInSvg}
             />
         )
+    }
 
-        if (this.failMessage)
-            return (
-                <g className="LineChart">
-                    {dualAxisComponent}
-                    <NoDataModal
-                        manager={this.manager}
-                        bounds={dualAxis.innerBounds}
-                        message={this.failMessage}
+    renderColorLegend(): React.ReactElement | void {
+        if (this.hasColorLegend)
+            return <HorizontalNumericColorLegend manager={this} />
+    }
+
+    /**
+     * Render the lines themselves, their labels, and comparison lines if given
+     */
+    renderChartElements(): React.ReactElement {
+        const { manager } = this
+        const { comparisonLines = [] } = manager
+        return (
+            <>
+                {comparisonLines.map((line, index) => (
+                    <ComparisonLine
+                        key={index}
+                        dualAxis={this.dualAxis}
+                        comparisonLine={line}
+                        baseFontSize={this.fontSize}
                     />
-                </g>
-            )
+                ))}
+                {manager.showLegend && <LineLegend manager={this} />}
+                <Lines
+                    dualAxis={this.dualAxis}
+                    placedSeries={this.placedSeries}
+                    multiColor={this.hasColorScale}
+                    hidePoints={manager.hidePoints || manager.isStaticAndSmall}
+                    focusedSeriesNames={this.focusedSeriesNames}
+                    lineStrokeWidth={this.lineStrokeWidth}
+                    lineOutlineWidth={this.lineOutlineWidth}
+                    markerRadius={this.markerRadius}
+                    isStatic={manager.isStatic}
+                />
+            </>
+        )
+    }
 
-        // The tiny bit of extra space in the clippath is to ensure circles centered on the very edge are still fully visible
+    renderStatic(): React.ReactElement {
+        return (
+            <>
+                {this.renderColorLegend()}
+                {this.renderDualAxis()}
+                {this.renderChartElements()}
+            </>
+        )
+    }
+
+    renderInteractive(): React.ReactElement {
         return (
             <g
                 ref={this.base}
-                id={makeIdForHumanConsumption("line-chart")}
                 className="LineChart"
                 onMouseLeave={this.onCursorLeave}
                 onTouchEnd={this.onCursorLeave}
@@ -817,41 +927,42 @@ export class LineChart
                 onTouchStart={this.onCursorMove}
                 onTouchMove={this.onCursorMove}
             >
-                {clipPath.element}
+                {/* The tiny bit of extra space in the clippath is to ensure circles
+                    centered on the very edge are still fully visible */}
+                {this.clipPath.element}
                 <rect {...this.bounds.toProps()} fill="none">
-                    {/* This <rect> ensures that the parent <g> is big enough such that we get mouse hover events for the
-                    whole charting area, including the axis, the entity labels, and the whitespace next to them.
-                    We need these to be able to show the tooltip for the first/last year even if the mouse is outside the charting area. */}
+                    {/* This <rect> ensures that the parent <g> is big enough such that
+                        we get mouse hover events for the whole charting area, including
+                        the axis, the entity labels, and the whitespace next to them.
+                        We need these to be able to show the tooltip for the first/last
+                        year even if the mouse is outside the charting area. */}
                 </rect>
-                {this.hasColorLegend && (
-                    <HorizontalNumericColorLegend manager={this} />
-                )}
-                {dualAxisComponent}
-                <g clipPath={clipPath.id}>
-                    {comparisonLines.map((line, index) => (
-                        <ComparisonLine
-                            key={index}
-                            dualAxis={dualAxis}
-                            comparisonLine={line}
-                            baseFontSize={this.fontSize}
-                        />
-                    ))}
-                    {manager.showLegend && <LineLegend manager={this} />}
-                    <Lines
-                        dualAxis={dualAxis}
-                        placedSeries={this.placedSeries}
-                        hidePoints={manager.hidePoints}
-                        focusedSeriesNames={this.focusedSeriesNames}
-                        lineStrokeWidth={this.lineStrokeWidth}
-                        lineOutlineWidth={this.lineOutlineWidth}
-                        markerRadius={this.markerRadius}
-                    />
-                </g>
-                {activeXVerticalLine}
+                {this.renderColorLegend()}
+                {this.renderDualAxis()}
+                <g clipPath={this.clipPath.id}>{this.renderChartElements()}</g>
 
-                {tooltip}
+                {this.activeXVerticalLine}
+                {this.tooltip}
             </g>
         )
+    }
+
+    render(): React.ReactElement {
+        const { manager, dualAxis } = this
+
+        if (this.failMessage)
+            return (
+                <g className="LineChart">
+                    {this.renderDualAxis()}
+                    <NoDataModal
+                        manager={manager}
+                        bounds={dualAxis.innerBounds}
+                        message={this.failMessage}
+                    />
+                </g>
+            )
+
+        return manager.isStatic ? this.renderStatic() : this.renderInteractive()
     }
 
     @computed get failMessage(): string {
@@ -1154,6 +1265,7 @@ export class LineChart
                     ...series,
                     placedPoints: series.points.map(
                         (point): PlacedPoint => ({
+                            time: point.x,
                             x: round(horizontalAxis.place(point.x), 1),
                             y: round(verticalAxis.place(point.y), 1),
                             color: this.hasColorScale

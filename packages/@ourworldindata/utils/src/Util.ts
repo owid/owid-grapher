@@ -312,16 +312,11 @@ export const makeSafeForCSS = (name: string): string =>
  * element. This is useful when a static chart is manually edited in a SVG
  * editor since SVG manipulation software like Figma often show the element's
  * id as its title.
+ *
+ * Note that these IDs are not meant to be used in CSS!
  */
-export function makeIdForHumanConsumption(
-    name: string,
-    unsafeKey?: string
-): string {
-    let id = name
-    if (unsafeKey) {
-        id += "__" + makeSafeForCSS(unsafeKey)
-    }
-    return id
+export function makeIdForHumanConsumption(...unsafeKeys: string[]): string {
+    return unsafeKeys.join("__")
 }
 
 export function formatDay(

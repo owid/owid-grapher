@@ -146,25 +146,6 @@ $zindex-controls-drawer: 150;
         cursor: pointer;
     }
 
-    /* Make World line slightly thicker */
-    svg .key-World_0 polyline {
-        stroke-width: 2 !important;
-    }
-
-    .projection .nv-line {
-        stroke-dasharray: 3, 3;
-    }
-
-    .projection .nv-point {
-        fill: #fff;
-        stroke-width: 1;
-        opacity: 0.5;
-    }
-
-    .projection .nv-point.hover {
-        stroke-width: 4;
-    }
-
     .DataTableContainer {
         z-index: $zindex-table;
     }
