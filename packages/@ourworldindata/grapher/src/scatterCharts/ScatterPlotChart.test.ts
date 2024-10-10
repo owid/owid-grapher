@@ -17,7 +17,6 @@ import {
     SCATTER_POINT_MIN_RADIUS,
 } from "./ScatterPlotChartConstants"
 import {
-    EntitySelectionMode,
     ScaleType,
     ScatterPointLabelStrategy,
     ColumnTypeNames,
@@ -35,7 +34,7 @@ it("can create a new chart", () => {
 
     const chart = new ScatterPlotChart({ manager })
     expect(chart.failMessage).toBeFalsy()
-    expect(chart.getSeriesNamesToShow().size).toEqual(2)
+    expect(chart.seriesNamesToHighlight.size).toEqual(0)
     expect(chart.series.length).toEqual(2)
     expect(chart.allPoints.length).toBeGreaterThan(0)
 })
@@ -889,65 +888,6 @@ describe("x/y tolerance", () => {
                 year: 2008,
             }),
         ])
-    })
-})
-
-describe("addCountryMode", () => {
-    const table = new OwidTable(
-        [
-            ["entityId", "entityName", "entityCode", "year", "x", "y"],
-            [1, "UK", "", 2000, 1, 1],
-            [2, "USA", "", 2000, 2, 2],
-        ],
-        [
-            {
-                slug: "x",
-                type: ColumnTypeNames.Numeric,
-            },
-            {
-                slug: "y",
-                type: ColumnTypeNames.Numeric,
-            },
-        ]
-    )
-
-    const manager: ScatterPlotManager = {
-        xColumnSlug: "x",
-        yColumnSlug: "y",
-        colorColumnSlug: "color",
-        sizeColumnSlug: "size",
-        table,
-        selection: ["UK"],
-    }
-
-    it("doesn't filter any data for MultipleEntities mode", () => {
-        const chart = new ScatterPlotChart({
-            manager: {
-                ...manager,
-                addCountryMode: EntitySelectionMode.MultipleEntities,
-            },
-        })
-        expect(chart.transformedTable.numRows).toEqual(2)
-    })
-
-    it("filters unselected data for SingleEntity mode", () => {
-        const chart = new ScatterPlotChart({
-            manager: {
-                ...manager,
-                addCountryMode: EntitySelectionMode.SingleEntity,
-            },
-        })
-        expect(chart.transformedTable.numRows).toEqual(1)
-    })
-
-    it("filters unselected data for Disabled mode", () => {
-        const chart = new ScatterPlotChart({
-            manager: {
-                ...manager,
-                addCountryMode: EntitySelectionMode.Disabled,
-            },
-        })
-        expect(chart.transformedTable.numRows).toEqual(1)
     })
 })
 
