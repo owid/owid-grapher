@@ -17,7 +17,7 @@ import { constructReadme } from "./readmeTools"
 import { svg2png, initialize as initializeSvg2Png } from "svg2png-wasm"
 import { TimeLogger } from "./timeLogger"
 import { png, StatusError } from "itty-router"
-import JSZip from "jszip"
+import { createZip, File } from "littlezipper"
 
 import svg2png_wasm from "../../node_modules/svg2png-wasm/svg2png_wasm_bg.wasm"
 
@@ -544,14 +544,16 @@ export async function fetchZipForGrapher(
     const readme = assembleReadme(grapher)
     const csv = assembleCsv(grapher, searchParams)
     console.log("Fetched the parts, creating zip file")
-    const zip = new JSZip()
-    zip.file(
-        `${identifier.id}.metadata.json`,
-        JSON.stringify(metadata, undefined, 2)
-    )
-    zip.file(`${identifier.id}.csv`, csv)
-    zip.file("readme.md", readme)
-    const content = await zip.generateAsync({ type: "arraybuffer" })
+
+    const zipContent: File[] = [
+        {
+            path: `${identifier.id}.metadata.json`,
+            data: JSON.stringify(metadata, undefined, 2),
+        },
+        { path: `${identifier.id}.csv`, data: csv },
+        { path: "readme.md", data: readme },
+    ]
+    const content = await createZip(zipContent)
     console.log("Generated content, returning response")
     return new Response(content, {
         headers: {
