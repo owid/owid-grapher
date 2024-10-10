@@ -622,7 +622,7 @@ export async function fetchReadmeForGrapher(
     const readme = assembleReadme(grapher)
     return new Response(readme, {
         headers: {
-            "Content-Type": "text/markdown",
+            "Content-Type": "text/markdown; charset=utf-8",
         },
     })
 }
