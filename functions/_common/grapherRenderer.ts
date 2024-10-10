@@ -317,7 +317,7 @@ async function initGrapher(
     return grapher
 }
 
-function assembleMetadata(grapher: Grapher, searchParams: URLSearchParams) {
+const getColumnsForMetadata = (grapher: Grapher) => {
     const columnsToIgnore = new Set(
         [
             OwidTableSlugs.entityId,
@@ -330,11 +330,18 @@ function assembleMetadata(grapher: Grapher, searchParams: URLSearchParams) {
         ].map((slug) => slug.toString())
     )
 
-    const columnsToGet = grapher.inputTable.columnSlugs.filter(
+    const colsToGet = grapher.inputTable.columnSlugs.filter(
         (col) => !columnsToIgnore.has(col)
     )
+
+    return grapher.inputTable.getColumns(colsToGet)
+}
+
+function assembleMetadata(grapher: Grapher, searchParams: URLSearchParams) {
     const useShortNames = searchParams.get("useColumnShortNames") === "true"
     console.log("useShortNames", useShortNames)
+
+    const metadataCols = getColumnsForMetadata(grapher)
 
     const columns: [
         string,
@@ -366,7 +373,7 @@ function assembleMetadata(grapher: Grapher, searchParams: URLSearchParams) {
             >[]
             shortName: string
         },
-    ][] = grapher.inputTable.getColumns(columnsToGet).map((col) => {
+    ][] = metadataCols.map((col) => {
         console.log("mapping col", col.name)
         const {
             descriptionShort,
@@ -630,26 +637,10 @@ export async function fetchReadmeForGrapher(
 }
 
 function assembleReadme(grapher: Grapher): string {
-    const columnsToIgnore = new Set(
-        [
-            OwidTableSlugs.entityId,
-            OwidTableSlugs.time,
-            OwidTableSlugs.entityColor,
-            OwidTableSlugs.entityName,
-            OwidTableSlugs.entityCode,
-            OwidTableSlugs.year,
-            OwidTableSlugs.day,
-        ].map((slug) => slug.toString())
-    )
-
-    const columnsToGet = grapher.inputTable.columnSlugs.filter(
-        (col) => !columnsToIgnore.has(col)
-    )
-
-    const columns = grapher.inputTable.getColumns(columnsToGet)
-
-    return constructReadme(grapher, columns)
+    const metadataCols = getColumnsForMetadata(grapher)
+    return constructReadme(grapher, metadataCols)
 }
+
 async function fetchAndRenderGrapherToSvg(
     identifier: GrapherIdentifier,
     options: ImageOptions,
