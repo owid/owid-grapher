@@ -181,11 +181,11 @@
             position: relative;
             cursor: pointer;
 
-            &.hovered {
+            &:hover {
                 background: rgba(219, 229, 240, 0.4);
             }
 
-            &--with-bar.hovered {
+            &--with-bar:hover {
                 background: rgba(219, 229, 240, 0.6);
             }
 
@@ -226,10 +226,6 @@
             position: relative;
             z-index: 0;
             background: #fff;
-
-            &.most-recently-selected {
-                z-index: 1;
-            }
         }
 
         ul {
