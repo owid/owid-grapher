@@ -43,7 +43,7 @@ export function TopicPageIntro(props: TopicPageIntroProps) {
                         <a
                             href={props.downloadButton.url}
                             target="_blank"
-                            rel="noopener noreferrer"
+                            rel="noopener"
                         >
                             {props.downloadButton.text}
                         </a>

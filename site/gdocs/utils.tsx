@@ -150,7 +150,7 @@ const LinkedA = ({ span }: { span: SpanLink }): React.ReactElement => {
     if (linkType === "url") {
         // Don't open in new tab if it's an anchor link
         const linkProps = !span.url.startsWith("#")
-            ? { target: "_blank", rel: "noopener noreferrer" }
+            ? { target: "_blank", rel: "noopener" }
             : {}
         return (
             <a href={span.url} className="span-link" {...linkProps}>

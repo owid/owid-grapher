@@ -191,7 +191,7 @@ export function GdocPost({
                         <a
                             href="https://creativecommons.org/licenses/by/4.0/"
                             target="_blank"
-                            rel="noopener noreferrer"
+                            rel="noopener"
                         >
                             Creative Commons BY license
                         </a>

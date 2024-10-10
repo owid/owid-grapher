@@ -30,7 +30,7 @@ export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
             <a
                 href="https://docs.owid.io/projects/etl/"
                 target="_blank"
-                rel="nopener noreferrer"
+                rel="noopener"
                 className="indicator-processing__link"
             >
                 Read about our data pipeline
