@@ -129,7 +129,22 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                     <div className="js--show-warning-block-if-js-disabled" />
                     <LoadingIndicator />
                 </main>
-                {wpContent && <ExplorerContent content={wpContent} />}
+                <div className="grid grid-cols-12-full-width">
+                    <div
+                        className="span-cols-12 col-start-2"
+                        style={{ height: 600 }}
+                    >
+                        <figure
+                            id="grapher-comparison"
+                            style={{
+                                display: "flex",
+                                height: "100%",
+                                justifyContent: "center",
+                            }}
+                        />
+                    </div>
+                </div>
+                {/* {wpContent && <ExplorerContent content={wpContent} />} */}
                 <SiteFooter
                     baseUrl={baseUrl}
                     context={SiteFooterContext.explorerPage}
@@ -139,6 +154,17 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                     dangerouslySetInnerHTML={{ __html: inlineJs }}
                 />
             </body>
+            <script
+                dangerouslySetInnerHTML={{
+                    __html: `
+                setTimeout(() => {
+                    Grapher.renderSingleGrapherOnGrapherPage(
+                    grapher.legacyConfigAsAuthored
+                    );
+                }, 2000);
+                `,
+                }}
+            />
         </Html>
     )
 }
