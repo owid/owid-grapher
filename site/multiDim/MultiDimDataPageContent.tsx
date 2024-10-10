@@ -253,7 +253,6 @@ export const MultiDimDataPageContent = ({
 
     const grapherConfigComputed = useMemo(() => {
         const baseConfig: GrapherProgrammaticInterface = {
-            isEmbeddedInAnOwidPage: true,
             selectedEntityNames: config.config.defaultSelection ?? [],
             bounds,
         }
