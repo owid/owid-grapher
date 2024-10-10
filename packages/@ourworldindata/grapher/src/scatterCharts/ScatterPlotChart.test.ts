@@ -17,7 +17,6 @@ import {
     SCATTER_POINT_MIN_RADIUS,
 } from "./ScatterPlotChartConstants"
 import {
-    EntitySelectionMode,
     ScaleType,
     ScatterPointLabelStrategy,
     ColumnTypeNames,
