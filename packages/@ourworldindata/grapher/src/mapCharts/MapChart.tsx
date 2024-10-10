@@ -570,10 +570,6 @@ export class MapChart
         return 0
     }
 
-    @computed get strokeWidth(): number | undefined {
-        return this.manager.isStaticAndSmall ? 2 : undefined
-    }
-
     renderMapLegend(): React.ReactElement {
         const { numericLegend, categoryLegend } = this
 
@@ -638,10 +634,6 @@ class ChoroplethMap extends React.Component<{
 
     @computed private get manager(): ChoroplethMapManager {
         return this.props.manager
-    }
-
-    @computed private get strokeWidth(): number {
-        return this.manager.strokeWidth ?? 1
     }
 
     @computed.struct private get bounds(): Bounds {
@@ -846,10 +838,11 @@ class ChoroplethMap extends React.Component<{
             featuresWithData,
         } = this
         const focusStrokeColor = "#111"
-        const defaultStrokeWidth = this.strokeWidth * 0.3
-        const focusStrokeWidth = this.strokeWidth * 1.5
-        const selectedStrokeWidth = this.strokeWidth * 1
-        const patternStrokeWidth = this.strokeWidth * 0.7
+        const defaultStrokeWidth = 0.3
+        const focusStrokeWidth = 1.5
+        const selectedStrokeWidth = 1
+        const patternStrokeWidth = 0.7
+
         const blurFillOpacity = 0.2
         const blurStrokeOpacity = 0.5
 
