@@ -27,7 +27,6 @@ import LatoMedium from "../_common/fonts/LatoLatin-Medium.ttf.bin"
 import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
 import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "./env.js"
-import { fromPairs } from "lodash"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -498,7 +497,7 @@ function assembleMetadata(grapher: Grapher, searchParams: URLSearchParams) {
             originalChartUrl: grapher.canonicalUrl,
             selection: grapher.selectedEntityNames,
         },
-        columns: fromPairs(columns),
+        columns: Object.fromEntries(columns),
     }
 
     return fullMetadata
