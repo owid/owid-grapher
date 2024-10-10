@@ -183,7 +183,7 @@ export async function authMiddleware(
     }
 
     // Authed urls shouldn't be cached
-    res.set("Cache-Control", "public, no-cache")
+    res.set("Cache-Control", "private, no-cache")
 
     if (user?.isActive) {
         res.locals.session = session
