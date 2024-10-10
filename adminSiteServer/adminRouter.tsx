@@ -31,11 +31,9 @@ import {
     EXPLORERS_PREVIEW_ROUTE,
     GetAllExplorersRoute,
     GetAllExplorersTagsRoute,
-} from "../explorer/ExplorerConstants.js"
-import {
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
-} from "../explorer/ExplorerProgram.js"
+} from "@ourworldindata/explorer"
 import fs from "fs-extra"
 import * as Post from "../db/model/Post.js"
 import {

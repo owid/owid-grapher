@@ -13,14 +13,18 @@ export async function handleThumbnailRequest(
     ctx: EventContext<unknown, any, Record<string, unknown>>,
     extension: "png" | "svg"
 ) {
+    console.log("handleThumbnailRequest")
     const url = new URL(env.url)
     const shouldCache = !url.searchParams.has("nocache")
+    console.log("shouldCache", shouldCache)
 
     const cache = caches.default
+    console.log("cache", cache)
     console.log("Handling", env.url, ctx.request.headers.get("User-Agent"))
     if (shouldCache) {
         console.log("Checking cache")
         const maybeCached = await cache.match(ctx.request)
+        console.log("maybeCached", maybeCached)
         console.log("Cache check result", maybeCached ? "hit" : "miss")
         if (maybeCached) return maybeCached
     }

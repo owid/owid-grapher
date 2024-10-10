@@ -4,10 +4,10 @@ import path from "path"
 
 import { GIT_CMS_DIR } from "../../gitCms/GitCmsConstants.js"
 import {
+    EXPLORERS_GIT_CMS_FOLDER,
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
-} from "../../explorer/ExplorerProgram.js"
-import { EXPLORERS_GIT_CMS_FOLDER } from "../../explorer/ExplorerConstants.js"
+} from "@ourworldindata/explorer"
 
 async function main(): Promise<void> {
     const allExplorerFilePaths = glob.sync(

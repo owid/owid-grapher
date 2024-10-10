@@ -22,7 +22,7 @@ import {
     UrlCellDef,
     IndicatorIdsOrEtlPathsCellDef,
     IndicatorIdOrEtlPathCellDef,
-} from "../gridLang/GridLangConstants.js"
+} from "./gridLang/GridLangConstants.js"
 
 const toTerminalOptions = (keywords: string[]): CellDef[] => {
     return keywords.map((keyword) => ({

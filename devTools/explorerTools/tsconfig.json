@@ -6,7 +6,6 @@
     },
     "references": [
         { "path": "../../gitCms" },
-        { "path": "../../explorer" },
         { "path": "../../explorerAdminServer" }
     ]
 }

@@ -70,8 +70,11 @@ import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import { formatUrls } from "../site/formatting.js"
 
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
-import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec.js"
+import {
+    ExplorerProgram,
+    ExplorerPageUrlMigrationSpec,
+    ExplorerFullQueryParams,
+} from "@ourworldindata/explorer"
 import { ExplorerPage } from "../site/ExplorerPage.js"
 import { DataInsightsIndexPage } from "../site/DataInsightsIndexPage.js"
 import {
@@ -80,7 +83,6 @@ import {
 } from "../db/model/Chart.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
-import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
 import { resolveInternalRedirect } from "./redirects.js"
 import {
     getBlockContentFromSnapshot,
