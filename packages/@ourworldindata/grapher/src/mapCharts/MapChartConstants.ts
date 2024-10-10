@@ -42,7 +42,6 @@ export interface ChoroplethMapManager {
     onClick: (d: GeoFeature, ev: React.MouseEvent<SVGElement>) => void
     onMapMouseOver: (d: GeoFeature) => void
     onMapMouseLeave: () => void
-    strokeWidth?: number
 }
 
 export interface RenderFeature {
