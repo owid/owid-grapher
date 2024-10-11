@@ -125,13 +125,23 @@ class LineLabels extends React.Component<{
     @computed get textLabels(): React.ReactElement {
         return (
             <g id={makeIdForHumanConsumption("text-labels")}>
-                {this.markers.map(({ series, labelText }) => {
+                {this.markers.map(({ series, labelText }, index) => {
                     const textColor = this.props.isFocus
                         ? darkenColorForText(series.color)
                         : "#ddd"
-                    return series.textWrap.render(labelText.x, labelText.y, {
-                        textProps: { fill: textColor },
-                    })
+                    return (
+                        <React.Fragment
+                            key={getSeriesKey(
+                                series,
+                                index,
+                                this.props.uniqueKey
+                            )}
+                        >
+                            {series.textWrap.render(labelText.x, labelText.y, {
+                                textProps: { fill: textColor },
+                            })}
+                        </React.Fragment>
+                    )
                 })}
             </g>
         )
@@ -144,17 +154,27 @@ class LineLabels extends React.Component<{
         if (!markersWithAnnotations) return
         return (
             <g id={makeIdForHumanConsumption("text-annotations")}>
-                {markersWithAnnotations.map(({ series, labelText }) => {
+                {markersWithAnnotations.map(({ series, labelText }, index) => {
                     const annotationColor = this.props.isFocus ? "#333" : "#ddd"
-                    return series.annotationTextWrap?.render(
-                        labelText.x,
-                        labelText.y + series.textWrap.height,
-                        {
-                            textProps: {
-                                fill: annotationColor,
-                                style: { fontWeight: 300 },
-                            },
-                        }
+                    return (
+                        <React.Fragment
+                            key={getSeriesKey(
+                                series,
+                                index,
+                                this.props.uniqueKey
+                            )}
+                        >
+                            {series.annotationTextWrap?.render(
+                                labelText.x,
+                                labelText.y + series.textWrap.height,
+                                {
+                                    textProps: {
+                                        fill: annotationColor,
+                                        style: { fontWeight: 300 },
+                                    },
+                                }
+                            )}
+                        </React.Fragment>
                     )
                 })}
             </g>
