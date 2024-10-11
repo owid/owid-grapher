@@ -154,17 +154,7 @@ export class ScatterPlotChart
     }
 
     transformTable(table: OwidTable): OwidTable {
-        const { includedEntities, excludedEntities, addCountryMode } =
-            this.manager
-
-        if (
-            addCountryMode === EntitySelectionMode.Disabled ||
-            addCountryMode === EntitySelectionMode.SingleEntity
-        ) {
-            table = table.filterByEntityNames(
-                this.selectionArray.selectedEntityNames
-            )
-        }
+        const { includedEntities, excludedEntities } = this.manager
 
         if (excludedEntities || includedEntities) {
             table = this.filterManuallySelectedEntities(table)
@@ -1065,12 +1055,6 @@ export class ScatterPlotChart
         return this.manager.xOverrideTime
     }
 
-    // Unlike other charts, the scatterplot shows all available data by default, and the selection
-    // is just for emphasis. But this behavior can be disabled.
-    @computed private get hideBackgroundEntities(): boolean {
-        return this.manager.addCountryMode === EntitySelectionMode.Disabled
-    }
-
     @computed private get allEntityNamesWithXAndY(): EntityName[] {
         return intersection(
             this.yColumn.uniqEntityNames,
@@ -1079,12 +1063,8 @@ export class ScatterPlotChart
     }
 
     // todo: remove. do this at table filter level
-    getSeriesNamesToShow(
-        filterBackgroundEntities = this.hideBackgroundEntities
-    ): Set<SeriesName> {
-        const seriesNames = filterBackgroundEntities
-            ? this.selectionArray.selectedEntityNames
-            : this.allEntityNamesWithXAndY
+    @computed get seriesNamesToHighlight(): Set<SeriesName> {
+        const seriesNames = this.selectionArray.selectedEntityNames
 
         if (this.manager.matchingEntitiesOnly && !this.colorColumn.isMissing)
             return new Set(
@@ -1135,7 +1115,7 @@ export class ScatterPlotChart
     }
 
     @computed private get selectedPoints(): SeriesPoint[] {
-        const seriesNamesSet = this.getSeriesNamesToShow(true)
+        const seriesNamesSet = this.seriesNamesToHighlight
         return this.allPoints.filter(
             (point) => point.entityName && seriesNamesSet.has(point.entityName)
         )
