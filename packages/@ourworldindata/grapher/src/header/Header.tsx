@@ -235,7 +235,7 @@ export class Header<
                 <a
                     href={manager.canonicalUrl}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="noopener"
                     data-track-note="chart_click_title"
                 >
                     <h1 style={this.title.htmlStyle}>
@@ -251,7 +251,7 @@ export class Header<
                 <a
                     href={manager.canonicalUrl}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="noopener"
                     data-track-note="chart_click_title"
                 >
                     {this.title.renderHTML()}

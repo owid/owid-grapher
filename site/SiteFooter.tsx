@@ -243,7 +243,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                 <a
                                     href="https://creativecommons.org/licenses/by/4.0/"
                                     target="_blank"
-                                    rel="noopener noreferrer"
+                                    rel="noopener"
                                 >
                                     Creative Commons BY license
                                 </a>
@@ -256,7 +256,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                 <a
                                     href="https://github.com/owid/owid-grapher/blob/master/LICENSE.md "
                                     target="_blank"
-                                    rel="noopener noreferrer"
+                                    rel="noopener"
                                 >
                                     MIT license
                                 </a>

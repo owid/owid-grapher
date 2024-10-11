@@ -46,7 +46,7 @@ const SocialSection = () => {
                             className="list-item"
                             title="X"
                             target="_blank"
-                            rel="noopener noreferrer"
+                            rel="noopener"
                             data-track-note="homepage_follow_us"
                         >
                             <span className="icon">
@@ -61,7 +61,7 @@ const SocialSection = () => {
                             className="list-item"
                             title="Facebook"
                             target="_blank"
-                            rel="noopener noreferrer"
+                            rel="noopener"
                             data-track-note="homepage_follow_us"
                         >
                             <span className="icon">
@@ -76,7 +76,7 @@ const SocialSection = () => {
                             className="list-item"
                             title="Instagram"
                             target="_blank"
-                            rel="noopener noreferrer"
+                            rel="noopener"
                             data-track-note="homepage_follow_us"
                         >
                             <span className="icon">
@@ -91,7 +91,7 @@ const SocialSection = () => {
                             className="list-item"
                             title="Threads"
                             target="_blank"
-                            rel="noopener noreferrer"
+                            rel="noopener"
                             data-track-note="homepage_follow_us"
                         >
                             <span className="icon">
