@@ -1,11 +1,10 @@
-import { Env, extensions } from "../_common/env.js"
-import { Etag } from "../_common/grapherRenderer.js"
+import { Env, extensions, Etag } from "../_common/env.js"
 import {
     fetchCsvForGrapher,
     fetchMetadataForGrapher,
     fetchReadmeForGrapher,
     fetchZipForGrapher,
-} from "../_common/fetchMetadataForGrapher.js"
+} from "../_common/downloadFunctions.js"
 import { handleThumbnailRequest } from "../_common/reusableHandlers.js"
 import {
     handlePageNotFound,
