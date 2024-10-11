@@ -1233,11 +1233,10 @@ export class ScatterPlotChart
         axis.label = this.currentVerticalAxisLabel
 
         if (
-            this.manager.isTimelineAnimationActive &&
-            this.domainsForAnimation.y &&
-            !this.manager.isRelativeMode
+            this.manager.isSingleTimeScatterAnimationActive &&
+            this.domainsForAnimation.y
         ) {
-            axis.domain = this.domainsForAnimation.y
+            axis.updateDomainPreservingUserSettings(this.domainsForAnimation.y)
         } else if (manager.isRelativeMode) {
             axis.domain = yDomainDefault // Overwrite author's min/max
         } else {
@@ -1299,11 +1298,10 @@ export class ScatterPlotChart
             axis.label = this.currentHorizontalAxisLabel
 
         if (
-            this.manager.isTimelineAnimationActive &&
-            this.domainsForAnimation.x &&
-            !this.manager.isRelativeMode
+            this.manager.isSingleTimeScatterAnimationActive &&
+            this.domainsForAnimation.x
         ) {
-            axis.domain = this.domainsForAnimation.x
+            axis.updateDomainPreservingUserSettings(this.domainsForAnimation.x)
         } else if (manager.isRelativeMode) {
             axis.domain = xDomainDefault // Overwrite author's min/max
         } else {
