@@ -837,7 +837,7 @@ export class EntitySelector extends React.Component<{
 
     private renderAllEntitiesInMultiMode(): React.ReactElement {
         const { sortedAvailableEntities } = this
-        const { selected, unselected } = this.partitionedAvailableEntities
+        const { selected } = this.partitionedAvailableEntities
 
         return (
             <Flipper
@@ -876,13 +876,11 @@ export class EntitySelector extends React.Component<{
                 </div>
 
                 <div className="entity-section">
-                    {selected.length > 0 && unselected.length > 0 && (
-                        <Flipped flipId="__available" translate opacity>
-                            <div className="entity-section__title grapher_body-3-medium-italic grapher_light">
-                                {capitalize(this.entityTypePlural)}
-                            </div>
-                        </Flipped>
-                    )}
+                    <Flipped flipId="__available" translate opacity>
+                        <div className="entity-section__title grapher_body-3-medium-italic grapher_light">
+                            {capitalize(this.entityTypePlural)}
+                        </div>
+                    </Flipped>
 
                     <ul>
                         {sortedAvailableEntities.map((entity, entityIndex) => (
@@ -1042,7 +1040,7 @@ function FlippedListItem({
                 damping: 33,
             }}
         >
-            <li className={cx("flipped")}>{children}</li>
+            <li className="flipped">{children}</li>
         </Flipped>
     )
 }
