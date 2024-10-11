@@ -1513,6 +1513,7 @@ export class Grapher
 
     @computed get currentTitle(): string {
         let text = this.displayTitle.trim()
+        if (text.length === 0) return text
 
         // helper function to add an annotation fragment to the title
         // only adds a comma if the text does not end with a question mark
@@ -1820,7 +1821,9 @@ export class Grapher
     }
 
     @computed get displayTitle(): string {
-        return this.title ?? this.defaultTitle
+        if (this.title) return this.title
+        if (this.isReady) return this.defaultTitle
+        return ""
     }
 
     // Returns an object ready to be serialized to JSON
