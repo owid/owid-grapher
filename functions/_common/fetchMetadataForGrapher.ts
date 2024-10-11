@@ -1,7 +1,7 @@
 import { Grapher } from "@ourworldindata/grapher"
 import { OwidColumnDef } from "@ourworldindata/types"
 import { StatusError } from "itty-router"
-import { createZip } from "littlezipper"
+import { createZip, File } from "littlezipper"
 import { assembleMetadata, getColumnsForMetadata } from "./metadataTools.js"
 import { Env } from "./env.js"
 import { GrapherIdentifier, initGrapher } from "./grapherTools.js"

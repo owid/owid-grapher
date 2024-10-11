@@ -12,6 +12,22 @@ import {
     getCitationLong,
 } from "@ourworldindata/utils"
 
+interface MetadataColumn {
+    titleShort: string
+    titleLong: string
+    descriptionShort: string
+    descriptionKey: string[]
+    descriptionProcessing: string
+    shortUnit: string
+    unit: string
+    timespan: string
+    tolerance: number
+    type: string
+    conversionFactor: number
+    owidVariableId: number
+    shortName: string
+}
+
 export const getColumnsForMetadata = (grapher: Grapher) => {
     const columnsToIgnore = new Set(
         [
@@ -40,37 +56,7 @@ export function assembleMetadata(
 
     const metadataCols = getColumnsForMetadata(grapher)
 
-    const columns: [
-        string,
-        {
-            title: string
-            titleProducer: string
-            titleVariant: string
-            descriptionShort: string
-            descriptionFromProducer: string
-            descriptionKey: string[]
-            descriptionProcessing: string
-            shortUnit: string
-            unit: string
-            timespan: string
-            tolerance: number
-            type: string
-            conversionFactor: number
-            owidVariableId: number
-            catalogPath: string
-            sources: Partial<
-                Pick<
-                    OwidOrigin,
-                    | "attribution"
-                    | "attributionShort"
-                    | "description"
-                    | "urlDownload"
-                    | "urlMain"
-                >
-            >[]
-            shortName: string
-        },
-    ][] = metadataCols.map((col) => {
+    const columns: [string, MetadataColumn][] = metadataCols.map((col) => {
         console.log("mapping col", col.name)
         const {
             descriptionShort,

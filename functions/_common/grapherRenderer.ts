@@ -1,7 +1,6 @@
 import { svg2png, initialize as initializeSvg2Png } from "svg2png-wasm"
 import { TimeLogger } from "./timeLogger"
 import { png } from "itty-router"
-import { File } from "littlezipper"
 
 import svg2png_wasm from "../../node_modules/svg2png-wasm/svg2png_wasm_bg.wasm"
 
@@ -18,8 +17,6 @@ declare global {
     // eslint-disable-next-line no-var
     var window: any
 }
-
-export type Etag = string
 
 export const grapherBaseUrl = "https://ourworldindata.org/grapher"
 

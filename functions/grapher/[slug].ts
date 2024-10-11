@@ -1,5 +1,4 @@
-import { Env, extensions } from "../_common/env.js"
-import { Etag } from "../_common/grapherRenderer.js"
+import { Env, extensions, Etag } from "../_common/env.js"
 import {
     fetchCsvForGrapher,
     fetchMetadataForGrapher,

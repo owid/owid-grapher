@@ -19,3 +19,4 @@ export const extensions = {
     readme: ".readme.md",
     zip: ".zip",
 }
+export type Etag = string
