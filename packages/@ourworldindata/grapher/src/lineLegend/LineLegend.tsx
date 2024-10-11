@@ -30,6 +30,8 @@ const MARKER_MARGIN = 4
 // Space between the label and the annotation
 const ANNOTATION_PADDING = 2
 
+const LEFT_PADDING = 35
+
 const DEFAULT_FONT_WEIGHT = 400
 
 export interface LineLabelSeries extends ChartSeries {
@@ -55,6 +57,14 @@ interface PlacedSeries extends SizedSeries {
     midY: number
 }
 
+function getSeriesKey(
+    series: PlacedSeries,
+    index: number,
+    key: string
+): string {
+    return `${key}-${index}-` + series.seriesName
+}
+
 function groupBounds(group: PlacedSeries[]): Bounds {
     const first = group[0]
     const last = group[group.length - 1]
@@ -77,88 +87,159 @@ function stackGroupVertically(
 }
 
 @observer
-class Label extends React.Component<{
-    series: PlacedSeries
-    manager: LineLegend
+class LineLabels extends React.Component<{
+    series: PlacedSeries[]
+    uniqueKey: string
+    needsLines: boolean
     isFocus?: boolean
-    needsLines?: boolean
-    onMouseOver: () => void
-    onClick: () => void
-    onMouseLeave?: () => void
+    isStatic?: boolean
+    onClick?: (series: PlacedSeries) => void
+    onMouseOver?: (series: PlacedSeries) => void
+    onMouseLeave?: (series: PlacedSeries) => void
 }> {
-    render(): React.ReactElement {
-        const {
-            series,
-            manager,
-            isFocus,
-            needsLines,
-            onMouseOver,
-            onMouseLeave,
-            onClick,
-        } = this.props
-        const x = series.origBounds.x
-        const markerX1 = x + MARKER_MARGIN
-        const markerX2 = x + manager.leftPadding - MARKER_MARGIN
-        const step = (markerX2 - markerX1) / (series.totalLevels + 1)
-        const markerXMid = markerX1 + step + series.level * step
-        const lineColor = isFocus ? "#999" : "#eee"
-        const textColor = isFocus ? darkenColorForText(series.color) : "#ddd"
-        const annotationColor = isFocus ? "#333" : "#ddd"
+    @computed get markers(): {
+        series: PlacedSeries
+        labelText: { x: number; y: number }
+        connectorLine: { x1: number; x2: number }
+    }[] {
+        return this.props.series.map((series) => {
+            const { x } = series.origBounds
+            const connectorLine = {
+                x1: x + MARKER_MARGIN,
+                x2: x + LEFT_PADDING - MARKER_MARGIN,
+            }
+
+            const textX = this.props.needsLines
+                ? connectorLine.x2 + MARKER_MARGIN
+                : x + MARKER_MARGIN
+            const textY = series.bounds.y
+
+            return {
+                series,
+                labelText: { x: textX, y: textY },
+                connectorLine,
+            }
+        })
+    }
+
+    @computed get textLabels(): React.ReactElement {
         return (
-            <g
-                id={makeIdForHumanConsumption("mark", series.textWrap.text)}
-                className="legendMark"
-                onMouseOver={onMouseOver}
-                onMouseLeave={onMouseLeave}
-                onClick={onClick}
-                style={{ cursor: "default" }}
-            >
-                {needsLines && (
-                    <g
-                        id={makeIdForHumanConsumption("connector")}
-                        className="indicator"
-                    >
+            <g id={makeIdForHumanConsumption("text-labels")}>
+                {this.markers.map(({ series, labelText }) => {
+                    const textColor = this.props.isFocus
+                        ? darkenColorForText(series.color)
+                        : "#ddd"
+                    return series.textWrap.render(labelText.x, labelText.y, {
+                        textProps: { fill: textColor },
+                    })
+                })}
+            </g>
+        )
+    }
+
+    @computed get textAnnotations(): React.ReactElement | void {
+        const markersWithAnnotations = this.markers.filter(
+            ({ series }) => series.annotationTextWrap !== undefined
+        )
+        if (!markersWithAnnotations) return
+        return (
+            <g id={makeIdForHumanConsumption("text-annotations")}>
+                {markersWithAnnotations.map(({ series, labelText }) => {
+                    const annotationColor = this.props.isFocus ? "#333" : "#ddd"
+                    return series.annotationTextWrap?.render(
+                        labelText.x,
+                        labelText.y + series.textWrap.height,
+                        {
+                            textProps: {
+                                fill: annotationColor,
+                                style: { fontWeight: 300 },
+                            },
+                        }
+                    )
+                })}
+            </g>
+        )
+    }
+
+    @computed get connectorLines(): React.ReactElement | void {
+        if (!this.props.needsLines) return
+        return (
+            <g id={makeIdForHumanConsumption("connectors")}>
+                {this.markers.map(({ series, connectorLine }, index) => {
+                    const { isFocus } = this.props
+                    const { x1, x2 } = connectorLine
+                    const {
+                        level,
+                        totalLevels,
+                        origBounds: { centerY: leftCenterY },
+                        bounds: { centerY: rightCenterY },
+                    } = series
+
+                    const step = (x2 - x1) / (totalLevels + 1)
+                    const markerXMid = x1 + step + level * step
+                    const d = `M${x1},${leftCenterY} H${markerXMid} V${rightCenterY} H${x2}`
+                    const lineColor = isFocus ? "#999" : "#eee"
+
+                    return (
                         <path
-                            d={`M${markerX1},${series.origBounds.centerY} H${markerXMid} V${series.bounds.centerY} H${markerX2}`}
+                            id={makeIdForHumanConsumption(series.seriesName)}
+                            key={getSeriesKey(
+                                series,
+                                index,
+                                this.props.uniqueKey
+                            )}
+                            d={d}
                             stroke={lineColor}
                             strokeWidth={0.5}
                             fill="none"
                         />
-                    </g>
-                )}
-                <rect
-                    id={makeIdForHumanConsumption("background")}
-                    x={x}
-                    y={series.bounds.y}
-                    width={series.bounds.width}
-                    height={series.bounds.height}
-                    fill="#fff"
-                    opacity={0}
-                />
-                {series.textWrap.render(
-                    needsLines ? markerX2 + MARKER_MARGIN : markerX1,
-                    series.bounds.y,
-                    {
-                        id: makeIdForHumanConsumption("label"),
-                        textProps: { fill: textColor },
-                    }
-                )}
-                {series.annotationTextWrap &&
-                    series.annotationTextWrap.render(
-                        needsLines ? markerX2 + MARKER_MARGIN : markerX1,
-                        series.bounds.y +
-                            series.textWrap.height +
-                            ANNOTATION_PADDING,
-                        {
-                            id: makeIdForHumanConsumption("annotation"),
-                            textProps: {
-                                fill: annotationColor,
-                                className: "textAnnotation",
-                                style: { fontWeight: 300 },
-                            },
-                        }
-                    )}
+                    )
+                })}
             </g>
+        )
+    }
+
+    @computed get interactions(): React.ReactElement | void {
+        return (
+            <g>
+                {this.props.series.map((series, index) => {
+                    return (
+                        <g
+                            key={getSeriesKey(
+                                series,
+                                index,
+                                this.props.uniqueKey
+                            )}
+                            onMouseOver={() => this.props.onMouseOver?.(series)}
+                            onMouseLeave={() =>
+                                this.props.onMouseLeave?.(series)
+                            }
+                            onClick={() => this.props.onClick?.(series)}
+                            style={{ cursor: "default" }}
+                        >
+                            <rect
+                                x={series.origBounds.x}
+                                y={series.bounds.y}
+                                width={series.bounds.width}
+                                height={series.bounds.height}
+                                fill="#fff"
+                                opacity={0}
+                            />
+                        </g>
+                    )
+                })}
+            </g>
+        )
+    }
+
+    render(): React.ReactElement {
+        return (
+            <>
+                {this.connectorLines}
+                {this.textAnnotations}
+                {this.textLabels}
+                {!this.props.isStatic && this.interactions}
+            </>
         )
     }
 }
@@ -177,14 +258,13 @@ export interface LineLegendManager {
     lineLegendX?: number
     // used to determine which series should be labelled when there is limited space
     seriesSortedByImportance?: EntityName[]
+    isStatic?: boolean
 }
 
 @observer
 export class LineLegend extends React.Component<{
     manager: LineLegendManager
 }> {
-    leftPadding = 35
-
     @computed private get fontSize(): number {
         return GRAPHER_FONT_SCALE_12 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
@@ -198,8 +278,8 @@ export class LineLegend extends React.Component<{
     }
 
     @computed.struct get sizedLabels(): SizedSeries[] {
-        const { fontSize, fontWeight, leftPadding, maxWidth } = this
-        const maxTextWidth = maxWidth - leftPadding
+        const { fontSize, fontWeight, maxWidth } = this
+        const maxTextWidth = maxWidth - LEFT_PADDING
         const maxAnnotationWidth = Math.min(maxTextWidth, 150)
 
         return this.manager.labelSeries.map((label) => {
@@ -223,7 +303,7 @@ export class LineLegend extends React.Component<{
                 textWrap,
                 annotationTextWrap,
                 width:
-                    leftPadding +
+                    LEFT_PADDING +
                     Math.max(
                         textWrap.width,
                         annotationTextWrap ? annotationTextWrap.width : 0
@@ -557,33 +637,40 @@ export class LineLegend extends React.Component<{
         return this.placedSeries.some((series) => series.totalLevels > 1)
     }
 
-    private renderBackground(): React.ReactElement[] {
-        return this.backgroundSeries.map((series, index) => (
-            <Label
-                key={`background-${index}-` + series.seriesName}
-                series={series}
-                manager={this}
+    private renderBackground(): React.ReactElement {
+        return (
+            <LineLabels
+                uniqueKey="background"
+                series={this.backgroundSeries}
                 needsLines={this.needsLines}
-                onMouseOver={(): void => this.onMouseOver(series.seriesName)}
-                onClick={(): void => this.onClick(series.seriesName)}
+                isFocus={false}
+                isStatic={this.manager.isStatic}
+                onMouseOver={(series): void =>
+                    this.onMouseOver(series.seriesName)
+                }
+                onClick={(series): void => this.onClick(series.seriesName)}
             />
-        ))
+        )
     }
 
     // All labels are focused by default, moved to background when mouseover of other label
-    private renderFocus(): React.ReactElement[] {
-        return this.focusedSeries.map((series, index) => (
-            <Label
-                key={`focus-${index}-` + series.seriesName}
-                series={series}
-                manager={this}
-                isFocus={true}
+    private renderFocus(): React.ReactElement {
+        return (
+            <LineLabels
+                uniqueKey="focus"
+                series={this.focusedSeries}
                 needsLines={this.needsLines}
-                onMouseOver={(): void => this.onMouseOver(series.seriesName)}
-                onClick={(): void => this.onClick(series.seriesName)}
-                onMouseLeave={(): void => this.onMouseLeave(series.seriesName)}
+                isFocus={true}
+                isStatic={this.manager.isStatic}
+                onMouseOver={(series): void =>
+                    this.onMouseOver(series.seriesName)
+                }
+                onClick={(series): void => this.onClick(series.seriesName)}
+                onMouseLeave={(series): void =>
+                    this.onMouseLeave(series.seriesName)
+                }
             />
-        ))
+        )
     }
 
     @computed get manager(): LineLegendManager {

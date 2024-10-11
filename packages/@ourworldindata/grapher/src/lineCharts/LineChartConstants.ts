@@ -14,6 +14,7 @@ export interface PlacedPoint {
     x: number
     y: number
     color: Color
+    time: number
 }
 
 export interface LineChartSeries extends ChartSeries {
@@ -33,6 +34,8 @@ export interface LinesProps {
     lineStrokeWidth?: number
     lineOutlineWidth?: number
     markerRadius?: number
+    isStatic?: boolean
+    multiColor?: boolean
 }
 
 export interface LineChartManager extends ChartManager {
