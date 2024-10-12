@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -8,7 +8,11 @@ import {
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "@ourworldindata/utils"
-import { Checkbox, OverlayHeader } from "@ourworldindata/components"
+import {
+    Checkbox,
+    OverlayHeader,
+    RadioButton,
+} from "@ourworldindata/components"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
@@ -30,6 +34,7 @@ export interface DownloadModalManager {
     baseUrl?: string
     queryStr?: string
     table?: OwidTable
+    yColumnsFromDimensions?: CoreColumn[]
     externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
     shouldIncludeDetailsInStaticExport?: boolean
     detailsOrderedByReference?: string[]
@@ -44,6 +49,66 @@ export interface DownloadModalManager {
 
 interface DownloadModalProps {
     manager: DownloadModalManager
+}
+
+export const DownloadModalDataTab = (props: DownloadModalProps) => {
+    const { yColumnsFromDimensions } = props.manager
+    const [onlyVisible, setOnlyVisible] = useState(false)
+    const [shortColNames, setShortColNames] = useState(false)
+
+    const firstYColDef = yColumnsFromDimensions?.[0].def as
+        | OwidColumnDef
+        | undefined
+
+    const exLongName = firstYColDef?.name
+    const exShortName = firstYColDef?.shortName
+
+    return (
+        <div>
+            <div>
+                <h2>Download options</h2>
+                <section>
+                    <RadioButton
+                        label="Download the full dataset used in this chart"
+                        group="onlyVisible"
+                        checked={!onlyVisible}
+                        onChange={() => setOnlyVisible(false)}
+                    />
+                    <RadioButton
+                        label="Download only the currently selected data visible in the chart"
+                        group="onlyVisible"
+                        checked={onlyVisible}
+                        onChange={() => setOnlyVisible(true)}
+                    />
+                </section>
+                <hr />
+                <section>
+                    <div>
+                        <RadioButton
+                            label="Verbose column names"
+                            group="shortColNames"
+                            checked={!shortColNames}
+                            onChange={() => setShortColNames(false)}
+                        />
+                        <p>
+                            e.g. <code>{exLongName}</code>
+                        </p>
+                    </div>
+                    <div>
+                        <RadioButton
+                            label="Short column names"
+                            group="shortColNames"
+                            checked={shortColNames}
+                            onChange={() => setShortColNames(true)}
+                        />
+                        <p>
+                            e.g. <code>{exShortName}</code>
+                        </p>
+                    </div>
+                </section>
+            </div>
+        </div>
+    )
 }
 
 @observer
@@ -266,6 +331,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
 
         return (
             <div className="grouped-menu">
+                <DownloadModalDataTab manager={manager} />
                 {manager.isOnChartOrMapTab && (
                     <div className="grouped-menu-section">
                         <h3 className="grapher_h3-semibold">Visualization</h3>
