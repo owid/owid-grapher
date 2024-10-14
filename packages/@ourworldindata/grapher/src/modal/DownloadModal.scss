@@ -9,11 +9,15 @@
         flex-shrink: 0;
     }
 
+    .padded {
+        padding: 0 var(--modal-padding);
+    }
+
     .scrollable {
         flex: 1 1 auto;
         overflow-y: auto;
-        padding: 0 var(--modal-padding) var(--modal-padding);
-        width: 100%;
+
+        margin-top: var(--modal-padding);
 
         // needed for the loading indicator
         position: relative;
@@ -115,6 +119,15 @@
             &:hover {
                 text-decoration: none;
             }
+        }
+    }
+
+    .tab {
+        flex-grow: 1;
+
+        > button {
+            text-align: center;
+            width: 100%;
         }
     }
 }
