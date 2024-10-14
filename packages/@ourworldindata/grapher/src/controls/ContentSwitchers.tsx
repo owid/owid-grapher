@@ -7,6 +7,7 @@ import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
 import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
 import { chartIcons } from "./ChartIcons"
 import { Bounds, capitalize } from "@ourworldindata/utils"
+import { Tab, TabBar } from "./Tabs.js"
 
 export interface ContentSwitchersManager {
     availableTabs?: GrapherTabOption[]
@@ -93,7 +94,7 @@ export class ContentSwitchers extends React.Component<{
     render(): React.ReactElement {
         const { manager } = this
         return (
-            <ul
+            <TabBar
                 className={classnames({
                     ContentSwitchers: true,
                     iconOnly: !this.showTabLabels,
@@ -102,39 +103,20 @@ export class ContentSwitchers extends React.Component<{
                 {this.availableTabs.map((tab) => (
                     <Tab
                         key={tab}
-                        tab={tab}
-                        icon={this.tabIcon(tab)}
+                        tabId={tab}
+                        analyticsLabel={`chart_click_${tab}`}
                         isActive={tab === manager.tab}
                         onClick={(): void => {
                             manager.tab = tab
                         }}
-                        showLabel={this.showTabLabels}
-                    />
+                    >
+                        {this.tabIcon(tab)}
+                        {this.showTabLabels && (
+                            <span className="label">{tab}</span>
+                        )}
+                    </Tab>
                 ))}
-            </ul>
+            </TabBar>
         )
     }
-}
-
-function Tab(props: {
-    tab: GrapherTabOption
-    icon: React.ReactElement
-    isActive?: boolean
-    onClick?: React.MouseEventHandler<HTMLButtonElement>
-    showLabel?: boolean
-}): React.ReactElement {
-    const className = "tab clickable" + (props.isActive ? " active" : "")
-    return (
-        <li key={props.tab} className={className}>
-            <button
-                onClick={props.onClick}
-                data-track-note={"chart_click_" + props.tab}
-                aria-label={props.tab}
-                type="button"
-            >
-                {props.icon}
-                {props.showLabel && <span className="label">{props.tab}</span>}
-            </button>
-        </li>
-    )
 }
