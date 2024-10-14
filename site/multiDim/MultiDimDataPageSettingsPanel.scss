@@ -129,4 +129,8 @@ $toggle-height: 40px;
             border-bottom: none;
         }
     }
+
+    @include sm-only {
+        width: 264px;
+    }
 }
