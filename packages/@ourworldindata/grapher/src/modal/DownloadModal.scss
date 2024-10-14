@@ -38,8 +38,8 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        color: $dark-text;
-        background-color: $gray-5;
+        color: $blue-90;
+        background-color: $blue-5;
         position: relative;
         width: 100%;
         padding: 16px;
@@ -69,6 +69,10 @@
 
     .grouped-menu-content {
         flex: 1;
+    }
+
+    .grouped-menu-content-description {
+        color: $bluish-grey-text-color;
     }
 
     .grouped-menu-section-data .grouped-menu-content {
