@@ -245,6 +245,17 @@ export const MultiDimDataPageContent = ({
         !!grapherInst
     )
 
+    const grapherCurrentTitle = useMobxStateToReactState(
+        useCallback(() => grapherInst?.currentTitle, [grapherInst]),
+        !!grapherInst
+    )
+
+    useEffect(() => {
+        if (grapherCurrentTitle) {
+            document.title = grapherCurrentTitle
+        }
+    }, [grapherCurrentTitle])
+
     const bounds = useElementBounds(grapherFigureRef)
 
     const queryStr = useMemo(
