@@ -107,6 +107,29 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                     </div>
                 </section>
             </div>
+            <div className="grouped-menu-list">
+                <DownloadButton
+                    title="Data and metadata (ZIP)"
+                    description="Download the data CSV, metadata JSON, and a README file as a ZIP archive."
+                    onClick={() => void 0}
+                    tracking="chart_download_zip"
+                />
+                <DownloadButton
+                    title="Data only (CSV)"
+                    description="Download only the data in CSV format."
+                    onClick={() => void 0}
+                    tracking="chart_download_csv"
+                />
+            </div>
+            <details>
+                <summary>
+                    <h1>Code examples</h1>
+                    <p>
+                        Examples of how to load this data into different data
+                        analysis tools.
+                    </p>
+                </summary>
+            </details>
         </div>
     )
 }
@@ -508,7 +531,7 @@ function DownloadButton(props: DownloadButtonProps): React.ReactElement {
             )}
             <div className="grouped-menu-content">
                 <h4 className="grapher_body-2-semibold">{props.title}</h4>
-                <p className="grapher_label-1-medium grapher_light">
+                <p className="grapher_label-1-medium grouped-menu-content-description">
                     {props.description}
                 </p>
             </div>
