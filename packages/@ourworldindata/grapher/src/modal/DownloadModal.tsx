@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useCallback, useMemo, useState } from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -24,6 +24,7 @@ import {
 } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
+import { Tabs } from "../tabs/Tabs.js"
 
 export interface DownloadModalManager {
     displaySlug: string
@@ -51,95 +52,62 @@ interface DownloadModalProps {
     manager: DownloadModalManager
 }
 
-export const DownloadModalDataTab = (props: DownloadModalProps) => {
-    const { yColumnsFromDimensions } = props.manager
-    const [onlyVisible, setOnlyVisible] = useState(false)
-    const [shortColNames, setShortColNames] = useState(false)
+export const DownloadModal = (
+    props: DownloadModalProps
+): React.ReactElement => {
+    const frameBounds = props.manager.frameBounds ?? DEFAULT_BOUNDS
 
-    const firstYColDef = yColumnsFromDimensions?.[0].def as
-        | OwidColumnDef
-        | undefined
+    const modalBounds = useMemo(() => {
+        const maxWidth = 640
+        const padWidth = Math.max(16, (frameBounds.width - maxWidth) / 2)
+        return frameBounds.padHeight(16).padWidth(padWidth)
+    }, [frameBounds])
 
-    const exLongName = firstYColDef?.name
-    const exShortName = firstYColDef?.shortName
+    const onDismiss = useCallback(
+        () => (props.manager.isDownloadModalOpen = false),
+        [props.manager]
+    )
+
+    const [activeTabIndex, setActiveTabIndex] = useState(0)
 
     return (
-        <div>
-            <div>
-                <h2>Download options</h2>
-                <section>
-                    <RadioButton
-                        label="Download the full dataset used in this chart"
-                        group="onlyVisible"
-                        checked={!onlyVisible}
-                        onChange={() => setOnlyVisible(false)}
+        <Modal bounds={modalBounds} onDismiss={onDismiss}>
+            <div
+                className="download-modal-content"
+                style={{ maxHeight: modalBounds.height }}
+            >
+                <OverlayHeader title="Download" onDismiss={onDismiss} />
+                <div className="padded">
+                    <Tabs
+                        variant="slim"
+                        labels={[
+                            { element: <>Visualization</> },
+                            { element: <>Data</> },
+                        ]}
+                        activeIndex={activeTabIndex}
+                        setActiveIndex={setActiveTabIndex}
                     />
-                    <RadioButton
-                        label="Download only the currently selected data visible in the chart"
-                        group="onlyVisible"
-                        checked={onlyVisible}
-                        onChange={() => setOnlyVisible(true)}
+                </div>
+                <div className="scrollable padded">
+                    <DownloadModalVisTab
+                        {...props}
+                        visible={activeTabIndex === 0}
                     />
-                </section>
-                <hr />
-                <section>
-                    <div>
-                        <RadioButton
-                            label="Verbose column names"
-                            group="shortColNames"
-                            checked={!shortColNames}
-                            onChange={() => setShortColNames(false)}
-                        />
-                        <p>
-                            e.g. <code>{exLongName}</code>
-                        </p>
-                    </div>
-                    <div>
-                        <RadioButton
-                            label="Short column names"
-                            group="shortColNames"
-                            checked={shortColNames}
-                            onChange={() => setShortColNames(true)}
-                        />
-                        <p>
-                            e.g. <code>{exShortName}</code>
-                        </p>
-                    </div>
-                </section>
+
+                    <DownloadModalDataTab
+                        {...props}
+                        visible={activeTabIndex === 1}
+                    />
+                </div>
             </div>
-            <div className="grouped-menu-list">
-                <DownloadButton
-                    title="Data and metadata (ZIP)"
-                    description="Download the data CSV, metadata JSON, and a README file as a ZIP archive."
-                    onClick={() => void 0}
-                    tracking="chart_download_zip"
-                />
-                <DownloadButton
-                    title="Data only (CSV)"
-                    description="Download only the data in CSV format."
-                    onClick={() => void 0}
-                    tracking="chart_download_csv"
-                />
-            </div>
-            <details>
-                <summary>
-                    <h1>Code examples</h1>
-                    <p>
-                        Examples of how to load this data into different data
-                        analysis tools.
-                    </p>
-                </summary>
-            </details>
-        </div>
+        </Modal>
     )
 }
 
 @observer
-export class DownloadModal extends React.Component<DownloadModalProps> {
-    @computed private get frameBounds(): Bounds {
-        return this.manager.frameBounds ?? DEFAULT_BOUNDS
-    }
-
+export class DownloadModalVisTab extends React.Component<
+    DownloadModalProps & { visible: boolean }
+> {
     @computed private get staticBounds(): Bounds {
         return this.manager.staticBounds ?? DEFAULT_BOUNDS
     }
@@ -158,12 +126,6 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
 
     @computed private get shouldIncludeDetails(): boolean {
         return !!this.manager.shouldIncludeDetailsInStaticExport
-    }
-
-    @computed private get modalBounds(): Bounds {
-        const maxWidth = 640
-        const padWidth = Math.max(16, (this.frameBounds.width - maxWidth) / 2)
-        return this.frameBounds.padHeight(16).padWidth(padWidth)
     }
 
     @computed private get targetBounds(): Bounds {
@@ -314,7 +276,16 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.hasDetails || !!this.manager.showAdminControls
     }
 
-    private renderReady(): React.ReactElement {
+    componentDidMount(): void {
+        this.export()
+    }
+
+    render(): React.ReactElement {
+        if (!this.isReady) {
+            if (this.props.visible) return <LoadingIndicator color="#000" />
+            else return <></>
+        }
+
         const {
             manager,
             svgPreviewUrl,
@@ -353,8 +324,10 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         }
 
         return (
-            <div className="grouped-menu">
-                <DownloadModalDataTab manager={manager} />
+            <div
+                className="grouped-menu"
+                style={{ display: this.props.visible ? undefined : "none" }}
+            >
                 {manager.isOnChartOrMapTab && (
                     <div className="grouped-menu-section">
                         <h3 className="grapher_h3-semibold">Visualization</h3>
@@ -475,37 +448,91 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             </div>
         )
     }
+}
 
-    @action.bound private onDismiss(): void {
-        this.manager.isDownloadModalOpen = false
-    }
+export const DownloadModalDataTab = (
+    props: DownloadModalProps & { visible: boolean }
+) => {
+    const { yColumnsFromDimensions } = props.manager
+    const [onlyVisible, setOnlyVisible] = useState(false)
+    const [shortColNames, setShortColNames] = useState(false)
 
-    componentDidMount(): void {
-        this.export()
-    }
+    const firstYColDef = yColumnsFromDimensions?.[0].def as
+        | OwidColumnDef
+        | undefined
 
-    render(): React.ReactElement {
-        return (
-            <Modal bounds={this.modalBounds} onDismiss={this.onDismiss}>
-                <div
-                    className="download-modal-content"
-                    style={{ maxHeight: this.modalBounds.height }}
-                >
-                    <OverlayHeader
-                        title="Download"
-                        onDismiss={this.onDismiss}
+    const exLongName = firstYColDef?.name
+    const exShortName = firstYColDef?.shortName
+
+    return (
+        <div style={{ display: props.visible ? undefined : "none" }}>
+            <div>
+                <h2>Download options</h2>
+                <section>
+                    <RadioButton
+                        label="Download the full dataset used in this chart"
+                        group="onlyVisible"
+                        checked={!onlyVisible}
+                        onChange={() => setOnlyVisible(false)}
                     />
-                    <div className="scrollable">
-                        {this.isReady ? (
-                            this.renderReady()
-                        ) : (
-                            <LoadingIndicator color="#000" />
-                        )}
+                    <RadioButton
+                        label="Download only the currently selected data visible in the chart"
+                        group="onlyVisible"
+                        checked={onlyVisible}
+                        onChange={() => setOnlyVisible(true)}
+                    />
+                </section>
+                <hr />
+                <section>
+                    <div>
+                        <RadioButton
+                            label="Verbose column names"
+                            group="shortColNames"
+                            checked={!shortColNames}
+                            onChange={() => setShortColNames(false)}
+                        />
+                        <p>
+                            e.g. <code>{exLongName}</code>
+                        </p>
                     </div>
-                </div>
-            </Modal>
-        )
-    }
+                    <div>
+                        <RadioButton
+                            label="Short column names"
+                            group="shortColNames"
+                            checked={shortColNames}
+                            onChange={() => setShortColNames(true)}
+                        />
+                        <p>
+                            e.g. <code>{exShortName}</code>
+                        </p>
+                    </div>
+                </section>
+            </div>
+            <div className="grouped-menu-list">
+                <DownloadButton
+                    title="Data and metadata (ZIP)"
+                    description="Download the data CSV, metadata JSON, and a README file as a ZIP archive."
+                    onClick={() => void 0}
+                    tracking="chart_download_zip"
+                />
+                <DownloadButton
+                    title="Data only (CSV)"
+                    description="Download only the data in CSV format."
+                    onClick={() => void 0}
+                    tracking="chart_download_csv"
+                />
+            </div>
+            <details>
+                <summary>
+                    <h1>Code examples</h1>
+                    <p>
+                        Examples of how to load this data into different data
+                        analysis tools.
+                    </p>
+                </summary>
+            </details>
+        </div>
+    )
 }
 
 interface DownloadButtonProps {
