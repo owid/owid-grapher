@@ -103,8 +103,8 @@ export class ContentSwitchers extends React.Component<{
                 {this.availableTabs.map((tab) => (
                     <Tab
                         key={tab}
-                        tabId={tab}
                         analyticsLabel={`chart_click_${tab}`}
+                        ariaLabel={tab}
                         isActive={tab === manager.tab}
                         onClick={(): void => {
                             manager.tab = tab

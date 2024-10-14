@@ -15,21 +15,21 @@ export const TabBar = (props: TabBarProps): React.ReactElement => {
 }
 
 export interface TabProps {
-    tabId: string
     isActive?: boolean
     onClick?: React.MouseEventHandler<HTMLButtonElement>
     analyticsLabel?: string
+    ariaLabel?: string
     children: React.ReactNode
 }
 
 export const Tab = (props: TabProps): React.ReactElement => {
     const className = "tab clickable" + (props.isActive ? " active" : "")
     return (
-        <li key={props.tabId} className={className}>
+        <li className={className}>
             <button
                 onClick={props.onClick}
                 data-track-note={props.analyticsLabel}
-                aria-label={props.tabId}
+                aria-label={props.ariaLabel}
                 type="button"
             >
                 {props.children}
