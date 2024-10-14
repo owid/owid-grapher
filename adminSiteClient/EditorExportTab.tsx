@@ -160,45 +160,58 @@ export class EditorExportTab<
     }
 
     @action.bound private onDownloadDesktopSVG() {
-        void this.download(
-            `${this.baseFilename}-desktop.svg`,
-            GrapherStaticFormat.landscape
-        )
+        void this.download(`${this.baseFilename}-desktop.svg`, {
+            format: GrapherStaticFormat.landscape,
+        })
     }
 
     @action.bound private onDownloadDesktopPNG() {
-        void this.download(
-            `${this.baseFilename}-desktop.png`,
-            GrapherStaticFormat.landscape
-        )
+        void this.download(`${this.baseFilename}-desktop.png`, {
+            format: GrapherStaticFormat.landscape,
+        })
     }
 
     @action.bound private onDownloadMobileSVG() {
-        void this.download(
-            `${this.baseFilename}-mobile.svg`,
-            GrapherStaticFormat.square
-        )
+        void this.download(`${this.baseFilename}-mobile.svg`, {
+            format: GrapherStaticFormat.square,
+        })
     }
 
     @action.bound private onDownloadMobilePNG() {
-        void this.download(
-            `${this.baseFilename}-mobile.png`,
-            GrapherStaticFormat.square
-        )
+        void this.download(`${this.baseFilename}-mobile.png`, {
+            format: GrapherStaticFormat.square,
+        })
+    }
+
+    @action.bound private onDownloadMobileSVGForSocialMedia() {
+        void this.download(`${this.baseFilename}-instagram.svg`, {
+            format: GrapherStaticFormat.square,
+            isSocialMediaExport: true,
+        })
     }
 
     private async download(
         filename: ExportFilename,
-        format: GrapherStaticFormat
+        {
+            format,
+            isSocialMediaExport = false,
+        }: {
+            format: GrapherStaticFormat
+            isSocialMediaExport?: boolean
+        }
     ) {
         try {
             let grapher = this.grapher
-            if (this.grapher.staticFormat !== format) {
+            if (
+                this.grapher.staticFormat !== format ||
+                this.grapher.isSocialMediaExport !== isSocialMediaExport
+            ) {
                 grapher = new Grapher({
                     ...this.grapher,
                     staticFormat: format,
                     selectedEntityNames:
                         this.grapher.selection.selectedEntityNames,
+                    isSocialMediaExport,
                 })
             }
             const { blob: pngBlob, svgBlob } = await grapher.rasterize()
@@ -320,6 +333,12 @@ export class EditorExportTab<
                             onClick={this.onDownloadMobileSVG}
                         >
                             Download Mobile SVG
+                        </button>
+                        <button
+                            className="btn btn-primary"
+                            onClick={this.onDownloadMobileSVGForSocialMedia}
+                        >
+                            Download Mobile SVG for Social Media
                         </button>
                     </div>
                 </Section>
