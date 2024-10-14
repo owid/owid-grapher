@@ -263,6 +263,7 @@ export const MultiDimDataPageContent = ({
         const baseConfig: GrapherProgrammaticInterface = {
             selectedEntityNames: config.config.defaultSelection ?? [],
             bounds,
+            manager: {}, // Don't resize while data is loading.
         }
 
         if (!grapherConfigIsReady) return baseConfig
