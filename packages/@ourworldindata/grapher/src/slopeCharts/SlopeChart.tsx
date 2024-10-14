@@ -116,6 +116,10 @@ export class SlopeChart
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
+    @computed get isStatic(): boolean {
+        return this.manager.isStatic ?? false
+    }
+
     @computed get fontSize() {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }

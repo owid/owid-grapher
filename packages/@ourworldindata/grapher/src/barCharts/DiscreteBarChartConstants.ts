@@ -14,6 +14,17 @@ export interface DiscreteBarSeries extends ChartSeries {
     label?: TextWrap
 }
 
+export interface PlacedDiscreteBarSeries extends DiscreteBarSeries {
+    // data bar
+    barX: number
+    barY: number
+    barWidth: number
+
+    // entity and value labels
+    entityLabelX: number
+    valueLabelX: number
+}
+
 export interface DiscreteBarChartManager extends ChartManager {
     showYearLabels?: boolean
     endTime?: Time
