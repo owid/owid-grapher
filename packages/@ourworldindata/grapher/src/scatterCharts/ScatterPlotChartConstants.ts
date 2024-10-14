@@ -135,6 +135,7 @@ export interface ScatterPointsWithLabelsProps {
     disableIntroAnimation?: boolean
     hideScatterLabels?: boolean
     quadtree: Quadtree<ScatterPointQuadtreeNode>
+    backgroundColor?: Color
 }
 
 export const SCATTER_QUADTREE_SAMPLING_DISTANCE = 10
