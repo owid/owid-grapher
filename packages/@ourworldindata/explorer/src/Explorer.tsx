@@ -176,7 +176,10 @@ const renderLivePreviewVersion = (props: ExplorerProps) => {
 }
 
 const isNarrow = () =>
-    window.screen.width < 450 || document.documentElement.clientWidth <= 800
+    typeof window === "undefined"
+        ? false
+        : window.screen.width < 450 ||
+          document.documentElement.clientWidth <= 800
 
 @observer
 export class Explorer
@@ -186,6 +189,13 @@ export class Explorer
         EntityPickerManager,
         GrapherManager
 {
+    constructor(props: ExplorerProps) {
+        super(props)
+        this.explorerProgram = ExplorerProgram.fromJson(
+            props
+        ).initDecisionMatrix(this.initialQueryParams)
+        this.grapher = new Grapher()
+    }
     // caution: do a ctrl+f to find untyped usages
     static renderSingleExplorerOnExplorerPage(
         program: ExplorerProps,
@@ -437,7 +447,7 @@ export class Explorer
         this.explorerProgram.constructTable(slug)
     )
 
-    @action.bound private updateGrapherFromExplorer() {
+    @action.bound updateGrapherFromExplorer() {
         switch (this.explorerProgram.chartCreationMode) {
             case ExplorerChartCreationMode.FromGrapherId:
                 this.updateGrapherFromExplorerUsingGrapherId()
@@ -526,7 +536,7 @@ export class Explorer
         )
     }
 
-    @action.bound private updateGrapherFromExplorerUsingGrapherId() {
+    @action.bound updateGrapherFromExplorerUsingGrapherId() {
         const grapher = this.grapher
         if (!grapher) return
 
@@ -554,7 +564,7 @@ export class Explorer
         grapher.downloadData()
     }
 
-    @action.bound private async updateGrapherFromExplorerUsingVariableIds() {
+    @action.bound async updateGrapherFromExplorerUsingVariableIds() {
         const grapher = this.grapher
         if (!grapher) return
         const {
@@ -724,7 +734,7 @@ export class Explorer
         }
     }
 
-    @action.bound private updateGrapherFromExplorerUsingColumnSlugs() {
+    @action.bound updateGrapherFromExplorerUsingColumnSlugs() {
         const grapher = this.grapher
         if (!grapher) return
         const { tableSlug } = this.explorerProgram.grapherConfig
