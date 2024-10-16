@@ -171,6 +171,7 @@ export type EnrichedBlockChartStory = {
 export enum BlockImageSize {
     Narrow = "narrow",
     Wide = "wide",
+    Widest = "widest",
 }
 
 export function checkIsBlockImageSize(size: unknown): size is BlockImageSize {

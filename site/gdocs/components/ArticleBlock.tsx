@@ -81,6 +81,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["html"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["image--narrow"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12",
         ["image--wide"]: "col-start-4 span-cols-8 col-md-start-2 span-md-cols-12",
+        ["image--widest"]: "col-start-2 span-cols-12 col-md-start-2 span-md-cols-12",
         ["image-caption"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["key-indicator"]: "col-start-2 span-cols-12",
         ["key-indicator-collection"]: "grid col-start-2 span-cols-12",
