@@ -11,7 +11,7 @@ import { ColumnTypeNames } from "@ourworldindata/types"
 import {
     CoreTable,
     detectDelimiter,
-    parseDelimited,
+    parseDelimitedV2,
     isCellEmpty,
 } from "@ourworldindata/core-table"
 import { GridBoolean } from "./gridLang/GridLangConstants.js"
@@ -88,24 +88,27 @@ export class DecisionMatrix {
     @observable currentParams: ExplorerChoiceParams = {}
     constructor(delimited: string, hash = "") {
         this.choiceNameToControlTypeMap = makeChoicesMap(delimited)
-        this.table = new CoreTable(parseDelimited(dropColumnTypes(delimited)), [
-            // todo: remove col def?
-            {
-                slug: GrapherGrammar.grapherId.keyword,
-                type: ColumnTypeNames.Integer,
-            },
-            // yVariableIds, xVariableIds, etc. can either be an indicator ID or a catalog path.
-            // If the first row contains a numeric value, the column type is inferred to be
-            // numeric, and parsing may fail if subsequent rows contain non-numeric values.
-            // In addition, yVariableIds may also contain a space-separated list of multiple
-            // indicator IDs or catalog paths.
-            ...DecisionMatrix.allColumnSlugsWithIndicatorIdsOrCatalogPaths.map(
-                (slug) => ({
-                    slug,
-                    type: ColumnTypeNames.String,
-                })
-            ),
-        ])
+        this.table = new CoreTable(
+            parseDelimitedV2(dropColumnTypes(delimited)),
+            [
+                // todo: remove col def?
+                {
+                    slug: GrapherGrammar.grapherId.keyword,
+                    type: ColumnTypeNames.Integer,
+                },
+                // yVariableIds, xVariableIds, etc. can either be an indicator ID or a catalog path.
+                // If the first row contains a numeric value, the column type is inferred to be
+                // numeric, and parsing may fail if subsequent rows contain non-numeric values.
+                // In addition, yVariableIds may also contain a space-separated list of multiple
+                // indicator IDs or catalog paths.
+                ...DecisionMatrix.allColumnSlugsWithIndicatorIdsOrCatalogPaths.map(
+                    (slug) => ({
+                        slug,
+                        type: ColumnTypeNames.String,
+                    })
+                ),
+            ]
+        )
         this.hash = hash
         this.setValuesFromChoiceParams() // Initialize options
     }
