@@ -3304,9 +3304,11 @@ __metadata:
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@types/d3": "npm:^6"
+    "@types/papaparse": "npm:^5"
     d3: "npm:^6.1.1"
     dayjs: "npm:^1.11.11"
     eslint: "npm:^8.57.1"
+    papaparse: "npm:^5.4.1"
     typescript: "npm:~5.6.2"
   languageName: unknown
   linkType: soft
@@ -5441,6 +5443,15 @@ __metadata:
   version: 2.4.1
   resolution: "@types/normalize-package-data@npm:2.4.1"
   checksum: 10/e87bccbf11f95035c89a132b52b79ce69a1e3652fe55962363063c9c0dae0fe2477ebc585e03a9652adc6f381d24ba5589cc5e51849df4ced3d3e004a7d40ed5
+  languageName: node
+  linkType: hard
+
+"@types/papaparse@npm:^5":
+  version: 5.3.14
+  resolution: "@types/papaparse@npm:5.3.14"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10/9bd5cc0e6a2c02def6c8903dc4604e499907cb465186ed3532390468082a06f023adbac0216428d0d8e8fe017206780a03d20007041e9fed47c8d391cd69a536
   languageName: node
   linkType: hard
 
@@ -15599,6 +15610,13 @@ __metadata:
   version: 5.3.1
   resolution: "papaparse@npm:5.3.1"
   checksum: 10/e0d779c9ccb14d3bba8c2798fed077da752a922d0cec39cd57fa49840111766e3e24b4ad567762146a260a8ee2a8ba9ac125f25985b94f5f8ad30366614879c5
+  languageName: node
+  linkType: hard
+
+"papaparse@npm:^5.4.1":
+  version: 5.4.1
+  resolution: "papaparse@npm:5.4.1"
+  checksum: 10/5e6dc978187182ad2efa1d264ffe73d2042cd23b8fb1dcb0b0f5c8c7c772c11e3eb4e166fb0893880ed24529a96abe9065d704cc5b4cb96abf037413cfe43788
   languageName: node
   linkType: hard
 

@@ -258,8 +258,7 @@ export class CoreTable<
             undefined,
             makeAutoTypeFn(_numericColumnSlugs)
         ) as any
-        // dsv_parse adds a columns prop to the result we don't want since we handle our own column defs.
-        // https://github.com/d3/d3-dsv#dsv_parse
+        // Remove the columns object from the parsed object
         delete parsed.columns
 
         const renamedRows = standardizeSlugs(parsed) // todo: pass renamed defs back in.

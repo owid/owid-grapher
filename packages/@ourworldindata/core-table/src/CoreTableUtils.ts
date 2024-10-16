@@ -1,4 +1,4 @@
-import { dsvFormat, DSVParsedArray } from "d3-dsv"
+import * as Papa from "papaparse"
 import {
     findIndexFast,
     first,
@@ -51,14 +51,16 @@ export const truncate = (str: string, maxLength: number): string =>
 // Picks a type for each column from the first row then autotypes all rows after that so all values in
 // a column will have the same type. Only chooses between strings and numbers.
 const numberOnly = /^-?\d+\.?\d*$/
+type RawRow = Record<string, unknown> | undefined
+type ParsedRow = Record<string, string | number | ErrorValue> | undefined | null
 export const makeAutoTypeFn = (
     numericSlugs?: ColumnSlug[]
-): ((object: any) => any) => {
+): ((object?: RawRow) => ParsedRow) => {
     const slugToType: any = {}
     numericSlugs?.forEach((slug) => {
         slugToType[slug] = "number"
     })
-    return (object: any): any => {
+    return (object: RawRow): ParsedRow => {
         for (const columnSlug in object) {
             const value = object[columnSlug]
             const type = slugToType[columnSlug]
@@ -67,7 +69,7 @@ export const makeAutoTypeFn = (
                 continue
             }
 
-            const number = parseFloat(value) // The "+" type casting that d3 does for perf converts "" to 0, so use parseFloat.
+            const number = parseFloat(value as string) // The "+" type casting that d3 does for perf converts "" to 0, so use parseFloat.
             if (type === "number") {
                 object[columnSlug] = isNaN(number)
                     ? ErrorValueTypes.NaNButShouldBeNumber
@@ -75,7 +77,7 @@ export const makeAutoTypeFn = (
                 continue
             }
 
-            if (isNaN(number) || !numberOnly.test(value)) {
+            if (isNaN(number) || !numberOnly.test(value as string)) {
                 object[columnSlug] = value
                 slugToType[columnSlug] = "string"
                 continue
@@ -84,7 +86,7 @@ export const makeAutoTypeFn = (
             object[columnSlug] = number
             slugToType[columnSlug] = "number"
         }
-        return object
+        return object as ParsedRow
     }
 }
 
@@ -548,16 +550,46 @@ export const matrixToDelimited = (
         .join("\n")
 }
 
+/**
+ * An array object representing all parsed rows. The array is enhanced with a property listing
+ * the names of the parsed columns.
+ */
+export interface DSVParsedArray<T> extends Array<T> {
+    /**
+     * List of column names.
+     */
+    columns: Array<keyof T>
+}
+
 export const parseDelimited = (
     str: string,
     delimiter?: string,
-    parseFn?: (
-        rawRow: Record<string, string | undefined> | undefined,
-        index: number,
-        columns: unknown[]
-    ) => Record<string, unknown> | undefined | null
-): DSVParsedArray<Record<string, unknown>> =>
-    dsvFormat(delimiter ?? detectDelimiter(str)).parse(str, parseFn as any)
+    parseFn?: (rawRow: RawRow) => ParsedRow
+): DSVParsedArray<Record<string, any>> => {
+    // Convert PapaParse result to D3 format for backwards compatibility
+    const papaParseToD3 = ({
+        data,
+        meta,
+    }: Papa.ParseResult<any>): DSVParsedArray<Record<string, any>> => {
+        const dsvParsed = data as DSVParsedArray<Record<string, any>>
+        dsvParsed.columns = meta.fields || []
+        return dsvParsed
+    }
+
+    const result = Papa.parse(str, {
+        delimiter: delimiter ?? detectDelimiter(str),
+        skipEmptyLines: true,
+        header: true,
+        transformHeader: (header: string) => header.trim(),
+        transform: (value: string) => value.trim(),
+    })
+
+    if (parseFn) {
+        result.data = result.data.map((rawRow) => parseFn(rawRow as RawRow))
+    }
+
+    return papaParseToD3(result)
+}
 
 export const detectDelimiter = (str: string): "\t" | "," | " " =>
     str.includes("\t") ? "\t" : str.includes(",") ? "," : " "
