@@ -57,7 +57,7 @@ import {
     renameColumnStore,
     replaceRandomCellsInColumnStore,
     getDropIndexes,
-    parseDelimited,
+    parseDelimitedV2,
     rowsFromMatrix,
     sortColumnStore,
     emptyColumnsInFirstRowInDelimited,
@@ -253,7 +253,7 @@ export class CoreTable<
 
     @imemo private get delimitedAsColumnStore(): CoreColumnStore {
         const { originalInput, _numericColumnSlugs } = this
-        const parsed = parseDelimited(
+        const parsed = parseDelimitedV2(
             originalInput as string,
             undefined,
             makeAutoTypeFn(_numericColumnSlugs)

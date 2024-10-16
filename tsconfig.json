@@ -8,13 +8,7 @@
     "files": [],
     "references": [
         {
-            "path": "./gridLang"
-        },
-        {
             "path": "./gitCms"
-        },
-        {
-            "path": "./explorer"
         },
         {
             "path": "./site"

@@ -4,9 +4,5 @@
         "outDir": "../itsJustJavascript/explorerAdminServer",
         "rootDir": "."
     },
-    "references": [
-        { "path": "../explorer" },
-        { "path": "../site" },
-        { "path": "../db" }
-    ]
+    "references": [{ "path": "../site" }, { "path": "../db" }]
 }

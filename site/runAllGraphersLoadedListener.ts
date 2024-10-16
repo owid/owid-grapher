@@ -5,7 +5,7 @@ import {
 import {
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
     ExplorerContainerId,
-} from "../explorer/ExplorerConstants.js"
+} from "@ourworldindata/explorer"
 
 declare global {
     interface Window {

@@ -19,15 +19,13 @@ import {
     EXPLORERS_PREVIEW_ROUTE,
     UNSAVED_EXPLORER_DRAFT,
     UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS,
-} from "../explorer/ExplorerConstants.js"
-import {
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
     makeFullPath,
-} from "../explorer/ExplorerProgram.js"
+    isEmpty,
+} from "@ourworldindata/explorer"
 import { GitCmsClient } from "../gitCms/GitCmsClient.js"
 import { GitCmsFile, GIT_CMS_BASE_ROUTE } from "../gitCms/GitCmsConstants.js"
-import { isEmpty } from "../gridLang/GrammarUtils.js"
 import { AdminManager } from "./AdminManager.js"
 import {
     AutofillColDefCommand,

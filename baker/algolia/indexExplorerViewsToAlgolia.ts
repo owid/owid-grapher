@@ -1,11 +1,11 @@
 import * as db from "../../db/db.js"
-import { DecisionMatrix } from "../../explorer/ExplorerDecisionMatrix.js"
 import { tsvFormat } from "d3-dsv"
 import {
     ExplorerChoiceParams,
     ExplorerControlType,
-} from "../../explorer/ExplorerConstants.js"
-import { GridBoolean } from "../../gridLang/GridLangConstants.js"
+    GridBoolean,
+    DecisionMatrix,
+} from "@ourworldindata/explorer"
 import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
 import {
     ALGOLIA_INDEXING,

@@ -113,6 +113,10 @@ export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
             slug="test-slug"
             program={SampleExplorerOfGraphersProgram}
             grapherConfigs={grapherConfigs}
+            adminBaseUrl=""
+            bakedBaseUrl=""
+            bakedGrapherUrl=""
+            dataApiUrl=""
             {...props}
         />
     )
@@ -144,6 +148,10 @@ export const SampleInlineDataExplorer = (props?: Partial<ExplorerProps>) => {
         <Explorer
             slug="test-slug-inline-data"
             program={SampleInlineDataExplorerProgram}
+            adminBaseUrl=""
+            bakedBaseUrl=""
+            bakedGrapherUrl=""
+            dataApiUrl=""
             {...props}
         />
     )

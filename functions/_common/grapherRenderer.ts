@@ -89,7 +89,7 @@ const OPEN_GRAPH_OPTIONS: ImageOptions = {
 
 let initialized = false
 
-const extractOptions = (params: URLSearchParams): ImageOptions => {
+export const extractOptions = (params: URLSearchParams): ImageOptions => {
     const options: Partial<ImageOptions> = {}
 
     // We have two special images types specified via the `imType` query param:
@@ -695,7 +695,7 @@ export const fetchAndRenderGrapher = async (
     }
 }
 
-async function renderSvgToPng(svg: string, options: ImageOptions) {
+export async function renderSvgToPng(svg: string, options: ImageOptions) {
     if (!initialized) {
         await initializeSvg2Png(svg2png_wasm)
         initialized = true
