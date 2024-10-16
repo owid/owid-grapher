@@ -1,8 +1,5 @@
-import { Env } from "../../_common/env.js"
-import {
-    extensions,
-    fetchGrapherConfig,
-} from "../../_common/grapherRenderer.js"
+import { Env, extensions } from "../../_common/env.js"
+import { fetchGrapherConfig } from "../../_common/grapherTools.js"
 import { IRequestStrict, Router, error, StatusError } from "itty-router"
 import { handleThumbnailRequest } from "../../_common/reusableHandlers.js"
 
