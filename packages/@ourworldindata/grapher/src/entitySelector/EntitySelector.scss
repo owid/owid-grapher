@@ -175,17 +175,32 @@
         }
 
         .selectable-entity {
-            padding: 9px 8px 9px 16px;
             display: flex;
             justify-content: space-between;
             position: relative;
-            cursor: pointer;
 
-            &.hovered {
+            .checkbox,
+            .radio {
+                width: 100%;
+            }
+
+            label {
+                display: block;
+                padding: 9px 8px 9px 16px;
+                cursor: pointer;
+            }
+
+            .custom,
+            .outer {
+                left: 16px;
+                top: 9px;
+            }
+
+            &:hover {
                 background: rgba(219, 229, 240, 0.4);
             }
 
-            &--with-bar.hovered {
+            &--with-bar:hover {
                 background: rgba(219, 229, 240, 0.6);
             }
 
@@ -193,6 +208,8 @@
                 color: $gray-60;
                 white-space: nowrap;
                 margin-left: 12px;
+                padding-top: 9px;
+                padding-right: 8px;
             }
 
             .bar {
@@ -226,10 +243,6 @@
             position: relative;
             z-index: 0;
             background: #fff;
-
-            &.most-recently-selected {
-                z-index: 1;
-            }
         }
 
         ul {
