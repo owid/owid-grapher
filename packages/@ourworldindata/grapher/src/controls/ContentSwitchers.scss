@@ -1,4 +1,4 @@
-.ContentSwitchers {
+.Tabs.ContentSwitchers {
     // keep in sync with variables in ContentSwitchers.tsx
     $font-size: 13px;
     $icon-width: 13px;
@@ -15,8 +15,6 @@
     $border-radius: 4px;
     $visual-gap: 2px;
 
-    display: flex;
-    list-style: none;
     height: $controlRowHeight;
     margin: 0;
     padding: $visual-gap;
@@ -25,11 +23,14 @@
     box-shadow: inset 0 0 0 1px $light-stroke;
     border-radius: $border-radius;
 
-    li {
+    .Tabs__tab {
         position: relative;
+        border: none;
+        padding: 0;
+        margin: 0;
     }
 
-    li > button {
+    .tab-content {
         $height: $controlRowHeight - 2 * $visual-gap;
 
         display: block;
@@ -74,7 +75,7 @@
         }
     }
 
-    li.active > button {
+    .tab-content.active {
         color: $active-text;
         background-color: $active-fill;
 
@@ -88,7 +89,7 @@
     }
 
     // separators between tabs
-    li + li::before {
+    .Tabs__tab + .Tabs__tab::before {
         content: "";
         display: block;
         width: 1px;
@@ -96,21 +97,20 @@
         position: absolute;
         top: 6px;
         background-color: $light-stroke;
-        z-index: -1;
         left: -0.5px;
     }
 
     // hide separators when a tab is hovered over or when a tab is active
-    li.active::before,
-    li:hover::before,
-    li.active + li::before,
-    li:hover + li::before {
+    .Tabs__tab.active::before,
+    .Tabs__tab:hover::before,
+    .Tabs__tab.active + .Tabs__tab::before,
+    .Tabs__tab:hover + .Tabs__tab::before {
         display: none;
     }
 }
 
 &.GrapherComponentMedium {
-    .ContentSwitchers:not(.iconOnly) li > button {
+    .ContentSwitchers:not(.iconOnly) .Tabs__tab {
         --outer-padding: 8px;
     }
 }

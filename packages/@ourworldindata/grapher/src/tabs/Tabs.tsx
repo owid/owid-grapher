@@ -8,6 +8,7 @@ export const Tabs = ({
     horizontalScroll = false,
     maxTabWidth = 240,
     slot,
+    extraClassNames,
 }: {
     labels: React.ReactElement[]
     activeIndex: number
@@ -15,6 +16,7 @@ export const Tabs = ({
     horizontalScroll?: boolean
     maxTabWidth?: number | null // if null, don't clip labels
     slot?: React.ReactElement
+    extraClassNames?: string
 }) => {
     const container = useRef<HTMLDivElement>(null)
 
@@ -58,7 +60,7 @@ export const Tabs = ({
 
     return (
         <div
-            className={cx("Tabs", {
+            className={cx("Tabs", extraClassNames, {
                 "Tabs--horizontal-scroll": horizontalScroll,
             })}
             role="tablist"
@@ -69,7 +71,9 @@ export const Tabs = ({
                 return (
                     <button
                         key={index}
-                        className="Tabs__tab"
+                        className={cx("Tabs__tab", {
+                            active: isActive,
+                        })}
                         style={style}
                         type="button"
                         role="tab"
