@@ -102,4 +102,8 @@ export interface ChartManager {
 
     detailsOrderedByReference?: string[]
     detailsMarkerInSvg?: DetailsMarker
+
+    isTimelineAnimationActive?: boolean
+    animationStartTime?: number
+    animationEndTime?: number
 }

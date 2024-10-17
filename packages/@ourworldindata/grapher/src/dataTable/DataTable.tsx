@@ -639,12 +639,7 @@ export class DataTable extends React.Component<{
     @computed get autoSelectedStartTime(): number | undefined {
         let autoSelectedStartTime: number | undefined = undefined
 
-        if (
-            // this.grapher.userHasSetTimeline ||
-            //this.initialTimelineStartTimeSpecified ||
-            !this.loadedWithData
-        )
-            return undefined
+        if (!this.loadedWithData) return undefined
 
         const numEntitiesInTable = this.entityNames.length
 
