@@ -1,6 +1,11 @@
 import React, { useRef } from "react"
 import cx from "classnames"
 
+export interface TabLabel {
+    element: React.ReactElement
+    buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>
+}
+
 export const Tabs = ({
     labels,
     activeIndex,
@@ -11,7 +16,7 @@ export const Tabs = ({
     extraClassNames,
     variant = "default",
 }: {
-    labels: React.ReactElement[]
+    labels: TabLabel[]
     activeIndex: number
     setActiveIndex: (label: number) => void
     horizontalScroll?: boolean
@@ -83,8 +88,9 @@ export const Tabs = ({
                         aria-selected={isActive}
                         onClick={() => setActiveIndex(index)}
                         onKeyDown={handleKeyDown}
+                        {...label.buttonProps}
                     >
-                        {label}
+                        {label.element}
                     </button>
                 )
             })}

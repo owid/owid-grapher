@@ -7,7 +7,7 @@ import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
 import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
 import { chartIcons } from "./ChartIcons"
 import { Bounds, capitalize } from "@ourworldindata/utils"
-import { Tabs } from "../tabs/Tabs.js"
+import { TabLabel, Tabs } from "../tabs/Tabs.js"
 
 export interface ContentSwitchersManager {
     availableTabs?: GrapherTabOption[]
@@ -91,17 +91,19 @@ export class ContentSwitchers extends React.Component<{
         }
     }
 
-    @computed private get tabLabels(): React.ReactElement[] {
-        return this.availableTabs.map((tab) => (
-            <span
-                key={tab}
-                data-track-note={"chart_click_" + tab}
-                aria-label={tab}
-            >
-                {this.tabIcon(tab)}
-                {this.showTabLabels && <span className="label">{tab}</span>}
-            </span>
-        ))
+    @computed private get tabLabels(): TabLabel[] {
+        return this.availableTabs.map((tab) => ({
+            element: (
+                <span key={tab}>
+                    {this.tabIcon(tab)}
+                    {this.showTabLabels && <span className="label">{tab}</span>}
+                </span>
+            ),
+            buttonProps: {
+                "data-track-note": "chart_click_" + tab,
+                "aria-label": tab,
+            },
+        }))
     }
 
     render(): React.ReactElement {
