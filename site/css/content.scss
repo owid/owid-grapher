@@ -87,6 +87,12 @@ figure[data-explorer-src] {
     }
 }
 
+// Doesn't make sense to show the notice if JavaScript is disabled
+// As the grapher/data page will also be disabled
+.js-disabled .interactionNotice {
+    display: none;
+}
+
 /*******************************************************************************
  * Tables
  */
