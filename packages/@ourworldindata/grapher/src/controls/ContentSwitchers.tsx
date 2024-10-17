@@ -18,8 +18,10 @@ export interface ContentSwitchersManager {
     isLineChartThatTurnedIntoDiscreteBar?: boolean
 }
 
-// keep in sync with ContentSwitcher.scss
+// keep in sync with Tabs.scss
 const TAB_FONT_SIZE = 13
+
+// keep in sync with ContentSwitcher.scss
 const ICON_WIDTH = 13
 const ICON_PADDING = 6
 
