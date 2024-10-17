@@ -91,24 +91,28 @@ export class ContentSwitchers extends React.Component<{
         }
     }
 
+    @computed private get tabLabels(): React.ReactElement[] {
+        return this.availableTabs.map((tab) => (
+            <span
+                key={tab}
+                data-track-note={"chart_click_" + tab}
+                aria-label={tab}
+            >
+                {this.tabIcon(tab)}
+                {this.showTabLabels && <span className="label">{tab}</span>}
+            </span>
+        ))
+    }
+
     render(): React.ReactElement {
-        const { manager } = this
+        const { manager, tabLabels } = this
 
         const activeIndex =
             (manager.tab && this.availableTabs.indexOf(manager.tab)) ?? 0
 
-        const tabLabels = this.availableTabs.map((tab) => (
-            <Tab
-                key={tab}
-                tab={tab}
-                icon={this.tabIcon(tab)}
-                isActive={tab === manager.tab}
-                showLabel={this.showTabLabels}
-            />
-        ))
-
         return (
             <Tabs
+                variant="slim"
                 extraClassNames={classnames("ContentSwitchers", {
                     iconOnly: !this.showTabLabels,
                 })}
@@ -121,25 +125,4 @@ export class ContentSwitchers extends React.Component<{
             />
         )
     }
-}
-
-function Tab(props: {
-    tab: GrapherTabOption
-    icon: React.ReactElement
-    isActive?: boolean
-    onClick?: React.MouseEventHandler<HTMLButtonElement>
-    showLabel?: boolean
-}): React.ReactElement {
-    const className =
-        "tab-content clickable" + (props.isActive ? " active" : "")
-    return (
-        <div
-            className={className}
-            data-track-note={"chart_click_" + props.tab}
-            aria-label={props.tab}
-        >
-            {props.icon}
-            {props.showLabel && <span className="label">{props.tab}</span>}
-        </div>
-    )
 }

@@ -9,6 +9,7 @@ export const Tabs = ({
     maxTabWidth = 240,
     slot,
     extraClassNames,
+    variant = "default",
 }: {
     labels: React.ReactElement[]
     activeIndex: number
@@ -17,6 +18,7 @@ export const Tabs = ({
     maxTabWidth?: number | null // if null, don't clip labels
     slot?: React.ReactElement
     extraClassNames?: string
+    variant?: "default" | "slim"
 }) => {
     const container = useRef<HTMLDivElement>(null)
 
@@ -60,7 +62,7 @@ export const Tabs = ({
 
     return (
         <div
-            className={cx("Tabs", extraClassNames, {
+            className={cx("Tabs", "Tabs-variant-" + variant, extraClassNames, {
                 "Tabs--horizontal-scroll": horizontalScroll,
             })}
             role="tablist"

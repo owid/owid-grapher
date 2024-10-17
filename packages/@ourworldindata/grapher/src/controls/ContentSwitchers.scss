@@ -1,57 +1,11 @@
 .Tabs.ContentSwitchers {
-    // keep in sync with variables in ContentSwitchers.tsx
-    $font-size: 13px;
+    // keep in sync with variables in ContentSwitchers.tsx and Tabs.scss
     $icon-width: 13px;
     $icon-padding: 6px;
-    --outer-padding: 16px;
-
-    $light-stroke: $gray-20;
-
-    $hover-fill: $gray-10;
-    $active-fill: $blue-20;
 
     $active-icon: $blue-50;
 
-    $border-radius: 4px;
-    $visual-gap: 2px;
-
-    height: $controlRowHeight;
-    margin: 0;
-    padding: $visual-gap;
-    // using a box-shadow instead of a border fixes a bug
-    // where the tab items weren't centered when zoomed in or out
-    box-shadow: inset 0 0 0 1px $light-stroke;
-    border-radius: $border-radius;
-
     .Tabs__tab {
-        position: relative;
-        border: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .tab-content {
-        $height: $controlRowHeight - 2 * $visual-gap;
-
-        display: block;
-        text-transform: capitalize;
-        color: $light-text;
-        font-size: $font-size;
-        font-weight: 500;
-        height: $height;
-        line-height: $height;
-        border-radius: $border-radius - $visual-gap;
-        padding: 0 var(--outer-padding);
-        cursor: default;
-        letter-spacing: 0.01em;
-        white-space: nowrap;
-        user-select: none;
-
-        &:hover {
-            background-color: $hover-fill;
-            cursor: pointer;
-        }
-
         .label {
             margin-left: $icon-padding;
         }
@@ -75,37 +29,10 @@
         }
     }
 
-    .tab-content.active {
-        color: $active-text;
-        background-color: $active-fill;
-
-        &:hover {
-            cursor: default;
-        }
-
+    .Tabs__tab.active {
         svg {
             color: $active-icon;
         }
-    }
-
-    // separators between tabs
-    .Tabs__tab + .Tabs__tab::before {
-        content: "";
-        display: block;
-        width: 1px;
-        height: calc(100% - 12px);
-        position: absolute;
-        top: 6px;
-        background-color: $light-stroke;
-        left: -0.5px;
-    }
-
-    // hide separators when a tab is hovered over or when a tab is active
-    .Tabs__tab.active::before,
-    .Tabs__tab:hover::before,
-    .Tabs__tab.active + .Tabs__tab::before,
-    .Tabs__tab:hover + .Tabs__tab::before {
-        display: none;
     }
 }
 
