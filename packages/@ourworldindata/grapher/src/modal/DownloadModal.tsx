@@ -16,7 +16,11 @@ import {
 } from "@ourworldindata/components"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faDownload, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
+import {
+    faCircleExclamation,
+    faDownload,
+    faInfoCircle,
+} from "@fortawesome/free-solid-svg-icons"
 import { OwidColumnDef, GrapherStaticFormat } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -297,7 +301,7 @@ export class DownloadModalVisTab extends React.Component<
                 className="grouped-menu"
                 style={{ display: this.props.visible ? undefined : "none" }}
             >
-                {manager.isOnChartOrMapTab && (
+                {manager.isOnChartOrMapTab ? (
                     <div className="grouped-menu-section">
                         <div className="grouped-menu-list">
                             <DownloadButton
@@ -370,6 +374,17 @@ export class DownloadModalVisTab extends React.Component<
                             </div>
                         )}
                     </div>
+                ) : (
+                    <Callout
+                        title="Chart can't currently be exported to image"
+                        icon={<FontAwesomeIcon icon={faCircleExclamation} />}
+                    >
+                        Try switching to the "Chart" or "Map" tab to download a
+                        static image of this chart.
+                        <br />
+                        You can also download the data used in this chart by
+                        navigating to the "Data" tab.
+                    </Callout>
                 )}
             </div>
         )
