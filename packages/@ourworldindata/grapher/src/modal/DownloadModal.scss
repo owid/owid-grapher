@@ -9,6 +9,8 @@
         flex-shrink: 0;
     }
 
+    margin-bottom: 24px;
+
     .padded {
         padding: 0 var(--modal-padding);
     }
@@ -128,13 +130,11 @@
 }
 
 .static-exports-options {
-    margin: 16px 0 24px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid $gray-10;
+    margin: 16px 0 0;
 
-    > .checkbox + .checkbox {
-        margin-top: 8px;
-    }
+    gap: 8px;
+    display: flex;
+    flex-direction: column;
 }
 
 &.GrapherComponentSmall .download-modal-content {

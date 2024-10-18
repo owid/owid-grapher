@@ -15,7 +15,7 @@ import {
 } from "@ourworldindata/components"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faDownload, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
+import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { OwidColumnDef, GrapherStaticFormat } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -330,7 +330,6 @@ export class DownloadModalVisTab extends React.Component<
             >
                 {manager.isOnChartOrMapTab && (
                     <div className="grouped-menu-section">
-                        <h3 className="grapher_h3-semibold">Visualization</h3>
                         <div className="grouped-menu-list">
                             <DownloadButton
                                 title="Image (PNG)"
@@ -403,48 +402,6 @@ export class DownloadModalVisTab extends React.Component<
                         )}
                     </div>
                 )}
-                <div className="grouped-menu-section grouped-menu-section-data">
-                    <h3 className="grapher_h3-semibold">Data</h3>
-                    {this.nonRedistributable ? (
-                        <div className="grouped-menu-callout">
-                            <div className="grouped-menu-callout-content">
-                                <h4 className="title grapher_h4-semibold">
-                                    <FontAwesomeIcon icon={faInfoCircle} />
-                                    The data in this chart is not available to
-                                    download
-                                </h4>
-                                <p className="grapher_body-3-medium grapher_light">
-                                    The data is published under a license that
-                                    doesn't allow us to redistribute it.
-                                    {this.nonRedistributableSourceLink && (
-                                        <>
-                                            {" "}
-                                            Please visit the{" "}
-                                            <a
-                                                href={
-                                                    this
-                                                        .nonRedistributableSourceLink
-                                                }
-                                            >
-                                                data publisher's website
-                                            </a>{" "}
-                                            for more details.
-                                        </>
-                                    )}
-                                </p>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="grouped-menu-list">
-                            <DownloadButton
-                                title="Full data (CSV)"
-                                description="The full dataset used in this chart."
-                                onClick={this.onCsvDownload}
-                                tracking="chart_download_csv"
-                            />
-                        </div>
-                    )}
-                </div>
             </div>
         )
     }
@@ -558,7 +515,7 @@ function DownloadButton(props: DownloadButtonProps): React.ReactElement {
             )}
             <div className="grouped-menu-content">
                 <h4 className="grapher_body-2-semibold">{props.title}</h4>
-                <p className="grapher_label-1-medium grouped-menu-content-description">
+                <p className="grapher_label-2-regular grouped-menu-content-description">
                     {props.description}
                 </p>
             </div>
