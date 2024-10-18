@@ -125,7 +125,6 @@ export class ContentSwitchers extends React.Component<{
                 setActiveIndex={(index) =>
                     (manager.tab = this.availableTabs[index])
                 }
-                maxTabWidth={null}
             />
         )
     }

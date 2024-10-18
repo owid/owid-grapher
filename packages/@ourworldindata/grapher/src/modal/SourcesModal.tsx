@@ -194,7 +194,6 @@ export class SourcesModal extends React.Component<
                     labels={this.tabLabels}
                     activeIndex={activeIndex}
                     setActiveIndex={setActiveIndex}
-                    maxTabWidth={null}
                 />
             )
         }

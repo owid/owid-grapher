@@ -11,7 +11,7 @@ export const Tabs = ({
     activeIndex,
     setActiveIndex,
     horizontalScroll = false,
-    maxTabWidth = 240,
+    maxTabWidth,
     slot,
     extraClassNames,
     variant = "default",
@@ -20,7 +20,7 @@ export const Tabs = ({
     activeIndex: number
     setActiveIndex: (label: number) => void
     horizontalScroll?: boolean
-    maxTabWidth?: number | null // if null, don't clip labels
+    maxTabWidth?: number // if undefined, don't clip labels
     slot?: React.ReactElement
     extraClassNames?: string
     variant?: "default" | "slim"
@@ -57,7 +57,7 @@ export const Tabs = ({
     }
 
     let style: React.CSSProperties | undefined = undefined
-    if (maxTabWidth !== null && Number.isFinite(maxTabWidth)) {
+    if (maxTabWidth !== undefined && Number.isFinite(maxTabWidth)) {
         style = {
             maxWidth: maxTabWidth,
             textOverflow: "ellipsis",
