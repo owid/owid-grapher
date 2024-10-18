@@ -7,6 +7,7 @@ import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
 import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
 import { chartIcons } from "./ChartIcons"
 import { Bounds, capitalize } from "@ourworldindata/utils"
+import { TabLabel, Tabs } from "../tabs/Tabs.js"
 
 export interface ContentSwitchersManager {
     availableTabs?: GrapherTabOption[]
@@ -17,8 +18,10 @@ export interface ContentSwitchersManager {
     isLineChartThatTurnedIntoDiscreteBar?: boolean
 }
 
-// keep in sync with ContentSwitcher.scss
+// keep in sync with Tabs.scss
 const TAB_FONT_SIZE = 13
+
+// keep in sync with ContentSwitcher.scss
 const ICON_WIDTH = 13
 const ICON_PADDING = 6
 
@@ -90,51 +93,39 @@ export class ContentSwitchers extends React.Component<{
         }
     }
 
+    @computed private get tabLabels(): TabLabel[] {
+        return this.availableTabs.map((tab) => ({
+            element: (
+                <span key={tab}>
+                    {this.tabIcon(tab)}
+                    {this.showTabLabels && <span className="label">{tab}</span>}
+                </span>
+            ),
+            buttonProps: {
+                "data-track-note": "chart_click_" + tab,
+                "aria-label": tab,
+            },
+        }))
+    }
+
     render(): React.ReactElement {
-        const { manager } = this
+        const { manager, tabLabels } = this
+
+        const activeIndex =
+            (manager.tab && this.availableTabs.indexOf(manager.tab)) ?? 0
+
         return (
-            <ul
-                className={classnames({
-                    ContentSwitchers: true,
+            <Tabs
+                variant="slim"
+                extraClassNames={classnames("ContentSwitchers", {
                     iconOnly: !this.showTabLabels,
                 })}
-            >
-                {this.availableTabs.map((tab) => (
-                    <Tab
-                        key={tab}
-                        tab={tab}
-                        icon={this.tabIcon(tab)}
-                        isActive={tab === manager.tab}
-                        onClick={(): void => {
-                            manager.tab = tab
-                        }}
-                        showLabel={this.showTabLabels}
-                    />
-                ))}
-            </ul>
+                labels={tabLabels}
+                activeIndex={activeIndex}
+                setActiveIndex={(index) =>
+                    (manager.tab = this.availableTabs[index])
+                }
+            />
         )
     }
-}
-
-function Tab(props: {
-    tab: GrapherTabOption
-    icon: React.ReactElement
-    isActive?: boolean
-    onClick?: React.MouseEventHandler<HTMLButtonElement>
-    showLabel?: boolean
-}): React.ReactElement {
-    const className = "tab clickable" + (props.isActive ? " active" : "")
-    return (
-        <li key={props.tab} className={className}>
-            <button
-                onClick={props.onClick}
-                data-track-note={"chart_click_" + props.tab}
-                aria-label={props.tab}
-                type="button"
-            >
-                {props.icon}
-                {props.showLabel && <span className="label">{props.tab}</span>}
-            </button>
-        </li>
-    )
 }
