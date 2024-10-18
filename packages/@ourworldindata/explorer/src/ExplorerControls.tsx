@@ -8,7 +8,7 @@ import {
     ExplorerChoice,
 } from "./ExplorerConstants.js"
 import { chunk, getStylesForTargetHeight } from "@ourworldindata/utils"
-import { GridBoolean } from "../gridLang/GridLangConstants.js"
+import { GridBoolean } from "./gridLang/GridLangConstants.js"
 import classNames from "classnames"
 
 const AVAILABLE_OPTION_CLASS = "AvailableOption"

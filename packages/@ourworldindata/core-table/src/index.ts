@@ -56,6 +56,7 @@ export {
     trimMatrix,
     matrixToDelimited,
     parseDelimited,
+    parseDelimitedV2,
     detectDelimiter,
     rowsToMatrix,
     isCellEmpty,

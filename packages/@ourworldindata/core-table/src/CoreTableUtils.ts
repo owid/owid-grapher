@@ -1,4 +1,5 @@
 import { dsvFormat, DSVParsedArray } from "d3-dsv"
+import * as Papa from "papaparse"
 import {
     findIndexFast,
     first,
@@ -559,6 +560,38 @@ export const parseDelimited = (
 ): DSVParsedArray<Record<string, unknown>> =>
     dsvFormat(delimiter ?? detectDelimiter(str)).parse(str, parseFn as any)
 
+export const parseDelimitedV2 = (
+    str: string,
+    delimiter?: string,
+    parseFn?: (
+        rawRow: Record<string, string | undefined> | undefined,
+        index: number,
+        columns: unknown[]
+    ) => Record<string, unknown> | undefined | null
+): DSVParsedArray<Record<string, any>> => {
+    // Convert PapaParse result to D3 format for backwards compatibility
+    const papaParseToD3 = ({
+        data,
+        meta,
+    }: Papa.ParseResult<any>): DSVParsedArray<Record<string, any>> => {
+        const dsvParsed = data as DSVParsedArray<Record<string, any>>
+        dsvParsed.columns = meta.fields || []
+        return dsvParsed
+    }
+
+    const result = Papa.parse(str, {
+        delimiter: delimiter ?? detectDelimiter(str),
+        skipEmptyLines: true,
+        header: true,
+        transformHeader: (header: string) => header.trim(),
+        transform: (value: string) => value.trim(),
+        ...parseFn,
+    })
+
+    const parsed = papaParseToD3(result)
+    return parsed
+}
+
 export const detectDelimiter = (str: string): "\t" | "," | " " =>
     str.includes("\t") ? "\t" : str.includes(",") ? "," : " "
 
@@ -645,7 +678,7 @@ const makeSortByFn = (
 
 export const emptyColumnsInFirstRowInDelimited = (str: string): string[] => {
     // todo: don't split a big string here, just do a faster first line scan
-    const shortCsv = parseDelimited(str.split("\n").slice(0, 2).join("\n"))
+    const shortCsv = parseDelimitedV2(str.split("\n").slice(0, 2).join("\n"))
     const firstRow: any = shortCsv[0] ?? {}
     const emptySlugs: string[] = []
     Object.keys(firstRow).forEach((slug) => {

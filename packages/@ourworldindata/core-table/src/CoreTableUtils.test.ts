@@ -16,6 +16,7 @@ import {
     concatColumnStores,
     guessColumnDefFromSlugAndRow,
     standardizeSlugs,
+    parseDelimitedV2,
 } from "./CoreTableUtils.js"
 import { ErrorValueTypes } from "./ErrorValues.js"
 import { imemo } from "@ourworldindata/utils"
@@ -509,5 +510,75 @@ describe(concatColumnStores, () => {
                 ErrorValueTypes.MissingValuePlaceholder,
             ],
         })
+    })
+})
+
+describe("parseDelimited and parseDelimitedV2", () => {
+    it("Both functions should return the same result", () => {
+        const input = `grapherId	yVariableIds	xVariableId	colorVariableId	sizeVariableId	Metric	Period	Sub-Metric	Age	subtitle	title	hasMapTab	tab	yAxisMin	timelineMaxTime	relatedQuestionText	relatedQuestionUrl
+	953987				International emigrants	Total number	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	954094				International emigrants	Total number	Per capita / Share of population	All ages		Share of the population that has left the country	true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	954091				International emigrants	Five-year change	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	954093				International emigrants	Five-year change	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	953981				International immigrants	Total number	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	953985				International immigrants	Total number	Per capita / Share of population	All ages		Share of the population that was born in another country	true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	954090				International immigrants	Five-year change	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	954092				International immigrants	Five-year change	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962002				International immigrants	Total number	Total	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962010				International immigrants	Total number	Per capita / Share of population	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	951638				Net migration	Total number	Total	All ages	The total number of [immigrants](#dod:immigrant) (people moving into a given country) minus the number of [emigrants](#dod:emigrant) (people moving out of the country).	Net migration	true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	951642				Net migration	Total number	Per capita / Share of population	All ages	The total number of [immigrants](#dod:immigrant) (people moving into a given country) minus the number of [emigrants](#dod:emigrant) (people moving out of the country), per 1,000 people in the population.	Net migration rate	true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962012				Asylum seekers by origin	Total number	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962033				Asylum seekers by origin	Total number	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962018				Asylum seekers by destination	Total number	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962034				Asylum seekers by destination	Total number	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962011				Refugees by origin	Total number	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962031				Refugees by origin	Total number	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962006				Refugees by origin	Total number	Total	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962009				Refugees by origin	Total number	Per capita / Share of population	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962019				Refugees by destination	Total number	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962032				Refugees by destination	Total number	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962005				Refugees by destination	Total number	Total	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962008				Refugees by destination	Total number	Per capita / Share of population	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962026				Resettled refugees by origin	Annual change	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962035				Resettled refugees by origin	Annual change	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962029				Resettled refugees by destination	Annual change	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962036				Resettled refugees by destination	Annual change	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962024				Returned refugees by origin	Annual change	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962028				Returned refugees by destination	Annual change	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962052				Internally displaced persons	Total number	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962056				Internally displaced persons	Total number	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962055				Internally displaced persons	Annual change	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	985134				Internally displaced persons	Annual change	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962000				Internally displaced persons	Total number	Total	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	985135				Internally displaced persons	Total number	Per capita / Share of population	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962004				Internally displaced persons	Annual change	Total	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	985136				Internally displaced persons	Annual change	Per capita / Share of population	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962050				Internally displaced persons (conflict)	Total number	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962057				Internally displaced persons (conflict)	Total number	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962053				Internally displaced persons (conflict)	Annual change	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	985137				Internally displaced persons (conflict)	Annual change	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	961999				Internally displaced persons (conflict)	Total number	Total	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	985139				Internally displaced persons (conflict)	Total number	Per capita / Share of population	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962001				Internally displaced persons (conflict)	Annual change	Total	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	985141				Internally displaced persons (conflict)	Annual change	Per capita / Share of population	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962051				Internally displaced persons (disaster)	Total number	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962058				Internally displaced persons (disaster)	Total number	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962054				Internally displaced persons (disaster)	Annual change	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	985138				Internally displaced persons (disaster)	Annual change	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	961998				Internally displaced persons (disaster)	Total number	Total	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	985140				Internally displaced persons (disaster)	Total number	Per capita / Share of population	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962003				Internally displaced persons (disaster)	Annual change	Total	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	985142				Internally displaced persons (disaster)	Annual change	Per capita / Share of population	Under 18			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962025				Returned internally displaced persons	Annual change	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	985145				Returned internally displaced persons	Annual change	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	962021				Stateless persons by residence	Total number	Total	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	985147				Stateless persons by residence	Total number	Per capita / Share of population	All ages			true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	904891				Remittances as share of GDP	Total number	Total	All ages	Share of GDP that is made up of the sum of all personal [remittances](#dod:remittances) sent by migrants to their home countries.	Remittances as share of GDP	true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	905930				Cost of sending remittances	Total number	Total	All ages	The average [transaction cost](#dod:remittancecost) as a percentage of total [remittance](#dod:remittances) received from abroad. The cost is based on a single transaction of USD 200.	Average cost for sending remittances from country	true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition
+	905929				Cost of receiving remittances	Total number	Total	All ages	The average [transaction cost](#dod:remittancecost) as a percentage of total [remittance](#dod:remittances) sent from abroad to this country. The cost is based on a single transaction of USD 200.	Average cost for sending remittances to country	true	map	0	2024	Migration Data: Our sources and definitions	https://ourworldindata.org/migration-definition`
+        const resultV1 = parseDelimited(input)
+        const resultV2 = parseDelimitedV2(input)
+        expect(resultV1).toEqual(resultV2)
     })
 })

@@ -4,5 +4,5 @@
         "outDir": "../itsJustJavascript/site",
         "rootDir": "."
     },
-    "references": [{ "path": "../settings" }, { "path": "../explorer" }]
+    "references": [{ "path": "../settings" }]
 }
