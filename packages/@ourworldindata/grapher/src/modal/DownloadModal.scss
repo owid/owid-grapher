@@ -114,13 +114,13 @@
             font-size: 14px;
         }
 
-        a {
-            color: inherit;
-            text-decoration: underline;
+        ul {
+            margin: 6px 0 0;
+            padding-left: 22px;
+        }
 
-            &:hover {
-                text-decoration: none;
-            }
+        a {
+            @include owid-link-60;
         }
     }
 

@@ -412,38 +412,33 @@ export const DownloadModalDataTab = (
     if (nonRedistributableCols?.length && props.visible) {
         return (
             <div className="grouped-menu-section grouped-menu-section-data">
-                <div className="grouped-menu-callout">
-                    <div className="grouped-menu-callout-content">
-                        <h4 className="title grapher_h4-semibold">
-                            <FontAwesomeIcon icon={faInfoCircle} />
-                            The data in this chart is not available to download
-                        </h4>
-                        <p className="grapher_body-3-medium grapher_light">
-                            The data is published under a license that doesn't
-                            allow us to redistribute it.
-                            {sourceLinks?.length && (
-                                <>
-                                    {" "}
-                                    Please visit the data publisher's website(s)
-                                    for more details:
-                                    <ul>
-                                        {sourceLinks.map((link, i) => (
-                                            <li key={i}>
-                                                <a
-                                                    href={link}
-                                                    target="_blank"
-                                                    rel="noopener"
-                                                >
-                                                    {link}
-                                                </a>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </>
-                            )}
-                        </p>
-                    </div>
-                </div>
+                <Callout
+                    title="The data in this chart is not available to download"
+                    icon={<FontAwesomeIcon icon={faInfoCircle} />}
+                >
+                    The data is published under a license that doesn't allow us
+                    to redistribute it.
+                    {sourceLinks?.length && (
+                        <>
+                            {" "}
+                            Please visit the data publisher's website(s) for
+                            more details:
+                            <ul>
+                                {sourceLinks.map((link, i) => (
+                                    <li key={i}>
+                                        <a
+                                            href={link}
+                                            target="_blank"
+                                            rel="noopener"
+                                        >
+                                            {link}
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </>
+                    )}
+                </Callout>
             </div>
         )
     }
@@ -559,5 +554,29 @@ function DownloadButton(props: DownloadButtonProps): React.ReactElement {
                 </span>
             </div>
         </button>
+    )
+}
+
+interface CalloutProps {
+    title?: React.ReactNode
+    icon?: React.ReactElement
+    children: React.ReactNode
+}
+
+function Callout(props: CalloutProps): React.ReactElement {
+    return (
+        <div className="grouped-menu-callout">
+            <div className="grouped-menu-callout-content">
+                {props.title && (
+                    <h4 className="title grapher_h4-semibold">
+                        {props.icon}
+                        {props.title}
+                    </h4>
+                )}
+                <p className="grapher_body-3-medium grapher_light">
+                    {props.children}
+                </p>
+            </div>
+        </div>
     )
 }
