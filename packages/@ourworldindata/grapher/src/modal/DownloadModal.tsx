@@ -7,6 +7,7 @@ import {
     isEmpty,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
+    uniq,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -15,7 +16,7 @@ import {
 } from "@ourworldindata/components"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faDownload } from "@fortawesome/free-solid-svg-icons"
+import { faDownload, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { OwidColumnDef, GrapherStaticFormat } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -193,38 +194,6 @@ export class DownloadModalVisTab extends React.Component<
 
     @computed private get inputTable(): OwidTable {
         return this.manager.table ?? BlankOwidTable()
-    }
-
-    @computed private get nonRedistributableColumn(): CoreColumn | undefined {
-        return this.inputTable.columnsAsArray.find(
-            (col) => (col.def as OwidColumnDef).nonRedistributable
-        )
-    }
-
-    // Data downloads are fully disabled if _any_ variable used is non-redistributable.
-    // In the future, we would probably like to drop only the columns that are
-    // non-redistributable, and allow downloading the rest in the CSV.
-    // -@danielgavrilov, 2021-11-16
-    @computed private get nonRedistributable(): boolean {
-        return this.nonRedistributableColumn !== undefined
-    }
-
-    // There could be multiple non-redistributable variables in the chart.
-    // For now, we only pick the first one to populate the link.
-    // In the future, we may need to change the phrasing of the download
-    // notice and provide links to all publishers.
-    // -@danielgavrilov, 2021-11-16
-    @computed private get nonRedistributableSourceLink(): string | undefined {
-        const def = this.nonRedistributableColumn?.def as
-            | OwidColumnDef
-            | undefined
-        if (!def) return undefined
-        return (
-            def.sourceLink ??
-            (def.origins && def.origins.length > 0
-                ? def.origins[0].urlMain
-                : undefined)
-        )
     }
 
     @action.bound private onPngDownload(): void {
@@ -407,12 +376,77 @@ export class DownloadModalVisTab extends React.Component<
     }
 }
 
+const getNonRedistributableInfo = (
+    table: OwidTable | undefined
+): { cols: CoreColumn[] | undefined; sourceLinks: string[] | undefined } => {
+    if (!table) return { cols: undefined, sourceLinks: undefined }
+
+    const nonRedistributableCols = table.columnsAsArray.filter(
+        (col) => (col.def as OwidColumnDef).nonRedistributable
+    )
+
+    if (!nonRedistributableCols.length)
+        return { cols: undefined, sourceLinks: undefined }
+
+    const sourceLinks = nonRedistributableCols
+        .map((col) => {
+            const def = col.def as OwidColumnDef
+            return def.sourceLink ?? def.origins?.[0]?.urlMain
+        })
+        .filter((link): link is string => !!link)
+
+    return { cols: nonRedistributableCols, sourceLinks: uniq(sourceLinks) }
+}
+
 export const DownloadModalDataTab = (
     props: DownloadModalProps & { visible: boolean }
 ) => {
     const { yColumnsFromDimensions } = props.manager
+
     const [onlyVisible, setOnlyVisible] = useState(false)
     const [shortColNames, setShortColNames] = useState(false)
+
+    const { cols: nonRedistributableCols, sourceLinks } =
+        getNonRedistributableInfo(props.manager.table)
+
+    if (nonRedistributableCols?.length && props.visible) {
+        return (
+            <div className="grouped-menu-section grouped-menu-section-data">
+                <div className="grouped-menu-callout">
+                    <div className="grouped-menu-callout-content">
+                        <h4 className="title grapher_h4-semibold">
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                            The data in this chart is not available to download
+                        </h4>
+                        <p className="grapher_body-3-medium grapher_light">
+                            The data is published under a license that doesn't
+                            allow us to redistribute it.
+                            {sourceLinks?.length && (
+                                <>
+                                    {" "}
+                                    Please visit the data publisher's website(s)
+                                    for more details:
+                                    <ul>
+                                        {sourceLinks.map((link, i) => (
+                                            <li key={i}>
+                                                <a
+                                                    href={link}
+                                                    target="_blank"
+                                                    rel="noopener"
+                                                >
+                                                    {link}
+                                                </a>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            )}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     const firstYColDef = yColumnsFromDimensions?.[0].def as
         | OwidColumnDef
