@@ -100,6 +100,7 @@ const DataCatalogSearchInput = ({
                 }}
             >
                 <input
+                    autoFocus
                     type="text"
                     className="data-catalog-search-input body-3-regular"
                     ref={inputRef}
