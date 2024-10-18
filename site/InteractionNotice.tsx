@@ -7,6 +7,7 @@ export const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" d
     <path fill="currentColor" opacity="0.6" d="M239.76,234.78A27.5,27.5,0,0,1,217,192a87.76,87.76,0,1,0-145.9,0A27.5,27.5,0,1,1,25.37,222.6,142.17,142.17,0,0,1,1.24,143.17C1.24,64.45,65.28.41,144,.41s142.76,64,142.76,142.76a142.17,142.17,0,0,1-24.13,79.43A27.47,27.47,0,0,1,239.76,234.78Z" transform="translate(0 -0.41)"/>
 </svg>`
 
+// shouldProgressiveEmbed is hardcoded to true, so this will only show if JS is disabled
 export default function InteractionNotice() {
     return (
         <div className="interactionNotice">
