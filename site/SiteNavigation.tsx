@@ -728,6 +728,10 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                             title: "Economic Inequality",
                         },
                         {
+                            slug: "foreign-aid",
+                            title: "Foreign Aid",
+                        },
+                        {
                             slug: "economic-inequality-by-gender",
                             title: "Economic Inequality by Gender",
                         },
