@@ -89,31 +89,33 @@ export class VerticalColorLegend extends React.Component<{
             lineHeight,
         } = this
 
-        return manager.legendItems
-            .map((series, index) => {
-                let label = series.label
-                // infer label for numeric bins
-                if (!label && series.minText && series.maxText) {
-                    label = `${series.minText} – ${series.maxText}`
-                }
-                const textWrap = new TextWrap({
-                    maxWidth: this.maxLegendWidth,
-                    fontSize,
-                    lineHeight: 1,
-                    text: label ?? "",
-                })
-                const width = rectSize + rectPadding + textWrap.width
-                const height = Math.max(textWrap.height, rectSize)
-                const yOffset = titleHeight + index * (height + lineHeight)
-                return {
-                    textWrap,
-                    color: series.color,
-                    width,
-                    height,
-                    yOffset,
-                }
+        let runningYOffset = titleHeight
+        return manager.legendItems.map((series) => {
+            let label = series.label
+            // infer label for numeric bins
+            if (!label && series.minText && series.maxText) {
+                label = `${series.minText} – ${series.maxText}`
+            }
+            const textWrap = new TextWrap({
+                maxWidth: this.maxLegendWidth,
+                fontSize,
+                lineHeight: 1,
+                text: label ?? "",
             })
-            .filter((v) => !!v) as SizedLegendSeries[]
+            const width = rectSize + rectPadding + textWrap.width
+            const height = Math.max(textWrap.height, rectSize)
+            const yOffset = runningYOffset
+
+            runningYOffset += height + lineHeight
+
+            return {
+                textWrap,
+                color: series.color,
+                width,
+                height,
+                yOffset,
+            }
+        })
     }
 
     @computed get width(): number {
