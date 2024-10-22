@@ -40,6 +40,7 @@ export interface DownloadModalManager {
     baseUrl?: string
     queryStr?: string
     table?: OwidTable
+    transformedTable?: OwidTable
     yColumnsFromDimensions?: CoreColumn[]
     externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
     shouldIncludeDetailsInStaticExport?: boolean
@@ -391,6 +392,56 @@ export class DownloadModalVisTab extends React.Component<
     }
 }
 
+enum CsvDownloadType {
+    Full = "full",
+    CurrentSelection = "current_selection",
+}
+
+interface DataDownloadContext {
+    // Configurable options
+    csvDownloadType: CsvDownloadType
+    shortColNames: boolean
+
+    slug: string
+    searchParams: URLSearchParams
+    baseUrl: string
+
+    // Only needed for local CSV generation
+    table: OwidTable
+    transformedTable: OwidTable
+}
+
+const createCsvBlobLocally = async (ctx: DataDownloadContext) => {
+    const csv =
+        ctx.csvDownloadType === CsvDownloadType.Full
+            ? ctx.table.toPrettyCsv(ctx.shortColNames)
+            : ctx.transformedTable.toPrettyCsv(ctx.shortColNames)
+
+    return new Blob([csv], { type: "text/csv;charset=utf-8" })
+}
+
+const getDownloadSearchParams = (ctx: DataDownloadContext) => {
+    const searchParams = new URLSearchParams()
+    if (ctx.shortColNames) searchParams.set("useColumnShortNames", "true")
+
+    if (ctx.csvDownloadType === CsvDownloadType.CurrentSelection) {
+        searchParams.set("csvType", "filtered")
+
+        // Append all the current selection filters to the download URL, e.g.: ?time=2020&selection=~USA
+        for (const [key, value] of ctx.searchParams.entries()) {
+            searchParams.set(key, value)
+        }
+    }
+
+    return searchParams
+}
+
+const getDownloadUrl = (type: "csv" | "zip", ctx: DataDownloadContext) => {
+    const searchParams = getDownloadSearchParams(ctx)
+    const searchStr = searchParams.toString()
+    return `${ctx.baseUrl}.${type}` + (searchStr ? `?${searchStr}` : "")
+}
+
 const getNonRedistributableInfo = (
     table: OwidTable | undefined
 ): { cols: CoreColumn[] | undefined; sourceLinks: string[] | undefined } => {
@@ -423,6 +474,63 @@ export const DownloadModalDataTab = (
 
     const { cols: nonRedistributableCols, sourceLinks } =
         getNonRedistributableInfo(props.manager.table)
+
+    const serverSideDownloadAvailable = false // TODO
+
+    const downloadCtx: DataDownloadContext = useMemo(
+        (): DataDownloadContext => ({
+            csvDownloadType: onlyVisible
+                ? CsvDownloadType.CurrentSelection
+                : CsvDownloadType.Full,
+            shortColNames,
+
+            slug: props.manager.displaySlug,
+            searchParams: new URLSearchParams(),
+            baseUrl:
+                props.manager.baseUrl ??
+                `/grapher/${props.manager.displaySlug}`,
+
+            table: props.manager.table ?? BlankOwidTable(),
+            transformedTable:
+                props.manager.transformedTable ?? BlankOwidTable(),
+        }),
+        [
+            onlyVisible,
+            props.manager.baseUrl,
+            props.manager.displaySlug,
+            props.manager.table,
+            props.manager.transformedTable,
+            shortColNames,
+        ]
+    )
+
+    const onCsvDownload = useCallback(() => {
+        const csvFilename = downloadCtx.slug + ".csv"
+        if (serverSideDownloadAvailable) {
+            triggerDownloadFromUrl(
+                csvFilename,
+                getDownloadUrl("csv", downloadCtx)
+            )
+        } else {
+            void createCsvBlobLocally(downloadCtx).then((blob) => {
+                triggerDownloadFromBlob(csvFilename, blob)
+            })
+        }
+    }, [downloadCtx, serverSideDownloadAvailable])
+
+    const onZipDownload = useCallback(() => {
+        const zipFilename = downloadCtx.slug + ".zip"
+        if (serverSideDownloadAvailable) {
+            triggerDownloadFromUrl(
+                zipFilename,
+                getDownloadUrl("zip", downloadCtx)
+            )
+        } else {
+            console.error(
+                "Server-side ZIP download not implemented for this chart"
+            )
+        }
+    }, [downloadCtx, serverSideDownloadAvailable])
 
     if (nonRedistributableCols?.length && props.visible) {
         return (
@@ -513,13 +621,13 @@ export const DownloadModalDataTab = (
                 <DownloadButton
                     title="Data and metadata (ZIP)"
                     description="Download the data CSV, metadata JSON, and a README file as a ZIP archive."
-                    onClick={() => void 0}
+                    onClick={onZipDownload}
                     tracking="chart_download_zip"
                 />
                 <DownloadButton
                     title="Data only (CSV)"
                     description="Download only the data in CSV format."
-                    onClick={() => void 0}
+                    onClick={onCsvDownload}
                     tracking="chart_download_csv"
                 />
             </div>
