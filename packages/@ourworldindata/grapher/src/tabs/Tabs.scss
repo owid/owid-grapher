@@ -1,6 +1,4 @@
 .Tabs {
-    margin: 16px 0;
-
     &--horizontal-scroll {
         overflow-x: auto;
         white-space: nowrap;
@@ -12,26 +10,109 @@
         display: none;
     }
 
-    &__tab {
-        @include grapher_label-2-medium;
-        display: inline-block;
-        margin: 0 8px 8px 0;
-        padding: 8px 16px;
-        border: 1px solid $blue-10;
-        background: #fff;
-        color: $light-text;
-        white-space: nowrap;
+    // Variant: default
+    &.Tabs--variant-default {
+        margin: 16px 0;
 
-        &:hover {
-            cursor: pointer;
-            background-color: $gray-10;
-            border-color: $gray-10;
+        .Tabs__tab {
+            @include grapher_label-2-medium;
+            display: inline-block;
+            margin: 0 8px 8px 0;
+            padding: 8px 16px;
+            border: 1px solid $blue-10;
+            background: #fff;
+            color: $light-text;
+            white-space: nowrap;
+
+            &:hover {
+                cursor: pointer;
+                background-color: $gray-10;
+                border-color: $gray-10;
+            }
+
+            &[aria-selected="true"] {
+                background: $accent-pale-blue;
+                border-color: $accent-pale-blue;
+                color: $blue-90;
+            }
+        }
+    }
+
+    // Variant: slim
+    &.Tabs--variant-slim {
+        // keep in sync with variables in ContentSwitchers.tsx
+        $font-size: 13px;
+        --outer-padding: 16px;
+
+        $light-stroke: $gray-20;
+
+        $hover-fill: $gray-10;
+        $active-fill: $blue-20;
+
+        $border-radius: 4px;
+        $visual-gap: 2px;
+
+        display: flex;
+        height: $controlRowHeight;
+        margin: 0;
+        padding: $visual-gap;
+        // using a box-shadow instead of a border fixes a bug
+        // where the tab items weren't centered when zoomed in or out
+        box-shadow: inset 0 0 0 1px $light-stroke;
+        border-radius: $border-radius;
+
+        .Tabs__tab {
+            position: relative;
+
+            $height: $controlRowHeight - 2 * $visual-gap;
+
+            display: block;
+            text-transform: capitalize;
+            color: $light-text;
+            font-size: $font-size;
+            font-weight: 500;
+            height: $height;
+            line-height: $height;
+            border-radius: $border-radius - $visual-gap;
+            padding: 0 var(--outer-padding);
+            cursor: default;
+            letter-spacing: 0.01em;
+            white-space: nowrap;
+            user-select: none;
+
+            &:hover {
+                background-color: $hover-fill;
+                cursor: pointer;
+            }
         }
 
-        &[aria-selected="true"] {
-            background: $accent-pale-blue;
-            border-color: $accent-pale-blue;
-            color: $blue-90;
+        .Tabs__tab.active {
+            color: $active-text;
+            background-color: $active-fill;
+
+            &:hover {
+                cursor: default;
+            }
+        }
+
+        // separators between tabs
+        .Tabs__tab + .Tabs__tab::before {
+            content: "";
+            display: block;
+            width: 1px;
+            height: calc(100% - 12px);
+            position: absolute;
+            top: 6px;
+            background-color: $light-stroke;
+            left: -0.5px;
+        }
+
+        // hide separators when a tab is hovered over or when a tab is active
+        .Tabs__tab.active::before,
+        .Tabs__tab:hover::before,
+        .Tabs__tab.active + .Tabs__tab::before,
+        .Tabs__tab:hover + .Tabs__tab::before {
+            display: none;
         }
     }
 }

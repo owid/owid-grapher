@@ -1,56 +1,11 @@
-.ContentSwitchers {
-    // keep in sync with variables in ContentSwitchers.tsx
-    $font-size: 13px;
+.Tabs.ContentSwitchers {
+    // keep in sync with variables in ContentSwitchers.tsx and Tabs.scss
     $icon-width: 13px;
     $icon-padding: 6px;
-    --outer-padding: 16px;
-
-    $light-stroke: $gray-20;
-
-    $hover-fill: $gray-10;
-    $active-fill: $blue-20;
 
     $active-icon: $blue-50;
 
-    $border-radius: 4px;
-    $visual-gap: 2px;
-
-    display: flex;
-    list-style: none;
-    height: $controlRowHeight;
-    margin: 0;
-    padding: $visual-gap;
-    // using a box-shadow instead of a border fixes a bug
-    // where the tab items weren't centered when zoomed in or out
-    box-shadow: inset 0 0 0 1px $light-stroke;
-    border-radius: $border-radius;
-
-    li {
-        position: relative;
-    }
-
-    li > button {
-        $height: $controlRowHeight - 2 * $visual-gap;
-
-        display: block;
-        text-transform: capitalize;
-        color: $light-text;
-        font-size: $font-size;
-        font-weight: 500;
-        height: $height;
-        line-height: $height;
-        border-radius: $border-radius - $visual-gap;
-        padding: 0 var(--outer-padding);
-        cursor: default;
-        letter-spacing: 0.01em;
-        white-space: nowrap;
-        user-select: none;
-
-        &:hover {
-            background-color: $hover-fill;
-            cursor: pointer;
-        }
-
+    .Tabs__tab {
         .label {
             margin-left: $icon-padding;
         }
@@ -74,43 +29,15 @@
         }
     }
 
-    li.active > button {
-        color: $active-text;
-        background-color: $active-fill;
-
-        &:hover {
-            cursor: default;
-        }
-
+    .Tabs__tab.active {
         svg {
             color: $active-icon;
         }
     }
-
-    // separators between tabs
-    li + li::before {
-        content: "";
-        display: block;
-        width: 1px;
-        height: calc(100% - 12px);
-        position: absolute;
-        top: 6px;
-        background-color: $light-stroke;
-        z-index: -1;
-        left: -0.5px;
-    }
-
-    // hide separators when a tab is hovered over or when a tab is active
-    li.active::before,
-    li:hover::before,
-    li.active + li::before,
-    li:hover + li::before {
-        display: none;
-    }
 }
 
 &.GrapherComponentMedium {
-    .ContentSwitchers:not(.iconOnly) li > button {
+    .ContentSwitchers:not(.iconOnly) .Tabs__tab {
         --outer-padding: 8px;
     }
 }

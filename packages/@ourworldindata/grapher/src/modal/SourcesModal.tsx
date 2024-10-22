@@ -25,7 +25,7 @@ import {
     CLOSE_BUTTON_WIDTH,
     CloseButton,
 } from "@ourworldindata/components"
-import React, { ReactElement } from "react"
+import React from "react"
 import cx from "classnames"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
@@ -36,7 +36,7 @@ import { CoreColumn } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { SourcesKeyDataTable } from "./SourcesKeyDataTable"
 import { SourcesDescriptions } from "./SourcesDescriptions"
-import { Tabs } from "../tabs/Tabs"
+import { TabLabel, Tabs } from "../tabs/Tabs"
 import { ExpandableTabs } from "../tabs/ExpandableTabs"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { isContinentsVariableId } from "../core/GrapherConstants"
@@ -113,20 +113,22 @@ export class SourcesModal extends React.Component<
         return this.manager.columnsWithSourcesExtensive
     }
 
-    @computed private get tabLabels(): ReactElement[] {
+    @computed private get tabLabels(): TabLabel[] {
         return this.columns.map((column) => {
             const attribution = joinTitleFragments(
                 column.titlePublicOrDisplayName.attributionShort,
                 column.titlePublicOrDisplayName.titleVariant
             )
-            return (
-                <React.Fragment key={column.slug}>
-                    {column.titlePublicOrDisplayName.title}
-                    {attribution && (
-                        <span className="attribution">{attribution}</span>
-                    )}
-                </React.Fragment>
-            )
+            return {
+                element: (
+                    <React.Fragment key={column.slug}>
+                        {column.titlePublicOrDisplayName.title}
+                        {attribution && (
+                            <span className="attribution">{attribution}</span>
+                        )}
+                    </React.Fragment>
+                ),
+            }
         })
     }
 
@@ -192,7 +194,6 @@ export class SourcesModal extends React.Component<
                     labels={this.tabLabels}
                     activeIndex={activeIndex}
                     setActiveIndex={setActiveIndex}
-                    maxTabWidth={null}
                 />
             )
         }
@@ -214,20 +215,18 @@ export class SourcesModal extends React.Component<
         }
 
         // compute the subset of tabs that fit into a single line
-        const getVisibleLabels = (
-            labels: React.ReactElement[]
-        ): React.ReactElement[] => {
+        const getVisibleLabels = (labels: TabLabel[]): TabLabel[] => {
             // take width of the "Show more" button into account
             let width =
                 measureTabWidth("Show more") +
                 13 + // icon width
                 6 // icon padding
 
-            const visibleLabels: React.ReactElement[] = []
+            const visibleLabels: TabLabel[] = []
             for (const [label, labelWidth] of zip(labels, clippedLabelWidths)) {
                 width += labelWidth as number
                 if (width > maxWidth) break
-                visibleLabels.push(label as React.ReactElement)
+                visibleLabels.push(label!)
             }
 
             return visibleLabels

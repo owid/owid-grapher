@@ -1,17 +1,19 @@
-.ExpandableTabs:not(.ExpandableTabs--expanded) {
-    white-space: nowrap;
-}
-
-.ExpandableTabs__button {
-    color: $dark-text;
-    border-color: $gray-10;
-    background: $gray-10;
-
-    &:hover {
-        background: $gray-20;
+.ExpandableTabs {
+    &:not(.ExpandableTabs--expanded) {
+        white-space: nowrap;
     }
 
-    svg {
-        margin-right: 6px;
+    .Tabs__tab.ExpandableTabs__button {
+        color: $dark-text;
+        border-color: $gray-10;
+        background: $gray-10;
+
+        &:hover {
+            background: $gray-20;
+        }
+
+        svg {
+            margin-right: 6px;
+        }
     }
 }

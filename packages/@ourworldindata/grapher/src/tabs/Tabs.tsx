@@ -1,20 +1,29 @@
 import React, { useRef } from "react"
 import cx from "classnames"
 
+export interface TabLabel {
+    element: React.ReactElement
+    buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>
+}
+
 export const Tabs = ({
     labels,
     activeIndex,
     setActiveIndex,
     horizontalScroll = false,
-    maxTabWidth = 240,
+    maxTabWidth,
     slot,
+    extraClassNames,
+    variant = "default",
 }: {
-    labels: React.ReactElement[]
+    labels: TabLabel[]
     activeIndex: number
     setActiveIndex: (label: number) => void
     horizontalScroll?: boolean
-    maxTabWidth?: number | null // if null, don't clip labels
+    maxTabWidth?: number // if undefined, don't clip labels
     slot?: React.ReactElement
+    extraClassNames?: string
+    variant?: "default" | "slim"
 }) => {
     const container = useRef<HTMLDivElement>(null)
 
@@ -48,7 +57,7 @@ export const Tabs = ({
     }
 
     let style: React.CSSProperties | undefined = undefined
-    if (maxTabWidth !== null && Number.isFinite(maxTabWidth)) {
+    if (maxTabWidth !== undefined && Number.isFinite(maxTabWidth)) {
         style = {
             maxWidth: maxTabWidth,
             textOverflow: "ellipsis",
@@ -58,7 +67,7 @@ export const Tabs = ({
 
     return (
         <div
-            className={cx("Tabs", {
+            className={cx("Tabs", "Tabs--variant-" + variant, extraClassNames, {
                 "Tabs--horizontal-scroll": horizontalScroll,
             })}
             role="tablist"
@@ -69,7 +78,9 @@ export const Tabs = ({
                 return (
                     <button
                         key={index}
-                        className="Tabs__tab"
+                        className={cx("Tabs__tab", {
+                            active: isActive,
+                        })}
                         style={style}
                         type="button"
                         role="tab"
@@ -77,8 +88,9 @@ export const Tabs = ({
                         aria-selected={isActive}
                         onClick={() => setActiveIndex(index)}
                         onKeyDown={handleKeyDown}
+                        {...label.buttonProps}
                     >
-                        {label}
+                        {label.element}
                     </button>
                 )
             })}
