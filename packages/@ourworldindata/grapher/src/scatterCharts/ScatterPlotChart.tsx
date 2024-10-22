@@ -10,6 +10,7 @@ import {
     OwidTableSlugs,
     ColorSchemeName,
     ValueRange,
+    ColumnSlug,
 } from "@ourworldindata/types"
 import { ComparisonLine } from "../scatterCharts/ComparisonLine"
 import { observable, computed, action } from "mobx"
@@ -110,6 +111,11 @@ import {
     makeTooltipRoundingNotice,
 } from "../tooltip/Tooltip"
 import { NoDataSection } from "./NoDataSection"
+
+function computeSizeDomain(table: OwidTable, slug: ColumnSlug): ValueRange {
+    const sizeValues = table.get(slug).values.filter(isNumber)
+    return [0, max(sizeValues) ?? 1]
+}
 
 @observer
 export class ScatterPlotChart
@@ -291,6 +297,7 @@ export class ScatterPlotChart
     @computed private get domainsForAnimation(): {
         x?: ValueRange
         y?: ValueRange
+        size?: ValueRange
     } {
         const { inputTable } = this
         const {
@@ -311,12 +318,31 @@ export class ScatterPlotChart
             table = this.filterManuallySelectedEntities(table)
         }
 
+        if (this.manager.matchingEntitiesOnly && !this.colorColumn.isMissing) {
+            table = table.filterByEntityNames(
+                table.get(this.colorColumnSlug).uniqEntityNames
+            )
+        }
+
+        table = table
+            .columnFilter(
+                this.xColumnSlug,
+                isNumber,
+                "Drop rows with non-number values in X column"
+            )
+            .columnFilter(
+                this.yColumnSlug,
+                isNumber,
+                "Drop rows with non-number values in Y column"
+            )
+
         const xValues = table.get(this.xColumnSlug).uniqValues
         const yValues = table.get(this.yColumnSlug).uniqValues
 
         return {
             x: domainExtent(xValues, this.xScaleType),
             y: domainExtent(yValues, this.yScaleType),
+            size: computeSizeDomain(table, this.sizeColumn.slug),
         }
     }
 
@@ -1163,10 +1189,13 @@ export class ScatterPlotChart
 
     @computed private get sizeDomain(): [number, number] {
         if (this.sizeColumn.isMissing) return [1, 100]
-        const sizeValues = this.transformedTable
-            .get(this.sizeColumn.slug)
-            .values.filter(isNumber)
-        return [0, max(sizeValues) ?? 1]
+        if (
+            this.manager.isSingleTimeScatterAnimationActive &&
+            this.domainsForAnimation.size
+        ) {
+            return this.domainsForAnimation.size
+        }
+        return computeSizeDomain(this.transformedTable, this.sizeColumn.slug)
     }
 
     @computed private get sizeRange(): [number, number] {
