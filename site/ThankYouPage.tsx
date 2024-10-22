@@ -18,7 +18,7 @@ export const ThankYouPage = (props: { baseUrl: string }) => (
             pageTitle="Thank you"
             baseUrl={props.baseUrl}
             pageDesc="Thank you for supporting Our World in Data"
-            imageUrl={`${props.baseUrl}${IMAGES_DIRECTORY}thank-you-thumbnail.png`}
+            imageUrl={`${props.baseUrl}/thank-you-thumbnail.png`}
         ></Head>
         <body>
             <SiteHeader baseUrl={props.baseUrl} />
