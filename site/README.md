@@ -4,6 +4,16 @@ Page templating and React components to render all of our pages on ourworldindat
 
 In brief, the WordPress rendering is based around parsing, enhancing, and hydrating the HTML output of WordPress using cheerio (jQuery for node.js) and React.
 
+## CSS guidelines
+
+1. Our main utility classes are in `typography.scss`, `colors.scss`, `mixins.scss`, `variables.scss`, and `grid.scss`. They're all quite short files so it's worth just scrolling through them to get a sense of what they should be used for.
+2. There are also some reusable components shared between the site and grapher in `packages/@ourworldindata/components`
+3. For new components, it's generally recommended to create a new file in the same directory as the component (or put it in another related file if it's small)
+4. We generally follow [BEM](https://getbem.com/) for class naming (but don't use Sass's `&__block-name` feature, as that hurts greppability)
+5. For responsive styles, we don't have a hard rule on whether or not you should write mobile first and then use media queries to style desktop, or the other way around.
+
+## Google Docs
+
 We are currently switching to ArchieML and Google Docs (usually referred to as `Gdocs` in the codebase) to more conveniently match the writing preferences of our authors. This is a work in progress and not all features supported by WordPress are in place yet.
 
 [Reference document showing all the Archie syntax we support.](https://docs.google.com/document/d/1OLoTWloy4VecOjKTjB1wLV6tEphHJIMXfexrf1ZYJzU/edit) (Only accessible by OWID team members)
