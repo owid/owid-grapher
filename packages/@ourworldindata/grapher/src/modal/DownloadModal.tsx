@@ -11,6 +11,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     Checkbox,
+    CodeSnippet,
     OverlayHeader,
     RadioButton,
 } from "@ourworldindata/components"
@@ -214,16 +215,6 @@ export class DownloadModalVisTab extends React.Component<
         const filename = this.baseFilename + ".svg"
         if (this.svgBlob) {
             triggerDownloadFromBlob(filename, this.svgBlob)
-        }
-    }
-
-    @action.bound private onCsvDownload(): void {
-        const { manager, baseFilename } = this
-        const filename = baseFilename + ".csv"
-        if (manager.externalCsvLink) {
-            triggerDownloadFromUrl(filename, manager.externalCsvLink)
-        } else {
-            triggerDownloadFromBlob(filename, this.csvBlob)
         }
     }
 
@@ -436,10 +427,13 @@ const getDownloadSearchParams = (ctx: DataDownloadContext) => {
     return searchParams
 }
 
-const getDownloadUrl = (type: "csv" | "zip", ctx: DataDownloadContext) => {
+const getDownloadUrl = (
+    extension: "csv" | "metadata.json" | "zip",
+    ctx: DataDownloadContext
+) => {
     const searchParams = getDownloadSearchParams(ctx)
     const searchStr = searchParams.toString()
-    return `${ctx.baseUrl}.${type}` + (searchStr ? `?${searchStr}` : "")
+    return `${ctx.baseUrl}.${extension}` + (searchStr ? `?${searchStr}` : "")
 }
 
 const getNonRedistributableInfo = (
@@ -464,6 +458,42 @@ const getNonRedistributableInfo = (
     return { cols: nonRedistributableCols, sourceLinks: uniq(sourceLinks) }
 }
 
+const CodeExamplesBlock = (props: { csvUrl: string; metadataUrl: string }) => {
+    const code = {
+        "Excel / Google Sheets": `=IMPORTDATA("${props.csvUrl}")`,
+        "Python with Pandas": `import pandas as pd
+import requests
+
+# Fetch the data
+df = pd.read_csv("${props.csvUrl}")
+
+# Fetch the metadata
+metadata = requests.get("${props.metadataUrl}").json()`,
+        R: `df <- read.csv("${props.csvUrl}")`,
+    }
+
+    return (
+        <details>
+            <summary>
+                <h1>Code examples</h1>
+                <p>
+                    Examples of how to load this data into different data
+                    analysis tools.
+                </p>
+            </summary>
+
+            <div>
+                {Object.entries(code).map(([name, snippet]) => (
+                    <div key={name}>
+                        <h2>{name}</h2>
+                        <CodeSnippet code={snippet} />
+                    </div>
+                ))}
+            </div>
+        </details>
+    )
+}
+
 export const DownloadModalDataTab = (
     props: DownloadModalProps & { visible: boolean }
 ) => {
@@ -475,7 +505,7 @@ export const DownloadModalDataTab = (
     const { cols: nonRedistributableCols, sourceLinks } =
         getNonRedistributableInfo(props.manager.table)
 
-    const serverSideDownloadAvailable = false // TODO
+    const serverSideDownloadAvailable = true // TODO
 
     const downloadCtx: DataDownloadContext = useMemo(
         (): DataDownloadContext => ({
@@ -502,6 +532,15 @@ export const DownloadModalDataTab = (
             props.manager.transformedTable,
             shortColNames,
         ]
+    )
+
+    const csvUrl = useMemo(
+        () => getDownloadUrl("csv", downloadCtx),
+        [downloadCtx]
+    )
+    const metadataUrl = useMemo(
+        () => getDownloadUrl("metadata.json", downloadCtx),
+        [downloadCtx]
     )
 
     const onCsvDownload = useCallback(() => {
@@ -631,15 +670,9 @@ export const DownloadModalDataTab = (
                     tracking="chart_download_csv"
                 />
             </div>
-            <details>
-                <summary>
-                    <h1>Code examples</h1>
-                    <p>
-                        Examples of how to load this data into different data
-                        analysis tools.
-                    </p>
-                </summary>
-            </details>
+            {serverSideDownloadAvailable && (
+                <CodeExamplesBlock csvUrl={csvUrl} metadataUrl={metadataUrl} />
+            )}
         </div>
     )
 }
