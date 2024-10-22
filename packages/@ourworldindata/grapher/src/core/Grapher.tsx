@@ -2984,6 +2984,7 @@ export class Grapher
         )
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
+        if (this.slug) this.analytics.logGrapherView(this.slug)
     }
 
     private _shortcutsBound = false

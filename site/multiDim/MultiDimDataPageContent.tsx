@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
     Grapher,
+    GrapherAnalytics,
     GrapherProgrammaticInterface,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
@@ -201,6 +202,8 @@ const useVarDatapageData = (
     }
 }
 
+const analytics = new GrapherAnalytics()
+
 export const MultiDimDataPageContent = ({
     // _datapageData,
     configObj,
@@ -269,6 +272,13 @@ export const MultiDimDataPageContent = ({
     useEffect(() => {
         setWindowQueryStr(queryStr ?? "")
     }, [queryStr])
+
+    useEffect(() => {
+        // TODO: get the slug from elsewhere
+        const slug = window?.location.pathname.split("/").pop()
+        const view = new URLSearchParams(currentSettings).toString()
+        if (slug) analytics.logGrapherView(slug, view)
+    }, [currentSettings])
 
     const grapherConfigComputed = useMemo(() => {
         const baseConfig: GrapherProgrammaticInterface = {
