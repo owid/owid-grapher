@@ -858,7 +858,8 @@ export class Grapher
 
     @observable.ref isPlaying = false
     @observable.ref isTimelineAnimationActive = false // true if the timeline animation is either playing or paused but not finished
-    @observable.ref animationStartTime: Time | undefined = undefined
+    @observable.ref animationStartTime?: Time
+    @observable.ref areHandlesOnSameTimeBeforeAnimation?: boolean
 
     @observable.ref isEntitySelectorModalOrDrawerOpen = false
 
@@ -1153,12 +1154,12 @@ export class Grapher
     }
 
     @computed get startHandleTimeBound(): TimeBound {
-        if (this.onlySingleTimeSelectionPossible) return this.endHandleTimeBound
+        if (this.isSingleTimeSelectionActive) return this.endHandleTimeBound
         return this.timelineHandleTimeBounds[0]
     }
 
     set startHandleTimeBound(newValue: TimeBound) {
-        if (this.onlySingleTimeSelectionPossible)
+        if (this.isSingleTimeSelectionActive)
             this.timelineHandleTimeBounds = [newValue, newValue]
         else
             this.timelineHandleTimeBounds = [
@@ -1168,7 +1169,7 @@ export class Grapher
     }
 
     set endHandleTimeBound(newValue: TimeBound) {
-        if (this.onlySingleTimeSelectionPossible)
+        if (this.isSingleTimeSelectionActive)
             this.timelineHandleTimeBounds = [newValue, newValue]
         else
             this.timelineHandleTimeBounds = [
@@ -1197,16 +1198,28 @@ export class Grapher
         return findClosestTime(this.times, this.endHandleTimeBound)
     }
 
-    @computed private get onlySingleTimeSelectionPossible(): boolean {
-        // scatter plots should not be animated as time scatter
-        if (this.isPlaying && this.isScatter && !this.isRelativeMode)
-            return true
+    @computed get isSingleTimeScatterAnimationActive(): boolean {
+        return (
+            this.isTimelineAnimationActive &&
+            this.isScatter &&
+            !this.isRelativeMode &&
+            !!this.areHandlesOnSameTimeBeforeAnimation
+        )
+    }
 
+    @computed private get onlySingleTimeSelectionPossible(): boolean {
         return (
             this.isDiscreteBar ||
             this.isStackedDiscreteBar ||
             this.isOnMapTab ||
             this.isMarimekko
+        )
+    }
+
+    @computed private get isSingleTimeSelectionActive(): boolean {
+        return (
+            this.onlySingleTimeSelectionPossible ||
+            this.isSingleTimeScatterAnimationActive
         )
     }
 

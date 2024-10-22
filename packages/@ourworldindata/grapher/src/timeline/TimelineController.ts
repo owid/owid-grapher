@@ -15,6 +15,7 @@ export interface TimelineManager {
     times: Time[]
     startHandleTimeBound: TimeBound
     endHandleTimeBound: TimeBound
+    areHandlesOnSameTimeBeforeAnimation?: boolean
     msPerTick?: number
     onPlay?: () => void
 }
@@ -145,6 +146,7 @@ export class TimelineController {
         this.manager.isPlaying = false
         this.manager.isTimelineAnimationActive = false
         this.manager.animationStartTime = undefined
+        this.manager.areHandlesOnSameTimeBeforeAnimation = undefined
     }
 
     private pause(): void {
@@ -157,6 +159,9 @@ export class TimelineController {
 
     async togglePlay(): Promise<void> {
         if (!this.manager.isTimelineAnimationActive) {
+            this.manager.areHandlesOnSameTimeBeforeAnimation =
+                this.manager.startHandleTimeBound ===
+                this.manager.endHandleTimeBound
             this.manager.animationStartTime = this.isAtEnd()
                 ? findClosestTime(this.timesAsc, this.beginning)!
                 : this.startTime
