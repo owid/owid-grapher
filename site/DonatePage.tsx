@@ -19,7 +19,7 @@ export const DonatePage = (props: {
             pageTitle="Donate"
             baseUrl={props.baseUrl}
             pageDesc="Support open data and research to make progress against the world's largest problems"
-            imageUrl={`${props.baseUrl}${IMAGES_DIRECTORY}donate-thumbnail.png`}
+            imageUrl={`${props.baseUrl}${IMAGES_DIRECTORY}thank-you-thumbnail.png`}
         >
             <script src="https://js.stripe.com/v3/" />
             <script
