@@ -307,6 +307,10 @@ export const makeSafeForCSS = (name: string): string =>
         return "__" + ("000" + char.toString(16)).slice(-4)
     })
 
+function makeSafeForFigma(name: string): string {
+    return name.replace(/\s/g, "-")
+}
+
 /**
  * Make a human-readable string meant to be be used as the ID of a SVG chart
  * element. This is useful when a static chart is manually edited in a SVG
@@ -316,7 +320,7 @@ export const makeSafeForCSS = (name: string): string =>
  * Note that these IDs are not meant to be used in CSS!
  */
 export function makeIdForHumanConsumption(...unsafeKeys: string[]): string {
-    return unsafeKeys.join("__")
+    return makeSafeForFigma(unsafeKeys.join("__"))
 }
 
 export function formatDay(
