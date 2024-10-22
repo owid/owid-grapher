@@ -77,6 +77,9 @@ export const DownloadModal = (
 
     const [activeTabIndex, setActiveTabIndex] = useState(0)
 
+    const isVisTabActive = activeTabIndex === 0
+    const isDataTabActive = activeTabIndex === 1
+
     return (
         <Modal bounds={modalBounds} onDismiss={onDismiss}>
             <div
@@ -95,16 +98,19 @@ export const DownloadModal = (
                         setActiveIndex={setActiveTabIndex}
                     />
                 </div>
-                <div className="scrollable padded">
-                    <DownloadModalVisTab
-                        {...props}
-                        visible={activeTabIndex === 0}
-                    />
-
-                    <DownloadModalDataTab
-                        {...props}
-                        visible={activeTabIndex === 1}
-                    />
+                <div
+                    className="scrollable padded"
+                    style={{ display: isVisTabActive ? undefined : "none" }}
+                    aria-hidden={!isVisTabActive}
+                >
+                    <DownloadModalVisTab {...props} />
+                </div>
+                <div
+                    className="scrollable padded"
+                    style={{ display: isDataTabActive ? undefined : "none" }}
+                    aria-hidden={!isDataTabActive}
+                >
+                    <DownloadModalDataTab {...props} />
                 </div>
             </div>
         </Modal>
@@ -112,9 +118,7 @@ export const DownloadModal = (
 }
 
 @observer
-export class DownloadModalVisTab extends React.Component<
-    DownloadModalProps & { visible: boolean }
-> {
+export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
     @computed private get staticBounds(): Bounds {
         return this.manager.staticBounds ?? DEFAULT_BOUNDS
     }
@@ -246,10 +250,7 @@ export class DownloadModalVisTab extends React.Component<
     }
 
     render(): React.ReactElement {
-        if (!this.isReady) {
-            if (this.props.visible) return <LoadingIndicator color="#000" />
-            else return <></>
-        }
+        if (!this.isReady) return <LoadingIndicator color="#000" />
 
         const {
             manager,
@@ -289,10 +290,7 @@ export class DownloadModalVisTab extends React.Component<
         }
 
         return (
-            <div
-                className="grouped-menu"
-                style={{ display: this.props.visible ? undefined : "none" }}
-            >
+            <div className="grouped-menu">
                 {manager.isOnChartOrMapTab ? (
                     <div className="grouped-menu-section">
                         <div className="grouped-menu-list">
@@ -494,9 +492,7 @@ metadata = requests.get("${props.metadataUrl}").json()`,
     )
 }
 
-export const DownloadModalDataTab = (
-    props: DownloadModalProps & { visible: boolean }
-) => {
+export const DownloadModalDataTab = (props: DownloadModalProps) => {
     const { yColumnsFromDimensions } = props.manager
 
     const [onlyVisible, setOnlyVisible] = useState(false)
@@ -571,7 +567,7 @@ export const DownloadModalDataTab = (
         }
     }, [downloadCtx, serverSideDownloadAvailable])
 
-    if (nonRedistributableCols?.length && props.visible) {
+    if (nonRedistributableCols?.length) {
         return (
             <div className="grouped-menu-section grouped-menu-section-data">
                 <Callout
@@ -613,7 +609,7 @@ export const DownloadModalDataTab = (
     const exShortName = firstYColDef?.shortName
 
     return (
-        <div style={{ display: props.visible ? undefined : "none" }}>
+        <div>
             <div>
                 <h2>Download options</h2>
                 <section>

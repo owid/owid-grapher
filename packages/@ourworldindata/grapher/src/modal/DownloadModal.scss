@@ -20,6 +20,7 @@
         overflow-y: auto;
 
         margin-top: var(--modal-padding);
+        padding-bottom: 1px; // makes scrollbar disappear when not needed
 
         // needed for the loading indicator
         position: relative;
