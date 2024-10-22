@@ -157,6 +157,10 @@ export class EntitySelector extends React.Component<{
         )
     }
 
+    componentWillUnmount(): void {
+        if (this.timeoutId) clearTimeout(this.timeoutId)
+    }
+
     private set(newState: Partial<EntitySelectorState>): void {
         const correctedState = { ...newState }
 
@@ -585,6 +589,7 @@ export class EntitySelector extends React.Component<{
         }
     }
 
+    private timeoutId?: NodeJS.Timeout
     @action.bound onChange(entityName: string): void {
         if (this.isMultiMode) {
             this.selectionArray.toggleSelection(entityName)
@@ -593,6 +598,14 @@ export class EntitySelector extends React.Component<{
         }
 
         this.clearSearchInput()
+
+        // close the modal or drawer automatically after selection if in single mode
+        if (
+            !this.isMultiMode &&
+            this.manager.isEntitySelectorModalOrDrawerOpen
+        ) {
+            this.timeoutId = setTimeout(() => this.close(), 200)
+        }
     }
 
     @action.bound onClear(): void {
@@ -677,7 +690,7 @@ export class EntitySelector extends React.Component<{
         this.toggleSortOrder()
     }
 
-    @action.bound private onDismiss(): void {
+    @action.bound private close(): void {
         // if rendered into a drawer, we use a method provided by the
         // `<SlideInDrawer />` component so that closing the drawer is animated
         if (this.context.toggleDrawerVisibility) {
@@ -933,7 +946,7 @@ export class EntitySelector extends React.Component<{
                 <OverlayHeader
                     title={this.title}
                     onTitleClick={this.onTitleClick}
-                    onDismiss={this.onDismiss}
+                    onDismiss={this.close}
                 />
 
                 {this.renderSearchBar()}
