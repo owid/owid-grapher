@@ -67,7 +67,7 @@ export const Tabs = ({
 
     return (
         <div
-            className={cx("Tabs", "Tabs-variant-" + variant, extraClassNames, {
+            className={cx("Tabs", "Tabs--variant-" + variant, extraClassNames, {
                 "Tabs--horizontal-scroll": horizontalScroll,
             })}
             role="tablist"
