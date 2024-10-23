@@ -26,7 +26,11 @@ import {
     faDownload,
     faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons"
-import { OwidColumnDef, GrapherStaticFormat } from "@ourworldindata/types"
+import {
+    OwidColumnDef,
+    GrapherStaticFormat,
+    OwidOrigin,
+} from "@ourworldindata/types"
 import {
     BlankOwidTable,
     OwidTable,
@@ -46,7 +50,7 @@ export interface DownloadModalManager {
     queryStr?: string
     table?: OwidTable
     transformedTable?: OwidTable
-    yColumnsFromDimensions?: CoreColumn[]
+    yColumnsFromDimensionsOrSlugsOrAuto?: CoreColumn[]
     externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
     shouldIncludeDetailsInStaticExport?: boolean
     detailsOrderedByReference?: string[]
@@ -505,7 +509,21 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
             .flatMap((def) => def.origins ?? [])
             ?.filter((o) => o !== undefined) ?? []
 
-    const originsUniq = uniqBy(origins, (o) => o.urlMain ?? o.datePublished)
+    const otherSources =
+        table?.columnsAsArray
+            .map((col) => col.source)
+            .filter((s) => s !== undefined && s.dataPublishedBy !== undefined)
+            .map(
+                (s): OwidOrigin => ({
+                    producer: s.dataPublishedBy,
+                    urlMain: s.link,
+                })
+            ) ?? []
+
+    const originsUniq = uniqBy(
+        [...origins, ...otherSources],
+        (o) => o.urlMain ?? o.datePublished
+    )
 
     const attributions = getOriginAttributionFragments(originsUniq)
 
@@ -530,7 +548,7 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
                 title="Data citation"
                 icon={<FontAwesomeIcon icon={faInfoCircle} />}
             >
-                Whenever you use this data it is your responsibility to ensure
+                Whenever you use this data, it is your responsibility to ensure
                 to credit the original source and to verify that your use is
                 permitted as per the source's license.
             </Callout>
@@ -546,7 +564,7 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
 }
 
 export const DownloadModalDataTab = (props: DownloadModalProps) => {
-    const { yColumnsFromDimensions } = props.manager
+    const { yColumnsFromDimensionsOrSlugsOrAuto: yColumns } = props.manager
 
     const [onlyVisible, setOnlyVisible] = useState(false)
     const [shortColNames, setShortColNames] = useState(false)
@@ -654,12 +672,12 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
         )
     }
 
-    const firstYColDef = yColumnsFromDimensions?.[0].def as
-        | OwidColumnDef
-        | undefined
+    const firstYColDef = yColumns?.[0]?.def as OwidColumnDef | undefined
 
     const exLongName = firstYColDef?.name
     const exShortName = firstYColDef?.shortName
+
+    const shortNamesAvailable = !!exShortName
 
     return (
         <div>
@@ -681,30 +699,32 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                     />
                 </section>
                 <hr />
-                <section className="grouped-menu-section-data">
-                    <div>
-                        <RadioButton
-                            label="Verbose column names"
-                            group="shortColNames"
-                            checked={!shortColNames}
-                            onChange={() => setShortColNames(false)}
-                        />
-                        <p>
-                            e.g. <code>{exLongName}</code>
-                        </p>
-                    </div>
-                    <div>
-                        <RadioButton
-                            label="Short column names"
-                            group="shortColNames"
-                            checked={shortColNames}
-                            onChange={() => setShortColNames(true)}
-                        />
-                        <p>
-                            e.g. <code>{exShortName}</code>
-                        </p>
-                    </div>
-                </section>
+                {shortNamesAvailable && (
+                    <section className="grouped-menu-section-data">
+                        <div>
+                            <RadioButton
+                                label="Verbose column names"
+                                group="shortColNames"
+                                checked={!shortColNames}
+                                onChange={() => setShortColNames(false)}
+                            />
+                            <p>
+                                e.g. <code>{exLongName}</code>
+                            </p>
+                        </div>
+                        <div>
+                            <RadioButton
+                                label="Short column names"
+                                group="shortColNames"
+                                checked={shortColNames}
+                                onChange={() => setShortColNames(true)}
+                            />
+                            <p>
+                                e.g. <code>{exShortName}</code>
+                            </p>
+                        </div>
+                    </section>
+                )}
             </div>
             <div className="grouped-menu-list">
                 <DownloadButton
