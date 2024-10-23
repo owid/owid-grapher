@@ -6,7 +6,6 @@ import a from "indefinite"
 import {
     isTouchDevice,
     partition,
-    capitalize,
     SortOrder,
     orderBy,
     keyBy,
@@ -425,6 +424,13 @@ export class EntitySelector extends React.Component<{
 
     @computed private get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager.selection)
+    }
+
+    @computed private get allEntitiesSelected(): boolean {
+        return (
+            this.selectionArray.numSelectedEntities ===
+            this.availableEntityNames.length
+        )
     }
 
     @computed private get availableEntityNames(): string[] {
@@ -852,6 +858,11 @@ export class EntitySelector extends React.Component<{
         const { sortedAvailableEntities } = this
         const { selected } = this.partitionedAvailableEntities
 
+        // having a "Selection" and "Available entities" section both looks odd
+        // when all entities are currently selected and there are only a few of them
+        const hasFewEntities = sortedAvailableEntities.length < 10
+        const hideAvailableEntities = hasFewEntities && this.allEntitiesSelected
+
         return (
             <Flipper
                 spring={{
@@ -888,32 +899,42 @@ export class EntitySelector extends React.Component<{
                     </ul>
                 </div>
 
-                <div className="entity-section">
-                    <Flipped flipId="__available" translate opacity>
-                        <div className="entity-section__title grapher_body-3-medium-italic grapher_light">
-                            {capitalize(this.entityTypePlural)}
-                        </div>
-                    </Flipped>
+                {!hideAvailableEntities && (
+                    <div className="entity-section">
+                        <Flipped flipId="__available" translate opacity>
+                            <div className="entity-section__title grapher_body-3-medium-italic grapher_light">
+                                All {this.entityTypePlural}
+                            </div>
+                        </Flipped>
 
-                    <ul>
-                        {sortedAvailableEntities.map((entity, entityIndex) => (
-                            <FlippedListItem
-                                index={entityIndex}
-                                key={entity.name}
-                                flipId={"available_" + entity.name}
-                            >
-                                <SelectableEntity
-                                    name={entity.name}
-                                    type="checkbox"
-                                    checked={this.isEntitySelected(entity)}
-                                    bar={this.getBarConfigForEntity(entity)}
-                                    onChange={() => this.onChange(entity.name)}
-                                    local={entity.local}
-                                />
-                            </FlippedListItem>
-                        ))}
-                    </ul>
-                </div>
+                        <ul>
+                            {sortedAvailableEntities.map(
+                                (entity, entityIndex) => (
+                                    <FlippedListItem
+                                        index={entityIndex}
+                                        key={entity.name}
+                                        flipId={"available_" + entity.name}
+                                    >
+                                        <SelectableEntity
+                                            name={entity.name}
+                                            type="checkbox"
+                                            checked={this.isEntitySelected(
+                                                entity
+                                            )}
+                                            bar={this.getBarConfigForEntity(
+                                                entity
+                                            )}
+                                            onChange={() =>
+                                                this.onChange(entity.name)
+                                            }
+                                            local={entity.local}
+                                        />
+                                    </FlippedListItem>
+                                )
+                            )}
+                        </ul>
+                    </div>
+                )}
             </Flipper>
         )
     }
