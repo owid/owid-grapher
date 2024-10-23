@@ -138,6 +138,31 @@
         }
     }
 
+    .download-modal__citation-guidance-list {
+        display: inline;
+        list-style: none;
+        line-height: 1.4;
+
+        li {
+            display: inline;
+
+            &::after {
+                display: inline-block;
+                white-space: pre;
+                content: "; ";
+            }
+
+            &:last-child::after {
+                content: none;
+            }
+
+            a {
+                @include owid-link-90;
+                color: $gray-80;
+            }
+        }
+    }
+
     .download-icon {
         padding: 0 8px 0 16px;
         font-size: 16px;

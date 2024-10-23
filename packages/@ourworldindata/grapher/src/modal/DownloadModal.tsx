@@ -4,10 +4,13 @@ import { observer } from "mobx-react"
 import {
     Bounds,
     DEFAULT_BOUNDS,
+    getOriginAttributionFragments,
     isEmpty,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
     uniq,
+    uniqBy,
+    zip,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -496,6 +499,52 @@ metadata = requests.get("${props.metadataUrl}").json()`,
     )
 }
 
+const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
+    const origins =
+        table?.defs
+            .flatMap((def) => def.origins ?? [])
+            ?.filter((o) => o !== undefined) ?? []
+
+    const originsUniq = uniqBy(origins, (o) => o.urlMain ?? o.datePublished)
+
+    const attributions = getOriginAttributionFragments(originsUniq)
+
+    const sourceLinks = zip(attributions, originsUniq).map(
+        ([attribution, origin]) => {
+            const link = origin?.urlMain
+
+            if (link)
+                return (
+                    <li key={link}>
+                        <a href={link}>{attribution}</a>
+                    </li>
+                )
+            else return <li key={attribution}>{attribution}</li>
+        }
+    )
+
+    return (
+        <div className="grouped-menu-section grouped-menu-section-data">
+            <h3 className="grapher_h3-semibold">Source and citation</h3>
+            <Callout
+                title="Data citation"
+                icon={<FontAwesomeIcon icon={faInfoCircle} />}
+            >
+                Whenever you use this data it is your responsibility to ensure
+                to credit the original source and to verify that your use is
+                permitted as per the source's license.
+            </Callout>
+
+            {sourceLinks.length > 0 && (
+                <ul className="download-modal__citation-guidance-list">
+                    <strong>Data sources and citation guidance:</strong>{" "}
+                    {sourceLinks}
+                </ul>
+            )}
+        </div>
+    )
+}
+
 export const DownloadModalDataTab = (props: DownloadModalProps) => {
     const { yColumnsFromDimensions } = props.manager
 
@@ -614,6 +663,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
 
     return (
         <div>
+            <SourceAndCitationSection table={props.manager.table} />
             <div className="grouped-menu-section">
                 <h3 className="grapher_h3-semibold">Download options</h3>
                 <section className="grouped-menu-section-data">
