@@ -12,6 +12,7 @@ import {
 import {
     Checkbox,
     CodeSnippet,
+    ExpandableToggle,
     OverlayHeader,
     RadioButton,
 } from "@ourworldindata/components"
@@ -471,24 +472,27 @@ metadata = requests.get("${props.metadataUrl}").json()`,
     }
 
     return (
-        <details>
-            <summary>
-                <h1>Code examples</h1>
+        <ExpandableToggle
+            label="Code examples"
+            alwaysVisibleDescription={
                 <p>
                     Examples of how to load this data into different data
                     analysis tools.
                 </p>
-            </summary>
-
-            <div>
-                {Object.entries(code).map(([name, snippet]) => (
-                    <div key={name}>
-                        <h2>{name}</h2>
-                        <CodeSnippet code={snippet} />
+            }
+            content={
+                <>
+                    <div>
+                        {Object.entries(code).map(([name, snippet]) => (
+                            <div key={name}>
+                                <h2>{name}</h2>
+                                <CodeSnippet code={snippet} />
+                            </div>
+                        ))}
                     </div>
-                ))}
-            </div>
-        </details>
+                </>
+            }
+        />
     )
 }
 
@@ -610,9 +614,9 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
 
     return (
         <div>
-            <div>
-                <h2>Download options</h2>
-                <section>
+            <div className="grouped-menu-section">
+                <h3 className="grapher_h3-semibold">Download options</h3>
+                <section className="grouped-menu-section-data">
                     <RadioButton
                         label="Download the full dataset used in this chart"
                         group="onlyVisible"
@@ -627,7 +631,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                     />
                 </section>
                 <hr />
-                <section>
+                <section className="grouped-menu-section-data">
                     <div>
                         <RadioButton
                             label="Verbose column names"

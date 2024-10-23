@@ -82,8 +82,60 @@
         color: $bluish-grey-text-color;
     }
 
-    .grouped-menu-section-data .grouped-menu-content {
-        padding-left: 0;
+    hr {
+        margin: 16px 0;
+        padding: 0;
+        color: $gray-10;
+    }
+
+    .grouped-menu-section-data {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        .label {
+            @include grapher_label-1-regular;
+        }
+
+        p {
+            margin-top: 8px;
+            margin-bottom: 8px;
+            margin-left: 24px;
+            font-size: 12pt;
+        }
+
+        code {
+            background-color: $gray-10;
+            color: $gray-70;
+            padding: 2px 4px;
+            font-family: "Courier New", Courier, monospace;
+            line-height: 1.4;
+        }
+    }
+
+    .ExpandableToggle {
+        --border: transparent;
+    }
+
+    .ExpandableToggle {
+        --expandable-toggle-button: $gray-80;
+        --expandable-toggle-button-hover: $gray-60;
+        --title-size: 18px;
+        --expandable-toggle-content: currentColor;
+    }
+
+    .ExpandableToggle__button {
+        padding-bottom: 2px;
+    }
+
+    .ExpandableToggle__description {
+        margin: 0;
+
+        p {
+            margin: 0;
+            @include grapher_label-1-regular;
+            color: $gray-60;
+        }
     }
 
     .download-icon {

@@ -6,12 +6,14 @@ import cx from "classnames"
 export const ExpandableToggle = ({
     label,
     content,
+    alwaysVisibleDescription,
     isExpandedDefault = false,
     isStacked = false,
     hasTeaser = false,
 }: {
     label: string
     content?: React.ReactNode
+    alwaysVisibleDescription?: React.ReactNode
     isExpandedDefault?: boolean
     isStacked?: boolean
     hasTeaser?: boolean
@@ -37,6 +39,11 @@ export const ExpandableToggle = ({
                     icon={!isOpen ? faPlus : faMinus}
                 />
             </button>
+            {alwaysVisibleDescription && (
+                <div className="ExpandableToggle__description">
+                    {alwaysVisibleDescription}
+                </div>
+            )}
             <div className="ExpandableToggle__content">{content}</div>
         </div>
     )
