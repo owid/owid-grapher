@@ -2,7 +2,7 @@
 
 import { ColumnTypeNames } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
-import { DownloadModal } from "./DownloadModal"
+import { getNonRedistributableInfo } from "./DownloadModal"
 
 const getTable = (options: { nonRedistributable: boolean }): OwidTable => {
     return new OwidTable(
@@ -30,26 +30,12 @@ const getTable = (options: { nonRedistributable: boolean }): OwidTable => {
     )
 }
 
-it("correctly passes non-redistributable flag", () => {
+it("correctly works with non-redistributable flag", () => {
     const tableFalse = getTable({ nonRedistributable: false })
-    const viewFalse = new DownloadModal({
-        manager: {
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            rasterize: () => new Promise(() => {}),
-            displaySlug: "",
-            table: tableFalse,
-        },
-    })
-    expect(viewFalse["nonRedistributable"]).toBeFalsy()
+    const info1 = getNonRedistributableInfo(tableFalse)
+    expect(info1.cols).toBeUndefined()
 
     const tableTrue = getTable({ nonRedistributable: true })
-    const viewTrue = new DownloadModal({
-        manager: {
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            rasterize: () => new Promise(() => {}),
-            displaySlug: "",
-            table: tableTrue,
-        },
-    })
-    expect(viewTrue["nonRedistributable"]).toBeTruthy()
+    const info2 = getNonRedistributableInfo(tableTrue)
+    expect(info2.cols).toHaveLength(1)
 })

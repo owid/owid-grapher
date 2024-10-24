@@ -4,42 +4,59 @@
     // necessary for scrolling
     display: flex;
     flex-direction: column;
-    height: 100%;
-    > * {
-        flex-shrink: 0;
+
+    .download-modal__tab-list {
+        padding: 0 var(--modal-padding);
+
+        .Tabs__tab {
+            // Tabs should fill the whole available width
+            flex-basis: 100%;
+        }
     }
 
-    .scrollable {
+    .download-modal__tab-panel {
+        padding-bottom: 24px;
+        margin-top: 16px;
+
         flex: 1 1 auto;
         overflow-y: auto;
-        padding: 0 var(--modal-padding) var(--modal-padding);
-        width: 100%;
 
         // needed for the loading indicator
         position: relative;
         min-height: 45px;
     }
 
-    .grouped-menu-section {
+    .download-modal__tab {
+        padding: 0 var(--modal-padding);
+    }
+
+    .download-modal__data-section {
+        padding-bottom: 16px;
+
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        + .download-modal__data-section {
+            border-top: 1px solid $gray-10;
+            padding-top: 16px;
+        }
+
         h3 {
-            margin-bottom: 16px;
+            margin-bottom: 8px; // 8px margin + 8px gap
+        }
+
+        &:last-child {
+            padding-bottom: 0;
         }
     }
 
-    .grouped-menu-section + .grouped-menu-section {
-        margin-top: 24px;
-    }
-
-    .grouped-menu-item + .grouped-menu-item {
-        margin-top: 4px;
-    }
-
-    .grouped-menu-item {
+    .download-modal__download-button {
         display: flex;
         flex-direction: row;
         align-items: center;
-        color: $dark-text;
-        background-color: $gray-5;
+        color: $blue-90;
+        background-color: $blue-5;
         position: relative;
         width: 100%;
         padding: 16px;
@@ -54,39 +71,131 @@
         &:active {
             background-color: $active-fill;
         }
+
+        + .download-modal__download-button {
+            margin-top: 4px;
+        }
+
+        .download-modal__download-preview-img img {
+            display: block;
+            box-shadow:
+                0px 0px 0px 0px rgba(49, 37, 2, 0.03),
+                0px 6px 13px 0px rgba(49, 37, 2, 0.03),
+                0px 93px 37px 0px rgba(49, 37, 2, 0.01),
+                0px 145px 41px 0px rgba(49, 37, 2, 0);
+            padding: 0;
+            margin: 0 24px 0 0;
+        }
+
+        .download-modal__download-button-content {
+            flex: 1;
+        }
+
+        .download-modal__download-button-description {
+            color: $bluish-grey-text-color;
+        }
+
+        .download-modal__download-icon {
+            padding: 0 8px 0 16px;
+            font-size: 16px;
+        }
     }
 
-    .grouped-menu-icon img {
-        display: block;
-        box-shadow:
-            0px 0px 0px 0px rgba(49, 37, 2, 0.03),
-            0px 6px 13px 0px rgba(49, 37, 2, 0.03),
-            0px 93px 37px 0px rgba(49, 37, 2, 0.01),
-            0px 145px 41px 0px rgba(49, 37, 2, 0);
+    // TODO remove
+    hr {
+        margin: 16px 0;
         padding: 0;
-        margin: 0 24px 0 0;
+        color: $gray-10;
     }
 
-    .grouped-menu-content {
-        flex: 1;
+    .download-modal__config-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        padding-bottom: 8px; // 8px padding + 8px gap
+
+        + .download-modal__config-list {
+            border-top: 1px solid $gray-10;
+            padding-top: 16px;
+        }
+
+        p {
+            margin-top: 4px;
+            margin-bottom: 0;
+            margin-left: 24px;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+
+        code {
+            background-color: $gray-10;
+            color: $gray-70;
+            padding: 2px 4px;
+            font-family: "Courier New", Courier, monospace;
+        }
+
+        .label {
+            @include grapher_label-1-regular;
+        }
     }
 
-    .grouped-menu-section-data .grouped-menu-content {
-        padding-left: 0;
+    .ExpandableToggle {
+        --border: transparent;
+        --expandable-toggle-button: $gray-80;
+        --expandable-toggle-button-hover: $gray-60;
+        --title-size: 18px;
+        --expandable-toggle-content: currentColor;
+
+        .ExpandableToggle__button {
+            padding-top: 0;
+            padding-bottom: 2px;
+        }
+
+        .ExpandableToggle__content {
+            padding: 0;
+        }
+
+        .ExpandableToggle__description {
+            margin: 0;
+
+            p {
+                margin: 0;
+                @include grapher_label-1-regular;
+                color: $gray-60;
+            }
+        }
     }
 
-    .download-icon {
-        padding: 0 8px 0 16px;
-        font-size: 16px;
+    .download-modal__citation-guidance-list {
+        font-size: 14px;
+        display: inline;
+        list-style: none;
+        line-height: 1.4;
+
+        li {
+            display: inline;
+
+            &::after {
+                display: inline-block;
+                white-space: pre;
+                content: "; ";
+            }
+
+            &:last-child::after {
+                content: none;
+            }
+
+            a {
+                @include owid-link-90;
+                color: $gray-80;
+            }
+        }
     }
 
-    .grouped-menu-item:hover .download-icon {
-        opacity: 1;
-    }
-
-    .grouped-menu-callout {
+    .download-modal__callout {
+        border: 1px solid $gray-20;
         border-radius: 8px;
-        border: 1px solid $gray-30;
         background: $gray-5;
         padding: 16px;
 
@@ -104,25 +213,33 @@
             font-size: 14px;
         }
 
-        a {
-            color: inherit;
-            text-decoration: underline;
+        ul {
+            margin: 6px 0 0;
+            padding-left: 22px;
+        }
 
-            &:hover {
-                text-decoration: none;
-            }
+        a {
+            @include owid-link-60;
+        }
+    }
+
+    .data-modal__code-examples {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding-top: 16px;
+        h4 {
+            margin-bottom: 8px;
         }
     }
 }
 
 .static-exports-options {
-    margin: 16px 0 24px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid $gray-10;
+    margin: 16px 0 0;
 
-    > .checkbox + .checkbox {
-        margin-top: 8px;
-    }
+    gap: 8px;
+    display: flex;
+    flex-direction: column;
 }
 
 &.GrapherComponentSmall .download-modal-content {
