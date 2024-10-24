@@ -779,25 +779,23 @@ interface DownloadButtonProps {
 function DownloadButton(props: DownloadButtonProps): React.ReactElement {
     return (
         <button
-            className="grouped-menu-item"
+            className="download-modal__download-button"
             onClick={props.onClick}
             data-track-note={props.tracking}
         >
             {props.previewImageUrl && (
-                <div className="grouped-menu-icon">
+                <div className="download-modal__download-preview-img">
                     <img src={props.previewImageUrl} style={props.imageStyle} />
                 </div>
             )}
-            <div className="grouped-menu-content">
+            <div className="download-modal__download-button-content">
                 <h4 className="grapher_body-2-semibold">{props.title}</h4>
-                <p className="grapher_label-2-regular grouped-menu-content-description">
+                <p className="grapher_label-1-regular download-modal__download-button-description">
                     {props.description}
                 </p>
             </div>
-            <div className="grouped-menu-icon">
-                <span className="download-icon">
-                    <FontAwesomeIcon icon={faDownload} />
-                </span>
+            <div className="download-modal__download-icon">
+                <FontAwesomeIcon icon={faDownload} />
             </div>
         </button>
     )
@@ -811,18 +809,16 @@ interface CalloutProps {
 
 function Callout(props: CalloutProps): React.ReactElement {
     return (
-        <div className="grouped-menu-callout">
-            <div className="grouped-menu-callout-content">
-                {props.title && (
-                    <h4 className="title grapher_body-2-semibold">
-                        {props.icon}
-                        {props.title}
-                    </h4>
-                )}
-                <p className="grapher_label-2-regular grapher_light">
-                    {props.children}
-                </p>
-            </div>
+        <div className="download-modal__callout">
+            {props.title && (
+                <h4 className="title grapher_body-2-semibold">
+                    {props.icon}
+                    {props.title}
+                </h4>
+            )}
+            <p className="grapher_label-2-regular grapher_light">
+                {props.children}
+            </p>
         </div>
     )
 }

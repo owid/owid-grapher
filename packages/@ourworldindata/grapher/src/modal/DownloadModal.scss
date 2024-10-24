@@ -7,6 +7,11 @@
 
     .download-modal__tab-list {
         padding: 0 var(--modal-padding);
+
+        .Tabs__tab {
+            // Tabs should fill the whole available width
+            flex-basis: 100%;
+        }
     }
 
     .download-modal__tab-panel {
@@ -32,21 +37,17 @@
         flex-direction: column;
         gap: 8px;
 
+        + .download-modal__data-section {
+            border-top: 1px solid $gray-10;
+            padding-top: 16px;
+        }
+
         h3 {
             margin-bottom: 8px; // 8px margin + 8px gap
         }
     }
 
-    .download-modal__data-section + .download-modal__data-section {
-        border-top: 1px solid $gray-10;
-        padding-top: 16px;
-    }
-
-    .grouped-menu-item + .grouped-menu-item {
-        margin-top: 4px;
-    }
-
-    .grouped-menu-item {
+    .download-modal__download-button {
         display: flex;
         flex-direction: row;
         align-items: center;
@@ -66,25 +67,34 @@
         &:active {
             background-color: $active-fill;
         }
-    }
 
-    .grouped-menu-icon img {
-        display: block;
-        box-shadow:
-            0px 0px 0px 0px rgba(49, 37, 2, 0.03),
-            0px 6px 13px 0px rgba(49, 37, 2, 0.03),
-            0px 93px 37px 0px rgba(49, 37, 2, 0.01),
-            0px 145px 41px 0px rgba(49, 37, 2, 0);
-        padding: 0;
-        margin: 0 24px 0 0;
-    }
+        + .download-modal__download-button {
+            margin-top: 4px;
+        }
 
-    .grouped-menu-content {
-        flex: 1;
-    }
+        .download-modal__download-preview-img img {
+            display: block;
+            box-shadow:
+                0px 0px 0px 0px rgba(49, 37, 2, 0.03),
+                0px 6px 13px 0px rgba(49, 37, 2, 0.03),
+                0px 93px 37px 0px rgba(49, 37, 2, 0.01),
+                0px 145px 41px 0px rgba(49, 37, 2, 0);
+            padding: 0;
+            margin: 0 24px 0 0;
+        }
 
-    .grouped-menu-content-description {
-        color: $bluish-grey-text-color;
+        .download-modal__download-button-content {
+            flex: 1;
+        }
+
+        .download-modal__download-button-description {
+            color: $bluish-grey-text-color;
+        }
+
+        .download-modal__download-icon {
+            padding: 0 8px 0 16px;
+            font-size: 16px;
+        }
     }
 
     hr {
@@ -169,17 +179,15 @@
     }
 
     .download-icon {
-        padding: 0 8px 0 16px;
-        font-size: 16px;
     }
 
     .grouped-menu-item:hover .download-icon {
         opacity: 1;
     }
 
-    .grouped-menu-callout {
-        border-radius: 8px;
+    .download-modal__callout {
         border: 1px solid $gray-20;
+        border-radius: 8px;
         background: $gray-5;
         padding: 16px;
 
@@ -205,10 +213,6 @@
         a {
             @include owid-link-60;
         }
-    }
-
-    .Tabs__tab {
-        flex-basis: 100%;
     }
 }
 
