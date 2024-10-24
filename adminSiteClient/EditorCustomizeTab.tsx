@@ -577,9 +577,9 @@ export class EditorCustomizeTab<
                                         }
                                         resetButton={{
                                             onClick: () =>
-                                                (yAxisConfig.min = undefined),
+                                                (yAxisConfig.min = Infinity),
                                             disabled:
-                                                yAxisConfig.min === undefined,
+                                                yAxisConfig.min === Infinity,
                                         }}
                                         allowDecimal
                                         allowNegative
@@ -592,9 +592,9 @@ export class EditorCustomizeTab<
                                         }
                                         resetButton={{
                                             onClick: () =>
-                                                (yAxisConfig.max = undefined),
+                                                (yAxisConfig.max = -Infinity),
                                             disabled:
-                                                yAxisConfig.max === undefined,
+                                                yAxisConfig.max === -Infinity,
                                         }}
                                         allowDecimal
                                         allowNegative

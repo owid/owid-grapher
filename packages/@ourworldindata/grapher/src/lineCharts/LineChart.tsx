@@ -1342,6 +1342,8 @@ export class LineChart
                 // horizontal axis to be at the bottom of the chart.
                 // see https://github.com/owid/owid-grapher/pull/975#issuecomment-890798547
                 singleValueAxisPointAlign: AxisAlign.start,
+                // default to 0 if not set
+                min: 0,
                 ...this.manager.yAxisConfig,
             },
             this
