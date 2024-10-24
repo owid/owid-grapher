@@ -514,8 +514,9 @@ $defs:
                 type: string
                 description: Axis label
             min:
-                description: Minimum domain value of the axis. Inferred from data if set to "auto".
-                default: auto
+                description: |
+                    Minimum domain value of the axis. Inferred from data if set to "auto".
+                    Usually defaults to "auto", but defaults to 0 for line charts on the y-axis.
                 oneOf:
                     - type: number
                     - type: string
