@@ -106,6 +106,13 @@ export const DownloadModal = (
                         setActiveIndex={setActiveTabIndex}
                     />
                 </div>
+
+                {/* Tabs */}
+                {/**
+                 * We only hide the inactive tab with display: none and don't unmount it,
+                 * so that the tab state (selected radio buttons, scroll position, etc) is preserved
+                 * when switching between tabs.
+                 */}
                 <div
                     className="scrollable padded"
                     style={{ display: isVisTabActive ? undefined : "none" }}
@@ -504,6 +511,7 @@ metadata = requests.get("${props.metadataUrl}").json()`,
 }
 
 const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
+    // Sources can come either from origins (new format) or from the source field of the column (old format)
     const origins =
         table?.defs
             .flatMap((def) => def.origins ?? [])
@@ -784,7 +792,7 @@ function DownloadButton(props: DownloadButtonProps): React.ReactElement {
 }
 
 interface CalloutProps {
-    title?: React.ReactNode
+    title: React.ReactNode
     icon?: React.ReactElement
     children: React.ReactNode
 }
