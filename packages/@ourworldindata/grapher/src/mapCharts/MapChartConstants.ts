@@ -42,6 +42,7 @@ export interface ChoroplethMapManager {
     onClick: (d: GeoFeature, ev: React.MouseEvent<SVGElement>) => void
     onMapMouseOver: (d: GeoFeature) => void
     onMapMouseLeave: () => void
+    isStatic?: boolean
 }
 
 export interface RenderFeature {

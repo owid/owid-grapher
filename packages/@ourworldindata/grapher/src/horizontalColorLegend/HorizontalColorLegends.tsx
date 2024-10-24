@@ -562,72 +562,83 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 id={makeIdForHumanConsumption("numeric-color-legend")}
                 className="numericColorLegend"
             >
-                {numericLabels.map((label, index) => (
-                    <line
-                        key={index}
-                        x1={label.bounds.x + label.bounds.width / 2}
-                        y1={bottomY - numericBinSize}
-                        x2={label.bounds.x + label.bounds.width / 2}
-                        y2={bottomY + label.bounds.y + label.bounds.height}
-                        // if we use a light color for stroke (e.g. white), we want it to stay
-                        // "invisible", except for raised labels, where we want *some* contrast.
-                        stroke={
-                            label.raised ? darkenColorForLine(stroke) : stroke
-                        }
-                        strokeWidth={strokeWidth}
-                    />
-                ))}
-                {sortBy(
-                    positionedBins.map((positionedBin, index) => {
-                        const bin = positionedBin.bin
-                        const isFocus =
-                            numericFocusBracket &&
-                            bin.equals(numericFocusBracket)
-                        return (
-                            <NumericBinRect
-                                key={index}
-                                x={positionedBin.x}
-                                y={bottomY - numericBinSize}
-                                width={positionedBin.width}
-                                height={numericBinSize}
-                                fill={
-                                    bin.patternRef
-                                        ? `url(#${bin.patternRef})`
-                                        : bin.color
-                                }
-                                opacity={manager.legendOpacity} // defaults to undefined which removes the prop
-                                stroke={isFocus ? FOCUS_BORDER_COLOR : stroke}
-                                strokeWidth={isFocus ? 2 : strokeWidth}
-                                isOpenLeft={
-                                    bin instanceof NumericBin
-                                        ? bin.props.isOpenLeft
-                                        : false
-                                }
-                                isOpenRight={
-                                    bin instanceof NumericBin
-                                        ? bin.props.isOpenRight
-                                        : false
-                                }
-                            />
-                        )
-                    }),
-                    (rect) => rect.props["strokeWidth"]
-                )}
-                {numericLabels.map((label, index) => (
-                    <text
-                        key={index}
-                        x={label.bounds.x}
-                        y={bottomY + label.bounds.y}
-                        // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
-                        // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
-                        // do with some rough positioning.
-                        dy={dyFromAlign(VerticalAlign.bottom)}
-                        fontSize={label.fontSize}
-                        fill={this.legendTextColor}
-                    >
-                        {label.text}
-                    </text>
-                ))}
+                <g id={makeIdForHumanConsumption("lines")}>
+                    {numericLabels.map((label, index) => (
+                        <line
+                            key={index}
+                            id={makeIdForHumanConsumption(label.text)}
+                            x1={label.bounds.x + label.bounds.width / 2}
+                            y1={bottomY - numericBinSize}
+                            x2={label.bounds.x + label.bounds.width / 2}
+                            y2={bottomY + label.bounds.y + label.bounds.height}
+                            // if we use a light color for stroke (e.g. white), we want it to stay
+                            // "invisible", except for raised labels, where we want *some* contrast.
+                            stroke={
+                                label.raised
+                                    ? darkenColorForLine(stroke)
+                                    : stroke
+                            }
+                            strokeWidth={strokeWidth}
+                        />
+                    ))}
+                </g>
+                <g id={makeIdForHumanConsumption("swatches")}>
+                    {sortBy(
+                        positionedBins.map((positionedBin, index) => {
+                            const bin = positionedBin.bin
+                            const isFocus =
+                                numericFocusBracket &&
+                                bin.equals(numericFocusBracket)
+                            return (
+                                <NumericBinRect
+                                    key={index}
+                                    x={positionedBin.x}
+                                    y={bottomY - numericBinSize}
+                                    width={positionedBin.width}
+                                    height={numericBinSize}
+                                    fill={
+                                        bin.patternRef
+                                            ? `url(#${bin.patternRef})`
+                                            : bin.color
+                                    }
+                                    opacity={manager.legendOpacity} // defaults to undefined which removes the prop
+                                    stroke={
+                                        isFocus ? FOCUS_BORDER_COLOR : stroke
+                                    }
+                                    strokeWidth={isFocus ? 2 : strokeWidth}
+                                    isOpenLeft={
+                                        bin instanceof NumericBin
+                                            ? bin.props.isOpenLeft
+                                            : false
+                                    }
+                                    isOpenRight={
+                                        bin instanceof NumericBin
+                                            ? bin.props.isOpenRight
+                                            : false
+                                    }
+                                />
+                            )
+                        }),
+                        (rect) => rect.props["strokeWidth"]
+                    )}
+                </g>
+                <g id={makeIdForHumanConsumption("labels")}>
+                    {numericLabels.map((label, index) => (
+                        <text
+                            key={index}
+                            x={label.bounds.x}
+                            y={bottomY + label.bounds.y}
+                            // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
+                            // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
+                            // do with some rough positioning.
+                            dy={dyFromAlign(VerticalAlign.bottom)}
+                            fontSize={label.fontSize}
+                            fill={this.legendTextColor}
+                        >
+                            {label.text}
+                        </text>
+                    ))}
+                </g>
                 {this.legendTitle?.render(
                     this.x,
                     // Align legend title baseline with bottom of color bins
