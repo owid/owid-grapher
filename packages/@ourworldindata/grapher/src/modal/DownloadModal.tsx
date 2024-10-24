@@ -442,7 +442,7 @@ const getDownloadUrl = (
     return `${ctx.baseUrl}.${extension}` + (searchStr ? `?${searchStr}` : "")
 }
 
-const getNonRedistributableInfo = (
+export const getNonRedistributableInfo = (
     table: OwidTable | undefined
 ): { cols: CoreColumn[] | undefined; sourceLinks: string[] | undefined } => {
     if (!table) return { cols: undefined, sourceLinks: undefined }
