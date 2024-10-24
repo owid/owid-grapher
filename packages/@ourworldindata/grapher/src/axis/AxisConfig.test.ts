@@ -3,15 +3,15 @@
 import { AxisConfig } from "../axis/AxisConfig"
 import { ScaleType } from "@ourworldindata/types"
 
-it("serializes max to 'auto' if undefined", () => {
-    const axis = new AxisConfig({ min: 1 })
+it("serializes max to 'auto' if -Infinity", () => {
+    const axis = new AxisConfig({ min: 1, max: -Infinity })
     const obj = axis.toObject()
     expect(obj.min).toBe(1)
     expect(obj.max).toBe("auto")
 })
 
-it("serializes min to 'auto' if undefined", () => {
-    const axis = new AxisConfig({ max: 0 })
+it("serializes min to 'auto' if Infinity", () => {
+    const axis = new AxisConfig({ max: 0, min: Infinity })
     const obj = axis.toObject()
     expect(obj.max).toBe(0)
     expect(obj.min).toBe("auto")

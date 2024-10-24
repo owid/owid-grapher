@@ -45,10 +45,17 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref domainValues?: number[] = undefined
 }
 
-function parseAutoOrNumberFromJSON(
+function parseMinFromJSON(
     value: AxisMinMaxValueStr.auto | number | undefined
 ): number | undefined {
-    if (value === AxisMinMaxValueStr.auto) return undefined
+    if (value === AxisMinMaxValueStr.auto) return Infinity
+    return value
+}
+
+function parseMaxFromJSON(
+    value: AxisMinMaxValueStr.auto | number | undefined
+): number | undefined {
+    if (value === AxisMinMaxValueStr.auto) return -Infinity
     return value
 }
 
@@ -67,8 +74,8 @@ export class AxisConfig
     // todo: test/refactor
     updateFromObject(props?: AxisConfigInterface): void {
         if (props) extend(this, props)
-        if (props?.min) this.min = parseAutoOrNumberFromJSON(props?.min)
-        if (props?.max) this.max = parseAutoOrNumberFromJSON(props?.max)
+        if (props?.min) this.min = parseMinFromJSON(props?.min)
+        if (props?.max) this.max = parseMaxFromJSON(props?.max)
     }
 
     toObject(): AxisConfigInterface {
@@ -96,8 +103,8 @@ export class AxisConfig
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())
 
-        if (obj.min === undefined) obj.min = AxisMinMaxValueStr.auto
-        if (obj.max === undefined) obj.max = AxisMinMaxValueStr.auto
+        if (obj.min === Infinity) obj.min = AxisMinMaxValueStr.auto
+        if (obj.max === -Infinity) obj.max = AxisMinMaxValueStr.auto
 
         return obj
     }
