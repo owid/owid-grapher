@@ -95,7 +95,7 @@ export const DownloadModal = (
                 style={{ maxHeight: modalBounds.height }}
             >
                 <OverlayHeader title="Download" onDismiss={onDismiss} />
-                <div className="padded">
+                <div className="download-modal__tab-list">
                     <Tabs
                         variant="slim"
                         labels={[
@@ -110,22 +110,28 @@ export const DownloadModal = (
                 {/* Tabs */}
                 {/**
                  * We only hide the inactive tab with display: none and don't unmount it,
-                 * so that the tab state (selected radio buttons, scroll position, etc) is preserved
+                 * so that the tab state (selected radio buttons, etc) is preserved
                  * when switching between tabs.
                  */}
-                <div
-                    className="scrollable padded"
-                    style={{ display: isVisTabActive ? undefined : "none" }}
-                    aria-hidden={!isVisTabActive}
-                >
-                    <DownloadModalVisTab {...props} />
-                </div>
-                <div
-                    className="scrollable padded"
-                    style={{ display: isDataTabActive ? undefined : "none" }}
-                    aria-hidden={!isDataTabActive}
-                >
-                    <DownloadModalDataTab {...props} />
+                <div className="download-modal__tab-panel" role="tabpanel">
+                    <div
+                        className="download-modal__tab"
+                        style={{ display: isVisTabActive ? undefined : "none" }}
+                        role="tab"
+                        aria-hidden={!isVisTabActive}
+                    >
+                        <DownloadModalVisTab {...props} />
+                    </div>
+                    <div
+                        className="download-modal__tab"
+                        style={{
+                            display: isDataTabActive ? undefined : "none",
+                        }}
+                        role="tab"
+                        aria-hidden={!isDataTabActive}
+                    >
+                        <DownloadModalDataTab {...props} />
+                    </div>
                 </div>
             </div>
         </Modal>
@@ -550,7 +556,7 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
     )
 
     return (
-        <div className="grouped-menu-section grouped-menu-section-data">
+        <div className="grouped-menu-section grouped-menu-section-data download-modal__data-section">
             <h3 className="grapher_h3-semibold">Source and citation</h3>
             <Callout
                 title="Data citation"
@@ -688,9 +694,9 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     const shortNamesAvailable = !!exShortName
 
     return (
-        <div>
+        <>
             <SourceAndCitationSection table={props.manager.table} />
-            <div className="grouped-menu-section">
+            <div className="grouped-menu-section download-modal__data-section">
                 <h3 className="grapher_h3-semibold">Download options</h3>
                 <section className="grouped-menu-section-data">
                     <RadioButton
@@ -733,25 +739,31 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                         </div>
                     </section>
                 )}
+                <div className="grouped-menu-list">
+                    <DownloadButton
+                        title="Data and metadata (ZIP)"
+                        description="Download the data CSV, metadata JSON, and a README file as a ZIP archive."
+                        onClick={onZipDownload}
+                        tracking="chart_download_zip"
+                    />
+                    <DownloadButton
+                        title="Data only (CSV)"
+                        description="Download only the data in CSV format."
+                        onClick={onCsvDownload}
+                        tracking="chart_download_csv"
+                    />
+                </div>
             </div>
-            <div className="grouped-menu-list">
-                <DownloadButton
-                    title="Data and metadata (ZIP)"
-                    description="Download the data CSV, metadata JSON, and a README file as a ZIP archive."
-                    onClick={onZipDownload}
-                    tracking="chart_download_zip"
-                />
-                <DownloadButton
-                    title="Data only (CSV)"
-                    description="Download only the data in CSV format."
-                    onClick={onCsvDownload}
-                    tracking="chart_download_csv"
-                />
-            </div>
+
             {serverSideDownloadAvailable && (
-                <CodeExamplesBlock csvUrl={csvUrl} metadataUrl={metadataUrl} />
+                <div className="download-modal__data-section">
+                    <CodeExamplesBlock
+                        csvUrl={csvUrl}
+                        metadataUrl={metadataUrl}
+                    />
+                </div>
             )}
-        </div>
+        </>
     )
 }
 
@@ -802,12 +814,12 @@ function Callout(props: CalloutProps): React.ReactElement {
         <div className="grouped-menu-callout">
             <div className="grouped-menu-callout-content">
                 {props.title && (
-                    <h4 className="title grapher_h4-semibold">
+                    <h4 className="title grapher_body-2-semibold">
                         {props.icon}
                         {props.title}
                     </h4>
                 )}
-                <p className="grapher_body-3-medium grapher_light">
+                <p className="grapher_label-2-regular grapher_light">
                     {props.children}
                 </p>
             </div>

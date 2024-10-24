@@ -4,37 +4,42 @@
     // necessary for scrolling
     display: flex;
     flex-direction: column;
-    height: 100%;
-    > * {
-        flex-shrink: 0;
-    }
 
-    margin-bottom: 24px;
-
-    .padded {
+    .download-modal__tab-list {
         padding: 0 var(--modal-padding);
     }
 
-    .scrollable {
+    .download-modal__tab-panel {
+        padding-bottom: 24px;
+        margin-top: 16px;
+
         flex: 1 1 auto;
         overflow-y: auto;
-
-        margin-top: var(--modal-padding);
-        padding-bottom: 1px; // makes scrollbar disappear when not needed
 
         // needed for the loading indicator
         position: relative;
         min-height: 45px;
     }
 
-    .grouped-menu-section {
+    .download-modal__tab {
+        padding: 0 var(--modal-padding);
+    }
+
+    .download-modal__data-section {
+        padding-bottom: 16px;
+
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
         h3 {
-            margin-bottom: 16px;
+            margin-bottom: 8px; // 8px margin + 8px gap
         }
     }
 
-    .grouped-menu-section + .grouped-menu-section {
-        margin-top: 24px;
+    .download-modal__data-section + .download-modal__data-section {
+        border-top: 1px solid $gray-10;
+        padding-top: 16px;
     }
 
     .grouped-menu-item + .grouped-menu-item {
@@ -91,7 +96,6 @@
     .grouped-menu-section-data {
         display: flex;
         flex-direction: column;
-        gap: 16px;
 
         .label {
             @include grapher_label-1-regular;
@@ -139,6 +143,7 @@
     }
 
     .download-modal__citation-guidance-list {
+        font-size: 14px;
         display: inline;
         list-style: none;
         line-height: 1.4;
@@ -174,7 +179,7 @@
 
     .grouped-menu-callout {
         border-radius: 8px;
-        border: 1px solid $gray-30;
+        border: 1px solid $gray-20;
         background: $gray-5;
         padding: 16px;
 
