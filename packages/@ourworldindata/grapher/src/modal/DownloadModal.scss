@@ -133,6 +133,12 @@
             color: $gray-70;
             padding: 2px 4px;
             font-family: "Courier New", Courier, monospace;
+
+            white-space: normal;
+
+            // Make it so we get nice paddings around line breaks
+            -webkit-box-decoration-break: clone;
+            box-decoration-break: clone;
         }
 
         .label {

@@ -33,17 +33,20 @@ export const ExpandableToggle = ({
             })}
         >
             <button className="ExpandableToggle__button" onClick={toggle}>
-                <h4 className="ExpandableToggle__title">{label}</h4>
+                <div>
+                    <h4 className="ExpandableToggle__title">{label}</h4>
+                    {alwaysVisibleDescription && (
+                        <div className="ExpandableToggle__description">
+                            {alwaysVisibleDescription}
+                        </div>
+                    )}
+                </div>
                 <FontAwesomeIcon
                     className="ExpandableToggle__icon"
                     icon={!isOpen ? faPlus : faMinus}
                 />
             </button>
-            {alwaysVisibleDescription && (
-                <div className="ExpandableToggle__description">
-                    {alwaysVisibleDescription}
-                </div>
-            )}
+
             <div className="ExpandableToggle__content">{content}</div>
         </div>
     )
