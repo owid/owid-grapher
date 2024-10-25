@@ -451,7 +451,7 @@ const getDownloadUrl = (
     ctx: DataDownloadContext
 ) => {
     const searchParams = getDownloadSearchParams(ctx)
-    const searchStr = searchParams.toString()
+    const searchStr = searchParams.toString().replaceAll("%7E", "~")
     return `${ctx.baseUrl}.${extension}` + (searchStr ? `?${searchStr}` : "")
 }
 
@@ -598,7 +598,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
             shortColNames,
 
             slug: props.manager.displaySlug,
-            searchParams: new URLSearchParams(),
+            searchParams: new URLSearchParams(props.manager.queryStr),
             baseUrl:
                 props.manager.baseUrl ??
                 `/grapher/${props.manager.displaySlug}`,
@@ -611,6 +611,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
             onlyVisible,
             props.manager.baseUrl,
             props.manager.displaySlug,
+            props.manager.queryStr,
             props.manager.table,
             props.manager.transformedTable,
             shortColNames,
