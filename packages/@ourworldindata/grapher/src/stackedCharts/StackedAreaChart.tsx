@@ -411,6 +411,13 @@ export class StackedAreaChart
         )
     }
 
+    @action.bound onClick(e: React.MouseEvent<SVGElement>): void {
+        // don't fire document event handler that dismisses the tooltip
+        if (this.manager.shouldPinTooltipToBottom) {
+            e.stopPropagation()
+        }
+    }
+
     @action.bound private onCursorMove(
         ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
     ): void {
@@ -454,9 +461,15 @@ export class StackedAreaChart
                   }
     }
 
-    @action.bound private onCursorLeave(): void {
-        this.hoverSeriesName = undefined
+    @action.bound private dismissTooltip(): void {
         this.tooltipState.target = null
+    }
+
+    @action.bound private onCursorLeave(): void {
+        if (!this.manager.shouldPinTooltipToBottom) {
+            this.dismissTooltip()
+        }
+        this.hoverSeriesName = undefined
     }
 
     @computed private get activeXVerticalLine():
@@ -465,7 +478,6 @@ export class StackedAreaChart
         const { dualAxis, series } = this
         const { horizontalAxis, verticalAxis } = dualAxis
         const hoveredPointIndex = this.tooltipState.target?.index
-
         if (hoveredPointIndex === undefined) return undefined
 
         return (
@@ -502,6 +514,14 @@ export class StackedAreaChart
         )
     }
 
+    @computed private get tooltipId(): number {
+        return this.renderUid
+    }
+
+    @computed private get isTooltipActive(): boolean {
+        return this.manager.tooltip?.get()?.id === this.tooltipId
+    }
+
     @computed private get tooltip(): React.ReactElement | undefined {
         const { target, position, fading } = this.tooltipState
         if (!target) return undefined
@@ -530,7 +550,7 @@ export class StackedAreaChart
 
         return (
             <Tooltip
-                id={this.renderUid}
+                id={this.tooltipId}
                 tooltipManager={this.props.manager}
                 x={position.x}
                 y={position.y}
@@ -543,6 +563,10 @@ export class StackedAreaChart
                 subtitleFormat="unit"
                 footer={footer}
                 dissolve={fading}
+                dismiss={this.dismissTooltip}
+                shouldDismissOnClickOutside={
+                    this.manager.shouldPinTooltipToBottom
+                }
             >
                 <TooltipTable
                     columns={[formatColumn]}
@@ -627,6 +651,7 @@ export class StackedAreaChart
                 ref={this.base}
                 className="StackedArea"
                 onMouseLeave={this.onCursorLeave}
+                onClick={this.onClick}
                 onTouchEnd={this.onCursorLeave}
                 onTouchCancel={this.onCursorLeave}
                 onMouseMove={this.onCursorMove}
@@ -651,7 +676,7 @@ export class StackedAreaChart
                         onAreaMouseLeave={this.onAreaMouseLeave}
                     />
                 </g>
-                {this.activeXVerticalLine}
+                {this.isTooltipActive && this.activeXVerticalLine}
                 {this.tooltip}
             </g>
         )

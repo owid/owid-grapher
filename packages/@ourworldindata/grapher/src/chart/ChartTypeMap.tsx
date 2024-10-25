@@ -16,7 +16,8 @@ import { MarimekkoChart } from "../stackedCharts/MarimekkoChart"
 interface ChartComponentProps {
     manager: ChartManager
     bounds?: Bounds
-    containerElement?: any // todo: remove?
+    containerElement?: HTMLDivElement
+    framePaddingHorizontal?: number
 }
 
 interface ChartComponentClass extends ComponentClass<ChartComponentProps> {

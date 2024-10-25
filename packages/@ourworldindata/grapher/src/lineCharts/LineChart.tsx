@@ -443,8 +443,21 @@ export class LineChart
         return table
     }
 
-    @action.bound private onCursorLeave(): void {
+    @action.bound private dismissTooltip(): void {
         this.tooltipState.target = null
+    }
+
+    @action.bound onClick(e: React.MouseEvent<SVGElement>): void {
+        // don't fire document event handler that dismisses the tooltip
+        if (this.manager.shouldPinTooltipToBottom) {
+            e.stopPropagation()
+        }
+    }
+
+    @action.bound private onCursorLeave(): void {
+        if (!this.manager.shouldPinTooltipToBottom) {
+            this.dismissTooltip()
+        }
         this.clearHighlightedSeries()
     }
 
@@ -601,6 +614,14 @@ export class LineChart
         )
     }
 
+    @computed private get tooltipId(): number {
+        return this.renderUid
+    }
+
+    @computed private get isTooltipActive(): boolean {
+        return this.manager.tooltip?.get()?.id === this.tooltipId
+    }
+
     @computed private get tooltip(): React.ReactElement | undefined {
         const { formatColumn, colorColumn, hasColorScale } = this
         const { target, position, fading } = this.tooltipState
@@ -670,7 +691,7 @@ export class LineChart
 
         return (
             <Tooltip
-                id={this.renderUid}
+                id={this.tooltipId}
                 tooltipManager={this.manager}
                 x={position.x}
                 y={position.y}
@@ -683,6 +704,10 @@ export class LineChart
                 subtitleFormat={subtitleFormat}
                 footer={footer}
                 dissolve={fading}
+                dismiss={this.dismissTooltip}
+                shouldDismissOnClickOutside={
+                    this.manager.shouldPinTooltipToBottom
+                }
             >
                 <TooltipTable
                     columns={columns}
@@ -931,6 +956,7 @@ export class LineChart
             <g
                 ref={this.base}
                 className="LineChart"
+                onClick={this.onClick}
                 onMouseLeave={this.onCursorLeave}
                 onTouchEnd={this.onCursorLeave}
                 onTouchCancel={this.onCursorLeave}
@@ -952,7 +978,7 @@ export class LineChart
                 {this.renderDualAxis()}
                 <g clipPath={this.clipPath.id}>{this.renderChartElements()}</g>
 
-                {this.activeXVerticalLine}
+                {this.isTooltipActive && this.activeXVerticalLine}
                 {this.tooltip}
             </g>
         )

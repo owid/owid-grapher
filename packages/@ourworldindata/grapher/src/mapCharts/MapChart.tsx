@@ -42,7 +42,11 @@ import {
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
-import { BASE_FONT_SIZE, Patterns } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    DEFAULT_GRAPHER_FRAME_PADDING,
+    Patterns,
+} from "../core/GrapherConstants"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
     CategoricalBin,
@@ -77,6 +81,7 @@ interface MapChartProps {
     bounds?: Bounds
     manager: MapChartManager
     containerElement?: HTMLDivElement
+    framePaddingHorizontal?: number
 }
 
 // Get the underlying geographical topology elements we're going to display
@@ -228,6 +233,12 @@ export class MapChart
 
     @computed get choroplethData(): Map<SeriesName, ChoroplethSeries> {
         return this.seriesMap
+    }
+
+    @computed private get framePaddingHorizontal(): number {
+        return (
+            this.props.framePaddingHorizontal ?? DEFAULT_GRAPHER_FRAME_PADDING
+        )
     }
 
     base: React.RefObject<SVGGElement> = React.createRef()
@@ -622,6 +633,10 @@ export class MapChart
     renderInteractive(): React.ReactElement {
         const { tooltipState } = this
 
+        const sparklineWidth = this.manager.shouldPinTooltipToBottom
+            ? this.bounds.width + (this.framePaddingHorizontal - 1) * 2
+            : undefined
+
         return (
             <g
                 ref={this.base}
@@ -641,6 +656,7 @@ export class MapChart
                         manager={this.manager}
                         colorScaleManager={this}
                         targetTime={this.targetTime}
+                        sparklineWidth={sparklineWidth}
                     />
                 )}
             </g>

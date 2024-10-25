@@ -1075,6 +1075,7 @@ export class MarimekkoChart
                         subtitle={timeColumn.formatValue(endTime)}
                         footer={footer}
                         dissolve={fading}
+                        dismiss={() => (this.tooltipState.target = null)}
                     >
                         {yValues.map(({ name, value, notice }) => (
                             <TooltipValue

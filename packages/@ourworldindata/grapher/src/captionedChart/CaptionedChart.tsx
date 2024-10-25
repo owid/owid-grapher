@@ -229,6 +229,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 bounds={bounds}
                 manager={manager}
                 containerElement={this.containerElement}
+                framePaddingHorizontal={this.framePaddingHorizontal}
             />
         )
     }

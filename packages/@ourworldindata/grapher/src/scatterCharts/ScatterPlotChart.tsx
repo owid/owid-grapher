@@ -983,6 +983,7 @@ export class ScatterPlotChart
                 subtitle={timeLabel}
                 dissolve={fading}
                 footer={footer}
+                dismiss={() => (this.tooltipState.target = null)}
             >
                 <TooltipValueRange
                     column={xColumn}

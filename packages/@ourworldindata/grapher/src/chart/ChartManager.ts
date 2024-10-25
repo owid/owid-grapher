@@ -34,7 +34,7 @@ export interface ChartManager {
     isRelativeMode?: boolean
     comparisonLines?: ComparisonLineConfig[]
     showLegend?: boolean
-    tooltips?: TooltipManager["tooltips"]
+    tooltip?: TooltipManager["tooltip"]
     baseColorScheme?: ColorSchemeName
     invertColorScheme?: boolean
     compareEndPointsOnly?: boolean
@@ -92,6 +92,7 @@ export interface ChartManager {
     isExportingForSocialMedia?: boolean
     secondaryColorInStaticCharts?: string
     backgroundColor?: Color
+    shouldPinTooltipToBottom?: boolean
 
     detailsOrderedByReference?: string[]
     detailsMarkerInSvg?: DetailsMarker

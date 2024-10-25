@@ -117,6 +117,8 @@ export class TimelineComponent extends React.Component<{
     }
 
     @action.bound private onMouseDown(event: any): void {
+        this.manager.onTimelineClick?.()
+
         const logic = this.controller
         const targetEl = select(event.target)
 

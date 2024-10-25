@@ -103,6 +103,7 @@ export {
     type DetailsMarker,
     GrapherWindowType,
     AxisMinMaxValueStr,
+    GrapherTooltipAnchor,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {
