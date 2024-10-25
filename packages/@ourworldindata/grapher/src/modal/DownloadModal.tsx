@@ -311,10 +311,10 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         }
 
         return (
-            <div className="grouped-menu">
+            <div>
                 {manager.isOnChartOrMapTab ? (
-                    <div className="grouped-menu-section">
-                        <div className="grouped-menu-list">
+                    <div className="download-modal__vis-section">
+                        <div>
                             <DownloadButton
                                 title="Image (PNG)"
                                 description="Suitable for most uses, widely compatible."
@@ -333,7 +333,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                             />
                         </div>
                         {this.showExportControls && (
-                            <div className="static-exports-options">
+                            <>
                                 {this.hasDetails && (
                                     <Checkbox
                                         checked={this.shouldIncludeDetails}
@@ -382,7 +382,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                         })}
                                     />
                                 )}
-                            </div>
+                            </>
                         )}
                     </div>
                 ) : (
@@ -558,7 +558,7 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
     )
 
     return (
-        <div className="grouped-menu-section download-modal__data-section">
+        <div className="download-modal__data-section">
             <h3 className="grapher_h3-semibold">Source and citation</h3>
             <Callout
                 title="Data citation"
@@ -656,7 +656,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
 
     if (nonRedistributableCols?.length) {
         return (
-            <div className="grouped-menu-section">
+            <div>
                 <Callout
                     title="The data in this chart is not available to download"
                     icon={<FontAwesomeIcon icon={faInfoCircle} />}
@@ -698,7 +698,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     return (
         <>
             <SourceAndCitationSection table={props.manager.table} />
-            <div className="grouped-menu-section download-modal__data-section">
+            <div className="download-modal__data-section">
                 <h3 className="grapher_h3-semibold">Download options</h3>
                 <section className="download-modal__config-list">
                     <RadioButton
@@ -743,7 +743,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                         </div>
                     </section>
                 )}
-                <div className="grouped-menu-list">
+                <div>
                     <DownloadButton
                         title="Data and metadata (ZIP)"
                         description="Download the data CSV, metadata JSON, and a README file as a ZIP archive."

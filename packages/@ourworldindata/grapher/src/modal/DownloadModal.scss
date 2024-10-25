@@ -1,4 +1,6 @@
 .download-modal-content {
+    $ruler-border: 1px solid $gray-10;
+
     color: $dark-text;
 
     // necessary for scrolling
@@ -30,6 +32,12 @@
         padding: 0 var(--modal-padding);
     }
 
+    .download-modal__vis-section {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
     .download-modal__data-section {
         padding-bottom: 16px;
 
@@ -38,7 +46,7 @@
         gap: 8px;
 
         + .download-modal__data-section {
-            border-top: 1px solid $gray-10;
+            border-top: $ruler-border;
             padding-top: 16px;
         }
 
@@ -116,7 +124,7 @@
         padding-bottom: 8px; // 8px padding + 8px gap
 
         + .download-modal__config-list {
-            border-top: 1px solid $gray-10;
+            border-top: $ruler-border;
             padding-top: 16px;
         }
 
@@ -132,7 +140,7 @@
             background-color: $gray-10;
             color: $gray-70;
             padding: 2px 4px;
-            font-family: "Courier New", Courier, monospace;
+            font-family: $monospace-font-stack;
 
             white-space: normal;
 
@@ -238,14 +246,6 @@
             margin-bottom: 8px;
         }
     }
-}
-
-.static-exports-options {
-    margin: 16px 0 0;
-
-    gap: 8px;
-    display: flex;
-    flex-direction: column;
 }
 
 &.GrapherComponentSmall .download-modal-content {
