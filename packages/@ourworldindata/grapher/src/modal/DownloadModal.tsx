@@ -61,6 +61,7 @@ export interface DownloadModalManager {
     framePaddingVertical?: number
     showAdminControls?: boolean
     isSocialMediaExport?: boolean
+    isPublished?: boolean
 }
 
 interface DownloadModalProps {
@@ -590,7 +591,12 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     const { cols: nonRedistributableCols, sourceLinks } =
         getNonRedistributableInfo(props.manager.table)
 
-    const serverSideDownloadAvailable = true // TODO
+    // Server-side download is not necessarily available for:
+    // - Explorers
+    // - Mdims
+    // - Charts authored/changed in the admin (incl. unpublished charts)
+    const serverSideDownloadAvailable =
+        !!props.manager.isPublished && window.admin === undefined
 
     const downloadCtx: DataDownloadContext = useMemo(
         (): DataDownloadContext => ({
@@ -750,12 +756,14 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                     </section>
                 )}
                 <div>
-                    <DownloadButton
-                        title="Data and metadata (ZIP)"
-                        description="Download the data CSV, metadata JSON, and a README file as a ZIP archive."
-                        onClick={onZipDownload}
-                        tracking="chart_download_zip"
-                    />
+                    {serverSideDownloadAvailable && (
+                        <DownloadButton
+                            title="Data and metadata (ZIP)"
+                            description="Download the data CSV, metadata JSON, and a README file as a ZIP archive."
+                            onClick={onZipDownload}
+                            tracking="chart_download_zip"
+                        />
+                    )}
                     <DownloadButton
                         title="Data only (CSV)"
                         description="Download only the data in CSV format."
