@@ -51,14 +51,13 @@ export interface DownloadModalManager {
     table?: OwidTable
     transformedTable?: OwidTable
     yColumnsFromDimensionsOrSlugsOrAuto?: CoreColumn[]
-    externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
+    externalCsvLink?: string // TODO: do we want to drop this feature?
     shouldIncludeDetailsInStaticExport?: boolean
     detailsOrderedByReference?: string[]
     isDownloadModalOpen?: boolean
     frameBounds?: Bounds
     captionedChartBounds?: Bounds
     isOnChartOrMapTab?: boolean
-    framePaddingVertical?: number
     showAdminControls?: boolean
     isSocialMediaExport?: boolean
     isPublished?: boolean
@@ -202,13 +201,6 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
             })
     }
 
-    @computed private get csvBlob(): Blob {
-        const csv = this.inputTable.toPrettyCsv()
-        return new Blob([csv], {
-            type: "text/csv;charset=utf-8",
-        })
-    }
-
     @action.bound private markAsReady(): void {
         this.isReady = true
     }
@@ -222,10 +214,6 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
     }
     @computed private get baseFilename(): string {
         return this.manager.displaySlug
-    }
-
-    @computed private get inputTable(): OwidTable {
-        return this.manager.table ?? BlankOwidTable()
     }
 
     @action.bound private onPngDownload(): void {
@@ -705,6 +693,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     const exLongName = firstYColDef?.name
     const exShortName = firstYColDef?.shortName
 
+    // Some charts, like pre-ETL ones or csv-based explorers, don't have short names available for their variables
     const shortNamesAvailable = !!exShortName
 
     return (
