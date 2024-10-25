@@ -109,7 +109,7 @@ import {
 } from "../db/model/Gdoc/GdocFactory.js"
 import { getBakePath } from "@ourworldindata/components"
 import { GdocAuthor, getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
-import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
+import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/SiteConstants.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
 import { getTombstones } from "../db/model/GdocTombstone.js"
 import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"

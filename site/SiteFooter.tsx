@@ -4,6 +4,7 @@ import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
 import { SiteFooterContext } from "@ourworldindata/utils"
 import { viteAssetsForSite } from "./viteUtils.js"
 import { ScriptLoadErrorDetector } from "./NoJSDetector.js"
+import { RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -132,40 +133,16 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                     Data Catalog
                                 </a>
                             </li>
-                        </ul>
-                        <ul>
-                            <li>
-                                <a
-                                    href="https://twitter.com/OurWorldInData"
-                                    data-track-note="footer_navigation"
-                                >
-                                    Twitter
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://www.facebook.com/OurWorldinData"
-                                    data-track-note="footer_navigation"
-                                >
-                                    Facebook
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://www.instagram.com/ourworldindata/"
-                                    data-track-note="footer_navigation"
-                                >
-                                    Instagram
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://www.threads.net/@ourworldindata"
-                                    data-track-note="footer_navigation"
-                                >
-                                    Threads
-                                </a>
-                            </li>
+                            {SOCIALS.map(({ title, url }) => (
+                                <li key={title}>
+                                    <a
+                                        href={url}
+                                        data-track-note="footer_navigation"
+                                    >
+                                        {title}
+                                    </a>
+                                </li>
+                            ))}
                             <li>
                                 <a
                                     href="https://github.com/owid"
@@ -174,22 +151,16 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                     GitHub
                                 </a>
                             </li>
-                            <li>
-                                <a
-                                    href="/atom.xml"
-                                    data-track-note="footer_navigation"
-                                >
-                                    Research & Writing RSS Feed
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="/atom-data-insights.xml"
-                                    data-track-note="footer_navigation"
-                                >
-                                    Daily Data Insights RSS Feed
-                                </a>
-                            </li>
+                            {RSS_FEEDS.map(({ title, url }) => (
+                                <li key={title}>
+                                    <a
+                                        href={url}
+                                        data-track-note="footer_navigation"
+                                    >
+                                        {title}
+                                    </a>
+                                </li>
+                            ))}
                         </ul>
                     </div>
                     <div className="owid-col owid-col--lg-1">

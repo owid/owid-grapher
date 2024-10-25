@@ -1,11 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faRss } from "@fortawesome/free-solid-svg-icons"
-import {
-    faXTwitter,
-    faFacebookSquare,
-    faInstagram,
-    faThreads,
-} from "@fortawesome/free-brands-svg-icons"
+
 import React from "react"
 import { NewsletterSubscriptionContext } from "../../newsletter.js"
 import { NewsletterSubscriptionForm } from "../../NewsletterSubscription.js"
@@ -16,7 +10,7 @@ import {
     OwidGdocHomepageContent,
 } from "@ourworldindata/types"
 import { SiteNavigationStatic } from "../../SiteNavigation.js"
-import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../utils.js"
+import { RSS_FEEDS, SOCIALS } from "../../SiteConstants.js"
 
 export interface HomepageProps {
     content: OwidGdocHomepageContent
@@ -40,99 +34,23 @@ const SocialSection = () => {
             <section className="homepage-social-ribbon__social-media span-cols-4 span-sm-cols-12 col-sm-start-2">
                 <h2 className="h2-semibold">Follow us</h2>
                 <ul className="homepage-social-ribbon__social-list">
-                    <li>
-                        <a
-                            href="https://twitter.com/ourworldindata"
-                            className="list-item"
-                            title="X"
-                            target="_blank"
-                            rel="noopener"
-                            data-track-note="homepage_follow_us"
-                        >
-                            <span className="icon">
-                                <FontAwesomeIcon icon={faXTwitter} />
-                            </span>
-                            <span className="label">X</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            href="https://facebook.com/ourworldindata"
-                            className="list-item"
-                            title="Facebook"
-                            target="_blank"
-                            rel="noopener"
-                            data-track-note="homepage_follow_us"
-                        >
-                            <span className="icon">
-                                <FontAwesomeIcon icon={faFacebookSquare} />
-                            </span>
-                            <span className="label">Facebook</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            href="https://www.instagram.com/ourworldindata/"
-                            className="list-item"
-                            title="Instagram"
-                            target="_blank"
-                            rel="noopener"
-                            data-track-note="homepage_follow_us"
-                        >
-                            <span className="icon">
-                                <FontAwesomeIcon icon={faInstagram} />
-                            </span>
-                            <span className="label">Instagram</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            href="https://www.threads.net/@ourworldindata"
-                            className="list-item"
-                            title="Threads"
-                            target="_blank"
-                            rel="noopener"
-                            data-track-note="homepage_follow_us"
-                        >
-                            <span className="icon">
-                                <FontAwesomeIcon icon={faThreads} />
-                            </span>
-                            <span className="label">Threads</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            href="/atom.xml"
-                            className="list-item"
-                            title="RSS"
-                            target="_blank"
-                            data-track-note="homepage_follow_us"
-                        >
-                            <span className="icon">
-                                <FontAwesomeIcon icon={faRss} />
-                            </span>
-                            <span className="label">
-                                Research & Writing RSS Feed
-                            </span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            href={`/${DATA_INSIGHTS_ATOM_FEED_NAME}`}
-                            className="list-item"
-                            title="Daily Data Insights RSS"
-                            target="_blank"
-                            data-track-note="homepage_follow_us"
-                            rel="noopener"
-                        >
-                            <span className="icon">
-                                <FontAwesomeIcon icon={faRss} />
-                            </span>
-                            <span className="label">
-                                Daily Data Insights RSS Feed
-                            </span>
-                        </a>
-                    </li>
+                    {[...SOCIALS, ...RSS_FEEDS].map(({ title, url, icon }) => (
+                        <li key={title}>
+                            <a
+                                href={url}
+                                className="list-item"
+                                title={title}
+                                target="_blank"
+                                rel="noopener"
+                                data-track-note="homepage_follow_us"
+                            >
+                                <span className="icon">
+                                    <FontAwesomeIcon icon={icon} />
+                                </span>
+                                <span className="label">{title}</span>
+                            </a>
+                        </li>
+                    ))}
                 </ul>
             </section>
         </section>

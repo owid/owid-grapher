@@ -19,7 +19,7 @@ import {
     EnrichedBlockText,
     IMAGES_DIRECTORY,
 } from "@ourworldindata/types"
-import { DATA_INSIGHT_ATOM_FEED_PROPS } from "./utils.js"
+import { DATA_INSIGHT_ATOM_FEED_PROPS } from "../SiteConstants.js"
 import { Html } from "../Html.js"
 
 declare global {
