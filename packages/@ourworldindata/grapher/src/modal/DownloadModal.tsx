@@ -115,7 +115,7 @@ export const DownloadModal = (
                  */}
                 <div className="download-modal__tab-panel" role="tabpanel">
                     <div
-                        className="download-modal__tab"
+                        className="download-modal__tab-content"
                         style={{ display: isVisTabActive ? undefined : "none" }}
                         role="tab"
                         aria-hidden={!isVisTabActive}
@@ -123,7 +123,7 @@ export const DownloadModal = (
                         <DownloadModalVisTab {...props} />
                     </div>
                     <div
-                        className="download-modal__tab"
+                        className="download-modal__tab-content"
                         style={{
                             display: isDataTabActive ? undefined : "none",
                         }}
@@ -570,10 +570,12 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
             </Callout>
 
             {sourceLinks.length > 0 && (
-                <ul className="download-modal__citation-guidance-list">
+                <div className="download-modal__citation-guidance">
                     <strong>Data sources and citation guidance:</strong>{" "}
-                    {sourceLinks}
-                </ul>
+                    <ul className="download-modal__citation-guidance-list">
+                        {sourceLinks}
+                    </ul>
+                </div>
             )}
         </div>
     )
