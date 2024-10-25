@@ -10,11 +10,13 @@ import BugsnagPluginExpress from "@bugsnag/plugin-express"
 import {
     BAKED_BASE_URL,
     BUGSNAG_NODE_API_KEY,
+    ENV_IS_STAGING,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import { IndexPage } from "./IndexPage.js"
 import {
     authCloudflareSSOMiddleware,
+    tailscaleAuthMiddleware,
     authMiddleware,
 } from "./authentication.js"
 import { apiRouter } from "./apiRouter.js"
@@ -92,7 +94,13 @@ export class OwidAdminApp {
 
         app.use(express.urlencoded({ extended: true, limit: "50mb" }))
 
-        app.use("/admin/login", authCloudflareSSOMiddleware)
+        if (ENV_IS_STAGING) {
+            // Try to log in with tailscale if we're in staging
+            app.use("/admin/login", tailscaleAuthMiddleware)
+        } else {
+            // In production use Cloudflare
+            app.use("/admin/login", authCloudflareSSOMiddleware)
+        }
 
         // Require authentication (only for /admin requests)
         app.use(authMiddleware)

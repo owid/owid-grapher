@@ -200,3 +200,9 @@ export const LEGACY_WORDPRESS_IMAGE_URL: string =
 // search evaluation
 export const SEARCH_EVAL_URL: string =
     "https://pub-ec761fe0df554b02bc605610f3296000.r2.dev"
+
+// We currently use ENV=production on staging servers, it'd be better to have ENV=staging
+// but that would require changing a lot of code
+export const ENV_IS_STAGING: boolean = ADMIN_BASE_URL.includes(
+    "http://staging-site"
+)

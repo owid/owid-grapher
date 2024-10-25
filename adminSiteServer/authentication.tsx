@@ -12,6 +12,7 @@ import {
 import { BCryptHasher } from "../db/hashers.js"
 import { Secret, verify } from "jsonwebtoken"
 import { DbPlainSession, DbPlainUser, JsonError } from "@ourworldindata/utils"
+import { exec } from "child_process"
 
 export type Request = express.Request
 
@@ -249,4 +250,129 @@ export async function logInWithCredentials(
         return logInAsUser(user)
 
     throw new Error("Invalid password")
+}
+
+interface TailscaleStatus {
+    Self?: {
+        UserID: string
+        TailscaleIPs: string[]
+    }
+    Peer?: {
+        [key: string]: {
+            UserID: string
+            TailscaleIPs: string[]
+            HostName: string
+            Online: boolean
+        }
+    }
+    User?: {
+        [key: string]: {
+            DisplayName?: string
+        }
+    }
+}
+
+// Middleware for Tailscale authentication
+export async function tailscaleAuthMiddleware(
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) {
+    // If there's a sessionid in cookies, proceed to `authMiddleware` middleware
+    // TODO: we should also check if this sessionid is valid (not expired)
+    if (req.cookies["sessionid"]) {
+        return next()
+    }
+
+    // Extract client's IP address
+    const clientIp = getClientIp(req)
+
+    // Get Tailscale IP-to-User mapping
+    const ipToUserMap = await getTailscaleIpToUserMap()
+
+    // Get the Tailscale display name / github username associated with the client's IP address
+    const githubUserName = ipToUserMap[clientIp]
+
+    // Next if user is not found
+    if (!githubUserName) {
+        return next()
+    }
+
+    const user = await db
+        .knexInstance()
+        .table("users")
+        .where({ fullName: githubUserName })
+        .first()
+    if (!user) {
+        console.error(
+            `User with name ${githubUserName} not found in MySQL. Please change your Github profile name to match your MySQL user.`
+        )
+        return next()
+    }
+
+    // Authenticate as the user stored in the token
+    const { id: sessionId } = await logInAsUser(user)
+    res.cookie("sessionid", sessionId, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: ENV === "production",
+    })
+
+    // Save the sessionid in cookies for `authMiddleware` to log us in
+    req.cookies["sessionid"] = sessionId
+
+    return next()
+}
+
+function getClientIp(req: express.Request): string {
+    let ip =
+        (req.headers["x-forwarded-for"] as string) ||
+        req.socket.remoteAddress ||
+        req.ip
+    if (ip && ip.startsWith("::ffff:")) {
+        ip = ip.replace("::ffff:", "")
+    }
+    return ip
+}
+
+// Function to get Tailscale IP-to-User mapping
+async function getTailscaleIpToUserMap(): Promise<Record<string, string>> {
+    return new Promise((resolve) => {
+        exec("tailscale status --json", (error, stdout) => {
+            if (error) {
+                console.error(`Error getting Tailscale status: ${error}`)
+                return resolve({})
+            }
+            const tailscaleStatus: TailscaleStatus = JSON.parse(stdout)
+            const ipToUser: Record<string, string> = {}
+
+            // Map UserIDs to LoginNames
+            const userIdToDisplayName: Record<string, string> = {}
+
+            if (tailscaleStatus.User) {
+                for (const [userId, userInfo] of Object.entries(
+                    tailscaleStatus.User
+                )) {
+                    if (userInfo.DisplayName) {
+                        userIdToDisplayName[parseInt(userId)] =
+                            userInfo.DisplayName
+                    }
+                }
+            }
+
+            // Include Peers
+            if (tailscaleStatus.Peer) {
+                for (const peer of Object.values(tailscaleStatus.Peer)) {
+                    if (peer.UserID in userIdToDisplayName) {
+                        const displayName = userIdToDisplayName[peer.UserID]
+                        for (const ip of peer.TailscaleIPs) {
+                            ipToUser[ip] = displayName
+                        }
+                    }
+                }
+            }
+
+            resolve(ipToUser)
+        })
+    })
 }
