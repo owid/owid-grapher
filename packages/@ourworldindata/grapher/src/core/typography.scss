@@ -90,6 +90,21 @@
     @include grapher_body-2-semibold;
 }
 
+@mixin grapher_body-2-medium {
+    display: block;
+    margin: 0;
+
+    font-family: $sans-serif-font-stack;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0;
+}
+
+.grapher_body-2-medium {
+    @include grapher_body-2-medium;
+}
+
 @mixin grapher_body-3-medium {
     display: block;
     margin: 0;

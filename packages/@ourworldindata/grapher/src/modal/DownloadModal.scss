@@ -28,7 +28,7 @@
 
         // needed for the loading indicator
         position: relative;
-        min-height: 45px;
+        min-height: 100px;
     }
 
     .download-modal__tab {
@@ -239,25 +239,14 @@
         gap: 16px;
         padding-top: 16px;
         h4 {
+            font-weight: 500;
             margin-bottom: 8px;
         }
     }
 }
 
-&.GrapherComponentSmall .download-modal-content {
-    .grouped-menu-item h4,
-    .grouped-menu-callout h4 {
-        font-size: 14px;
-    }
-
-    .grouped-menu-item p,
-    .grouped-menu-callout p {
-        font-size: 13px;
-    }
-}
-
 &.GrapherComponentNarrow .download-modal-content {
-    .grouped-menu-icon img {
+    .download-modal__download-preview-img img {
         display: none;
     }
 }

@@ -505,7 +505,7 @@ metadata = requests.get("${props.metadataUrl}").json()`,
                     <div className="data-modal__code-examples">
                         {Object.entries(code).map(([name, snippet]) => (
                             <div key={name}>
-                                <h4 className="grapher_body-2-semibold">
+                                <h4 className="grapher_body-2-medium">
                                     {name}
                                 </h4>
                                 <CodeSnippet code={snippet} />
