@@ -152,16 +152,20 @@ export class VerticalColorLegend extends React.Component<{
                     const textX = this.legendX + rectSize + rectPadding
                     const textY = this.legendY + series.yOffset
 
-                    return series.textWrap.render(
-                        textX,
-                        textY,
-                        isFocus
-                            ? {
-                                  textProps: {
-                                      style: { fontWeight: "bold" },
-                                  },
-                              }
-                            : undefined
+                    return (
+                        <React.Fragment key={series.textWrap.text}>
+                            {series.textWrap.render(
+                                textX,
+                                textY,
+                                isFocus
+                                    ? {
+                                          textProps: {
+                                              style: { fontWeight: "bold" },
+                                          },
+                                      }
+                                    : undefined
+                            )}
+                        </React.Fragment>
                     )
                 })}
             </g>
@@ -174,7 +178,7 @@ export class VerticalColorLegend extends React.Component<{
 
         return (
             <g>
-                {series.map((series, index) => {
+                {series.map((series) => {
                     const isActive = activeColors.includes(series.color)
 
                     const textX = this.legendX + rectSize + rectPadding
@@ -186,7 +190,7 @@ export class VerticalColorLegend extends React.Component<{
                     return (
                         <rect
                             id={makeIdForHumanConsumption(series.textWrap.text)}
-                            key={index}
+                            key={series.textWrap.text}
                             x={this.legendX}
                             y={renderedTextPosition[1] - rectSize}
                             width={rectSize}
@@ -204,7 +208,7 @@ export class VerticalColorLegend extends React.Component<{
         const { onLegendClick, onLegendMouseOver, onLegendMouseLeave } = manager
         return (
             <g>
-                {series.map((series, index) => {
+                {series.map((series) => {
                     const mouseOver = onLegendMouseOver
                         ? (): void => onLegendMouseOver(series.color)
                         : undefined
@@ -217,7 +221,7 @@ export class VerticalColorLegend extends React.Component<{
 
                     return (
                         <g
-                            key={index}
+                            key={series.textWrap.text}
                             className="legendMark"
                             onMouseOver={mouseOver}
                             onMouseLeave={mouseLeave}

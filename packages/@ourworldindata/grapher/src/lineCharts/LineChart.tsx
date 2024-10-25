@@ -297,16 +297,18 @@ class Lines extends React.Component<LinesProps> {
         if (this.backgroundLines.length === 0) return
         return (
             <g id={makeIdForHumanConsumption("background-lines")}>
-                {this.backgroundLines.map((series) =>
-                    this.renderPathForSeries(series, {
-                        id: makeIdForHumanConsumption(
-                            "background-line",
-                            series.seriesName
-                        ),
-                        stroke: "#ddd",
-                        strokeWidth: 1,
-                    })
-                )}
+                {this.backgroundLines.map((series) => (
+                    <React.Fragment key={getSeriesKey(series, "background")}>
+                        {this.renderPathForSeries(series, {
+                            id: makeIdForHumanConsumption(
+                                "background-line",
+                                series.seriesName
+                            ),
+                            stroke: "#ddd",
+                            strokeWidth: 1,
+                        })}
+                    </React.Fragment>
+                ))}
             </g>
         )
     }
