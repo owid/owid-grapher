@@ -1,5 +1,8 @@
 .download-modal-content {
     $ruler-border: 1px solid $gray-10;
+    $download-button-fill: $blue-5;
+    $hover-fill: $blue-10;
+    $active-fill: $blue-20;
 
     color: $dark-text;
 
@@ -64,7 +67,7 @@
         flex-direction: row;
         align-items: center;
         color: $blue-90;
-        background-color: $blue-5;
+        background-color: $download-button-fill;
         position: relative;
         width: 100%;
         padding: 16px;
@@ -107,13 +110,6 @@
             padding: 0 8px 0 16px;
             font-size: 16px;
         }
-    }
-
-    // TODO remove
-    hr {
-        margin: 16px 0;
-        padding: 0;
-        color: $gray-10;
     }
 
     .download-modal__config-list {

@@ -666,8 +666,11 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                     {sourceLinks?.length && (
                         <>
                             {" "}
-                            Please visit the data publisher's website(s) for
-                            more details:
+                            Please visit the
+                            {sourceLinks.length > 1
+                                ? " data publishers' websites "
+                                : " data publisher's website "}
+                            for more details:
                             <ul>
                                 {sourceLinks.map((link, i) => (
                                     <li key={i}>
