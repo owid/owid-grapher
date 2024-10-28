@@ -70,8 +70,10 @@ import {
     getPlainRouteNonIdempotentWithRWTransaction,
     getPlainRouteWithROTransaction,
 } from "./plainRouterHelpers.js"
-import { DEFAULT_LOCAL_BAKE_DIR } from "../site/SiteConstants.js"
-import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/gdocs/utils.js"
+import {
+    DEFAULT_LOCAL_BAKE_DIR,
+    DATA_INSIGHTS_ATOM_FEED_NAME,
+} from "../site/SiteConstants.js"
 import { renderMultiDimDataPageBySlug } from "../baker/MultiDimBaker.js"
 import {
     KnexReadonlyTransaction,

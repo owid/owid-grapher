@@ -1,3 +1,13 @@
+import { faRss } from "@fortawesome/free-solid-svg-icons"
+import {
+    faXTwitter,
+    faFacebookSquare,
+    faInstagram,
+    faThreads,
+    faLinkedin,
+    faBluesky,
+} from "@fortawesome/free-brands-svg-icons"
+
 // See https://cdnjs.cloudflare.com/polyfill/ for a list of all supported features
 const polyfillFeatures = [
     "es2019", // Array.flat, Array.flatMap, Object.fromEntries, ...
@@ -24,8 +34,61 @@ export const SMALL_BREAKPOINT_MEDIA_QUERY = "(max-width: 768px)"
 export const TOUCH_DEVICE_MEDIA_QUERY =
     "(hover: none), (pointer: coarse), (pointer: none)"
 
+export const DATA_INSIGHTS_ATOM_FEED_NAME = "atom-data-insights.xml"
+
+export const DATA_INSIGHT_ATOM_FEED_PROPS = {
+    title: "Atom feed for Daily Data Insights",
+    href: `https://ourworldindata.org/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
+}
+
 export const DEFAULT_TOMBSTONE_REASON =
     "Our World in Data is designed to be an evergreen publication. This " +
     "means that when a page cannot be updated due to outdated data or " +
     "missing information, we prefer to remove it rather than present " +
     "incomplete or inaccurate research and data to our readers."
+
+export const SOCIALS = [
+    {
+        title: "X",
+        url: "https://x.com/ourworldindata",
+        icon: faXTwitter,
+    },
+    {
+        title: "Instagram",
+        url: "https://www.instagram.com/ourworldindata/",
+        icon: faInstagram,
+    },
+    {
+        title: "Threads",
+        url: "https://www.threads.net/@ourworldindata",
+        icon: faThreads,
+    },
+    {
+        title: "Facebook",
+        url: "https://facebook.com/ourworldindata",
+        icon: faFacebookSquare,
+    },
+    {
+        title: "LinkedIn",
+        url: "https://www.linkedin.com/company/ourworldindata",
+        icon: faLinkedin,
+    },
+    {
+        title: "Bluesky",
+        url: "https://bsky.app/profile/ourworldindata.bsky.social",
+        icon: faBluesky,
+    },
+]
+
+export const RSS_FEEDS = [
+    {
+        title: "Research & Writing RSS Feed",
+        url: "/atom.xml",
+        icon: faRss,
+    },
+    {
+        title: "Daily Data Insights RSS Feed",
+        url: `/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
+        icon: faRss,
+    },
+]
