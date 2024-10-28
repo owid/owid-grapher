@@ -1,17 +1,17 @@
-import { Env } from "../_common/env.js"
+import { Env, extensions, Etag } from "../_common/env.js"
 import {
-    Etag,
-    extensions,
-    handlePageNotFound,
-    fetchUnparsedGrapherConfig,
     fetchCsvForGrapher,
     fetchMetadataForGrapher,
     fetchReadmeForGrapher,
     fetchZipForGrapher,
-    getRedirectForUrl,
-} from "../_common/grapherRenderer.js"
-import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
+} from "../_common/downloadFunctions.js"
 import { handleThumbnailRequest } from "../_common/reusableHandlers.js"
+import {
+    handlePageNotFound,
+    getRedirectForUrl,
+} from "../_common/redirectTools.js"
+import { fetchUnparsedGrapherConfig } from "../_common/grapherTools.js"
+import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
 
 const { preflight, corsify } = cors({
     allowMethods: ["GET", "OPTIONS", "HEAD"],
