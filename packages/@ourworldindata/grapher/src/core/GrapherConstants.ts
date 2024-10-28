@@ -52,9 +52,9 @@ export const ThereWasAProblemLoadingThisChart = `There was a problem loading thi
 export const WorldEntityName = "World"
 
 export const CONTINENTS_INDICATOR_ID = 123 // "Countries Continent"
-export const POPULATION_INDICATOR_ID_USED_IN_ADMIN = 597929 // "Population (various sources, 2023.1)"
-export const POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR = 597930 // "Population (various sources, 2023.1)"
-export const GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR = 735665 // "World Development Indicators - World Bank (2023.05.11)"
+export const POPULATION_INDICATOR_ID_USED_IN_ADMIN = 953899 // "Population (various sources, 2024-07-15)"
+export const POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR = 953903 // "Population (historical) (various sources, 2024-07-15)"
+export const GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ENTITY_SELECTOR = 905490 // "World Development Indicators - World Bank (2024-05-20)"
 
 export const isContinentsVariableId = (id: string | number): boolean =>
     id.toString() === CONTINENTS_INDICATOR_ID.toString()
