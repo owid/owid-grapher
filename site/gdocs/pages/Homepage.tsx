@@ -33,7 +33,7 @@ const SocialSection = () => {
             </section>
             <section className="homepage-social-ribbon__social-media span-cols-4 span-sm-cols-12 col-sm-start-2">
                 <h2 className="h2-semibold">Follow us</h2>
-                <ul className="homepage-social-ribbon__social-list">
+                <ul className="homepage-social-ribbon__social-list grid grid-cols-2 grid-md-cols-1">
                     {[...SOCIALS, ...RSS_FEEDS].map(({ title, url, icon }) => (
                         <li key={title}>
                             <a
