@@ -1,4 +1,4 @@
-import { JsonString } from "../domainTypes/Various.js"
+import { Base64String, JsonString } from "../domainTypes/Various.js"
 import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
 
 export const ChartConfigsTableName = "chart_configs"
@@ -6,7 +6,7 @@ export interface DbInsertChartConfig {
     id: string
     patch: JsonString
     full: JsonString
-    fullMd5?: string
+    fullMd5?: Base64String
     slug?: string | null
     createdAt?: Date
     updatedAt?: Date | null

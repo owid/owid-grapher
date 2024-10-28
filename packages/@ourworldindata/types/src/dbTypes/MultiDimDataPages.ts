@@ -1,20 +1,23 @@
-import { JsonString } from "../domainTypes/Various.js"
-import { MultiDimDataPageConfigRaw } from "../siteTypes/MultiDimDataPage.js"
+import { Base64String, JsonString } from "../domainTypes/Various.js"
+import { MultiDimDataPageConfigEnriched } from "../siteTypes/MultiDimDataPage.js"
 
 export const MultiDimDataPagesTableName = "multi_dim_data_pages"
 export interface DbInsertMultiDimDataPage {
     slug: string
     config: JsonString
-    published: boolean
+    published?: boolean
     createdAt?: Date
     updatedAt?: Date
 }
 
-export type DbPlainMultiDimDataPage = Required<DbInsertMultiDimDataPage>
+export type DbPlainMultiDimDataPage = Required<DbInsertMultiDimDataPage> & {
+    id: number
+    configMd5: Base64String
+}
 
 export type DbEnrichedMultiDimDataPage = Omit<
     DbPlainMultiDimDataPage,
     "config"
 > & {
-    config: MultiDimDataPageConfigRaw
+    config: MultiDimDataPageConfigEnriched
 }

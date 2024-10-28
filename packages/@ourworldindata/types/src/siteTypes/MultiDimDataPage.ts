@@ -7,8 +7,8 @@ import {
 } from "../OwidVariable.js"
 
 // Indicator ID, catalog path, or maybe an array of those
-export type IndicatorEntryBeforePreProcessing = string | number | undefined
-export type IndicatorEntryAfterPreProcessing = number | undefined // catalog paths have been resolved to indicator IDs
+export type IndicatorEntryBeforePreProcessing = string | number
+export type IndicatorEntryAfterPreProcessing = number // catalog paths have been resolved to indicator IDs
 
 type Metadata = Omit<OwidVariableWithSource, "id">
 
@@ -29,6 +29,13 @@ export type MultiDimDataPageConfigRaw =
 
 export type MultiDimDataPageConfigPreProcessed =
     MultiDimDataPageConfigType<IndicatorsAfterPreProcessing>
+
+export type MultiDimDataPageConfigEnriched = Omit<
+    MultiDimDataPageConfigPreProcessed,
+    "views"
+> & {
+    views: ViewEnriched[]
+}
 
 export interface Dimension {
     slug: string
@@ -74,6 +81,11 @@ export interface View<IndicatorsType extends Record<string, any>> {
     config?: GrapherInterface
     metadata?: Metadata
 }
+
+export interface ViewEnriched extends View<IndicatorsAfterPreProcessing> {
+    fullConfigId: string
+}
+
 export type MultiDimDimensionChoices = Record<string, string> // Keys: dimension slugs, values: choice slugs
 
 export type FaqEntryKeyedByGdocIdAndFragmentId = {
@@ -81,11 +93,10 @@ export type FaqEntryKeyedByGdocIdAndFragmentId = {
 }
 
 export interface MultiDimDataPageProps {
-    configObj: MultiDimDataPageConfigPreProcessed
+    configObj: MultiDimDataPageConfigEnriched
     tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic | undefined
-    variableIdToGrapherConfigMap?: Record<number, string | null>
 
     initialQueryStr?: string
     canonicalUrl?: string

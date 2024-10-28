@@ -1,8 +1,12 @@
+import { Nominal } from "../NominalType"
+
 export type Integer = number
 
 export type OwidVariableId = Integer // remove.
 
 export type JsonString = string
+export type Base64String = Nominal<string, "Base64">
+export type HexString = Nominal<string, "Hex">
 
 /**
  * Pageview information about a single URL

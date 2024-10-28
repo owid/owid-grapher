@@ -14,9 +14,10 @@ import {
     S3Client,
 } from "@aws-sdk/client-s3"
 import { JsonError, lazy } from "@ourworldindata/utils"
-import { R2GrapherConfigDirectory } from "@ourworldindata/types"
+import { Base64String, R2GrapherConfigDirectory } from "@ourworldindata/types"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-import { Base64String } from "../serverUtils/serverUtil.js"
+
+const R2_MULTI_DIM_CONFIG_DIRECTORY = "multi-dim-config"
 
 const getS3Client: () => S3Client = lazy(
     () =>
@@ -52,22 +53,42 @@ export async function deleteGrapherConfigFromR2ByUUID(id: string) {
 }
 
 export async function saveGrapherConfigToR2(
-    config_stringified: string,
+    config: string,
     directory: R2GrapherConfigDirectory,
     filename: string,
     configMd5FromDb: Base64String
 ) {
+    await saveConfigToR2(config, directory, filename, configMd5FromDb)
+}
+
+export async function saveMultiDimConfigToR2(
+    config: string,
+    slug: string,
+    configMd5FromDb: Base64String
+) {
+    await saveConfigToR2(
+        config,
+        R2_MULTI_DIM_CONFIG_DIRECTORY,
+        `${slug}.json`,
+        configMd5FromDb
+    )
+}
+
+async function saveConfigToR2(
+    config: string,
+    directory: string,
+    filename: string,
+    configMd5FromDb: Base64String
+) {
     if (process.env.NODE_ENV === "test") {
-        console.log("Skipping saving grapher config to R2 in test environment")
+        console.log("Skipping saving config to R2 in test environment")
         return
     }
     if (
         GRAPHER_CONFIG_R2_BUCKET === undefined ||
         GRAPHER_CONFIG_R2_BUCKET_PATH === undefined
     ) {
-        console.info(
-            "R2 bucket not configured, not storing grapher config to R2"
-        )
+        console.info("R2 bucket not configured, not storing config to R2")
         return
     }
     try {
@@ -87,7 +108,7 @@ export async function saveGrapherConfigToR2(
         const params: PutObjectCommandInput = {
             Bucket: bucket,
             Key: path,
-            Body: config_stringified,
+            Body: config,
             ContentType: MIMEType,
             ContentMD5: configMd5FromDb,
         }
@@ -99,7 +120,7 @@ export async function saveGrapherConfigToR2(
     } catch (err) {
         await logErrorAndMaybeSendToBugsnag(err)
         throw new JsonError(
-            `Failed to save the grapher config to R2. Inner error: ${err}`
+            `Failed to save the config to R2. Inner error: ${err}`
         )
     }
 }

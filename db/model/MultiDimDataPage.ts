@@ -1,9 +1,23 @@
-import { KnexReadonlyTransaction } from "../db.js"
+import { KnexReadonlyTransaction, KnexReadWriteTransaction } from "../db.js"
 import {
     MultiDimDataPagesTableName,
+    DbInsertMultiDimDataPage,
     DbPlainMultiDimDataPage,
     DbEnrichedMultiDimDataPage,
 } from "@ourworldindata/types"
+
+export async function upsertMultiDimDataPage(
+    knex: KnexReadWriteTransaction,
+    data: DbInsertMultiDimDataPage
+): Promise<number> {
+    const result = await knex<DbInsertMultiDimDataPage>(
+        MultiDimDataPagesTableName
+    )
+        .insert(data)
+        .onConflict()
+        .merge()
+    return result[0]
+}
 
 const createOnlyPublishedFilter = (
     onlyPublished: boolean

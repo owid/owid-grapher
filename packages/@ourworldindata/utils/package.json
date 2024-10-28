@@ -28,7 +28,8 @@
     "striptags": "^3.2.0",
     "timezone-mock": "^1.0.18",
     "ts-pattern": "^5.0.5",
-    "url-parse": "^1.5.10"
+    "url-parse": "^1.5.10",
+    "uuidv7": "^1.0.1"
   },
   "devDependencies": {
     "@types/d3": "^6",
