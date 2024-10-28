@@ -57,12 +57,10 @@ export function assembleMetadata(
     searchParams: URLSearchParams
 ) {
     const useShortNames = searchParams.get("useColumnShortNames") === "true"
-    console.log("useShortNames", useShortNames)
 
     const metadataCols = getColumnsForMetadata(grapher)
 
     const columns: [string, MetadataColumn][] = metadataCols.map((col) => {
-        console.log("mapping col", col.name)
         const {
             descriptionShort,
             descriptionKey,
@@ -125,7 +123,7 @@ export function assembleMetadata(
         const def = col.def as OwidColumnDef
 
         const citationShort = getCitationShort(
-            def.origins,
+            condensedOrigins,
             getAttributionFragmentsFromVariable(def),
             def.owidProcessingLevel
         )
