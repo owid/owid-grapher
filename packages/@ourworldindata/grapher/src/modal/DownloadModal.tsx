@@ -738,7 +738,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                     <section className="download-modal__config-list">
                         <div>
                             <RadioButton
-                                label="Verbose column names"
+                                label="Long column names"
                                 group="shortColNames"
                                 checked={!shortColNames}
                                 onChange={() => setShortColNames(false)}
@@ -749,7 +749,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                         </div>
                         <div>
                             <RadioButton
-                                label="Short column names"
+                                label="Shortened column names"
                                 group="shortColNames"
                                 checked={shortColNames}
                                 onChange={() => setShortColNames(true)}
