@@ -10,7 +10,7 @@ import LatoMedium from "../_common/fonts/LatoLatin-Medium.ttf.bin"
 import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
 import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "./env.js"
-import { ImageOptions, extractOptions, initialized } from "./imageOptions.js"
+import { ImageOptions, extractOptions } from "./imageOptions.js"
 import { GrapherIdentifier, initGrapher } from "./grapherTools.js"
 
 declare global {
