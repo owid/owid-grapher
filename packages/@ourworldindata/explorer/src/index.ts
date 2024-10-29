@@ -1,11 +1,15 @@
 export { Explorer, type ExplorerProps } from "./Explorer.js"
 
+export { buildExplorerProps } from "./ExplorerUtils.js"
+
 export {
     DefaultNewExplorerSlug,
     EMBEDDED_EXPLORER_DELIMITER,
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EMBEDDED_EXPLORER_PARTIAL_GRAPHER_CONFIGS,
+    EXPLORER_CONSTANTS_DELIMITER,
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
+    ExplorerChartCreationMode,
     ExplorerContainerId,
     ExplorerControlTypeRegex,
     EXPLORERS_GIT_CMS_FOLDER,
@@ -16,7 +20,6 @@ export {
     type ChoiceMap,
     type ChoiceName,
     type ChoiceValue,
-    type ExplorerChartCreationMode,
     type ExplorerChoice,
     type ExplorerChoiceOption,
     type ExplorerChoiceParams,

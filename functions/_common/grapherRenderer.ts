@@ -111,7 +111,7 @@ export const fetchAndRenderGrapher = async (
 
 let initialized = false
 
-async function renderSvgToPng(svg: string, options: ImageOptions) {
+export async function renderSvgToPng(svg: string, options: ImageOptions) {
     if (!initialized) {
         await initializeSvg2Png(svg2png_wasm)
         initialized = true

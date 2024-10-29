@@ -10,7 +10,10 @@ import {
     handlePageNotFound,
     getRedirectForUrl,
 } from "../_common/redirectTools.js"
-import { fetchUnparsedGrapherConfig } from "../_common/grapherTools.js"
+import {
+    fetchUnparsedGrapherConfig,
+    rewriteMetaTags,
+} from "../_common/grapherTools.js"
 import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
 
 const { preflight, corsify } = cors({
@@ -149,36 +152,13 @@ async function handleHtmlPageRequest(
         url.search ? "&" + url.search.slice(1) : ""
     }`
 
-    // Take the origin (e.g. https://ourworldindata.org) from the canonical URL, which should appear before the image elements.
-    // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
-    let origin = ""
-
-    // Rewrite the two meta tags that are used for a social media preview image.
-    const rewriter = new HTMLRewriter()
-        .on('meta[property="og:url"]', {
-            // Replace canonical URL, otherwise the preview image will not include the search parameters.
-            element: (element) => {
-                const canonicalUrl = element.getAttribute("content")
-                element.setAttribute("content", canonicalUrl + url.search)
-                try {
-                    origin = new URL(canonicalUrl).origin
-                } catch (e) {
-                    console.error("Error parsing canonical URL", e)
-                }
-            },
-        })
-        .on('meta[property="og:image"]', {
-            element: (element) => {
-                element.setAttribute("content", origin + openGraphThumbnailUrl)
-            },
-        })
-        .on('meta[name="twitter:image"]', {
-            element: (element) => {
-                element.setAttribute("content", origin + twitterThumbnailUrl)
-            },
-        })
-
-    return rewriter.transform(grapherPageResp as unknown as Response)
+    const grapherPageWithUpdatedMetaTags = rewriteMetaTags(
+        url,
+        openGraphThumbnailUrl,
+        twitterThumbnailUrl,
+        grapherPageResp
+    )
+    return grapherPageWithUpdatedMetaTags
 }
 
 async function handleConfigRequest(

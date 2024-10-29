@@ -18,6 +18,7 @@ import {
     EXPLORERS_ROUTE_FOLDER,
     ExplorerProgram,
     ExplorerPageUrlMigrationSpec,
+    EXPLORER_CONSTANTS_DELIMITER,
 } from "@ourworldindata/explorer"
 import { Head } from "../site/Head.js"
 import { IFrameDetector } from "../site/IframeDetector.js"
@@ -111,12 +112,15 @@ const partialGrapherConfigs = ${serializeJSONForHTML(
 const urlMigrationSpec = ${
         urlMigrationSpec ? JSON.stringify(urlMigrationSpec) : "undefined"
     };
-const explorerConstants = ${JSON.stringify({
-        adminBaseUrl: ADMIN_BASE_URL,
-        bakedBaseUrl: BAKED_BASE_URL,
-        bakedGrapherUrl: BAKED_GRAPHER_URL,
-        dataApiUrl: DATA_API_URL,
-    })}
+const explorerConstants = ${serializeJSONForHTML(
+        {
+            adminBaseUrl: ADMIN_BASE_URL,
+            bakedBaseUrl: BAKED_BASE_URL,
+            bakedGrapherUrl: BAKED_GRAPHER_URL,
+            dataApiUrl: DATA_API_URL,
+        },
+        EXPLORER_CONSTANTS_DELIMITER
+    )}
 window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfigs, partialGrapherConfigs, explorerConstants, urlMigrationSpec);`
 
     return (
