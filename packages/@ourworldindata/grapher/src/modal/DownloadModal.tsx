@@ -5,6 +5,7 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     getOriginAttributionFragments,
+    getPhraseForProcessingLevel,
     isEmpty,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
@@ -546,26 +547,44 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
         }
     )
 
-    return (
-        <div className="download-modal__data-section">
-            <h3 className="grapher_h3-semibold">Source and citation</h3>
-            <Callout
-                title="Data citation"
-                icon={<FontAwesomeIcon icon={faInfoCircle} />}
-            >
-                Whenever you use this data, it is your responsibility to ensure
-                to credit the original source and to verify that your use is
-                permitted as per the source's license.
-            </Callout>
+    // Find the highest processing level of all columns
+    const owidProcessingLevel = table?.columnsAsArray
+        .map((col) => (col.def as OwidColumnDef).owidProcessingLevel)
+        .reduce((prev, curr) => {
+            if (prev === "major" || curr === "major") return "major" as const
+            if (prev === "minor" || curr === "minor") return "minor" as const
+            return undefined
+        }, undefined)
 
+    const sourceIsOwid =
+        attributions.length === 1 &&
+        attributions[0].toLowerCase() === "our world in data"
+    const processingLevelPhrase = !sourceIsOwid
+        ? getPhraseForProcessingLevel(owidProcessingLevel)
+        : undefined
+    const fullProcessingPhrase = processingLevelPhrase
+        ? ` – ${processingLevelPhrase} by Our World In Data`
+        : ""
+
+    return (
+        <div className="download-modal__data-section download-modal__sources">
+            <h3 className="grapher_h3-semibold">Source and citation</h3>
             {sourceLinks.length > 0 && (
                 <div className="download-modal__citation-guidance">
-                    <strong>Data sources and citation guidance:</strong>{" "}
+                    <strong>Data sources:</strong>{" "}
                     <ul className="download-modal__citation-guidance-list">
                         {sourceLinks}
                     </ul>
+                    {fullProcessingPhrase}
                 </div>
             )}
+            <div>
+                <strong>Citation guidance:</strong> Please credit all sources
+                listed above. Data provided by third-party sources through Our
+                World in Data remains subject to the original{" "}
+                {sourceLinks.length === 1 ? "provider's" : "providers'"} license
+                terms.
+            </div>
         </div>
     )
 }
