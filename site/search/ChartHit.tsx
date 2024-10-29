@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react"
 import cx from "classnames"
 import { Region } from "@ourworldindata/utils"
-import { IChartHit, SearchIndexName } from "./searchTypes.js"
+import { ChartRecordType, IChartHit, SearchIndexName } from "./searchTypes.js"
 import { getEntityQueryStr, pickEntitiesForChartHit } from "./SearchUtils.js"
 import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
+    BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
     BAKED_GRAPHER_URL,
+    EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../../settings/clientSettings.js"
 import { getIndexName } from "./searchClient.js"
@@ -21,6 +23,7 @@ import {
 } from "@ourworldindata/grapher"
 import { Highlight } from "react-instantsearch"
 import { IDataCatalogHit } from "../DataCatalog/DataCatalogUtils.js"
+import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 
 export function ChartHit({
     hit,
@@ -35,6 +38,7 @@ export function ChartHit({
 }) {
     const [imgLoaded, setImgLoaded] = useState(false)
     const [imgError, setImgError] = useState(false)
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
 
     const entities = useMemo(
         () =>
@@ -51,10 +55,36 @@ export function ChartHit({
             searchQueryRegionsMatches,
         ]
     )
-    const queryStr = useMemo(() => getEntityQueryStr(entities), [entities])
-    const previewUrl = queryStr
-        ? `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}.svg${queryStr}`
-        : `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${hit.slug}.svg`
+    const entityQueryStr = useMemo(
+        () => getEntityQueryStr(entities),
+        [entities]
+    )
+
+    const fullQueryParams = isExplorerView
+        ? hit.queryParams! + entityQueryStr.replace("?", "&")
+        : entityQueryStr
+
+    function createExplorerViewThumbnailUrl(
+        slug: string,
+        fullQueryParams: string
+    ): string {
+        return `${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${slug}.svg${fullQueryParams}`
+    }
+    function createGrapherThumbnailUrl(
+        slug: string,
+        fullQueryParams?: string
+    ): string {
+        return fullQueryParams
+            ? `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.svg${fullQueryParams}`
+            : `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${slug}.svg`
+    }
+    const previewUrl = isExplorerView
+        ? createExplorerViewThumbnailUrl(hit.slug, fullQueryParams)
+        : createGrapherThumbnailUrl(hit.slug, fullQueryParams)
+
+    const chartUrl = isExplorerView
+        ? `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${hit.slug}${fullQueryParams}`
+        : `${BAKED_GRAPHER_URL}/${hit.slug}${fullQueryParams}`
 
     useEffect(() => {
         setImgLoaded(false)
@@ -63,7 +93,7 @@ export function ChartHit({
 
     return (
         <a
-            href={`${BAKED_GRAPHER_URL}/${hit.slug}${queryStr}`}
+            href={chartUrl}
             className="chart-hit"
             onClick={onClick}
             data-algolia-index={getIndexName(SearchIndexName.Charts)}

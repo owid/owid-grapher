@@ -48,6 +48,7 @@ export interface TableDef {
     url?: string
     columnDefinitions?: OwidColumnDef[]
     inlineData?: string[][]
+    slug?: TableSlug
 }
 
 interface ExplorerGrapherInterface extends GrapherInterface {
@@ -477,6 +478,7 @@ export class ExplorerProgram extends GridProgram {
             url,
             columnDefinitions,
             inlineData,
+            slug: tableSlug,
         }
     }
 }

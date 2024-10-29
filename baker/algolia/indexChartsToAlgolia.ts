@@ -2,7 +2,11 @@ import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects.js"
-import { ChartRecord, SearchIndexName } from "../../site/search/searchTypes.js"
+import {
+    ChartRecord,
+    ChartRecordType,
+    SearchIndexName,
+} from "../../site/search/searchTypes.js"
 import {
     KeyChartLevel,
     OwidGdocLinkType,
@@ -116,9 +120,10 @@ const parseAndProcessChartRecords = (
     }
 }
 
-const getChartsRecords = async (
+export const getChartsRecords = async (
     knex: db.KnexReadonlyTransaction
 ): Promise<ChartRecord[]> => {
+    console.log("Fetching charts to index")
     const chartsToIndex = await db.knexRaw<RawChartRecordRow>(
         knex,
         `-- sql
@@ -139,6 +144,8 @@ const getChartsRecords = async (
             WHERE cc.full ->> "$.isPublished" = 'true'
                 AND c.isIndexable IS TRUE
             GROUP BY c.id
+            -- TODO: remove this, testing only
+            -- LIMIT 15
         )
         SELECT c.id,
                c.slug,
@@ -192,6 +199,7 @@ const getChartsRecords = async (
 
         const record = {
             objectID: c.id.toString(),
+            type: ChartRecordType.Chart,
             chartId: c.id,
             slug: c.slug,
             title: c.title,
