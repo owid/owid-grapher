@@ -1,3 +1,5 @@
+import { GrapherInterface } from "@ourworldindata/types"
+
 export const CellHasErrorsClass = "CellHasErrorsClass"
 
 export enum GridBoolean {
@@ -11,7 +13,9 @@ export const GRID_EDGE_DELIMITER = "\t"
 
 export type CellCoordinate = number // An integer >= 0
 
-export type Grammar = { [keywordSlug: string]: CellDef }
+export type Grammar<TCellDef extends CellDef = CellDef> = {
+    [keywordSlug: string]: TCellDef
+}
 
 // A CellDef is a tuple: part keyword and the other half is the contents. The contents can be 1 cell, a list of cells, and/or a subtable.
 export interface CellDef {
@@ -28,6 +32,10 @@ export interface CellDef {
     positionalCellDefs?: readonly CellDef[] // Additional cell types as positional arguments.
     isHorizontalList?: boolean // a list type, such as "colors\tred\torange\tgreen"
     parse?: (value: any) => any
+}
+
+export interface GrapherCellDef extends CellDef {
+    toGrapherObject: (value: any) => GrapherInterface // map to a partial config that is a valid GrapherInterface
 }
 
 export interface ParsedCell {

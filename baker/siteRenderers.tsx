@@ -826,12 +826,12 @@ const getExplorerTitleByUrl = async (
     if (url.queryStr) {
         explorer.initDecisionMatrix(url.queryParams as ExplorerFullQueryParams)
         return (
-            explorer.grapherConfig.title ??
-            (explorer.grapherConfig.grapherId
+            explorer.explorerGrapherConfig.title ??
+            (explorer.explorerGrapherConfig.grapherId
                 ? (
                       await getEnrichedChartById(
                           knex,
-                          explorer.grapherConfig.grapherId
+                          explorer.explorerGrapherConfig.grapherId
                       )
                   )?.config?.title
                 : undefined)

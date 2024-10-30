@@ -19,7 +19,7 @@ import {
     PromiseCache,
     SerializedGridProgram,
     trimObject,
-    omit,
+    merge,
 } from "@ourworldindata/utils"
 import {
     CellDef,
@@ -40,6 +40,7 @@ import {
 import { DecisionMatrix } from "./ExplorerDecisionMatrix.js"
 import { ExplorerGrammar } from "./ExplorerGrammar.js"
 import { GrapherGrammar } from "./GrapherGrammar.js"
+import { defaultGrapherConfig } from "@ourworldindata/grapher"
 
 export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 
@@ -242,8 +243,8 @@ export class ExplorerProgram extends GridProgram {
     // that use Grapher IDs as well as CSV data files to create charts,
     // but we plan to drop support for mixed-content explorers in the future
     get chartCreationMode(): ExplorerChartCreationMode {
-        const { decisionMatrix, grapherConfig } = this
-        const { grapherId } = grapherConfig
+        const { decisionMatrix, explorerGrapherConfig } = this
+        const { grapherId } = explorerGrapherConfig
         const yVariableIdsColumn = decisionMatrix.table.get(
             GrapherGrammar.yVariableIds.keyword
         )
@@ -359,29 +360,56 @@ export class ExplorerProgram extends GridProgram {
         return clone
     }
 
-    get grapherConfig(): ExplorerGrapherInterface {
+    /**
+     * Grapher config for the currently selected row including global settings.
+     * Includes all columns that are part of the GrapherGrammar.
+     */
+    get explorerGrapherConfig(): ExplorerGrapherInterface {
         const rootObject = trimAndParseObject(this.tuplesObject, GrapherGrammar)
-
-        Object.keys(rootObject).forEach((key) => {
-            if (!GrapherGrammar[key]) delete rootObject[key]
-        })
+        let config = { ...rootObject }
 
         const selectedGrapherRow = this.decisionMatrix.selectedRow
         if (selectedGrapherRow && Object.keys(selectedGrapherRow).length) {
-            return { ...rootObject, ...selectedGrapherRow }
+            config = { ...config, ...selectedGrapherRow }
         }
 
-        return rootObject
+        // remove all keys that are not part of the GrapherGrammar
+        Object.keys(config).forEach((key) => {
+            if (!GrapherGrammar[key]) delete config[key]
+        })
+
+        return config
     }
 
-    get grapherConfigOnlyGrapherProps() {
-        return omit(this.grapherConfig, [
-            GrapherGrammar.yVariableIds.keyword,
-            GrapherGrammar.xVariableId.keyword,
-            GrapherGrammar.colorVariableId.keyword,
-            GrapherGrammar.sizeVariableId.keyword,
-            GrapherGrammar.mapTargetTime.keyword,
-        ])
+    /**
+     * Grapher config for the currently selected row, with explorer-specific
+     * fields translated to valid GrapherInterface fields.
+     *
+     * For example, `yAxisMin` is translated to `{yAxis: {min: ... }}`
+     */
+    get grapherConfig(): GrapherInterface {
+        const partialConfigs: GrapherInterface[] = []
+        const fields = Object.entries(this.explorerGrapherConfig)
+        for (const [field, value] of fields) {
+            const cellDef = GrapherGrammar[field]
+            partialConfigs.push(cellDef.toGrapherObject(value))
+        }
+
+        const mergedConfig = merge({}, ...partialConfigs)
+
+        // assume config is valid against the latest schema
+        mergedConfig.$schema = defaultGrapherConfig.$schema
+
+        // TODO: can be removed once relatedQuestions is refactored
+        const { relatedQuestionUrl, relatedQuestionText } =
+            this.explorerGrapherConfig
+        if (relatedQuestionUrl && relatedQuestionText) {
+            mergedConfig.relatedQuestions = [
+                { url: relatedQuestionUrl, text: relatedQuestionText },
+            ]
+        }
+
+        return mergedConfig
     }
 
     /**
