@@ -494,29 +494,23 @@ metadata = requests.get("${props.metadataUrl}").json()`,
     }
 
     return (
-        <ExpandableToggle
-            label="Code examples"
-            alwaysVisibleDescription={
+        <div className="download-modal__data-section download-modal__section-code">
+            <div>
+                <h3 className="grapher_h3-semibold">Code Examples</h3>
                 <p className="grapher_label-1-regular">
                     Examples of how to load this data into different data
                     analysis tools.
                 </p>
-            }
-            content={
-                <>
-                    <div className="data-modal__code-examples">
-                        {Object.entries(code).map(([name, snippet]) => (
-                            <div key={name}>
-                                <h4 className="grapher_body-2-medium">
-                                    {name}
-                                </h4>
-                                <CodeSnippet code={snippet} />
-                            </div>
-                        ))}
+            </div>
+            <div className="download-modal__code-blocks">
+                {Object.entries(code).map(([name, snippet]) => (
+                    <div key={name}>
+                        <h4 className="grapher_body-2-medium">{name}</h4>
+                        <CodeSnippet code={snippet} />
                     </div>
-                </>
-            }
-        />
+                ))}
+            </div>
+        </div>
     )
 }
 
@@ -700,9 +694,7 @@ const ApiAndCodeExamplesSection = (props: {
                 </section>
             </div>
 
-            <div className="download-modal__data-section">
-                <CodeExamplesBlock csvUrl={csvUrl} metadataUrl={metadataUrl} />
-            </div>
+            <CodeExamplesBlock csvUrl={csvUrl} metadataUrl={metadataUrl} />
         </>
     )
 }
