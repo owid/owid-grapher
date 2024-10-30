@@ -23,7 +23,7 @@ const SocialSection = () => {
             id="subscribe"
         >
             <section className="homepage-social-ribbon span-cols-8 col-start-2 span-sm-cols-12 col-sm-start-2">
-                <h2 className="h2-semibold">Subscribe to our newsletter</h2>
+                <h2 className="h2-semibold">Subscribe to our newsletters</h2>
                 <div id="newsletter-subscription-root">
                     {/* Hydrated in runSiteTools() */}
                     <NewsletterSubscriptionForm

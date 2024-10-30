@@ -141,7 +141,7 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                     <Button
                         href="#subscribe"
                         className="homepage-intro__subscribe-button body-3-medium"
-                        text="Subscribe to our newsletter"
+                        text="Subscribe to our newsletters"
                         theme="outline-vermillion"
                         icon={null}
                     />
