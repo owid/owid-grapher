@@ -562,9 +562,12 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
     const processingLevelPhrase = !sourceIsOwid
         ? getPhraseForProcessingLevel(owidProcessingLevel)
         : undefined
-    const fullProcessingPhrase = processingLevelPhrase
-        ? ` – ${processingLevelPhrase} by Our World In Data`
-        : ""
+    const fullProcessingPhrase = processingLevelPhrase ? (
+        <>
+            {" "}
+            – <i>{processingLevelPhrase} by Our World In Data</i>
+        </>
+    ) : undefined
 
     return (
         <div className="download-modal__data-section download-modal__sources">
