@@ -272,14 +272,12 @@ interface TailscaleStatus {
     }
 }
 
-// Middleware for Tailscale authentication
 export async function tailscaleAuthMiddleware(
     req: express.Request,
     res: express.Response,
     next: express.NextFunction
 ) {
     // If there's a sessionid in cookies, proceed to `authMiddleware` middleware
-    // TODO: we should also check if this sessionid is valid (not expired)
     if (req.cookies["sessionid"]) {
         return next()
     }
@@ -293,7 +291,7 @@ export async function tailscaleAuthMiddleware(
     // Get the Tailscale display name / github username associated with the client's IP address
     const githubUserName = ipToUserMap[clientIp]
 
-    // Next if user is not found
+    // Next if user is not found, user can still log in as admin
     if (!githubUserName) {
         return next()
     }
@@ -335,7 +333,6 @@ function getClientIp(req: express.Request): string {
     return ip
 }
 
-// Function to get Tailscale IP-to-User mapping
 async function getTailscaleIpToUserMap(): Promise<Record<string, string>> {
     return new Promise((resolve) => {
         exec("tailscale status --json", (error, stdout) => {

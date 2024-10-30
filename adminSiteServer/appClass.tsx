@@ -96,7 +96,7 @@ export class OwidAdminApp {
 
         if (ENV_IS_STAGING) {
             // Try to log in with tailscale if we're in staging
-            app.use("/admin/login", tailscaleAuthMiddleware)
+            app.use(tailscaleAuthMiddleware)
         } else {
             // In production use Cloudflare
             app.use("/admin/login", authCloudflareSSOMiddleware)
