@@ -156,6 +156,15 @@
         }
     }
 
+    .download-modal__api-urls {
+        border-top: $ruler-border;
+        padding-top: 16px;
+
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
     .ExpandableToggle {
         --expandable-toggle-border: transparent;
         --expandable-toggle-button: #{$gray-80};

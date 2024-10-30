@@ -401,21 +401,29 @@ enum CsvDownloadType {
     CurrentSelection = "current_selection",
 }
 
-interface DataDownloadContext {
-    // Configurable options
-    csvDownloadType: CsvDownloadType
-    shortColNames: boolean
-
+interface DataDownloadContextBase {
     slug: string
     searchParams: URLSearchParams
     baseUrl: string
+}
+
+interface DataDownloadContextServerSide extends DataDownloadContextBase {
+    // Configurable options
+    csvDownloadType: CsvDownloadType
+    shortColNames: boolean
+}
+
+interface DataDownloadContextClientSide extends DataDownloadContextBase {
+    // Configurable options
+    csvDownloadType: CsvDownloadType
+    shortColNames: boolean
 
     // Only needed for local CSV generation
     table: OwidTable
     transformedTable: OwidTable
 }
 
-const createCsvBlobLocally = async (ctx: DataDownloadContext) => {
+const createCsvBlobLocally = async (ctx: DataDownloadContextClientSide) => {
     const csv =
         ctx.csvDownloadType === CsvDownloadType.Full
             ? ctx.table.toPrettyCsv(ctx.shortColNames)
@@ -424,7 +432,7 @@ const createCsvBlobLocally = async (ctx: DataDownloadContext) => {
     return new Blob([csv], { type: "text/csv;charset=utf-8" })
 }
 
-const getDownloadSearchParams = (ctx: DataDownloadContext) => {
+const getDownloadSearchParams = (ctx: DataDownloadContextServerSide) => {
     const searchParams = new URLSearchParams()
     if (ctx.shortColNames) searchParams.set("useColumnShortNames", "true")
 
@@ -442,7 +450,7 @@ const getDownloadSearchParams = (ctx: DataDownloadContext) => {
 
 const getDownloadUrl = (
     extension: "csv" | "metadata.json" | "zip",
-    ctx: DataDownloadContext
+    ctx: DataDownloadContextServerSide
 ) => {
     const searchParams = getDownloadSearchParams(ctx)
     const searchStr = searchParams.toString().replaceAll("%7E", "~")
@@ -596,11 +604,111 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
     )
 }
 
-export const DownloadModalDataTab = (props: DownloadModalProps) => {
-    const { yColumnsFromDimensionsOrSlugsOrAuto: yColumns } = props.manager
-
+const ApiAndCodeExamplesSection = (props: {
+    downloadCtxBase: DataDownloadContextBase
+    firstYColDef?: OwidColumnDef
+}) => {
     const [onlyVisible, setOnlyVisible] = useState(false)
     const [shortColNames, setShortColNames] = useState(false)
+
+    const exLongName = props.firstYColDef?.name
+    const exShortName = props.firstYColDef?.shortName
+
+    // Some charts, like pre-ETL ones or csv-based explorers, don't have short names available for their variables
+    const shortNamesAvailable = !!exShortName
+
+    const downloadCtx: DataDownloadContextServerSide = useMemo(
+        () => ({
+            ...props.downloadCtxBase,
+            csvDownloadType: onlyVisible
+                ? CsvDownloadType.CurrentSelection
+                : CsvDownloadType.Full,
+            shortColNames,
+        }),
+        [props.downloadCtxBase, onlyVisible, shortColNames]
+    )
+
+    const csvUrl = useMemo(
+        () => getDownloadUrl("csv", downloadCtx),
+        [downloadCtx]
+    )
+    const metadataUrl = useMemo(
+        () => getDownloadUrl("metadata.json", downloadCtx),
+        [downloadCtx]
+    )
+
+    return (
+        <>
+            <div className="download-modal__data-section">
+                <h3 className="grapher_h3-semibold">Data API</h3>
+                <section className="download-modal__config-list">
+                    <RadioButton
+                        label="Download the full dataset used in this chart"
+                        group="onlyVisible"
+                        checked={!onlyVisible}
+                        onChange={() => setOnlyVisible(false)}
+                    />
+                    <RadioButton
+                        label="Download only the currently selected data visible in the chart"
+                        group="onlyVisible"
+                        checked={onlyVisible}
+                        onChange={() => setOnlyVisible(true)}
+                    />
+                </section>
+                {shortNamesAvailable && (
+                    <section className="download-modal__config-list">
+                        <div>
+                            <RadioButton
+                                label="Long column names"
+                                group="shortColNames"
+                                checked={!shortColNames}
+                                onChange={() => setShortColNames(false)}
+                            />
+                            <p>
+                                e.g. <code>{exLongName}</code>
+                            </p>
+                        </div>
+                        <div>
+                            <RadioButton
+                                label="Shortened column names"
+                                group="shortColNames"
+                                checked={shortColNames}
+                                onChange={() => setShortColNames(true)}
+                            />
+                            <p>
+                                e.g.{" "}
+                                <code style={{ wordBreak: "break-all" }}>
+                                    {exShortName}
+                                </code>
+                            </p>
+                        </div>
+                    </section>
+                )}
+                <section className="download-modal__api-urls">
+                    <div>
+                        <h4 className="grapher_body-2-medium">
+                            URL to fetch the data from (CSV format)
+                        </h4>
+                        <CodeSnippet code={csvUrl} />
+                    </div>
+                    <div>
+                        <h4 className="grapher_body-2-medium">
+                            URL to fetch the metadata from (JSON format)
+                        </h4>
+                        <CodeSnippet code={metadataUrl} />
+                    </div>
+                </section>
+            </div>
+
+            <div className="download-modal__data-section">
+                <CodeExamplesBlock csvUrl={csvUrl} metadataUrl={metadataUrl} />
+            </div>
+        </>
+    )
+}
+
+export const DownloadModalDataTab = (props: DownloadModalProps) => {
+    const { yColumnsFromDimensionsOrSlugsOrAuto: yColumns } = props.manager
 
     const { cols: nonRedistributableCols, sourceLinks } =
         getNonRedistributableInfo(props.manager.table)
@@ -612,13 +720,11 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     const serverSideDownloadAvailable =
         !!props.manager.isPublished && window.admin === undefined
 
-    const downloadCtx: DataDownloadContext = useMemo(
-        (): DataDownloadContext => ({
-            csvDownloadType: onlyVisible
-                ? CsvDownloadType.CurrentSelection
-                : CsvDownloadType.Full,
-            shortColNames,
-
+    const downloadCtx: Omit<
+        DataDownloadContextClientSide,
+        "csvDownloadType" | "shortColNames"
+    > = useMemo(
+        () => ({
             slug: props.manager.displaySlug,
             searchParams: new URLSearchParams(props.manager.queryStr),
             baseUrl:
@@ -630,23 +736,12 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                 props.manager.transformedTable ?? BlankOwidTable(),
         }),
         [
-            onlyVisible,
             props.manager.baseUrl,
             props.manager.displaySlug,
             props.manager.queryStr,
             props.manager.table,
             props.manager.transformedTable,
-            shortColNames,
         ]
-    )
-
-    const csvUrl = useMemo(
-        () => getDownloadUrl("csv", downloadCtx),
-        [downloadCtx]
-    )
-    const metadataUrl = useMemo(
-        () => getDownloadUrl("metadata.json", downloadCtx),
-        [downloadCtx]
     )
 
     const onDownloadClick = useCallback(
@@ -725,12 +820,6 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
 
     const firstYColDef = yColumns?.[0]?.def as OwidColumnDef | undefined
 
-    const exLongName = firstYColDef?.name
-    const exShortName = firstYColDef?.shortName
-
-    // Some charts, like pre-ETL ones or csv-based explorers, don't have short names available for their variables
-    const shortNamesAvailable = !!exShortName
-
     return (
         <>
             <SourceAndCitationSection table={props.manager.table} />
@@ -754,60 +843,11 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                 </div>
                 {downloadHelpText}
             </div>
-            <div className="download-modal__data-section">
-                <h3 className="grapher_h3-semibold">Download options</h3>
-                <section className="download-modal__config-list">
-                    <RadioButton
-                        label="Download the full dataset used in this chart"
-                        group="onlyVisible"
-                        checked={!onlyVisible}
-                        onChange={() => setOnlyVisible(false)}
-                    />
-                    <RadioButton
-                        label="Download only the currently selected data visible in the chart"
-                        group="onlyVisible"
-                        checked={onlyVisible}
-                        onChange={() => setOnlyVisible(true)}
-                    />
-                </section>
-                {shortNamesAvailable && (
-                    <section className="download-modal__config-list">
-                        <div>
-                            <RadioButton
-                                label="Long column names"
-                                group="shortColNames"
-                                checked={!shortColNames}
-                                onChange={() => setShortColNames(false)}
-                            />
-                            <p>
-                                e.g. <code>{exLongName}</code>
-                            </p>
-                        </div>
-                        <div>
-                            <RadioButton
-                                label="Shortened column names"
-                                group="shortColNames"
-                                checked={shortColNames}
-                                onChange={() => setShortColNames(true)}
-                            />
-                            <p>
-                                e.g.{" "}
-                                <code style={{ wordBreak: "break-all" }}>
-                                    {exShortName}
-                                </code>
-                            </p>
-                        </div>
-                    </section>
-                )}
-            </div>
-
             {serverSideDownloadAvailable && (
-                <div className="download-modal__data-section">
-                    <CodeExamplesBlock
-                        csvUrl={csvUrl}
-                        metadataUrl={metadataUrl}
-                    />
-                </div>
+                <ApiAndCodeExamplesSection
+                    downloadCtxBase={downloadCtx}
+                    firstYColDef={firstYColDef}
+                />
             )}
         </>
     )
