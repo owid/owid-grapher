@@ -18,7 +18,11 @@ import {
     MultiDimXChartConfigsTableName,
     serializeChartConfig,
 } from "@ourworldindata/types"
-import { MultiDimDataPageConfig, slugify } from "@ourworldindata/utils"
+import {
+    mergeGrapherConfigs,
+    MultiDimDataPageConfig,
+    slugify,
+} from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import { upsertMultiDimDataPage } from "../db/model/MultiDimDataPage.js"
 import { upsertMultiDimXChartConfigs } from "../db/model/MultiDimXChartConfigs.js"
@@ -66,7 +70,7 @@ async function resolveMultiDimDataPageCatalogPathsToIndicatorIds(
     )
 
     if (missingCatalogPaths.size > 0) {
-        console.warn(
+        throw new Error(
             `Could not find the following catalog paths for MDD ${rawConfig.title} in the database: ${Array.from(
                 missingCatalogPaths
             ).join(", ")}`
@@ -281,12 +285,15 @@ export async function createMultiDimConfig(
         config.views.map(async (view) => {
             const variableId = view.indicators.y[0]
             const patchGrapherConfig = view.config || {}
-            const fullGrapherConfig = {
-                ...variableConfigs.get(variableId),
-                ...patchGrapherConfig,
-                dimensions: MultiDimDataPageConfig.viewToDimensionsConfig(view),
-                selectedEntityNames: config.defaultSelection ?? [],
-            }
+            const fullGrapherConfig = mergeGrapherConfigs(
+                variableConfigs.get(variableId) ?? {},
+                patchGrapherConfig,
+                {
+                    dimensions:
+                        MultiDimDataPageConfig.viewToDimensionsConfig(view),
+                    selectedEntityNames: config.defaultSelection ?? [],
+                }
+            )
             const existingChartConfigId = existingViewIdsToChartConfigIds.get(
                 dimensionsToViewId(view.dimensions)
             )
