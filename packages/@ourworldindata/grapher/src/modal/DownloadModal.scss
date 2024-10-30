@@ -11,6 +11,8 @@
     flex-direction: column;
 
     .download-modal__tab-list {
+        --tabs-font-size: 14px;
+
         padding: 0 var(--modal-padding);
 
         .Tabs__tab {
