@@ -16,7 +16,6 @@ import {
 import {
     Checkbox,
     CodeSnippet,
-    ExpandableToggle,
     OverlayHeader,
     RadioButton,
 } from "@ourworldindata/components"
@@ -635,9 +634,23 @@ const ApiAndCodeExamplesSection = (props: {
         <>
             <div className="download-modal__data-section">
                 <h3 className="grapher_h3-semibold">Data API</h3>
+                <section className="download-modal__api-urls">
+                    <div>
+                        <h4 className="grapher_body-2-medium">
+                            URL to fetch the data from (CSV format)
+                        </h4>
+                        <CodeSnippet code={csvUrl} />
+                    </div>
+                    <div>
+                        <h4 className="grapher_body-2-medium">
+                            URL to fetch the metadata from (JSON format)
+                        </h4>
+                        <CodeSnippet code={metadataUrl} />
+                    </div>
+                </section>
                 <section className="download-modal__config-list">
                     <RadioButton
-                        label="Download the full dataset used in this chart"
+                        label="Download full data, including all entities and time points"
                         group="onlyVisible"
                         checked={!onlyVisible}
                         onChange={() => setOnlyVisible(false)}
@@ -678,20 +691,6 @@ const ApiAndCodeExamplesSection = (props: {
                         </div>
                     </section>
                 )}
-                <section className="download-modal__api-urls">
-                    <div>
-                        <h4 className="grapher_body-2-medium">
-                            URL to fetch the data from (CSV format)
-                        </h4>
-                        <CodeSnippet code={csvUrl} />
-                    </div>
-                    <div>
-                        <h4 className="grapher_body-2-medium">
-                            URL to fetch the metadata from (JSON format)
-                        </h4>
-                        <CodeSnippet code={metadataUrl} />
-                    </div>
-                </section>
             </div>
 
             <CodeExamplesBlock csvUrl={csvUrl} metadataUrl={metadataUrl} />
@@ -819,7 +818,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                 <h3 className="grapher_h3-semibold">Quick download</h3>
                 <div>
                     <DownloadButton
-                        title="Download full dataset"
+                        title="Download full data"
                         description="Includes all entities and time points."
                         icon={<DownloadIconFullDataset />}
                         onClick={() => onDownloadClick(CsvDownloadType.Full)}
