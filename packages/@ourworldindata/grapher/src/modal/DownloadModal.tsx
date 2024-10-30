@@ -578,9 +578,9 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
         <div className="download-modal__data-section download-modal__sources">
             <h3 className="grapher_h3-semibold">Source and citation</h3>
             {sourceLinks.length > 0 && (
-                <div className="download-modal__citation-guidance">
+                <div className="download-modal__data-sources">
                     <strong>Data sources:</strong>{" "}
-                    <ul className="download-modal__citation-guidance-list">
+                    <ul className="download-modal__data-sources-list">
                         {sourceLinks}
                     </ul>
                     {fullProcessingPhrase}
