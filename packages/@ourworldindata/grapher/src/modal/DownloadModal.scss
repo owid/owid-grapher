@@ -54,7 +54,7 @@
         }
 
         h3 {
-            margin-bottom: 8px; // 8px margin + 8px gap
+            margin-bottom: 4px; // 4px margin + 8px gap
         }
 
         &:last-child {
@@ -241,7 +241,7 @@
         }
     }
 
-    .download-modal__section-code {
+    .download-modal__heading-with-caption {
         h3 {
             margin-bottom: 4px;
         }
@@ -249,7 +249,7 @@
         p {
             color: $gray-60;
             margin: 0;
-            margin-bottom: 16px;
+            margin-bottom: 4px;
         }
     }
 }

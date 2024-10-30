@@ -493,10 +493,10 @@ metadata = requests.get("${props.metadataUrl}").json()`,
     }
 
     return (
-        <div className="download-modal__data-section download-modal__section-code">
-            <div>
-                <h3 className="grapher_h3-semibold">Code Examples</h3>
-                <p className="grapher_label-1-regular">
+        <div className="download-modal__data-section">
+            <div className="download-modal__heading-with-caption">
+                <h3 className="grapher_h3-semibold">Code examples</h3>
+                <p className="grapher_label-2-regular">
                     Examples of how to load this data into different data
                     analysis tools.
                 </p>
@@ -633,7 +633,14 @@ const ApiAndCodeExamplesSection = (props: {
     return (
         <>
             <div className="download-modal__data-section">
-                <h3 className="grapher_h3-semibold">Data API</h3>
+                <div className="download-modal__heading-with-caption">
+                    <h3 className="grapher_h3-semibold">Data API</h3>
+                    <p className="grapher_label-2-regular">
+                        Use these URLs for programmatic use of this chart's
+                        data, and configure what you want to get using the
+                        options below. See also the code examples below.
+                    </p>
+                </div>
                 <section className="download-modal__api-urls">
                     <div>
                         <h4 className="grapher_body-2-medium">
@@ -795,17 +802,15 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
 
     const downloadHelpText = serverSideDownloadAvailable ? (
         <p className="grapher_label-2-regular">
-            Download the data used to create this chart. The data is provided as
-            a ZIP archive containing the data in CSV format, metadata
-            information in JSON format, and a README file. The CSV file can be
-            easily imported into Excel, Google Sheets, and other data analysis
-            software.
+            Download the data shown in this chart as a ZIP file containing a CSV
+            file, metadata in JSON format, and a README. The CSV file can be
+            easily opened in Excel, Google Sheets, and other analysis tools.
         </p>
     ) : (
         <p className="grapher_label-2-regular">
             Download the data used to create this chart. The data is provided in
-            CSV format, which can be easily imported into Excel, Google Sheets,
-            or other data analysis software.
+            CSV format, which can be easily opened in Excel, Google Sheets, and
+            other data analysis tools.
         </p>
     )
 
@@ -815,7 +820,10 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
         <>
             <SourceAndCitationSection table={props.manager.table} />
             <div className="download-modal__data-section">
-                <h3 className="grapher_h3-semibold">Quick download</h3>
+                <div className="download-modal__heading-with-caption">
+                    <h3 className="grapher_h3-semibold">Quick download</h3>
+                    {downloadHelpText}
+                </div>
                 <div>
                     <DownloadButton
                         title="Download full data"
@@ -832,7 +840,6 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                         }
                     />
                 </div>
-                {downloadHelpText}
             </div>
             {serverSideDownloadAvailable && (
                 <ApiAndCodeExamplesSection
