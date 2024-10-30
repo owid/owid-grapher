@@ -94,7 +94,7 @@ export const DownloadModal = (
     const isDataTabActive = activeTabIndex === 1
 
     return (
-        <Modal bounds={modalBounds} onDismiss={onDismiss}>
+        <Modal bounds={modalBounds} onDismiss={onDismiss} alignVertical="top">
             <div
                 className="download-modal-content"
                 style={{ maxHeight: modalBounds.height }}
