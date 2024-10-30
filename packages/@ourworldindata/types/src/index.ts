@@ -526,6 +526,7 @@ export {
 } from "./dbTypes/MultiDimDataPages.js"
 export {
     type DbInsertMultiDimXChartConfig,
+    type DbPlainMultiDimXChartConfig,
     MultiDimXChartConfigsTableName,
 } from "./dbTypes/MultiDimXChartConfigs.js"
 export {

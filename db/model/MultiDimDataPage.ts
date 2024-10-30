@@ -6,6 +6,7 @@ import {
     DbEnrichedMultiDimDataPage,
 } from "@ourworldindata/types"
 
+/** Returns ID of the upserted row or zero, if there are no updates. */
 export async function upsertMultiDimDataPage(
     knex: KnexReadWriteTransaction,
     data: DbInsertMultiDimDataPage
