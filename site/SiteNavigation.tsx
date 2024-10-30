@@ -1062,10 +1062,6 @@ export const SiteNavigationStatic: { categories: CategoryWithEntries[] } = {
                     title: "Military Personnel and Spending",
                 },
                 {
-                    slug: "biological-and-chemical-weapons",
-                    title: "Biological and Chemical Weapons",
-                },
-                {
                     slug: "violence-against-rights-for-children",
                     title: "Violence Against Children and Children’s Rights",
                 },
