@@ -1,6 +1,7 @@
 import { uniq } from "lodash"
 import { uuidv7 } from "uuidv7"
 
+import { migrateGrapherConfigToLatestVersion } from "@ourworldindata/grapher"
 import {
     Base64String,
     ChartConfigsTableName,
@@ -284,11 +285,21 @@ export async function createMultiDimConfig(
     const enrichedViews = await Promise.all(
         config.views.map(async (view) => {
             const variableId = view.indicators.y[0]
-            const patchGrapherConfig = view.config || {}
+            let patchGrapherConfig = {}
+            if (view.config) {
+                patchGrapherConfig = config.grapherConfigSchema
+                    ? migrateGrapherConfigToLatestVersion({
+                          ...view.config,
+                          $schema: config.grapherConfigSchema,
+                      })
+                    : view.config
+            }
             const fullGrapherConfig = mergeGrapherConfigs(
                 variableConfigs.get(variableId) ?? {},
                 patchGrapherConfig,
                 {
+                    $schema:
+                        "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
                     dimensions:
                         MultiDimDataPageConfig.viewToDimensionsConfig(view),
                     selectedEntityNames: config.defaultSelection ?? [],

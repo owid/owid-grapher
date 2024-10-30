@@ -15,6 +15,7 @@ type Metadata = Omit<OwidVariableWithSource, "id">
 interface MultiDimDataPageConfigType<
     IndicatorType extends Record<string, any>,
 > {
+    grapherConfigSchema?: string
     title: IndicatorTitleWithFragments
     defaultSelection?: string[]
     topicTags?: string[]
