@@ -40,6 +40,10 @@ import {
 import { Modal } from "./Modal"
 import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
 import { Tabs } from "../tabs/Tabs.js"
+import {
+    DownloadIconFullDataset,
+    DownloadIconSelected,
+} from "./DownloadIcons.js"
 
 export interface DownloadModalManager {
     displaySlug: string
@@ -645,33 +649,26 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
         [downloadCtx]
     )
 
-    const onCsvDownload = useCallback(() => {
-        const csvFilename = downloadCtx.slug + ".csv"
-        if (serverSideDownloadAvailable) {
-            triggerDownloadFromUrl(
-                csvFilename,
-                getDownloadUrl("csv", downloadCtx)
-            )
-        } else {
-            void createCsvBlobLocally(downloadCtx).then((blob) => {
-                triggerDownloadFromBlob(csvFilename, blob)
-            })
-        }
-    }, [downloadCtx, serverSideDownloadAvailable])
-
-    const onZipDownload = useCallback(() => {
-        const zipFilename = downloadCtx.slug + ".zip"
-        if (serverSideDownloadAvailable) {
-            triggerDownloadFromUrl(
-                zipFilename,
-                getDownloadUrl("zip", downloadCtx)
-            )
-        } else {
-            console.error(
-                "Server-side ZIP download not implemented for this chart"
-            )
-        }
-    }, [downloadCtx, serverSideDownloadAvailable])
+    const onDownloadClick = useCallback(
+        (csvDownloadType: CsvDownloadType) => {
+            const ctx = {
+                ...downloadCtx,
+                csvDownloadType,
+                shortColNames: false,
+            }
+            if (serverSideDownloadAvailable) {
+                triggerDownloadFromUrl(
+                    ctx.slug + ".zip",
+                    getDownloadUrl("zip", ctx)
+                )
+            } else {
+                void createCsvBlobLocally(ctx).then((blob) => {
+                    triggerDownloadFromBlob(ctx.slug + ".csv", blob)
+                })
+            }
+        },
+        [downloadCtx, serverSideDownloadAvailable]
+    )
 
     if (nonRedistributableCols?.length) {
         return (
@@ -710,6 +707,22 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
         )
     }
 
+    const downloadHelpText = serverSideDownloadAvailable ? (
+        <p className="grapher_label-2-regular">
+            Download the data used to create this chart. The data is provided as
+            a ZIP archive containing the data in CSV format, metadata
+            information in JSON format, and a README file. The CSV file can be
+            easily imported into Excel, Google Sheets, and other data analysis
+            software.
+        </p>
+    ) : (
+        <p className="grapher_label-2-regular">
+            Download the data used to create this chart. The data is provided in
+            CSV format, which can be easily imported into Excel, Google Sheets,
+            or other data analysis software.
+        </p>
+    )
+
     const firstYColDef = yColumns?.[0]?.def as OwidColumnDef | undefined
 
     const exLongName = firstYColDef?.name
@@ -721,6 +734,26 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
     return (
         <>
             <SourceAndCitationSection table={props.manager.table} />
+            <div className="download-modal__data-section">
+                <h3 className="grapher_h3-semibold">Quick download</h3>
+                <div>
+                    <DownloadButton
+                        title="Download full dataset"
+                        description="Includes all entities and time points."
+                        icon={<DownloadIconFullDataset />}
+                        onClick={() => onDownloadClick(CsvDownloadType.Full)}
+                    />
+                    <DownloadButton
+                        title="Download only visible data"
+                        description="Includes only the entities and time points currently visible in the chart."
+                        icon={<DownloadIconSelected />}
+                        onClick={() =>
+                            onDownloadClick(CsvDownloadType.CurrentSelection)
+                        }
+                    />
+                </div>
+                {downloadHelpText}
+            </div>
             <div className="download-modal__data-section">
                 <h3 className="grapher_h3-semibold">Download options</h3>
                 <section className="download-modal__config-list">
@@ -766,22 +799,6 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                         </div>
                     </section>
                 )}
-                <div>
-                    {serverSideDownloadAvailable && (
-                        <DownloadButton
-                            title="Data and metadata (ZIP)"
-                            description="Download the data CSV, metadata JSON, and a README file as a ZIP archive."
-                            onClick={onZipDownload}
-                            tracking="chart_download_zip"
-                        />
-                    )}
-                    <DownloadButton
-                        title="Data only (CSV)"
-                        description="Download only the data in CSV format."
-                        onClick={onCsvDownload}
-                        tracking="chart_download_csv"
-                    />
-                </div>
             </div>
 
             {serverSideDownloadAvailable && (
@@ -800,6 +817,7 @@ interface DownloadButtonProps {
     title: string
     description: string
     onClick: () => void
+    icon?: React.ReactElement
     previewImageUrl?: string
     imageStyle?: React.CSSProperties
     tracking?: string
@@ -812,6 +830,9 @@ function DownloadButton(props: DownloadButtonProps): React.ReactElement {
             onClick={props.onClick}
             data-track-note={props.tracking}
         >
+            {props.icon && (
+                <div className="download-modal__option-icon">{props.icon}</div>
+            )}
             {props.previewImageUrl && (
                 <div className="download-modal__download-preview-img">
                     <img src={props.previewImageUrl} style={props.imageStyle} />
