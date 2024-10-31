@@ -5266,26 +5266,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:>=18.0.0, @types/node@npm:>=8.1.0":
-  version: 20.14.2
-  resolution: "@types/node@npm:20.14.2"
-  dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: 10/c38e47b190fa0a8bdfde24b036dddcf9401551f2fb170a90ff33625c7d6f218907e81c74e0fa6e394804a32623c24c60c50e249badc951007830f0d02c48ee0f
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^14.14.31":
-  version: 14.17.2
-  resolution: "@types/node@npm:14.17.2"
-  checksum: 10/586f7c9acf4929d8be6469338da3987c123e73de8264d4466825ff36acb6b20ec17631f00079dab974a9c6fbc5aa29c9074f0c5eddf76abb0b3bf450afff305d
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^18.11.18":
-  version: 18.17.15
-  resolution: "@types/node@npm:18.17.15"
-  checksum: 10/5b28c68f44657399264efb1308cf87ddbf065299aa9e75abbd9f4d96785e5d7f1fdb0b263f3d7080b89036845e0d907c3edc51f75813c099a7ec311660188928
+"@types/node@npm:20.8.3":
+  version: 20.8.3
+  resolution: "@types/node@npm:20.8.3"
+  checksum: 10/6f69c2fc4b2f95764317fc23c6b92b0c3480e5026d47dcb7b882308908dd6beab3dd02c54344811c8db44f84abd3ef00e35097e2f6d2b79cff21f33981a504a1
   languageName: node
   linkType: hard
 
@@ -19661,13 +19645,6 @@ __metadata:
     has-symbols: "npm:^1.0.3"
     which-boxed-primitive: "npm:^1.0.2"
   checksum: 10/06e1ee41c1095e37281cb71a975cb3350f7cb470a0665d2576f02cc9564f623bd90cfc0183693b8a7fdf2d242963dcc3010b509fa3ac683f540c765c0f3e7e43
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~5.26.4":
-  version: 5.26.5
-  resolution: "undici-types@npm:5.26.5"
-  checksum: 10/0097779d94bc0fd26f0418b3a05472410408877279141ded2bd449167be1aed7ea5b76f756562cb3586a07f251b90799bab22d9019ceba49c037c76445f7cddd
   languageName: node
   linkType: hard
 
