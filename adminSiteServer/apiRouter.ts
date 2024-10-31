@@ -34,6 +34,7 @@ import {
     updateGrapherConfigAdminOfVariable,
     updateGrapherConfigETLOfVariable,
     updateAllChartsThatInheritFromIndicator,
+    updateAllMultiDimViewsThatInheritFromIndicator,
     getAllChartsForIndicator,
 } from "../db/model/Variable.js"
 import { updateExistingFullConfig } from "../db/model/ChartConfigs.js"
@@ -102,6 +103,7 @@ import {
     parseChartConfig,
     MultiDimDataPageConfigRaw,
     R2GrapherConfigDirectory,
+    ChartConfigsTableName,
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
 import {
@@ -182,6 +184,7 @@ import {
 } from "./chartConfigR2Helpers.js"
 import { fetchImagesFromDriveAndSyncToS3 } from "../db/model/Image.js"
 import { createMultiDimConfig } from "./multiDim.js"
+import { isMultiDimDataPagePublished } from "../db/model/MultiDimDataPage.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -722,6 +725,23 @@ const saveGrapher = async (
     }
 }
 
+async function updateGrapherConfigsInR2(
+    knex: db.KnexReadonlyTransaction,
+    updatedCharts: { chartConfigId: string; isPublished: boolean }[],
+    updatedMultiDimViews: { chartConfigId: string; isPublished: boolean }[]
+) {
+    const idsToUpdate = [
+        ...updatedCharts.filter(({ isPublished }) => isPublished),
+        ...updatedMultiDimViews,
+    ].map(({ chartConfigId }) => chartConfigId)
+    const builder = knex<DbRawChartConfig>(ChartConfigsTableName)
+        .select("id", "full", "fullMd5")
+        .whereIn("id", idsToUpdate)
+    for await (const { id, full, fullMd5 } of builder.stream()) {
+        await saveGrapherConfigToR2ByUUID(id, full, fullMd5)
+    }
+}
+
 getRouteWithROTransaction(apiRouter, "/charts.json", async (req, res, trx) => {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
     const charts = await db.knexRaw<OldChartFieldList>(
@@ -1155,6 +1175,12 @@ putRouteWithRWTransaction(
         }
         const rawConfig = req.body as MultiDimDataPageConfigRaw
         const id = await createMultiDimConfig(trx, slug, rawConfig)
+        if (await isMultiDimDataPagePublished(trx, id)) {
+            await triggerStaticBuild(
+                res.locals.user,
+                `Publishing multidimensional chart ${slug}`
+            )
+        }
         return { success: true, id }
     }
 )
@@ -1647,11 +1673,13 @@ putRouteWithRWTransaction(
             throw new JsonError(`Variable with id ${variableId} not found`, 500)
         }
 
-        const { savedPatch, updatedCharts } =
+        const { savedPatch, updatedCharts, updatedMultiDimViews } =
             await updateGrapherConfigETLOfVariable(trx, variable, validConfig)
 
-        // trigger build if any published chart has been updated
-        if (updatedCharts.some((chart) => chart.isPublished)) {
+        await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
+        const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
+
+        if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
             await triggerStaticBuild(
                 res.locals.user,
                 `Updating ETL config for variable ${variableId}`
@@ -1708,18 +1736,25 @@ deleteRouteWithRWTransaction(
             })
         }
 
-        // update all charts that inherit from the indicator
+        const updates = {
+            patchConfigAdmin: variable.admin?.patchConfig,
+            updatedAt: now,
+        }
         const updatedCharts = await updateAllChartsThatInheritFromIndicator(
             trx,
             variableId,
-            {
-                patchConfigAdmin: variable.admin?.patchConfig,
-                updatedAt: now,
-            }
+            updates
         )
+        const updatedMultiDimViews =
+            await updateAllMultiDimViewsThatInheritFromIndicator(
+                trx,
+                variableId,
+                updates
+            )
+        await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
+        const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
 
-        // trigger build if any published chart has been updated
-        if (updatedCharts.some((chart) => chart.isPublished)) {
+        if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
             await triggerStaticBuild(
                 res.locals.user,
                 `Updating ETL config for variable ${variableId}`
@@ -1752,11 +1787,13 @@ putRouteWithRWTransaction(
             throw new JsonError(`Variable with id ${variableId} not found`, 500)
         }
 
-        const { savedPatch, updatedCharts } =
+        const { savedPatch, updatedCharts, updatedMultiDimViews } =
             await updateGrapherConfigAdminOfVariable(trx, variable, validConfig)
 
-        // trigger build if any published chart has been updated
-        if (updatedCharts.some((chart) => chart.isPublished)) {
+        await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
+        const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
+
+        if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
             await triggerStaticBuild(
                 res.locals.user,
                 `Updating admin-authored config for variable ${variableId}`
@@ -1804,18 +1841,25 @@ deleteRouteWithRWTransaction(
             [variable.admin.configId]
         )
 
-        // update all charts that inherit from the indicator
+        const updates = {
+            patchConfigETL: variable.etl?.patchConfig,
+            updatedAt: now,
+        }
         const updatedCharts = await updateAllChartsThatInheritFromIndicator(
             trx,
             variableId,
-            {
-                patchConfigETL: variable.etl?.patchConfig,
-                updatedAt: now,
-            }
+            updates
         )
+        const updatedMultiDimViews =
+            await updateAllMultiDimViewsThatInheritFromIndicator(
+                trx,
+                variableId,
+                updates
+            )
+        await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
+        const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
 
-        // trigger build if any published chart has been updated
-        if (updatedCharts.some((chart) => chart.isPublished)) {
+        if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
             await triggerStaticBuild(
                 res.locals.user,
                 `Updating admin-authored config for variable ${variableId}`

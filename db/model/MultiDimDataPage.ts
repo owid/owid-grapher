@@ -23,6 +23,17 @@ export async function upsertMultiDimDataPage(
     return result[0]
 }
 
+export async function isMultiDimDataPagePublished(
+    knex: KnexReadonlyTransaction,
+    id: number
+): Promise<boolean> {
+    const result = await knex(MultiDimDataPagesTableName)
+        .select(knex.raw("1"))
+        .where({ id, published: true })
+        .first()
+    return Boolean(result)
+}
+
 const createOnlyPublishedFilter = (
     onlyPublished: boolean
 ): Record<string, any> => (onlyPublished ? { published: true } : {})
