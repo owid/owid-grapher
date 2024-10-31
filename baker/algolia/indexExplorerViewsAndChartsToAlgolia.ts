@@ -1,3 +1,4 @@
+import fs from "fs/promises"
 import Bugsnag from "@bugsnag/js"
 import * as db from "../../db/db.js"
 import { logErrorAndMaybeSendToBugsnag } from "../../serverUtils/errorLog.js"
@@ -6,17 +7,15 @@ import {
     BUGSNAG_NODE_API_KEY,
 } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
-import {
-    ExplorerViewEntryWithExplorerInfo,
-    getExplorerViewRecords,
-} from "./indexExplorerViewsToAlgolia.js"
+import { ExplorerViewEntryWithExplorerInfo } from "./utils/types.js"
+import { getExplorerViewRecords } from "./utils/explorerViews.js"
+import { getChartsRecords } from "./utils/charts.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 import {
     ChartRecord,
     ChartRecordType,
     SearchIndexName,
 } from "../../site/search/searchTypes.js"
-import { getChartsRecords } from "./indexChartsToAlgolia.js"
 
 function explorerViewRecordToChartRecord(
     e: ExplorerViewEntryWithExplorerInfo
@@ -69,7 +68,7 @@ function scaleExplorerScores(
         const normalized = e.score / explorerScoreMax
         const grapherRange = grapherScoreBounds.max - grapherScoreBounds.min
         const scaled = Math.round(
-            normalized * grapherRange + grapherScoreBounds.min
+            (normalized / 2) * grapherRange + grapherScoreBounds.min
         )
         return {
             ...e,
@@ -122,7 +121,6 @@ const indexExplorerViewsAndChartsToAlgolia = async () => {
         const records = [...scaledExplorerViews, ...grapherViews]
 
         const index = client.initIndex(indexName)
-
         console.log(`Indexing ${records.length} records`)
         await index.replaceAllObjects(records)
         console.log(`Indexing complete`)
