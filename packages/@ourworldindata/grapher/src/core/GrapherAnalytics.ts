@@ -15,6 +15,7 @@ export enum EventCategory {
     GrapherView = "owid.grapher_view",
     GrapherClick = "owid.grapher_click",
     GrapherError = "owid.grapher_error",
+    ExplorerView = "owid.explorer_view",
     ExplorerCountrySelector = "owid.explorer_country_selector",
     Hover = "owid.hover",
     KeyboardShortcut = "owid.keyboard_shortcut",
@@ -50,6 +51,8 @@ interface GAEvent {
     eventTarget?: string
     grapherPath?: string
     grapherView?: string // specifies a view in a multi-dim data page
+    explorerPath?: string
+    explorerView?: string
 }
 
 // taken from https://github.com/DefinitelyTyped/DefinitelyTyped/blob/de66435d18fbdb2684947d16b5cd3a77f876324c/types/gtag.js/index.d.ts#L151-L156
@@ -94,6 +97,14 @@ export class GrapherAnalytics {
             event: EventCategory.GrapherError,
             eventAction: EventAction.entitiesNotFound,
             eventContext: JSON.stringify(entities),
+        })
+    }
+
+    logExplorerView(slug: string, view: Record<string, string>): void {
+        this.logToGA({
+            event: EventCategory.ExplorerView,
+            explorerPath: `/explorers/${slug}`,
+            explorerView: JSON.stringify(view),
         })
     }
 
