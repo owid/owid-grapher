@@ -1145,14 +1145,19 @@ deleteRouteWithRWTransaction(
     }
 )
 
-postRouteWithRWTransaction(apiRouter, "/multi-dim", async (req, res, trx) => {
-    const { slug, config: rawConfig } = JSON.parse(req.body) as {
-        slug: string
-        config: MultiDimDataPageConfigRaw
+putRouteWithRWTransaction(
+    apiRouter,
+    "/multi-dim/:slug",
+    async (req, res, trx) => {
+        const { slug } = req.params
+        if (!isValidSlug(slug)) {
+            throw new JsonError(`Invalid multi-dim slug ${slug}`)
+        }
+        const rawConfig = req.body as MultiDimDataPageConfigRaw
+        const id = await createMultiDimConfig(trx, slug, rawConfig)
+        return { success: true, id }
     }
-    const id = await createMultiDimConfig(trx, slug, rawConfig)
-    return { success: true, id }
-})
+)
 
 getRouteWithROTransaction(apiRouter, "/users.json", async (req, res, trx) => ({
     users: await trx
