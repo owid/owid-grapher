@@ -281,29 +281,34 @@ export async function createMultiDimConfig(
         slug
     )
     const reusedChartConfigIds = new Set<string>()
+    const { grapherConfigSchema } = config
 
     const enrichedViews = await Promise.all(
         config.views.map(async (view) => {
             const variableId = view.indicators.y[0]
-            let patchGrapherConfig = {}
+            // Main config for each view.
+            const mainGrapherConfig = {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                dimensions: MultiDimDataPageConfig.viewToDimensionsConfig(view),
+                selectedEntityNames: config.defaultSelection ?? [],
+            }
+            let viewGrapherConfig = {}
             if (view.config) {
-                patchGrapherConfig = config.grapherConfigSchema
+                viewGrapherConfig = grapherConfigSchema
                     ? migrateGrapherConfigToLatestVersion({
                           ...view.config,
-                          $schema: config.grapherConfigSchema,
+                          $schema: grapherConfigSchema,
                       })
                     : view.config
             }
+            const patchGrapherConfig = mergeGrapherConfigs(
+                viewGrapherConfig,
+                mainGrapherConfig
+            )
             const fullGrapherConfig = mergeGrapherConfigs(
                 variableConfigs.get(variableId) ?? {},
-                patchGrapherConfig,
-                {
-                    $schema:
-                        "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
-                    dimensions:
-                        MultiDimDataPageConfig.viewToDimensionsConfig(view),
-                    selectedEntityNames: config.defaultSelection ?? [],
-                }
+                patchGrapherConfig
             )
             const existingChartConfigId = existingViewIdsToChartConfigIds.get(
                 dimensionsToViewId(view.dimensions)
