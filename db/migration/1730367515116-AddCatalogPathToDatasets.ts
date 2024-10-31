@@ -19,7 +19,7 @@ export class AddCatalogPathToDatasets1730367515116
         await queryRunner.query(`
             UPDATE \`datasets\`
             SET \`catalogPath\` = CONCAT(\`namespace\`, '/', \`version\`, '/', \`shortName\`)
-            WHERE \`catalogPath\` IS NULL
+            WHERE \`catalogPath\` IS NULL and namespace IS NOT NULL and version IS NOT NULL and shortName IS NOT NULL
         `)
     }
 
