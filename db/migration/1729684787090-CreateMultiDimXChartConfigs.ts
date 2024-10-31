@@ -6,8 +6,8 @@ export class CreateMultiDimXChartConfigs1729684787090
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             CREATE TABLE multi_dim_x_chart_configs (
-                id SERIAL PRIMARY KEY,
-                multiDimId BIGINT UNSIGNED NOT NULL,
+                id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                multiDimId INT UNSIGNED NOT NULL,
                 viewId VARCHAR(255) NOT NULL,
                 variableId INT NOT NULL,
                 chartConfigId CHAR(36) NOT NULL UNIQUE,

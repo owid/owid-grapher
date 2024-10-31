@@ -7,7 +7,7 @@ export class AddMultiDimIdConfigMd5SlugIndex1729600015045
         await queryRunner.query(`-- sql
             ALTER TABLE multi_dim_data_pages
             DROP PRIMARY KEY,
-            ADD COLUMN id SERIAL PRIMARY KEY FIRST,
+            ADD COLUMN id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST,
             ADD COLUMN configMd5 CHAR(24) GENERATED ALWAYS as (to_base64(unhex(md5(config)))) STORED NOT NULL AFTER config
         `)
         await queryRunner.query(`-- sql

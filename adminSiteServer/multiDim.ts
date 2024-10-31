@@ -122,7 +122,6 @@ async function getViewIdToChartConfigIdMap(
     knex: db.KnexReadonlyTransaction,
     slug: string
 ) {
-    const mapping = new Map<string, string>()
     const rows = await db.knexRaw<DbPlainMultiDimXChartConfig>(
         knex,
         `-- sql
@@ -132,10 +131,7 @@ async function getViewIdToChartConfigIdMap(
         WHERE mddp.slug = ?`,
         [slug]
     )
-    for (const { viewId, chartConfigId } of rows) {
-        mapping.set(viewId, chartConfigId)
-    }
-    return mapping
+    return new Map(rows.map((row) => [row.viewId, row.chartConfigId]))
 }
 
 async function saveNewMultiDimViewChartConfig(
