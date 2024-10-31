@@ -120,7 +120,6 @@ import {
     ThereWasAProblemLoadingThisChart,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
-    DEFAULT_GRAPHER_FRAME_PADDING,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
     GRAPHER_DARK_TEXT,
@@ -131,6 +130,8 @@ import {
     isPopulationVariableETLPath,
     GRAPHER_BACKGROUND_BEIGE,
     GRAPHER_BACKGROUND_DEFAULT,
+    GRAPHER_FRAME_PADDING_HORIZONTAL,
+    GRAPHER_FRAME_PADDING_VERTICAL,
 } from "../core/GrapherConstants"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig"
 import { loadVariableDataAndMetadata } from "./loadVariable"
@@ -465,6 +466,10 @@ export class Grapher
         this.props.dataApiUrl ?? "https://api.ourworldindata.org/v1/indicators/"
 
     @observable.ref externalQueryParams: QueryParams
+
+    private framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
+    private framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
+
     @observable.ref inputTable: OwidTable
 
     @observable.ref legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
@@ -2922,14 +2927,6 @@ export class Grapher
 
     @computed get fontSize(): number {
         return this.props.baseFontSize ?? this.baseFontSize
-    }
-
-    @computed get framePaddingHorizontal(): number {
-        return DEFAULT_GRAPHER_FRAME_PADDING
-    }
-
-    @computed get framePaddingVertical(): number {
-        return DEFAULT_GRAPHER_FRAME_PADDING
     }
 
     @computed get isNarrow(): boolean {

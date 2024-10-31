@@ -18,7 +18,7 @@ import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
 import {
     BASE_FONT_SIZE,
-    DEFAULT_GRAPHER_FRAME_PADDING,
+    GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_DARK_TEXT,
 } from "../core/GrapherConstants"
 
@@ -80,12 +80,6 @@ export class Footer<
 
     @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
-    }
-
-    @computed private get framePaddingHorizontal(): number {
-        return (
-            this.manager.framePaddingHorizontal ?? DEFAULT_GRAPHER_FRAME_PADDING
-        )
     }
 
     @computed protected get useBaseFontSize(): boolean {
@@ -592,7 +586,7 @@ export class Footer<
             <footer
                 className="SourcesFooterHTML"
                 style={{
-                    padding: `0 ${this.framePaddingHorizontal}px`,
+                    padding: `0 ${GRAPHER_FRAME_PADDING_HORIZONTAL}px`,
                 }}
                 ref={this.base}
             >

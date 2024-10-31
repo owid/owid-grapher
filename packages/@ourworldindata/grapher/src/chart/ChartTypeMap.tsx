@@ -17,7 +17,6 @@ interface ChartComponentProps {
     manager: ChartManager
     bounds?: Bounds
     containerElement?: HTMLDivElement
-    framePaddingHorizontal?: number
 }
 
 interface ChartComponentClass extends ComponentClass<ChartComponentProps> {

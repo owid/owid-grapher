@@ -14,7 +14,8 @@ import { Logo } from "../captionedChart/Logos"
 import { HeaderManager } from "./HeaderManager"
 import {
     BASE_FONT_SIZE,
-    DEFAULT_GRAPHER_FRAME_PADDING,
+    GRAPHER_FRAME_PADDING_HORIZONTAL,
+    GRAPHER_FRAME_PADDING_VERTICAL,
     GRAPHER_DARK_TEXT,
 } from "../core/GrapherConstants"
 
@@ -33,18 +34,6 @@ export class Header<
 
     @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
-    }
-
-    @computed private get framePaddingHorizontal(): number {
-        return (
-            this.manager.framePaddingHorizontal ?? DEFAULT_GRAPHER_FRAME_PADDING
-        )
-    }
-
-    @computed private get framePaddingVertical(): number {
-        return (
-            this.manager.framePaddingVertical ?? DEFAULT_GRAPHER_FRAME_PADDING
-        )
     }
 
     @computed protected get useBaseFontSize(): boolean {
@@ -276,7 +265,7 @@ export class Header<
             <div
                 className="HeaderHTML"
                 style={{
-                    padding: `${this.framePaddingVertical}px ${this.framePaddingHorizontal}px`,
+                    padding: `${GRAPHER_FRAME_PADDING_VERTICAL}px ${GRAPHER_FRAME_PADDING_HORIZONTAL}px`,
                     paddingBottom: 0,
                 }}
             >
