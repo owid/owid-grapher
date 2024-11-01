@@ -96,6 +96,19 @@ export const NumericCellDef: CellDef = {
     parse: (value: any) => parseFloat(value),
 }
 
+export const NumericOrAutoCellDef: CellDef = {
+    keyword: "",
+    cssClass: "NumericCellDef",
+    description: "",
+    regex: /^(-?\d+\.?\d*|auto)$/,
+    requirementsDescription: `Must be a number or "auto"`,
+    valuePlaceholder: "98.6",
+    parse: (value: any) => {
+        if (value === "auto") return "auto"
+        return parseFloat(value)
+    },
+}
+
 export const IntegerCellDef: CellDef = {
     keyword: "",
     cssClass: "IntegerCellDef",
