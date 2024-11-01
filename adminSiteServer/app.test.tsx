@@ -51,6 +51,8 @@ import {
     ChartConfigsTableName,
     ChartsTableName,
     DatasetsTableName,
+    MultiDimDataPagesTableName,
+    MultiDimXChartConfigsTableName,
     VariablesTableName,
 } from "@ourworldindata/types"
 import path from "path"
@@ -363,6 +365,67 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             },
         ],
     }
+    const testMultiDimConfig = {
+        grapherConfigSchema:
+            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+        title: {
+            title: "Energy use",
+            titleVariant: "by energy source",
+        },
+        views: [
+            {
+                config: { title: "Total energy use" },
+                dimensions: {
+                    source: "all",
+                    metric: "total",
+                },
+                indicators: {
+                    y: variableId,
+                },
+            },
+            {
+                dimensions: {
+                    metric: "per_capita",
+                    source: "all",
+                },
+                indicators: {
+                    y: otherVariableId,
+                },
+            },
+        ],
+        dimensions: [
+            {
+                name: "Energy source",
+                slug: "source",
+                choices: [
+                    {
+                        name: "All sources",
+                        slug: "all",
+                        group: "Aggregates",
+                        description: "Total energy use",
+                    },
+                ],
+            },
+            {
+                name: "Metric",
+                slug: "metric",
+                choices: [
+                    {
+                        name: "Total consumption",
+                        slug: "total",
+                        description:
+                            "The amount of energy consumed nationally per year",
+                    },
+                    {
+                        name: "Consumption per capita",
+                        slug: "per_capita",
+                        description:
+                            "The average amount of energy each person consumes per year",
+                    },
+                ],
+            },
+        ],
+    }
 
     beforeEach(async () => {
         await testKnexInstance!(DatasetsTableName).insert([dummyDataset])
@@ -431,6 +494,70 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             ...processedTestVariableConfigETL,
             ...testVariableConfigAdmin,
         })
+
+        // create mdim config that uses both of the variables
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: "/multi-dim/energy",
+            body: JSON.stringify(testMultiDimConfig),
+        })
+        const mdim = await testKnexInstance!(MultiDimDataPagesTableName).first()
+        expect(mdim.slug).toBe("energy")
+        const savedMdimConfig = JSON.parse(mdim.config)
+        // variableId should be normalized to an array
+        expect(savedMdimConfig.views[0].indicators.y).toBeInstanceOf(Array)
+
+        const [mdxcc1, mdxcc2] = await testKnexInstance!(
+            MultiDimXChartConfigsTableName
+        )
+        expect(mdxcc1.multiDimId).toBe(mdim.id)
+        expect(mdxcc1.viewId).toBe("total__all")
+        expect(mdxcc1.variableId).toBe(variableId)
+        expect(mdxcc2.multiDimId).toBe(mdim.id)
+        expect(mdxcc2.viewId).toBe("per_capita__all")
+        expect(mdxcc2.variableId).toBe(otherVariableId)
+
+        // view config should override the variable config
+        const expectedMergedViewConfig = {
+            ...mergedGrapherConfig,
+            title: "Total energy use",
+            selectedEntityNames: [], // mdims define their own default entities
+        }
+        const fullViewConfig1 = await testKnexInstance!(ChartConfigsTableName)
+            .where("id", mdxcc1.chartConfigId)
+            .first()
+        expect(JSON.parse(fullViewConfig1.full)).toEqual(
+            expectedMergedViewConfig
+        )
+
+        // update the admin-authored config for the variable
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigAdmin`,
+            body: JSON.stringify({
+                ...testVariableConfigAdmin,
+                subtitle: "Newly updated subtitle",
+            }),
+        })
+        const expectedMergedViewConfigUpdated = {
+            ...expectedMergedViewConfig,
+            subtitle: "Newly updated subtitle",
+        }
+        const fullViewConfig1Updated = await testKnexInstance!(
+            ChartConfigsTableName
+        )
+            .where("id", mdxcc1.chartConfigId)
+            .first()
+        expect(JSON.parse(fullViewConfig1Updated.full)).toEqual(
+            expectedMergedViewConfigUpdated
+        )
+
+        // clean-up the mdim tables
+        await testKnexInstance!(MultiDimXChartConfigsTableName).truncate()
+        await testKnexInstance!(MultiDimDataPagesTableName).delete()
+        await testKnexInstance!(ChartConfigsTableName)
+            .whereIn("id", [mdxcc1.chartConfigId, mdxcc2.chartConfigId])
+            .delete()
 
         // delete the admin-authored grapher config we just added
         // and verify that the merged config is now the same as the ETL config

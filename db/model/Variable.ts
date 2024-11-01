@@ -33,6 +33,7 @@ import {
     DbEnrichedChartConfig,
     DbEnrichedVariable,
     DbPlainChart,
+    DbPlainMultiDimXChartConfig,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import {
@@ -218,17 +219,21 @@ async function findAllChartsThatInheritFromIndicator(
     trx: db.KnexReadonlyTransaction,
     variableId: number
 ): Promise<
-    { chartId: number; patchConfig: GrapherInterface; isPublished: boolean }[]
+    {
+        chartConfigId: string
+        patchConfig: GrapherInterface
+        isPublished: boolean
+    }[]
 > {
     const charts = await db.knexRaw<{
-        chartId: DbPlainChart["id"]
+        chartConfigId: DbRawChartConfig["id"]
         patchConfig: DbRawChartConfig["patch"]
         isPublished: boolean
     }>(
         trx,
         `-- sql
             SELECT
-                c.id as chartId,
+                cc.id as chartConfigId,
                 cc.patch as patchConfig,
                 cc.full ->> "$.isPublished" as isPublished
             FROM charts c
@@ -258,7 +263,7 @@ export async function updateAllChartsThatInheritFromIndicator(
         patchConfigETL?: GrapherInterface
         patchConfigAdmin?: GrapherInterface
     }
-): Promise<{ chartId: number; isPublished: boolean }[]> {
+): Promise<{ chartConfigId: string; isPublished: boolean }[]> {
     const inheritingCharts = await findAllChartsThatInheritFromIndicator(
         trx,
         variableId
@@ -280,14 +285,100 @@ export async function updateAllChartsThatInheritFromIndicator(
                     cc.full = ?,
                     cc.updatedAt = ?,
                     c.updatedAt = ?
-                WHERE c.id = ?
+                WHERE cc.id = ?
             `,
-            [JSON.stringify(fullConfig), updatedAt, updatedAt, chart.chartId]
+            [
+                JSON.stringify(fullConfig),
+                updatedAt,
+                updatedAt,
+                chart.chartConfigId,
+            ]
         )
     }
 
     // let the caller know if any charts were updated
     return inheritingCharts
+}
+
+async function findAllMultiDimViewsThatInheritFromIndicator(
+    trx: db.KnexReadonlyTransaction,
+    variableId: number
+): Promise<
+    {
+        chartConfigId: string
+        patchConfig: GrapherInterface
+        isPublished: boolean
+    }[]
+> {
+    const charts = await db.knexRaw<{
+        chartConfigId: DbPlainMultiDimXChartConfig["chartConfigId"]
+        patchConfig: DbRawChartConfig["patch"]
+        isPublished: boolean
+    }>(
+        trx,
+        `-- sql
+            SELECT
+                mdxcc.chartConfigId as chartConfigId,
+                cc.patch as patchConfig,
+                md.published as isPublished
+            FROM multi_dim_data_pages md
+                JOIN multi_dim_x_chart_configs mdxcc ON mdxcc.multiDimId = md.id
+                JOIN chart_configs cc ON cc.id = mdxcc.chartConfigId
+            WHERE mdxcc.variableId = ?
+        `,
+        [variableId]
+    )
+    return charts.map((chart) => ({
+        ...chart,
+        patchConfig: parseChartConfig(chart.patchConfig),
+    }))
+}
+
+export async function updateAllMultiDimViewsThatInheritFromIndicator(
+    trx: db.KnexReadWriteTransaction,
+    variableId: number,
+    {
+        updatedAt,
+        patchConfigETL,
+        patchConfigAdmin,
+    }: {
+        updatedAt: Date
+        patchConfigETL?: GrapherInterface
+        patchConfigAdmin?: GrapherInterface
+    }
+): Promise<
+    {
+        chartConfigId: string
+        patchConfig: GrapherInterface
+        isPublished: boolean
+    }[]
+> {
+    const inheritingViews = await findAllMultiDimViewsThatInheritFromIndicator(
+        trx,
+        variableId
+    )
+
+    for (const view of inheritingViews) {
+        const fullConfig = mergeGrapherConfigs(
+            patchConfigETL ?? {},
+            patchConfigAdmin ?? {},
+            view.patchConfig
+        )
+        await db.knexRaw(
+            trx,
+            `-- sql
+                UPDATE chart_configs
+                SET
+                    full = ?,
+                    updatedAt = ?
+                WHERE id = ?
+            `,
+            [JSON.stringify(fullConfig), updatedAt, view.chartConfigId]
+        )
+    }
+
+    // let the caller know if any views were updated
+    return inheritingViews
 }
 
 export async function updateGrapherConfigETLOfVariable(
@@ -296,7 +387,8 @@ export async function updateGrapherConfigETLOfVariable(
     config: GrapherInterface
 ): Promise<{
     savedPatch: GrapherInterface
-    updatedCharts: { chartId: number; isPublished: boolean }[]
+    updatedCharts: { chartConfigId: string; isPublished: boolean }[]
+    updatedMultiDimViews: { chartConfigId: string; isPublished: boolean }[]
 }> {
     const { variableId } = variable
 
@@ -305,6 +397,9 @@ export async function updateGrapherConfigETLOfVariable(
         variableId,
     })
 
+    // Set the updatedAt manually instead of letting the DB do it so it is the
+    // same across different tables. The inconsistency caused issues in the
+    // past in chart-sync.
     const now = new Date()
 
     if (variable.etl) {
@@ -336,19 +431,27 @@ export async function updateGrapherConfigETLOfVariable(
         })
     }
 
+    const updates = {
+        patchConfigETL: configETL,
+        patchConfigAdmin: variable.admin?.patchConfig,
+        updatedAt: now,
+    }
     const updatedCharts = await updateAllChartsThatInheritFromIndicator(
         trx,
         variableId,
-        {
-            patchConfigETL: configETL,
-            patchConfigAdmin: variable.admin?.patchConfig,
-            updatedAt: now,
-        }
+        updates
     )
+    const updatedMultiDimViews =
+        await updateAllMultiDimViewsThatInheritFromIndicator(
+            trx,
+            variableId,
+            updates
+        )
 
     return {
         savedPatch: configETL,
         updatedCharts,
+        updatedMultiDimViews,
     }
 }
 
@@ -358,7 +461,8 @@ export async function updateGrapherConfigAdminOfVariable(
     config: GrapherInterface
 ): Promise<{
     savedPatch: GrapherInterface
-    updatedCharts: { chartId: number; isPublished: boolean }[]
+    updatedCharts: { chartConfigId: string; isPublished: boolean }[]
+    updatedMultiDimViews: { chartConfigId: string; isPublished: boolean }[]
 }> {
     const { variableId } = variable
 
@@ -377,6 +481,9 @@ export async function updateGrapherConfigAdminOfVariable(
         patchConfigAdmin
     )
 
+    // Set the updatedAt manually instead of letting the DB do it so it is the
+    // same across different tables. The inconsistency caused issues in the
+    // past in chart-sync.
     const now = new Date()
 
     if (variable.admin) {
@@ -395,19 +502,27 @@ export async function updateGrapherConfigAdminOfVariable(
         })
     }
 
+    const updates = {
+        patchConfigETL: variable.etl?.patchConfig ?? {},
+        patchConfigAdmin: patchConfigAdmin,
+        updatedAt: now,
+    }
     const updatedCharts = await updateAllChartsThatInheritFromIndicator(
         trx,
         variableId,
-        {
-            patchConfigETL: variable.etl?.patchConfig ?? {},
-            patchConfigAdmin: patchConfigAdmin,
-            updatedAt: now,
-        }
+        updates
     )
+    const updatedMultiDimViews =
+        await updateAllMultiDimViewsThatInheritFromIndicator(
+            trx,
+            variableId,
+            updates
+        )
 
     return {
         savedPatch: patchConfigAdmin,
         updatedCharts,
+        updatedMultiDimViews,
     }
 }
 
