@@ -3755,6 +3755,108 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sentry-internal/browser-utils@npm:8.36.0":
+  version: 8.36.0
+  resolution: "@sentry-internal/browser-utils@npm:8.36.0"
+  dependencies:
+    "@sentry/core": "npm:8.36.0"
+    "@sentry/types": "npm:8.36.0"
+    "@sentry/utils": "npm:8.36.0"
+  checksum: 10/f886260292e22dd936fbd7d2f4bb1325e3197a418a88b352f064517286677b68e26a993a9cac908faac344f4ea460074578b73fff91746a9f65e18b7c44e0dc6
+  languageName: node
+  linkType: hard
+
+"@sentry-internal/feedback@npm:8.36.0":
+  version: 8.36.0
+  resolution: "@sentry-internal/feedback@npm:8.36.0"
+  dependencies:
+    "@sentry/core": "npm:8.36.0"
+    "@sentry/types": "npm:8.36.0"
+    "@sentry/utils": "npm:8.36.0"
+  checksum: 10/72cb38adae9939ce90963044cfc39051de0f2c8e037efb6c416299afd7ce66d63374f63c549ed054c245bb93ff337bb2a3eaba532dbad2a712b5a9910af3e4a5
+  languageName: node
+  linkType: hard
+
+"@sentry-internal/replay-canvas@npm:8.36.0":
+  version: 8.36.0
+  resolution: "@sentry-internal/replay-canvas@npm:8.36.0"
+  dependencies:
+    "@sentry-internal/replay": "npm:8.36.0"
+    "@sentry/core": "npm:8.36.0"
+    "@sentry/types": "npm:8.36.0"
+    "@sentry/utils": "npm:8.36.0"
+  checksum: 10/f7725523339dfadadd55a2c025de82d73b2035b65b1bf34395997204bbd69e4665fcf94e90fb53b279c2bb1c005729f0ef9fb4d9946a20fa542b6cd9d2d2e9ea
+  languageName: node
+  linkType: hard
+
+"@sentry-internal/replay@npm:8.36.0":
+  version: 8.36.0
+  resolution: "@sentry-internal/replay@npm:8.36.0"
+  dependencies:
+    "@sentry-internal/browser-utils": "npm:8.36.0"
+    "@sentry/core": "npm:8.36.0"
+    "@sentry/types": "npm:8.36.0"
+    "@sentry/utils": "npm:8.36.0"
+  checksum: 10/558f9f277aef5232c43ce0711d85aa8ca8ed584435c9bbe7e08e59c3af2ed1da137d104b47e6f5c32b69b5b78ed516e627ec096ee4a950f2492c43fcf4a78170
+  languageName: node
+  linkType: hard
+
+"@sentry/browser@npm:8.36.0":
+  version: 8.36.0
+  resolution: "@sentry/browser@npm:8.36.0"
+  dependencies:
+    "@sentry-internal/browser-utils": "npm:8.36.0"
+    "@sentry-internal/feedback": "npm:8.36.0"
+    "@sentry-internal/replay": "npm:8.36.0"
+    "@sentry-internal/replay-canvas": "npm:8.36.0"
+    "@sentry/core": "npm:8.36.0"
+    "@sentry/types": "npm:8.36.0"
+    "@sentry/utils": "npm:8.36.0"
+  checksum: 10/46af4ade98628d93dd184b42deb5bec267407ebdd4a42c5803ca97cbb25f96c03db06c1c724438238fe0ae89d84ea64b686cae63b156d5aefe7e6c07b7c6ebaa
+  languageName: node
+  linkType: hard
+
+"@sentry/core@npm:8.36.0":
+  version: 8.36.0
+  resolution: "@sentry/core@npm:8.36.0"
+  dependencies:
+    "@sentry/types": "npm:8.36.0"
+    "@sentry/utils": "npm:8.36.0"
+  checksum: 10/26d9a926c6a76526cc3ed895370604c88a7fb9f152866362cb0eef348fcada9ae78706a678f081ed26b0bb29fd0293627d458dbc598b630962550ce4924c584d
+  languageName: node
+  linkType: hard
+
+"@sentry/react@npm:^8.36.0":
+  version: 8.36.0
+  resolution: "@sentry/react@npm:8.36.0"
+  dependencies:
+    "@sentry/browser": "npm:8.36.0"
+    "@sentry/core": "npm:8.36.0"
+    "@sentry/types": "npm:8.36.0"
+    "@sentry/utils": "npm:8.36.0"
+    hoist-non-react-statics: "npm:^3.3.2"
+  peerDependencies:
+    react: ^16.14.0 || 17.x || 18.x || 19.x
+  checksum: 10/c5edf3f4cb53e7fcecd3aa11512e125b90531ae41f04c2ade26f052e3138f217b3e254433eb28776d5b845f98fe7678e7961dc7770c063e62f8eda61868bc191
+  languageName: node
+  linkType: hard
+
+"@sentry/types@npm:8.36.0":
+  version: 8.36.0
+  resolution: "@sentry/types@npm:8.36.0"
+  checksum: 10/6c91218f5355e5d9396cf863d66c21edd305075ea5408e31ca52dbc0eae5e39a1247882d515856f9ad05fb7c5f0509c184c048a26086f23dfd41ef4a4eeeb38b
+  languageName: node
+  linkType: hard
+
+"@sentry/utils@npm:8.36.0":
+  version: 8.36.0
+  resolution: "@sentry/utils@npm:8.36.0"
+  dependencies:
+    "@sentry/types": "npm:8.36.0"
+  checksum: 10/5b58bb34ed4e13b71f322a4455702ae5dab7b597410ac7774abce0dd67dcc84ee088be05e1c8d694ec795b8a84baad0467e31afd0c8026aaacac93f8b5a3701f
+  languageName: node
+  linkType: hard
+
 "@sigstore/bundle@npm:^2.3.2":
   version: 2.3.2
   resolution: "@sigstore/bundle@npm:2.3.2"
@@ -10904,6 +11006,7 @@ __metadata:
     "@ourworldindata/utils": "workspace:^"
     "@react-awesome-query-builder/antd": "npm:^6.6.0"
     "@rmp135/sql-ts": "npm:^2.1.0"
+    "@sentry/react": "npm:^8.36.0"
     "@sinclair/typebox": "npm:^0.28.5"
     "@slack/web-api": "npm:^7.1.0"
     "@testing-library/jest-dom": "npm:^6.1.3"

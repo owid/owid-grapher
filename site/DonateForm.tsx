@@ -320,7 +320,7 @@ export class DonateForm extends React.Component {
                 {this.showOnList && (
                     <fieldset>
                         <label
-                            className="donation-name__label"
+                            className="donation-name__label sentry-mask"
                             htmlFor="donation-name__input"
                         >
                             Full name (required if ticked)

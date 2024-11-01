@@ -229,6 +229,7 @@ export class FeedbackForm extends React.Component<{
                         <label htmlFor="feedback.message">Message</label>
                         <textarea
                             id="feedback.message"
+                            className="sentry-mask"
                             onChange={this.onMessage}
                             rows={5}
                             minLength={30}
@@ -246,6 +247,7 @@ export class FeedbackForm extends React.Component<{
                         <label htmlFor="feedback.name">Your name</label>
                         <input
                             id="feedback.name"
+                            className="sentry-mask"
                             onChange={this.onName}
                             autoFocus={autofocus}
                             disabled={loading}
@@ -255,6 +257,7 @@ export class FeedbackForm extends React.Component<{
                         <label htmlFor="feedback.email">Email address</label>
                         <input
                             id="feedback.email"
+                            className="sentry-mask"
                             onChange={this.onEmail}
                             type="email"
                             disabled={loading}
