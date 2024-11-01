@@ -289,9 +289,7 @@ export async function tailscaleAuthMiddleware(
     const ipToUserMap = await getTailscaleIpToUserMap()
 
     // Get the Tailscale display name / github username associated with the client's IP address
-    // const githubUserName = ipToUserMap[clientIp]
-    let githubUserName = ipToUserMap[clientIp]
-    githubUserName = "unknown"
+    const githubUserName = ipToUserMap[clientIp]
 
     // Next if user is not found, user can still log in as admin
     if (!githubUserName) {
