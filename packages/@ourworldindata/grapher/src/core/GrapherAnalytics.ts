@@ -12,6 +12,7 @@ export enum EventCategory {
     CountryProfileSearch = "owid.country_profile_search",
     Filter = "owid.filter",
     GlobalEntitySelectorUsage = "owid.global_entity_selector_usage",
+    GrapherView = "owid.grapher_view",
     GrapherClick = "owid.grapher_click",
     GrapherError = "owid.grapher_error",
     ExplorerCountrySelector = "owid.explorer_country_selector",
@@ -48,6 +49,7 @@ interface GAEvent {
     eventContext?: string
     eventTarget?: string
     grapherPath?: string
+    grapherView?: string // specifies a view in a multi-dim data page
 }
 
 // taken from https://github.com/DefinitelyTyped/DefinitelyTyped/blob/de66435d18fbdb2684947d16b5cd3a77f876324c/types/gtag.js/index.d.ts#L151-L156
@@ -70,6 +72,14 @@ export class GrapherAnalytics {
 
     private version: string // Ideally the Git hash commit
     private isDev: boolean
+
+    logGrapherView(slug: string, view?: Record<string, string>): void {
+        this.logToGA({
+            event: EventCategory.GrapherView,
+            grapherPath: `/grapher/${slug}`,
+            grapherView: view ? JSON.stringify(view) : undefined,
+        })
+    }
 
     logGrapherViewError(error: Error): void {
         this.logToGA({

@@ -203,7 +203,9 @@ export class ActionButtons extends React.Component<{
     }
 
     @computed private get hasShareButton(): boolean {
-        return !this.manager.hideShareButton
+        return (
+            !this.manager.hideShareButton && ShareMenu.shouldShow(this.manager)
+        )
     }
 
     @computed private get hasFullScreenButton(): boolean {

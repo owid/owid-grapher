@@ -473,7 +473,6 @@ export class Explorer
         if (mapTargetTime) {
             grapher.map.time = mapTargetTime
         }
-        grapher.slug = this.explorerProgram.slug
         if (!grapher.id) grapher.id = 0
     }
 
@@ -548,6 +547,7 @@ export class Explorer
         grapher.reset()
         this.updateGrapherFromExplorerCommon()
         grapher.updateFromObject(config)
+        grapher.slug = undefined
         grapher.downloadData()
     }
 

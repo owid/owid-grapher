@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
     Grapher,
+    GrapherAnalytics,
     GrapherProgrammaticInterface,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
@@ -194,6 +195,8 @@ const useVarDatapageData = (
     }
 }
 
+const analytics = new GrapherAnalytics()
+
 export const MultiDimDataPageContent = ({
     // _datapageData,
     configObj,
@@ -206,6 +209,8 @@ export const MultiDimDataPageContent = ({
     initialQueryStr,
 }: MultiDimDataPageProps) => {
     const grapherFigureRef = useRef<HTMLDivElement>(null)
+
+    const slug = window?.location.pathname.split("/").pop()
 
     const config = useMemo(
         () => MultiDimDataPageConfig.fromObject(configObj),
@@ -262,6 +267,10 @@ export const MultiDimDataPageContent = ({
         setWindowQueryStr(queryStr ?? "")
     }, [queryStr])
 
+    useEffect(() => {
+        if (slug) analytics.logGrapherView(slug, currentSettings)
+    }, [slug, currentSettings])
+
     const grapherConfigComputed = useMemo(() => {
         const baseConfig: GrapherProgrammaticInterface = {
             bounds,
@@ -273,12 +282,11 @@ export const MultiDimDataPageContent = ({
             ...varGrapherConfig,
             ...baseConfig,
             dataApiUrl: DATA_API_URL,
-            // TODO: The way manager and slug are set here are just workarounds to make the edit button in the
-            // share menu work. They should be removed before we publish MDims!
+            // TODO: The way manager is set here is just a workaround to make the edit button in the
+            // share menu work. This should be removed before we publish MDims!
             manager: {
                 canonicalUrl,
             },
-            slug: "DUMMY",
         } as GrapherProgrammaticInterface
     }, [varGrapherConfig, grapherConfigIsReady, bounds, canonicalUrl])
 

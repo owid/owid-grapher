@@ -943,7 +943,8 @@ export class Grapher
             devtools: {
                 track: "Grapher",
                 properties: [
-                    ["slug", this.slug],
+                    // might be missing for charts within explorers or mdims
+                    ["slug", this.slug ?? "missing-slug"],
                     ["chartType", this.type],
                     ["tab", this.tab],
                 ],
@@ -2342,6 +2343,7 @@ export class Grapher
         return this.base.current || undefined
     }
 
+    private hasLoggedGAViewEvent = false
     @observable private hasBeenVisible = false
     @observable private uncaughtError?: Error
 
@@ -2829,6 +2831,12 @@ export class Grapher
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         this.hasBeenVisible = true
+
+                        if (this.slug && !this.hasLoggedGAViewEvent) {
+                            this.analytics.logGrapherView(this.slug)
+                            this.hasLoggedGAViewEvent = true
+                        }
+
                         observer.disconnect()
                     }
                 })

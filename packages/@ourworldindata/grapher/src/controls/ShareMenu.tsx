@@ -21,7 +21,7 @@ export interface ShareMenuManager {
 
 interface ShareMenuProps {
     manager: ShareMenuManager
-    onDismiss: () => void
+    onDismiss?: () => void
     right?: number
 }
 
@@ -91,6 +91,11 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         }
     }
 
+    static shouldShow(manager: ShareMenuManager): boolean {
+        const test = new ShareMenu({ manager })
+        return test.showShareMenu
+    }
+
     @computed get manager(): ShareMenuManager {
         return this.props.manager
     }
@@ -99,8 +104,8 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         return this.manager.currentTitle ?? ""
     }
 
-    @computed get isDisabled(): boolean {
-        return !this.manager.slug
+    @computed get showShareMenu(): boolean {
+        return !!this.canonicalUrl || !!this.manager.editUrl
     }
 
     @computed get canonicalUrl(): string | undefined {
@@ -108,7 +113,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     @action.bound dismiss(): void {
-        this.props.onDismiss()
+        this.props.onDismiss?.()
     }
 
     @action.bound onClickSomewhere(): void {
@@ -153,21 +158,23 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         }
     }
 
-    @computed get twitterHref(): string {
-        let href =
-            "https://twitter.com/intent/tweet/?text=" +
-            encodeURIComponent(this.title)
-        if (this.canonicalUrl)
-            href += "&url=" + encodeURIComponent(this.canonicalUrl)
-        return href
+    @computed get twitterHref(): string | undefined {
+        if (!this.canonicalUrl) return undefined
+        const queryParams = new URLSearchParams({
+            text: this.title,
+            url: this.canonicalUrl,
+        })
+        return `https://twitter.com/intent/tweet/?${queryParams}`
     }
 
-    @computed get facebookHref(): string {
-        let href =
-            "https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page"
-        if (this.canonicalUrl)
-            href += "&href=" + encodeURIComponent(this.canonicalUrl)
-        return href
+    @computed get facebookHref(): string | undefined {
+        if (!this.canonicalUrl) return undefined
+        const queryParams = new URLSearchParams({
+            app_id: "1149943818390250",
+            display: "page",
+            href: this.canonicalUrl,
+        })
+        return `https://www.facebook.com/dialog/share?${queryParams}`
     }
 
     @computed get canUseShareApi(): boolean {
@@ -175,13 +182,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     render(): React.ReactElement {
-        const {
-            twitterHref,
-            facebookHref,
-            isDisabled,
-            canUseShareApi,
-            manager,
-        } = this
+        const { twitterHref, facebookHref, canUseShareApi, manager } = this
         const { editUrl } = manager
 
         const width = 200
@@ -193,46 +194,52 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
 
         return (
             <div
-                className={"ShareMenu" + (isDisabled ? " disabled" : "")}
+                className="ShareMenu"
                 onClick={action(() => (this.dismissable = false))}
                 style={style}
             >
                 <h2>Share</h2>
-                <a
-                    target="_blank"
-                    title="Tweet a link"
-                    data-track-note="chart_share_twitter"
-                    href={twitterHref}
-                    rel="noopener"
-                >
-                    <span className="icon">
-                        <FontAwesomeIcon icon={faXTwitter} />
-                    </span>{" "}
-                    X/Twitter
-                </a>
-                <a
-                    target="_blank"
-                    title="Share on Facebook"
-                    data-track-note="chart_share_facebook"
-                    href={facebookHref}
-                    rel="noopener"
-                >
-                    <span className="icon">
-                        <FontAwesomeIcon icon={faFacebook} />
-                    </span>{" "}
-                    Facebook
-                </a>
-                <a
-                    className="embed"
-                    title="Embed this visualization in another HTML document"
-                    data-track-note="chart_share_embed"
-                    onClick={this.onEmbed}
-                >
-                    <span className="icon">
-                        <FontAwesomeIcon icon={faCode} />
-                    </span>{" "}
-                    Embed
-                </a>
+                {twitterHref && (
+                    <a
+                        target="_blank"
+                        title="Tweet a link"
+                        data-track-note="chart_share_twitter"
+                        href={twitterHref}
+                        rel="noopener"
+                    >
+                        <span className="icon">
+                            <FontAwesomeIcon icon={faXTwitter} />
+                        </span>{" "}
+                        X/Twitter
+                    </a>
+                )}
+                {facebookHref && (
+                    <a
+                        target="_blank"
+                        title="Share on Facebook"
+                        data-track-note="chart_share_facebook"
+                        href={facebookHref}
+                        rel="noopener"
+                    >
+                        <span className="icon">
+                            <FontAwesomeIcon icon={faFacebook} />
+                        </span>{" "}
+                        Facebook
+                    </a>
+                )}
+                {this.canonicalUrl && (
+                    <a
+                        className="embed"
+                        title="Embed this visualization in another HTML document"
+                        data-track-note="chart_share_embed"
+                        onClick={this.onEmbed}
+                    >
+                        <span className="icon">
+                            <FontAwesomeIcon icon={faCode} />
+                        </span>{" "}
+                        Embed
+                    </a>
+                )}
                 {canUseShareApi && (
                     <a
                         title="Share this visualization with an app on your device"
@@ -245,7 +252,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         Share via&hellip;
                     </a>
                 )}
-                {this.state.canWriteToClipboard && (
+                {this.state.canWriteToClipboard && this.canonicalUrl && (
                     <a
                         title="Copy link to clipboard"
                         data-track-note="chart_share_copylink"
