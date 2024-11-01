@@ -289,7 +289,9 @@ export async function tailscaleAuthMiddleware(
     const ipToUserMap = await getTailscaleIpToUserMap()
 
     // Get the Tailscale display name / github username associated with the client's IP address
-    const githubUserName = ipToUserMap[clientIp]
+    // const githubUserName = ipToUserMap[clientIp]
+    let githubUserName = ipToUserMap[clientIp]
+    githubUserName = "unknown"
 
     // Next if user is not found, user can still log in as admin
     if (!githubUserName) {
@@ -334,11 +336,11 @@ function getClientIp(req: express.Request): string {
 }
 
 async function getTailscaleIpToUserMap(): Promise<Record<string, string>> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         exec("tailscale status --json", (error, stdout) => {
             if (error) {
                 console.error(`Error getting Tailscale status: ${error}`)
-                return resolve({})
+                return reject(error)
             }
             const tailscaleStatus: TailscaleStatus = JSON.parse(stdout)
             const ipToUser: Record<string, string> = {}
