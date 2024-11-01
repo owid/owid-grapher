@@ -27,6 +27,7 @@ import {
     SlideShowController,
     SlideShowManager,
     DEFAULT_GRAPHER_ENTITY_TYPE,
+    GrapherAnalytics,
 } from "@ourworldindata/grapher"
 import {
     Bounds,
@@ -189,6 +190,8 @@ export class Explorer
         EntityPickerManager,
         GrapherManager
 {
+    analytics = new GrapherAnalytics()
+
     // caution: do a ctrl+f to find untyped usages
     static renderSingleExplorerOnExplorerPage(
         program: ExplorerProps,
@@ -272,6 +275,24 @@ export class Explorer
         return new Map(arr.map((config) => [config.id!, config]))
     }
 
+    private setUpIntersectionObserver(): void {
+        if (typeof window !== "undefined" && "IntersectionObserver" in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        this.analytics.logExplorerView(
+                            this.explorerProgram.slug,
+                            this.explorerProgram.decisionMatrix.currentParams
+                        )
+                        observer.disconnect()
+                    }
+                })
+            })
+            observer.observe(this.grapherContainerRef.current!)
+            this.disposers.push(() => observer.disconnect())
+        }
+    }
+
     disposers: (() => void)[] = []
     componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
@@ -291,6 +312,7 @@ export class Explorer
         this.grapher?.populateFromQueryParams(url.queryParams)
 
         exposeInstanceOnWindow(this, "explorer")
+        this.setUpIntersectionObserver()
         this.attachEventListeners()
         this.updateEntityPickerTable() // call for the first time to initialize EntityPicker
     }
@@ -415,6 +437,11 @@ export class Explorer
             : tabsWithoutTable[0] ?? GrapherTabOption.table
 
         this.grapher.populateFromQueryParams(newGrapherParams)
+
+        this.analytics.logExplorerView(
+            this.explorerProgram.slug,
+            this.explorerProgram.decisionMatrix.currentParams
+        )
     }
 
     @action.bound private setGrapherTable(table: OwidTable) {
