@@ -567,7 +567,7 @@ export const getMostViewedGrapherIdsByChartType = async (
             JOIN chart_configs cc ON slug = SUBSTRING_INDEX(a.url, '/', -1)
             JOIN charts c ON c.configId = cc.id
             WHERE a.url LIKE "https://ourworldindata.org/grapher/%"
-                AND cc.full ->> "$.type" = ?
+                AND COALESCE(cc.full ->> "$.type", 'LineChart') = ?
                 AND cc.full ->> "$.isPublished" = "true"
                 and (cc.full ->> "$.hasChartTab" = "true" or cc.full ->> "$.hasChartTab" is null)
             ORDER BY a.views_365d DESC

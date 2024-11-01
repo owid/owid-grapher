@@ -6,7 +6,7 @@ The schema is versioned. There is one yaml file with a version number. For nonbr
 edit the yaml file as is. A github action will then generate a .latest.yaml and two json files (one .latest.json and one with the version number.json)
 and upload them to S3 so they can be accessed publicly.
 
-If you update the default value of an existing property or you add a new property with a default value, make sure to regenerate the default object from the schema and save it to `defaultGrapherConfig.ts` (see below). You should also write a migration to update the `chart_configs.full` column in the database for all stand-alone charts.
+If you update the default value of an existing property or you add a new property with a default value, make sure to regenerate the default object from the schema and save it to `defaultGrapherConfig.ts` (see below).
 
 Breaking changes should be done by renaming the schema file to an increased version number. Make sure to also rename the authorative url
 inside the schema file (the "$id" field at the top level) to point to the new version number json. Then write the migrations from the last to

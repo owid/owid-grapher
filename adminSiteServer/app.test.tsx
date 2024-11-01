@@ -249,36 +249,22 @@ describe("OwidAdminApp", () => {
         )?.config
         expect(parentConfig).toBeUndefined()
 
-        // fetch the full config and verify it's merged with the default
+        // fetch the full config and verify that id, version and isPublished are added
         const fullConfig = await fetchJsonFromAdminApi(
             `/charts/${chartId}.config.json`
         )
-        expect(fullConfig).toHaveProperty(
-            "$schema",
-            "https://files.ourworldindata.org/schemas/grapher-schema.005.json"
-        )
-        expect(fullConfig).toHaveProperty("id", chartId) // must match the db id
-        expect(fullConfig).toHaveProperty("version", 1) // automatically added
-        expect(fullConfig).toHaveProperty("isPublished", false) // automatically added
-        expect(fullConfig).toHaveProperty("slug", "test-chart")
-        expect(fullConfig).toHaveProperty("title", "Test chart")
-        expect(fullConfig).toHaveProperty("type", "LineChart") // default property
-        expect(fullConfig).toHaveProperty("tab", "chart") // default property
+        expect(fullConfig).toEqual({
+            ...testChartConfig,
+            id: chartId, // must match the db id
+            version: 1, // automatically added
+            isPublished: false, // automatically added
+        })
 
-        // fetch the patch config and verify it's diffed correctly
+        // fetch the patch config and verify it's identical to the full config
         const patchConfig = await fetchJsonFromAdminApi(
             `/charts/${chartId}.patchConfig.json`
         )
-        expect(patchConfig).toEqual({
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
-            id: chartId,
-            version: 1,
-            isPublished: false,
-            slug: "test-chart",
-            title: "Test chart",
-            // note that the type is not included
-        })
+        expect(patchConfig).toEqual(fullConfig)
     })
 
     it("should be able to create a GDoc article", async () => {
@@ -621,19 +607,27 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         expect(parentConfig).toEqual(mergedGrapherConfig)
 
         // fetch the full config of the chart and verify that it's been merged
-        // with the indicator config and the default config
+        // with the indicator config
         const fullConfig = await fetchJsonFromAdminApi(
             `/charts/${chartId}.config.json`
         )
-        expect(fullConfig).toHaveProperty("slug", "test-chart")
-        expect(fullConfig).toHaveProperty("title", "Test chart")
-        expect(fullConfig).toHaveProperty("type", "Marimekko")
-        expect(fullConfig).toHaveProperty("selectedEntityNames", [])
-        expect(fullConfig).toHaveProperty("hideRelativeToggle", false)
-        expect(fullConfig).toHaveProperty("note", "Indicator note") // inherited from variable
-        expect(fullConfig).toHaveProperty("hasMapTab", true) // inherited from variable
-        expect(fullConfig).toHaveProperty("subtitle", "Admin subtitle") // inherited from variable
-        expect(fullConfig).toHaveProperty("tab", "chart") // default value
+
+        expect(fullConfig).toEqual({
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            id: chartId,
+            isPublished: false,
+            version: 1,
+            slug: "test-chart",
+            title: "Test chart",
+            type: "Marimekko",
+            selectedEntityNames: [],
+            hideRelativeToggle: false,
+            dimensions: [{ variableId, property: "y" }],
+            subtitle: "Admin subtitle", // inherited from variable
+            note: "Indicator note", // inherited from variable
+            hasMapTab: true, // inherited from variable
+        })
 
         // fetch the patch config and verify it's diffed correctly
         const patchConfig = await fetchJsonFromAdminApi(
@@ -649,12 +643,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             title: "Test chart",
             type: "Marimekko",
             selectedEntityNames: [],
-            dimensions: [
-                {
-                    variableId,
-                    property: "y",
-                },
-            ],
+            dimensions: [{ variableId, property: "y" }],
             // note that `hideRelativeToggle` is not included
         })
 
@@ -681,15 +670,18 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         const fullConfigAfterDelete = await fetchJsonFromAdminApi(
             `/charts/${chartId}.config.json`
         )
-        // was inherited from variable, should be unset now
-        expect(fullConfigAfterDelete).not.toHaveProperty("note")
-        expect(fullConfigAfterDelete).not.toHaveProperty("subtitle")
-        // was inherited from variable, is now inherited from the default config
-        expect(fullConfigAfterDelete).toHaveProperty("hasMapTab", false)
-        // was inherited from variable, is now inherited from the default config
-        // (although the "original" chart config sets hideRelativeToggle to false)
-        expect(fullConfigAfterDelete).toHaveProperty("hideRelativeToggle", true)
-        expect(fullConfigAfterDelete).toHaveProperty("tab", "chart") // default value
+        expect(fullConfigAfterDelete).toEqual({
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            id: chartId,
+            version: 1,
+            isPublished: false,
+            dimensions: [{ property: "y", variableId: 1 }],
+            selectedEntityNames: [],
+            slug: "test-chart",
+            title: "Test chart",
+            type: "Marimekko",
+        })
 
         // fetch the patch config and verify it's diffed correctly
         const patchConfigAfterDelete = await fetchJsonFromAdminApi(
@@ -736,7 +728,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             } else {
                 expect(chartRow.isInheritanceEnabled).toBeFalsy()
                 expect(fullConfig).not.toHaveProperty("note")
-                expect(fullConfig).toHaveProperty("hasMapTab", false)
+                expect(fullConfig).not.toHaveProperty("hasMapTab")
             }
         }
 

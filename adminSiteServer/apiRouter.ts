@@ -109,7 +109,6 @@ import {
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
 import {
-    defaultGrapherConfig,
     migrateGrapherConfigToLatestVersion,
     getVariableDataRoute,
     getVariableMetadataRoute,
@@ -328,14 +327,10 @@ const saveNewChart = async (
     const parent = shouldInherit
         ? await getParentByChartConfig(knex, config)
         : undefined
-    const fullParentConfig = mergeGrapherConfigs(
-        defaultGrapherConfig,
-        parent?.config ?? {}
-    )
 
     // compute patch and full configs
-    const patchConfig = diffGrapherConfigs(config, fullParentConfig)
-    const fullConfig = mergeGrapherConfigs(fullParentConfig, patchConfig)
+    const patchConfig = diffGrapherConfigs(config, parent?.config ?? {})
+    const fullConfig = mergeGrapherConfigs(parent?.config ?? {}, patchConfig)
     const fullConfigStringified = serializeChartConfig(fullConfig)
 
     // insert patch & full configs into the chart_configs table
@@ -424,14 +419,10 @@ const updateExistingChart = async (
     const parent = shouldInherit
         ? await getParentByChartConfig(knex, config)
         : undefined
-    const fullParentConfig = mergeGrapherConfigs(
-        defaultGrapherConfig,
-        parent?.config ?? {}
-    )
 
     // compute patch and full configs
-    const patchConfig = diffGrapherConfigs(config, fullParentConfig)
-    const fullConfig = mergeGrapherConfigs(fullParentConfig, patchConfig)
+    const patchConfig = diffGrapherConfigs(config, parent?.config ?? {})
+    const fullConfig = mergeGrapherConfigs(parent?.config ?? {}, patchConfig)
     const fullConfigStringified = serializeChartConfig(fullConfig)
 
     const chartConfigId = await db.knexRawFirst<Pick<DbPlainChart, "configId">>(
