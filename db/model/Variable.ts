@@ -52,25 +52,6 @@ interface VariableWithGrapherConfigs {
     etl?: ChartConfigPair
 }
 
-type VariableWithGrapherConfigIds = Pick<
-    DbRawVariable,
-    "id" | "grapherConfigIdAdmin" | "grapherConfigIdETL"
->
-export async function getGrapherConfigIdsForVariables(
-    knex: db.KnexReadonlyTransaction,
-    variableIds: number[]
-): Promise<VariableWithGrapherConfigIds[]> {
-    const rows: VariableWithGrapherConfigIds[] = await knex(VariablesTableName)
-        .select([
-            "id",
-            "grapherConfigIdAdmin",
-            "grapherConfigIdETL",
-        ] as (keyof DbRawVariable)[])
-        .whereIn("id", variableIds)
-
-    return rows
-}
-
 export async function getGrapherConfigsForVariable(
     knex: db.KnexReadonlyTransaction,
     variableId: number
@@ -139,6 +120,29 @@ export async function getMergedGrapherConfigForVariable(
 ): Promise<GrapherInterface | undefined> {
     const variable = await getGrapherConfigsForVariable(knex, variableId)
     return variable?.admin?.fullConfig ?? variable?.etl?.fullConfig
+}
+
+export async function getMergedGrapherConfigsForVariables(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<Map<number, GrapherInterface>> {
+    // FIXME: Optimize to a single query that only fetches the data we need.
+    const variables = await Promise.all(
+        variableIds.map((variableId) => {
+            return getGrapherConfigsForVariable(knex, variableId)
+        })
+    )
+    const configs = new Map<number, GrapherInterface>()
+    for (const variable of variables) {
+        if (variable) {
+            const config =
+                variable.admin?.fullConfig ?? variable.etl?.fullConfig
+            if (config) {
+                configs.set(variable.variableId, config)
+            }
+        }
+    }
+    return configs
 }
 
 export async function insertNewGrapherConfigForVariable(

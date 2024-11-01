@@ -3,12 +3,13 @@ import {
     ChoicesEnriched,
     DimensionEnriched,
     IndicatorsAfterPreProcessing,
-    MultiDimDataPageConfigPreProcessed,
     MultiDimDimensionChoices,
     View,
+    ViewEnriched,
     QueryParams,
     OwidChartDimensionInterface,
     DimensionProperty,
+    MultiDimDataPageConfigEnriched,
 } from "@ourworldindata/types"
 import { groupBy, keyBy, pick } from "./Util.js"
 import { Url } from "./urls/Url.js"
@@ -20,7 +21,7 @@ interface FilterToAvailableResult {
 
 export class MultiDimDataPageConfig {
     private constructor(
-        public readonly config: MultiDimDataPageConfigPreProcessed
+        public readonly config: MultiDimDataPageConfigEnriched
     ) {}
 
     static fromJson(jsonString: string): MultiDimDataPageConfig {
@@ -28,7 +29,7 @@ export class MultiDimDataPageConfig {
     }
 
     static fromObject(
-        obj: MultiDimDataPageConfigPreProcessed
+        obj: MultiDimDataPageConfigEnriched
     ): MultiDimDataPageConfig {
         return new MultiDimDataPageConfig(obj)
     }
@@ -55,7 +56,7 @@ export class MultiDimDataPageConfig {
 
     filterViewsByDimensions(
         dimensions: MultiDimDimensionChoices
-    ): View<IndicatorsAfterPreProcessing>[] {
+    ): ViewEnriched[] {
         return this.config.views.filter((view) => {
             for (const [dimensionSlug, choiceSlug] of Object.entries(
                 dimensions
@@ -70,7 +71,7 @@ export class MultiDimDataPageConfig {
     // if more than one matching views were found
     findViewByDimensions(
         dimensions: MultiDimDimensionChoices
-    ): View<IndicatorsAfterPreProcessing> | undefined {
+    ): ViewEnriched | undefined {
         const matchingViews = this.filterViewsByDimensions(dimensions)
         if (matchingViews.length === 0) return undefined
         if (matchingViews.length > 1) {

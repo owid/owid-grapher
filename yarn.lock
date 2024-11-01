@@ -3415,6 +3415,7 @@ __metadata:
     ts-pattern: "npm:^5.0.5"
     typescript: "npm:~5.6.2"
     url-parse: "npm:^1.5.10"
+    uuidv7: "npm:^1.0.1"
   languageName: unknown
   linkType: soft
 

@@ -1,6 +1,8 @@
 #! /usr/bin/env jest
 
-import { MultiDimDataPageConfigPreProcessed } from "@ourworldindata/types"
+import { uuidv7 } from "uuidv7"
+
+import { MultiDimDataPageConfigEnriched } from "@ourworldindata/types"
 import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
 
 it("fromObject", () => {
@@ -8,7 +10,7 @@ it("fromObject", () => {
     expect(config.config.title).toBe("Test")
 })
 
-const CONFIG: MultiDimDataPageConfigPreProcessed = {
+const CONFIG: MultiDimDataPageConfigEnriched = {
     title: {
         title: "Anything goes",
     },
@@ -51,6 +53,7 @@ const CONFIG: MultiDimDataPageConfigPreProcessed = {
             indicators: {
                 y: [111, 222],
             },
+            fullConfigId: uuidv7(),
         },
         {
             dimensions: {
@@ -60,6 +63,7 @@ const CONFIG: MultiDimDataPageConfigPreProcessed = {
             indicators: {
                 y: [819727],
             },
+            fullConfigId: uuidv7(),
         },
     ],
 }

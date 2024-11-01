@@ -7,9 +7,12 @@ export {
 } from "./DonationTypes.js"
 
 export {
+    type Base64String,
     type GitCommit,
+    type HexString,
     type Integer,
     JsonError,
+    type JsonString,
     type SerializedGridProgram,
     SiteFooterContext,
     TaggableType,
@@ -522,6 +525,11 @@ export {
     MultiDimDataPagesTableName,
 } from "./dbTypes/MultiDimDataPages.js"
 export {
+    type DbInsertMultiDimXChartConfig,
+    type DbPlainMultiDimXChartConfig,
+    MultiDimXChartConfigsTableName,
+} from "./dbTypes/MultiDimXChartConfigs.js"
+export {
     type DbPlainNamespace,
     type DbInsertNamespace,
     NamespacesTableName,
@@ -671,6 +679,7 @@ export {
 export type {
     IndicatorEntryBeforePreProcessing,
     IndicatorsAfterPreProcessing,
+    MultiDimDataPageConfigEnriched,
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageConfigRaw,
     MultiDimDataPageProps,
@@ -680,4 +689,5 @@ export type {
     DimensionEnriched,
     MultiDimDimensionChoices,
     View,
+    ViewEnriched,
 } from "./siteTypes/MultiDimDataPage.js"

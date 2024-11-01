@@ -9,11 +9,7 @@ import {
     ADMIN_BASE_URL,
     DATA_API_URL,
 } from "../settings/serverSettings.js"
-import {
-    Base64String,
-    expectInt,
-    isValidSlug,
-} from "../serverUtils/serverUtil.js"
+import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import {
     OldChartFieldList,
     assignTagsForCharts,
@@ -79,6 +75,7 @@ import {
     VariableAnnotationsResponseRow,
 } from "../adminShared/AdminSessionTypes.js"
 import {
+    Base64String,
     DbPlainDatasetTag,
     GrapherInterface,
     OwidGdocType,
@@ -103,6 +100,7 @@ import {
     FlatTagGraph,
     DbRawChartConfig,
     parseChartConfig,
+    MultiDimDataPageConfigRaw,
     R2GrapherConfigDirectory,
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
@@ -183,6 +181,7 @@ import {
     saveGrapherConfigToR2ByUUID,
 } from "./chartConfigR2Helpers.js"
 import { fetchImagesFromDriveAndSyncToS3 } from "../db/model/Image.js"
+import { createMultiDimConfig } from "./multiDim.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -1143,6 +1142,20 @@ deleteRouteWithRWTransaction(
             )
 
         return { success: true }
+    }
+)
+
+putRouteWithRWTransaction(
+    apiRouter,
+    "/multi-dim/:slug",
+    async (req, res, trx) => {
+        const { slug } = req.params
+        if (!isValidSlug(slug)) {
+            throw new JsonError(`Invalid multi-dim slug ${slug}`)
+        }
+        const rawConfig = req.body as MultiDimDataPageConfigRaw
+        const id = await createMultiDimConfig(trx, slug, rawConfig)
+        return { success: true, id }
     }
 )
 

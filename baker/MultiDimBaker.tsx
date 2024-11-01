@@ -1,18 +1,15 @@
 import fs from "fs-extra"
 import path from "path"
 import {
-    IndicatorEntryBeforePreProcessing,
-    IndicatorsAfterPreProcessing,
     MultiDimDataPageConfigPreProcessed,
-    MultiDimDataPageConfigRaw,
     MultiDimDataPageProps,
     FaqEntryKeyedByGdocIdAndFragmentId,
+    MultiDimDataPageConfigEnriched,
 } from "@ourworldindata/types"
 import {
     MultiDimDataPageConfig,
     JsonError,
     keyBy,
-    mapValues,
     OwidVariableWithSource,
     pick,
 } from "@ourworldindata/utils"
@@ -22,11 +19,7 @@ import { MultiDimDataPage } from "../site/multiDim/MultiDimDataPage.js"
 import React from "react"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { getTagToSlugMap } from "./GrapherBakingUtils.js"
-import {
-    getGrapherConfigIdsForVariables,
-    getVariableIdsByCatalogPath,
-    getVariableMetadata,
-} from "../db/model/Variable.js"
+import { getVariableMetadata } from "../db/model/Variable.js"
 import pMap from "p-map"
 import {
     fetchAndParseFaqs,
@@ -38,93 +31,6 @@ import {
     getAllMultiDimDataPages,
     getMultiDimDataPageBySlug,
 } from "../db/model/MultiDimDataPage.js"
-
-const getGrapherConfigIdsByVariableIds = async (
-    knex: db.KnexReadonlyTransaction,
-    variableIds: number[]
-): Promise<Record<number, string | null>> => {
-    const rows = await getGrapherConfigIdsForVariables(knex, variableIds)
-
-    return Object.fromEntries(
-        rows.map((row) => [
-            row.id,
-            row.grapherConfigIdAdmin ?? row.grapherConfigIdETL,
-        ])
-    )
-}
-
-const resolveMultiDimDataPageCatalogPathsToIndicatorIds = async (
-    knex: db.KnexReadonlyTransaction,
-    rawConfig: MultiDimDataPageConfigRaw
-): Promise<MultiDimDataPageConfigPreProcessed> => {
-    const allCatalogPaths = rawConfig.views
-        .flatMap((view) =>
-            Object.values(view.indicators ?? {}).flatMap(
-                (indicatorOrIndicators) =>
-                    Array.isArray(indicatorOrIndicators)
-                        ? indicatorOrIndicators
-                        : [indicatorOrIndicators]
-            )
-        )
-        .filter((indicator) => typeof indicator === "string")
-
-    const catalogPathToIndicatorIdMap = await getVariableIdsByCatalogPath(
-        allCatalogPaths,
-        knex
-    )
-
-    const missingCatalogPaths = new Set(
-        allCatalogPaths.filter(
-            (indicator) => !catalogPathToIndicatorIdMap.has(indicator)
-        )
-    )
-
-    if (missingCatalogPaths.size > 0) {
-        console.warn(
-            `Could not find the following catalog paths for MDD ${rawConfig.title} in the database: ${Array.from(
-                missingCatalogPaths
-            ).join(", ")}`
-        )
-    }
-
-    const resolveSingleField = (
-        indicator: IndicatorEntryBeforePreProcessing
-    ) => {
-        if (typeof indicator === "string") {
-            const indicatorId = catalogPathToIndicatorIdMap.get(indicator)
-            return indicatorId ?? undefined
-        } else {
-            return indicator
-        }
-    }
-
-    const resolveField = (
-        indicator:
-            | IndicatorEntryBeforePreProcessing
-            | IndicatorEntryBeforePreProcessing[]
-    ) => {
-        if (Array.isArray(indicator)) {
-            return indicator.map(resolveSingleField)
-        } else {
-            return resolveSingleField(indicator)
-        }
-    }
-
-    for (const view of rawConfig.views) {
-        if (view.indicators)
-            view.indicators = mapValues(
-                view.indicators,
-                resolveField
-            ) as IndicatorsAfterPreProcessing
-
-        // Ensure that `indicators.y` exists and is a (possibly empty) array
-        if (!view.indicators?.y) view.indicators = { ...view.indicators, y: [] }
-        else if (!Array.isArray(view.indicators.y))
-            view.indicators.y = [view.indicators.y]
-    }
-
-    return rawConfig as MultiDimDataPageConfigPreProcessed
-}
 
 const getRelevantVariableIds = (config: MultiDimDataPageConfigPreProcessed) => {
     // A "relevant" variable id is the first y indicator of each view
@@ -209,44 +115,24 @@ const getFaqEntries = async (
 
 export const renderMultiDimDataPageFromConfig = async (
     knex: db.KnexReadWriteTransaction,
-    rawConfig: MultiDimDataPageConfigRaw
+    config: MultiDimDataPageConfigEnriched
 ) => {
     // TAGS
     const tagToSlugMap = await getTagToSlugMap(knex)
     // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
-    const minimalTagToSlugMap = pick(tagToSlugMap, rawConfig.topicTags ?? [])
-
-    // PRE-PROCESS CONFIG
-    const preProcessedConfig =
-        await resolveMultiDimDataPageCatalogPathsToIndicatorIds(knex, rawConfig)
-    const config = MultiDimDataPageConfig.fromObject(preProcessedConfig)
-
-    // GET VARIABLE GRAPHER CONFIG UUIDS
-    const relevantVariableIds = getRelevantVariableIds(preProcessedConfig)
-    const variableIdToGrapherConfigMap = await getGrapherConfigIdsByVariableIds(
-        knex,
-        Array.from(relevantVariableIds)
-    )
+    const minimalTagToSlugMap = pick(tagToSlugMap, config.topicTags ?? [])
+    const pageConfig = MultiDimDataPageConfig.fromObject(config)
 
     // FAQs
-    const variableMetaDict =
-        await getRelevantVariableMetadata(preProcessedConfig)
-    const faqEntries = await getFaqEntries(
-        knex,
-        preProcessedConfig,
-        variableMetaDict
-    )
+    const variableMetaDict = await getRelevantVariableMetadata(config)
+    const faqEntries = await getFaqEntries(knex, config, variableMetaDict)
 
     // PRIMARY TOPIC
-    const primaryTopic = await getPrimaryTopic(
-        knex,
-        preProcessedConfig.topicTags?.[0]
-    )
+    const primaryTopic = await getPrimaryTopic(knex, config.topicTags?.[0])
 
     const props = {
-        configObj: config.config,
+        configObj: pageConfig.config,
         tagToSlugMap: minimalTagToSlugMap,
-        variableIdToGrapherConfigMap,
         faqEntries,
         primaryTopic,
     }
@@ -277,9 +163,9 @@ export const bakeMultiDimDataPage = async (
     knex: db.KnexReadWriteTransaction,
     bakedSiteDir: string,
     slug: string,
-    rawConfig: MultiDimDataPageConfigRaw
+    config: MultiDimDataPageConfigEnriched
 ) => {
-    const renderedHtml = await renderMultiDimDataPageFromConfig(knex, rawConfig)
+    const renderedHtml = await renderMultiDimDataPageFromConfig(knex, config)
     const outPath = path.join(bakedSiteDir, `grapher/${slug}.html`)
     await fs.writeFile(outPath, renderedHtml)
 }

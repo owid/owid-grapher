@@ -25,12 +25,8 @@ import {
 import { DbRawChartConfig, excludeUndefined } from "@ourworldindata/utils"
 import { chunk } from "lodash"
 import ProgressBar from "progress"
-import {
-    bytesToBase64,
-    HexString,
-    hexToBytes,
-} from "../../serverUtils/serverUtil.js"
-import { R2GrapherConfigDirectory } from "@ourworldindata/types"
+import { bytesToBase64, hexToBytes } from "../../serverUtils/serverUtil.js"
+import { HexString, R2GrapherConfigDirectory } from "@ourworldindata/types"
 
 type HashAndId = Pick<DbRawChartConfig, "fullMd5" | "id">
 

@@ -29,16 +29,16 @@ import cx from "classnames"
 import { DebugProvider } from "../gdocs/DebugContext.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
 import {
-    IndicatorsAfterPreProcessing,
     MultiDimDataPageProps,
     MultiDimDimensionChoices,
-    View,
+    ViewEnriched,
 } from "@ourworldindata/types"
 import AboutThisData from "../AboutThisData.js"
 import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
 import { useElementBounds, useMobxStateToReactState } from "../hooks.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
+
 declare global {
     interface Window {
         _OWID_MULTI_DIM_PROPS?: MultiDimDataPageProps
@@ -126,19 +126,12 @@ const useView = (
         if (Object.keys(currentSettings).length === 0) return undefined
         return config.findViewByDimensions(currentSettings)
     }, [currentSettings, config])
-
-    const dimensionsConfig = useMemo(
-        () => MultiDimDataPageConfig.viewToDimensionsConfig(currentView),
-        [currentView]
-    )
-
-    return { currentView, dimensionsConfig }
+    return currentView
 }
 
 const useVarDatapageData = (
     config: MultiDimDataPageConfig,
-    currentView: View<IndicatorsAfterPreProcessing> | undefined,
-    variableIdToGrapherConfigMap: Record<number, string | null> | undefined
+    currentView: ViewEnriched | undefined
 ) => {
     const [varDatapageData, setVarDatapageData] =
         useState<DataPageDataV2 | null>(null)
@@ -164,7 +157,7 @@ const useVarDatapageData = (
                     currentView?.config
                 )
         )
-        const grapherConfigUuid = variableIdToGrapherConfigMap?.[variableId]
+        const grapherConfigUuid = currentView?.fullConfigId
         const grapherConfigPromise = grapherConfigUuid
             ? cachedGetGrapherConfigByUuid(grapherConfigUuid)
             : null
@@ -188,10 +181,10 @@ const useVarDatapageData = (
             .catch(console.error)
     }, [
         config.config?.metadata,
+        currentView?.fullConfigId,
         currentView?.indicators,
         currentView?.config,
         currentView?.metadata,
-        variableIdToGrapherConfigMap,
     ])
 
     return {
@@ -206,7 +199,6 @@ export const MultiDimDataPageContent = ({
     configObj,
     // isPreviewing = false,
     faqEntries,
-    variableIdToGrapherConfigMap,
     primaryTopic,
     canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
     tagToSlugMap,
@@ -230,9 +222,9 @@ export const MultiDimDataPageContent = ({
         return selectedChoices
     })
 
-    const { currentView, dimensionsConfig } = useView(currentSettings, config)
+    const currentView = useView(currentSettings, config)
     const { varDatapageData, varGrapherConfig, grapherConfigIsReady } =
-        useVarDatapageData(config, currentView, variableIdToGrapherConfigMap)
+        useVarDatapageData(config, currentView)
 
     // This is the ACTUAL grapher instance being used, because GrapherFigureView/GrapherWithFallback are doing weird things and are not actually using the grapher instance we pass into it
     // and therefore we can not access the grapher state (e.g. tab, selection) from the grapher instance we pass into it
@@ -272,7 +264,6 @@ export const MultiDimDataPageContent = ({
 
     const grapherConfigComputed = useMemo(() => {
         const baseConfig: GrapherProgrammaticInterface = {
-            selectedEntityNames: config.config.defaultSelection ?? [],
             bounds,
             manager: {}, // Don't resize while data is loading.
         }
@@ -280,8 +271,6 @@ export const MultiDimDataPageContent = ({
         if (!grapherConfigIsReady) return baseConfig
         return {
             ...varGrapherConfig,
-            ...currentView?.config,
-            dimensions: dimensionsConfig,
             ...baseConfig,
             dataApiUrl: DATA_API_URL,
             // TODO: The way manager and slug are set here are just workarounds to make the edit button in the
@@ -291,15 +280,7 @@ export const MultiDimDataPageContent = ({
             },
             slug: "DUMMY",
         } as GrapherProgrammaticInterface
-    }, [
-        varGrapherConfig,
-        grapherConfigIsReady,
-        currentView,
-        dimensionsConfig,
-        bounds,
-        config,
-        canonicalUrl,
-    ])
+    }, [varGrapherConfig, grapherConfigIsReady, bounds, canonicalUrl])
 
     const hasTopicTags = !!config.config.topicTags?.length
 
