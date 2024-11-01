@@ -185,6 +185,7 @@ async function updateMultiDimViewChartConfig(
         .update({
             patch: serializeChartConfig(patchConfig),
             full: serializeChartConfig(fullConfig),
+            updatedAt: new Date(), // It's not updated automatically in the DB.
         })
         .where({ id: chartConfigId })
 
