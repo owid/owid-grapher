@@ -8,7 +8,9 @@ import {
     BAKED_BASE_URL,
     ADMIN_BASE_URL,
     DATA_API_URL,
+    FEATURE_FLAGS,
 } from "../settings/serverSettings.js"
+import { FeatureFlagFeature } from "../settings/clientSettings.js"
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import {
     OldChartFieldList,
@@ -1175,7 +1177,10 @@ putRouteWithRWTransaction(
         }
         const rawConfig = req.body as MultiDimDataPageConfigRaw
         const id = await createMultiDimConfig(trx, slug, rawConfig)
-        if (await isMultiDimDataPagePublished(trx, id)) {
+        if (
+            FEATURE_FLAGS.has(FeatureFlagFeature.MultiDimDataPage) &&
+            (await isMultiDimDataPagePublished(trx, id))
+        ) {
             await triggerStaticBuild(
                 res.locals.user,
                 `Publishing multidimensional chart ${slug}`
