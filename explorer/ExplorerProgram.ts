@@ -7,6 +7,7 @@ import {
     SubNavId,
     FacetAxisDomain,
     GrapherInterface,
+    AxisMinMaxValueStr,
 } from "@ourworldindata/types"
 import {
     CoreTable,
@@ -56,7 +57,7 @@ interface ExplorerGrapherInterface extends GrapherInterface {
     colorVariableId?: string
     sizeVariableId?: string
     yScaleToggle?: boolean
-    yAxisMin?: number
+    yAxisMin?: number | AxisMinMaxValueStr.auto
     facetYDomain?: FacetAxisDomain
     relatedQuestionText?: string
     relatedQuestionUrl?: string

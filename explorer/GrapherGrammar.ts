@@ -15,7 +15,7 @@ import {
     EnumCellDef,
     Grammar,
     IntegerCellDef,
-    NumericCellDef,
+    NumericOrAutoCellDef,
     SlugDeclarationCellDef,
     SlugsDeclarationCellDef,
     StringCellDef,
@@ -149,7 +149,7 @@ export const GrapherGrammar: Grammar = {
         description: "Set to 'true' if the user can change the yAxis",
     },
     yAxisMin: {
-        ...NumericCellDef,
+        ...NumericOrAutoCellDef,
         keyword: "yAxisMin",
         description: "Set the minimum value for the yAxis",
     },

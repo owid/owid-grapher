@@ -9,6 +9,7 @@ import {
     GrapherInterface,
     GrapherQueryParams,
     GrapherTabOption,
+    AxisMinMaxValueStr,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -459,7 +460,8 @@ export class Explorer
         } = this.explorerProgram.grapherConfig
 
         grapher.yAxis.canChangeScaleType = yScaleToggle
-        grapher.yAxis.min = yAxisMin
+        grapher.yAxis.min =
+            yAxisMin === AxisMinMaxValueStr.auto ? Infinity : yAxisMin
         if (facetYDomain) {
             grapher.yAxis.facetDomain = facetYDomain
         }
