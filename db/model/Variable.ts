@@ -397,6 +397,9 @@ export async function updateGrapherConfigETLOfVariable(
         variableId,
     })
 
+    // Set the updatedAt manually instead of letting the DB do it so it is the
+    // same across different tables. The inconsistency caused issues in the
+    // past in chart-sync.
     const now = new Date()
 
     if (variable.etl) {
@@ -478,6 +481,9 @@ export async function updateGrapherConfigAdminOfVariable(
         patchConfigAdmin
     )
 
+    // Set the updatedAt manually instead of letting the DB do it so it is the
+    // same across different tables. The inconsistency caused issues in the
+    // past in chart-sync.
     const now = new Date()
 
     if (variable.admin) {
