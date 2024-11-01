@@ -3,7 +3,6 @@ import {
     getVariableMetadataRoute,
     GRAPHER_PAGE_BODY_CLASS,
     LoadingIndicator,
-    defaultGrapherConfig,
 } from "@ourworldindata/grapher"
 import {
     PostReference,
@@ -13,7 +12,6 @@ import {
     uniq,
     SiteFooterContext,
     Url,
-    diffGrapherConfigs,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import React from "react"
@@ -66,11 +64,8 @@ export const GrapherPage = (props: {
     const imageWidth = "1200"
     const imageHeight = "628"
 
-    // We bake the Grapher config without defaults
-    const grapherToBake = diffGrapherConfigs(grapher, defaultGrapherConfig)
-
     const script = `const jsonConfig = ${serializeJSONForHTML({
-        ...grapherToBake,
+        ...grapher,
         adminBaseUrl: ADMIN_BASE_URL,
         bakedGrapherURL: BAKED_GRAPHER_URL,
         dataApiUrl: DATA_API_URL,

@@ -40,7 +40,7 @@ import {
 import { DecisionMatrix } from "./ExplorerDecisionMatrix.js"
 import { ExplorerGrammar } from "./ExplorerGrammar.js"
 import { GrapherGrammar } from "./GrapherGrammar.js"
-import { defaultGrapherConfig } from "@ourworldindata/grapher"
+import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 
 export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 
@@ -399,7 +399,7 @@ export class ExplorerProgram extends GridProgram {
         const mergedConfig = merge({}, ...partialConfigs)
 
         // assume config is valid against the latest schema
-        mergedConfig.$schema = defaultGrapherConfig.$schema
+        mergedConfig.$schema = latestGrapherConfigSchema
 
         // TODO: can be removed once relatedQuestions is refactored
         const { relatedQuestionUrl, relatedQuestionText } =

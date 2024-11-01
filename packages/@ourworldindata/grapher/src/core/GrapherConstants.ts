@@ -1,3 +1,4 @@
+import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
 import type { GrapherProgrammaticInterface } from "./Grapher"
 
 export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
@@ -44,6 +45,8 @@ export const GRAPHER_FONT_SCALE_12 = 12 / BASE_FONT_SIZE
 export const GRAPHER_FONT_SCALE_12_8 = 12.8 / BASE_FONT_SIZE
 export const GRAPHER_FONT_SCALE_13 = 13 / BASE_FONT_SIZE
 export const GRAPHER_FONT_SCALE_14 = 14 / BASE_FONT_SIZE
+
+export const latestGrapherConfigSchema = defaultGrapherConfig.$schema
 
 export enum CookieKey {
     isAdmin = "isAdmin",

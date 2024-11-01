@@ -75,7 +75,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
 
     /** parent variable id, derived from the config */
     @computed get parentVariableId(): number | undefined {
-        return getParentVariableIdFromChartConfig(this.fullConfig)
+        return getParentVariableIdFromChartConfig(this.liveConfig)
     }
 
     @computed get availableTabs(): EditorTab[] {

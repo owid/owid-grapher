@@ -1964,7 +1964,7 @@ export function traverseObjects<T extends Record<string, any>>(
 }
 
 export function getParentVariableIdFromChartConfig(
-    config: GrapherInterface // could be a patch config
+    config: GrapherInterface
 ): number | undefined {
     const { type = ChartTypeName.LineChart, dimensions } = config
 

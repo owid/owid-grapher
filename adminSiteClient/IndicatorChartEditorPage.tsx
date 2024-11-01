@@ -11,7 +11,7 @@ import {
     IndicatorChartEditorManager,
     type Chart,
 } from "./IndicatorChartEditor.js"
-import { defaultGrapherConfig } from "@ourworldindata/grapher"
+import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 
 @observer
 export class IndicatorChartEditorPage
@@ -40,7 +40,7 @@ export class IndicatorChartEditorPage
         )
         if (isEmpty(config)) {
             this.patchConfig = {
-                $schema: defaultGrapherConfig.$schema,
+                $schema: latestGrapherConfigSchema,
                 dimensions: [{ variableId, property: DimensionProperty.y }],
             }
             this.isNewGrapher = true
