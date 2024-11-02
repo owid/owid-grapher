@@ -18,7 +18,9 @@ import {
 
 function explorerViewRecordToChartRecord(
     e: ExplorerViewFinalRecord
-): ChartRecord {
+): ChartRecord & {
+    viewTitleIndexWithinExplorer: number
+} {
     return {
         type: ChartRecordType.ExplorerView,
         objectID: e.objectID!,
@@ -37,6 +39,7 @@ function explorerViewRecordToChartRecord(
         titleLength: e.titleLength,
         numRelatedArticles: 0,
         views_7d: e.explorerViews_7d,
+        viewTitleIndexWithinExplorer: e.viewTitleIndexWithinExplorer,
         score: e.score,
     }
 }
