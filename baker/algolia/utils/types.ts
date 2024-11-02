@@ -37,55 +37,10 @@ export interface ParsedChartRecordRow {
 }
 
 /** Explorers */
-export interface ExplorerViewEntry {
-    viewTitle: string
-    viewSubtitle: string
-    viewSettings: string[]
-    viewQueryParams: string
-    availableEntities: string[]
-
-    viewGrapherId?: number
-    yVariableIds: Array<string | number> // Variable IDs or ETL paths
-    tableSlug?: string
-    ySlugs: string[]
-
-    /**
-     * We often have several views with the same title within an explorer, e.g. "Population".
-     * In order to only display _one_ of these views in search results, we need a way to demote duplicates.
-     * This attribute is used for that: The highest-scored such view will be given a value of 0, the second-highest 1, etc.
-     */
-    viewTitleIndexWithinExplorer: number
-
-    // Potential ranking criteria
-    viewIndexWithinExplorer: number
-    titleLength: number
-    numNonDefaultSettings: number
-    // viewViews_7d: number
-}
-
-export type ExplorerViewWithoutViewTitleIndex = Omit<
-    ExplorerViewEntry,
-    "viewTitleIndexWithinExplorer"
->
-
 export type EntitiesByColumnDictionary = Record<
     string,
     Record<string, string[]>
 >
-
-export interface ExplorerViewEntryWithExplorerInfo extends ExplorerViewEntry {
-    explorerSlug: string
-    explorerTitle: string
-    explorerSubtitle: string
-    explorerViews_7d: number
-    viewTitleAndExplorerSlug: string // used for deduplication: `viewTitle | explorerSlug`
-    numViewsWithinExplorer: number
-    tags: string[]
-
-    score: number
-
-    objectID?: string
-}
 
 export type ExplorerIndicatorMetadataFromDb = Pick<
     DbEnrichedVariable,
@@ -169,6 +124,11 @@ export interface ExplorerViewFinalRecord {
     explorerTitle: string
     viewTitle: string
     viewSettings: string[]
+    /**
+     * We often have several views with the same title within an explorer, e.g. "Population".
+     * In order to only display _one_ of these views in search results, we need a way to demote duplicates.
+     * This attribute is used for that: The highest-scored such view will be given a value of 0, the second-highest 1, etc.
+     */
     viewTitleIndexWithinExplorer: number
     score: number
     viewIndexWithinExplorer: number

@@ -293,15 +293,11 @@ const createBaseRecords = (
     explorerInfo: MinimalExplorerInfo,
     matrix: DecisionMatrix
 ): ExplorerViewBaseRecord[] => {
-    return (
-        matrix
-            .allDecisionsAsQueryParams()
-            // TODO: remove me, testing only
-            // .slice (0, 5)
-            .map((choice: ExplorerChoiceParams, index: number) =>
-                createBaseRecord(choice, matrix, index, explorerInfo)
-            )
-    )
+    return matrix
+        .allDecisionsAsQueryParams()
+        .map((choice: ExplorerChoiceParams, index: number) =>
+            createBaseRecord(choice, matrix, index, explorerInfo)
+        )
 }
 
 const fetchGrapherInfo = async (
