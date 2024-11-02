@@ -1,6 +1,5 @@
 import {
     countries,
-    excludeNullish,
     orderBy,
     removeTrailingParenthetical,
 } from "@ourworldindata/utils"

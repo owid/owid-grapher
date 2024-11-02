@@ -1,4 +1,3 @@
-import fs from "fs/promises"
 import {
     ExplorerChoiceParams,
     ExplorerControlType,
@@ -6,7 +5,7 @@ import {
     DecisionMatrix,
     TableDef,
 } from "@ourworldindata/explorer"
-import { at, get, groupBy, mapValues, orderBy, partition } from "lodash"
+import { at, get, groupBy, mapValues, orderBy, partition, uniq } from "lodash"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { logErrorAndMaybeSendToBugsnag } from "../../../serverUtils/errorLog.js"
 import { obtainAvailableEntitiesForAllGraphers } from "../../updateChartEntities.js"
@@ -19,7 +18,7 @@ import { parseDelimited } from "@ourworldindata/core-table"
 import {
     ColumnTypeNames,
     CoreRow,
-    DbEnrichedVariable,
+    MinimalExplorerInfo,
 } from "@ourworldindata/types"
 
 import * as db from "../../../db/db.js"
@@ -27,12 +26,21 @@ import { DATA_API_URL } from "../../../settings/serverSettings.js"
 import { keyBy } from "@ourworldindata/utils"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import {
-    ExplorerViewEntry,
-    ExplorerViewEntryWithExplorerInfo,
-    GrapherInfo,
-    IndicatorMetadata,
+    CsvUnenrichedExplorerViewRecord,
+    EnrichedExplorerRecord,
+    EntitiesByColumnDictionary,
+    ExplorerIndicatorMetadataDictionary,
+    ExplorerIndicatorMetadataFromDb,
+    ExplorerViewFinalRecord,
+    ExplorerViewBaseRecord,
+    ExplorerViewGrapherInfo,
+    GrapherEnrichedExplorerViewRecord,
+    GrapherUnenrichedExplorerViewRecord,
+    IndicatorEnrichedExplorerViewRecord,
+    IndicatorUnenrichedExplorerViewRecord,
+    CsvEnrichedExplorerViewRecord,
 } from "./types.js"
-import { processAvailableEntities } from "./shared.js"
+import { processAvailableEntities as processRecordAvailableEntities } from "./shared.js"
 
 // Creates a search-ready string from a choice.
 // Special handling is pretty much only necessary for checkboxes: If they are not ticked, then their name is not included.
@@ -50,24 +58,21 @@ const explorerChoiceToViewSettings = (
     })
 }
 
-type ExplorerIndicatorMetadata = Record<
-    string | number,
-    {
-        entityNames?: string[]
-        display: DbEnrichedVariable["display"]
-        titlePublic: DbEnrichedVariable["titlePublic"]
-        descriptionShort: DbEnrichedVariable["descriptionShort"]
-        name: DbEnrichedVariable["name"]
-    }
->
-
+/**
+ * Takes records with `yVariableIds` and fetches their metadata.
+ * First it fetches base metadata from the DB, then it fetches availableEntities from S3.
+ * Returns a dictionary of metadata by id (and path, when possible):
+ * ```
+ * {
+ *   123: { id: 123, name: "GDP", entityNames: ["United States", "Canada"] },
+ *   "an/etl#path": { id: "an/etl#path", name: "GDP", entityNames: ["United States", "Canada"] }
+ * }
+ * ```
+ */
 async function fetchIndicatorMetadata(
-    records: Omit<
-        ExplorerViewEntry,
-        "viewTitleIndexWithinExplorer" | "titleLength"
-    >[],
+    records: IndicatorUnenrichedExplorerViewRecord[],
     trx: db.KnexReadonlyTransaction
-): Promise<ExplorerIndicatorMetadata> {
+): Promise<ExplorerIndicatorMetadataDictionary> {
     function checkIsETLPath(idOrPath: string | number): idOrPath is string {
         return typeof idOrPath === "string"
     }
@@ -95,7 +100,6 @@ async function fetchIndicatorMetadata(
                 "name",
                 "titlePublic",
                 "display",
-                "name",
                 "descriptionShort"
             )
             .whereIn("id", [...ids])
@@ -103,12 +107,12 @@ async function fetchIndicatorMetadata(
     ).map((row) => ({
         ...row,
         display: row.display ? JSON.parse(row.display) : {},
-    })) as DbEnrichedVariable[]
+    })) as ExplorerIndicatorMetadataFromDb[]
 
     const indicatorMetadataByIdAndPath = {
         ...keyBy(metadataFromDB, "id"),
         ...keyBy(metadataFromDB, "catalogPath"),
-    } as ExplorerIndicatorMetadata
+    } as ExplorerIndicatorMetadataDictionary
 
     async function fetchEntitiesForId(id?: number) {
         if (id) {
@@ -178,9 +182,19 @@ function makeAggregator(entityNameSlug: string) {
     }
 }
 
+/**
+ * Fetches the CSVs for all of an explorer's tables, parses them, and aggregates their entities per column.
+ * Returns an object like:
+ * ```
+ * {
+ *   almonds: { population: ["United States", "Canada"], food__tonnes: ["United States"] },
+ *   olives: { population: ["United States", "Canada"], food__tonnes: ["United States", "Greece"] },
+ * }
+ * ```
+ */
 async function getEntitiesPerColumnPerTable(
     tableDefs: TableDef[]
-): Promise<Record<string, Record<string, string[]>>> {
+): Promise<EntitiesByColumnDictionary> {
     return pMap(
         tableDefs,
         (tableDef) => {
@@ -202,7 +216,6 @@ async function getEntitiesPerColumnPerTable(
                         (set) => Array.from(set)
                     ) as Record<string, string[]>
 
-                    // Return an object like `{ almonds: { population: ["United States", "Canada"], area_harvested__ha: ["United States"] } }`
                     return { [tableDef.slug!]: entityNamesAsArray }
                 })
         },
@@ -213,11 +226,12 @@ async function getEntitiesPerColumnPerTable(
     ).then((results) => Object.assign({}, ...results))
 }
 
-const computeExplorerViewScore = (
-    record: Omit<ExplorerViewEntry, "viewTitleIndexWithinExplorer"> &
-        Partial<ExplorerViewEntryWithExplorerInfo>
-) =>
-    (record.explorerViews_7d ?? 0) * 10 -
+const computeExplorerViewScore = (record: {
+    explorerViews_7d: number
+    numNonDefaultSettings: number
+    titleLength: number
+}) =>
+    (record.explorerViews_7d || 0) * 10 -
     record.numNonDefaultSettings * 50 -
     record.titleLength
 
@@ -252,17 +266,18 @@ const getNonDefaultSettings = (
 const createBaseRecord = (
     choice: ExplorerChoiceParams,
     matrix: DecisionMatrix,
-    index: number
-): Partial<ExplorerViewEntry> => {
+    index: number,
+    explorerInfo: MinimalExplorerInfo
+): ExplorerViewBaseRecord => {
     matrix.setValuesFromChoiceParams(choice)
     const nonDefaultSettings = getNonDefaultSettings(choice, matrix)
     const yVariableIds = parseYVariableIds(matrix.selectedRow)
 
     return {
+        availableEntities: [],
         viewTitle: matrix.selectedRow.title,
         viewSubtitle: matrix.selectedRow.subtitle,
         viewSettings: explorerChoiceToViewSettings(choice, matrix),
-        availableEntities: [],
         viewGrapherId: matrix.selectedRow.grapherId,
         yVariableIds,
         viewQueryParams: matrix.toString(),
@@ -270,19 +285,21 @@ const createBaseRecord = (
         numNonDefaultSettings: nonDefaultSettings.length,
         tableSlug: matrix.selectedRow.tableSlug,
         ySlugs: matrix.selectedRow.ySlugs?.split(" ") || [],
+        explorerSlug: explorerInfo.slug,
     }
 }
 
 const createBaseRecords = (
+    explorerInfo: MinimalExplorerInfo,
     matrix: DecisionMatrix
-): Partial<ExplorerViewEntry>[] => {
+): ExplorerViewBaseRecord[] => {
     return (
         matrix
             .allDecisionsAsQueryParams()
             // TODO: remove me, testing only
-            .slice(0, 5)
+            // .slice (0, 5)
             .map((choice: ExplorerChoiceParams, index: number) =>
-                createBaseRecord(choice, matrix, index)
+                createBaseRecord(choice, matrix, index, explorerInfo)
             )
     )
 }
@@ -290,7 +307,7 @@ const createBaseRecords = (
 const fetchGrapherInfo = async (
     trx: db.KnexReadonlyTransaction,
     grapherIds: number[]
-): Promise<Record<number, GrapherInfo>> => {
+): Promise<Record<number, ExplorerViewGrapherInfo>> => {
     return await trx
         .select(
             trx.raw("charts.id as id"),
@@ -304,20 +321,19 @@ const fetchGrapherInfo = async (
         .then((rows) => keyBy(rows, "id"))
 }
 
-const enrichRecordWithGrapherInfo = (
-    record: Partial<ExplorerViewEntry>,
-    grapherInfo: Record<number, GrapherInfo>,
+async function enrichRecordWithGrapherInfo(
+    record: GrapherUnenrichedExplorerViewRecord,
+    grapherInfo: Record<number, ExplorerViewGrapherInfo>,
     availableEntities: Map<number, { availableEntities: string[] }>,
-    slug: string
-): Partial<ExplorerViewEntry> => {
-    if (!record.viewGrapherId) return record
-
+    explorerInfo: MinimalExplorerInfo
+): Promise<GrapherEnrichedExplorerViewRecord | undefined> {
     const grapher = grapherInfo[record.viewGrapherId]
     if (!grapher) {
-        console.warn(
-            `Grapher id ${record.viewGrapherId} not found for explorer ${slug}`
-        )
-        return record
+        await logErrorAndMaybeSendToBugsnag({
+            name: "ExplorerViewGrapherMissing",
+            message: `Explorer with slug "${explorerInfo.slug}" has a view with a missing grapher: ${record.viewQueryParams}.`,
+        })
+        return
     }
 
     return {
@@ -327,22 +343,20 @@ const enrichRecordWithGrapherInfo = (
             [],
         viewTitle: grapher.title,
         viewSubtitle: grapher.subtitle,
+        titleLength: grapher.title.length,
     }
 }
 
 const enrichWithGrapherData = async (
-    records: Partial<ExplorerViewEntry>[],
     trx: db.KnexReadonlyTransaction,
-    slug: string
-): Promise<Partial<ExplorerViewEntry>[]> => {
-    const grapherIds = records
-        .filter((record) => record.viewGrapherId !== undefined)
-        .map((record) => record.viewGrapherId as number)
-
-    if (!grapherIds.length) return records
+    records: GrapherUnenrichedExplorerViewRecord[],
+    explorerInfo: MinimalExplorerInfo
+): Promise<GrapherEnrichedExplorerViewRecord[]> => {
+    if (!records.length) return []
+    const grapherIds = records.map((record) => record.viewGrapherId as number)
 
     console.log(
-        `Fetching grapher configs from ${grapherIds.length} graphers for explorer ${slug}`
+        `Fetching grapher configs from ${grapherIds.length} graphers for explorer ${explorerInfo.slug}`
     )
     const grapherInfo = await fetchGrapherInfo(trx, grapherIds)
     const availableEntities = await obtainAvailableEntitiesForAllGraphers(
@@ -350,167 +364,213 @@ const enrichWithGrapherData = async (
         grapherIds
     )
 
-    return records.map((record) =>
-        enrichRecordWithGrapherInfo(
+    const enrichedRecords: GrapherEnrichedExplorerViewRecord[] = []
+    for (const record of records) {
+        const enrichedRecord = await enrichRecordWithGrapherInfo(
             record,
             grapherInfo,
             availableEntities,
-            slug
+            explorerInfo
         )
-    )
+        if (enrichedRecord) enrichedRecords.push(enrichedRecord)
+    }
+    return enrichedRecords
 }
 
-const enrichRecordWithTableData = (
-    record: Partial<ExplorerViewEntry>,
-    entitiesPerColumnPerTable: Record<string, Record<string, string[]>>
-): Partial<ExplorerViewEntry> => {
-    const { tableSlug, ySlugs } = record
-    if (!tableSlug || !ySlugs?.length) return record
+async function enrichRecordWithTableData(
+    record: CsvUnenrichedExplorerViewRecord,
+    entitiesPerColumnPerTable: EntitiesByColumnDictionary
+): Promise<CsvEnrichedExplorerViewRecord | undefined> {
+    const { tableSlug, ySlugs, viewTitle } = record
+    if (!tableSlug || !ySlugs?.length || !viewTitle) {
+        await logErrorAndMaybeSendToBugsnag({
+            name: "ExplorerViewMissingData",
+            message: `Explorer with slug "${record.explorerSlug}" has a view with missing data: ${record.viewQueryParams}.`,
+        })
+        return
+    }
 
-    // console.log("tableSlug", tableSlug)
-    // console.log("ySlugs", ySlugs)
-    // console.log("entitiesPerColumnPerTable", entitiesPerColumnPerTable)
     const availableEntities = ySlugs
         .flatMap((ySlug) => entitiesPerColumnPerTable[tableSlug][ySlug])
         .filter((name, i, array) => !!name && array.indexOf(name) === i)
 
-    return { ...record, availableEntities }
-}
-
-const enrichRecordWithIndicatorData = (
-    record: Partial<ExplorerViewEntry>,
-    indicatorMetadata: Record<string | number, IndicatorMetadata>
-): Partial<ExplorerViewEntry> => {
-    if (!record.yVariableIds?.length) return record
-
-    const allEntities = at(indicatorMetadata, record.yVariableIds)
-        .flatMap((meta) => meta.entityNames)
-        .filter(
-            (name, i, array): name is string =>
-                array.indexOf(name) === i && !!name
-        )
-
-    const result = { ...record, availableEntities: allEntities }
-
-    const firstYIndicator = record.yVariableIds[0]
-    if (firstYIndicator === undefined) return result
-
-    const indicatorInfo = indicatorMetadata[firstYIndicator]
-    if (!indicatorInfo) return result
-
     return {
-        ...result,
-        viewTitle:
-            record.viewTitle ??
-            indicatorInfo.titlePublic ??
-            indicatorInfo.display?.name ??
-            indicatorInfo.name,
-        viewSubtitle: record.viewSubtitle ?? indicatorInfo.descriptionShort,
+        ...record,
+        availableEntities,
+        titleLength: viewTitle.length,
     }
 }
 
-const enrichWithMetadata = async (
-    records: Partial<ExplorerViewEntry>[],
-    indicatorMetadata: Record<string | number, IndicatorMetadata>,
-    entitiesPerColumnPerTable: Record<string, Record<string, string[]>>
-): Promise<Partial<ExplorerViewEntry>[]> => {
-    return records.map((record) => {
-        const withTableData = enrichRecordWithTableData(
+async function enrichWithTableData(
+    records: CsvUnenrichedExplorerViewRecord[],
+    entitiesPerColumnPerTable: EntitiesByColumnDictionary
+): Promise<CsvEnrichedExplorerViewRecord[]> {
+    const enrichedRecords: CsvEnrichedExplorerViewRecord[] = []
+
+    for (const record of records) {
+        const enrichedRecord = await enrichRecordWithTableData(
             record,
             entitiesPerColumnPerTable
         )
-        return enrichRecordWithIndicatorData(withTableData, indicatorMetadata)
-    })
+        if (enrichedRecord) {
+            enrichedRecords.push(enrichedRecord)
+        }
+    }
+    return enrichedRecords
 }
 
-const cleanSubtitles = (
-    records: Partial<ExplorerViewEntry>[]
-): Partial<ExplorerViewEntry>[] => {
-    return records.map((record) => ({
+function enrichRecordWithIndicatorData(
+    record: IndicatorUnenrichedExplorerViewRecord,
+    indicatorMetadataDictionary: ExplorerIndicatorMetadataDictionary
+): IndicatorEnrichedExplorerViewRecord {
+    const allEntityNames = at(
+        indicatorMetadataDictionary,
+        record.yVariableIds
+    ).flatMap((meta) => meta.entityNames)
+
+    const uniqueNonEmptyEntityNames = uniq(allEntityNames).filter(
+        Boolean
+    ) as string[]
+
+    const firstYIndicator = record.yVariableIds[0]
+
+    const indicatorInfo = indicatorMetadataDictionary[firstYIndicator]
+
+    const viewTitle =
+        record.viewTitle ||
+        indicatorInfo.titlePublic ||
+        indicatorInfo.display?.name ||
+        (indicatorInfo.name as string)
+
+    const viewSubtitle =
+        record.viewSubtitle || (indicatorInfo.descriptionShort as string)
+
+    return {
         ...record,
-        viewSubtitle: record.viewSubtitle
+        availableEntities: uniqueNonEmptyEntityNames,
+        viewTitle,
+        viewSubtitle,
+        titleLength: viewTitle.length,
+    }
+}
+
+const enrichWithIndicatorMetadata = async (
+    indicatorBaseRecords: IndicatorUnenrichedExplorerViewRecord[],
+    indicatorMetadataDictionary: ExplorerIndicatorMetadataDictionary
+): Promise<IndicatorEnrichedExplorerViewRecord[]> => {
+    return indicatorBaseRecords.map((indicatorBaseRecord) =>
+        enrichRecordWithIndicatorData(
+            indicatorBaseRecord,
+            indicatorMetadataDictionary
+        )
+    )
+}
+
+function processSubtitles(
+    records: EnrichedExplorerRecord[]
+): EnrichedExplorerRecord[] {
+    return records.map((record) => {
+        // Remove markdown links from text
+        const viewSubtitle = record.viewSubtitle
             ? new MarkdownTextWrap({
                   text: record.viewSubtitle,
                   fontSize: 10,
               }).plaintext
-            : undefined,
-    }))
+            : undefined
+        return {
+            ...record,
+            viewSubtitle,
+        } as EnrichedExplorerRecord
+    })
 }
 
-async function logMissingTitles(
-    records: Partial<ExplorerViewEntry>[],
-    slug: string
-): Promise<void> {
+async function processAvailableEntities(
+    records: EnrichedExplorerRecord[]
+): Promise<EnrichedExplorerRecord[]> {
+    const processedRecords: EnrichedExplorerRecord[] = []
     for (const record of records) {
-        await logErrorAndMaybeSendToBugsnag({
-            name: "ExplorerViewTitleMissing",
-            message: `Explorer ${slug} has a view with no title: ${record.viewQueryParams}.`,
-        })
+        const availableEntities = processRecordAvailableEntities(
+            record.availableEntities
+        )
+        if (!availableEntities) {
+            await logErrorAndMaybeSendToBugsnag({
+                name: "ExplorerViewMissingData",
+                message: `Explorer with slug "${record.explorerSlug}" has a view with missing entities: ${record.viewQueryParams}.`,
+            })
+        } else {
+            processedRecords.push({
+                ...record,
+                availableEntities,
+            })
+        }
     }
+    return processedRecords
 }
 
 async function finalizeRecords(
-    records: Partial<ExplorerViewEntry>[],
-    slug: string
-): Promise<ExplorerViewEntry[]> {
-    const [withTitle, withoutTitle] = partition(
-        records,
-        (record) => record.viewTitle !== undefined
+    records: EnrichedExplorerRecord[],
+    slug: string,
+    pageviews: Record<string, { views_7d: number }>,
+    explorerInfo: MinimalExplorerInfo
+): Promise<ExplorerViewFinalRecord[]> {
+    const withCleanSubtitles = processSubtitles(records)
+
+    const withCleanEntities = await processAvailableEntities(withCleanSubtitles)
+
+    const withPageviews = withCleanEntities.map((record) => ({
+        ...record,
+        explorerViews_7d: get(pageviews, [`/explorers/${slug}`, "views_7d"], 0),
+    }))
+
+    const unsortedFinalRecords = withPageviews.map(
+        (
+            record,
+            i
+        ): Omit<ExplorerViewFinalRecord, "viewTitleIndexWithinExplorer"> => ({
+            ...record,
+            viewSettings: record.viewSettings.filter((x): x is string => !!x),
+            viewTitle: record.viewTitle!,
+            viewSubtitle: record.viewSubtitle!,
+            explorerSlug: explorerInfo.slug,
+            explorerTitle: explorerInfo.title,
+            explorerSubtitle: explorerInfo.subtitle,
+            viewTitleAndExplorerSlug: `${record.viewTitle} | ${explorerInfo.slug}`,
+            numViewsWithinExplorer: withPageviews.length,
+            tags: explorerInfo.tags,
+            objectID: `${explorerInfo.slug}-${i}`,
+            score: computeExplorerViewScore(record),
+        })
     )
 
-    await logMissingTitles(withoutTitle, slug)
-
-    const withCleanSubtitles = cleanSubtitles(withTitle)
-
-    const withTitleLength = withCleanSubtitles.map((record) => ({
-        ...record,
-        titleLength: record.viewTitle!.length,
-    })) as Omit<ExplorerViewEntry, "viewTitleIndexWithinExplorer">[]
-
-    const withCleanedEntities = [] as Omit<
-        ExplorerViewEntry,
-        "viewTitleIndexWithinExplorer"
-    >[]
-
-    for (const record of withTitleLength) {
-        const cleanedEntities = processAvailableEntities(
-            record.availableEntities
-        )
-        if (!cleanedEntities.length) {
-            await logErrorAndMaybeSendToBugsnag({
-                name: "ExplorerViewNoEntities",
-                message: `Explorer ${slug} has a view with no entities: ${record.viewQueryParams}.`,
-            })
-        }
-        withCleanedEntities.push({
-            ...record,
-            availableEntities: cleanedEntities,
-        })
-    }
-
     const sortedByScore = orderBy(
-        withCleanedEntities,
+        unsortedFinalRecords,
         computeExplorerViewScore,
         "desc"
-    ) as Omit<ExplorerViewEntry, "viewTitleIndexWithinExplorer">[]
+    )
 
     const groupedByTitle = groupBy(sortedByScore, "viewTitle")
 
-    return Object.values(groupedByTitle).flatMap((group, i) =>
-        group.map((record) => ({
-            ...record,
-            viewTitleIndexWithinExplorer: i,
-        }))
+    const indexedExplorerViewData = Object.values(groupedByTitle).flatMap(
+        (records) =>
+            records.map((record, i) => ({
+                ...record,
+                viewTitleIndexWithinExplorer: i,
+            }))
     )
+
+    return indexedExplorerViewData
 }
 
-export const getExplorerViewRecordsForExplorerSlug = async (
+export const getExplorerViewRecordsForExplorer = async (
     trx: db.KnexReadonlyTransaction,
-    slug: string,
+    explorerInfo: MinimalExplorerInfo,
+    pageviews: Record<string, { views_7d: number }>,
     explorerAdminServer: ExplorerAdminServer
-): Promise<ExplorerViewEntry[]> => {
+): Promise<ExplorerViewFinalRecord[]> => {
+    const { slug } = explorerInfo
     // Get explorer program and table definitions
     const explorerProgram = await explorerAdminServer.getExplorerFromSlug(slug)
+    // TODO: why doesn't us-covid-data-explorer have tableSlugs or tableDefs?
     const tableDefs = explorerProgram.tableSlugs
         .map((tableSlug) => explorerProgram.getTableDef(tableSlug))
         .filter((x) => x && x.url && x.slug) as TableDef[]
@@ -525,59 +585,80 @@ export const getExplorerViewRecordsForExplorerSlug = async (
         "Finished fetching CSV table data and aggregating entities by column"
     )
 
-    // Create base records from decision matrix
     console.log(
-        `Processing explorer ${slug} (${explorerProgram.decisionMatrix.numRows} rows)`
+        `Creating ${explorerProgram.decisionMatrix.numRows} base records for explorer ${slug}`
     )
-    const baseRecords = createBaseRecords(explorerProgram.decisionMatrix)
+    const baseRecords = createBaseRecords(
+        explorerInfo,
+        explorerProgram.decisionMatrix
+    )
 
-    // Enrich with grapher data
-    const recordsWithGrapherData = await enrichWithGrapherData(
+    const [grapherBaseRecords, nonGrapherBaseRecords] = partition(
         baseRecords,
+        (record) => record.viewGrapherId !== undefined
+    ) as [GrapherUnenrichedExplorerViewRecord[], ExplorerViewBaseRecord[]]
+
+    const enrichedGrapherRecords = await enrichWithGrapherData(
         trx,
-        slug
+        grapherBaseRecords,
+        explorerInfo
     )
+
+    const [indicatorBaseRecords, csvBaseRecords] = partition(
+        nonGrapherBaseRecords,
+        (record) => record.yVariableIds.length > 0
+    ) as [
+        IndicatorUnenrichedExplorerViewRecord[],
+        CsvUnenrichedExplorerViewRecord[],
+    ]
 
     // Fetch and apply indicator metadata
     console.log("Fetching indicator metadata for explorer", slug)
-    const indicatorMetadata = await fetchIndicatorMetadata(
-        recordsWithGrapherData as any,
+    const indicatorMetadataDictionary = await fetchIndicatorMetadata(
+        indicatorBaseRecords,
         trx
     )
     console.log("Fetched indicator metadata for explorer", slug)
 
-    const enrichedRecords = await enrichWithMetadata(
-        recordsWithGrapherData,
-        indicatorMetadata as any,
+    const enrichedIndicatorRecords = await enrichWithIndicatorMetadata(
+        indicatorBaseRecords,
+        indicatorMetadataDictionary
+    )
+
+    const enrichedCsvRecords = await enrichWithTableData(
+        csvBaseRecords,
         entitiesPerColumnPerTable
     )
 
-    // Finalize records with titles, sorting, and grouping
-    return finalizeRecords(enrichedRecords, slug)
+    const enrichedRecords = [
+        ...enrichedGrapherRecords,
+        ...enrichedIndicatorRecords,
+        ...enrichedCsvRecords,
+    ]
+
+    // // Finalize records with titles, sorting, and grouping
+    return finalizeRecords(enrichedRecords, slug, pageviews, explorerInfo)
 }
 
 async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
     const explorersBySlug = await db.getPublishedExplorersBySlug(trx)
+    // The DB query gets the tags for the explorer, but we need to add the parent tags as well.
+    // This isn't done in the query because it would require a recursive CTE.
+    // It's easier to write that query once, separately, and reuse it.
     const parentTags = await db.getParentTagsByChildName(trx)
     const publishedExplorersWithTags = []
 
-    for (const explorer of Object.values(explorersBySlug).filter(
-        // TODO: testing, remove this
-        (e) => e.slug === "fish-stocks"
-    )) {
+    for (const explorer of Object.values(explorersBySlug)) {
         if (!explorer.tags.length) {
             await logErrorAndMaybeSendToBugsnag({
                 name: "ExplorerTagMissing",
-                message: `Explorer ${explorer.slug} has no tags.`,
+                message: `Explorer "${explorer.slug}" has no tags.`,
             })
         }
         const tags = new Set<string>()
-        // The DB query gets the tags for the explorer, but we need to add the parent tags as well.
-        // This isn't done in the query because it would require a recursive CTE.
-        // It's easier to write that query once, separately, and reuse it
         for (const tag of explorer.tags) {
-            tags.add(tag.name)
-            for (const parentTag of parentTags[tag.name]) {
+            tags.add(tag)
+            for (const parentTag of parentTags[tag]) {
                 tags.add(parentTag)
             }
         }
@@ -593,47 +674,24 @@ async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
 
 export const getExplorerViewRecords = async (
     trx: db.KnexReadonlyTransaction
-): Promise<ExplorerViewEntryWithExplorerInfo[]> => {
-    console.log("Fetching explorer views to index")
+): Promise<ExplorerViewFinalRecord[]> => {
+    console.log("Getting explorer view records")
     const publishedExplorersWithTags = await getExplorersWithInheritedTags(trx)
     const pageviews = await getAnalyticsPageviewsByUrlObj(trx)
 
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
-    let records = [] as ExplorerViewEntryWithExplorerInfo[]
-    for (const explorerInfo of publishedExplorersWithTags) {
-        const explorerViewRecords = await getExplorerViewRecordsForExplorerSlug(
-            trx,
-            explorerInfo.slug,
-            explorerAdminServer
-        )
-
-        const explorerPageviews = get(
-            pageviews,
-            [`/explorers/${explorerInfo.slug}`, "views_7d"],
-            0
-        )
-        // These have a score for ranking purposes, but it doesn't yet factor in the explorer's pageviews
-        const unscoredRecords = explorerViewRecords.map(
-            (record, i): Omit<ExplorerViewEntryWithExplorerInfo, "score"> => ({
-                ...record,
-                explorerSlug: explorerInfo.slug,
-                explorerTitle: explorerInfo.title,
-                explorerSubtitle: explorerInfo.subtitle,
-                explorerViews_7d: explorerPageviews,
-                viewTitleAndExplorerSlug: `${record.viewTitle} | ${explorerInfo.slug}`,
-                numViewsWithinExplorer: explorerViewRecords.length,
-                tags: explorerInfo.tags,
-                objectID: `${explorerInfo.slug}-${i}`,
-            })
-        )
-        records = records.concat(
-            unscoredRecords.map((record) => ({
-                ...record,
-                score: computeExplorerViewScore(record),
-            }))
-        )
-    }
+    const records = await pMap(
+        publishedExplorersWithTags,
+        (explorerInfo) =>
+            getExplorerViewRecordsForExplorer(
+                trx,
+                explorerInfo,
+                pageviews,
+                explorerAdminServer
+            ),
+        { concurrency: 1 }
+    ).then((records) => records.flat())
 
     return records
 }

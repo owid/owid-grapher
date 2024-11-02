@@ -9,7 +9,6 @@ import {
 import { registerExitHandler } from "./cleanup.js"
 import { createTagGraph, keyBy } from "@ourworldindata/utils"
 import {
-    DbChartTagJoin,
     ImageMetadata,
     MinimalDataInsightInterface,
     OwidGdocType,
@@ -28,6 +27,7 @@ import {
     OwidGdoc,
     DbPlainTag,
     TagGraphNode,
+    MinimalExplorerInfo,
 } from "@ourworldindata/types"
 import { groupBy, uniq } from "lodash"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -197,7 +197,7 @@ export const getSlugsWithPublishedGdocsSuccessors = async (
 
 export const getExplorerTags = async (
     knex: KnexReadonlyTransaction
-): Promise<{ slug: string; tags: DbChartTagJoin[] }[]> => {
+): Promise<{ slug: string; tags: Pick<DbPlainTag, "name" | "id">[] }[]> => {
     return knexRaw<{ slug: string; tags: string }>(
         knex,
         `-- sql
@@ -216,21 +216,14 @@ export const getExplorerTags = async (
     ).then((rows) =>
         rows.map((row) => ({
             slug: row.slug,
-            tags: JSON.parse(row.tags) as DbChartTagJoin[],
+            tags: JSON.parse(row.tags) as Pick<DbPlainTag, "name" | "id">[],
         }))
     )
 }
 
 export const getPublishedExplorersBySlug = async (
     knex: KnexReadonlyTransaction
-): Promise<{
-    [slug: string]: {
-        slug: string
-        title: string
-        subtitle: string
-        tags: DbChartTagJoin[]
-    }
-}> => {
+): Promise<Record<string, MinimalExplorerInfo>> => {
     const tags = await getExplorerTags(knex)
     const tagsBySlug = keyBy(tags, "slug")
     return knexRaw(
@@ -246,11 +239,14 @@ export const getPublishedExplorersBySlug = async (
             isPublished = TRUE`
     ).then((rows) => {
         const processed = rows.map((row: any) => {
+            const tagsForExplorer = tagsBySlug[row.slug]
             return {
                 slug: row.slug,
                 title: row.title,
                 subtitle: row.subtitle === "null" ? "" : row.subtitle,
-                tags: tagsBySlug[row.slug]?.tags ?? [],
+                tags: tagsForExplorer
+                    ? tagsForExplorer.tags.map((tag) => tag.name)
+                    : [],
             }
         })
         return keyBy(processed, "slug")

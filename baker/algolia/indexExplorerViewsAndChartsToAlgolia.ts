@@ -1,4 +1,3 @@
-import fs from "fs/promises"
 import Bugsnag from "@bugsnag/js"
 import * as db from "../../db/db.js"
 import { logErrorAndMaybeSendToBugsnag } from "../../serverUtils/errorLog.js"
@@ -7,7 +6,7 @@ import {
     BUGSNAG_NODE_API_KEY,
 } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
-import { ExplorerViewEntryWithExplorerInfo } from "./utils/types.js"
+import { ExplorerViewFinalRecord } from "./utils/types.js"
 import { getExplorerViewRecords } from "./utils/explorerViews.js"
 import { getChartsRecords } from "./utils/charts.js"
 import { getIndexName } from "../../site/search/searchClient.js"
@@ -18,7 +17,7 @@ import {
 } from "../../site/search/searchTypes.js"
 
 function explorerViewRecordToChartRecord(
-    e: ExplorerViewEntryWithExplorerInfo
+    e: ExplorerViewFinalRecord
 ): ChartRecord {
     return {
         type: ChartRecordType.ExplorerView,
@@ -68,7 +67,7 @@ function scaleExplorerScores(
         const normalized = e.score / explorerScoreMax
         const grapherRange = grapherScoreBounds.max - grapherScoreBounds.min
         const scaled = Math.round(
-            (normalized / 2) * grapherRange + grapherScoreBounds.min
+            normalized * grapherRange + grapherScoreBounds.min
         )
         return {
             ...e,

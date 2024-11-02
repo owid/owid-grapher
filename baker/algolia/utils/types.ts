@@ -1,3 +1,4 @@
+import { DbEnrichedVariable } from "@ourworldindata/types"
 import { PageType } from "../../../site/search/searchTypes.js"
 
 /** Pages */
@@ -62,6 +63,16 @@ export interface ExplorerViewEntry {
     // viewViews_7d: number
 }
 
+export type ExplorerViewWithoutViewTitleIndex = Omit<
+    ExplorerViewEntry,
+    "viewTitleIndexWithinExplorer"
+>
+
+export type EntitiesByColumnDictionary = Record<
+    string,
+    Record<string, string[]>
+>
+
 export interface ExplorerViewEntryWithExplorerInfo extends ExplorerViewEntry {
     explorerSlug: string
     explorerTitle: string
@@ -76,6 +87,105 @@ export interface ExplorerViewEntryWithExplorerInfo extends ExplorerViewEntry {
     objectID?: string
 }
 
+export type ExplorerIndicatorMetadataFromDb = Pick<
+    DbEnrichedVariable,
+    | "id"
+    | "catalogPath"
+    | "name"
+    | "titlePublic"
+    | "display"
+    | "descriptionShort"
+>
+
+export type ExplorerIndicatorMetadataDictionary = Record<
+    string | number,
+    ExplorerIndicatorMetadataFromDb & {
+        entityNames?: string[]
+    }
+>
+
+export interface ExplorerViewBaseRecord {
+    availableEntities: string[]
+    numNonDefaultSettings: number
+    tableSlug?: string
+    viewGrapherId?: number
+    viewIndexWithinExplorer: number
+    viewQueryParams: string
+    // TODO: are nulls necessary here?
+    viewSettings: Array<string | null>
+    viewSubtitle?: string
+    viewTitle?: string
+    ySlugs: Array<string>
+    yVariableIds: Array<number | string>
+    explorerSlug: string
+}
+
+export type GrapherUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    viewGrapherId: number
+}
+
+export type GrapherEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    viewTitle: string
+    viewSubtitle: string
+    titleLength: number
+}
+
+export type IndicatorUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    viewGrapherId: never
+    ySlugs: []
+    tableSlug: never
+}
+
+export type IndicatorEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    viewGrapherId: never
+    ySlugs: string[]
+    tableSlug: string
+    availableEntities: string[]
+    titleLength: number
+}
+
+export type CsvUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    viewGrapherId: never
+    ySlugs: string[]
+    // TODO: why are there nulls here?
+    tableSlug: string | null
+}
+
+export type CsvEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    viewGrapherId: never
+    ySlugs: string[]
+    tableSlug: string
+    titleLength: number
+}
+
+export type EnrichedExplorerRecord =
+    | GrapherEnrichedExplorerViewRecord
+    | IndicatorEnrichedExplorerViewRecord
+    | CsvEnrichedExplorerViewRecord
+
+/** This is the final record we index to Algolia */
+export interface ExplorerViewFinalRecord {
+    objectID: string
+    explorerTitle: string
+    viewTitle: string
+    viewSettings: string[]
+    viewTitleIndexWithinExplorer: number
+    score: number
+    viewIndexWithinExplorer: number
+    viewSubtitle: string
+    viewQueryParams: string
+    titleLength: number
+    numNonDefaultSettings: number
+    explorerSlug: string
+    explorerSubtitle: string
+    explorerViews_7d: number
+    viewTitleAndExplorerSlug: string
+    numViewsWithinExplorer: number
+    // These 2 aren't currently used in the explorer-views index (used in /search), but we need them in the data catalog
+    tags: string[]
+    availableEntities: string[]
+}
+
 export interface IndicatorMetadata {
     entityNames: string[]
     titlePublic?: string
@@ -84,7 +194,7 @@ export interface IndicatorMetadata {
     descriptionShort?: string
 }
 
-export interface GrapherInfo {
+export interface ExplorerViewGrapherInfo {
     id: number
     title: string
     subtitle: string
