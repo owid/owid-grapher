@@ -1,5 +1,5 @@
 import { DbEnrichedVariable } from "@ourworldindata/types"
-import { PageType } from "../../../site/search/searchTypes.js"
+import { ChartRecord, PageType } from "../../../site/search/searchTypes.js"
 
 /** Pages */
 export interface TypeAndImportance {
@@ -37,6 +37,20 @@ export interface ParsedChartRecordRow {
 }
 
 /** Explorers */
+export interface IndicatorMetadata {
+    entityNames: string[]
+    titlePublic?: string
+    display?: { name: string }
+    name: string
+    descriptionShort?: string
+}
+
+export interface ExplorerViewGrapherInfo {
+    id: number
+    title: string
+    subtitle: string
+}
+
 export type EntitiesByColumnDictionary = Record<
     string,
     Record<string, string[]>
@@ -118,7 +132,7 @@ export type EnrichedExplorerRecord =
     | IndicatorEnrichedExplorerViewRecord
     | CsvEnrichedExplorerViewRecord
 
-/** This is the final record we index to Algolia */
+/** This is the final record we index to Algolia for the `explorer-views` index */
 export interface ExplorerViewFinalRecord {
     objectID: string
     explorerTitle: string
@@ -144,18 +158,11 @@ export interface ExplorerViewFinalRecord {
     // These 2 aren't currently used in the explorer-views index (used in /search), but we need them in the data catalog
     tags: string[]
     availableEntities: string[]
+    // Only used to filter out these views from the data catalog (because we already index graphers)
+    viewGrapherId?: number
 }
 
-export interface IndicatorMetadata {
-    entityNames: string[]
-    titlePublic?: string
-    display?: { name: string }
-    name: string
-    descriptionShort?: string
-}
-
-export interface ExplorerViewGrapherInfo {
-    id: number
-    title: string
-    subtitle: string
+// This is the final record we index to Algolia for the `explorer-views-and-charts` index
+export type ConvertedExplorerChartHit = ChartRecord & {
+    viewTitleIndexWithinExplorer: number
 }

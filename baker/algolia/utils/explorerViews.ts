@@ -39,8 +39,74 @@ import {
     IndicatorEnrichedExplorerViewRecord,
     IndicatorUnenrichedExplorerViewRecord,
     CsvEnrichedExplorerViewRecord,
+    ConvertedExplorerChartHit,
 } from "./types.js"
 import { processAvailableEntities as processRecordAvailableEntities } from "./shared.js"
+import {
+    ChartRecord,
+    ChartRecordType,
+} from "../../../site/search/searchTypes.js"
+
+export function explorerViewRecordToChartRecord(
+    e: ExplorerViewFinalRecord
+): ConvertedExplorerChartHit {
+    return {
+        type: ChartRecordType.ExplorerView,
+        objectID: e.objectID!,
+        chartId: Math.floor(Math.random() * 1000000),
+        slug: e.explorerSlug,
+        queryParams: e.viewQueryParams,
+        title: e.viewTitle,
+        subtitle: e.explorerSubtitle,
+        variantName: "",
+        keyChartForTags: [],
+        tags: e.tags,
+        availableEntities: e.availableEntities,
+        publishedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        numDimensions: e.numNonDefaultSettings,
+        titleLength: e.titleLength,
+        numRelatedArticles: 0,
+        views_7d: e.explorerViews_7d,
+        viewTitleIndexWithinExplorer: e.viewTitleIndexWithinExplorer,
+        score: e.score,
+    }
+}
+
+/**
+ * Scale explorer scores to the range of grapher scores
+ * e.g. if the highest explorer score is 100 and the highest grapher score is 1000,
+ * we want to scale the explorer scores to be between 0 and 1000
+ */
+export function scaleExplorerScores(
+    explorerRecords: ChartRecord[],
+    grapherRecords: ChartRecord[]
+): ChartRecord[] {
+    const explorerScores = explorerRecords.map((e) => e.score)
+    const explorerScoreMax = Math.max(...explorerScores)
+
+    const grapherScores = grapherRecords.map((e) => e.score)
+    const grapherScoreBounds = {
+        max: Math.max(...grapherScores),
+        min: Math.min(...grapherScores),
+    }
+
+    // scale positive explorer scores to the range of grapher scores
+    // We want to keep negative scores because they're intentionally downranked as near-duplicates of existing views
+    return explorerRecords.map((e): ChartRecord => {
+        if (e.score < 0) return e
+        // A value between 0 and 1
+        const normalized = e.score / explorerScoreMax
+        const grapherRange = grapherScoreBounds.max - grapherScoreBounds.min
+        const scaled = Math.round(
+            normalized * grapherRange + grapherScoreBounds.min
+        )
+        return {
+            ...e,
+            score: scaled,
+        }
+    })
+}
 
 // Creates a search-ready string from a choice.
 // Special handling is pretty much only necessary for checkboxes: If they are not ticked, then their name is not included.

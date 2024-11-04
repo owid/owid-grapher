@@ -6,78 +6,15 @@ import {
     BUGSNAG_NODE_API_KEY,
 } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
-import { ExplorerViewFinalRecord } from "./utils/types.js"
-import { getExplorerViewRecords } from "./utils/explorerViews.js"
+import {
+    explorerViewRecordToChartRecord,
+    getExplorerViewRecords,
+    scaleExplorerScores,
+} from "./utils/explorerViews.js"
 import { getChartsRecords } from "./utils/charts.js"
 import { getIndexName } from "../../site/search/searchClient.js"
-import {
-    ChartRecord,
-    ChartRecordType,
-    SearchIndexName,
-} from "../../site/search/searchTypes.js"
-
-function explorerViewRecordToChartRecord(
-    e: ExplorerViewFinalRecord
-): ChartRecord & {
-    viewTitleIndexWithinExplorer: number
-} {
-    return {
-        type: ChartRecordType.ExplorerView,
-        objectID: e.objectID!,
-        chartId: Math.floor(Math.random() * 1000000),
-        slug: e.explorerSlug,
-        queryParams: e.viewQueryParams,
-        title: e.viewTitle,
-        subtitle: e.explorerSubtitle,
-        variantName: "",
-        keyChartForTags: [],
-        tags: e.tags,
-        availableEntities: e.availableEntities,
-        publishedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        numDimensions: e.numNonDefaultSettings,
-        titleLength: e.titleLength,
-        numRelatedArticles: 0,
-        views_7d: e.explorerViews_7d,
-        viewTitleIndexWithinExplorer: e.viewTitleIndexWithinExplorer,
-        score: e.score,
-    }
-}
-
-/**
- * Scale explorer scores to the range of grapher scores
- * e.g. if the highest explorer score is 100 and the highest grapher score is 1000,
- * we want to scale the explorer scores to be between 0 and 1000
- */
-function scaleExplorerScores(
-    explorerRecords: ChartRecord[],
-    grapherRecords: ChartRecord[]
-): ChartRecord[] {
-    const explorerScores = explorerRecords.map((e) => e.score)
-    const explorerScoreMax = Math.max(...explorerScores)
-
-    const grapherScores = grapherRecords.map((e) => e.score)
-    const grapherScoreBounds = {
-        max: Math.max(...grapherScores),
-        min: Math.min(...grapherScores),
-    }
-
-    // scale positive explorer scores to the range of grapher scores
-    // We want to keep negative scores because they're intentionally downranked as near-duplicates of existing views
-    return explorerRecords.map((e): ChartRecord => {
-        if (e.score < 0) return e
-        // A value between 0 and 1
-        const normalized = e.score / explorerScoreMax
-        const grapherRange = grapherScoreBounds.max - grapherScoreBounds.min
-        const scaled = Math.round(
-            normalized * grapherRange + grapherScoreBounds.min
-        )
-        return {
-            ...e,
-            score: scaled,
-        }
-    })
-}
+import { SearchIndexName } from "../../site/search/searchTypes.js"
+import { ConvertedExplorerChartHit } from "./utils/types.js"
 
 // We get 200k operations with Algolia's Open Source plan. We've hit 140k in the past so this might push us over.
 // If we standardize the record shape, we could have this be the only index and have a `type` field
@@ -113,11 +50,17 @@ const indexExplorerViewsAndChartsToAlgolia = async () => {
                 }
             }, db.TransactionCloseMode.Close)
 
-        const convertedExplorerViews = explorerViews.map(
-            explorerViewRecordToChartRecord
-        )
+        const convertedNonGrapherExplorerViews: ConvertedExplorerChartHit[] = []
+        for (const view of explorerViews) {
+            if (!view.viewGrapherId) {
+                convertedNonGrapherExplorerViews.push(
+                    explorerViewRecordToChartRecord(view)
+                )
+            }
+        }
+
         const scaledExplorerViews = scaleExplorerScores(
-            convertedExplorerViews,
+            convertedNonGrapherExplorerViews,
             grapherViews
         )
         const records = [...scaledExplorerViews, ...grapherViews]
