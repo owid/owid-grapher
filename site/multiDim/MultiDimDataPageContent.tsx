@@ -28,7 +28,7 @@ import {
 } from "@ourworldindata/utils"
 import cx from "classnames"
 import { DebugProvider } from "../gdocs/DebugContext.js"
-import { DATA_API_URL } from "../../settings/clientSettings.js"
+import { ADMIN_BASE_URL, DATA_API_URL } from "../../settings/clientSettings.js"
 import {
     MultiDimDataPageProps,
     MultiDimDimensionChoices,
@@ -140,6 +140,7 @@ const useVarDatapageData = (
         null
     )
     const [grapherConfigIsReady, setGrapherConfigIsReady] = useState(false)
+    const [variableId, setVariableId] = useState<number | null>(null)
 
     useEffect(() => {
         setGrapherConfigIsReady(false)
@@ -150,6 +151,7 @@ const useVarDatapageData = (
             ? yIndicatorOrIndicators[0]
             : yIndicatorOrIndicators
         if (!variableId) return
+        setVariableId(variableId)
 
         const datapageDataPromise = cachedGetVariableMetadata(variableId).then(
             (json) =>
@@ -192,6 +194,7 @@ const useVarDatapageData = (
         varDatapageData,
         varGrapherConfig: grapherConfig,
         grapherConfigIsReady,
+        variableId,
     }
 }
 
@@ -228,8 +231,12 @@ export const MultiDimDataPageContent = ({
     })
 
     const currentView = useView(currentSettings, config)
-    const { varDatapageData, varGrapherConfig, grapherConfigIsReady } =
-        useVarDatapageData(config, currentView)
+    const {
+        varDatapageData,
+        varGrapherConfig,
+        grapherConfigIsReady,
+        variableId,
+    } = useVarDatapageData(config, currentView)
 
     // This is the ACTUAL grapher instance being used, because GrapherFigureView/GrapherWithFallback are doing weird things and are not actually using the grapher instance we pass into it
     // and therefore we can not access the grapher state (e.g. tab, selection) from the grapher instance we pass into it
@@ -278,17 +285,23 @@ export const MultiDimDataPageContent = ({
         }
 
         if (!grapherConfigIsReady) return baseConfig
+        const editUrl = variableId ? `variables/${variableId}/config` : ""
         return {
             ...varGrapherConfig,
             ...baseConfig,
             dataApiUrl: DATA_API_URL,
-            // TODO: The way manager is set here is just a workaround to make the edit button in the
-            // share menu work. This should be removed before we publish MDims!
             manager: {
                 canonicalUrl,
+                editUrl,
             },
         } as GrapherProgrammaticInterface
-    }, [varGrapherConfig, grapherConfigIsReady, bounds, canonicalUrl])
+    }, [
+        varGrapherConfig,
+        grapherConfigIsReady,
+        bounds,
+        canonicalUrl,
+        variableId,
+    ])
 
     const hasTopicTags = !!config.config.topicTags?.length
 
@@ -372,6 +385,7 @@ export const MultiDimDataPageContent = ({
                                 {...grapherConfigComputed}
                                 queryStr={queryStr}
                                 getGrapherInstance={setGrapherInst}
+                                adminBaseUrl={ADMIN_BASE_URL}
                             />
                         </figure>
                     </div>
