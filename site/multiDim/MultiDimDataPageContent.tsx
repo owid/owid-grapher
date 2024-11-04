@@ -140,7 +140,6 @@ const useVarDatapageData = (
         null
     )
     const [grapherConfigIsReady, setGrapherConfigIsReady] = useState(false)
-    const [variableId, setVariableId] = useState<number | null>(null)
 
     useEffect(() => {
         setGrapherConfigIsReady(false)
@@ -151,7 +150,6 @@ const useVarDatapageData = (
             ? yIndicatorOrIndicators[0]
             : yIndicatorOrIndicators
         if (!variableId) return
-        setVariableId(variableId)
 
         const datapageDataPromise = cachedGetVariableMetadata(variableId).then(
             (json) =>
@@ -194,7 +192,6 @@ const useVarDatapageData = (
         varDatapageData,
         varGrapherConfig: grapherConfig,
         grapherConfigIsReady,
-        variableId,
     }
 }
 
@@ -231,12 +228,8 @@ export const MultiDimDataPageContent = ({
     })
 
     const currentView = useView(currentSettings, config)
-    const {
-        varDatapageData,
-        varGrapherConfig,
-        grapherConfigIsReady,
-        variableId,
-    } = useVarDatapageData(config, currentView)
+    const { varDatapageData, varGrapherConfig, grapherConfigIsReady } =
+        useVarDatapageData(config, currentView)
 
     // This is the ACTUAL grapher instance being used, because GrapherFigureView/GrapherWithFallback are doing weird things and are not actually using the grapher instance we pass into it
     // and therefore we can not access the grapher state (e.g. tab, selection) from the grapher instance we pass into it
@@ -285,7 +278,11 @@ export const MultiDimDataPageContent = ({
         }
 
         if (!grapherConfigIsReady) return baseConfig
-        const editUrl = variableId ? `variables/${variableId}/config` : ""
+        const variables = currentView?.indicators?.["y"]
+        const editUrl =
+            variables?.length === 1
+                ? `variables/${variables[0]}/config`
+                : undefined
         return {
             ...varGrapherConfig,
             ...baseConfig,
@@ -300,7 +297,7 @@ export const MultiDimDataPageContent = ({
         grapherConfigIsReady,
         bounds,
         canonicalUrl,
-        variableId,
+        currentView?.indicators,
     ])
 
     const hasTopicTags = !!config.config.topicTags?.length
