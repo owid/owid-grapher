@@ -489,7 +489,13 @@ df = pd.read_csv("${props.csvUrl}")
 
 # Fetch the metadata
 metadata = requests.get("${props.metadataUrl}").json()`,
-        R: `df <- read.csv("${props.csvUrl}")`,
+        R: `library(jsonlite)
+
+# Fetch the data
+df <- read.csv("${props.csvUrl}")
+
+# Fetch the metadata
+metadata <- fromJSON("${props.metadataUrl}")`,
     }
 
     return (
@@ -602,7 +608,7 @@ const ApiAndCodeExamplesSection = (props: {
     firstYColDef?: OwidColumnDef
 }) => {
     const [onlyVisible, setOnlyVisible] = useState(false)
-    const [shortColNames, setShortColNames] = useState(false)
+    const [shortColNames, setShortColNames] = useState(true)
 
     const exLongName = props.firstYColDef?.name
     const exShortName = props.firstYColDef?.shortName
@@ -636,21 +642,25 @@ const ApiAndCodeExamplesSection = (props: {
                 <div className="download-modal__heading-with-caption">
                     <h3 className="grapher_h3-semibold">Data API</h3>
                     <p className="grapher_label-2-regular">
-                        Use these URLs for programmatic use of this chart's
-                        data, and configure what you want to get using the
-                        options below. See also the code examples below.
+                        Use these URLs to programmatically access this chart's
+                        data and configure your requests with the options below.{" "}
+                        <a href="https://docs.owid.io/projects/etl/api/">
+                            Our documentation provides more information
+                        </a>{" "}
+                        on how to use the API, and you can find a few code
+                        examples below.
                     </p>
                 </div>
                 <section className="download-modal__api-urls">
                     <div>
                         <h4 className="grapher_body-2-medium">
-                            URL to fetch the data from (CSV format)
+                            Data URL (CSV format)
                         </h4>
                         <CodeSnippet code={csvUrl} />
                     </div>
                     <div>
                         <h4 className="grapher_body-2-medium">
-                            URL to fetch the metadata from (JSON format)
+                            Metadata URL (JSON format)
                         </h4>
                         <CodeSnippet code={metadataUrl} />
                     </div>
@@ -804,13 +814,13 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
         <p className="grapher_label-2-regular">
             Download the data shown in this chart as a ZIP file containing a CSV
             file, metadata in JSON format, and a README. The CSV file can be
-            easily opened in Excel, Google Sheets, and other analysis tools.
+            opened in Excel, Google Sheets, and other analysis tools.
         </p>
     ) : (
         <p className="grapher_label-2-regular">
             Download the data used to create this chart. The data is provided in
-            CSV format, which can be easily opened in Excel, Google Sheets, and
-            other data analysis tools.
+            CSV format, which can be opened in Excel, Google Sheets, and other
+            data analysis tools.
         </p>
     )
 
@@ -832,7 +842,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                         onClick={() => onDownloadClick(CsvDownloadType.Full)}
                     />
                     <DownloadButton
-                        title="Download only visible data"
+                        title="Download displayed data"
                         description="Includes only the entities and time points currently visible in the chart."
                         icon={<DownloadIconSelected />}
                         onClick={() =>

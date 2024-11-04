@@ -250,6 +250,11 @@
             margin: 0;
             margin-bottom: 4px;
         }
+
+        a {
+            @include owid-link-90;
+            color: $gray-70;
+        }
     }
 }
 
