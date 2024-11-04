@@ -1,5 +1,6 @@
 {
   "name": "owid-functions",
+  "type": "module",
   "dependencies": {
     "@ourworldindata/grapher": "workspace:^",
     "@ourworldindata/utils": "workspace:^",
