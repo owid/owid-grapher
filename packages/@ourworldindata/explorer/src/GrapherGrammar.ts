@@ -284,13 +284,13 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         keyword: "relatedQuestionText",
         description:
             "The text used for the related question (at the very bottom of the chart)",
-        toGrapherObject: () => ({}), // handled in code (can be done properly once the relatedQuestion field is refactored)
+        toGrapherObject: (value) => ({ relatedQuestion: { text: value } }),
     },
     relatedQuestionUrl: {
         ...UrlCellDef,
         keyword: "relatedQuestionUrl",
         description: "The link of the related question text",
-        toGrapherObject: () => ({}), // handled in code (can be done properly once the relatedQuestion field is refactored)
+        toGrapherObject: (value) => ({ relatedQuestion: { url: value } }),
     },
     mapTargetTime: {
         ...IntegerCellDef,

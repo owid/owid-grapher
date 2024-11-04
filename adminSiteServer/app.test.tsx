@@ -58,11 +58,14 @@ import {
 import path from "path"
 import fs from "fs"
 import { omitUndefinedValues } from "@ourworldindata/utils"
+import { defaultGrapherConfig } from "@ourworldindata/grapher"
 
 const ADMIN_SERVER_HOST = "localhost"
 const ADMIN_SERVER_PORT = 8765
 
 const ADMIN_URL = `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}/admin/api`
+
+const currentSchema = defaultGrapherConfig.$schema
 
 jest.setTimeout(10000) // wait for up to 10s for the app server to start
 let testKnexInstance: Knex<any, unknown[]> | undefined = undefined
@@ -192,8 +195,7 @@ async function makeRequestAgainstAdminApi(
 
 describe("OwidAdminApp", () => {
     const testChartConfig = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+        $schema: currentSchema,
         slug: "test-chart",
         title: "Test chart",
         type: "LineChart",
@@ -311,16 +313,14 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         display: '{ "unit": "kg", "shortUnit": "kg" }',
     }
     const testVariableConfigETL = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+        $schema: currentSchema,
         hasMapTab: true,
         note: "Indicator note",
         selectedEntityNames: ["France", "Italy", "Spain"],
         hideRelativeToggle: false,
     }
     const testVariableConfigAdmin = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+        $schema: currentSchema,
         title: "Admin title",
         subtitle: "Admin subtitle",
     }
@@ -331,14 +331,12 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         id: otherVariableId,
     }
     const otherTestVariableConfig = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+        $schema: currentSchema,
         note: "Other indicator note",
     }
 
     const testChartConfig = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+        $schema: currentSchema,
         slug: "test-chart",
         title: "Test chart",
         type: "Marimekko",
@@ -352,8 +350,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         ],
     }
     const testMultiDimConfig = {
-        grapherConfigSchema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+        grapherConfigSchema: currentSchema,
         title: {
             title: "Energy use",
             titleVariant: "by energy source",
@@ -613,8 +610,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
         )
 
         expect(fullConfig).toEqual({
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            $schema: currentSchema,
             id: chartId,
             isPublished: false,
             version: 1,
@@ -634,8 +630,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             `/charts/${chartId}.patchConfig.json`
         )
         expect(patchConfig).toEqual({
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            $schema: currentSchema,
             id: chartId,
             version: 1,
             isPublished: false,
@@ -671,8 +666,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             `/charts/${chartId}.config.json`
         )
         expect(fullConfigAfterDelete).toEqual({
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            $schema: currentSchema,
             id: chartId,
             version: 1,
             isPublished: false,
@@ -688,8 +682,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             `/charts/${chartId}.patchConfig.json`
         )
         expect(patchConfigAfterDelete).toEqual({
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            $schema: currentSchema,
             id: chartId,
             version: 1,
             isPublished: false,

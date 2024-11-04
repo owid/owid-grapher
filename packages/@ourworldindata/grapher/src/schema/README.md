@@ -18,7 +18,6 @@ Checklist for breaking changes:
 -   Rename the authorative url inside the schema file to point to the new version number json
 -   Write the migrations from the last to the current version of the schema, including the migration of pointing to the URL of the new schema version
 -   Regenerate the default object from the schema and save it to `defaultGrapherConfig.ts` (see below)
--   Write a migration to update the `chart_configs.full` column in the database for all stand-alone charts
 -   Write a migration to update configs in code (see `migrations/migrations.ts`)
 -   Update the hardcoded default schema version in ETL
 

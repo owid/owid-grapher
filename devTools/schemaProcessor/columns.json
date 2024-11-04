@@ -617,12 +617,12 @@
     },
     {
         "type": "string",
-        "pointer": "/relatedQuestions/0/url",
+        "pointer": "/relatedQuestion/url",
         "editor": "textfield"
     },
     {
         "type": "string",
-        "pointer": "/relatedQuestions/0/text",
+        "pointer": "/relatedQuestion/text",
         "editor": "textfield"
     },
     {

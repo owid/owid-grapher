@@ -399,6 +399,7 @@ export class Grapher
     @observable.ref hideTotalValueLabel?: boolean = undefined
     @observable.ref missingDataStrategy?: MissingDataStrategy = undefined
     @observable.ref showSelectionOnlyInDataTable?: boolean = undefined
+    @observable relatedQuestion?: RelatedQuestionsConfig = undefined // todo: Persistables?
 
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
@@ -425,7 +426,6 @@ export class Grapher
      */
     @observable includedEntities?: number[] = undefined
     @observable comparisonLines?: ComparisonLineConfig[] = undefined // todo: Persistables?
-    @observable relatedQuestions?: RelatedQuestionsConfig[] = undefined // todo: Persistables?
 
     /**
      * Used to highlight an entity at a particular time in a line chart.
@@ -1255,10 +1255,8 @@ export class Grapher
 
     // todo: did this name get botched in a merge?
     @computed get hasFatalErrors(): boolean {
-        const { relatedQuestions = [] } = this
-        return relatedQuestions.some(
-            (question) => !!getErrorMessageRelatedQuestionUrl(question)
-        )
+        if (!this.relatedQuestion) return false
+        return !!getErrorMessageRelatedQuestionUrl(this.relatedQuestion)
     }
 
     disposers: (() => void)[] = []
@@ -3061,14 +3059,8 @@ export class Grapher
     @observable isShareMenuActive = false
 
     @computed get hasRelatedQuestion(): boolean {
-        if (
-            this.hideRelatedQuestion ||
-            !this.relatedQuestions ||
-            !this.relatedQuestions.length
-        )
-            return false
-        const question = this.relatedQuestions[0]
-        return !!question && !!question.text && !!question.url
+        if (this.hideRelatedQuestion) return false
+        return !!(this.relatedQuestion?.url && this.relatedQuestion?.text)
     }
 
     @computed get isRelatedQuestionTargetDifferentFromCurrentPage(): boolean {
@@ -3079,11 +3071,10 @@ export class Grapher
         // "ourworldindata.org" and yet should still yield a match.
         // - Note that this won't work on production previews (where the
         //   path is /admin/posts/preview/ID)
-        const { hasRelatedQuestion, relatedQuestions = [] } = this
-        const relatedQuestion = relatedQuestions[0]
-        return (
+        const { hasRelatedQuestion, relatedQuestion } = this
+        return !!(
             hasRelatedQuestion &&
-            !!relatedQuestion &&
+            relatedQuestion?.url &&
             getWindowUrl().pathname !==
                 Url.fromURL(relatedQuestion.url).pathname
         )
@@ -3091,7 +3082,7 @@ export class Grapher
 
     @computed get showRelatedQuestion(): boolean {
         return (
-            !!this.relatedQuestions &&
+            !!this.relatedQuestion &&
             !!this.hasRelatedQuestion &&
             !!this.isRelatedQuestionTargetDifferentFromCurrentPage
         )
@@ -3486,10 +3477,9 @@ const defaultObject = objectWithPersistablesToObject(
 export const getErrorMessageRelatedQuestionUrl = (
     question: RelatedQuestionsConfig
 ): string | undefined => {
-    return question.text
-        ? (!question.url && "Missing URL") ||
-              (!question.url.match(/^https?:\/\//) &&
-                  "URL should start with http(s)://") ||
-              undefined
-        : undefined
+    if (!question.text) return undefined
+    if (!question.url) return "Missing URL"
+    if (!question.url.match(/^https?:\/\//))
+        return "URL should start with http(s)://"
+    return undefined
 }

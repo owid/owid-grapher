@@ -179,8 +179,8 @@ export enum GrapherTabOption {
 }
 
 export interface RelatedQuestionsConfig {
-    text: string
-    url: string
+    text?: string
+    url?: string
 }
 
 export enum MissingDataStrategy {
@@ -559,7 +559,7 @@ export interface GrapherInterface extends SortConfig {
     hasChartTab?: boolean
     hasMapTab?: boolean
     tab?: GrapherTabOption
-    relatedQuestions?: RelatedQuestionsConfig[]
+    relatedQuestion?: RelatedQuestionsConfig
     details?: DetailDictionary
     internalNotes?: string
     variantName?: string
@@ -703,7 +703,7 @@ export const grapherKeysToSerialize = [
     "selectedFacetStrategy",
     "hideFacetControl",
     "comparisonLines",
-    "relatedQuestions",
+    "relatedQuestion",
     "missingDataStrategy",
 
     // internals

@@ -1,6 +1,6 @@
-import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
+import { faMinus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { LogoOption, RelatedQuestionsConfig } from "@ourworldindata/types"
+import { LogoOption } from "@ourworldindata/types"
 import { getErrorMessageRelatedQuestionUrl } from "@ourworldindata/grapher"
 import { slugify } from "@ourworldindata/utils"
 import { action, computed } from "mobx"
@@ -37,21 +37,6 @@ export class EditorTextTab<
         }
     }
 
-    @action.bound onAddRelatedQuestion() {
-        const { grapher } = this.props.editor
-        if (!grapher.relatedQuestions) grapher.relatedQuestions = []
-        grapher.relatedQuestions.push({
-            text: "",
-            url: "",
-        })
-    }
-
-    @action.bound onRemoveRelatedQuestion(idx: number) {
-        const { grapher } = this.props.editor
-        if (!grapher.relatedQuestions) grapher.relatedQuestions = []
-        grapher.relatedQuestions.splice(idx, 1)
-    }
-
     @action.bound onToggleTitleAnnotationEntity(value: boolean) {
         const { grapher } = this.props.editor
         grapher.hideAnnotationFieldsInTitle ??= {}
@@ -86,7 +71,6 @@ export class EditorTextTab<
     render() {
         const { editor } = this.props
         const { grapher, features } = editor
-        const { relatedQuestions = [] } = grapher
 
         return (
             <div className="EditorTextTab">
@@ -250,50 +234,49 @@ export class EditorTextTab<
                 </Section>
 
                 <Section name="Related">
-                    {relatedQuestions.map(
-                        (question: RelatedQuestionsConfig, idx: number) => (
-                            <div key={idx}>
-                                <TextField
-                                    label="Related question"
-                                    value={question.text}
-                                    onValue={action((value: string) => {
-                                        question.text = value
-                                    })}
-                                    placeholder="e.g. How did countries respond to the pandemic?"
-                                    helpText="Short question promoting exploration of related content"
-                                    softCharacterLimit={50}
-                                />
-                                {question.text && (
-                                    <TextField
-                                        label="URL"
-                                        value={question.url}
-                                        onValue={action((value: string) => {
-                                            question.url = value
-                                        })}
-                                        placeholder="e.g. https://ourworldindata.org/coronavirus"
-                                        helpText="Page or section of a page where the answer to the previous question can be found."
-                                        errorMessage={getErrorMessageRelatedQuestionUrl(
-                                            question
-                                        )}
-                                    />
-                                )}
-                                <Button
-                                    onClick={() =>
-                                        this.onRemoveRelatedQuestion(idx)
+                    <div>
+                        <TextField
+                            label="Related question"
+                            value={grapher.relatedQuestion?.text}
+                            onValue={action((value: string) => {
+                                if (grapher.relatedQuestion) {
+                                    grapher.relatedQuestion.text = value
+                                } else {
+                                    grapher.relatedQuestion = {
+                                        text: value,
+                                        url: "",
                                     }
-                                >
-                                    <FontAwesomeIcon icon={faMinus} /> Remove
-                                    related question
-                                </Button>
-                            </div>
-                        )
-                    )}
-                    {!relatedQuestions.length && (
-                        <Button onClick={this.onAddRelatedQuestion}>
-                            <FontAwesomeIcon icon={faPlus} /> Add related
-                            question
-                        </Button>
-                    )}
+                                }
+                            })}
+                            placeholder="e.g. How did countries respond to the pandemic?"
+                            helpText="Short question promoting exploration of related content"
+                            softCharacterLimit={50}
+                        />
+                        {grapher.relatedQuestion?.text && (
+                            <TextField
+                                label="URL"
+                                value={grapher.relatedQuestion.url}
+                                onValue={action((value: string) => {
+                                    grapher.relatedQuestion!.url = value
+                                })}
+                                placeholder="e.g. https://ourworldindata.org/coronavirus"
+                                helpText="Page or section of a page where the answer to the previous question can be found."
+                                errorMessage={getErrorMessageRelatedQuestionUrl(
+                                    grapher.relatedQuestion
+                                )}
+                            />
+                        )}
+                        {grapher.relatedQuestion?.text && (
+                            <Button
+                                onClick={() =>
+                                    (grapher.relatedQuestion = undefined)
+                                }
+                            >
+                                <FontAwesomeIcon icon={faMinus} /> Remove
+                                related question
+                            </Button>
+                        )}
+                    </div>
                 </Section>
                 <Section name="Misc">
                     <BindString

@@ -60,6 +60,18 @@ const migrateFrom004To005 = (
     return config
 }
 
+const migrateFrom005To006 = (
+    config: AnyConfigWithValidSchema
+): AnyConfigWithValidSchema => {
+    if (config.relatedQuestions && config.relatedQuestions.length > 0) {
+        const { text, url } = config.relatedQuestions[0]
+        if (text && url) config.relatedQuestion = config.relatedQuestions[0]
+    }
+    delete config.relatedQuestions
+    config.$schema = createSchemaForVersion("006")
+    return config
+}
+
 export const runMigration = (
     config: AnyConfigWithValidSchema
 ): AnyConfigWithValidSchema => {
@@ -70,5 +82,6 @@ export const runMigration = (
         .with("002", () => migrateFrom002To003(config))
         .with("003", () => migrateFrom003To004(config))
         .with("004", () => migrateFrom004To005(config))
+        .with("005", () => migrateFrom005To006(config))
         .exhaustive()
 }

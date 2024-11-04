@@ -1,7 +1,10 @@
 import { uniq } from "lodash"
 import { uuidv7 } from "uuidv7"
 
-import { migrateGrapherConfigToLatestVersion } from "@ourworldindata/grapher"
+import {
+    defaultGrapherConfig,
+    migrateGrapherConfigToLatestVersion,
+} from "@ourworldindata/grapher"
 import {
     Base64String,
     ChartConfigsTableName,
@@ -290,8 +293,7 @@ export async function createMultiDimConfig(
             const variableId = view.indicators.y[0]
             // Main config for each view.
             const mainGrapherConfig: GrapherInterface = {
-                $schema:
-                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                $schema: defaultGrapherConfig.$schema,
                 dimensions: MultiDimDataPageConfig.viewToDimensionsConfig(view),
                 selectedEntityNames: config.defaultSelection ?? [],
                 slug,

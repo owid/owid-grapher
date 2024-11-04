@@ -401,15 +401,6 @@ export class ExplorerProgram extends GridProgram {
         // assume config is valid against the latest schema
         mergedConfig.$schema = defaultGrapherConfig.$schema
 
-        // TODO: can be removed once relatedQuestions is refactored
-        const { relatedQuestionUrl, relatedQuestionText } =
-            this.explorerGrapherConfig
-        if (relatedQuestionUrl && relatedQuestionText) {
-            mergedConfig.relatedQuestions = [
-                { url: relatedQuestionUrl, text: relatedQuestionText },
-            ]
-        }
-
         return mergedConfig
     }
 

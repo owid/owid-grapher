@@ -94,7 +94,7 @@ export interface CaptionedChartManager
     detailRenderers: MarkdownTextWrap[]
 
     // related question
-    relatedQuestions?: RelatedQuestionsConfig[]
+    relatedQuestion?: RelatedQuestionsConfig
     showRelatedQuestion?: boolean
 }
 
@@ -271,7 +271,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     private renderRelatedQuestion(): React.ReactElement {
-        const { relatedQuestions } = this.manager
+        const { relatedQuestion } = this.manager
         return (
             <div
                 className="relatedQuestion"
@@ -283,12 +283,12 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             >
                 Related:&nbsp;
                 <a
-                    href={relatedQuestions![0].url}
+                    href={relatedQuestion!.url}
                     target="_blank"
                     rel="noopener"
                     data-track-note="chart_click_related"
                 >
-                    {relatedQuestions![0].text}
+                    {relatedQuestion!.text}
                 </a>
                 <FontAwesomeIcon icon={faExternalLinkAlt} />
             </div>
