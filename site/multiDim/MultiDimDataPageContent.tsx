@@ -28,7 +28,7 @@ import {
 } from "@ourworldindata/utils"
 import cx from "classnames"
 import { DebugProvider } from "../gdocs/DebugContext.js"
-import { DATA_API_URL } from "../../settings/clientSettings.js"
+import { ADMIN_BASE_URL, DATA_API_URL } from "../../settings/clientSettings.js"
 import {
     FaqEntryKeyedByGdocIdAndFragmentId,
     MultiDimDataPageConfigEnriched,
@@ -290,17 +290,27 @@ export const MultiDimDataPageContent = ({
         }
 
         if (!grapherConfigIsReady) return baseConfig
+        const variables = currentView?.indicators?.["y"]
+        const editUrl =
+            variables?.length === 1
+                ? `variables/${variables[0]}/config`
+                : undefined
         return {
             ...varGrapherConfig,
             ...baseConfig,
             dataApiUrl: DATA_API_URL,
-            // TODO: The way manager is set here is just a workaround to make the edit button in the
-            // share menu work. This should be removed before we publish MDims!
             manager: {
                 canonicalUrl,
+                editUrl,
             },
         } as GrapherProgrammaticInterface
-    }, [varGrapherConfig, grapherConfigIsReady, bounds, canonicalUrl])
+    }, [
+        varGrapherConfig,
+        grapherConfigIsReady,
+        bounds,
+        canonicalUrl,
+        currentView?.indicators,
+    ])
 
     const hasTopicTags = !!config.config.topicTags?.length
 
@@ -384,6 +394,7 @@ export const MultiDimDataPageContent = ({
                                 {...grapherConfigComputed}
                                 queryStr={queryStr}
                                 getGrapherInstance={setGrapherInst}
+                                adminBaseUrl={ADMIN_BASE_URL}
                             />
                         </figure>
                     </div>
