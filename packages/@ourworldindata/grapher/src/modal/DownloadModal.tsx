@@ -43,6 +43,7 @@ import {
     DownloadIconFullDataset,
     DownloadIconSelected,
 } from "./DownloadIcons.js"
+import { match } from "ts-pattern"
 
 export interface DownloadModalManager {
     displaySlug: string
@@ -433,11 +434,16 @@ const createCsvBlobLocally = async (ctx: DataDownloadContextClientSide) => {
 
 const getDownloadSearchParams = (ctx: DataDownloadContextServerSide) => {
     const searchParams = new URLSearchParams()
-    if (ctx.shortColNames) searchParams.set("useColumnShortNames", "true")
+    searchParams.set(
+        "csvType",
+        match(ctx.csvDownloadType)
+            .with(CsvDownloadType.CurrentSelection, () => "filtered")
+            .with(CsvDownloadType.Full, () => "full")
+            .exhaustive()
+    )
+    searchParams.set("useColumnShortNames", ctx.shortColNames.toString())
 
     if (ctx.csvDownloadType === CsvDownloadType.CurrentSelection) {
-        searchParams.set("csvType", "filtered")
-
         // Append all the current selection filters to the download URL, e.g.: ?time=2020&selection=~USA
         for (const [key, value] of ctx.searchParams.entries()) {
             searchParams.set(key, value)
@@ -814,7 +820,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
         <p className="grapher_label-2-regular">
             Download the data shown in this chart as a ZIP file containing a CSV
             file, metadata in JSON format, and a README. The CSV file can be
-            opened in Excel, Google Sheets, and other analysis tools.
+            opened in Excel, Google Sheets, and other data analysis tools.
         </p>
     ) : (
         <p className="grapher_label-2-regular">
