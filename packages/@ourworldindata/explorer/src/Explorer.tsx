@@ -554,6 +554,7 @@ export class Explorer
             ),
             bakedGrapherURL: this.bakedBaseUrl,
             dataApiUrl: this.dataApiUrl,
+            adminBaseUrl: ADMIN_BASE_URL,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: false,
         }
@@ -599,6 +600,7 @@ export class Explorer
             ),
             bakedGrapherURL: this.bakedBaseUrl,
             dataApiUrl: this.dataApiUrl,
+            adminBaseUrl: ADMIN_BASE_URL,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: false,
         }
@@ -749,6 +751,7 @@ export class Explorer
             ...this.explorerProgram.grapherConfig,
             bakedGrapherURL: this.bakedBaseUrl,
             dataApiUrl: this.dataApiUrl,
+            adminBaseUrl: ADMIN_BASE_URL,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: true,
         }
