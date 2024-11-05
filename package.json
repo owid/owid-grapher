@@ -64,6 +64,7 @@
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "@react-awesome-query-builder/antd": "^6.6.0",
+        "@sentry/react": "^8.36.0",
         "@sinclair/typebox": "^0.28.5",
         "@slack/web-api": "^7.1.0",
         "@tippyjs/react": "^4.2.6",

@@ -64,7 +64,7 @@ export default function DataInsightsNewsletter({
                         }
                     >
                         <TextInput
-                            className="data-insights-newsletter__email-input"
+                            className="data-insights-newsletter__email-input sentry-mask"
                             type="email"
                             name="EMAIL"
                             required={true}
