@@ -1810,7 +1810,7 @@ export class Grapher
     }
 
     // todo: remove when we remove dimensions
-    @computed private get yColumnsFromDimensionsOrSlugsOrAuto(): CoreColumn[] {
+    @computed get yColumnsFromDimensionsOrSlugsOrAuto(): CoreColumn[] {
         return this.yColumnsFromDimensions.length
             ? this.yColumnsFromDimensions
             : this.table.getColumns(autoDetectYColumnSlugs(this))

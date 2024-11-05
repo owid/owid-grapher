@@ -9,7 +9,7 @@ export class Modal extends React.Component<{
     onDismiss: () => void
     children?: React.ReactNode
     isHeightFixed?: boolean // by default, the modal height is not fixed but fits to the content
-    alignVertical?: "center" | "bottom"
+    alignVertical?: "top" | "center" | "bottom"
 }> {
     contentRef: React.RefObject<HTMLDivElement> = React.createRef()
 
@@ -21,7 +21,7 @@ export class Modal extends React.Component<{
         return this.props.isHeightFixed ?? false
     }
 
-    @computed private get alignVertical(): "center" | "bottom" {
+    @computed private get alignVertical(): "top" | "center" | "bottom" {
         return this.props.alignVertical ?? "center"
     }
 
@@ -69,6 +69,8 @@ export class Modal extends React.Component<{
 
         if (this.alignVertical === "bottom") {
             contentStyle.bottom = bounds.y
+        } else if (this.alignVertical === "top") {
+            contentStyle.top = bounds.y
         } else {
             contentStyle.top = "50%"
             contentStyle.transform = "translateY(-50%)"

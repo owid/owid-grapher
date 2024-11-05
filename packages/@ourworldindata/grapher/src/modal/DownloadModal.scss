@@ -1,92 +1,205 @@
 .download-modal-content {
+    $ruler-border: 1px solid $gray-10;
+    $download-button-fill: $blue-5;
+    $hover-fill: $accent-pale-blue;
+    $active-fill: $blue-20;
+
     color: $dark-text;
 
     // necessary for scrolling
     display: flex;
     flex-direction: column;
-    height: 100%;
-    > * {
-        flex-shrink: 0;
-    }
 
-    .scrollable {
-        flex: 1 1 auto;
-        overflow-y: auto;
-        padding: 0 var(--modal-padding) var(--modal-padding);
-        width: 100%;
+    .download-modal__tab-list {
+        --tabs-font-size: 14px;
 
-        // needed for the loading indicator
-        position: relative;
-        min-height: 45px;
-    }
+        padding: 0 var(--modal-padding);
 
-    .grouped-menu-section {
-        h3 {
-            margin-bottom: 16px;
+        .Tabs__tab {
+            // Tabs should fill the whole available width
+            flex-basis: 100%;
         }
     }
 
-    .grouped-menu-section + .grouped-menu-section {
-        margin-top: 24px;
+    .download-modal__tab-panel {
+        margin-top: 16px;
+
+        flex: 1 1 auto;
+        overflow-y: auto;
+
+        // needed for the loading indicator
+        position: relative;
+        min-height: 100px;
     }
 
-    .grouped-menu-item + .grouped-menu-item {
-        margin-top: 4px;
+    .download-modal__tab-content {
+        padding: 0 var(--modal-padding);
+        margin-bottom: 24px;
     }
 
-    .grouped-menu-item {
+    .download-modal__vis-section {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .download-modal__data-section {
+        padding-bottom: 16px;
+
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        + .download-modal__data-section {
+            border-top: $ruler-border;
+            padding-top: 16px;
+        }
+
+        &:last-child {
+            padding-bottom: 0;
+        }
+    }
+
+    .download-modal__download-button {
         display: flex;
         flex-direction: row;
         align-items: center;
-        color: $dark-text;
-        background-color: $gray-5;
-        position: relative;
+        color: $blue-90;
+        background-color: $download-button-fill;
         width: 100%;
         padding: 16px;
-        overflow: hidden;
         text-align: left;
+        cursor: pointer;
 
         &:hover {
-            cursor: pointer;
             background-color: $hover-fill;
         }
 
         &:active {
             background-color: $active-fill;
         }
+
+        + .download-modal__download-button {
+            margin-top: 2px;
+        }
+
+        .download-modal__option-icon {
+            margin-right: 12px;
+            display: flex;
+        }
+
+        .download-modal__download-preview-img img {
+            display: block;
+            box-shadow:
+                0px 0px 0px 0px rgba(49, 37, 2, 0.03),
+                0px 6px 13px 0px rgba(49, 37, 2, 0.03),
+                0px 93px 37px 0px rgba(49, 37, 2, 0.01),
+                0px 145px 41px 0px rgba(49, 37, 2, 0);
+            padding: 0;
+            margin: 0 24px 0 0;
+        }
+
+        .download-modal__download-button-content {
+            flex: 1;
+        }
+
+        .download-modal__download-button-description {
+            color: $bluish-grey-text-color;
+        }
+
+        .download-modal__download-icon {
+            padding: 0 8px 0 16px;
+            font-size: 16px;
+        }
     }
 
-    .grouped-menu-icon img {
-        display: block;
-        box-shadow:
-            0px 0px 0px 0px rgba(49, 37, 2, 0.03),
-            0px 6px 13px 0px rgba(49, 37, 2, 0.03),
-            0px 93px 37px 0px rgba(49, 37, 2, 0.01),
-            0px 145px 41px 0px rgba(49, 37, 2, 0);
-        padding: 0;
-        margin: 0 24px 0 0;
+    .download-modal__config-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        padding-bottom: 8px; // 8px padding + 8px gap
+
+        + .download-modal__config-list {
+            border-top: $ruler-border;
+            padding-top: 16px;
+        }
+
+        // Radio label
+        .label {
+            @include grapher_label-1-regular;
+        }
+
+        // "Example" label
+        p {
+            margin-top: 4px;
+            margin-bottom: 0;
+            margin-left: 24px;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+
+        // Example column name
+        code {
+            background-color: $gray-10;
+            color: $gray-70;
+            padding: 2px 4px;
+            font-family: $monospace-font-stack;
+
+            white-space: normal;
+
+            // Make it so we get nice paddings around line breaks
+            -webkit-box-decoration-break: clone;
+            box-decoration-break: clone;
+        }
     }
 
-    .grouped-menu-content {
-        flex: 1;
+    .download-modal__api-urls {
+        border-top: $ruler-border;
+        padding-top: 16px;
+
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
     }
 
-    .grouped-menu-section-data .grouped-menu-content {
-        padding-left: 0;
+    .download-modal__sources {
+        font-size: 14px;
+        line-height: 1.3;
     }
 
-    .download-icon {
-        padding: 0 8px 0 16px;
-        font-size: 16px;
+    .download-modal__data-sources {
+        line-height: 1.4;
+        margin-bottom: 4px; // 4px margin + 8px gap
+
+        .download-modal__data-sources-list {
+            display: inline;
+            list-style: none;
+
+            li {
+                display: inline;
+
+                &::after {
+                    display: inline-block;
+                    white-space: pre;
+                    content: "; ";
+                }
+
+                &:last-child::after {
+                    content: none;
+                }
+
+                a {
+                    @include owid-link-90;
+                    color: $gray-80;
+                }
+            }
+        }
     }
 
-    .grouped-menu-item:hover .download-icon {
-        opacity: 1;
-    }
-
-    .grouped-menu-callout {
+    .download-modal__callout {
+        border: 1px solid $gray-20;
         border-radius: 8px;
-        border: 1px solid $gray-30;
         background: $gray-5;
         padding: 16px;
 
@@ -104,41 +217,50 @@
             font-size: 14px;
         }
 
-        a {
-            color: inherit;
-            text-decoration: underline;
+        ul {
+            margin: 0;
+            padding-left: 18px;
+            line-height: 1.5;
+        }
 
-            &:hover {
-                text-decoration: none;
-            }
+        a {
+            @include owid-link-60;
+        }
+    }
+
+    .download-modal__code-blocks,
+    .download-modal__api-urls {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        h4 {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+    }
+
+    .download-modal__heading-with-caption {
+        margin-bottom: 8px;
+
+        h3 {
+            margin-bottom: 6px;
+        }
+
+        p {
+            color: $gray-60;
+            margin: 0;
+        }
+
+        a {
+            @include owid-link-90;
+            color: $gray-70;
         }
     }
 }
 
-.static-exports-options {
-    margin: 16px 0 24px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid $gray-10;
-
-    > .checkbox + .checkbox {
-        margin-top: 8px;
-    }
-}
-
-&.GrapherComponentSmall .download-modal-content {
-    .grouped-menu-item h4,
-    .grouped-menu-callout h4 {
-        font-size: 14px;
-    }
-
-    .grouped-menu-item p,
-    .grouped-menu-callout p {
-        font-size: 13px;
-    }
-}
-
 &.GrapherComponentNarrow .download-modal-content {
-    .grouped-menu-icon img {
+    .download-modal__download-preview-img img {
         display: none;
     }
 }
