@@ -446,6 +446,7 @@ const createCsvBlobLocally = async (ctx: DataDownloadContextClientSide) => {
 
 const getDownloadSearchParams = (ctx: DataDownloadContextServerSide) => {
     const searchParams = new URLSearchParams()
+    searchParams.set("v", "1") // API versioning
     searchParams.set(
         "csvType",
         match(ctx.csvDownloadType)
