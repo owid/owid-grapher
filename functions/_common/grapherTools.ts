@@ -180,5 +180,5 @@ export function rewriteMetaTags(
             },
         })
 
-    return rewriter.transform(page as unknown as Response)
+    return rewriter.transform(page)
 }

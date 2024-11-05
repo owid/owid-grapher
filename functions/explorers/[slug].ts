@@ -62,6 +62,7 @@ async function handleThumbnailRequest(
     try {
         const html = await explorerPage.text()
         const queryStr = url.searchParams.toString()
+        // The env URL class isn't compatible with the Url class from @ourworldindata/utils
         const urlObj = Url.fromURL(url.toString())
         const [windowEntityNames] = [urlObj]
             .map(migrateSelectedEntityNamesParam)
