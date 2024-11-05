@@ -657,20 +657,7 @@ const ApiAndCodeExamplesSection = (props: {
                         examples below.
                     </p>
                 </div>
-                <section className="download-modal__api-urls">
-                    <div>
-                        <h4 className="grapher_body-2-medium">
-                            Data URL (CSV format)
-                        </h4>
-                        <CodeSnippet code={csvUrl} />
-                    </div>
-                    <div>
-                        <h4 className="grapher_body-2-medium">
-                            Metadata URL (JSON format)
-                        </h4>
-                        <CodeSnippet code={metadataUrl} />
-                    </div>
-                </section>
+
                 <section className="download-modal__config-list">
                     <RadioButton
                         label="Download full data, including all entities and time points"
@@ -714,6 +701,20 @@ const ApiAndCodeExamplesSection = (props: {
                         </div>
                     </section>
                 )}
+                <section className="download-modal__api-urls">
+                    <div>
+                        <h4 className="grapher_body-2-medium">
+                            Data URL (CSV format)
+                        </h4>
+                        <CodeSnippet code={csvUrl} />
+                    </div>
+                    <div>
+                        <h4 className="grapher_body-2-medium">
+                            Metadata URL (JSON format)
+                        </h4>
+                        <CodeSnippet code={metadataUrl} />
+                    </div>
+                </section>
             </div>
 
             <CodeExamplesBlock csvUrl={csvUrl} metadataUrl={metadataUrl} />

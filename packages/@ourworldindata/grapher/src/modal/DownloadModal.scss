@@ -155,9 +155,8 @@
     }
 
     .download-modal__api-urls {
-        border-bottom: $ruler-border;
-        padding-bottom: 16px;
-        margin-bottom: 8px;
+        border-top: $ruler-border;
+        padding-top: 16px;
 
         display: flex;
         flex-direction: column;
@@ -242,6 +241,8 @@
     }
 
     .download-modal__heading-with-caption {
+        margin-bottom: 8px;
+
         h3 {
             margin-bottom: 6px;
         }
@@ -249,7 +250,6 @@
         p {
             color: $gray-60;
             margin: 0;
-            margin-bottom: 4px;
         }
 
         a {
