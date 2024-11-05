@@ -1239,8 +1239,6 @@ export class Grapher
         return uniq(this.dimensions.map((d) => d.variableId))
     }
 
-    externalCsvLink = ""
-
     @computed get hasOWIDLogo(): boolean {
         return (
             !this.hideLogo && (this.logo === undefined || this.logo === "owid")

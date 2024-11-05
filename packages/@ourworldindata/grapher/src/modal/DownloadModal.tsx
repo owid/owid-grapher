@@ -56,7 +56,6 @@ export interface DownloadModalManager {
     table?: OwidTable
     transformedTable?: OwidTable
     yColumnsFromDimensionsOrSlugsOrAuto?: CoreColumn[]
-    externalCsvLink?: string // TODO: do we want to drop this feature?
     shouldIncludeDetailsInStaticExport?: boolean
     detailsOrderedByReference?: string[]
     isDownloadModalOpen?: boolean
