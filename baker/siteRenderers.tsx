@@ -14,11 +14,6 @@ import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import * as lodash from "lodash"
 import { formatCountryProfile, isCanonicalInternalUrl } from "./formatting.js"
-import {
-    bakeGrapherUrls,
-    getGrapherExportsByUrl,
-    GrapherExports,
-} from "../baker/GrapherBakingUtils.js"
 import cheerio from "cheerio"
 import {
     BAKED_BASE_URL,
@@ -28,8 +23,8 @@ import {
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
-    BAKED_GRAPHER_EXPORTS_BASE_URL,
     RECAPTCHA_SITE_KEY,
+    GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../settings/clientSettings.js"
 import { FeedbackPage } from "../site/FeedbackPage.js"
 import {
@@ -198,32 +193,12 @@ export const renderPreview = async (
 export const renderPost = async (
     post: FullPost,
     knex: KnexReadonlyTransaction,
-    baseUrl: string = BAKED_BASE_URL,
-    grapherExports?: GrapherExports
+    baseUrl: string = BAKED_BASE_URL
 ) => {
-    if (!grapherExports) {
-        const $ = cheerio.load(post.content)
-
-        const grapherUrls = $("iframe")
-            .toArray()
-            .filter((el) => (el.attribs["src"] || "").match(/\/grapher\//))
-            .map((el) => el.attribs["src"].trim())
-
-        // This can be slow if uncached!
-        await bakeGrapherUrls(knex, grapherUrls)
-
-        grapherExports = await getGrapherExportsByUrl()
-    }
-
     // Extract formatting options from post HTML comment (if any)
     const formattingOptions = extractFormattingOptions(post.content)
 
-    const formatted = await formatPost(
-        post,
-        formattingOptions,
-        knex,
-        grapherExports
-    )
+    const formatted = await formatPost(post, formattingOptions, knex)
 
     const pageOverrides = await getPageOverrides(knex, post, formattingOptions)
     const citationStatus =
@@ -470,8 +445,7 @@ export const feedbackPage = () =>
 const getCountryProfilePost = memoize(
     async (
         profileSpec: CountryProfileSpec,
-        knex: KnexReadonlyTransaction,
-        grapherExports?: GrapherExports
+        knex: KnexReadonlyTransaction
     ): Promise<[FormattedPost, FormattingOptions]> => {
         // Get formatted content from generic covid country profile page.
         const genericCountryProfilePost = await getFullPostBySlugFromSnapshot(
@@ -485,8 +459,7 @@ const getCountryProfilePost = memoize(
         const formattedPost = await formatPost(
             genericCountryProfilePost,
             profileFormattingOptions,
-            knex,
-            grapherExports
+            knex
         )
 
         return [formattedPost, profileFormattingOptions]
@@ -503,13 +476,11 @@ const getCountryProfileLandingPost = memoize(
 export const renderCountryProfile = async (
     profileSpec: CountryProfileSpec,
     country: Country,
-    knex: KnexReadonlyTransaction,
-    grapherExports?: GrapherExports
+    knex: KnexReadonlyTransaction
 ) => {
     const [formatted, formattingOptions] = await getCountryProfilePost(
         profileSpec,
-        knex,
-        grapherExports
+        knex
     )
 
     const formattedCountryProfile = formatCountryProfile(formatted, country)
@@ -545,7 +516,6 @@ export const countryProfileCountryPage = async (
     const country = getCountryBySlug(countrySlug)
     if (!country) throw new JsonError(`No such country ${countrySlug}`, 404)
 
-    // Voluntarily not dealing with grapherExports on devServer for simplicity
     return renderCountryProfile(profileSpec, country, knex)
 }
 
@@ -859,7 +829,7 @@ const getExplorerTitleByUrl = async (
 const renderGrapherThumbnailByResolvedChartSlug = (
     chartSlug: string
 ): string | null => {
-    return `<img src="${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chartSlug}.svg" />`
+    return `<img src="${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${chartSlug}.svg" />`
 }
 
 const renderExplorerDefaultThumbnail = (): string => {

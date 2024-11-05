@@ -8,7 +8,7 @@ import Image from "./Image.js"
 import { useLinkedChart, useLinkedDocument } from "../utils.js"
 import { DocumentContext } from "../OwidGdoc.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
-import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../../settings/clientSettings.js"
+import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../../settings/clientSettings.js"
 import {
     ARCHVED_THUMBNAIL_FILENAME,
     DEFAULT_THUMBNAIL_FILENAME,
@@ -16,7 +16,7 @@ import {
 
 const Thumbnail = ({ thumbnail }: { thumbnail: string }) => {
     if (
-        thumbnail.startsWith(BAKED_GRAPHER_EXPORTS_BASE_URL) ||
+        thumbnail.startsWith(GRAPHER_DYNAMIC_THUMBNAIL_URL) ||
         thumbnail.endsWith(ARCHVED_THUMBNAIL_FILENAME) ||
         thumbnail.endsWith(DEFAULT_THUMBNAIL_FILENAME)
     ) {

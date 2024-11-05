@@ -25,7 +25,6 @@ import {
 import {
     BAKED_BASE_URL,
     BASE_DIR,
-    BAKED_SITE_DIR,
     LEGACY_WORDPRESS_IMAGE_URL,
 } from "../settings/serverSettings.js"
 
@@ -429,16 +428,11 @@ mockSiteRouter.use(
         res.redirect(assetUrl)
     }
 )
-mockSiteRouter.use(
-    "/exports",
-    express.static(path.join(BAKED_SITE_DIR, "exports"))
-)
 
 mockSiteRouter.use("/assets", express.static("dist/assets"))
 
-// TODO: this used to be a mockSiteRouter.use call but otherwise it looked like a route and
-// it didn't look like it was making use of any middleware - if this causese issues then
-// this has to be reverted to a use call
+// We've replaced static grapher exports with a Cloudflare Worker, so this is no longer "mocking" the real site
+// But it's still useful to have for the /admin/charts page
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/grapher/exports/:slug.svg",

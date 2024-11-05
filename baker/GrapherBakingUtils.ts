@@ -1,26 +1,8 @@
-import { glob } from "glob"
-import path from "path"
 import * as lodash from "lodash"
-import {
-    OPTIMIZE_SVG_EXPORTS,
-    BAKED_SITE_DIR,
-} from "../settings/serverSettings.js"
-import { BAKED_SITE_EXPORTS_BASE_URL } from "../settings/clientSettings.js"
 
 import * as db from "../db/db.js"
-import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker.js"
-import { warn } from "../serverUtils/errorLog.js"
-import { mapSlugsToIds } from "../db/model/Chart.js"
 import md5 from "md5"
 import { DbPlainTag, Url } from "@ourworldindata/utils"
-
-interface ChartExportMeta {
-    key: string
-    svgUrl: string
-    version: number
-    width: number
-    height: number
-}
 
 // Splits a grapher URL like https://ourworldindata.org/grapher/soil-lifespans?tab=chart
 // into its slug (soil-lifespans) and queryStr (?tab=chart)
@@ -46,99 +28,6 @@ export const grapherSlugToExportFileKey = (
         ? md5(queryStr ?? "")
         : queryStr
     return `${slug}${queryStr ? `${separator}${maybeHashedQueryStr}` : ""}`
-}
-
-export interface GrapherExports {
-    get: (grapherUrl: string) => ChartExportMeta | undefined
-}
-
-export const bakeGrapherUrls = async (
-    knex: db.KnexReadonlyTransaction,
-    urls: string[]
-) => {
-    const currentExports = await getGrapherExportsByUrl()
-    const slugToId = await mapSlugsToIds(knex)
-    const toBake = []
-
-    // Check that we need to bake this url, and don't already have an export
-    for (const url of urls) {
-        const current = currentExports.get(url)
-        if (!current) {
-            toBake.push(url)
-            continue
-        }
-
-        const slug = lodash.last(Url.fromURL(url).pathname?.split("/"))
-        if (!slug) {
-            warn(`Invalid chart url ${url}`)
-            continue
-        }
-
-        const chartId = slugToId[slug]
-        if (chartId === undefined) {
-            warn(`Couldn't find chart with slug ${slug}`)
-            continue
-        }
-
-        const rows = await db.knexRaw<{ version: number }>(
-            knex,
-            `-- sql
-                SELECT cc.full->>"$.version" AS version
-                FROM charts c
-                JOIN chart_configs cc ON c.configId = cc.id
-                WHERE c.id=?
-            `,
-            [chartId]
-        )
-        if (!rows.length) {
-            warn(`Mysteriously missing chart by id ${chartId}`)
-            continue
-        }
-
-        if (rows[0].version > current.version) toBake.push(url)
-    }
-
-    if (toBake.length > 0) {
-        await bakeGraphersToSvgs(
-            knex,
-            toBake,
-            `${BAKED_SITE_DIR}/exports`,
-            OPTIMIZE_SVG_EXPORTS
-        )
-    }
-}
-
-export const getGrapherExportsByUrl = async (): Promise<GrapherExports> => {
-    // Index the files to see what we have available, using the most recent version
-    // if multiple exports exist
-    const files = await glob(`${BAKED_SITE_DIR}/exports/*.svg`)
-    const exportsByKey = new Map<string, ChartExportMeta>()
-    for (const filepath of files) {
-        const filename = path.basename(filepath)
-        const [key, version, dims] = filename.toLowerCase().split("_")
-        const versionNumber = parseInt(version.split("v")[1])
-        const [width, height] = dims.split("x")
-
-        const current = exportsByKey.get(key)
-        if (!current || current.version < versionNumber) {
-            exportsByKey.set(key, {
-                key: key,
-                svgUrl: `${BAKED_SITE_EXPORTS_BASE_URL}/${filename}`,
-                version: versionNumber,
-                width: parseInt(width),
-                height: parseInt(height),
-            })
-        }
-    }
-
-    return {
-        get(grapherUrl: string) {
-            const { slug, queryStr } = grapherUrlToSlugAndQueryStr(grapherUrl)
-            return exportsByKey.get(
-                grapherSlugToExportFileKey(slug, queryStr).toLowerCase()
-            )
-        },
-    }
 }
 
 /**

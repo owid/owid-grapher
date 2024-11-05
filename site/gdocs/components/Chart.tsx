@@ -43,7 +43,6 @@ export default function Chart({
 
     const url = Url.fromURL(d.url)
     const resolvedUrl = linkedChart.resolvedUrl
-    const resolvedSlug = Url.fromURL(resolvedUrl).slug
     const isExplorer = linkedChart.configType === ChartConfigType.Explorer
     const isMultiDim = linkedChart.configType === ChartConfigType.MultiDim
     const hasControls = url.queryParams.hideControls !== "true"
@@ -131,12 +130,10 @@ export default function Chart({
                 {isExplorer || isMultiDim ? (
                     <div className="js--show-warning-block-if-js-disabled" />
                 ) : (
-                    resolvedSlug && (
-                        <a href={resolvedUrl} target="_blank" rel="noopener">
-                            <GrapherImage slug={resolvedSlug} alt={d.title} />
-                            <InteractionNotice />
-                        </a>
-                    )
+                    <a href={resolvedUrl} target="_blank" rel="noopener">
+                        <GrapherImage url={resolvedUrl} alt={d.title} />
+                        <InteractionNotice />
+                    </a>
                 )}
             </figure>
             {d.caption ? (
