@@ -104,8 +104,20 @@ export const DownloadModal = (
                     <Tabs
                         variant="slim"
                         labels={[
-                            { element: <>Visualization</> },
-                            { element: <>Data</> },
+                            {
+                                element: <>Visualization</>,
+                                buttonProps: {
+                                    "data-track-note":
+                                        "chart_download_modal_tab_visualization",
+                                } as any,
+                            },
+                            {
+                                element: <>Data</>,
+                                buttonProps: {
+                                    "data-track-note":
+                                        "chart_download_modal_tab_data",
+                                } as any,
+                            },
                         ]}
                         activeIndex={activeTabIndex}
                         setActiveIndex={setActiveTabIndex}
@@ -650,7 +662,10 @@ const ApiAndCodeExamplesSection = (props: {
                     <p className="grapher_label-2-regular">
                         Use these URLs to programmatically access this chart's
                         data and configure your requests with the options below.{" "}
-                        <a href="https://docs.owid.io/projects/etl/api/">
+                        <a
+                            href="https://docs.owid.io/projects/etl/api/"
+                            data-track-note="chart_download_modal_api_docs"
+                        >
                             Our documentation provides more information
                         </a>{" "}
                         on how to use the API, and you can find a few code
@@ -847,6 +862,12 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                         description="Includes all entities and time points."
                         icon={<DownloadIconFullDataset />}
                         onClick={() => onDownloadClick(CsvDownloadType.Full)}
+                        tracking={
+                            "chart_download_full_data--" +
+                            serverSideDownloadAvailable
+                                ? "server"
+                                : "client"
+                        }
                     />
                     <DownloadButton
                         title="Download displayed data"
@@ -854,6 +875,12 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                         icon={<DownloadIconSelected />}
                         onClick={() =>
                             onDownloadClick(CsvDownloadType.CurrentSelection)
+                        }
+                        tracking={
+                            "chart_download_filtered_data--" +
+                            serverSideDownloadAvailable
+                                ? "server"
+                                : "client"
                         }
                     />
                 </div>
