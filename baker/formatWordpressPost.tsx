@@ -3,12 +3,10 @@ import urlSlug from "url-slug"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import { HTTPS_ONLY } from "../settings/serverSettings.js"
-import { GrapherExports } from "../baker/GrapherBakingUtils.js"
 import { FormattingOptions } from "@ourworldindata/types"
-import { FormattedPost, FullPost, TocHeading } from "@ourworldindata/utils"
+import { FormattedPost, FullPost, TocHeading, Url } from "@ourworldindata/utils"
 import { parseKeyValueArgs } from "../serverUtils/wordpressUtils.js"
 import { Footnote } from "../site/Footnote.js"
-import { LoadingIndicator } from "@ourworldindata/grapher"
 import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink.js"
 import { DataToken } from "../site/DataToken.js"
 import { DEEP_LINK_CLASS, formatImages } from "./formatting.js"
@@ -26,12 +24,12 @@ import { INTERACTIVE_ICON_SVG } from "../site/InteractionNotice.js"
 import { renderProminentLinks } from "./siteRenderers.js"
 import { RELATED_CHARTS_CLASS_NAME } from "../site/blocks/RelatedCharts.js"
 import { KnexReadonlyTransaction } from "../db/db.js"
+import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
 
 export const formatWordpressPost = async (
     post: FullPost,
     formattingOptions: FormattingOptions,
-    knex: KnexReadonlyTransaction,
-    grapherExports?: GrapherExports
+    knex: KnexReadonlyTransaction
 ): Promise<FormattedPost> => {
     let html = post.content
 
@@ -152,53 +150,49 @@ export const formatWordpressPost = async (
     // Replace URLs pointing to Explorer redirect URLs with the destination URLs
     replaceIframesWithExplorerRedirectsInWordPressPost(cheerioEl)
 
-    // Replace grapher iframes with static previews
-    if (grapherExports) {
-        const grapherIframes = cheerioEl("iframe")
-            .toArray()
-            .filter((el) => (el.attribs["src"] || "").match(/\/grapher\//))
-        for (const el of grapherIframes) {
-            const $el = cheerioEl(el)
-            const src = el.attribs["src"].trim()
-            const chart = grapherExports.get(src)
-            if (chart) {
-                const output = `
+    const grapherIframes = cheerioEl("iframe")
+        .toArray()
+        .filter((el) => (el.attribs["src"] || "").match(/\/grapher\//))
+
+    for (const el of grapherIframes) {
+        const $el = cheerioEl(el)
+        const src = el.attribs["src"].trim()
+        const url = Url.fromURL(src)
+        const output = `
                 <figure data-grapher-src="${src}" class="${GRAPHER_PREVIEW_CLASS}">
                     <a href="${src}" target="_blank">
-                        <div><img src="${chart.svgUrl}" width="${chart.width}" height="${chart.height}" loading="lazy" data-no-lightbox /></div>
+                        <div><img src="${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${url.slug}.png${url.queryParams}" width="850" height="600" loading="lazy" data-no-lightbox /></div>
                         <div class="interactionNotice">
                             <span class="icon">${INTERACTIVE_ICON_SVG}</span>
                             <span class="label">Click to open interactive version</span>
                         </div>
                     </a>
                 </figure>`
-                if (el.parent.tagName === "p") {
-                    // We are about to replace <iframe> with <figure>. However, there cannot be <figure> within <p>,
-                    // so we are lifting the <figure> out.
-                    // Where does this markup  come from? Historically, wpautop wrapped <iframe> in <p>. Some non-Gutengerg
-                    // posts will still show that, until they are converted. As a reminder, wpautop is not being used
-                    // on the overall post content anymore, neither on the Wordpress side nor on the grapher side (through
-                    // the wpautop npm package), but its effects are still "present" after the result of wpautop were committed
-                    // to the DB during a one-time refactoring session.
-                    // <p><iframe></iframe></p>  -->  <p></p><figure></figure>
-                    const $p = $el.parent()
-                    $p.after(output)
-                    $el.remove()
-                } else if (el.parent.tagName === "figure") {
-                    // Support for <iframe> wrapped in <figure>
-                    // <figure> automatically added by Gutenberg on copy / paste <iframe>
-                    // Lifting up <iframe> out of <figure>, before it becomes a <figure> itself.
-                    // <figure><iframe></iframe></figure>  -->  <figure></figure>
-                    const $figure = $el.parent()
-                    $figure.after(output)
-                    $figure.remove()
-                } else {
-                    // No lifting up otherwise, just replacing <iframe> with <figure>
-                    // <iframe></iframe>  -->  <figure></figure>
-                    $el.after(output)
-                    $el.remove()
-                }
-            }
+        if (el.parent.tagName === "p") {
+            // We are about to replace <iframe> with <figure>. However, there cannot be <figure> within <p>,
+            // so we are lifting the <figure> out.
+            // Where does this markup  come from? Historically, wpautop wrapped <iframe> in <p>. Some non-Gutengerg
+            // posts will still show that, until they are converted. As a reminder, wpautop is not being used
+            // on the overall post content anymore, neither on the Wordpress side nor on the grapher side (through
+            // the wpautop npm package), but its effects are still "present" after the result of wpautop were committed
+            // to the DB during a one-time refactoring session.
+            // <p><iframe></iframe></p>  -->  <p></p><figure></figure>
+            const $p = $el.parent()
+            $p.after(output)
+            $el.remove()
+        } else if (el.parent.tagName === "figure") {
+            // Support for <iframe> wrapped in <figure>
+            // <figure> automatically added by Gutenberg on copy / paste <iframe>
+            // Lifting up <iframe> out of <figure>, before it becomes a <figure> itself.
+            // <figure><iframe></iframe></figure>  -->  <figure></figure>
+            const $figure = $el.parent()
+            $figure.after(output)
+            $figure.remove()
+        } else {
+            // No lifting up otherwise, just replacing <iframe> with <figure>
+            // <iframe></iframe>  -->  <figure></figure>
+            $el.after(output)
+            $el.remove()
         }
     }
 
@@ -211,13 +205,15 @@ export const formatWordpressPost = async (
     for (const el of explorerIframes) {
         const $el = cheerioEl(el)
         const src = el.attribs["src"].trim()
+        // const url = Url.fromURL(src)
         // set a default style if none exists on the existing iframe
         const style = el.attribs["style"] || "width: 100%; height: 600px;"
         const cssClass = el.attribs["class"]
         const $figure = cheerioEl(
             ReactDOMServer.renderToStaticMarkup(
                 <figure data-explorer-src={src} className={cssClass}>
-                    <LoadingIndicator />
+                    {/* TODO: finish once https://github.com/owid/owid-grapher/pull/4031 is merged */}
+                    {/* <img src={`${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${url.slug}.png`}/> */}
                 </figure>
             )
         )
@@ -372,8 +368,7 @@ export const formatWordpressPost = async (
 export const formatPost = async (
     post: FullPost,
     formattingOptions: FormattingOptions,
-    knex: KnexReadonlyTransaction,
-    grapherExports?: GrapherExports
+    knex: KnexReadonlyTransaction
 ): Promise<FormattedPost> => {
     // No formatting applied, plain source HTML returned
     if (formattingOptions.raw)
@@ -392,5 +387,5 @@ export const formatPost = async (
         ...formattingOptions,
     }
 
-    return formatWordpressPost(post, options, knex, grapherExports)
+    return formatWordpressPost(post, options, knex)
 }
