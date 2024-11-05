@@ -16,13 +16,16 @@ import {
     ENV,
     BUGSNAG_API_KEY,
     ADMIN_BASE_URL,
+    SENTRY_DSN,
 } from "../settings/clientSettings.js"
 import { Grapher, CookieKey } from "@ourworldindata/grapher"
 import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder.js"
 import { CoreTable } from "@ourworldindata/core-table"
+import { isInIFrame } from "@ourworldindata/utils"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import Bugsnag, { BrowserConfig } from "@bugsnag/js"
 import BugsnagPluginReact from "@bugsnag/plugin-react"
+import * as Sentry from "@sentry/react"
 import { runMonkeyPatchForGoogleTranslate } from "./hacks.js"
 import { runSiteFooterScripts } from "./runSiteFooterScripts.js"
 import {
@@ -79,6 +82,43 @@ if (BUGSNAG_API_KEY) {
         })
     } catch {
         console.error("Failed to initialize Bugsnag")
+    }
+}
+
+if (SENTRY_DSN) {
+    try {
+        const analyticsConsent = getPreferenceValue(PreferenceType.Analytics)
+
+        let sentryOpts: Sentry.BrowserOptions
+        if (analyticsConsent && !isInIFrame()) {
+            // only collect session replays from: users that have consented to analytics
+            // AND where page isn't embedded in an iframe
+            sentryOpts = {
+                integrations: [
+                    Sentry.replayIntegration({
+                        maskAllText: false,
+                        maskAllInputs: false,
+                        blockAllMedia: false,
+                        mask: [".sentry-mask"],
+                    }),
+                ],
+                replaysSessionSampleRate: ENV === "development" ? 1 : 0.01,
+                replaysOnErrorSampleRate: 0,
+            }
+        } else {
+            sentryOpts = {
+                replaysSessionSampleRate: 0,
+                replaysOnErrorSampleRate: 0,
+            }
+        }
+        Sentry.init({
+            dsn: SENTRY_DSN,
+            debug: ENV === "development",
+            environment: ENV,
+            ...sentryOpts,
+        })
+    } catch {
+        console.error("Failed to initialize Sentry")
     }
 }
 

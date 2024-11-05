@@ -328,7 +328,7 @@ export class DonateForm extends React.Component {
                         <input
                             id="donation-name__input"
                             type="text"
-                            className="donation-name__input"
+                            className="donation-name__input sentry-mask"
                             value={this.name}
                             onChange={(event) =>
                                 this.setName(event.target.value)

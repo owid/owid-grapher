@@ -141,7 +141,7 @@ export const NewsletterSubscriptionForm = ({
                 <TextInput
                     placeholder="Your email address"
                     type="email"
-                    className="NewsletterSubscription__email"
+                    className="NewsletterSubscription__email sentry-mask"
                     name="EMAIL"
                     required={true}
                 />
