@@ -778,9 +778,6 @@ export class Explorer
             BlankOwidTable(tableSlug, `Loading table '${tableSlug}'`)
         )
         void this.futureGrapherTable.set(this.tableLoader.get(tableSlug))
-
-        if (this.downloadDataLink)
-            grapher.externalCsvLink = this.downloadDataLink
     }
 
     @action.bound setSlide(choiceParams: ExplorerFullQueryParams) {
