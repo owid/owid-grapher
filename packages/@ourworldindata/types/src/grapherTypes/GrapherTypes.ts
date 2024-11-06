@@ -622,6 +622,28 @@ export interface LegacyGrapherQueryParams extends GrapherQueryParams {
     country?: string // deprecated
 }
 
+// NOTE: This should list all keys of the LegacyGrapherQueryParams type. ATM
+// that can't be enforced with types.
+export const GRAPHER_QUERY_PARAM_KEYS: (keyof LegacyGrapherQueryParams)[] = [
+    "tab",
+    "overlay",
+    "stackMode",
+    "zoomToSelection",
+    "xScale",
+    "yScale",
+    "time",
+    "region",
+    "shown",
+    "endpointsOnly",
+    "selection",
+    "facet",
+    "uniformYAxis",
+    "showSelectionOnlyInTable",
+    "showNoDataArea",
+    "year",
+    "country",
+]
+
 // Another approach we may want to try is this: https://github.com/mobxjs/serializr
 export const grapherKeysToSerialize = [
     "$schema",

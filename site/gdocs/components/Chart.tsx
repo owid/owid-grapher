@@ -13,6 +13,7 @@ import {
     Url,
     merge,
 } from "@ourworldindata/utils"
+import { ChartConfigType } from "@ourworldindata/types"
 import { renderSpans, useLinkedChart } from "../utils.js"
 import cx from "classnames"
 import { GRAPHER_PREVIEW_CLASS } from "../../SiteConstants.js"
@@ -42,7 +43,8 @@ export default function Chart({
     const url = Url.fromURL(d.url)
     const resolvedUrl = linkedChart.resolvedUrl
     const resolvedSlug = Url.fromURL(resolvedUrl).slug
-    const isExplorer = url.isExplorer
+    const isExplorer = linkedChart.configType === ChartConfigType.Explorer
+    const isMultiDim = linkedChart.configType === ChartConfigType.MultiDim
     const hasControls = url.queryParams.hideControls !== "true"
     const isExplorerWithControls = isExplorer && hasControls
 
@@ -102,6 +104,7 @@ export default function Chart({
                     { [GRAPHER_PREVIEW_CLASS]: !isExplorer },
                     isExplorerWithControls ? "explorer" : "chart"
                 )}
+                data-is-multi-dim={isMultiDim || undefined}
                 data-grapher-src={isExplorer ? undefined : resolvedUrl}
                 data-grapher-config={
                     isExplorer ? undefined : JSON.stringify(chartConfig)
@@ -113,7 +116,7 @@ export default function Chart({
                     height: d.height,
                 }}
             >
-                {isExplorer ? (
+                {isExplorer || isMultiDim ? (
                     <div className="js--show-warning-block-if-js-disabled" />
                 ) : (
                     resolvedSlug && (

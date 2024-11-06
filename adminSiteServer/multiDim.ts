@@ -25,7 +25,10 @@ import {
     slugify,
 } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
-import { upsertMultiDimDataPage } from "../db/model/MultiDimDataPage.js"
+import {
+    isMultiDimDataPagePublished,
+    upsertMultiDimDataPage,
+} from "../db/model/MultiDimDataPage.js"
 import { upsertMultiDimXChartConfigs } from "../db/model/MultiDimXChartConfigs.js"
 import {
     getMergedGrapherConfigsForVariables,
@@ -279,16 +282,22 @@ export async function createMultiDimConfig(
     )
     const reusedChartConfigIds = new Set<string>()
     const { grapherConfigSchema } = config
+    // TODO: Remove when we build a way to publish mdims in the admin.
+    const isPublished = await isMultiDimDataPagePublished(knex, slug)
 
     const enrichedViews = await Promise.all(
         config.views.map(async (view) => {
             const variableId = view.indicators.y[0]
             // Main config for each view.
-            const mainGrapherConfig = {
+            const mainGrapherConfig: GrapherInterface = {
                 $schema:
                     "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
                 dimensions: MultiDimDataPageConfig.viewToDimensionsConfig(view),
                 selectedEntityNames: config.defaultSelection ?? [],
+                slug,
+            }
+            if (isPublished) {
+                mainGrapherConfig.isPublished = true
             }
             let viewGrapherConfig = {}
             if (view.config) {

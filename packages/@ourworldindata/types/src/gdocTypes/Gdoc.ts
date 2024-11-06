@@ -35,8 +35,15 @@ export interface LinkedAuthor {
     updatedAt: Date
 }
 
+export enum ChartConfigType {
+    Grapher = "grapher",
+    Explorer = "explorer",
+    MultiDim = "multi-dim",
+}
+
 // A minimal object containing metadata needed for rendering prominent links etc in the client
 export interface LinkedChart {
+    configType: ChartConfigType
     originalSlug: string
     resolvedUrl: string
     title: string
