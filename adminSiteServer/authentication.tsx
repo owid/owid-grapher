@@ -88,7 +88,12 @@ export async function authCloudflareSSOMiddleware(
         .table("users")
         .where({ email: payload.email })
         .first()
-    if (!user) return next("User not found. Please contact an administrator.")
+    if (!user) {
+        console.error(
+            `User with email ${payload.email} not found. Please contact an administrator.`
+        )
+        return next()
+    }
 
     // Authenticate as the user stored in the token
     const { id: sessionId } = await logInAsUser(user)
