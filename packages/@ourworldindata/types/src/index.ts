@@ -268,6 +268,7 @@ export {
     type EnrichedSocialLink,
 } from "./gdocTypes/ArchieMlComponents.js"
 export {
+    ChartConfigType,
     OwidGdocPublicationContext,
     type OwidGdocErrorMessageProperty,
     type OwidGdocErrorMessage,

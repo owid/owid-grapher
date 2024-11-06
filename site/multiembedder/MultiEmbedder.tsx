@@ -20,6 +20,8 @@ import {
     Url,
     GrapherTabOption,
     merge,
+    MultiDimDataPageConfig,
+    extractMultiDimChoicesFromQueryStr,
 } from "@ourworldindata/utils"
 import { action } from "mobx"
 import React from "react"
@@ -37,6 +39,7 @@ import {
     BAKED_GRAPHER_URL,
     DATA_API_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
+    MULTI_DIM_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.js"
 import Bugsnag from "@bugsnag/js"
 import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
@@ -131,6 +134,7 @@ class MultiEmbedder {
         const isExplorer = figure.hasAttribute(
             EXPLORER_EMBEDDED_FIGURE_SELECTOR
         )
+        const isMultiDim = figure.hasAttribute("data-is-multi-dim")
 
         const dataSrc = figure.getAttribute(
             isExplorer
@@ -203,8 +207,30 @@ class MultiEmbedder {
             figure.classList.remove(GRAPHER_PREVIEW_CLASS)
             const url = new URL(fullUrl)
             const slug = url.pathname.split("/").pop()
-            const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
-
+            let configUrl
+            if (isMultiDim) {
+                const mdimConfigUrl = `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${slug}.json`
+                const mdimJsonConfig = await fetch(mdimConfigUrl).then((res) =>
+                    res.json()
+                )
+                const mdimConfig =
+                    MultiDimDataPageConfig.fromObject(mdimJsonConfig)
+                const dimensions = extractMultiDimChoicesFromQueryStr(
+                    url.search,
+                    mdimConfig
+                )
+                const view = mdimConfig.findViewByDimensions(dimensions)
+                if (!view) {
+                    throw new Error(
+                        `No view found for dimensions ${JSON.stringify(
+                            dimensions
+                        )}`
+                    )
+                }
+                configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${view.fullConfigId}.config.json`
+            } else {
+                configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
+            }
             const grapherPageConfig = await fetch(configUrl).then((res) =>
                 res.json()
             )

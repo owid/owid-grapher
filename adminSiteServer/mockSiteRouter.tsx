@@ -80,6 +80,7 @@ import {
     getImageMetadataByFilenames,
 } from "../db/db.js"
 import { getMinimalGdocPostsByIds } from "../db/model/Gdoc/GdocBase.js"
+import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require("express-async-errors")
@@ -238,6 +239,17 @@ getPlainRouteWithROTransaction(
         res.json(chartRow.config)
     }
 )
+
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/multi-dim/:slug.json",
+    async (req, res, trx) => {
+        const multiDim = await getMultiDimDataPageBySlug(trx, req.params.slug)
+        if (!multiDim) throw new JsonError("No such multi-dim", 404)
+        res.json(multiDim.config)
+    }
+)
+
 // TODO: this transaction is only RW because somewhere inside it we fetch images
 getPlainRouteNonIdempotentWithRWTransaction(
     mockSiteRouter,

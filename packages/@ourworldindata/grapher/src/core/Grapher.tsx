@@ -105,6 +105,7 @@ import {
     GrapherWindowType,
     MultiDimDataPageProps,
     Color,
+    LegacyGrapherQueryParams,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -210,6 +211,28 @@ import {
     type EntitySelectorState,
 } from "../entitySelector/EntitySelector"
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
+
+// NOTE: This should list all keys of the LegacyGrapherQueryParams type. ATM
+// that can't be enforced with types.
+const GRAPHER_QUERY_PARAM_KEYS: (keyof LegacyGrapherQueryParams)[] = [
+    "tab",
+    "overlay",
+    "stackMode",
+    "zoomToSelection",
+    "xScale",
+    "yScale",
+    "time",
+    "region",
+    "shown",
+    "endpointsOnly",
+    "selection",
+    "facet",
+    "uniformYAxis",
+    "showSelectionOnlyInTable",
+    "showNoDataArea",
+    "year",
+    "country",
+]
 
 declare global {
     interface Window {
@@ -458,6 +481,7 @@ export class Grapher
     dataApiUrl =
         this.props.dataApiUrl ?? "https://api.ourworldindata.org/v1/indicators/"
 
+    @observable.ref externalQueryParams: QueryParams
     @observable.ref inputTable: OwidTable
 
     @observable.ref legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
@@ -522,6 +546,10 @@ export class Grapher
 
         this.populateFromQueryParams(
             legacyToCurrentGrapherQueryParams(props.queryStr ?? "")
+        )
+        this.externalQueryParams = omit(
+            Url.fromQueryStr(props.queryStr ?? "").queryParams,
+            GRAPHER_QUERY_PARAM_KEYS
         )
 
         if (this.isEditor) {
@@ -3197,7 +3225,10 @@ export class Grapher
     }
 
     @computed get queryStr(): string {
-        return queryParamsToStr(this.changedParams)
+        return queryParamsToStr({
+            ...this.changedParams,
+            ...this.externalQueryParams,
+        })
     }
 
     @computed get baseUrl(): string | undefined {

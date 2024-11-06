@@ -522,6 +522,7 @@ describe("OwidAdminApp: indicator-level chart configs", () => {
             ...mergedGrapherConfig,
             title: "Total energy use",
             selectedEntityNames: [], // mdims define their own default entities
+            slug: "energy",
         }
         const fullViewConfig1 = await testKnexInstance!(ChartConfigsTableName)
             .where("id", mdxcc1.chartConfigId)

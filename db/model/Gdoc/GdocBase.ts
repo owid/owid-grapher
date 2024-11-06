@@ -50,10 +50,18 @@ import {
 } from "../Variable.js"
 import { createLinkFromUrl } from "../Link.js"
 import {
+    getAllMultiDimDataPages,
+    getMultiDimDataPageBySlug,
+} from "../MultiDimDataPage.js"
+import {
     ARCHVED_THUMBNAIL_FILENAME,
+    ChartConfigType,
+    DbChartTagJoin,
     DEFAULT_THUMBNAIL_FILENAME,
+    GrapherInterface,
     LatestDataInsight,
     LinkedAuthor,
+    MultiDimDataPageConfigEnriched,
     OwidGdoc,
     OwidGdocContent,
     OwidGdocType,
@@ -591,24 +599,21 @@ export class GdocBase implements OwidGdocBaseInterface {
         const linkedGrapherCharts = await Promise.all(
             this.linkedChartSlugs.grapher.map(async (originalSlug) => {
                 const chartId = slugToIdMap[originalSlug]
-                if (!chartId) return
-                const chart = await getChartConfigById(knex, chartId)
-                if (!chart) return
-                const resolvedSlug = chart.config.slug ?? ""
-                const resolvedTitle = chart.config.title ?? ""
-                const tab = chart.config.tab ?? GrapherTabOption.chart
-                const datapageIndicator =
-                    await getVariableOfDatapageIfApplicable(chart.config)
-                const linkedChart: LinkedChart = {
-                    originalSlug,
-                    title: resolvedTitle,
-                    tab,
-                    resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
-                    thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
-                    tags: [],
-                    indicatorId: datapageIndicator?.id,
+                if (chartId) {
+                    const chart = await getChartConfigById(knex, chartId)
+                    if (!chart) return
+                    return makeGrapherLinkedChart(chart.config, originalSlug)
+                } else {
+                    const multiDim = await getMultiDimDataPageBySlug(
+                        knex,
+                        originalSlug
+                    )
+                    if (!multiDim) return
+                    return makeMultiDimLinkedChart(
+                        multiDim.config,
+                        originalSlug
+                    )
                 }
-                return linkedChart
             })
         ).then(excludeNullish)
 
@@ -619,16 +624,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             this.linkedChartSlugs.explorer.map((originalSlug) => {
                 const explorer = publishedExplorersBySlug[originalSlug]
                 if (!explorer) return
-                const linkedChart: LinkedChart = {
-                    // we are assuming explorer slugs won't change
-                    originalSlug,
-                    title: explorer?.title ?? "",
-                    subtitle: explorer?.subtitle ?? "",
-                    resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${originalSlug}`,
-                    thumbnail: `${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`,
-                    tags: explorer.tags,
-                }
-                return linkedChart
+                return makeExplorerLinkedChart(explorer, originalSlug)
             })
         )
 
@@ -750,6 +746,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         const chartIdsBySlug = await mapSlugsToIds(knex)
         const publishedExplorersBySlug =
             await db.getPublishedExplorersBySlug(knex)
+        const publishedMultiDimsBySlug = await getAllMultiDimDataPages(knex)
 
         const linkErrors: OwidGdocErrorMessage[] = this.links.reduce(
             (errors: OwidGdocErrorMessage[], link): OwidGdocErrorMessage[] => {
@@ -770,7 +767,10 @@ export class GdocBase implements OwidGdocBaseInterface {
                     }
                 }
                 if (link.linkType === "grapher") {
-                    if (!chartIdsBySlug[link.target]) {
+                    if (
+                        !chartIdsBySlug[link.target] &&
+                        !publishedMultiDimsBySlug.has(link.target)
+                    ) {
                         errors.push({
                             property: "content",
                             message: `Grapher chart with slug ${link.target} does not exist or is not published`,
@@ -925,4 +925,67 @@ export async function getMinimalAuthorsByNames(
            AND published = 1`,
         { names }
     )
+}
+
+export async function makeGrapherLinkedChart(
+    config: GrapherInterface,
+    originalSlug: string
+): Promise<LinkedChart> {
+    const resolvedSlug = config.slug ?? ""
+    const resolvedTitle = config.title ?? ""
+    const resolvedUrl = `${BAKED_GRAPHER_URL}/${resolvedSlug}`
+    const tab = config.tab ?? GrapherTabOption.chart
+    const datapageIndicator = await getVariableOfDatapageIfApplicable(config)
+    return {
+        configType: ChartConfigType.Grapher,
+        originalSlug,
+        title: resolvedTitle,
+        tab,
+        resolvedUrl,
+        thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
+        tags: [],
+        indicatorId: datapageIndicator?.id,
+    }
+}
+
+export function makeExplorerLinkedChart(
+    explorer: {
+        slug: string
+        title?: string
+        subtitle?: string
+        thumbnail?: string
+        tags?: DbChartTagJoin[]
+    },
+    originalSlug: string
+): LinkedChart {
+    return {
+        configType: ChartConfigType.Explorer,
+        // we are assuming explorer slugs won't change
+        originalSlug,
+        title: explorer.title ?? "",
+        subtitle: explorer.subtitle ?? "",
+        resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${originalSlug}`,
+        thumbnail:
+            explorer.thumbnail ||
+            `${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`,
+        tags: explorer.tags ?? [],
+    }
+}
+
+export function makeMultiDimLinkedChart(
+    config: MultiDimDataPageConfigEnriched,
+    slug: string
+): LinkedChart {
+    let title = config.title.title
+    const titleVariant = config.title.titleVariant
+    if (titleVariant) {
+        title = `${title} ${titleVariant}`
+    }
+    return {
+        configType: ChartConfigType.MultiDim,
+        originalSlug: slug,
+        title,
+        resolvedUrl: `${BAKED_GRAPHER_URL}/${slug}`,
+        tags: [],
+    }
 }
