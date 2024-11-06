@@ -1,9 +1,16 @@
-import { KnexReadonlyTransaction, KnexReadWriteTransaction } from "../db.js"
+import {
+    knexRaw,
+    KnexReadonlyTransaction,
+    KnexReadWriteTransaction,
+} from "../db.js"
 import {
     MultiDimDataPagesTableName,
     DbInsertMultiDimDataPage,
     DbPlainMultiDimDataPage,
     DbEnrichedMultiDimDataPage,
+    OwidGdocLinkType,
+    JsonString,
+    MultiDimDataPageConfigEnriched,
 } from "@ourworldindata/types"
 
 /**
@@ -25,11 +32,11 @@ export async function upsertMultiDimDataPage(
 
 export async function isMultiDimDataPagePublished(
     knex: KnexReadonlyTransaction,
-    id: number
+    slug: string
 ): Promise<boolean> {
     const result = await knex(MultiDimDataPagesTableName)
         .select(knex.raw("1"))
-        .where({ id, published: true })
+        .where({ slug, published: true })
         .first()
     return Boolean(result)
 }
@@ -38,9 +45,9 @@ const createOnlyPublishedFilter = (
     onlyPublished: boolean
 ): Record<string, any> => (onlyPublished ? { published: true } : {})
 
-const enrichRow = (
-    row: DbPlainMultiDimDataPage
-): DbEnrichedMultiDimDataPage => ({
+const enrichRow = <T extends { config: JsonString }>(
+    row: T
+): Omit<T, "config"> & { config: MultiDimDataPageConfigEnriched } => ({
     ...row,
     config: JSON.parse(row.config),
 })
@@ -56,6 +63,25 @@ export const getAllMultiDimDataPages = async (
     })
 
     return new Map(rows.map((row) => [row.slug, enrichRow(row)]))
+}
+
+export async function getAllLinkedPublishedMultiDimDataPages(
+    knex: KnexReadonlyTransaction
+): Promise<Pick<DbEnrichedMultiDimDataPage, "slug" | "config">[]> {
+    const rows = await knexRaw<
+        Pick<DbPlainMultiDimDataPage, "slug" | "config">
+    >(
+        knex,
+        `-- sql
+        SELECT
+            mddp.slug as slug,
+            mddp.config as config
+        FROM multi_dim_data_pages mddp
+        JOIN posts_gdocs_links pgl ON pgl.target = mddp.slug
+        WHERE pgl.linkType = '${OwidGdocLinkType.Grapher}'
+        AND mddp.published = true`
+    )
+    return rows.map(enrichRow)
 }
 
 export const getMultiDimDataPageBySlug = async (

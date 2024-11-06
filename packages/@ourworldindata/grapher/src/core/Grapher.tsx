@@ -105,6 +105,7 @@ import {
     GrapherWindowType,
     MultiDimDataPageProps,
     Color,
+    GRAPHER_QUERY_PARAM_KEYS,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -462,6 +463,7 @@ export class Grapher
     dataApiUrl =
         this.props.dataApiUrl ?? "https://api.ourworldindata.org/v1/indicators/"
 
+    @observable.ref externalQueryParams: QueryParams
     @observable.ref inputTable: OwidTable
 
     @observable.ref legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
@@ -526,6 +528,10 @@ export class Grapher
 
         this.populateFromQueryParams(
             legacyToCurrentGrapherQueryParams(props.queryStr ?? "")
+        )
+        this.externalQueryParams = omit(
+            Url.fromQueryStr(props.queryStr ?? "").queryParams,
+            GRAPHER_QUERY_PARAM_KEYS
         )
 
         if (this.isEditor) {
@@ -3201,7 +3207,10 @@ export class Grapher
     }
 
     @computed get queryStr(): string {
-        return queryParamsToStr(this.changedParams)
+        return queryParamsToStr({
+            ...this.changedParams,
+            ...this.externalQueryParams,
+        })
     }
 
     @computed get baseUrl(): string | undefined {

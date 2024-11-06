@@ -17,8 +17,6 @@ import { JsonError, lazy } from "@ourworldindata/utils"
 import { Base64String, R2GrapherConfigDirectory } from "@ourworldindata/types"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
-const R2_MULTI_DIM_CONFIG_DIRECTORY = "multi-dim-config"
-
 const getS3Client: () => S3Client = lazy(
     () =>
         new S3Client({
@@ -68,7 +66,7 @@ export async function saveMultiDimConfigToR2(
 ) {
     await saveConfigToR2(
         config,
-        R2_MULTI_DIM_CONFIG_DIRECTORY,
+        R2GrapherConfigDirectory.multiDim,
         `${slug}.json`,
         configMd5FromDb
     )

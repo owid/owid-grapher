@@ -98,6 +98,7 @@ export {
     type Tickmark,
     type SeriesName,
     type LegacyGrapherQueryParams,
+    GRAPHER_QUERY_PARAM_KEYS,
     GrapherStaticFormat,
     type ChartRedirect,
     type DetailsMarker,
@@ -268,6 +269,7 @@ export {
     type EnrichedSocialLink,
 } from "./gdocTypes/ArchieMlComponents.js"
 export {
+    ChartConfigType,
     OwidGdocPublicationContext,
     type OwidGdocErrorMessageProperty,
     type OwidGdocErrorMessage,

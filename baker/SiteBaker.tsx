@@ -8,7 +8,6 @@ import {
     BLOG_POSTS_PER_PAGE,
     BASE_DIR,
     GDOCS_DETAILS_ON_DEMAND_ID,
-    BAKED_GRAPHER_URL,
     FEATURE_FLAGS,
 } from "../settings/serverSettings.js"
 
@@ -55,8 +54,6 @@ import {
     OwidGdocMinimalPostInterface,
     excludeUndefined,
     grabMetadataForGdocLinkedIndicator,
-    GrapherTabOption,
-    DEFAULT_THUMBNAIL_FILENAME,
     TombstonePageData,
     gdocUrlRegex,
 } from "@ourworldindata/utils"
@@ -90,18 +87,11 @@ import {
     getChartEmbedUrlsInPublishedWordpressPosts,
     mapSlugsToConfigs,
 } from "../db/model/Chart.js"
-import {
-    BAKED_BASE_URL,
-    BAKED_GRAPHER_EXPORTS_BASE_URL,
-    FeatureFlagFeature,
-} from "../settings/clientSettings.js"
+import { FeatureFlagFeature } from "../settings/clientSettings.js"
 import pMap from "p-map"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
-import {
-    getVariableMetadata,
-    getVariableOfDatapageIfApplicable,
-} from "../db/model/Variable.js"
+import { getVariableMetadata } from "../db/model/Variable.js"
 import {
     gdocFromJSON,
     getAllMinimalGdocBaseObjects,
@@ -109,10 +99,16 @@ import {
 } from "../db/model/Gdoc/GdocFactory.js"
 import { getBakePath } from "@ourworldindata/components"
 import { GdocAuthor, getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
+import {
+    makeExplorerLinkedChart,
+    makeGrapherLinkedChart,
+    makeMultiDimLinkedChart,
+} from "../db/model/Gdoc/GdocBase.js"
 import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/SiteConstants.js"
 import { getRedirectsFromDb } from "../db/model/Redirect.js"
 import { getTombstones } from "../db/model/GdocTombstone.js"
 import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
+import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 
 type PrefetchedAttachments = {
     linkedAuthors: LinkedAuthor[]
@@ -371,16 +367,9 @@ export class SiteBaker {
             const publishedExplorersBySlug = await this.explorerAdminServer
                 .getAllPublishedExplorersBySlugCached()
                 .then((results) =>
-                    mapValues(results, (cur) => ({
-                        originalSlug: cur.slug,
-                        resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${cur.slug}`,
-                        queryString: "",
-                        title: cur.title || "",
-                        thumbnail:
-                            cur.thumbnail ||
-                            `${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`,
-                        tags: [],
-                    }))
+                    mapValues(results, (explorer) => {
+                        return makeExplorerLinkedChart(explorer, explorer.slug)
+                    })
                 )
             this.progressBar.tick({
                 name: `✅ Prefetched ${Object.values(publishedExplorersBySlug).length} explorers`,
@@ -409,23 +398,21 @@ export class SiteBaker {
             )) {
                 await Promise.all(
                     publishedChartsRawChunk.map(async (chart) => {
-                        const tab = chart.config.tab ?? GrapherTabOption.chart
-                        const datapageIndicator =
-                            await getVariableOfDatapageIfApplicable(
-                                chart.config
+                        publishedCharts.push(
+                            await makeGrapherLinkedChart(
+                                chart.config,
+                                chart.slug
                             )
-                        publishedCharts.push({
-                            originalSlug: chart.slug,
-                            resolvedUrl: `${BAKED_GRAPHER_URL}/${chart.config.slug}`,
-                            tab,
-                            title: chart.config.title || "",
-                            thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart.config.slug}.svg`,
-                            indicatorId: datapageIndicator?.id,
-                            tags: [],
-                        })
+                        )
                     })
                 )
             }
+
+            const multiDims = await getAllLinkedPublishedMultiDimDataPages(knex)
+            for (const { slug, config } of multiDims) {
+                publishedCharts.push(makeMultiDimLinkedChart(config, slug))
+            }
+
             const publishedChartsBySlug = keyBy(publishedCharts, "originalSlug")
             this.progressBar.tick({
                 name: `✅ Prefetched ${publishedCharts.length} charts`,

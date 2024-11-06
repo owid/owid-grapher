@@ -1179,7 +1179,7 @@ putRouteWithRWTransaction(
         const id = await createMultiDimConfig(trx, slug, rawConfig)
         if (
             FEATURE_FLAGS.has(FeatureFlagFeature.MultiDimDataPage) &&
-            (await isMultiDimDataPagePublished(trx, id))
+            (await isMultiDimDataPagePublished(trx, slug))
         ) {
             await triggerStaticBuild(
                 res.locals.user,

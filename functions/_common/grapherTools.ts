@@ -25,7 +25,18 @@ export interface GrapherUuid {
     id: string
 }
 
-export type GrapherIdentifier = GrapherSlug | GrapherUuid
+export interface MultiDimSlug {
+    type: "multi-dim-slug"
+    id: string
+}
+
+export type GrapherIdentifier = GrapherSlug | GrapherUuid | MultiDimSlug
+
+const directoryMap = {
+    uuid: R2GrapherConfigDirectory.byUUID,
+    slug: R2GrapherConfigDirectory.publishedGrapherBySlug,
+    "multi-dim-slug": R2GrapherConfigDirectory.multiDim,
+}
 
 export async function fetchUnparsedGrapherConfig(
     identifier: GrapherIdentifier,
@@ -38,11 +49,7 @@ export async function fetchUnparsedGrapherConfig(
     const topLevelDirectory = env.GRAPHER_CONFIG_R2_BUCKET_PATH
         ? [env.GRAPHER_CONFIG_R2_BUCKET_PATH]
         : ["by-branch", env.CF_PAGES_BRANCH]
-
-    const directory =
-        identifier.type === "slug"
-            ? R2GrapherConfigDirectory.publishedGrapherBySlug
-            : R2GrapherConfigDirectory.byUUID
+    const directory = directoryMap[identifier.type]
 
     const key = excludeUndefined([
         ...topLevelDirectory,
