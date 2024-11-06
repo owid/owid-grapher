@@ -108,7 +108,7 @@ export type IndicatorUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
 export type IndicatorEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     viewGrapherId: never
     ySlugs: string[]
-    tableSlug: string
+    tableSlug: never
     availableEntities: string[]
     titleLength: number
 }
@@ -116,8 +116,7 @@ export type IndicatorEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
 export type CsvUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     viewGrapherId: never
     ySlugs: string[]
-    // TODO: why are there nulls here?
-    tableSlug: string | null
+    tableSlug: string
 }
 
 export type CsvEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {

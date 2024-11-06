@@ -120,7 +120,7 @@ const obtainAvailableEntitiesForGrapherConfig = async (
     } else return []
 }
 
-export const obtainAvailableEntitiesForAllGraphers = async (
+export const obtainAvailableEntitiesForGraphers = async (
     trx: db.KnexReadonlyTransaction,
     // Optional subset of IDs to restrict data fetching to
     chartIds?: number[]
@@ -196,7 +196,7 @@ const updateAvailableEntitiesForAllGraphers = async (
         "--- Obtaining available entity ids for all published graphers ---"
     )
     const availableEntitiesByChartId =
-        await obtainAvailableEntitiesForAllGraphers(trx)
+        await obtainAvailableEntitiesForGraphers(trx)
 
     console.log("--- Fetch stats ---")
     console.log(

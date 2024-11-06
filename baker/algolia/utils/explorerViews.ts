@@ -8,7 +8,7 @@ import {
 import { at, get, groupBy, mapValues, orderBy, partition, uniq } from "lodash"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { logErrorAndMaybeSendToBugsnag } from "../../../serverUtils/errorLog.js"
-import { obtainAvailableEntitiesForAllGraphers } from "../../updateChartEntities.js"
+import { obtainAvailableEntitiesForGraphers } from "../../updateChartEntities.js"
 import { fetchS3MetadataByPath } from "../../../db/model/Variable.js"
 import { getVariableMetadataRoute } from "@ourworldindata/grapher"
 import pMap from "p-map"
@@ -53,7 +53,7 @@ export function explorerViewRecordToChartRecord(
     return {
         type: ChartRecordType.ExplorerView,
         objectID: e.objectID!,
-        chartId: Math.floor(Math.random() * 1000000),
+        chartId: -1,
         slug: e.explorerSlug,
         queryParams: e.viewQueryParams,
         title: e.viewTitle,
@@ -74,35 +74,20 @@ export function explorerViewRecordToChartRecord(
 }
 
 /**
- * Scale explorer scores to the range of grapher scores
- * e.g. if the highest explorer score is 100 and the highest grapher score is 1000,
- * we want to scale the explorer scores to be between 0 and 1000
+ * Scale records' positive scores to be between 0 and 10000.
  */
-export function scaleExplorerScores(
-    explorerRecords: ChartRecord[],
-    grapherRecords: ChartRecord[]
-): ChartRecord[] {
-    const explorerScores = explorerRecords.map((e) => e.score)
-    const explorerScoreMax = Math.max(...explorerScores)
-
-    const grapherScores = grapherRecords.map((e) => e.score)
-    const grapherScoreBounds = {
-        max: Math.max(...grapherScores),
-        min: Math.min(...grapherScores),
-    }
-
-    // scale positive explorer scores to the range of grapher scores
-    // We want to keep negative scores because they're intentionally downranked as near-duplicates of existing views
-    return explorerRecords.map((e): ChartRecord => {
-        if (e.score < 0) return e
+export function scaleRecordScores(records: ChartRecord[]): ChartRecord[] {
+    const scores = records.map((r) => r.score)
+    const maxScore = Math.max(...scores)
+    return records.map((record): ChartRecord => {
+        // For ExplorerView records, we want to keep negative scores,
+        // because they're intentionally downranked as near-duplicates of existing views
+        if (record.score < 0) return record
         // A value between 0 and 1
-        const normalized = e.score / explorerScoreMax
-        const grapherRange = grapherScoreBounds.max - grapherScoreBounds.min
-        const scaled = Math.round(
-            normalized * grapherRange + grapherScoreBounds.min
-        )
+        const normalized = record.score / maxScore
+        const scaled = Math.round(normalized * 10000)
         return {
-            ...e,
+            ...record,
             score: scaled,
         }
     })
@@ -180,25 +165,23 @@ async function fetchIndicatorMetadata(
         ...keyBy(metadataFromDB, "catalogPath"),
     } as ExplorerIndicatorMetadataDictionary
 
-    async function fetchEntitiesForId(id?: number) {
-        if (id) {
-            const metadata = await fetchS3MetadataByPath(
-                getVariableMetadataRoute(DATA_API_URL, id)
-            )
-            const entityNames = get(metadata, "dimensions.entities.values", [])
-                .map((value) => value.name)
-                .filter((name): name is string => !!name)
+    async function fetchEntitiesForId(id: number) {
+        const metadata = await fetchS3MetadataByPath(
+            getVariableMetadataRoute(DATA_API_URL, id)
+        )
+        const entityNames = get(metadata, "dimensions.entities.values", [])
+            .map((value) => value.name)
+            .filter((name): name is string => !!name)
 
-            const idEntry = indicatorMetadataByIdAndPath[id]
-            if (idEntry) {
-                idEntry.entityNames = entityNames
-            }
-            const path = metadata.catalogPath
-            if (path) {
-                const pathEntry = indicatorMetadataByIdAndPath[path]
-                if (pathEntry) {
-                    pathEntry.entityNames = entityNames
-                }
+        const idEntry = indicatorMetadataByIdAndPath[id]
+        if (idEntry) {
+            idEntry.entityNames = entityNames
+        }
+        const path = metadata.catalogPath
+        if (path) {
+            const pathEntry = indicatorMetadataByIdAndPath[path]
+            if (pathEntry) {
+                pathEntry.entityNames = entityNames
             }
         }
     }
@@ -421,7 +404,7 @@ const enrichWithGrapherData = async (
         `Fetching grapher configs from ${grapherIds.length} graphers for explorer ${explorerInfo.slug}`
     )
     const grapherInfo = await fetchGrapherInfo(trx, grapherIds)
-    const availableEntities = await obtainAvailableEntitiesForAllGraphers(
+    const availableEntities = await obtainAvailableEntitiesForGraphers(
         trx,
         grapherIds
     )
@@ -452,9 +435,9 @@ async function enrichRecordWithTableData(
         return
     }
 
-    const availableEntities = ySlugs
-        .flatMap((ySlug) => entitiesPerColumnPerTable[tableSlug][ySlug])
-        .filter((name, i, array) => !!name && array.indexOf(name) === i)
+    const availableEntities = uniq(
+        ySlugs.flatMap((ySlug) => entitiesPerColumnPerTable[tableSlug][ySlug])
+    )
 
     return {
         ...record,
@@ -491,8 +474,8 @@ function enrichRecordWithIndicatorData(
     ).flatMap((meta) => meta.entityNames)
 
     const uniqueNonEmptyEntityNames = uniq(allEntityNames).filter(
-        Boolean
-    ) as string[]
+        (name): name is string => !!name
+    )
 
     const firstYIndicator = record.yVariableIds[0]
 
@@ -630,22 +613,7 @@ export const getExplorerViewRecordsForExplorer = async (
     explorerAdminServer: ExplorerAdminServer
 ): Promise<ExplorerViewFinalRecord[]> => {
     const { slug } = explorerInfo
-    // Get explorer program and table definitions
     const explorerProgram = await explorerAdminServer.getExplorerFromSlug(slug)
-    // TODO: why doesn't us-covid-data-explorer have tableSlugs or tableDefs?
-    const tableDefs = explorerProgram.tableSlugs
-        .map((tableSlug) => explorerProgram.getTableDef(tableSlug))
-        .filter((x) => x && x.url && x.slug) as TableDef[]
-
-    // Fetch and process CSV table data
-    console.log(
-        `Fetching CSV table data for ${slug} and aggregating entities by column`
-    )
-    const entitiesPerColumnPerTable =
-        await getEntitiesPerColumnPerTable(tableDefs)
-    console.log(
-        "Finished fetching CSV table data and aggregating entities by column"
-    )
 
     console.log(
         `Creating ${explorerProgram.decisionMatrix.numRows} base records for explorer ${slug}`
@@ -685,6 +653,20 @@ export const getExplorerViewRecordsForExplorer = async (
     const enrichedIndicatorRecords = await enrichWithIndicatorMetadata(
         indicatorBaseRecords,
         indicatorMetadataDictionary
+    )
+
+    const tableDefs = explorerProgram.tableSlugs
+        .map((tableSlug) => explorerProgram.getTableDef(tableSlug))
+        .filter((x) => x && x.url && x.slug) as TableDef[]
+
+    // Fetch and process CSV table data
+    console.log(
+        `Fetching CSV table data for ${slug} and aggregating entities by column`
+    )
+    const entitiesPerColumnPerTable =
+        await getEntitiesPerColumnPerTable(tableDefs)
+    console.log(
+        "Finished fetching CSV table data and aggregating entities by column"
     )
 
     const enrichedCsvRecords = await enrichWithTableData(
