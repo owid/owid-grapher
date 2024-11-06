@@ -1,8 +1,8 @@
 import { Grapher } from "@ourworldindata/grapher"
+import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import React from "react"
 import { GrapherFigureView } from "./GrapherFigureView.js"
 import cx from "classnames"
-import { GRAPHER_PREVIEW_CLASS } from "./SiteConstants.js"
 import GrapherImage from "./GrapherImage.js"
 
 export const GrapherWithFallback = ({

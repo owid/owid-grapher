@@ -32,7 +32,7 @@ import {
     buildExplorerProps,
     isEmpty,
 } from "@ourworldindata/explorer"
-import { GRAPHER_PREVIEW_CLASS } from "../SiteConstants.js"
+import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,

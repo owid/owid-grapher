@@ -1,5 +1,9 @@
 import { Env, extensions, Etag } from "../_common/env.js"
 import {
+    GRAPHER_PREVIEW_CLASS,
+    HIDE_IF_JS_ENABLED_CLASSNAME,
+} from "@ourworldindata/types"
+import {
     fetchCsvForGrapher,
     fetchMetadataForGrapher,
     fetchReadmeForGrapher,
@@ -145,6 +149,9 @@ async function handleHtmlPageRequest(
     // In the case of the redirect, the browser will then request the new URL which will again be handled by this worker.
     if (grapherPageResp.status !== 200) return grapherPageResp
 
+    const thumbnailUrl = `/grapher/${slug}.png?${
+        url.search ? "&" + url.search.slice(1) : ""
+    }`
     const openGraphThumbnailUrl = `/grapher/${slug}.png?imType=og${
         url.search ? "&" + url.search.slice(1) : ""
     }`

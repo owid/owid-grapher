@@ -14,8 +14,7 @@ import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector.js"
 import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink.js"
 import { Byline } from "./Byline.js"
 import { SectionHeading } from "./SectionHeading.js"
-import { FormattingOptions } from "@ourworldindata/types"
-import { GRAPHER_PREVIEW_CLASS } from "./SiteConstants.js"
+import { FormattingOptions, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 
 export const RESEARCH_AND_WRITING_CLASSNAME = "wp-block-research-and-writing"
 
