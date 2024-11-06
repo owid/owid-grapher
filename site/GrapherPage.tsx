@@ -14,6 +14,10 @@ import {
     Url,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
+import {
+    HIDE_IF_JS_DISABLED_CLASSNAME,
+    HIDE_IF_JS_ENABLED_CLASSNAME,
+} from "@ourworldindata/types"
 import urljoin from "url-join"
 import {
     ADMIN_BASE_URL,
@@ -112,12 +116,12 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <figure
-                        className="js--hide-if-js-disabled"
+                        className={HIDE_IF_JS_DISABLED_CLASSNAME}
                         data-grapher-src={`/grapher/${grapher.slug}`}
                     >
                         <LoadingIndicator />
                     </figure>
-                    <div className="js--hide-if-js-enabled" id="fallback">
+                    <div className={HIDE_IF_JS_ENABLED_CLASSNAME} id="fallback">
                         {grapher.slug && (
                             <GrapherImage
                                 slug={grapher.slug}

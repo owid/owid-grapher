@@ -18,7 +18,7 @@ import { ChartConfigType } from "@ourworldindata/types"
 import { useLinkedChart } from "../utils.js"
 import SpanElements from "./SpanElements.js"
 import cx from "classnames"
-import { GRAPHER_PREVIEW_CLASS } from "../../SiteConstants.js"
+import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import InteractionNotice from "../../InteractionNotice.js"
 import GrapherImage from "../../GrapherImage.js"
 

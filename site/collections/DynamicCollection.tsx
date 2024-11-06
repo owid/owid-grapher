@@ -13,7 +13,7 @@ import {
 import { observer } from "mobx-react"
 import { WindowGraphers } from "./DynamicCollectionPage.js"
 import { Grapher } from "@ourworldindata/grapher"
-import { GRAPHER_PREVIEW_CLASS } from "../SiteConstants.js"
+import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import InteractionNotice from "../InteractionNotice.js"
 import GrapherImage from "../GrapherImage.js"
 
