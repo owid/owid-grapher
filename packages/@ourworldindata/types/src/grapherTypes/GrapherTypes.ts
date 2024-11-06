@@ -592,6 +592,7 @@ export interface GrapherInterface extends SortConfig {
     xSlug?: ColumnSlug
     sizeSlug?: ColumnSlug
     colorSlug?: ColumnSlug
+    tableSlugs?: ColumnSlugs
 }
 
 export interface LegacyGrapherInterface extends GrapherInterface {

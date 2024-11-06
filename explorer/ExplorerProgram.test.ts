@@ -108,8 +108,8 @@ columns\ttable1\ttable2\ttable3
     describe("grapherconfig", () => {
         it("can return a grapher config", () => {
             expect(
-                new ExplorerProgram("test", `yScaleToggle\ttrue`).grapherConfig
-                    .yScaleToggle
+                new ExplorerProgram("test", `yScaleToggle\ttrue`)
+                    .explorerGrapherConfig.yScaleToggle
             ).toEqual(true)
             const program = new ExplorerProgram(
                 "test",
@@ -118,7 +118,7 @@ columns\ttable1\ttable2\ttable3
 \ttrue\tLine`
             )
             expect(program.currentlySelectedGrapherRow).toEqual(2)
-            expect(program.grapherConfig.yScaleToggle).toEqual(true)
+            expect(program.explorerGrapherConfig.yScaleToggle).toEqual(true)
         })
 
         it("can convert \\n to a newline", () => {
@@ -128,7 +128,7 @@ columns\ttable1\ttable2\ttable3
 \tsubtitle\tLine Checkbox
 \tThis is a\\ntwo-line subtitle\tLine`
             )
-            expect(program.grapherConfig.subtitle).toEqual(
+            expect(program.explorerGrapherConfig.subtitle).toEqual(
                 "This is a\ntwo-line subtitle"
             )
         })
@@ -142,9 +142,24 @@ graphers
 \tyScaleToggle\tLine Checkbox
 \ttrue\tLine`
             )
-            expect(program.grapherConfig.hasMapTab).toEqual(true)
+            expect(program.explorerGrapherConfig.hasMapTab).toEqual(true)
             // Only parse white listed grapher props
-            expect((program.grapherConfig as any).table).toEqual(undefined)
+            expect((program.explorerGrapherConfig as any).table).toEqual(
+                undefined
+            )
+        })
+
+        it("can translate explorer-specific settings to valid config fields", () => {
+            const program = new ExplorerProgram(
+                "test",
+                `hasMapTab\ttrue
+table\tfoo
+graphers
+\tyAxisMin\tLine Checkbox
+\t1\tLine`
+            )
+            expect(program.explorerGrapherConfig.yAxisMin).toEqual(1)
+            expect(program.grapherConfig.yAxis?.min).toEqual(1)
         })
     })
 

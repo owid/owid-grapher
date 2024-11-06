@@ -9,7 +9,6 @@ import {
     GrapherInterface,
     GrapherQueryParams,
     GrapherTabOption,
-    AxisMinMaxValueStr,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -41,6 +40,7 @@ import {
     isInIFrame,
     keyBy,
     keyMap,
+    mergeGrapherConfigs,
     omitUndefinedValues,
     parseIntOrUndefined,
     PromiseCache,
@@ -373,7 +373,7 @@ export class Explorer
             reaction(
                 () => [
                     this.entityPickerMetric,
-                    this.explorerProgram.grapherConfig.tableSlug,
+                    this.explorerProgram.explorerGrapherConfig.tableSlug,
                 ],
                 () => this.updateEntityPickerTable()
             )
@@ -474,35 +474,6 @@ export class Explorer
         }
     }
 
-    @action.bound private updateGrapherFromExplorerCommon() {
-        const grapher = this.grapher
-        if (!grapher) return
-        const {
-            yScaleToggle,
-            yAxisMin,
-            facetYDomain,
-            relatedQuestionText,
-            relatedQuestionUrl,
-            mapTargetTime,
-        } = this.explorerProgram.grapherConfig
-
-        grapher.yAxis.canChangeScaleType = yScaleToggle
-        grapher.yAxis.min =
-            yAxisMin === AxisMinMaxValueStr.auto ? Infinity : yAxisMin
-        if (facetYDomain) {
-            grapher.yAxis.facetDomain = facetYDomain
-        }
-        if (relatedQuestionText && relatedQuestionUrl) {
-            grapher.relatedQuestions = [
-                { text: relatedQuestionText, url: relatedQuestionUrl },
-            ]
-        }
-        if (mapTargetTime) {
-            grapher.map.time = mapTargetTime
-        }
-        if (!grapher.id) grapher.id = 0
-    }
-
     @computed private get columnDefsWithoutTableSlugByIdOrSlug(): Record<
         number | string,
         OwidColumnDef
@@ -553,12 +524,14 @@ export class Explorer
         const grapher = this.grapher
         if (!grapher) return
 
-        const { grapherId } = this.explorerProgram.grapherConfig
+        const { grapherId } = this.explorerProgram.explorerGrapherConfig
         const grapherConfig = this.grapherConfigs.get(grapherId!) ?? {}
 
         const config: GrapherProgrammaticInterface = {
-            ...grapherConfig,
-            ...this.explorerProgram.grapherConfigOnlyGrapherProps,
+            ...mergeGrapherConfigs(
+                grapherConfig,
+                this.explorerProgram.grapherConfig
+            ),
             bakedGrapherURL: BAKED_GRAPHER_URL,
             dataApiUrl: DATA_API_URL,
             hideEntityControls: this.showExplorerControls,
@@ -572,9 +545,7 @@ export class Explorer
 
         grapher.setAuthoredVersion(config)
         grapher.reset()
-        this.updateGrapherFromExplorerCommon()
         grapher.updateFromObject(config)
-        grapher.slug = undefined
         grapher.downloadData()
     }
 
@@ -590,7 +561,7 @@ export class Explorer
             xSlug,
             colorSlug,
             sizeSlug,
-        } = this.explorerProgram.grapherConfig
+        } = this.explorerProgram.explorerGrapherConfig
 
         const yVariableIdsList = yVariableIds
             .split(" ")
@@ -602,8 +573,10 @@ export class Explorer
             {}
 
         const config: GrapherProgrammaticInterface = {
-            ...partialGrapherConfig,
-            ...this.explorerProgram.grapherConfigOnlyGrapherProps,
+            ...mergeGrapherConfigs(
+                partialGrapherConfig,
+                this.explorerProgram.grapherConfig
+            ),
             bakedGrapherURL: BAKED_GRAPHER_URL,
             dataApiUrl: DATA_API_URL,
             hideEntityControls: this.showExplorerControls,
@@ -689,7 +662,7 @@ export class Explorer
         }
 
         config.dimensions = dimensions
-        if (config.ySlugs && yVariableIds) config.ySlugs += " " + yVariableIds
+        if (ySlugs && yVariableIds) config.ySlugs = ySlugs + " " + yVariableIds
 
         const inputTableTransformer = (table: OwidTable) => {
             // add transformed (and intermediate) columns to the grapher table
@@ -735,7 +708,6 @@ export class Explorer
 
         grapher.setAuthoredVersion(config)
         grapher.reset()
-        this.updateGrapherFromExplorerCommon()
         grapher.updateFromObject(config)
         if (dimensions.length === 0) {
             // If dimensions are empty, explicitly set the table to an empty table
@@ -751,10 +723,10 @@ export class Explorer
     @action.bound private updateGrapherFromExplorerUsingColumnSlugs() {
         const grapher = this.grapher
         if (!grapher) return
-        const { tableSlug } = this.explorerProgram.grapherConfig
+        const { tableSlug } = this.explorerProgram.explorerGrapherConfig
 
         const config: GrapherProgrammaticInterface = {
-            ...this.explorerProgram.grapherConfigOnlyGrapherProps,
+            ...this.explorerProgram.grapherConfig,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             dataApiUrl: DATA_API_URL,
             hideEntityControls: this.showExplorerControls,
@@ -768,7 +740,6 @@ export class Explorer
 
         grapher.setAuthoredVersion(config)
         grapher.reset()
-        this.updateGrapherFromExplorerCommon()
         grapher.updateFromObject(config)
 
         // Clear any error messages, they are likely to be related to dataset loading.
@@ -1098,7 +1069,7 @@ export class Explorer
         // so that when we start sorting by entity name we can infer that the column is a string column immediately.
         const tableSlugToLoad = this.entityPickerMetric
             ? this.getTableSlugOfColumnSlug(this.entityPickerMetric)
-            : this.explorerProgram.grapherConfig.tableSlug
+            : this.explorerProgram.explorerGrapherConfig.tableSlug
 
         this.entityPickerTableIsLoading = true
         void this.futureEntityPickerTable.set(
@@ -1134,7 +1105,8 @@ export class Explorer
 
         // In most cases, column slugs will be duplicated in the tables, e.g. entityName.
         // Prefer the current Grapher table if it contains the column slug.
-        const grapherTableSlug = this.explorerProgram.grapherConfig.tableSlug
+        const grapherTableSlug =
+            this.explorerProgram.explorerGrapherConfig.tableSlug
         if (
             this.tableSlugHasColumnSlug(
                 grapherTableSlug,
