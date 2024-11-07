@@ -294,7 +294,8 @@
                         td:nth-child(2),
                         td:nth-child(3) {
                             border-bottom: 1px solid $background-stroke;
-                            vertical-align: top;
+                            position: relative;
+                            top: -2px;
                         }
                     }
 
