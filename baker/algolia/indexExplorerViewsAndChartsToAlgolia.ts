@@ -43,7 +43,7 @@ const indexExplorerViewsAndChartsToAlgolia = async () => {
         const { explorerViews, grapherViews } =
             await db.knexReadonlyTransaction(async (trx) => {
                 return {
-                    explorerViews: await getExplorerViewRecords(trx),
+                    explorerViews: await getExplorerViewRecords(trx, true),
                     grapherViews: await getChartsRecords(trx),
                 }
             }, db.TransactionCloseMode.Close)

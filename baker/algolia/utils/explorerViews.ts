@@ -77,17 +77,16 @@ export function explorerViewRecordToChartRecord(
 }
 
 /**
- * Filter out Grapher views, scale their scores, and convert them to ChartRecords.
+ * Scale explorer record scores then convert them to ChartRecords.
  * Each explorer has a default view (whichever is defined first in the decision matrix)
- * We scale these views' scores between 0 and MAX_SCORE, but the rest we scale between 0 and 500
+ * We scale these default view scores between 0 and MAX_SCORE, but the rest we scale between 0 and 500
  * to bury them under the (higher quality) grapher views in the data catalog.
  */
 export function adaptExplorerViews(
     explorerViews: ExplorerViewFinalRecord[]
 ): ChartRecord[] {
-    const nonGrapherViews = explorerViews.filter((view) => !view.viewGrapherId)
     const [firstViews, rest] = partition(
-        nonGrapherViews,
+        explorerViews,
         (view) => view.isFirstExplorerView
     )
     return [
@@ -616,7 +615,8 @@ export const getExplorerViewRecordsForExplorer = async (
     trx: db.KnexReadonlyTransaction,
     explorerInfo: MinimalExplorerInfo,
     pageviews: Record<string, { views_7d: number }>,
-    explorerAdminServer: ExplorerAdminServer
+    explorerAdminServer: ExplorerAdminServer,
+    skipGrapherViews: boolean
 ): Promise<ExplorerViewFinalRecord[]> => {
     const { slug } = explorerInfo
     const explorerProgram = await explorerAdminServer.getExplorerFromSlug(slug)
@@ -634,11 +634,14 @@ export const getExplorerViewRecordsForExplorer = async (
         (record) => record.viewGrapherId !== undefined
     ) as [GrapherUnenrichedExplorerViewRecord[], ExplorerViewBaseRecord[]]
 
-    const enrichedGrapherRecords = await enrichWithGrapherData(
-        trx,
-        grapherBaseRecords,
-        explorerInfo
-    )
+    let enrichedGrapherRecords: GrapherEnrichedExplorerViewRecord[] = []
+    if (!skipGrapherViews) {
+        enrichedGrapherRecords = await enrichWithGrapherData(
+            trx,
+            grapherBaseRecords,
+            explorerInfo
+        )
+    }
 
     const [indicatorBaseRecords, csvBaseRecords] = partition(
         nonGrapherBaseRecords,
@@ -723,9 +726,13 @@ async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
 }
 
 export const getExplorerViewRecords = async (
-    trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadonlyTransaction,
+    skipGrapherViews = false
 ): Promise<ExplorerViewFinalRecord[]> => {
     console.log("Getting explorer view records")
+    if (skipGrapherViews) {
+        console.log("(Skipping grapher views)")
+    }
     const publishedExplorersWithTags = await getExplorersWithInheritedTags(trx)
     const pageviews = await getAnalyticsPageviewsByUrlObj(trx)
 
@@ -738,7 +745,8 @@ export const getExplorerViewRecords = async (
                 trx,
                 explorerInfo,
                 pageviews,
-                explorerAdminServer
+                explorerAdminServer,
+                skipGrapherViews
             ),
         { concurrency: 1 }
     ).then((records) => records.flat())
