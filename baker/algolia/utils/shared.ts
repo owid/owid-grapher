@@ -37,3 +37,28 @@ export const processAvailableEntities = (
         ["desc", "desc", "asc"]
     )
 }
+
+export const MAX_SCORE = 10000
+
+/**
+ * Scale records' positive scores to be between 0 and MAX_SCORE.
+ */
+export function scaleRecordScores<T extends { score: number }>(
+    records: T[],
+    max = MAX_SCORE
+): T[] {
+    const scores = records.map((r) => r.score)
+    const maxScore = Math.max(...scores)
+    return records.map((record): T => {
+        // For ExplorerView records, we want to keep negative scores,
+        // because they're intentionally downranked as near-duplicates of existing views
+        if (record.score < 0) return record
+        // A value between 0 and 1
+        const normalized = record.score / maxScore
+        const scaled = Math.round(normalized * max)
+        return {
+            ...record,
+            score: scaled,
+        }
+    })
+}

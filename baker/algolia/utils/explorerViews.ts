@@ -41,7 +41,10 @@ import {
     CsvEnrichedExplorerViewRecord,
     ConvertedExplorerChartHit,
 } from "./types.js"
-import { processAvailableEntities as processRecordAvailableEntities } from "./shared.js"
+import {
+    processAvailableEntities as processRecordAvailableEntities,
+    scaleRecordScores,
+} from "./shared.js"
 import {
     ChartRecord,
     ChartRecordType,
@@ -74,23 +77,23 @@ export function explorerViewRecordToChartRecord(
 }
 
 /**
- * Scale records' positive scores to be between 0 and 10000.
+ * Filter out Grapher views, scale their scores, and convert them to ChartRecords.
+ * Each explorer has a default view (whichever is defined first in the decision matrix)
+ * We scale these views' scores between 0 and MAX_SCORE, but the rest we scale between 0 and 500
+ * to bury them under the (higher quality) grapher views in the data catalog.
  */
-export function scaleRecordScores(records: ChartRecord[]): ChartRecord[] {
-    const scores = records.map((r) => r.score)
-    const maxScore = Math.max(...scores)
-    return records.map((record): ChartRecord => {
-        // For ExplorerView records, we want to keep negative scores,
-        // because they're intentionally downranked as near-duplicates of existing views
-        if (record.score < 0) return record
-        // A value between 0 and 1
-        const normalized = record.score / maxScore
-        const scaled = Math.round(normalized * 10000)
-        return {
-            ...record,
-            score: scaled,
-        }
-    })
+export function adaptExplorerViews(
+    explorerViews: ExplorerViewFinalRecord[]
+): ChartRecord[] {
+    const nonGrapherViews = explorerViews.filter((view) => !view.viewGrapherId)
+    const [firstViews, rest] = partition(
+        nonGrapherViews,
+        (view) => view.isFirstExplorerView
+    )
+    return [
+        ...scaleRecordScores(firstViews),
+        ...scaleRecordScores(rest, 500),
+    ].map(explorerViewRecordToChartRecord)
 }
 
 // Creates a search-ready string from a choice.
@@ -223,7 +226,9 @@ function makeAggregator(entityNameSlug: string) {
                 if (!result[columnSlug]) {
                     result[columnSlug] = new Set()
                 }
-                result[columnSlug].add(entityName)
+                if (entityName) {
+                    result[columnSlug].add(entityName)
+                }
             }
         })
 
@@ -335,6 +340,7 @@ const createBaseRecord = (
         tableSlug: matrix.selectedRow.tableSlug,
         ySlugs: matrix.selectedRow.ySlugs?.split(" ") || [],
         explorerSlug: explorerInfo.slug,
+        isFirstExplorerView: index === 0,
     }
 }
 
@@ -437,7 +443,7 @@ async function enrichRecordWithTableData(
 
     const availableEntities = uniq(
         ySlugs.flatMap((ySlug) => entitiesPerColumnPerTable[tableSlug][ySlug])
-    )
+    ).filter((name): name is string => !!name)
 
     return {
         ...record,

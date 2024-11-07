@@ -87,6 +87,9 @@ export interface ExplorerViewBaseRecord {
     ySlugs: Array<string>
     yVariableIds: Array<number | string>
     explorerSlug: string
+    // True when the record is the first view specified in the explorer's config
+    // Used in order to downrank all other views for the same explorer in the data catalog
+    isFirstExplorerView: boolean
 }
 
 export type GrapherUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
@@ -159,6 +162,9 @@ export interface ExplorerViewFinalRecord {
     availableEntities: string[]
     // Only used to filter out these views from the data catalog (because we already index graphers)
     viewGrapherId?: number
+    // True when the record is the first view specified in the explorer's config
+    // Used in order to downrank all other views for the same explorer in the data catalog
+    isFirstExplorerView: boolean
 }
 
 // This is the final record we index to Algolia for the `explorer-views-and-charts` index
