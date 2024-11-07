@@ -3,9 +3,17 @@ import React from "react"
 import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
+    generateGrapherImageSrcSet,
 } from "@ourworldindata/grapher"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
 import { Url } from "@ourworldindata/utils"
+
+function GrapherImageSource({ defaultSrc }: { defaultSrc: string }) {
+    const srcSet = generateGrapherImageSrcSet(defaultSrc)
+    const sizes = `(max-width: 850px) 100vw, 850px`
+
+    return <source id="grapher-preview-source" srcSet={srcSet} sizes={sizes} />
+}
 
 export default function GrapherImage(props: {
     url: string
@@ -36,16 +44,20 @@ export default function GrapherImage(props: {
         queryString = props.queryString ?? ""
     }
 
+    const defaultSrc = `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png${queryString}`
     return (
-        <img
-            className="GrapherImage"
-            src={`${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png${queryString}`}
-            alt={props.alt}
-            width={DEFAULT_GRAPHER_WIDTH}
-            height={DEFAULT_GRAPHER_HEIGHT}
-            loading="lazy"
-            data-no-lightbox
-            data-no-img-formatting={props.noFormatting}
-        />
+        <picture>
+            <GrapherImageSource defaultSrc={defaultSrc} />
+            <img
+                className="GrapherImage"
+                src={defaultSrc}
+                alt={props.alt}
+                width={DEFAULT_GRAPHER_WIDTH}
+                height={DEFAULT_GRAPHER_HEIGHT}
+                loading="lazy"
+                data-no-lightbox
+                data-no-img-formatting={props.noFormatting}
+            />
+        </picture>
     )
 }
