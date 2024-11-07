@@ -1,5 +1,5 @@
 import React from "react"
-import { areSetsEqual, Box, getCountryByName } from "@ourworldindata/utils"
+import { areSetsEqual, Box, getCountryByName, Url } from "@ourworldindata/utils"
 import {
     SeriesStrategy,
     EntityName,
@@ -223,4 +223,22 @@ export function getInteractionStateForSeries(
     const active = activeSeriesNames.includes(series.seriesName)
     const background = isInteractionModeActive && !active
     return { active, background }
+}
+
+/**
+ * Given a URL for a CF function grapher thumbnail, generate a srcSet for the image at different widths
+ * @param defaultSrc - `https://ourworldindata.org/grapher/thumbnail/life-expectancy.png?tab=chart`
+ * @returns srcSet - `https://ourworldindata.org/grapher/thumbnail/life-expectancy.png?tab=chart 850w, https://ourworldindata.org/grapher/thumbnail/life-expectancy.png?tab=chart&imWidth=1700 1700w`
+ */
+export function generateGrapherImageSrcSet(defaultSrc: string): string {
+    const url = Url.fromURL(defaultSrc)
+    const imWidths = ["850", "1700"]
+    const srcSet = imWidths
+        .map(
+            (imWidth) =>
+                `${url.setQueryParams({ imWidth }).fullUrl} ${imWidth}w`
+        )
+        .join(", ")
+
+    return srcSet
 }
