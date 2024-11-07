@@ -18,7 +18,6 @@ export interface EntitySelectionManager {
     isEntitySelectorModalOrDrawerOpen?: boolean
     isOnChartTab?: boolean
     hideEntityControls?: boolean
-    onEntitySelectorOpen?: () => void
 }
 
 interface EntitySelectionLabel {
@@ -83,7 +82,6 @@ export class EntitySelectionToggle extends React.Component<{
                     onClick={(e): void => {
                         this.props.manager.isEntitySelectorModalOrDrawerOpen =
                             !active
-                        this.props.manager.onEntitySelectorOpen?.()
                         e.stopPropagation()
                     }}
                     type="button"

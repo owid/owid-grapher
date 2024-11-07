@@ -52,7 +52,7 @@ import {
     StackedSeries,
 } from "./StackedConstants"
 import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
-import { makeClipPath } from "../chart/ChartUtils"
+import { makeClipPath, isTargetOutsideElement } from "../chart/ChartUtils"
 import { bind } from "decko"
 import { AxisConfig } from "../axis/AxisConfig.js"
 
@@ -411,13 +411,6 @@ export class StackedAreaChart
         )
     }
 
-    @action.bound onClick(e: React.MouseEvent<SVGElement>): void {
-        // don't fire document event handler that dismisses the tooltip
-        if (this.manager.shouldPinTooltipToBottom) {
-            e.stopPropagation()
-        }
-    }
-
     @action.bound private onCursorMove(
         ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
     ): void {
@@ -564,9 +557,6 @@ export class StackedAreaChart
                 footer={footer}
                 dissolve={fading}
                 dismiss={this.dismissTooltip}
-                shouldDismissOnClickOutside={
-                    this.manager.shouldPinTooltipToBottom
-                }
             >
                 <TooltipTable
                     columns={[formatColumn]}
@@ -598,6 +588,28 @@ export class StackedAreaChart
                 />
             </Tooltip>
         )
+    }
+
+    @action.bound onDocumentClick(e: MouseEvent): void {
+        // only dismiss the tooltip if the click is outside of the chart area
+        if (
+            !this.base.current ||
+            isTargetOutsideElement(e.target as Node, this.base.current)
+        ) {
+            this.dismissTooltip()
+        }
+    }
+
+    componentDidMount(): void {
+        document.addEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
+    }
+
+    componentWillUnmount(): void {
+        document.removeEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
     }
 
     renderAxis(): React.ReactElement {
@@ -651,7 +663,6 @@ export class StackedAreaChart
                 ref={this.base}
                 className="StackedArea"
                 onMouseLeave={this.onCursorLeave}
-                onClick={this.onClick}
                 onTouchEnd={this.onCursorLeave}
                 onTouchCancel={this.onCursorLeave}
                 onMouseMove={this.onCursorMove}

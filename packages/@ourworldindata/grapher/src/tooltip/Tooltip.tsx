@@ -246,19 +246,6 @@ export class TooltipContainer extends React.Component<{
         return this.props.anchor ?? GrapherTooltipAnchor.mouse
     }
 
-    componentDidMount(): void {
-        document.addEventListener("click", this.onDocumentClick)
-    }
-
-    componentWillUnmount(): void {
-        document.removeEventListener("click", this.onDocumentClick)
-    }
-
-    @action.bound private onDocumentClick(): void {
-        const { tooltip } = this
-        if (tooltip?.shouldDismissOnClickOutside) tooltip?.dismiss?.()
-    }
-
     @computed private get rendered(): React.ReactElement | null {
         const { tooltip } = this
         if (!tooltip) return null

@@ -2,6 +2,7 @@ import React from "react"
 import cx from "classnames"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
+import { isTargetOutsideElement } from "../chart/ChartUtils"
 
 export const DrawerContext = React.createContext<{
     toggleDrawerVisibility?: () => void
@@ -48,8 +49,7 @@ export class SlideInDrawer extends React.Component<{
         if (
             this.active &&
             this.drawerRef?.current &&
-            !this.drawerRef.current.contains(e.target as Node) &&
-            document.contains(e.target as Node)
+            isTargetOutsideElement(e.target!, this.drawerRef.current)
         )
             this.toggleVisibility()
     }

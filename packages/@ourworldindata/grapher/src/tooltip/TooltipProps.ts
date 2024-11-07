@@ -36,7 +36,6 @@ export interface TooltipProps {
     tooltipManager: TooltipManager
     children?: React.ReactNode
     dismiss?: () => void
-    shouldDismissOnClickOutside?: boolean
 }
 
 export interface TooltipValueProps {

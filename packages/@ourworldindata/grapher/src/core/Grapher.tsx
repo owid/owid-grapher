@@ -3467,11 +3467,6 @@ export class Grapher
         )
     }
 
-    @action.bound onEntitySelectorOpen(): void {
-        const tooltip = this.tooltip?.get()
-        if (tooltip) tooltip.dismiss?.()
-    }
-
     // This is just a helper method to return the correct table for providing entity choices. We want to
     // provide the root table, not the transformed table.
     // A user may have added time or other filters that would filter out all rows from certain entities, but

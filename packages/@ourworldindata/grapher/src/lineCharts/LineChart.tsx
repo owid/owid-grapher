@@ -85,6 +85,7 @@ import {
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
     getSeriesKey,
+    isTargetOutsideElement,
     makeClipPath,
     makeSelectionArray,
 } from "../chart/ChartUtils"
@@ -447,13 +448,6 @@ export class LineChart
         this.tooltipState.target = null
     }
 
-    @action.bound onClick(e: React.MouseEvent<SVGElement>): void {
-        // don't fire document event handler that dismisses the tooltip
-        if (this.manager.shouldPinTooltipToBottom) {
-            e.stopPropagation()
-        }
-    }
-
     @action.bound private onCursorLeave(): void {
         if (!this.manager.shouldPinTooltipToBottom) {
             this.dismissTooltip()
@@ -705,9 +699,6 @@ export class LineChart
                 footer={footer}
                 dissolve={fading}
                 dismiss={this.dismissTooltip}
-                shouldDismissOnClickOutside={
-                    this.manager.shouldPinTooltipToBottom
-                }
             >
                 <TooltipTable
                     columns={columns}
@@ -793,6 +784,16 @@ export class LineChart
         return this.focusedSeriesNames.length > 0
     }
 
+    @action.bound onDocumentClick(e: MouseEvent): void {
+        // only dismiss the tooltip if the click is outside of the chart area
+        if (
+            !this.base.current ||
+            isTargetOutsideElement(e.target as Node, this.base.current)
+        ) {
+            this.dismissTooltip()
+        }
+    }
+
     animSelection?: d3.Selection<
         d3.BaseType,
         unknown,
@@ -804,10 +805,16 @@ export class LineChart
             this.runFancyIntroAnimation()
         }
         exposeInstanceOnWindow(this)
+        document.addEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
     }
 
     componentWillUnmount(): void {
         if (this.animSelection) this.animSelection.interrupt()
+        document.removeEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
     }
 
     @computed get renderUid(): number {
@@ -956,7 +963,6 @@ export class LineChart
             <g
                 ref={this.base}
                 className="LineChart"
-                onClick={this.onClick}
                 onMouseLeave={this.onCursorLeave}
                 onTouchEnd={this.onCursorLeave}
                 onTouchCancel={this.onCursorLeave}
