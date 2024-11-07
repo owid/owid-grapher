@@ -88,6 +88,7 @@ function CopyLinkButton(props: { slug: string }) {
     return (
         <button
             aria-label="Copy link to clipboard"
+            data-track-note="data_insight_copy_link"
             id="copy-link-button"
             className="data-insight-copy-link-button body-3-medium"
             onClick={() => {
