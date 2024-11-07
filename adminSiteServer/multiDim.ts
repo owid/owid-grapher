@@ -293,11 +293,12 @@ export async function createMultiDimConfig(
             let viewGrapherConfig = {}
             if (view.config) {
                 viewGrapherConfig = grapherConfigSchema
-                    ? migrateGrapherConfigToLatestVersion({
-                          ...view.config,
-                          $schema: grapherConfigSchema,
-                      })
+                    ? { $schema: grapherConfigSchema, ...view.config }
                     : view.config
+                if ("$schema" in viewGrapherConfig) {
+                    viewGrapherConfig =
+                        migrateGrapherConfigToLatestVersion(viewGrapherConfig)
+                }
             }
             const patchGrapherConfig = mergeGrapherConfigs(
                 viewGrapherConfig,
