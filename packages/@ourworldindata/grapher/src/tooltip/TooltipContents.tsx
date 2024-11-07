@@ -12,7 +12,7 @@ import {
     sortBy,
     formatInlineList,
     GrapherTooltipAnchor,
-    excludeUndefined,
+    ensureEqualLength,
 } from "@ourworldindata/utils"
 import {
     TooltipTableProps,
@@ -270,7 +270,10 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                                         </span>
                                     )}
                                 </td>
-                                {zip(columns, excludeUndefined(values)).map(
+                                {/* ensure arrays of equal length are zipped to
+                                    avoid a mobx warning about accessing elements
+                                    that are out of bounds */}
+                                {zip(...ensureEqualLength(columns, values)).map(
                                     ([column, value]) => {
                                         const missing = value === undefined
                                         return column ? (
