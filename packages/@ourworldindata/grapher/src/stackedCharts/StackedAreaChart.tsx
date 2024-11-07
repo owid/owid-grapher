@@ -65,6 +65,8 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
     onAreaMouseLeave?: () => void
 }
 
+const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
+
 const BLUR_COLOR = "#ddd"
 
 @observer
@@ -592,10 +594,16 @@ export class StackedAreaChart
 
     @action.bound onDocumentClick(e: MouseEvent): void {
         // only dismiss the tooltip if the click is outside of the chart area
-        if (
-            !this.base.current ||
-            isTargetOutsideElement(e.target as Node, this.base.current)
-        ) {
+        // and outside of the chart areas of neighbouring facets
+        const chartContainer = this.manager.base?.current
+        if (!chartContainer) return
+        const chartAreas = chartContainer.getElementsByClassName(
+            STACKED_AREA_CHART_CLASS_NAME
+        )
+        const isTargetOutsideChartAreas = Array.from(chartAreas).every(
+            (chartArea) => isTargetOutsideElement(e.target!, chartArea)
+        )
+        if (isTargetOutsideChartAreas) {
             this.dismissTooltip()
         }
     }
@@ -661,7 +669,7 @@ export class StackedAreaChart
         return (
             <g
                 ref={this.base}
-                className="StackedArea"
+                className={STACKED_AREA_CHART_CLASS_NAME}
                 onMouseLeave={this.onCursorLeave}
                 onTouchEnd={this.onCursorLeave}
                 onTouchCancel={this.onCursorLeave}
@@ -696,7 +704,7 @@ export class StackedAreaChart
     render(): React.ReactElement {
         if (this.failMessage)
             return (
-                <g className="StackedArea">
+                <g>
                     {this.renderAxis()}
                     <NoDataModal
                         manager={this.manager}

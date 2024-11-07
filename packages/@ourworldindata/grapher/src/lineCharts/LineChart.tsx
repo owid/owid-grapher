@@ -103,6 +103,8 @@ import {
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 
+const LINE_CHART_CLASS_NAME = "LineChart"
+
 // line color
 const BLUR_LINE_COLOR = "#eee"
 const DEFAULT_LINE_COLOR = "#000"
@@ -786,10 +788,16 @@ export class LineChart
 
     @action.bound onDocumentClick(e: MouseEvent): void {
         // only dismiss the tooltip if the click is outside of the chart area
-        if (
-            !this.base.current ||
-            isTargetOutsideElement(e.target as Node, this.base.current)
-        ) {
+        // and outside of the chart areas of neighbouring facets
+        const chartContainer = this.manager.base?.current
+        if (!chartContainer) return
+        const chartAreas = chartContainer.getElementsByClassName(
+            LINE_CHART_CLASS_NAME
+        )
+        const isTargetOutsideChartAreas = Array.from(chartAreas).every(
+            (chartArea) => isTargetOutsideElement(e.target!, chartArea)
+        )
+        if (isTargetOutsideChartAreas) {
             this.dismissTooltip()
         }
     }
@@ -962,7 +970,7 @@ export class LineChart
         return (
             <g
                 ref={this.base}
-                className="LineChart"
+                className={LINE_CHART_CLASS_NAME}
                 onMouseLeave={this.onCursorLeave}
                 onTouchEnd={this.onCursorLeave}
                 onTouchCancel={this.onCursorLeave}
@@ -995,7 +1003,7 @@ export class LineChart
 
         if (this.failMessage)
             return (
-                <g className="LineChart">
+                <g>
                     {this.renderDualAxis()}
                     <NoDataModal
                         manager={manager}
