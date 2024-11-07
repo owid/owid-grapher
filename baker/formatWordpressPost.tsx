@@ -160,7 +160,7 @@ export const formatWordpressPost = async (
         const output = `
                 <figure data-grapher-src="${src}" class="${GRAPHER_PREVIEW_CLASS}">
                     <a href="${src}" target="_blank">
-                        <div><img src="${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${url.slug}.png${url.queryParams}" width="850" height="600" loading="lazy" data-no-lightbox /></div>
+                        <div><img src="${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${url.slug}.png${url.queryStr}" width="850" height="600" loading="lazy" data-no-lightbox /></div>
                         <div class="interactionNotice">
                             <span class="icon">${INTERACTIVE_ICON_SVG}</span>
                             <span class="label">Click to open interactive version</span>
