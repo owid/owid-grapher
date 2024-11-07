@@ -50,8 +50,8 @@ import {
 } from "../Variable.js"
 import { createLinkFromUrl } from "../Link.js"
 import {
-    getAllMultiDimDataPages,
     getMultiDimDataPageBySlug,
+    isMultiDimDataPagePublished,
 } from "../MultiDimDataPage.js"
 import {
     ARCHVED_THUMBNAIL_FILENAME,
@@ -64,6 +64,7 @@ import {
     MultiDimDataPageConfigEnriched,
     OwidGdoc,
     OwidGdocContent,
+    OwidGdocLinkType,
     OwidGdocType,
 } from "@ourworldindata/types"
 
@@ -746,16 +747,16 @@ export class GdocBase implements OwidGdocBaseInterface {
         const chartIdsBySlug = await mapSlugsToIds(knex)
         const publishedExplorersBySlug =
             await db.getPublishedExplorersBySlug(knex)
-        const publishedMultiDimsBySlug = await getAllMultiDimDataPages(knex)
 
-        const linkErrors: OwidGdocErrorMessage[] = this.links.reduce(
-            (errors: OwidGdocErrorMessage[], link): OwidGdocErrorMessage[] => {
-                if (link.linkType === "gdoc") {
+        const linkErrors: OwidGdocErrorMessage[] = []
+        for (const link of this.links) {
+            switch (link.linkType) {
+                case OwidGdocLinkType.Gdoc: {
                     const id = getUrlTarget(link.target)
                     const doesGdocExist = Boolean(this.linkedDocuments[id])
                     const isGdocPublished = this.linkedDocuments[id]?.published
                     if (!doesGdocExist || !isGdocPublished) {
-                        errors.push({
+                        linkErrors.push({
                             property: "linkedDocuments",
                             message: `${link.componentType} with text "${
                                 link.text
@@ -765,33 +766,33 @@ export class GdocBase implements OwidGdocBaseInterface {
                             type: OwidGdocErrorMessageType.Warning,
                         })
                     }
+                    break
                 }
-                if (link.linkType === "grapher") {
+                case OwidGdocLinkType.Grapher: {
                     if (
                         !chartIdsBySlug[link.target] &&
-                        !publishedMultiDimsBySlug.has(link.target)
+                        !(await isMultiDimDataPagePublished(knex, link.target))
                     ) {
-                        errors.push({
+                        linkErrors.push({
                             property: "content",
                             message: `Grapher chart with slug ${link.target} does not exist or is not published`,
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
+                    break
                 }
-
-                if (link.linkType === "explorer") {
+                case OwidGdocLinkType.Explorer: {
                     if (!publishedExplorersBySlug[link.target]) {
-                        errors.push({
+                        linkErrors.push({
                             property: "content",
                             message: `Explorer chart with slug ${link.target} does not exist or is not published`,
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
+                    break
                 }
-                return errors
-            },
-            []
-        )
+            }
+        }
 
         // Validate that charts referenced in key-indicator blocks render a datapage
         const contentErrors: OwidGdocErrorMessage[] = []
