@@ -79,7 +79,7 @@ export function explorerViewRecordToChartRecord(
 /**
  * Scale explorer record scores then convert them to ChartRecords.
  * Each explorer has a default view (whichever is defined first in the decision matrix)
- * We scale these default view scores between 0 and MAX_SCORE, but the rest we scale between 0 and 500
+ * We scale these default view scores between 0 and 10000, but the rest we scale between 0 and 1000
  * to bury them under the (higher quality) grapher views in the data catalog.
  */
 export function adaptExplorerViews(
@@ -90,8 +90,8 @@ export function adaptExplorerViews(
         (view) => view.isFirstExplorerView
     )
     return [
-        ...scaleRecordScores(firstViews),
-        ...scaleRecordScores(rest, 500),
+        ...scaleRecordScores(firstViews, [1000, 10000]),
+        ...scaleRecordScores(rest, [0, 1000]),
     ].map(explorerViewRecordToChartRecord)
 }
 

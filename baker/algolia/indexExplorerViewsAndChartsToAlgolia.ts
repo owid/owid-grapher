@@ -48,10 +48,14 @@ const indexExplorerViewsAndChartsToAlgolia = async () => {
                 }
             }, db.TransactionCloseMode.Close)
 
-        // Scale grapher scores between 0 and 10000, and explorer scores between 0 and 500
-        // (Except for the first view of each explorer, which we set to 10000)
-        // This is because Graphers are generally higher quality than Explorers
-        const scaledGrapherViews = scaleRecordScores(grapherViews)
+        // Scale grapher records and the default explorer views between 1000 and 10000,
+        // Scale the remaining explorer views between 0 and 1000.
+        // This is because Graphers are generally higher quality than Explorers and we don't want
+        // the data catalog to smother Grapher results with hundreds of low-quality Explorer results.
+        const scaledGrapherViews = scaleRecordScores(
+            grapherViews,
+            [1000, 10000]
+        )
         const scaledExplorerViews = adaptExplorerViews(explorerViews)
 
         const records = [...scaledGrapherViews, ...scaledExplorerViews]

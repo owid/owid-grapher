@@ -175,10 +175,10 @@ export const configureAlgolia = async () => {
         ],
         ranking: ["typo", "words", "exact", "attribute", "custom", "proximity"],
         customRanking: [
+            "desc(score)",
             // For multiple explorer views with the same title, we want to avoid surfacing duplicates.
             // So, rank a result with viewTitleIndexWithinExplorer=0 way more highly than one with 1, 2, etc.
             "asc(viewTitleIndexWithinExplorer)",
-            "desc(score)",
             "asc(titleLength)",
         ],
         attributesToSnippet: ["subtitle:24"],
