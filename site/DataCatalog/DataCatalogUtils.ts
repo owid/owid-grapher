@@ -4,7 +4,7 @@ import {
     SearchResponse,
 } from "instantsearch.js"
 import { getIndexName } from "../search/searchClient.js"
-import { SearchIndexName } from "../search/searchTypes.js"
+import { ChartRecordType, SearchIndexName } from "../search/searchTypes.js"
 import { TagGraphRoot } from "@ourworldindata/types"
 import { DataCatalogState } from "./DataCatalogState.js"
 import { countriesByName, Region } from "@ourworldindata/utils"
@@ -13,13 +13,15 @@ import { SearchClient } from "algoliasearch"
 /**
  * Constants
  */
-const CHARTS_INDEX = getIndexName(SearchIndexName.Charts)
+const CHARTS_INDEX = getIndexName(SearchIndexName.ExplorerViewsAndCharts)
 
 const DATA_CATALOG_ATTRIBUTES = [
     "title",
     "slug",
     "availableEntities",
     "variantName",
+    "type",
+    "queryParams",
 ]
 
 /**
@@ -44,6 +46,8 @@ export type IDataCatalogHit = {
     availableEntities: string[]
     objectID: string
     variantName: string | null
+    type: ChartRecordType
+    queryParams: string
     __position: number
     _highlightResult?: HitHighlightResult
     _snippetResult?: HitHighlightResult

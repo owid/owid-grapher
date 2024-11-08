@@ -53,9 +53,11 @@ import {
     ImageMetadata,
 } from "@ourworldindata/utils"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
-import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
+import {
+    EXPLORERS_ROUTE_FOLDER,
+    explorerUrlMigrationsById,
+} from "@ourworldindata/explorer"
 import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects.js"
-import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import {
     renderPreviewDataPageOrGrapherPage,

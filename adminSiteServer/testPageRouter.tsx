@@ -34,7 +34,7 @@ import {
 } from "@ourworldindata/types"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
-import { ExplorerChartCreationMode } from "../explorer/ExplorerConstants.js"
+import { ExplorerChartCreationMode } from "@ourworldindata/explorer"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import {
     ColorSchemes,

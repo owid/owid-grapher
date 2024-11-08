@@ -13,7 +13,7 @@ import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink.js"
 import { DataToken } from "../site/DataToken.js"
 import { DEEP_LINK_CLASS, formatImages } from "./formatting.js"
 import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects.js"
-import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
+import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import {
     ADDITIONAL_INFORMATION_CLASS_NAME,
     renderAdditionalInformation,

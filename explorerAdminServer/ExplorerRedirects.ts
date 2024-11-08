@@ -1,5 +1,5 @@
 import { CoreTable } from "@ourworldindata/core-table"
-import { ExplorerUrlMigrationId } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
+import { ExplorerUrlMigrationId } from "@ourworldindata/explorer"
 
 const explorerRedirectTableMatrix = [
     ["migrationId", "path", "baseQueryStr"],

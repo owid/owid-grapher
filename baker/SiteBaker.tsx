@@ -69,7 +69,7 @@ import {
     flushCache as redirectsFlushCache,
 } from "./redirects.js"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker.js"
-import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
+import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
     bakeAllExplorerRedirects,

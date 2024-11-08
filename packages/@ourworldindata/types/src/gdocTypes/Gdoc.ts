@@ -11,7 +11,6 @@ import {
     RawBlockText,
     RefDictionary,
 } from "./ArchieMlComponents.js"
-import { DbChartTagJoin } from "../dbTypes/ChartTags.js"
 import { MinimalTag } from "../dbTypes/Tags.js"
 import { DbEnrichedLatestWork } from "../domainTypes/Author.js"
 
@@ -42,7 +41,7 @@ export interface LinkedChart {
     title: string
     subtitle?: string
     thumbnail?: string
-    tags: DbChartTagJoin[]
+    tags: string[]
     tab?: GrapherTabOption
     indicatorId?: number // in case of a datapage
 }

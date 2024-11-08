@@ -120,8 +120,10 @@ const obtainAvailableEntitiesForGrapherConfig = async (
     } else return []
 }
 
-const obtainAvailableEntitiesForAllGraphers = async (
-    trx: db.KnexReadonlyTransaction
+export const obtainAvailableEntitiesForGraphers = async (
+    trx: db.KnexReadonlyTransaction,
+    // Optional subset of IDs to restrict data fetching to
+    chartIds?: number[]
 ) => {
     const entityNameToIdMap = await mapEntityNamesToEntityIds(trx)
 
@@ -134,10 +136,17 @@ const obtainAvailableEntitiesForAllGraphers = async (
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
             WHERE cc.full ->> "$.isPublished" = 'true'
+            ${chartIds && chartIds.length ? `AND c.id IN (${chartIds.join(",")})` : ""}
         `
     )
 
-    const availableEntitiesByChartId = new Map<number, number[]>()
+    const availableEntitiesByChartId = new Map<
+        number,
+        {
+            availableEntities: string[]
+            availableEntityIds: number[]
+        }
+    >()
     await pMap(
         allPublishedGraphers,
         async (grapher) => {
@@ -156,7 +165,10 @@ const obtainAvailableEntitiesForAllGraphers = async (
                     return [entityId]
                 }
             )
-            availableEntitiesByChartId.set(grapher.id, availableEntityIds)
+            availableEntitiesByChartId.set(grapher.id, {
+                availableEntities,
+                availableEntityIds,
+            })
 
             console.log(
                 grapher.id,
@@ -184,7 +196,7 @@ const updateAvailableEntitiesForAllGraphers = async (
         "--- Obtaining available entity ids for all published graphers ---"
     )
     const availableEntitiesByChartId =
-        await obtainAvailableEntitiesForAllGraphers(trx)
+        await obtainAvailableEntitiesForGraphers(trx)
 
     console.log("--- Fetch stats ---")
     console.log(
@@ -194,7 +206,10 @@ const updateAvailableEntitiesForAllGraphers = async (
     console.log("--- Updating charts_x_entities ---")
 
     await trx.delete().from(ChartsXEntitiesTableName) // clears out the WHOLE table
-    for (const [chartId, availableEntityIds] of availableEntitiesByChartId) {
+    for (const [
+        chartId,
+        { availableEntityIds },
+    ] of availableEntitiesByChartId) {
         const rows = availableEntityIds.map((entityId) => ({
             chartId,
             entityId,

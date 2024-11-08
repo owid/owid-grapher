@@ -42,7 +42,7 @@ import {
     IExplorerViewHit,
     PageRecord,
 } from "./searchTypes.js"
-import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
+import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight, faSearch } from "@fortawesome/free-solid-svg-icons"
 import {

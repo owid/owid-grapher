@@ -2,11 +2,9 @@ import fs from "fs-extra"
 import {
     EXPLORER_FILE_SUFFIX,
     ExplorerProgram,
-} from "../explorer/ExplorerProgram.js"
-import {
     EXPLORERS_GIT_CMS_FOLDER,
     ExplorersRouteResponse,
-} from "../explorer/ExplorerConstants.js"
+} from "@ourworldindata/explorer"
 import { simpleGit, SimpleGit } from "simple-git"
 import { GitCommit, keyBy, sortBy } from "@ourworldindata/utils"
 

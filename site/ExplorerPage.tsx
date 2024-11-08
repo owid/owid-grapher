@@ -16,15 +16,22 @@ import {
     EMBEDDED_EXPLORER_PARTIAL_GRAPHER_CONFIGS,
     ExplorerContainerId,
     EXPLORERS_ROUTE_FOLDER,
-} from "../explorer/ExplorerConstants.js"
-import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec.js"
+    ExplorerProgram,
+    ExplorerPageUrlMigrationSpec,
+    EXPLORER_CONSTANTS_DELIMITER,
+} from "@ourworldindata/explorer"
 import { Head } from "../site/Head.js"
 import { IFrameDetector } from "../site/IframeDetector.js"
 import { SiteFooter } from "../site/SiteFooter.js"
 import { SiteHeader } from "../site/SiteHeader.js"
 import { SiteSubnavigation } from "../site/SiteSubnavigation.js"
 import { Html } from "./Html.js"
+import {
+    ADMIN_BASE_URL,
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
+    DATA_API_URL,
+} from "../settings/clientSettings.js"
 
 interface ExplorerPageSettings {
     program: ExplorerProgram
@@ -105,7 +112,16 @@ const partialGrapherConfigs = ${serializeJSONForHTML(
 const urlMigrationSpec = ${
         urlMigrationSpec ? JSON.stringify(urlMigrationSpec) : "undefined"
     };
-window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfigs, partialGrapherConfigs, urlMigrationSpec);`
+const explorerConstants = ${serializeJSONForHTML(
+        {
+            adminBaseUrl: ADMIN_BASE_URL,
+            bakedBaseUrl: BAKED_BASE_URL,
+            bakedGrapherUrl: BAKED_GRAPHER_URL,
+            dataApiUrl: DATA_API_URL,
+        },
+        EXPLORER_CONSTANTS_DELIMITER
+    )}
+window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfigs, partialGrapherConfigs, explorerConstants, urlMigrationSpec);`
 
     return (
         <Html>

@@ -14,7 +14,7 @@ import {
     parseDelimited,
     isCellEmpty,
 } from "@ourworldindata/core-table"
-import { GridBoolean } from "../gridLang/GridLangConstants.js"
+import { GridBoolean } from "./gridLang/GridLangConstants.js"
 import {
     ChoiceMap,
     ChoiceName,

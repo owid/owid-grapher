@@ -142,3 +142,43 @@ export async function initGrapher(
 
     return grapher
 }
+
+/**
+ * Update og:url, og:image, and twitter:image meta tags to include the search parameters.
+ */
+export function rewriteMetaTags(
+    url: URL,
+    openGraphThumbnailUrl: string,
+    twitterThumbnailUrl: string,
+    page: Response
+) {
+    // Take the origin (e.g. https://ourworldindata.org) from the canonical URL, which should appear before the image elements.
+    // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
+    let origin = ""
+
+    const rewriter = new HTMLRewriter()
+        .on('meta[property="og:url"]', {
+            // Replace canonical URL, otherwise the preview image will not include the search parameters.
+            element: (element) => {
+                const canonicalUrl = element.getAttribute("content")
+                element.setAttribute("content", canonicalUrl + url.search)
+                try {
+                    origin = new URL(canonicalUrl).origin
+                } catch (e) {
+                    console.error("Error parsing canonical URL", e)
+                }
+            },
+        })
+        .on('meta[property="og:image"]', {
+            element: (element) => {
+                element.setAttribute("content", origin + openGraphThumbnailUrl)
+            },
+        })
+        .on('meta[name="twitter:image"]', {
+            element: (element) => {
+                element.setAttribute("content", origin + twitterThumbnailUrl)
+            },
+        })
+
+    return rewriter.transform(page)
+}

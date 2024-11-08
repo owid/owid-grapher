@@ -502,6 +502,7 @@ export {
     type DbPlainExplorer,
     type DbInsertExplorer,
     ExplorersTableName,
+    type MinimalExplorerInfo,
 } from "./dbTypes/Explorers.js"
 export {
     type DbPlainExplorerVariable,

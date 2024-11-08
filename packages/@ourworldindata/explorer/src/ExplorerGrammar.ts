@@ -11,7 +11,7 @@ import {
     Grammar,
     EnumCellDef,
     StringDeclarationDef,
-} from "../gridLang/GridLangConstants.js"
+} from "./gridLang/GridLangConstants.js"
 import { GrapherGrammar } from "./GrapherGrammar.js"
 import { ColumnGrammar } from "./ColumnGrammar.js"
 

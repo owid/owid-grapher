@@ -34,7 +34,7 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../../../settings/clientSettings.js"
-import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
+import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { match, P } from "ts-pattern"
 import {
     extractFilenamesFromBlock,
