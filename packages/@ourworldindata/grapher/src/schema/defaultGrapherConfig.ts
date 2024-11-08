@@ -26,7 +26,6 @@ export const defaultGrapherConfig = {
     maxTime: "latest",
     yAxis: {
         removePointsOutsideDomain: false,
-        min: "auto",
         scaleType: "linear",
         max: "auto",
         canChangeScaleType: false,
@@ -66,7 +65,6 @@ export const defaultGrapherConfig = {
     },
     xAxis: {
         removePointsOutsideDomain: false,
-        min: "auto",
         scaleType: "linear",
         max: "auto",
         canChangeScaleType: false,
