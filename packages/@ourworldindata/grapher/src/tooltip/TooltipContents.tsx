@@ -12,7 +12,6 @@ import {
     sortBy,
     formatInlineList,
     GrapherTooltipAnchor,
-    ensureEqualLength,
 } from "@ourworldindata/utils"
 import {
     TooltipTableProps,
@@ -270,29 +269,24 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                                         </span>
                                     )}
                                 </td>
-                                {/* ensure arrays of equal length are zipped to
-                                    avoid a mobx warning about accessing elements
-                                    that are out of bounds */}
-                                {zip(...ensureEqualLength(columns, values)).map(
-                                    ([column, value]) => {
-                                        const missing = value === undefined
-                                        return column ? (
-                                            <td
-                                                key={column.slug}
-                                                className={classnames(
-                                                    "series-value",
-                                                    { missing }
+                                {zip(columns, values).map(([column, value]) => {
+                                    const missing = value === undefined
+                                    return column ? (
+                                        <td
+                                            key={column.slug}
+                                            className={classnames(
+                                                "series-value",
+                                                { missing }
+                                            )}
+                                        >
+                                            {!missing &&
+                                                column.formatValueShort(
+                                                    value,
+                                                    format
                                                 )}
-                                            >
-                                                {!missing &&
-                                                    column.formatValueShort(
-                                                        value,
-                                                        format
-                                                    )}
-                                            </td>
-                                        ) : null
-                                    }
-                                )}
+                                        </td>
+                                    ) : null
+                                })}
                                 {notice && (
                                     <td className="time-notice">
                                         <FontAwesomeIcon icon={faInfoCircle} />{" "}

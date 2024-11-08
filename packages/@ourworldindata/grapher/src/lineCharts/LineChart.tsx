@@ -724,10 +724,10 @@ export class LineChart
                                 )
                               : series.color
 
-                        const values = [
+                        const values = excludeUndefined([
                             point?.y,
                             point?.colorValue as undefined | number,
-                        ]
+                        ])
 
                         return {
                             name,

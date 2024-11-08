@@ -124,7 +124,6 @@ export {
     formatInlineList,
     lazy,
     getParentVariableIdFromChartConfig,
-    ensureEqualLength,
 } from "./Util.js"
 
 export {

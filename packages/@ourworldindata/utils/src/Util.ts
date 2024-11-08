@@ -2000,14 +2000,3 @@ export function getPaginationPageNumbers(
 
     return pageNumbers
 }
-
-export function ensureEqualLength<T, U>(
-    arr1: T[],
-    arr2: U[]
-): [(T | undefined)[], (U | undefined)[]] {
-    const length = Math.max(arr1.length, arr2.length)
-    return [
-        [...arr1, ...new Array(length - arr1.length).fill(undefined)],
-        [...arr2, ...new Array(length - arr2.length).fill(undefined)],
-    ]
-}
