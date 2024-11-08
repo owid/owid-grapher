@@ -870,7 +870,9 @@ export class Grapher
     @observable.ref isExportingToSvgOrPng = false
     @observable.ref isSocialMediaExport = false
 
-    tooltip?: TooltipManager["tooltip"] = observable.box(undefined)
+    tooltip?: TooltipManager["tooltip"] = observable.box(undefined, {
+        deep: false,
+    })
 
     @observable.ref isPlaying = false
     @observable.ref isTimelineAnimationActive = false // true if the timeline animation is either playing or paused but not finished
