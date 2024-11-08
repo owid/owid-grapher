@@ -716,13 +716,14 @@ export class LineChart
                         const blurred =
                             this.seriesIsBlurred(series) || point === undefined
 
-                        const swatch = blurred
+                        const color = blurred
                             ? BLUR_LINE_COLOR
                             : this.hasColorScale
                               ? darkenColorForLine(
                                     this.getColorScaleColor(point?.colorValue)
                                 )
                               : series.color
+                        const swatch = { color }
 
                         const values = excludeUndefined([
                             point?.y,

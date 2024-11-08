@@ -21,6 +21,8 @@ import { computed, action, observable } from "mobx"
 import { SeriesName } from "@ourworldindata/types"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
+    GRAPHER_AREA_OPACITY_MUTE,
+    GRAPHER_AREA_OPACITY_FOCUS,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
 } from "../core/GrapherConstants"
@@ -68,8 +70,8 @@ const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
 
 const AREA_OPACITY = {
     DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,
-    HOVER: 1,
-    MUTE: 0.3,
+    FOCUS: GRAPHER_AREA_OPACITY_FOCUS,
+    MUTE: GRAPHER_AREA_OPACITY_MUTE,
 }
 
 const BORDER_OPACITY = {
@@ -182,7 +184,7 @@ class Areas extends React.Component<AreasProps> {
             const opacity = !this.isFocusModeActive
                 ? AREA_OPACITY.DEFAULT // normal opacity
                 : focusedSeriesName === series.seriesName
-                  ? AREA_OPACITY.HOVER // hovered
+                  ? AREA_OPACITY.FOCUS // hovered
                   : AREA_OPACITY.MUTE // non-hovered
 
             return (
@@ -582,17 +584,17 @@ export class StackedAreaChart
                         .slice()
                         .reverse()
                         .map((series) => {
-                            const {
-                                seriesName: name,
-                                color: swatch,
-                                points,
-                            } = series
+                            const { seriesName: name, color, points } = series
                             const point = points[hoveredPointIndex]
                             const blurred = this.seriesIsBlur(series)
                             const focused = name === target.series
                             const values = [
                                 point?.fake ? undefined : point?.value,
                             ]
+                            const opacity = focused
+                                ? AREA_OPACITY.FOCUS
+                                : AREA_OPACITY.DEFAULT
+                            const swatch = { color, opacity }
 
                             return {
                                 name,
