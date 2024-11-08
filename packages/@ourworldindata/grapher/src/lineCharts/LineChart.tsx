@@ -479,7 +479,6 @@ export class LineChart
         if (!ref) return
 
         const mouse = getRelativeMouse(ref, ev)
-
         const boxPadding = isMobile() ? 44 : 25
 
         // expand the box width, so it's easier to see the tooltip for the first & last timepoints
