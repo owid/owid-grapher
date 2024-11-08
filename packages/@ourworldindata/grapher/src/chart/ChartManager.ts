@@ -80,7 +80,7 @@ export interface ChartManager {
     sortConfig?: SortConfig
     showNoDataArea?: boolean
 
-    externalLegendFocusBin?: ColorScaleBin | undefined
+    externalLegendHoverBin?: ColorScaleBin | undefined
     disableIntroAnimation?: boolean
 
     missingDataStrategy?: MissingDataStrategy

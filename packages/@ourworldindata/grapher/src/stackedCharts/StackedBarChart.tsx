@@ -215,7 +215,7 @@ export class StackedBarChart
     // All currently hovered group keys, combining the legend and the main UI
     @computed get hoverKeys(): string[] {
         const { hoverColor, manager } = this
-        const { externalLegendFocusBin } = manager
+        const { externalLegendHoverBin } = manager
 
         const hoverKeys =
             hoverColor === undefined
@@ -225,11 +225,11 @@ export class StackedBarChart
                           .filter((g) => g.color === hoverColor)
                           .map((g) => g.seriesName)
                   )
-        if (externalLegendFocusBin) {
+        if (externalLegendHoverBin) {
             hoverKeys.push(
                 ...this.rawSeries
                     .map((g) => g.seriesName)
-                    .filter((name) => externalLegendFocusBin.contains(name))
+                    .filter((name) => externalLegendHoverBin.contains(name))
             )
         }
 

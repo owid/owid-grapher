@@ -550,7 +550,7 @@ export class LineChart
 
     seriesIsBlurred(series: LineChartSeries): boolean {
         return (
-            this.isFocusMode &&
+            this.isFocusModeActive &&
             !this.focusedSeriesNames.includes(series.seriesName)
         )
     }
@@ -746,7 +746,6 @@ export class LineChart
     defaultRightPadding = 1
 
     @observable hoveredSeriesName?: SeriesName
-
     @observable private hoverTimer?: NodeJS.Timeout
 
     @action.bound onLineLegendMouseOver(seriesName: SeriesName): void {
@@ -767,22 +766,22 @@ export class LineChart
     }
 
     @computed get focusedSeriesNames(): string[] {
-        const { externalLegendFocusBin } = this.manager
+        const { externalLegendHoverBin } = this.manager
         const focusedSeriesNames = excludeUndefined([
             this.props.manager.entityYearHighlight?.entityName,
             this.hoveredSeriesName,
         ])
-        if (externalLegendFocusBin) {
+        if (externalLegendHoverBin) {
             focusedSeriesNames.push(
                 ...this.series
                     .map((s) => s.seriesName)
-                    .filter((name) => externalLegendFocusBin.contains(name))
+                    .filter((name) => externalLegendHoverBin.contains(name))
             )
         }
         return focusedSeriesNames
     }
 
-    @computed get isFocusMode(): boolean {
+    @computed get isFocusModeActive(): boolean {
         return this.focusedSeriesNames.length > 0
     }
 
