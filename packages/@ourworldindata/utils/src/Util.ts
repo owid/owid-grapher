@@ -1870,10 +1870,6 @@ export function isElementHidden(element: Element | null): boolean {
     return isElementHidden(element.parentElement)
 }
 
-export function roundDownToNearestHundred(value: number): number {
-    return Math.floor(value / 100) * 100
-}
-
 const commafyFormatter = lazy(() => new Intl.NumberFormat("en-US"))
 /**
  * Example: 12000 -> "12,000"

@@ -118,7 +118,6 @@ export {
     cartesian,
     removeTrailingParenthetical,
     isElementHidden,
-    roundDownToNearestHundred,
     commafyNumber,
     isFiniteWithGuard,
     createTagGraph,

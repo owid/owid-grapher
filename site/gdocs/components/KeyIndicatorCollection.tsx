@@ -15,12 +15,7 @@ import {
     EnrichedBlockKeyIndicator,
     GrapherTabOption,
 } from "@ourworldindata/types"
-import {
-    Url,
-    urlToSlug,
-    roundDownToNearestHundred,
-    commafyNumber,
-} from "@ourworldindata/utils"
+import { Url, urlToSlug, commafyNumber } from "@ourworldindata/utils"
 
 import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 import KeyIndicator from "./KeyIndicator.js"
@@ -60,13 +55,9 @@ export default function KeyIndicatorCollection({
                 <h2 className="h2-bold">Explore our data</h2>
                 {homepageMetadata?.chartCount ? (
                     <p className="body-2-regular">
-                        Featured data from our collection of more than{" "}
-                        {commafyNumber(
-                            roundDownToNearestHundred(
-                                homepageMetadata.chartCount
-                            )
-                        )}{" "}
-                        interactive charts.
+                        Featured data from our collection of{" "}
+                        {commafyNumber(homepageMetadata.chartCount)} interactive
+                        charts.
                     </p>
                 ) : (
                     <p className="body-2-regular">
