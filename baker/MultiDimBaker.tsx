@@ -17,7 +17,10 @@ import * as db from "../db/db.js"
 import { renderToHtmlPage } from "./siteRenderers.js"
 import { MultiDimDataPage } from "../site/multiDim/MultiDimDataPage.js"
 import React from "react"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import {
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "../settings/serverSettings.js"
 import { getTagToSlugMap } from "./GrapherBakingUtils.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
 import pMap from "p-map"
@@ -115,6 +118,7 @@ const getFaqEntries = async (
 
 export const renderMultiDimDataPageFromConfig = async (
     knex: db.KnexReadWriteTransaction,
+    slug: string,
     config: MultiDimDataPageConfigEnriched
 ) => {
     // TAGS
@@ -131,6 +135,9 @@ export const renderMultiDimDataPageFromConfig = async (
     const primaryTopic = await getPrimaryTopic(knex, config.topicTags?.[0])
 
     const props = {
+        baseUrl: BAKED_BASE_URL,
+        baseGrapherUrl: BAKED_GRAPHER_URL,
+        slug,
         configObj: pageConfig.config,
         tagToSlugMap: minimalTagToSlugMap,
         faqEntries,
@@ -148,15 +155,13 @@ export const renderMultiDimDataPageBySlug = async (
     const dbRow = await getMultiDimDataPageBySlug(knex, slug, { onlyPublished })
     if (!dbRow) throw new Error(`No multi-dim site found for slug: ${slug}`)
 
-    return renderMultiDimDataPageFromConfig(knex, dbRow.config)
+    return renderMultiDimDataPageFromConfig(knex, slug, dbRow.config)
 }
 
 export const renderMultiDimDataPageFromProps = async (
     props: MultiDimDataPageProps
 ) => {
-    return renderToHtmlPage(
-        <MultiDimDataPage baseUrl={BAKED_BASE_URL} multiDimProps={props} />
-    )
+    return renderToHtmlPage(<MultiDimDataPage {...props} />)
 }
 
 export const bakeMultiDimDataPage = async (
@@ -165,7 +170,11 @@ export const bakeMultiDimDataPage = async (
     slug: string,
     config: MultiDimDataPageConfigEnriched
 ) => {
-    const renderedHtml = await renderMultiDimDataPageFromConfig(knex, config)
+    const renderedHtml = await renderMultiDimDataPageFromConfig(
+        knex,
+        slug,
+        config
+    )
     const outPath = path.join(bakedSiteDir, `grapher/${slug}.html`)
     await fs.writeFile(outPath, renderedHtml)
 }
