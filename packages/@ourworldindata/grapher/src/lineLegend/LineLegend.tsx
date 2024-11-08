@@ -122,13 +122,15 @@ class LineLabels extends React.Component<{
         })
     }
 
+    @computed get textOpacity(): number {
+        return this.props.isFocus ? 1 : 0.6
+    }
+
     @computed get textLabels(): React.ReactElement {
         return (
             <g id={makeIdForHumanConsumption("text-labels")}>
                 {this.markers.map(({ series, labelText }, index) => {
-                    const textColor = this.props.isFocus
-                        ? darkenColorForText(series.color)
-                        : "#ddd"
+                    const textColor = darkenColorForText(series.color)
                     return (
                         <React.Fragment
                             key={getSeriesKey(
@@ -138,7 +140,10 @@ class LineLabels extends React.Component<{
                             )}
                         >
                             {series.textWrap.render(labelText.x, labelText.y, {
-                                textProps: { fill: textColor },
+                                textProps: {
+                                    fill: textColor,
+                                    opacity: this.textOpacity,
+                                },
                             })}
                         </React.Fragment>
                     )
@@ -155,7 +160,6 @@ class LineLabels extends React.Component<{
         return (
             <g id={makeIdForHumanConsumption("text-annotations")}>
                 {markersWithAnnotations.map(({ series, labelText }, index) => {
-                    const annotationColor = this.props.isFocus ? "#333" : "#ddd"
                     return (
                         <React.Fragment
                             key={getSeriesKey(
@@ -169,7 +173,8 @@ class LineLabels extends React.Component<{
                                 labelText.y + series.textWrap.height,
                                 {
                                     textProps: {
-                                        fill: annotationColor,
+                                        fill: "#333",
+                                        opacity: this.textOpacity,
                                         style: { fontWeight: 300 },
                                     },
                                 }

@@ -307,8 +307,9 @@ class Lines extends React.Component<LinesProps> {
                                 "background-line",
                                 series.seriesName
                             ),
-                            stroke: "#ddd",
+                            stroke: series.color,
                             strokeWidth: 1,
+                            strokeOpacity: 0.3,
                         })}
                     </React.Fragment>
                 ))}
