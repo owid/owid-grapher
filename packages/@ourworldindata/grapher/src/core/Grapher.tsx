@@ -50,7 +50,7 @@ import {
     setWindowQueryStr,
     getWindowUrl,
     Url,
-    Annotation,
+    EntityYearHighlight,
     ColumnSlug,
     DimensionProperty,
     SortBy,
@@ -282,7 +282,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     dataApiUrl?: string
     env?: string
     dataApiUrlForAdmin?: string
-    annotation?: Annotation
+    entityYearHighlight?: EntityYearHighlight
     baseFontSize?: number
     staticBounds?: Bounds
     staticFormat?: GrapherStaticFormat
@@ -428,7 +428,11 @@ export class Grapher
     @observable comparisonLines?: ComparisonLineConfig[] = undefined // todo: Persistables?
     @observable relatedQuestions?: RelatedQuestionsConfig[] = undefined // todo: Persistables?
 
-    @observable.ref annotation?: Annotation = undefined
+    /**
+     * Used to highlight an entity at a particular time in a line chart.
+     * The sparkline in map tooltips makes use of this.
+     */
+    @observable.ref entityYearHighlight?: EntityYearHighlight = undefined
 
     @observable.ref hideFacetControl?: boolean = undefined
 

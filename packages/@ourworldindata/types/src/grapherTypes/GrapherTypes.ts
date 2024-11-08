@@ -52,7 +52,7 @@ export enum ScaleType {
     log = "log",
 }
 
-export interface Annotation {
+export interface EntityYearHighlight {
     entityName?: string
     year?: number
 }
