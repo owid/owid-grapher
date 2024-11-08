@@ -33,6 +33,7 @@ jobs:
               uses: peter-evans/create-pull-request@v7
               if: steps.check_changes.outputs.has_changes == 'true'
               with:
+                  token: ${{ secrets.GH_OWIDBOT_ACCESS_TOKEN }}
                   commit-message: "🤖 update regions [${{ steps.date.outputs.date }}]"
                   title: "🤖 Update regions [${{ steps.date.outputs.date }}]"
                   body: |
