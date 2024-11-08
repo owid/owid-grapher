@@ -103,7 +103,6 @@ import {
     DetailsMarker,
     DetailDictionary,
     GrapherWindowType,
-    MultiDimDataPageProps,
     Color,
     GRAPHER_QUERY_PARAM_KEYS,
 } from "@ourworldindata/types"
@@ -216,7 +215,6 @@ declare global {
     interface Window {
         details?: DetailDictionary
         admin?: any // TODO: use stricter type
-        _OWID_MULTI_DIM_PROPS?: MultiDimDataPageProps
     }
 }
 
@@ -896,7 +894,7 @@ export class Grapher
         if (this.showAdminControls) {
             // This is a workaround to make the edit button work for MDims. We
             // probably want to do this in a more general way.
-            if (window._OWID_MULTI_DIM_PROPS) {
+            if ((window as any)._OWID_MULTI_DIM_PROPS) {
                 const varId = yColumnSlugs[0]
 
                 return `${this.adminBaseUrl ?? ""}/admin/variables/${varId}/config`

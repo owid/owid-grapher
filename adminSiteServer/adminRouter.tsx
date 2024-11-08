@@ -350,7 +350,8 @@ getPlainRouteNonIdempotentWithRWTransaction(
     adminRouter,
     "/grapher/:slug",
     async (req, res, trx) => {
-        const chart = await getChartConfigBySlug(trx, req.params.slug).catch(
+        const { slug } = req.params
+        const chart = await getChartConfigBySlug(trx, slug).catch(
             () => undefined
         )
         if (chart) {
@@ -360,12 +361,13 @@ getPlainRouteNonIdempotentWithRWTransaction(
             return
         }
 
-        const mdd = await getMultiDimDataPageBySlug(trx, req.params.slug, {
+        const mdd = await getMultiDimDataPageBySlug(trx, slug, {
             onlyPublished: false,
         })
         if (mdd) {
             const renderedPage = await renderMultiDimDataPageFromConfig(
                 trx,
+                slug,
                 mdd.config
             )
             res.send(renderedPage)
