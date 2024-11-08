@@ -77,6 +77,7 @@ const AREA_OPACITY = {
 const BORDER_OPACITY = {
     DEFAULT: 0.7,
     HOVER: 1,
+    MUTE: 0.3,
 }
 
 const BORDER_WIDTH = {
@@ -213,10 +214,11 @@ class Areas extends React.Component<AreasProps> {
         const { focusedSeriesName } = this.props
 
         return placedSeriesArr.map((placedSeries) => {
-            const opacity =
-                focusedSeriesName === placedSeries.seriesName
-                    ? BORDER_OPACITY.HOVER // hovered
-                    : BORDER_OPACITY.DEFAULT // non-hovered
+            const opacity = !this.isFocusModeActive
+                ? BORDER_OPACITY.DEFAULT // normal opacity
+                : focusedSeriesName === placedSeries.seriesName
+                  ? BORDER_OPACITY.HOVER // hovered
+                  : BORDER_OPACITY.MUTE // non-hovered
             const strokeWidth =
                 focusedSeriesName === placedSeries.seriesName
                     ? BORDER_WIDTH.HOVER
