@@ -11,6 +11,8 @@ import {
     keyBy,
     compact,
     mergeGrapherConfigs,
+    traverseEnrichedBlocks,
+    extractFilenamesFromBlock,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import * as lodash from "lodash"
@@ -210,9 +212,11 @@ export async function renderDataPageV2(
         .map((r) => r.imageUrl)
         .filter((f): f is string => !!f)
 
+    const faqFilenames = traverseEnrichedBlocks(faqEntries.faqs, extractFilenamesFromBlock)
+
     const imageMetadata = lodash.pick(
         imageMetadataDictionary,
-        uniq(relatedResearchFilenames)
+        uniq([...relatedResearchFilenames, ...faqFilenames])
     )
 
     const tagToSlugMap = await getTagToSlugMap(knex)

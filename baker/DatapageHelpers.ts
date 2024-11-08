@@ -10,6 +10,8 @@ import {
     getNextUpdateFromVariable,
     omitUndefinedValues,
     partition,
+    traverseEnrichedBlocks,
+    extractFilenamesFromBlock,
 } from "@ourworldindata/utils"
 import {
     getGdocBaseObjectById,
@@ -220,4 +222,8 @@ export const getPrimaryTopic = async (
         }
     }
     return undefined
+}
+
+export const extractFilenamesFromFaqEntries = (faqEntries: FaqEntryData) => {
+    return traverseEnrichedBlocks(faqEntries.faqs, extractFilenamesFromBlock)
 }
