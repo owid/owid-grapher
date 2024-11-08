@@ -212,7 +212,10 @@ export async function renderDataPageV2(
         .map((r) => r.imageUrl)
         .filter((f): f is string => !!f)
 
-    const faqFilenames = traverseEnrichedBlocks(faqEntries.faqs, extractFilenamesFromBlock)
+    const faqFilenames = traverseEnrichedBlocks(
+        faqEntries.faqs,
+        extractFilenamesFromBlock
+    )
 
     const imageMetadata = lodash.pick(
         imageMetadataDictionary,
