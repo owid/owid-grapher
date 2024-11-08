@@ -497,9 +497,8 @@ export class StackedAreaChart
             <g className="hoverIndicator" style={{ pointerEvents: "none" }}>
                 {series.map((series) => {
                     const point = series.points[hoveredPointIndex]
-                    return this.seriesIsBlur(series) ||
-                        point.fake ||
-                        point.value === 0 ? null : (
+                    if (point.fake || point.value === 0) return null
+                    return (
                         <circle
                             key={series.seriesName}
                             cx={horizontalAxis.place(point.position)}
