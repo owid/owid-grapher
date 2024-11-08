@@ -7,16 +7,28 @@ import { SiteFooter } from "../SiteFooter.js"
 import { SiteFooterContext, serializeJSONForHTML } from "@ourworldindata/utils"
 import { MultiDimDataPageProps } from "@ourworldindata/types"
 import { Html } from "../Html.js"
+import { MultiDimDataPageContentProps } from "./MultiDimDataPageContent.js"
 
-export const MultiDimDataPage = (props: {
-    baseUrl: string
-    multiDimProps: MultiDimDataPageProps
-}) => {
-    const { multiDimProps } = props
-
-    const canonicalUrl = "" // TODO
-    const baseUrl = props.baseUrl // TODO
-
+export function MultiDimDataPage({
+    baseUrl,
+    baseGrapherUrl,
+    slug,
+    configObj,
+    tagToSlugMap,
+    faqEntries,
+    primaryTopic,
+    initialQueryStr,
+}: MultiDimDataPageProps) {
+    const canonicalUrl = `${baseGrapherUrl}/${slug}`
+    const contentProps: MultiDimDataPageContentProps = {
+        canonicalUrl,
+        slug,
+        configObj,
+        faqEntries,
+        primaryTopic,
+        tagToSlugMap,
+        initialQueryStr,
+    }
     return (
         <Html>
             <Head
@@ -48,7 +60,7 @@ export const MultiDimDataPage = (props: {
                     <script
                         dangerouslySetInnerHTML={{
                             __html: `window._OWID_MULTI_DIM_PROPS = ${serializeJSONForHTML(
-                                multiDimProps
+                                contentProps
                             )}`,
                         }}
                     />
@@ -69,7 +81,6 @@ export const MultiDimDataPage = (props: {
                 <SiteFooter
                     baseUrl={baseUrl}
                     context={SiteFooterContext.multiDimDataPage}
-                    // isPreviewing={isPreviewing}
                 />
             </body>
         </Html>

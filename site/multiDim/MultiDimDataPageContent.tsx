@@ -30,8 +30,10 @@ import cx from "classnames"
 import { DebugProvider } from "../gdocs/DebugContext.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
 import {
-    MultiDimDataPageProps,
+    FaqEntryKeyedByGdocIdAndFragmentId,
+    MultiDimDataPageConfigEnriched,
     MultiDimDimensionChoices,
+    PrimaryTopic,
     ViewEnriched,
 } from "@ourworldindata/types"
 import AboutThisData from "../AboutThisData.js"
@@ -42,7 +44,7 @@ import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
 
 declare global {
     interface Window {
-        _OWID_MULTI_DIM_PROPS?: MultiDimDataPageProps
+        _OWID_MULTI_DIM_PROPS?: MultiDimDataPageContentProps
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
@@ -197,20 +199,30 @@ const useVarDatapageData = (
 
 const analytics = new GrapherAnalytics()
 
+export type MultiDimDataPageContentProps = {
+    canonicalUrl: string
+    slug: string
+    configObj: MultiDimDataPageConfigEnriched
+    tagToSlugMap?: Record<string, string>
+    faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
+    primaryTopic?: PrimaryTopic
+    initialQueryStr?: string
+    isPreviewing?: boolean
+}
+
 export const MultiDimDataPageContent = ({
+    slug,
+    canonicalUrl,
     // _datapageData,
     configObj,
     // isPreviewing = false,
     faqEntries,
     primaryTopic,
-    canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
     tagToSlugMap,
     // imageMetadata,
     initialQueryStr,
-}: MultiDimDataPageProps) => {
+}: MultiDimDataPageContentProps) => {
     const grapherFigureRef = useRef<HTMLDivElement>(null)
-
-    const slug = window?.location.pathname.split("/").pop()
 
     const config = useMemo(
         () => MultiDimDataPageConfig.fromObject(configObj),
@@ -456,7 +468,7 @@ export const MultiDimDataPageContent = ({
 
 export const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
-    const props: MultiDimDataPageProps = window._OWID_MULTI_DIM_PROPS!
+    const props: MultiDimDataPageContentProps = window._OWID_MULTI_DIM_PROPS!
     const initialQueryStr = getWindowQueryStr()
 
     ReactDOM.hydrate(
