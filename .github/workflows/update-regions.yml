@@ -1,0 +1,52 @@
+name: "Update regions"
+
+on:
+    schedule:
+        - cron: "0 8 * * 3" # every Wed at 8am
+    workflow_dispatch:
+
+jobs:
+    update-regions:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - uses: ./.github/actions/setup-node-yarn-deps
+
+            - name: Get current date
+              id: date
+              run: echo "date=$(date -u '+%Y-%m-%d')" >> $GITHUB_OUTPUT
+              shell: bash
+
+            - name: Update regions
+              run: yarn tsx devTools/regionsUpdater/update.ts
+              shell: bash
+
+            - name: Check if there are any git changes
+              id: check_changes
+              run: |
+                  git diff --exit-code || echo "has_changes=true" >> $GITHUB_OUTPUT
+              shell: bash
+
+            - name: Create Pull Request
+              uses: peter-evans/create-pull-request@v7
+              if: steps.check_changes.outputs.has_changes == 'true'
+              with:
+                  commit-message: "🤖 update regions [${{ steps.date.outputs.date }}]"
+                  title: "🤖 Update regions [${{ steps.date.outputs.date }}]"
+                  body: |
+                      Automated update of regions data
+
+                      TODOs:
+                      - [ ] Update the [owid-detect-country worker](https://github.com/owid/cloudflare-workers/tree/main/workers/owid-detect-country) using its update script
+                      - [ ] Check if there were any country renames, and if so:
+                          - [ ] Create redirects from old to new slugs
+                          - [ ] Take extra care :)
+                  branch: "bot/update-regions-${{ steps.date.outputs.date }}"
+                  base: "master"
+                  add-paths: "packages/@ourworldindata/utils/src/regions.json"
+
+permissions:
+    contents: write
+    pull-requests: write
