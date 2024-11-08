@@ -578,8 +578,8 @@ export const parseDelimited = (
 
     const result = Papa.parse(str, {
         delimiter: delimiter ?? detectDelimiter(str),
-        skipEmptyLines: true,
         header: true,
+        skipEmptyLines: true,
         transformHeader: (header: string) => header.trim(),
         transform: (value: string) => value.trim(),
     })

@@ -1,6 +1,6 @@
-import * as db from "../../db/db.js"
-import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
-import { chunkParagraphs } from "../chunk.js"
+import * as db from "../../../db/db.js"
+import { ALGOLIA_INDEXING } from "../../../settings/serverSettings.js"
+import { chunkParagraphs } from "../../chunk.js"
 import {
     countries,
     Country,
@@ -17,36 +17,31 @@ import {
     DEFAULT_GDOC_FEATURED_IMAGE,
     DEFAULT_THUMBNAIL_FILENAME,
 } from "@ourworldindata/utils"
-import { formatPost } from "../formatWordpressPost.js"
+import { formatPost } from "../../formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
-import { getAlgoliaClient } from "./configureAlgolia.js"
+import { getAlgoliaClient } from "../configureAlgolia.js"
 import { htmlToText } from "html-to-text"
 import {
     PageRecord,
-    PageType,
     SearchIndexName,
-} from "../../site/search/searchTypes.js"
-import { getAnalyticsPageviewsByUrlObj } from "../../db/model/Pageview.js"
-import { ArticleBlocks } from "../../site/gdocs/components/ArticleBlocks.js"
+} from "../../../site/search/searchTypes.js"
+import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
+import { ArticleBlocks } from "../../../site/gdocs/components/ArticleBlocks.js"
 import React from "react"
 import {
     getFullPost,
     getPostTags,
     getPostsFromSnapshots,
-} from "../../db/model/Post.js"
-import { getIndexName } from "../../site/search/searchClient.js"
+} from "../../../db/model/Post.js"
+import { getIndexName } from "../../../site/search/searchClient.js"
 import { ObjectWithObjectID } from "@algolia/client-search"
 import { SearchIndex } from "algoliasearch"
 import { match, P } from "ts-pattern"
-import { gdocFromJSON } from "../../db/model/Gdoc/GdocFactory.js"
-import { formatUrls } from "../../site/formatting.js"
+import { gdocFromJSON } from "../../../db/model/Gdoc/GdocFactory.js"
+import { formatUrls } from "../../../site/formatting.js"
+import { TypeAndImportance } from "./types.js"
 
-interface TypeAndImportance {
-    type: PageType
-    importance: number
-}
-
-const computeScore = (record: Omit<PageRecord, "score">): number => {
+const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
     return importance * 1000 + views_7d
 }
@@ -70,7 +65,7 @@ function generateCountryRecords(
             documentType: "country-page" as const,
             thumbnailUrl: `/${DEFAULT_THUMBNAIL_FILENAME}`,
         }
-        const score = computeScore(record)
+        const score = computePageScore(record)
         return { ...record, score }
     })
 }
@@ -152,7 +147,7 @@ async function generateWordpressRecords(
                 views_7d: pageviews[`/${post.path}`]?.views_7d ?? 0,
                 documentType: "wordpress" as const,
             }
-            const score = computeScore(record)
+            const score = computePageScore(record)
             records.push({ ...record, score })
             i += 1
         }
@@ -205,9 +200,13 @@ function generateGdocRecords(
         if (!gdoc.content.body) continue
         // Only rendering the blocks - not the page nav, title, byline, etc
         const renderedPostContent = ReactDOMServer.renderToStaticMarkup(
-            <div>
-                <ArticleBlocks blocks={gdoc.content.body} />
-            </div>
+            React.createElement(
+                "div",
+                null,
+                React.createElement(ArticleBlocks, {
+                    blocks: gdoc.content.body,
+                })
+            )
         )
         const chunks = generateChunksFromHtmlText(renderedPostContent)
         const postTypeAndImportance = getPostTypeAndImportance(gdoc)
@@ -230,7 +229,7 @@ function generateGdocRecords(
                 authors: gdoc.content.authors,
                 thumbnailUrl,
             }
-            const score = computeScore(record)
+            const score = computePageScore(record)
             records.push({ ...record, score })
             i += 1
         }

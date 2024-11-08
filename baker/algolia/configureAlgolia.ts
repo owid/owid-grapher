@@ -159,6 +159,41 @@ export const configureAlgolia = async () => {
         ],
     })
 
+    const explorerViewsAndChartsIndex = client.initIndex(
+        getIndexName(SearchIndexName.ExplorerViewsAndCharts)
+    )
+
+    await explorerViewsAndChartsIndex.setSettings({
+        ...baseSettings,
+        searchableAttributes: [
+            "unordered(title)",
+            "unordered(slug)",
+            "unordered(variantName)",
+            "unordered(subtitle)",
+            "unordered(tags)",
+            "unordered(availableEntities)",
+        ],
+        ranking: ["typo", "words", "exact", "attribute", "custom", "proximity"],
+        customRanking: [
+            "desc(score)",
+            // For multiple explorer views with the same title, we want to avoid surfacing duplicates.
+            // So, rank a result with viewTitleIndexWithinExplorer=0 way more highly than one with 1, 2, etc.
+            "asc(viewTitleIndexWithinExplorer)",
+            "asc(titleLength)",
+        ],
+        attributesToSnippet: ["subtitle:24"],
+        attributeForDistinct: "id",
+        optionalWords: ["vs"],
+
+        // These lines below essentially demote matches in the `subtitle` and `availableEntities` fields:
+        // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
+        // We also disable prefix matching and typo tolerance on these.
+        disableExactOnAttributes: ["tags", "subtitle", "availableEntities"],
+        disableTypoToleranceOnAttributes: ["subtitle", "availableEntities"],
+        disablePrefixOnAttributes: ["subtitle"],
+        attributesForFaceting: ["tags", "availableEntities"],
+    })
+
     const synonyms = [
         ["owid", "our world in data"],
         ["kids", "children"],

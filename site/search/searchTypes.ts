@@ -56,10 +56,17 @@ export type IExplorerViewHit = Hit<BaseHit> & {
     viewTitleIndexWithinExplorer: number
 }
 
+export enum ChartRecordType {
+    Chart = "chart",
+    ExplorerView = "explorerView",
+}
+
 export interface ChartRecord {
+    type: ChartRecordType
     objectID: string
     chartId: number
     slug: string
+    queryParams?: string
     title: string
     subtitle: string | undefined
     variantName: string
@@ -81,6 +88,7 @@ export enum SearchIndexName {
     ExplorerViews = "explorer-views",
     Charts = "charts",
     Pages = "pages",
+    ExplorerViewsAndCharts = "explorer-views-and-charts",
 }
 
 export type SearchCategoryFilter = SearchIndexName | "all"
@@ -96,4 +104,6 @@ export const indexNameToSubdirectoryMap: Record<SearchIndexName, string> = {
     [SearchIndexName.Pages]: "",
     [SearchIndexName.Charts]: "/grapher",
     [SearchIndexName.ExplorerViews]: "/explorers",
+    // n/a - charts and explorers have different subdirectories, so this needs to be resolved elsewhere
+    [SearchIndexName.ExplorerViewsAndCharts]: "",
 }

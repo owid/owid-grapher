@@ -11,6 +11,7 @@ export {
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
     ExplorerChartCreationMode,
     ExplorerContainerId,
+    ExplorerControlType,
     ExplorerControlTypeRegex,
     EXPLORERS_GIT_CMS_FOLDER,
     EXPLORERS_PREVIEW_ROUTE,
@@ -23,7 +24,6 @@ export {
     type ExplorerChoice,
     type ExplorerChoiceOption,
     type ExplorerChoiceParams,
-    type ExplorerControlType,
     type ExplorerFullQueryParams,
     type ExplorersRouteResponse,
     type ExplorerStandardQueryParams,
@@ -32,6 +32,7 @@ export {
 } from "./ExplorerConstants.js"
 
 export {
+    type TableDef,
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
     makeFullPath,

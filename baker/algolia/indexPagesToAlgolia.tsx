@@ -3,9 +3,9 @@ import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
 import { getIndexName } from "../../site/search/searchClient.js"
-import { getPagesRecords } from "./algoliaUtils.js"
+import { getPagesRecords } from "./utils/pages.js"
 
-const indexToAlgolia = async () => {
+const indexPagesToAlgolia = async () => {
     if (!ALGOLIA_INDEXING) return
 
     const client = getAlgoliaClient()
@@ -31,4 +31,4 @@ process.on("unhandledRejection", (e) => {
     process.exit(1)
 })
 
-void indexToAlgolia()
+void indexPagesToAlgolia()

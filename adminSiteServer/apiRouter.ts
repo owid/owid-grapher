@@ -125,7 +125,7 @@ import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
 import {
     indexIndividualGdocPost,
     removeIndividualGdocPostFromIndex,
-} from "../baker/algolia/algoliaUtils.js"
+} from "../baker/algolia/utils/pages.js"
 import { References } from "../adminSiteClient/ChartEditor.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
