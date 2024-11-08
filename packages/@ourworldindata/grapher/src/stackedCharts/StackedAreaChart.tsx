@@ -330,7 +330,14 @@ export class StackedAreaChart
     }>({ fade: "immediate" })
 
     @action.bound private onAreaMouseEnter(seriesName: SeriesName): void {
-        extend(this.tooltipState.target, { series: seriesName })
+        if (this.tooltipState.target) {
+            extend(this.tooltipState.target, { series: seriesName })
+        } else {
+            this.tooltipState.target = {
+                index: 0, // might be incorrect but will be updated immediately by the move event handler
+                series: seriesName,
+            }
+        }
     }
 
     @action.bound private onAreaMouseLeave(): void {
