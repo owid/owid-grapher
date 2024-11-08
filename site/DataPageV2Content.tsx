@@ -151,6 +151,7 @@ export const DataPageV2Content = ({
                     <GrapherWithFallback
                         grapher={grapher}
                         slug={grapherConfig.slug}
+                        enablePopulatingUrlParams
                     />
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
@@ -190,6 +191,7 @@ export const DataPageV2Content = ({
                                 // non-grapher pages then we need to make sure that there are thunbnails that are generated for the these non-chart graphers and
                                 // then this piece will have to change anyhow and know how to provide the thumbnail.
                                 id="explore-the-data"
+                                enablePopulatingUrlParams
                             />
                             <AboutThisData
                                 datapageData={datapageData}
