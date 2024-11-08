@@ -2529,6 +2529,363 @@
         "isUnlisted": true
     },
     {
+        "code": "UNSD_AUS",
+        "name": "Australia and New Zealand (UNSD)",
+        "slug": "australia-and-new-zealand-unsd",
+        "regionType": "aggregate",
+        "members": ["AUS", "CXR", "CCK", "HMD", "NZL", "NFK"]
+    },
+    {
+        "code": "UNSD_CAM",
+        "name": "Central America (UNSD)",
+        "slug": "central-america-unsd",
+        "regionType": "aggregate",
+        "members": ["BLZ", "CRI", "SLV", "GTM", "HND", "MEX", "NIC", "PAN"]
+    },
+    {
+        "code": "UNSD_CAR",
+        "name": "Caribbean (UNSD)",
+        "slug": "caribbean-unsd",
+        "regionType": "aggregate",
+        "members": [
+            "AIA",
+            "ATG",
+            "ABW",
+            "BHS",
+            "BRB",
+            "BES",
+            "CYM",
+            "CUB",
+            "CUW",
+            "DMA",
+            "DOM",
+            "GRD",
+            "GLP",
+            "HTI",
+            "JAM",
+            "MTQ",
+            "MSR",
+            "PRI",
+            "BLM",
+            "KNA",
+            "LCA",
+            "MAF",
+            "VCT",
+            "SXM",
+            "TTO",
+            "TCA",
+            "VGB",
+            "VIR"
+        ]
+    },
+    {
+        "code": "UNSD_CAS",
+        "name": "Central Asia (UNSD)",
+        "slug": "central-asia-unsd",
+        "regionType": "aggregate",
+        "members": ["KAZ", "KGZ", "TJK", "TKM", "UZB"]
+    },
+    {
+        "code": "UNSD_EAF",
+        "name": "Eastern Africa (UNSD)",
+        "slug": "eastern-africa-unsd",
+        "regionType": "aggregate",
+        "members": [
+            "IOT",
+            "BDI",
+            "COM",
+            "DJI",
+            "ERI",
+            "ETH",
+            "ATF",
+            "KEN",
+            "MDG",
+            "MWI",
+            "MUS",
+            "MYT",
+            "MOZ",
+            "REU",
+            "RWA",
+            "SYC",
+            "SOM",
+            "SSD",
+            "UGA",
+            "TZA",
+            "ZMB",
+            "ZWE"
+        ]
+    },
+    {
+        "code": "UNSD_EAS",
+        "name": "Eastern Asia (UNSD)",
+        "slug": "eastern-asia-unsd",
+        "regionType": "aggregate",
+        "members": ["CHN", "HKG", "JPN", "MAC", "MNG", "PRK", "KOR"]
+    },
+    {
+        "code": "UNSD_EEU",
+        "name": "Eastern Europe (UNSD)",
+        "slug": "eastern-europe-unsd",
+        "regionType": "aggregate",
+        "members": [
+            "BLR",
+            "BGR",
+            "CZE",
+            "HUN",
+            "MDA",
+            "POL",
+            "ROU",
+            "RUS",
+            "SVK",
+            "UKR"
+        ]
+    },
+    {
+        "code": "UNSD_MAF",
+        "name": "Middle Africa (UNSD)",
+        "slug": "middle-africa-unsd",
+        "regionType": "aggregate",
+        "members": [
+            "AGO",
+            "CMR",
+            "CAF",
+            "TCD",
+            "COG",
+            "COD",
+            "GNQ",
+            "GAB",
+            "STP"
+        ]
+    },
+    {
+        "code": "UNSD_MEL",
+        "name": "Melanesia (UNSD)",
+        "slug": "melanesia-unsd",
+        "regionType": "aggregate",
+        "members": ["FJI", "NCL", "PNG", "SLB", "VUT"]
+    },
+    {
+        "code": "UNSD_MIC",
+        "name": "Micronesia (UNSD)",
+        "slug": "micronesia-unsd",
+        "regionType": "aggregate",
+        "members": ["GUM", "KIR", "MHL", "FSM", "NRU", "MNP", "PLW", "UMI"]
+    },
+    {
+        "code": "UNSD_NAF",
+        "name": "Northern Africa (UNSD)",
+        "slug": "northern-africa-unsd",
+        "regionType": "aggregate",
+        "members": ["DZA", "EGY", "LBY", "MAR", "SDN", "TUN", "ESH"]
+    },
+    {
+        "code": "UNSD_NAM",
+        "name": "Northern America (UNSD)",
+        "slug": "northern-america-unsd",
+        "regionType": "aggregate",
+        "members": ["BMU", "CAN", "GRL", "SPM", "USA"]
+    },
+    {
+        "code": "UNSD_NEU",
+        "name": "Northern Europe (UNSD)",
+        "slug": "northern-europe-unsd",
+        "regionType": "aggregate",
+        "members": [
+            "ALA",
+            "DNK",
+            "EST",
+            "FRO",
+            "FIN",
+            "GGY",
+            "ISL",
+            "IRL",
+            "IMN",
+            "JEY",
+            "LVA",
+            "LTU",
+            "NOR",
+            "SJM",
+            "SWE",
+            "GBR"
+        ]
+    },
+    {
+        "code": "UNSD_POL",
+        "name": "Polynesia (UNSD)",
+        "slug": "polynesia-unsd",
+        "regionType": "aggregate",
+        "members": [
+            "ASM",
+            "COK",
+            "PYF",
+            "NIU",
+            "PCN",
+            "WSM",
+            "TKL",
+            "TON",
+            "TUV",
+            "WLF"
+        ]
+    },
+    {
+        "code": "UNSD_SAF",
+        "name": "Southern Africa (UNSD)",
+        "slug": "southern-africa-unsd",
+        "regionType": "aggregate",
+        "members": ["BWA", "LSO", "NAM", "ZAF", "SWZ"]
+    },
+    {
+        "code": "UNSD_SAM",
+        "name": "South America (UNSD)",
+        "slug": "south-america-unsd",
+        "regionType": "aggregate",
+        "members": [
+            "ARG",
+            "BOL",
+            "BVT",
+            "BRA",
+            "CHL",
+            "COL",
+            "ECU",
+            "FLK",
+            "GUF",
+            "GUY",
+            "PRY",
+            "PER",
+            "SGS",
+            "SUR",
+            "URY",
+            "VEN"
+        ]
+    },
+    {
+        "code": "UNSD_SAS",
+        "name": "Southern Asia (UNSD)",
+        "slug": "southern-asia-unsd",
+        "regionType": "aggregate",
+        "members": [
+            "AFG",
+            "BGD",
+            "BTN",
+            "IND",
+            "IRN",
+            "MDV",
+            "NPL",
+            "PAK",
+            "LKA"
+        ]
+    },
+    {
+        "code": "UNSD_SEA",
+        "name": "South-eastern Asia (UNSD)",
+        "slug": "south-eastern-asia-unsd",
+        "regionType": "aggregate",
+        "members": [
+            "BRN",
+            "KHM",
+            "TLS",
+            "IDN",
+            "LAO",
+            "MYS",
+            "MMR",
+            "PHL",
+            "SGP",
+            "THA",
+            "VNM"
+        ]
+    },
+    {
+        "code": "UNSD_SEU",
+        "name": "Southern Europe (UNSD)",
+        "slug": "southern-europe-unsd",
+        "regionType": "aggregate",
+        "members": [
+            "ALB",
+            "AND",
+            "BIH",
+            "HRV",
+            "GIB",
+            "GRC",
+            "ITA",
+            "MLT",
+            "MNE",
+            "PRT",
+            "SMR",
+            "SRB",
+            "SVN",
+            "ESP",
+            "MKD",
+            "VAT"
+        ]
+    },
+    {
+        "code": "UNSD_WAF",
+        "name": "Western Africa (UNSD)",
+        "slug": "western-africa-unsd",
+        "regionType": "aggregate",
+        "members": [
+            "BEN",
+            "BFA",
+            "CPV",
+            "CIV",
+            "GMB",
+            "GHA",
+            "GIN",
+            "GNB",
+            "LBR",
+            "MLI",
+            "MRT",
+            "NER",
+            "NGA",
+            "SHN",
+            "SEN",
+            "SLE",
+            "TGO"
+        ]
+    },
+    {
+        "code": "UNSD_WAS",
+        "name": "Western Asia (UNSD)",
+        "slug": "western-asia-unsd",
+        "regionType": "aggregate",
+        "members": [
+            "ARM",
+            "AZE",
+            "BHR",
+            "CYP",
+            "GEO",
+            "IRQ",
+            "ISR",
+            "JOR",
+            "KWT",
+            "LBN",
+            "OMN",
+            "QAT",
+            "SAU",
+            "SYR",
+            "TUR",
+            "ARE",
+            "YEM"
+        ]
+    },
+    {
+        "code": "UNSD_WEU",
+        "name": "Western Europe (UNSD)",
+        "slug": "western-europe-unsd",
+        "regionType": "aggregate",
+        "members": [
+            "AUT",
+            "BEL",
+            "FRA",
+            "DEU",
+            "LIE",
+            "LUX",
+            "MCO",
+            "NLD",
+            "CHE"
+        ]
+    },
+    {
         "code": "URY",
         "shortCode": "UY",
         "name": "Uruguay",
