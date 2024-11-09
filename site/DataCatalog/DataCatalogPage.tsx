@@ -4,6 +4,7 @@ import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { SiteFooterContext, TagGraphRoot } from "@ourworldindata/utils"
 import { DataCatalogInstantSearchWrapper } from "./DataCatalog.js"
+import { Html } from "../Html.js"
 
 declare global {
     interface Window {
@@ -18,7 +19,7 @@ export const DataCatalogPage = (props: {
     const { baseUrl, tagGraph } = props
 
     return (
-        <html>
+        <Html>
             <Head
                 canonicalUrl={`${baseUrl}/charts`}
                 pageTitle="Data Catalog"
@@ -47,6 +48,6 @@ export const DataCatalogPage = (props: {
                     hideDonationFlag
                 />
             </body>
-        </html>
+        </Html>
     )
 }
