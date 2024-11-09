@@ -203,6 +203,9 @@ main {
             no-repeat left;
         background-size: contain;
     }
+    &:focus {
+        opacity: 1;
+    }
 }
 
 h2:hover .deep-link,

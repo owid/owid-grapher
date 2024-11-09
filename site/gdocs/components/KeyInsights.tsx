@@ -322,7 +322,11 @@ export const KeyInsights = ({
                 id={KEY_INSIGHTS_ID}
             >
                 {heading}
-                <a className="deep-link" href={`#${KEY_INSIGHTS_ID}`} />
+                <a
+                    className="deep-link"
+                    aria-labelledby={KEY_INSIGHTS_ID}
+                    href={`#${KEY_INSIGHTS_ID}`}
+                />
             </h1>
             <div className={KEY_INSIGHTS_CLASS_NAME}>
                 <div>
