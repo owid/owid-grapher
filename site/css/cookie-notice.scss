@@ -30,6 +30,9 @@
 
     .cookie-notice__text {
         margin: 0;
+        a {
+            @include owid-link-90;
+        }
 
         @include lg-up {
             text-align: left;
