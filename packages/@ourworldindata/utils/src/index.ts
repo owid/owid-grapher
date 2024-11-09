@@ -124,6 +124,7 @@ export {
     formatInlineList,
     lazy,
     getParentVariableIdFromChartConfig,
+    getOrdinalNumberString,
 } from "./Util.js"
 
 export {

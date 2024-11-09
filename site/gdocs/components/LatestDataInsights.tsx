@@ -24,6 +24,7 @@ import {
     EnrichedBlockImage,
     OwidEnrichedGdocBlock,
     LatestDataInsight,
+    getOrdinalNumberString,
 } from "@ourworldindata/utils"
 import { dataInsightIndexToIdMap } from "../pages/DataInsight.js"
 import Image from "./Image.js"
@@ -111,6 +112,7 @@ export default function LatestDataInsights({
             </div>
             {canScrollPrev && (
                 <Button
+                    ariaLabel="Scroll to the previous data insight card"
                     className="latest-data-insights__control-button latest-data-insights__control-button--prev"
                     theme="solid-blue"
                     onClick={scrollPrev}
@@ -120,6 +122,7 @@ export default function LatestDataInsights({
             )}
             {canScrollNext && (
                 <Button
+                    ariaLabel="Scroll to the next data insight card"
                     className="latest-data-insights__control-button latest-data-insights__control-button--next"
                     theme="solid-blue"
                     onClick={scrollNext}
@@ -131,6 +134,7 @@ export default function LatestDataInsights({
                 {scrollSnaps.map((_, index) => (
                     <DotButton
                         key={index}
+                        index={index}
                         onClick={() => onDotButtonClick(index)}
                         className={cx("latest-data-insights__control-dot", {
                             "latest-data-insights__control-dot--selected":
@@ -251,10 +255,12 @@ function useDotButton(emblaApi: EmblaCarouselType | undefined): {
 
 function DotButton({
     children,
+    index,
     ...restProps
-}: ComponentPropsWithRef<"button">) {
+}: ComponentPropsWithRef<"button"> & { index: number }) {
+    const label = `Navigate to the ${getOrdinalNumberString(index + 1)} data insight card`
     return (
-        <button type="button" {...restProps}>
+        <button aria-label={label} {...restProps}>
             {children}
         </button>
     )

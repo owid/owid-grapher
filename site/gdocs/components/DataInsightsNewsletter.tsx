@@ -73,8 +73,10 @@ export default function DataInsightsNewsletter({
                         />
                         <input type="hidden" name="group[85302][16]" value="" />
                         <Button
+                            ariaLabel="Subscribe to the Daily Data Insights newsletter"
                             theme="solid-vermillion"
                             text="Subscribe"
+                            type="submit"
                             icon={null}
                             onClick={() =>
                                 analytics.logSiteClick(
