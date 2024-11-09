@@ -138,6 +138,13 @@ http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-s
     }
 }
 
+/* Focus indicator
+--------------------------------------------- */
+*:focus {
+    outline: 2px dotted $blue-60;
+    outline-offset: 2px;
+}
+
 /* Blog posts and blog index page (on /blog)
 --------------------------------------------- */
 

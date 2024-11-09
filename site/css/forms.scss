@@ -117,9 +117,6 @@ $checkbox-check-height: 4px;
     &:hover {
         opacity: 0.85;
     }
-    &:focus {
-        outline: 4px solid $highlight-color;
-    }
 }
 
 %owid-button {
