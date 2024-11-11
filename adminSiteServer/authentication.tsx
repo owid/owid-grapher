@@ -301,14 +301,22 @@ export async function tailscaleAuthMiddleware(
         return next()
     }
 
-    const user = await db
-        .knexInstance()
-        .table("users")
-        .where({ fullName: githubUserName })
-        .first()
+    let user
+    try {
+        // Look up user by 'githubUsername'
+        user = await db
+            .knexInstance()
+            .table("users")
+            .where({ githubUsername: githubUserName })
+            .first()
+    } catch (error) {
+        console.error(`Error looking up user by githubUsername: ${error}`)
+        return next()
+    }
+
     if (!user) {
         console.error(
-            `User with name ${githubUserName} not found in MySQL. Please change your Github profile name to match your MySQL user.`
+            `User with githubUsername ${githubUserName} not found in MySQL.`
         )
         return next()
     }
