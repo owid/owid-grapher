@@ -432,13 +432,6 @@ export class StackedAreaChart
         return this.focusedSeriesName ? [this.focusedSeriesName] : []
     }
 
-    seriesIsBlur(series: StackedSeries<Time>): boolean {
-        return (
-            this.focusedSeriesName !== undefined &&
-            this.focusedSeriesName !== series.seriesName
-        )
-    }
-
     @action.bound private onCursorMove(
         ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
     ): void {
@@ -594,7 +587,6 @@ export class StackedAreaChart
                         .map((series) => {
                             const { seriesName: name, color, points } = series
                             const point = points[hoveredPointIndex]
-                            const blurred = this.seriesIsBlur(series)
                             const focused = name === target.series
                             const values = [
                                 point?.fake ? undefined : point?.value,
@@ -608,7 +600,6 @@ export class StackedAreaChart
                                 name,
                                 swatch,
                                 focused,
-                                blurred,
                                 values,
                             }
                         })}
