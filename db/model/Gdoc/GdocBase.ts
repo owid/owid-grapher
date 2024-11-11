@@ -56,7 +56,6 @@ import {
 import {
     ARCHVED_THUMBNAIL_FILENAME,
     ChartConfigType,
-    DbChartTagJoin,
     DEFAULT_THUMBNAIL_FILENAME,
     GrapherInterface,
     LatestDataInsight,
