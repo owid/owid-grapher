@@ -16,18 +16,27 @@ export class AddGithubUsernameToUsers1731317168994
         `)
 
         // Update 'githubUsername' for specific users
-        await queryRunner.query(`
+        const updates = [
+            { fullName: "Tuna Acisu", githubUsername: "Tuna" },
+            { fullName: "Bastian Herre", githubUsername: "bastianherre" },
+            { fullName: "Joe Hasell", githubUsername: "JoeHasell" },
+            { fullName: "Marwa Boukarim", githubUsername: "mrwbkrm" },
+            {
+                fullName: "Veronika Samborska",
+                githubUsername: "veronikasamborska1994",
+            },
+        ]
+
+        for (const { fullName, githubUsername } of updates) {
+            await queryRunner.query(
+                `
             UPDATE users
-            SET githubUsername = 'Tuna' WHERE fullName = 'Tuna Acisu';
-            UPDATE users
-            SET githubUsername = 'bastianherre' WHERE fullName = 'Bastian Herre';
-            UPDATE users
-            SET githubUsername = 'JoeHasell' WHERE fullName = 'Joe Hasell';
-            UPDATE users
-            SET githubUsername = 'mrwbkrm' WHERE fullName = 'Marwa Boukarim';
-            UPDATE users
-            SET githubUsername = 'veronikasamborska1994' WHERE fullName = 'Veronika Samborska';
-        `)
+            SET githubUsername = ?
+            WHERE fullName = ?;
+            `,
+                [githubUsername, fullName]
+            )
+        }
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
