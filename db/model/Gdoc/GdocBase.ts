@@ -955,7 +955,7 @@ export function makeExplorerLinkedChart(
         title?: string
         subtitle?: string
         thumbnail?: string
-        tags?: DbChartTagJoin[]
+        tags?: string[]
     },
     originalSlug: string
 ): LinkedChart {
