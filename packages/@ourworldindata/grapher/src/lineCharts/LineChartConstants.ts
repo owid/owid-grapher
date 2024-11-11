@@ -1,6 +1,10 @@
 import { DualAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
-import { SeriesName, CoreValueType } from "@ourworldindata/types"
+import {
+    SeriesName,
+    CoreValueType,
+    EntityYearHighlight,
+} from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { Color } from "@ourworldindata/utils"
 
@@ -40,6 +44,7 @@ export interface LinesProps {
 }
 
 export interface LineChartManager extends ChartManager {
+    entityYearHighlight?: EntityYearHighlight
     lineStrokeWidth?: number
     canSelectMultipleEntities?: boolean
 }

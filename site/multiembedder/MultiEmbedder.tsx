@@ -11,7 +11,6 @@ import {
     SelectionArray,
 } from "@ourworldindata/grapher"
 import {
-    Annotation,
     fetchText,
     getWindowUrl,
     isPresent,
@@ -124,7 +123,7 @@ class MultiEmbedder {
     }
 
     @action.bound
-    async renderInteractiveFigure(figure: Element, annotation?: Annotation) {
+    async renderInteractiveFigure(figure: Element) {
         const isExplorer = figure.hasAttribute(
             EXPLORER_EMBEDDED_FIGURE_SELECTOR
         )
@@ -209,7 +208,6 @@ class MultiEmbedder {
                             this.selection.selectedEntityNames
                         ),
                     },
-                    annotation,
                 }
             )
             if (config.manager?.selection)

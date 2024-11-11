@@ -158,7 +158,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             fontSize: 11,
             disableIntroAnimation: true,
             lineStrokeWidth: 2,
-            annotation: {
+            entityYearHighlight: {
                 entityName: this.entityName,
                 year: this.datum?.time,
             },

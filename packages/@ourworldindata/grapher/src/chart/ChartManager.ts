@@ -17,12 +17,7 @@ import { TooltipManager } from "../tooltip/TooltipProps"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 
 import { SelectionArray } from "../selection/SelectionArray"
-import {
-    Annotation,
-    ColumnSlug,
-    SortConfig,
-    TimeBound,
-} from "@ourworldindata/utils"
+import { ColumnSlug, SortConfig, TimeBound } from "@ourworldindata/utils"
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale } from "../color/ColorScale"
 
@@ -84,8 +79,6 @@ export interface ChartManager {
 
     sortConfig?: SortConfig
     showNoDataArea?: boolean
-
-    annotation?: Annotation
 
     externalLegendFocusBin?: ColorScaleBin | undefined
     disableIntroAnimation?: boolean

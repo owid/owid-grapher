@@ -548,7 +548,8 @@ export class LineChart
 
     @computed get activeX(): number | undefined {
         return (
-            this.tooltipState.target?.x ?? this.props.manager.annotation?.year
+            this.tooltipState.target?.x ??
+            this.props.manager.entityYearHighlight?.year
         )
     }
 
@@ -750,7 +751,7 @@ export class LineChart
     @computed get focusedSeriesNames(): string[] {
         const { externalLegendFocusBin } = this.manager
         const focusedSeriesNames = excludeUndefined([
-            this.props.manager.annotation?.entityName,
+            this.props.manager.entityYearHighlight?.entityName,
             this.hoveredSeriesName,
         ])
         if (externalLegendFocusBin) {
