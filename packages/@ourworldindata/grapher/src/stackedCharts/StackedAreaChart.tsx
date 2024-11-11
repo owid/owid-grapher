@@ -409,11 +409,12 @@ export class StackedAreaChart
     @computed get facetLegendHoveredSeriesName(): SeriesName | undefined {
         const { externalLegendHoverBin } = this.manager
         if (!externalLegendHoverBin) return undefined
-        const hoveredSeriesNames = this.rawSeries
-            .map((s) => s.seriesName)
-            .filter((name) => externalLegendHoverBin.contains(name))
-        // stacked area charts can't plot the same entity or column multiple times
-        return hoveredSeriesNames.length > 0 ? hoveredSeriesNames[0] : undefined
+        // stacked area charts can't plot the same entity or column multiple times,
+        // so we just find the first series that matches the hovered legend item
+        const hoveredSeries = this.rawSeries.find((series) =>
+            externalLegendHoverBin.contains(series.seriesName)
+        )
+        return hoveredSeries?.seriesName
     }
 
     @computed get focusedSeriesName(): SeriesName | undefined {
