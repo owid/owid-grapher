@@ -22,7 +22,7 @@
         margin-bottom: 1rem;
 
         a {
-            display: block;
+            display: inline-block;
             text-decoration: none;
 
             @include sm-only {
