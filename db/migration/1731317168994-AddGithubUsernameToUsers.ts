@@ -17,14 +17,14 @@ export class AddGithubUsernameToUsers1731317168994
 
         // Update 'githubUsername' for specific users
         const updates = [
-            { fullName: "Tuna Acisu", githubUsername: "Tuna" },
             { fullName: "Bastian Herre", githubUsername: "bastianherre" },
-            { fullName: "Joe Hasell", githubUsername: "JoeHasell" },
             { fullName: "Marwa Boukarim", githubUsername: "mrwbkrm" },
             {
-                fullName: "Veronika Samborska",
-                githubUsername: "veronikasamborska1994",
+                fullName: "Natalie Reynolds-Garcia",
+                githubUsername: "natreygar",
             },
+            { fullName: "Max Roser", githubUsername: "Max" },
+            { fullName: "Valerie Muigai", githubUsername: "ValRMuigai" },
         ]
 
         for (const { fullName, githubUsername } of updates) {
