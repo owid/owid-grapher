@@ -1,9 +1,17 @@
 import { Env, extensions } from "../../_common/env.js"
 import { fetchGrapherConfig } from "../../_common/grapherTools.js"
-import { IRequestStrict, Router, error, StatusError } from "itty-router"
+import { IRequestStrict, Router, error, StatusError, cors } from "itty-router"
 import { handleThumbnailRequest } from "../../_common/reusableHandlers.js"
 
-const router = Router<IRequestStrict, [URL, Env, string]>()
+const { preflight, corsify } = cors({
+    allowMethods: ["GET", "OPTIONS", "HEAD"],
+})
+
+const router = Router<IRequestStrict, [URL, Env, string]>({
+    before: [preflight],
+    finally: [corsify],
+})
+
 router
     .get(
         `/grapher/by-uuid/:uuid${extensions.configJson}`,
