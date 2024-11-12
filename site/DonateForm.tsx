@@ -28,11 +28,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import Bugsnag from "@bugsnag/js"
 
-const ONETIME_DONATION_AMOUNTS = [10, 50, 100, 500, 1000]
-const MONTHLY_DONATION_AMOUNTS = [5, 10, 20, 50, 100]
+const ONETIME_DONATION_AMOUNTS = [20, 50, 100, 500, 1000]
+const MONTHLY_DONATION_AMOUNTS = [5, 10, 25, 50, 100]
 
-const ONETIME_DEFAULT_INDEX = 1
-const MONTHLY_DEFAULT_INDEX = 1
+const ONETIME_DEFAULT_INDEX = 2
+const MONTHLY_DEFAULT_INDEX = 2
 
 @observer
 export class DonateForm extends React.Component {
