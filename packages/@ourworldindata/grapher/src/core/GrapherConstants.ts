@@ -97,3 +97,7 @@ export const grapherInterfaceWithHiddenControlsOnly: GrapherProgrammaticInterfac
 export const allChartTypes = Object.values(ChartTypeName).filter(
     (type) => type !== ChartTypeName.WorldMap
 )
+
+export const allChartTypesDisabled = Object.fromEntries(
+    allChartTypes.map((chartType) => [chartType, false])
+)

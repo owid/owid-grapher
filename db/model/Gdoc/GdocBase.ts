@@ -934,7 +934,7 @@ export async function makeGrapherLinkedChart(
     const resolvedSlug = config.slug ?? ""
     const resolvedTitle = config.title ?? ""
     const resolvedUrl = `${BAKED_GRAPHER_URL}/${resolvedSlug}`
-    const tab = config.tab ?? GrapherTabOption.chart
+    const tab = config.tab
     const datapageIndicator = await getVariableOfDatapageIfApplicable(config)
     return {
         configType: ChartConfigType.Grapher,

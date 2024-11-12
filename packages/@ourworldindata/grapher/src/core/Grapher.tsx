@@ -364,7 +364,7 @@ export class Grapher
     @observable.ref internalNotes?: string = undefined
     @observable.ref originUrl?: string = undefined
 
-    @observable availableTabs?: ChartTypeNameRecord<boolean>
+    @observable availableTabs: ChartTypeNameRecord<boolean> = {}
     @observable.ref tab?: GrapherTabOption
 
     @observable hideAnnotationFieldsInTitle?: AnnotationFieldsInTitle =
@@ -755,6 +755,10 @@ export class Grapher
      */
     @computed get firstChartType(): ChartTypeName | undefined {
         return this.chartTypes[0]
+    }
+
+    @computed get chartType(): ChartTypeName {
+        return this.firstChartType ?? ChartTypeName.LineChart
     }
 
     @computed get currentChartType(): ChartTypeName | undefined {
@@ -3163,7 +3167,7 @@ export class Grapher
 
     @action.bound clearQueryParams(): void {
         const { authorsVersion } = this
-        this.tab = authorsVersion.tab // TODO
+        this.tab = authorsVersion.tab
         this.xAxis.scaleType = authorsVersion.xAxis.scaleType
         this.yAxis.scaleType = authorsVersion.yAxis.scaleType
         this.stackMode = authorsVersion.stackMode

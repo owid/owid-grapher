@@ -11,6 +11,7 @@ import { observer } from "mobx-react"
 import {
     ChartTypeName,
     EntitySelectionMode,
+    GrapherTabOption,
     StackMode,
 } from "@ourworldindata/types"
 import {
@@ -18,6 +19,8 @@ import {
     WorldEntityName,
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
+    allChartTypes,
+    allChartTypesDisabled,
 } from "@ourworldindata/grapher"
 import {
     DimensionProperty,
@@ -147,7 +150,10 @@ class DimensionSlotView<
             () => this.grapher.isReady,
             () => {
                 this.disposers.push(
-                    reaction(() => this.grapher.type, this.updateDefaults),
+                    reaction(
+                        () => this.grapher.availableTabs,
+                        this.updateDefaults
+                    ),
                     reaction(
                         () => this.grapher.yColumnsFromDimensions.length,
                         this.updateDefaults
@@ -355,16 +361,20 @@ export class EditorBasicTab<
 
     @action.bound onChartTypeChange(value: string) {
         const { grapher } = this.props.editor
-        // if availableTabs is a list, remove all but map
-        // if a record, set all but map to false
-        if (value === ChartTypeName.LineChart) {
-            // remove all charts from list
-            // add line – if slope toggle, add slope
-        } else {
-            // remove all charts from list
-            // add the one given
+
+        const newChartType = value as ChartTypeName
+        grapher.availableTabs = {
+            ...grapher.availableTabs,
+            ...allChartTypesDisabled,
+            [newChartType]: true,
         }
-        grapher.type = value as ChartTypeName
+
+        if (
+            grapher.tab !== GrapherTabOption.Table &&
+            grapher.tab !== GrapherTabOption.WorldMap
+        ) {
+            grapher.tab = newChartType as unknown as GrapherTabOption
+        }
 
         if (grapher.isMarimekko) {
             grapher.hideRelativeToggle = false
@@ -404,9 +414,6 @@ export class EditorBasicTab<
     render() {
         const { editor } = this.props
         const { grapher } = editor
-        const chartTypes = Object.keys(ChartTypeName).filter(
-            (chartType) => chartType !== ChartTypeName.WorldMap
-        )
 
         const isIndicatorChart = isIndicatorChartEditorInstance(editor)
 
@@ -416,9 +423,9 @@ export class EditorBasicTab<
 
                 <Section name="Type of chart">
                     <SelectField
-                        value={grapher.type}
+                        value={grapher.firstChartType}
                         onValue={this.onChartTypeChange}
-                        options={chartTypes.map((key) => ({
+                        options={allChartTypes.map((key) => ({
                             value: key,
                             label: startCase(key),
                         }))}
@@ -427,12 +434,30 @@ export class EditorBasicTab<
                         <Toggle
                             label="Chart tab"
                             value={grapher.hasChartTab}
-                            onValue={(value) => (grapher.hasChartTab = value)}
+                            onValue={(value) => {
+                                // TODO: remove false?
+                                if (value) {
+                                    grapher.availableTabs =
+                                        grapher.availableTabs ?? {}
+                                    grapher.availableTabs[
+                                        ChartTypeName.LineChart
+                                    ] = true
+                                } else {
+                                    grapher.availableTabs = {
+                                        ...grapher.availableTabs,
+                                        ...allChartTypesDisabled,
+                                    }
+                                }
+                            }}
                         />
                         <Toggle
                             label="Map tab"
                             value={grapher.hasMapTab}
-                            onValue={(value) => (grapher.hasMapTab = value)}
+                            onValue={(value) => {
+                                grapher.availableTabs =
+                                    grapher.availableTabs ?? {}
+                                grapher.availableTabs.WorldMap = value
+                            }}
                         />
                     </FieldsRow>
                 </Section>

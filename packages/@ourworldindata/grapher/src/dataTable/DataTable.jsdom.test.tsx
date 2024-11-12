@@ -70,7 +70,7 @@ describe("when you select a range of years", () => {
     let view: ReactWrapper
     beforeAll(() => {
         const grapher = childMortalityGrapher({
-            availableTabs: [GrapherTabOption.Table, GrapherTabOption.LineChart],
+            availableTabs: { [GrapherTabOption.LineChart]: true },
             tab: GrapherTabOption.Table,
         })
         grapher.timelineHandleTimeBounds = [1950, 2019]
@@ -158,7 +158,7 @@ describe("when the table has no filter toggle", () => {
         const grapher = LifeExpectancyGrapher({
             selectedEntityNames: ["World"],
             hideEntityControls: true, // no filter toggle
-            hasMapTab: true,
+            availableTabs: { [ChartTypeName.WorldMap]: true },
         })
         const view = Enzyme.mount(<DataTable manager={grapher} />)
         const rows = view.find("tbody tr:not(.title)")
@@ -169,7 +169,6 @@ describe("when the table has no filter toggle", () => {
         const grapher = LifeExpectancyGrapher({
             selectedEntityNames: [],
             hideEntityControls: true, // no filter toggle
-            hasMapTab: false,
         })
         const view = Enzyme.mount(<DataTable manager={grapher} />)
         const rows = view.find("tbody tr:not(.title)")

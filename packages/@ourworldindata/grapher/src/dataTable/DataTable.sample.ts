@@ -37,7 +37,6 @@ export const childMortalityGrapher = (
         },
     ]
     return new Grapher({
-        hasMapTab: true,
         tab: GrapherTabOption.WorldMap,
         dimensions,
         ...props,

@@ -158,7 +158,7 @@ export class ColorSchemeSelector extends React.Component<{
                             value={grapher.baseColorScheme}
                             onChange={this.onChange}
                             onBlur={this.onBlur}
-                            chartType={this.props.grapher.type}
+                            chartType={this.props.grapher.chartType}
                             invertedColorScheme={!!grapher.invertColorScheme}
                             additionalOptions={[
                                 {
@@ -751,7 +751,7 @@ export class EditorCustomizeTab<
                 {grapher.chartInstanceExceptMap.colorScale && (
                     <EditorColorScaleSection
                         scale={grapher.chartInstanceExceptMap.colorScale}
-                        chartType={grapher.type}
+                        chartType={grapher.chartType}
                         showLineChartColors={grapher.isLineChart}
                         features={{
                             visualScaling: true,

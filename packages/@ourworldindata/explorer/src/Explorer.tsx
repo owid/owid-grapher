@@ -593,6 +593,7 @@ export class Explorer
         const partialGrapherConfig =
             this.partialGrapherConfigsByVariableId.get(yVariableIdsList[0]) ??
             {}
+        console.log(partialGrapherConfig)
 
         const config: GrapherProgrammaticInterface = {
             ...mergeGrapherConfigs(

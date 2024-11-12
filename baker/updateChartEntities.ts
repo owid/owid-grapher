@@ -97,7 +97,7 @@ const obtainAvailableEntitiesForGrapherConfig = async (
 
     // If the grapher has a chart tab, then the available entities there are the "most interesting" ones to us
     if (grapher.hasChartTab) {
-        grapher.tab = grapher.mainChartType
+        grapher.tab = grapher.firstChartType as unknown as GrapherTabOption
 
         // If the grapher allows for changing or multi-selecting entities, then let's index all entities the
         // user can choose from. Otherwise, we'll just use the default-selected entities.

@@ -8,6 +8,7 @@ import {
     FacetAxisDomain,
     GrapherInterface,
     AxisMinMaxValueStr,
+    ChartTypeName,
 } from "@ourworldindata/types"
 import {
     CoreTable,
@@ -64,6 +65,10 @@ interface ExplorerGrapherInterface extends GrapherInterface {
     relatedQuestionText?: string
     relatedQuestionUrl?: string
     mapTargetTime?: number
+
+    type?: ChartTypeName
+    hasChartTab?: boolean
+    hasMapTab?: boolean
 }
 
 const ExplorerRootDef: CellDef = {
@@ -378,6 +383,9 @@ export class ExplorerProgram extends GridProgram {
         Object.keys(config).forEach((key) => {
             if (!GrapherGrammar[key]) delete config[key]
         })
+
+        // assume a line chart if no type is specified
+        if (!config.type) config.type = ChartTypeName.LineChart
 
         return config
     }

@@ -3,8 +3,8 @@
 import { Bounds, ColumnTypeNames } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
 import { DefaultColorScheme } from "../color/CustomSchemes"
-import { Grapher } from "../core/Grapher"
-import { ChartTypeName } from "@ourworldindata/types"
+import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
+import { ChartTypeName, GrapherInterface } from "@ourworldindata/types"
 import { MarimekkoChart } from "./MarimekkoChart"
 import { BarShape, PlacedItem } from "./MarimekkoChartConstants"
 it("can filter years correctly", () => {
@@ -23,7 +23,7 @@ it("can filter years correctly", () => {
 
     // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
     const manager = {
-        type: ChartTypeName.Marimekko,
+        availableTabs: { [ChartTypeName.Marimekko]: true },
         table,
         selection: table.availableEntityNames,
         ySlugs: "percentBelow2USD",
@@ -133,7 +133,7 @@ it("shows no data points at the end", () => {
 
     // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
     const manager = {
-        type: ChartTypeName.Marimekko,
+        availableTabs: { [ChartTypeName.Marimekko]: true },
         table,
         selection: table.availableEntityNames,
         ySlugs: "percentBelow2USD",
@@ -233,7 +233,7 @@ test("interpolation works as expected", () => {
 
     // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
     const manager = {
-        type: ChartTypeName.Marimekko,
+        availableTabs: { [ChartTypeName.Marimekko]: true },
         table,
         selection: table.availableEntityNames,
         ySlugs: "percentBelow2USD",
@@ -344,7 +344,7 @@ it("can deal with y columns with missing values", () => {
 
     // TODO: why is it ySlugs and xSlug here instead of yColumnSlugs and xColumnSlug? Unify when we have config migrations?
     const manager = {
-        type: ChartTypeName.Marimekko,
+        availableTabs: { [ChartTypeName.Marimekko]: true },
         table,
         selection: table.availableEntityNames,
         ySlugs: "percentBelow2USD percentBelow10USD",

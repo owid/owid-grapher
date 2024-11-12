@@ -426,7 +426,7 @@ export async function renderSvg(
     const svgRecord = {
         chartId: configAndData.config.id!,
         slug: configAndData.config.slug!,
-        chartType: grapher.tab === "chart" ? grapher.type : grapher.tab,
+        chartType: grapher.currentTab,
         queryStr,
         md5: processSvgAndCalculateHash(svg),
         svgFilename: outFilename,

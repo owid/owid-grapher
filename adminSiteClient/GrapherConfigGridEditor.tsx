@@ -512,7 +512,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         return (
                             <EditorColorScaleSection
                                 scale={colorScale}
-                                chartType={grapher.type}
+                                chartType={grapher.chartType}
                                 features={{
                                     visualScaling: true,
                                     legendDescription: false,
