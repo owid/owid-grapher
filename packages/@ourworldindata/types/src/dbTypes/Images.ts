@@ -7,6 +7,7 @@ export interface DbInsertImage {
     originalWidth?: number | null
     originalHeight?: number | null
     updatedAt?: string | null // MySQL Date objects round to the nearest second, whereas Google includes milliseconds so we store as an epoch of type bigint to avoid any conversion issues
+    cloudflareId?: string | null
 }
 export type DbRawImage = Required<DbInsertImage>
 export type DbEnrichedImage = Omit<DbRawImage, "updatedAt"> & {
