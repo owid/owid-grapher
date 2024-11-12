@@ -26,37 +26,20 @@ properties:
         description: Internal DB id. Useful internally for OWID but not required if just using grapher directly.
         minimum: 0
     availableTabs:
-        type: object
-        description: The tabs that are available for selection. The "Table" tab can't be selected because it is always available.
-        properties:
-            WorldMap:
-                type: boolean
-                default: false
-            LineChart:
-                type: boolean
-                default: false
-            ScatterPlot:
-                type: boolean
-                default: false
-            StackedArea:
-                type: boolean
-                default: false
-            StackedBar:
-                type: boolean
-                default: false
-            DiscreteBar:
-                type: boolean
-                default: false
-            StackedDiscreteBar:
-                type: boolean
-                default: false
-            SlopeChart:
-                type: boolean
-                default: false
-            Marimekko:
-                type: boolean
-                default: false
-        additionalProperties: false
+        type: array
+        description: The tabs that are available for selection. The Table tab is always present.
+        items:
+            type: string
+            enum:
+                - WorldMap
+                - LineChart
+                - ScatterPlot
+                - StackedArea
+                - DiscreteBar
+                - StackedDiscreteBar
+                - SlopeChart
+                - StackedBar
+                - Marimekko
     tab:
         type: string
         description: The tab that is shown initially. Defaults to the chart tab if available.

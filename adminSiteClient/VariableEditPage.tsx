@@ -688,23 +688,22 @@ class VariableEditor extends React.Component<{
     @computed private get grapherConfig(): GrapherInterface {
         const { variable } = this.props
         const grapherConfig = variable.grapherConfig
-        if (grapherConfig)
+        if (grapherConfig) {
+            let { availableTabs = [] } = grapherConfig
+            if (!availableTabs.includes(ChartTypeName.WorldMap)) {
+                availableTabs = [ChartTypeName.WorldMap, ...availableTabs]
+            }
             return {
                 ...grapherConfig,
-                availableTabs: {
-                    ...grapherConfig.availableTabs,
-                    [ChartTypeName.WorldMap]: true,
-                },
+                availableTabs,
                 tab: GrapherTabOption.WorldMap,
             }
-        else
+        } else
             return {
                 yAxis: { min: 0 },
                 map: { columnSlug: this.props.variable.id.toString() },
                 tab: GrapherTabOption.WorldMap,
-                availableTabs: {
-                    [ChartTypeName.WorldMap]: true,
-                },
+                availableTabs: [ChartTypeName.WorldMap],
                 dimensions: [
                     {
                         property: DimensionProperty.y,

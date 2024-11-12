@@ -26,7 +26,6 @@ export {
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
     allChartTypes,
-    allChartTypesDisabled,
 } from "./core/GrapherConstants"
 export {
     getVariableDataRoute,

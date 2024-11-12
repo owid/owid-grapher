@@ -123,9 +123,6 @@ export {
     createTagGraph,
     formatInlineList,
     lazy,
-    getMainChartTypeFromConfig,
-    getParentVariableIdFromChartConfig,
-    hasChartTabFromConfig,
 } from "./Util.js"
 
 export {
@@ -338,6 +335,10 @@ export { isAndroid, isIOS } from "./BrowserUtils.js"
 export {
     diffGrapherConfigs,
     mergeGrapherConfigs,
+    getMainChartTypeFromConfig,
+    getParentVariableIdFromChartConfig,
+    hasChartTabFromConfig,
+    getTabPosition,
 } from "./grapherConfigUtils.js"
 
 export {

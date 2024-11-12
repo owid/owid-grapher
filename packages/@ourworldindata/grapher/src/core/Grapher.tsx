@@ -65,6 +65,7 @@ import {
     sortBy,
     extractDetailsFromSyntax,
     omit,
+    getTabPosition,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -192,7 +193,6 @@ import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
-    getTabPosition,
 } from "../chart/ChartUtils"
 import classnames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
@@ -364,7 +364,7 @@ export class Grapher
     @observable.ref internalNotes?: string = undefined
     @observable.ref originUrl?: string = undefined
 
-    @observable availableTabs: ChartTypeNameRecord<boolean> = {}
+    @observable availableTabs?: ChartTypeName[]
     @observable.ref tab?: GrapherTabOption
 
     @observable hideAnnotationFieldsInTitle?: AnnotationFieldsInTitle =
@@ -718,15 +718,7 @@ export class Grapher
     }
 
     @computed get availableTabsSet(): Set<ChartTypeName> {
-        const { availableTabs = {} } = this
-
-        const availableTabsSet = new Set<ChartTypeName>()
-        for (const tab of Object.keys(availableTabs)) {
-            const isEnabled = availableTabs[tab as ChartTypeName]
-            if (isEnabled) availableTabsSet.add(tab as ChartTypeName)
-        }
-
-        return availableTabsSet
+        return new Set(this.availableTabs ?? [])
     }
 
     /**

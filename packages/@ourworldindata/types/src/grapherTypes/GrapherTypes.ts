@@ -547,7 +547,7 @@ export interface GrapherInterface extends SortConfig {
     subtitle?: string
     sourceDesc?: string
     note?: string
-    availableTabs?: ChartTypeNameRecord<boolean>
+    availableTabs?: ChartTypeName[]
     tab?: GrapherTabOption
     hideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     minTime?: TimeBound | TimeBoundValueStr

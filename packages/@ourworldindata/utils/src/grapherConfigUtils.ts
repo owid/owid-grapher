@@ -1,4 +1,8 @@
-import { GrapherInterface } from "@ourworldindata/types"
+import {
+    ChartTypeName,
+    DimensionProperty,
+    GrapherInterface,
+} from "@ourworldindata/types"
 import {
     isEqual,
     mergeWith,
@@ -10,6 +14,7 @@ import {
     omitEmptyObjectsRecursive,
     traverseObjects,
     isEmpty,
+    sortBy,
 } from "./Util"
 
 const REQUIRED_KEYS = ["$schema", "dimensions"]
@@ -90,4 +95,53 @@ export function diffGrapherConfigs(
     )
 
     return { ...diffed, ...keep }
+}
+
+export function getTabPosition(tab: ChartTypeName): number {
+    switch (tab) {
+        case ChartTypeName.WorldMap:
+            return 1
+        case ChartTypeName.LineChart:
+            return 2
+        default:
+            return 3
+    }
+}
+
+export function hasChartTabFromConfig(config: GrapherInterface): boolean {
+    const { availableTabs = [] } = config
+    const firstChartType = availableTabs.find(
+        (tab) => tab !== ChartTypeName.WorldMap
+    )
+    return firstChartType !== undefined
+}
+
+export function getMainChartTypeFromConfig(
+    config: GrapherInterface
+): ChartTypeName | undefined {
+    const { availableTabs = [] } = config
+    const sortedTabs = sortBy(availableTabs, (tab) => getTabPosition(tab))
+    const firstChartType = sortedTabs.find(
+        (tab) => tab !== ChartTypeName.WorldMap
+    )
+    return firstChartType
+}
+
+export function getParentVariableIdFromChartConfig(
+    config: GrapherInterface
+): number | undefined {
+    const { dimensions } = config
+
+    const chartType = getMainChartTypeFromConfig(config)
+    if (chartType === ChartTypeName.ScatterPlot) return undefined
+
+    if (!dimensions) return undefined
+
+    const yVariableIds = dimensions
+        .filter((d) => d.property === DimensionProperty.y)
+        .map((d) => d.variableId)
+
+    if (yVariableIds.length !== 1) return undefined
+
+    return yVariableIds[0]
 }

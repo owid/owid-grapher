@@ -4,7 +4,7 @@ import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
 
 // TODO: rewrite
 export const legacyMapGrapher: GrapherProgrammaticInterface = {
-    availableTabs: { [ChartTypeName.WorldMap]: true },
+    availableTabs: [ChartTypeName.WorldMap],
     tab: GrapherTabOption.WorldMap,
     map: {
         timeTolerance: 5,

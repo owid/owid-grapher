@@ -16,17 +16,6 @@ export const outdatedSchemaVersions = [
 
 export const defaultGrapherConfig = {
     $schema: "https://files.ourworldindata.org/schemas/grapher-schema.007.json",
-    availableTabs: {
-        WorldMap: false,
-        LineChart: false,
-        ScatterPlot: false,
-        StackedArea: false,
-        StackedBar: false,
-        DiscreteBar: false,
-        StackedDiscreteBar: false,
-        SlopeChart: false,
-        Marimekko: false,
-    },
     map: {
         projection: "World",
         hideTimeline: false,

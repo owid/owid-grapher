@@ -466,7 +466,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             it("joins targetTime", () => {
                 const scatterLegacyGrapherConfig = {
                     ...legacyGrapherConfig,
-                    availableTabs: { [ChartTypeName.ScatterPlot]: true },
+                    availableTabs: [ChartTypeName.ScatterPlot],
                 }
 
                 const { table } = legacyToOwidTableAndDimensions(

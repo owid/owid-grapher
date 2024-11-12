@@ -24,7 +24,6 @@ import {
     IndicatorIdOrEtlPathCellDef,
     GrapherCellDef,
 } from "./gridLang/GridLangConstants.js"
-import { allChartTypesDisabled } from "@ourworldindata/grapher"
 
 const toTerminalOptions = (keywords: string[]): CellDef[] => {
     return keywords.map((keyword) => ({
@@ -66,7 +65,7 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         keyword: "type",
         description: `The type of chart to show such as LineChart or ScatterPlot.`,
         terminalOptions: toTerminalOptions(Object.values(ChartTypeName)),
-        toGrapherObject: (value) => ({ availableTabs: { [value]: true } }),
+        toGrapherObject: () => ({}), // handled in code
     },
     grapherId: {
         ...IntegerCellDef,
@@ -85,9 +84,7 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         ...BooleanCellDef,
         keyword: "hasMapTab",
         description: "Show the map tab?",
-        toGrapherObject: (value) => ({
-            availableTabs: { [ChartTypeName.WorldMap]: value },
-        }),
+        toGrapherObject: () => ({}), // handled in code
     },
     tab: {
         ...EnumCellDef,
@@ -101,7 +98,7 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         keyword: "hasChartTab",
         description: "Show the chart tab?",
         // overwrites the given chart type if provided
-        toGrapherObject: (value) => ({ availableTabs: allChartTypesDisabled }),
+        toGrapherObject: () => ({}), // handled in code
     },
     xSlug: {
         ...SlugDeclarationCellDef,

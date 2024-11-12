@@ -409,6 +409,19 @@ export class ExplorerProgram extends GridProgram {
         // assume config is valid against the latest schema
         mergedConfig.$schema = defaultGrapherConfig.$schema
 
+        // construct the available tabs from type, hasChartTab and hasMapTab
+        const {
+            type = ChartTypeName.LineChart,
+            hasChartTab = true,
+            hasMapTab = false,
+        } = this.explorerGrapherConfig
+        if (hasMapTab || hasChartTab) {
+            const availableTabs = []
+            if (hasMapTab) availableTabs.push(ChartTypeName.WorldMap)
+            if (hasChartTab) availableTabs.push(type)
+            mergedConfig.availableTabs = availableTabs
+        }
+
         return mergedConfig
     }
 

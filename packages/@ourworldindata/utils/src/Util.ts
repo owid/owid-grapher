@@ -1964,64 +1964,6 @@ export function traverseObjects<T extends Record<string, any>>(
     return result
 }
 
-function toSortedAvailableTabs(
-    availableTabs: Record<ChartTypeName, boolean>
-): ChartTypeName[] {
-    const enabledTabs = Object.entries(availableTabs)
-        .filter(([_, enabled]) => enabled)
-        .map(([tab]) => tab as ChartTypeName)
-    // TODO: actually sort
-    return enabledTabs
-    // return sortBy(enabledTabs, (chartType) => availableTabs[chartType])
-}
-
-export function hasChartTabFromConfig(config: GrapherInterface): boolean {
-    const { availableTabs } = config
-    if (!availableTabs) return false
-
-    const allChartTypes = Object.values(ChartTypeName).filter(
-        (type) => type !== ChartTypeName.WorldMap
-    )
-    for (const type of allChartTypes) {
-        if (availableTabs[type]) return true
-    }
-    return false
-}
-
-export function getMainChartTypeFromConfig(
-    config: GrapherInterface
-): ChartTypeName | undefined {
-    const { availableTabs } = config
-
-    if (!availableTabs) return undefined
-
-    const enabledChartTypes = Object.entries(availableTabs)
-        .filter(([tab, enabled]) => tab !== ChartTypeName.WorldMap && enabled)
-        .map(([tab]) => tab as ChartTypeName)
-    const sortedTabs = enabledChartTypes // TODO
-
-    return sortedTabs[0]
-}
-
-export function getParentVariableIdFromChartConfig(
-    config: GrapherInterface
-): number | undefined {
-    const { dimensions } = config
-
-    const chartType = getMainChartTypeFromConfig(config)
-    if (chartType === ChartTypeName.ScatterPlot) return undefined
-
-    if (!dimensions) return undefined
-
-    const yVariableIds = dimensions
-        .filter((d) => d.property === DimensionProperty.y)
-        .map((d) => d.variableId)
-
-    if (yVariableIds.length !== 1) return undefined
-
-    return yVariableIds[0]
-}
-
 // Page numbers are 0-indexed - you'll have to +1 to them when rendering
 export function getPaginationPageNumbers(
     currentPageNumber: number,

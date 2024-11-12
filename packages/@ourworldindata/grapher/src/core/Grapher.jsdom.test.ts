@@ -45,7 +45,7 @@ const TestGrapherConfig = (): {
         property: DimensionProperty
         variableId: any
     }[]
-    availableTabs: ChartTypeNameRecord<boolean>
+    availableTabs: ChartTypeName[]
 } => {
     const table = SynthesizeGDPTable({ entityCount: 10 })
     return {
@@ -58,7 +58,7 @@ const TestGrapherConfig = (): {
                 variableId: SampleColumnSlugs.GDP as any,
             },
         ],
-        availableTabs: { [ChartTypeName.LineChart]: true },
+        availableTabs: [ChartTypeName.LineChart],
     }
 }
 
@@ -72,9 +72,12 @@ it("regression fix: container options are not serialized", () => {
 
 it("can get dimension slots", () => {
     const grapher = new Grapher()
+    expect(grapher.dimensionSlots.length).toBe(1)
+
+    grapher.availableTabs = [ChartTypeName.LineChart]
     expect(grapher.dimensionSlots.length).toBe(2)
 
-    grapher.availableTabs[ChartTypeName.ScatterPlot] = true
+    grapher.availableTabs = [ChartTypeName.ScatterPlot]
     expect(grapher.dimensionSlots.length).toBe(4)
 })
 
@@ -88,9 +91,7 @@ it("an empty Grapher serializes to an object that includes only the schema", () 
 })
 
 it("a bad chart type does not crash grapher", () => {
-    const input = {
-        availableTabs: { fff: true } as any,
-    }
+    const input = { availableTabs: ["invalid" as any] }
     expect(new Grapher(input).toObject()).toEqual({
         ...input,
         $schema: defaultGrapherConfig.$schema,
@@ -217,25 +218,25 @@ it("can generate a url with country selection even if there is no entity code", 
 describe("hasTimeline", () => {
     it("charts with timeline", () => {
         const grapher = new Grapher(legacyConfig)
-        grapher.availableTabs = { [GrapherTabOption.LineChart]: true }
+        grapher.availableTabs = [ChartTypeName.LineChart]
         expect(grapher.hasTimeline).toBeTruthy()
-        grapher.availableTabs = { [GrapherTabOption.SlopeChart]: true }
+        grapher.availableTabs = [ChartTypeName.SlopeChart]
         expect(grapher.hasTimeline).toBeTruthy()
-        grapher.availableTabs = { [GrapherTabOption.StackedArea]: true }
+        grapher.availableTabs = [ChartTypeName.StackedArea]
         expect(grapher.hasTimeline).toBeTruthy()
-        grapher.availableTabs = { [GrapherTabOption.StackedBar]: true }
+        grapher.availableTabs = [ChartTypeName.StackedBar]
         expect(grapher.hasTimeline).toBeTruthy()
-        grapher.availableTabs = { [GrapherTabOption.DiscreteBar]: true }
+        grapher.availableTabs = [ChartTypeName.DiscreteBar]
         expect(grapher.hasTimeline).toBeTruthy()
     })
 
     it("map tab has timeline even if chart doesn't", () => {
         const grapher = new Grapher(legacyConfig)
         grapher.hideTimeline = true
-        grapher.availableTabs = {
-            [GrapherTabOption.WorldMap]: true,
-            [GrapherTabOption.LineChart]: true,
-        }
+        grapher.availableTabs = [
+            ChartTypeName.WorldMap,
+            ChartTypeName.LineChart,
+        ]
         expect(grapher.hasTimeline).toBeFalsy()
         grapher.tab = GrapherTabOption.WorldMap
         expect(grapher.hasTimeline).toBeTruthy()
@@ -298,6 +299,7 @@ const getGrapher = (): Grapher =>
         ]),
         minTime: -5000,
         maxTime: 5000,
+        // availableTabs: [ChartTypeName.LineChart],
     })
 
 function fromQueryParams(
@@ -388,7 +390,7 @@ describe("authors can use maxTime", () => {
         const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
         const grapher = new Grapher({
             table,
-            availableTabs: { [ChartTypeName.DiscreteBar]: true },
+            availableTabs: [ChartTypeName.DiscreteBar],
             selectedEntityNames: table.availableEntityNames,
             maxTime: 2005,
             ySlugs: "GDP",
@@ -806,6 +808,7 @@ it("canChangeEntity reflects all available entities before transforms", () => {
         addCountryMode: EntitySelectionMode.SingleEntity,
         table,
         selectedEntityNames: table.sampleEntityName(1),
+        availableTabs: [ChartTypeName.LineChart],
     })
     expect(grapher.canChangeEntity).toBe(true)
 })
@@ -927,7 +930,7 @@ it("correctly identifies activeColumnSlugs", () => {
     `)
     const grapher = new Grapher({
         table,
-        availableTabs: { [ChartTypeName.ScatterPlot]: true },
+        availableTabs: [ChartTypeName.ScatterPlot],
         xSlug: "gdp",
         ySlugs: "child_mortality",
         colorSlug: "continent",
@@ -964,9 +967,7 @@ it("considers map tolerance before using column tolerance", () => {
 
     const grapher = new Grapher({
         table,
-        availableTabs: {
-            [GrapherTabOption.WorldMap]: true,
-        },
+        availableTabs: [ChartTypeName.WorldMap, ChartTypeName.LineChart],
         ySlugs: "gdp",
         tab: GrapherTabOption.WorldMap,
         map: new MapConfig({ timeTolerance: 1, columnSlug: "gdp", time: 2002 }),
@@ -1027,7 +1028,7 @@ describe("tableForSelection", () => {
 
         const grapher = new Grapher({
             table,
-            availableTabs: { [ChartTypeName.ScatterPlot]: true },
+            availableTabs: [ChartTypeName.ScatterPlot],
             excludedEntities: [3],
             xSlug: "x",
             ySlugs: "y",
@@ -1063,7 +1064,7 @@ it("handles tolerance when there are gaps in ScatterPlot data", () => {
 
     const grapher = new Grapher({
         table,
-        availableTabs: { [ChartTypeName.ScatterPlot]: true },
+        availableTabs: [ChartTypeName.ScatterPlot],
         xSlug: "x",
         ySlugs: "y",
         minTime: 1999,

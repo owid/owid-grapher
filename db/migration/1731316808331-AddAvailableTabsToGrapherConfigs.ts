@@ -24,18 +24,12 @@ export class AddAvailableTabsToGrapherConfigs1731316808331
     ): Promise<void> {
         // CASES:
         // 1. hasMapTab=false, hasChartTab=false -> availableTabs is unset
-        // 2. hasMapTab=false, hasChartTab=true -> availableTabs={ [chartType]: true }
-        // 3. hasMapTab=true, hasChartTab=false -> availableTabs={ WorldMap: true }
-        // 4. hasMapTab=true, hasChartTab=true -> availableTabs={ WorldMap: true, [chartType]: true }
+        // 2. hasMapTab=false, hasChartTab=true -> availableTabs=[chartType]
+        // 3. hasMapTab=true, hasChartTab=false -> availableTabs=["WorldMap"]
+        // 4. hasMapTab=true, hasChartTab=true -> availableTabs=["WorldMap", chartType]
 
         for (const configType of ["patch", "full"]) {
-            // We could run a single query that updates all configs at once,
-            // but then some values in `availableTabs` would be set to 'false'.
-            // That shouldn't be a problem (and over time we'll probably see
-            // configs where chart types are set to false), but for now I like
-            // to keep it clean.
-
-            // CASE 2: hasMapTab=false, hasChartTab=true -> availableTabs={ [chartType]: true }
+            // CASE 2: hasMapTab=false, hasChartTab=true -> availableTabs=[chartType]
             await queryRunner.query(
                 `
                 -- sql
@@ -43,7 +37,7 @@ export class AddAvailableTabsToGrapherConfigs1731316808331
                     SET ?? = JSON_SET(
                         ??,
                         '$.availableTabs',
-                        JSON_OBJECT(COALESCE(?? ->> '$.type', 'LineChart'), TRUE)
+                        JSON_ARRAY(COALESCE(?? ->> '$.type', 'LineChart'))
                     )
                     WHERE
                         (?? ->> '$.hasMapTab' = 'false' OR ?? ->> '$.hasMapTab' IS NULL)
@@ -60,7 +54,7 @@ export class AddAvailableTabsToGrapherConfigs1731316808331
                 ]
             )
 
-            // CASE 3: hasMapTab=true, hasChartTab=false -> availableTabs={ WorldMap: true }
+            // CASE 3: hasMapTab=true, hasChartTab=false -> availableTabs=["WorldMap"]
             await queryRunner.query(
                 `
                 -- sql
@@ -68,7 +62,7 @@ export class AddAvailableTabsToGrapherConfigs1731316808331
                     SET ?? = JSON_SET(
                         ??,
                         '$.availableTabs',
-                        JSON_OBJECT('WorldMap', TRUE)
+                        JSON_ARRAY('WorldMap')
                     )
                     WHERE
                         (?? ->> '$.hasMapTab' = 'true')
@@ -77,18 +71,15 @@ export class AddAvailableTabsToGrapherConfigs1731316808331
                 [configType, configType, configType, configType]
             )
 
-            // CASE 4: hasMapTab=true, hasChartTab=true -> availableTabs={ WorldMap: true, [chartType]: true }
+            // CASE 4: hasMapTab=true, hasChartTab=true -> availableTabs=["WorldMap", chartType]
             await queryRunner.query(
                 `
                 -- sql
                     UPDATE chart_configs
                     SET ?? = JSON_SET(
-                        ??,
+                        ??, 
                         '$.availableTabs',
-                        JSON_OBJECT(
-                            'WorldMap', TRUE,
-                            COALESCE(?? ->> '$.type', 'LineChart'), TRUE
-                        )
+                        JSON_ARRAY('WorldMap', COALESCE(?? ->> '$.type', 'LineChart'))
                     )
                     WHERE
                         (?? ->> '$.hasMapTab' = 'true')
@@ -168,17 +159,16 @@ export class AddAvailableTabsToGrapherConfigs1731316808331
                     ADD COLUMN chartType VARCHAR(255) GENERATED ALWAYS AS
                         (
                             CASE
-                                WHEN full ->> '$.availableTabs' IS NULL OR JSON_LENGTH(full, '$.availableTabs') = 0 THEN NULL
                                 -- Graphers with a line and a slope chart are considered to be of type LineChart
-                                WHEN full ->> '$.availableTabs.LineChart' = 'true' THEN 'LineChart'
-                                WHEN full ->> '$.availableTabs.SlopeChart' = 'true' THEN 'SlopeChart'
-                                WHEN full ->> '$.availableTabs.ScatterPlot' = 'true' THEN 'ScatterPlot'
-                                WHEN full ->> '$.availableTabs.StackedArea' = 'true' THEN 'StackedArea'
-                                WHEN full ->> '$.availableTabs.StackedBar' = 'true' THEN 'StackedBar'
-                                WHEN full ->> '$.availableTabs.ScatterPlot' = 'true' THEN 'ScatterPlot'
-                                WHEN full ->> '$.availableTabs.DiscreteBar' = 'true' THEN 'DiscreteBar'
-                                WHEN full ->> '$.availableTabs.StackedDiscreteBar' = 'true' THEN 'StackedDiscreteBar'
-                                WHEN full ->> '$.availableTabs.Marimekko' = 'true' THEN 'Marimekko'
+                                WHEN JSON_CONTAINS(full, '"LineChart"', '$.availableTabs') THEN 'LineChart'
+                                WHEN JSON_CONTAINS(full, '"SlopeChart"', '$.availableTabs') THEN 'SlopeChart'
+                                WHEN JSON_CONTAINS(full, '"ScatterPlot"', '$.availableTabs') THEN 'ScatterPlot'
+                                WHEN JSON_CONTAINS(full, '"StackedArea"', '$.availableTabs') THEN 'StackedArea'
+                                WHEN JSON_CONTAINS(full, '"StackedBar"', '$.availableTabs') THEN 'StackedBar'
+                                WHEN JSON_CONTAINS(full, '"ScatterPlot"', '$.availableTabs') THEN 'ScatterPlot'
+                                WHEN JSON_CONTAINS(full, '"DiscreteBar"', '$.availableTabs') THEN 'DiscreteBar'
+                                WHEN JSON_CONTAINS(full, '"StackedDiscreteBar"', '$.availableTabs') THEN 'StackedDiscreteBar'
+                                WHEN JSON_CONTAINS(full, '"Marimekko"', '$.availableTabs') THEN 'Marimekko'
                                 ELSE NULL
                             END
                         )
@@ -202,7 +192,7 @@ export class AddAvailableTabsToGrapherConfigs1731316808331
         await this.addAvailableTabsToGrapherConfigs(queryRunner)
         await this.updateTabField(queryRunner)
         await this.removeTypeHasMapTabAndHasChartTabFields(queryRunner)
-        await this.addDerivedChartTypeColumn(queryRunner)
+        // await this.addDerivedChartTypeColumn(queryRunner)
         await this.updateSchema(
             queryRunner,
             "https://files.ourworldindata.org/schemas/grapher-schema.007.json"

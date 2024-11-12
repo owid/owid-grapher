@@ -20,7 +20,6 @@ import {
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
     allChartTypes,
-    allChartTypesDisabled,
 } from "@ourworldindata/grapher"
 import {
     DimensionProperty,
@@ -363,11 +362,11 @@ export class EditorBasicTab<
         const { grapher } = this.props.editor
 
         const newChartType = value as ChartTypeName
-        grapher.availableTabs = {
-            ...grapher.availableTabs,
-            ...allChartTypesDisabled,
-            [newChartType]: true,
-        }
+        const newTabs: ChartTypeName[] = (grapher.availableTabs ?? []).filter(
+            (tab) => tab !== ChartTypeName.WorldMap
+        )
+        newTabs.push(newChartType)
+        grapher.availableTabs = newTabs
 
         if (
             grapher.tab !== GrapherTabOption.Table &&
@@ -435,18 +434,20 @@ export class EditorBasicTab<
                             label="Chart tab"
                             value={grapher.hasChartTab}
                             onValue={(value) => {
-                                // TODO: remove false?
                                 if (value) {
+                                    // add line chart tab
                                     grapher.availableTabs =
-                                        grapher.availableTabs ?? {}
-                                    grapher.availableTabs[
+                                        grapher.availableTabs ?? []
+                                    grapher.availableTabs.push(
                                         ChartTypeName.LineChart
-                                    ] = true
+                                    )
                                 } else {
-                                    grapher.availableTabs = {
-                                        ...grapher.availableTabs,
-                                        ...allChartTypesDisabled,
-                                    }
+                                    // remove all chart tabs
+                                    grapher.availableTabs =
+                                        grapher.availableTabs?.filter(
+                                            (tab) =>
+                                                tab === ChartTypeName.WorldMap
+                                        )
                                 }
                             }}
                         />
@@ -454,9 +455,20 @@ export class EditorBasicTab<
                             label="Map tab"
                             value={grapher.hasMapTab}
                             onValue={(value) => {
-                                grapher.availableTabs =
-                                    grapher.availableTabs ?? {}
-                                grapher.availableTabs.WorldMap = value
+                                if (value) {
+                                    // add map tab
+                                    grapher.availableTabs = [
+                                        ChartTypeName.WorldMap,
+                                        ...(grapher.availableTabs ?? []),
+                                    ]
+                                } else {
+                                    // remove map tab
+                                    grapher.availableTabs =
+                                        grapher.availableTabs?.filter(
+                                            (tab) =>
+                                                tab !== ChartTypeName.WorldMap
+                                        )
+                                }
                             }}
                         />
                     </FieldsRow>

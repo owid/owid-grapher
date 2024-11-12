@@ -50,7 +50,7 @@ const basicGrapherConfig: GrapherProgrammaticInterface = {
 
 describe("grapher and discrete bar charts", () => {
     const grapher = new Grapher({
-        availableTabs: { [ChartTypeName.DiscreteBar]: true },
+        availableTabs: [ChartTypeName.DiscreteBar],
         ...basicGrapherConfig,
     })
     expect(grapher.chartInstance.series.length).toBeGreaterThan(0)
