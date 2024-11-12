@@ -720,8 +720,6 @@ export class Grapher
     @computed get availableTabsSet(): Set<ChartTypeName> {
         const { availableTabs = {} } = this
 
-        console.log("avail", availableTabs)
-
         const availableTabsSet = new Set<ChartTypeName>()
         for (const tab of Object.keys(availableTabs)) {
             const isEnabled = availableTabs[tab as ChartTypeName]
@@ -759,11 +757,9 @@ export class Grapher
         return this.chartTypes[0]
     }
 
-    // TODO: remove? useful for backwards comp
-    @computed get type(): ChartTypeName {
-        if (this.isOnChartTab)
-            return this.currentTab as unknown as ChartTypeName
-        return this.firstChartType ?? ChartTypeName.LineChart
+    @computed get currentChartType(): ChartTypeName | undefined {
+        if (!this.isOnChartTab) return undefined
+        return this.currentTab as unknown as ChartTypeName
     }
 
     @computed get hasChartTab(): boolean {
@@ -894,7 +890,8 @@ export class Grapher
     // When Map becomes a first-class chart instance, we should drop this
     @computed get chartInstanceExceptMap(): ChartInterface {
         const chartTypeName =
-            this.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+            this.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart ??
+            ChartTypeName.LineChart // TODO
 
         const ChartClass =
             ChartComponentClassMap.get(chartTypeName) ?? DefaultChartClass
@@ -1034,7 +1031,6 @@ export class Grapher
                 properties: [
                     // might be missing for charts within explorers or mdims
                     ["slug", this.slug ?? "missing-slug"],
-                    ["chartType", this.type],
                     ["tab", this.currentTab],
                 ],
             },
@@ -1932,36 +1928,38 @@ export class Grapher
     }
 
     @computed
-    get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): ChartTypeName {
+    get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart():
+        | ChartTypeName
+        | undefined {
         // Switch to bar chart if a single year is selected. Todo: do we want to do this?
         return this.isLineChartThatTurnedIntoDiscreteBar
             ? ChartTypeName.DiscreteBar
-            : this.type
+            : this.firstChartType
     }
 
     @computed get isLineChart(): boolean {
-        return this.type === ChartTypeName.LineChart
+        return this.firstChartType === ChartTypeName.LineChart
     }
     @computed get isScatter(): boolean {
-        return this.type === ChartTypeName.ScatterPlot
+        return this.firstChartType === ChartTypeName.ScatterPlot
     }
     @computed get isStackedArea(): boolean {
-        return this.type === ChartTypeName.StackedArea
+        return this.firstChartType === ChartTypeName.StackedArea
     }
     @computed get isSlopeChart(): boolean {
-        return this.type === ChartTypeName.SlopeChart
+        return this.firstChartType === ChartTypeName.SlopeChart
     }
     @computed get isDiscreteBar(): boolean {
-        return this.type === ChartTypeName.DiscreteBar
+        return this.firstChartType === ChartTypeName.DiscreteBar
     }
     @computed get isStackedBar(): boolean {
-        return this.type === ChartTypeName.StackedBar
+        return this.firstChartType === ChartTypeName.StackedBar
     }
     @computed get isMarimekko(): boolean {
-        return this.type === ChartTypeName.Marimekko
+        return this.firstChartType === ChartTypeName.Marimekko
     }
     @computed get isStackedDiscreteBar(): boolean {
-        return this.type === ChartTypeName.StackedDiscreteBar
+        return this.firstChartType === ChartTypeName.StackedDiscreteBar
     }
 
     @computed get isLineChartThatTurnedIntoDiscreteBar(): boolean {

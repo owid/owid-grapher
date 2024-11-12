@@ -15,7 +15,7 @@ export interface ContentSwitchersManager {
     currentTab?: GrapherTabOption
     isNarrow?: boolean
     isMedium?: boolean
-    type: ChartTypeName
+    currentChartType?: ChartTypeName
     isLineChartThatTurnedIntoDiscreteBar?: boolean
 }
 
@@ -57,7 +57,7 @@ export class ContentSwitchers extends React.Component<{
     }
 
     @computed private get chartType(): ChartTypeName {
-        return this.manager.type ?? ChartTypeName.LineChart
+        return this.manager.currentChartType ?? ChartTypeName.LineChart
     }
 
     @computed get width(): number {
