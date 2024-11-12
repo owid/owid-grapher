@@ -367,9 +367,6 @@ export class LineChart
             this.selectionArray.selectedEntityNames
         )
 
-        console.log("running...")
-        console.log(this.selectionArray.selectedEntityNames)
-
         // TODO: remove this filter once we don't have mixed type columns in datasets
         // Currently we set skipParsing=true on these columns to be backwards-compatible
         table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
