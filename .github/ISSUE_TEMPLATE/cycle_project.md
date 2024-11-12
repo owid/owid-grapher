@@ -24,7 +24,7 @@ Summarize what our solution is supposed to look like.
 
 -   [ ] Nice to have steps
 
-** Won't do **
+**Won't do**
 
 -   [ ] Items we considered but that are explicitly not part of this cycle
 
