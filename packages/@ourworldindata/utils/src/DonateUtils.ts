@@ -20,7 +20,7 @@ export const SUPPORTED_CURRENCY_CODES: DonationCurrencyCode[] = [
     "USD",
 ]
 
-export const MIN_DONATION_AMOUNT = 1
+export const MIN_DONATION_AMOUNT = 5
 export const MAX_DONATION_AMOUNT = 10_000
 
 export const PLEASE_TRY_AGAIN =
