@@ -243,14 +243,14 @@ describe(diffGrapherConfigs, () => {
     it("drops redundant entries", () => {
         expect(
             diffGrapherConfigs(
-                { tab: GrapherTabOption.map },
-                { tab: GrapherTabOption.map }
+                { tab: GrapherTabOption.WorldMap },
+                { tab: GrapherTabOption.WorldMap }
             )
         ).toEqual({})
         expect(
             diffGrapherConfigs(
-                { tab: GrapherTabOption.chart, title: "Chart" },
-                { tab: GrapherTabOption.chart, title: "Reference chart" }
+                { tab: GrapherTabOption.LineChart, title: "Chart" },
+                { tab: GrapherTabOption.LineChart, title: "Reference chart" }
             )
         ).toEqual({ title: "Chart" })
     })
@@ -260,7 +260,7 @@ describe(diffGrapherConfigs, () => {
             diffGrapherConfigs(
                 {
                     title: "Chart",
-                    tab: GrapherTabOption.chart,
+                    tab: GrapherTabOption.LineChart,
                     map: {
                         projection: MapProjectionName.World,
                         hideTimeline: true,
@@ -268,7 +268,7 @@ describe(diffGrapherConfigs, () => {
                 },
                 {
                     title: "Reference chart",
-                    tab: GrapherTabOption.chart,
+                    tab: GrapherTabOption.LineChart,
                     map: {
                         projection: MapProjectionName.World,
                         hideTimeline: false,
@@ -279,14 +279,14 @@ describe(diffGrapherConfigs, () => {
         expect(
             diffGrapherConfigs(
                 {
-                    tab: GrapherTabOption.chart,
+                    tab: GrapherTabOption.LineChart,
                     map: {
                         projection: MapProjectionName.World,
                         hideTimeline: true,
                     },
                 },
                 {
-                    tab: GrapherTabOption.chart,
+                    tab: GrapherTabOption.LineChart,
                     map: {
                         projection: MapProjectionName.World,
                         hideTimeline: true,
@@ -300,11 +300,11 @@ describe(diffGrapherConfigs, () => {
         expect(
             diffGrapherConfigs(
                 {
-                    tab: GrapherTabOption.chart,
+                    tab: GrapherTabOption.LineChart,
                     title: "Chart",
                     subtitle: undefined,
                 },
-                { tab: GrapherTabOption.chart, title: "Reference chart" }
+                { tab: GrapherTabOption.LineChart, title: "Reference chart" }
             )
         ).toEqual({ title: "Chart" })
     })
@@ -361,12 +361,12 @@ describe(diffGrapherConfigs, () => {
 
     it("is idempotent", () => {
         const config: GrapherInterface = {
-            tab: GrapherTabOption.chart,
+            tab: GrapherTabOption.LineChart,
             title: "Chart",
             subtitle: undefined,
         }
         const reference: GrapherInterface = {
-            tab: GrapherTabOption.chart,
+            tab: GrapherTabOption.LineChart,
             title: "Reference chart",
         }
         const diffedOnce = diffGrapherConfigs(config, reference)
@@ -378,12 +378,12 @@ describe(diffGrapherConfigs, () => {
 describe("diff+merge", () => {
     it("are consistent", () => {
         const config: GrapherInterface = {
-            tab: GrapherTabOption.chart,
+            tab: GrapherTabOption.LineChart,
             title: "Chart",
             subtitle: "Chart subtitle",
         }
         const reference: GrapherInterface = {
-            tab: GrapherTabOption.chart,
+            tab: GrapherTabOption.LineChart,
             title: "Reference chart",
         }
         const diffedAndMerged = mergeGrapherConfigs(

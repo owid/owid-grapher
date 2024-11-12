@@ -9,7 +9,7 @@ const { LineChart, ScatterPlot } = ChartTypeName
 export interface AbsRelToggleManager {
     stackMode?: StackMode
     relativeToggleLabel?: string
-    type: ChartTypeName
+    type: ChartTypeName // TODO: optional?
 }
 
 @observer

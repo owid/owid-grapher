@@ -355,6 +355,15 @@ export class EditorBasicTab<
 
     @action.bound onChartTypeChange(value: string) {
         const { grapher } = this.props.editor
+        // if availableTabs is a list, remove all but map
+        // if a record, set all but map to false
+        if (value === ChartTypeName.LineChart) {
+            // remove all charts from list
+            // add line – if slope toggle, add slope
+        } else {
+            // remove all charts from list
+            // add the one given
+        }
         grapher.type = value as ChartTypeName
 
         if (grapher.isMarimekko) {

@@ -2,9 +2,10 @@ import { DimensionProperty } from "@ourworldindata/utils"
 import { GrapherProgrammaticInterface } from "../core/Grapher"
 import { GrapherTabOption } from "@ourworldindata/types"
 
+// TODO: rewrite
 export const legacyMapGrapher: GrapherProgrammaticInterface = {
     hasMapTab: true,
-    tab: GrapherTabOption.map,
+    tab: GrapherTabOption.WorldMap,
     map: {
         timeTolerance: 5,
     },

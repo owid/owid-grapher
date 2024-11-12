@@ -119,6 +119,7 @@ export enum ToleranceStrategy {
     backwards = "backwards",
     forwards = "forwards",
 }
+
 export enum ChartTypeName {
     LineChart = "LineChart",
     ScatterPlot = "ScatterPlot",
@@ -130,6 +131,23 @@ export enum ChartTypeName {
     Marimekko = "Marimekko",
     // special map type that can't be selected by authors
     WorldMap = "WorldMap",
+}
+
+export type ChartTypeNameRecord<T> = Partial<Record<ChartTypeName, T>>
+
+// ChartTypeNames + Table
+// TODO: turn into a non-enum type?
+export enum GrapherTabOption {
+    Table = "Table",
+    WorldMap = "WorldMap",
+    LineChart = "LineChart",
+    ScatterPlot = "ScatterPlot",
+    StackedArea = "StackedArea",
+    DiscreteBar = "DiscreteBar",
+    StackedDiscreteBar = "StackedDiscreteBar",
+    SlopeChart = "SlopeChart",
+    StackedBar = "StackedBar",
+    Marimekko = "Marimekko",
 }
 
 export enum AxisMinMaxValueStr {
@@ -171,12 +189,6 @@ export enum SeriesStrategy {
 export type SeriesName = string
 
 export type SeriesColorMap = Map<SeriesName, Color>
-
-export enum GrapherTabOption {
-    chart = "chart",
-    map = "map",
-    table = "table",
-}
 
 export interface RelatedQuestionsConfig {
     text?: string
@@ -528,7 +540,6 @@ export interface MapConfigInterface {
 // under the same rendering conditions it ought to remain visually identical
 export interface GrapherInterface extends SortConfig {
     $schema?: string
-    type?: ChartTypeName
     id?: number
     version?: number
     slug?: string
@@ -536,6 +547,8 @@ export interface GrapherInterface extends SortConfig {
     subtitle?: string
     sourceDesc?: string
     note?: string
+    availableTabs?: ChartTypeNameRecord<boolean>
+    tab?: GrapherTabOption
     hideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     minTime?: TimeBound | TimeBoundValueStr
     maxTime?: TimeBound | TimeBoundValueStr
@@ -556,9 +569,6 @@ export interface GrapherInterface extends SortConfig {
     hideTimeline?: boolean
     zoomToSelection?: boolean
     showYearLabels?: boolean // Always show year in labels for bar charts
-    hasChartTab?: boolean
-    hasMapTab?: boolean
-    tab?: GrapherTabOption
     relatedQuestion?: RelatedQuestionsConfig
     details?: DetailDictionary
     internalNotes?: string
@@ -647,10 +657,10 @@ export const GRAPHER_QUERY_PARAM_KEYS: (keyof LegacyGrapherQueryParams)[] = [
 // Another approach we may want to try is this: https://github.com/mobxjs/serializr
 export const grapherKeysToSerialize = [
     "$schema",
-    "type",
     "id",
     "version",
     "slug",
+    "availableTabs",
     "title",
     "subtitle",
     "sourceDesc",
@@ -673,8 +683,6 @@ export const grapherKeysToSerialize = [
     "hideTimeline",
     "zoomToSelection",
     "showYearLabels",
-    "hasChartTab",
-    "hasMapTab",
     "tab",
     "internalNotes",
     "variantName",

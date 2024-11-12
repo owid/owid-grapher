@@ -64,7 +64,7 @@ export interface SettingsMenuManager
     hideTableFilterToggle?: boolean
 
     // chart state
-    type: ChartTypeName
+    type: ChartTypeName // TODO: use currentTab?
     isRelativeMode?: boolean
     selection?: SelectionArray | EntityName[]
     canChangeAddOrHighlightEntities?: boolean
@@ -145,10 +145,10 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get showAbsRelToggle(): boolean {
-        const { type, canToggleRelativeMode, hasTimeline, xOverrideTime } =
+        const { canToggleRelativeMode, hasTimeline, xOverrideTime } =
             this.manager
         if (!canToggleRelativeMode) return false
-        if (type === ScatterPlot)
+        if (this.manager.type === ScatterPlot)
             return xOverrideTime === undefined && !!hasTimeline
         return [
             StackedArea,
@@ -157,7 +157,7 @@ export class SettingsMenu extends React.Component<{
             ScatterPlot,
             LineChart,
             Marimekko,
-        ].includes(type)
+        ].includes(this.manager.type)
     }
 
     @computed get showFacetControl(): boolean {

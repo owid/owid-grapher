@@ -1,6 +1,12 @@
 import React from "react"
-import { Box, getCountryByName } from "@ourworldindata/utils"
-import { SeriesStrategy, EntityName } from "@ourworldindata/types"
+import { Box, getCountryByName, sortBy, uniqBy } from "@ourworldindata/utils"
+import {
+    SeriesStrategy,
+    EntityName,
+    GrapherTabOption,
+    ChartTypeName,
+    ChartTypeNameRecord,
+} from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartManager } from "./ChartManager"
@@ -106,4 +112,15 @@ export function isElementInteractive(element: HTMLElement): boolean {
 export function getShortNameForEntity(entityName: string): string | undefined {
     const country = getCountryByName(entityName)
     return country?.shortName
+}
+
+export function getTabPosition(tab: ChartTypeName): number {
+    switch (tab) {
+        case ChartTypeName.WorldMap:
+            return 1
+        case ChartTypeName.LineChart:
+            return 2
+        default:
+            return 3
+    }
 }

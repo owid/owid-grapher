@@ -48,7 +48,7 @@ export const StaticLineChartForExport = (): React.ReactElement => {
 }
 
 export const MapChart = (): React.ReactElement => (
-    <CaptionedChart manager={{ ...manager, tab: GrapherTabOption.map }} />
+    <CaptionedChart manager={{ ...manager, tab: GrapherTabOption.WorldMap }} />
 )
 export const StackedArea = (): React.ReactElement => (
     <CaptionedChart

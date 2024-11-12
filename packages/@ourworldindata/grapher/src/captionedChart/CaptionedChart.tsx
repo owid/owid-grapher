@@ -77,7 +77,7 @@ export interface CaptionedChartManager
     backgroundColor?: string
 
     // state
-    tab?: GrapherTabOption
+    currentTab?: GrapherTabOption
     isOnMapTab?: boolean
     isOnTableTab?: boolean
     type: ChartTypeName
@@ -212,7 +212,9 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         const { manager } = this
         const bounds = this.boundsForChartArea
         const ChartClass =
-            ChartComponentClassMap.get(this.chartTypeName) ?? DefaultChartClass
+            ChartComponentClassMap.get(
+                this.manager.currentTab as unknown as ChartTypeName
+            ) ?? DefaultChartClass
 
         // Todo: make FacetChart a chart type name?
         if (this.isFaceted)

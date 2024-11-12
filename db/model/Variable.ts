@@ -7,6 +7,7 @@ import {
     omitUndefinedValues,
     mergeGrapherConfigs,
     diffGrapherConfigs,
+    getMainChartTypeFromConfig,
 } from "@ourworldindata/utils"
 import {
     getVariableDataRoute,
@@ -878,7 +879,7 @@ export async function getVariableOfDatapageIfApplicable(
     // showing a data page.
     if (
         yVariableIds.length === 1 &&
-        (grapher.type !== ChartTypeName.ScatterPlot ||
+        (getMainChartTypeFromConfig(grapher) !== ChartTypeName.ScatterPlot ||
             xVariableIds.length === 0)
     ) {
         const variableId = yVariableIds[0]

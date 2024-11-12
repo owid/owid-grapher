@@ -30,20 +30,20 @@ describe(Explorer, () => {
 
         explorer.onChangeChoice("Gas")("All GHGs (CO₂eq)")
 
-        if (explorer.grapher) explorer.grapher.tab = GrapherTabOption.table
+        if (explorer.grapher) explorer.grapher.tab = GrapherTabOption.Table
         else throw Error("where's the grapher?")
         expect(explorer.queryParams.tab).toEqual("table")
 
         explorer.onChangeChoice("Gas")("CO₂")
         expect(explorer.queryParams.tab).toEqual("table")
 
-        explorer.grapher.tab = GrapherTabOption.chart
+        explorer.grapher.tab = GrapherTabOption.Table
     })
 
     it("switches to first tab if current tab does not exist in new view", () => {
         const explorer = element.instance() as Explorer
         expect(explorer.queryParams.tab).toBeUndefined()
-        if (explorer.grapher) explorer.grapher.tab = GrapherTabOption.map
+        if (explorer.grapher) explorer.grapher.tab = GrapherTabOption.WorldMap
         else throw Error("where's the grapher?")
         expect(explorer.queryParams.tab).toEqual("map")
 

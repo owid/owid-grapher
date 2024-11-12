@@ -1,5 +1,6 @@
 import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
 import {
+    getMainChartTypeFromConfig,
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
@@ -205,7 +206,8 @@ export async function findChartViewsToGenerate(
         const grapherConfig = await parseGrapherConfig(chartId, { inDir })
 
         const slug = grapherConfig.slug ?? chartId.toString()
-        const chartType = grapherConfig.type ?? ChartTypeName.LineChart
+        const chartType =
+            getMainChartTypeFromConfig(grapherConfig) ?? ChartTypeName.LineChart
 
         const queryStrings = options.shouldTestAllViews
             ? queryStringsByChartType[chartType]
@@ -283,7 +285,9 @@ export async function findValidChartIds(
                 const grapherConfig = await parseGrapherConfig(grapherId, {
                     inDir,
                 })
-                const chartType = grapherConfig.type ?? ChartTypeName.LineChart
+                const chartType =
+                    getMainChartTypeFromConfig(grapherConfig) ??
+                    ChartTypeName.LineChart
                 if (chartTypes.includes(chartType)) {
                     validChartIds.push(grapherId)
                 }

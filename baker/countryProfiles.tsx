@@ -16,7 +16,13 @@ import {
     CountryProfilePage,
 } from "../site/CountryProfilePage.js"
 import { SiteBaker } from "./SiteBaker.js"
-import { countries, getCountryBySlug, JsonError } from "@ourworldindata/utils"
+import {
+    countries,
+    getCountryBySlug,
+    JsonError,
+    getMainChartTypeFromConfig,
+    hasChartTabFromConfig,
+} from "@ourworldindata/utils"
 import { renderToHtmlPage } from "./siteRenderers.js"
 import { dataAsDF } from "../db/model/Variable.js"
 import pl from "nodejs-polars"
@@ -37,8 +43,9 @@ function bakeCache<T>(cacheKey: any, retriever: () => T): T {
 }
 
 const checkShouldShowIndicator = (grapher: GrapherInterface) =>
-    (grapher.hasChartTab ?? true) &&
-    (grapher.type ?? "LineChart") === "LineChart" &&
+    hasChartTabFromConfig(grapher) &&
+    // TODO: should this be the intial chart type instead?
+    getMainChartTypeFromConfig(grapher) === "LineChart" &&
     grapher.dimensions?.length === 1
 
 // Find the charts that will be shown on the country profile page (if they have that country)

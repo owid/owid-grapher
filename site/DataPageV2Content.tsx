@@ -247,9 +247,9 @@ export const DataPageV2Content = ({
                                     Explore charts that include this data
                                 </h2>
                                 <div>
-                                    <RelatedCharts
+                                    {/* <RelatedCharts
                                         charts={datapageData.allCharts}
-                                    />
+                                    /> */}
                                 </div>
                             </div>
                         ) : null}

@@ -443,18 +443,20 @@ export class Explorer
             time: this.grapher.timeParam,
         }
 
-        const previousTab = this.grapher.tab
+        const previousTab = this.grapher.currentTab
 
         this.updateGrapherFromExplorer()
 
         // preserve the previous tab if that's still available in the new view;
         // and use the first tab otherwise, ignoring the table
-        const tabsWithoutTable = this.grapher.availableTabs.filter(
-            (tab) => tab !== GrapherTabOption.table
-        )
-        newGrapherParams.tab = this.grapher.availableTabs.includes(previousTab)
-            ? previousTab
-            : tabsWithoutTable[0] ?? GrapherTabOption.table
+        if (this.grapher.sortedAvailableTabs.includes(previousTab)) {
+            newGrapherParams.tab = previousTab
+        } else {
+            const tabsWithoutTable = this.grapher.sortedAvailableTabs.filter(
+                (tab) => tab !== GrapherTabOption.Table
+            )
+            newGrapherParams.tab = tabsWithoutTable[0] ?? GrapherTabOption.Table
+        }
 
         this.grapher.populateFromQueryParams(newGrapherParams)
 

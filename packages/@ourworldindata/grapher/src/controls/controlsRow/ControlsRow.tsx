@@ -2,7 +2,8 @@ import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 
-import { Bounds, DEFAULT_BOUNDS, GrapherTabOption } from "@ourworldindata/utils"
+import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
+import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
 
 import { ContentSwitchers, ContentSwitchersManager } from "../ContentSwitchers"
 import {
@@ -22,7 +23,7 @@ export interface ControlsRowManager
         MapProjectionMenuManager,
         SettingsMenuManager {
     sidePanelBounds?: Bounds
-    availableTabs?: GrapherTabOption[]
+    sortedAvailableTabs?: GrapherTabOption[]
     showEntitySelectionToggle?: boolean
     framePaddingHorizontal?: number
     framePaddingVertical?: number

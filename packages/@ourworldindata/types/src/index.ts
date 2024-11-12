@@ -75,6 +75,7 @@ export {
     ColorSchemeName,
     colorScaleConfigDefaults,
     ChartTypeName,
+    type ChartTypeNameRecord,
     GrapherTabOption,
     StackMode,
     EntitySelectionMode,

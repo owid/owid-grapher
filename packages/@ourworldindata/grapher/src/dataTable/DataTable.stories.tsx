@@ -88,8 +88,8 @@ export const FromLegacy = (): React.ReactElement => {
 
 export const FromLegacyWithTimeRange = (): React.ReactElement => {
     const grapher = childMortalityGrapher({
-        type: ChartTypeName.LineChart,
-        tab: GrapherTabOption.chart,
+        availableTabs: [GrapherTabOption.Table, GrapherTabOption.LineChart],
+        tab: GrapherTabOption.LineChart,
     })
     grapher.startHandleTimeBound = 1950
     grapher.endHandleTimeBound = 2019

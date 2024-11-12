@@ -70,8 +70,8 @@ describe("when you select a range of years", () => {
     let view: ReactWrapper
     beforeAll(() => {
         const grapher = childMortalityGrapher({
-            type: ChartTypeName.LineChart,
-            tab: GrapherTabOption.table,
+            availableTabs: [GrapherTabOption.Table, GrapherTabOption.LineChart],
+            tab: GrapherTabOption.Table,
         })
         grapher.timelineHandleTimeBounds = [1950, 2019]
 

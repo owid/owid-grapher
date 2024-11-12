@@ -98,12 +98,15 @@ it("a bad chart type does not crash grapher", () => {
 })
 
 it("does not preserve defaults in the object (except for the schema)", () => {
-    expect(new Grapher({ tab: GrapherTabOption.chart }).toObject()).toEqual({
-        $schema: defaultGrapherConfig.$schema,
+    // TODO
+    expect(new Grapher({ tab: GrapherTabOption.LineChart }).toObject()).toEqual(
+        {
+            $schema: defaultGrapherConfig.$schema,
 
-        // TODO: ideally, selectedEntityNames is not serialised for an empty object
-        selectedEntityNames: [],
-    })
+            // TODO: ideally, selectedEntityNames is not serialised for an empty object
+            selectedEntityNames: [],
+        }
+    )
 })
 
 const unit = "% of children under 5"
@@ -211,24 +214,27 @@ it("can generate a url with country selection even if there is no entity code", 
 describe("hasTimeline", () => {
     it("charts with timeline", () => {
         const grapher = new Grapher(legacyConfig)
-        grapher.type = ChartTypeName.LineChart
+        grapher.availableTabs = [GrapherTabOption.LineChart]
         expect(grapher.hasTimeline).toBeTruthy()
-        grapher.type = ChartTypeName.SlopeChart
+        grapher.availableTabs = [GrapherTabOption.SlopeChart]
         expect(grapher.hasTimeline).toBeTruthy()
-        grapher.type = ChartTypeName.StackedArea
+        grapher.availableTabs = [GrapherTabOption.StackedArea]
         expect(grapher.hasTimeline).toBeTruthy()
-        grapher.type = ChartTypeName.StackedBar
+        grapher.availableTabs = [GrapherTabOption.StackedBar]
         expect(grapher.hasTimeline).toBeTruthy()
-        grapher.type = ChartTypeName.DiscreteBar
+        grapher.availableTabs = [GrapherTabOption.DiscreteBar]
         expect(grapher.hasTimeline).toBeTruthy()
     })
 
     it("map tab has timeline even if chart doesn't", () => {
         const grapher = new Grapher(legacyConfig)
         grapher.hideTimeline = true
-        grapher.type = ChartTypeName.LineChart
+        grapher.availableTabs = [
+            GrapherTabOption.WorldMap,
+            GrapherTabOption.LineChart,
+        ]
         expect(grapher.hasTimeline).toBeFalsy()
-        grapher.tab = GrapherTabOption.map
+        grapher.tab = GrapherTabOption.WorldMap
         expect(grapher.hasTimeline).toBeTruthy()
         grapher.map.hideTimeline = true
         expect(grapher.hasTimeline).toBeFalsy()
@@ -482,7 +488,7 @@ describe("urls", () => {
             isPublished: true,
             slug: "foo",
             bakedGrapherURL: "/grapher",
-            tab: GrapherTabOption.map,
+            tab: GrapherTabOption.WorldMap,
         })
         expect(grapher.embedUrl).toEqual("/grapher/foo?tab=map")
     })
@@ -834,7 +840,7 @@ describe("year parameter (applies to map only)", () => {
             })
             it(`encode ${test.name}`, () => {
                 const params = toQueryParams({
-                    tab: GrapherTabOption.map,
+                    tab: GrapherTabOption.WorldMap,
                     map: { time: test.param },
                 })
                 expect(params.time).toEqual(test.query)
@@ -900,7 +906,7 @@ describe("year parameter (applies to map only)", () => {
                 it(`encode ${test.name}`, () => {
                     const grapher = getGrapher()
                     grapher.updateFromObject({
-                        tab: GrapherTabOption.map,
+                        tab: GrapherTabOption.WorldMap,
                         map: { time: test.param },
                     })
                     const params = grapher.changedParams
@@ -955,9 +961,9 @@ it("considers map tolerance before using column tolerance", () => {
 
     const grapher = new Grapher({
         table,
-        type: ChartTypeName.WorldMap,
+        availableTabs: [GrapherTabOption.Table, GrapherTabOption.WorldMap],
         ySlugs: "gdp",
-        tab: GrapherTabOption.map,
+        tab: GrapherTabOption.WorldMap,
         map: new MapConfig({ timeTolerance: 1, columnSlug: "gdp", time: 2002 }),
     })
 

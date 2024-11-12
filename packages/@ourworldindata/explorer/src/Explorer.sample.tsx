@@ -54,7 +54,8 @@ export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
                 property: DimensionProperty.y,
             },
         ],
-        tab: GrapherTabOption.chart,
+        // TODO
+        tab: GrapherTabOption.LineChart,
         owidDataset: new Map([
             [
                 142609,

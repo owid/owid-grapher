@@ -90,15 +90,15 @@ export const StackedArea = (): React.ReactElement => {
 export const MapFirst = (): React.ReactElement => {
     const model = {
         ...basics,
-        tab: GrapherTabOption.map,
+        tab: GrapherTabOption.WorldMap,
     }
     return <Grapher {...model} />
 }
 
 export const BlankGrapher = (): React.ReactElement => {
     const model = {
-        type: ChartTypeName.WorldMap,
-        tab: GrapherTabOption.map,
+        availableTabs: [GrapherTabOption.Table, GrapherTabOption.WorldMap],
+        tab: GrapherTabOption.WorldMap,
         table: BlankOwidTable(),
         hasMapTab: true,
     }

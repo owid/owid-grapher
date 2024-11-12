@@ -2,7 +2,6 @@ import React, { useRef } from "react"
 import { useEmbedChart } from "../../hooks.js"
 import {
     grapherInterfaceWithHiddenControlsOnly,
-    grapherInterfaceWithHiddenTabsOnly,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
 import {
@@ -12,6 +11,8 @@ import {
     identity,
     Url,
     merge,
+    excludeNull,
+    GrapherTabOption,
 } from "@ourworldindata/utils"
 import { ChartConfigType } from "@ourworldindata/types"
 import { renderSpans, useLinkedChart } from "../utils.js"
@@ -52,19 +53,24 @@ export default function Chart({
     let customizedChartConfig: GrapherProgrammaticInterface = {}
     const isCustomized = d.title || d.subtitle
     if (!isExplorer && isCustomized) {
+        // TODO: add back support for fine-grained control over tabs?
+
         const controls: ChartControlKeyword[] = d.controls || []
         const tabs: ChartTabKeyword[] = d.tabs || []
         const showAllControls = controls.includes(ChartControlKeyword.all)
         const showAllTabs = tabs.includes(ChartTabKeyword.all)
-        const listOfPartialGrapherConfigs = [...controls, ...tabs]
-            .map(mapKeywordToGrapherConfig)
-            .filter(identity) as GrapherProgrammaticInterface[]
+        const displayedControls = excludeNull(
+            controls.map(mapControlKeywordToGrapherConfig)
+        ) as GrapherProgrammaticInterface[]
+
+        const allControlsHidden = grapherInterfaceWithHiddenControlsOnly
+        const allTabsHidden = { availableTabs: [] }
 
         customizedChartConfig = merge(
             {},
-            !showAllControls ? grapherInterfaceWithHiddenControlsOnly : {},
-            !showAllTabs ? grapherInterfaceWithHiddenTabsOnly : {},
-            ...listOfPartialGrapherConfigs,
+            !showAllControls ? allControlsHidden : {},
+            !showAllTabs ? allTabsHidden : {},
+            ...displayedControls,
             {
                 hideRelatedQuestion: true,
                 hideShareButton: true, // always hidden since the original chart would be shared, not the customized one
@@ -134,12 +140,10 @@ export default function Chart({
     )
 }
 
-const mapKeywordToGrapherConfig = (
-    keyword: ChartControlKeyword | ChartTabKeyword
+const mapControlKeywordToGrapherConfig = (
+    keyword: ChartControlKeyword
 ): GrapherProgrammaticInterface | null => {
     switch (keyword) {
-        // controls
-
         case ChartControlKeyword.relativeToggle:
             return { hideRelativeToggle: false }
 
@@ -172,17 +176,6 @@ const mapKeywordToGrapherConfig = (
 
         case ChartControlKeyword.tableFilterToggle:
             return { hideTableFilterToggle: false }
-
-        // tabs
-
-        case ChartTabKeyword.chart:
-            return { hasChartTab: true }
-
-        case ChartTabKeyword.map:
-            return { hasMapTab: true }
-
-        case ChartTabKeyword.table:
-            return { hasTableTab: true }
 
         default:
             return null

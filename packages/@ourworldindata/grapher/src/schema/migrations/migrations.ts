@@ -15,6 +15,7 @@ import {
     getSchemaVersion,
     isLatestVersion,
 } from "./helpers"
+import { ChartTypeName } from "@ourworldindata/types"
 
 // see https://github.com/owid/owid-grapher/commit/26f2a0d1790c71bdda7e12f284ca552945d2f6ef
 const migrateFrom001To002 = (
@@ -72,6 +73,37 @@ const migrateFrom005To006 = (
     return config
 }
 
+const migrateFrom006To007 = (
+    config: AnyConfigWithValidSchema
+): AnyConfigWithValidSchema => {
+    const {
+        type = ChartTypeName.LineChart,
+        hasChartTab = true,
+        hasMapTab = false,
+    } = config
+
+    // update availableTabs
+    const availableTabs: Record<string, boolean> = {}
+    if (hasMapTab || hasChartTab) {
+        if (hasMapTab) availableTabs.WorldMap = true
+        if (hasChartTab) availableTabs[type] = true
+        config.availableTabs = availableTabs
+    }
+
+    // update tab
+    if (config.tab === "chart") config.tab = type
+    else if (config.tab === "map") config.tab = "WorldMap"
+    else if (config.tab === "table") config.tab = "Table"
+
+    // remove old fields
+    delete config.type
+    delete config.hasMapTab
+    delete config.hasChartTab
+
+    config.$schema = createSchemaForVersion("007")
+    return config
+}
+
 export const runMigration = (
     config: AnyConfigWithValidSchema
 ): AnyConfigWithValidSchema => {
@@ -83,5 +115,6 @@ export const runMigration = (
         .with("003", () => migrateFrom003To004(config))
         .with("004", () => migrateFrom004To005(config))
         .with("005", () => migrateFrom005To006(config))
+        .with("006", () => migrateFrom006To007(config))
         .exhaustive()
 }

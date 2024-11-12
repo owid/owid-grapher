@@ -46,6 +46,7 @@ import {
     GrapherTabOption,
     GrapherInterface,
     OwidVariableRoundingMode,
+    ChartTypeName,
 } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
@@ -687,18 +688,23 @@ class VariableEditor extends React.Component<{
     @computed private get grapherConfig(): GrapherInterface {
         const { variable } = this.props
         const grapherConfig = variable.grapherConfig
-        if (grapherConfig)
+        if (grapherConfig) {
+            const availableTabs = grapherConfig.availableTabs ?? []
+            if (!availableTabs.includes(ChartTypeName.WorldMap)) {
+                // ok to append since Grapher ignores the order of tabs
+                availableTabs.push(ChartTypeName.WorldMap)
+            }
             return {
                 ...grapherConfig,
-                hasMapTab: true,
-                tab: GrapherTabOption.map,
+                availableTabs,
+                tab: GrapherTabOption.WorldMap,
             }
-        else
+        } else {
             return {
                 yAxis: { min: 0 },
                 map: { columnSlug: this.props.variable.id.toString() },
-                tab: GrapherTabOption.map,
-                hasMapTab: true,
+                tab: GrapherTabOption.WorldMap,
+                availableTabs: [ChartTypeName.WorldMap],
                 dimensions: [
                     {
                         property: DimensionProperty.y,
@@ -707,6 +713,7 @@ class VariableEditor extends React.Component<{
                     },
                 ],
             }
+        }
     }
 
     dispose!: IReactionDisposer

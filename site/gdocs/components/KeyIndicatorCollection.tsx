@@ -25,10 +25,15 @@ import { Button } from "@ourworldindata/components"
 // keep in sync with $duration in KeyIndicatorCollection.scss
 const HEIGHT_ANIMATION_DURATION_IN_SECONDS = 0.4
 
-const tabIconMap: Record<GrapherTabOption, IconDefinition> = {
-    [GrapherTabOption.chart]: faChartLine,
-    [GrapherTabOption.map]: faEarthAmericas,
-    [GrapherTabOption.table]: faTable,
+function getTabIcon(tab: GrapherTabOption): IconDefinition {
+    switch (tab) {
+        case GrapherTabOption.Table:
+            return faTable
+        case GrapherTabOption.WorldMap:
+            return faEarthAmericas
+        default:
+            return faChartLine
+    }
 }
 
 export default function KeyIndicatorCollection({
@@ -241,13 +246,15 @@ function KeyIndicatorHeader({
     if (!linkedChart) return null
     if (!linkedIndicator) return null
 
+    // TODO: translate old query params to new ones
     const { queryParams } = Url.fromURL(linkedChart.resolvedUrl)
     const tabFromQueryParams =
         queryParams.tab && isValidGrapherTab(queryParams.tab)
             ? queryParams.tab
             : undefined
+    // TODO
     const activeTab =
-        tabFromQueryParams || linkedChart.tab || GrapherTabOption.chart
+        tabFromQueryParams || linkedChart.tab || GrapherTabOption.LineChart // || GrapherTabOption.chart
 
     const source = block.source || linkedIndicator.attributionShort
 
@@ -255,7 +262,7 @@ function KeyIndicatorHeader({
         <div className="key-indicator-header">
             <div className="key-indicator-header__left">
                 <FontAwesomeIcon
-                    icon={tabIconMap[activeTab]}
+                    icon={getTabIcon(activeTab)}
                     className="key-indicator-header__tab-icon"
                 />
                 <div>

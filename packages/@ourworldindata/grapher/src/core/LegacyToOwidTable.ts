@@ -37,6 +37,7 @@ import {
     OwidChartDimensionInterface,
     OwidVariableType,
     memoize,
+    getMainChartTypeFromConfig,
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
 
@@ -198,9 +199,10 @@ export const legacyToOwidTableAndDimensions = (
         // We do this by dropping the column. We interpolate before which adds an originalTime
         // column which can be used to recover the time.
         const targetTime = dimension?.targetYear
+        const chartType = getMainChartTypeFromConfig(grapherConfig)
         if (
-            (grapherConfig.type === ChartTypeName.ScatterPlot ||
-                grapherConfig.type === ChartTypeName.Marimekko) &&
+            (chartType === ChartTypeName.ScatterPlot ||
+                chartType === ChartTypeName.Marimekko) &&
             isNumber(targetTime)
         ) {
             variableTable = variableTable

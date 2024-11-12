@@ -1,3 +1,4 @@
+import { ChartTypeName } from "@ourworldindata/types"
 import type { GrapherProgrammaticInterface } from "./Grapher"
 
 export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
@@ -93,9 +94,6 @@ export const grapherInterfaceWithHiddenControlsOnly: GrapherProgrammaticInterfac
         },
     }
 
-export const grapherInterfaceWithHiddenTabsOnly: GrapherProgrammaticInterface =
-    {
-        hasChartTab: false,
-        hasMapTab: false,
-        hasTableTab: false,
-    }
+export const allChartTypes = Object.values(ChartTypeName).filter(
+    (type) => type !== ChartTypeName.WorldMap
+)

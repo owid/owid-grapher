@@ -10,8 +10,9 @@ import { Bounds, capitalize } from "@ourworldindata/utils"
 import { TabLabel, Tabs } from "../tabs/Tabs.js"
 
 export interface ContentSwitchersManager {
-    availableTabs?: GrapherTabOption[]
+    sortedAvailableTabs?: GrapherTabOption[]
     tab?: GrapherTabOption
+    currentTab?: GrapherTabOption
     isNarrow?: boolean
     isMedium?: boolean
     type: ChartTypeName
@@ -44,7 +45,7 @@ export class ContentSwitchers extends React.Component<{
     }
 
     @computed private get availableTabs(): GrapherTabOption[] {
-        return this.manager.availableTabs || []
+        return this.manager.sortedAvailableTabs || []
     }
 
     @computed private get showTabs(): boolean {
@@ -78,14 +79,14 @@ export class ContentSwitchers extends React.Component<{
         }, 0)
     }
 
-    private tabIcon(tab: GrapherTabOption): React.ReactElement {
+    private getTabIcon(tab: GrapherTabOption): React.ReactElement {
         const { manager } = this
         switch (tab) {
-            case GrapherTabOption.table:
+            case GrapherTabOption.Table:
                 return <FontAwesomeIcon icon={faTable} />
-            case GrapherTabOption.map:
+            case GrapherTabOption.WorldMap:
                 return <FontAwesomeIcon icon={faEarthAmericas} />
-            case GrapherTabOption.chart:
+            default:
                 const chartIcon = manager.isLineChartThatTurnedIntoDiscreteBar
                     ? chartIcons[ChartTypeName.DiscreteBar]
                     : chartIcons[this.chartType]
@@ -93,17 +94,66 @@ export class ContentSwitchers extends React.Component<{
         }
     }
 
+    private getTabTextLabel(tab: GrapherTabOption): string {
+        switch (tab) {
+            case GrapherTabOption.Table:
+                return "Table"
+            case GrapherTabOption.WorldMap:
+                return "Map"
+            case GrapherTabOption.LineChart:
+                return "Line"
+            case GrapherTabOption.SlopeChart:
+                return "Slope"
+            default:
+                return "Chart"
+        }
+    }
+
+    private getTrackingKey(tab: GrapherTabOption): string {
+        switch (tab) {
+            case GrapherTabOption.Table:
+                return "chart_click_table"
+            case GrapherTabOption.WorldMap:
+                return "chart_click_map"
+            case GrapherTabOption.LineChart:
+                return "chart_click_line"
+            case GrapherTabOption.SlopeChart:
+                return "chart_click_slope"
+            default:
+                return "chart_click_chart"
+        }
+    }
+
+    private getAriaLabel(tab: GrapherTabOption): string {
+        switch (tab) {
+            case GrapherTabOption.Table:
+                return "Table"
+            case GrapherTabOption.WorldMap:
+                return "Map"
+            case GrapherTabOption.LineChart:
+                return "Line chart"
+            case GrapherTabOption.SlopeChart:
+                return "Slope chart"
+            default:
+                return "Chart"
+        }
+    }
+
     @computed private get tabLabels(): TabLabel[] {
         return this.availableTabs.map((tab) => ({
             element: (
                 <span key={tab}>
-                    {this.tabIcon(tab)}
-                    {this.showTabLabels && <span className="label">{tab}</span>}
+                    {this.getTabIcon(tab)}
+                    {this.showTabLabels && (
+                        <span className="label">
+                            {this.getTabTextLabel(tab)}
+                        </span>
+                    )}
                 </span>
             ),
             buttonProps: {
-                "data-track-note": "chart_click_" + tab,
-                "aria-label": tab,
+                "data-track-note": this.getTrackingKey(tab),
+                "aria-label": this.getAriaLabel(tab),
             },
         }))
     }
@@ -112,7 +162,9 @@ export class ContentSwitchers extends React.Component<{
         const { manager, tabLabels } = this
 
         const activeIndex =
-            (manager.tab && this.availableTabs.indexOf(manager.tab)) ?? 0
+            (manager.currentTab &&
+                this.availableTabs.indexOf(manager.currentTab)) ??
+            0
 
         return (
             <Tabs

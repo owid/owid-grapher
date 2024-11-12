@@ -142,7 +142,7 @@ export class ChartList extends React.Component<{
     }
 }
 
-export function showChartType(chart: ChartListItem) {
+export function showChartType(chart: ChartListItem): string {
     const chartType = chart.type ?? ChartTypeName.LineChart
     const displayType = ChartTypeName[chartType]
         ? startCase(ChartTypeName[chartType])

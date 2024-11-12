@@ -5,8 +5,8 @@ import {
     computed,
     action,
     autorun,
-    runInAction,
     reaction,
+    runInAction,
 } from "mobx"
 import { bind } from "decko"
 import {
@@ -14,7 +14,6 @@ import {
     isEqual,
     uniq,
     slugify,
-    identity,
     lowerCaseFirstLetterUnlessAbbreviation,
     isMobile,
     next,
@@ -105,6 +104,7 @@ import {
     GrapherWindowType,
     Color,
     GRAPHER_QUERY_PARAM_KEYS,
+    ChartTypeNameRecord,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -129,6 +129,7 @@ import {
     isPopulationVariableETLPath,
     GRAPHER_BACKGROUND_BEIGE,
     GRAPHER_BACKGROUND_DEFAULT,
+    allChartTypes,
 } from "../core/GrapherConstants"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig"
 import { loadVariableDataAndMetadata } from "./loadVariable"
@@ -191,6 +192,7 @@ import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    getTabPosition,
 } from "../chart/ChartUtils"
 import classnames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
@@ -300,7 +302,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideMapProjectionMenu?: boolean
     hideTableFilterToggle?: boolean
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
-    hasTableTab?: boolean
     hideShareButton?: boolean
     hideExploreTheDataButton?: boolean
     hideRelatedQuestion?: boolean
@@ -350,7 +351,6 @@ export class Grapher
         SlopeChartManager
 {
     @observable.ref $schema = defaultGrapherConfig.$schema
-    @observable.ref type = ChartTypeName.LineChart
     @observable.ref id?: number = undefined
     @observable.ref version = 1
     @observable.ref slug?: string = undefined
@@ -363,6 +363,9 @@ export class Grapher
     @observable.ref variantName?: string = undefined
     @observable.ref internalNotes?: string = undefined
     @observable.ref originUrl?: string = undefined
+
+    @observable availableTabs?: ChartTypeNameRecord<boolean>
+    @observable.ref tab?: GrapherTabOption
 
     @observable hideAnnotationFieldsInTitle?: AnnotationFieldsInTitle =
         undefined
@@ -384,9 +387,6 @@ export class Grapher
     @observable.ref hideScatterLabels?: boolean = undefined
     @observable.ref zoomToSelection?: boolean = undefined
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
-    @observable.ref hasChartTab = true
-    @observable.ref hasMapTab = false
-    @observable.ref tab = GrapherTabOption.chart
     @observable.ref isPublished?: boolean = undefined
     @observable.ref baseColorScheme?: ColorSchemeName = undefined
     @observable.ref invertColorScheme?: boolean = undefined
@@ -603,15 +603,31 @@ export class Grapher
             this.setDimensionsFromConfigs(obj.dimensions)
     }
 
+    private mapQueryParamToGrapherTab(
+        tab: string
+    ): GrapherTabOption | undefined {
+        switch (tab) {
+            case "table":
+                return GrapherTabOption.Table
+            case "map":
+                return GrapherTabOption.WorldMap
+            case "line":
+                return GrapherTabOption.LineChart
+            case "slope":
+                return GrapherTabOption.SlopeChart
+            case "chart":
+                return this.firstChartType as unknown as GrapherTabOption
+            default:
+                return undefined
+        }
+    }
+
     @action.bound populateFromQueryParams(params: GrapherQueryParams): void {
         // Set tab if specified
-        const tab = params.tab
-        if (tab) {
-            if (this.availableTabs.includes(tab as any)) {
-                this.tab = tab as GrapherTabOption
-            } else {
-                console.error("Unexpected tab: " + tab)
-            }
+        if (params.tab) {
+            const tab = this.mapQueryParamToGrapherTab(params.tab)
+            if (tab) this.tab = tab
+            else console.error("Unexpected tab: " + params.tab)
         }
 
         // Set overlay if specified
@@ -693,16 +709,81 @@ export class Grapher
         ) as TimeBounds
     }
 
+    @computed get currentTab(): GrapherTabOption {
+        if (this.tab) return this.tab
+        if (this.firstChartType)
+            return this.firstChartType as unknown as GrapherTabOption
+        if (this.hasMapTab) return GrapherTabOption.WorldMap
+        return GrapherTabOption.Table
+    }
+
+    @computed get availableTabsSet(): Set<ChartTypeName> {
+        const { availableTabs = {} } = this
+
+        console.log("avail", availableTabs)
+
+        const availableTabsSet = new Set<ChartTypeName>()
+        for (const tab of Object.keys(availableTabs)) {
+            const isEnabled = availableTabs[tab as ChartTypeName]
+            if (isEnabled) availableTabsSet.add(tab as ChartTypeName)
+        }
+
+        return availableTabsSet
+    }
+
+    /**
+     * List of available tabs sorted as they appear in the UI,
+     * with the table tab always first
+     */
+    @computed get sortedAvailableTabs(): GrapherTabOption[] {
+        const tabList = Array.from(this.availableTabsSet)
+        const sortedTabs = sortBy(tabList, (tab) => getTabPosition(tab))
+        return [GrapherTabOption.Table, ...sortedTabs] as GrapherTabOption[]
+    }
+
+    /**
+     * List of available chart types (without the map)
+     */
+    @computed get chartTypes(): ChartTypeName[] {
+        return this.sortedAvailableTabs.filter(
+            (tab) =>
+                tab !== GrapherTabOption.Table &&
+                tab !== GrapherTabOption.WorldMap
+        ) as unknown as ChartTypeName[]
+    }
+
+    /**
+     * The chart type that appears first in the UI
+     */
+    @computed get firstChartType(): ChartTypeName | undefined {
+        return this.chartTypes[0]
+    }
+
+    // TODO: remove? useful for backwards comp
+    @computed get type(): ChartTypeName {
+        if (this.isOnChartTab)
+            return this.currentTab as unknown as ChartTypeName
+        return this.firstChartType ?? ChartTypeName.LineChart
+    }
+
+    @computed get hasChartTab(): boolean {
+        return allChartTypes.some((type) => this.availableTabsSet.has(type))
+    }
+
+    @computed get hasMapTab(): boolean {
+        return this.availableTabsSet.has(ChartTypeName.WorldMap)
+    }
+
     @computed get isOnChartTab(): boolean {
-        return this.tab === GrapherTabOption.chart
+        return allChartTypes.includes(this.currentTab as any)
     }
 
     @computed get isOnMapTab(): boolean {
-        return this.tab === GrapherTabOption.map
+        return this.currentTab === GrapherTabOption.WorldMap
     }
 
     @computed get isOnTableTab(): boolean {
-        return this.tab === GrapherTabOption.table
+        return this.currentTab === GrapherTabOption.Table
     }
 
     @computed get isOnChartOrMapTab(): boolean {
@@ -954,7 +1035,7 @@ export class Grapher
                     // might be missing for charts within explorers or mdims
                     ["slug", this.slug ?? "missing-slug"],
                     ["chartType", this.type],
-                    ["tab", this.tab],
+                    ["tab", this.currentTab],
                 ],
             },
         }
@@ -1276,8 +1357,8 @@ export class Grapher
         )
         const disposers = [
             autorun(() => {
-                if (!this.availableTabs.includes(this.tab))
-                    runInAction(() => (this.tab = this.availableTabs[0]))
+                if (!this.sortedAvailableTabs.includes(this.currentTab))
+                    runInAction(() => (this.tab = this.sortedAvailableTabs[0]))
             }),
             autorun(() => {
                 const validDimensions = this.validDimensions
@@ -1479,14 +1560,6 @@ export class Grapher
         })
     }
 
-    @computed get availableTabs(): GrapherTabOption[] {
-        return [
-            this.hasTableTab && GrapherTabOption.table,
-            this.hasMapTab && GrapherTabOption.map,
-            this.hasChartTab && GrapherTabOption.chart,
-        ].filter(identity) as GrapherTabOption[]
-    }
-
     @computed get currentSubtitle(): string {
         const subtitle = this.subtitle
         if (subtitle !== undefined) return subtitle
@@ -1505,7 +1578,7 @@ export class Grapher
 
         return !!(
             !this.forceHideAnnotationFieldsInTitle?.entity &&
-            this.tab === GrapherTabOption.chart &&
+            this.isOnChartTab &&
             (seriesStrategy !== SeriesStrategy.entity || !this.showLegend) &&
             selectedEntityNames.length === 1 &&
             (showEntityAnnotation ||
@@ -1577,23 +1650,20 @@ export class Grapher
         // we don't have more than one distinct time point in our data, so it doesn't make sense to show a timeline
         if (this.times.length <= 1) return false
 
-        switch (this.tab) {
+        switch (this.currentTab) {
             // the map tab has its own `hideTimeline` option
-            case GrapherTabOption.map:
+            case GrapherTabOption.WorldMap:
                 return !this.map.hideTimeline
 
-            // use the chart-level `hideTimeline` option
-            case GrapherTabOption.chart:
-                return !this.hideTimeline
-
             // use the chart-level `hideTimeline` option for the table, with some exceptions
-            case GrapherTabOption.table:
+            case GrapherTabOption.Table:
                 // always show the timeline for charts that plot time on the x-axis
                 if (this.hasTimeDimension) return true
                 return !this.hideTimeline
 
+            // use the chart-level `hideTimeline` option
             default:
-                return false
+                return !this.hideTimeline
         }
     }
 
@@ -2370,7 +2440,7 @@ export class Grapher
     }
 
     @action.bound private toggleTabCommand(): void {
-        this.tab = next(this.availableTabs, this.tab)
+        this.tab = next(this.sortedAvailableTabs, this.currentTab)
     }
 
     @action.bound private togglePlayingCommand(): void {
@@ -3095,7 +3165,7 @@ export class Grapher
 
     @action.bound clearQueryParams(): void {
         const { authorsVersion } = this
-        this.tab = authorsVersion.tab
+        this.tab = authorsVersion.tab // TODO
         this.xAxis.scaleType = authorsVersion.xAxis.scaleType
         this.yAxis.scaleType = authorsVersion.yAxis.scaleType
         this.stackMode = authorsVersion.stackMode
@@ -3131,9 +3201,26 @@ export class Grapher
 
     debounceMode = false
 
+    // TODO: also uses line and slope for Graphers with a single chart – is that ok?
+    // TODO: should we get rid of chart completely? in that case, URLs break when chart type changes
+    private tabToQueryParam(tab: GrapherTabOption): string {
+        switch (tab) {
+            case GrapherTabOption.Table:
+                return "table"
+            case GrapherTabOption.WorldMap:
+                return "map"
+            case GrapherTabOption.LineChart:
+                return "line"
+            case GrapherTabOption.SlopeChart:
+                return "slope"
+            default:
+                return "chart"
+        }
+    }
+
     @computed.struct get allParams(): GrapherQueryParams {
         const params: GrapherQueryParams = {}
-        params.tab = this.tab
+        params.tab = this.tabToQueryParam(this.currentTab)
         params.xScale = this.xAxis.scaleType
         params.yScale = this.yAxis.scaleType
         params.stackMode = this.stackMode

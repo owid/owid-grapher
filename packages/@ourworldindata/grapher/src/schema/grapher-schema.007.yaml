@@ -1,7 +1,7 @@
 $schema: "http://json-schema.org/draft-07/schema#"
 # if you update the required keys, make sure that the mergeGrapherConfigs and
 # diffGrapherConfigs functions both reflect this change
-$id: "https://files.ourworldindata.org/schemas/grapher-schema.006.json"
+$id: "https://files.ourworldindata.org/schemas/grapher-schema.007.json"
 required:
     - $schema
     - dimensions
@@ -14,17 +14,63 @@ properties:
         type: string
         description: Url of the concrete schema version to use to validate this document
         format: uri
-        default: "https://files.ourworldindata.org/schemas/grapher-schema.006.json"
+        default: "https://files.ourworldindata.org/schemas/grapher-schema.007.json"
         # for now, we only validate configs in our database using this schema.
         # since we expect all configs in our database to be valid against the latest schema,
         # we restrict the $schema field to a single value, the latest schema version.
         # if we ever need to validate configs against multiple schema versions,
         # we can remove this constraint.
-        const: "https://files.ourworldindata.org/schemas/grapher-schema.006.json"
+        const: "https://files.ourworldindata.org/schemas/grapher-schema.007.json"
     id:
         type: integer
         description: Internal DB id. Useful internally for OWID but not required if just using grapher directly.
         minimum: 0
+    availableTabs:
+        type: object
+        description: The tabs that are available for selection. The "Table" tab can't be selected because it is always available.
+        properties:
+            WorldMap:
+                type: boolean
+                default: false
+            LineChart:
+                type: boolean
+                default: false
+            ScatterPlot:
+                type: boolean
+                default: false
+            StackedArea:
+                type: boolean
+                default: false
+            StackedBar:
+                type: boolean
+                default: false
+            DiscreteBar:
+                type: boolean
+                default: false
+            StackedDiscreteBar:
+                type: boolean
+                default: false
+            SlopeChart:
+                type: boolean
+                default: false
+            Marimekko:
+                type: boolean
+                default: false
+        additionalProperties: false
+    tab:
+        type: string
+        description: The tab that is shown initially. Defaults to the chart tab if available.
+        enum:
+            - Table
+            - WorldMap
+            - LineChart
+            - ScatterPlot
+            - StackedArea
+            - DiscreteBar
+            - StackedDiscreteBar
+            - SlopeChart
+            - StackedBar
+            - Marimekko
     map:
         type: object
         description: Configuration of the world map chart
@@ -111,22 +157,10 @@ properties:
             If not provided, a default is chosen based on the chart type.
     yAxis:
         $ref: "#/$defs/axis"
-    tab:
-        type: string
-        description: The tab that is shown initially
-        default: chart
-        enum:
-            - chart
-            - map
-            - table
     matchingEntitiesOnly:
         type: boolean
         default: false
         description: Exclude entities that do not belong in any color group
-    hasChartTab:
-        type: boolean
-        default: true
-        description: Whether to show the (non-map) chart tab
     hideLegend:
         type: boolean
         default: false
@@ -369,23 +403,6 @@ properties:
     title:
         type: string
         description: Big title text of the chart
-    type:
-        type: string
-        description: Which type of chart should be shown (hasMapChart can be used to always also show a map chart)
-        default: LineChart
-        enum:
-            - LineChart
-            - ScatterPlot
-            - StackedArea
-            - DiscreteBar
-            - StackedDiscreteBar
-            - SlopeChart
-            - StackedBar
-            - Marimekko
-    hasMapTab:
-        type: boolean
-        default: false
-        description: Indicates if the map tab should be shown
     stackMode:
         type: string
         description: Stack mode. Only absolute and relative are actively used.

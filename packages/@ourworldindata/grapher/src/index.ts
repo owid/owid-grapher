@@ -23,7 +23,6 @@ export {
     WorldEntityName,
     Patterns,
     grapherInterfaceWithHiddenControlsOnly,
-    grapherInterfaceWithHiddenTabsOnly,
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
 } from "./core/GrapherConstants"

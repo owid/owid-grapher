@@ -4,17 +4,29 @@
 
 import { GrapherInterface } from "@ourworldindata/types"
 
-export const latestSchemaVersion = "006" as const
+export const latestSchemaVersion = "007" as const
 export const outdatedSchemaVersions = [
     "001",
     "002",
     "003",
     "004",
     "005",
+    "006",
 ] as const
 
 export const defaultGrapherConfig = {
-    $schema: "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
+    $schema: "https://files.ourworldindata.org/schemas/grapher-schema.007.json",
+    availableTabs: {
+        WorldMap: false,
+        LineChart: false,
+        ScatterPlot: false,
+        StackedArea: false,
+        StackedBar: false,
+        DiscreteBar: false,
+        StackedDiscreteBar: false,
+        SlopeChart: false,
+        Marimekko: false,
+    },
     map: {
         projection: "World",
         hideTimeline: false,
@@ -37,9 +49,7 @@ export const defaultGrapherConfig = {
         canChangeScaleType: false,
         facetDomain: "shared",
     },
-    tab: "chart",
     matchingEntitiesOnly: false,
-    hasChartTab: true,
     hideLegend: false,
     hideLogo: false,
     timelineMinTime: "earliest",
@@ -60,8 +70,6 @@ export const defaultGrapherConfig = {
     facettingLabelByYVariables: "metric",
     addCountryMode: "add-country",
     compareEndPointsOnly: false,
-    type: "LineChart",
-    hasMapTab: false,
     stackMode: "absolute",
     minTime: "earliest",
     hideAnnotationFieldsInTitle: {

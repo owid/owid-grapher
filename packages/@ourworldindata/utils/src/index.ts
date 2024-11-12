@@ -123,7 +123,9 @@ export {
     createTagGraph,
     formatInlineList,
     lazy,
+    getMainChartTypeFromConfig,
     getParentVariableIdFromChartConfig,
+    hasChartTabFromConfig,
 } from "./Util.js"
 
 export {

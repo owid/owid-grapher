@@ -149,8 +149,9 @@ async function propsFromQueryParams(
 
     if (params.type) {
         if (params.type === ChartTypeName.WorldMap) {
+            // TODO: add hasMapTab to chart configs table?
             query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
-            tab = tab || GrapherTabOption.map
+            tab = tab || GrapherTabOption.WorldMap
         } else {
             if (params.type === "LineChart") {
                 query = query.andWhereRaw(
@@ -165,7 +166,8 @@ async function propsFromQueryParams(
                     { type: params.type }
                 )
             }
-            tab = tab || GrapherTabOption.chart
+            // TODO
+            // tab = tab || GrapherTabOption.chart
         }
     }
 
@@ -173,26 +175,30 @@ async function propsFromQueryParams(
         query = query.andWhereRaw(
             `cc.full->>'$.yAxis.canChangeScaleType' = "true" OR cc.full->>'$.xAxis.canChangeScaleType'  = "true"`
         )
-        tab = GrapherTabOption.chart
+        // TODO
+        // tab = GrapherTabOption.chart
     }
 
     if (params.comparisonLines) {
         query = query.andWhereRaw(
             `cc.full->'$.comparisonLines[0].yEquals' != ''`
         )
-        tab = GrapherTabOption.chart
+        // TODO
+        // tab = GrapherTabOption.chart
     }
 
     if (params.stackMode) {
         query = query.andWhereRaw(`cc.full->'$.stackMode' = :stackMode`, {
             stackMode: params.stackMode,
         })
-        tab = GrapherTabOption.chart
+        // TODO
+        // tab = GrapherTabOption.chart
     }
 
     if (params.relativeToggle) {
         query = query.andWhereRaw(`cc.full->>'$.hideRelativeToggle' = "false"`)
-        tab = GrapherTabOption.chart
+        // TODO
+        // tab = GrapherTabOption.chart
     }
 
     if (params.categoricalLegend) {
@@ -202,7 +208,7 @@ async function propsFromQueryParams(
         query = query.andWhereRaw(
             `json_length(cc.full->'$.map.colorScale.customCategoryColors') > 1`
         )
-        tab = GrapherTabOption.map
+        tab = GrapherTabOption.WorldMap
     }
 
     if (params.mixedTimeTypes) {
@@ -242,13 +248,14 @@ async function propsFromQueryParams(
         query = query.andWhereRaw(`charts.id IN (${params.ids})`)
     }
 
-    if (tab === GrapherTabOption.map) {
-        query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
-    } else if (tab === GrapherTabOption.chart) {
-        query = query.andWhereRaw(
-            `COALESCE(cc.full->>"$.hasChartTab", "true") = "true"`
-        )
-    }
+    // TODO
+    // if (tab === GrapherTabOption.WorldMap) {
+    //     query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
+    // } else if (tab === GrapherTabOption.chart) {
+    //     query = query.andWhereRaw(
+    //         `COALESCE(cc.full->>"$.hasChartTab", "true") = "true"`
+    //     )
+    // }
 
     if (datasetIds.length > 0) {
         const datasetIds = params.datasetIds

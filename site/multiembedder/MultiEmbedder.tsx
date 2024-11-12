@@ -210,18 +210,19 @@ class MultiEmbedder {
                 : {}
 
             // make sure the tab of the active pane is visible
-            if (figureConfigAttr) {
-                const activeTab =
-                    queryParams.tab ||
-                    grapherPageConfig.tab ||
-                    GrapherTabOption.chart
-                if (activeTab === GrapherTabOption.chart)
-                    localConfig.hasChartTab = true
-                if (activeTab === GrapherTabOption.map)
-                    localConfig.hasMapTab = true
-                if (activeTab === GrapherTabOption.table)
-                    localConfig.hasTableTab = true
-            }
+            // TODO: translate query params... construct config
+            // if (figureConfigAttr) {
+            //     const activeTab =
+            //         queryParams.tab ||
+            //         grapherPageConfig.tab ||
+            //         GrapherTabOption.chart
+            //     if (activeTab === GrapherTabOption.chart)
+            //         localConfig.hasChartTab = true
+            //     if (activeTab === GrapherTabOption.map)
+            //         localConfig.hasMapTab = true
+            //     if (activeTab === GrapherTabOption.table)
+            //         localConfig.hasTableTab = true
+            // }
 
             const config = merge(
                 {}, // merge mutates the first argument
