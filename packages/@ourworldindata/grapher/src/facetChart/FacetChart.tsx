@@ -21,7 +21,7 @@ import {
 } from "@ourworldindata/utils"
 import { shortenForTargetWidth } from "@ourworldindata/components"
 import { action, computed, observable } from "mobx"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { BASE_FONT_SIZE, GRAPHER_DARK_TEXT } from "../core/GrapherConstants"
 import {
     ChartTypeName,
     FacetAxisDomain,
@@ -838,7 +838,7 @@ export class FacetChart
                             <text
                                 x={contentBounds.x}
                                 y={contentBounds.top - labelPadding}
-                                fill={"#1d3d63"}
+                                fill={GRAPHER_DARK_TEXT}
                                 fontSize={fontSize}
                                 style={{ fontWeight: 700 }}
                             >
