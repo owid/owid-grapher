@@ -1,0 +1,15 @@
+{
+    "extends": "../tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "../../itsJustJavascript/devTools/cloudflareImagesSync",
+        "rootDir": "."
+    },
+    "references": [
+        {
+            "path": "../../db"
+        },
+        {
+            "path": "../../settings"
+        }
+    ]
+}

@@ -153,6 +153,10 @@ sync-images: sync-images.preflight-check
 	@echo '==> Syncing images to R2'
 	./devTools/docker/sync-s3-images.sh
 
+sync-cloudflare-images:
+	@echo '==> Syncing images to Cloudflare'
+	@yarn syncCloudflareImages
+
 refresh.full: refresh refresh.pageviews sync-images
 	@echo '==> Full refresh completed'
 	@make bake-images
