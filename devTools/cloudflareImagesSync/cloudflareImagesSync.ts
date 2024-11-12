@@ -135,7 +135,7 @@ async function purgeRecords(trx: db.KnexReadWriteTransaction) {
             console.log("Deleting image:", image.filename)
             try {
                 await fetch(
-                    `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1/${image.id}`,
+                    `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v2/${image.id}`,
                     {
                         method: "DELETE",
                         headers: {
