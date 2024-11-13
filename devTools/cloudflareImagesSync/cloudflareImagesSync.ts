@@ -1,4 +1,3 @@
-const is = require("image-size")
 import * as readline from "readline"
 import pMap from "p-map"
 import path from "path"
@@ -15,7 +14,6 @@ import { excludeNullish, keyBy } from "@ourworldindata/utils"
 type CloudflareImageDirectory = Record<string, { id: string; filename: string }>
 
 enum InvalidImageReason {
-    TooLarge = "TooLarge",
     InvalidFormat = "InvalidFormat",
     InvalidDimensions = "InvalidDimensions",
     TooManyMegapixels = "TooManyMegapixels",
@@ -27,6 +25,34 @@ type ImageValidationObject = {
     filename: string
     reason: InvalidImageReason
     extra?: any
+}
+
+type CloudflareAPIResponseInfo = {
+    code: number
+    message: string
+}
+
+type CloudflareAPIDeleteResponse = {
+    result: any
+    errors: CloudflareAPIResponseInfo[]
+    messages: CloudflareAPIResponseInfo[]
+    success: boolean
+}
+
+type CloudflareAPIUploadResponse = {
+    errors: CloudflareAPIResponseInfo[]
+    messages: CloudflareAPIResponseInfo[]
+    result: {
+        id?: string
+        filename?: string
+        meta?: {
+            key: string
+        }
+        requireSignedURLs?: boolean
+        uploaded?: string
+        variants?: string[]
+    }
+    success: boolean
 }
 
 function stringifyImageMetadata(image: DbEnrichedImage) {
@@ -50,53 +76,10 @@ async function validateDirectory(
         `-- sql
         SELECT filename, cloudflareId FROM images WHERE cloudflareId IS NOT NULL`
     )
-    const imagesSharingCloudflareIds = await db
-        .knexRaw<{
-            cloudflareId: string
-            count: number
-            filenames: string
-        }>(
-            trx,
-            `-- sql
-        SELECT 
-            cloudflareId,
-            COUNT(*) as count,
-            JSON_ARRAYAGG(
-                filename
-            ) as filenames
-        FROM images
-        WHERE cloudflareId IS NOT NULL
-        GROUP BY cloudflareId
-        HAVING count > 1`
-        )
-        .then((results) =>
-            results.map((result) => ({
-                cloudflareId: result.cloudflareId,
-                count: result.count,
-                filenames: JSON.parse(result.filenames) as string[],
-            }))
-        )
-        .then((results) => keyBy(results, "cloudflareId"))
 
     const invalidImages: string[] = []
     for (const image of imagesWithIds) {
         if (!directory[image.filename]) {
-            // If an identical image was uploaded with multiple filenames, subsequent copies will use the same cloudflareId as the first
-            // so let's check if this is a case of that
-            const imagesSharingCloudflareId =
-                imagesSharingCloudflareIds[image.cloudflareId]
-            if (imagesSharingCloudflareId) {
-                const filenames = imagesSharingCloudflareId.filenames
-                if (filenames.includes(image.filename)) {
-                    console.log(
-                        `Image with filename "${image.filename}" has a cloudflareId that is shared with other images.`
-                    )
-                    continue
-                }
-            }
-            console.log(
-                `Image with filename "${image.filename}" has a cloudflareId that is not in the Cloudflare Images directory.`
-            )
             invalidImages.push(image.filename)
         }
     }
@@ -117,6 +100,7 @@ async function purgeRecords(trx: db.KnexReadWriteTransaction) {
             "Are you sure you want to delete ALL images from Cloudflare Images? (y/n) ",
             (answer) => {
                 if (answer.toLowerCase() === "y") {
+                    console.log("May God have mercy on your soul.")
                     resolve()
                 } else {
                     console.log("Aborting.")
@@ -135,7 +119,7 @@ async function purgeRecords(trx: db.KnexReadWriteTransaction) {
             console.log("Deleting image:", image.filename)
             try {
                 await fetch(
-                    `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v2/${image.id}`,
+                    `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1/${encodeURIComponent(image.id)}`,
                     {
                         method: "DELETE",
                         headers: {
@@ -143,11 +127,23 @@ async function purgeRecords(trx: db.KnexReadWriteTransaction) {
                         },
                     }
                 )
+                    .then((res) => res.json())
+                    .then((res: CloudflareAPIDeleteResponse) => {
+                        if (res.success) {
+                            console.log("Image deleted:", image.filename)
+                        } else {
+                            console.error(
+                                "Error deleting image:",
+                                image.filename,
+                                res.errors
+                            )
+                        }
+                    })
             } catch (e) {
                 console.error(e)
             }
         },
-        { concurrency: 10 }
+        { concurrency: 6 }
     )
     console.log("Finished")
 
@@ -170,7 +166,6 @@ async function purgeRecords(trx: db.KnexReadWriteTransaction) {
             }
         )
     })
-    console.log("May God have mercy on your soul.")
 
     await db.knexRaw(
         trx,
@@ -185,24 +180,23 @@ async function purgeRecords(trx: db.KnexReadWriteTransaction) {
  *  Cloudflare has a width/height of 12000px, metadata of 1024B, 100megapixels, and a 10MB filesize limit
  */
 function validateImage(
-    imageBuffer: Buffer,
+    image: DbEnrichedImage,
     metadata: string
 ): InvalidImageReason | null {
-    const imageSize = is(imageBuffer)
-    if (!imageSize) {
+    if (!image.filename.match(/\.(png|jpg|jpeg|gif|webp)$/)) {
         return InvalidImageReason.InvalidFormat
     }
 
-    if (imageSize.width > 12000 || imageSize.height > 12000) {
+    if (!image.originalWidth || !image.originalHeight) {
+        return InvalidImageReason.InvalidFormat
+    }
+
+    if (image.originalWidth > 12000 || image.originalHeight > 12000) {
         return InvalidImageReason.InvalidDimensions
     }
 
-    if (imageSize.width * imageSize.height > 100 * 1000000) {
+    if (image.originalWidth * image.originalHeight > 100 * 1000000) {
         return InvalidImageReason.TooManyMegapixels
-    }
-
-    if (imageBuffer.byteLength > 10 * 1024 * 1024) {
-        return InvalidImageReason.TooLarge
     }
 
     if (Buffer.byteLength(metadata, "utf8") > 1024) {
@@ -217,9 +211,7 @@ async function checkIfAlreadyUploadedToCloudflareImages(
     cloudflareImagesDirectory: CloudflareImageDirectory
 ): Promise<boolean> {
     if (cloudflareImagesDirectory[filename]) {
-        console.log(
-            `Image with filename "${filename}" has already uploaded to Cloudflare Images.`
-        )
+        console.log("Already in Cloudflare Images:", filename)
         return true
     }
     return false
@@ -229,20 +221,18 @@ async function checkIfAlreadyTrackedInDB(
     trx: db.KnexReadWriteTransaction,
     filename: string
 ) {
-    console.log("Checking to see if the DB has the Cloudflare ID...")
     const cloudflareId = await trx
         .raw<{ cloudflareId: string }[][]>(
             `-- sql
-                SELECT cloudflareId FROM images WHERE filename = ?
-                `,
+            SELECT cloudflareId FROM images WHERE filename = ?`,
             [filename]
         )
         .then((res) => res[0][0]?.cloudflareId)
     if (!cloudflareId) {
-        console.log("No Cloudflare ID found in the DB.")
+        console.log("Not tracked in DB:", filename)
         return false
     } else {
-        console.log(`Cloudflare ID "${cloudflareId}" exists in the DB.`)
+        console.log("Already tracked in DB:", filename)
         return true
     }
 }
@@ -255,9 +245,9 @@ async function updateDbWithCloudflareId(
     console.log("Updating the DB with the Cloudflare ID...")
     await trx.raw(
         `-- sql
-            UPDATE images
-            SET cloudflareId = ?
-            WHERE filename = ?`,
+        UPDATE images
+        SET cloudflareId = ?
+        WHERE filename = ?`,
         [cloudflareId, filename]
     )
 }
@@ -292,25 +282,24 @@ async function uploadImageToCloudflareImages(
     }
 
     const imageUrl = `${IMAGE_HOSTING_R2_CDN_URL}/production/${filename}`
-    console.log("Downloading image:", filename)
-    const imageBuffer = await fetch(imageUrl).then((res) => res.arrayBuffer())
     const metadata = stringifyImageMetadata(image)
-    const isInvalid = validateImage(Buffer.from(imageBuffer), metadata)
-    if (isInvalid) {
-        console.log(`Image "${filename}" is invalid: ${isInvalid}`)
+    const invalidReason = validateImage(image, metadata)
+    if (invalidReason) {
+        console.log("Image invalid:", filename)
         invalidImages.push({
             filename,
-            reason: isInvalid,
+            reason: invalidReason,
         })
         return
     }
 
     const formData = new FormData()
     formData.append("url", imageUrl)
+    formData.append("id", encodeURIComponent(filename))
     formData.append("metadata", metadata)
     formData.append("requireSignedURLs", "false")
 
-    console.log("Uploading image to Cloudflare Images...")
+    console.log("Uploading image:", filename)
     const uploadResults = await fetch(
         `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1`,
         {
@@ -320,7 +309,16 @@ async function uploadImageToCloudflareImages(
             },
             body: formData,
         }
-    ).then((res) => res.json())
+    )
+        .then((res) => res.json())
+        .then((res: CloudflareAPIUploadResponse) => {
+            if (res.success) {
+                console.log("Upload complete:", filename)
+            } else {
+                console.error("Upload error:", filename, res.errors)
+            }
+            return res
+        })
 
     if (!uploadResults || uploadResults.errors.length) {
         invalidImages.push({
@@ -333,10 +331,10 @@ async function uploadImageToCloudflareImages(
 
     await trx.raw(
         `-- sql
-                UPDATE images
-                SET cloudflareId = ?
-                WHERE googleId = ?`,
-        [uploadResults.result.id, image.googleId]
+        UPDATE images
+        SET cloudflareId = ?
+        WHERE filename = ?`,
+        [uploadResults.result.id, filename]
     )
 }
 
@@ -391,6 +389,7 @@ async function uploadImagesToCloudflareImages(
     const invalidImages: ImageValidationObject[] = []
 
     const images = await fetchImagesFromDatabase(trx)
+
     console.log(`${images.length} images fetched.`)
 
     await pMap(
@@ -413,7 +412,7 @@ async function uploadImagesToCloudflareImages(
                 })
             }
         },
-        { concurrency: 10 }
+        { concurrency: 6 }
     )
 
     console.log("Finished!")
