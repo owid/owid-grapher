@@ -113,6 +113,8 @@ export async function createGdocAndInsertIntoDb(
         GdocsContentSource.Gdocs
     )
 
+    base.updateMarkdown()
+
     // Save the enriched Gdoc to the database (including subclass-specific
     // enrichments, cf. _enrichSubclassContent()). Otherwise subclass
     // enrichments are not present on the Gdoc subclass when loading from the DB
