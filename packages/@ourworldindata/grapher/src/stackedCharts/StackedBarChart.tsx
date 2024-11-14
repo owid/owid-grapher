@@ -8,7 +8,6 @@ import {
     makeSafeForCSS,
     sum,
     getRelativeMouse,
-    colorScaleConfigDefaults,
     excludeUndefined,
     min,
     max,
@@ -627,10 +626,7 @@ export class StackedBarChart
     }
 
     @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
-        return {
-            ...colorScaleConfigDefaults,
-            ...this.manager.colorScale,
-        }
+        return this.manager.colorScale
     }
 
     defaultBaseColorScheme = ColorSchemeName.stackedAreaDefault

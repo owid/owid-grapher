@@ -40,7 +40,6 @@ import {
     EntityName,
     OwidVariableRow,
     OwidTableSlugs,
-    colorScaleConfigDefaults,
     VerticalAlign,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -504,10 +503,8 @@ export class MarimekkoChart
 
     @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
         return (
-            ColorScaleConfig.fromDSL(this.colorColumn.def) ?? {
-                ...colorScaleConfigDefaults,
-                ...this.manager.colorScale,
-            }
+            ColorScaleConfig.fromDSL(this.colorColumn.def) ??
+            this.manager.colorScale
         )
     }
 

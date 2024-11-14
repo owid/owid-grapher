@@ -410,16 +410,16 @@ export type ColorScaleConfigInterface = ColorScaleConfigDefaults
 //     legendDescription?: string
 // }
 
-export const colorScaleConfigDefaults = {
-    binningStrategy: BinningStrategy.ckmeans,
-    customNumericValues: [],
-    customNumericLabels: [],
-    customNumericColors: [],
-    equalSizeBins: true,
-    customCategoryColors: {},
-    customCategoryLabels: {},
-    customHiddenCategories: {},
-} satisfies ColorScaleConfigInterface
+// export const colorScaleConfigDefaults = {
+//     binningStrategy: BinningStrategy.ckmeans,
+//     customNumericValues: [],
+//     customNumericLabels: [],
+//     customNumericColors: [],
+//     equalSizeBins: true,
+//     customCategoryColors: {},
+//     customCategoryLabels: {},
+//     customHiddenCategories: {},
+// } satisfies ColorScaleConfigInterface
 
 export interface ColorSchemeInterface {
     name: string
