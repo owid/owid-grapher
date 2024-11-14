@@ -273,6 +273,7 @@ interface TailscaleStatus {
     User?: {
         [key: string]: {
             DisplayName?: string
+            LoginName?: string
         }
     }
 }
@@ -301,14 +302,22 @@ export async function tailscaleAuthMiddleware(
         return next()
     }
 
-    const user = await db
-        .knexInstance()
-        .table("users")
-        .where({ fullName: githubUserName })
-        .first()
+    let user
+    try {
+        // Look up user by 'githubUsername'
+        user = await db
+            .knexInstance()
+            .table("users")
+            .where({ githubUsername: githubUserName })
+            .first()
+    } catch (error) {
+        console.error(`Error looking up user by githubUsername: ${error}`)
+        return next()
+    }
+
     if (!user) {
         console.error(
-            `User with name ${githubUserName} not found in MySQL. Please change your Github profile name to match your MySQL user.`
+            `User with githubUsername ${githubUserName} not found in MySQL.`
         )
         return next()
     }
@@ -349,15 +358,14 @@ async function getTailscaleIpToUserMap(): Promise<Record<string, string>> {
             const ipToUser: Record<string, string> = {}
 
             // Map UserIDs to LoginNames
-            const userIdToDisplayName: Record<string, string> = {}
+            const userIdToLoginName: Record<string, string> = {}
 
             if (tailscaleStatus.User) {
                 for (const [userId, userInfo] of Object.entries(
                     tailscaleStatus.User
                 )) {
-                    if (userInfo.DisplayName) {
-                        userIdToDisplayName[parseInt(userId)] =
-                            userInfo.DisplayName
+                    if (userInfo.LoginName) {
+                        userIdToLoginName[parseInt(userId)] = userInfo.LoginName
                     }
                 }
             }
@@ -365,10 +373,10 @@ async function getTailscaleIpToUserMap(): Promise<Record<string, string>> {
             // Include Peers
             if (tailscaleStatus.Peer) {
                 for (const peer of Object.values(tailscaleStatus.Peer)) {
-                    if (peer.UserID in userIdToDisplayName) {
-                        const displayName = userIdToDisplayName[peer.UserID]
+                    if (peer.UserID in userIdToLoginName) {
+                        const LoginName = userIdToLoginName[peer.UserID]
                         for (const ip of peer.TailscaleIPs) {
-                            ipToUser[ip] = displayName
+                            ipToUser[ip] = LoginName
                         }
                     }
                 }
