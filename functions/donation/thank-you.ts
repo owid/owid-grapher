@@ -32,25 +32,80 @@ const hasThankYouEnvVars = (env: unknown): env is ThankYouEnvVars => {
 }
 
 const constructMessage = (data: MessageData): string => {
+    // This is more readable and makes the plain text formatting easier than a
+    // template string.
     return [
-        `Dear ${data.name ? data.name : "Sir/Madam"},`,
-        "Thank you for your donation to support Global Change Data Lab – the non-profit organization that helps produce the website Our World in Data.",
+        "Thank you for supporting Our World in Data!",
+        "Your generous donation to Global Change Data Lab, the nonprofit behind Our World in Data, helps us achieve our mission to make data and research on the world’s biggest challenges easier to understand and use, for everyone: https://ourworldindata.org/problems-and-progress",
+        "Together, we can make progress against those challenges.",
+        "Donations like yours are essential to our work. They provide us with the stability and independence to expand our work and increase our impact — delivering more data, charts, and insights on an increasing number of pressing topics, all free and open to the world.",
         data.isMonthly &&
-            "You will receive monthly receipts of your payment. If you wish to cancel your recurring donation at any point, just email us at donate@ourworldindata.org.",
-        data.giftAid &&
-            `If you are a UK tax payer, we can make your donations go further with Gift Aid. Through the Government’s Gift Aid scheme, we can claim an additional 25p for every £1 you donated. So if you are a UK taxpayer, you can increase the value of your donations to us by 25%, at no extra cost to yourself. Simply fill in your details in this form to confirm your taxpayer status: https://docs.google.com/forms/d/e/1FAIpQLSe7Mgm70-3UiRfh_aEJCusWCabdBFPN7hXoXMnby_6aAJsJVg/viewform?usp=pp_url&entry.2044643286=gcdl_${data.customerId}`,
-        "Your generosity offers vital support in expanding our efforts to build an independent and free online publication on global development. Your donation will support the expansion of the online publication in close collaboration with our research colleagues at the University of Oxford and around the world.",
-        "Given your interest in our work, we hope you will continue to follow our progress via our newsletters – if you have not done so, we’d like to invite you to join: https://ourworldindata.org/subscribe.",
-        `Reader donations are essential to our work, providing us with the stability and independence we need, so we can focus on research and the development of our site. ${
-            data.showOnList
-                ? "In recognition of your support we will be delighted to include your name as part of our List of Supporters: https://ourworldindata.org/supporters. We will add your name the next time we update the list and the sum of your donation will not be disclosed."
-                : ""
-        }`,
-        "Thank you again for your support for Our World in Data, we look forward to taking the project to the next level and we hope that you will remain interested in our work.",
-        "Kind regards,\nThe Our World in Data Team",
+            "We really appreciate your ongoing support! You’ll receive a receipt each month after your payment is processed. If you’d like to cancel your recurring donation at any point, just email us at donate@ourworldindata.org and we’ll take care of that for you.",
+        data.showOnList &&
+            "In recognition of your support, we will be delighted to include your name as part of our List of Supporters: https://ourworldindata.org/funding. We will add your name the next time we update the list, which we do every few months. The amount of your donation will not be disclosed.",
+        "Stay connected with our work: Follow us on social media or sign up for one of our newsletters here: https://ourworldindata.org/#subscribe (As a valued donor, we may also share an occasional donor-only update with you, from which you may unsubscribe at any time.)",
+        "Are you a UK taxpayer? If so, you can increase the value of your donation to us by 25% — at no extra cost to you — through the UK government’s Gift Aid scheme. Simply enter your name and address and tick a box on this form to confirm your UK taxpayer status, and we’ll take care of the rest:",
+        `https://docs.google.com/forms/d/e/1FAIpQLSe7Mgm70-3UiRfh_aEJCusWCabdBFPN7hXoXMnby_6aAJsJVg/viewform?usp=pp_url&entry.2044643286=gcdl_${data.customerId}`,
+        "Let us know if you have any questions: donate@ourworldindata.org",
+        "Thank you again for supporting us! Your generosity makes our work possible.",
+        "Wishing you the best,\nThe Our World in Data Team",
     ]
         .filter(Boolean)
         .join("\n\n")
+}
+
+function constructHtmlMessage(data: MessageData): string {
+    // The HTML comment is to make prettier format the string as HTML.
+    return /* HTML */ `<p>Thank you for supporting Our World in Data!</p>
+        <p>
+            Your generous donation to Global Change Data Lab, the nonprofit
+            behind Our World in Data, helps us achieve
+            <a href="https://ourworldindata.org/problems-and-progress"
+                >our mission</a
+            >
+            to make data and research on the world’s biggest challenges easier
+            to understand and use, for <em>everyone</em>. Together, we can make
+            progress against those challenges.
+        </p>
+        <p>
+            Donations like yours are essential to our work. They provide us with
+            the stability and independence to expand our work and increase our
+            impact — delivering more data, charts, and insights on an increasing
+            number of pressing topics, all free and open to the world.
+        </p>
+        ${data.isMonthly
+            ? `<p>We really appreciate your ongoing support! You’ll receive a receipt each month after your payment is processed. If you’d like to cancel your recurring donation at any point, just email us at <a href="mailto:donate@ourworldindata.org">donate@ourworldindata.org</a> and we'll take care of that for you.</p>`
+            : ""}
+        ${data.showOnList
+            ? `<p>In recognition of your support, we will be delighted to include your name as part of our <a href="https://ourworldindata.org/funding">List of Supporters</a>. We will add your name the next time we update the list, which we do every few months. The amount of your donation will not be disclosed.</p>`
+            : ""}
+        <p>
+            <strong>Stay connected with our work:</strong> Follow us on social
+            media or sign up for one of our newsletters here:
+            <a href="https://ourworldindata.org/#subscribe"
+                >https://ourworldindata.org/#subscribe</a
+            >
+            (As a valued donor, we may also share an occasional donor-only
+            update with you, from which you may unsubscribe at any time.)
+        </p>
+        <p>
+            <strong>Are you a UK taxpayer?</strong> If so, you can increase the
+            value of your donation to us by 25% — at no extra cost to you —
+            through the UK government’s <strong>Gift Aid</strong> scheme. Simply
+            enter your name and address and tick a box on
+            <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSe7Mgm70-3UiRfh_aEJCusWCabdBFPN7hXoXMnby_6aAJsJVg/viewform?usp=pp_url&entry.2044643286=gcdl_${data.customerId}"
+                >this form</a
+            >
+            to confirm your UK taxpayer status, and we’ll take care of the rest.
+            <a href="mailto:donate@ourworldindata.org">Let us know</a> if you
+            have any questions.
+        </p>
+        <p>
+            Thank you again for supporting us! Your generosity makes our work
+            possible.
+        </p>
+        <p>Wishing you the best,<br /><i>The Our World in Data Team</i></p>`
 }
 
 async function sendThankYouEmail(
@@ -64,6 +119,7 @@ async function sendThankYouEmail(
             bcc: "donate@ourworldindata.org",
             subject: "Thank you",
             text: constructMessage(data),
+            html: constructHtmlMessage(data),
         },
         env
     )
