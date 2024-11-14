@@ -900,18 +900,10 @@ export class Grapher
     }
 
     @computed get editUrl(): string | undefined {
-        const yColumnSlugs = this.yColumnSlugs
         if (this.showAdminControls) {
-            // This is a workaround to make the edit button work for MDims. We
-            // probably want to do this in a more general way.
-            if ((window as any)._OWID_MULTI_DIM_PROPS) {
-                const varId = yColumnSlugs[0]
-
-                return `${this.adminBaseUrl ?? ""}/admin/variables/${varId}/config`
-            } else
-                return `${this.adminBaseUrl}/admin/${
-                    this.manager?.editUrl ?? `charts/${this.id}/edit`
-                }`
+            return `${this.adminBaseUrl}/admin/${
+                this.manager?.editUrl ?? `charts/${this.id}/edit`
+            }`
         }
         return undefined
     }
