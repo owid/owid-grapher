@@ -634,7 +634,7 @@ export class StackedAreaChart
                 onTouchMove={this.onCursorMove}
             >
                 {clipPath.element}
-                <rect {...this.bounds.toProps()} fill="none">
+                <rect {...this.bounds.toProps()} fillOpacity="0">
                     {/* This <rect> ensures that the parent <g> is big enough such that we get mouse hover events for the
                     whole charting area, including the axis, the entity labels, and the whitespace next to them.
                     We need these to be able to show the tooltip for the first/last year even if the mouse is outside the charting area. */}

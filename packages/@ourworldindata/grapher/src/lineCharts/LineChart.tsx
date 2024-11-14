@@ -941,7 +941,7 @@ export class LineChart
                 {/* The tiny bit of extra space in the clippath is to ensure circles
                     centered on the very edge are still fully visible */}
                 {this.clipPath.element}
-                <rect {...this.bounds.toProps()} fill="none">
+                <rect {...this.bounds.toProps()} fillOpacity="0">
                     {/* This <rect> ensures that the parent <g> is big enough such that
                         we get mouse hover events for the whole charting area, including
                         the axis, the entity labels, and the whitespace next to them.
