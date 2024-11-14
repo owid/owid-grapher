@@ -116,7 +116,7 @@ export class MapSparkline extends React.Component<{
             fontSize: 11,
             disableIntroAnimation: true,
             lineStrokeWidth: 2,
-            annotation: {
+            entityYearHighlight: {
                 entityName: this.manager.entityName,
                 year: this.manager.datum?.time,
             },
