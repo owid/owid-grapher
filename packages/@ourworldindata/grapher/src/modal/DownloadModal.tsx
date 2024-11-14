@@ -503,7 +503,7 @@ const CodeExamplesBlock = (props: { csvUrl: string; metadataUrl: string }) => {
 import requests
 
 # Fetch the data. The User-Agent header is only necessary on google colab.
-df = pd.read_csv("${props.csvUrl}, storage_options = {'User-Agent': 'Our World In Data data fetch/1.0'}")
+df = pd.read_csv("${props.csvUrl}", storage_options = {'User-Agent': 'Our World In Data data fetch/1.0'})
 
 # Fetch the metadata
 metadata = requests.get("${props.metadataUrl}").json()`,
