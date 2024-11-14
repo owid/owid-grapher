@@ -13,7 +13,6 @@ import {
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
-    ChartTypeName,
     RelatedChart,
     DbPlainPostLink,
     DbPlainChart,
@@ -22,6 +21,7 @@ import {
     DbPlainTag,
     DbRawChartConfig,
     DbEnrichedChartConfig,
+    GrapherChartType,
 } from "@ourworldindata/types"
 import { OpenAI } from "openai"
 import {
@@ -556,7 +556,7 @@ export async function getChartVariableData(
 
 export const getMostViewedGrapherIdsByChartType = async (
     knex: db.KnexReadonlyTransaction,
-    chartType: ChartTypeName,
+    chartType: GrapherChartType,
     count = 10
 ): Promise<number[]> => {
     const ids = await db.knexRaw<{ id: number }>(

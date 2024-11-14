@@ -59,7 +59,7 @@ import { getCountriesByProjection } from "./WorldRegionsToProjection"
 import {
     ColorSchemeName,
     MapProjectionName,
-    GrapherTabOption,
+    GRAPHER_TAB_OPTIONS,
     SeriesName,
     EntityName,
 } from "@ourworldindata/types"
@@ -293,7 +293,7 @@ export class MapChart
 
         if (!ev.shiftKey) {
             this.selectionArray.setSelectedEntities([entityName])
-            this.manager.tab = GrapherTabOption.chart
+            this.manager.tab = GRAPHER_TAB_OPTIONS.chart
             if (
                 this.manager.isLineChartThatTurnedIntoDiscreteBar &&
                 this.manager.hasTimeline

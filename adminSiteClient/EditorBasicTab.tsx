@@ -9,9 +9,10 @@ import {
 } from "mobx"
 import { observer } from "mobx-react"
 import {
-    ChartTypeName,
     EntitySelectionMode,
     StackMode,
+    ALL_GRAPHER_CHART_TYPES,
+    GrapherChartType,
 } from "@ourworldindata/types"
 import {
     DimensionSlot,
@@ -362,7 +363,9 @@ export class EditorBasicTab<
         const { grapher } = this.props.editor
 
         grapher.chartTypes =
-            value === this.chartTypeOptionNone ? [] : [value as ChartTypeName]
+            value === this.chartTypeOptionNone
+                ? []
+                : [value as GrapherChartType]
 
         if (grapher.isMarimekko) {
             grapher.hideRelativeToggle = false
@@ -403,7 +406,7 @@ export class EditorBasicTab<
         value: string
         label: string
     }[] {
-        const chartTypeOptions = Object.keys(ChartTypeName).map((key) => ({
+        const chartTypeOptions = ALL_GRAPHER_CHART_TYPES.map((key) => ({
             value: key,
             label: startCase(key),
         }))

@@ -175,8 +175,8 @@ import {
     TagGraphRootName,
     TagGraphNode,
     GrapherInterface,
-    ChartTypeName,
     DimensionProperty,
+    GRAPHER_CHART_TYPES,
 } from "@ourworldindata/types"
 import { PointVector } from "./PointVector.js"
 import React from "react"
@@ -1971,8 +1971,8 @@ export function getParentVariableIdFromChartConfig(
 ): number | undefined {
     const { chartTypes, dimensions } = config
 
-    const chartType = chartTypes?.[0] ?? ChartTypeName.LineChart
-    if (chartType === ChartTypeName.ScatterPlot) return undefined
+    const chartType = chartTypes?.[0] ?? GRAPHER_CHART_TYPES.LineChart
+    if (chartType === GRAPHER_CHART_TYPES.ScatterPlot) return undefined
     if (!dimensions) return undefined
 
     const yVariableIds = dimensions

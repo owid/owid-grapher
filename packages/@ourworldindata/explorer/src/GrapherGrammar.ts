@@ -1,9 +1,9 @@
 import {
-    ChartTypeName,
+    ALL_GRAPHER_CHART_TYPES,
     ColorSchemeName,
     FacetAxisDomain,
     FacetStrategy,
-    GrapherTabOption,
+    GRAPHER_TAB_OPTIONS,
     MissingDataStrategy,
     StackMode,
 } from "@ourworldindata/types"
@@ -65,7 +65,7 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         keyword: "type",
         description: `The type of chart to show such as LineChart or ScatterPlot. If set to None, then the chart tab is hidden.`,
         terminalOptions: toTerminalOptions([
-            ...Object.values(ChartTypeName),
+            ...ALL_GRAPHER_CHART_TYPES,
             "None",
         ]),
         toGrapherObject: (value) => ({
@@ -95,7 +95,7 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         ...EnumCellDef,
         keyword: "tab",
         description: "Which tab to show by default",
-        terminalOptions: toTerminalOptions(Object.values(GrapherTabOption)),
+        terminalOptions: toTerminalOptions(Object.values(GRAPHER_TAB_OPTIONS)),
         toGrapherObject: (value) => ({ tab: value }),
     },
     xSlug: {

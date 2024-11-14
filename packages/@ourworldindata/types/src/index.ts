@@ -44,6 +44,12 @@ export {
 export {
     IDEAL_PLOT_ASPECT_RATIO,
     EPOCH_DATE,
+    GRAPHER_MAP_TYPE,
+    GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_NAMES,
+    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_QUERY_PARAMS,
+    ALL_GRAPHER_CHART_TYPES,
 } from "./grapherTypes/GrapherConstants.js"
 
 export {
@@ -73,12 +79,11 @@ export {
     BinningStrategy,
     type ColorScaleConfigInterface,
     ColorSchemeName,
-    ChartTypeName,
     type GrapherChartOrMapType,
-    GRAPHER_MAP_TYPE,
-    GrapherTabOption,
-    GrapherTabName,
-    GrapherTabQueryParam,
+    type GrapherTabOption,
+    type GrapherTabName,
+    type GrapherTabQueryParam,
+    type GrapherChartType,
     StackMode,
     EntitySelectionMode,
     ScatterPointLabelStrategy,

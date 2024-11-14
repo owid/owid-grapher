@@ -3,7 +3,7 @@
 import React from "react"
 
 import { DataTable } from "./DataTable"
-import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
+import { GRAPHER_CHART_TYPES, GRAPHER_TAB_OPTIONS } from "@ourworldindata/types"
 import {
     childMortalityGrapher,
     GrapherWithIncompleteData,
@@ -70,8 +70,8 @@ describe("when you select a range of years", () => {
     let view: ReactWrapper
     beforeAll(() => {
         const grapher = childMortalityGrapher({
-            chartTypes: [ChartTypeName.LineChart],
-            tab: GrapherTabOption.table,
+            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+            tab: GRAPHER_TAB_OPTIONS.table,
         })
         grapher.timelineHandleTimeBounds = [1950, 2019]
 

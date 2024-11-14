@@ -15,7 +15,7 @@ import {
     getSchemaVersion,
     isLatestVersion,
 } from "./helpers"
-import { ChartTypeName } from "@ourworldindata/types"
+import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
 // see https://github.com/owid/owid-grapher/commit/26f2a0d1790c71bdda7e12f284ca552945d2f6ef
 const migrateFrom001To002 = (
@@ -64,11 +64,11 @@ const migrateFrom004To005 = (
 const migrateFrom005To006 = (
     config: AnyConfigWithValidSchema
 ): AnyConfigWithValidSchema => {
-    const { type = ChartTypeName.LineChart, hasChartTab = true } = config
+    const { type = GRAPHER_CHART_TYPES.LineChart, hasChartTab = true } = config
 
     // add types field
     if (!hasChartTab) config.chartTypes = []
-    else if (type !== ChartTypeName.LineChart) config.chartTypes = [type]
+    else if (type !== GRAPHER_CHART_TYPES.LineChart) config.chartTypes = [type]
 
     // remove deprecated fields
     delete config.type

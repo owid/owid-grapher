@@ -1,8 +1,8 @@
 import { SynthesizeGDPTable } from "@ourworldindata/core-table"
 import {
-    ChartTypeName,
+    GRAPHER_CHART_TYPES,
     FacetStrategy,
-    GrapherTabOption,
+    GRAPHER_TAB_OPTIONS,
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
@@ -48,13 +48,13 @@ export const StaticLineChartForExport = (): React.ReactElement => {
 }
 
 export const MapChart = (): React.ReactElement => (
-    <CaptionedChart manager={{ ...manager, tab: GrapherTabOption.map }} />
+    <CaptionedChart manager={{ ...manager, tab: GRAPHER_TAB_OPTIONS.map }} />
 )
 export const StackedArea = (): React.ReactElement => (
     <CaptionedChart
         manager={{
             ...manager,
-            type: ChartTypeName.StackedArea,
+            type: GRAPHER_CHART_TYPES.StackedArea,
             seriesStrategy: SeriesStrategy.entity,
         }}
     />
@@ -63,7 +63,7 @@ export const Scatter = (): React.ReactElement => (
     <CaptionedChart
         manager={{
             ...manager,
-            type: ChartTypeName.ScatterPlot,
+            type: GRAPHER_CHART_TYPES.ScatterPlot,
             table: table.filterByTargetTimes([1999], 0),
         }}
     />

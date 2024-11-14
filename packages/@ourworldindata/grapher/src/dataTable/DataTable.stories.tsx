@@ -1,7 +1,7 @@
 import React from "react"
 import { DataTable, DataTableManager } from "./DataTable"
 import { SynthesizeGDPTable } from "@ourworldindata/core-table"
-import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
+import { GRAPHER_CHART_TYPES, GRAPHER_TAB_OPTIONS } from "@ourworldindata/types"
 import {
     childMortalityGrapher,
     GrapherWithIncompleteData,
@@ -88,8 +88,8 @@ export const FromLegacy = (): React.ReactElement => {
 
 export const FromLegacyWithTimeRange = (): React.ReactElement => {
     const grapher = childMortalityGrapher({
-        type: ChartTypeName.LineChart,
-        tab: GrapherTabOption.chart,
+        chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+        tab: GRAPHER_TAB_OPTIONS.chart,
     })
     grapher.startHandleTimeBound = 1950
     grapher.endHandleTimeBound = 2019

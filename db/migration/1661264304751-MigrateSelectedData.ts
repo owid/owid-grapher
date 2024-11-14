@@ -3,7 +3,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 
 import { entityNameById } from "./data/entityNameById.js"
 
-import { ChartTypeName } from "@ourworldindata/types"
+import { GRAPHER_CHART_TYPES, GrapherChartType } from "@ourworldindata/types"
 
 type GrapherInterface = Record<string, any>
 
@@ -85,11 +85,11 @@ export class MigrateSelectedData1661264304751 implements MigrationInterface {
                 }
             })
 
-        const migrateDimensionsTypes: ChartTypeName[] = [
-            ChartTypeName.Marimekko,
-            ChartTypeName.StackedArea,
-            ChartTypeName.StackedBar,
-            ChartTypeName.StackedDiscreteBar,
+        const migrateDimensionsTypes: GrapherChartType[] = [
+            GRAPHER_CHART_TYPES.Marimekko,
+            GRAPHER_CHART_TYPES.StackedArea,
+            GRAPHER_CHART_TYPES.StackedBar,
+            GRAPHER_CHART_TYPES.StackedDiscreteBar,
         ]
 
         // Migrate order of dimensions.

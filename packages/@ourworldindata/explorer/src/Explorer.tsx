@@ -8,8 +8,7 @@ import {
     TableSlug,
     GrapherInterface,
     GrapherQueryParams,
-    GrapherTabQueryParam,
-    GrapherTabName,
+    GRAPHER_TAB_QUERY_PARAMS,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -455,14 +454,14 @@ export class Explorer
         } else if (this.grapher.validChartTypes.length > 0) {
             // otherwise, switch to the first chart tab
             newGrapherParams.tab = this.grapher.mapGrapherTabToQueryParam(
-                this.grapher.validChartTypes[0] as unknown as GrapherTabName
+                this.grapher.validChartTypes[0]
             )
         } else if (this.grapher.hasMapTab) {
             // or switch to the map, if there is one
-            newGrapherParams.tab = GrapherTabQueryParam.WorldMap
+            newGrapherParams.tab = GRAPHER_TAB_QUERY_PARAMS.map
         } else {
             // if everything fails, switch to the table tab that is always available
-            newGrapherParams.tab = GrapherTabQueryParam.Table
+            newGrapherParams.tab = GRAPHER_TAB_QUERY_PARAMS.table
         }
 
         this.grapher.populateFromQueryParams(newGrapherParams)

@@ -6,9 +6,9 @@ import {
     BlankOwidTable,
 } from "@ourworldindata/core-table"
 import {
-    ChartTypeName,
+    GRAPHER_CHART_TYPES,
     FacetStrategy,
-    GrapherTabOption,
+    GRAPHER_TAB_OPTIONS,
 } from "@ourworldindata/types"
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -49,7 +49,7 @@ export const Line = (): React.ReactElement => <Grapher {...basics} />
 
 export const SlopeChart = (): React.ReactElement => {
     const model = {
-        chartTypes: [ChartTypeName.SlopeChart],
+        chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
         ...basics,
     }
     return <Grapher {...model} />
@@ -57,7 +57,7 @@ export const SlopeChart = (): React.ReactElement => {
 
 export const ScatterPlot = (): React.ReactElement => {
     const model = {
-        chartTypes: [ChartTypeName.ScatterPlot],
+        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
         ...basics,
     }
     return <Grapher {...model} />
@@ -65,7 +65,7 @@ export const ScatterPlot = (): React.ReactElement => {
 
 export const DiscreteBar = (): React.ReactElement => {
     const model = {
-        chartTypes: [ChartTypeName.DiscreteBar],
+        chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
         ...basics,
     }
     return <Grapher {...model} />
@@ -73,7 +73,7 @@ export const DiscreteBar = (): React.ReactElement => {
 
 export const StackedBar = (): React.ReactElement => {
     const model = {
-        chartTypes: [ChartTypeName.StackedBar],
+        chartTypes: [GRAPHER_CHART_TYPES.StackedBar],
         ...basics,
     }
     return <Grapher {...model} />
@@ -81,7 +81,7 @@ export const StackedBar = (): React.ReactElement => {
 
 export const StackedArea = (): React.ReactElement => {
     const model = {
-        chartTypes: [ChartTypeName.StackedArea],
+        chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
         ...basics,
     }
     return <Grapher {...model} />
@@ -90,14 +90,14 @@ export const StackedArea = (): React.ReactElement => {
 export const MapFirst = (): React.ReactElement => {
     const model = {
         ...basics,
-        tab: GrapherTabOption.map,
+        tab: GRAPHER_TAB_OPTIONS.map,
     }
     return <Grapher {...model} />
 }
 
 export const BlankGrapher = (): React.ReactElement => {
     const model = {
-        tab: GrapherTabOption.map,
+        tab: GRAPHER_TAB_OPTIONS.map,
         table: BlankOwidTable(),
         hasMapTab: true,
     }
@@ -114,7 +114,7 @@ export const NoMap = (): React.ReactElement => {
 
 export const Faceting = (): React.ReactElement => {
     const model = {
-        chartTypes: [ChartTypeName.StackedArea],
+        chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
         facet: FacetStrategy.entity,
         ...basics,
     }
@@ -141,11 +141,11 @@ class PerfGrapher extends React.Component {
 
     @observable.ref table = basics.table!
 
-    @action.bound private changeChartType(type: ChartTypeName): void {
+    @action.bound private changeChartType(type: GRAPHER_CHART_TYPES): void {
         this.chartTypeName = type
     }
 
-    @observable chartTypeName = ChartTypeName.LineChart
+    @observable chartTypeName = GRAPHER_CHART_TYPES.LineChart
 
     render(): React.ReactElement {
         const key = Math.random() // I do this hack to force a rerender until can re-add the grapher model/grapher view that we used to have. @breck 10/29/2020

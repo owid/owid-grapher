@@ -43,7 +43,7 @@ import { SourceList } from "./SourceList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Base64 } from "js-base64"
 import {
-    GrapherTabOption,
+    GRAPHER_TAB_OPTIONS,
     GrapherInterface,
     OwidVariableRoundingMode,
 } from "@ourworldindata/types"
@@ -691,13 +691,13 @@ class VariableEditor extends React.Component<{
             return {
                 ...grapherConfig,
                 hasMapTab: true,
-                tab: GrapherTabOption.map,
+                tab: GRAPHER_TAB_OPTIONS.map,
             }
         else
             return {
                 yAxis: { min: 0 },
                 map: { columnSlug: this.props.variable.id.toString() },
-                tab: GrapherTabOption.map,
+                tab: GRAPHER_TAB_OPTIONS.map,
                 hasMapTab: true,
                 dimensions: [
                     {

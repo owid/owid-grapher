@@ -1,9 +1,12 @@
 import React from "react"
-import { ChartTypeName } from "@ourworldindata/types"
+import {
+    ALL_GRAPHER_CHART_TYPES,
+    GrapherChartType,
+} from "@ourworldindata/types"
 
 // Just a utility for testing
 export class ChartTypeSwitcher extends React.Component<{
-    onChange: (chartType: ChartTypeName) => void
+    onChange: (chartType: GrapherChartType) => void
 }> {
     render(): React.ReactElement {
         return (
@@ -12,7 +15,7 @@ export class ChartTypeSwitcher extends React.Component<{
                     this.props.onChange(event.target.value as any)
                 }
             >
-                {Object.values(ChartTypeName).map((value) => (
+                {ALL_GRAPHER_CHART_TYPES.map((value) => (
                     <option key={value} value={value}>
                         {value}
                     </option>
