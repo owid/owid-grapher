@@ -273,6 +273,7 @@ interface TailscaleStatus {
     User?: {
         [key: string]: {
             DisplayName?: string
+            LoginName?: string
         }
     }
 }
@@ -357,15 +358,14 @@ async function getTailscaleIpToUserMap(): Promise<Record<string, string>> {
             const ipToUser: Record<string, string> = {}
 
             // Map UserIDs to LoginNames
-            const userIdToDisplayName: Record<string, string> = {}
+            const userIdToLoginName: Record<string, string> = {}
 
             if (tailscaleStatus.User) {
                 for (const [userId, userInfo] of Object.entries(
                     tailscaleStatus.User
                 )) {
-                    if (userInfo.DisplayName) {
-                        userIdToDisplayName[parseInt(userId)] =
-                            userInfo.DisplayName
+                    if (userInfo.LoginName) {
+                        userIdToLoginName[parseInt(userId)] = userInfo.LoginName
                     }
                 }
             }
@@ -373,10 +373,10 @@ async function getTailscaleIpToUserMap(): Promise<Record<string, string>> {
             // Include Peers
             if (tailscaleStatus.Peer) {
                 for (const peer of Object.values(tailscaleStatus.Peer)) {
-                    if (peer.UserID in userIdToDisplayName) {
-                        const displayName = userIdToDisplayName[peer.UserID]
+                    if (peer.UserID in userIdToLoginName) {
+                        const LoginName = userIdToLoginName[peer.UserID]
                         for (const ip of peer.TailscaleIPs) {
-                            ipToUser[ip] = displayName
+                            ipToUser[ip] = LoginName
                         }
                     }
                 }
