@@ -65,7 +65,7 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
                         value={documentUrl}
                         required
                         placeholder={GDOCS_URL_PLACEHOLDER}
-                        pattern={gdocUrlRegex.toString().slice(1, -1)}
+                        pattern={gdocUrlRegex.source}
                     />
                     <span className="validation-notice">
                         Invalid URL - it should look like this:{" "}
