@@ -240,7 +240,12 @@ export function constructReadme(
     columns: CoreColumn[]
 ): string {
     const isSingleColumn = columns.length === 1
-    const sources = columns.flatMap((col) => [...columnReadmeText(col)])
+    // Some computed columns have neither a source nor origins - filter these away
+    const sources = columns
+        .filter(
+            (column) => !!column.source.name || !isEmpty(column.def.origins)
+        )
+        .flatMap((col) => [...columnReadmeText(col)])
     let readme: string
     const downloadDate = formatDate(new Date()) // formats the date as "October 10, 2024"
     if (isSingleColumn)
