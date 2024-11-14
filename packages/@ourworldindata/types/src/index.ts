@@ -73,7 +73,6 @@ export {
     BinningStrategy,
     type ColorScaleConfigInterface,
     ColorSchemeName,
-    colorScaleConfigDefaults,
     ChartTypeName,
     GrapherTabOption,
     StackMode,
