@@ -22,7 +22,7 @@ export const IMAGES_DIRECTORY = "/images/published/"
  * https://docs.google.com/spreadsheets/d/abcd1234
  */
 export const gdocUrlRegex =
-    /https:\/\/docs\.google\.com\/document(?:\/u\/\d)?\/d\/([\-\w]+)\/?(edit)?#?/
+    /https:\/\/docs\.google\.com\/document(?:\/u\/\d)?\/d\/([\-\w]+)\/?(edit)?(\?tab=[\w\.]+)#?/
 
 export const GDOCS_BASE_URL = "https://docs.google.com"
 export const GDOCS_URL_PLACEHOLDER = `${GDOCS_BASE_URL}/document/d/****/edit`
