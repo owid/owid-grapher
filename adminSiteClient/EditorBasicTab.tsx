@@ -403,11 +403,7 @@ export class EditorBasicTab<
         value: string
         label: string
     }[] {
-        const allChartTypes = Object.keys(ChartTypeName).filter(
-            (chartType) => chartType !== ChartTypeName.WorldMap
-        )
-
-        const chartTypeOptions = allChartTypes.map((key) => ({
+        const chartTypeOptions = Object.keys(ChartTypeName).map((key) => ({
             value: key,
             label: startCase(key),
         }))

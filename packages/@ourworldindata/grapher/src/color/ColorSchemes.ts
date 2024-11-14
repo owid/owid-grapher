@@ -6,10 +6,14 @@ import {
     ChartTypeName,
     ColorSchemeInterface,
     ColorSchemeName,
+    GRAPHER_MAP_TYPE,
+    GrapherChartOrMapType,
 } from "@ourworldindata/types"
 import { getColorBrewerScheme } from "./ColorBrewerSchemes.js"
 
-function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
+function getPreferredSchemesByType(
+    type: GrapherChartOrMapType
+): ColorSchemeName[] {
     // This function could also be a Map<ChartTypeName, ColorName[]> but
     // by doing it as a function usign ts-pattern.match we get compile
     // time safety that all enum cases in ChartTypeName are always handled here
@@ -84,7 +88,7 @@ function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
             ColorSchemeName.SingleColorGradientDustyCoral,
             ColorSchemeName.SingleColorGradientDarkCopper,
         ])
-        .with(ChartTypeName.WorldMap, () => [
+        .with(GRAPHER_MAP_TYPE, () => [
             ColorSchemeName.BinaryMapPaletteA,
             ColorSchemeName.BinaryMapPaletteB,
             ColorSchemeName.BinaryMapPaletteC,

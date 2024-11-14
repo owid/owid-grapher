@@ -44,7 +44,7 @@ import { BaseEditorComponent, HotColumn, HotTable } from "@handsontable/react"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 import Handsontable from "handsontable"
-import { ChartTypeName } from "@ourworldindata/types"
+import { ChartTypeName, GRAPHER_MAP_TYPE } from "@ourworldindata/types"
 import {
     Grapher,
     GrapherProgrammaticInterface,
@@ -488,7 +488,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     return colorScale ? (
                         <EditorColorScaleSection
                             scale={colorScale}
-                            chartType={ChartTypeName.WorldMap}
+                            chartType={GRAPHER_MAP_TYPE}
                             features={{
                                 visualScaling: true,
                                 legendDescription: false,

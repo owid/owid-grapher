@@ -88,7 +88,6 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<ChartTypeName, ViewMatrix> = {
         facet: facetOptions,
         uniformYAxis: booleanOptions,
     },
-    [ChartTypeName.WorldMap]: {},
 }
 
 // the above view matrix is used to generate all possible combinations of query params
@@ -129,7 +128,6 @@ const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
         // sharing an axis only makes sense if a chart is faceted
         { facet: FacetStrategy.none, uniformYAxis: Boolean.true },
     ],
-    [ChartTypeName.WorldMap]: [],
 }
 
 export const queryStringsByChartType = Object.fromEntries(

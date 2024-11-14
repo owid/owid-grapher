@@ -119,6 +119,10 @@ export enum ToleranceStrategy {
     backwards = "backwards",
     forwards = "forwards",
 }
+
+export const GRAPHER_MAP_TYPE = "WorldMap"
+type GrapherMapType = typeof GRAPHER_MAP_TYPE
+
 export enum ChartTypeName {
     LineChart = "LineChart",
     ScatterPlot = "ScatterPlot",
@@ -128,9 +132,9 @@ export enum ChartTypeName {
     SlopeChart = "SlopeChart",
     StackedBar = "StackedBar",
     Marimekko = "Marimekko",
-    // special map type that can't be selected by authors
-    WorldMap = "WorldMap",
 }
+
+export type GrapherChartOrMapType = ChartTypeName | GrapherMapType
 
 export enum AxisMinMaxValueStr {
     auto = "auto",

@@ -74,6 +74,8 @@ export {
     type ColorScaleConfigInterface,
     ColorSchemeName,
     ChartTypeName,
+    type GrapherChartOrMapType,
+    GRAPHER_MAP_TYPE,
     GrapherTabOption,
     GrapherTabName,
     GrapherTabQueryParam,

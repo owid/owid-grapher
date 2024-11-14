@@ -1,7 +1,7 @@
 import React from "react"
 import { computed, action } from "mobx"
 import Select from "react-select"
-import { ChartTypeName } from "@ourworldindata/types"
+import { GrapherChartOrMapType } from "@ourworldindata/types"
 import {
     ColorScheme,
     getColorSchemeForChartType,
@@ -21,7 +21,7 @@ interface ColorSchemeDropdownProps {
     value?: string
     gradientColorCount: number
     invertedColorScheme: boolean
-    chartType: ChartTypeName
+    chartType: GrapherChartOrMapType
     onChange: (selected: ColorSchemeOption) => void
     onBlur?: () => void
 }

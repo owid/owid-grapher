@@ -11,7 +11,7 @@ export interface DbInsertChartConfig {
     full: JsonString
     fullMd5?: Base64String
     slug?: string | null
-    chartType?: ChartTypeName | null // TODO: exclude WorldMap
+    chartType?: ChartTypeName | null
     createdAt?: Date
     updatedAt?: Date | null
 }

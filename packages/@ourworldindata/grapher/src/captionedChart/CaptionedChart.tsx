@@ -39,6 +39,8 @@ import {
     RelatedQuestionsConfig,
     Color,
     GrapherTabName,
+    GRAPHER_MAP_TYPE,
+    GrapherChartOrMapType,
 } from "@ourworldindata/types"
 import { DataTable, DataTableManager } from "../dataTable/DataTable"
 import {
@@ -189,10 +191,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return !this.manager.isOnMapTab && hasStrategy
     }
 
-    @computed get activeChartType(): ChartTypeName | undefined {
+    @computed get activeChartOrMapType(): GrapherChartOrMapType | undefined {
         const { manager } = this
         if (manager.isOnTableTab) return undefined
-        if (manager.isOnMapTab) return ChartTypeName.WorldMap
+        if (manager.isOnMapTab) return GRAPHER_MAP_TYPE
         if (manager.isOnChartTab) {
             return manager.isLineChartThatTurnedIntoDiscreteBar
                 ? ChartTypeName.DiscreteBar
@@ -202,20 +204,21 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     renderChart(): React.ReactElement | void {
-        const { manager, activeChartType, containerElement } = this
+        const { manager, activeChartOrMapType, containerElement } = this
 
-        if (!activeChartType) return
+        if (!activeChartOrMapType) return
 
         const bounds = this.boundsForChartArea
         const ChartClass =
-            ChartComponentClassMap.get(activeChartType) ?? DefaultChartClass
+            ChartComponentClassMap.get(activeChartOrMapType) ??
+            DefaultChartClass
 
         // Todo: make FacetChart a chart type name?
-        if (this.isFaceted)
+        if (this.isFaceted && activeChartOrMapType !== GRAPHER_MAP_TYPE)
             return (
                 <FacetChart
                     bounds={bounds}
-                    chartTypeName={activeChartType}
+                    chartTypeName={activeChartOrMapType}
                     manager={manager}
                 />
             )

@@ -26,10 +26,7 @@ import { getHeapStatistics } from "v8"
 import { queryStringsByChartType } from "./chart-configurations.js"
 import * as d3 from "d3"
 
-// ignore WorldMaps
-export const CHART_TYPES = Object.values(ChartTypeName).filter(
-    (chartType) => chartType !== ChartTypeName.WorldMap
-)
+export const allChartTypes = Object.values(ChartTypeName)
 
 // the owid-grapher-svgs repo is usually cloned as a sibling to the owid-grapher repo
 export const DEFAULT_CONFIGS_DIR = "../owid-grapher-svgs/configs"
@@ -303,14 +300,14 @@ export async function findValidChartIds(
 export function validateChartTypes(chartTypes: string[]): ChartTypeName[] {
     const validChartTypes = chartTypes.filter(
         (chartType): chartType is ChartTypeName =>
-            CHART_TYPES.includes(chartType as any)
+            allChartTypes.includes(chartType as any)
     )
     const invalidChartTypes = chartTypes.filter(
-        (chartType) => !CHART_TYPES.includes(chartType as any)
+        (chartType) => !allChartTypes.includes(chartType as any)
     )
     if (invalidChartTypes.length) {
         console.warn(
-            `Invalid chart types given: ${invalidChartTypes}. Valid chart types are: ${CHART_TYPES}`
+            `Invalid chart types given: ${invalidChartTypes}. Valid chart types are: ${allChartTypes}`
         )
     }
     return _.uniq(validChartTypes)

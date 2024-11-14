@@ -107,7 +107,4 @@ export const chartIcons: Record<ChartTypeName, React.ReactElement> = {
             </g>
         </svg>
     ),
-
-    // world map (will never be invoked but included for completeness)
-    [ChartTypeName.WorldMap]: <FontAwesomeIcon icon={faEarthAmericas} />,
 }

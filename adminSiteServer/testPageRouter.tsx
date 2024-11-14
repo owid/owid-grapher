@@ -31,6 +31,7 @@ import {
     GrapherTabOption,
     StackMode,
     parseChartConfig,
+    GRAPHER_MAP_TYPE,
 } from "@ourworldindata/types"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
@@ -148,7 +149,7 @@ async function propsFromQueryParams(
     let tab = params.tab
 
     if (params.type) {
-        if (params.type === ChartTypeName.WorldMap) {
+        if (params.type === GRAPHER_MAP_TYPE) {
             query = query.andWhereRaw(`cc.full->>"$.hasMapTab" = "true"`)
             tab = tab || GrapherTabOption.map
         } else {
