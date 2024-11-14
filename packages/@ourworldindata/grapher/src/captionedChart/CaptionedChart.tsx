@@ -19,8 +19,9 @@ import {
     BASE_FONT_SIZE,
     Patterns,
     STATIC_EXPORT_DETAIL_SPACING,
-    DEFAULT_GRAPHER_FRAME_PADDING,
     GRAPHER_BACKGROUND_DEFAULT,
+    GRAPHER_FRAME_PADDING_VERTICAL,
+    GRAPHER_FRAME_PADDING_HORIZONTAL,
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
@@ -71,8 +72,6 @@ export interface CaptionedChartManager
     // layout & style
     isSmall?: boolean
     isMedium?: boolean
-    framePaddingHorizontal?: number
-    framePaddingVertical?: number
     fontSize?: number
     backgroundColor?: string
 
@@ -109,6 +108,9 @@ const CONTROLS_ROW_HEIGHT = 32
 
 @observer
 export class CaptionedChart extends React.Component<CaptionedChartProps> {
+    protected framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
+    protected framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
+
     @computed protected get manager(): CaptionedChartManager {
         return this.props.manager
     }
@@ -121,18 +123,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return (
             this.props.maxWidth ??
             this.bounds.width - 2 * this.framePaddingHorizontal
-        )
-    }
-
-    @computed protected get framePaddingVertical(): number {
-        return (
-            this.manager.framePaddingVertical ?? DEFAULT_GRAPHER_FRAME_PADDING
-        )
-    }
-
-    @computed protected get framePaddingHorizontal(): number {
-        return (
-            this.manager.framePaddingHorizontal ?? DEFAULT_GRAPHER_FRAME_PADDING
         )
     }
 
@@ -357,7 +347,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             <TimelineComponent
                 timelineController={this.manager.timelineController!}
                 maxWidth={this.maxWidth}
-                framePaddingHorizontal={this.framePaddingHorizontal}
             />
         )
     }
@@ -493,14 +482,6 @@ export class StaticCaptionedChart extends CaptionedChart {
             targetX: paddedBounds.x,
             targetY: paddedBounds.y,
         })
-    }
-
-    @computed protected get framePaddingVertical(): number {
-        return DEFAULT_GRAPHER_FRAME_PADDING
-    }
-
-    @computed protected get framePaddingHorizontal(): number {
-        return DEFAULT_GRAPHER_FRAME_PADDING
     }
 
     @computed private get paddedBounds(): Bounds {

@@ -2,6 +2,10 @@ import React from "react"
 import { observer } from "mobx-react"
 import { action, computed } from "mobx"
 import { Bounds } from "@ourworldindata/utils"
+import {
+    isElementInteractive,
+    isTargetOutsideElement,
+} from "../chart/ChartUtils"
 
 @observer
 export class Modal extends React.Component<{
@@ -26,16 +30,12 @@ export class Modal extends React.Component<{
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {
-        const tagName = (e.target as HTMLElement).tagName
-        const isTargetInteractive = ["A", "BUTTON", "INPUT"].includes(tagName)
         if (
             this.contentRef?.current &&
-            !this.contentRef.current.contains(e.target as Node) &&
+            isTargetOutsideElement(e.target!, this.contentRef.current) &&
             // clicking on an interactive element should not dismiss the modal
             // (this is especially important for the suggested chart review tool)
-            !isTargetInteractive &&
-            // check that the target is still mounted to the document; we also get click events on nodes that have since been removed by React
-            document.contains(e.target as Node)
+            !isElementInteractive(e.target as HTMLElement)
         )
             this.props.onDismiss()
     }

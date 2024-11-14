@@ -14,7 +14,10 @@ import {
     MapProjectionMenuManager,
 } from "../MapProjectionMenu"
 import { SettingsMenu, SettingsMenuManager } from "../SettingsMenu"
-import { DEFAULT_GRAPHER_FRAME_PADDING } from "../../core/GrapherConstants"
+import {
+    GRAPHER_FRAME_PADDING_HORIZONTAL,
+    GRAPHER_FRAME_PADDING_VERTICAL,
+} from "../../core/GrapherConstants"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
@@ -24,8 +27,6 @@ export interface ControlsRowManager
     sidePanelBounds?: Bounds
     availableTabs?: GrapherTabOption[]
     showEntitySelectionToggle?: boolean
-    framePaddingHorizontal?: number
-    framePaddingVertical?: number
 }
 
 @observer
@@ -34,6 +35,9 @@ export class ControlsRow extends React.Component<{
     maxWidth?: number
     settingsMenuTop?: number
 }> {
+    private framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
+    private framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
+
     static shouldShow(manager: ControlsRowManager): boolean {
         const test = new ControlsRow({ manager })
         return test.showControlsRow
@@ -45,18 +49,6 @@ export class ControlsRow extends React.Component<{
 
     @computed private get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
-    }
-
-    @computed private get framePaddingHorizontal(): number {
-        return (
-            this.manager.framePaddingHorizontal ?? DEFAULT_GRAPHER_FRAME_PADDING
-        )
-    }
-
-    @computed private get framePaddingVertical(): number {
-        return (
-            this.manager.framePaddingVertical ?? DEFAULT_GRAPHER_FRAME_PADDING
-        )
     }
 
     @computed private get sidePanelWidth(): number {

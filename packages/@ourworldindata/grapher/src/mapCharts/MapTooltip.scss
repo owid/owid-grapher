@@ -1,46 +1,48 @@
-.sparkline {
-    padding-bottom: 4px;
+@at-root {
+    .sparkline {
+        padding-bottom: 4px;
 
-    .HorizontalAxis text {
-        fill: #787878;
-        font-weight: 700;
-        font-size: 10px;
-        transform: translate(2px, 2px);
+        .HorizontalAxis text {
+            fill: #787878;
+            font-weight: 700;
+            font-size: 10px;
+            transform: translate(2px, 2px);
 
-        &:last-child {
-            transform: translate(-2px, 2px);
+            &:last-child {
+                transform: translate(-2px, 2px);
+            }
         }
-    }
 
-    // min-line + zero-line
-    .AxisGridLines.horizontalLines {
-        line {
-            stroke-dasharray: 0;
+        // min-line + zero-line
+        .AxisGridLines.horizontalLines {
+            line {
+                stroke-dasharray: 0;
+                stroke-linecap: square;
+                stroke: $gray-30;
+            }
+
+            // the zero line
+            line:nth-child(2) {
+                stroke: #787878;
+            }
+        }
+
+        line.max-line {
             stroke-linecap: square;
             stroke: $gray-30;
         }
 
-        // the zero line
-        line:nth-child(2) {
-            stroke: #787878;
-        }
-    }
-
-    line.max-line {
-        stroke-linecap: square;
-        stroke: $gray-30;
-    }
-
-    .axis-label {
-        text {
-            font: 400 10px Lato;
-            letter-spacing: 0.01em;
-            font-style: italic;
-            text-anchor: end;
-            fill: #787878;
-            &.outline {
-                stroke: rgba(255, 255, 255, 0.85);
-                stroke-width: 2px;
+        .axis-label {
+            text {
+                font: 400 10px Lato;
+                letter-spacing: 0.01em;
+                font-style: italic;
+                text-anchor: end;
+                fill: #787878;
+                &.outline {
+                    stroke: rgba(255, 255, 255, 0.85);
+                    stroke-width: 2px;
+                }
             }
         }
     }

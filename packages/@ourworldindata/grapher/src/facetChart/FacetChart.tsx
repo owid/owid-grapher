@@ -502,7 +502,8 @@ export class FacetChart
                     ...series.manager.yAxisConfig,
                     ...axes.y.config,
                 },
-                tooltips: this.manager.tooltips,
+                tooltip: this.manager.tooltip,
+                shouldPinTooltipToBottom: this.manager.shouldPinTooltipToBottom,
                 base: this.manager.base,
             }
             const contentBounds = getContentBounds(

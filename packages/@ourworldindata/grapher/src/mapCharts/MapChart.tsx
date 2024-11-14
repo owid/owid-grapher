@@ -42,7 +42,11 @@ import {
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
-import { BASE_FONT_SIZE, Patterns } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    GRAPHER_FRAME_PADDING_HORIZONTAL,
+    Patterns,
+} from "../core/GrapherConstants"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
     CategoricalBin,
@@ -622,6 +626,10 @@ export class MapChart
     renderInteractive(): React.ReactElement {
         const { tooltipState } = this
 
+        const sparklineWidth = this.manager.shouldPinTooltipToBottom
+            ? this.bounds.width + (GRAPHER_FRAME_PADDING_HORIZONTAL - 1) * 2
+            : undefined
+
         return (
             <g
                 ref={this.base}
@@ -641,6 +649,7 @@ export class MapChart
                         manager={this.manager}
                         colorScaleManager={this}
                         targetTime={this.targetTime}
+                        sparklineWidth={sparklineWidth}
                     />
                 )}
             </g>

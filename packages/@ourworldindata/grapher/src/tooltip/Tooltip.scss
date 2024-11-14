@@ -1,467 +1,497 @@
-.tooltip-container > .Tooltip {
-    $background-fill: #f0f0f0;
-    $background-stroke: $gray-20;
-    $dark-grey: #2d2d2d;
-    $light-grey: $gray-30;
-    $grey: #787878;
-    $red: #cc3b55;
-    $green: #2c8465;
-    $fade-time: 200ms;
-    $fade-delay: 200ms;
-    $medium: 400;
-    $bold: 700;
+@at-root {
+    .tooltip-container {
+        $background-fill: #f0f0f0;
+        $background-stroke: $gray-20;
+        $dark-grey: #2d2d2d;
+        $light-grey: $gray-30;
+        $grey: #787878;
+        $red: #cc3b55;
+        $green: #2c8465;
+        $fade-time: 200ms;
+        $fade-delay: 200ms;
+        $medium: 400;
+        $bold: 700;
 
-    border-radius: 4px;
-    border: 1px solid $background-stroke;
-    box-shadow: 0px 4px 40px rgba(0, 0, 0, 0.2);
-    background: white;
-    text-align: left;
-    position: absolute;
-    pointer-events: none;
-    font-family: $sans-serif-font-stack;
-    font-size: 16px;
+        &.fixed-bottom {
+            position: fixed;
+            left: 4px;
+            bottom: 4px;
+            width: calc(100% - 8px);
+            z-index: $zindex-tooltip;
 
-    @mixin diagonal-background($background, $color) {
-        background: repeating-linear-gradient(
-            -45deg,
-            $background,
-            $background 16%,
-            $color 16%,
-            $color 25%
-        );
-    }
+            > .Tooltip {
+                pointer-events: auto;
 
-    .frontmatter {
-        background: $background-fill;
-        color: black;
-        padding: 8px 12px;
-        border-radius: 3px 3px 0 0;
-
-        .title,
-        .subtitle {
-            margin: 0;
-            padding: 0;
-            line-height: 1.125em;
-        }
-
-        .title {
-            font-size: 14px;
-            font-weight: $bold;
-            letter-spacing: 0;
-        }
-        .subtitle {
-            margin: 4px 0 2px 0;
-            font-size: 12px;
-            font-weight: $medium;
-            letter-spacing: 0.01em;
-
-            svg.fa-circle-info {
-                color: $grey;
-                margin-right: 0.5em;
-            }
-        }
-    }
-
-    &.plain header {
-        border-radius: 3px;
-        background: white;
-    }
-
-    .content {
-        padding: 8px 12px;
-
-        > p {
-            margin: 0;
-            padding: 0;
-        }
-
-        .variable {
-            .definition {
-                color: $gray-70;
-                font-size: 12px;
-                line-height: 15px;
-                letter-spacing: 0.01em;
-                font-weight: $bold;
-
-                .name {
-                    margin-right: 0.25em;
-                }
-
-                .unit {
-                    font-weight: $medium;
-                    font-style: normal;
-
-                    &::before {
-                        content: "(";
-                    }
-
-                    &::after {
-                        content: ")";
-                    }
+                .content-and-endmatter {
+                    max-height: min(166px, 25vh);
+                    overflow-y: auto;
+                    overflow-x: hidden;
                 }
             }
+        }
 
-            .values {
-                display: flex;
-                align-items: baseline;
-                justify-content: space-between;
-                color: $dark-grey;
-                padding: 2px 0;
-                line-height: 21px;
-                font-size: 18px;
-                font-weight: $bold;
+        > .Tooltip {
+            border-radius: 4px;
+            border: 1px solid $background-stroke;
+            box-shadow: 0px 4px 40px rgba(0, 0, 0, 0.2);
+            background: white;
+            text-align: left;
+            pointer-events: none;
+            font-family: $sans-serif-font-stack;
+            font-size: 16px;
 
-                .range {
-                    display: flex;
-                    flex-wrap: wrap;
-                    align-items: baseline;
-                    column-gap: 0.2em;
-                    flex-grow: 1;
+            @mixin diagonal-background($background, $color) {
+                background: repeating-linear-gradient(
+                    -45deg,
+                    $background,
+                    $background 16%,
+                    $color 16%,
+                    $color 25%
+                );
+            }
 
-                    .term {
-                        overflow-wrap: anywhere;
-                    }
+            .frontmatter {
+                background: $background-fill;
+                color: black;
+                padding: 8px 12px;
+                border-radius: 3px 3px 0 0;
 
-                    svg.arrow {
-                        height: 14px;
-                        padding-right: 0.15em;
-                        &.up path {
-                            fill: $green;
-                        }
-                        &.down path {
-                            fill: $red;
-                        }
-                        &.right path {
-                            fill: $grey;
-                        }
-                    }
+                .title,
+                .subtitle {
+                    margin: 0;
+                    padding: 0;
+                    line-height: 1.125em;
                 }
 
-                .time-notice {
-                    position: relative;
-                    font-weight: $medium;
+                .title {
                     font-size: 14px;
-                    line-height: 21px;
-                    padding-left: 20px;
-                    svg.fa-circle-info {
-                        position: absolute;
-                        top: 3px;
-                        left: 0;
-                    }
-                    color: $grey;
+                    font-weight: $bold;
+                    letter-spacing: 0;
                 }
-            }
-        }
-
-        .variable + .variable {
-            margin-top: 4px;
-            padding-top: 8px;
-            border-top: 1px solid $light-grey;
-        }
-
-        table.series-list {
-            color: $dark-grey;
-            font-size: 14px;
-            line-height: 22px;
-            font-weight: $medium;
-            white-space: normal;
-            border-collapse: collapse;
-            width: 100%;
-
-            // only used if rows have ≥2 values
-            thead {
-                font-size: 12px;
-                letter-spacing: 0.01em;
-
-                tr td.series-value {
+                .subtitle {
+                    margin: 4px 0 2px 0;
+                    font-size: 12px;
                     font-weight: $medium;
+                    letter-spacing: 0.01em;
+
+                    svg.fa-circle-info {
+                        color: $grey;
+                        margin-right: 0.5em;
+                    }
                 }
             }
 
-            // -- standard columns --
-            td {
-                vertical-align: baseline;
+            &.plain header {
+                border-radius: 3px;
+                background: white;
             }
 
-            td.series-color {
-                padding-left: 0;
-                .swatch {
+            .content {
+                padding: 8px 12px;
+
+                > p {
+                    margin: 0;
+                    padding: 0;
+                }
+
+                .variable {
+                    .definition {
+                        color: $gray-70;
+                        font-size: 12px;
+                        line-height: 15px;
+                        letter-spacing: 0.01em;
+                        font-weight: $bold;
+
+                        .name {
+                            margin-right: 0.25em;
+                        }
+
+                        .unit {
+                            font-weight: $medium;
+                            font-style: normal;
+
+                            &::before {
+                                content: "(";
+                            }
+
+                            &::after {
+                                content: ")";
+                            }
+                        }
+                    }
+
+                    .values {
+                        display: flex;
+                        align-items: baseline;
+                        justify-content: space-between;
+                        color: $dark-grey;
+                        padding: 2px 0;
+                        line-height: 21px;
+                        font-size: 18px;
+                        font-weight: $bold;
+
+                        .range {
+                            display: flex;
+                            flex-wrap: wrap;
+                            align-items: baseline;
+                            column-gap: 0.2em;
+                            flex-grow: 1;
+
+                            .term {
+                                overflow-wrap: anywhere;
+                            }
+
+                            svg.arrow {
+                                height: 14px;
+                                padding-right: 0.15em;
+                                &.up path {
+                                    fill: $green;
+                                }
+                                &.down path {
+                                    fill: $red;
+                                }
+                                &.right path {
+                                    fill: $grey;
+                                }
+                            }
+                        }
+
+                        .time-notice {
+                            position: relative;
+                            font-weight: $medium;
+                            font-size: 14px;
+                            line-height: 21px;
+                            padding-left: 20px;
+                            svg.fa-circle-info {
+                                position: absolute;
+                                top: 3px;
+                                left: 0;
+                            }
+                            color: $grey;
+                        }
+                    }
+                }
+
+                .variable + .variable {
+                    margin-top: 4px;
+                    padding-top: 8px;
+                    border-top: 1px solid $light-grey;
+                }
+
+                table.series-list {
+                    color: $dark-grey;
+                    font-size: 14px;
+                    line-height: 22px;
+                    font-weight: $medium;
+                    white-space: normal;
+                    border-collapse: collapse;
+                    width: 100%;
+
+                    // only used if rows have ≥2 values
+                    thead {
+                        font-size: 12px;
+                        letter-spacing: 0.01em;
+
+                        tr td.series-value {
+                            font-weight: $medium;
+                        }
+                    }
+
+                    // -- standard columns --
+                    td {
+                        vertical-align: baseline;
+                    }
+
+                    td.series-color {
+                        padding-left: 0;
+                        .swatch {
+                            width: 12px;
+                            height: 12px;
+                            display: inline-block;
+                            margin-right: 0.3em;
+                            text-align: left;
+                            position: relative;
+                        }
+                    }
+
+                    td.series-name {
+                        padding-right: 0.9em;
+                        line-height: 16px;
+                        width: 100%;
+                        .parenthetical {
+                            color: $grey;
+                        }
+
+                        .annotation {
+                            display: block;
+                            color: $grey;
+                            font-size: 12px;
+                            letter-spacing: 0.01em;
+                        }
+                    }
+
+                    td.series-value {
+                        font-weight: $bold;
+                        text-align: right;
+                        white-space: nowrap;
+
+                        &.missing::before {
+                            content: "No data";
+                            color: $light-grey;
+                        }
+
+                        & + .series-value {
+                            padding-left: 0.5em;
+                        }
+                    }
+
+                    td.time-notice {
+                        white-space: nowrap;
+                        font-weight: $medium;
+                        text-indent: 20px;
+                        text-align: right;
+                        padding-right: 0;
+                        color: $grey;
+                    }
+
+                    // -- special row types --
+
+                    tr.blurred {
+                        color: $light-grey;
+                        .series-color .swatch {
+                            opacity: 0.25;
+                        }
+                        .series-name span {
+                            color: inherit;
+                        }
+                    }
+
+                    tr.spacer {
+                        line-height: 2px;
+                        font-size: 2px;
+                        &::before {
+                            content: "\00a0";
+                        }
+                    }
+
+                    tr.total {
+                        td {
+                            line-height: 14px;
+                        }
+                        td:nth-child(2),
+                        td:nth-child(3) {
+                            border-top: 1px solid $background-stroke;
+                            vertical-align: bottom;
+                        }
+                        td:last-child::before {
+                            content: "\200a";
+                            height: 5px;
+                            display: block;
+                        }
+                    }
+
+                    tr.total--top {
+                        td:nth-child(2),
+                        td:nth-child(3) {
+                            border-bottom: 1px solid $background-stroke;
+                            position: relative;
+                            top: -2px;
+                        }
+                    }
+
+                    // highlight hovered row
+                    &.focal {
+                        tr:not(.focused, .total) td {
+                            opacity: 0.6;
+                        }
+
+                        td.series-value {
+                            font-weight: $medium;
+                        }
+
+                        tr.focused td {
+                            font-weight: $bold;
+
+                            .parenthetical {
+                                font-weight: $medium;
+                            }
+                            &.time-notice {
+                                font-weight: $medium;
+                            }
+                        }
+                    }
+
+                    // hide unused color swatch column
+                    &:not(.swatched) {
+                        td.series-color {
+                            display: none;
+                        }
+                    }
+
+                    // overlay a diagonal line pattern on striped swatches
+                    tr.striped .series-color .swatch::before {
+                        content: " ";
+                        position: absolute;
+                        width: 100%;
+                        height: 100%;
+                        @include diagonal-background(transparent, white);
+                    }
+
+                    tr.striped.blurred .series-color .swatch::before {
+                        @include diagonal-background($grey, white);
+                    }
+                }
+
+                .hoverIndicator circle {
+                    stroke-width: 1;
+                    r: 5px;
+                }
+            }
+
+            // tolerance captions w/ circle-i icon or projection warning with striped swatch
+            .endmatter {
+                position: relative;
+                color: $grey;
+                padding: 4px 12px;
+                border-radius: 0 0 3px 3px;
+                border-top: 1px solid $light-grey;
+
+                .line {
+                    margin: 4px 0;
+                }
+
+                .line.no-icon {
+                    font-style: italic;
+                }
+
+                // add a top border to the last line if it doesn't have an icon and there are multiple lines
+                &.multiple-lines .line.no-icon:last-of-type {
+                    border-top: 1px solid $background-stroke;
+                    padding-top: 5px;
+                    margin-top: 6px;
+                }
+
+                .icon {
+                    position: absolute;
                     width: 12px;
-                    height: 12px;
-                    display: inline-block;
-                    margin-right: 0.3em;
-                    text-align: left;
-                    position: relative;
-                }
-            }
 
-            td.series-name {
-                padding-right: 0.9em;
-                line-height: 16px;
-                width: 100%;
-                .parenthetical {
-                    color: $grey;
+                    &.stripes {
+                        content: " ";
+                        height: 12px;
+                        @include diagonal-background($grey, white);
+                    }
                 }
 
-                .annotation {
-                    display: block;
-                    color: $grey;
+                p {
                     font-size: 12px;
                     letter-spacing: 0.01em;
+                    line-height: 15px;
+                    margin: 0;
+                    max-width: 260px;
+                }
+
+                .icon ~ p {
+                    padding-left: 19px;
                 }
             }
 
-            td.series-value {
-                font-weight: $bold;
-                text-align: right;
-                white-space: nowrap;
+            .icon-circled-s {
+                --size: 12px;
 
-                &.missing::before {
-                    content: "No data";
-                    color: $light-grey;
+                position: relative;
+                width: var(--size);
+                height: var(--size);
+                font-size: var(--size);
+                bottom: -1px; // small visual correction
+
+                &.as-superscript {
+                    --size: 10px;
+
+                    display: inline-block;
+                    bottom: 0.7em;
+                    margin-left: 2px;
                 }
 
-                & + .series-value {
-                    padding-left: 0.5em;
+                .circle {
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    border: 1px solid $grey;
+                    border-radius: 50%;
                 }
-            }
 
-            td.time-notice {
-                white-space: nowrap;
-                font-weight: $medium;
-                text-indent: 20px;
-                text-align: right;
-                padding-right: 0;
-                color: $grey;
-            }
-
-            // -- special row types --
-
-            tr.blurred {
-                color: $light-grey;
-                .series-color .swatch {
-                    opacity: 0.25;
-                }
-                .series-name span {
-                    color: inherit;
-                }
-            }
-
-            tr.spacer {
-                line-height: 2px;
-                font-size: 2px;
-                &::before {
-                    content: "\00a0";
+                svg {
+                    font-size: 0.6em;
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: $grey;
                 }
             }
 
-            tr.total {
-                td {
-                    line-height: 14px;
-                }
-                td:nth-child(2),
-                td:nth-child(3) {
-                    border-top: 1px solid $background-stroke;
-                    vertical-align: bottom;
-                }
-                td:last-child::before {
-                    content: "\200a";
-                    height: 5px;
-                    display: block;
+            // class names passed to the `dissolve` prop control fade-out timing
+            &.dissolve {
+                opacity: 0;
+                transition: opacity $fade-time $fade-delay;
+                &.immediate {
+                    transition: opacity $fade-time;
                 }
             }
 
-            // highlight hovered row
-            &.focal {
-                tr:not(.focused, .total) td {
-                    opacity: 0.6;
-                }
-
-                td.series-value {
-                    font-weight: $medium;
-                }
-
-                tr.focused td {
-                    font-weight: $bold;
-
-                    .parenthetical {
-                        font-weight: $medium;
+            //
+            // ‘TEMPORARY’ FIX:
+            // Until the map variable displayNames can be copy-edited, hide the variable name entirely
+            // and use just the unit (if present) as a label
+            //
+            &#mapTooltip {
+                .variable .definition {
+                    .name {
+                        display: none;
                     }
-                    &.time-notice {
-                        font-weight: $medium;
+
+                    .unit::after,
+                    .unit::before {
+                        content: none;
                     }
                 }
             }
-
-            // hide unused color swatch column
-            &:not(.swatched) {
-                td.series-color {
-                    display: none;
-                }
-            }
-
-            // overlay a diagonal line pattern on striped swatches
-            tr.striped .series-color .swatch::before {
-                content: " ";
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                @include diagonal-background(transparent, white);
-            }
-
-            tr.striped.blurred .series-color .swatch::before {
-                @include diagonal-background($grey, white);
-            }
         }
 
-        .hoverIndicator circle {
-            stroke-width: 1;
-            r: 5px;
-        }
-    }
-
-    // tolerance captions w/ circle-i icon or projection warning with striped swatch
-    .endmatter {
-        position: relative;
-        color: $grey;
-        padding: 4px 12px;
-        border-radius: 0 0 3px 3px;
-        border-top: 1px solid $light-grey;
-
-        .line {
-            margin: 4px 0;
-        }
-
-        .line.no-icon {
-            font-style: italic;
-        }
-
-        // add a top border to the last line if it doesn't have an icon and there are multiple lines
-        &.multiple-lines .line.no-icon:last-of-type {
-            border-top: 1px solid $background-stroke;
-            padding-top: 5px;
-            margin-top: 6px;
-        }
-
-        .icon {
-            position: absolute;
-            width: 12px;
-
-            &.stripes {
-                content: " ";
-                height: 12px;
-                @include diagonal-background($grey, white);
-            }
-        }
-
-        p {
-            font-size: 12px;
-            letter-spacing: 0.01em;
-            line-height: 15px;
-            margin: 0;
-            max-width: 260px;
-        }
-
-        .icon ~ p {
-            padding-left: 19px;
-        }
-    }
-
-    .icon-circled-s {
-        --size: 12px;
-
-        position: relative;
-        width: var(--size);
-        height: var(--size);
-        font-size: var(--size);
-        bottom: -1px; // small visual correction
-
-        &.as-superscript {
-            --size: 10px;
-
-            display: inline-block;
-            bottom: 0.7em;
-            margin-left: 2px;
-        }
-
-        .circle {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border: 1px solid $grey;
-            border-radius: 50%;
-        }
-
-        svg {
-            font-size: 0.6em;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: $grey;
-        }
-    }
-
-    // class names passed to the `dissolve` prop control fade-out timing
-    &.dissolve {
-        opacity: 0;
-        transition: opacity $fade-time $fade-delay;
-        &.immediate {
-            transition: opacity $fade-time;
-        }
-    }
-
-    //
-    // ‘TEMPORARY’ FIX:
-    // Until the map variable displayNames can be copy-edited, hide the variable name entirely
-    // and use just the unit (if present) as a label
-    //
-    &#mapTooltip {
-        .variable .definition {
-            .name {
-                display: none;
-            }
-
-            .unit::after,
-            .unit::before {
-                content: none;
-            }
-        }
-    }
-}
-
-// adapt to smaller display areas
-@container grapher (max-width:900px) {
-    .Tooltip {
-        .content {
-            padding: 4px 12px;
-            .variable .values {
-                font-size: 16px;
-                line-height: 18px;
-                svg.arrow {
-                    height: 12px;
-                    padding-right: 2px;
-                }
-            }
-
-            .variable + .variable {
-                padding-top: 4px;
-            }
-
-            table.series-list {
-                font-size: 12px;
-                line-height: 18px;
-                letter-spacing: 0.01em;
-
-                tr.total {
-                    td:last-child::before {
-                        height: 4px;
+        // adapt to smaller display areas
+        @container grapher (max-width:900px) {
+            .Tooltip {
+                .content {
+                    padding: 4px 12px;
+                    .variable .values {
+                        font-size: 16px;
+                        line-height: 18px;
+                        svg.arrow {
+                            height: 12px;
+                            padding-right: 2px;
+                        }
                     }
-                }
 
-                td.series-name .annotation {
-                    font-size: 10px;
-                    line-height: 12px;
+                    .variable + .variable {
+                        padding-top: 4px;
+                    }
+
+                    table.series-list {
+                        font-size: 12px;
+                        line-height: 18px;
+                        letter-spacing: 0.01em;
+
+                        tr.total {
+                            td:last-child::before {
+                                height: 4px;
+                            }
+                        }
+
+                        td.series-name .annotation {
+                            font-size: 10px;
+                            line-height: 12px;
+                        }
+                    }
                 }
             }
         }

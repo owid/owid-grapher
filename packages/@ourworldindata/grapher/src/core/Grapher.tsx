@@ -66,6 +66,7 @@ import {
     sortBy,
     extractDetailsFromSyntax,
     omit,
+    isTouchDevice,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -105,6 +106,7 @@ import {
     GrapherWindowType,
     Color,
     GRAPHER_QUERY_PARAM_KEYS,
+    GrapherTooltipAnchor,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -118,7 +120,6 @@ import {
     ThereWasAProblemLoadingThisChart,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
-    DEFAULT_GRAPHER_FRAME_PADDING,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
     GRAPHER_DARK_TEXT,
@@ -129,6 +130,8 @@ import {
     isPopulationVariableETLPath,
     GRAPHER_BACKGROUND_BEIGE,
     GRAPHER_BACKGROUND_DEFAULT,
+    GRAPHER_FRAME_PADDING_HORIZONTAL,
+    GRAPHER_FRAME_PADDING_VERTICAL,
 } from "../core/GrapherConstants"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig"
 import { loadVariableDataAndMetadata } from "./loadVariable"
@@ -210,6 +213,7 @@ import {
     type EntitySelectorState,
 } from "../entitySelector/EntitySelector"
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
+import { BodyDiv } from "../bodyDiv/BodyDiv"
 
 declare global {
     interface Window {
@@ -462,6 +466,10 @@ export class Grapher
         this.props.dataApiUrl ?? "https://api.ourworldindata.org/v1/indicators/"
 
     @observable.ref externalQueryParams: QueryParams
+
+    private framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
+    private framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
+
     @observable.ref inputTable: OwidTable
 
     @observable.ref legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
@@ -862,7 +870,9 @@ export class Grapher
     @observable.ref isExportingToSvgOrPng = false
     @observable.ref isSocialMediaExport = false
 
-    tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
+    tooltip?: TooltipManager["tooltip"] = observable.box(undefined, {
+        deep: false,
+    })
 
     @observable.ref isPlaying = false
     @observable.ref isTimelineAnimationActive = false // true if the timeline animation is either playing or paused but not finished
@@ -2184,6 +2194,10 @@ export class Grapher
         return isMobile()
     }
 
+    @computed get isTouchDevice(): boolean {
+        return isTouchDevice()
+    }
+
     @computed private get externalBounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
@@ -2820,12 +2834,21 @@ export class Grapher
                     <EntitySelector manager={this} autoFocus={true} />
                 </SlideInDrawer>
 
-                {/* tooltip */}
-                <TooltipContainer
-                    containerWidth={this.captionedChartBounds.width}
-                    containerHeight={this.captionedChartBounds.height}
-                    tooltipProvider={this}
-                />
+                {/* tooltip: either pin to the bottom or render into the chart area */}
+                {this.shouldPinTooltipToBottom ? (
+                    <BodyDiv>
+                        <TooltipContainer
+                            tooltipProvider={this}
+                            anchor={GrapherTooltipAnchor.bottom}
+                        />
+                    </BodyDiv>
+                ) : (
+                    <TooltipContainer
+                        tooltipProvider={this}
+                        containerWidth={this.captionedChartBounds.width}
+                        containerHeight={this.captionedChartBounds.height}
+                    />
+                )}
             </>
         )
     }
@@ -2833,20 +2856,31 @@ export class Grapher
     // Chart should only render SVG when it's on the screen
     @action.bound private setUpIntersectionObserver(): void {
         if (typeof window !== "undefined" && "IntersectionObserver" in window) {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        this.hasBeenVisible = true
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            this.hasBeenVisible = true
 
-                        if (this.slug && !this.hasLoggedGAViewEvent) {
-                            this.analytics.logGrapherView(this.slug)
-                            this.hasLoggedGAViewEvent = true
+                            if (this.slug && !this.hasLoggedGAViewEvent) {
+                                this.analytics.logGrapherView(this.slug)
+                                this.hasLoggedGAViewEvent = true
+                            }
                         }
 
-                        observer.disconnect()
-                    }
-                })
-            })
+                        // dismiss tooltip when less than 2/3 of the chart is visible
+                        const tooltip = this.tooltip?.get()
+                        const isNotVisible = !entry.isIntersecting
+                        const isPartiallyVisible =
+                            entry.isIntersecting &&
+                            entry.intersectionRatio < 0.66
+                        if (tooltip && (isNotVisible || isPartiallyVisible)) {
+                            tooltip.dismiss?.()
+                        }
+                    })
+                },
+                { threshold: [0, 0.66] }
+            )
             observer.observe(this.containerElement!)
             this.disposers.push(() => observer.disconnect())
         } else {
@@ -2897,17 +2931,9 @@ export class Grapher
         return this.props.baseFontSize ?? this.baseFontSize
     }
 
-    @computed get framePaddingHorizontal(): number {
-        return DEFAULT_GRAPHER_FRAME_PADDING
-    }
-
-    @computed get framePaddingVertical(): number {
-        return DEFAULT_GRAPHER_FRAME_PADDING
-    }
-
     @computed get isNarrow(): boolean {
         if (this.isStatic) return false
-        return this.frameBounds.width <= 400
+        return this.frameBounds.width <= 420
     }
 
     // SemiNarrow charts shorten their button labels to fit within the controls row
@@ -2958,6 +2984,10 @@ export class Grapher
         return this.isExportingForSocialMedia
             ? GRAPHER_BACKGROUND_BEIGE
             : GRAPHER_BACKGROUND_DEFAULT
+    }
+
+    @computed get shouldPinTooltipToBottom(): boolean {
+        return this.isNarrow && this.isTouchDevice
     }
 
     // Binds chart properties to global window title and URL. This should only
@@ -3293,6 +3323,11 @@ export class Grapher
     msPerTick = DEFAULT_MS_PER_TICK
 
     timelineController = new TimelineController(this)
+
+    @action.bound onTimelineClick(): void {
+        const tooltip = this.tooltip?.get()
+        if (tooltip) tooltip.dismiss?.()
+    }
 
     // todo: restore this behavior??
     onStartPlayOrDrag(): void {

@@ -18,6 +18,7 @@ export interface TimelineManager {
     areHandlesOnSameTimeBeforeAnimation?: boolean
     msPerTick?: number
     onPlay?: () => void
+    onTimelineClick?: () => void
 }
 
 const delay = (ms: number): Promise<void> =>

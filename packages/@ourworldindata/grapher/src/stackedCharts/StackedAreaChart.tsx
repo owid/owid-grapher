@@ -52,7 +52,7 @@ import {
     StackedSeries,
 } from "./StackedConstants"
 import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
-import { makeClipPath } from "../chart/ChartUtils"
+import { makeClipPath, isTargetOutsideElement } from "../chart/ChartUtils"
 import { bind } from "decko"
 import { AxisConfig } from "../axis/AxisConfig.js"
 
@@ -64,6 +64,8 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
     onAreaMouseEnter?: (seriesName: SeriesName) => void
     onAreaMouseLeave?: () => void
 }
+
+const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
 
 const BLUR_COLOR = "#ddd"
 
@@ -454,9 +456,15 @@ export class StackedAreaChart
                   }
     }
 
-    @action.bound private onCursorLeave(): void {
-        this.hoverSeriesName = undefined
+    @action.bound private dismissTooltip(): void {
         this.tooltipState.target = null
+    }
+
+    @action.bound private onCursorLeave(): void {
+        if (!this.manager.shouldPinTooltipToBottom) {
+            this.dismissTooltip()
+        }
+        this.hoverSeriesName = undefined
     }
 
     @computed private get activeXVerticalLine():
@@ -465,7 +473,6 @@ export class StackedAreaChart
         const { dualAxis, series } = this
         const { horizontalAxis, verticalAxis } = dualAxis
         const hoveredPointIndex = this.tooltipState.target?.index
-
         if (hoveredPointIndex === undefined) return undefined
 
         return (
@@ -502,6 +509,14 @@ export class StackedAreaChart
         )
     }
 
+    @computed private get tooltipId(): number {
+        return this.renderUid
+    }
+
+    @computed private get isTooltipActive(): boolean {
+        return this.manager.tooltip?.get()?.id === this.tooltipId
+    }
+
     @computed private get tooltip(): React.ReactElement | undefined {
         const { target, position, fading } = this.tooltipState
         if (!target) return undefined
@@ -530,7 +545,7 @@ export class StackedAreaChart
 
         return (
             <Tooltip
-                id={this.renderUid}
+                id={this.tooltipId}
                 tooltipManager={this.props.manager}
                 x={position.x}
                 y={position.y}
@@ -543,6 +558,7 @@ export class StackedAreaChart
                 subtitleFormat="unit"
                 footer={footer}
                 dissolve={fading}
+                dismiss={this.dismissTooltip}
             >
                 <TooltipTable
                     columns={[formatColumn]}
@@ -574,6 +590,34 @@ export class StackedAreaChart
                 />
             </Tooltip>
         )
+    }
+
+    @action.bound onDocumentClick(e: MouseEvent): void {
+        // only dismiss the tooltip if the click is outside of the chart area
+        // and outside of the chart areas of neighbouring facets
+        const chartContainer = this.manager.base?.current
+        if (!chartContainer) return
+        const chartAreas = chartContainer.getElementsByClassName(
+            STACKED_AREA_CHART_CLASS_NAME
+        )
+        const isTargetOutsideChartAreas = Array.from(chartAreas).every(
+            (chartArea) => isTargetOutsideElement(e.target!, chartArea)
+        )
+        if (isTargetOutsideChartAreas) {
+            this.dismissTooltip()
+        }
+    }
+
+    componentDidMount(): void {
+        document.addEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
+    }
+
+    componentWillUnmount(): void {
+        document.removeEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
     }
 
     renderAxis(): React.ReactElement {
@@ -625,7 +669,7 @@ export class StackedAreaChart
         return (
             <g
                 ref={this.base}
-                className="StackedArea"
+                className={STACKED_AREA_CHART_CLASS_NAME}
                 onMouseLeave={this.onCursorLeave}
                 onTouchEnd={this.onCursorLeave}
                 onTouchCancel={this.onCursorLeave}
@@ -651,7 +695,7 @@ export class StackedAreaChart
                         onAreaMouseLeave={this.onAreaMouseLeave}
                     />
                 </g>
-                {this.activeXVerticalLine}
+                {this.isTooltipActive && this.activeXVerticalLine}
                 {this.tooltip}
             </g>
         )
@@ -660,7 +704,7 @@ export class StackedAreaChart
     render(): React.ReactElement {
         if (this.failMessage)
             return (
-                <g className="StackedArea">
+                <g>
                     {this.renderAxis()}
                     <NoDataModal
                         manager={this.manager}

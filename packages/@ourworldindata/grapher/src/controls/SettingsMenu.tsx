@@ -8,7 +8,10 @@ import { EntityName, ChartTypeName, FacetStrategy } from "@ourworldindata/types"
 import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartDimension } from "../chart/ChartDimension"
-import { makeSelectionArray } from "../chart/ChartUtils.js"
+import {
+    isTargetOutsideElement,
+    makeSelectionArray,
+} from "../chart/ChartUtils.js"
 import { AxisConfig } from "../axis/AxisConfig"
 
 import { AxisScaleToggle } from "./settings/AxisScaleToggle"
@@ -245,8 +248,7 @@ export class SettingsMenu extends React.Component<{
         if (
             this.active &&
             this.contentRef?.current &&
-            !this.contentRef.current.contains(e.target as Node) &&
-            document.contains(e.target as Node)
+            isTargetOutsideElement(e.target!, this.contentRef.current)
         )
             this.toggleVisibility()
     }

@@ -915,6 +915,7 @@ export class StackedDiscreteBarChart
                     subtitleFormat="unit"
                     footer={footer}
                     dissolve={fading}
+                    dismiss={() => (this.tooltipState.target = null)}
                 >
                     <TooltipTable
                         columns={[this.formatColumn]}

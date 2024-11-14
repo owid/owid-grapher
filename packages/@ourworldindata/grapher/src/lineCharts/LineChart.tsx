@@ -85,6 +85,7 @@ import {
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
     getSeriesKey,
+    isTargetOutsideElement,
     makeClipPath,
     makeSelectionArray,
 } from "../chart/ChartUtils"
@@ -101,6 +102,8 @@ import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
+
+const LINE_CHART_CLASS_NAME = "LineChart"
 
 // line color
 const BLUR_LINE_COLOR = "#eee"
@@ -443,8 +446,14 @@ export class LineChart
         return table
     }
 
-    @action.bound private onCursorLeave(): void {
+    @action.bound private dismissTooltip(): void {
         this.tooltipState.target = null
+    }
+
+    @action.bound private onCursorLeave(): void {
+        if (!this.manager.shouldPinTooltipToBottom) {
+            this.dismissTooltip()
+        }
         this.clearHighlightedSeries()
     }
 
@@ -601,6 +610,14 @@ export class LineChart
         )
     }
 
+    @computed private get tooltipId(): number {
+        return this.renderUid
+    }
+
+    @computed private get isTooltipActive(): boolean {
+        return this.manager.tooltip?.get()?.id === this.tooltipId
+    }
+
     @computed private get tooltip(): React.ReactElement | undefined {
         const { formatColumn, colorColumn, hasColorScale } = this
         const { target, position, fading } = this.tooltipState
@@ -670,7 +687,7 @@ export class LineChart
 
         return (
             <Tooltip
-                id={this.renderUid}
+                id={this.tooltipId}
                 tooltipManager={this.manager}
                 x={position.x}
                 y={position.y}
@@ -683,6 +700,7 @@ export class LineChart
                 subtitleFormat={subtitleFormat}
                 footer={footer}
                 dissolve={fading}
+                dismiss={this.dismissTooltip}
             >
                 <TooltipTable
                     columns={columns}
@@ -706,10 +724,10 @@ export class LineChart
                                 )
                               : series.color
 
-                        const values = [
+                        const values = excludeUndefined([
                             point?.y,
                             point?.colorValue as undefined | number,
-                        ]
+                        ])
 
                         return {
                             name,
@@ -768,6 +786,22 @@ export class LineChart
         return this.focusedSeriesNames.length > 0
     }
 
+    @action.bound onDocumentClick(e: MouseEvent): void {
+        // only dismiss the tooltip if the click is outside of the chart area
+        // and outside of the chart areas of neighbouring facets
+        const chartContainer = this.manager.base?.current
+        if (!chartContainer) return
+        const chartAreas = chartContainer.getElementsByClassName(
+            LINE_CHART_CLASS_NAME
+        )
+        const isTargetOutsideChartAreas = Array.from(chartAreas).every(
+            (chartArea) => isTargetOutsideElement(e.target!, chartArea)
+        )
+        if (isTargetOutsideChartAreas) {
+            this.dismissTooltip()
+        }
+    }
+
     animSelection?: d3.Selection<
         d3.BaseType,
         unknown,
@@ -779,10 +813,16 @@ export class LineChart
             this.runFancyIntroAnimation()
         }
         exposeInstanceOnWindow(this)
+        document.addEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
     }
 
     componentWillUnmount(): void {
         if (this.animSelection) this.animSelection.interrupt()
+        document.removeEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
     }
 
     @computed get renderUid(): number {
@@ -930,7 +970,7 @@ export class LineChart
         return (
             <g
                 ref={this.base}
-                className="LineChart"
+                className={LINE_CHART_CLASS_NAME}
                 onMouseLeave={this.onCursorLeave}
                 onTouchEnd={this.onCursorLeave}
                 onTouchCancel={this.onCursorLeave}
@@ -952,7 +992,7 @@ export class LineChart
                 {this.renderDualAxis()}
                 <g clipPath={this.clipPath.id}>{this.renderChartElements()}</g>
 
-                {this.activeXVerticalLine}
+                {this.isTooltipActive && this.activeXVerticalLine}
                 {this.tooltip}
             </g>
         )
@@ -963,7 +1003,7 @@ export class LineChart
 
         if (this.failMessage)
             return (
-                <g className="LineChart">
+                <g>
                     {this.renderDualAxis()}
                     <NoDataModal
                         manager={manager}

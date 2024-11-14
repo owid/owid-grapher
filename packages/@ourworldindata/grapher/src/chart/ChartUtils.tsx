@@ -107,3 +107,16 @@ export function getShortNameForEntity(entityName: string): string | undefined {
     const country = getCountryByName(entityName)
     return country?.shortName
 }
+
+export function isTargetOutsideElement(
+    target: EventTarget,
+    element: Node
+): boolean {
+    const targetNode = target as Node
+    return (
+        !element.contains(targetNode) &&
+        // check that the target is still mounted to the document (we also get
+        // click events on nodes that have since been removed by React)
+        document.contains(targetNode)
+    )
+}

@@ -11,11 +11,13 @@ import {
     isNumber,
     sortBy,
     formatInlineList,
+    GrapherTooltipAnchor,
 } from "@ourworldindata/utils"
 import {
     TooltipTableProps,
     TooltipValueProps,
     TooltipValueRangeProps,
+    TooltipContext,
 } from "./TooltipProps"
 
 export const NO_DATA_COLOR = "#999"
@@ -167,6 +169,8 @@ class Variable extends React.Component<{
 }
 
 export class TooltipTable extends React.Component<TooltipTableProps> {
+    static contextType = TooltipContext
+
     render(): React.ReactElement | null {
         const { columns, totals, rows } = this.props,
             focal = rows.some((row) => row.focused),
@@ -181,7 +185,21 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
             tooTrivial = zip(columns, totals ?? []).every(
                 ([column, total]) =>
                     !!column?.formatValueShort(total).match(/^100(\.0+)?%/)
-            )
+            ),
+            showTotals = totals && !(tooEmpty || tooTrivial)
+
+        // if the tooltip is pinned to the bottom, show the total at the top,
+        // so that it's always visible even if the tooltip is scrollable
+        const showTotalsAtTop =
+            this.context?.anchor === GrapherTooltipAnchor.bottom
+
+        const totalsCells = zip(columns, totals!).map(([column, total]) => (
+            <td key={column?.slug} className="series-value">
+                {column && total !== undefined
+                    ? column.formatValueShort(total, format)
+                    : null}
+            </td>
+        ))
 
         return (
             <table className={classnames("series-list", { focal, swatched })}>
@@ -199,6 +217,16 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                     </thead>
                 )}
                 <tbody>
+                    {showTotals && showTotalsAtTop && (
+                        <>
+                            <tr className="total--top">
+                                <td className="series-color"></td>
+                                <td className="series-name">Total</td>
+                                {totalsCells}
+                            </tr>
+                            <tr className="spacer"></tr>
+                        </>
+                    )}
                     {rows.map((row) => {
                         const {
                             name,
@@ -268,25 +296,13 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                             </tr>
                         )
                     })}
-                    {totals && !(tooEmpty || tooTrivial) && (
+                    {showTotals && !showTotalsAtTop && (
                         <>
                             <tr className="spacer"></tr>
                             <tr className="total">
                                 <td className="series-color"></td>
                                 <td className="series-name">Total</td>
-                                {zip(columns, totals).map(([column, total]) => (
-                                    <td
-                                        key={column?.slug}
-                                        className="series-value"
-                                    >
-                                        {column && total !== undefined
-                                            ? column.formatValueShort(
-                                                  total,
-                                                  format
-                                              )
-                                            : null}
-                                    </td>
-                                ))}
+                                {totalsCells}
                             </tr>
                         </>
                     )}

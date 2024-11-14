@@ -15,26 +15,18 @@ import {
     Time,
     EntityName,
     OwidVariableRow,
-    OwidVariableRoundingMode,
+    AxisConfigInterface,
 } from "@ourworldindata/types"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
-import { LineChart } from "../lineCharts/LineChart"
 import {
-    Bounds,
     isNumber,
     AllKeysRequired,
-    checkIsVeryShortUnit,
     PrimitiveType,
-    isString,
-    first,
-    last,
-    min,
-    max,
     excludeUndefined,
     anyToString,
 } from "@ourworldindata/utils"
-import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { darkenColorForHighContrastText } from "../color/ColorUtils"
+import { MapSparkline, MapSparklineManager } from "./MapSparkline.js"
 
 interface MapTooltipProps {
     tooltipState: TooltipState<{ featureId: string; clickable: boolean }>
@@ -43,16 +35,16 @@ interface MapTooltipProps {
     formatValueIfCustom: (d: PrimitiveType) => string | undefined
     timeSeriesTable: OwidTable
     targetTime?: Time
+    sparklineWidth?: number
+    sparklineHeight?: number
 }
 
-const SPARKLINE_WIDTH = 250
-const SPARKLINE_HEIGHT = 87
-const SPARKLINE_PADDING = 15
-const SPARKLINE_NUDGE = 3 // step away from the axis
-
 @observer
-export class MapTooltip extends React.Component<MapTooltipProps> {
-    @computed private get mapColumnSlug(): string | undefined {
+export class MapTooltip
+    extends React.Component<MapTooltipProps>
+    implements MapSparklineManager
+{
+    @computed get mapColumnSlug(): string | undefined {
         return this.props.manager.mapColumnSlug
     }
 
@@ -60,49 +52,37 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return this.mapTable.get(this.mapColumnSlug)
     }
 
-    @computed private get mapAndYColumnAreTheSame(): boolean {
+    @computed get mapAndYColumnAreTheSame(): boolean {
         const { yColumnSlug, yColumnSlugs, mapColumnSlug } = this.props.manager
         return yColumnSlugs && mapColumnSlug !== undefined
             ? yColumnSlugs.includes(mapColumnSlug)
             : yColumnSlug === mapColumnSlug
     }
 
-    @computed private get entityName(): EntityName {
+    @computed get entityName(): EntityName {
         return this.props.tooltipState.target?.featureId ?? ""
     }
 
-    // Table pre-filtered by targetTime, exlcudes time series
+    @computed get targetTime(): Time | undefined {
+        return this.props.targetTime
+    }
+
+    // Table pre-filtered by targetTime, excludes time series
     @computed private get mapTable(): OwidTable {
         const table =
             this.props.manager.transformedTable ?? this.props.manager.table
         return table.filterByEntityNames([this.entityName])
     }
 
-    @computed private get timeSeriesTable(): OwidTable | undefined {
-        if (this.mapColumnSlug === undefined) return undefined
+    @computed get timeSeriesTable(): OwidTable {
         return this.props.timeSeriesTable
-            .filterByEntityNames([this.entityName])
-            .columnFilter(
-                this.mapColumnSlug,
-                isNumber,
-                "Drop rows with non-number values in Y column"
-            )
-            .sortBy([this.props.timeSeriesTable.timeColumn.slug])
     }
 
-    @computed private get datum():
-        | OwidVariableRow<number | string>
-        | undefined {
+    @computed get datum(): OwidVariableRow<number | string> | undefined {
         return this.mapColumn.owidRows[0]
     }
 
-    @computed private get hasTimeSeriesData(): boolean {
-        return this.timeSeriesTable !== undefined
-            ? this.timeSeriesTable.numRows > 1
-            : false
-    }
-
-    @computed private get lineColorScale(): ColorScale {
+    @computed get lineColorScale(): ColorScale {
         const oldManager = this.props.colorScaleManager
         // Make sure all ColorScaleManager props are included.
         // We can't ...rest here because I think mobx computeds aren't
@@ -118,101 +98,11 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     @computed private get showSparkline(): boolean {
-        return this.hasTimeSeriesData
+        return MapSparkline.shouldShow(this)
     }
 
-    // Line chart fields
-    @computed private get sparklineTable(): OwidTable {
-        return this.timeSeriesTable ?? new OwidTable()
-    }
-    @computed private get sparklineManager(): LineChartManager {
-        // use the whole time range for the sparkline, not just the range where this series has data
-        let { minTime, maxTime } = this.props.timeSeriesTable ?? {}
-        if (this.mapColumnSlug) {
-            const times =
-                this.props.timeSeriesTable.getTimesUniqSortedAscForColumns([
-                    this.mapColumnSlug,
-                ])
-            minTime = first(times) ?? minTime
-            maxTime = last(times) ?? maxTime
-        }
-
-        // Pass down short units, while omitting long or undefined ones.
-        const unit = this.sparklineTable.get(this.mapColumnSlug).shortUnit
-        const yAxisUnit =
-            typeof unit === "string"
-                ? checkIsVeryShortUnit(unit)
-                    ? unit
-                    : ""
-                : ""
-
-        return {
-            table: this.sparklineTable,
-            transformedTable: this.sparklineTable,
-            yColumnSlug: this.mapColumnSlug,
-            colorColumnSlug: this.mapColumnSlug,
-            selection: [this.entityName],
-            colorScaleOverride: this.lineColorScale,
-            showLegend: false,
-            hidePoints: true,
-            fontSize: 11,
-            disableIntroAnimation: true,
-            lineStrokeWidth: 2,
-            entityYearHighlight: {
-                entityName: this.entityName,
-                year: this.datum?.time,
-            },
-            yAxisConfig: {
-                hideAxis: true,
-                hideGridlines: false,
-                tickFormattingOptions: {
-                    unit: yAxisUnit,
-                    numberAbbreviation: "short",
-                },
-                // Copy min/max from top-level Grapher config if Y column == Map column
-                min: this.mapAndYColumnAreTheSame
-                    ? this.props.manager.yAxisConfig?.min
-                    : undefined,
-                max: this.mapAndYColumnAreTheSame
-                    ? this.props.manager.yAxisConfig?.max
-                    : undefined,
-                ticks: [
-                    // Show minimum and zero (maximum is added by hand in render so it's never omitted)
-                    { value: -Infinity, priority: 2 },
-                    { value: 0, priority: 1 },
-                ],
-            },
-            xAxisConfig: {
-                hideAxis: false,
-                hideGridlines: true,
-                tickFormattingOptions: {},
-                min: minTime ?? this.props.targetTime,
-                max: maxTime ?? this.props.targetTime,
-                ticks: [
-                    // Show minimum and maximum
-                    { value: -Infinity, priority: 1 },
-                    { value: Infinity, priority: 1 },
-                ],
-            },
-        }
-    }
-
-    @computed private get sparklineBounds(): Bounds {
-        // Add padding so that the edges of the plot doesn't get clipped.
-        // The plot can go out of boundaries due to line stroke thickness & labels.
-        return new Bounds(0, 0, SPARKLINE_WIDTH, SPARKLINE_HEIGHT).pad({
-            top: 9,
-            left: SPARKLINE_PADDING,
-            right: SPARKLINE_PADDING,
-            bottom: 3,
-        })
-    }
-
-    @computed private get sparklineChart(): LineChart {
-        return new LineChart({
-            manager: this.sparklineManager,
-            bounds: this.sparklineBounds,
-        })
+    @computed get yAxisConfig(): AxisConfigInterface | undefined {
+        return this.props.manager.yAxisConfig
     }
 
     render(): React.ReactElement {
@@ -250,28 +140,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             }
         }
 
-        const { yAxisConfig } = this.sparklineManager,
-            yColumn = this.sparklineTable.get(this.mapColumnSlug),
-            minVal = min([yColumn.min, yAxisConfig?.min]),
-            maxVal = max([yColumn.max, yAxisConfig?.max]),
-            minCustom =
-                isNumber(minVal) &&
-                this.lineColorScale.getBinForValue(minVal)?.label,
-            maxCustom =
-                isNumber(maxVal) &&
-                this.lineColorScale.getBinForValue(maxVal)?.label,
-            useCustom = isString(minCustom) && isString(maxCustom),
-            minLabel = useCustom
-                ? minCustom
-                : yColumn.formatValueShort(minVal ?? 0, {
-                      roundingMode: OwidVariableRoundingMode.decimalPlaces,
-                  }),
-            maxLabel = useCustom
-                ? maxCustom
-                : yColumn.formatValueShort(maxVal ?? 0, {
-                      roundingMode: OwidVariableRoundingMode.decimalPlaces,
-                  })
-        const { innerBounds: axisBounds } = this.sparklineChart.dualAxis
+        const yColumn = this.mapTable.get(this.mapColumnSlug)
 
         const targetNotice =
             datum && datum.time !== targetTime ? displayTime : undefined
@@ -295,10 +164,6 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 : undefined
         const footer = excludeUndefined([toleranceNotice, roundingNotice])
 
-        const labelX = axisBounds.right - SPARKLINE_NUDGE
-        const labelTop = axisBounds.top - SPARKLINE_NUDGE
-        const labelBottom = axisBounds.bottom - SPARKLINE_NUDGE
-
         return (
             <Tooltip
                 id="mapTooltip"
@@ -315,6 +180,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 subtitleFormat={targetNotice ? "notice" : undefined}
                 footer={footer}
                 dissolve={fading}
+                dismiss={() => (this.props.tooltipState.target = null)}
             >
                 <TooltipValue
                     column={yColumn}
@@ -325,50 +191,11 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                         roundingNotice.icon !== TooltipFooterIcon.none
                     }
                 />
-                {this.showSparkline && (
-                    <div
-                        className="sparkline"
-                        // negative margin to align the padding (added below) with the text labels
-                        style={{ margin: `0 -${SPARKLINE_PADDING}px` }}
-                    >
-                        <svg
-                            className="plot"
-                            width={SPARKLINE_WIDTH}
-                            height={SPARKLINE_HEIGHT}
-                        >
-                            <line
-                                className="max-line"
-                                x1={axisBounds.left}
-                                y1={axisBounds.y}
-                                x2={axisBounds.right}
-                                y2={axisBounds.y}
-                            />
-                            <LineChart
-                                manager={this.sparklineManager}
-                                bounds={this.sparklineBounds}
-                            />
-                            {maxLabel !== minLabel && (
-                                <g className="max axis-label">
-                                    <text x={labelX} y={labelTop}>
-                                        {maxLabel}
-                                    </text>
-                                </g>
-                            )}
-                            <g className="min axis-label">
-                                <text
-                                    className="outline"
-                                    x={labelX}
-                                    y={labelBottom}
-                                >
-                                    {minLabel}
-                                </text>
-                                <text x={labelX} y={labelBottom}>
-                                    {minLabel}
-                                </text>
-                            </g>
-                        </svg>
-                    </div>
-                )}
+                <MapSparkline
+                    manager={this}
+                    sparklineWidth={this.props.sparklineWidth}
+                    sparklineHeight={this.props.sparklineHeight}
+                />
             </Tooltip>
         )
     }

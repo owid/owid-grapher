@@ -2,6 +2,7 @@ import React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
+import { isTargetOutsideElement } from "../chart/ChartUtils"
 
 @observer
 export class FullScreen extends React.Component<{
@@ -14,10 +15,7 @@ export class FullScreen extends React.Component<{
     @action.bound onDocumentClick(e: React.MouseEvent): void {
         if (
             this.content?.current &&
-            // check if the click was outside of the modal
-            !this.content.current.contains(e.target as Node) &&
-            // check that the target is still mounted to the document; we also get click events on nodes that have since been removed by React
-            document.contains(e.target as Node)
+            isTargetOutsideElement(e.target, this.content.current)
         )
             this.props.onDismiss()
     }
