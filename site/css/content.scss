@@ -269,3 +269,29 @@ figure[data-explorer-src] {
 code {
     white-space: pre-wrap; // make sure long code lines do not overflow
 }
+
+/*******************************************************************************
+ * Grid margin collapse quickfixes
+ * We should probably consider solving this another way but for now we
+ * fix the most common cases with these quickfixes.
+ */
+
+.grid .article-block__text + .h2-bold {
+    margin-top: calc(48px - 16px);
+}
+
+.grid .article-block__list + .h2-bold {
+    margin-top: calc(48px - 16px);
+}
+
+.grid .article-block__text + .h3-bold {
+    margin-top: calc(48px - 16px);
+}
+
+.grid .article-block__list + .h3-bold {
+    margin-top: calc(48px - 16px);
+}
+
+.grid .h3-bold + .article-block__image {
+    margin-top: 0px;
+}
