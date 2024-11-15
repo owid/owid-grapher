@@ -98,6 +98,8 @@ export const makeSitemap = async (
         `
     )
 
+    const STATIC_PAGES = ["/explorers", "/data", "/search", "/donate"]
+
     const explorers = await explorerAdminServer.getAllPublishedExplorers()
 
     let urls = countries.map((c) => ({
@@ -105,6 +107,11 @@ export const makeSitemap = async (
     })) as SitemapUrl[]
 
     urls = urls
+        .concat(
+            ...STATIC_PAGES.map((path) => {
+                return [{ loc: urljoin(BAKED_BASE_URL, path) }]
+            })
+        )
         .concat(
             ...countryProfileSpecs.map((spec) => {
                 return countries.map((c) => ({

@@ -6,6 +6,7 @@ import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.j
 import { SearchPage } from "../site/search/SearchPage.js"
 import NotFoundPage from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
+import { ExplorerIndexPage } from "../site/ExplorerIndexPage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
@@ -64,6 +65,7 @@ import {
     KnexReadonlyTransaction,
     getHomepageId,
     getFlatTagGraph,
+    getPublishedExplorersBySlug,
 } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
@@ -675,6 +677,19 @@ export const renderReusableBlock = async (
     await renderProminentLinks(cheerioEl, containerPostId, knex)
 
     return cheerioEl("body").html() ?? undefined
+}
+
+export const renderExplorerIndexPage = async (
+    knex: KnexReadonlyTransaction
+): Promise<string> => {
+    const explorersBySlug = await getPublishedExplorersBySlug(knex)
+    const explorers = Object.values(explorersBySlug).sort((a, b) =>
+        a.title.localeCompare(b.title)
+    )
+
+    return renderToHtmlPage(
+        <ExplorerIndexPage baseUrl={BAKED_BASE_URL} explorers={explorers} />
+    )
 }
 
 interface ExplorerRenderOpts {
