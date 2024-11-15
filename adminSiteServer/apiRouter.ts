@@ -1,6 +1,7 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
 import * as lodash from "lodash"
+import sharp from "sharp"
 import * as db from "../db/db.js"
 import {
     UNCATEGORIZED_TAG_ID,
@@ -9,6 +10,8 @@ import {
     ADMIN_BASE_URL,
     DATA_API_URL,
     FEATURE_FLAGS,
+    CLOUDFLARE_IMAGES_ACCOUNT_ID,
+    CLOUDFLARE_IMAGES_API_KEY,
 } from "../settings/serverSettings.js"
 import { FeatureFlagFeature } from "../settings/clientSettings.js"
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
@@ -109,6 +112,7 @@ import {
     DbPlainChartView,
     ChartViewsTableName,
     DbInsertChartView,
+    DbEnrichedImage,
 } from "@ourworldindata/types"
 import { uuidv7 } from "uuidv7"
 import {
@@ -3048,6 +3052,186 @@ postRouteWithRWTransaction(
         await setTagsForGdoc(trx, gdocId, tagIdsAsObjects)
 
         return { success: true }
+    }
+)
+
+getRouteNonIdempotentWithRWTransaction(
+    apiRouter,
+    "/images.json",
+    async (_, res, trx) => {
+        try {
+            const images = await db.getCloudflareImages(trx)
+            res.set("Cache-Control", "no-store")
+            res.send({ images })
+        } catch (error) {
+            console.error("Error fetching images", error)
+            res.status(500).json({
+                error: { message: String(error), status: 500 },
+            })
+        }
+    }
+)
+
+postRouteWithRWTransaction(apiRouter, "/image", async (req, res, trx) => {
+    const { filename, type, content } = req.body
+    if (!filename || !type || !content) {
+        throw new JsonError("Missing required fields", 400)
+    }
+    if (
+        typeof filename !== "string" ||
+        typeof type !== "string" ||
+        typeof content !== "string"
+    ) {
+        throw new JsonError("Invalid field types", 400)
+    }
+
+    // Strip the data URL prefix
+    const stripped = content.slice(content.indexOf(",") + 1)
+    const asBuffer = Buffer.from(stripped, "base64")
+    const asBlob = new Blob([asBuffer], { type: type })
+    const dimensions = await sharp(asBuffer)
+        .metadata()
+        .then(({ width, height }) => ({ width, height }))
+
+    const body = new FormData()
+    body.append("file", asBlob)
+    body.append("id", encodeURIComponent(filename))
+    body.append("metadata", JSON.stringify({ filename }))
+    body.append("requireSignedURLs", "false")
+
+    console.log("Uploading image:", filename)
+    const response = await fetch(
+        `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1`,
+        {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${CLOUDFLARE_IMAGES_API_KEY}`,
+            },
+            body,
+        }
+    ).then((res) => res.json())
+
+    if (response.errors.length) {
+        console.error("Error uploading image to Cloudflare:", response.errors)
+        throw new JsonError(JSON.stringify(response.errors))
+    }
+
+    const cloudflareId = response.result.id
+
+    if (!cloudflareId) {
+        return {
+            success: false,
+            error: "Failed to upload image",
+        }
+    }
+
+    await db.knexRaw(
+        trx,
+        `-- sql
+        INSERT INTO images
+            (filename, originalWidth, originalHeight, cloudflareId, defaultAlt, googleId, updatedAt)
+        VALUES
+            (?, ?, ?, ?, ?, ?, ?)`,
+        [
+            filename,
+            dimensions.width,
+            dimensions.height,
+            cloudflareId,
+            // TODO: make defaultAlt nullable
+            "Default alt text",
+            // TODO: drop googleId
+            String(Math.random()).slice(2),
+            new Date().getTime(),
+        ]
+    )
+
+    const images = await db.getCloudflareImages(trx)
+
+    return {
+        success: true,
+        images,
+    }
+})
+
+// Update alt text via patch
+patchRouteWithRWTransaction(apiRouter, "/images/:id", async (req, res, trx) => {
+    const { id } = req.params
+    const image = await db.knexRawFirst<DbEnrichedImage>(
+        trx,
+        `-- sql
+        SELECT * FROM images WHERE id = ?`,
+        [id]
+    )
+
+    if (!image) {
+        throw new JsonError(`No image found for id ${id}`, 404)
+    }
+
+    const patchableImageProperties = ["defaultAlt"] as const
+    const patch = lodash.pick(req.body, patchableImageProperties)
+
+    if (Object.keys(patch).length === 0) {
+        throw new JsonError("No patchable properties provided", 400)
+    }
+
+    await trx("images").where({ id }).update(patch)
+
+    const images = await db.getCloudflareImages(trx)
+
+    return {
+        success: true,
+        images,
+    }
+})
+
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/images/:id",
+    async (req, res, trx) => {
+        const { id } = req.params
+
+        const image = await db.knexRawFirst<{ cloudflareId: string }>(
+            trx,
+            `-- sql
+        SELECT cloudflareId FROM images WHERE id = ?`,
+            [id]
+        )
+
+        if (!image) {
+            throw new JsonError(`No image found for id ${id}`, 404)
+        }
+
+        const response = await fetch(
+            `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1/${image.cloudflareId}`,
+            {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${CLOUDFLARE_IMAGES_API_KEY}`,
+                },
+            }
+        ).then((res) => res.json())
+
+        if (response.errors.length) {
+            console.error(
+                "Error deleting image from Cloudflare:",
+                response.errors
+            )
+            throw new JsonError(JSON.stringify(response.errors))
+        }
+
+        await db.knexRaw(
+            trx,
+            `-- sql
+        DELETE FROM images WHERE id = ?`,
+            [id]
+        )
+
+        const images = await db.getCloudflareImages(trx)
+
+        return {
+            success: true,
+            images,
+        }
     }
 )
 

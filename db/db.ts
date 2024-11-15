@@ -28,6 +28,7 @@ import {
     DbPlainTag,
     TagGraphNode,
     MinimalExplorerInfo,
+    DbEnrichedImage,
 } from "@ourworldindata/types"
 import { groupBy, uniq } from "lodash"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -704,4 +705,16 @@ export async function getLinkedIndicatorSlugs({
         .then((gdocs) => gdocs.map((gdoc) => gdocFromJSON(gdoc)))
         .then((gdocs) => gdocs.flatMap((gdoc) => gdoc.linkedKeyIndicatorSlugs))
         .then((slugs) => new Set(slugs))
+}
+
+export function getCloudflareImages(
+    trx: KnexReadonlyTransaction
+): Promise<DbEnrichedImage[]> {
+    return knexRaw<DbEnrichedImage>(
+        trx,
+        `-- sql
+        SELECT filename, cloudflareId, id, defaultAlt, originalHeight, originalWidth, updatedAt
+        FROM images
+        WHERE cloudflareId IS NOT NULL`
+    )
 }

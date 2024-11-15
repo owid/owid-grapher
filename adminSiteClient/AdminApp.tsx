@@ -42,6 +42,7 @@ import { GdocsIndexPage, GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsStoreProvider } from "./GdocsStore.js"
 import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
+import { ImageIndexPage } from "./ImagesIndexPage.js"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -156,6 +157,11 @@ export class AdminApp extends React.Component<{
                                 exact
                                 path="/charts"
                                 component={ChartIndexPage}
+                            />
+                            <Route
+                                exact
+                                path="/images"
+                                component={ImageIndexPage}
                             />
                             <Route
                                 exact
